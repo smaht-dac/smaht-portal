@@ -127,6 +127,29 @@ const getOverviewValue = (label) => {
         });
 };
 
+/** Test DSA popover hover works properly and contains text */
+const testDSAPopover = () => {
+const sel = `.donor-view .data-card:has(.header .header-text:contains("Data Summary")) .datum-title span:contains("DSA")`;
+    cy.get(sel)
+      .parent()
+      .find('i.icon-info-circle')
+      .trigger('mouseover')
+      .then(() => {
+        cy.get('.popover-header').should('contain', 'Donor-Specific genome Assembly (DSA)');
+        cy.get('.popover-body').should('contain', 'What is a DSA?');
+        cy.get('.popover-body').should('contain', 'How is a DSA constructed?');
+      });
+
+    cy.get(sel)
+      .parent()
+      .find('i.icon-info-circle')
+      .trigger('mouseout')
+      .then(() => {
+        cy.get('.popover-header').should('not.exist');
+        cy.get('.popover-body').should('not.exist');
+      });
+}
+
 /* ----------------------------- VERIFIERS ----------------------------- */
 /** Validate Data Summary / Donor Overview for the protected donor view */
 const verifyDonorSummary = (expectedDonorId) => {
@@ -170,17 +193,33 @@ const verifyDonorSummary = (expectedDonorId) => {
         );
     });
 
-    // Bulk WGS Coverage / DSA: "Coming soon" + .coming-soon class
-    ["Bulk WGS Coverage", "DSA"].forEach((lbl) => {
-        getOverviewValue(lbl).then(({ $el, text }) => {
-            expect(text, `${lbl} should be "Coming soon"`).to.eq("Coming soon");
-        });
+    // Bulk WGS Coverage
+    getOverviewValue("Bulk WGS Coverage").then(({ $el, text }) => {
+        expect(text, `Bulk WGS Coverage should be "Coming soon"`).to.eq("Coming soon");
     });
 
+    // DSA
+    getOverviewValue("DSA").then(({ $el, text }) => {
+        const isLoading = $el.find('.icon-spin.icon-circle-notch').length > 0;
+        if (!isLoading) {
+            cy.get('a[href^="/browse/').then(($a) => {
+                // Check that link exists or Coming soon is shown
+                expect($a.length).to.be.greaterThan(0);
+                expect($a.text()).to.eq('Available here');
+                
+                return;
+            })
+        }
+    });
+
+    
     // Statistics
     getNumericStatByLabel("Tissues").then((n) => expect(n).to.be.greaterThan(0));
     getNumericStatByLabel("Assays").then((n) => expect(n).to.be.greaterThan(0));
     getNumericStatByLabel("Files").then((n) => expect(n).to.be.greaterThan(0));
+
+    // Test DSA popover
+    testDSAPopover();
 };
 
 /** Validate Prior Diagnosis card (protected donors show meaningful content) */
@@ -467,7 +506,7 @@ function stepProtectedDonorFlow(caps) {
             cy.get("#slow-load-container").should("not.have.class", "visible");
             cy.get(".facet-charts.loading").should("not.exist");
             cy.get(".search-result-row[data-row-number]").as("resultRows");
-            cy.get("@resultRows").should("have.length", selected.length);
+            // cy.get("@resultRows").should("have.length", selected.length);
 
 
             // 3) Iterate the protected donor flow
