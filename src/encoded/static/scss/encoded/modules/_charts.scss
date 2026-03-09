@@ -1912,10 +1912,14 @@ body[data-path="/statistics"] {
                 border-top-left-radius: 10px;
 
                 .grouping-row.total-donors-summary-row {
-                    background-color: #ffffff;
+                    background-color: #f4f4ff;
+                    border-top-left-radius: 10px;
+                    overflow: hidden;
 
                     .label-section > .label-container {
-                        background-color: #ffffff;
+                        background-color: #f4f4ff;
+                        border-top-left-radius: 10px;
+                        border-bottom: 1px solid #ffffff;
 
                         > span {
                             font-weight: 700;
@@ -1923,7 +1927,8 @@ body[data-path="/statistics"] {
                     }
 
                     .list-section {
-                        background-color: #ffffff;
+                        background-color: #f4f4ff;
+                        border-bottom: 1px solid #ffffff;
                     }
                 }
 
@@ -1940,6 +1945,7 @@ body[data-path="/statistics"] {
                 // Apply new palette to all other summary rows (e.g. Total Files).
                 .grouping-row:not(.total-donors-summary-row) {
                     background-color: #EEEEFF;
+                    border-bottom: 2px solid #aeb8c9;
 
                     .label-section > .label-container,
                     .list-section {
