@@ -22,7 +22,6 @@ def test_short_citation_calculated_property(
     identifier, expected
 ) -> None:
     """Verify short_citation formatting calcprop from workbook data."""
-    import pdb; pdb.set_trace()
     pub = get_item(
         es_testapp,
         identifier,
