@@ -62,6 +62,9 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	/* Default was gray-600, which is same as text-secondary. Making text-muted a little lighter */
 	color: $gray-500 !important;
 }
+.text-disabled {
+	color: $text-disabled-gray !important;
+}
 
 /**************************************
  ************ Button Styles ***********
