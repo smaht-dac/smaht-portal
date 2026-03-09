@@ -276,6 +276,17 @@
         }
     },
     "file_links": {
+        "analysis_runs": {
+            "title": "Analysis Runs",
+            "description": "Link to analysis runs associated with this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "AnalysisRun"
+            }
+        },
         "derived_from": {
             "title": "Derived From",
             "description": "Link to files used as input to create this file",

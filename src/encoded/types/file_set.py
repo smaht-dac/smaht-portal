@@ -343,9 +343,13 @@ class FileSet(SubmittedItem):
         }
     )
     def tissue_types(self, request):
-        """"Get top ontology term tissue type from tissue."""
+        """"
+        Get top ontology term tissue type from tissue.
+            
+        Reformat to remove TPC tissue code from beginning of value for consistency
+        """
         request_handler = RequestHandler(request=request)
-        return get_property_values_from_identifiers(
+        result = get_property_values_from_identifiers(
             request_handler,
             file_set_utils.get_tissues(self.properties, request_handler),
             functools.partial(
@@ -353,6 +357,9 @@ class FileSet(SubmittedItem):
                 tag="tissue_type"
             )
         )
+        if result:
+            # NOTE: Relies on formatting of ontology term to be [TPC code] - [Tissue type]
+            return [ r.split(' - ')[1]  if ' - ' in r else r for r in result ]
 
 
 @link_related_validator
