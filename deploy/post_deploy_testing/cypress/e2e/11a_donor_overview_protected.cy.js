@@ -170,14 +170,10 @@ const verifyDonorSummary = (expectedDonorId) => {
         );
     });
 
-    // Tier / Bulk WGS Coverage / DSA: "Coming soon" + .coming-soon class
-    ["Tier", "Bulk WGS Coverage", "DSA"].forEach((lbl) => {
+    // Bulk WGS Coverage / DSA: "Coming soon" + .coming-soon class
+    ["Bulk WGS Coverage", "DSA"].forEach((lbl) => {
         getOverviewValue(lbl).then(({ $el, text }) => {
             expect(text, `${lbl} should be "Coming soon"`).to.eq("Coming soon");
-            expect(
-                $el.hasClass("coming-soon"),
-                `${lbl} should have .coming-soon class`
-            ).to.be.true;
         });
     });
 

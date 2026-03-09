@@ -64,7 +64,10 @@ export const DataCardRow = ({
             </div>
             <div
                 className={
-                    'datum-value' + (value === null ? ' coming-soon' : '')
+                    'datum-value' +
+                    (value === null || value === 'Protected'
+                        ? ' text-disabled'
+                        : '')
                 }>
                 {value ?? 'N/A'}
             </div>
