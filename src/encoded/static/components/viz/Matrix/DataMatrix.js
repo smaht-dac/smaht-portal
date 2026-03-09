@@ -1250,7 +1250,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 <button
                                                     type="button"
                                                     className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
-                                                    onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
+                                                    onClick={() => this.onCountForChange({ target: { value: 'tissue_files' } })}>
                                                     <i className="icon fas icon-lungs me-05" /> Tissue x Assay
                                                 </button>
                                             </div>
