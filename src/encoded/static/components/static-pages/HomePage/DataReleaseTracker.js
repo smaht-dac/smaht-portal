@@ -382,7 +382,7 @@ const formatDonorReleaseData = (data) => {
 
 // Return a formatted object for release data related to a single day
 const formatDayReleaseData = (data) => {
-    const { count, items, value, query } = data;
+    const { count, query } = data;
 
     const formattedDayItems = data.items.reduce((acc, item) => {
         // Each item is a donor release, should be donor as key
@@ -420,7 +420,7 @@ const formatDayReleaseData = (data) => {
 const formatReleaseData = (data = []) => {
     if (data.length === 0) return [];
     return data.map((month) => {
-        const { count, value, items, query } = month;
+        const { count, value, query } = month;
         // Format items in the month by grouping and sorting them by day
         const formattedMonthItems = month?.items?.reduce((acc, item) => {
             const { count: dayCount, value: dayValue } = item;
