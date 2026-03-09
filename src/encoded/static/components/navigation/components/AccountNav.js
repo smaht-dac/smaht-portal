@@ -42,6 +42,7 @@ export const auth0Options = {
         primaryColor: '#1b75b9',
     },
     allowedConnections: ['partners', 'hms-it', 'bch', 'google-oauth2'],
+    autoclose: true,
     defaultEnterpriseConnection: 'partners',
     languageDictionary: {
         title: 'Log In',
@@ -68,7 +69,7 @@ export const AccountNav = React.memo(function AccountNav(props) {
 
     if (!session) {
         const auth0PopupText =
-            '<p><span class="text-danger fw-bold">NOTE</span> - If you are logging-in for the first time, please <a href="https://data.smaht.org/docs/access/creating-an-account" target="_blank">READ THIS DOCUMENT PAGE</a> about creating your account!<p>';
+            '<h4 class="text-danger text-600 text-center">Attention New Users!!</h4><p><strong>Self-registration as a non-SMaHT-Network member</strong> will give you access to open-access data <em>only</em>.</p><p><strong>If you want protected-access data:</strong> you are <em>required</em> to self-register using your institutional email address linked to the NIH/eRA or Login.gov, and obtain dbGaP approval for protected-access SMaHT data. Learn how to obtain dbGaP approval <a href="/docs/access/getting-dbgap-access" target="_blank" rel="noreferrer noopener">here</a>.</p><p>If you need help with creating a Google account linked to your institutional email to log into the SMaHT data portal, see <a href="https://data.smaht.org/docs/access/creating-an-account" target="_blank">here</a>.</p>';
         // Render login button
         return (
             <div className="navbar-nav navbar-acct">
@@ -283,4 +284,3 @@ const HelpdeskButton = React.memo(function HelpdeskButton(props) {
         </a>
     );
 });
-

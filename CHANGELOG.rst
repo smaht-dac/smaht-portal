@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-1.15.0
+1.18.0
 ======
 
 `PR 609: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/609>`_
@@ -15,6 +15,40 @@ Change Log
 * Restructure Release Tracker for network members only
 * Implement alert for public users
 * Add new smaht-wolf cypress GA workflow
+
+
+1.17.0
+======
+
+`PR 613: User registration form updates <https://github.com/smaht-dac/smaht-portal/pull/613>`_
+
+* Enhances the user registration flow, especially for distinguishing between SMaHT Network members and self-registering users
+* Improves the user interface and messaging for both groups
+
+
+1.16.0
+======
+
+`PR 611: Update OutputFile calcprops <https://github.com/smaht-dac/smaht-portal/pull/611>`_
+
+* Add calcprops to OutputFile to handle those files linked to AnalysisRuns instead of FileSets
+* Added utility functions for this
+* Updated tests and added new tests for these calcprops
+* Added AnalysisRun linkTo to file_links mixin
+* Added revlink to AnalysisRun for OutputFiles linked to it
+
+1.15.0
+======
+
+* Fix propagation of links by disabling user email resolution by default in revision history
+
+
+1.14.1
+======
+
+`PR 596: SN Update tissue type labels <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Update the calculated property for `sample_summary`` in files to adjust the tissue type label for Fibroblast and Benchmarking tissues
 
 
 1.14.0
@@ -190,7 +224,7 @@ Change Log
 * fixed a couple of pre-existing typos
 * added workbook insert for brain_pathology_report
 * udated enum value from '[0]' to '0' for target_tissue_percentage as submitr was converting former to an array
-  
+
 
 1.8.7
 =====
