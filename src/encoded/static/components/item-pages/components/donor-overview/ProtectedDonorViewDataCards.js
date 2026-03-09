@@ -449,10 +449,15 @@ const ExposureCard = ({ data, popover }) => {
     );
 };
 
-const DonorDSAValue = (props) => {
+/**
+ * Checks if donor has DSA files and returns a link to browse the DSA files if
+ * available or "Coming Soon" if not. Shows a loading indicator during check.
+ * @param {*} props
+ * @returns {JSX.Element} Link to browse DSA files if available
+ */
+const DonorDSAValue = ({ donorId }) => {
     const [link, setLink] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const { context } = props;
 
     useEffect(() => {
         let cancelled = false;
@@ -460,7 +465,7 @@ const DonorDSAValue = (props) => {
 
         if (!link) {
             // peek metadata to see if there are any DSA fields
-            const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${context?.display_title}&sample_summary.studies=Production&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File`;
+            const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${donorId}&sample_summary.studies=Production&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File`;
             ajax.load(
                 '/peek-metadata/' + searchQuery,
                 (resp) => {
@@ -572,7 +577,9 @@ export const ProtectedDonorViewDataCards = ({
                                     <DataCardRow
                                         title={'DSA'}
                                         value={
-                                            <DonorDSAValue context={context} />
+                                            <DonorDSAValue
+                                                donorId={context?.display_title}
+                                            />
                                         }
                                         titlePopover={renderDSAPopover()}
                                     />
