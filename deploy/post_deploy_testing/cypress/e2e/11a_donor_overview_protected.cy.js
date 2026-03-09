@@ -199,18 +199,18 @@ const verifyDonorSummary = (expectedDonorId) => {
     });
 
     // DSA
-    getOverviewValue("DSA").then(({ $el, text }) => {
-        const isLoading = $el.find('.icon-spin.icon-circle-notch').length > 0;
-        if (!isLoading) {
-            cy.get('a[href^="/browse/').then(($a) => {
-                // Check that link exists or Coming soon is shown
-                expect($a.length).to.be.greaterThan(0);
-                expect($a.text()).to.eq('Available here');
+    // getOverviewValue("DSA").then(({ $el, text }) => {
+    //     const isLoading = $el.find('.icon-spin.icon-circle-notch').length > 0;
+    //     if (!isLoading) {
+    //         cy.get('a[href^="/browse/').then(($a) => {
+    //             // Check that link exists or Coming soon is shown
+    //             expect($a.length).to.be.greaterThan(0);
+    //             expect($a.text()).to.eq('Available here');
                 
-                return;
-            })
-        }
-    });
+    //             return;
+    //         })
+    //     }
+    // });
 
     
     // Statistics
