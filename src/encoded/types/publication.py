@@ -9,7 +9,7 @@ from .base import (
 @collection(
     name="publications",
     acl=ONLY_ADMIN_VIEW_ACL,
-    unique_key="publication:identifier",
+    unique_key="publication:accession",
     properties={
         "title": "SMaHT Publications",
         "description": "Listing of SMaHT Publications",
