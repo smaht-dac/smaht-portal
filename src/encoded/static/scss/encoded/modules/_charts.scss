@@ -1637,7 +1637,6 @@ body[data-path="/statistics"] {
                 .facets-container .facets-header.row {
                     &[data-excluding="false"] {
                         background-color: #efeffb !important;
-                        border-bottom: 1px solid #9fb0c8;
 
                         .facets-title-column .icon-toggle {
                             button[aria-pressed='true']{
@@ -2468,6 +2467,23 @@ body[data-path="/statistics"] {
                     background-color: #D5F3DB !important;
                     border-color: #B7E3CB !important;
                     color: #303840 !important;
+                }
+            }
+        }
+
+        // Coverage metric: keep summary row banding, but do not show empty summary boxes.
+        &.count-for-total_coverage {
+            .grouping.header-section-lower {
+                .grouping-row:not(.total-donors-summary-row) {
+                    .block-container-group {
+                        border-left-color: transparent !important;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: transparent !important;
+                        border-color: transparent !important;
+                        box-shadow: none !important;
+                    }
                 }
             }
         }
