@@ -2382,6 +2382,61 @@ body[data-path="/statistics"] {
             }
         }
 
+        &.matrix-yaxis-tissue {
+            .grouping.header-section-lower {
+                .grouping-row.total-donors-summary-row {
+                    background-color: #ECFBEF;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #ECFBEF;
+                    }
+
+                    .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #DBF7E1 !important;
+                        border-color: #B7E3CB !important;
+                        color: #303840 !important;
+                    }
+                }
+
+                .grouping-row:not(.total-donors-summary-row) {
+                    background-color: #DEF6E3;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #DEF6E3;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #C5EDCD !important;
+                        border-color: #AADBC0 !important;
+                        color: #303840 !important;
+                    }
+                }
+            }
+
+            // all vertical summary column cells below summary section
+            .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                background-color: #C5EDCD !important;
+                border-color: #AADBC0 !important;
+                color: #303840 !important;
+            }
+
+            // donor metric cells in summary row should stay purple-toned
+            &.count-for-donors {
+                .grouping.header-section-lower {
+                    .grouping-row:not(.total-donors-summary-row) {
+                        .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                            background-color: #8989FF !important;
+                            border-color: #675CE7 !important;
+                            color: #ffffff !important;
+                        }
+                    }
+                }
+            }
+        }
+
         &.count-for-donors.matrix-yaxis-donor {
             .grouping.header-section-lower {
                 background-color: #ECFBEF;
@@ -2418,6 +2473,25 @@ body[data-path="/statistics"] {
                     background-color: #D5F3DB !important;
                     border-color: #B7E3CB !important;
                     color: #303840 !important;
+                }
+            }
+        }
+    }
+
+    &.matrix-mode-tissue {
+        .matrix-counts-panel {
+            .matrix-facet-terms-panel.search-view-controls-and-results {
+                .facets-container .facets-header.row {
+                    &[data-excluding="false"] {
+                        background-color: #ECFBEF !important;
+                        border-bottom: 1px solid #B7E3CB;
+
+                        .facets-title-column .icon-toggle {
+                            button[aria-pressed='true']{
+                                background-color: #C1E0D2 !important;
+                            }
+                        }
+                    }
                 }
             }
         }
