@@ -1662,7 +1662,6 @@ body[data-path="/statistics"] {
         }
 
         .matrix-facet-terms-wrapper {
-            border-right: 1px solid #e2e8ef;
             padding-right: 1rem;
             margin-right: 0.25rem;
 
@@ -1672,7 +1671,7 @@ body[data-path="/statistics"] {
                 color: #111827;
                 padding: 0.60rem 0 0.45rem;
                 border-bottom: 1px solid #d8e1ea;
-                margin-bottom: 0.55rem;
+                margin-bottom: 1rem;
             }
         }
     }
@@ -1714,6 +1713,8 @@ body[data-path="/statistics"] {
         overflow-x: hidden; // Allow to scroll on small widths.
         padding-bottom: 20px;
         padding-right: 40px;
+        padding-left: 10px;
+        border-left: 1px solid #e2e8ef;
 
         .header-for-viz {
 
