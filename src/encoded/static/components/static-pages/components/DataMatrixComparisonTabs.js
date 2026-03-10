@@ -199,7 +199,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
     const getTabIconClass = useCallback((tab) => {
         if (!tab) return null;
         if (typeof tab.iconCls === 'string' && tab.iconCls) return tab.iconCls;
-        if (tab.key === 'benchmarking') return 'icon-hourglass-half';
+        if (tab.key === 'benchmarking') return 'icon-dna';
         if (tab.key === 'production') return 'icon-lungs';
         return null;
     }, []);

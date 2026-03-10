@@ -899,7 +899,7 @@ export class StackedBlockVisual extends React.PureComponent {
         const getContainerSectionStyle = (backgroundColor, textColor, groupKeyIdx) => {
             const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor };
             if (showColumnSummary || groupKeyIdx > 0) {
-                containerSectionStyle['marginTop'] = 20;
+                containerSectionStyle['marginTop'] = 40;
             }
             return containerSectionStyle;
         };
