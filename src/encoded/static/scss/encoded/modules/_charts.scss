@@ -2425,14 +2425,9 @@ body[data-path="/statistics"] {
 
             // donor metric cells in summary row should stay purple-toned
             &.count-for-donors {
-                .grouping.header-section-lower {
-                    .grouping-row:not(.total-donors-summary-row) {
-                        .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
-                            background-color: #8989FF !important;
-                            border-color: #675CE7 !important;
-                            color: #ffffff !important;
-                        }
-                    }
+                // keep stepped backgrounds from color ranges; only fix border tone.
+                .stacked-block[data-block-type="regular"]:not([data-block-value="0"]):not(.is-open-block) {
+                    border-color: #675CE7 !important;
                 }
             }
         }

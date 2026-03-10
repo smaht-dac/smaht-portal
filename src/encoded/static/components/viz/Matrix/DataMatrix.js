@@ -959,7 +959,7 @@ export default class DataMatrix extends React.PureComponent {
                 };
                 nextState.groupingProperties = (baseGroupingProperties || []).filter((p) => p !== 'donor');
                 nextState.colorRanges = this.getColorRanges({
-                    colorRangeBaseColor: nextValue === 'donors' ? '#9B5DE0' : baseColorRangeBaseColor,
+                    colorRangeBaseColor: nextValue === 'donors' ? '#8989FF' : baseColorRangeBaseColor,
                     colorRangeSegments: prevState.colorRangeSegments,
                     colorRangeSegmentStep: prevState.colorRangeSegmentStep
                 });
@@ -1284,8 +1284,10 @@ export default class DataMatrix extends React.PureComponent {
                 )}
             </div>
         );
+        const isTissueMatrixMode = countFor === 'donors' || countFor === 'tissue_files';
+        const dataMatrixClassName = `data-matrix${isTissueMatrixMode ? ' matrix-mode-tissue' : ''}`;
         return (
-            <div id={`data-matrix-for_${idLabel}`} className="data-matrix" data-files-count={totalFiles}>
+            <div id={`data-matrix-for_${idLabel}`} className={dataMatrixClassName} data-files-count={totalFiles}>
                 <div className="row">
                     {body}
                 </div>
