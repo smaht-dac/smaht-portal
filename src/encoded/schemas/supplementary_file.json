@@ -111,6 +111,17 @@
             "title": "Source Assembly",
             "description": "The assembly from which the coordinates are being converted (required for chain files)",
             "type": "string"
+        },
+        "samples": {
+            "title": "Samples",
+            "description": "Link to associated samples. Only to be used for single-cell data sets when many samples are associated with a single library.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "CellSample"
+            }
         }
     },
     "facets": {
