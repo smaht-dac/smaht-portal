@@ -30,7 +30,7 @@
         "scope": "Individual Lab",
         "study": "Benchmarking",
         "is_preprint": true,
-        "biorxiv_version": "2",
+        "preprint_version": "2",
         "consortia": [
             "smaht"
         ]
