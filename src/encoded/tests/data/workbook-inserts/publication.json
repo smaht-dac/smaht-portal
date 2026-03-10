@@ -8,7 +8,7 @@
         "abstract": "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "date_published": "2025-01-01",
         "journal": "Test Journal",
-        "repository_urls": "https://example.com",
+        "repository_urls": ["https://example.com"],
         "journal_url": "https://examplejournal.com",
         "scope": "Network",
         "study": "Production",
