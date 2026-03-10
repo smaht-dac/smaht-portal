@@ -2344,6 +2344,48 @@ body[data-path="/statistics"] {
         }
 
         // overrides for donor specific matrix with count for donors
+        &.matrix-yaxis-donor {
+            .grouping.header-section-lower {
+                .grouping-row.total-donors-summary-row {
+                    background-color: #ECECFF;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #ECECFF;
+                    }
+
+                    .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #ECECFF !important;
+                        border-color: #E4E4FF !important;
+                        color: #111111 !important;
+                    }
+                }
+
+                .grouping-row:not(.total-donors-summary-row) {
+                    background-color: #E0E0FF;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #E0E0FF;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #E0E0FF !important;
+                        border-color: #D9D9FF !important;
+                        color: #111111 !important;
+                    }
+                }
+            }
+
+            // All vertical summary column boxes below summary section.
+            .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                background-color: #E0E0FF !important;
+                border-color: #D9D9FF !important;
+                color: #111111 !important;
+            }
+        }
+
         &.count-for-donors.matrix-yaxis-donor {
             .grouping.header-section-lower {
                 background-color: #ECFBEF;
