@@ -8,6 +8,15 @@ Change Log
 ----------
 
 
+1.17.1
+======
+
+`PR 615: feat: facet overrides for variant call sets <https://github.com/smaht-dac/smaht-portal/pull/615>`_
+
+* Enhances the user registration flow, especially for distinguishing between SMaHT Network members and self-registering users
+* Improves the user interface and messaging for both groups
+
+
 1.17.0
 ======
 
