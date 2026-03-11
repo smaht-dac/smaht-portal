@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
 import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+
 /**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
