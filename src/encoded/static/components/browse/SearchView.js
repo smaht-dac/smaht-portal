@@ -166,7 +166,6 @@ export class SearchViewBody extends React.PureComponent {
 
     render() {
         const { context, currentAction, schemas } = this.props;
-        console.log('Props', this.props);
 
         // We don't need full screen btn on CGAP as already full width.
         const passProps = _.omit(
@@ -209,7 +208,7 @@ export class SearchViewBody extends React.PureComponent {
                     rowHeight={31}
                     openRowHeight={40}
                     defaultColAlignment="text-start"
-                    termTransformFxn={termTransformFxnWithOverrides(schemas)}
+                    termTransformFxn={termTransformFxnWithOverrides(facets)}
                 />
             </div>
         );
