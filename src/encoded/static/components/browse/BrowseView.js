@@ -300,6 +300,40 @@ export class BrowseViewBody extends React.PureComponent {
     }
 }
 
+/**
+ * Transforms term name for No value fields. Defaults to the
+ * Schemas.Term.toName function.
+ * @param {*} field name of the field to transform
+ * @param {*} key value of the field to transform
+ * @returns a function that transforms the term name using schemas
+ */
+export const termTransformFxnWithOverrides = (schemas) => {
+    // Returns a function using schemas
+    return function (field, key) {
+        let transformedTerm;
+        switch (key) {
+            case 'No value':
+                transformedTerm =
+                    schemas['File']['facets'][field]?.override_no_value_label;
+                break;
+            case 'Filtered':
+                transformedTerm =
+                    schemas['File']['facets'][field]?.override_filtered_label;
+                break;
+            case '(Missing group)':
+                transformedTerm =
+                    schemas['File']['facets'][field]
+                        ?.override_missing_group_label;
+                break;
+            default:
+                transformedTerm = Schemas.Term.toName(field, key);
+                break;
+        }
+
+        return transformedTerm;
+    };
+};
+
 export const BrowseFileSearchTable = (props) => {
     const {
         session,
@@ -364,63 +398,6 @@ export const BrowseFileSearchTable = (props) => {
         'sample_summary.tissues': compareTissueFacetTerms,
     };
 
-    /**
-     * Transforms term names for certian unrecognizable fields. Defaults to the
-     * Schemas.Term.toName function.
-     * @param {*} field name of the field to transform
-     * @param {*} key value of the field to transform
-     * @returns {string} transformed term name
-     */
-    function termTransformFxnWithOverride(field, key) {
-        let transformedTerm;
-
-        const isNoValue = key === 'No value';
-        const isMissingGroup = key === '(Missing group)';
-        const isFilteredKey = key === 'Filtered';
-
-        if (field === 'analysis_details') {
-            console.log(
-                'termTransformFxnWithOverride',
-                field,
-                key,
-                isNoValue,
-                isMissingGroup,
-                isFilteredKey
-            );
-        }
-
-        switch (field) {
-            case 'file_sets.libraries.assay.display_title':
-                transformedTerm =
-                    isNoValue || isMissingGroup
-                        ? 'Mulitple Assays'
-                        : Schemas.Term.toName(field, key);
-                break;
-            case 'file_sets.sequencing.sequencer.display_title':
-                transformedTerm = isNoValue
-                    ? 'Multiple Platforms'
-                    : Schemas.Term.toName(field, key);
-                break;
-            case 'analysis_details':
-                transformedTerm = isNoValue
-                    ? 'Other'
-                    : isFilteredKey
-                    ? 'Filtered Variant Calls'
-                    : Schemas.Term.toName(field, key);
-                break;
-            case 'reference_genome.display_title':
-                transformedTerm = isNoValue
-                    ? 'Other'
-                    : Schemas.Term.toName(field, key);
-                break;
-            default:
-                transformedTerm = Schemas.Term.toName(field, key);
-                break;
-        }
-
-        return transformedTerm;
-    }
-
     return (
         <CommonSearchView
             {...passProps}
@@ -440,7 +417,7 @@ export const BrowseFileSearchTable = (props) => {
             isFullscreen={false}
             toggleFullScreen={() => {}}
             renderDetailPane={null}
-            termTransformFxn={termTransformFxnWithOverride}
+            termTransformFxn={termTransformFxnWithOverrides(schemas)}
             separateSingleTermFacets={false}
             rowHeight={31}
             openRowHeight={40}
