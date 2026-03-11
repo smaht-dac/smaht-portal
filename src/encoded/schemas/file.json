@@ -362,10 +362,13 @@
             "title": "Experimental Assay",
             "search_type": "basic",
             "sayt_item_type": "Assay",
-            "group_by_field": "file_sets.libraries.assay.category"
+            "group_by_field": "file_sets.libraries.assay.category",
+            "override_no_value_label": "Multiple Assays",
+            "override_missing_group_label": "Multiple Assays"
         },
         "file_sets.sequencing.sequencer.display_title": {
-            "title": "Sequencing Platform"
+            "title": "Sequencing Platform",
+            "override_no_value_label": "Multiple Platforms"
         },
         "file_format.display_title": {
             "title": "Data Format"
@@ -377,7 +380,9 @@
             "title": "Data Type"
         },
         "analysis_details": {
-            "title": "Analysis Details"
+            "title": "Analysis Details",
+            "override_no_value_label": "Other",
+            "override_filtered_label": "Filtered Variant Calls"
         },
         "file_status_tracking.release_dates.initial_release": {
             "title" : "Release Date",
