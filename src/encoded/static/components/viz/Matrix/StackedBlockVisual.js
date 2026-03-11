@@ -798,7 +798,6 @@ export class StackedBlockVisual extends React.PureComponent {
             this.scrollRaf = null;
         }
         if (this.headerUpperEl) {
-            this.headerUpperEl.classList.remove('is-js-pinned');
             this.headerUpperEl.style.position = '';
             this.headerUpperEl.style.top = '';
             this.headerUpperEl.style.left = '';
@@ -853,7 +852,6 @@ export class StackedBlockVisual extends React.PureComponent {
         const shouldPin = containerRect.top <= topOffset && (containerRect.bottom - headerRect.height) > topOffset;
 
         if (shouldPin) {
-            this.headerUpperEl.classList.add('is-js-pinned');
             this.headerUpperEl.style.position = 'fixed';
             this.headerUpperEl.style.top = `${topOffset}px`;
             this.headerUpperEl.style.left = `${Math.round(containerRect.left + 10)}px`;
@@ -865,7 +863,6 @@ export class StackedBlockVisual extends React.PureComponent {
                 this.headerPinned = true;
             }
         } else {
-            this.headerUpperEl.classList.remove('is-js-pinned');
             this.headerUpperEl.style.position = '';
             this.headerUpperEl.style.top = '';
             this.headerUpperEl.style.left = '';

@@ -1727,29 +1727,20 @@ body[data-path="/statistics"] {
         border-left: 1px solid #e2e8ef;
 
         .grouping.header-section-upper {
-            > .row.grouping-row > .label-section,
-            > .row.grouping-row > .list-section.has-header.header-for-viz {
-                position: sticky;
-                top: 0;
-                z-index: 7;
-                background: #ffffff;
-            }
+            position: relative;
+            z-index: 7;
+            background: #ffffff;
 
             > .row.grouping-row > .label-section {
-                z-index: 6;
+                z-index: 1;
                 position: relative;
+                pointer-events: none;
             }
 
             > .row.grouping-row > .list-section.has-header.header-for-viz {
-                z-index: 10;
-            }
-
-            &.is-js-pinned {
-                > .row.grouping-row > .label-section,
-                > .row.grouping-row > .list-section.has-header.header-for-viz {
-                    position: relative;
-                    top: auto;
-                }
+                z-index: 2;
+                position: relative;
+                pointer-events: auto;
             }
         }
 
@@ -1801,8 +1792,9 @@ body[data-path="/statistics"] {
                     display: flex;
                     justify-content: flex-start;
                     align-self: center;
-                    z-index: 100;
+                    z-index: 20;
                     overflow: visible;
+                    pointer-events: auto;
 
                     .matrix-top-controls,
                     .matrix-visual-metric-controls {
@@ -1810,37 +1802,6 @@ body[data-path="/statistics"] {
                         margin-bottom: 0 !important;
                         justify-content: flex-start;
                         width: 100%;
-                        opacity: 1 !important;
-                        visibility: visible !important;
-                    }
-
-                    .matrix-counts-toggle-inline,
-                    .matrix-counts-toggle-inline .view-toggle,
-                    .matrix-counts-toggle-inline .btn {
-                        opacity: 1 !important;
-                        visibility: visible !important;
-                    }
-
-                    .matrix-counts-toggle-inline .view-toggle {
-                        display: inline-flex !important;
-                        align-items: center;
-                        background: #ffffff !important;
-                        border: 1px solid #d5dce6 !important;
-                        border-radius: 999px !important;
-                    }
-
-                    .matrix-counts-toggle-inline .view-toggle .btn {
-                        color: #3d6a8f !important;
-                        border-radius: 999px !important;
-                        background: transparent !important;
-                        border-color: transparent !important;
-                    }
-
-                    .matrix-counts-toggle-inline .view-toggle .btn.btn-primary-dark,
-                    .matrix-counts-toggle-inline .view-toggle .btn.active {
-                        color: #ffffff !important;
-                        background: #0f4f8a !important;
-                        border-color: #0f4f8a !important;
                     }
                 }
             }
@@ -2383,6 +2344,7 @@ body[data-path="/statistics"] {
             // position: relative;
             width: 250px;
             // height: 287px;
+            pointer-events: none;
 
             .x-axis {
                 position: absolute;
