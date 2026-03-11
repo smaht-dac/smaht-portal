@@ -1366,7 +1366,7 @@ body[data-path="/statistics"] {
     width: 100%;
     height: 100%;
     overflow-x: hidden;
-    overflow-y: hidden;
+    overflow-y: visible;
     padding-bottom: 20px; // For the bottom padding of the viz.
     padding-right: 0;
 
@@ -1437,7 +1437,7 @@ body[data-path="/statistics"] {
 
         .tab-card {
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             min-width: 100%;
             flex-direction: column;
             margin-top: -1px; // Pull up to meet active header
@@ -1463,7 +1463,7 @@ body[data-path="/statistics"] {
             .body {
                 position: relative;
                 overflow-x: hidden !important;
-                overflow-y: hidden;
+                overflow-y: visible;
                 display: flex;
                 min-height: 600px;
                 border: 1px solid #E7F0F3;
@@ -1473,6 +1473,7 @@ body[data-path="/statistics"] {
 
         .tab-panels-wrapper {
             position: relative;
+            overflow: visible;
         }
 
         .tabs-loading-overlay {
@@ -1487,6 +1488,9 @@ body[data-path="/statistics"] {
 }
 
 .data-matrix {
+    .data-matrix-container {
+        overflow-x: visible;
+    }
 
     >.row, .row.grouping-row {
         flex-wrap: nowrap !important;
@@ -1568,12 +1572,17 @@ body[data-path="/statistics"] {
     .matrix-mode-body {
         align-items: flex-start;
         width: 100%;
+        overflow: visible;
     }
 
     .matrix-mode-tabs-row {
         border-bottom: 1px solid #c7d5e4;
         margin-bottom: 1rem;
         width: 100%;
+        position: sticky;
+        top: 48px;
+        z-index: 8;
+        background-color: #ffffff;
     }
 
     .matrix-counts-panel {
@@ -1705,18 +1714,48 @@ body[data-path="/statistics"] {
 
     .matrix-visual-panel {
         min-width: 0;
+        overflow: visible;
     }
 
     .stacked-block-viz-container {
 
         display: inline-block;
-        overflow-x: hidden; // Allow to scroll on small widths.
+        overflow: visible;
         padding-bottom: 20px;
         padding-right: 40px;
         padding-left: 10px;
         border-left: 1px solid #e2e8ef;
 
+        .grouping.header-section-upper {
+            > .row.grouping-row > .label-section,
+            > .row.grouping-row > .list-section.has-header.header-for-viz {
+                position: sticky;
+                top: 0;
+                z-index: 7;
+                background: #ffffff;
+            }
+
+            > .row.grouping-row > .label-section {
+                z-index: 6;
+                position: relative;
+            }
+
+            > .row.grouping-row > .list-section.has-header.header-for-viz {
+                z-index: 10;
+            }
+
+            &.is-js-pinned {
+                > .row.grouping-row > .label-section,
+                > .row.grouping-row > .list-section.has-header.header-for-viz {
+                    position: relative;
+                    top: auto;
+                }
+            }
+        }
+
         .header-for-viz {
+            position: relative;
+            overflow: visible;
 
             .column-group-header {
                 text-align: center;
@@ -1743,20 +1782,65 @@ body[data-path="/statistics"] {
 
             .header-group-text {
                 position: relative;
-
-                .header-group-controls {
-                    position: absolute;
-                    left: -285px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    width: 250px;
-                    z-index: 2;
-                }
+                overflow: visible;
 
                 .column-group-header {
                     >.inner {
                         font-size: 11px;
                         width: unset !important;
+                    }
+                }
+
+                .header-group-controls-inline {
+                    position: absolute;
+                    left: -290px;
+                    top: 50%;
+                    transform: translateY(calc(-50%));
+                    width: 240px;
+                    max-width: 240px;
+                    display: flex;
+                    justify-content: flex-start;
+                    align-self: center;
+                    z-index: 100;
+                    overflow: visible;
+
+                    .matrix-top-controls,
+                    .matrix-visual-metric-controls {
+                        margin-left: 0 !important;
+                        margin-bottom: 0 !important;
+                        justify-content: flex-start;
+                        width: 100%;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                    }
+
+                    .matrix-counts-toggle-inline,
+                    .matrix-counts-toggle-inline .view-toggle,
+                    .matrix-counts-toggle-inline .btn {
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                    }
+
+                    .matrix-counts-toggle-inline .view-toggle {
+                        display: inline-flex !important;
+                        align-items: center;
+                        background: #ffffff !important;
+                        border: 1px solid #d5dce6 !important;
+                        border-radius: 999px !important;
+                    }
+
+                    .matrix-counts-toggle-inline .view-toggle .btn {
+                        color: #3d6a8f !important;
+                        border-radius: 999px !important;
+                        background: transparent !important;
+                        border-color: transparent !important;
+                    }
+
+                    .matrix-counts-toggle-inline .view-toggle .btn.btn-primary-dark,
+                    .matrix-counts-toggle-inline .view-toggle .btn.active {
+                        color: #ffffff !important;
+                        background: #0f4f8a !important;
+                        border-color: #0f4f8a !important;
                     }
                 }
             }
@@ -1912,11 +1996,11 @@ body[data-path="/statistics"] {
                     background-color: #f4f4ff;
                     border-top-left-radius: 10px;
                     overflow: hidden;
+                    border-bottom: 1px solid #ffffff;
 
                     .label-section > .label-container {
                         background-color: #f4f4ff;
                         border-top-left-radius: 10px;
-                        border-bottom: 1px solid #ffffff;
 
                         > span {
                             font-weight: 700;
@@ -1925,7 +2009,6 @@ body[data-path="/statistics"] {
 
                     .list-section {
                         background-color: #f4f4ff;
-                        border-bottom: 1px solid #ffffff;
                     }
                 }
 

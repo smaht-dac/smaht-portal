@@ -256,7 +256,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                     className={`tab-card ${selectedTab.className || ''} is-active`}
                                     aria-hidden={false}>
                                     <div
-                                        className="body d-flex justify-content-start overflow-auto"
+                                        className="body d-flex justify-content-start"
                                         id={`data-matrix-panel-${selectedTab.key}`}>
                                         <div className="matrix-panel-content w-100">
                                             {getMatrixTitle(selectedTab) ? (

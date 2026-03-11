@@ -768,15 +768,115 @@ export class StackedBlockVisual extends React.PureComponent {
             sortBlock: memoize(StackedBlockGroupedRow.sortBlock)
         };
 
+        this.containerRef = null;
+        this.headerUpperEl = null;
+        this.headerUpperOriginalStyle = null;
+        this.headerPinned = false;
+        this.scrollRaf = null;
+        this.syncStickyHeaderOnScroll = this.syncStickyHeaderOnScroll.bind(this);
+        this.requestStickySync = this.requestStickySync.bind(this);
+
         this.state = state;
     }
 
     componentDidMount(){
         this.setState({ 'mounted' : true });
+        this.headerUpperEl = this.containerRef ? this.containerRef.querySelector('.grouping.header-section-upper') : null;
+        if (this.headerUpperEl) {
+            this.headerUpperOriginalStyle = this.headerUpperEl.getAttribute('style');
+        }
+        this.requestStickySync();
+        window.addEventListener('scroll', this.requestStickySync, { passive: true });
+        window.addEventListener('resize', this.requestStickySync);
     }
 
     componentWillUnmount(){
+        window.removeEventListener('scroll', this.requestStickySync);
+        window.removeEventListener('resize', this.requestStickySync);
+        if (this.scrollRaf) {
+            window.cancelAnimationFrame(this.scrollRaf);
+            this.scrollRaf = null;
+        }
+        if (this.headerUpperEl) {
+            this.headerUpperEl.classList.remove('is-js-pinned');
+            this.headerUpperEl.style.position = '';
+            this.headerUpperEl.style.top = '';
+            this.headerUpperEl.style.left = '';
+            this.headerUpperEl.style.width = '';
+            this.headerUpperEl.style.zIndex = '';
+            this.headerUpperEl.style.background = '';
+            if (this.headerUpperOriginalStyle) {
+                this.headerUpperEl.setAttribute('style', this.headerUpperOriginalStyle);
+            } else {
+                this.headerUpperEl.removeAttribute('style');
+            }
+        }
         this.setState({ 'mounted' : false });
+    }
+
+    componentDidUpdate() {
+        this.requestStickySync();
+    }
+
+    getStickyTopOffset() {
+        let topOffset = 40; // sticky top navbar offset
+        if (!this.containerRef) return topOffset;
+        const tabsRow = this.containerRef.closest('.matrix-panel-content')?.querySelector('.matrix-mode-tabs-row');
+        if (!tabsRow) return topOffset;
+        const tabsRect = tabsRow.getBoundingClientRect();
+        // If mode tabs are in/near sticky zone, pin matrix header below them.
+        if (tabsRect.bottom > topOffset && tabsRect.top <= topOffset + 1) {
+            topOffset = Math.max(topOffset, Math.round(tabsRect.bottom));
+        }
+        return topOffset;
+    }
+
+    requestStickySync() {
+        if (this.scrollRaf) return;
+        this.scrollRaf = window.requestAnimationFrame(this.syncStickyHeaderOnScroll);
+    }
+
+    syncStickyHeaderOnScroll() {
+        this.scrollRaf = null;
+        if (!this.containerRef) return;
+        if (!this.headerUpperEl || !this.containerRef.contains(this.headerUpperEl)) {
+            this.headerUpperEl = this.containerRef.querySelector('.grouping.header-section-upper');
+        }
+        if (!this.headerUpperEl) return;
+
+        const containerRect = this.containerRef.getBoundingClientRect();
+        const headerRect = this.headerUpperEl.getBoundingClientRect();
+        const topOffset = this.getStickyTopOffset();
+
+        // Keep header fixed only while the matrix container intersects viewport and
+        // there is enough remaining room for header to stay visible.
+        const shouldPin = containerRect.top <= topOffset && (containerRect.bottom - headerRect.height) > topOffset;
+
+        if (shouldPin) {
+            this.headerUpperEl.classList.add('is-js-pinned');
+            this.headerUpperEl.style.position = 'fixed';
+            this.headerUpperEl.style.top = `${topOffset}px`;
+            this.headerUpperEl.style.left = `${Math.round(containerRect.left + 10)}px`;
+            this.headerUpperEl.style.width = `${Math.round(containerRect.width)}px`;
+            this.headerUpperEl.style.zIndex = '20';
+            this.headerUpperEl.style.background = '#ffffff';
+            if (!this.headerPinned) {
+                this.containerRef.style.paddingTop = `${Math.round(headerRect.height)}px`;
+                this.headerPinned = true;
+            }
+        } else {
+            this.headerUpperEl.classList.remove('is-js-pinned');
+            this.headerUpperEl.style.position = '';
+            this.headerUpperEl.style.top = '';
+            this.headerUpperEl.style.left = '';
+            this.headerUpperEl.style.width = '';
+            this.headerUpperEl.style.zIndex = '';
+            this.headerUpperEl.style.background = '';
+            if (this.headerPinned) {
+                this.containerRef.style.paddingTop = '';
+                this.headerPinned = false;
+            }
+        }
     }
 
     handleSorterClick(evt){
@@ -1185,7 +1285,9 @@ export class StackedBlockVisual extends React.PureComponent {
             className += ' has-open-block';
         }
         return (
-            <div className={className}>
+            <div
+                className={className}
+                ref={(el) => { this.containerRef = el; }}>
                 {this.renderContents()}
             </div>
         );
@@ -1472,7 +1574,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const columnGroupsKeys = hasColumnGroups ? [..._.keys(columnGroups), FALLBACK_GROUP_NAME] : null;
 
         const extPadding = 60 + (hasColumnGroups ? 26 : 0) + (hasColumnGroupsExtended ? 30 : 0);
-        const labelSectionStyle = { 'paddingTop': Math.max(0, headerPadding + extPadding - rowHeight) };
+        const labelSectionStyle = {
+            'paddingTop': Math.max(0, headerPadding + extPadding - rowHeight),
+            'zIndex': 6,
+            'position': 'relative'
+        };
         const listSectionStyle = { 'paddingTop': headerPadding };
 
         const getColumnKeys = () => {
@@ -1539,7 +1645,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             return (
                 <div className="d-flex header-group-text">
                     {headerLeftControls ? (
-                        <div className="header-group-controls">
+                        <div className="header-group-controls header-group-controls-inline">
                             {headerLeftControls}
                         </div>
                     ) : null}
