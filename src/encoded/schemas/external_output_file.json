@@ -152,10 +152,12 @@
     },
     "facets": {
         "reference_genome.display_title": {
-            "title": "Reference Genome"
+            "title": "Reference Genome",
+            "override_no_value_label": "None"
         },
         "data_description": {
-            "title": "Data Description"
+            "title": "Data Description",
+            "override_no_value_label": "None"
         }
     }
 }
