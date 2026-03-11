@@ -9,7 +9,7 @@ import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate, Schemas } from './../util';
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
-import { transformedFacets, SearchViewPageTitle } from './SearchView';
+import { transformedFacets, SearchViewPageTitle, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import {
     SelectAllFilesButton,
@@ -160,7 +160,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
     return (
         <CommonSearchView
             {...passProps}
-            termTransformFxn={Schemas.Term.toName}
+            termTransformFxn={termTransformFxnWithOverrides(schemas)}
         />
     );
 }
