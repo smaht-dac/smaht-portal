@@ -27,7 +27,7 @@ import {
 /**
  * Transforms term name using facets for overrides. Defaults to the
  * Schemas.Term.toName function.
- * @param {*} facets list of facets
+ * @param { Array } facets - Facets to use for overrides
  * @returns a function that transforms facet terms with overrides
  */
 export const termTransformFxnWithOverrides = (facets = null) => {
