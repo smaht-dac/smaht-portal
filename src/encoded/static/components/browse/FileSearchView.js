@@ -160,7 +160,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
     return (
         <CommonSearchView
             {...passProps}
-            termTransformFxn={termTransformFxnWithOverrides(schemas)}
+            termTransformFxn={termTransformFxnWithOverrides(facets)}
         />
     );
 }

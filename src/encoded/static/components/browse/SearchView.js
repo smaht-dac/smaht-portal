@@ -25,39 +25,47 @@ import {
 } from './../PageTitleSection';
 
 /**
- * Transforms term name for No value fields. Defaults to the
+ * Transforms term name using facets for overrides. Defaults to the
  * Schemas.Term.toName function.
- * @param {*} schemas schemas object
+ * @param {*} facets list of facets
  * @returns a function that transforms facet terms with overrides
  */
-export const termTransformFxnWithOverrides = (schemas = null) => {
-    // Ensure schemas have been loaded
-    if (!schemas) return Schemas.Term.toName;
-
+export const termTransformFxnWithOverrides = (facets = null) => {
     // Returns a separate function that uses schemas for overrides
     return function (field, key) {
-        // Ensure field is available in schema facets
-        const fieldFacets = schemas?.['File']?.['facets']?.[field];
-        if (!fieldFacets) return Schemas.Term.toName(field, key);
+        let transformedTerm = null;
 
-        // Match key to override field
-        let transformedTerm;
-        switch (key) {
-            case 'No value':
-                transformedTerm = fieldFacets?.override_no_value_label;
-                break;
-            case 'Filtered':
-                transformedTerm = fieldFacets?.override_filtered_label;
-                break;
-            case '(Missing group)':
-                transformedTerm = fieldFacets?.override_missing_group_label;
-                break;
-            default:
-                transformedTerm = Schemas.Term.toName(field, key);
-                break;
+        // Only run for particualar key values
+        if (
+            key === 'No value' ||
+            key === 'Filtered' ||
+            key === '(Missing group)'
+        ) {
+            // Find facet for field
+            const facet = facets.find((f) => f.field === field);
+
+            // Escape if no facet found
+            if (!facet) return Schemas.Term.toName(field, key);
+
+            // Match key to override field
+            switch (key) {
+                case 'No value':
+                    transformedTerm = facet?.override_no_value_label ?? null;
+                    break;
+                case 'Filtered':
+                    transformedTerm = facet?.override_filtered_label ?? null;
+                    break;
+                case '(Missing group)':
+                    transformedTerm =
+                        facet?.override_missing_group_label ?? null;
+                    break;
+                default:
+                    break;
+            }
         }
 
-        return transformedTerm;
+        // Default to Schemas.Term.toName if not overridden
+        return transformedTerm ?? Schemas.Term.toName(field, key);
     };
 };
 
@@ -172,6 +180,7 @@ export class SearchViewBody extends React.PureComponent {
             currentAction,
             schemas
         );
+
         const tableColumnClassName = 'results-column col';
         const facetColumnClassName = 'facets-column col-auto';
         const facetListSortFxns = {

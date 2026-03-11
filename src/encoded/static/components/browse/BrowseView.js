@@ -383,7 +383,7 @@ export const BrowseFileSearchTable = (props) => {
             isFullscreen={false}
             toggleFullScreen={() => {}}
             renderDetailPane={null}
-            termTransformFxn={termTransformFxnWithOverrides(schemas)}
+            termTransformFxn={termTransformFxnWithOverrides(facets)}
             separateSingleTermFacets={false}
             rowHeight={31}
             openRowHeight={40}
