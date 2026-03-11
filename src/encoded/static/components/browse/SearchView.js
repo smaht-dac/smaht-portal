@@ -25,6 +25,43 @@ import {
 } from './../PageTitleSection';
 
 /**
+ * Transforms term name for No value fields. Defaults to the
+ * Schemas.Term.toName function.
+ * @param {*} schemas schemas object
+ * @returns a function that transforms facet terms with overrides
+ */
+export const termTransformFxnWithOverrides = (schemas = null) => {
+    // Ensure schemas have been loaded
+    if (!schemas) return Schemas.Term.toName;
+
+    // Returns a separate function that uses schemas for overrides
+    return function (field, key) {
+        // Ensure field is available in schema facets
+        const fieldFacets = schemas?.['File']?.['facets']?.[field];
+        if (!fieldFacets) return Schemas.Term.toName(field, key);
+
+        // Match key to override field
+        let transformedTerm;
+        switch (key) {
+            case 'No value':
+                transformedTerm = fieldFacets?.override_no_value_label;
+                break;
+            case 'Filtered':
+                transformedTerm = fieldFacets?.override_filtered_label;
+                break;
+            case '(Missing group)':
+                transformedTerm = fieldFacets?.override_missing_group_label;
+                break;
+            default:
+                transformedTerm = Schemas.Term.toName(field, key);
+                break;
+        }
+
+        return transformedTerm;
+    };
+};
+
+/**
  * Function which is passed into a `.filter()` call to
  * filter context.facets down, usually in response to frontend-state.
  *
@@ -121,6 +158,7 @@ export class SearchViewBody extends React.PureComponent {
 
     render() {
         const { context, currentAction, schemas } = this.props;
+        console.log('Props', this.props);
 
         // We don't need full screen btn on CGAP as already full width.
         const passProps = _.omit(
@@ -158,11 +196,11 @@ export class SearchViewBody extends React.PureComponent {
                     }}
                     aboveTableComponent={aboveTableComponent}
                     renderDetailPane={null}
-                    termTransformFxn={Schemas.Term.toName}
                     separateSingleTermFacets={false}
                     rowHeight={31}
                     openRowHeight={40}
                     defaultColAlignment="text-start"
+                    termTransformFxn={termTransformFxnWithOverrides(schemas)}
                 />
             </div>
         );

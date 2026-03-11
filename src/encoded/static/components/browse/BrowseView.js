@@ -37,7 +37,7 @@ import { navigate } from '../util/navigate';
 import { compareTissueFacetTerms } from '../util/data';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
-import { transformedFacets } from './SearchView';
+import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
@@ -299,40 +299,6 @@ export class BrowseViewBody extends React.PureComponent {
         );
     }
 }
-
-/**
- * Transforms term name for No value fields. Defaults to the
- * Schemas.Term.toName function.
- * @param {*} field name of the field to transform
- * @param {*} key value of the field to transform
- * @returns a function that transforms the term name using schemas
- */
-export const termTransformFxnWithOverrides = (schemas) => {
-    // Returns a function using schemas
-    return function (field, key) {
-        let transformedTerm;
-        switch (key) {
-            case 'No value':
-                transformedTerm =
-                    schemas['File']['facets'][field]?.override_no_value_label;
-                break;
-            case 'Filtered':
-                transformedTerm =
-                    schemas['File']['facets'][field]?.override_filtered_label;
-                break;
-            case '(Missing group)':
-                transformedTerm =
-                    schemas['File']['facets'][field]
-                        ?.override_missing_group_label;
-                break;
-            default:
-                transformedTerm = Schemas.Term.toName(field, key);
-                break;
-        }
-
-        return transformedTerm;
-    };
-};
 
 export const BrowseFileSearchTable = (props) => {
     const {
