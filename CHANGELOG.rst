@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.17.3
+======
+
+`PR 615: feat: facet overrides for variant call sets <https://github.com/smaht-dac/smaht-portal/pull/615>`_
+
+* Add override fields for No value and Missing group terms in schema
+* Create term transform function to update facet terms
+
+
 1.17.2
 ======
 
@@ -22,15 +31,6 @@ Change Log
 
 * Add software facet
 * Reorder facets 
-
-
-1.17.1
-======
-
-`PR 615: feat: facet overrides for variant call sets <https://github.com/smaht-dac/smaht-portal/pull/615>`_
-
-* Add override fields for No value and Missing group terms in schema
-* Create term transform function to update facet terms
 
 
 1.17.0
