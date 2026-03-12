@@ -239,67 +239,6 @@ export class SelectAllFilesButton extends React.PureComponent {
         };
     }
 
-    // componentDidMount(prevProps, prevState) {
-    //     if (Object.keys(this.state.userDownloadAccess)?.includes('open')) {
-    //         ajax.load('/session-properties', (resp) => {
-    //             const accessObj = resp?.download_perms || {};
-    //             const newUserDownloadAccessObj = {
-    //                 ...defaultDownloadAccessObject,
-    //                 ...accessObj,
-    //             };
-    //             this.setState({
-    //                 ...this.state,
-    //                 userDownloadAccess: newUserDownloadAccessObj,
-    //                 // downloadableFileCount: this.getDownloadableFileCount(
-    //                 //     newUserDownloadAccessObj
-    //                 // ),
-    //             });
-    //         });
-    //     }
-    // }
-
-    // Update user download access if session changes
-    // componentDidUpdate(prevProps, prevState) {
-    //     const currentDownloadableFileCount = this.getDownloadableFileCount(
-    //         this.state.userDownloadAccess
-    //     );
-    //     if (
-    //         prevProps?.session !== this.props?.session ||
-    //         prevState.downloadableFileCount !== currentDownloadableFileCount
-    //     ) {
-    //         ajax.load('/session-properties', (resp) => {
-    //             const accessObj = resp?.download_perms || {};
-    //             const newUserDownloadAccessObj = {
-    //                 ...defaultDownloadAccessObject,
-    //                 ...accessObj,
-    //             };
-    //             this.setState({
-    //                 ...this.state,
-    //                 userDownloadAccess: newUserDownloadAccessObj,
-    //                 downloadableFileCount: this.getDownloadableFileCount(
-    //                     newUserDownloadAccessObj
-    //                 ),
-    //             });
-    //         });
-    //     }
-    // }
-
-    // getDownloadableFileCount(userDownloadAccessObj) {
-    //     const statusFacetTermCounts =
-    //         this.props.context?.facets?.find(
-    //             (facet) => facet.field === 'status'
-    //         )?.terms || [];
-    //     // Map through the terms to get count for downloadable files
-    //     const totalDownloadableFileCount = statusFacetTermCounts?.reduce(
-    //         (acc, term) => {
-    //             const userCanDownload = userDownloadAccessObj?.[term.key];
-    //             return acc + (userCanDownload ? term.doc_count : 0);
-    //         },
-    //         0
-    //     );
-    //     return totalDownloadableFileCount;
-    // }
-
     isEnabled() {
         const { session, context } = this.props;
         const { total } = context || {};
