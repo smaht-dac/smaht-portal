@@ -20,23 +20,23 @@ import { Legend } from './../components';
 export class UIControlsWrapper extends React.PureComponent {
 
     static TISSUE_FIELD = 'sample_summary.tissues';
-    static GERM_LAYER_ALL = 'All';
-    static GERM_LAYER_UNKNOWN = 'Unknown';
-    static GERM_LAYER_ORDER = [
+    static TISSUE_CATEGORY_ALL = 'All';
+    static TISSUE_CATEGORY_UNKNOWN = 'Unknown';
+    static TISSUE_CATEGORY_ORDER = [
         'Ectoderm',
         'Mesoderm',
         'Endoderm',
         'Germ cells',
         'Clinically accessible',
-        UIControlsWrapper.GERM_LAYER_UNKNOWN
+        UIControlsWrapper.TISSUE_CATEGORY_UNKNOWN
     ];
-    static GERM_LAYER_CANONICAL_BY_LOWER = {
+    static TISSUE_CATEGORY_CANONICAL_BY_LOWER = {
         'ectoderm': 'Ectoderm',
         'mesoderm': 'Mesoderm',
         'endoderm': 'Endoderm',
         'germ cells': 'Germ cells',
         'clinically accessible': 'Clinically accessible',
-        'unknown': UIControlsWrapper.GERM_LAYER_UNKNOWN
+        'unknown': UIControlsWrapper.TISSUE_CATEGORY_UNKNOWN
     };
 
     static canShowChart(chartData) {
@@ -128,13 +128,13 @@ export class UIControlsWrapper extends React.PureComponent {
             'aggregateType': props.mapping === 'all' ? 'files' : 'donors',
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.donors === 0) ? 'all' : 'filtered',
             'openDropdown': null,
-            'germLayerFilter': UIControlsWrapper.GERM_LAYER_ALL
+            'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL
         };
     }
 
     componentDidUpdate({ barplot_data_filtered: pastFilteredData }) {
         const { barplot_data_filtered: newFilteredData, barplot_data_unfiltered, barplot_data_fields } = this.props;
-        this.setState(function ({ showState, germLayerFilter }) {
+        this.setState(function ({ showState, tissueCategoryFilter }) {
             const nextState = {};
             // Set to filtered if new filtered data arrives.
             // Inverse of this done in getDerivedStateFromProps
@@ -145,15 +145,15 @@ export class UIControlsWrapper extends React.PureComponent {
             }
 
             const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
-            if (!isTissueXAxis && germLayerFilter !== UIControlsWrapper.GERM_LAYER_ALL) {
-                nextState.germLayerFilter = UIControlsWrapper.GERM_LAYER_ALL;
+            if (!isTissueXAxis && tissueCategoryFilter !== UIControlsWrapper.TISSUE_CATEGORY_ALL) {
+                nextState.tissueCategoryFilter = UIControlsWrapper.TISSUE_CATEGORY_ALL;
             }
 
             if (isTissueXAxis) {
                 const topLevelField = (showState === 'all' ? barplot_data_unfiltered : newFilteredData) || barplot_data_unfiltered;
-                const availableLayers = UIControlsWrapper.getAvailableGermLayers(topLevelField);
-                if (germLayerFilter !== UIControlsWrapper.GERM_LAYER_ALL && !availableLayers.includes(germLayerFilter)) {
-                    nextState.germLayerFilter = UIControlsWrapper.GERM_LAYER_ALL;
+                const availableCategories = UIControlsWrapper.getAvailableTissueCategories(topLevelField);
+                if (tissueCategoryFilter !== UIControlsWrapper.TISSUE_CATEGORY_ALL && !availableCategories.includes(tissueCategoryFilter)) {
+                    nextState.tissueCategoryFilter = UIControlsWrapper.TISSUE_CATEGORY_ALL;
                 }
             }
 
@@ -165,28 +165,28 @@ export class UIControlsWrapper extends React.PureComponent {
         return (barplotData && barplotData.meta && barplotData.meta.tissue_category_by_term) || {};
     }
 
-    static normalizeGermLayerName(category) {
+    static normalizeTissueCategoryName(category) {
         if (!category || typeof category !== 'string') return null;
-        const normalized = UIControlsWrapper.GERM_LAYER_CANONICAL_BY_LOWER[category.trim().toLowerCase()];
+        const normalized = UIControlsWrapper.TISSUE_CATEGORY_CANONICAL_BY_LOWER[category.trim().toLowerCase()];
         return normalized || category;
     }
 
-    static getGermLayerForTerm(termKey, tissueCategoryByTerm = {}) {
-        const mapped = UIControlsWrapper.normalizeGermLayerName(tissueCategoryByTerm[termKey]);
+    static getTissueCategoryForTerm(termKey, tissueCategoryByTerm = {}) {
+        const mapped = UIControlsWrapper.normalizeTissueCategoryName(tissueCategoryByTerm[termKey]);
         if (mapped) return mapped;
-        const fallback = UIControlsWrapper.normalizeGermLayerName(getTissueCategoryFromFacetTerm(termKey));
-        return fallback || UIControlsWrapper.GERM_LAYER_UNKNOWN;
+        const fallback = UIControlsWrapper.normalizeTissueCategoryName(getTissueCategoryFromFacetTerm(termKey));
+        return fallback || UIControlsWrapper.TISSUE_CATEGORY_UNKNOWN;
     }
 
-    static getAvailableGermLayers(barplotData) {
-        if (!barplotData || !barplotData.terms) return [UIControlsWrapper.GERM_LAYER_ALL];
+    static getAvailableTissueCategories(barplotData) {
+        if (!barplotData || !barplotData.terms) return [UIControlsWrapper.TISSUE_CATEGORY_ALL];
         const tissueCategoryByTerm = UIControlsWrapper.getTissueCategoryByTermMap(barplotData);
         const available = new Set();
         _.forEach(_.keys(barplotData.terms), (termKey) => {
-            available.add(UIControlsWrapper.getGermLayerForTerm(termKey, tissueCategoryByTerm));
+            available.add(UIControlsWrapper.getTissueCategoryForTerm(termKey, tissueCategoryByTerm));
         });
-        const ordered = UIControlsWrapper.GERM_LAYER_ORDER.filter((layer) => available.has(layer));
-        return [UIControlsWrapper.GERM_LAYER_ALL, ...ordered];
+        const ordered = UIControlsWrapper.TISSUE_CATEGORY_ORDER.filter((layer) => available.has(layer));
+        return [UIControlsWrapper.TISSUE_CATEGORY_ALL, ...ordered];
     }
 
     static getTermTotal(termObj, field) {
@@ -196,9 +196,9 @@ export class UIControlsWrapper extends React.PureComponent {
         return 0;
     }
 
-    static filterBarplotDataByGermLayer(barplotData, germLayerFilter) {
+    static filterBarplotDataByTissueCategory(barplotData, tissueCategoryFilter) {
         if (!barplotData || !barplotData.terms) return barplotData;
-        if (!germLayerFilter || germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL) return barplotData;
+        if (!tissueCategoryFilter || tissueCategoryFilter === UIControlsWrapper.TISSUE_CATEGORY_ALL) return barplotData;
         const tissueCategoryByTerm = UIControlsWrapper.getTissueCategoryByTermMap(barplotData);
 
         const filteredTerms = {};
@@ -207,7 +207,7 @@ export class UIControlsWrapper extends React.PureComponent {
 
         _.forEach(_.keys(barplotData.terms), (termKey) => {
             const termObj = barplotData.terms[termKey];
-            if (UIControlsWrapper.getGermLayerForTerm(termKey, tissueCategoryByTerm) !== germLayerFilter) return;
+            if (UIControlsWrapper.getTissueCategoryForTerm(termKey, tissueCategoryByTerm) !== tissueCategoryFilter) return;
             filteredTerms[termKey] = termObj;
             totalFiles += UIControlsWrapper.getTermTotal(termObj, 'files');
             totalDonors += UIControlsWrapper.getTermTotal(termObj, 'donors');
@@ -224,16 +224,16 @@ export class UIControlsWrapper extends React.PureComponent {
         };
     }
 
-    getBarplotDataForGermLayer() {
+    getBarplotDataForTissueCategory() {
         const { barplot_data_unfiltered, barplot_data_filtered, barplot_data_fields } = this.props;
-        const { germLayerFilter } = this.state;
+        const { tissueCategoryFilter } = this.state;
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
-        if (!isTissueXAxis || germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL) {
+        if (!isTissueXAxis || tissueCategoryFilter === UIControlsWrapper.TISSUE_CATEGORY_ALL) {
             return { barplot_data_unfiltered, barplot_data_filtered };
         }
         return {
-            barplot_data_unfiltered: UIControlsWrapper.filterBarplotDataByGermLayer(barplot_data_unfiltered, germLayerFilter),
-            barplot_data_filtered: UIControlsWrapper.filterBarplotDataByGermLayer(barplot_data_filtered, germLayerFilter)
+            barplot_data_unfiltered: UIControlsWrapper.filterBarplotDataByTissueCategory(barplot_data_unfiltered, tissueCategoryFilter),
+            barplot_data_filtered: UIControlsWrapper.filterBarplotDataByTissueCategory(barplot_data_filtered, tissueCategoryFilter)
         };
     }
 
@@ -263,10 +263,10 @@ export class UIControlsWrapper extends React.PureComponent {
      */
     adjustedChildChart() {
         const { children, barplot_data_fields } = this.props;
-        const { showState, aggregateType, germLayerFilter } = this.state;
-        const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForGermLayer();
+        const { showState, aggregateType, tissueCategoryFilter } = this.state;
+        const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForTissueCategory();
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
-        const xAxisTermLabelMapper = (isTissueXAxis /*&& germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL*/)
+        const xAxisTermLabelMapper = (isTissueXAxis /*&& tissueCategoryFilter === UIControlsWrapper.TISSUE_CATEGORY_ALL*/)
             ? function (termKey, defaultLabel) {
                 return getTissueInternalCodeFromFacetTerm(termKey) || defaultLabel;
             }
@@ -475,28 +475,28 @@ export class UIControlsWrapper extends React.PureComponent {
         );
     }
 
-    renderGermLayerFilter() {
+    renderTissueCategoryFilter() {
         const { barplot_data_unfiltered, barplot_data_filtered, barplot_data_fields, isLoadingChartData, btnVariant } = this.props;
-        const { showState, germLayerFilter } = this.state;
+        const { showState, tissueCategoryFilter } = this.state;
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
         if (!isTissueXAxis) return null;
 
         const topLevelField = (showState === 'all' ? barplot_data_unfiltered : barplot_data_filtered) || barplot_data_unfiltered;
-        const options = UIControlsWrapper.getAvailableGermLayers(topLevelField);
+        const options = UIControlsWrapper.getAvailableTissueCategories(topLevelField);
         if (!options || options.length <= 1) return null;
 
         return (
-            <div className="germ-layer-filter d-flex align-items-center justify-content-center flex-wrap gap-2 mb-2">
+            <div className="tissue-category-filter d-flex align-items-center justify-content-center flex-wrap gap-2 mb-2">
                 <span className="text-muted small">Tissue Type</span>
                 <div className="btn-group btn-group-sm" role="group" aria-label="Filter tissues by tissue type">
-                    {options.map((layer) => (
+                    {options.map((category) => (
                         <button
-                            key={layer}
+                            key={category}
                             type="button"
-                            className={`btn ${germLayerFilter === layer ? 'btn-secondary' : `btn-${btnVariant}`}`}
-                            onClick={() => this.setState({ germLayerFilter: layer })}
+                            className={`btn ${tissueCategoryFilter === category ? 'btn-secondary' : `btn-${btnVariant}`}`}
+                            onClick={() => this.setState({ tissueCategoryFilter: category })}
                             disabled={isLoadingChartData}>
-                            {layer}
+                            {category}
                         </button>
                     ))}
                 </div>
@@ -512,9 +512,9 @@ export class UIControlsWrapper extends React.PureComponent {
         } = this.props;
         const { aggregateType, showState } = this.state;
 
-        const germLayerAdjusted = this.getBarplotDataForGermLayer();
-        const barplotDataFiltered = germLayerAdjusted.barplot_data_filtered;
-        const barplotDataUnfiltered = germLayerAdjusted.barplot_data_unfiltered;
+        const tissueCategoryAdjusted = this.getBarplotDataForTissueCategory();
+        const barplotDataFiltered = tissueCategoryAdjusted.barplot_data_filtered;
+        const barplotDataUnfiltered = tissueCategoryAdjusted.barplot_data_unfiltered;
 
         if (!UIControlsWrapper.canShowChart(barplot_data_unfiltered)) return null;
 
@@ -603,7 +603,7 @@ export class UIControlsWrapper extends React.PureComponent {
                 </div>
                 <div className="row">
                     <div className="col-12 col-md-9 pt-4">
-                        {this.renderGermLayerFilter()}
+                        {this.renderTissueCategoryFilter()}
                     </div>
                 </div>
             </div>
