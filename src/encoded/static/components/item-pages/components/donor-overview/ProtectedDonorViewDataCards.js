@@ -464,11 +464,11 @@ const DonorDSAValue = ({ donorId }) => {
     return link ? (
         <span>
             <a href={link} target="_blank">
-                Available here
+                Available
             </a>
         </span>
     ) : (
-        <span>Coming Soon</span>
+        <span className="text-disabled">Coming soon</span>
     );
 };
 
