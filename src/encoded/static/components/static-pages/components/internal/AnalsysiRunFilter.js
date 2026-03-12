@@ -6,7 +6,6 @@ import { DEFAULT_SELECT, getItemsFromPortal, getSelect } from './utils';
 import {
     ANALYSIS_RUN_TAGS,
     ANALYSIS_RUN_DEFAULT_FILTER,
-    PRIMARY_PRODUCTION_TISSUES,
     ANALYSIS_TYPES
 } from './config';
 
@@ -36,19 +35,24 @@ class AnalysisRunFilterComponent extends React.PureComponent {
     };
 
     getTissues = () => {
-        const items = [];
-        PRIMARY_PRODUCTION_TISSUES.forEach((tissue) => {
-            items.push({
-                title: tissue,
-                code: tissue,
-            });
-        });
-        this.setState({
-            tissues: items,
-        });
+        getItemsFromPortal(
+            'OntologyTerm',
+            '&tags=tissue_type',
+            200,
+            (items) => {
+                const tissue_items = items.map((item) => ({
+                    title: item.display_title,
+                    code: item.display_title,
+                }));
+                this.setState({
+                    tissues: tissue_items,
+                });
+            }
+        );
+        
     };
 
-    componentDidMount() {
+    getDonors = () => {
         getItemsFromPortal(
             'Donor',
             '&submission_centers.display_title=NDRI+TPC',
@@ -57,6 +61,10 @@ class AnalysisRunFilterComponent extends React.PureComponent {
                 this.setState({ donors: items });
             }
         );
+    };
+
+    componentDidMount() {
+        this.getDonors();
         this.getTissues();
         this.getAnalysisTypes();
     }
