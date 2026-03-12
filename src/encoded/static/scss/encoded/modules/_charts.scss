@@ -2389,11 +2389,11 @@ body[data-path="/statistics"] {
         &.matrix-yaxis-donor {
             .grouping.header-section-lower {
                 .grouping-row.total-donors-summary-row {
-                    background-color: #ECECFF;
+                    background-color: #F4F4FF;
 
                     .label-section > .label-container,
                     .list-section {
-                        background-color: #ECECFF;
+                        background-color: #F4F4FF;
                     }
 
                     .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
@@ -2405,11 +2405,11 @@ body[data-path="/statistics"] {
                 }
 
                 .grouping-row:not(.total-donors-summary-row) {
-                    background-color: #E0E0FF;
+                    background-color: #EEEEFF;
 
                     .label-section > .label-container,
                     .list-section {
-                        background-color: #E0E0FF;
+                        background-color: #EEEEFF;
                     }
 
                     .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
