@@ -33,25 +33,10 @@ import {
 export const termTransformFxnWithOverrides = (facets = null) => {
     // Returns a separate function that uses schemas for overrides
     return function (field, key) {
-        let transformedTerm = null;
-
-        // Only run for particualar key values
-        if (
-            key === 'No value' ||
-            key === 'Filtered' ||
-            key === '(Missing group)'
-        ) {
-            // Find facet for field
-            const facet = facets.find((f) => f.field === field);
-
-            // Escape if no facet found
-            if (!facet) return Schemas.Term.toName(field, key);
-
-            transformedTerm = facet?.label_overrides?.[key] ?? null;
-        }
-
-        // Default to Schemas.Term.toName if not overridden
-        return transformedTerm ?? Schemas.Term.toName(field, key);
+        return (
+            facets.find((f) => f.field === field)?.label_overrides?.[key] ??
+            Schemas.Term.toName(field, key)
+        );
     };
 };
 
