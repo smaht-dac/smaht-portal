@@ -1717,6 +1717,20 @@ body[data-path="/statistics"] {
         overflow: visible;
     }
 
+    // No facet terms panel: remove the extra left divider on matrix body.
+    .matrix-mode-body > .matrix-visual-panel:only-child {
+        .stacked-block-viz-container {
+            border-left: none !important;
+            padding-left: 0 !important;
+        }
+    }
+
+    // Direct VisualBody layout (no mode/facets wrapper).
+    > .row > div > .stacked-block-viz-container {
+        border-left: none !important;
+        padding-left: 0 !important;
+    }
+
     .stacked-block-viz-container {
 
         display: inline-block;

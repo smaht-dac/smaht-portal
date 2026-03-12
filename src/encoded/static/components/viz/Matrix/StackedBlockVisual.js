@@ -846,6 +846,8 @@ export class StackedBlockVisual extends React.PureComponent {
         const containerRect = this.containerRef.getBoundingClientRect();
         const headerRect = this.headerUpperEl.getBoundingClientRect();
         const topOffset = this.getStickyTopOffset();
+        const containerStyle = window.getComputedStyle(this.containerRef);
+        const containerPaddingLeft = parseFloat(containerStyle.paddingLeft || '0') || 0;
 
         // Keep header fixed only while the matrix container intersects viewport and
         // there is enough remaining room for header to stay visible.
@@ -854,7 +856,7 @@ export class StackedBlockVisual extends React.PureComponent {
         if (shouldPin) {
             this.headerUpperEl.style.position = 'fixed';
             this.headerUpperEl.style.top = `${topOffset}px`;
-            this.headerUpperEl.style.left = `${Math.round(containerRect.left + 10)}px`;
+            this.headerUpperEl.style.left = `${Math.round(containerRect.left + containerPaddingLeft)}px`;
             this.headerUpperEl.style.width = `${Math.round(containerRect.width)}px`;
             this.headerUpperEl.style.zIndex = '20';
             this.headerUpperEl.style.background = '#ffffff';
