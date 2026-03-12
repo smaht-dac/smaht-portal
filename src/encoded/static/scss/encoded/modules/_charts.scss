@@ -1945,7 +1945,7 @@ body[data-path="/statistics"] {
 
             &.open {
                 >.row.grouping-row {
-                    background-color: #ebe8ec;
+                    background-color: #E3E3EC;
                 }
             }
 
@@ -2035,7 +2035,7 @@ body[data-path="/statistics"] {
                     padding-right: 0px;
 
                     >.open-empty-placeholder {
-                        background-color: #ebe8ec;
+                        background-color: #E3E3EC;
                         border-radius: 0 10px 0 0;
                         // border-top: 3px solid #eee;
                         // @include gradient-y($start-color: #f7f7f7, $end-color: #fff);
