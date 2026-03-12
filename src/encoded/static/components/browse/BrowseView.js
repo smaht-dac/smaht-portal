@@ -770,7 +770,6 @@ export function createBrowseFileColumnExtensionMap({
         'version',
         'sample_summary.studies',
         'submission_centers.display_title',
-        'software.display_title',
         'donors.tags',
     ];
 

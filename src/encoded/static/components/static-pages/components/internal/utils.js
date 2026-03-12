@@ -213,6 +213,19 @@ export const getTargetCoverage = (sequencing) => {
     return targeCoverage;
 };
 
+export const copyBtn = (accession, size = '0.875rem') => {
+    return (
+        <object.CopyWrapper
+            value={accession}
+            className=""
+            data-tip={'Click to copy accession'}
+            wrapperElement="span"
+            iconProps={{
+                style: { fontSize: size, marginLeft: 3 },
+            }}></object.CopyWrapper>
+    );
+};
+
 export const getQcBagdeType = (flag) => {
     let badgeType = 'secondary';
     if (flag === 'Pass') {
