@@ -393,6 +393,7 @@ export const BrowseDonorVizWrapper = (props) => {
                                 isFullscreen,
                                 initialFields,
                                 mapping,
+                                subBarLayout: 'grouped',
                             }}
                         />
                     </div>
