@@ -161,7 +161,9 @@
   "facets": {
         "reference_genome.display_title": {
             "title": "Reference Genome",
-            "override_no_value_label": "None"
+            "label_overrides": {
+                "No value": "None"
+            }
         }
     }
 }

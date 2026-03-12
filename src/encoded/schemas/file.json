@@ -363,12 +363,16 @@
             "search_type": "basic",
             "sayt_item_type": "Assay",
             "group_by_field": "file_sets.libraries.assay.category",
-            "override_no_value_label": "Multiple Assays",
-            "override_missing_group_label": "Multiple Assays"
+            "label_overrides": {
+                "No value": "Multiple Assays",
+                "(Missing group)": "Multiple Assays"
+            }
         },
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform",
-            "override_no_value_label": "Multiple Platforms"
+            "label_overrides": {
+                "No value": "Multiple Platforms"
+            }
         },
         "file_format.display_title": {
             "title": "Data Format"
@@ -381,8 +385,10 @@
         },
         "analysis_details": {
             "title": "Analysis Details",
-            "override_no_value_label": "Other",
-            "override_filtered_label": "Filtered Variant Calls"
+            "label_overrides": {
+                "No value": "Other",
+                "Filtered": "Filtered Variant Calls"
+            }
         },
         "file_status_tracking.release_dates.initial_release": {
             "title" : "Release Date",
