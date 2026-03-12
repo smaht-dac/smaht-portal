@@ -314,6 +314,12 @@
         "access_status": {
             "title": "Access"
         },
+        "data_description": {
+            "title": "Data Description",
+            "label_overrides": {
+                "No value": "None"
+            }
+        },
         "donors.display_title": {
             "title": "Donor",
             "search_type": "basic"
@@ -393,6 +399,12 @@
         "file_status_tracking.release_dates.initial_release": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
+        },
+        "reference_genome.display_title": {
+            "title": "Reference Genome",
+            "label_overrides": {
+                "No value": "None"
+            }
         },
         "sequencing_center.display_title": {
             "title": "Sequencing Center"
