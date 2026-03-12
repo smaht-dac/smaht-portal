@@ -47,21 +47,7 @@ export const termTransformFxnWithOverrides = (facets = null) => {
             // Escape if no facet found
             if (!facet) return Schemas.Term.toName(field, key);
 
-            // Match key to override field
-            switch (key) {
-                case 'No value':
-                    transformedTerm = facet?.override_no_value_label ?? null;
-                    break;
-                case 'Filtered':
-                    transformedTerm = facet?.override_filtered_label ?? null;
-                    break;
-                case '(Missing group)':
-                    transformedTerm =
-                        facet?.override_missing_group_label ?? null;
-                    break;
-                default:
-                    break;
-            }
+            transformedTerm = facet?.label_overrides?.[key] ?? null;
         }
 
         // Default to Schemas.Term.toName if not overridden
