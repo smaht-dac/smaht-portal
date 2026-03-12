@@ -752,7 +752,6 @@ class FileRelease:
             additional_filter = (
                 f"&accession!={self.file_accession}"
             )
-            import pdb; pdb.set_trace()
             dsa_files = self.get_all_files_from_dsa(additional_filter)
             for f in dsa_files:
                 associated_files.append(f)
