@@ -13,8 +13,8 @@ Change Log
 
 `PR 615: feat: facet overrides for variant call sets <https://github.com/smaht-dac/smaht-portal/pull/615>`_
 
-* Enhances the user registration flow, especially for distinguishing between SMaHT Network members and self-registering users
-* Improves the user interface and messaging for both groups
+* Add override fields for No value and Missing group terms in schema
+* Create term transform function to update facet terms
 
 
 1.17.0
