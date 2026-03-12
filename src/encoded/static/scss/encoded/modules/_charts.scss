@@ -1488,6 +1488,20 @@ body[data-path="/statistics"] {
 }
 
 .data-matrix {
+    .matrix-render-surface {
+        position: relative;
+    }
+
+    .matrix-refresh-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.46);
+        z-index: 25;
+        pointer-events: none;
+        font-size: 2rem;
+        color: #4b6280;
+    }
+
     .data-matrix-container {
         overflow-x: visible;
     }
@@ -1715,6 +1729,20 @@ body[data-path="/statistics"] {
     .matrix-visual-panel {
         min-width: 0;
         overflow: visible;
+    }
+
+    // No facet terms panel: remove the extra left divider on matrix body.
+    .matrix-mode-body > .matrix-visual-panel:only-child {
+        .stacked-block-viz-container {
+            border-left: none !important;
+            padding-left: 0 !important;
+        }
+    }
+
+    // Direct VisualBody layout (no mode/facets wrapper).
+    > .row > div > .stacked-block-viz-container {
+        border-left: none !important;
+        padding-left: 0 !important;
     }
 
     .stacked-block-viz-container {

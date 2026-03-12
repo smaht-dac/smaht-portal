@@ -411,6 +411,7 @@ export default class DataMatrix extends React.PureComponent {
 
         this.state = {
             "mounted": false,
+            "isFetching": false,
             "_results": null,
             "query": props.query,
             "baseRowAggFields": props.query && props.query.rowAggFields ? props.query.rowAggFields : null,
@@ -730,6 +731,7 @@ export default class DataMatrix extends React.PureComponent {
             }
 
             updatedState[resultKey] = transformedData;
+            updatedState['isFetching'] = false;
             updatedState['overallCounts'] = result.counts || null;
             updatedState['facetsForPanel'] = result.facets || [];
             updatedState['facetFiltersForPanel'] = result.filters || [];
@@ -783,6 +785,7 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
             updatedState[resultKey] = false;
+            updatedState['isFetching'] = false;
             updatedState['facetsForPanel'] = [];
             updatedState['facetFiltersForPanel'] = [];
             this.setState(updatedState);
@@ -803,7 +806,7 @@ export default class DataMatrix extends React.PureComponent {
             autoPopulateRowGroupsProperty
         } = this.state;
         this.setState(
-            { "_results": null }, // (Re)Set all result states to 'null'
+            { "isFetching": true },
             () => {
                 const { valueDelimiter = ' ', excludePrimaryColumnNoValue = true } = this.props;
                 const activeHref = this.state.facetNavigationHref || requestUrl;
@@ -1043,7 +1046,7 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
-            defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel
+            defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel, isFetching
         } = this.state;
 
         const isTissueMatrixCount = countFor === 'donors' || countFor === 'tissue_files';
@@ -1052,6 +1055,7 @@ export default class DataMatrix extends React.PureComponent {
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
             this.state['_results'] === null && query && query.url !== null && typeof query.url !== 'undefined';
+        const isRefreshing = !!(isFetching && this.state['_results'] !== null && this.state['_results'] !== false);
 
         if (isLoading) {
             return (
@@ -1288,8 +1292,13 @@ export default class DataMatrix extends React.PureComponent {
         const dataMatrixClassName = `data-matrix${isTissueMatrixMode ? ' matrix-mode-tissue' : ''}`;
         return (
             <div id={`data-matrix-for_${idLabel}`} className={dataMatrixClassName} data-files-count={totalFiles}>
-                <div className="row">
+                <div className={`row matrix-render-surface${isRefreshing ? ' is-refreshing' : ''}`}>
                     {body}
+                    {isRefreshing ? (
+                        <div className="matrix-refresh-overlay d-flex align-items-center justify-content-center">
+                            <i className="icon icon-spin icon-circle-notch fas" />
+                        </div>
+                    ) : null}
                 </div>
             </div>
         );
