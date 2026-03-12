@@ -1488,6 +1488,20 @@ body[data-path="/statistics"] {
 }
 
 .data-matrix {
+    .matrix-render-surface {
+        position: relative;
+    }
+
+    .matrix-refresh-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.46);
+        z-index: 25;
+        pointer-events: none;
+        font-size: 2rem;
+        color: #4b6280;
+    }
+
     .data-matrix-container {
         overflow-x: visible;
     }
