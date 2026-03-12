@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.17.2
+======
+
+`PR 617: Fetch tissues/donors, add copy button & cleanup <https://github.com/smaht-dac/smaht-portal/pull/617>`_
+
+* Adjust Submission Status and Analysis status to work with new tissue labels. Some frontend improvements (which required minor schema changes)
+
 
 1.17.1
 ======
