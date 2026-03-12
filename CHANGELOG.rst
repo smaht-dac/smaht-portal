@@ -8,6 +8,15 @@ Change Log
 ----------
 
 
+1.17.1
+======
+
+`PR 616: feat: add software facet <https://github.com/smaht-dac/smaht-portal/pull/616>`_
+
+* Add software facet
+* Reorder facets 
+
+
 1.17.0
 ======
 
