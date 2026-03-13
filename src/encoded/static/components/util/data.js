@@ -82,6 +82,8 @@ const tissueInternalCodeByTissueName = {
     Fibroblast: 'FBRO',
 };
 
+// this mapping is for fallback case when File item has missing tissue category (sample_summary.category)
+// it will be removed when all items have tissue category, but for now it is needed to categorize items without tissue category
 const tissueCategoryByTpcCode = {
     '3A': 'Clinically accessible',
     '3B': 'Clinically accessible',
