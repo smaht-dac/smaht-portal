@@ -363,7 +363,7 @@ describe("Data Overview by role", () => {
 
         // override caps for data/staging environment
         const baseUrl = Cypress.config().baseUrl || "";
-        if ((baseUrl.includes("data.smaht.org") || baseUrl.includes("staging.smaht.org")) && ['UNAUTH', ROLE_TYPES.PUBLIC_DBGAP, ROLE_TYPES.PUBLIC_NON_DBGAP].includes(roleKey)) {
+        if ((baseUrl.includes("data.smaht.org") || baseUrl.includes("staging.smaht.org") || baseUrl.includes("wolf.smaht.org")) && ['UNAUTH', ROLE_TYPES.PUBLIC_DBGAP, ROLE_TYPES.PUBLIC_NON_DBGAP].includes(roleKey)) {
             caps.runDataMatrixBenchmarking = false;
             caps.runDataMatrixProduction = false;
             caps.expectedDataMatrixResponseCode = 403;

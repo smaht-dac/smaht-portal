@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+1.18.0
+======
+
+`PR 609: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/609>`_
+
+* Restructure Release Tracker for network members only
+* Implement alert for public users
+* Add new smaht-wolf cypress GA workflow
+
+
 1.17.3
 ======
 
@@ -76,6 +86,7 @@ Change Log
 * Update calcprops for sample_sources, donors, sample_summary, and release_tracker to function with new links
 * Update annotated filename and release script to function for External Output Files
 * Add new property analysis_details to File
+
 
 1.13.1
 ======
@@ -166,9 +177,10 @@ Change Log
 1.11.2
 ======
 
-`PR  595 update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
+`PR 595: update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
 
 * Add support for Tissue Aliquot category validation in TissueSample validator
+
 
 1.11.1
 ======
