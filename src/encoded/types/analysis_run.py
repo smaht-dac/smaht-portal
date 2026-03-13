@@ -22,6 +22,8 @@ def _build_analysis_run_embedded_list():
         "meta_workflow_runs.final_status",
         "meta_workflow_runs.date_created",
         "tissues.tissue_type",
+        "tissues.accession",
+        "donors.accession",
     ]
 
 

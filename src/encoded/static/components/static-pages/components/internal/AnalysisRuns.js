@@ -4,7 +4,6 @@ import React from 'react';
 import {
     JWT,
     ajax,
-    object,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
     fallbackCallback,
@@ -16,6 +15,7 @@ import {
     getCommentsList,
     getCommentInputField,
     getPagination,
+    copyBtn,
 } from './utils';
 
 import {
@@ -243,56 +243,46 @@ class AnalysisRunsComponent extends React.PureComponent {
     };
 
     toggleTag = (fileset, tag) => {
-        this.setState(
-            (prevState) => ({
-                loading: true,
-            }),
-            function () {
-                if (!fileset.tags) {
-                    fileset.tags = [tag];
-                } else if (fileset.tags.includes(tag)) {
-                    const index = fileset.tags.indexOf(tag);
-                    fileset.tags.splice(index, 1);
-                } else {
-                    fileset.tags.push(tag);
-                }
-                const payload = {
-                    tags: fileset.tags ?? null,
-                };
-                this.patchAnalysisRun(
-                    fileset.uuid,
-                    this.state.analysisRuns,
-                    payload
-                );
-            }
-        );
+        if (!fileset.tags) {
+            fileset.tags = [tag];
+        } else if (fileset.tags.includes(tag)) {
+            fileset.tags = fileset.tags.filter((t) => t !== tag);
+        } else {
+            fileset.tags.push(tag);
+        }
+        this.setState({ loading: true });
+        this.patchAnalysisRun(fileset.uuid, this.state.analysisRuns, { tags: fileset.tags });
     };
 
     getAnalysisRunTableBody = () => {
         const tbody = this.state.analysisRuns.map((ar) => {
-            let tissues = [];
-            let donors = [];
-            ar.tissues?.forEach((tissue) => {
-                tissues.push(tissue.tissue_type);
-            });
-            ar.donors?.forEach((d) => {
-                donors.push(d.display_title);
-            });
-            donors = [...new Set(donors)].sort();
-            const donorsString = donors.join(', ');
-            const tissuesString = tissues.join(', ');
+            const tissues = [...new Map(ar.tissues?.map((t) => [t.tissue_type, t]) ?? []).values()]
+                .sort((a, b) => a.tissue_type.localeCompare(b.tissue_type));
+            const donors = [...new Map(ar.donors?.map((d) => [d.accession, d]) ?? []).values()]
+                .sort((a, b) => a.display_title.localeCompare(b.display_title));
+            
             let details = [
                 <li className="ss-line-height-140">Type: {ar.analysis_type}</li>
             ];
-            if (donorsString.length > 0) {
+            if (donors.length > 0) {
+                const donorDetails  = [];
+                donors.forEach((d) => {
+                    const link = getLink(d.accession, d.display_title);
+                    donorDetails.push(<span>{link}{copyBtn(d.accession, '0.65rem')}</span>);
+                });
                 details.push(
-                    <li className="ss-line-height-140">Donors: {donorsString}</li>
+                    <li className="ss-line-height-140">Donors: {donorDetails}</li>
                 );
             }
-            if (tissuesString.length > 0) {
+            if (tissues.length > 0) {
+                const tissueDetails  = [];
+                tissues.forEach((d) => {
+                    const link = getLink(d.accession, d.tissue_type);
+                    tissueDetails.push(<span>{link}{copyBtn(d.accession, '0.65rem')}</span>);
+                });
                 details.push(
                     <li className="ss-line-height-140">
-                        Tissues: {tissuesString}
+                        Tissues: {tissueDetails}
                     </li>
                 );
             }
@@ -343,14 +333,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                             mwfr.accession,
                             mwfr.meta_workflow?.display_title
                         )}
-                        <object.CopyWrapper
-                            value={mwfr.accession}
-                            className=""
-                            data-tip={'Click to copy accession'}
-                            wrapperElement="span"
-                            iconProps={{
-                                style: { fontSize: '0.875rem', marginLeft: 3 },
-                            }}></object.CopyWrapper>
+                        {copyBtn(mwfr.accession)}
                         <small className="d-block ss-line-height-140">
                             Created: {formatDate(mwfr.date_created)}. Status:{' '}
                             {mwfr_badge}
@@ -402,14 +385,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                          <a href={fo.accession} target="_blank" data-tip={fo.display_title}>
                             {fo.accession}
                         </a>
-                        <object.CopyWrapper
-                            value={fo.accession}
-                            className=""
-                            data-tip={'Click to copy accession'}
-                            wrapperElement="span"
-                            iconProps={{
-                                style: { fontSize: '0.875rem', marginLeft: 3 },
-                            }}></object.CopyWrapper>
+                        {copyBtn(fo.accession)}
                         <small className='d-block ss-line-height-140'>Status: {fo_badge}</small>
                         
                     </li>
@@ -422,14 +398,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                 <tr key={ar.accession}>
                     <td className="text-start ss-fileset-column">
                         {getLink(ar.accession, ar.description || ar.analysis_type)}
-                        <object.CopyWrapper
-                            value={ar.accession}
-                            className=""
-                            data-tip={'Click to copy accession'}
-                            wrapperElement="span"
-                            iconProps={{
-                                style: { fontSize: '0.875rem', marginLeft: 3 },
-                            }}></object.CopyWrapper>
+                        {copyBtn(ar.accession)}
                         {details}
                     </td>
                     <td>

@@ -8,7 +8,6 @@ import { fallbackCallback, DEFAULT_SELECT, getItemsFromPortal, getSelect } from 
 import {
     SUBMISSION_STATUS_TAGS,
     SUBMISSION_STATUS_DEFAULT_FILTER,
-    PRIMARY_PRODUCTION_TISSUES,
     CELL_CULTURE_MIXTURES,
 } from './config';
 
@@ -51,20 +50,32 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
     };
 
     getTissuesAndMixtures = () => {
-        const items = [];
-        const tissuesAndMixtures = [
-            ...PRIMARY_PRODUCTION_TISSUES,
-            ...CELL_CULTURE_MIXTURES,
-        ];
-        tissuesAndMixtures.forEach((tissue) => {
-            items.push({
-                title: tissue,
-                code: tissue,
-            });
-        });
-        this.setState({
-            cell_culture_mixtures_and_tissues: items,
-        });
+        getItemsFromPortal(
+            'OntologyTerm',
+            '&tags=tissue_type',
+            200,
+            (items) => {
+                const primaryTissues = [];
+                items.forEach((item) => {
+                    const tissue_type = item.display_title;
+
+                    const tissue_type_formatted = tissue_type.split(' - ')[1] || tissue_type;
+                    primaryTissues.push(tissue_type_formatted);
+                });
+                const tissuesAndMixtures = [
+                    ...primaryTissues.sort((a, b) => a.localeCompare(b)),
+                    ...CELL_CULTURE_MIXTURES,
+                ];
+                const selectItems = tissuesAndMixtures.map((tissue) => ({
+                    title: tissue,
+                    code: tissue,
+                }));
+                this.setState({
+                    cell_culture_mixtures_and_tissues: selectItems,
+                });
+            }
+        );
+        
     };
 
     componentDidMount() {
