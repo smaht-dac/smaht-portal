@@ -1,0 +1,56 @@
+[
+    {
+        "uuid": "a87f640f-710c-4405-9965-b0e2e0d0573e",
+        "doi": "doi:test_doi_1",
+        "pubmed_id": "PMID:11111111",
+        "title": "Test Publication One",
+        "authors": ["Author One", "Author Two", "Author Three"],
+        "abstract": "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "date_published": "2025-01-01",
+        "journal": "Test Journal",
+        "repository_urls": ["https://example.com"],
+        "journal_url": "https://examplejournal.com",
+        "scope": "Network",
+        "study": "Production",
+        "is_preprint": false,
+        "consortia": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "b98f640f-710c-4405-9965-b0e2e0d0574f",
+        "doi": "doi:test_doi_2",
+        "title": "Test Publication Two",
+        "authors": ["Author One", "Author Two"],
+        "abstract": "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "date_published": "2023-06-15",
+        "journal": "Another Journal",
+        "repository_urls": ["https://anotherexample.com"],
+        "journal_url": "https://anotherjournal.com",
+        "scope": "Individual Lab",
+        "study": "Benchmarking",
+        "is_preprint": true,
+        "preprint_version": "2",
+        "consortia": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "c09f640f-710c-4405-9965-b0e2e0d0575f",
+        "doi": "doi:test_doi_3",
+        "pubmed_id": "PMID:33333333",
+        "title": "Test Publication Three",
+        "authors": ["Author One"],
+        "abstract": "ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        "date_published": "2024-11-30",
+        "journal": "Sample Journal",
+        "repository_urls": ["https://sampleexample.com", "https://sample2example.com"],
+        "journal_url": "https://samplejournal.com",
+        "scope": "Working group",
+        "study": "Production",
+        "is_preprint": false,
+        "consortia": [
+            "smaht"
+        ]
+    }
+]
