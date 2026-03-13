@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
 import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { BROWSE_STATUS_FILTERS } from '../../../browse/BrowseView';
 
 /**
  * Bootstrap Popover element for the description field in the sample information
@@ -426,7 +427,7 @@ const DonorDSAValue = ({ donorId }) => {
 
         if (!link) {
             // peek metadata to see if there are any DSA fields
-            const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${donorId}&sample_summary.studies=Production&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File`;
+            const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${donorId}&sample_summary.studies=Production&${BROWSE_STATUS_FILTERS}&type=File`;
             ajax.load(
                 '/peek-metadata/' + searchQuery,
                 (resp) => {
