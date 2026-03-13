@@ -540,7 +540,7 @@ export const ProtectedDonorViewDataCards = ({
                                         title={'DSA'}
                                         value={
                                             <DonorDSAValue
-                                                donorId={context?.display_title}
+                                                donorId={context?.external_id}
                                             />
                                         }
                                     />
