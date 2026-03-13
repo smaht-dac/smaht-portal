@@ -392,6 +392,20 @@ class FileRelease:
             search_filter += f"&{additional_filter}"
         return ff_utils.search_metadata(search_filter, key=self.key)
 
+    def get_all_files_from_dsa(self, additional_filter) -> List[dict]:
+        """Get all the supplementary files from a DSA.
+        
+        Returns:
+            List[dict]: List of output files
+        """
+        search_filter = (
+            f"/search/?type=SupplementaryFile&donor_specific_assembly.uuid="
+            f"{item_utils.get_uuid(self.file['donor_specific_assembly'])}"
+        )
+        if additional_filter:
+            search_filter += f"&{additional_filter}"
+        return ff_utils.search_metadata(search_filter, key=self.key)
+
     def get_file_sets_from_file(self) -> List[dict]:
         if file_sets := file_utils.get_file_sets(self.file):
             return [self.get_metadata(file_set) for file_set in file_sets]
@@ -716,23 +730,30 @@ class FileRelease:
         return status
 
     def get_associated_files(self) -> List[dict]:
-        """Get other Final output files of the alignment MWFR that need to be released. This function
+        """Get other associated files from MWFR or DSA that need to be released. This function
         needs to be adjust for specific Metaworkflows as the files to release can vary.
         """
-        if not self.output_meta_workflow_run:
-            return []
-
         associated_files = []
         # For RNA-Seq data, collect all of the Final Output files from the MWFR (without the file to release)
-        if self.output_meta_workflow_run["meta_workflow"]["name"] in [
-            MWF_RNA_SEQ,
-            MWF_KINNEX,
-        ]:
+        if self.output_meta_workflow_run:
+            if self.output_meta_workflow_run["meta_workflow"]["name"] in [
+                MWF_RNA_SEQ,
+                MWF_KINNEX,
+            ]:
+                additional_filter = (
+                    f"output_status=Final Output&accession!={self.file_accession}"
+                )
+                final_output_files = self.get_all_output_files_from_mwfr(additional_filter)
+                for f in final_output_files:
+                    associated_files.append(f)
+
+        # For DSA, collect all the files that are linked to the same DSA item (without the file to release)
+        if "donor_specific_assembly" in self.file:
             additional_filter = (
-                f"output_status=Final Output&accession!={self.file_accession}"
+                f"&accession!={self.file_accession}"
             )
-            final_output_files = self.get_all_output_files_from_mwfr(additional_filter)
-            for f in final_output_files:
+            dsa_files = self.get_all_files_from_dsa(additional_filter)
+            for f in dsa_files:
                 associated_files.append(f)
 
         return associated_files
