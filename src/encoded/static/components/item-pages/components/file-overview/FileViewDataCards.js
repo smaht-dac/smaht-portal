@@ -68,7 +68,7 @@ export const DataCardRow = ({
                     (value === null ||
                     value === 'Coming soon' ||
                     value === 'Protected'
-                        ? ' coming-soon'
+                        ? ' text-disabled'
                         : '')
                 }>
                 {value ?? 'N/A'}

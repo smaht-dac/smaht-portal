@@ -1,8 +1,11 @@
 'use strict';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
 import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { BROWSE_STATUS_FILTERS } from '../../../browse/BrowseView';
+
 /**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
@@ -409,6 +412,68 @@ const ExposureCard = ({ data, popover }) => {
 };
 
 /**
+ * Checks if donor has DSA files and returns a link to browse the DSA files if
+ * available or "Coming Soon" if not. Shows a loading indicator during check.
+ * @param {*} props
+ * @returns {JSX.Element} Link to browse DSA files if available
+ */
+const DonorDSAValue = ({ donorId }) => {
+    const [link, setLink] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        let cancelled = false;
+        setIsLoading(true);
+
+        if (!link) {
+            // peek metadata to see if there are any DSA fields
+            const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${donorId}&sample_summary.studies=Production&${BROWSE_STATUS_FILTERS}&type=File`;
+            ajax.load(
+                '/peek-metadata/' + searchQuery,
+                (resp) => {
+                    if (cancelled) return;
+                    // Check that some files are present in the metadata
+                    if (
+                        resp
+                            ?.find((f) => f.field === 'type')
+                            ?.terms.find((t) => t.key === 'File')?.doc_count > 0
+                    ) {
+                        setIsLoading(false);
+                        setLink('/browse/' + searchQuery);
+                    } else {
+                        // No DSA files found
+                        setIsLoading(false);
+                    }
+                },
+                'GET',
+                (err) => {
+                    setIsLoading(false);
+                    console.error(resp.error);
+                }
+            );
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    if (isLoading) {
+        return <i className="icon icon-spin icon-circle-notch fas" />;
+    }
+
+    return link ? (
+        <span>
+            <a href={link} target="_blank">
+                Available
+            </a>
+        </span>
+    ) : (
+        <span className="text-disabled">Coming soon</span>
+    );
+};
+
+/**
  * Parent component for the data cards containing information on the file.
  * @param {object} context the context of the item being viewed
  */
@@ -468,24 +533,16 @@ export const ProtectedDonorViewDataCards = ({
                                 </div>
                                 <div className="d-flex flex-column">
                                     <DataCardRow
-                                        title={'Tier'}
-                                        value={'Coming soon'}
-                                    />
-                                    <DataCardRow
                                         title={'Bulk WGS Coverage'}
                                         value={'Coming soon'}
                                     />
                                     <DataCardRow
-                                        title={
-                                            <span>
-                                                DSA
-                                                <i
-                                                    className="icon icon-info-circle fas ms-1"
-                                                    data-tip="Donor Specific genome Assembly [DSA]"
-                                                />
-                                            </span>
+                                        title={'DSA'}
+                                        value={
+                                            <DonorDSAValue
+                                                donorId={context?.external_id}
+                                            />
                                         }
-                                        value={'Coming soon'}
                                     />
                                 </div>
                             </div>
