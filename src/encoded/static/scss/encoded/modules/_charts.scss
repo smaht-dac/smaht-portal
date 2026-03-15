@@ -2548,6 +2548,11 @@ body[data-path="/statistics"] {
 
         // Coverage metric: keep summary row banding, but do not show empty summary boxes.
         &.count-for-total_coverage {
+            .block-container-group[data-group-key="row-summary"],
+            .column-group-header.overall-summary {
+                display: none !important;
+            }
+
             .grouping.header-section-lower {
                 .grouping-row:not(.total-donors-summary-row) {
                     .block-container-group {
