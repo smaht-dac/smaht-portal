@@ -314,6 +314,12 @@
         "access_status": {
             "title": "Access"
         },
+        "data_description": {
+            "title": "Data Description",
+            "label_overrides": {
+                "No value": "None"
+            }
+        },
         "donors.display_title": {
             "title": "Donor",
             "search_type": "basic"
@@ -362,10 +368,17 @@
             "title": "Experimental Assay",
             "search_type": "basic",
             "sayt_item_type": "Assay",
-            "group_by_field": "file_sets.libraries.assay.category"
+            "group_by_field": "file_sets.libraries.assay.category",
+            "label_overrides": {
+                "No value": "Multiple Assays",
+                "(Missing group)": "Multiple Assays"
+            }
         },
         "file_sets.sequencing.sequencer.display_title": {
-            "title": "Sequencing Platform"
+            "title": "Sequencing Platform",
+            "label_overrides": {
+                "No value": "Multiple Platforms"
+            }
         },
         "file_format.display_title": {
             "title": "Data Format"
@@ -377,7 +390,11 @@
             "title": "Data Type"
         },
         "analysis_details": {
-            "title": "Analysis Details"
+            "title": "Analysis Details",
+            "label_overrides": {
+                "No value": "Other",
+                "Filtered": "Filtered Variant Calls"
+            }
         },
         "software.display_title": {
             "title": "Software"
@@ -385,6 +402,12 @@
         "file_status_tracking.release_dates.initial_release": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
+        },
+        "reference_genome.display_title": {
+            "title": "Reference Genome",
+            "label_overrides": {
+                "No value": "None"
+            }
         },
         "sequencing_center.display_title": {
             "title": "Sequencing Center"
