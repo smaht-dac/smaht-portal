@@ -2368,6 +2368,15 @@ body[data-path="/statistics"] {
             }
         }
 
+        &.matrix-yaxis-tissue.has-open-block {
+            .stacked-block.is-open-block[data-block-type="col-summary"],
+            .stacked-block.is-open-block[data-block-type="col-secondary-summary"],
+            .stacked-block.is-open-block[data-block-type="row-summary"] {
+                color: #479b59 !important;
+                border-color: #479b59 !important;
+            }
+        }
+
         .axis-container {
             // position: relative;
             width: 250px;
@@ -2548,6 +2557,11 @@ body[data-path="/statistics"] {
 
         // Coverage metric: keep summary row banding, but do not show empty summary boxes.
         &.count-for-total_coverage {
+            .block-container-group[data-group-key="row-summary"],
+            .column-group-header.overall-summary {
+                display: none !important;
+            }
+
             .grouping.header-section-lower {
                 .grouping-row:not(.total-donors-summary-row) {
                     .block-container-group {

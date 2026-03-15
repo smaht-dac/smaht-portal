@@ -224,7 +224,7 @@ export default class DataMatrix extends React.PureComponent {
         "fallbackNameForBlankField": "None",
         /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups": [],
-        "headerPadding": 200,
+        "headerPadding": 180,
         "columnGroups": DataMatrix.DEFAULT_COLUMN_GROUPS,
         "showColumnGroups": true,
         "columnGroupsExtended": DataMatrix.DEFAULT_COLUMN_GROUPS_EXTENDED,
