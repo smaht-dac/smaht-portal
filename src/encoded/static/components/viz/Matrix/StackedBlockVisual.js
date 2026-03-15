@@ -450,6 +450,19 @@ export class VisualBody extends React.PureComponent {
         const browseUrl = generateBrowseUrl();
 
         const dataForCounts = Array.isArray(data) ? data : (data ? [data] : []);
+        const getUniqueDonorCountFromItems = (items) => {
+            const donorSet = new Set();
+            (items || []).forEach((item) => {
+                if (!item) return;
+                const donorValue = item.donor;
+                if (Array.isArray(donorValue)) {
+                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
+                } else if (donorValue != null) {
+                    donorSet.add(String(donorValue));
+                }
+            });
+            return donorSet.size;
+        };
         const getFilesCountFromItem = (item) => {
             if (item && item.counts && typeof item.counts.files === 'number') return item.counts.files;
             if (item && typeof item.files === 'number') return item.files;
@@ -467,6 +480,8 @@ export class VisualBody extends React.PureComponent {
                 totalCoverage: sum.totalCoverage + getTotalCoverageFromItem(item)
             };
         }, { fileCount: 0, totalCoverage: 0 });
+        const donorCount = getUniqueDonorCountFromItems(dataForCounts);
+        const isTissueSummary = String(primaryGrpPropTitle || '').toLowerCase() === 'tissue';
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
         const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
 
@@ -540,8 +555,8 @@ export class VisualBody extends React.PureComponent {
                                         <div className="value">{primaryGrpPropUniqueCount || '--'}</div>
                                     </div>
                                     <div className="col-4">
-                                        <div className="label">{StackedBlockVisual.pluralize(secondaryGrpPropTitle)}</div>
-                                        <div className="value">{secondaryGrpPropUniqueCount || '--'}</div>
+                                        <div className="label">{isTissueSummary ? 'Total Donors' : StackedBlockVisual.pluralize(secondaryGrpPropTitle)}</div>
+                                        <div className="value">{isTissueSummary ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--')}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
