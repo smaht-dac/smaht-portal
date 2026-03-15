@@ -181,7 +181,7 @@ const CustomWrapper = React.memo(function CustomWrapper({
     tocListStyles = ['decimal', 'lower-alpha', 'lower-roman'],
     ...props
 }) {
-    const { children, title, context, windowWidth } = props;
+    const { children, title, context, windowWidth, href } = props;
     const toc =
         (context && context['table-of-contents']) ||
         (tableOfContents && typeof tableOfContents === 'object'
@@ -189,9 +189,11 @@ const CustomWrapper = React.memo(function CustomWrapper({
             : null);
     const pageTitle = title || (context && context.title) || null;
     const tocExists = toc && toc.enabled !== false;
+    const isDataMatrixPage = typeof href === 'string' && href.indexOf('/data-matrix') === 0;
+    const wrapperClassName = isDataMatrixPage ? 'container-wide' : 'container';
 
     return (
-        <div className="container" id="content">
+        <div className={wrapperClassName} id="content">
             <div className="static-page row" key="wrapper">
                 {tocExists ? (
                     <div
