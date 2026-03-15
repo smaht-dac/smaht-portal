@@ -7,6 +7,51 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 export function DataMatrixComparisonTabs({ session, tabs }) {
     const tabConfigs = useMemo(() => tabs || [], [tabs]);
 
+    const normalizeTabKey = useCallback((value) => {
+        if (typeof value !== 'string') return null;
+        let decoded;
+        try {
+            decoded = decodeURIComponent(value);
+        } catch (e) {
+            decoded = value;
+        }
+        decoded = decoded.trim().replace(/^#/, '');
+        if (!decoded) return null;
+        return decoded.split(/[/?&]/)[0].toLowerCase();
+    }, []);
+
+    const getHashKey = useCallback(() => {
+        if (typeof window === 'undefined') return null;
+        const hash = window.location.hash || '';
+        if (!hash) return null;
+        return normalizeTabKey(hash);
+    }, [normalizeTabKey]);
+
+    const keysMatch = useCallback((left, right) => {
+        const leftNormalized = normalizeTabKey(left);
+        const rightNormalized = normalizeTabKey(right);
+        if (!leftNormalized || !rightNormalized) return false;
+        return leftNormalized === rightNormalized;
+    }, [normalizeTabKey]);
+
+    const resolveTabKey = useCallback((key) => {
+        if (!key) return null;
+        const found = tabConfigs.find((tab) => keysMatch(tab.key, key));
+        return found?.key ?? null;
+    }, [tabConfigs, keysMatch]);
+
+    const setHashKey = useCallback((key) => {
+        if (typeof window === 'undefined') return;
+        if (!key) return;
+        const nextHash = `#${encodeURIComponent(key)}`;
+        if (window.location.hash === nextHash) return;
+        if (window.history && typeof window.history.replaceState === 'function') {
+            window.history.replaceState(null, '', nextHash);
+        } else {
+            window.location.hash = nextHash;
+        }
+    }, []);
+
     const [tabDataState, setTabDataState] = useState(() => (
         tabConfigs.reduce((acc, tab) => {
             acc[tab.key] = { hasData: null, totalFiles: null, loaded: false };
@@ -15,6 +60,9 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
     ));
 
     const [activeKey, setActiveKey] = useState(() => {
+        const hashKey = getHashKey();
+        const resolvedHashKey = resolveTabKey(hashKey);
+        if (resolvedHashKey) return resolvedHashKey;
         const hasProduction = tabConfigs.find((tab) => tab.key === 'production');
         return hasProduction ? 'production' : tabConfigs[0]?.key ?? null;
     });
@@ -31,16 +79,32 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         });
 
         if (!tabConfigs.length) return;
-        if (activeKey && tabConfigs.some((tab) => tab.key === activeKey)) return;
+        const hashKey = getHashKey();
+        const resolvedHashKey = resolveTabKey(hashKey);
+        if (resolvedHashKey) {
+            if (resolvedHashKey !== activeKey) setActiveKey(resolvedHashKey);
+            return;
+        }
+        if (activeKey && resolveTabKey(activeKey)) return;
         const preferred = tabConfigs.find((tab) => tab.key === 'production') || tabConfigs[0];
         setActiveKey(preferred?.key ?? null);
         // activeKey intentionally omitted from deps to avoid clobbering user selection on data reload.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tabConfigs, session]);
+    }, [tabConfigs, session, getHashKey, resolveTabKey]);
 
     useEffect(() => {
         if (!tabConfigs.length) return;
         const visibleTabs = tabConfigs.filter((tab) => tabDataState[tab.key]?.hasData !== false);
+        const hashKey = getHashKey();
+        const resolvedHashKey = resolveTabKey(hashKey);
+
+        // Always prioritize URL hash on initial load / refresh.
+        if (resolvedHashKey) {
+            if (activeKey !== resolvedHashKey) {
+                setActiveKey(resolvedHashKey);
+            }
+            return;
+        }
 
         if (visibleTabs.length === 0) {
             if (activeKey !== null) setActiveKey(null);
@@ -57,7 +121,21 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         if (nextActive !== activeKey) {
             setActiveKey(nextActive);
         }
-    }, [activeKey, tabConfigs, tabDataState, session]);
+    }, [activeKey, tabConfigs, tabDataState, session, getHashKey, resolveTabKey]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return undefined;
+        const onHashChange = () => {
+            const hashKey = getHashKey();
+            if (!hashKey) return;
+            const resolvedHashKey = resolveTabKey(hashKey);
+            if (resolvedHashKey) {
+                setActiveKey(resolvedHashKey);
+            }
+        };
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+    }, [getHashKey, tabConfigs, resolveTabKey]);
 
     const handleDataLoaded = useCallback((tabKey) => (payload = {}) => {
         const totalFiles = typeof payload.totalFiles === 'number' ? payload.totalFiles : 0;
@@ -92,20 +170,42 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
 
     if (!tabConfigs.length) return null;
 
+    const hashKeyForVisibility = getHashKey();
     const tabIsVisible = (tab) => {
+        if (hashKeyForVisibility && keysMatch(tab.key, hashKeyForVisibility)) return true;
         // During initial load, keep all tabs visible; after load, hide ones with no data.
         if (!allLoaded && !hasAnyLoaded) return true;
         return tabDataState[tab.key]?.hasData !== false;
     };
 
     const visibleTabs = tabConfigs.filter(tabIsVisible);
-    // Always render all panels so they can refetch when session changes, even if hidden.
-    const panelsToRender = tabConfigs;
     const renderTabs = allLoaded ? visibleTabs : tabConfigs;
-    const activeTab = visibleTabs.find((tab) => tab.key === activeKey) || renderTabs[0];
+    const hashKeyForRender = getHashKey();
+    const validHashKeyForRender = resolveTabKey(hashKeyForRender);
+    const effectiveActiveKey = validHashKeyForRender || activeKey;
+    const selectedKey = effectiveActiveKey || renderTabs[0]?.key || null;
+    const selectedTab = tabConfigs.find((tab) => tab.key === selectedKey) || tabConfigs[0] || null;
+    const getMatrixTitle = useCallback((tab) => {
+        if (!tab) return null;
+        if (typeof tab.matrixTitle === 'string' && tab.matrixTitle) {
+            return tab.matrixTitle;
+        }
+        if (typeof tab.title === 'string' && tab.title) {
+            return `${tab.title} Matrix`;
+        }
+        return null;
+    }, []);
+
+    const getTabIconClass = useCallback((tab) => {
+        if (!tab) return null;
+        if (typeof tab.iconCls === 'string' && tab.iconCls) return tab.iconCls;
+        if (tab.key === 'benchmarking') return 'icon-dna';
+        if (tab.key === 'production') return 'icon-lungs';
+        return null;
+    }, []);
 
     return (
-        <div key="data-matrix-tabs" className="data-matrix-container container">
+        <div key="data-matrix-tabs" className="data-matrix-container container-fluid px-0">
             <div className="row">
                 <div className="tabs-container d-flex flex-column" aria-busy={isLoading}>
                     {isLoading ? (
@@ -115,7 +215,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                     ) : null}
                     <div className="tab-headers d-flex flex-wrap gap-3">
                         {renderTabs.map((tab) => {
-                            const isActive = tab.key === activeTab?.key;
+                            const isActive = tab.key === selectedTab?.key;
                             const hasDataFlag = tabDataState[tab.key]?.hasData;
                             const dataHasContent = hasDataFlag === false && allLoaded ? 'false' : 'true';
                             return (
@@ -124,10 +224,18 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                     type="button"
                                     className={`tab-header ${tab.className || ''} ${isActive ? 'is-active' : 'is-inactive'} ${!allLoaded ? 'is-loading' : ''}`}
                                     data-has-data={dataHasContent}
-                                    onClick={() => setActiveKey(tab.key)}
+                                    onClick={() => {
+                                        setActiveKey(tab.key);
+                                        setHashKey(tab.key);
+                                    }}
                                     aria-pressed={isActive}
                                     aria-controls={`data-matrix-panel-${tab.key}`}>
-                                    <span className="title">{tab.title}</span>
+                                    <span className="title">
+                                        {getTabIconClass(tab) ? (
+                                            <i className={`icon fas ${getTabIconClass(tab)} me-15`} />
+                                        ) : null}
+                                        {tab.title}
+                                    </span>
                                 </button>
                             );
                         })}
@@ -142,30 +250,30 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                         </div>
                     ) : (
                         <div className="tab-panels-wrapper position-relative">
-                            {panelsToRender.map((tab) => {
-                                const isActive = tab.key === activeTab?.key;
-                                const headerVisible = visibleTabs.some((t) => t.key === tab.key);
-                                const dataMatrixKey = (tab.matrixProps && tab.matrixProps.key) || tab.key;
-                                const displayStyle = isActive && headerVisible ? 'flex' : 'none';
-                                return (
+                            {selectedTab ? (
+                                <div
+                                    key={selectedTab.key}
+                                    className={`tab-card ${selectedTab.className || ''} is-active`}
+                                    aria-hidden={false}>
                                     <div
-                                        key={tab.key}
-                                        className={`tab-card ${tab.className || ''} ${isActive ? 'is-active' : 'is-inactive'}`}
-                                        style={{ display: displayStyle }}
-                                        aria-hidden={!isActive}>
-                                        <div
-                                            className="body d-flex justify-content-start justify-content-lg-center overflow-auto"
-                                            id={`data-matrix-panel-${tab.key}`}>
+                                        className="body d-flex justify-content-start"
+                                        id={`data-matrix-panel-${selectedTab.key}`}>
+                                        <div className="matrix-panel-content w-100">
+                                            {getMatrixTitle(selectedTab) ? (
+                                                <div className="matrix-panel-title">
+                                                    <h2>{getMatrixTitle(selectedTab)}</h2>
+                                                </div>
+                                            ) : null}
                                             <DataMatrix
-                                                {...(tab.matrixProps || {})}
-                                                key={dataMatrixKey}
+                                                {...(selectedTab.matrixProps || {})}
+                                                key={(selectedTab.matrixProps && selectedTab.matrixProps.key) || selectedTab.key}
                                                 session={session}
-                                                onDataLoaded={handleDataLoaded(tab.key)}
+                                                onDataLoaded={handleDataLoaded(selectedTab.key)}
                                             />
                                         </div>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            ) : null}
                         </div>
                     )}
                 </div>
@@ -177,6 +285,8 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
 const tabShape = PropTypes.shape({
     key: PropTypes.string.isRequired,
     title: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
+    iconCls: PropTypes.string,
+    matrixTitle: PropTypes.string,
     className: PropTypes.string,
     matrixProps: PropTypes.object.isRequired
 });

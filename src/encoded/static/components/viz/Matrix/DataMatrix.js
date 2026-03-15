@@ -5,8 +5,13 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
+import { FacetList, generateNextHref } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/FacetList';
 import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
+import { Term } from './../../util/Schemas';
+import { compareTissueFacetTerms } from '../../util/data';
+import { FILE_BROWSE_HIDE_FACETS } from '../../browse/BrowseView';
 
 
 export default class DataMatrix extends React.PureComponent {
@@ -75,6 +80,67 @@ export default class DataMatrix extends React.PureComponent {
         Endoderm: { backgroundColor: '#53b27e', textColor: '#ffffff', shortName: 'Endo' },
         'Germ cells': { backgroundColor: '#80c4a0', textColor: '#ffffff', shortName: 'Germ' },
         'Clinically accessible': { backgroundColor: '#70a588', textColor: '#ffffff', shortName: 'Clin' },
+    };
+    static DEFAULT_COLUMN_GROUPS = {
+        "Bulk WGS": {
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
+            "backgroundColor": "#e04141",
+            "textColor": "#ffffff",
+            "shortName": "WGS"
+        },
+        "RNA-seq": {
+            "values": ['RNA-Seq - Illumina', 'Kinnex'],
+            "backgroundColor": "#ad48ad",
+            "textColor": "#ffffff",
+            "shortName": "RNA"
+        },
+        "Duplex-seq": {
+            "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
+            "backgroundColor": "#2b4792",
+            "textColor": "#ffffff",
+            "shortName": "Dupl"
+        },
+        "Single-cell WGS": {
+            "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
+            "backgroundColor": "#aac536",
+            "textColor": "#ffffff",
+            "shortName": "scWGS"
+        },
+        "Targeted Seq": {
+            "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
+            "backgroundColor": "#e1d567",
+            "textColor": "#ffffff",
+            "shortName": "Tgtd"
+        },
+        "Single-cell RNA-Seq": {
+            "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
+            "backgroundColor": "#d0b284",
+            "textColor": "#ffffff",
+            "shortName": "scRNA"
+        },
+        "Other": {
+            "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
+            "backgroundColor": "#76cbbe",
+            "textColor": "#ffffff"
+        },
+        "Analysis": {
+            "values": ['DSA', 'Variant Call Sets'],
+            "backgroundColor": "#821881",
+            "textColor": "#ffffff",
+            "shortName": "ANL"
+        }
+    };
+    static DEFAULT_COLUMN_GROUPS_EXTENDED = {
+        "Core Assay": {
+            "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
+            "backgroundColor": "#a786c2",
+            "textColor": "#ffffff"
+        },
+        "Extended Assay": {
+            "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'Analysis'],
+            "backgroundColor": "#d2bde3",
+            "textColor": "#ffffff"
+        }
     };
 
 
@@ -158,69 +224,10 @@ export default class DataMatrix extends React.PureComponent {
         "fallbackNameForBlankField": "None",
         /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups": [],
-        "headerPadding": 200,
-        "columnGroups": {
-            "Bulk WGS": {
-                "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
-                "backgroundColor": "#e04141",
-                "textColor": "#ffffff",
-                "shortName": "WGS"
-            },
-            "RNA-seq": {
-                "values": ['RNA-Seq - Illumina', 'Kinnex'],
-                "backgroundColor": "#ad48ad",
-                "textColor": "#ffffff",
-                "shortName": "RNA"
-            },
-            "Duplex-seq": {
-                "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
-                "backgroundColor": "#2b4792",
-                "textColor": "#ffffff",
-                "shortName": "Dupl"
-            },
-            "Single-cell WGS": {
-                "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
-                "backgroundColor": "#aac536",
-                "textColor": "#ffffff",
-                "shortName": "scWGS"
-            },
-            "Targeted Seq": {
-                "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
-                "backgroundColor": "#e1d567",
-                "textColor": "#ffffff",
-                "shortName": "Tgtd"
-            },
-            "Single-cell RNA-Seq": {
-                "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
-                "backgroundColor": "#d0b284",
-                "textColor": "#ffffff",
-                "shortName": "scRNA"
-            },
-            "Other": {
-                "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
-                "backgroundColor": "#76cbbe",
-                "textColor": "#ffffff"
-            },
-            "DSA": {
-                "values": ['DSA'],
-                "backgroundColor": "#cccccc",
-                "textColor": "#000000",
-                "shortName": "DSA"
-            }
-        },
+        "headerPadding": 180,
+        "columnGroups": DataMatrix.DEFAULT_COLUMN_GROUPS,
         "showColumnGroups": true,
-        "columnGroupsExtended": {
-            "Core Assay": {
-                "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
-                "backgroundColor": "#a786c2",
-                "textColor": "#ffffff"
-            },
-            "Extended Assay": {
-                "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'DSA'],
-                "backgroundColor": "#d2bde3",
-                "textColor": "#ffffff"
-            }
-        },
+        "columnGroupsExtended": DataMatrix.DEFAULT_COLUMN_GROUPS_EXTENDED,
         "showColumnGroupsExtended": false,
         "rowGroups": null,
         "showRowGroups": false,
@@ -275,6 +282,11 @@ export default class DataMatrix extends React.PureComponent {
             "dataset",
         ],
         "baseBrowseFilesPath": "/browse/",
+        "showCountFor": false,
+        "showUniqueDonorsAssayBand": true,
+        "showFacetTermsPanel": false,
+        "facetTermsPanelFields": null,
+        "excludePrimaryColumnNoValue": true,
     };
 
     static propTypes = {
@@ -323,8 +335,14 @@ export default class DataMatrix extends React.PureComponent {
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
         'onDataLoaded': PropTypes.func,
+        'schemas': PropTypes.object,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
-        'baseBrowseFilesPath': PropTypes.string
+        'baseBrowseFilesPath': PropTypes.string,
+        'showCountFor': PropTypes.bool,
+        'showUniqueDonorsAssayBand': PropTypes.bool,
+        'showFacetTermsPanel': PropTypes.bool,
+        'facetTermsPanelFields': PropTypes.arrayOf(PropTypes.string),
+        'excludePrimaryColumnNoValue': PropTypes.bool
     };
 
     static parseQuery(queryString) {
@@ -384,16 +402,23 @@ export default class DataMatrix extends React.PureComponent {
         this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
         this.getJsxExport = this.getJsxExport.bind(this);
         this.isProductionEnv = this.isProductionEnv.bind(this);
+        this.onCountForChange = this.onCountForChange.bind(this);
+        this.onFacetFilter = this.onFacetFilter.bind(this);
+        this.onFacetFilterMultiple = this.onFacetFilterMultiple.bind(this);
+        this.onFacetClearFilters = this.onFacetClearFilters.bind(this);
 
         const colorRanges = this.getColorRanges(props);
 
         this.state = {
             "mounted": false,
+            "isFetching": false,
             "_results": null,
             "query": props.query,
+            "baseRowAggFields": props.query && props.query.rowAggFields ? props.query.rowAggFields : null,
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
+            "baseGroupingProperties": props.groupingProperties,
             "colorRanges": colorRanges,
             "columnGroups": props.columnGroups,
             "showColumnGroups": props.showColumnGroups,
@@ -412,7 +437,11 @@ export default class DataMatrix extends React.PureComponent {
             "colorRangeSegments": props.colorRangeSegments,
             "colorRangeSegmentStep": props.colorRangeSegmentStep,
             "summaryBackgroundColor": props.summaryBackgroundColor,
-            "defaultOpen": props.defaultOpen
+            "defaultOpen": props.defaultOpen,
+            "countFor": "files",
+            "facetsForPanel": [],
+            "facetFiltersForPanel": [],
+            "facetNavigationHref": props.query && props.query.url ? props.query.url : null
         };
     }
 
@@ -423,27 +452,72 @@ export default class DataMatrix extends React.PureComponent {
 
     componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen, countFor } = this.state;
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
             columnGrouping !== pastState.columnGrouping ||
             !_.isEqual(groupingProperties, pastState.groupingProperties) ||
             showColumnSummary !== pastState.showColumnSummary ||
-            defaultOpen !== pastState.defaultOpen) {
+            defaultOpen !== pastState.defaultOpen ||
+            countFor !== pastState.countFor ||
+            this.state.facetNavigationHref !== pastState.facetNavigationHref) {
             this.loadSearchQueryResults();
         }
     }
 
+    onFacetFilter(facet, term, callback) {
+        const { query, facetNavigationHref, facetFiltersForPanel } = this.state;
+        const currentHref = facetNavigationHref || (query && query.url) || '';
+        const currentFilters = facetFiltersForPanel || [];
+        const nextHref = generateNextHref(currentHref, currentFilters, facet, term);
+        this.setState({ facetNavigationHref: nextHref }, () => {
+            if (typeof callback === 'function') callback();
+        });
+    }
+
+    onFacetFilterMultiple(filterObjArr = [], callback = null) {
+        const { query, facetNavigationHref, facetFiltersForPanel } = this.state;
+        let nextHref = facetNavigationHref || (query && query.url) || '';
+        const currentFilters = facetFiltersForPanel || [];
+
+        if (!Array.isArray(filterObjArr) || filterObjArr.length === 0) {
+            if (typeof callback === 'function') callback();
+            return;
+        }
+
+        filterObjArr.forEach((obj) => {
+            const { facet, term } = obj || {};
+            if (!facet || !term) return;
+            nextHref = generateNextHref(nextHref, currentFilters, facet, term);
+        });
+
+        this.setState({ facetNavigationHref: nextHref }, () => {
+            if (typeof callback === 'function') callback();
+        });
+    }
+
+    onFacetClearFilters(e = null, callback = null) {
+        if (e && typeof e.preventDefault === 'function') {
+            e.preventDefault();
+        }
+        const baseHref = (this.state.query && this.state.query.url) || null;
+        this.setState({ facetNavigationHref: baseHref }, () => {
+            if (typeof callback === 'function') callback();
+        });
+    }
+
     /* Transform DSA entries by:
         1) For each group defined by groupingProperties, compute:
-            diff_files = row_totals.files - all.files
-        2) For each dsa entry, set files = diff_files for its group (if exists)
+            diff_files = row_totals.counts.files - all.counts.files
+        2) For each dsa entry, set counts.files = diff_files for its group (if exists)
         3) Merge dsa entries by groupingProperties:
-            - files: take from any row (they should all be equal after step 2)
+            - counts.files: take from any row (they should all be equal after step 2)
             - other fields: distinct values; single => scalar, multiple => array
     */
     static transformDSA(nonDsaData, row_totals, dsaData, groupingProperties, columnGrouping) {
+        const getFilesCount = (row) => Number(row && row.counts && row.counts.files) || 0;
+
         // Helper: build a grouping key like "COLO829BL||No value"
         const makeGroupKey = (row) =>
             groupingProperties.map((prop) => String(row[prop])).join('||');
@@ -452,7 +526,7 @@ export default class DataMatrix extends React.PureComponent {
         const rowTotalsByGroup = {};
         for (const row of row_totals) {
             const key = makeGroupKey(row);
-            const files = Number(row.files) || 0;
+            const files = getFilesCount(row);
             rowTotalsByGroup[key] = (rowTotalsByGroup[key] || 0) + files;
         }
 
@@ -460,7 +534,7 @@ export default class DataMatrix extends React.PureComponent {
         const allTotalsByGroup = {};
         for (const row of nonDsaData) {
             const key = makeGroupKey(row);
-            const files = Number(row.files) || 0;
+            const files = getFilesCount(row);
             allTotalsByGroup[key] = (allTotalsByGroup[key] || 0) + files;
         }
 
@@ -480,7 +554,10 @@ export default class DataMatrix extends React.PureComponent {
             return {
                 ...row,
                 // If we have a diff for this group, use it; otherwise keep original value
-                files: typeof diffFiles === 'number' ? diffFiles : row.files,
+                counts: {
+                    ...(row.counts || {}),
+                    files: typeof diffFiles === 'number' ? diffFiles : getFilesCount(row),
+                },
                 // Overwrite the columnGrouping field with "DSA"
                 [columnGrouping]: 'DSA',
             };
@@ -488,7 +565,7 @@ export default class DataMatrix extends React.PureComponent {
 
         // 5) SECOND PASS: merge dsa rows by groupingProperties
         //    - Same donor+tissue => single row
-        //    - files: take from any row (they should all be equal)
+        //    - counts.files: take from any row (they should all be equal)
         //    - other fields: distinct values; single => scalar, multiple => array
 
         // Group rows by groupingProperties key
@@ -508,8 +585,8 @@ export default class DataMatrix extends React.PureComponent {
 
             // Iterate over all fields of the first row (assuming schema is consistent)
             for (const field of Object.keys(firstRow)) {
-                if (field === 'files') {
-                    // Rule 1: files value is same; take from one row
+                if (field === 'counts') {
+                    // Rule 1: counts.files value is same; take from one row
                     mergedRow[field] = firstRow[field];
                 } else {
                     // Rule 2: collect distinct values for this field across group
@@ -527,6 +604,43 @@ export default class DataMatrix extends React.PureComponent {
 
         // 6) Return new object, keeping all and row_totals unchanged
         return mergedDsa;
+    }
+
+    static transformSNV(filteredData, groupingProperties, columnGrouping) {
+        const getFilesCount = (row) => Number(row && row.counts && row.counts.files) || 0;
+        const getCoverageCount = (row) => Number(row && row.counts && row.counts.total_coverage) || 0;
+        const makeGroupKey = (row) =>
+            groupingProperties.map((prop) => String(row[prop])).join('||');
+
+        const snvGrouped = {};
+        for (const row of filteredData) {
+            const key = makeGroupKey(row);
+            if (!snvGrouped[key]) {
+                snvGrouped[key] = [];
+            }
+            snvGrouped[key].push(row);
+        }
+
+        return Object.values(snvGrouped).map((rowsInGroup) => {
+            const firstRow = rowsInGroup[0];
+            const mergedRow = {};
+
+            for (const field of Object.keys(firstRow)) {
+                if (field === 'counts') {
+                    mergedRow[field] = {
+                        ...(firstRow[field] || {}),
+                        files: rowsInGroup.reduce((sum, row) => sum + getFilesCount(row), 0),
+                        total_coverage: rowsInGroup.reduce((sum, row) => sum + getCoverageCount(row), 0)
+                    };
+                } else {
+                    const values = Array.from(new Set(rowsInGroup.map((r) => r[field])));
+                    mergedRow[field] = values.length === 1 ? values[0] : values;
+                }
+            }
+
+            mergedRow[columnGrouping] = 'Variant Call Sets';
+            return mergedRow;
+        });
     }
 
     loadSearchQueryResults() {
@@ -549,7 +663,7 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            let transformedData = { all: [], row_totals: [] };
+            let transformedData = { all: [], row_totals: [], column_totals: [] };
             const populatedRowGroups = {}; // not implemented yet
             // Helper to process each result row
             const processResultRow = (r, transformed) => {
@@ -565,7 +679,7 @@ export default class DataMatrix extends React.PureComponent {
                 if (resultItemPostProcessFuncKey && typeof DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey] === 'function') {
                     cloned = DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey](cloned);
                 }
-                if (cloned.files && cloned.files > 0) {
+                if (cloned.counts && cloned.counts.files && cloned.counts.files > 0) {
                     if (valueChangeMap) {
                         _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
                             if (typeof cloned[field] === 'string') {
@@ -584,21 +698,48 @@ export default class DataMatrix extends React.PureComponent {
                 }
             };
 
+            const processColumnTotal = (r, transformed) => {
+                let cloned = _.clone(r);
+                if (fieldChangeMap) {
+                    _.forEach(_.pairs(fieldChangeMap), ([fieldToMapTo, fieldToMapFrom]) => {
+                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) {
+                            cloned[fieldToMapTo] = cloned[fieldToMapFrom];
+                            delete cloned[fieldToMapFrom];
+                        }
+                    });
+                }
+                if (valueChangeMap) {
+                    _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
+                        if (typeof cloned[field] === 'string') {
+                            cloned[field] = changeMap[cloned[field]] || cloned[field];
+                        }
+                    });
+                }
+                transformed.push(cloned);
+            };
+
             //result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : PRODUCTION_TEST_DATA;
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
+            if (Array.isArray(result.column_totals)) {
+                _.forEach(result.column_totals, (r) => processColumnTotal(r, transformedData.column_totals));
+            }
 
             if (resultTransformedPostProcessFuncKey && typeof DataMatrix.resultTransformedPostProcessFuncs[resultTransformedPostProcessFuncKey] === 'function') {
                 transformedData = DataMatrix.resultTransformedPostProcessFuncs[resultTransformedPostProcessFuncKey](transformedData, groupingProperties, columnGrouping);
             }
 
             updatedState[resultKey] = transformedData;
+            updatedState['isFetching'] = false;
+            updatedState['overallCounts'] = result.counts || null;
+            updatedState['facetsForPanel'] = result.facets || [];
+            updatedState['facetFiltersForPanel'] = result.filters || [];
             // sum files in transformedData array
             let totalFiles = 0;
             _.forEach(transformedData.row_totals, (r) => {
-                if (r.files && typeof r.files === 'number') {
-                    totalFiles += r.files;
+                if (r.counts && typeof r.counts.files === 'number') {
+                    totalFiles += r.counts.files;
                 }
             });
             updatedState['totalFiles'] = totalFiles;
@@ -644,6 +785,9 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
             updatedState[resultKey] = false;
+            updatedState['isFetching'] = false;
+            updatedState['facetsForPanel'] = [];
+            updatedState['facetFiltersForPanel'] = [];
             this.setState(updatedState);
             if (typeof onDataLoaded === 'function') {
                 onDataLoaded({
@@ -662,11 +806,29 @@ export default class DataMatrix extends React.PureComponent {
             autoPopulateRowGroupsProperty
         } = this.state;
         this.setState(
-            { "_results": null }, // (Re)Set all result states to 'null'
+            { "isFetching": true },
             () => {
-                const { valueDelimiter = ' ' } = this.props;
-                const [url, strQueryParams] = requestUrl.split('?');
-                const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
+                const { valueDelimiter = ' ', excludePrimaryColumnNoValue = true } = this.props;
+                const activeHref = this.state.facetNavigationHref || requestUrl;
+                const [url, baseQueryString = ''] = requestUrl.split('?');
+                const [, activeQueryString = ''] = activeHref.split('?');
+                const baseQueryParamsByUrl = baseQueryString ? DataMatrix.parseQuery(baseQueryString) : {};
+                const activeQueryParamsByUrl = activeQueryString ? DataMatrix.parseQuery(activeQueryString) : {};
+
+                const mergeQueryParamsKeepingBase = (baseParams = {}, activeParams = {}) => {
+                    const merged = _.clone(activeParams);
+                    _.forEach(baseParams, (baseValue, key) => {
+                        const baseValues = Array.isArray(baseValue) ? baseValue : [baseValue];
+                        const activeValue = merged[key];
+                        const activeValues = typeof activeValue === 'undefined'
+                            ? []
+                            : (Array.isArray(activeValue) ? activeValue : [activeValue]);
+                        merged[key] = _.uniq([...(activeValues || []), ...baseValues]);
+                    });
+                    return merged;
+                };
+
+                const queryParamsByUrl = mergeQueryParamsKeepingBase(baseQueryParamsByUrl, activeQueryParamsByUrl);
 
                 const colAggFields = Array.isArray(propColumnAggFields) ? propColumnAggFields : [propColumnAggFields];
                 const rowAggFields = [];
@@ -696,7 +858,7 @@ export default class DataMatrix extends React.PureComponent {
                 });
                 _.forEach(colAggFields || [], function (f, idx) {
                     searchQueryParams.field.push(f);
-                    if (idx === 0 && !queryParamsByUrl[f]) {
+                    if (excludePrimaryColumnNoValue && idx === 0 && !queryParamsByUrl[f]) {
                         searchQueryParams[f + '!'] = "No value";
                     }
                 });
@@ -751,6 +913,7 @@ export default class DataMatrix extends React.PureComponent {
                     columnAggFields: columnAggField,
                     rowAggFields: rowAggFields
                 },
+                facetNavigationHref: searchUrl,
                 columnGrouping: newColumnGrouping,
                 groupingProperties: newGroupingProperties,
                 columnGroups: columnGroups,
@@ -772,6 +935,51 @@ export default class DataMatrix extends React.PureComponent {
                 colorRangeSegments: colorRangeSegments,
                 colorRangeSegmentStep: colorRangeSegmentStep,
             };
+        });
+    }
+
+    onCountForChange(e) {
+        const nextValue = e && e.target ? e.target.value : 'files';
+        this.setState((prevState) => {
+            const nextState = { countFor: nextValue };
+            const baseRowAggFields = prevState.baseRowAggFields || (prevState.query && prevState.query.rowAggFields) || [];
+            const baseGroupingProperties = prevState.baseGroupingProperties || prevState.groupingProperties || [];
+            const baseColorRangeBaseColor = prevState.colorRangeBaseColor;
+            const isTissueViewCount = nextValue === 'donors' || nextValue === 'tissue_files';
+
+            if (isTissueViewCount) {
+                const removeDonorAggregation = nextValue !== 'donors';
+                nextState.query = {
+                    ...prevState.query,
+                    rowAggFields: removeDonorAggregation
+                        ? (baseRowAggFields || []).filter((f) => {
+                            if (Array.isArray(f)) {
+                                return !f.includes('donors.display_title');
+                            }
+                            return f !== 'donors.display_title';
+                        })
+                        : baseRowAggFields
+                };
+                nextState.groupingProperties = (baseGroupingProperties || []).filter((p) => p !== 'donor');
+                nextState.colorRanges = this.getColorRanges({
+                    colorRangeBaseColor: nextValue === 'donors' ? '#8989FF' : baseColorRangeBaseColor,
+                    colorRangeSegments: prevState.colorRangeSegments,
+                    colorRangeSegmentStep: prevState.colorRangeSegmentStep
+                });
+            } else {
+                nextState.query = {
+                    ...prevState.query,
+                    rowAggFields: baseRowAggFields
+                };
+                nextState.groupingProperties = baseGroupingProperties;
+                nextState.colorRanges = this.getColorRanges({
+                    colorRangeBaseColor: baseColorRangeBaseColor,
+                    colorRangeSegments: prevState.colorRangeSegments,
+                    colorRangeSegmentStep: prevState.colorRangeSegmentStep
+                });
+            }
+
+            return nextState;
         });
     }
 
@@ -829,7 +1037,8 @@ export default class DataMatrix extends React.PureComponent {
         const {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
-            baseBrowseFilesPath, browseFilteringTransformFuncKey
+            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor,
+            showFacetTermsPanel, facetTermsPanelFields
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -837,12 +1046,16 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
-            defaultOpen = false, totalFiles
+            defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel, isFetching
         } = this.state;
+
+        const isTissueMatrixCount = countFor === 'donors' || countFor === 'tissue_files';
+        const effectiveYAxisLabel = isTissueMatrixCount ? 'Tissue' : yAxisLabel;
 
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
             this.state['_results'] === null && query && query.url !== null && typeof query.url !== 'undefined';
+        const isRefreshing = !!(isFetching && this.state['_results'] !== null && this.state['_results'] !== false);
 
         if (isLoading) {
             return (
@@ -859,8 +1072,13 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
+            summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
+            activeFacetHref: this.state.facetNavigationHref || query?.url || null,
+            showUniqueDonorsAssayBand: this.props.showUniqueDonorsAssayBand,
+            countFor,
+            overallCounts,
+            ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };
 
@@ -903,24 +1121,184 @@ export default class DataMatrix extends React.PureComponent {
         );
 
         const body = (
-            <div>
+            <div className="w-100">
                 {configurator}
                 {headerFor || null}
-                <VisualBody
-                    {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
-                    {...bodyProps}
-                    columnSubGrouping=""//"state"
-                    // eslint-disable-next-line react/destructuring-assignment
-                    results={this.state[resultKey]}
-                    defaultDepthsOpen={[defaultOpen, false, false]}
-                    // keysToInclude={[]}
-                />
+                {(showCountFor || showFacetTermsPanel) ? (() => {
+                    const isTissueMatrix = countFor === 'donors' || countFor === 'tissue_files';
+                    const isCoverageView = countFor === 'total_coverage';
+                    const showCountsPanel = showCountFor;
+                    const showFacetsPanel = showFacetTermsPanel;
+                    const showLeftPanel = showFacetsPanel;
+
+                    const metricToggle = showCountsPanel ? (
+                        <div className="matrix-top-controls matrix-visual-metric-controls">
+                            <div className="matrix-counts-toggle matrix-counts-toggle-inline">
+                                <IconToggle
+                                    options={isTissueMatrix ? [
+                                        {
+                                            title: (
+                                                <React.Fragment>
+                                                    <i className="icon fas icon-file me-1" /> Files
+                                                </React.Fragment>
+                                            ),
+                                            dataTip: 'Toggle file count view',
+                                            btnCls: 'btn-sm',
+                                            onClick: () => this.onCountForChange({ target: { value: 'tissue_files' } })
+                                        },
+                                        {
+                                            title: (
+                                                <React.Fragment>
+                                                    <i className="icon fas icon-users me-1" /> Donors
+                                                </React.Fragment>
+                                            ),
+                                            dataTip: 'Toggle donor count view',
+                                            btnCls: 'btn-sm',
+                                            onClick: () => this.onCountForChange({ target: { value: 'donors' } })
+                                        }
+                                    ] : [
+                                        {
+                                            title: (
+                                                <React.Fragment>
+                                                    <i className="icon fas icon-file me-1" /> Files
+                                                </React.Fragment>
+                                            ),
+                                            dataTip: 'Toggle file count view',
+                                            btnCls: 'btn-sm',
+                                            onClick: () => this.onCountForChange({ target: { value: 'files' } })
+                                        },
+                                        {
+                                            title: (
+                                                <React.Fragment>
+                                                    <i className="icon fas icon-stream me-1" /> Coverage
+                                                </React.Fragment>
+                                            ),
+                                            dataTip: 'Toggle coverage view',
+                                            btnCls: 'btn-sm',
+                                            onClick: () => this.onCountForChange({ target: { value: 'total_coverage' } })
+                                        }
+                                    ]}
+                                    activeIdx={isTissueMatrix ? (countFor === 'tissue_files' ? 0 : 1) : (isCoverageView ? 1 : 0)}
+                                    divCls="view-toggle p-1"
+                                />
+                            </div>
+                        </div>
+                    ) : null;
+
+                    return (
+                        <div className="matrix-mode-layout">
+                            <div className="matrix-mode-body d-flex">
+                                {showLeftPanel ? (
+                                <div className={`matrix-counts-panel ${showFacetTermsPanel ? 'has-facets-panel' : ''}`}>
+                                    {showFacetsPanel ? (() => {
+                                            const includedFacetFields = Array.isArray(facetTermsPanelFields) && facetTermsPanelFields.length > 0
+                                                ? new Set(facetTermsPanelFields)
+                                                : null;
+                                            const hideFacetFields = new Set(FILE_BROWSE_HIDE_FACETS || []);
+                                            hideFacetFields.add('type');
+                                            const visibleFacets = _.filter(facetsForPanel || [], (facet) => {
+                                                if (!facet || !facet.field || !Array.isArray(facet.terms) || facet.terms.length === 0) {
+                                                    return false;
+                                                }
+                                                if (hideFacetFields.has(facet.field)) {
+                                                    return false;
+                                                }
+                                                if (!includedFacetFields) {
+                                                    return true;
+                                                }
+                                                return includedFacetFields.has(facet.field);
+                                            });
+
+                                            if (visibleFacets.length === 0) {
+                                                return null;
+                                            }
+
+                                            return (
+                                                <div className="matrix-facet-terms-wrapper">
+                                                    {typeof totalFiles === 'number' ? (
+                                                        <div className="matrix-total-files-count">
+                                                            {`${totalFiles.toLocaleString()} Files`}
+                                                        </div>
+                                                    ) : null}
+                                                    <div className="matrix-facet-terms-panel mt-1 search-view-controls-and-results">
+                                                        <FacetList
+                                                            facets={visibleFacets}
+                                                            context={{ filters: facetFiltersForPanel || [] }}
+                                                            termTransformFxn={Term.toName}
+                                                            facetListSortFxns={{ 'sample_summary.tissues': compareTissueFacetTerms }}
+                                                            title="Properties"
+                                                            showClearFiltersButton={false}
+                                                            onClearFilters={this.onFacetClearFilters}
+                                                            onFilter={this.onFacetFilter}
+                                                            onFilterMultiple={this.onFacetFilterMultiple}
+                                                            maxFacetsBodyHeight={340}
+                                                            href={this.state.facetNavigationHref || query?.url || null}
+                                                            schemas={this.props.schemas || null}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })() : null}
+                                </div>
+                                ) : null}
+                                <div className="matrix-visual-panel flex-grow-1">
+                                    {showCountFor ? (
+                                        <div className="matrix-mode-tabs-row">
+                                            <div className="matrix-mode-tabs">
+                                                <button
+                                                    type="button"
+                                                    className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
+                                                    onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
+                                                    <i className="icon fas icon-user me-05" /> Donor x Assay
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
+                                                    onClick={() => this.onCountForChange({ target: { value: 'tissue_files' } })}>
+                                                    <i className="icon fas icon-lungs me-05" /> Tissue x Assay
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : null}
+                                    <VisualBody
+                                        {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
+                                        {...bodyProps}
+                                        headerLeftControls={metricToggle}
+                                        columnSubGrouping=""// leave blank for now
+                                        // eslint-disable-next-line react/destructuring-assignment
+                                        results={this.state[resultKey]}
+                                        defaultDepthsOpen={[defaultOpen, false, false]}
+                                        // keysToInclude={[]}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })() : (
+                    <VisualBody
+                        {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
+                        {...bodyProps}
+                        headerLeftControls={null}
+                        columnSubGrouping=""// leave blank for now
+                        // eslint-disable-next-line react/destructuring-assignment
+                        results={this.state[resultKey]}
+                        defaultDepthsOpen={[defaultOpen, false, false]}
+                        // keysToInclude={[]}
+                    />
+                )}
             </div>
         );
+        const isTissueMatrixMode = countFor === 'donors' || countFor === 'tissue_files';
+        const dataMatrixClassName = `data-matrix${isTissueMatrixMode ? ' matrix-mode-tissue' : ''}`;
         return (
-            <div id={`data-matrix-for_${idLabel}`} className="data-matrix" data-files-count={totalFiles}>
-                <div className="row">
+            <div id={`data-matrix-for_${idLabel}`} className={dataMatrixClassName} data-files-count={totalFiles}>
+                <div className={`row matrix-render-surface${isRefreshing ? ' is-refreshing' : ''}`}>
                     {body}
+                    {isRefreshing ? (
+                        <div className="matrix-refresh-overlay d-flex align-items-center justify-content-center">
+                            <i className="icon icon-spin icon-circle-notch fas" />
+                        </div>
+                    ) : null}
                 </div>
             </div>
         );
@@ -935,13 +1313,13 @@ DataMatrix.resultItemPostProcessFuncs = {
 
             if (typeof result.assay !== 'undefined' && typeof result.platform !== 'undefined') {
                 if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
                 if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
                 if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
             }
         }
@@ -949,27 +1327,47 @@ DataMatrix.resultItemPostProcessFuncs = {
     }
 };
 DataMatrix.resultTransformedPostProcessFuncs = {
-    "dsaChainFile": function (data, groupingProperties, columnGrouping) {
-        // Separate DSA entries
+    "analysisDerivedColumns": function (data, groupingProperties, columnGrouping) {
         const dsaData = data.all.filter((row) => row['data_type'] === 'DSA' || row['data_type'] === 'Chain File' || row['data_type'] === 'Sequence Interval');
         const nonDsaData = data.all.filter((row) => row['data_type'] !== 'DSA' && row['data_type'] !== 'Chain File' && row['data_type'] !== 'Sequence Interval');
+        const snvData = nonDsaData.filter((row) => row['analysis_details'] === 'Filtered');
+        const nonDsaNonSnvData = nonDsaData.filter((row) => row['analysis_details'] !== 'Filtered');
 
         const transformedDsa = DataMatrix.transformDSA(nonDsaData, data.row_totals, dsaData, groupingProperties, columnGrouping);
+        const transformedSnv = DataMatrix.transformSNV(snvData, groupingProperties, columnGrouping);
 
         return {
             ...data,
-            all: nonDsaData.concat(transformedDsa)
+            all: nonDsaNonSnvData.concat(transformedDsa).concat(transformedSnv)
         };
     }
 };
 DataMatrix.browseFilteringTransformFuncs = {
-    "dsaChainFile": function (filteringProperties, blockType) {
-        if (filteringProperties['file_sets.libraries.assay.display_title'] === 'DSA') {
+    "analysisDerivedColumns": function (filteringProperties, blockType) {
+        const assayField = 'file_sets.libraries.assay.display_title';
+        const hasAssayFilter = typeof filteringProperties[assayField] !== 'undefined';
+        const studies = filteringProperties['sample_summary.studies'];
+        const studiesList = Array.isArray(studies) ? studies : (typeof studies === 'string' ? [studies] : []);
+        const isProductionStudy = studiesList.includes('Production');
+
+        if (filteringProperties[assayField] === 'DSA') {
             // extend data_type filter to include Chain File along with DSA
             filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
-            delete filteringProperties['file_sets.libraries.assay.display_title'];
-        } else if (blockType === 'col-summary' || blockType === 'regular') {
+            delete filteringProperties[assayField];
+        } else if (filteringProperties[assayField] === 'Variant Call Sets') {
+            filteringProperties['analysis_details'] = [...(filteringProperties['analysis_details'] || []), 'Filtered'];
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
+            delete filteringProperties[assayField];
+        } else if (
+            (blockType === 'regular') ||
+            ((blockType === 'col-summary' || blockType === 'col-secondary-summary') && hasAssayFilter)
+        ) {
+            // for non-DSA columns we exclude DSA-related data types;
+            // for overall summary (no assay filter) keep all data types.
+            filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
+            if (isProductionStudy) {
+                filteringProperties['analysis_details!'] = [...(filteringProperties['analysis_details!'] || []), 'Filtered'];
+            }
         }
         return filteringProperties;
     }

@@ -1365,75 +1365,105 @@ body[data-path="/statistics"] {
     position: relative;
     width: 100%;
     height: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
     padding-bottom: 20px; // For the bottom padding of the viz.
-    padding-right: 40px; // For the right padding of the viz.
+    padding-right: 0;
 
     .tabs-container {
-        margin-top: 40px;
+        margin-top: 20px;
         position: relative;
         min-height: 200px;
 
         .tab-headers {
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
+            flex-wrap: nowrap;
+            gap: 0;
             z-index: 1;
         }
 
         .tab-header {
             cursor: pointer;
-            background-color: white;
+            background-color: #ffffff;
             padding: 0;
             display: flex;
             justify-content: center;
-            border: 1px solid #E7F0F3;
-            border-top: 4px solid #E99415;
-            border-bottom: 1px solid #E7F0F3;
-            border-radius: 4px 4px 0px 0px;
+            border: 1px solid #d4e1ec;
+            border-bottom: 1px solid #d4e1ec;
+            border-radius: 8px 8px 0px 0px;
             color: #343741;
             font-weight: 600;
-            min-width: 220px;
+            min-width: 0;
+            flex: 1 1 0;
+            min-height: 84px;
 
             .title {
-                padding: 10px 15px;
-                margin-bottom: -2px;
-                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                min-height: 84px;
+                padding: 0 15px;
                 width: 100%;
                 // background-color: white;
                 z-index: 0;
-            }
+                font-size: 1.2rem;
+                line-height: 1.1;
 
-            &.benchmarking-tab { border-top-color: #2746CA; }
-            &.production-tab { border-top-color: #9C9CFF; }
+                .icon {
+                    color: #9fb8ce;
+                    font-size: 0.95em;
+                }
+            }
 
             &[data-has-data="false"] {
                 display: none;
             }
 
             &.is-inactive {
-                opacity: 0.7;
-                border-top-color: #fff;
-                border-left-color: #fff;
-                border-right-color: #fff;
+                opacity: 1;
+                background: #ffffff;
+                color: #1f2f44;
+                border-color: #d4e1ec;
             }
 
             &.is-active {
-                border-bottom: 1px solid white;
+                background: #f1f9ff;
+                color: #1f2f44;
+                border-color: #bfd3e4;
+                border-bottom: 1px solid #bfd3e4;
             }
         }
 
         .tab-card {
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             min-width: 100%;
             flex-direction: column;
             margin-top: -1px; // Pull up to meet active header
 
+            .matrix-panel-content {
+                width: 100%;
+            }
+
+            .matrix-panel-title {
+                border-bottom: 1px solid #cfd9e3;
+                padding: 0.6rem 1.25rem 0.65rem 0;
+                margin-bottom: 0.5rem;
+                margin-left: 1rem;
+
+                h2 {
+                    margin: 0;
+                    font-size: 1.35rem;
+                    font-weight: 600;
+                    color: #111827;
+                }
+            }
+
             .body {
                 position: relative;
-                overflow: hidden;
+                overflow-x: hidden !important;
+                overflow-y: visible;
                 display: flex;
                 min-height: 600px;
                 border: 1px solid #E7F0F3;
@@ -1443,6 +1473,7 @@ body[data-path="/statistics"] {
 
         .tab-panels-wrapper {
             position: relative;
+            overflow: visible;
         }
 
         .tabs-loading-overlay {
@@ -1457,19 +1488,293 @@ body[data-path="/statistics"] {
 }
 
 .data-matrix {
+    .matrix-render-surface {
+        position: relative;
+    }
+
+    .matrix-refresh-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.46);
+        z-index: 25;
+        pointer-events: none;
+        font-size: 2rem;
+        color: #4b6280;
+    }
+
+    .data-matrix-container {
+        overflow-x: visible;
+    }
 
     >.row, .row.grouping-row {
         flex-wrap: nowrap !important;
     }
 
+    > .row > div {
+        width: 100%;
+    }
+
+    .matrix-mode-layout {
+        padding: 1rem;
+        width: 100%;
+    }
+
+    .matrix-controls-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .matrix-mode-tabs {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        width: auto;
+        max-width: 100%;
+        padding: 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+
+        .matrix-mode-tab {
+            flex: 0 1 auto;
+            min-width: 270px;
+            border: 1px solid #b7c9dc;
+            border-bottom: none;
+            background: #ffffff;
+            color: #4e6781;
+            font-weight: 600;
+            font-size: 1.05rem;
+            padding: 0.62rem 1.3rem;
+            text-align: center;
+            border-radius: 7px 7px 0 0;
+            white-space: nowrap;
+            transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+
+            .icon {
+                font-size: 0.9rem;
+            }
+
+            &:hover {
+                background: #e9f2fb;
+            }
+
+            &.active {
+                background: #3d6a8f;
+                color: #ffffff;
+                border-color: #3d6a8f;
+                box-shadow: none;
+            }
+        }
+    }
+
+    .matrix-top-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin-left: auto;
+    }
+
+    .matrix-visual-metric-controls {
+        margin-left: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .matrix-mode-body {
+        align-items: flex-start;
+        width: 100%;
+        overflow: visible;
+    }
+
+    .matrix-mode-tabs-row {
+        border-bottom: 1px solid #c7d5e4;
+        margin-bottom: 1rem;
+        width: 100%;
+        position: sticky;
+        top: 48px;
+        z-index: 8;
+        background-color: #ffffff;
+    }
+
+    .matrix-counts-panel {
+        width: 190px;
+        min-width: 190px;
+        border-right: none;
+        padding-right: 0;
+        margin-right: 0;
+
+        &.has-facets-panel {
+            width: 320px;
+            min-width: 320px;
+        }
+
+        &.is-hidden {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .matrix-counts-title {
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .matrix-counts-toggle {
+            .view-toggle {
+                background-color: #F9FCFF;
+                border: 1px solid #A3C4ED;
+                width: 100%;
+                gap: 10px;
+                white-space: nowrap;
+                border-radius: 0.5rem !important;
+
+                .btn.btn-link {
+                    color: #657B95;
+                }
+
+                .btn.btn-primary-dark {
+                    background-color: #6093D0 !important;
+                    border-color: #457ABC !important;
+                    border-width: 1px !important;
+                }
+            }
+        }
+
+        .matrix-facet-terms-panel {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            .facets-container {
+                margin-bottom: 0;
+            }
+
+            // Data-matrix-only facet header styling (keeps search tables unchanged).
+            &.search-view-controls-and-results {
+                .facets-container {
+                    border: 1px solid #e3e7ee;
+                    background: #ffffff;
+                }
+
+                .facets-container .facets-header.row {
+                    &[data-excluding="false"] {
+                        background-color: #efeffb !important;
+
+                        .facets-title-column .icon-toggle {
+                            button[aria-pressed='true']{
+                                background-color: #bfbbe0 !important;
+                            }
+                        }
+                    }
+
+                    .facets-title-column {
+                        .facets-title {
+                            color: #343741;
+                            font-weight: 600;
+                        }
+
+                        .icon-toggle {
+                            border-color: #8e9cad;
+                            border-radius: 8px;
+                            overflow: hidden;
+                        }
+                    }
+                }
+            }
+        }
+
+        .matrix-facet-terms-wrapper {
+            padding-right: 1rem;
+            margin-right: 0.25rem;
+
+            .matrix-total-files-count {
+                font-size: 1.05rem;
+                font-weight: 600;
+                color: #111827;
+                padding: 0.60rem 0 0.45rem;
+                border-bottom: 1px solid #d8e1ea;
+                margin-bottom: 1rem;
+            }
+        }
+    }
+
+    .matrix-secondary-controls-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #5a7088;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .matrix-counts-toggle-inline {
+        .view-toggle {
+            width: auto;
+            max-width: 100%;
+            gap: 0.25rem;
+            padding: 0.2rem !important;
+            border-radius: 999px !important;
+            border-color: #e2e2e2 !important;
+
+            .btn {
+                padding: 0.3rem 0.55rem !important;
+                font-size: 0.85rem;
+                border-radius: 999px !important;
+                white-space: nowrap;
+            }
+        }
+    }
+
+    .matrix-visual-panel {
+        min-width: 0;
+        overflow: visible;
+    }
+
+    // No facet terms panel: remove the extra left divider on matrix body.
+    .matrix-mode-body > .matrix-visual-panel:only-child {
+        .stacked-block-viz-container {
+            border-left: none !important;
+            padding-left: 0 !important;
+        }
+    }
+
+    // Direct VisualBody layout (no mode/facets wrapper).
+    > .row > div > .stacked-block-viz-container {
+        border-left: none !important;
+        padding-left: 0 !important;
+    }
+
     .stacked-block-viz-container {
 
         display: inline-block;
-        overflow-x: hidden; // Allow to scroll on small widths.
+        overflow: visible;
         padding-bottom: 20px;
         padding-right: 40px;
+        padding-left: 10px;
+        border-left: 1px solid #e2e8ef;
+
+        .grouping.header-section-upper {
+            position: relative;
+            z-index: 7;
+            background: #ffffff;
+
+            > .row.grouping-row > .label-section {
+                z-index: 1;
+                position: relative;
+                pointer-events: none;
+            }
+
+            > .row.grouping-row > .list-section.has-header.header-for-viz {
+                z-index: 2;
+                position: relative;
+                pointer-events: auto;
+            }
+        }
 
         .header-for-viz {
+            position: relative;
+            overflow: visible;
 
             .column-group-header {
                 text-align: center;
@@ -1495,10 +1800,36 @@ body[data-path="/statistics"] {
             }
 
             .header-group-text {
+                position: relative;
+                overflow: visible;
+
                 .column-group-header {
                     >.inner {
                         font-size: 11px;
                         width: unset !important;
+                    }
+                }
+
+                .header-group-controls-inline {
+                    position: absolute;
+                    left: -290px;
+                    top: 50%;
+                    transform: translateY(calc(-50%));
+                    width: 240px;
+                    max-width: 240px;
+                    display: flex;
+                    justify-content: flex-start;
+                    align-self: center;
+                    z-index: 20;
+                    overflow: visible;
+                    pointer-events: auto;
+
+                    .matrix-top-controls,
+                    .matrix-visual-metric-controls {
+                        margin-left: 0 !important;
+                        margin-bottom: 0 !important;
+                        justify-content: flex-start;
+                        width: 100%;
                     }
                 }
             }
@@ -1509,6 +1840,11 @@ body[data-path="/statistics"] {
                         color: #111;
                         font-weight: 500;
                         border: 1px solid #e4e4ff;
+                    }
+                }
+                .column-group-header.overall-summary {
+                    .stacked-block[data-block-type="col-summary"] {
+                        font-weight: 700;
                     }
                 }
             }
@@ -1609,6 +1945,7 @@ body[data-path="/statistics"] {
 
                     &:first-child {
 
+                        .vertical-container-rows .grouping:not(:first-child) .row > .list-section > .blocks-container,
                         .vertical-container-rows .grouping:not(:first-child) .label-section>.label-container {
                             border-top: 1px solid #eee !important;
                         }
@@ -1617,10 +1954,6 @@ body[data-path="/statistics"] {
                     &:not(:first-child) .vertical-container-rows .grouping:first-child .label-section>.label-container,
                     &:not(:first-child) .vertical-container-label {
                         border-top: 2px solid #eee !important;
-                    }
-
-                    .grouping-row {
-                        background-color: #f8f8f8;
                     }
                 }
             }
@@ -1640,13 +1973,61 @@ body[data-path="/statistics"] {
 
             &.open {
                 >.row.grouping-row {
-                    background-color: #ebe8ec;
+                    background-color: #E3E3EC;
                 }
             }
 
             &.header-section-lower {
-                background-color: #f4f4ff;
+                background-color: #EEEEFF;
                 border-top-left-radius: 10px;
+
+                .grouping-row.total-donors-summary-row {
+                    background-color: #f4f4ff;
+                    border-top-left-radius: 10px;
+                    overflow: hidden;
+                    border-bottom: 1px solid #ffffff;
+
+                    .label-section > .label-container {
+                        background-color: #f4f4ff;
+                        border-top-left-radius: 10px;
+
+                        > span {
+                            font-weight: 700;
+                        }
+                    }
+
+                    .list-section {
+                        background-color: #f4f4ff;
+                    }
+                }
+
+                // Keep Total Donors row in existing purple style.
+                .grouping-row.total-donors-summary-row {
+                    .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #9C9CFF !important;
+                        border-color: #8686E7 !important;
+                        color: #ffffff !important;
+                    }
+                }
+
+                // Apply new palette to all other summary rows (e.g. Total Files).
+                .grouping-row:not(.total-donors-summary-row) {
+                    background-color: #EEEEFF;
+                    border-bottom: 2px solid #aeb8c9;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #EEEEFF;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                        background-color: #E0E0FF !important;
+                        border-color: #D9D9FF !important;
+                        color: #111111 !important;
+                    }
+                }
             }
 
             .grouping-row {
@@ -1682,7 +2063,7 @@ body[data-path="/statistics"] {
                     padding-right: 0px;
 
                     >.open-empty-placeholder {
-                        background-color: #ebe8ec;
+                        background-color: #E3E3EC;
                         border-radius: 0 10px 0 0;
                         // border-top: 3px solid #eee;
                         // @include gradient-y($start-color: #f7f7f7, $end-color: #fff);
@@ -1987,10 +2368,20 @@ body[data-path="/statistics"] {
             }
         }
 
+        &.matrix-yaxis-tissue.has-open-block {
+            .stacked-block.is-open-block[data-block-type="col-summary"],
+            .stacked-block.is-open-block[data-block-type="col-secondary-summary"],
+            .stacked-block.is-open-block[data-block-type="row-summary"] {
+                color: #479b59 !important;
+                border-color: #479b59 !important;
+            }
+        }
+
         .axis-container {
             // position: relative;
             width: 250px;
             // height: 287px;
+            pointer-events: none;
 
             .x-axis {
                 position: absolute;
@@ -2029,6 +2420,191 @@ body[data-path="/statistics"] {
                 font-size: 16px;
                 margin-bottom: 10px;
             }
+        }
+
+        // overrides for donor specific matrix with count for donors
+        &.matrix-yaxis-donor {
+            .grouping.header-section-lower {
+                .grouping-row.total-donors-summary-row {
+                    background-color: #F4F4FF;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #F4F4FF;
+                    }
+
+                    .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #ECECFF !important;
+                        border-color: #E4E4FF !important;
+                        color: #111111 !important;
+                    }
+                }
+
+                .grouping-row:not(.total-donors-summary-row) {
+                    background-color: #EEEEFF;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #EEEEFF;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #E0E0FF !important;
+                        border-color: #D9D9FF !important;
+                        color: #111111 !important;
+                    }
+                }
+            }
+
+            // All vertical summary column boxes below summary section.
+            .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                background-color: #E0E0FF !important;
+                border-color: #D9D9FF !important;
+                color: #111111 !important;
+            }
+        }
+
+        &.matrix-yaxis-tissue {
+            .grouping.header-section-lower {
+                .grouping-row.total-donors-summary-row {
+                    background-color: #ECFBEF;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #ECFBEF;
+                    }
+
+                    .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #DBF7E1 !important;
+                        border-color: #B7E3CB !important;
+                        color: #303840 !important;
+                    }
+                }
+
+                .grouping-row:not(.total-donors-summary-row) {
+                    background-color: #DEF6E3;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #DEF6E3;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #C5EDCD !important;
+                        border-color: #AADBC0 !important;
+                        color: #303840 !important;
+                    }
+                }
+            }
+
+            // all vertical summary column cells below summary section
+            .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                background-color: #C5EDCD !important;
+                border-color: #AADBC0 !important;
+                color: #303840 !important;
+            }
+
+            // donor metric cells in summary row should stay purple-toned
+            &.count-for-donors {
+                // keep stepped backgrounds from color ranges; only fix border tone.
+                .stacked-block[data-block-type="regular"]:not([data-block-value="0"]):not(.is-open-block) {
+                    border-color: #675CE7 !important;
+                }
+            }
+        }
+
+        &.count-for-donors.matrix-yaxis-donor {
+            .grouping.header-section-lower {
+                background-color: #ECFBEF;
+
+                .header-summary {
+                    .stacked-block[data-block-type="col-summary"] {
+                        background-color: #D5F3DB !important;
+                        border-color: #B7E3CB !important;
+                        color: #303840 !important;
+                    }
+                }
+            }
+
+            .grouping > .child-blocks > .vertical-container > .vertical-container-rows > .grouping:not(.row-index-0) > .row > .list-section > .blocks-container {
+                border-top: 1px solid #eee !important;
+            }
+
+            .blocks-container {
+                .stacked-block[data-block-type="regular"] {
+                    border-color: #cfd8d2 !important;
+                }
+
+                .grouping > .child-blocks > .vertical-container > .vertical-container-rows > .grouping:not(.row-index-0) .stacked-block[data-block-type="regular"] {
+                    border-top-color: #cfd8d2 !important;
+                }
+
+                .stacked-block[data-block-type="regular"]:not([data-block-value="0"]):not(.is-open-block) {
+                    background-color: #9C9CFF !important;
+                    border-color: #8686E7 !important;
+                    color: #ffffff;
+                }
+
+                .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                    background-color: #D5F3DB !important;
+                    border-color: #B7E3CB !important;
+                    color: #303840 !important;
+                }
+            }
+        }
+
+        // Coverage metric: keep summary row banding, but do not show empty summary boxes.
+        &.count-for-total_coverage {
+            .block-container-group[data-group-key="row-summary"],
+            .column-group-header.overall-summary {
+                display: none !important;
+            }
+
+            .grouping.header-section-lower {
+                .grouping-row:not(.total-donors-summary-row) {
+                    .block-container-group {
+                        border-left-color: transparent !important;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: transparent !important;
+                        border-color: transparent !important;
+                        box-shadow: none !important;
+                    }
+                }
+            }
+        }
+    }
+
+    &.matrix-mode-tissue {
+        .matrix-counts-panel {
+            .matrix-facet-terms-panel.search-view-controls-and-results {
+                .facets-container .facets-header.row {
+                    &[data-excluding="false"] {
+                        background-color: #ECFBEF !important;
+                        border-bottom: 1px solid #B7E3CB;
+
+                        .facets-title-column .icon-toggle {
+                            button[aria-pressed='true']{
+                                background-color: #C1E0D2 !important;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// hide page title for /data-matrix
+body[data-path="/data-matrix"] {
+    .static-page {
+        margin-top: 0px !important;
+        
+        h2.section-title {
+            display: none;
         }
     }
 }
