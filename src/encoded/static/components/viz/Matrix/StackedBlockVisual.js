@@ -451,7 +451,8 @@ export class VisualBody extends React.PureComponent {
 
         const dataForCounts = Array.isArray(data) ? data : (data ? [data] : []);
         const isTissueGrouping = (() => {
-            const primaryGroupingField = Array.isArray(groupingProperties) ? groupingProperties[0] : primaryGrpProp;
+            const primaryGroupingProp = Array.isArray(groupingProperties) ? groupingProperties[0] : primaryGrpProp;
+            const primaryGroupingField = fieldChangeMap?.[primaryGroupingProp] || primaryGroupingProp;
             return primaryGroupingField === 'sample_summary.tissues';
         })();
 
