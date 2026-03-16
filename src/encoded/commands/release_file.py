@@ -116,6 +116,10 @@ class FileRelease:
     @cached_property
     def file_sets(self) -> List[dict]:
         return self.get_file_sets_from_file()
+    
+    @cached_property
+    def donor_specific_assembly(self) -> dict:
+        return self.get_donor_specific_assembly_from_file(supp_file_utils.get_donor_specific_assembly(self.file))
 
     @cached_property
     def software(self) -> List[dict]:
@@ -473,6 +477,7 @@ class FileRelease:
 
         open_access_items = [
             (self.software, "Software"),
+            (self.donor_specific_assembly, "DonorSpecificAssembly")
             (self.file_sets, "FileSet"),
             (self.sequencings, "Sequencing"),
             (self.libraries, "Library"),
