@@ -17,6 +17,14 @@ Change Log
 * Add new smaht-wolf cypress GA workflow
 
 
+1.17.4
+======
+
+`PR 619: feat: Add Link to DSA in Donor View <https://github.com/smaht-dac/smaht-portal/pull/619>`_
+
+* Add link to DSA files associated with a donor if they exists
+
+
 1.17.3
 ======
 
