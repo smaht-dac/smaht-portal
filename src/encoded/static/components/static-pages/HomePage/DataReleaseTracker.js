@@ -25,7 +25,7 @@ const replaceURLParamsWithDonors = (query, donorList = [], tissueList = []) => {
 
     // Add donor and tissue titles to params
     donorList.forEach((donor) => {
-        params.append('donors.display_title', donor);
+        params.append('donors.display_title', donor.trim());
     });
     tissueList.forEach((tissue) => {
         params.append('sample_summary.tissues', tissue);
@@ -397,17 +397,23 @@ const formatDayReleaseData = (data) => {
         // Each item is a donor release, should be donor as key
         const [donor, tissueCode] = item?.value?.split('-');
 
+        // Trim whitespace from donor title
+        const donorTitle = donor.trim();
+
         const formattedDonor = formatDonorReleaseData(item);
 
-        if (acc?.[donor]) {
+        if (acc?.[donorTitle]) {
             // add to existing group
-            acc[donor] = {
-                ...acc[donor],
-                items: Object.assign(acc[donor].items, formattedDonor.items),
-                count: acc[donor].count + formattedDonor.count,
+            acc[donorTitle] = {
+                ...acc[donorTitle],
+                items: Object.assign(
+                    acc[donorTitle].items,
+                    formattedDonor.items
+                ),
+                count: acc[donorTitle].count + formattedDonor.count,
             };
         } else {
-            acc[donor] = formattedDonor;
+            acc[donorTitle] = formattedDonor;
         }
 
         return acc;
