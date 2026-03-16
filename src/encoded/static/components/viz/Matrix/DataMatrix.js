@@ -12,6 +12,7 @@ import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigura
 import { Term } from './../../util/Schemas';
 import { compareTissueFacetTerms } from '../../util/data';
 import { FILE_BROWSE_HIDE_FACETS } from '../../browse/BrowseView';
+import { termTransformFxnWithOverrides } from '../../browse/SearchView';
 
 
 export default class DataMatrix extends React.PureComponent {
@@ -1224,7 +1225,7 @@ export default class DataMatrix extends React.PureComponent {
                                                         <FacetList
                                                             facets={visibleFacets}
                                                             context={{ filters: facetFiltersForPanel || [] }}
-                                                            termTransformFxn={Term.toName}
+                                                            termTransformFxn={termTransformFxnWithOverrides(visibleFacets)}
                                                             facetListSortFxns={{ 'sample_summary.tissues': compareTissueFacetTerms }}
                                                             title="Properties"
                                                             showClearFiltersButton={false}
