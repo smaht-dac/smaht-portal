@@ -41,8 +41,8 @@ class SupplementaryFile(SubmittedFile):
         file_sets: Optional[List[str]] = None
     ) -> Union[str, None]:
         """Get file release tracker description for display on home page."""
-        if (file_set_source := SubmittedFile.release_tracker_description(self, request, file_sets)):
-            return file_set_source
+        if (default_description := SubmittedFile.release_tracker_description(self, request, file_sets)):
+            return default_description
         request_handler = RequestHandler(request=request)
         result = self._get_release_tracker_description(
             request_handler,
