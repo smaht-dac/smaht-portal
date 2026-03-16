@@ -348,7 +348,7 @@ const formatDonorReleaseData = (data) => {
     const { count, items, value, query } = data;
 
     // Pull out Donor and add to [acc]
-    const [donor, tissueCode] = value?.split('-');
+    const [donor, tissueCode] = value?.trim()?.split('-');
 
     const formattedDonorItems = items.reduce((acc, item) => {
         const { count, value, query, additional_value } = item;
