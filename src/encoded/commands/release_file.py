@@ -477,7 +477,7 @@ class FileRelease:
 
         open_access_items = [
             (self.software, "Software"),
-            (self.donor_specific_assembly, "DonorSpecificAssembly")
+            (self.donor_specific_assembly, "DonorSpecificAssembly"),
             (self.file_sets, "FileSet"),
             (self.sequencings, "Sequencing"),
             (self.libraries, "Library"),
