@@ -461,7 +461,18 @@ export class VisualBody extends React.PureComponent {
                     donorSet.add(String(donorValue));
                 }
             });
-            return donorSet.size;
+            if (donorSet.size > 0) return donorSet.size;
+
+            // Tissue x Assay file summaries can be backed by aggregated rows that do not
+            // carry donor identifiers, so fall back to the per-column/overall donor totals.
+            const isTissueSummary = String(primaryGrpPropTitle || '').toLowerCase() === 'tissue';
+            if (!(effectiveBlockType === 'col-summary' && isTissueSummary)) return 0;
+            if (columnKey === 'overall-summary') {
+                return this.props.overallCounts?.donors ?? this.props.overallCounts?.donor_count ?? 0;
+            }
+            if (!Array.isArray(this.props.columnTotals)) return 0;
+            const summaryCounts = this.props.columnTotals.find((t) => t[this.props.columnGrouping] === columnKey)?.counts;
+            return summaryCounts?.donors ?? summaryCounts?.donor_count ?? 0;
         };
         const getFilesCountFromItem = (item) => {
             if (item && item.counts && typeof item.counts.files === 'number') return item.counts.files;
