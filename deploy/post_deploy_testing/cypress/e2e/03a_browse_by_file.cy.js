@@ -458,6 +458,10 @@ function stepFacetChartBarPlotTests(caps) {
                 .end();
 
             cy.window().scrollTo(0, 0).end()
+                .get('.bar-plot-chart .chart-bar')
+                .its('length')
+                .should('be.gte', 10)
+                .end()
                 // A likely-to-be-here Bar Section - 3AL - Brain, Temporal Lobe x Illumina NovaSeq X Plus
                 .get('.bar-plot-chart .chart-bar[data-term="3AL - Brain, Temporal Lobe"] .bar-part[data-term="Illumina NovaSeq X Plus"]').then(($barPart) => {
                     const expectedFilteredResults = parseInt($barPart.attr('data-count'));
