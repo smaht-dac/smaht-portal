@@ -203,7 +203,13 @@ function stepDirectBrowseRedirect(caps) {
 function stepNoResultsModal(caps) {
     visitBrowseByFile().then(() => {
         if (caps.expectedNoResultsModalVisible) {
-            cy.get('#download-access-required-modal').should('be.visible');
+            cy.get('#download-access-required-modal')
+                .closest('.modal')
+                .should('have.class', 'show')
+                .should(($modal) => {
+                    expect(parseFloat($modal.css('opacity') || '0')).to.be.gte(0.99);
+                });
+            cy.get('#download-access-required-modal').should('exist');
             cy.searchPageTotalResultCount().then((totalCountExpected) => {
                 expect(totalCountExpected).to.equal(0);
             });
