@@ -1232,7 +1232,6 @@ export default class DataMatrix extends React.PureComponent {
                                                             onClearFilters={this.onFacetClearFilters}
                                                             onFilter={this.onFacetFilter}
                                                             onFilterMultiple={this.onFacetFilterMultiple}
-                                                            maxFacetsBodyHeight={340}
                                                             href={this.state.facetNavigationHref || query?.url || null}
                                                             schemas={this.props.schemas || null}
                                                         />
