@@ -118,8 +118,8 @@ class FileRelease:
         return self.get_file_sets_from_file()
     
     @cached_property
-    def donor_specific_assembly(self) -> dict:
-        return self.get_donor_specific_assembly_from_file(supp_file_utils.get_donor_specific_assembly(self.file))
+    def donor_specific_assembly(self) -> List[dict]:
+        return self.get_items([supp_file_utils.get_donor_specific_assembly(self.file)])
 
     @cached_property
     def software(self) -> List[dict]:
