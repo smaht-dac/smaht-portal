@@ -353,7 +353,7 @@ const formatDonorReleaseData = (data) => {
     const formattedDonorItems = items.reduce((acc, item) => {
         const { count, value, query, additional_value } = item;
         const formattedTissue = { count, value, query, additional_value };
-        const tissueTitle = tissueCode + ' - ' + additional_value;
+        const tissueTitle = additional_value;
 
         if (acc?.[tissueTitle]) {
             // add to existing group
@@ -386,7 +386,7 @@ const formatDayReleaseData = (data) => {
 
     const formattedDayItems = data.items.reduce((acc, item) => {
         // Each item is a donor release, should be donor as key
-        const [donor, tissueCode] = item?.value?.split('-');
+        const [donor, tissueCode] = item?.value?.split('-').trim();
 
         const formattedDonor = formatDonorReleaseData(item);
 
