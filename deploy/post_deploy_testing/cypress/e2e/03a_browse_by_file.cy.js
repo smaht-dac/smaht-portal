@@ -45,6 +45,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
@@ -62,6 +63,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
@@ -79,6 +81,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
@@ -96,6 +99,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
@@ -113,6 +117,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
@@ -132,6 +137,42 @@ const SEARCH_PARAM_KEY_ALIASES = {
     ],
 };
 
+const tissueCategoryByTpcCode = {
+    '3A': 'Clinically accessible',
+    '3B': 'Clinically accessible',
+    '3C': 'Endoderm',
+    '3E': 'Endoderm',
+    '3G': 'Endoderm',
+    '3I': 'Endoderm',
+    '3K': 'Mesoderm',
+    '3M': 'Mesoderm',
+    '3O': 'Mesoderm',
+    '3Q': 'Endoderm',
+    '3S': 'Mesoderm',
+    '3U': 'Germ cells',
+    '3W': 'Germ cells',
+    '3Y': 'Germ cells',
+    '3AA': 'Germ cells',
+    '3AC': 'Mesoderm',
+    '3AD': 'Ectoderm',
+    '3AF': 'Ectoderm',
+    '3AH': 'Mesoderm',
+    '3AK': 'Ectoderm',
+    '3AL': 'Ectoderm',
+    '3AM': 'Ectoderm',
+    '3AN': 'Ectoderm',
+    '3AO': 'Ectoderm',
+};
+
+const tissueTypeFilterOptions = [
+    { buttonText: 'All', expectedCategory: null },
+    { buttonText: 'Ectoderm', expectedCategory: 'Ectoderm' },
+    { buttonText: 'Mesoderm', expectedCategory: 'Mesoderm' },
+    { buttonText: 'Endoderm', expectedCategory: 'Endoderm' },
+    { buttonText: 'Germ cells', expectedCategory: 'Germ cells' },
+    { buttonText: 'Clinically accessible', expectedCategory: 'Clinically accessible' },
+];
+
 function expectSearchToIncludeParams(search, expectedParams) {
     const searchParams = new URLSearchParams(search);
 
@@ -148,6 +189,31 @@ function expectSearchToIncludeParams(search, expectedParams) {
 
 function decodeSearchString(search) {
     return decodeURIComponent(String(search || '').replace(/\+/g, ' '));
+}
+
+function getTissueCategoryFromAxisTerm(term) {
+    const normalizedTerm = String(term || '').trim();
+    const tpcCode = /^([A-Z0-9]+)\s+-/.exec(normalizedTerm)?.[1];
+
+    if (tpcCode && tissueCategoryByTpcCode[tpcCode]) {
+        return tissueCategoryByTpcCode[tpcCode];
+    }
+
+    if (/blood|buccal/i.test(normalizedTerm)) return 'Clinically accessible';
+    if (/brain|skin/i.test(normalizedTerm)) return 'Ectoderm';
+    if (/testis|ovary/i.test(normalizedTerm)) return 'Germ cells';
+    if (/aorta|heart|muscle|fibroblast|adrenal/i.test(normalizedTerm)) return 'Mesoderm';
+    if (/colon|esophagus|liver|lung/i.test(normalizedTerm)) return 'Endoderm';
+
+    return null;
+}
+
+function getVisibleTissueAxisTerms() {
+    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible').then(($labels) => {
+        return Array.from($labels)
+            .map((labelNode) => (labelNode.getAttribute('data-term') || '').trim())
+            .filter(Boolean);
+    });
 }
 
 function visitBrowseByFile(){
@@ -452,6 +518,38 @@ function stepFacetExcludeGrouping(caps) {
         .end();
 }
 
+function stepTissueTypeFilterTests(caps) {
+    if (caps.expectedStatsSummaryOpts.totalFiles === 0) {
+        visitBrowseByFile().then(() => {
+            cy.log('Skipping stepTissueTypeFilterTests since no data is accessible for this role.');
+        });
+        return;
+    }
+
+    visitBrowseByFile().then(() => {
+        tissueTypeFilterOptions.forEach(({ buttonText, expectedCategory }) => {
+            cy.contains('#facet-charts-container button', buttonText)
+                .should('be.visible')
+                .click({ force: true });
+
+            getVisibleTissueAxisTerms().then((axisTerms) => {
+                expect(axisTerms.length, `${buttonText} should leave visible tissue axis labels`).to.be.greaterThan(0);
+
+                if (!expectedCategory) {
+                    return;
+                }
+
+                axisTerms.forEach((axisTerm) => {
+                    expect(
+                        getTissueCategoryFromAxisTerm(axisTerm),
+                        `${buttonText} filter should only show ${expectedCategory} tissues`
+                    ).to.equal(expectedCategory);
+                });
+            });
+        });
+    });
+}
+
 /** Chart Bar Plot Tests */
 function stepFacetChartBarPlotTests(caps) {
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
@@ -576,6 +674,11 @@ describe('Browse by role — File', () => {
             it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, 3AL - Brain, Temporal Lobe" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
                 if (!caps.runFacetChartBarPlotTests) return;
                 stepFacetChartBarPlotTests(caps);
+            });
+
+            it(`Tissue type filter tests (enabled: ${caps.runTissueTypeFilterTests})`, () => {
+                if (!caps.runTissueTypeFilterTests) return;
+                stepTissueTypeFilterTests(caps);
             });
         });
     });
