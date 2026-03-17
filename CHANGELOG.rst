@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.18.1
+======
+`PR 622: fix: update mapping in donor view <https://github.com/smaht-dac/smaht-portal/pull/622>`_
+
+* Update tissue name mapping for donor view
+
+
 1.18.0
 ======
 `PR 618: SN Update DSA release <https://github.com/smaht-dac/smaht-portal/pull/618>`_
