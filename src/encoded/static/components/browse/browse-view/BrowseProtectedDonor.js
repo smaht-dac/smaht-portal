@@ -24,7 +24,7 @@ import { getTissueCategoryFromFacetTerm } from '../../util/data';
 
 /**
  * Format tissue data by grouping it into predefined categories.
- * @param {*} data - The raw tissue data to format.
+ * @param {Array} data - The raw tissue data to format.
  * @returns {Object} - The formatted tissue data grouped by category.
  */
 export const formatTissueData = (data) => {
@@ -74,7 +74,7 @@ export const formatTissueData = (data) => {
  * TissueDetailPane component that displays tissue data for a donor. Fetches tissue
  * data based on the donor's display title and formats it for display.
  * @param {*} itemDetails - The details of the item to display.
- * @returns TissueDetailPane component that displays tissue data for a donor.
+ * @returns {JSX.Element} TissueDetailPane component that displays tissue data for a donor.
  */
 const TissueDetailPane = React.memo(function TissueDetailPane({
     itemDetails,
@@ -162,7 +162,8 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
 
 /**
  * Format tissue data by grouping it into predefined categories.
- * @param {*} data - The raw tissue data to format.
+ * @param {Array} data - The raw tissue data to format.
+ * @param {Object} - Label overrides for particular strings
  * @returns {Object} - The formatted tissue data grouped by category.
  */
 const formatAssayData = (data, labelOverridesFromFacets = {}) => {
@@ -233,7 +234,8 @@ const formatAssayData = (data, labelOverridesFromFacets = {}) => {
  * AssayDetailPane component that displays assay data for a donor. Fetches assay
  * data based on the donor's display title and formats it for display.
  * @param {*} itemDetails - The details of the item to display.
- * @returns AssayDetailPane component that displays tissue data for a donor.
+ * @param {*} panelDetails - The details of the item to display.
+ * @returns {JSX.Element} AssayDetailPane component that displays tissue data for a donor.
  */
 const AssayDetailPane = React.memo(function AssayDetailPane({
     itemDetails,
@@ -338,7 +340,14 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
     );
 });
 
-// Detail Pane
+/**
+ * Custom detail pane component for the donor view.
+ * @param {*} itemDetails - Details of the donor.
+ * @param {*} rowIndex - Index of the row.
+ * @param {*} panelWidth - Width of the detail pane.
+ * @param {*} panelDetails - Details of the donor view.
+ * @returns {JSX.Element} Custom detail pane component for the donor view.
+ */
 const customRenderDetailPane = (
     itemDetails = {},
     rowIndex,
