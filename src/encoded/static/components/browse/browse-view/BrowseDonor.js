@@ -21,54 +21,7 @@ import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/compone
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
-
-/**
- * Format tissue data by grouping it into predefined categories.
- * @param {*} data - The raw tissue data to format.
- * @returns {Object} - The formatted tissue data grouped by category.
- */
-const formatTissueData = (data) => {
-    const defaultTissueCategories = {
-        Ectoderm: {
-            title: 'Ectoderm',
-            values: [],
-        },
-        Endoderm: {
-            title: 'Endoderm',
-            values: [],
-        },
-        Mesoderm: {
-            title: 'Mesoderm',
-            values: [],
-        },
-        'Germ cells': {
-            title: 'Germ',
-            values: [],
-        },
-        'Clinically accessible': {
-            title: 'Clinical',
-            values: [],
-        },
-    };
-
-    if (!data) return defaultTissueCategories;
-
-    // group data by tissue category
-    const grouped_data = data.reduce((acc, { key }) => {
-        // if category is not present in lookup map, assign to 'Unknown' group
-        const tissueCategory = tissueToCategory.get(key) || 'Unknown';
-
-        if (!acc[tissueCategory]) {
-            acc[tissueCategory] = { title: tissueCategory, values: [key] };
-        } else {
-            // If category exists, push tissue to that category
-            acc[tissueCategory].values.push(key);
-        }
-        return acc;
-    }, defaultTissueCategories);
-
-    return grouped_data;
-};
+import { formatTissueData } from './BrowseProtectedDonor';
 
 /**
  * TissueDetailPane component that displays tissue data for a donor. Fetches tissue
