@@ -58,7 +58,6 @@
         "file_size": 1000,
         "md5sum": "00000000000000000000000000000001",
         "donor_specific_assembly": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
-        "override_release_tracker_description": "DSA",
         "override_release_tracker_title": "HELA",
         "tags": [
             "test_release_tracker",
