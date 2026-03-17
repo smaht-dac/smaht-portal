@@ -52,8 +52,6 @@ ALIGNED_READS_DATA_TYPE = "Aligned Reads"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
-MULTIPLE_ALIQUOT_FIELD = "MA"
-MULTIPLE_CORE_FIELD = "MC"
 ABSENT_AGE = "N"
 ABSENT_SEX = ABSENT_AGE
 
@@ -758,7 +756,7 @@ def get_aliquot_id(
     """Get tissue aliquot ID for file."""
     parts = []
     if cell_culture_mixtures or cell_lines or eof_utils.is_external_output_file(file):
-        parts.append(get_filename_part(value=f"{MULTIPLE_ALIQUOT_FIELD}{MULTIPLE_CORE_FIELD}"))
+        parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
@@ -798,9 +796,9 @@ def get_multiple_aliquot_id_from_samples(ids: List[str]):
         aliquot_ids.append(aliquot_id) if aliquot_id not in aliquot_ids else aliquot_ids
         core_ids.append(core_id) if core_id not in core_ids else core_ids
     if len(aliquot_ids) == 1 and len(core_ids) > 1:
-        aliquot_core_id =  [f"{aliquot_ids[0]}{MULTIPLE_CORE_FIELD}"]
+        aliquot_core_id =  [f"{aliquot_ids[0]}MC"]
     else:
-       aliquot_core_id = [f"{MULTIPLE_ALIQUOT_FIELD}{MULTIPLE_CORE_FIELD}"]
+       aliquot_core_id = ["MAMC"]
     return aliquot_core_id
 
 
