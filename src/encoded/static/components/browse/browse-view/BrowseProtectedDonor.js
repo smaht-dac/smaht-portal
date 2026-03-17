@@ -166,7 +166,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
  * @param {Object} - Label overrides for particular strings
  * @returns {Object} - The formatted tissue data grouped by category.
  */
-const formatAssayData = (data, labelOverridesFromFacets = {}) => {
+export const formatAssayData = (data, labelOverridesFromFacets = {}) => {
     const defaultAssayCategories = {
         'Bulk WGS': {
             title: 'Bulk WGS',
@@ -300,27 +300,29 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                             <div className="tissue-list-container">
                                 {categoryAssays.length > 0 ? (
                                     <ul>
-                                        {categoryAssays.map((assay, j) => {
-                                            // Override assay title if label override exists
-                                            const assayTitle =
-                                                label_overrides?.[assay] ??
-                                                assay;
+                                        {categoryAssays
+                                            .sort((a, b) => a.localeCompare(b))
+                                            .map((assay, j) => {
+                                                // Override assay title if label override exists
+                                                const assayTitle =
+                                                    label_overrides?.[assay] ??
+                                                    assay;
 
-                                            // Create a link to search for files with this assay
-                                            // Note: The assay link uses the original assay term
-                                            return (
-                                                <li key={j}>
-                                                    <span>
-                                                        <a
-                                                            href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&file_sets.libraries.assay.display_title=${assay}`}
-                                                            target="_blank"
-                                                            rel="noreferrer noopener">
-                                                            {assayTitle}
-                                                        </a>
-                                                    </span>
-                                                </li>
-                                            );
-                                        })}
+                                                // Create a link to search for files with this assay
+                                                // Note: The assay link uses the original assay term
+                                                return (
+                                                    <li key={j}>
+                                                        <span>
+                                                            <a
+                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&file_sets.libraries.assay.display_title=${assay}`}
+                                                                target="_blank"
+                                                                rel="noreferrer noopener">
+                                                                {assayTitle}
+                                                            </a>
+                                                        </span>
+                                                    </li>
+                                                );
+                                            })}
                                     </ul>
                                 ) : (
                                     <span className="text-secondary">N/A</span>
