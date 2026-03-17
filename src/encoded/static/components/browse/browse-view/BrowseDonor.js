@@ -21,7 +21,7 @@ import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/compone
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
-import { formatTissueData } from './BrowseProtectedDonor';
+import { formatTissueData, formatAssayData } from './BrowseProtectedDonor';
 
 /**
  * TissueDetailPane component that displays tissue data for a donor. Fetches tissue
@@ -114,62 +114,6 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
 });
 
 /**
- * Format tissue data by grouping it into predefined categories.
- * @param {*} data - The raw tissue data to format.
- * @returns {Object} - The formatted tissue data grouped by category.
- */
-const formatAssayData = (data) => {
-    const defaultAssayCategories = {
-        'Bulk WGS': {
-            title: 'Bulk WGS',
-            values: [],
-        },
-        'Bulk RNA-seq': {
-            title: 'RNA-seq',
-            values: [],
-        },
-        'Duplex-seq WGS': {
-            title: 'Duplex-seq',
-            values: [],
-        },
-        WGA: {
-            title: 'Single-cell WGS',
-            values: [],
-        },
-        'Repeat Element Targeted Sequencing': {
-            title: 'Targeted Seq',
-            values: [],
-        },
-        'Single-cell RNA-seq': {
-            title: 'Single-cell RNA-Seq',
-            values: [],
-        },
-        Other: {
-            title: 'Other',
-            values: [],
-        },
-    };
-
-    // group data by assay category
-    const grouped_data = data.reduce((acc, item) => {
-        const assayCategory = item?.key || 'Other';
-
-        if (!acc[assayCategory]) {
-            acc[assayCategory] = {
-                title: assayCategory,
-                values: item?.terms.map((t) => t.key),
-            };
-        } else {
-            // If category exists, push tissue to that category
-            acc[assayCategory].values.push(...item?.terms.map((t) => t.key));
-        }
-        return acc;
-    }, defaultAssayCategories);
-
-    return grouped_data;
-};
-
-/**
  * AssayDetailPane component that displays assay data for a donor. Fetches assay
  * data based on the donor's display title and formats it for display.
  * @param {*} itemDetails - The details of the item to display.
@@ -186,15 +130,21 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
-            setAssayData(
-                formatAssayData(
-                    panelDetails?.searchCache?.facets?.find(
-                        (f) =>
-                            f.field ===
-                            'file_sets.libraries.assay.display_title'
-                    )?.terms || []
-                )
+            const assayFacets = panelDetails?.searchCache?.facets?.find(
+                (f) => f.field === 'file_sets.libraries.assay.display_title'
             );
+
+            // Pull out terms and label overrides from facet
+            const termsFromFacets = assayFacets?.terms || [];
+            const labelOverridesFromFacets = assayFacets?.label_overrides || {};
+
+            // Get assay terms from facet
+            const assayTerms = formatAssayData(
+                termsFromFacets,
+                labelOverridesFromFacets
+            );
+
+            setAssayData(assayTerms);
         } else {
             panelDetails.searchRequest(searchURL);
         }
@@ -214,27 +164,42 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
             </div>
             <div className="detail-body">
                 {Object?.keys(assayData).map((category, i) => {
-                    const assays = assayData[category]['values'] || [];
+                    const {
+                        title,
+                        values = [],
+                        label_overrides = {},
+                    } = assayData[category];
+
+                    // Override category title if label override exists
+                    const categoryTitle = label_overrides?.[title] ?? title;
+                    const categoryAssays = values;
+
                     return (
                         <div key={i} className="tissue-category">
                             <div className="header-container">
-                                <h3>{assayData[category]?.title}</h3>
+                                <h3>{categoryTitle}</h3>
                             </div>
                             <div className="tissue-list-container">
-                                {assays.length > 0 ? (
+                                {categoryAssays.length > 0 ? (
                                     <ul>
-                                        {assays
+                                        {categoryAssays
                                             .sort((a, b) => a.localeCompare(b))
                                             .map((assay, j) => {
+                                                // Override assay title if label override exists
+                                                const assayTitle =
+                                                    label_overrides?.[assay] ??
+                                                    assay;
+
                                                 // Create a link to search for files with this assay
+                                                // Note: The assay link uses the original assay term
                                                 return (
                                                     <li key={j}>
                                                         <span>
                                                             <a
-                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
+                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&file_sets.libraries.assay.display_title=${assay}`}
                                                                 target="_blank"
                                                                 rel="noreferrer noopener">
-                                                                {assay}
+                                                                {assayTitle}
                                                             </a>
                                                         </span>
                                                     </li>
