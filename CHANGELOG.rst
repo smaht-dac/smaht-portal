@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.18.0
+======
+`PR 618: SN Update DSA release <https://github.com/smaht-dac/smaht-portal/pull/618>`_
+
+* Update `release_tracker_description` for SupplementaryFile to be "DSA" for files with `donor_specific_assembly` property
+* Update the `release_file` script to allow batch release of files from the same DSA
+
+
 1.17.4
 ======
 
