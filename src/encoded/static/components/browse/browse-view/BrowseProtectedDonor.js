@@ -165,7 +165,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
  * @param {*} data - The raw tissue data to format.
  * @returns {Object} - The formatted tissue data grouped by category.
  */
-const formatAssayData = (data) => {
+const formatAssayData = (data, labelOverridesFromFacets = {}) => {
     const defaultAssayCategories = {
         'Bulk WGS': {
             title: 'Bulk WGS',
@@ -187,10 +187,6 @@ const formatAssayData = (data) => {
             title: 'Targeted Seq',
             values: [],
         },
-        'Single-cell RNA-seq': {
-            title: 'Single-cell RNA-Seq',
-            values: [],
-        },
         Other: {
             title: 'Other',
             values: [],
@@ -199,16 +195,33 @@ const formatAssayData = (data) => {
 
     // group data by assay category
     const grouped_data = data.reduce((acc, item) => {
-        const assayCategory = item?.key || 'Other';
+        // Check for label override
+        const assayCategory = item?.key ?? 'Other';
 
+        // Populate object for label overrides if they exist
+        const labelOverrides = {};
+        if (labelOverridesFromFacets?.[assayCategory]) {
+            labelOverrides[assayCategory] =
+                labelOverridesFromFacets[assayCategory];
+        }
+
+        // Get terms and add label overrides
+        const termsMap = item?.terms.map((t) => {
+            if (labelOverridesFromFacets[t?.key]) {
+                labelOverrides[t.key] = labelOverridesFromFacets[t.key];
+            }
+            return t?.key;
+        });
+
+        // Add terms to new or existing category
         if (!acc[assayCategory]) {
             acc[assayCategory] = {
                 title: assayCategory,
-                values: item?.terms.map((t) => t.key),
+                values: termsMap,
+                label_overrides: labelOverrides ?? {},
             };
         } else {
-            // If category exists, push tissue to that category
-            acc[assayCategory].values.push(...item?.terms.map((t) => t.key));
+            acc[assayCategory].values.push(...termsMap);
         }
         return acc;
     }, defaultAssayCategories);
@@ -233,15 +246,21 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
-            setAssayData(
-                formatAssayData(
-                    panelDetails?.searchCache?.facets?.find(
-                        (f) =>
-                            f.field ===
-                            'file_sets.libraries.assay.display_title'
-                    )?.terms || []
-                )
+            const assayFacets = panelDetails?.searchCache?.facets?.find(
+                (f) => f.field === 'file_sets.libraries.assay.display_title'
             );
+
+            // Pull out terms and label overrides from facet
+            const termsFromFacets = assayFacets?.terms || [];
+            const labelOverridesFromFacets = assayFacets?.label_overrides || {};
+
+            // Get assay terms from facet
+            const assayTerms = formatAssayData(
+                termsFromFacets,
+                labelOverridesFromFacets
+            );
+
+            setAssayData(assayTerms);
         } else {
             panelDetails.searchRequest(searchURL);
         }
@@ -261,17 +280,32 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
             </div>
             <div className="detail-body">
                 {Object?.keys(assayData).map((category, i) => {
-                    const assays = assayData[category]['values'] || [];
+                    const {
+                        title,
+                        values = [],
+                        label_overrides = {},
+                    } = assayData[category];
+
+                    // Override category title if label override exists
+                    const categoryTitle = label_overrides?.[title] ?? title;
+                    const categoryAssays = values;
+
                     return (
                         <div key={i} className="tissue-category">
                             <div className="header-container">
-                                <h3>{assayData[category]?.title}</h3>
+                                <h3>{categoryTitle}</h3>
                             </div>
                             <div className="tissue-list-container">
-                                {assays.length > 0 ? (
+                                {categoryAssays.length > 0 ? (
                                     <ul>
-                                        {assays.map((assay, j) => {
+                                        {categoryAssays.map((assay, j) => {
+                                            // Override assay title if label override exists
+                                            const assayTitle =
+                                                label_overrides?.[assay] ??
+                                                assay;
+
                                             // Create a link to search for files with this assay
+                                            // Note: The assay link uses the original assay term
                                             return (
                                                 <li key={j}>
                                                     <span>
@@ -279,7 +313,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                             href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&file_sets.libraries.assay.display_title=${assay}`}
                                                             target="_blank"
                                                             rel="noreferrer noopener">
-                                                            {assay}
+                                                            {assayTitle}
                                                         </a>
                                                     </span>
                                                 </li>
