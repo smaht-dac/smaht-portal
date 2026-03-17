@@ -7,11 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-1.18.1
+1.19.1
 ======
 `PR 622: fix: update mapping in donor view <https://github.com/smaht-dac/smaht-portal/pull/622>`_
 
 * Update tissue name mapping for donor view
+
+
+1.19.0
+======
+
+`PR 620: Browse Viz: add tissue type filtering <https://github.com/smaht-dac/smaht-portal/pull/620>`_
+
+* Adds Tissue Type filtering to Facet Charts for tissue-based browse visualizations.
+* Displays TPC/internal tissue codes on chart axis labels for cleaner, consistent tissue labeling.
 
 
 1.18.0

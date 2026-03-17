@@ -34,7 +34,8 @@ export function genChartBarDims(
     styleOpts               = Chart.defaultStyleOpts,
     aggregateType           = 'files',
     useOnlyPopulatedFields  = false,
-    fullHeightCount         = null
+    fullHeightCount         = null,
+    xAxisTermLabelMapper    = null
 ){
 
     // Resets color cache of field-terms, allowing us to re-assign colors upon higher, data-changing, state changes.
@@ -70,8 +71,13 @@ export function genChartBarDims(
                 }
                 const maxYForBar = parent ? parent.count : largestExpCountForATerm;
                 const barHeight = maxYForBar === 0 ? 0 : (termCount / maxYForBar) * outerDims.height;
+                const defaultTermName = Schemas.Term.toName(fieldObj.field, termKey);
+                const axisLabel = (!parent && typeof xAxisTermLabelMapper === 'function')
+                    ? (xAxisTermLabelMapper(termKey, defaultTermName) || defaultTermName)
+                    : defaultTermName;
                 const barNode = {
-                    'name'      : Schemas.Term.toName(fieldObj.field, termKey),
+                    'name'      : defaultTermName,
+                    'axisLabel' : axisLabel,
                     'term'      : termKey,
                     'count'     : termCount,
                     'field'     : fieldObj.field,
@@ -244,6 +250,8 @@ export class Chart extends React.PureComponent {
         }),
         'height'        : PropTypes.number,
         'width'         : PropTypes.number,
+        'subBarLayout'  : PropTypes.oneOf(['stacked', 'grouped']),
+        'xAxisTermLabelMapper': PropTypes.func,
         'useOnlyPopulatedFields' : PropTypes.bool,
         'showType'      : PropTypes.oneOf(['all', 'filtered', 'both']),
         'aggregateType' : PropTypes.oneOf(['donors', 'files']),
@@ -301,8 +309,11 @@ export class Chart extends React.PureComponent {
             const { windowWidth } = this.props, { mounted } = this.state;
             const { offset, labelRotation, maxLabelWidth, maxBarWidth } = styleOpts;
             const barLabelsSortedByTerm = _.map(currentBars, function(b){
+                const displayLabel = b.axisLabel || b.name || b.term;
+                const originalLabel = b.name || b.term;
                 return {
-                    'name' : b.name || b.term,
+                    'name' : displayLabel,
+                    'title': displayLabel !== originalLabel ? originalLabel : null,
                     'term' : b.term,
                     'x' : b.attr.x,
                     'opacity' : 1
@@ -389,7 +400,7 @@ export class Chart extends React.PureComponent {
 
         const {
             width, height, showType, barplot_data_unfiltered, barplot_data_filtered, context,
-            aggregateType, useOnlyPopulatedFields, cursorDetailActions, href, schemas, mapping
+            aggregateType, useOnlyPopulatedFields, cursorDetailActions, href, schemas, mapping, subBarLayout, xAxisTermLabelMapper
         } = this.props;
 
         const topLevelField = (showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered) || barplot_data_unfiltered;
@@ -402,11 +413,13 @@ export class Chart extends React.PureComponent {
             height,
             styleOptions,
             aggregateType,
-            useOnlyPopulatedFields
+            useOnlyPopulatedFields,
+            null,
+            xAxisTermLabelMapper
         );
 
         return (
-            <PopoverViewContainer {...{ width, height, styleOptions, showType, aggregateType, href, schemas, context, mapping }}
+            <PopoverViewContainer {...{ width, height, styleOptions, showType, aggregateType, href, schemas, context, mapping, subBarLayout }}
                 actions={cursorDetailActions}
                 leftAxis={this.renderParts.leftAxis(width, height, barData, styleOptions)}
                 bottomAxis={this.renderParts.bottomXAxis(width, height, barData.bars, styleOptions)}
