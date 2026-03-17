@@ -20,13 +20,14 @@ import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-comp
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
+import { getTissueCategoryFromFacetTerm } from '../../util/data';
 
 /**
  * Format tissue data by grouping it into predefined categories.
  * @param {*} data - The raw tissue data to format.
  * @returns {Object} - The formatted tissue data grouped by category.
  */
-const formatTissueData = (data) => {
+export const formatTissueData = (data) => {
     const defaultTissueCategories = {
         Ectoderm: {
             title: 'Ectoderm',
@@ -50,10 +51,12 @@ const formatTissueData = (data) => {
         },
     };
 
+    if (!data) return defaultTissueCategories;
+
     // group data by tissue category
     const grouped_data = data.reduce((acc, { key }) => {
         // if category is not present in lookup map, assign to 'Unknown' group
-        const tissueCategory = tissueToCategory.get(key) || 'Unknown';
+        const tissueCategory = getTissueCategoryFromFacetTerm(key) || 'Unknown';
 
         if (!acc[tissueCategory]) {
             acc[tissueCategory] = { title: tissueCategory, values: [key] };
