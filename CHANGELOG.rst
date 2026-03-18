@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-1.18.0
+1.20.0
 ======
 
 `PR 609: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/609>`_
@@ -15,6 +15,30 @@ Change Log
 * Restructure Release Tracker for network members only
 * Implement alert for public users
 * Add new smaht-wolf cypress GA workflow
+
+
+1.19.1
+======
+`PR 622: fix: update mapping in donor view <https://github.com/smaht-dac/smaht-portal/pull/622>`_
+
+* Update tissue name mapping for donor view
+
+
+1.19.0
+======
+
+`PR 620: Browse Viz: add tissue type filtering <https://github.com/smaht-dac/smaht-portal/pull/620>`_
+
+* Adds Tissue Type filtering to Facet Charts for tissue-based browse visualizations.
+* Displays TPC/internal tissue codes on chart axis labels for cleaner, consistent tissue labeling.
+
+
+1.18.0
+======
+`PR 618: SN Update DSA release <https://github.com/smaht-dac/smaht-portal/pull/618>`_
+
+* Update `release_tracker_description` for SupplementaryFile to be "DSA" for files with `donor_specific_assembly` property
+* Update the `release_file` script to allow batch release of files from the same DSA
 
 
 1.17.4

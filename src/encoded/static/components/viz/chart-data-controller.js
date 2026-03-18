@@ -51,6 +51,8 @@ const state = {
     'isLoadingChartData'      : false
 };
 
+const INCLUDE_META_TISSUE_CATEGORIES = true;
+
 /** Private state & functions **/
 
 const providerCallbacks = {};
@@ -562,7 +564,8 @@ export const ChartDataController = {
                 cb();
             }, JSON.stringify({
                 "search_query_params" : baseSearchParams,
-                "fields_to_aggregate_for" : state.barplot_data_fields
+                "fields_to_aggregate_for" : state.barplot_data_fields,
+                "include_meta_tissue_categories": INCLUDE_META_TISSUE_CATEGORIES
             })
         );
 
@@ -587,7 +590,8 @@ export const ChartDataController = {
                     cb();
                 }, JSON.stringify({
                     "search_query_params" : filteredSearchParams,
-                    "fields_to_aggregate_for" : state.barplot_data_fields
+                    "fields_to_aggregate_for" : state.barplot_data_fields,
+                    "include_meta_tissue_categories": INCLUDE_META_TISSUE_CATEGORIES
                 })
             );
         }
@@ -647,7 +651,8 @@ export const ChartDataController = {
             },
             JSON.stringify({
                 "search_query_params" : filteredSearchParams,
-                "fields_to_aggregate_for" : state.barplot_data_fields
+                "fields_to_aggregate_for" : state.barplot_data_fields,
+                "include_meta_tissue_categories": INCLUDE_META_TISSUE_CATEGORIES
             })
         );
     },
