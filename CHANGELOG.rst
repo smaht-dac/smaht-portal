@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-1.19.1
+1.19.2
 ======
 
 `PR 621: fix: update Reference Genome term value <https://github.com/smaht-dac/smaht-portal/pull/621>`_
 
 * Update override label for No value in Reference Genome term
+
+
+1.19.1
+======
+
+`PR 622: fix: update mapping in donor view <https://github.com/smaht-dac/smaht-portal/pull/622>`_
+
+* Update tissue name mapping for donor view
 
 
 1.19.0
