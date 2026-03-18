@@ -248,7 +248,7 @@ export class VisualBody extends React.PureComponent {
             rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath,
             browseFilteringTransformFunc, activeFacetHref
         } = this.props;
-        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey } = blockProps;
+        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey, summaryCounts = null } = blockProps;
         const effectiveBlockType = blockType === 'col-secondary-summary' ? 'col-summary' : blockType;
         let isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
@@ -474,12 +474,15 @@ export class VisualBody extends React.PureComponent {
             // Tissue x Assay file summaries can be backed by aggregated rows that do not
             // carry donor identifiers, so fall back to the per-column/overall donor totals.
             if (!(effectiveBlockType === 'col-summary' && isTissueGrouping)) return 0;
+            if (summaryCounts) {
+                return summaryCounts?.donors ?? summaryCounts?.donor_count ?? 0;
+            }
             if (columnKey === 'overall-summary') {
                 return this.props.overallCounts?.donors ?? this.props.overallCounts?.donor_count ?? 0;
             }
             if (!Array.isArray(this.props.columnTotals)) return 0;
-            const summaryCounts = this.props.columnTotals.find((t) => t[this.props.columnGrouping] === columnKey)?.counts;
-            return summaryCounts?.donors ?? summaryCounts?.donor_count ?? 0;
+            const fallbackSummaryCounts = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, this.props)?.counts;
+            return fallbackSummaryCounts?.donors ?? fallbackSummaryCounts?.donor_count ?? 0;
         };
         const getFilesCountFromItem = (item) => {
             if (item && item.counts && typeof item.counts.files === 'number') return item.counts.files;
@@ -1420,14 +1423,29 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return props.blockWidth + (props.blockHorizontalSpacing * 2);
     }
 
+    static getResolvedColumnGroupingField(props) {
+        return props.fieldChangeMap?.[props.columnGrouping] || props.columnGrouping;
+    }
+
+    static getColumnTotalsEntry(columnKey, props) {
+        if (!Array.isArray(props.columnTotals)) return null;
+
+        // DataMatrix normalizes column_totals to the UI grouping alias (e.g. assay),
+        // but some callers may still pass raw backend-shaped totals. Prefer the UI key
+        // and fall back to the original backend field for safety.
+        const transformedField = props.columnGrouping;
+        const resolvedColumnGroupingField = StackedBlockGroupedRow.getResolvedColumnGroupingField(props);
+
+        return _.findWhere(props.columnTotals, { [transformedField]: columnKey })
+            || _.findWhere(props.columnTotals, { [resolvedColumnGroupingField]: columnKey });
+    }
+
     static getColumnHasCoverage(columnKey, props) {
         if (props.countFor !== 'total_coverage') return true;
 
-        if (Array.isArray(props.columnTotals)) {
-            const totals = _.findWhere(props.columnTotals, { [props.columnGrouping]: columnKey });
-            if (totals && totals.counts) {
-                return Number(totals.counts.total_coverage) > 0;
-            }
+        const totals = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, props);
+        if (totals && totals.counts) {
+            return Number(totals.counts.total_coverage) > 0;
         }
 
         const columnItems = props.groupedDataIndices?.[columnKey] || [];
@@ -1949,9 +1967,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             <div className="blocks-container d-flex header-summary">
                 {columnKeys.map(function (columnKey, colIndex) {
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
-                    const totalsCounts = Array.isArray(props.columnTotals)
-                        ? props.columnTotals.find((t) => t[props.columnGrouping] === columnKey)?.counts
-                        : null;
+                    const totalsCounts = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, props)?.counts;
                     const donorsCount = isPrimarySummaryBand
                         ? getPrimaryGroupCountFromGroupedRows(columnKey)
                         : (totalsCounts?.donors ?? totalsCounts?.donor_count ?? getPrimaryGroupCountFromGroupedRows(columnKey));
@@ -1979,6 +1995,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     popoverPrimaryTitle={props.rowGroupKey}
                                     columnKey={columnKey}
                                     countFor={summaryCountFor}
+                                    summaryCounts={isPrimarySummaryBand ? { donors: donorsCount } : totalsCounts}
                                     summaryRowType={summaryBlockType}
                                 />
                             </div>
@@ -2029,6 +2046,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 popoverPrimaryTitle={props.rowGroupKey}
                                 columnKey="overall-summary"
                                 countFor={summaryCountFor}
+                                summaryCounts={summaryCountFor === 'donors'
+                                    ? { ...props.overallCounts, donors: overallValue }
+                                    : (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
+                                        ? { ...props.overallCounts, files: overallValue }
+                                        : props.overallCounts
+                                }
                                 summaryRowType={summaryBlockType}
                             />
                         </div>
