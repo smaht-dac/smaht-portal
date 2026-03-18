@@ -34,6 +34,7 @@
                 "showRowGroups": true,
                 "autoPopulateRowGroupsProperty": "study",
                 "headerFor": null,
+                "showCountFor": true,
                 "showColumnSummary": false,
                 "showFacetTermsPanel": true,
                 "idLabel": "benchmarking",
