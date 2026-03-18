@@ -472,10 +472,14 @@ export class VisualBody extends React.PureComponent {
             if (donorSet.size > 0) return donorSet.size;
 
             // Tissue x Assay file summaries can be backed by aggregated rows that do not
-            // carry donor identifiers, so fall back to the per-column/overall donor totals.
-            if (!(effectiveBlockType === 'col-summary' && isTissueGrouping)) return 0;
+            // carry donor identifiers, so fall back to the aggregate donor totals.
+            if (!isTissueGrouping || (effectiveBlockType !== 'col-summary' && effectiveBlockType !== 'row-summary')) return 0;
             if (summaryCounts) {
                 return summaryCounts?.donors ?? summaryCounts?.donor_count ?? 0;
+            }
+            if (effectiveBlockType === 'row-summary') {
+                const rowSummaryCounts = dataForCounts[0]?.counts;
+                return rowSummaryCounts?.donors ?? rowSummaryCounts?.donor_count ?? 0;
             }
             if (columnKey === 'overall-summary') {
                 return this.props.overallCounts?.donors ?? this.props.overallCounts?.donor_count ?? 0;
@@ -587,8 +591,16 @@ export class VisualBody extends React.PureComponent {
                             {effectiveBlockType === 'row-summary' && depth === 0 ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
-                                        <div className="label me-05">{additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] ? secondaryGrpPropTitle : StackedBlockVisual.pluralize(secondaryGrpPropTitle)}</div>
-                                        <div className="value">{secondaryGrpPropUniqueCount || additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || '--'}</div>
+                                        <div className="label me-05">
+                                            {isTissueGrouping
+                                                ? 'Total Donors'
+                                                : (additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] ? secondaryGrpPropTitle : StackedBlockVisual.pluralize(secondaryGrpPropTitle))}
+                                        </div>
+                                        <div className="value">
+                                            {isTissueGrouping
+                                                ? (donorCount || '--')
+                                                : (secondaryGrpPropUniqueCount || additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || '--')}
+                                        </div>
                                     </div>
                                     {additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ?
                                         <div className="col-4">
@@ -1609,7 +1621,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     rowSummaryBlock = (
                         <div className="block-container-group" style={getContainerGroupStyle('overall-summary')}
                             key={'total'} data-block-count={totalRowCount} data-group-key={'row-summary'}>
-                            <Block {...commonProps} key={inner.length} data={allChildBlocks} rowTotals={filteredRowTotalChildBlocks} rowIndex={props.index} blockType="row-summary" />
+                            <Block
+                                {...commonProps}
+                                key={inner.length}
+                                data={allChildBlocks}
+                                rowTotals={filteredRowTotalChildBlocks}
+                                rowIndex={props.index}
+                                blockType="row-summary"
+                                summaryCounts={filteredRowTotalChildBlocks[0]?.counts || null}
+                            />
                         </div>
                     );
                 }
