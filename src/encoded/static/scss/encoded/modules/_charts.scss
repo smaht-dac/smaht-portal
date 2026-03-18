@@ -1950,9 +1950,10 @@ body[data-path="/statistics"] {
                         }
                     }
 
+                    &:not(:first-child) .vertical-container-rows .grouping:first-child .row > .list-section > .blocks-container,
                     &:not(:first-child) .vertical-container-rows .grouping:first-child .label-section>.label-container,
                     &:not(:first-child) .vertical-container-label {
-                        border-top: 2px solid #eee !important;
+                        border-top: 1px solid #eee !important;
                     }
                 }
             }
