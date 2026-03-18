@@ -284,6 +284,7 @@ export default class DataMatrix extends React.PureComponent {
         ],
         "baseBrowseFilesPath": "/browse/",
         "showCountFor": false,
+        "showMatrixModeTabs": true,
         "showUniqueDonorsAssayBand": true,
         "showFacetTermsPanel": false,
         "facetTermsPanelFields": null,
@@ -340,6 +341,7 @@ export default class DataMatrix extends React.PureComponent {
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'baseBrowseFilesPath': PropTypes.string,
         'showCountFor': PropTypes.bool,
+        'showMatrixModeTabs': PropTypes.bool,
         'showUniqueDonorsAssayBand': PropTypes.bool,
         'showFacetTermsPanel': PropTypes.bool,
         'facetTermsPanelFields': PropTypes.arrayOf(PropTypes.string),
@@ -1038,7 +1040,7 @@ export default class DataMatrix extends React.PureComponent {
         const {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
-            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor,
+            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor, showMatrixModeTabs,
             showFacetTermsPanel, facetTermsPanelFields
         } = this.props;
         const {
@@ -1129,6 +1131,7 @@ export default class DataMatrix extends React.PureComponent {
                     const isTissueMatrix = countFor === 'donors' || countFor === 'tissue_files';
                     const isCoverageView = countFor === 'total_coverage';
                     const showCountsPanel = showCountFor;
+                    const shouldShowMatrixModeTabs = showCountFor && showMatrixModeTabs && idLabel !== 'benchmarking';
                     const showFacetsPanel = showFacetTermsPanel;
                     const showLeftPanel = showFacetsPanel;
 
@@ -1242,7 +1245,7 @@ export default class DataMatrix extends React.PureComponent {
                                 </div>
                                 ) : null}
                                 <div className="matrix-visual-panel flex-grow-1">
-                                    {showCountFor ? (
+                                    {shouldShowMatrixModeTabs ? (
                                         <div className="matrix-mode-tabs-row">
                                             <div className="matrix-mode-tabs">
                                                 <button

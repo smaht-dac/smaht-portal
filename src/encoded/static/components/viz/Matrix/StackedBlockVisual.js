@@ -15,6 +15,7 @@ import { isPrimitive } from '@hms-dbmi-bgm/shared-portal-components/es/component
 
 const FALLBACK_GROUP_NAME = 'N/A';
 const DEFAULT_MATRIX_BLOCK_WIDTH = 35;
+const DEFAULT_MATRIX_BLOCK_HORIZONTAL_EXTEND = 5;
 
 function renderVerticalRowGroupsExtended({
     rowGroupsExtended,
@@ -1415,10 +1416,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return arr1.filter((item) => !lowerSet2.has(item.toLowerCase()));
     });
 
-    static getBaseColumnWidth(props, columnKey = null) {
-        if (props.countFor === 'total_coverage' && columnKey && !StackedBlockGroupedRow.getColumnHasCoverage(columnKey, props)) {
-            return DEFAULT_MATRIX_BLOCK_WIDTH + (props.blockHorizontalSpacing * 2);
-        }
+    static getBaseColumnWidth(props) {
         return props.blockWidth + (props.blockHorizontalSpacing * 2);
     }
 
@@ -1439,11 +1437,17 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     }
 
     static getColumnWidthForKey(columnKey, props) {
-        const baseWidth = StackedBlockGroupedRow.getBaseColumnWidth(props, columnKey);
         if (props.countFor !== 'total_coverage') {
+            const baseWidth = StackedBlockGroupedRow.getBaseColumnWidth(props);
             return baseWidth + props.blockHorizontalExtend;
         }
-        return baseWidth + (StackedBlockGroupedRow.getColumnHasCoverage(columnKey, props) ? props.blockHorizontalExtend : 0);
+        if (!StackedBlockGroupedRow.getColumnHasCoverage(columnKey, props)) {
+            return DEFAULT_MATRIX_BLOCK_WIDTH
+                + (props.blockHorizontalSpacing * 2)
+                + DEFAULT_MATRIX_BLOCK_HORIZONTAL_EXTEND;
+        }
+        const baseWidth = StackedBlockGroupedRow.getBaseColumnWidth(props);
+        return baseWidth + props.blockHorizontalExtend;
     }
 
     static getHeaderItemStyleForKey(columnKey, props) {
