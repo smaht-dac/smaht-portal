@@ -138,7 +138,7 @@ class FileRelease:
     @cached_property
     def quality_metrics(self) -> List[dict]:
         quality_metrics = self.get_items(file_utils.get_quality_metrics(self.file))
-        if not quality_metrics and self.release_type == FILESET_FILE_RELEASE and not submitted_file_utils.is_submitted_file(self.file):
+        if not quality_metrics and self.release_type == FILESET_FILE_RELEASE:
             self.add_warning(
                 f"File {self.file_accession} does not have an associated QualityMetrics"
                 " item."
