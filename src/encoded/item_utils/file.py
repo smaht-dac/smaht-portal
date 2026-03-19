@@ -505,3 +505,8 @@ def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -
             tissue.get_category, request_handler=request_handler
         )
     )
+
+
+def get_meta_workflow_run_outputs(file: Dict[str, Any]) -> Union[List[str], List[Dict[str, Any]]]:
+    """Get output metaworkflow_run from file."""
+    return file.get("meta_workflow_run_outputs",[])
