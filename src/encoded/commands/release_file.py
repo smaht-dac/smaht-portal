@@ -122,7 +122,7 @@ class FileRelease:
     @cached_property
     def file_sets(self) -> List[dict]:
         return self.get_file_sets_from_file()
-    
+
     @cached_property
     def donor_specific_assembly(self) -> List[dict]:
         return self.get_items([supp_file_utils.get_donor_specific_assembly(self.file)])
@@ -138,7 +138,11 @@ class FileRelease:
     @cached_property
     def quality_metrics(self) -> List[dict]:
         quality_metrics = self.get_items(file_utils.get_quality_metrics(self.file))
-        if not quality_metrics and self.release_type == FILESET_FILE_RELEASE:
+        if (
+            not quality_metrics
+            and self.release_type == FILESET_FILE_RELEASE
+            and not submitted_file_utils.is_submitted_file(self.file)
+        ):
             self.add_warning(
                 f"File {self.file_accession} does not have an associated QualityMetrics"
                 " item."
@@ -422,7 +426,7 @@ class FileRelease:
             return ANALYSIS_RUN_FILE_RELEASE
         else:
             return FILESET_FILE_RELEASE
-        
+
     def get_all_files_from_dsa(self, additional_filter) -> List[dict]:
         """Get all the supplementary files from a DSA.
         
@@ -956,7 +960,6 @@ class FileRelease:
             self.print_error_and_exit(
                 f"Could not determine Release Tracker description"
             )
-        
 
     def get_annotated_filename_info(self, file) -> AnnotatedFilenameInfo:
         annotated_filename = file_utils.get_annotated_filename(file)
