@@ -32,6 +32,9 @@
         "file_sets": [
             "TEST_FILE-SET_LIVER-DNA"
         ],
+        "analysis_runs": [
+            "6bf49379-923b-418d-8ea4-c3148330b26f"
+        ],
         "file_size": 5000,
         "md5sum": "211e09ebf240c7256747d10e24cb99fd",
         "quality_metrics": [
@@ -88,6 +91,26 @@
         ],
         "quality_metrics": [
             "a975fc4b-c149-449f-891a-496e24767e42"
+        ]
+    },
+    {
+        "uuid": "0f98abcb-bbc5-4c44-b228-cc33d4f82033",
+        "data_category": [
+            "Somatic Variant Calls"
+        ],
+        "data_type": [
+            "SNV"
+        ],
+        "file_format": "VCF",
+        "accession": "SMAFIXYZ1234",
+        "consortia": [
+            "smaht"
+        ],
+        "submission_centers": [
+            "smaht"
+        ],
+        "analysis_runs": [
+            "6bf49379-923b-418d-8ea4-c3148330b26f"
         ]
     }
 ]

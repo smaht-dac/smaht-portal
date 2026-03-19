@@ -19,10 +19,11 @@ from ..item_utils.utils import (
     RequestHandler,
 )
 
+
 def _build_external_output_file_embedded_list():
     """Embeds for search on external output files."""
     return SubmittedFile.embedded_list + [
-        "reference_genome.display_title",
+        "reference_genome.display_title"
     ]
 
 
@@ -92,28 +93,7 @@ class ExternalOutputFile(SubmittedFile):
                 request_handler,
                 eof_utils.get_donors(file_properties, request_handler),
                 donor_utils.get_study
-            ),
-            # CalcPropConstants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
-            #     request_handler,
-            #     file_utils.get_samples(file_properties, request_handler),
-            #     functools.partial(
-            #         sample_utils.get_sample_names, request_handler=request_handler
-            #     ),
-            # ),
-            # CalcPropConstants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS:
-            #     get_property_values_from_identifiers(
-            #         request_handler,
-            #         file_utils.get_samples(file_properties, request_handler),
-            #         functools.partial(
-            #             sample_utils.get_sample_descriptions,
-            #             request_handler=request_handler,
-            #         ),
-            #     ),
-            # CalcPropConstants.SAMPLE_SUMMARY_ANALYTES: get_property_values_from_identifiers(
-            #     request_handler,
-            #     file_utils.get_analytes(file_properties, request_handler),
-            #     analyte_utils.get_molecule,
-            # ),
+            )
         }
         result = {key: value for key, value in to_include.items() if value}
         return result

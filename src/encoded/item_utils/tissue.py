@@ -154,18 +154,26 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
     """
     Get tissue type of tissue from ontology term.
     
-    Special handling of fibroblasts (3AC)
+    Special handling of fibroblasts (3AC) and Benchmarking tissues
     """
+     # Use tissue code from external id to identify fibroblast
     fibroblast = is_fibroblast(properties)
     if fibroblast:
-        return "Fibroblast"
-    return get_grouping_term_from_tag(
+        return "3AC - Fibroblast"
+    # otherwise use ontology term `preferred name` to set tissue type
+    tissue_type = get_grouping_term_from_tag(
         properties,
         request_handler=request_handler,
         tag="tissue_type"
     )
-
-
+    # Use donor code from external id to identify benchmarking samples
+    if tissue_type and is_benchmarking(properties):
+        if " - " in tissue_type:
+            # NOTE: Relies on formatting of ontology term to be [TPC code] - [Tissue type]
+            return tissue_type.split(' - ')[1]
+    return tissue_type
+        
+    
 def get_category(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
     """
     Get category associated with tissue.

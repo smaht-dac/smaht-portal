@@ -81,6 +81,7 @@
             "enum": [
                 "Germline SNV calling",
                 "Somatic SNV calling",
+                "Somatic SNV calling (core specific)",
                 "Somatic SV calling"
             ]
         },

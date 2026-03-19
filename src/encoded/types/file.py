@@ -1462,7 +1462,6 @@ class File(Item, CoreFile):
     def open_data_url(self, request, accession, file_format, status=None):
         """ Computes the open data URL and checks if it exists. """
         if status not in ['open', 'protected', 'protected-network', 'protected-early']:
-            print('file in wrong status')
             return None
 
         fformat = get_item_or_none(request, file_format, frame='raw')  # no calc props needed
