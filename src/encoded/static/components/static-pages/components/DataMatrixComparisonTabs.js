@@ -170,9 +170,10 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
 
     if (!tabConfigs.length) return null;
 
-    const hashKeyForVisibility = getHashKey();
+    const hashKey = getHashKey();
+    const validHashKey = resolveTabKey(hashKey);
     const tabIsVisible = (tab) => {
-        if (hashKeyForVisibility && keysMatch(tab.key, hashKeyForVisibility)) return true;
+        if (hashKey && keysMatch(tab.key, hashKey)) return true;
         // During initial load, keep all tabs visible; after load, hide ones with no data.
         if (!allLoaded && !hasAnyLoaded) return true;
         return tabDataState[tab.key]?.hasData !== false;
@@ -180,9 +181,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
 
     const visibleTabs = tabConfigs.filter(tabIsVisible);
     const renderTabs = allLoaded ? visibleTabs : tabConfigs;
-    const hashKeyForRender = getHashKey();
-    const validHashKeyForRender = resolveTabKey(hashKeyForRender);
-    const effectiveActiveKey = validHashKeyForRender || activeKey;
+    const effectiveActiveKey = validHashKey || activeKey;
     const selectedKey = effectiveActiveKey || renderTabs[0]?.key || null;
     const selectedTab = tabConfigs.find((tab) => tab.key === selectedKey) || tabConfigs[0] || null;
     const getMatrixTitle = useCallback((tab) => {
