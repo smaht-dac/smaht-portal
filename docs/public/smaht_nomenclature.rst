@@ -947,7 +947,7 @@ Part 3: File Name breakdown
     <img class="grey-border" src="/static/img/Nomenclature_Part3.png" alt="Nomenclature Part 3"/>
 
 
-Table 5. Genome version (A) and variant type (B) tables.
+Table 5. Genome version (A) and data type (B) tables.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
@@ -989,6 +989,26 @@ Table 5. Genome version (A) and variant type (B) tables.
                 </tr>
             </thead>
             <tbody class="table-border-inner">
+                <tr>
+                    <td>Single nucleotide variants</td>
+                    <td>snv</td>
+                </tr>
+                <tr>
+                    <td>Short insertions and deletions</td>
+                    <td>indel</td>
+                </tr>
+                <tr>
+                    <td>Structural variants, including large insertions and deletions, duplications, inversions, and translocations</td>
+                    <td>sv</td>
+                </tr>
+                <tr>
+                    <td>Copy number variants</td>
+                    <td>cnv</td>
+                </tr>
+                <tr>
+                    <td>Mobile element insertions</td>
+                    <td>mei</td>
+                </tr>
                 <tr>
                     <td>Reference conversion</td>
                     <td>[Source]To[Target]</td>
