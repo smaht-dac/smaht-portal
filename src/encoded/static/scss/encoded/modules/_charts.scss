@@ -1742,16 +1742,14 @@ body[data-path="/statistics"] {
         min-width: 100%;
     }
 
-    // No facet terms panel: remove the extra left divider on matrix body.
-    .matrix-mode-body > .matrix-visual-panel:only-child {
-        .stacked-block-viz-container {
-            border-left: none !important;
-            padding-left: 0 !important;
-        }
+    // No left panel: remove the extra left divider on matrix body.
+    .matrix-mode-body.no-left-panel .stacked-block-viz-container {
+        border-left: none !important;
+        padding-left: 0 !important;
     }
 
-    // Direct VisualBody layout (no mode/facets wrapper).
-    > .row > div > .stacked-block-viz-container {
+    // Direct VisualBody layout with body-scroll wrapper (donor / protected donor pages).
+    > .row.matrix-render-surface > .w-100 > .matrix-visual-scroll-region > .matrix-visual-scroll-content > .stacked-block-viz-container {
         border-left: none !important;
         padding-left: 0 !important;
     }

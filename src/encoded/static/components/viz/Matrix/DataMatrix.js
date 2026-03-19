@@ -1191,7 +1191,7 @@ export default class DataMatrix extends React.PureComponent {
 
                     return (
                         <div className="matrix-mode-layout">
-                            <div className="matrix-mode-body d-flex">
+                            <div className={`matrix-mode-body d-flex${showLeftPanel ? "" : " no-left-panel"}`}>
                                         {showLeftPanel ? (
                                         <div className={`matrix-counts-panel ${showFacetTermsPanel ? 'has-facets-panel' : ''}`}>
                                             {showFacetsPanel ? (() => {
