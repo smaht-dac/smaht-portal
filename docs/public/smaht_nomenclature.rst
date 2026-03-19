@@ -468,21 +468,38 @@ Table 2B. Protocol IDs for SMaHT production tissues.
 | \* 3AC = Fibroblasts are isolated from fresh calf skin.
 
 
-Figure 1. 
+Figure 1. Fixed and Frozen Tissue Aliquot Schema
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
     
-    <img class="grey-border" src="/static/img/Nomenclature_Fig1.png" alt="Nomenclature Fig. 1"/>
+    <figure>
+        <img class="grey-border" src="/static/img/Nomenclature_Fig1.png" alt="Nomenclature Fig. 1"/>
+        <figcaption>
+            Schema of the spatial relationship between fixed (pink) and frozen aliquots (green) 
+            recovered for each type of non-brain tissue for the project. Mucosal tissues refer to 
+            skin, colons, and esophagus. Larger samples of lung and liver are recovered prior to 
+            further sectioning into medial and lateral halves, as denoted by the dotted red line. 
+            Small organs (adrenals and gonads) and the heart ventricle are bisected into anterior 
+            and posterior halves prior to aliquoting.
+        </figcaption>
+    </figure>
 
 
-Figure 2. 
+Figure 2. Example Standardized Tissue Coring Schema
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
-    
-    <img class="grey-border" src="/static/img/Nomenclature_Fig2.png" alt="Nomenclature Fig. 2"/>
 
+    <figure>
+        <img class="grey-border" src="/static/img/Nomenclature_Fig2.png" alt="Nomenclature Fig. 2"/>
+        <figcaption>
+            Example of the standardized coring schema from frozen aliquots. The core ID consists of a 
+            letter between A-F to denote the vertical position of the core, followed by a digit between 
+            1-6 to denote the horizontal position of the core within the aliquot. “X” represents null 
+            values to indicate samples that do not get sectioned.
+        </figcaption>
+    </figure>
 
 
 Part 2: Base Schema, Platform, and Assay Codes
