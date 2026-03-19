@@ -819,9 +819,11 @@ export class StackedBlockVisual extends React.PureComponent {
         this.headerUpperEl = null;
         this.headerUpperOriginalStyle = null;
         this.headerPinned = false;
+        this.scrollContainerEl = null;
         this.scrollRaf = null;
         this.syncStickyHeaderOnScroll = this.syncStickyHeaderOnScroll.bind(this);
         this.requestStickySync = this.requestStickySync.bind(this);
+        this.resetStickyHeaderStyles = this.resetStickyHeaderStyles.bind(this);
 
         this.state = state;
     }
@@ -829,38 +831,47 @@ export class StackedBlockVisual extends React.PureComponent {
     componentDidMount(){
         this.setState({ 'mounted' : true });
         this.headerUpperEl = this.containerRef ? this.containerRef.querySelector('.grouping.header-section-upper') : null;
+        this.scrollContainerEl = this.containerRef
+            ? (this.containerRef.closest('.matrix-visual-scroll-region') || this.containerRef.closest('.matrix-mode-scroll-region'))
+            : null;
         if (this.headerUpperEl) {
             this.headerUpperOriginalStyle = this.headerUpperEl.getAttribute('style');
         }
         this.requestStickySync();
         window.addEventListener('scroll', this.requestStickySync, { passive: true });
         window.addEventListener('resize', this.requestStickySync);
+        if (this.scrollContainerEl) {
+            this.scrollContainerEl.addEventListener('scroll', this.requestStickySync, { passive: true });
+        }
     }
 
     componentWillUnmount(){
         window.removeEventListener('scroll', this.requestStickySync);
         window.removeEventListener('resize', this.requestStickySync);
+        if (this.scrollContainerEl) {
+            this.scrollContainerEl.removeEventListener('scroll', this.requestStickySync);
+        }
         if (this.scrollRaf) {
             window.cancelAnimationFrame(this.scrollRaf);
             this.scrollRaf = null;
         }
-        if (this.headerUpperEl) {
-            this.headerUpperEl.style.position = '';
-            this.headerUpperEl.style.top = '';
-            this.headerUpperEl.style.left = '';
-            this.headerUpperEl.style.width = '';
-            this.headerUpperEl.style.zIndex = '';
-            this.headerUpperEl.style.background = '';
-            if (this.headerUpperOriginalStyle) {
-                this.headerUpperEl.setAttribute('style', this.headerUpperOriginalStyle);
-            } else {
-                this.headerUpperEl.removeAttribute('style');
-            }
-        }
+        this.resetStickyHeaderStyles();
         this.setState({ 'mounted' : false });
     }
 
     componentDidUpdate() {
+        const nextScrollContainerEl = this.containerRef
+            ? (this.containerRef.closest('.matrix-visual-scroll-region') || this.containerRef.closest('.matrix-mode-scroll-region'))
+            : null;
+        if (nextScrollContainerEl !== this.scrollContainerEl) {
+            if (this.scrollContainerEl) {
+                this.scrollContainerEl.removeEventListener('scroll', this.requestStickySync);
+            }
+            this.scrollContainerEl = nextScrollContainerEl;
+            if (this.scrollContainerEl) {
+                this.scrollContainerEl.addEventListener('scroll', this.requestStickySync, { passive: true });
+            }
+        }
         this.requestStickySync();
     }
 
@@ -882,6 +893,31 @@ export class StackedBlockVisual extends React.PureComponent {
         this.scrollRaf = window.requestAnimationFrame(this.syncStickyHeaderOnScroll);
     }
 
+    resetStickyHeaderStyles() {
+        if (!this.headerUpperEl) return;
+        const headerUpperRowEl = this.headerUpperEl.querySelector('.row.grouping-row');
+        this.headerUpperEl.style.position = '';
+        this.headerUpperEl.style.top = '';
+        this.headerUpperEl.style.left = '';
+        this.headerUpperEl.style.width = '';
+        this.headerUpperEl.style.zIndex = '';
+        this.headerUpperEl.style.background = '';
+        this.headerUpperEl.style.overflow = '';
+        if (headerUpperRowEl) {
+            headerUpperRowEl.style.transform = '';
+        }
+        if (this.headerPinned) {
+            this.containerRef.style.paddingTop = '';
+            this.headerPinned = false;
+        }
+        this.headerPinnedBaseHorizontalOffset = null;
+        if (this.headerUpperOriginalStyle) {
+            this.headerUpperEl.setAttribute('style', this.headerUpperOriginalStyle);
+        } else {
+            this.headerUpperEl.removeAttribute('style');
+        }
+    }
+
     syncStickyHeaderOnScroll() {
         this.scrollRaf = null;
         if (!this.containerRef) return;
@@ -889,12 +925,25 @@ export class StackedBlockVisual extends React.PureComponent {
             this.headerUpperEl = this.containerRef.querySelector('.grouping.header-section-upper');
         }
         if (!this.headerUpperEl) return;
+        const headerUpperRowEl = this.headerUpperEl.querySelector('.row.grouping-row');
 
         const containerRect = this.containerRef.getBoundingClientRect();
         const headerRect = this.headerUpperEl.getBoundingClientRect();
         const topOffset = this.getStickyTopOffset();
-        const containerStyle = window.getComputedStyle(this.containerRef);
-        const containerPaddingLeft = parseFloat(containerStyle.paddingLeft || '0') || 0;
+        const scrollViewportRect = this.scrollContainerEl
+            ? this.scrollContainerEl.getBoundingClientRect()
+            : containerRect;
+        const scrollViewportWidth = this.scrollContainerEl
+            ? this.scrollContainerEl.clientWidth
+            : Math.round(scrollViewportRect.width);
+        const scrollLeft = this.scrollContainerEl ? this.scrollContainerEl.scrollLeft : 0;
+        const pinnedLeft = Math.round(scrollViewportRect.left);
+        const pinnedWidth = Math.max(0, Math.round(scrollViewportWidth));
+        const initialHorizontalOffset = Math.round(headerRect.left - scrollViewportRect.left);
+        if (!this.headerPinned || this.headerPinnedBaseHorizontalOffset == null) {
+            this.headerPinnedBaseHorizontalOffset = initialHorizontalOffset;
+        }
+        const horizontalOffset = Math.round(this.headerPinnedBaseHorizontalOffset - scrollLeft);
 
         // Keep header fixed only while the matrix container intersects viewport and
         // there is enough remaining room for header to stay visible.
@@ -903,25 +952,20 @@ export class StackedBlockVisual extends React.PureComponent {
         if (shouldPin) {
             this.headerUpperEl.style.position = 'fixed';
             this.headerUpperEl.style.top = `${topOffset}px`;
-            this.headerUpperEl.style.left = `${Math.round(containerRect.left + containerPaddingLeft)}px`;
-            this.headerUpperEl.style.width = `${Math.round(containerRect.width)}px`;
+            this.headerUpperEl.style.left = `${pinnedLeft}px`;
+            this.headerUpperEl.style.width = `${pinnedWidth}px`;
             this.headerUpperEl.style.zIndex = '20';
             this.headerUpperEl.style.background = '#ffffff';
+            this.headerUpperEl.style.overflow = 'hidden';
+            if (headerUpperRowEl) {
+                headerUpperRowEl.style.transform = `translateX(${horizontalOffset}px)`;
+            }
             if (!this.headerPinned) {
                 this.containerRef.style.paddingTop = `${Math.round(headerRect.height)}px`;
                 this.headerPinned = true;
             }
         } else {
-            this.headerUpperEl.style.position = '';
-            this.headerUpperEl.style.top = '';
-            this.headerUpperEl.style.left = '';
-            this.headerUpperEl.style.width = '';
-            this.headerUpperEl.style.zIndex = '';
-            this.headerUpperEl.style.background = '';
-            if (this.headerPinned) {
-                this.containerRef.style.paddingTop = '';
-                this.headerPinned = false;
-            }
+            this.resetStickyHeaderStyles();
         }
     }
 

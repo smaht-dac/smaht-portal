@@ -1192,102 +1192,110 @@ export default class DataMatrix extends React.PureComponent {
                     return (
                         <div className="matrix-mode-layout">
                             <div className="matrix-mode-body d-flex">
-                                {showLeftPanel ? (
-                                <div className={`matrix-counts-panel ${showFacetTermsPanel ? 'has-facets-panel' : ''}`}>
-                                    {showFacetsPanel ? (() => {
-                                            const includedFacetFields = Array.isArray(facetTermsPanelFields) && facetTermsPanelFields.length > 0
-                                                ? new Set(facetTermsPanelFields)
-                                                : null;
-                                            const hideFacetFields = new Set(FILE_BROWSE_HIDE_FACETS || []);
-                                            hideFacetFields.add('type');
-                                            const visibleFacets = _.filter(facetsForPanel || [], (facet) => {
-                                                if (!facet || !facet.field || !Array.isArray(facet.terms) || facet.terms.length === 0) {
-                                                    return false;
-                                                }
-                                                if (hideFacetFields.has(facet.field)) {
-                                                    return false;
-                                                }
-                                                if (!includedFacetFields) {
-                                                    return true;
-                                                }
-                                                return includedFacetFields.has(facet.field);
-                                            });
+                                        {showLeftPanel ? (
+                                        <div className={`matrix-counts-panel ${showFacetTermsPanel ? 'has-facets-panel' : ''}`}>
+                                            {showFacetsPanel ? (() => {
+                                                    const includedFacetFields = Array.isArray(facetTermsPanelFields) && facetTermsPanelFields.length > 0
+                                                        ? new Set(facetTermsPanelFields)
+                                                        : null;
+                                                    const hideFacetFields = new Set(FILE_BROWSE_HIDE_FACETS || []);
+                                                    hideFacetFields.add('type');
+                                                    const visibleFacets = _.filter(facetsForPanel || [], (facet) => {
+                                                        if (!facet || !facet.field || !Array.isArray(facet.terms) || facet.terms.length === 0) {
+                                                            return false;
+                                                        }
+                                                        if (hideFacetFields.has(facet.field)) {
+                                                            return false;
+                                                        }
+                                                        if (!includedFacetFields) {
+                                                            return true;
+                                                        }
+                                                        return includedFacetFields.has(facet.field);
+                                                    });
 
-                                            if (visibleFacets.length === 0) {
-                                                return null;
-                                            }
+                                                    if (visibleFacets.length === 0) {
+                                                        return null;
+                                                    }
 
-                                            return (
-                                                <div className="matrix-facet-terms-wrapper">
-                                                    {typeof totalFiles === 'number' ? (
-                                                        <div className="matrix-total-files-count">
-                                                            {`${totalFiles.toLocaleString()} Files`}
+                                                    return (
+                                                        <div className="matrix-facet-terms-wrapper">
+                                                            {typeof totalFiles === 'number' ? (
+                                                                <div className="matrix-total-files-count">
+                                                                    {`${totalFiles.toLocaleString()} Files`}
+                                                                </div>
+                                                            ) : null}
+                                                            <div className="matrix-facet-terms-panel mt-1 search-view-controls-and-results">
+                                                                <FacetList
+                                                                    facets={visibleFacets}
+                                                                    context={{ filters: facetFiltersForPanel || [] }}
+                                                                    termTransformFxn={termTransformFxnWithOverrides(visibleFacets)}
+                                                                    facetListSortFxns={{ 'sample_summary.tissues': compareTissueFacetTerms }}
+                                                                    title="Properties"
+                                                                    showClearFiltersButton={false}
+                                                                    onClearFilters={this.onFacetClearFilters}
+                                                                    onFilter={this.onFacetFilter}
+                                                                    onFilterMultiple={this.onFacetFilterMultiple}
+                                                                    href={this.state.facetNavigationHref || query?.url || null}
+                                                                    schemas={this.props.schemas || null}
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    ) : null}
-                                                    <div className="matrix-facet-terms-panel mt-1 search-view-controls-and-results">
-                                                        <FacetList
-                                                            facets={visibleFacets}
-                                                            context={{ filters: facetFiltersForPanel || [] }}
-                                                            termTransformFxn={termTransformFxnWithOverrides(visibleFacets)}
-                                                            facetListSortFxns={{ 'sample_summary.tissues': compareTissueFacetTerms }}
-                                                            title="Properties"
-                                                            showClearFiltersButton={false}
-                                                            onClearFilters={this.onFacetClearFilters}
-                                                            onFilter={this.onFacetFilter}
-                                                            onFilterMultiple={this.onFacetFilterMultiple}
-                                                            href={this.state.facetNavigationHref || query?.url || null}
-                                                            schemas={this.props.schemas || null}
-                                                        />
+                                                    );
+                                                })() : null}
+                                        </div>
+                                        ) : null}
+                                        <div className="matrix-visual-panel flex-grow-1">
+                                            {shouldShowMatrixModeTabs ? (
+                                                <div className="matrix-mode-tabs-row">
+                                                    <div className="matrix-mode-tabs">
+                                                        <button
+                                                            type="button"
+                                                            className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
+                                                            onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
+                                                            <i className="icon fas icon-user me-05" /> Donor x Assay
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
+                                                            onClick={() => this.onCountForChange({ target: { value: 'tissue_files' } })}>
+                                                            <i className="icon fas icon-lungs me-05" /> Tissue x Assay
+                                                        </button>
                                                     </div>
                                                 </div>
-                                            );
-                                        })() : null}
-                                </div>
-                                ) : null}
-                                <div className="matrix-visual-panel flex-grow-1">
-                                    {shouldShowMatrixModeTabs ? (
-                                        <div className="matrix-mode-tabs-row">
-                                            <div className="matrix-mode-tabs">
-                                                <button
-                                                    type="button"
-                                                    className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
-                                                    onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
-                                                    <i className="icon fas icon-user me-05" /> Donor x Assay
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
-                                                    onClick={() => this.onCountForChange({ target: { value: 'tissue_files' } })}>
-                                                    <i className="icon fas icon-lungs me-05" /> Tissue x Assay
-                                                </button>
+                                            ) : null}
+                                            <div className="matrix-visual-scroll-region">
+                                                <div className="matrix-visual-scroll-content">
+                                                    <VisualBody
+                                                        {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
+                                                        {...bodyProps}
+                                                        headerLeftControls={metricToggle}
+                                                        columnSubGrouping=""// leave blank for now
+                                                        // eslint-disable-next-line react/destructuring-assignment
+                                                        results={this.state[resultKey]}
+                                                        defaultDepthsOpen={[defaultOpen, false, false]}
+                                                        // keysToInclude={[]}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    ) : null}
-                                    <VisualBody
-                                        {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
-                                        {...bodyProps}
-                                        headerLeftControls={metricToggle}
-                                        columnSubGrouping=""// leave blank for now
-                                        // eslint-disable-next-line react/destructuring-assignment
-                                        results={this.state[resultKey]}
-                                        defaultDepthsOpen={[defaultOpen, false, false]}
-                                        // keysToInclude={[]}
-                                    />
-                                </div>
-                            </div>
+                                    </div>
                         </div>
                     );
                 })() : (
-                    <VisualBody
-                        {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
-                        {...bodyProps}
-                        headerLeftControls={null}
-                        columnSubGrouping=""// leave blank for now
-                        // eslint-disable-next-line react/destructuring-assignment
-                        results={this.state[resultKey]}
-                        defaultDepthsOpen={[defaultOpen, false, false]}
-                        // keysToInclude={[]}
-                    />
+                    <div className="matrix-visual-scroll-region">
+                        <div className="matrix-visual-scroll-content">
+                            <VisualBody
+                                {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
+                                {...bodyProps}
+                                headerLeftControls={null}
+                                columnSubGrouping=""// leave blank for now
+                                // eslint-disable-next-line react/destructuring-assignment
+                                results={this.state[resultKey]}
+                                defaultDepthsOpen={[defaultOpen, false, false]}
+                                // keysToInclude={[]}
+                            />
+                        </div>
+                    </div>
                 )}
             </div>
         );
