@@ -13,7 +13,7 @@ import {
 import {
     console,
     object,
-    isServerSide,
+    memoizedUrlParse,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { StaticPageBase } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/StaticPageBase';
 import { replaceString as replacePlaceholderString } from './placeholders';
@@ -181,7 +181,7 @@ const CustomWrapper = React.memo(function CustomWrapper({
     tocListStyles = ['decimal', 'lower-alpha', 'lower-roman'],
     ...props
 }) {
-    const { children, title, context, windowWidth } = props;
+    const { children, title, context, windowWidth, href } = props;
     const toc =
         (context && context['table-of-contents']) ||
         (tableOfContents && typeof tableOfContents === 'object'
@@ -189,9 +189,14 @@ const CustomWrapper = React.memo(function CustomWrapper({
             : null);
     const pageTitle = title || (context && context.title) || null;
     const tocExists = toc && toc.enabled !== false;
+    const parsedHrefPathname =
+        typeof href === 'string' ? memoizedUrlParse(href).pathname : null;
+    // Keep `/data-matrix` on a wide layout without affecting other static pages.
+    const isDataMatrixPage = parsedHrefPathname === '/data-matrix';
+    const wrapperClassName = isDataMatrixPage ? 'container-wide' : 'container';
 
     return (
-        <div className="container" id="content">
+        <div className={wrapperClassName} id="content">
             <div className="static-page row" key="wrapper">
                 {tocExists ? (
                     <div
