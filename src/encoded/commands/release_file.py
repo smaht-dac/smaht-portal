@@ -134,7 +134,7 @@ class FileRelease:
     @cached_property
     def quality_metrics(self) -> List[dict]:
         quality_metrics = self.get_items(file_utils.get_quality_metrics(self.file))
-        if not quality_metrics and self.release_type == FILESET_FILE_RELEASE:
+        if not quality_metrics and self.release_type == FILESET_FILE_RELEASE and not submitted_file_utils.is_submitted_file(self.file):
             self.add_warning(
                 f"File {self.file_accession} does not have an associated QualityMetrics"
                 " item."
@@ -880,6 +880,8 @@ class FileRelease:
             patch_body[file_constants.OVERRIDE_RELEASE_TRACKER_TITLE] = release_tracker_title
             release_tracker_description = self.get_release_tracker_description_af(file)
             patch_body[file_constants.OVERRIDE_RELEASE_TRACKER_DESCRIPTION] = release_tracker_description
+            analysis_runs = [self.analysis_run['uuid']]
+            patch_body[file_constants.ANALYSIS_RUNS] = analysis_runs
             self.patch_infos.extend(
                 [
                     self.get_okay_message(
@@ -887,6 +889,9 @@ class FileRelease:
                     ),
                     self.get_okay_message(
                         file_constants.OVERRIDE_RELEASE_TRACKER_DESCRIPTION, release_tracker_description
+                    ),
+                    self.get_okay_message(
+                        file_constants.ANALYSIS_RUNS, ",".join(analysis_runs)
                     ),
                 ]
             )
