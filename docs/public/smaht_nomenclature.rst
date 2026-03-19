@@ -468,6 +468,22 @@ Table 2B. Protocol IDs for SMaHT production tissues.
 | \* 3AC = Fibroblasts are isolated from fresh calf skin.
 
 
+Figure 1. 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+    
+    <img class="grey-border" src="/static/img/Nomenclature_Fig1.png" alt="Nomenclature Fig. 1"/>
+
+
+Figure 2. 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+    
+    <img class="grey-border" src="/static/img/Nomenclature_Fig2.png" alt="Nomenclature Fig. 2"/>
+
+
 
 Part 2: Base Schema, Platform, and Assay Codes
 ----------------------------------------------
