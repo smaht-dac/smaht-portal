@@ -170,15 +170,34 @@ const verifyDonorSummary = (expectedDonorId) => {
         );
     });
 
-    // Tier / Bulk WGS Coverage / DSA: "Coming soon" + .coming-soon class
-    ["Tier", "Bulk WGS Coverage", "DSA"].forEach((lbl) => {
-        getOverviewValue(lbl).then(({ $el, text }) => {
-            expect(text, `${lbl} should be "Coming soon"`).to.eq("Coming soon");
+    // Bulk WGS Coverage
+    getOverviewValue("Bulk WGS Coverage").then(({ $el, text }) => {
+        expect(text, `${"Bulk WGS Coverage"} should be "Coming soon"`).to.eq("Coming soon");
+        expect(
+            $el.hasClass("text-disabled"),
+            `${"Bulk WGS Coverage"} should have .text-disabled class`
+        ).to.be.true;
+    });
+
+    // Allow a moment for the DSA request to complete
+    cy.wait(2000)
+
+    // DSA - ProtectedDonor may have avaliable DSA link
+    getOverviewValue("DSA").then(({ $el, text }) => {
+        // Check that DSA either says either "Coming soon" or "Available"
+        if (text === "Coming soon") {
             expect(
-                $el.hasClass("coming-soon"),
-                `${lbl} should have .coming-soon class`
+                $el.find('span').hasClass("text-disabled"),
+                `DSA should have .text-disabled class`
             ).to.be.true;
-        });
+        } else if (text === "Available") {
+            // DSA should say Available and should have an href
+            expect($el.find("a").attr("href"), `DSA should have an href`).to.not.be.empty;
+            expect(text, `DSA should be "Available"`).to.eq("Available");
+        } else {
+            // Child i element of $el should be an icon
+            expect($el.find("i.icon-spin").length, `DSA should have an i element`).to.be.greaterThan(0);
+        }
     });
 
     // Statistics
@@ -457,6 +476,7 @@ function stepProtectedDonorFlow(caps) {
 
             const selected = Cypress._.sampleSize(donors, Math.min(3, donors.length));
             if (!selected.includes("ST001")) selected.push("ST001");
+            if (!selected.includes("SMHT004")) selected.push("SMHT004");
 
             cy.log(`Selected protected donors: ${selected.join(", ")}`);
 

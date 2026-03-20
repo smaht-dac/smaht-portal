@@ -15,6 +15,7 @@ import { AboveSearchViewTableControls } from '@hms-dbmi-bgm/shared-portal-compon
 import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/DetailPaneStateCache';
 import { columnExtensionMap } from './columnExtensionMap';
 import { Schemas } from './../util';
+import { compareTissueFacetTerms } from '../util/data';
 import {
     TitleAndSubtitleBeside,
     PageTitleContainer,
@@ -22,6 +23,22 @@ import {
     pageTitleViews,
     EditingItemPageTitle,
 } from './../PageTitleSection';
+
+/**
+ * Transforms term name using facets for overrides. Defaults to the
+ * Schemas.Term.toName function.
+ * @param { Array } facets - Facets to use for overrides
+ * @returns a function that transforms facet terms with overrides
+ */
+export const termTransformFxnWithOverrides = (facets = null) => {
+    // Returns a separate function that uses schemas for overrides
+    return function (field, key) {
+        return (
+            facets.find((f) => f.field === field)?.label_overrides?.[key] ??
+            Schemas.Term.toName(field, key)
+        );
+    };
+};
 
 /**
  * Function which is passed into a `.filter()` call to
@@ -133,8 +150,12 @@ export class SearchViewBody extends React.PureComponent {
             currentAction,
             schemas
         );
+
         const tableColumnClassName = 'results-column col';
         const facetColumnClassName = 'facets-column col-auto';
+        const facetListSortFxns = {
+            'sample_summary.tissues': compareTissueFacetTerms,
+        };
         const aboveTableComponent = (
             <AboveSearchViewTableControls customizationButtonClassName="btn btn-sm btn-outline-secondary mt-05" />
         );
@@ -150,14 +171,15 @@ export class SearchViewBody extends React.PureComponent {
                         tableColumnClassName,
                         facetColumnClassName,
                         facets,
+                        facetListSortFxns,
                     }}
                     aboveTableComponent={aboveTableComponent}
                     renderDetailPane={null}
-                    termTransformFxn={Schemas.Term.toName}
                     separateSingleTermFacets={false}
                     rowHeight={31}
                     openRowHeight={40}
                     defaultColAlignment="text-start"
+                    termTransformFxn={termTransformFxnWithOverrides(facets)}
                 />
             </div>
         );

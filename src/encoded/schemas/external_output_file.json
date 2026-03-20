@@ -1,18 +1,33 @@
 {
-    "title": "Variant Calls",
-    "description": "Files containing variant calls",
-    "$id": "/profiles/variant_calls.json",
+    "title": "External Output File",
+    "description": "Submitted files not processed through DAC analysis pipelines",
+    "$id": "/profiles/external_output_file.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "data_category",
-        "data_type",
         "file_format",
-        "file_sets",
         "filename",
-        "reference_genome",
         "submission_centers",
-        "submitted_id"
+        "submitted_id",
+        "data_type",
+        "data_category"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "file_sets"
+            ]
+        },
+        {
+            "required": [
+                "tissues"
+            ]
+        },
+        {
+            "required": [
+                "source_donors"
+            ]
+        }
     ],
     "identifyingProperties": [
         "accession",
@@ -76,7 +91,13 @@
     ],
     "properties": {
         "accession": {
-            "accessionType": "VC"
+            "accessionType": "EF"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_EXTERNAL-OUTPUT-FILE_[A-Z0-9-_.]{4,}$"
         },
         "data_category": {
             "items": {
@@ -100,62 +121,33 @@
                 ]
             }
         },
-        "comparator_description": {
-            "title": "Comparator Description",
-            "description": "Description of comparator sample files used for normal matching",
-            "type": "string"
+        "data_description": {
+            "title": "Data Description",
+            "description": "More detailed description of file",
+            "type": "string",
+            "enum": [
+                "Phased Germline Variant",
+                "Filtered Somatic Variant",
+                "Unfiltered Somatic Variant"
+            ]
         },
-        "external_databases": {
-            "title": "External Databases",
-            "description": "External databases used for filtering variant calls",
+        "tissues": {
+            "title": "Tissues",
+            "description": "Tissues used to generate the file",
             "type": "array",
             "items": {
                 "type": "string",
-                "suggested_enum": [
-                    "dbSNP v2.0",
-                    "gnomAD v4.0"
-                ]
+                "linkTo": "SampleSource"
             }
         },
-        "filtering_methods": {
-            "title": "Filtering Methods",
-            "description": "Filtering methods used in variant calling",
+        "source_donors": {
+            "title": "Donors",
+            "description": "Donors used to generate the file",
             "type": "array",
             "items": {
-                "type": "string"
+                "type": "string",
+                "linkTo": "Donor"
             }
-        },
-        "mode": {
-            "title": "Mode",
-            "description": "Mode used for variant calling",
-            "type": "string",
-            "enum": [
-                "Paired",
-                "Single Sample"
-            ]
-        },
-        "schema_version": {
-            "default": "2"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_VARIANT-CALLS_[A-Z0-9-_.]{4,}$"
         }
-    },
-    "anyOf": [
-        {
-            "not": {
-                "properties": {
-                    "mode": { "const": "Paired" }
-                },
-                "required": [
-                    "mode"
-                ]
-            }
-        },
-        { 
-            "required": [
-                "comparator_description"
-            ]
-        }
-  ]
+    }
 }

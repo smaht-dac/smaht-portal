@@ -22,6 +22,8 @@ def _build_analysis_run_embedded_list():
         "meta_workflow_runs.final_status",
         "meta_workflow_runs.date_created",
         "tissues.tissue_type",
+        "tissues.accession",
+        "donors.accession",
     ]
 
 
@@ -38,12 +40,30 @@ class AnalysisRun(Item):
     item_type = "analysis_run"
     schema = load_schema("encoded:schemas/analysis_run.json")
     embedded_list = _build_analysis_run_embedded_list()
+
     rev = {
+        "files": ("File", "analysis_runs"),
         "meta_workflow_runs": ("MetaWorkflowRun", "analysis_runs"),
     }
 
     class Collection(Item.Collection):
         pass
+
+    @calculated_property(
+        schema={
+            "title": "Files",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "File",
+            },
+        },
+    )
+    def files(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "files")
+        if result:
+            return result
+        return
 
     @calculated_property(
         schema={

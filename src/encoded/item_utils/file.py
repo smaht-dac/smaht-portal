@@ -392,10 +392,19 @@ def is_variant_calls(file: Dict[str, Any]) -> bool:
         or "Somatic Variant Calls" in data_category
     )
 
+def is_germline(file: Dict[str, Any]) -> bool:
+    """Check if file is germline variant calls."""
+    return "Germline Variant Calls" in get_data_category(file)
+
 
 def get_alignment_details(file: Dict[str, Any]) -> List[str]:
     """Get alignment details from file."""
     return file.get("alignment_details", [])
+
+
+def get_analysis_details(file: Dict[str, Any]) -> List[str]:
+    """Get analysis details from file."""
+    return file.get("analysis_details", [])
 
 
 def are_reads_sorted(file: Dict[str, Any]) -> bool:
@@ -405,12 +414,22 @@ def are_reads_sorted(file: Dict[str, Any]) -> bool:
 
 def are_reads_phased(file: Dict[str, Any]) -> bool:
     """Check if file is phased."""
-    return "Phased" in get_alignment_details(file)
+    return "Phased" in get_alignment_details(file) or "Phased" in get_analysis_details(file)
+
+
+def is_filtered(file: Dict[str, Any]) -> bool:
+    """Check if file is filtered."""
+    return "Filtered" in get_analysis_details(file)
 
 
 def has_single_nucleotide_variants(file: Dict[str, Any]) -> bool:
     """Check if file has SNVs."""
     return "SNV" in get_data_type(file)
+
+
+def has_indel_variants(file: Dict[str, Any]) -> bool:
+    """Check if file has Indels."""
+    return "Indel" in get_data_type(file)
 
 
 def has_copy_number_variants(file: Dict[str, Any]) -> bool:

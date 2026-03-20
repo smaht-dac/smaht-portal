@@ -1,25 +1,16 @@
 import re
 from typing import Any, Dict, List, Optional, Union
 
-from ..item_utils.utils import RequestHandler,  get_property_values_from_identifiers
-from ..item_utils import (
-    sample as sample_utils,
-    item as item_utils
-)
-
 from .utils import (
     RequestHandler,
     get_property_values_from_identifiers,
-    get_property_value_from_identifier,
 )
 
 from . import (
-    constants,
     item as item_utils,
     sample as sample_utils,
     tissue as tissue_utils
 )
-
 
 from ..item_utils.tissue import (
     BENCHMARKING_ID_REGEX,
@@ -29,6 +20,7 @@ from ..item_utils.tissue import (
 CORE_REGEX = "-[0-9]{3}[A-F][1-6]$"
 SPECIMEN_REGEX = "-[0-9]{3}[S-W][1-9]$"
 HOMOGENATE_REGEX = "-[0-9]{3}X$"
+TISSUE_ALIQUOT_REGEX = "-[0-9]{3}$"
 
 BENCHMARKING_CORE_EXTERNAL_ID_REGEX = re.compile(
     rf"^{BENCHMARKING_ID_REGEX}{CORE_REGEX}"
@@ -50,6 +42,14 @@ BENCHMARKING_HOMOGENATE_EXTERNAL_ID_REGEX = re.compile(
 PRODUCTION_HOMOGENATE_EXTERNAL_ID_REGEX = re.compile(
     rf"^{PRODUCTION_ID_REGEX}{HOMOGENATE_REGEX}"
 )
+
+BENCHMARKING_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX = re.compile(
+    rf"^{BENCHMARKING_ID_REGEX}{TISSUE_ALIQUOT_REGEX}"
+)
+PRODUCTION_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX = re.compile(
+    rf"^{PRODUCTION_ID_REGEX}{TISSUE_ALIQUOT_REGEX}"
+)
+
 
 def get_category(properties: Dict[str, Any]) -> str:
     """Get category from properties."""
@@ -92,6 +92,11 @@ def is_homogenate_external_id(external_id: str) -> bool:
     return BENCHMARKING_HOMOGENATE_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_HOMOGENATE_EXTERNAL_ID_REGEX.match(external_id) is not None
 
 
+def is_tissue_aliquot_external_id(external_id: str) -> bool:
+    """Check if external_id matches tissue aliquot sample regex from benchmarking or production."""
+    return BENCHMARKING_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX.match(external_id) is not None
+
+
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
     """Check if tissue sample is from benchmarking study."""
     external_id = item_utils.get_external_id(properties)
@@ -121,9 +126,11 @@ def get_tissue_kit_id(properties: Dict[str, Any]) -> str:
         return get_tissue_kit_id_from_external_id(external_id)
     return ""
 
+
 def get_tissue_kit_id_from_external_id(external_id: str) -> str:
     """Get tissue kit ID from external ID."""
     return "-".join(external_id.split("-")[0:2])
+
 
 def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""

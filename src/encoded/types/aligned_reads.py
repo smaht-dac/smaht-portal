@@ -9,6 +9,7 @@ def _build_aligned_reads_embedded_list():
         "reference_genome.display_title",
     ]
 
+
 @collection(
     name="aligned-reads",
     unique_key="submitted_id",

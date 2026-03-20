@@ -8,13 +8,202 @@ Change Log
 ----------
 
 
-1.11.2
+1.19.1
 =====
 
-`PR 589: WF Sample and File Nomenclature typo fix <https://github.com/smaht-dac/smaht-portal/pull/589>`_
+`PR 589: WF Sample and File Nomenclature 2.2 <https://github.com/smaht-dac/smaht-portal/pull/589>`_
 
 * Fix Sample and File Nomenclature documentation typo
+* Add tissue coring figures
+* Update data type tables
 
+1.19.0
+======
+
+`PR 620: Browse Viz: add tissue type filtering <https://github.com/smaht-dac/smaht-portal/pull/620>`_
+
+* Adds Tissue Type filtering to Facet Charts for tissue-based browse visualizations.
+* Displays TPC/internal tissue codes on chart axis labels for cleaner, consistent tissue labeling.
+
+
+1.18.0
+======
+`PR 618: SN Update DSA release <https://github.com/smaht-dac/smaht-portal/pull/618>`_
+
+* Update `release_tracker_description` for SupplementaryFile to be "DSA" for files with `donor_specific_assembly` property
+* Update the `release_file` script to allow batch release of files from the same DSA
+
+
+1.17.4
+======
+
+`PR 619: feat: Add Link to DSA in Donor View <https://github.com/smaht-dac/smaht-portal/pull/619>`_
+
+* Add link to DSA files associated with a donor if they exists
+
+
+1.17.3
+======
+
+`PR 615: feat: facet overrides for variant call sets <https://github.com/smaht-dac/smaht-portal/pull/615>`_
+
+* Add override fields for No value and Missing group terms in schema
+* Create term transform function to update facet terms
+
+
+1.17.2
+======
+
+`PR 617: Fetch tissues/donors, add copy button & cleanup <https://github.com/smaht-dac/smaht-portal/pull/617>`_
+
+* Adjust Submission Status and Analysis status to work with new tissue labels. Some frontend improvements (which required minor schema changes)
+
+
+1.17.1
+======
+
+`PR 616: feat: add software facet <https://github.com/smaht-dac/smaht-portal/pull/616>`_
+
+* Add software facet
+* Reorder facets 
+
+
+1.17.0
+======
+
+`PR 613: User registration form updates <https://github.com/smaht-dac/smaht-portal/pull/613>`_
+
+* Enhances the user registration flow, especially for distinguishing between SMaHT Network members and self-registering users
+* Improves the user interface and messaging for both groups
+
+
+1.16.0
+======
+
+`PR 611: Update OutputFile calcprops <https://github.com/smaht-dac/smaht-portal/pull/611>`_
+
+* Add calcprops to OutputFile to handle those files linked to AnalysisRuns instead of FileSets
+* Added utility functions for this
+* Updated tests and added new tests for these calcprops
+* Added AnalysisRun linkTo to file_links mixin
+* Added revlink to AnalysisRun for OutputFiles linked to it
+
+1.15.0
+======
+
+* Fix propagation of links by disabling user email resolution by default in revision history
+
+
+1.14.1
+======
+
+`PR 596: SN Update tissue type labels <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Update the calculated property for `sample_summary`` in files to adjust the tissue type label for Fibroblast and Benchmarking tissues
+
+
+1.14.0
+======
+
+`PR 603: Add ExternalOutputFile <https://github.com/smaht-dac/smaht-portal/pull/603>`_
+
+* Add new item ExternalOutputFile
+* Update calcprops for sample_sources, donors, sample_summary, and release_tracker to function with new links
+* Update annotated filename and release script to function for External Output Files
+* Add new property analysis_details to File
+
+1.13.1
+======
+
+`PR 606: Avoid rev_link_atids for ReferenceFile <https://github.com/smaht-dac/smaht-portal/pull/606>`_
+
+* Avoid rev_link_atids for ReferenceFile
+* Improve efficiency of `open_data_url`` calc prop
+
+
+1.13.0
+======
+
+`PR 605: feat: new DSA column for production data matrix <https://github.com/smaht-dac/smaht-portal/pull/605>`_
+
+* Adds DSA column for production data matrix to group files associated with multiple assay types and sequencers
+
+
+1.12.2
+======
+
+`PR 598: feat: update modal and banner <https://github.com/smaht-dac/smaht-portal/pull/598>`_
+
+* Update the Browse View Modal
+* Update the Donor View redirect banner
+
+
+1.12.1
+======
+
+`PR: 594: Sort tissues in alphabetical order in facet terms and the data matrix <https://github.com/smaht-dac/smaht-portal/pull/594>`_
+
+* Sorts tissues in alphabetical order in facet terms and the data matrix
+* Refactors data matrix in the process to simplify and remove redundant code
+
+
+1.12.0
+======
+
+`PR 591: SN Fix DSA release script <https://github.com/smaht-dac/smaht-portal/pull/591>`_
+
+* Update means of getting chain file code for annotated filenames to do a search query on `code` and `title` of ReferenceGenomes and return either "DSA" or the unique `code` value
+* Add `version` as a required property to DonorSpecificAssembly
+* Update the annotated filename for DSA fasta and bed files to include `DSA_[version]`
+* Add bed files to access status function
+
+
+1.11.7
+======
+
+`PR 600: feature: add tissue validator for preservation type <https://github.com/smaht-dac/smaht-portal/pull/600>`_
+
+* Add a new validator to Tissue that checks if the external_id tissue code matches the expected preservation type based on the valid_protocol_ids of the linked OntologyTerms and the preservation_type property
+
+
+1.11.6
+======
+
+* Remove loremipsum and rebuild poetry lockfile to resolve failing pep517 build
+
+
+1.11.5
+======
+
+`PR 566: chore: update npm packages with vulnerabilities <https://github.com/smaht-dac/smaht-portal/pull/566>`_
+
+* Run npm audit fix and update vulnerable dependencies
+
+
+1.11.4
+======
+
+`PR 597: Fix: sticky headers in browse/search page's results table <https://github.com/smaht-dac/smaht-portal/pull/597>`_
+
+* Fix CSS to ensure that sticky headers in the results table of browse and search pages function correctly without layout issues.
+
+
+1.11.3
+======
+
+`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
+
+* Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
+* Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
+* Reorder properties and format output of the PathologyReport schema for ease of submission for TPC
+
+
+1.11.2
+======
+
+`PR  595 update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
+
+* Add support for Tissue Aliquot category validation in TissueSample validator
 
 1.11.1
 ======
@@ -84,7 +273,7 @@ Change Log
 * fixed a couple of pre-existing typos
 * added workbook insert for brain_pathology_report
 * udated enum value from '[0]' to '0' for target_tissue_percentage as submitr was converting former to an array
-  
+
 
 1.8.7
 =====

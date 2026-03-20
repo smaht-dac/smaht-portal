@@ -9,7 +9,7 @@ import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate, Schemas } from './../util';
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
-import { transformedFacets, SearchViewPageTitle } from './SearchView';
+import { transformedFacets, SearchViewPageTitle, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import {
     SelectAllFilesButton,
@@ -22,6 +22,7 @@ import {
     TitleAndSubtitleBeside,
 } from '../PageTitleSection';
 import { useUserDownloadAccess } from '../util/hooks';
+import { compareTissueFacetTerms } from '../util/data';
 
 export default function FileSearchView(props) {
     const { schemas, session, facets, href, context } = props;
@@ -114,6 +115,9 @@ function FileTableWithSelectedFilesCheckboxes(props) {
 
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
+    const facetListSortFxns = {
+        'sample_summary.tissues': compareTissueFacetTerms,
+    };
 
     const aboveTableComponent = (
         <BrowseViewAboveSearchTableControls
@@ -141,6 +145,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         tableColumnClassName,
         facetColumnClassName,
         columnExtensionMap,
+        facetListSortFxns,
         navigate: propNavigate,
         toggleFullScreen,
         isFullscreen, // todo: remove maybe, pass only to AboveTableControls
@@ -155,7 +160,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
     return (
         <CommonSearchView
             {...passProps}
-            termTransformFxn={Schemas.Term.toName}
+            termTransformFxn={termTransformFxnWithOverrides(facets)}
         />
     );
 }
