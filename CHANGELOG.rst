@@ -11,11 +11,11 @@ Change Log
 1.19.1
 =====
 
-`PR 589: WF Sample and File Nomenclature typo fix <https://github.com/smaht-dac/smaht-portal/pull/589>`_
+`PR 589: WF Sample and File Nomenclature 2.2 <https://github.com/smaht-dac/smaht-portal/pull/589>`_
 
 * Fix Sample and File Nomenclature documentation typo
 * Add tissue coring figures
-* Update data type table
+* Update data type tables
 
 
 1.19.0
