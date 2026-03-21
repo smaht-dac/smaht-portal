@@ -225,8 +225,11 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                 } else if (blockType === 'col-summary') {
                     // assay (primary row)
                     if (assay) {
+                        const expectedAssayLabel =
+                            assay === 'overall-summary' ? 'Overall' : assay;
+
                         cy.get('.primary-row .col-12.value', { timeout: 10000 })
-                            .should('contain.text', assay);
+                            .should('contain.text', expectedAssayLabel);
                     }
 
                     // file count – retry until text is numeric and equals expected
@@ -304,6 +307,7 @@ function validateLowerHeaders(expectedLabels) {
             });
     });
 }
+
 /** * Validates the data matrix popover content for specified donors and labels.
  * * @param {string} matrixId - The CSS selector for the data matrix.
  * @param {string[]} donors - An array of donor IDs to validate.
