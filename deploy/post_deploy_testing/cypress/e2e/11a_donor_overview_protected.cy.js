@@ -566,11 +566,11 @@ function stepProtectedDonorFlow(caps) {
 
 /* ----------------------------- PARAMETRIC SUITE ----------------------------- */
 const ROLES_TO_TEST = [
-    // "UNAUTH",
+    "UNAUTH",
     ROLE_TYPES.SMAHT_DBGAP,
-    // ROLE_TYPES.SMAHT_NON_DBGAP,
-    // ROLE_TYPES.PUBLIC_DBGAP,
-    // ROLE_TYPES.PUBLIC_NON_DBGAP,
+    ROLE_TYPES.SMAHT_NON_DBGAP,
+    ROLE_TYPES.PUBLIC_DBGAP,
+    ROLE_TYPES.PUBLIC_NON_DBGAP,
 ];
 
 describe("Protected Donor Overview by roles", () => {

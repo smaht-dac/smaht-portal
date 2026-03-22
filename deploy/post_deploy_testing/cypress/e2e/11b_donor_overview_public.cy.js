@@ -418,7 +418,7 @@ function stepPublicDonorFlow(caps) {
                                         donors: [donorID],
                                         mustLabels: [],
                                         optionalLabels: [],
-                                        expectedLowerLabels: ["Tissues"],
+                                        expectedLowerLabels: ["Total Files"],
                                         regularBlockCount: 5, // regularBlockCount
                                         rowSummaryBlockCount: 5, // rowSummaryBlockCount
                                         colSummaryBlockCount: 1, // colSummaryBlockCount
