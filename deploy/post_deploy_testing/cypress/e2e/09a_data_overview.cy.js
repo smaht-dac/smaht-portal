@@ -44,14 +44,14 @@ const ROLE_MATRIX = {
         isAuthenticated: false,
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: false,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -95,14 +95,14 @@ const ROLE_MATRIX = {
         isAuthenticated: true, // set to false if truly public in your app
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -112,14 +112,14 @@ const ROLE_MATRIX = {
         isAuthenticated: true, // set to false if not logged in
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -360,14 +360,6 @@ describe("Data Overview by role", () => {
     ROLES_TO_TEST.forEach((roleKey) => {
         const caps = ROLE_MATRIX[roleKey];
         const label = caps.label || String(roleKey);
-
-        // override caps for data/staging environment
-        const baseUrl = Cypress.config().baseUrl || "";
-        if ((baseUrl.includes("data.smaht.org") || baseUrl.includes("staging.smaht.org")) && ['UNAUTH', ROLE_TYPES.PUBLIC_DBGAP, ROLE_TYPES.PUBLIC_NON_DBGAP].includes(roleKey)) {
-            caps.runDataMatrixBenchmarking = false;
-            caps.runDataMatrixProduction = false;
-            caps.expectedDataMatrixResponseCode = 403;
-        }
 
         context(`${label} → data overview capabilities`, () => {
             before(() => {
