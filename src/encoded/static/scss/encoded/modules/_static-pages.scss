@@ -1190,6 +1190,14 @@ body[data-path='/'] > #application > #layout {
                                                 background-color: transparent;
                                                 border: none;
                                                 color: #485983;
+
+                                                span {
+                                                    max-width: 160px;
+                                                    text-align: left;
+                                                    text-overflow: ellipsis;
+                                                    white-space: nowrap;
+                                                    overflow: hidden;
+                                                }
                                             }
                                         }
                                     }
