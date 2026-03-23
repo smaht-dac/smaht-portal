@@ -14,7 +14,7 @@ const EMPTY_DM_PROD_OPTS = {
 };
 const BASE_DM_PROD_OPTS = {
     donors: ["SMHT004", "SMHT008", "SMHT009"],
-    mustLabels: ["Non-exposed Skin", "Heart", "Blood"],
+    mustLabels: ["3AD - Skin, Calf", "3S - Heart", "3A - Whole Blood"],
     optionalLabels: [],
     expectedLowerLabels: ["Total Donors", "Total Files"],
     expectedFilesCount: 40,
@@ -24,8 +24,8 @@ const BASE_DM_PROD_OPTS = {
 const BASE_DM_BENCHMARKING_OPTS = {
     donors: ["ST001", "ST002", "ST003", "ST004"],
     mustLabels: [],
-    optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
-    expectedLowerLabels: ["Total Donors", "Total Files", "Total Donors", "Total Files"],
+    optionalLabels: ["3AF - Skin, Abdomen", "3Q - Lung", "Brain", "3I - Liver", "3E - Colon, Asc"],
+    expectedLowerLabels: ["Total Cell Lines", "Total Files", "Total Benchmarking Donors", "Total Files"],
     expectedFilesCount: 50,
     expectedTissuesCount: null,
     verifyTotalFromApi: true,
