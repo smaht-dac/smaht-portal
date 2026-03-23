@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-1.20.0
+1.21.0
 ======
 
 `PR 609: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/609>`_
@@ -17,8 +17,37 @@ Change Log
 * Add new smaht-wolf cypress GA workflow
 
 
+1.20.2
+======
+
+`PR 621: fix: update Reference Genome term value <https://github.com/smaht-dac/smaht-portal/pull/621>`_
+
+* Update override label for No value in Reference Genome term
+
+
+1.20.1
+======
+
+`PR 607: Support release of analysis files <https://github.com/smaht-dac/smaht-portal/pull/607>`_
+
+* Support release of analysis files from an analysis run
+
+
+1.20.0
+======
+
+`PR 599: Data Matrix: sticky headers, split Production matrices, and corrected donor/file summaries <https://github.com/smaht-dac/smaht-portal/pull/599>`_
+
+* Expanded the data matrix to support multiple count modes, including files, donors, tissue files, and total coverage, with updated summary rows and popovers.
+* Added a tabbed matrix mode and refreshed controls/layout for donor x assay and tissue x assay views, including improved facet-panel integration.
+* Improved donor-count handling across tissue summaries, benchmarking views, and column totals so summary values and popovers stay consistent across metrics.
+* Updated matrix styling and rendering for clearer donor-focused views, summary bands, coverage display, loading states, and sticky column-header behavior.
+* Extended data-matrix aggregation and filtering logic to better handle analysis-derived columns, DSA/variant-call labeling, and browse/filter interactions.
+
+
 1.19.1
 ======
+
 `PR 622: fix: update mapping in donor view <https://github.com/smaht-dac/smaht-portal/pull/622>`_
 
 * Update tissue name mapping for donor view
@@ -35,6 +64,7 @@ Change Log
 
 1.18.0
 ======
+
 `PR 618: SN Update DSA release <https://github.com/smaht-dac/smaht-portal/pull/618>`_
 
 * Update `release_tracker_description` for SupplementaryFile to be "DSA" for files with `donor_specific_assembly` property

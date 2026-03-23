@@ -230,13 +230,14 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             'sample_summary.category',
                                         ],
                                     }}
-                                    resultTransformedPostProcessFuncKey="dsaChainFile"
-                                    browseFilteringTransformFuncKey="dsaChainFile"
+                                    resultTransformedPostProcessFuncKey="analysisDerivedColumns"
+                                    browseFilteringTransformFuncKey="analysisDerivedColumns"
                                     headerFor={null}
                                     defaultOpen={true}
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
+                                    showUniqueDonorsAssayBand={false}
                                     baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
                                 />
                             </div>
