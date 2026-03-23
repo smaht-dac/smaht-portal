@@ -7,6 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+1.20.2
+======
+
+`PR 621: fix: update Reference Genome term value <https://github.com/smaht-dac/smaht-portal/pull/621>`_
+
+* Update override label for No value in Reference Genome term
+
+
+1.20.1
+======
+
+`PR 607: Support release of analysis files <https://github.com/smaht-dac/smaht-portal/pull/607>`_
+
+* Support release of analysis files from an analysis run
+
+
 1.20.0
 ======
 
