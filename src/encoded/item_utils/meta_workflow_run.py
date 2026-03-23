@@ -13,3 +13,8 @@ def get_files_from_input(properties: Dict[str, Any]) -> List[str]:
         for files in input.get("files", {}):
             input_files.append(files.get("file", ""))
     return input_files
+
+
+def get_analysis_runs(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get analysis runs for the meta workflow run."""
+    return properties.get("analysis_runs", [])

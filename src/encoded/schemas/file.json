@@ -406,7 +406,7 @@
         "reference_genome.display_title": {
             "title": "Reference Genome",
             "label_overrides": {
-                "No value": "None"
+                "No value": "DSA"
             }
         },
         "sequencing_center.display_title": {
