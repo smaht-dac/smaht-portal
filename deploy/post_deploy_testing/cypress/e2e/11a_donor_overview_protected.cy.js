@@ -15,6 +15,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 0,
         expectedProtectedDonorsCount: 0,
+        expectedPinnedProtectedDonorIds: [],
     },
     [ROLE_TYPES.SMAHT_DBGAP]: {
         label: "SMAHT_DBGAP",
@@ -23,6 +24,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 3,
         expectedProtectedDonorsCount: 3,
+        expectedPinnedProtectedDonorIds: ["SMHT004"],
     },
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
         label: "SMAHT_NON_DBGAP",
@@ -31,6 +33,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 0,
         expectedProtectedDonorsCount: 0,
+        expectedPinnedProtectedDonorIds: [],
     },
     [ROLE_TYPES.PUBLIC_DBGAP]: {
         label: "PUBLIC_DBGAP",
@@ -39,6 +42,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 0,
         expectedProtectedDonorsCount: 3,
+        expectedPinnedProtectedDonorIds: [],
     },
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
         label: "PUBLIC_NON_DBGAP",
@@ -47,6 +51,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 0,
         expectedProtectedDonorsCount: 0,
+        expectedPinnedProtectedDonorIds: [],
     },
 };
 
@@ -476,7 +481,9 @@ function stepProtectedDonorFlow(caps) {
 
             const selected = Cypress._.sampleSize(donors, Math.min(3, donors.length));
             if (!selected.includes("ST001")) selected.push("ST001");
-            if (!selected.includes("SMHT004")) selected.push("SMHT004");
+            (caps.expectedPinnedProtectedDonorIds || []).forEach((donorId) => {
+                if (!selected.includes(donorId)) selected.push(donorId);
+            });
 
             cy.log(`Selected protected donors: ${selected.join(", ")}`);
 
