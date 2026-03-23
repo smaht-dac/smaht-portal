@@ -16,7 +16,7 @@ const BASE_DM_PROD_OPTS = {
     donors: ["SMHT004", "SMHT008", "SMHT009"],
     mustLabels: ["Non-exposed Skin", "Heart", "Blood"],
     optionalLabels: [],
-    expectedLowerLabels: ["Donors"],
+    expectedLowerLabels: ["Total Donors", "Total Files"],
     expectedFilesCount: 40,
     expectedTissuesCount: null,
     verifyTotalFromApi: true,
@@ -25,7 +25,7 @@ const BASE_DM_BENCHMARKING_OPTS = {
     donors: ["ST001", "ST002", "ST003", "ST004"],
     mustLabels: [],
     optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
-    expectedLowerLabels: ["Cell Lines", "Donors"],
+    expectedLowerLabels: ["Total Donors", "Total Files", "Total Donors", "Total Files"],
     expectedFilesCount: 50,
     expectedTissuesCount: null,
     verifyTotalFromApi: true,
@@ -256,7 +256,8 @@ function stepDataMatrixProduction(caps) {
 
                 cy.get("#data-matrix-for_production")
                     .parents(".tab-card")
-                    .should("have.css", "display", "flex");
+                    .should("have.class", "is-active")
+                    .and("have.attr", "aria-hidden", "false");
 
                 testMatrixPopoverValidation(
                     "#data-matrix-for_production",
@@ -294,7 +295,8 @@ function stepDataMatrixBenchmarking(caps) {
 
             cy.get("#data-matrix-for_benchmarking")
                 .parents(".tab-card")
-                .should("have.css", "display", "flex");
+                .should("have.class", "is-active")
+                .and("have.attr", "aria-hidden", "false");
 
             testMatrixPopoverValidation(
                 "#data-matrix-for_benchmarking",
