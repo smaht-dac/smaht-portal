@@ -10,9 +10,9 @@ Change Log
 1.20.3
 ======
 
-`PR 625: Set excludePrimaryColumnNoValue to false in Donor View data matrix <https://github.com/smaht-dac/smaht-portal/pull/625>`_
+`PR 625: Bug Fix - filtered variant calls in donor view data matrix <https://github.com/smaht-dac/smaht-portal/pull/625>`_
 
-* Set `excludePrimaryColumnNoValue` to false in both Protected and Public Donor View components, required for Filtered Variant Call Sets
+* Fixes missing Variant Call Sets column in Protected and Public Donor View data matrices
 
 
 1.20.2
