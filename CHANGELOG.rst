@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.20.3
+======
+
+`PR 625: Set excludePrimaryColumnNoValue to false in Donor View data matrix <https://github.com/smaht-dac/smaht-portal/pull/625>`_
+
+* Set `excludePrimaryColumnNoValue` to false in both Protected and Public Donor View components, required for Filtered Variant Call Sets
+
+
 1.20.2
 ======
 
