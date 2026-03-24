@@ -7,6 +7,171 @@ smaht-portal
 Change Log
 ----------
 
+1.20.4
+======
+
+`PR 627: feat: analysis methods banner <https://github.com/smaht-dac/smaht-portal/pull/627>`_
+
+* Adds banner to analysis methods page
+
+
+1.20.3
+======
+
+`PR 625: Bug Fix - filtered variant calls in donor view data matrix <https://github.com/smaht-dac/smaht-portal/pull/625>`_
+
+* Fixes missing Variant Call Sets column in Protected and Public Donor View data matrices
+
+
+1.20.2
+======
+
+`PR 621: fix: update Reference Genome term value <https://github.com/smaht-dac/smaht-portal/pull/621>`_
+
+* Update override label for No value in Reference Genome term
+
+
+1.20.1
+======
+
+`PR 607: Support release of analysis files <https://github.com/smaht-dac/smaht-portal/pull/607>`_
+
+* Support release of analysis files from an analysis run
+
+
+1.20.0
+======
+
+`PR 599: Data Matrix: sticky headers, split Production matrices, and corrected donor/file summaries <https://github.com/smaht-dac/smaht-portal/pull/599>`_
+
+* Expanded the data matrix to support multiple count modes, including files, donors, tissue files, and total coverage, with updated summary rows and popovers.
+* Added a tabbed matrix mode and refreshed controls/layout for donor x assay and tissue x assay views, including improved facet-panel integration.
+* Improved donor-count handling across tissue summaries, benchmarking views, and column totals so summary values and popovers stay consistent across metrics.
+* Updated matrix styling and rendering for clearer donor-focused views, summary bands, coverage display, loading states, and sticky column-header behavior.
+* Extended data-matrix aggregation and filtering logic to better handle analysis-derived columns, DSA/variant-call labeling, and browse/filter interactions.
+
+
+1.19.1
+======
+
+`PR 622: fix: update mapping in donor view <https://github.com/smaht-dac/smaht-portal/pull/622>`_
+
+* Update tissue name mapping for donor view
+
+
+1.19.0
+======
+
+`PR 620: Browse Viz: add tissue type filtering <https://github.com/smaht-dac/smaht-portal/pull/620>`_
+
+* Adds Tissue Type filtering to Facet Charts for tissue-based browse visualizations.
+* Displays TPC/internal tissue codes on chart axis labels for cleaner, consistent tissue labeling.
+
+
+1.18.0
+======
+
+`PR 618: SN Update DSA release <https://github.com/smaht-dac/smaht-portal/pull/618>`_
+
+* Update `release_tracker_description` for SupplementaryFile to be "DSA" for files with `donor_specific_assembly` property
+* Update the `release_file` script to allow batch release of files from the same DSA
+
+
+1.17.4
+======
+
+`PR 619: feat: Add Link to DSA in Donor View <https://github.com/smaht-dac/smaht-portal/pull/619>`_
+
+* Add link to DSA files associated with a donor if they exists
+
+
+1.17.3
+======
+
+`PR 615: feat: facet overrides for variant call sets <https://github.com/smaht-dac/smaht-portal/pull/615>`_
+
+* Add override fields for No value and Missing group terms in schema
+* Create term transform function to update facet terms
+
+
+1.17.2
+======
+
+`PR 617: Fetch tissues/donors, add copy button & cleanup <https://github.com/smaht-dac/smaht-portal/pull/617>`_
+
+* Adjust Submission Status and Analysis status to work with new tissue labels. Some frontend improvements (which required minor schema changes)
+
+
+1.17.1
+======
+
+`PR 616: feat: add software facet <https://github.com/smaht-dac/smaht-portal/pull/616>`_
+
+* Add software facet
+* Reorder facets 
+
+
+1.17.0
+======
+
+`PR 613: User registration form updates <https://github.com/smaht-dac/smaht-portal/pull/613>`_
+
+* Enhances the user registration flow, especially for distinguishing between SMaHT Network members and self-registering users
+* Improves the user interface and messaging for both groups
+
+
+1.16.0
+======
+
+`PR 611: Update OutputFile calcprops <https://github.com/smaht-dac/smaht-portal/pull/611>`_
+
+* Add calcprops to OutputFile to handle those files linked to AnalysisRuns instead of FileSets
+* Added utility functions for this
+* Updated tests and added new tests for these calcprops
+* Added AnalysisRun linkTo to file_links mixin
+* Added revlink to AnalysisRun for OutputFiles linked to it
+
+1.15.0
+======
+
+* Fix propagation of links by disabling user email resolution by default in revision history
+
+
+1.14.1
+======
+
+`PR 596: SN Update tissue type labels <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Update the calculated property for `sample_summary`` in files to adjust the tissue type label for Fibroblast and Benchmarking tissues
+
+
+1.14.0
+======
+
+`PR 603: Add ExternalOutputFile <https://github.com/smaht-dac/smaht-portal/pull/603>`_
+
+* Add new item ExternalOutputFile
+* Update calcprops for sample_sources, donors, sample_summary, and release_tracker to function with new links
+* Update annotated filename and release script to function for External Output Files
+* Add new property analysis_details to File
+
+1.13.1
+======
+
+`PR 606: Avoid rev_link_atids for ReferenceFile <https://github.com/smaht-dac/smaht-portal/pull/606>`_
+
+* Avoid rev_link_atids for ReferenceFile
+* Improve efficiency of `open_data_url`` calc prop
+
+
+1.13.0
+======
+
+`PR 605: feat: new DSA column for production data matrix <https://github.com/smaht-dac/smaht-portal/pull/605>`_
+
+* Adds DSA column for production data matrix to group files associated with multiple assay types and sequencers
+
+
 1.12.2
 ======
 
@@ -151,7 +316,7 @@ Change Log
 * fixed a couple of pre-existing typos
 * added workbook insert for brain_pathology_report
 * udated enum value from '[0]' to '0' for target_tissue_percentage as submitr was converting former to an array
-  
+
 
 1.9.0
 =====

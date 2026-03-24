@@ -5,6 +5,7 @@
         "submission_centers": [
             "smaht"
         ],
+        "analysis_runs": ["6bf49379-923b-418d-8ea4-c3148330b26f"],
         "final_status": "completed",
         "failed_jobs": [
             "ABCDE123"

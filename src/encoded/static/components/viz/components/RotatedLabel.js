@@ -48,6 +48,7 @@ const RotatedLabelAxis = React.memo(function RotatedLabelAxis(props){
                 if (typeof label === 'string') label = { 'name' : label };
                 const childProps = {
                     'label'             : label.name || "No Label",
+                    'title'             : label.title || null,
                     'key'               : label.term || label.name || i,
                     'className'         : labelClassName || null,
                     'term'              : label.term || propTerm || null,
@@ -254,7 +255,7 @@ export class RotatedLabel extends React.PureComponent {
     }
 
     render(){
-        const { lineHeight, angle, className, x, y, placementWidth, label, color, term: propTerm } = this.props;
+        const { lineHeight, angle, className, x, y, placementWidth, label, color, term: propTerm, title } = this.props;
         const { expanded, shortLabel, hover, textHeight } = this.state;
         const term = this.props['data-term'] || propTerm || null;
         const labelWidth = this.labelWidth();
@@ -266,7 +267,7 @@ export class RotatedLabel extends React.PureComponent {
         );
 
         return (
-            <div data-term={term} className={fullClassName} title={shortLabel ? label : null}
+            <div data-term={term} className={fullClassName} title={title || (shortLabel ? label : null)}
                 style={{
                     transform : vizUtil.style.translate3d(x, y, 0),
                     width : placementWidth,

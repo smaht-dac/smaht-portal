@@ -37,7 +37,7 @@ import { navigate } from '../util/navigate';
 import { compareTissueFacetTerms } from '../util/data';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
-import { transformedFacets } from './SearchView';
+import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
@@ -58,6 +58,17 @@ export const BROWSE_LINKS = {
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
         BROWSE_STATUS_FILTERS,
 };
+
+export const FILE_BROWSE_HIDE_FACETS = [
+    'dataset',
+    'file_sets.libraries.analytes.samples.sample_sources.code',
+    'status',
+    'validation_errors.name',
+    'version',
+    'sample_summary.studies',
+    'submission_centers.display_title',
+    'donors.tags',
+];
 
 export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
@@ -417,7 +428,7 @@ export const BrowseFileSearchTable = (props) => {
             isFullscreen={false}
             toggleFullScreen={() => {}}
             renderDetailPane={null}
-            termTransformFxn={Schemas.Term.toName}
+            termTransformFxn={termTransformFxnWithOverrides(facets)}
             separateSingleTermFacets={false}
             rowHeight={31}
             openRowHeight={40}
@@ -840,17 +851,7 @@ export function createBrowseFileColumnExtensionMap({
         },
     };
 
-    const hideFacets = [
-        'dataset',
-        'file_sets.libraries.analytes.samples.sample_sources.code',
-        'status',
-        'validation_errors.name',
-        'version',
-        'sample_summary.studies',
-        'submission_centers.display_title',
-        'software.display_title',
-        'donors.tags',
-    ];
+    const hideFacets = FILE_BROWSE_HIDE_FACETS;
 
     return { columnExtensionMap, columns, hideFacets };
 }

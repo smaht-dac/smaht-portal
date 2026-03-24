@@ -81,6 +81,7 @@
                 "type": "string",
                 "enum": [
                     "AlignedReads",
+                    "ExternalOutputFile",
                     "HistologyImage",
                     "OutputFile",
                     "ReferenceFile",

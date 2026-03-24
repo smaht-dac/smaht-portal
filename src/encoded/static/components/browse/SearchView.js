@@ -25,6 +25,22 @@ import {
 } from './../PageTitleSection';
 
 /**
+ * Transforms term name using facets for overrides. Defaults to the
+ * Schemas.Term.toName function.
+ * @param { Array } facets - Facets to use for overrides
+ * @returns a function that transforms facet terms with overrides
+ */
+export const termTransformFxnWithOverrides = (facets = null) => {
+    // Returns a separate function that uses schemas for overrides
+    return function (field, key) {
+        return (
+            facets.find((f) => f.field === field)?.label_overrides?.[key] ??
+            Schemas.Term.toName(field, key)
+        );
+    };
+};
+
+/**
  * Function which is passed into a `.filter()` call to
  * filter context.facets down, usually in response to frontend-state.
  *
@@ -134,6 +150,7 @@ export class SearchViewBody extends React.PureComponent {
             currentAction,
             schemas
         );
+
         const tableColumnClassName = 'results-column col';
         const facetColumnClassName = 'facets-column col-auto';
         const facetListSortFxns = {
@@ -158,11 +175,11 @@ export class SearchViewBody extends React.PureComponent {
                     }}
                     aboveTableComponent={aboveTableComponent}
                     renderDetailPane={null}
-                    termTransformFxn={Schemas.Term.toName}
                     separateSingleTermFacets={false}
                     rowHeight={31}
                     openRowHeight={40}
                     defaultColAlignment="text-start"
+                    termTransformFxn={termTransformFxnWithOverrides(facets)}
                 />
             </div>
         );
