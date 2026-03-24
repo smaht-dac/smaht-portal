@@ -232,6 +232,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                     }}
                                     resultTransformedPostProcessFuncKey="analysisDerivedColumns"
                                     browseFilteringTransformFuncKey="analysisDerivedColumns"
+                                    excludePrimaryColumnNoValue={false}
                                     headerFor={null}
                                     defaultOpen={true}
                                     idLabel="donor"

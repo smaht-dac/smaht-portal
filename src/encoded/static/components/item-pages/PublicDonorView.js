@@ -320,6 +320,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     }}
                                     resultTransformedPostProcessFuncKey="analysisDerivedColumns"
                                     browseFilteringTransformFuncKey="analysisDerivedColumns"
+                                    excludePrimaryColumnNoValue={false}
                                     headerFor={null}
                                     defaultOpen={true}
                                     idLabel="donor"
