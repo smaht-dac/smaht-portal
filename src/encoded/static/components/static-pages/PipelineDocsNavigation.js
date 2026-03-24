@@ -57,7 +57,7 @@ export const PipelineDocsNavigation = (props) => {
                     <b>Note</b>: The latest pipeline documentation is available
                     in the{' '}
                     <a
-                        href="https://github.com/smaht-dac/pipelines-docs?tab=readme-ov-file"
+                        href="https://smaht-dac.github.io/pipelines-docs/"
                         target="_blank">
                         SMaHT Pipeline Documentation GitHub Repository
                     </a>
