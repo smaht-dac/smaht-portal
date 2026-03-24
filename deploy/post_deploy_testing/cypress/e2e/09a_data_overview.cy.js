@@ -24,7 +24,7 @@ const BASE_DM_PROD_OPTS = {
 const BASE_DM_BENCHMARKING_OPTS = {
     donors: ["ST001", "ST002", "ST003", "ST004"],
     mustLabels: [],
-    optionalLabels: ["3AF - Skin, Abdomen", "3Q - Lung", "Brain", "3I - Liver", "3E - Colon, Asc"],
+    optionalLabels: ["Skin, Abdomen", "Lung", "Brain", "Liver", "Colon, Asc"],
     expectedLowerLabels: ["Total Cell Lines", "Total Files", "Total Benchmarking Donors", "Total Files"],
     expectedFilesCount: 50,
     expectedTissuesCount: null,
