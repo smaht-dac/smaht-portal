@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.20.4
+======
+
+`PR 627: feat: analysis methods banner <https://github.com/smaht-dac/smaht-portal/pull/627>`_
+
+* Adds banner to analysis methods page
+
+
 1.20.3
 ======
 
