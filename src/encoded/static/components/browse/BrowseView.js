@@ -313,22 +313,55 @@ export class BrowseViewBody extends React.PureComponent {
 }
 
 /**
- * @param {*} statusFacetTerms Terms for the status facet
- * @param {*} userDownloadAccessObj Object containing download access for each status
+ * Calculates the total number of downloadble files in the current search
+ * results based on the status filter and facet term counts and the user's
+ * download access for each status.
+ * @param {context} statusFilterTerms Context object for the search
+ * @param {*} userDownloadAccessObj Object containing download access
  * @returns number of downloadable files in the table for the current user
+ *
+ * Note: compares filters with facets because facets may include statuses
+ * not in the URL params (e.g. obsolete)
  */
 export const getDownloadableFileCount = (
-    statusFacetTermCounts,
+    context = {},
     userDownloadAccessObj
 ) => {
+    // Pull out the current status filters
+    const currentStatusFilters =
+        context?.filters?.flatMap((f) =>
+            f.field === 'status' ? f.term : []
+        ) || [];
+
+    // Pull out status facet terms
+    const statusFacetTerms =
+        context?.facets?.find((facet) => facet.field === 'status')?.terms || [];
+
+    console.log('statusFacetTerms', statusFacetTerms);
+
     // Map through the terms to get count for downloadable files
-    const totalDownloadableFileCount = statusFacetTermCounts?.reduce(
-        (acc, term) => {
-            const userCanDownload = userDownloadAccessObj?.[term.key];
-            return acc + (userCanDownload ? term.doc_count : 0);
+    const totalDownloadableFileCount = statusFacetTerms?.reduce(
+        (acc, { key, doc_count }) => {
+            // Check if user has download access for this status
+            const userCanDownload =
+                currentStatusFilters.includes(key) &&
+                userDownloadAccessObj?.[key];
+
+            console.log(
+                'userCanDownload',
+                userCanDownload,
+                'currentStatusFilters',
+                currentStatusFilters,
+                currentStatusFilters.includes(key),
+                userDownloadAccessObj?.[key],
+                key
+            );
+            return acc + (userCanDownload ? doc_count : 0);
         },
         0
     );
+
+    console.log('getDownloadableFileCount', totalDownloadableFileCount);
     return totalDownloadableFileCount;
 };
 
@@ -348,8 +381,14 @@ export const BrowseFileSearchTable = (props) => {
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
 
-    const downloadableFileCount = getDownloadableFileCount(
-        context?.facets?.find((facet) => facet.field === 'status')?.terms || [],
+    const downloadableFileCount = isAccessResolved
+        ? getDownloadableFileCount(context, userDownloadAccess)
+        : 0;
+
+    console.log(
+        'downloadableFileCount',
+        isAccessResolved,
+        downloadableFileCount,
         userDownloadAccess
     );
 

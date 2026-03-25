@@ -9,7 +9,11 @@ import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate, Schemas } from './../util';
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
-import { transformedFacets, SearchViewPageTitle, termTransformFxnWithOverrides } from './SearchView';
+import {
+    transformedFacets,
+    SearchViewPageTitle,
+    termTransformFxnWithOverrides,
+} from './SearchView';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import {
     SelectAllFilesButton,
@@ -90,11 +94,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
     );
 
     const downloadableFileCount = isAccessResolved
-        ? getDownloadableFileCount(
-              context?.facets?.find((facet) => facet.field === 'status')
-                  ?.terms || [],
-              userDownloadAccess
-          )
+        ? getDownloadableFileCount(context, userDownloadAccess)
         : 0;
 
     const selectedFileProps = {

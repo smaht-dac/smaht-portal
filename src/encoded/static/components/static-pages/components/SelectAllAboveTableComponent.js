@@ -303,7 +303,9 @@ export class SelectAllFilesButton extends React.PureComponent {
 
                 // Filter out the current status filters that user can't download
                 currentHrefQuery.status = statusFilters.filter(
-                    (status) => userDownloadAccess?.[status] === true
+                    (status) =>
+                        currentHrefParts.query.status?.includes(status) &&
+                        userDownloadAccess?.[status] === true
                 );
 
                 currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
