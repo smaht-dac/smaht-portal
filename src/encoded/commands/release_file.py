@@ -1,5 +1,6 @@
 import argparse
 import pprint
+import re
 from dataclasses import dataclass
 from functools import cached_property, partial
 from typing import Callable, Dict, List, Any
@@ -8,7 +9,11 @@ from dcicutils import ff_utils  # noqa
 from dcicutils.creds_utils import SMaHTKeyManager  # noqa
 
 from encoded.commands import create_annotated_filenames as caf
-from encoded.commands.utils import get_auth_key
+from encoded.commands.utils import (
+    get_auth_key,
+    extract_input_file_uuids_from_mwfr,
+    search_list,
+)
 from encoded.item_utils import (
     analyte as analyte_utils,
     cell_culture_mixture as cell_culture_mixture_utils,
@@ -965,6 +970,11 @@ class FileRelease:
         annotated_filename = file_utils.get_annotated_filename(file)
         if annotated_filename:
             return AnnotatedFilenameInfo(annotated_filename, {})
+        
+        if self.release_type == ANALYSIS_RUN_FILE_RELEASE:
+            aliquot_id_override = self.get_aliquot_id_from_mwfr_input()
+            return
+            
 
         annotated_filename = caf.get_annotated_filename(
             file, self.request_handler, file_sets=self.file_sets, analysis_run=self.analysis_run
@@ -976,6 +986,107 @@ class FileRelease:
             )
         patch_body = caf.get_patch_body(annotated_filename, self.key)
         return AnnotatedFilenameInfo(str(annotated_filename), patch_body)
+
+    def get_aliquot_id_from_mwfr_input(self) -> List[str]:
+        if self.release_type != ANALYSIS_RUN_FILE_RELEASE:
+            return []
+        
+        if not self.output_meta_workflow_run:
+            self.print_error_and_exit(
+                f"Could not determine aliquot id from MWFR input for file {self.file_accession} because no associated MetaWorkflowRun was found."
+            )
+        input_file_uuids = extract_input_file_uuids_from_mwfr(self.output_meta_workflow_run)
+        input_files = search_list(input_file_uuids, self.key)
+
+        aliquot_pattern = re.compile(r"^[^-]+-[^-]+-([^-]+)-")
+        aliquot_ids = set()
+        files_without_annotated_filename = []
+        files_with_unexpected_annotated_filename = []
+
+        for input_file in input_files:
+            if item_utils.get_status(input_file) == item_constants.STATUS_UPLOADED:
+                continue
+
+            annotated_filename = input_file.get(file_constants.ANNOTATED_FILENAME)
+            if not annotated_filename:
+                files_without_annotated_filename.append(
+                    item_utils.get_accession(input_file) 
+                )
+                continue
+
+            match = aliquot_pattern.match(annotated_filename)
+            if not match:
+                files_with_unexpected_annotated_filename.append(
+                    item_utils.get_accession(input_file)
+                )
+                continue
+
+            aliquot_ids.add(match.group(1))
+
+        if files_without_annotated_filename or files_with_unexpected_annotated_filename:
+            self.add_warning(
+                f"Could not extract aliquot ids from the following files: "
+                f"{', '.join(files_without_annotated_filename + files_with_unexpected_annotated_filename)}."
+            )
+
+        print(f"Extracted aliquot ids from MWFR input files: {', '.join(aliquot_ids)}")
+
+        aliquot_for_file = None
+        core_for_file = None
+        aliquots = set()
+        cores = set()
+        for aliquot_id in aliquot_ids:
+            if len(aliquot_id) == 5:
+                aliquot = aliquot_id[:3]
+                core = aliquot_id[3:]
+            else:
+                if aliquot_id.startswith("X"):
+                    aliquot = "X"
+                elif aliquot_id.startswith("MA"):
+                    aliquot = "MA"
+                else:
+                    self.print_error_and_exit(
+                        f"Unexpected format of aliquot id {aliquot_id} extracted from MWFR input file."
+                    )
+
+                if aliquot_id.endswith("X"):
+                    core = "X"
+                elif aliquot_id.endswith("MC"):
+                    core = "MC"
+                else:
+                    self.print_error_and_exit(
+                        f"Unexpected format of core id {aliquot_id} extracted from MWFR input file."
+                    )
+
+            aliquots.add(aliquot)
+            cores.add(core)
+
+        # Note that aliquots and cores are sets (no duplicate values)
+        if len(aliquots) > 1:
+            aliquot_for_file = "MA"
+        elif len(aliquots) == 1:
+            aliquot_for_file = list(aliquots)[0]
+
+        if len(cores) > 1:
+            core_for_file = "MC"
+        elif len(cores) == 1:
+            core_for_file = list(cores)[0]
+
+        if not aliquot_for_file:
+            self.print_error_and_exit(
+                f"Could not determine common aliquot id for the file to release from the input files of the associated MWFR. Extracted aliquot ids were: {', '.join(aliquot_ids)}."
+            )
+
+        if not core_for_file:
+            self.print_error_and_exit(
+                f"Could not determine common core id for the file to release from the input files of the associated MWFR. Extracted core ids were: {', '.join(cores)}."
+            )
+
+        pprint.pprint(aliquots)
+        pprint.pprint(cores)
+        print(aliquot_for_file, core_for_file, f"{aliquot_for_file}{core_for_file}")
+        return f"{aliquot_for_file}{core_for_file}"
+
 
     def get_access_status(self, file: dict, dataset: str, study: str) -> str:
         """
