@@ -424,6 +424,7 @@ function stepPublicDonorFlow(caps) {
                                         colSummaryBlockCount: 1, // colSummaryBlockCount
                                         expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
                                         expectedTissuesCount: donorID !== "COLO829" ? tissuesCount : null, // tissuesCount (null → skip strict total check)
+                                        allowVariantCallSetMatrixUndercount: true,
                                         verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
                                     }
                                 );

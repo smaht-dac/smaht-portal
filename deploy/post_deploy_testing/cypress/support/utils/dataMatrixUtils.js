@@ -322,7 +322,12 @@ function hasNonZeroVariantCallSetsSummary(matrixId) {
     });
 }
 
-function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId) {
+function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId, allowVariantCallSetMatrixUndercount) {
+    if (!allowVariantCallSetMatrixUndercount) {
+        expect(sum, `${label} should be at least expected file count`).to.be.at.least(expectedFilesCount);
+        return;
+    }
+
     const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
 
     if (hasVariantCallSets) {
@@ -345,6 +350,8 @@ function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId) {
  * @param {number} rowSummaryBlockCount - The number of row summary blocks to test popovers for.
  * @param {number} colSummaryBlockCount - The number of column summary blocks to test popovers for.
  * @param {number|null} expectedFilesCount - The expected number of files to be found, set "null" to skip strict total check.
+ * @param {boolean} allowVariantCallSetMatrixUndercount - Allow donor overview matrices with Variant Call Sets
+ * to undercount vs summary because some files are intentionally omitted from the matrix.
  * @param {boolean} verifyTotalFromApi - Whether to cross-check the total file count from the API.
  * @returns {void}
  * This function performs the following validations:
@@ -366,6 +373,7 @@ export function testMatrixPopoverValidation(
         colSummaryBlockCount = 2,
         expectedFilesCount = 1,
         expectedTissuesCount = null,
+        allowVariantCallSetMatrixUndercount = false,
         verifyTotalFromApi = true,
     }) {
     cy.get(matrixId).should('exist');
@@ -512,7 +520,8 @@ export function testMatrixPopoverValidation(
                     sum,
                     expectedFilesCount,
                     'Total file count across row-summary blocks',
-                    matrixId
+                    matrixId,
+                    allowVariantCallSetMatrixUndercount
                 );
             }
         });
@@ -549,7 +558,8 @@ export function testMatrixPopoverValidation(
                     sum,
                     expectedFilesCount,
                     'Total file count across col-summary blocks',
-                    matrixId
+                    matrixId,
+                    allowVariantCallSetMatrixUndercount
                 );
             }
         });

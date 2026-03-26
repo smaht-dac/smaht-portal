@@ -551,6 +551,7 @@ function stepProtectedDonorFlow(caps) {
                                         colSummaryBlockCount: 1, // colSummaryBlockCount
                                         expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
                                         expectedTissuesCount: tissuesCount,
+                                        allowVariantCallSetMatrixUndercount: true,
                                         verifyTotalFromApi: true,
                                     }
                                 );
