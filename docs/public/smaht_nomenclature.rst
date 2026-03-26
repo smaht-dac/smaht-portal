@@ -473,14 +473,13 @@ Figure 1. Fixed and Frozen Tissue Aliquot Schema
 
 .. raw:: html
     
-    <figure style="margin: 0.5rem 0 2rem 0; text-align: center;">
+    <figure>
         <img
             class="grey-border"
             src="/static/img/Nomenclature_Fig1.png"
             alt="Nomenclature Fig. 1"
-            style="max-width: 100%; height: auto;"
         />
-        <figcaption style="text-align: left">
+        <figcaption>
             Schema of the spatial relationship between fixed (pink) and frozen aliquots (green) 
             recovered for each type of non-brain tissue for the project. Mucosal tissues refer to 
             skin, colons, and esophagus. Larger samples of lung and liver are recovered prior to 
@@ -496,14 +495,13 @@ Figure 2. Example Standardized Tissue Coring Schema
 
 .. raw:: html
 
-    <figure style="margin: 0.5rem 0 2rem 0; text-align: center;">
+    <figure>
         <img
             class="grey-border"
             src="/static/img/Nomenclature_Fig2.png"
             alt="Nomenclature Fig. 1"
-            style="max-width: 60%; height: auto;"
         />
-        <figcaption style="text-align: left">
+        <figcaption>
             Example of the standardized coring schema from frozen aliquots. The core ID consists of a 
             letter between A-F to denote the vertical position of the core, followed by a digit between 
             1-6 to denote the horizontal position of the core within the aliquot. “X” represents null 
@@ -997,7 +995,7 @@ Table 5. Genome version (A) and data type (B) tables.
 
     <div class="table-responsive">
         <table class="table table-sm text-start">
-            <caption style="caption-side:top;">(A)</caption>
+            <caption">(A)</caption>
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Reference Genome</th>
@@ -1024,7 +1022,7 @@ Table 5. Genome version (A) and data type (B) tables.
             </tbody>
         </table>
         <table class="table table-sm text-start">
-            <caption style="caption-side:top;">(B)</caption>
+            <caption">(B)</caption>
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Data Type</th>

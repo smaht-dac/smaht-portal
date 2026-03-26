@@ -1,4 +1,3 @@
-
 /**********************************************************
 		Common static page components & styles
 		These extend _typography.scss somewhat
@@ -3744,4 +3743,25 @@ FAQ page styles
 			margin-top: 50px;
 		}
 	}
+}
+
+[data-at-type^='DocsAdditional-resourcesSample-file-nomenclaturePage'] {
+    figure {
+        margin: 0.5rem 0px 2rem;
+        text-align: center;
+
+        figcaption {
+            text-align: start;
+        }
+    }
+
+    caption {
+        caption-side: top;
+    }
+
+    #figure-2-example-standardized-tissue-coring-schema + figure {
+        img {
+            width: 60%;
+        }
+    }
 }
