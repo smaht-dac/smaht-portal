@@ -314,9 +314,12 @@ function stepSampledDocsAndInternalLinks() {
                                 const skipPages = [
                                     "Data Release Status",
                                     "Submission Data Dictionary",
+                                    "Submission FAQ",
                                     "Getting dbGAP Access",
-                                    "Donor Manifest Dictionary",
+                                    "Donor Metadata Dictionary",
                                     "Data Availability and Access",
+                                    "Analysis Pipelines",
+                                    "Analysis Pipeline FAQ",
                                 ];
                                 if (!skipPages.includes(titleText)) {
                                     const linkSelector =
