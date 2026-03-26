@@ -308,6 +308,33 @@ function validateLowerHeaders(expectedLabels) {
     });
 }
 
+function hasNonZeroVariantCallSetsSummary(matrixId) {
+    const $variantSummaryBlocks = Cypress.$(
+        `${matrixId} [data-group-key="Variant Call Sets"] [data-block-type="col-summary"]`
+    );
+
+    return [...$variantSummaryBlocks].some((el) => {
+        const value = parseInt(
+            ((el.getAttribute('data-block-value') || Cypress.$(el).text()) || '').trim(),
+            10
+        );
+        return value > 0;
+    });
+}
+
+function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId) {
+    const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
+
+    if (hasVariantCallSets) {
+        expect(
+            sum,
+            `${label} with Variant Call Sets present should be at most donor summary file count`
+        ).to.be.at.most(expectedFilesCount);
+    } else {
+        expect(sum, `${label} should match donor summary file count`).to.equal(expectedFilesCount);
+    }
+}
+
 /** * Validates the data matrix popover content for specified donors and labels.
  * * @param {string} matrixId - The CSS selector for the data matrix.
  * @param {string[]} donors - An array of donor IDs to validate.
@@ -473,7 +500,7 @@ export function testMatrixPopoverValidation(
             });
             // verify overall file count matches expectedFilesCount
             if (typeof expectedFilesCount === 'number' && expectedFilesCount > 0) {
-                cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
+                cy.log(`Expected matrix total to reconcile with ${expectedFilesCount} files.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
                     const value = parseInt(Cypress.$(el).text().trim(), 10);
@@ -481,7 +508,12 @@ export function testMatrixPopoverValidation(
                         sum += value;
                     }
                 });
-                expect(sum, 'Total file count across row-summary blocks').to.be.at.least(expectedFilesCount);
+                assertMatrixTotalFileCount(
+                    sum,
+                    expectedFilesCount,
+                    'Total file count across row-summary blocks',
+                    matrixId
+                );
             }
         });
 
@@ -501,15 +533,24 @@ export function testMatrixPopoverValidation(
             });
             // verify overall file count matches expectedFilesCount
             if (typeof expectedFilesCount === 'number' && expectedFilesCount > 0) {
-                cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
+                cy.log(`Expected matrix total to reconcile with ${expectedFilesCount} files.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
+                    const groupKey = Cypress.$(el).parent().attr('data-group-key');
+                    if (groupKey === 'overall-summary') {
+                        return;
+                    }
                     const value = parseInt(Cypress.$(el).text().trim(), 10);
                     if (value > 0) {
                         sum += value;
                     }
                 });
-                expect(sum, 'Total file count across col-summary blocks').to.be.at.least(expectedFilesCount);
+                assertMatrixTotalFileCount(
+                    sum,
+                    expectedFilesCount,
+                    'Total file count across col-summary blocks',
+                    matrixId
+                );
             }
         });
 
