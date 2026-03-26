@@ -191,7 +191,7 @@ function checkChartTotal(title, expectedTotal) {
     cy.contains('.donor-cohort-view-chart h3', title)
         .closest('.donor-cohort-view-chart')
         .find('svg text')
-        .then(($texts) => {
+        .should(($texts) => {
             // Collect only numeric texts
             const numeric = Array.from($texts)
                 .map((el) => { return { el, txt: el.textContent.trim(), style: el.getAttribute('style') || '' }; })
@@ -207,7 +207,6 @@ function checkChartTotal(title, expectedTotal) {
             const picked = whites.length ? whites : darks;
             const total = picked.reduce((s, n) => s + n, 0);
 
-            cy.log(`${title} -> counted labels:`, picked.join(', '));
             expect(total, `${title} total`).to.eq(expectedTotal);
         });
 }
