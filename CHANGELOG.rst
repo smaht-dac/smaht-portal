@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.21.1
+======
+
+`PR 623: Cypress browse view & donor view & data matrix updates <https://github.com/smaht-dac/smaht-portal/pull/623>`_
+
+* Update Cypress tests for browse view, donor view, and data matrix to reflect recent UI changes and ensure continued test coverage of these features
+
+
 1.21.0
 ======
 
