@@ -13,7 +13,7 @@ export const BigDropdownBigLink = (props) => {
         disabled,
         protectedHref,
         href,
-        ...passProps // Contains: `href`, `rel`, `onClick`, etc.
+        ...passProps // Contains: `rel`, `onClick`, etc.
     } = props;
 
     // Allow users with protected access to see protected links
@@ -53,7 +53,6 @@ export const BigDropdownBigLink = (props) => {
             href={hrefToUse}
             data-disabled={disabled ? 'true' : ''}
             aria-disabled={disabled ? 'true' : 'false'}
-            {...passProps}
             className={
                 'big-link' +
                 (className ? ' ' + className : '') +
