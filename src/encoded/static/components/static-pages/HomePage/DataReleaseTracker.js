@@ -17,7 +17,7 @@ const replaceURLParamsWithDonors = (query, donorList = [], tissueList = []) => {
     }
 
     // If the number of donors and tissues is too large, return the original query
-    if (donorList.length + tissueList.length > 12) {
+    if (donorList.length + tissueList.length > 10) {
         return query;
     }
 
