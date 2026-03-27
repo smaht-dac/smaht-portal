@@ -251,6 +251,9 @@ publish-for-ga:
 	poetry install
 	poetry run publish-to-pypi --noconfirm
 
+download-domains:
+	curl https://gist.githubusercontent.com/ammarshah/f5c2624d767f91a7cbdc4e54db8dd0bf/raw > disposable_domains.txt
+
 help:
 	@make info
 

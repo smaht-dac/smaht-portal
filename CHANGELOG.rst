@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.21.0
+======
+
+* Implement CADR email restrictions on login
+
+
 1.20.4
 ======
 
@@ -108,7 +114,7 @@ Change Log
 `PR 616: feat: add software facet <https://github.com/smaht-dac/smaht-portal/pull/616>`_
 
 * Add software facet
-* Reorder facets 
+* Reorder facets
 
 
 1.17.0

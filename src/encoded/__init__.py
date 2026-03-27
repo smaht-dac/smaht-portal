@@ -45,6 +45,11 @@ DEFAULT_AUTH0_ALLOWED_CONNECTIONS = 'github,google-oauth2,partners,hms-it'
 OPEN_DATA_S3_CLIENT = 'OPEN_DATA_S3_CLIENT'
 
 
+# Cache restricted domains/emails for quick login denials
+RESTRICTED_DOMAINS = 'RESTRICTED_DOMAINS'
+RESTRICTED_EMAILS = 'RESTRICTED_EMAILS'
+
+
 def include_encoded(config):
     """ Implements the includeme mechanism for encoded
         For detailed explanation see: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html
@@ -288,6 +293,18 @@ def setup_unified_s3_client():
     return boto_client('s3', config=config)  # this fallback will throw permission errors downstream
 
 
+def generate_restricted_domain_set():
+    """ Generates a restricted domain set using a file pulled at Docker build time """
+    with open('restricted_domains.txt', 'r') as f:  # expected at top level in repo
+        return {line.strip().lower() for line in f if line.strip()}
+
+
+def generate_restricted_email_set():
+    """ Generates a restricted email set using a file pulled at Docker build time """
+    with open('restricted_emails.txt', 'r') as f:  # expected at top level in repo
+        return {line.strip().lower() for line in f if line.strip()}
+
+
 def main(global_config, **local_config):
     """
     This function returns a Pyramid WSGI application.
@@ -360,6 +377,12 @@ def main(global_config, **local_config):
 
     # Set cached boto client for s3
     config.registry[OPEN_DATA_S3_CLIENT] = setup_unified_s3_client()
+
+    # Set restricted domain list
+    config.registry[RESTRICTED_DOMAINS] = generate_restricted_domain_set()
+
+    # Set restricted email list
+    config.registry[RESTRICTED_EMAILS] = generate_restricted_email_set()
 
     # initialize CodeGuru profiling, if set
     # note that this is intentionally an env variable (so it is a TASK level setting)
