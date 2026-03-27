@@ -11,6 +11,7 @@ Change Log
 ======
 
 * Implement CADR email restrictions on login
+* Add command for setting restricted emails to deleted
 
 
 1.21.0
