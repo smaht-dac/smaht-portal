@@ -52,6 +52,7 @@ configure:  # does any pre-requisite installs
 	#   Because encoded depends on wheel (>=0.29.0) which doesn't match any versions, version solving failed.
 	pip install poetry==1.8.5
 	poetry config virtualenvs.create false --local # do not create a virtualenv - the user should have already done this -wrr 20-Sept-2021
+	curl https://gist.githubusercontent.com/ammarshah/f5c2624d767f91a7cbdc4e54db8dd0bf/raw > restricted_domains.txt
 
 check-awscli:
 	@if ! aws --version > /dev/null 2>&1; then \
