@@ -14,9 +14,9 @@ const EMPTY_DM_PROD_OPTS = {
 };
 const BASE_DM_PROD_OPTS = {
     donors: ["SMHT004", "SMHT008", "SMHT009"],
-    mustLabels: ["Non-exposed Skin", "Heart", "Blood"],
+    mustLabels: ["3AD - Skin, Calf", "3S - Heart", "3A - Whole Blood"],
     optionalLabels: [],
-    expectedLowerLabels: ["Donors"],
+    expectedLowerLabels: ["Total Donors", "Total Files"],
     expectedFilesCount: 40,
     expectedTissuesCount: null,
     verifyTotalFromApi: true,
@@ -24,8 +24,8 @@ const BASE_DM_PROD_OPTS = {
 const BASE_DM_BENCHMARKING_OPTS = {
     donors: ["ST001", "ST002", "ST003", "ST004"],
     mustLabels: [],
-    optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
-    expectedLowerLabels: ["Cell Lines", "Donors"],
+    optionalLabels: ["Skin, Abdomen", "Lung", "Brain", "Liver", "Colon, Asc"],
+    expectedLowerLabels: ["Total Cell Lines", "Total Files", "Total Benchmarking Donors", "Total Files"],
     expectedFilesCount: 50,
     expectedTissuesCount: null,
     verifyTotalFromApi: true,
@@ -44,14 +44,14 @@ const ROLE_MATRIX = {
         isAuthenticated: false,
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: false,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -95,14 +95,14 @@ const ROLE_MATRIX = {
         isAuthenticated: true, // set to false if truly public in your app
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -112,14 +112,14 @@ const ROLE_MATRIX = {
         isAuthenticated: true, // set to false if not logged in
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -256,7 +256,8 @@ function stepDataMatrixProduction(caps) {
 
                 cy.get("#data-matrix-for_production")
                     .parents(".tab-card")
-                    .should("have.css", "display", "flex");
+                    .should("have.class", "is-active")
+                    .and("have.attr", "aria-hidden", "false");
 
                 testMatrixPopoverValidation(
                     "#data-matrix-for_production",
@@ -294,7 +295,8 @@ function stepDataMatrixBenchmarking(caps) {
 
             cy.get("#data-matrix-for_benchmarking")
                 .parents(".tab-card")
-                .should("have.css", "display", "flex");
+                .should("have.class", "is-active")
+                .and("have.attr", "aria-hidden", "false");
 
             testMatrixPopoverValidation(
                 "#data-matrix-for_benchmarking",
@@ -360,14 +362,6 @@ describe("Data Overview by role", () => {
     ROLES_TO_TEST.forEach((roleKey) => {
         const caps = ROLE_MATRIX[roleKey];
         const label = caps.label || String(roleKey);
-
-        // override caps for data/staging environment
-        const baseUrl = Cypress.config().baseUrl || "";
-        if ((baseUrl.includes("data.smaht.org") || baseUrl.includes("staging.smaht.org") || baseUrl.includes("wolf.smaht.org")) && ['UNAUTH', ROLE_TYPES.PUBLIC_DBGAP, ROLE_TYPES.PUBLIC_NON_DBGAP].includes(roleKey)) {
-            caps.runDataMatrixBenchmarking = false;
-            caps.runDataMatrixProduction = false;
-            caps.expectedDataMatrixResponseCode = 403;
-        }
 
         context(`${label} → data overview capabilities`, () => {
             before(() => {

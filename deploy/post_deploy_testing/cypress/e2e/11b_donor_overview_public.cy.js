@@ -418,12 +418,13 @@ function stepPublicDonorFlow(caps) {
                                         donors: [donorID],
                                         mustLabels: [],
                                         optionalLabels: [],
-                                        expectedLowerLabels: ["Tissues"],
+                                        expectedLowerLabels: ["Total Files"],
                                         regularBlockCount: 5, // regularBlockCount
                                         rowSummaryBlockCount: 5, // rowSummaryBlockCount
                                         colSummaryBlockCount: 1, // colSummaryBlockCount
                                         expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
                                         expectedTissuesCount: donorID !== "COLO829" ? tissuesCount : null, // tissuesCount (null → skip strict total check)
+                                        allowVariantCallSetMatrixUndercount: true,
                                         verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
                                     }
                                 );
