@@ -16,6 +16,11 @@ const replaceURLParamsWithDonors = (query, donorList = [], tissueList = []) => {
         return query;
     }
 
+    // If the number of donors and tissues is too large, return the original query
+    if (donorList.length + tissueList.length > 12) {
+        return query;
+    }
+
     // Save params from original query
     const [urlPath, urlQuery] = query.split('?');
     const params = new URLSearchParams(urlQuery);
@@ -277,7 +282,6 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
         // Add tissues to tissueList
         for (const tissue of tissues) tissueList.add(tissue);
     });
-
     // Update query with donor and extacted tissues
     const updatedQuery = replaceURLParamsWithDonors(
         query,
