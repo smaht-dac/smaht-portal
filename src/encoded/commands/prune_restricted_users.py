@@ -7,9 +7,16 @@ from tqdm import tqdm
 from encoded import generate_restricted_domain_set, generate_restricted_email_set
 
 
+ALLOW_LIST = [
+    'tibanna.app@gmail.com',
+    'foursight.app.gmail.com',
+    'snovault.platform@gmail.com'
+]
+
+
 def main():
     # Load credentials for data from ~/.smaht-keys.json
-    data_creds = SMaHTKeyManager().get_keydict_for_env('data')
+    data_creds = SMaHTKeyManager().get_keydict_for_env('staging')
     registry = {
         'RESTRICTED_DOMAINS': generate_restricted_domain_set(),
         'RESTRICTED_EMAILS': generate_restricted_email_set()
@@ -22,6 +29,8 @@ def main():
     processed, already_deleted = set(), set()
     for user in tqdm(users):
         email = user['email']
+        if email in ALLOW_LIST:
+            continue
         try:
             email_is_not_restricted(registry, None, email)
         except HTTPForbidden:
