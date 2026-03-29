@@ -262,7 +262,7 @@ export class UIControlsWrapper extends React.PureComponent {
      * @returns {React.Component} Cloned & extended props.children.
      */
     adjustedChildChart() {
-        const { children, barplot_data_fields } = this.props;
+        const { children, barplot_data_fields, termLabelTransform } = this.props;
         const { showState, aggregateType, tissueCategoryFilter } = this.state;
         const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForTissueCategory();
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
@@ -282,6 +282,7 @@ export class UIControlsWrapper extends React.PureComponent {
                 'aggregateType': aggregateType,
                 'barplot_data_unfiltered': barplot_data_unfiltered,
                 'barplot_data_filtered': barplot_data_filtered,
+                'termLabelTransform': termLabelTransform,
                 'xAxisTermLabelMapper': xAxisTermLabelMapper
             }
         ));
@@ -596,6 +597,7 @@ export class UIControlsWrapper extends React.PureComponent {
                                 height={legendContainerHeight}
                                 barplot_data_filtered={barplotDataFiltered}
                                 barplot_data_unfiltered={barplotDataUnfiltered}
+                                termLabelTransform={this.props.termLabelTransform}
                                 field={_.findWhere(availableFields_Subdivision, { 'field': barplot_data_fields[1] }) || null}
                                 showType={showState} />
                         </div>
@@ -668,14 +670,16 @@ export class AggregatedLegend extends React.Component {
     }
 
     getFieldForLegend() {
-        const { field, barplot_data_unfiltered, barplot_data_filtered, aggregateType, showType } = this.props;
+        const { field, barplot_data_unfiltered, barplot_data_filtered, aggregateType, showType, termLabelTransform } = this.props;
         return Legend.barPlotFieldDataToLegendFieldsData(
             AggregatedLegend.collectSubDivisionFieldTermCounts(
                 showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered || barplot_data_unfiltered,
                 aggregateType || 'files',
                 field
             ),
-            function (term) { return typeof term[aggregateType] === 'number' ? -term[aggregateType] : 'term'; }
+            function (term) { return typeof term[aggregateType] === 'number' ? -term[aggregateType] : 'term'; },
+            undefined,
+            termLabelTransform
         );
     }
 

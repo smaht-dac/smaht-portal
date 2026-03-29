@@ -35,6 +35,7 @@ export function genChartBarDims(
     aggregateType           = 'files',
     useOnlyPopulatedFields  = false,
     fullHeightCount         = null,
+    termLabelTransform      = null,
     xAxisTermLabelMapper    = null
 ){
 
@@ -71,7 +72,9 @@ export function genChartBarDims(
                 }
                 const maxYForBar = parent ? parent.count : largestExpCountForATerm;
                 const barHeight = maxYForBar === 0 ? 0 : (termCount / maxYForBar) * outerDims.height;
-                const defaultTermName = Schemas.Term.toName(fieldObj.field, termKey);
+                const defaultTermName = typeof termLabelTransform === 'function'
+                    ? (termLabelTransform(fieldObj.field, termKey) || Schemas.Term.toName(fieldObj.field, termKey))
+                    : Schemas.Term.toName(fieldObj.field, termKey);
                 const axisLabel = (!parent && typeof xAxisTermLabelMapper === 'function')
                     ? (xAxisTermLabelMapper(termKey, defaultTermName) || defaultTermName)
                     : defaultTermName;
@@ -251,6 +254,7 @@ export class Chart extends React.PureComponent {
         'height'        : PropTypes.number,
         'width'         : PropTypes.number,
         'subBarLayout'  : PropTypes.oneOf(['stacked', 'grouped']),
+        'termLabelTransform': PropTypes.func,
         'xAxisTermLabelMapper': PropTypes.func,
         'useOnlyPopulatedFields' : PropTypes.bool,
         'showType'      : PropTypes.oneOf(['all', 'filtered', 'both']),
@@ -400,7 +404,7 @@ export class Chart extends React.PureComponent {
 
         const {
             width, height, showType, barplot_data_unfiltered, barplot_data_filtered, context,
-            aggregateType, useOnlyPopulatedFields, cursorDetailActions, href, schemas, mapping, subBarLayout, xAxisTermLabelMapper
+            aggregateType, useOnlyPopulatedFields, cursorDetailActions, href, schemas, mapping, subBarLayout, termLabelTransform, xAxisTermLabelMapper
         } = this.props;
 
         const topLevelField = (showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered) || barplot_data_unfiltered;
@@ -415,6 +419,7 @@ export class Chart extends React.PureComponent {
             aggregateType,
             useOnlyPopulatedFields,
             null,
+            termLabelTransform,
             xAxisTermLabelMapper
         );
 

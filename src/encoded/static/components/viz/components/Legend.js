@@ -192,15 +192,17 @@ export class Legend extends React.PureComponent {
     static Term = Term;
     static Field = Field;
 
-    static barPlotFieldDataToLegendFieldsData(field, sortBy = null, colorCycler = barplot_color_cycler){
+    static barPlotFieldDataToLegendFieldsData(field, sortBy = null, colorCycler = barplot_color_cycler, termLabelTransform = null){
         if (Array.isArray(field) && field.length > 0 && field[0] && typeof field[0] === 'object'){
-            return field.map(function(f){ return Legend.barPlotFieldDataToLegendFieldsData(f, sortBy); });
+            return field.map(function(f){ return Legend.barPlotFieldDataToLegendFieldsData(f, sortBy, colorCycler, termLabelTransform); });
         }
         if (!field) return null;
         var terms = _.pairs(field.terms).map(function(p){ // p[0] = term, p[1] = term counts
             return {
                 'field' : field.field,
-                'name' : Schemas.Term.toName(field.field, p[0]),
+                'name' : (typeof termLabelTransform === 'function'
+                    ? (termLabelTransform(field.field, p[0]) || Schemas.Term.toName(field.field, p[0]))
+                    : Schemas.Term.toName(field.field, p[0])),
                 'term' : p[0],
                 'color' : barplot_color_cycler.colorForNode({
                     'term' : p[0],

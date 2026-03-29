@@ -8,6 +8,47 @@ import { object, layout, ajax, console, isServerSide, analytics, searchFilters, 
 import { navigate } from './../../util';
 import { ChartDataController } from './../../viz/chart-data-controller';
 import * as BarPlot from './../../viz/BarPlot';
+import { termTransformFxnWithOverrides } from './../SearchView';
+
+function termTransformFxnWithChartAliases(facets = null){
+    const baseTransform = termTransformFxnWithOverrides(facets);
+
+    const getCandidateFields = (field) => {
+        if (typeof field !== 'string') return [];
+
+        const matchingFields = facets
+            .map(({ field: facetField }) => facetField)
+            .filter((facetField) => {
+                if (typeof facetField !== 'string') return false;
+                return (
+                    facetField === field ||
+                    facetField.endsWith(`.${field}`) ||
+                    field.endsWith(`.${facetField}`)
+                );
+            })
+            .sort((a, b) => {
+                if (a === field) return -1;
+                if (b === field) return 1;
+                return a.length - b.length;
+            });
+
+        return matchingFields.length > 0 ? matchingFields : [field];
+    };
+
+    return function(field, key){
+        const candidateFields = getCandidateFields(field);
+        for (let i = 0; i < candidateFields.length; i++) {
+            const candidateField = candidateFields[i];
+            const override = facets.find(
+                (f) => f.field === candidateField
+            )?.label_overrides?.[key];
+            if (typeof override !== 'undefined') {
+                return override;
+            }
+        }
+        return baseTransform(field, key);
+    };
+}
 
 
 /**
@@ -240,6 +281,7 @@ export class FacetCharts extends React.PureComponent {
         const cursorDetailActions = this.cursorDetailActions();
         const browseBaseParams = navigate.getBrowseBaseParams(null, mapping);
         const donorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters, browseBaseParams);
+        const termLabelTransform = termTransformFxnWithChartAliases((context && context.facets) || []);
         let height = show === 'small' ? (mapping === 'all' ? 330 : 370) : 370;
         let width;
 
@@ -278,8 +320,8 @@ export class FacetCharts extends React.PureComponent {
         return (
             <div className={"facet-charts show-" + show} key="facet-charts">
                 <ChartDataController.Provider id={"barplot-" + mapping}>
-                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout }}>
-                        <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context }} />
+                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
+                        <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context, termLabelTransform }} />
                     </BarPlot.UIControlsWrapper>
                 </ChartDataController.Provider>
             </div>
