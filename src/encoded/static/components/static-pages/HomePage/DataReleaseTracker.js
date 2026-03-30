@@ -9,6 +9,8 @@ import { useUserDownloadAccess } from '../../util/hooks';
  * @param {string[]} donors - The list of donor titles to replace the release_tracker_title parameter with
  * @param {string[]} tissues - The list of tissue titles to replace the release_tracker_title parameter with
  * @returns {string} The updated query string with the donor and tissue titles
+ *
+ * Note: returns `query` if number of donors and tissues is too large
  */
 const replaceURLParamsWithDonors = (query, donorList = [], tissueList = []) => {
     // If donorList and tissueList are empty, return the original query
