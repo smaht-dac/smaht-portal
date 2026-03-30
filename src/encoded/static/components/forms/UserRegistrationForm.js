@@ -234,7 +234,9 @@ export default class UserRegistrationForm extends React.PureComponent {
                     // TODO
                     // If validation failure, set / show status message, return;
                     // Else If unknown failure:
-                    this.setState({ registrationStatus: 'network-failure' });
+                    this.setState({ 
+                        registrationStatus: err.code === 403 ? 'restricted-email' : 'network-failure',
+                    });
                     logger.error(
                         'Registration Error - Error on post to /create-unauthorized-user.'
                     );
@@ -333,6 +335,17 @@ export default class UserRegistrationForm extends React.PureComponent {
                     <span className="text-500">
                         <i className="icon icon-fw fas icon-circle-notch" />
                         &nbsp;&nbsp; Registered account, logging in...
+                    </span>
+                </div>
+            );
+        } else if (registrationStatus === 'restricted-email') {
+            errorIndicator = (
+                <div className="alert alert-danger" role="alert">
+                    <span>
+                        <b>Failed to register new account using your e-mail
+                        address.</b> Please try again using your institutional
+                        e-mail address to register, or contact the SMaHT Data
+                        Analysis Center.
                     </span>
                 </div>
             );
