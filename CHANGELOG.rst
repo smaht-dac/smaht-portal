@@ -8,6 +8,15 @@ Change Log
 ----------
 
 
+1.21.2
+======
+
+`PR 631: feat: add homepage alerts for restricted user access <https://github.com/smaht-dac/smaht-portal/pull/631>`_
+
+* Add alert in announcements section
+* Add navigation bar alert
+
+
 1.21.1
 ======
 
