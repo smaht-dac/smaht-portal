@@ -340,13 +340,16 @@ export default class UserRegistrationForm extends React.PureComponent {
             );
         } else if (registrationStatus === 'restricted-email') {
             errorIndicator = (
-                <div className="alert alert-danger" role="alert">
-                    <span>
-                        <b>Failed to register new account using your e-mail
-                        address.</b> Please try again using your institutional
-                        e-mail address to register, or contact the SMaHT Data
-                        Analysis Center.
-                    </span>
+                <div className="alert alert-danger d-flex align-items-center self-registration-alert" role="alert">
+                    <i className="fas icon icon-x me-2 self-registration-alert-icon"></i>
+                    <div>
+                        <span>
+                            <b>Failed to register new account using your e-mail
+                            address.</b> Please try again using your institutional
+                            e-mail address to register, or contact the SMaHT Data
+                            Analysis Center.
+                        </span>
+                    </div>
                 </div>
             );
         }
