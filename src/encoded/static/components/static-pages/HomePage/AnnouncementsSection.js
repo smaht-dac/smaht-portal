@@ -6,6 +6,20 @@ import { RightArrowIcon } from '../../util/icon';
 const announcements = [
     {
         type: 'warning',
+        title: 'New Access Regulations',
+        date: '2026-03-30',
+        body: (
+            <span>
+                Due to new data access regulations, all SMaHT Data Portal users{' '}
+                <b>MUST</b> use an institutional email address to login to the
+                Data Portal. Gmail, yahoo, hotmail, and other free email
+                accounts will be prohibited from accessing the Data Portal
+                effective 4/1/26.
+            </span>
+        ),
+    },
+    {
+        type: 'warning',
         title: 'Data Retraction',
         date: '2025-12-11',
         body: (
