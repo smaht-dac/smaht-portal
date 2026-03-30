@@ -175,7 +175,7 @@ class Body extends React.PureComponent {
                         <i className="term-color-indicator icon icon-circle fas"
                             style={{ color: leafNode.color || barplot_color_cycler.colorForNode(leafNode) }}
                         />
-                        <span>{Schemas.Term.toName(leafNode.field, leafNode.term)}</span>
+                        <span>{leafNode.name || Schemas.Term.toName(leafNode.field, leafNode.term)}</span>
                     </span>
                     <span className="col-4 text-end">
                         {this.primaryCount(leafNode)}
