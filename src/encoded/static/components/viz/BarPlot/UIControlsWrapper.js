@@ -597,6 +597,7 @@ export class UIControlsWrapper extends React.PureComponent {
                                 height={legendContainerHeight}
                                 barplot_data_filtered={barplotDataFiltered}
                                 barplot_data_unfiltered={barplotDataUnfiltered}
+                                // Keep legend labels aligned with chart bar/popover labels.
                                 termLabelTransform={this.props.termLabelTransform}
                                 field={_.findWhere(availableFields_Subdivision, { 'field': barplot_data_fields[1] }) || null}
                                 showType={showState} />

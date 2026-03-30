@@ -200,6 +200,7 @@ export class Legend extends React.PureComponent {
         var terms = _.pairs(field.terms).map(function(p){ // p[0] = term, p[1] = term counts
             return {
                 'field' : field.field,
+                // Reuse the same term transform as the chart so legend terminology stays consistent.
                 'name' : (typeof termLabelTransform === 'function'
                     ? (termLabelTransform(field.field, p[0]) || Schemas.Term.toName(field.field, p[0]))
                     : Schemas.Term.toName(field.field, p[0])),

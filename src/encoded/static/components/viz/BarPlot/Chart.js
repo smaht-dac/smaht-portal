@@ -72,6 +72,8 @@ export function genChartBarDims(
                 }
                 const maxYForBar = parent ? parent.count : largestExpCountForATerm;
                 const barHeight = maxYForBar === 0 ? 0 : (termCount / maxYForBar) * outerDims.height;
+                // Prefer facet label_overrides when provided so bar labels and popovers
+                // match the browse facet list.
                 const defaultTermName = typeof termLabelTransform === 'function'
                     ? (termLabelTransform(fieldObj.field, termKey) || Schemas.Term.toName(fieldObj.field, termKey))
                     : Schemas.Term.toName(fieldObj.field, termKey);

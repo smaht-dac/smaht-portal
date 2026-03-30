@@ -16,6 +16,9 @@ function termTransformFxnWithChartAliases(facets = null){
     const getCandidateFields = (field) => {
         if (typeof field !== 'string') return [];
 
+        // Bar plot aggregation fields do not always match the browse facet field exactly
+        // (e.g. `sequencing.*` in the chart vs `file_sets.sequencing.*` in facets). Match
+        // by equivalent trailing path so chart labels can still use facet label_overrides.
         const matchingFields = facets
             .map(({ field: facetField }) => facetField)
             .filter((facetField) => {
@@ -39,6 +42,8 @@ function termTransformFxnWithChartAliases(facets = null){
         const candidateFields = getCandidateFields(field);
         for (let i = 0; i < candidateFields.length; i++) {
             const candidateField = candidateFields[i];
+            // Read label overrides directly here so this stays scoped to facet charts and
+            // does not broaden behavior of the shared browse/search term transformer.
             const override = facets.find(
                 (f) => f.field === candidateField
             )?.label_overrides?.[key];
@@ -281,6 +286,8 @@ export class FacetCharts extends React.PureComponent {
         const cursorDetailActions = this.cursorDetailActions();
         const browseBaseParams = navigate.getBrowseBaseParams(null, mapping);
         const donorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters, browseBaseParams);
+        // Use a chart-local term resolver so facet label_overrides are applied in chart bars,
+        // popovers, and legend even when chart aggregation fields use an alias of the facet field.
         const termLabelTransform = termTransformFxnWithChartAliases((context && context.facets) || []);
         let height = show === 'small' ? (mapping === 'all' ? 330 : 370) : 370;
         let width;
