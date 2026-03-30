@@ -1,7 +1,6 @@
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
-import * as _ from "underscore";
 
 const EMPTY_DM_PROD_OPTS = {
     donors: [],
@@ -348,6 +347,42 @@ function assertCannotAccessDataMatrixPage(caps) {
     });
 }
 
+function stepVerifyDataMatrixHashRouting() {
+    goto({ url: "/data-matrix#benchmarking" });
+
+    cy.contains("div#page-title-container h1.page-title", "Data Matrix")
+        .should("be.visible");
+
+    cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
+    cy.location("hash").should("equal", "#benchmarking");
+
+    cy.contains(".tab-header .title", "Benchmarking Data")
+        .closest(".tab-header")
+        .should("have.class", "is-active");
+
+    cy.get("#data-matrix-for_benchmarking").should("exist");
+    cy.get("#data-matrix-for_production").should("not.exist");
+    cy.contains(".matrix-panel-title h2", "Benchmarking Data Matrix")
+        .should("be.visible");
+
+    goto({ url: "/data-matrix#production" });
+
+    cy.contains("div#page-title-container h1.page-title", "Data Matrix")
+        .should("be.visible");
+
+    cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
+    cy.location("hash").should("equal", "#production");
+
+    cy.contains(".tab-header .title", "Production Data")
+        .closest(".tab-header")
+        .should("have.class", "is-active");
+
+    cy.get("#data-matrix-for_production").should("exist");
+    cy.get("#data-matrix-for_benchmarking").should("not.exist");
+    cy.contains(".matrix-panel-title h2", "Production Data Matrix")
+        .should("be.visible");
+}
+
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
 const ROLES_TO_TEST = [
@@ -387,6 +422,7 @@ describe("Data Overview by role", () => {
                     assertCannotAccessDataMatrixPage(caps);
                     return;
                 }
+                stepVerifyDataMatrixHashRouting();
                 stepDataMatrixProduction(caps);
             });
 
