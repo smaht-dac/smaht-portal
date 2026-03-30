@@ -43,6 +43,7 @@ const ROLE_MATRIX = {
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
         runCohortViewChartTests: true,
         runSearchTableRowsTests: true,
 
@@ -64,6 +65,7 @@ const ROLE_MATRIX = {
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
         runCohortViewChartTests: true,
         runSearchTableRowsTests: true,
 
@@ -85,6 +87,7 @@ const ROLE_MATRIX = {
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
         runCohortViewChartTests: true,
         runSearchTableRowsTests: true,
 
@@ -106,6 +109,7 @@ const ROLE_MATRIX = {
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
         runCohortViewChartTests: true,
         runSearchTableRowsTests: true,
 
@@ -127,6 +131,7 @@ const ROLE_MATRIX = {
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
         runCohortViewChartTests: true,
         runSearchTableRowsTests: true,
 
@@ -186,7 +191,7 @@ function checkChartTotal(title, expectedTotal) {
     cy.contains('.donor-cohort-view-chart h3', title)
         .closest('.donor-cohort-view-chart')
         .find('svg text')
-        .then(($texts) => {
+        .should(($texts) => {
             // Collect only numeric texts
             const numeric = Array.from($texts)
                 .map((el) => { return { el, txt: el.textContent.trim(), style: el.getAttribute('style') || '' }; })
@@ -202,7 +207,6 @@ function checkChartTotal(title, expectedTotal) {
             const picked = whites.length ? whites : darks;
             const total = picked.reduce((s, n) => s + n, 0);
 
-            cy.log(`${title} -> counted labels:`, picked.join(', '));
             expect(total, `${title} total`).to.eq(expectedTotal);
         });
 }
@@ -347,11 +351,260 @@ function stepSidebarToggle(caps) {
         .end();
 }
 
-const tissueSeqencerPairs = [
-    { tissue: 'Brain', sequencer: 'Illumina NovaSeq X Plus', min: 3, max: 25 },
-    { tissue: 'Blood', sequencer: 'ONT PromethION 24', min: 2, max: 25 },
-    { tissue: 'Liver', sequencer: 'PacBio Revio', min: 2, max: 25 },
+const tissueSequencerPairs = [
+    {
+        tissueTerms: [
+            '3AK - Frontal Lobe, Brain, Left hemisphere',
+            '3AK - Brain, Frontal Lobe',
+            '3AK - Brain',
+            'Brain',
+        ],
+        sequencer: 'Illumina NovaSeq X Plus',
+        min: 3,
+        max: 25,
+    },
+    {
+        tissueTerms: ['3A - Whole Blood', 'Whole Blood', 'Blood'],
+        sequencer: 'ONT PromethION 24',
+        min: 2,
+        max: 25,
+    },
+    {
+        tissueTerms: ['3I - Liver', 'Liver'],
+        sequencer: 'PacBio Revio',
+        min: 2,
+        max: 25,
+    },
 ];
+
+// TODO: reuse the mapping in data.js in utk_browse_viz_tissue_type branch is merged to prevent duplicate
+const tissueInternalCodeByTpcCode = {
+    '3A': 'BLOO',
+    '3B': 'BUCC',
+    '3C': 'ESOP',
+    '3E': 'COAS',
+    '3G': 'CODS',
+    '3I': 'LIVR',
+    '3K': 'ADGL',
+    '3M': 'ADGR',
+    '3O': 'AORT',
+    '3Q': 'LUNG',
+    '3S': 'HART',
+    '3U': 'TESL',
+    '3W': 'TESR',
+    '3Y': 'OVAL',
+    '3AA': 'OVAR',
+    '3AC': 'FBRO',
+    '3AD': 'SKSE',
+    '3AF': 'SKNE',
+    '3AH': 'MUSC',
+    '3AK': 'BRFL',
+    '3AL': 'BRTL',
+    '3AM': 'BRCE',
+    '3AN': 'BRHL',
+    '3AO': 'BRHR',
+};
+
+const tissueCategoryByTpcCode = {
+    '3A': 'Clinically accessible',
+    '3B': 'Clinically accessible',
+    '3C': 'Endoderm',
+    '3E': 'Endoderm',
+    '3G': 'Endoderm',
+    '3I': 'Endoderm',
+    '3K': 'Mesoderm',
+    '3M': 'Mesoderm',
+    '3O': 'Mesoderm',
+    '3Q': 'Endoderm',
+    '3S': 'Mesoderm',
+    '3U': 'Germ cells',
+    '3W': 'Germ cells',
+    '3Y': 'Germ cells',
+    '3AA': 'Germ cells',
+    '3AC': 'Mesoderm',
+    '3AD': 'Ectoderm',
+    '3AF': 'Ectoderm',
+    '3AH': 'Mesoderm',
+    '3AK': 'Ectoderm',
+    '3AL': 'Ectoderm',
+    '3AM': 'Ectoderm',
+    '3AN': 'Ectoderm',
+    '3AO': 'Ectoderm',
+};
+
+const tissueTypeFilterOptions = [
+    { buttonText: 'All', expectedCategory: null },
+    { buttonText: 'Ectoderm', expectedCategory: 'Ectoderm' },
+    { buttonText: 'Mesoderm', expectedCategory: 'Mesoderm' },
+    { buttonText: 'Endoderm', expectedCategory: 'Endoderm' },
+    { buttonText: 'Germ cells', expectedCategory: 'Germ cells' },
+    { buttonText: 'Clinically accessible', expectedCategory: 'Clinically accessible' },
+];
+
+function getTissueVariants(tissueTerms) {
+    const variants = new Set();
+
+    tissueTerms.forEach((tissueTerm) => {
+        variants.add(tissueTerm);
+
+        const tpcCodeMatch = /^([A-Z0-9]+)\s+-/.exec(tissueTerm);
+        const tpcCode = tpcCodeMatch?.[1];
+        const internalCode = tissueInternalCodeByTpcCode[tpcCode];
+
+        if (internalCode) {
+            variants.add(internalCode);
+        }
+    });
+
+    return [...variants];
+}
+
+function assertTextMatchesAnyVariant(actualText, acceptedVariants, message) {
+    const normalizedText = (actualText || '').replace(/\s+/g, ' ').trim();
+    const matchesVariant = acceptedVariants.includes(normalizedText);
+
+    expect(
+        matchesVariant,
+        `${message}. Actual text: "${normalizedText}". Accepted: ${acceptedVariants.join(', ')}`
+    ).to.equal(true);
+}
+
+function getExistingTissueBarPart(tissueTerms, sequencer) {
+    const tissueVariants = getTissueVariants(tissueTerms);
+    const tpcCodes = tissueTerms
+        .map((tissueTerm) => /^([A-Z0-9]+)\s+-/.exec(tissueTerm)?.[1] || null)
+        .filter(Boolean);
+
+    return cy.get('body').then(($body) => {
+        let resolvedTissueTerm = tissueVariants.find((tissueTerm) => {
+            return $body.find(
+                `.bar-plot-chart .chart-bar[data-term="${tissueTerm}"] .bar-part[data-term="${sequencer}"]`
+            ).length > 0;
+        });
+
+        if (!resolvedTissueTerm) {
+            const rotatedLabels = Array.from($body.find('.bar-plot-chart .rotated-label[data-term]'));
+            const matchingLabel = rotatedLabels.find((labelNode) => {
+                const dataTerm = (labelNode.getAttribute('data-term') || '').trim();
+                const title = (labelNode.getAttribute('title') || '').trim();
+                const innerText = (labelNode.textContent || '').replace(/\s+/g, ' ').trim();
+
+                const matchesKnownVariant =
+                    tissueVariants.includes(dataTerm) ||
+                    tissueVariants.includes(title) ||
+                    tissueVariants.includes(innerText);
+
+                const matchesTpcCode = tpcCodes.some((tpcCode) => {
+                    return dataTerm.startsWith(`${tpcCode} -`) || title.startsWith(`${tpcCode} -`);
+                });
+
+                return matchesKnownVariant || matchesTpcCode;
+            });
+
+            resolvedTissueTerm = matchingLabel?.getAttribute('data-term')?.trim();
+        }
+
+        if (!resolvedTissueTerm && tpcCodes.length > 0) {
+            const matchingChartBar = Array.from($body.find('.bar-plot-chart .chart-bar')).find((chartBar) => {
+                const dataTerm = chartBar.getAttribute('data-term') || '';
+                const hasMatchingCode = tpcCodes.some((tpcCode) => dataTerm.startsWith(`${tpcCode} -`));
+                const hasSequencer = chartBar.querySelector(`.bar-part[data-term="${sequencer}"]`);
+                return hasMatchingCode && hasSequencer;
+            });
+
+            resolvedTissueTerm = matchingChartBar?.getAttribute('data-term');
+        }
+
+        expect(
+            resolvedTissueTerm,
+            `Expected one tissue term for ${sequencer} to exist: ${tissueVariants.join(', ')}`
+        ).to.be.a('string');
+
+        return cy
+            .get(
+                `.bar-plot-chart .chart-bar[data-term="${resolvedTissueTerm}"] .bar-part[data-term="${sequencer}"]`
+            )
+            .then(($barPart) => ({ $barPart, resolvedTissueTerm }));
+    });
+}
+
+function assertTissueAxisLabel(tissueTerms, resolvedTissueTerm) {
+    const acceptedVariants = [...new Set([...getTissueVariants(tissueTerms), resolvedTissueTerm])];
+
+    cy.get(`.bar-plot-chart .rotated-label[data-term="${resolvedTissueTerm}"]`)
+        .should('exist')
+        .then(($label) => {
+            const labelText = $label.text().replace(/\s+/g, ' ').trim();
+            const labelTitle = ($label.attr('title') || '').trim();
+
+            if (acceptedVariants.includes(labelText)) {
+                return;
+            }
+
+            assertTextMatchesAnyVariant(
+                labelTitle,
+                acceptedVariants,
+                `Axis label title should match an accepted tissue variant for ${resolvedTissueTerm}`
+            );
+        });
+}
+
+function getTissueCategoryFromAxisTerm(term) {
+    const normalizedTerm = String(term || '').trim();
+    const tpcCode = /^([A-Z0-9]+)\s+-/.exec(normalizedTerm)?.[1];
+
+    if (tpcCode && tissueCategoryByTpcCode[tpcCode]) {
+        return tissueCategoryByTpcCode[tpcCode];
+    }
+
+    if (/blood|buccal/i.test(normalizedTerm)) return 'Clinically accessible';
+    if (/brain|skin/i.test(normalizedTerm)) return 'Ectoderm';
+    if (/testis|ovary/i.test(normalizedTerm)) return 'Germ cells';
+    if (/aorta|heart|muscle|fibroblast|adrenal/i.test(normalizedTerm)) return 'Mesoderm';
+    if (/colon|esophagus|liver|lung/i.test(normalizedTerm)) return 'Endoderm';
+
+    return null;
+}
+
+function getVisibleTissueAxisTerms() {
+    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible').then(($labels) => {
+        return Array.from($labels)
+            .map((labelNode) => (labelNode.getAttribute('data-term') || '').trim())
+            .filter(Boolean);
+    });
+}
+
+function stepTissueTypeFilterTests(caps) {
+    if (caps.expectedStatsSummaryOpts.totalFiles === 0) {
+        visitBrowseByDonor(caps).toggleView('Donor').then(() => {
+            cy.log('Skipping stepTissueTypeFilterTests since no data is accessible for this role.');
+        });
+        return;
+    }
+
+    visitBrowseByDonor(caps).toggleView('Donor').then(() => {
+        tissueTypeFilterOptions.forEach(({ buttonText, expectedCategory }) => {
+            cy.contains('button', buttonText)
+                .should('be.visible')
+                .click({ force: true });
+
+            getVisibleTissueAxisTerms().then((axisTerms) => {
+                expect(axisTerms.length, `${buttonText} should leave visible tissue axis labels`).to.be.greaterThan(0);
+
+                if (!expectedCategory) {
+                    return;
+                }
+
+                axisTerms.forEach((axisTerm) => {
+                    expect(
+                        getTissueCategoryFromAxisTerm(axisTerm),
+                        `${buttonText} filter should only show ${expectedCategory} tissues`
+                    ).to.equal(expectedCategory);
+                });
+            });
+        });
+    });
+}
 
 /** Chart Bar Plot Tests */
 function stepFacetChartBarPlotTests(caps) {
@@ -364,19 +617,30 @@ function stepFacetChartBarPlotTests(caps) {
                 .should('contain', 'Tissue')
                 .end();
 
-            tissueSeqencerPairs.forEach(({ tissue, sequencer, min, max }) => {
-                cy.log(`Testing bar part: Tissue = ${tissue}, Sequencer = ${sequencer}`);
+            tissueSequencerPairs.forEach(({ tissueTerms, sequencer, min, max }) => {
+                cy.log(`Testing bar part: Tissue = ${tissueTerms.join(' | ')}, Sequencer = ${sequencer}`);
 
                 cy.window().scrollTo(0, 0).end()
-                    // A likely-to-be-here Bar Section - Brain x Illumina NovaSeq X Plus
-                    .get(`.bar-plot-chart .chart-bar[data-term="${tissue}"] .bar-part[data-term="${sequencer}"]`).then(($barPart) => {
+                    .then(() => getExistingTissueBarPart(tissueTerms, sequencer))
+                    .then(({ $barPart, resolvedTissueTerm }) => {
+                        assertTissueAxisLabel(tissueTerms, resolvedTissueTerm);
                         const expectedFilteredResults = parseInt($barPart.attr('data-count'));
                         expect(expectedFilteredResults).to.be.gte(min);
                         expect(expectedFilteredResults).to.be.lt(max);
+                        const acceptedVariants = getTissueVariants(tissueTerms);
                         cy.window().scrollTo('top').end()
                             .wrap($barPart).hoverIn().end()
                             .get('.cursor-component-root .details-title').should('contain', sequencer).end()
-                            .get('.cursor-component-root .detail-crumbs .crumb').should('contain', tissue).end()
+                            .get('.cursor-component-root .detail-crumbs .crumb').invoke('text').then((crumbText) => {
+                                const normalizedCrumbText = crumbText.replace(/\s+/g, ' ').trim();
+                                const matchesVariant = acceptedVariants.some((variant) => {
+                                    return normalizedCrumbText.includes(variant);
+                                });
+                                expect(
+                                    matchesVariant,
+                                    `Popover tissue crumb should contain one accepted variant for ${sequencer}`
+                                ).to.equal(true);
+                            }).end()
                             .get('.cursor-component-root .details-title .primary-count').invoke('text').then((text) => {
                                 const number = parseInt(text, 10);
                                 expect(number).to.eq(expectedFilteredResults);
@@ -746,6 +1010,11 @@ describe('Browse by role — Donor', () => {
             it(`Facet chart bar plot tests → X-axis grouping and hover over & click Tissue x Sequencer pairs bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
                 if (!caps.runFacetChartBarPlotTests) return;
                 stepFacetChartBarPlotTests(caps);
+            });
+
+            it(`Tissue type filter tests (enabled: ${caps.runTissueTypeFilterTests})`, () => {
+                if (!caps.runTissueTypeFilterTests) return;
+                stepTissueTypeFilterTests(caps);
             });
 
             it(`Cohort View Chart Tests (enabled: ${caps.runCohortViewChartTests})`, () => {

@@ -7,6 +7,41 @@ smaht-portal
 Change Log
 ----------
 
+
+1.21.1
+======
+
+`PR 623: Cypress browse view & donor view & data matrix updates <https://github.com/smaht-dac/smaht-portal/pull/623>`_
+
+* Update Cypress tests for browse view, donor view, and data matrix to reflect recent UI changes and ensure continued test coverage of these features
+
+
+1.21.0
+======
+
+`PR 609: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/609>`_
+
+* Restructure Release Tracker for network members only
+* Implement alert for public users
+* Add new smaht-wolf cypress GA workflow
+
+
+1.20.4
+======
+
+`PR 627: feat: analysis methods banner <https://github.com/smaht-dac/smaht-portal/pull/627>`_
+
+* Adds banner to analysis methods page
+
+
+1.20.3
+======
+
+`PR 625: Bug Fix - filtered variant calls in donor view data matrix <https://github.com/smaht-dac/smaht-portal/pull/625>`_
+
+* Fixes missing Variant Call Sets column in Protected and Public Donor View data matrices
+
+
 1.20.2
 ======
 
@@ -139,6 +174,7 @@ Change Log
 * Update annotated filename and release script to function for External Output Files
 * Add new property analysis_details to File
 
+
 1.13.1
 ======
 
@@ -228,9 +264,10 @@ Change Log
 1.11.2
 ======
 
-`PR  595 update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
+`PR 595: update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
 
 * Add support for Tissue Aliquot category validation in TissueSample validator
+
 
 1.11.1
 ======

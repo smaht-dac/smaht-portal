@@ -965,6 +965,10 @@ i.status-indicator-dot {
 		.callout-text { 
 			color: #0E4855;
 			font-size: 1rem;
+
+			b {
+				font-weight: 500;
+			}
 		}
 
 		a {
