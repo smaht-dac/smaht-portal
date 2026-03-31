@@ -6,7 +6,7 @@ import { RightArrowIcon } from '../../util/icon';
 const announcements = [
     {
         type: 'warning',
-        title: 'New Access Regulations',
+        title: 'New Access Regulation',
         date: '2026-03-30',
         body: (
             <span>
