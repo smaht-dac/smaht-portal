@@ -8,12 +8,20 @@ Change Log
 ----------
 
 
-1.21.5
+1.21.6
 ======
 
 `PR 629: fix: prevent long URL generation from release tracker <https://github.com/smaht-dac/smaht-portal/pull/629>`_
 
 * Prevent the release tracker queries from getting too long
+
+
+1.21.5
+======
+
+`PR 634: feat: update auth0 text <https://github.com/smaht-dac/smaht-portal/pull/634>`_
+
+* Update auth0 modal text
 
 
 1.21.4
