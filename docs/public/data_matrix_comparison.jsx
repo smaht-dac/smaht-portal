@@ -58,7 +58,7 @@
             "matrixProps": {
                 "key": "data-matrix-production",
                 "query": {
-                    "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Production&dataset!=No+value&analysis_details=No+value&analysis_details=Filtered&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
+                    "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Production&dataset!=No+value&analysis_details=No+value&analysis_details=Filtered&analysis_details=Phased&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
                     "columnAggFields": [
                         "file_sets.libraries.assay.display_title",
                         "sequencing.sequencer.platform"
