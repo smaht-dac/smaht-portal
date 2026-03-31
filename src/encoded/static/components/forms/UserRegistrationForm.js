@@ -340,8 +340,8 @@ export default class UserRegistrationForm extends React.PureComponent {
             );
         } else if (registrationStatus === 'restricted-email') {
             errorIndicator = (
-                <div className="alert alert-danger d-flex align-items-center self-registration-alert" role="alert">
-                    <i className="fas icon icon-x me-2 self-registration-alert-icon"></i>
+                <div className="alert alert-warning d-flex align-items-center self-registration-alert restricted-email" role="alert">
+                    <i className="fas icon icon-ban me-2 self-registration-alert-icon"></i>
                     <div>
                         <span>
                             <b>Failed to register new account using your e-mail
