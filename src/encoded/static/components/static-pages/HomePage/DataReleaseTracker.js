@@ -4,47 +4,28 @@ import { useToggle } from '../../util/hooks';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 /**
- * Replaces the `release_tracker_title` parameter in the query with the donor and tissue titles
- * @param {string} query - The query string to be changed
- * @param {string[]} donors - The list of donor titles to replace the release_tracker_title parameter with
- * @param {string[]} tissues - The list of tissue titles to replace the release_tracker_title parameter with
- * @returns {string} The updated query string with the donor and tissue titles
- *
- * Note: returns `query` if number of donors and tissues is too large
+ * Replaces the `release_tracker_title` parameter in the query with the donor
+ * @param {string} url - Full URL or path with optional query string
+ * @param {string} donor - Donor title
+ * @returns {string}
  */
-const replaceURLParamsWithDonors = (query, donorList = [], tissueList = []) => {
-    // If donorList and tissueList are empty, return the original query
-    if (donorList.length === 0 && tissueList.length === 0) {
-        return query;
+const updateURLParamsWithDonor = (url, donor = '') => {
+    if (!donor || donor.trim().length === 0) {
+        return url;
     }
 
-    // If the number of donors and tissues is too large, return the original query
-    if (donorList.length + tissueList.length > 10) {
-        return query;
-    }
+    const [path, queryString = ''] = url.split('?');
+    const params = new URLSearchParams(queryString);
 
-    // Save params from original query
-    const [urlPath, urlQuery] = query.split('?');
-    const params = new URLSearchParams(urlQuery);
-
-    // Remove release_tracker_title
+    // Remove release_tracker_title param
     params.delete('release_tracker_title');
 
-    // Add donor and tissue titles to params
-    donorList.forEach((donor) => {
-        params.append('donors.display_title', donor.trim());
-    });
-    tissueList.forEach((tissue) => {
-        params.append('sample_summary.tissues', tissue);
-    });
+    // Set new param for donor
+    params.set('donors.display_title', donor.trim());
 
-    // Decode values in params (encoded by URLSearchParams)
-    const decodedParams = [];
-    for (const [key, value] of params.entries()) {
-        decodedParams.push(`${key}=${decodeURIComponent(value)}`);
-    }
+    const newQuery = params.toString();
 
-    return `${urlPath}?${decodedParams.join('&')}`;
+    return newQuery ? `${path}?${newQuery}` : path;
 };
 
 /**
@@ -92,15 +73,8 @@ const DonorGroup = (props) => {
         donorGroupIndex === 0 && releaseItemIndex === 0
     );
 
-    // Update query with donor and extacted tissues
-    const tissueList = Object.keys(items).map((tissue) => {
-        // Use additional value if available
-        const tissueName =
-            items[tissue]?.additional_value ?? tissue.split('-')[1].trim();
-        return tissueName;
-    });
-
-    const updatedQuery = replaceURLParamsWithDonors(query, [donor], tissueList);
+    // Add donor as filter param to query
+    const updatedQuery = updateURLParamsWithDonor(query, donor);
 
     return (
         <div className="release-item" aria-expanded={isToggled}>
@@ -171,24 +145,6 @@ const DayGroup = (props) => {
         day: 'numeric',
     });
 
-    // Get donor title from first donor group
-    const donorList = Object.keys(donorGroups);
-    const tissueList = Object.keys(donorGroups).flatMap((donor) => {
-        return Object.keys(donorGroups[donor].items).map((tissue) => {
-            const tissueName =
-                donorGroups[donor].items[tissue]?.additional_value ??
-                tissue.split('-')[1].trim();
-            return tissueName;
-        });
-    });
-
-    // Update query with donor and extacted tissues
-    const updatedQuery = replaceURLParamsWithDonors(
-        query,
-        donorList,
-        tissueList
-    );
-
     return (
         <div className="release-item day-group" aria-expanded={isToggled}>
             <div className={`day-group-header ${isToggled ? 'expanded' : ''}`}>
@@ -212,7 +168,7 @@ const DayGroup = (props) => {
                         toggle();
                     }}>
                     <span>{dayTitle}</span>
-                    <a className="count" href={updatedQuery}>
+                    <a className="count" href={query}>
                         {count ?? 0} {count > 1 ? 'Files' : 'File'}
                         <i className="icon icon-arrow-right"></i>
                     </a>
@@ -257,40 +213,6 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     const month = date.toLocaleString('default', { month: 'long' });
     const year = date.toLocaleString('default', { year: 'numeric' });
 
-    // Get donors and tissues from the day groups
-    let donorList = new Set();
-    let tissueList = new Set();
-    Object.keys(dayGroups).forEach((dayGroup) => {
-        const donors = Object.keys(dayGroups[dayGroup].items);
-
-        // Add donors to donorList
-        for (const donor of donors) donorList.add(donor);
-
-        // Extact all tissue titles from the `dayGroups`
-        const tissues = Object.keys(dayGroups[dayGroup].items).flatMap(
-            (donor) => {
-                return Object.keys(dayGroups[dayGroup].items[donor].items).map(
-                    (tissue) => {
-                        const tissueName =
-                            dayGroups[dayGroup].items[donor].items[tissue]
-                                ?.additional_value ??
-                            tissue.split('-')[1].trim();
-                        return tissueName;
-                    }
-                );
-            }
-        );
-
-        // Add tissues to tissueList
-        for (const tissue of tissues) tissueList.add(tissue);
-    });
-    // Update query with donor and extacted tissues
-    const updatedQuery = replaceURLParamsWithDonors(
-        query,
-        Array.from(donorList),
-        Array.from(tissueList)
-    );
-
     return (
         <div
             className={`data-release-item-container ${
@@ -309,9 +231,7 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                                 isToggled ? 'minus' : 'plus'
                             }`}></i>
                     </button>
-                    <a
-                        className="header-link"
-                        href={count > 0 ? updatedQuery : null}>
+                    <a className="header-link" href={count > 0 ? query : null}>
                         <span>
                             {releaseItemIndex === 0 && 'Latest: '} {month}{' '}
                             {year}
