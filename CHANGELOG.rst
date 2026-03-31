@@ -8,12 +8,28 @@ Change Log
 ----------
 
 
-1.21.2
+1.21.4
 ======
 
 `PR 629: fix: prevent long URL generation from release tracker <https://github.com/smaht-dac/smaht-portal/pull/629>`_
 
 * Prevent the release tracker queries from getting too long
+
+
+1.21.3
+======
+
+`PR 631: feat: add homepage alerts for restricted user access <https://github.com/smaht-dac/smaht-portal/pull/631>`_
+
+* Add alert in announcements section
+* Add navigation bar alert
+
+
+1.21.2
+======
+`PR 630: Apply facet label overrides in browse facet charts <https://github.com/smaht-dac/smaht-portal/pull/630>`_
+
+* Use facet term label overrides for facet charts in file/donor browse views
 
 
 1.21.1
