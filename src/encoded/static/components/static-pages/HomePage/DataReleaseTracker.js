@@ -413,7 +413,6 @@ const EmptyReleaseTrackerAlert = () => {
 };
 
 export const DataReleaseTracker = ({ session }) => {
-    console.log('session', session);
     const [data, setData] = useState(null);
     const { userDownloadAccess, isAccessResolved } =
         useUserDownloadAccess(session);
