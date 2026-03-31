@@ -165,7 +165,7 @@ const DayGroup = (props) => {
         dayGroupIndex === 0 && releaseItemIndex === 0
     );
 
-    const dayTitle = new Date(date).toLocaleDateString('en-US', {
+    const dayTitle = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -493,6 +493,7 @@ const EmptyReleaseTrackerAlert = () => {
 };
 
 export const DataReleaseTracker = ({ session }) => {
+    console.log('session', session);
     const [data, setData] = useState(null);
     const { userDownloadAccess, isAccessResolved } =
         useUserDownloadAccess(session);
