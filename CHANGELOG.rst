@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.21.6
+======
+
+`PR 629: fix: prevent long URL generation from release tracker <https://github.com/smaht-dac/smaht-portal/pull/629>`_
+
+* Prevent the release tracker queries from getting too long
+
+
 1.21.5
 ======
 
