@@ -8,12 +8,21 @@ Change Log
 ----------
 
 
-1.21.4
+1.21.5
 ======
 
 `PR 629: fix: prevent long URL generation from release tracker <https://github.com/smaht-dac/smaht-portal/pull/629>`_
 
 * Prevent the release tracker queries from getting too long
+
+
+1.21.4
+======
+
+`PR 633: Add phased analysis support and fix donor count logic <https://github.com/smaht-dac/smaht-portal/pull/633>`_
+
+* Include phased analysis files in Variant Call Sets for the Production data matrix and donor-view data matrices.
+* Fix donor counts in Total Files summary popovers for DSA and Variant Call Sets.
 
 
 1.21.3

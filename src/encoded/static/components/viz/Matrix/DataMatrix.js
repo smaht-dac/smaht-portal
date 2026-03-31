@@ -1341,15 +1341,16 @@ DataMatrix.resultTransformedPostProcessFuncs = {
     "analysisDerivedColumns": function (data, groupingProperties, columnGrouping) {
         const dsaData = data.all.filter((row) => row['data_type'] === 'DSA' || row['data_type'] === 'Chain File' || row['data_type'] === 'Sequence Interval');
         const nonDsaData = data.all.filter((row) => row['data_type'] !== 'DSA' && row['data_type'] !== 'Chain File' && row['data_type'] !== 'Sequence Interval');
-        const snvData = nonDsaData.filter((row) => row['analysis_details'] === 'Filtered');
-        const nonDsaNonSnvData = nonDsaData.filter((row) => row['analysis_details'] !== 'Filtered');
+        const variantCallAnalysisDetails = ['Filtered', 'Phased'];
+        const variantCallSetData = nonDsaData.filter((row) => variantCallAnalysisDetails.includes(row['analysis_details']));
+        const nonDsaNonVariantCallSetData = nonDsaData.filter((row) => !variantCallAnalysisDetails.includes(row['analysis_details']));
 
         const transformedDsa = DataMatrix.transformDSA(nonDsaData, data.row_totals, dsaData, groupingProperties, columnGrouping);
-        const transformedSnv = DataMatrix.transformSNV(snvData, groupingProperties, columnGrouping);
+        const transformedSnv = DataMatrix.transformSNV(variantCallSetData, groupingProperties, columnGrouping);
 
         return {
             ...data,
-            all: nonDsaNonSnvData.concat(transformedDsa).concat(transformedSnv)
+            all: nonDsaNonVariantCallSetData.concat(transformedDsa).concat(transformedSnv)
         };
     }
 };
@@ -1366,7 +1367,7 @@ DataMatrix.browseFilteringTransformFuncs = {
             filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
         } else if (filteringProperties[assayField] === 'Variant Call Sets') {
-            filteringProperties['analysis_details'] = [...(filteringProperties['analysis_details'] || []), 'Filtered'];
+            filteringProperties['analysis_details'] = [...(filteringProperties['analysis_details'] || []), 'Filtered', 'Phased'];
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
         } else if (
@@ -1377,7 +1378,7 @@ DataMatrix.browseFilteringTransformFuncs = {
             // for overall summary (no assay filter) keep all data types.
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             if (isProductionStudy) {
-                filteringProperties['analysis_details!'] = [...(filteringProperties['analysis_details!'] || []), 'Filtered'];
+                filteringProperties['analysis_details!'] = [...(filteringProperties['analysis_details!'] || []), 'Filtered', 'Phased'];
             }
         }
         return filteringProperties;
