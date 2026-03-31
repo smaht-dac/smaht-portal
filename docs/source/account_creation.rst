@@ -61,11 +61,22 @@ Step 2: Connecting via Google's “OAuth” authentication system
 
 |
 
-Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth authentication system, which will allow you to login using a Google account linked to your personal or institutional email address.
+Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth authentication system, which will allow you to login using a Google account linked to your institutional email address.
 
-Please note that if you think that you may potentially apply to obtain protected-access data (under dbGaP), we *strongly encourage you to use your Google account linked to your institutional e-mail address, or the e-mail address* that you plan to use when you apply for dbGaP access.
+Please note that if you think that you may potentially apply to obtain protected-access data (under dbGaP), *data access regulations require you to use the same institutional e-mail address* that you plan to use when you apply for dbGaP access.
 
-To create a Google account linked your institutional email (not your Gmail!), you can find the instructions `here <https://support.google.com/accounts/answer/27441?hl=en&ref_topic=3382296&sjid=121446348511371159-NA>`__.
+To create a Google account linked to your institutional email (not your Gmail!), follow the steps below:
+
+#. Go to the `Google Account Sign In page <https://accounts.google.com/signin>`__. If you already have a google account, click *use another account*.
+#. Click *Create account*
+#. Select *For my personal use*
+#. Enter your name
+#. Enter your basic information
+#. Click *Use your existing email*
+#. Enter your institutional email address.
+#. Click *Next*
+#. Verify your email address with the code sent to your existing email
+#. Click *Verify*
 
 
 Step 3: Registering yourself as a non-SMaHT Network member
@@ -137,18 +148,20 @@ Step 3: Create a Google Account using Your Institutional Email Address
 The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which allows you to login using a Google account. Please create a Google Account that must be linked to your institutional email address in the SMaHT Network Directory (*DO NOT use your Gmail* or other personal e-mail address!).
 
 .. IMPORTANT::
-    You will create and USE A GOOGLE ACCOUNT, NOT A GMAIL ACCOUNT. Learn more about setting up Google Accounts `here <https://support.google.com/google-ads/answer/1722060?hl=en>`_.
+    You will create and USE A GOOGLE ACCOUNT, **NOT** A GMAIL ACCOUNT. To link your institutional email to a google account, follow the steps below:
+
+    #. Go to the `Google Account Sign In page <https://accounts.google.com/signin>`__. If you already have a google account, click *use another account*.
+    #. Click *Create account*
+    #. Select *For my personal use*
+    #. Enter your name
+    #. Enter your basic information
+    #. Click *Use your existing email*
+    #. Enter your institutional email address.
+    #. Click *Next*
+    #. Verify your email address with the code sent to your existing email
+    #. Click *Verify*
 
 |
-
-
-.. image:: /static/img/docs/account_creation_institutional_email.png
-   :target: /static/img/docs/account_creation_institutional_email.png
-   :alt: Google Account Creation Image (Use Your Institutional Email)
-
-|
-
-To create the Google Account linked to your institutional email (not your Gmail!), you can set it up by visiting the `Google account creation page <https://accounts.google.com/SignUpWithoutGmail>`_ with the non-Gmail option. Register this account with your institutional email address.
 
 
 Step 4: Sign In with Your Google Account linked to your institutional e-mail address
@@ -165,6 +178,15 @@ Once your account request to DAC is processed (Step 2), you will be able to log 
 	
 
 If you are already logged into this account elsewhere on your computer, you may be able to simply select the account on the “Choose an account” pop-up. Otherwise, you will need to sign in with your institutional email and Google account password.
+
+
+Optional - Step 5: Self Register on the Portal
+----------------------------------------------
+
+If you would like to self register with your institutional email on the portal, you can do so, but signing in will only give you access to OPEN data. 
+
+
+To get full network-member access (early data releases and protected data access), you will need to be verified by the OC and DAC. See below for the self registration process.
 
 
 
