@@ -89,11 +89,13 @@ export class NavigationBar extends React.PureComponent {
             hideTestWarning,
         } = this.props;
         const testWarningVisible = !!(testWarningPresent & !isFullscreen); // Hidden on full screen mode.
-        const message =
-            context?.test_warning ||
-            'The Data Portal will have limited access from Sept 29 - Oct 10. Please visit again after October 10th, 2025.';
-        //const navClassName = "navbar-container" + (testWarningVisible ? ' test-warning-visible' : '');
-
+        const message = context?.test_warning || (
+            <>
+                Effective 4/1/26: Due to new data access regulations, all SMaHT
+                Data Portal users <b>MUST</b> use an institutional email address
+                to login to the Data Portal.
+            </>
+        );
 
         return (
             <div className="navbar-container">

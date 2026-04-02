@@ -218,7 +218,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${context.display_title}&limit=all`,
+                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&analysis_details=No+value&analysis_details=Filtered&analysis_details=Phased&donors.display_title=${context.display_title}&limit=all`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',
@@ -227,16 +227,19 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             'donors.display_title',
                                             'sample_summary.tissues',
                                             'data_type',
+                                            'analysis_details',
                                             'sample_summary.category',
                                         ],
                                     }}
-                                    resultTransformedPostProcessFuncKey="dsaChainFile"
-                                    browseFilteringTransformFuncKey="dsaChainFile"
+                                    resultTransformedPostProcessFuncKey="analysisDerivedColumns"
+                                    browseFilteringTransformFuncKey="analysisDerivedColumns"
+                                    excludePrimaryColumnNoValue={false}
                                     headerFor={null}
                                     defaultOpen={true}
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
+                                    showUniqueDonorsAssayBand={false}
                                     baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
                                 />
                             </div>

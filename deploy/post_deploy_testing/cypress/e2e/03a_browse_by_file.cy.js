@@ -45,6 +45,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
@@ -62,6 +63,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
@@ -79,6 +81,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
@@ -96,6 +99,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
@@ -113,6 +117,7 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
@@ -123,6 +128,92 @@ const ROLE_MATRIX = {
 
 function goto(url = '/', headers = cypressVisitHeaders) {
     cy.visit(url, { headers });
+}
+
+const SEARCH_PARAM_KEY_ALIASES = {
+    'sequencing.sequencer.display_title': [
+        'sequencing.sequencer.display_title',
+        'file_sets.sequencing.sequencer.display_title',
+    ],
+};
+
+const tissueCategoryByTpcCode = {
+    '3A': 'Clinically accessible',
+    '3B': 'Clinically accessible',
+    '3C': 'Endoderm',
+    '3E': 'Endoderm',
+    '3G': 'Endoderm',
+    '3I': 'Endoderm',
+    '3K': 'Mesoderm',
+    '3M': 'Mesoderm',
+    '3O': 'Mesoderm',
+    '3Q': 'Endoderm',
+    '3S': 'Mesoderm',
+    '3U': 'Germ cells',
+    '3W': 'Germ cells',
+    '3Y': 'Germ cells',
+    '3AA': 'Germ cells',
+    '3AC': 'Mesoderm',
+    '3AD': 'Ectoderm',
+    '3AF': 'Ectoderm',
+    '3AH': 'Mesoderm',
+    '3AK': 'Ectoderm',
+    '3AL': 'Ectoderm',
+    '3AM': 'Ectoderm',
+    '3AN': 'Ectoderm',
+    '3AO': 'Ectoderm',
+};
+
+const tissueTypeFilterOptions = [
+    { buttonText: 'All', expectedCategory: null },
+    { buttonText: 'Ectoderm', expectedCategory: 'Ectoderm' },
+    { buttonText: 'Mesoderm', expectedCategory: 'Mesoderm' },
+    { buttonText: 'Endoderm', expectedCategory: 'Endoderm' },
+    { buttonText: 'Germ cells', expectedCategory: 'Germ cells' },
+    { buttonText: 'Clinically accessible', expectedCategory: 'Clinically accessible' },
+];
+
+function expectSearchToIncludeParams(search, expectedParams) {
+    const searchParams = new URLSearchParams(search);
+
+    expectedParams.forEach((param) => {
+        const [rawKey, rawValue = ''] = param.split('=');
+        const candidateKeys = SEARCH_PARAM_KEY_ALIASES[rawKey] || [rawKey];
+        const actualValues = candidateKeys.flatMap((key) => searchParams.getAll(key));
+        expect(
+            actualValues,
+            `Expected search params for ${candidateKeys.join(' or ')} to include ${rawValue}`
+        ).to.include(rawValue);
+    });
+}
+
+function decodeSearchString(search) {
+    return decodeURIComponent(String(search || '').replace(/\+/g, ' '));
+}
+
+function getTissueCategoryFromAxisTerm(term) {
+    const normalizedTerm = String(term || '').trim();
+    const tpcCode = /^([A-Z0-9]+)\s+-/.exec(normalizedTerm)?.[1];
+
+    if (tpcCode && tissueCategoryByTpcCode[tpcCode]) {
+        return tissueCategoryByTpcCode[tpcCode];
+    }
+
+    if (/blood|buccal/i.test(normalizedTerm)) return 'Clinically accessible';
+    if (/brain|skin/i.test(normalizedTerm)) return 'Ectoderm';
+    if (/testis|ovary/i.test(normalizedTerm)) return 'Germ cells';
+    if (/aorta|heart|muscle|fibroblast|adrenal/i.test(normalizedTerm)) return 'Mesoderm';
+    if (/colon|esophagus|liver|lung/i.test(normalizedTerm)) return 'Endoderm';
+
+    return null;
+}
+
+function getVisibleTissueAxisTerms() {
+    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible').then(($labels) => {
+        return Array.from($labels)
+            .map((labelNode) => (labelNode.getAttribute('data-term') || '').trim())
+            .filter(Boolean);
+    });
 }
 
 function visitBrowseByFile(){
@@ -162,10 +253,7 @@ function stepNavigateFromHomeToBrowse(caps) {
             // Split dynamic status parameters and merge them with base ones
             const allParams = [...baseParams, ...BROWSE_STATUS_PARAMS.split('&')];
 
-            // Assert that each expected query parameter is present in the URL search string
-            allParams.forEach((param) => {
-                expect(search).to.include(param);
-            });
+            expectSearchToIncludeParams(search, allParams);
         });
     });
 }
@@ -181,7 +269,13 @@ function stepDirectBrowseRedirect(caps) {
 function stepNoResultsModal(caps) {
     visitBrowseByFile().then(() => {
         if (caps.expectedNoResultsModalVisible) {
-            cy.get('#download-access-required-modal').should('be.visible');
+            cy.get('#download-access-required-modal')
+                .closest('.modal')
+                .should('have.class', 'show')
+                .should(($modal) => {
+                    expect(parseFloat($modal.css('opacity') || '0')).to.be.gte(0.99);
+                });
+            cy.get('#download-access-required-modal').should('exist');
             cy.searchPageTotalResultCount().then((totalCountExpected) => {
                 expect(totalCountExpected).to.equal(0);
             });
@@ -424,6 +518,38 @@ function stepFacetExcludeGrouping(caps) {
         .end();
 }
 
+function stepTissueTypeFilterTests(caps) {
+    if (caps.expectedStatsSummaryOpts.totalFiles === 0) {
+        visitBrowseByFile().then(() => {
+            cy.log('Skipping stepTissueTypeFilterTests since no data is accessible for this role.');
+        });
+        return;
+    }
+
+    visitBrowseByFile().then(() => {
+        tissueTypeFilterOptions.forEach(({ buttonText, expectedCategory }) => {
+            cy.contains('#facet-charts-container button', buttonText)
+                .should('be.visible')
+                .click({ force: true });
+
+            getVisibleTissueAxisTerms().then((axisTerms) => {
+                expect(axisTerms.length, `${buttonText} should leave visible tissue axis labels`).to.be.greaterThan(0);
+
+                if (!expectedCategory) {
+                    return;
+                }
+
+                axisTerms.forEach((axisTerm) => {
+                    expect(
+                        getTissueCategoryFromAxisTerm(axisTerm),
+                        `${buttonText} filter should only show ${expectedCategory} tissues`
+                    ).to.equal(expectedCategory);
+                });
+            });
+        });
+    });
+}
+
 /** Chart Bar Plot Tests */
 function stepFacetChartBarPlotTests(caps) {
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
@@ -436,34 +562,44 @@ function stepFacetChartBarPlotTests(caps) {
                 .end();
 
             cy.window().scrollTo(0, 0).end()
-                // A likely-to-be-here Bar Section - Brain x Illumina NovaSeq X Plus
-                .get('.bar-plot-chart .chart-bar[data-term="Brain"] .bar-part[data-term="Illumina NovaSeq X Plus"]').then(($barPart) => {
+                .get('.bar-plot-chart .chart-bar')
+                .its('length')
+                .should('be.gte', 10)
+                .end()
+                // A likely-to-be-here Bar Section - 3AL - Brain, Temporal Lobe x Illumina NovaSeq X Plus
+                .get('.bar-plot-chart .chart-bar[data-term="3AL - Brain, Temporal Lobe"] .bar-part[data-term="Illumina NovaSeq X Plus"]').then(($barPart) => {
                     const expectedFilteredResults = parseInt($barPart.attr('data-count'));
-                    expect(expectedFilteredResults).to.be.greaterThan(50);
+                    expect(expectedFilteredResults).to.be.greaterThan(10);
                     expect(expectedFilteredResults).to.be.lessThan(500);
                     return cy.window().scrollTo('top').end()
-                        .get('.bar-plot-chart .chart-bar[data-term="Blood"] .bar-part[data-term="ONT PromethION 24"]').should('have.attr', 'data-count').end()
+                        .get('.bar-plot-chart .chart-bar[data-term="3A - Whole Blood"] .bar-part[data-term="ONT PromethION 24"]').should('have.attr', 'data-count').end()
                         .wrap($barPart).hoverIn().end()
                         .get('.cursor-component-root .details-title').should('contain', 'Illumina NovaSeq X Plus').end()
-                        .get('.cursor-component-root .detail-crumbs .crumb').should('contain', 'Brain').end()
+                        .get('.cursor-component-root .detail-crumbs .crumb').should('contain', '3AL - Brain, Temporal Lobe').end()
                         .get('.cursor-component-root .details .text-end').invoke('text').then(text => {
                             const number = parseInt(text, 10);
                             expect(number).to.eq(expectedFilteredResults);
                         }).getQuickInfoBar().then(function (origCount) {
                             // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
                             // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
-                            return cy.window().then((w) => {
+                            return cy.location('search').then((previousSearch) => {
+                                return cy.window().then((w) => {
                                 w.scrollTo(0, 0); }).end()
                                 .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
-                                .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
-                                .location('search')
-                                .should('include', 'sequencing.sequencer.display_title=Illumina+NovaSeq+X+Plus')
-                                .should('include', 'sample_summary.tissues=Brain').end()
+                                .get('.cursor-component-root .actions.buttons-container .btn-primary')
+                                .should('contain', "Explore")
+                                .click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
+                                .location('search', { timeout: 20000 })
+                                .should((currentSearch) => {
+                                    expect(currentSearch).to.not.equal(previousSearch);
+                                    expect(decodeSearchString(currentSearch)).to.include('sample_summary.tissues=3AL - Brain, Temporal Lobe');
+                                }).end()
                                 .get('#slow-load-container').should('not.have.class', 'visible').end()
                                 .searchPageTotalResultCount().then((totalCount) => {
                                     expect(totalCount).to.equal(expectedFilteredResults);
                                     cy.get('.bar-plot-chart .chart-bar .bar-part').should('have.length', 1).end();
                                 });
+                            });
                         });
                 });
         });
@@ -535,9 +671,14 @@ describe('Browse by role — File', () => {
                 stepFacetExcludeGrouping(caps);
             });
 
-            it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
+            it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, 3AL - Brain, Temporal Lobe" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
                 if (!caps.runFacetChartBarPlotTests) return;
                 stepFacetChartBarPlotTests(caps);
+            });
+
+            it(`Tissue type filter tests (enabled: ${caps.runTissueTypeFilterTests})`, () => {
+                if (!caps.runTissueTypeFilterTests) return;
+                stepTissueTypeFilterTests(caps);
             });
         });
     });

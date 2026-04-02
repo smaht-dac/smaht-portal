@@ -965,6 +965,10 @@ i.status-indicator-dot {
 		.callout-text { 
 			color: #0E4855;
 			font-size: 1rem;
+
+			b {
+				font-weight: 500;
+			}
 		}
 
 		a {
@@ -1399,6 +1403,18 @@ body[data-pathname^="/users/"] {
 
 		p:last-child {
 			margin-bottom: 0 !important;
+		}
+
+		&.restricted-email {
+			color: #572e06;
+
+			> div {
+				color: #572e06;
+			}
+			
+			.icon {
+				font-size: 2rem;
+			}
 		}
 	}
 

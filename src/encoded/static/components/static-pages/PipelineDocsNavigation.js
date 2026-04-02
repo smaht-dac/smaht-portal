@@ -52,6 +52,18 @@ export const Dropdown = (props) => {
 export const PipelineDocsNavigation = (props) => {
     return (
         <div>
+            <div className="callout data-available mb-3">
+                <span className="callout-text">
+                    <b>Note</b>: The latest pipeline documentation is available
+                    in the{' '}
+                    <a
+                        href="https://smaht-dac.github.io/pipelines-docs/"
+                        target="_blank">
+                        SMaHT Pipeline Documentation GitHub Repository
+                    </a>
+                    .
+                </span>
+            </div>
             <p className="introduction md-2">
                 Welcome to the documentation for SMaHT analysis pipelines and
                 associated resources. SMaHT runs a set of standardized workflows
