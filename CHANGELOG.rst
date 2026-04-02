@@ -7,6 +7,29 @@ smaht-portal
 Change Log
 ----------
 
+1.22.0
+======
+
+* Implement CADR email restrictions on login
+* Add command for setting restricted emails to deleted
+* Update user registration modal alerts
+
+
+1.21.6
+======
+
+`PR 629: fix: prevent long URL generation from release tracker <https://github.com/smaht-dac/smaht-portal/pull/629>`_
+
+* Prevent the release tracker queries from getting too long
+
+
+1.21.5
+======
+
+`PR 634: feat: update auth0 text <https://github.com/smaht-dac/smaht-portal/pull/634>`_
+
+* Update auth0 modal text
+
 
 1.21.4
 ======
@@ -152,7 +175,7 @@ Change Log
 `PR 616: feat: add software facet <https://github.com/smaht-dac/smaht-portal/pull/616>`_
 
 * Add software facet
-* Reorder facets 
+* Reorder facets
 
 
 1.17.0
