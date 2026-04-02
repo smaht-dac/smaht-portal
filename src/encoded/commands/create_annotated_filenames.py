@@ -871,7 +871,7 @@ def get_aliquot_id_from_mwfr_input(
     elif len(aliquots) == 1:
         aliquot_for_file = list(aliquots)[0]
 
-    if len(cores) > 1:
+    if len(cores) > 1 or len(aliquots) > 1:
         core_for_file = "MC"
     elif len(cores) == 1:
         core_for_file = list(cores)[0]
