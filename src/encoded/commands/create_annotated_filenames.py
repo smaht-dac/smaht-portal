@@ -202,6 +202,21 @@ def get_items(
     return request_handler.get_items(identifiers)
 
 
+_input_files_cache: Dict[frozenset, List[Dict[str, Any]]] = {}
+def get_input_files_from_mwfr(
+    output_meta_workflow_run: Optional[Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get input files from a MetaWorkflowRun, caching results by UUID set."""
+    input_file_uuids = frozenset(
+        extract_input_file_uuids_from_mwfr(output_meta_workflow_run or {})
+    )
+    if input_file_uuids not in _input_files_cache:
+        _input_files_cache[input_file_uuids] = search_list(
+            list(input_file_uuids), request_handler.auth_key
+        )
+    return _input_files_cache[input_file_uuids]
+
+
 def get_file_sets(
     file: Dict[str, Any],
     request_handler: RequestHandler,
@@ -805,8 +820,7 @@ def get_aliquot_id_from_mwfr_input(
     errors = []
     if not output_meta_workflow_run:
         errors.append("Could not determine aliquot id from MWFR input because no associated MetaWorkflowRun was found.")
-    input_file_uuids = extract_input_file_uuids_from_mwfr(output_meta_workflow_run)
-    input_files = get_items(list(input_file_uuids), request_handler)
+    input_files = get_input_files_from_mwfr(output_meta_workflow_run, request_handler)
 
     aliquot_pattern = re.compile(r"^[^-]+-[^-]+-([^-]+)-")
     aliquot_ids = set()
@@ -1038,8 +1052,7 @@ def get_sequencing_and_assay_codes_from_mwfr_input(
     errors = []
     if not output_meta_workflow_run:
         errors.append("Could not determine sequencing and assay code from MWFR input because no associated MetaWorkflowRun was found.")
-    input_file_uuids = extract_input_file_uuids_from_mwfr(output_meta_workflow_run)
-    input_files = get_items(list(input_file_uuids), request_handler)
+    input_files = get_input_files_from_mwfr(output_meta_workflow_run, request_handler)
 
     sequencing_assay_pattern = re.compile(r"^(?:[^-]+-){4}([^-]+)-")
     sequencing_assay_codes = set()
