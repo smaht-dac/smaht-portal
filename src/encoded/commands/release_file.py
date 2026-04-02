@@ -9,11 +9,7 @@ from dcicutils import ff_utils  # noqa
 from dcicutils.creds_utils import SMaHTKeyManager  # noqa
 
 from encoded.commands import create_annotated_filenames as caf
-from encoded.commands.utils import (
-    get_auth_key,
-    extract_input_file_uuids_from_mwfr,
-    search_list,
-)
+from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
     analyte as analyte_utils,
     cell_culture_mixture as cell_culture_mixture_utils,
