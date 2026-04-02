@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.22.1
+======
+
+`PR 636: Support release of core specific analysis files <https://github.com/smaht-dac/smaht-portal/pull/636>`_
+
+* Support core specific analysis files in release script 
+
+
 1.22.0
 ======
 
