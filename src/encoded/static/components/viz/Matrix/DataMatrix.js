@@ -17,6 +17,8 @@ import { termTransformFxnWithOverrides } from '../../browse/SearchView';
 
 export default class DataMatrix extends React.PureComponent {
 
+    static DONOR_TISSUE_ALL_ASSAYS = 'All';
+
     static MATRIX_MODES = {
         DONOR_ASSAY: 'donor_assay',
         TISSUE_ASSAY: 'tissue_assay',
@@ -448,8 +450,6 @@ export default class DataMatrix extends React.PureComponent {
         const normalizedInitialMatrixMode = _.values(DataMatrix.MATRIX_MODES).includes(props.initialMatrixMode)
             ? props.initialMatrixMode
             : DataMatrix.MATRIX_MODES.DONOR_ASSAY;
-        const donorTissueAssayOptions = props.donorTissueAssayOptions || [];
-
         const initialState = {
             "mounted": false,
             "isFetching": false,
@@ -492,7 +492,7 @@ export default class DataMatrix extends React.PureComponent {
             "defaultOpen": props.defaultOpen,
             "countFor": "files",
             "matrixMode": normalizedInitialMatrixMode,
-            "donorTissueAssay": donorTissueAssayOptions[0] || '',
+            "donorTissueAssay": DataMatrix.DONOR_TISSUE_ALL_ASSAYS,
             "availableDonorTissueAssays": [],
             "facetsForPanel": [],
             "facetFiltersForPanel": [],
@@ -511,7 +511,7 @@ export default class DataMatrix extends React.PureComponent {
 
     componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen, countFor, donorTissueAssay } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen, countFor } = this.state;
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
@@ -520,7 +520,6 @@ export default class DataMatrix extends React.PureComponent {
             showColumnSummary !== pastState.showColumnSummary ||
             defaultOpen !== pastState.defaultOpen ||
             countFor !== pastState.countFor ||
-            donorTissueAssay !== pastState.donorTissueAssay ||
             this.state.facetNavigationHref !== pastState.facetNavigationHref) {
             this.loadSearchQueryResults();
         }
@@ -856,11 +855,11 @@ export default class DataMatrix extends React.PureComponent {
                 updatedState['columnGroups'] = DataMatrix.deepExtend(columnGroups, autoPopulateMap);
             }
 
-            if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE && availableDonorTissueAssays.length > 0) {
+            if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
                 const donorTissueAssayOptions = this.getDonorTissueAssayOptions(availableDonorTissueAssays);
                 const currentDonorTissueAssay = this.state.donorTissueAssay;
                 const hasCurrentAssay = donorTissueAssayOptions.some(({ value }) => value === currentDonorTissueAssay);
-                updatedState['donorTissueAssay'] = hasCurrentAssay ? currentDonorTissueAssay : donorTissueAssayOptions[0]?.value || '';
+                updatedState['donorTissueAssay'] = hasCurrentAssay ? currentDonorTissueAssay : DataMatrix.DONOR_TISSUE_ALL_ASSAYS;
             }
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
@@ -982,60 +981,98 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     getEffectiveFacetHref(requestUrl = null) {
-        const { matrixMode, donorTissueAssay, facetNavigationHref } = this.state;
-        const baseHref = facetNavigationHref || requestUrl || (this.state.query && this.state.query.url) || '';
-        if (matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE || !donorTissueAssay) {
-            return baseHref;
-        }
-        const [basePath, queryString = ''] = baseHref.split('?');
-        const queryParams = queryString ? DataMatrix.parseQuery(queryString) : {};
-        _.extend(queryParams, this.getDonorTissueAssayFilterParams(donorTissueAssay));
-        const nextQueryString = DataMatrix.serializeQuery(queryParams);
-        return nextQueryString ? `${basePath}?${nextQueryString}` : basePath;
+        const { facetNavigationHref } = this.state;
+        return facetNavigationHref || requestUrl || (this.state.query && this.state.query.url) || '';
     }
 
     getDonorTissueAssayOptions(availableAssays = null) {
         const configuredDisplayValues = this.props.donorTissueAssayOptions || [];
-        const rawToDisplayMap = _.extend({}, this.props.valueChangeMap?.assay || {});
-        const displayToRawValues = _.reduce(_.pairs(rawToDisplayMap), (memo, [rawValue, displayValue]) => {
-            if (!memo[displayValue]) {
-                memo[displayValue] = [];
-            }
-            memo[displayValue].push(rawValue);
-            return memo;
-        }, {});
-        const availableDisplayAssays = Array.isArray(availableAssays) && availableAssays.length > 0
-            ? _.uniq(availableAssays.map((displayValue) => rawToDisplayMap[displayValue] || displayValue))
-            : null;
-        const assayDisplayValues = availableDisplayAssays || _.uniq(configuredDisplayValues.map((displayValue) => rawToDisplayMap[displayValue] || displayValue));
+        const assayDisplayValues = Array.isArray(availableAssays) && availableAssays.length > 0
+            ? _.uniq(availableAssays)
+            : _.uniq(configuredDisplayValues.map((displayValue) => this.props.valueChangeMap?.assay?.[displayValue] || displayValue));
 
-        return assayDisplayValues.map((displayValue) => {
-            return {
-                label: displayValue,
-                value: displayValue,
-                rawValues: _.uniq([displayValue, ...(displayToRawValues[displayValue] || [])])
-            };
-        });
+        return [
+            { label: DataMatrix.DONOR_TISSUE_ALL_ASSAYS, value: DataMatrix.DONOR_TISSUE_ALL_ASSAYS },
+            ...assayDisplayValues.map((displayValue) => {
+                return {
+                    label: displayValue,
+                    value: displayValue
+                };
+            })
+        ];
     }
 
-    getDonorTissueAssayFilterParams(selectedAssay = '') {
-        const selectedOption = this.getDonorTissueAssayOptions().find(({ value }) => value === selectedAssay);
-        if (!selectedOption) {
-            return {};
+    getDerivedDonorTissueResults(results = null) {
+        const { matrixMode, donorTissueAssay, groupingProperties, columnGrouping } = this.state;
+        if (matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE || !results) {
+            return results;
         }
-        if (selectedOption.value === 'DSA') {
+        if (!donorTissueAssay || donorTissueAssay === DataMatrix.DONOR_TISSUE_ALL_ASSAYS) {
+            return results;
+        }
+
+        const filteredAll = (results.all || []).filter((row) => row.assay === donorTissueAssay);
+        const aggregateCounts = (rows = []) => {
+            const donorValues = _.chain(rows)
+                .map((row) => row?.donor)
+                .flatten()
+                .compact()
+                .map((value) => String(value))
+                .uniq()
+                .value();
+
             return {
-                data_type: ['DSA', 'Chain File', 'Sequence Interval']
+                files: _.reduce(rows, (sum, row) => sum + (Number(row?.counts?.files) || 0), 0),
+                total_coverage: _.reduce(rows, (sum, row) => sum + (Number(row?.counts?.total_coverage) || 0), 0),
+                donors: donorValues.length,
+                donor_count: donorValues.length
             };
-        }
-        if (selectedOption.value === 'Variant Call Sets') {
-            return {
-                analysis_details: ['Filtered', 'Phased'],
-                'data_type!': ['DSA', 'Chain File', 'Sequence Interval']
-            };
-        }
+        };
+
+        const aggregateRowsByKeys = (rows = [], keys = []) => {
+            if (!Array.isArray(rows) || rows.length === 0) {
+                return [];
+            }
+            const groupedRows = _.groupBy(rows, (row) => JSON.stringify(_.object(keys, keys.map((key) => row?.[key]))));
+            return _.chain(groupedRows)
+                .values()
+                .map((groupRows) => {
+                    const firstRow = groupRows[0] || {};
+                    return {
+                        ..._.pick(firstRow, keys),
+                        counts: aggregateCounts(groupRows)
+                    };
+                })
+                .filter((row) => Number(row?.counts?.files) > 0)
+                .value();
+        };
+
+        const rowTotalKeys = _.chain(results.row_totals || [])
+            .map((row) => _.keys(row))
+            .flatten()
+            .uniq()
+            .without('counts', 'index')
+            .value();
+        const columnTotalKeys = _.chain(results.column_totals || [])
+            .map((row) => _.keys(row))
+            .flatten()
+            .uniq()
+            .without('counts', 'index')
+            .value();
+
+        const effectiveRowTotalKeys = rowTotalKeys.length > 0
+            ? rowTotalKeys
+            : _.uniq([...(groupingProperties || []), 'germLayer']);
+        const effectiveColumnTotalKeys = columnTotalKeys.length > 0
+            ? columnTotalKeys
+            : _.uniq([columnGrouping, 'germLayer']);
+
         return {
-            'file_sets.libraries.assay.display_title': selectedOption.rawValues
+            ...results,
+            all: filteredAll,
+            row_totals: aggregateRowsByKeys(filteredAll, effectiveRowTotalKeys),
+            column_totals: aggregateRowsByKeys(filteredAll, effectiveColumnTotalKeys),
+            overallCounts: aggregateCounts(filteredAll)
         };
     }
 
@@ -1328,10 +1365,13 @@ export default class DataMatrix extends React.PureComponent {
             matrixMode, donorTissueAssay, availableDonorTissueAssays
         } = this.state;
 
+        const resultKey = "_results";
         const effectiveFacetHref = this.getEffectiveFacetHref(query?.url);
         const isTissueMatrixCount = matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY;
         const effectiveHeaderPadding = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? 232 : this.props.headerPadding;
         const effectiveYAxisLabel = isTissueMatrixCount ? 'Tissue' : yAxisLabel;
+        const effectiveResults = this.getDerivedDonorTissueResults(this.state[resultKey]);
+        const effectiveOverallCounts = effectiveResults?.overallCounts || overallCounts;
 
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
@@ -1347,8 +1387,6 @@ export default class DataMatrix extends React.PureComponent {
                 </div>
             );
         }
-
-        const resultKey = "_results";
         const bodyProps = {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
@@ -1358,7 +1396,7 @@ export default class DataMatrix extends React.PureComponent {
             activeFacetHref: effectiveFacetHref || query?.url || null,
             showUniqueDonorsAssayBand: this.props.showUniqueDonorsAssayBand,
             countFor,
-            overallCounts,
+            overallCounts: effectiveOverallCounts,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };
@@ -1577,7 +1615,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 headerLeftControls={assaySelect || metricToggle}
                                                 columnSubGrouping=""// leave blank for now
                                                 // eslint-disable-next-line react/destructuring-assignment
-                                                results={this.state[resultKey]}
+                                                results={effectiveResults}
                                                 defaultDepthsOpen={[defaultOpen, false, false]}
                                                 // keysToInclude={[]}
                                             />
@@ -1597,7 +1635,7 @@ export default class DataMatrix extends React.PureComponent {
                                 headerLeftControls={null}
                                 columnSubGrouping=""// leave blank for now
                                 // eslint-disable-next-line react/destructuring-assignment
-                                results={this.state[resultKey]}
+                                results={effectiveResults}
                                 defaultDepthsOpen={[defaultOpen, false, false]}
                                 // keysToInclude={[]}
                             />
