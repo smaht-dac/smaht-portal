@@ -73,8 +73,7 @@
         "pubmed_id":{
             "title": "Publication Identifier",
             "description": "PMID for the publication (if available).",
-            "type": "string",
-            "comment": "Please provide in the form of PMID:12345678"
+            "type": "string"
         },
         "title": {
             "title": "Title",
@@ -95,7 +94,22 @@
             "type": "array",
             "items": {
                 "title": "Author",
-                "type": "string"
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["last_name"],
+                "uniqueItems": true,
+                "properties": {
+                    "first_name": {
+                        "title": "Given name and/or initials",
+                        "description": "An authors given (first) name and optional middle initial - or initials if that is only option",
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "title": "Surname",
+                        "description": "An authors surname (last name)",
+                        "type": "string"
+                    }
+                }
             },
             "permission": "restricted_fields"
         },
@@ -131,6 +145,18 @@
             "type": "string",
             "format": "uri",
             "permission": "restricted_fields"
+        },
+        "key_image_link": {
+            "title": "Key Image Link",
+            "description": "URL link to the full image file from a key figure from the paper - usually Fig. 1",
+            "type": "string",
+            "format": "uri"
+        },
+        "key_image_thumbnail_link": {
+            "title": "Key Image Thumbnail Link",
+            "description": "URL link to a thumbnail image from a key figure from the paper - usually Fig. 1 or part thereof",
+            "type": "string",
+            "format": "uri"
         },
         "repository_urls": {
             "title": "Repository URLs",
