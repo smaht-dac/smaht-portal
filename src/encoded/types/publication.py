@@ -44,11 +44,14 @@ class Publication(Item):
     def short_citation(self, authors=None, date_published=None):
         minipub = ""
         if authors:
-            minipub = authors[0]
-            if len(authors) > 2:
-                minipub = minipub + " et al."
+            first_author = authors[0]
+            fa_last = first_author.get("last_name", "")
+            if len(authors) == 1:
+                minipub = fa_last
+            elif len(authors) > 2:
+                minipub = fa_last + " et al."
             elif len(authors) == 2:
-                minipub = minipub + " and " + authors[1]
+                minipub = fa_last + " and " + authors[1].get("last_name", "")
         if date_published:
             minipub = minipub + " (" + date_published[0:4] + ")"
         return minipub
