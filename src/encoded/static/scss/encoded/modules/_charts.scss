@@ -1725,6 +1725,47 @@ body[data-path="/statistics"] {
         }
     }
 
+    .matrix-assay-select-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+        min-width: 280px;
+        max-width: 320px;
+        border: 1px solid #d7dde5;
+        border-radius: 999px;
+        background: #ffffff;
+        overflow: hidden;
+
+        .matrix-assay-select-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-bottom: 0;
+            padding: 0.38rem 0.8rem 0.38rem 0.85rem;
+            background: #8a1218;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 0 0 auto;
+
+            .icon {
+                font-size: 0.85rem;
+            }
+        }
+
+        .matrix-assay-select {
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            min-width: 0;
+            width: 100%;
+            padding: 0.38rem 2rem 0.38rem 0.8rem;
+            font-size: 0.85rem;
+            background-color: transparent;
+        }
+    }
+
     .matrix-visual-panel {
         min-width: 0;
         overflow: visible;
@@ -1839,6 +1880,13 @@ body[data-path="/statistics"] {
                         margin-bottom: 0 !important;
                         justify-content: flex-start;
                         width: 100%;
+                    }
+
+                    .matrix-assay-select-control {
+                        position: relative;
+                        left: 0;
+                        width: 320px;
+                        max-width: 320px;
                     }
                 }
             }
@@ -2602,6 +2650,74 @@ body[data-path="/statistics"] {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    &.matrix-mode-donor-tissue {
+        .stacked-block-viz-container {
+            .header-for-viz {
+                .header-col-text .column-group-header {
+                    > .inner {
+                        transform: rotate(-90deg);
+                    }
+                }
+            }
+
+            &.matrix-yaxis-donor {
+                .grouping.header-section-lower {
+                    .grouping-row.total-donors-summary-row {
+                        background-color: #f8e6db;
+
+                        .label-section > .label-container,
+                        .list-section {
+                            background-color: #f8e6db;
+                        }
+
+                        .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                        .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                            background-color: #f7dccd !important;
+                            border-color: #efc9b2 !important;
+                            color: #2f3440 !important;
+                        }
+                    }
+
+                    .grouping-row:not(.total-donors-summary-row) {
+                        background-color: #f2d6c3;
+                        border-bottom: 2px solid #d4ae96;
+
+                        .label-section > .label-container,
+                        .list-section {
+                            background-color: #f2d6c3;
+                        }
+
+                        .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                            background-color: #efcab0 !important;
+                            border-color: #e0b18f !important;
+                            color: #2f3440 !important;
+                        }
+                    }
+                }
+
+                .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                    background-color: #efcab0 !important;
+                    border-color: #e0b18f !important;
+                    color: #2f3440 !important;
+                }
+
+                .header-summary {
+                    .block-container-group {
+                        .stacked-block[data-block-type="col-summary"] {
+                            border-color: #e0b18f;
+                        }
+                    }
+                }
+
+                .stacked-block[data-block-type="regular"]:not([data-block-value="0"]):not(.is-open-block) {
+                    background-color: #9e101f !important;
+                    border-color: #870d1a !important;
+                    color: #ffffff !important;
                 }
             }
         }
