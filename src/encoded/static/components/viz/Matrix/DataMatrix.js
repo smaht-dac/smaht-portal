@@ -987,7 +987,8 @@ export default class DataMatrix extends React.PureComponent {
 
     getDonorTissueAssayOptions(availableAssays = null) {
         const configuredDisplayValues = this.props.donorTissueAssayOptions || [];
-        const assayDisplayValues = Array.isArray(availableAssays) && availableAssays.length > 0
+        const hasAvailableAssays = Array.isArray(availableAssays);
+        const assayDisplayValues = hasAvailableAssays
             ? _.uniq(availableAssays)
             : _.uniq(configuredDisplayValues.map((displayValue) => this.props.valueChangeMap?.assay?.[displayValue] || displayValue));
 
