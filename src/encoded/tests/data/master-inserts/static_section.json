@@ -776,6 +776,23 @@
         ]
     },
     {
+        "identifier": "smaht-snv-calling",
+        "title": "SMaHT SNV Calling",
+        "uuid": "607beb40-d109-46c5-b38d-f4008c296a16",
+        "section_type": "Page Section",
+        "status": "open",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "genome_builds",
         "title": "Genome Builds",
         "uuid": "455af80f-2dbd-40c7-b7b0-451783dc87ef",
