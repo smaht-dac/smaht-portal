@@ -7,6 +7,23 @@ smaht-portal
 Change Log
 ----------
 
+
+1.22.2
+======
+
+`PR 638: Bump SPC to 0.1.97 <https://github.com/smaht-dac/smaht-portal/pull/638>`_
+
+* Bump @hms-dbmi-bgm/shared-portal-components from 0.1.96 to 0.1.97 that basically fixes data fetch for 20+ selected facet terms.
+
+
+1.22.1
+======
+
+`PR 636: Support release of core specific analysis files <https://github.com/smaht-dac/smaht-portal/pull/636>`_
+
+* Support core specific analysis files in release script 
+
+
 1.22.0
 ======
 

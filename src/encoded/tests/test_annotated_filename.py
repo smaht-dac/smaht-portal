@@ -446,7 +446,13 @@ def test_get_aliquot_id(
     errors: bool,
 ) -> None:
     """Test aliquot ID retrieval for annotated filenames."""
-    result = get_aliquot_id(file, cell_culture_mixtures, cell_lines, tissue_samples)
+    result = get_aliquot_id(
+        request_handler=None,
+        file=file,
+        cell_culture_mixtures=cell_culture_mixtures,
+        cell_lines=cell_lines,
+        tissue_samples=tissue_samples,
+    )
     assert_filename_part_matches(result, expected, errors)
 
 
@@ -510,7 +516,12 @@ def test_get_sequencing_and_assay_codes(
     errors: bool,
 ) -> None:
     """Test sequencing and assay codes retrieval for annotated filenames."""
-    result = get_sequencing_and_assay_codes(file, sequencers, assays)
+    result = get_sequencing_and_assay_codes(
+        request_handler=None,
+        file=file,
+        sequencers=sequencers,
+        assays=assays
+    )
     assert_filename_part_matches(result, expected, errors)
 
 
