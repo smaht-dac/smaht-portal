@@ -897,7 +897,8 @@ export default class DataMatrix extends React.PureComponent {
         const {
             query: { url: requestUrl, columnAggFields: propColumnAggFields, rowAggFields: propRowAggFields },
             fieldChangeMap,
-            autoPopulateRowGroupsProperty
+            autoPopulateRowGroupsProperty,
+            matrixMode
         } = this.state;
         this.setState(
             { "isFetching": true },
@@ -938,6 +939,10 @@ export default class DataMatrix extends React.PureComponent {
                 } else {
                     rowAggFields.push(propRowAggFields);
                 };
+
+                if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE && fieldChangeMap.assay) {
+                    rowAggFields.push(fieldChangeMap.assay);
+                }
 
                 if (typeof requestUrl !== 'string' || !requestUrl) return;
 
@@ -1008,11 +1013,9 @@ export default class DataMatrix extends React.PureComponent {
         if (matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE || !results) {
             return results;
         }
-        if (!donorTissueAssay || donorTissueAssay === DataMatrix.DONOR_TISSUE_ALL_ASSAYS) {
-            return results;
-        }
-
-        const filteredAll = (results.all || []).filter((row) => row.assay === donorTissueAssay);
+        const filteredAll = (!donorTissueAssay || donorTissueAssay === DataMatrix.DONOR_TISSUE_ALL_ASSAYS)
+            ? (results.all || [])
+            : (results.all || []).filter((row) => row.assay === donorTissueAssay);
         const aggregateCounts = (rows = []) => {
             const donorValues = _.chain(rows)
                 .map((row) => row?.donor)
@@ -1373,6 +1376,9 @@ export default class DataMatrix extends React.PureComponent {
         const effectiveYAxisLabel = isTissueMatrixCount ? 'Tissue' : yAxisLabel;
         const effectiveResults = this.getDerivedDonorTissueResults(this.state[resultKey]);
         const effectiveOverallCounts = effectiveResults?.overallCounts || overallCounts;
+        const effectiveTotalFiles = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
+            ? (effectiveOverallCounts?.files ?? totalFiles)
+            : totalFiles;
 
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
@@ -1559,7 +1565,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 <div className="matrix-facet-terms-wrapper">
                                                     {typeof totalFiles === 'number' ? (
                                                         <div className="matrix-total-files-count">
-                                                            {`${totalFiles.toLocaleString()} Files`}
+                                                            {`${effectiveTotalFiles.toLocaleString()} Files`}
                                                         </div>
                                                     ) : null}
                                                     <div className="matrix-facet-terms-panel mt-1 search-view-controls-and-results">
