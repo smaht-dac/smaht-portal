@@ -168,6 +168,7 @@ export default class DataMatrix extends React.PureComponent {
             "germLayer": "sample_summary.category",
             "platform": "sequencing.sequencer.platform",
             "data_type": "data_type",
+            "analysis_details": "analysis_details",
             "file_format": "file_format.display_title",
             "data_category": "data_category",
             "software": "software.display_title",
@@ -971,6 +972,12 @@ export default class DataMatrix extends React.PureComponent {
                     if (fieldChangeMap.platform) {
                         rowAggFields.push(fieldChangeMap.platform);
                     }
+                    if (fieldChangeMap.data_type) {
+                        rowAggFields.push(fieldChangeMap.data_type);
+                    }
+                    if (fieldChangeMap.analysis_details) {
+                        rowAggFields.push(fieldChangeMap.analysis_details);
+                    }
                 }
 
                 if (typeof requestUrl !== 'string' || !requestUrl) return;
@@ -1022,9 +1029,10 @@ export default class DataMatrix extends React.PureComponent {
     getDonorTissueAssayOptions(availableAssays = null) {
         const configuredDisplayValues = this.props.donorTissueAssayOptions || [];
         const hasAvailableAssays = Array.isArray(availableAssays);
-        const assayDisplayValues = hasAvailableAssays
+        const assayDisplayValues = (hasAvailableAssays
             ? _.uniq(availableAssays)
-            : _.uniq(configuredDisplayValues.map((displayValue) => this.props.valueChangeMap?.assay?.[displayValue] || displayValue));
+            : _.uniq(configuredDisplayValues.map((displayValue) => this.props.valueChangeMap?.assay?.[displayValue] || displayValue)))
+            .filter((displayValue) => displayValue && displayValue !== 'No value' && displayValue !== 'No value - No value');
 
         return [
             { label: DataMatrix.DONOR_TISSUE_ALL_ASSAYS, value: DataMatrix.DONOR_TISSUE_ALL_ASSAYS },
