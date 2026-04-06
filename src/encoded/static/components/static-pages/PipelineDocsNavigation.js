@@ -73,244 +73,305 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             <div className="nav-group">
-                <h3>Whole Genome Sequencing (WGS) and Hi-C</h3>
-                <p>
-                    WGS workflows are structured according to the main
-                    processing steps, preprocessing and alignment:
-                </p>
-                <h6>PREPROCESSING</h6>
-                <Dropdown
-                    parentTitle="FASTQ"
-                    parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
-                    subLinks={[
-                        {
-                            title: 'Overview',
-                            href: '#overview',
-                        },
-                        {
-                            title: 'polyG Artifacts Removal',
-                            href: '#polyg-artifacts-removal',
-                        },
-                    ]}
-                    overview={
-                        <p>
-                            FASTQ files contain raw sequencing information,
-                            including nucleotide sequences and quality scores,
-                            and serve as the initial input for a majority of
-                            analyses. However, the presence of artifacts,
-                            low-quality, or residual adapter sequences can
-                            significantly impact downstream processing.
-                            Preprocessing steps, including quality trimming,
-                            adapter, and artifact removal, may be necessary to
-                            ensure data quality and meeting requirements for
-                            subsequent analyses.
-                        </p>
-                    }
-                />
-                <h6>ALIGNMENT</h6>
-                <Dropdown
-                    parentTitle="Illumina (short-read)"
-                    parentLink="/docs/additional-resources/pipeline-docs/short-read_illumina_paired-end"
-                    subLinks={[
-                        {
-                            title: 'Overview',
-                            href: '#overview',
-                        },
-                        {
-                            title: 'Alignment',
-                            href: '#alignment-with-bwa-mem',
-                        },
-                        {
-                            title: 'Read Groups',
-                            href: '#read-groups',
-                        },
-                        {
-                            title: 'Duplicate Reads',
-                            href: '#duplicate-reads',
-                        },
-                        {
-                            title: 'Local Realignment',
-                            href: '#local-realignment',
-                        },
-                        {
-                            title: 'Base Quality Score Recalibration (BQSR)',
-                            href: '#base-quality-score-recalibration-bqsr',
-                        },
-                        {
-                            title: 'Hi-C',
-                            href: '#hi-c',
-                        },
-                    ]}
-                    overview={
-                        <p>
-                            The paired-end short-read alignment pipeline for
-                            Illumina data follows the Genome Analysis Toolkit
-                            (GATK) Best Practices. It is designed for per-sample
-                            and per-library execution, handling one or multiple
-                            sets of paired FASTQ files. The pipeline is
-                            optimized for distributed processing, requiring each
-                            pair of FASTQ files to correspond to a single
-                            sequencing lane.
-                        </p>
-                    }
-                />
-                <Dropdown
-                    parentTitle="PacBio HiFi (long-read)"
-                    parentLink="/docs/additional-resources/pipeline-docs/long-read_pacbio_hifi"
-                    subLinks={[
-                        {
-                            title: 'Overview',
-                            href: '#overview',
-                        },
-                        {
-                            title: 'Alignment',
-                            href: '#alignment-with-pbmm2',
-                        },
-                        {
-                            title: 'Read Groups',
-                            href: '#read-groups',
-                        },
-                        {
-                            title: 'Methylation and Tags',
-                            href: '#methylation-and-tags',
-                        },
-                    ]}
-                    overview={
-                        <p>
-                            The long-read alignment pipeline for PacBio HiFi
-                            data is designed for per-sample and per-library
-                            execution, handling one or multiple unaligned BAM
-                            files. The pipeline is optimized for distributed
-                            processing, requiring each unaligned BAM file to
-                            correspond to a single SMRT Cell.
-                        </p>
-                    }
-                />
-                <Dropdown
-                    parentTitle="Oxford Nanopore (long-read)"
-                    parentLink="/docs/additional-resources/pipeline-docs/long-read_oxford_nanopore"
-                    subLinks={[
-                        {
-                            title: 'Overview',
-                            href: '#overview',
-                        },
-                        {
-                            title: 'Alignment',
-                            href: '#alignment-with-minimap2',
-                        },
-                        {
-                            title: 'Read Groups',
-                            href: '#read-groups',
-                        },
-                        {
-                            title: 'Methylation and Tags',
-                            href: '#methylation-and-tags',
-                        },
-                    ]}
-                    overview={
-                        <p>
-                            The long-read alignment pipeline for ONT data is
-                            designed for per-sample and per-library execution,
-                            handling one or multiple FASTQ files and the
-                            corresponding unaligned BAM files. The pipeline is
-                            optimized for distributed processing, requiring each
-                            FASTQ file to correspond to a single flow cell.
-                        </p>
-                    }
-                />
+                <h3>Assay Type</h3>
+                <div className="nav-subgroup">
+                    <h5>Whole Genome Sequencing (WGS) and Hi-C</h5>
+                    <p>
+                        WGS workflows are structured according to the main
+                        processing steps, preprocessing and alignment:
+                    </p>
+                    <h6>PREPROCESSING</h6>
+                    <Dropdown
+                        parentTitle="FASTQ"
+                        parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
+                        subLinks={[
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'polyG Artifacts Removal',
+                                href: '#polyg-artifacts-removal',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                FASTQ files contain raw sequencing information,
+                                including nucleotide sequences and quality
+                                scores, and serve as the initial input for a
+                                majority of analyses. However, the presence of
+                                artifacts, low-quality, or residual adapter
+                                sequences can significantly impact downstream
+                                processing. Preprocessing steps, including
+                                quality trimming, adapter, and artifact removal,
+                                may be necessary to ensure data quality and
+                                meeting requirements for subsequent analyses.
+                            </p>
+                        }
+                    />
+                    <h6>ALIGNMENT</h6>
+                    <Dropdown
+                        parentTitle="Illumina (short-read)"
+                        parentLink="/docs/additional-resources/pipeline-docs/short-read_illumina_paired-end"
+                        subLinks={[
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'Alignment',
+                                href: '#alignment-with-bwa-mem',
+                            },
+                            {
+                                title: 'Read Groups',
+                                href: '#read-groups',
+                            },
+                            {
+                                title: 'Duplicate Reads',
+                                href: '#duplicate-reads',
+                            },
+                            {
+                                title: 'Local Realignment',
+                                href: '#local-realignment',
+                            },
+                            {
+                                title: 'Base Quality Score Recalibration (BQSR)',
+                                href: '#base-quality-score-recalibration-bqsr',
+                            },
+                            {
+                                title: 'Hi-C',
+                                href: '#hi-c',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                The paired-end short-read alignment pipeline for
+                                Illumina data follows the Genome Analysis
+                                Toolkit (GATK) Best Practices. It is designed
+                                for per-sample and per-library execution,
+                                handling one or multiple sets of paired FASTQ
+                                files. The pipeline is optimized for distributed
+                                processing, requiring each pair of FASTQ files
+                                to correspond to a single sequencing lane.
+                            </p>
+                        }
+                    />
+                    <Dropdown
+                        parentTitle="PacBio HiFi (long-read)"
+                        parentLink="/docs/additional-resources/pipeline-docs/long-read_pacbio_hifi"
+                        subLinks={[
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'Alignment',
+                                href: '#alignment-with-pbmm2',
+                            },
+                            {
+                                title: 'Read Groups',
+                                href: '#read-groups',
+                            },
+                            {
+                                title: 'Methylation and Tags',
+                                href: '#methylation-and-tags',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                The long-read alignment pipeline for PacBio HiFi
+                                data is designed for per-sample and per-library
+                                execution, handling one or multiple unaligned
+                                BAM files. The pipeline is optimized for
+                                distributed processing, requiring each unaligned
+                                BAM file to correspond to a single SMRT Cell.
+                            </p>
+                        }
+                    />
+                    <Dropdown
+                        parentTitle="Oxford Nanopore (long-read)"
+                        parentLink="/docs/additional-resources/pipeline-docs/long-read_oxford_nanopore"
+                        subLinks={[
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'Alignment',
+                                href: '#alignment-with-minimap2',
+                            },
+                            {
+                                title: 'Read Groups',
+                                href: '#read-groups',
+                            },
+                            {
+                                title: 'Methylation and Tags',
+                                href: '#methylation-and-tags',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                The long-read alignment pipeline for ONT data is
+                                designed for per-sample and per-library
+                                execution, handling one or multiple FASTQ files
+                                and the corresponding unaligned BAM files. The
+                                pipeline is optimized for distributed
+                                processing, requiring each FASTQ file to
+                                correspond to a single flow cell.
+                            </p>
+                        }
+                    />
+                </div>
+                <div className="nav-subgroup">
+                    <h5>RNA-seq</h5>
+                    <p>
+                        RNA-seq workflows include alignment and downstream
+                        analysis for:
+                    </p>
+                    <Dropdown
+                        parentTitle="Bulk Total RNA (short-read)"
+                        parentLink="/docs/additional-resources/pipeline-docs/short-read_rna-seq_paired-end"
+                        subLinks={[
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'Alignment',
+                                href: '#alignment-with-star',
+                            },
+                            {
+                                title: 'Duplicate Reads',
+                                href: '#duplicate-reads',
+                            },
+                            {
+                                title: 'Transcript Quantification',
+                                href: '#transcript-quantification',
+                            },
+                            {
+                                title: 'Gene Quantification',
+                                href: '#gene-quantification',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                The paired-end short-read analysis pipeline for
+                                RNA-seq data is based on GTEx
+                                <sup>
+                                    <sub>1</sub>
+                                </sup>{' '}
+                                and TOPMed
+                                <sup>
+                                    <sub>2</sub>
+                                </sup>{' '}
+                                analysis pipelines. It is designed for
+                                per-sample execution, handling one or multiple
+                                sets of paired FASTQ files.
+                            </p>
+                        }
+                    />
+                    <Dropdown
+                        parentTitle="PacBio Kinnex (long-read)"
+                        parentLink="/docs/additional-resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex"
+                        subLinks={[
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'Read Clustering',
+                                href: '#read-clustering',
+                            },
+                            {
+                                title: 'Alignment',
+                                href: '#alignment-with-pbmm2',
+                            },
+                            {
+                                title: 'Transcript Collapsing',
+                                href: '#transcript-collapsing',
+                            },
+                            {
+                                title: 'Isoform Classification and Filtering',
+                                href: '#isoform-classification-and-filtering',
+                            },
+                            {
+                                title: 'Read Annotation',
+                                href: '#read-annotation',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                The long-read analysis pipeline for PacBio
+                                Kinnex RNA-seq data follows Iso-Seq processing
+                                guidelines
+                                <sup>
+                                    <sub>1</sub>
+                                </sup>
+                                . It is designed for per-sample execution,
+                                handling one or more Full Length Non Chimeric
+                                (FLNC) BAM files. The pipeline has been extended
+                                to align and annotate FLNC reads with
+                                isoform-level information directly within the
+                                BAM file.
+                            </p>
+                        }
+                    />
+                </div>
             </div>
             <div className="nav-group">
-                <h3>RNA-seq</h3>
-                <p>
-                    RNA-seq workflows include alignment and downstream analysis
-                    for:
-                </p>
-                <Dropdown
-                    parentTitle="Bulk Total RNA (short-read)"
-                    parentLink="/docs/additional-resources/pipeline-docs/short-read_rna-seq_paired-end"
-                    subLinks={[
-                        {
-                            title: 'Overview',
-                            href: '#overview',
-                        },
-                        {
-                            title: 'Alignment',
-                            href: '#alignment-with-star',
-                        },
-                        {
-                            title: 'Duplicate Reads',
-                            href: '#duplicate-reads',
-                        },
-                        {
-                            title: 'Transcript Quantification',
-                            href: '#transcript-quantification',
-                        },
-                        {
-                            title: 'Gene Quantification',
-                            href: '#gene-quantification',
-                        },
-                    ]}
-                    overview={
-                        <p>
-                            The paired-end short-read analysis pipeline for
-                            RNA-seq data is based on GTEx
-                            <sup>
-                                <sub>1</sub>
-                            </sup>{' '}
-                            and TOPMed
-                            <sup>
-                                <sub>2</sub>
-                            </sup>{' '}
-                            analysis pipelines. It is designed for per-sample
-                            execution, handling one or multiple sets of paired
-                            FASTQ files.
-                        </p>
-                    }
-                />
-                <Dropdown
-                    parentTitle="PacBio Kinnex (long-read)"
-                    parentLink="/docs/additional-resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex"
-                    subLinks={[
-                        {
-                            title: 'Overview',
-                            href: '#overview',
-                        },
-                        {
-                            title: 'Read Clustering',
-                            href: '#read-clustering',
-                        },
-                        {
-                            title: 'Alignment',
-                            href: '#alignment-with-pbmm2',
-                        },
-                        {
-                            title: 'Transcript Collapsing',
-                            href: '#transcript-collapsing',
-                        },
-                        {
-                            title: 'Isoform Classification and Filtering',
-                            href: '#isoform-classification-and-filtering',
-                        },
-                        {
-                            title: 'Read Annotation',
-                            href: '#read-annotation',
-                        },
-                    ]}
-                    overview={
-                        <p>
-                            The long-read analysis pipeline for PacBio Kinnex
-                            RNA-seq data follows Iso-Seq processing guidelines
-                            <sup>
-                                <sub>1</sub>
-                            </sup>
-                            . It is designed for per-sample execution, handling
-                            one or more Full Length Non Chimeric (FLNC) BAM
-                            files. The pipeline has been extended to align and
-                            annotate FLNC reads with isoform-level information
-                            directly within the BAM file.
-                        </p>
-                    }
-                />
+                <h3>Germline Variant Calling</h3>
+                <div className="nav-subgroup">
+                    <Dropdown
+                        parentTitle="Germline Variant Calling, DNAscope Hybrid"
+                        parentLink="/docs/additional-resources/pipeline-docs/genome_builds"
+                        subLinks={[
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'Build GRCh38',
+                                href: '#build-grch38',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                Genome analysis, particularly alignment
+                                pipelines, heavily depends on a designated
+                                reference genome to ensure consistency and
+                                reproducibility across diverse analyses. The
+                                primary reference genome in use for the
+                                pipelines is the Genome Reference Consortium
+                                Human Build 38 (GRCh38).
+                            </p>
+                        }
+                    />
+                    <Dropdown
+                        parentTitle="SMaHT Single-Nucleotide Variant Calling"
+                        parentLink="/docs/additional-resources/pipeline-docs/smaht-snv-calling"
+                        subLinks={[
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'Short-Read Variant Calling',
+                                href: '#short-read-variant-calling',
+                            },
+                            {
+                                title: 'Software Version',
+                                href: '#software-version',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                Placeholder overview text for the SMaHT
+                                Single-Nucleotide Variant Calling pipeline
+                                documentation page.
+                            </p>
+                        }
+                    />
+                </div>
             </div>
             <div className="nav-group">
                 <h3>Reference Files</h3>
