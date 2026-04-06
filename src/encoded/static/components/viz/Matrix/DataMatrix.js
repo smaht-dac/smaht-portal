@@ -422,6 +422,23 @@ export default class DataMatrix extends React.PureComponent {
         return parts.join('&');
     }
 
+    static getMappedAssayDisplayValue(row = {}, valueChangeMap = {}, forceCombineWithPlatform = false) {
+        if (!row || typeof row.assay === 'undefined' || row.assay === null) {
+            return null;
+        }
+        const assayValueChangeMap = valueChangeMap?.assay || {};
+        const assayValue = row.assay;
+        const platformValue = row.platform;
+        const assayAlreadyIncludesPlatform = typeof assayValue === 'string' && assayValue.indexOf(' - ') > -1;
+        const assayWithPlatform = (forceCombineWithPlatform && platformValue && !assayAlreadyIncludesPlatform)
+            ? `${assayValue} - ${platformValue}`
+            : assayValue;
+
+        return assayValueChangeMap[assayWithPlatform]
+            || assayValueChangeMap[assayValue]
+            || assayWithPlatform;
+    }
+
     getColorRanges({ colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep }) {
         let colorRanges = [];
         for (let i = 0; i < colorRangeSegments; i++) {
@@ -742,8 +759,16 @@ export default class DataMatrix extends React.PureComponent {
                     cloned = DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey](cloned);
                 }
                 if (cloned.counts && cloned.counts.files && cloned.counts.files > 0) {
+                    if (typeof cloned.assay === 'string') {
+                        cloned.assay = DataMatrix.getMappedAssayDisplayValue(
+                            cloned,
+                            valueChangeMap,
+                            matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
+                        );
+                    }
                     if (valueChangeMap) {
                         _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
+                            if (field === 'assay') return;
                             if (typeof cloned[field] === 'string') {
                                 cloned[field] = changeMap[cloned[field]] || cloned[field];
                             }
@@ -942,6 +967,9 @@ export default class DataMatrix extends React.PureComponent {
 
                 if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE && fieldChangeMap.assay) {
                     rowAggFields.push(fieldChangeMap.assay);
+                    if (fieldChangeMap.platform) {
+                        rowAggFields.push(fieldChangeMap.platform);
+                    }
                 }
 
                 if (typeof requestUrl !== 'string' || !requestUrl) return;
