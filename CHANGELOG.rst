@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.22.4
+======
+
+`PR : fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/>`_
+
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries 
 1.22.3
 ======
 
