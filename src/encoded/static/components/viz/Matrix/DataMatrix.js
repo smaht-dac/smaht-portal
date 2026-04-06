@@ -518,6 +518,7 @@ export default class DataMatrix extends React.PureComponent {
         if (normalizedInitialMatrixMode !== DataMatrix.MATRIX_MODES.DONOR_ASSAY) {
             Object.assign(initialState, this.getNextStateForMatrixMode(normalizedInitialMatrixMode, initialState));
         }
+        this.latestLoadRequestId = 0;
         this.state = initialState;
     }
 
@@ -720,25 +721,30 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     loadSearchQueryResults() {
+        const requestId = ++this.latestLoadRequestId;
+        const {
+            valueChangeMap,
+            resultItemPostProcessFuncKey,
+            resultTransformedPostProcessFuncKey,
+            onDataLoaded,
+            autoPopulateRowGroupsExtendedMapFields,
+            autoPopulateColumnGroupsMapFields
+        } = this.props;
+        const {
+            query: { url: requestUrl, columnAggFields: propColumnAggFields, rowAggFields: propRowAggFields },
+            fieldChangeMap,
+            groupingProperties,
+            columnGrouping,
+            autoPopulateRowGroupsProperty,
+            rowGroupsExtended,
+            columnGroups,
+            matrixMode
+        } = this.state;
 
         const commonCallback = (result) => {
-            const {
-                valueChangeMap,
-                resultItemPostProcessFuncKey,
-                resultTransformedPostProcessFuncKey,
-                onDataLoaded,
-                autoPopulateRowGroupsExtendedMapFields,
-                autoPopulateColumnGroupsMapFields
-            } = this.props;
-            const {
-                fieldChangeMap,
-                groupingProperties,
-                columnGrouping,
-                autoPopulateRowGroupsProperty,
-                rowGroupsExtended,
-                columnGroups,
-                matrixMode
-            } = this.state;
+            if (requestId !== this.latestLoadRequestId) {
+                return;
+            }
             const resultKey = "_results";
             const updatedState = {};
 
@@ -899,7 +905,9 @@ export default class DataMatrix extends React.PureComponent {
         };
 
         const commonFallback = (result) => {
-            const { onDataLoaded } = this.props;
+            if (requestId !== this.latestLoadRequestId) {
+                return;
+            }
 
             const resultKey = "_results";
             const updatedState = {};
@@ -918,13 +926,6 @@ export default class DataMatrix extends React.PureComponent {
                 });
             }
         };
-
-        const {
-            query: { url: requestUrl, columnAggFields: propColumnAggFields, rowAggFields: propRowAggFields },
-            fieldChangeMap,
-            autoPopulateRowGroupsProperty,
-            matrixMode
-        } = this.state;
         this.setState(
             { "isFetching": true },
             () => {
