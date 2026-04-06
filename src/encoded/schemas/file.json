@@ -326,7 +326,7 @@
         },
         "donors.donor_groups": {
             "title": "Donor Groups"
-        }
+        },
         "donors.age": {
             "title": "Donor Age",
             "aggregation_type": "range",
