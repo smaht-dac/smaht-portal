@@ -318,6 +318,7 @@
             "041ca9a2-2b67-409c-ac50-4705f995fb99",
             "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
             "3f503a50-8646-4b4d-b870-73eabc8106a2",
+            "601f73be-f782-4d28-b49a-fc8905d4161b",
             "6d703cf9-9369-4efa-b754-c6097218ac3a",
             "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
             "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
@@ -443,6 +444,25 @@
         ],
         "status": "open",
         "uuid": "3f503a50-8646-4b4d-b870-73eabc8106a2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/dnascope-hybrid",
+        "title": "DNAscope Hybrid",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "572bc97f-3749-4d0b-850e-793e3d2b33ea"
+        ],
+        "status": "open",
+        "uuid": "601f73be-f782-4d28-b49a-fc8905d4161b",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
