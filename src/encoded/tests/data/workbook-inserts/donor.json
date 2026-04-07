@@ -11,6 +11,7 @@
         "hardy_scale": 3,
         "tpc_submitted": "True",
         "protected_donor": "TEST_PROTECTED-DONOR_FEMALE",
+        "donor_groups": ["P25"],
         "status": "open"
     },
     {

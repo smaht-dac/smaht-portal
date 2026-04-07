@@ -7,6 +7,65 @@ smaht-portal
 Change Log
 ----------
 
+1.22.5
+======
+
+`PR 644: Add donor_groups property to abstract_donor <https://github.com/smaht-dac/smaht-portal/pull/644>`_
+
+* to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
+
+1.22.4
+======
+
+`PR 645: fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/645>`_
+
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries 
+1.22.3
+======
+
+`PR 642: update enum for braak_and_braak_ad field in brain_pathology_report <https://github.com/smaht-dac/smaht-portal/pull/642>`_
+
+* add '0' to enum in brain_pathology_report schema in braak_and_braak_ad field"
+
+1.22.2
+======
+
+`PR 638: Bump SPC to 0.1.97 <https://github.com/smaht-dac/smaht-portal/pull/638>`_
+
+* Bump @hms-dbmi-bgm/shared-portal-components from 0.1.96 to 0.1.97 that basically fixes data fetch for 20+ selected facet terms.
+
+
+1.22.1
+======
+
+`PR 636: Support release of core specific analysis files <https://github.com/smaht-dac/smaht-portal/pull/636>`_
+
+* Support core specific analysis files in release script 
+
+
+1.22.0
+======
+
+* Implement CADR email restrictions on login
+* Add command for setting restricted emails to deleted
+* Update user registration modal alerts
+
+
+1.21.6
+======
+
+`PR 629: fix: prevent long URL generation from release tracker <https://github.com/smaht-dac/smaht-portal/pull/629>`_
+
+* Prevent the release tracker queries from getting too long
+
+
+1.21.5
+======
+
+`PR 634: feat: update auth0 text <https://github.com/smaht-dac/smaht-portal/pull/634>`_
+
+* Update auth0 modal text
+
 
 1.21.4
 ======
@@ -152,7 +211,7 @@ Change Log
 `PR 616: feat: add software facet <https://github.com/smaht-dac/smaht-portal/pull/616>`_
 
 * Add software facet
-* Reorder facets 
+* Reorder facets
 
 
 1.17.0

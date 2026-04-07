@@ -4,8 +4,9 @@ import unittest
 from pyramid.interfaces import IAuthenticationPolicy
 from pyramid.security import Authenticated, Everyone
 from pyramid.testing import DummyRequest
+from pyramid.httpexceptions import HTTPForbidden
 from zope.interface.verify import verifyClass, verifyObject
-from ..authentication import NamespacedAuthenticationPolicy
+from ..authentication import NamespacedAuthenticationPolicy, email_is_not_restricted
 
 
 pytestmark = [pytest.mark.setone, pytest.mark.working]
@@ -101,3 +102,19 @@ class TestNamespacedAuthenticationPolicy(unittest.TestCase):
         result = policy.forget(request)
         self.assertEqual(request.session.get('userid'), None)
         self.assertEqual(result, [])
+
+
+@pytest.mark.parametrize('email', [
+    'bsmepublic@163.com',  # explicitly listed email
+    'test@gsu.edu',  # wildcard pattern from email list
+    'person@gmail.com',  # common free email
+    'person@org.cn',  # general restricted email location
+    'person2@complex.org.ru'  # more restricted location
+])
+def test_restricted_emails(testapp, email):
+    """ Unit tests for the helper function that does email verification """
+    with pytest.raises(HTTPForbidden):
+        email_is_not_restricted(testapp.app.registry, None, email)
+        email_is_not_restricted(testapp.app.registry, {
+            'email': email
+        })

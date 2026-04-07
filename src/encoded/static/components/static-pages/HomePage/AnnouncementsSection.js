@@ -135,7 +135,7 @@ const AnnouncementCard = ({
                 {title}
                 {date ? (
                     <LocalizedTime
-                        timestamp={new Date(date)}
+                        timestamp={date}
                         formatType="date-sm-compact"
                     />
                 ) : null}
