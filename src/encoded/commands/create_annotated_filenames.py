@@ -3,11 +3,16 @@ from __future__ import annotations
 import argparse
 import logging
 from dataclasses import dataclass
+import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from dcicutils import ff_utils
 
-from encoded.commands.utils import get_auth_key
+from encoded.commands.utils import (
+    get_auth_key,
+    extract_input_file_uuids_from_mwfr,
+    search_list,
+)
 from encoded.item_utils import (
     constants,
     assay as assay_utils,
@@ -28,7 +33,10 @@ from encoded.item_utils import (
     reference_genome as rg_utils,
     external_output_file as eof_utils
 )
-from encoded.item_utils.constants import file as file_constants
+from encoded.item_utils.constants import (
+    file as file_constants,
+    item as item_constants,
+)
 from encoded.item_utils.utils import RequestHandler
 
 
@@ -192,6 +200,21 @@ def get_items(
 ) -> List[Dict[str, Any]]:
     """Get items from identifiers."""
     return request_handler.get_items(identifiers)
+
+
+_input_files_cache: Dict[frozenset, List[Dict[str, Any]]] = {}
+def get_input_files_from_mwfr(
+    output_meta_workflow_run: Optional[Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get input files from a MetaWorkflowRun, caching results by UUID set."""
+    input_file_uuids = frozenset(
+        extract_input_file_uuids_from_mwfr(output_meta_workflow_run or {})
+    )
+    if input_file_uuids not in _input_files_cache:
+        _input_files_cache[input_file_uuids] = search_list(
+            list(input_file_uuids), request_handler.auth_key
+        )
+    return _input_files_cache[input_file_uuids]
 
 
 def get_file_sets(
@@ -504,6 +527,7 @@ def get_annotated_filename(
     request_handler: RequestHandler,
     file_sets: Optional[Dict[str, List[str]]] = None,
     analysis_run: Optional[Dict[str, Any]] = None,
+    output_meta_workflow_run: Optional[Dict[str, Any]] = None
 ) -> AnnotatedFilename:
     """Get annotated filename for given file.
 
@@ -529,20 +553,24 @@ def get_annotated_filename(
         associated_items.tissues,
     )
     aliquot_id = get_aliquot_id(
+        request_handler,
         associated_items.file,
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissue_samples,
-        analysis_run=analysis_run
+        analysis_run=analysis_run,
+        output_meta_workflow_run=output_meta_workflow_run
     )
     donor_sex_and_age = get_donor_sex_and_age(
         associated_items.donors, associated_items.sample_sources
     )
     sequencing_and_assay_codes = get_sequencing_and_assay_codes(
+        request_handler,
         associated_items.file, 
         associated_items.sequencers, 
         associated_items.assays,
-        analysis_run=analysis_run
+        analysis_run=analysis_run,
+        output_meta_workflow_run=output_meta_workflow_run
     )
     sequencing_center_code = get_sequencing_center_code(
         associated_items.sequencing_center
@@ -758,25 +786,104 @@ def get_protocol_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
 
 
 def get_aliquot_id(
+    request_handler: RequestHandler,
     file: Dict[str, Any],
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
-    analysis_run: Optional[Dict[str, Any]] = None
+    analysis_run: Optional[Dict[str, Any]] = None,
+    output_meta_workflow_run: Optional[Dict[str, Any]] = None
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
     parts = []
     if cell_culture_mixtures or cell_lines or eof_utils.is_external_output_file(file):
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if analysis_run:
-        mamc = get_filename_part_for_values(
-            ["MAMC"], "tissue aliquot ID", source_name="sample"
-        )
-        parts.append(mamc)
+        parts.append(get_aliquot_id_from_mwfr_input(request_handler, output_meta_workflow_run))
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
 
+
+def get_aliquot_id_from_mwfr_input(
+    request_handler: RequestHandler, output_meta_workflow_run: Dict[str, Any]
+) -> FilenamePart:
+    """Get tissue aliquot ID from the input files of a MetaWorkflowRun.
+
+    Extracts the aliquot ID (3rd position in the annotated filename, e.g. '003B1'
+    from 'SMHT012-3AF-003B1-...') from each input file of the associated MWFR.
+    The aliquot ID is split into a base aliquot (all but last 2 chars) and a core
+    (last 2 chars). If all input files share the same base aliquot, that value is
+    used; if they differ, 'MA' is used. Similarly, 'MC' is used when cores differ.
+    Input files with status 'uploaded' or without an annotated filename are skipped.
+    """
+    errors = []
+    if not output_meta_workflow_run:
+        errors.append("Could not determine aliquot id from MWFR input because no associated MetaWorkflowRun was found.")
+    input_files = get_input_files_from_mwfr(output_meta_workflow_run, request_handler)
+
+    aliquot_pattern = re.compile(r"^[^-]+-[^-]+-([^-]+)-")
+    aliquot_ids = set()
+    files_without_annotated_filename = []
+    files_with_unexpected_annotated_filename = []
+
+    for input_file in input_files:
+        if item_utils.get_status(input_file) == item_constants.STATUS_UPLOADED:
+            continue
+
+        annotated_filename = input_file.get(file_constants.ANNOTATED_FILENAME)
+        if not annotated_filename:
+            files_without_annotated_filename.append(
+                item_utils.get_accession(input_file) 
+            )
+            continue
+
+        match = aliquot_pattern.match(annotated_filename)
+        if not match:
+            files_with_unexpected_annotated_filename.append(
+                item_utils.get_accession(input_file)
+            )
+            continue
+
+        aliquot_ids.add(match.group(1))
+
+    if files_without_annotated_filename or files_with_unexpected_annotated_filename:
+        logger.warning(
+            f"Could not extract aliquot ids from the following files: "
+            f"{', '.join(files_without_annotated_filename + files_with_unexpected_annotated_filename)}."
+        )
+
+    aliquot_for_file = ""
+    core_for_file = ""
+    aliquots = set()
+    cores = set()
+    for aliquot_id in aliquot_ids:
+        aliquot = aliquot_id[:-2]
+        core = aliquot_id[-2:]
+        if aliquot:
+            aliquots.add(aliquot)
+        if core:
+            cores.add(core)
+
+    # Note that aliquots and cores are sets (no duplicate values)
+    if len(aliquots) > 1:
+        aliquot_for_file = "MA"
+    elif len(aliquots) == 1:
+        aliquot_for_file = list(aliquots)[0]
+
+    if len(cores) > 1 or len(aliquots) > 1:
+        core_for_file = "MC"
+    elif len(cores) == 1:
+        core_for_file = list(cores)[0]
+
+    aliquot_id = f"{aliquot_for_file}{core_for_file}"
+
+    if not aliquot_id:
+        errors.append(
+            f"Could not determine common aliquot id for the file to release from the input files of the associated MWFR."
+        )
+
+    return get_filename_part(value=aliquot_id, errors=errors)
 
 def get_aliquot_id_from_samples(tissue_samples: List[Dict[str, Any]]) -> FilenamePart:
     """Get aliquot ID from sample items.
@@ -887,10 +994,12 @@ def get_sex_abbreviation(sex: str) -> str:
 
 
 def get_sequencing_and_assay_codes(
+    request_handler: RequestHandler,
     file: Dict[str, Any],
     sequencers: List[Dict[str, Any]],
     assays: List[Dict[str, Any]],
     analysis_run: Optional[Dict[str, Any]] = None,
+    output_meta_workflow_run: Optional[Dict[str, Any]] = None
 ) -> FilenamePart:
     """Get sequencing and assay codes for file.
     
@@ -903,8 +1012,11 @@ def get_sequencing_and_assay_codes(
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
     elif set(file_utils.get_data_category(file)) & set(data_category_exceptions):
         return get_filename_part(value="XX")
-    elif eof_utils.is_external_output_file(file) or analysis_run:
+    elif eof_utils.is_external_output_file(file):
         return get_filename_part(value="XX")
+    elif analysis_run and output_meta_workflow_run:
+        return get_sequencing_and_assay_codes_from_mwfr_input(request_handler, output_meta_workflow_run)
+    
     errors = []
     if not sequencing_codes:
         errors.append("No sequencing code found")
@@ -925,6 +1037,65 @@ def get_sequencing_codes(sequencers: List[Dict[str, Any]]) -> List[str]:
 def get_assay_codes(assays: List[Dict[str, Any]]) -> List[str]:
     """Get assay code for file."""
     return list(set([item_utils.get_code(assay) for assay in assays]))
+
+def get_sequencing_and_assay_codes_from_mwfr_input(
+    request_handler: RequestHandler, output_meta_workflow_run: Dict[str, Any]
+) -> FilenamePart:
+    """Get sequencing and assay code from the input files of a MetaWorkflowRun.
+
+    Extracts the sequencing and assay code (5th position in the annotated filename,
+    e.g. 'B001' from 'SMHT012-3AF-003B1-M66-B001-...') from each input file of
+    the associated MWFR. If all input files share the same code, that value is
+    returned; if they differ, 'XX' is returned. Input files with status 'uploaded'
+    or without an annotated filename are skipped.
+    """
+    errors = []
+    if not output_meta_workflow_run:
+        errors.append("Could not determine sequencing and assay code from MWFR input because no associated MetaWorkflowRun was found.")
+    input_files = get_input_files_from_mwfr(output_meta_workflow_run, request_handler)
+
+    sequencing_assay_pattern = re.compile(r"^(?:[^-]+-){4}([^-]+)-")
+    sequencing_assay_codes = set()
+    files_without_annotated_filename = []
+    files_with_unexpected_annotated_filename = []
+
+    for input_file in input_files:
+        if item_utils.get_status(input_file) == item_constants.STATUS_UPLOADED:
+            continue
+
+        annotated_filename = input_file.get(file_constants.ANNOTATED_FILENAME)
+        if not annotated_filename:
+            files_without_annotated_filename.append(
+                item_utils.get_accession(input_file)
+            )
+            continue
+
+        match = sequencing_assay_pattern.match(annotated_filename)
+        if not match:
+            files_with_unexpected_annotated_filename.append(
+                item_utils.get_accession(input_file)
+            )
+            continue
+
+        sequencing_assay_codes.add(match.group(1))
+
+    if files_without_annotated_filename or files_with_unexpected_annotated_filename:
+        logger.warning(
+            f"Could not extract sequencing and assay codes from the following files: "
+            f"{', '.join(files_without_annotated_filename + files_with_unexpected_annotated_filename)}."
+        )
+
+    if len(sequencing_assay_codes) == 1:
+        code = list(sequencing_assay_codes)[0]
+    elif len(sequencing_assay_codes) > 1:
+        code = "XX"
+    else:
+        code = ""
+        errors.append(
+            "Could not determine common sequencing and assay code for the file to release from the input files of the associated MWFR."
+        )
+
+    return get_filename_part(value=code, errors=errors)
 
 
 def get_sequencing_center_code(sequencing_center: Dict[str, Any]) -> FilenamePart:
