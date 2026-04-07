@@ -72,6 +72,17 @@
             "minimum": 0,
             "maximum": 89
         },
+        "donor_groups": {
+            "title": "Donor Groups",
+            "description": "Useful and somewhat arbitrary terms used to group sets of donors",
+            "type": "array",
+            "permission": "restricted_fields",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
+        },
         "eligibility": {
             "title": "Eligibility",
             "description": "Whether donor was deemed eligible for the study",
