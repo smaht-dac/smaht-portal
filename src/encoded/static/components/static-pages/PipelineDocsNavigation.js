@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import { RightArrowIcon } from '../util/icon';
 
-export const Dropdown = (props) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const { parentTitle, parentLink, subLinks, overview } = props;
+export const Dropdown = ({
+    parentTitle,
+    parentLink,
+    subLinks,
+    overview,
+    expanded = false,
+}) => {
+    const [isExpanded, setIsExpanded] = useState(expanded);
 
     return (
         <div className="dropdown">
@@ -73,7 +78,7 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             <div className="nav-group">
-                <h3>Assay Type</h3>
+                <h3>Data Type</h3>
                 <div className="nav-subgroup">
                     <h5>Whole Genome Sequencing (WGS) and Hi-C</h5>
                     <p>
@@ -83,6 +88,7 @@ export const PipelineDocsNavigation = (props) => {
                     <h6>PREPROCESSING</h6>
                     <Dropdown
                         parentTitle="FASTQ"
+                        expanded={true}
                         parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
                         subLinks={[
                             {
@@ -319,33 +325,43 @@ export const PipelineDocsNavigation = (props) => {
                 </div>
             </div>
             <div className="nav-group">
-                <h3>Germline Variant Calling</h3>
+                <h3>Variant Calling</h3>
                 <div className="nav-subgroup">
+                    <h5>Germline Variant Calling</h5>
                     <Dropdown
-                        parentTitle="Germline Variant Calling, DNAscope Hybrid"
-                        parentLink="/docs/additional-resources/pipeline-docs/genome_builds"
+                        parentTitle="DNAscope Hybrid"
+                        parentLink="/docs/additional-resources/pipeline-docs/dnascope-hybrid"
                         subLinks={[
                             {
                                 title: 'Overview',
                                 href: '#overview',
                             },
                             {
-                                title: 'Build GRCh38',
-                                href: '#build-grch38',
+                                title: 'Phasing Workflow',
+                                href: '#phasing-workflow',
                             },
                         ]}
                         overview={
                             <p>
-                                Genome analysis, particularly alignment
-                                pipelines, heavily depends on a designated
-                                reference genome to ensure consistency and
-                                reproducibility across diverse analyses. The
-                                primary reference genome in use for the
-                                pipelines is the Genome Reference Consortium
-                                Human Build 38 (GRCh38).
+                                After generating analysis-ready alignment files,
+                                the pipeline performs germline variant calling.
+                                This step identifies single nucleotide variants
+                                (SNVs), small insertions and deletions (indels),
+                                structural variants (SVs), and copy number
+                                variants (CNVs) present in the sample relative
+                                to the reference genome. The pipeline uses the
+                                Sentieon DNAscope Hybrid algorithm to call
+                                variants from combined short-read and long-read
+                                data. This approach leverages the high base
+                                accuracy of short reads and the improved mapping
+                                and structural resolution provided by long
+                                reads.
                             </p>
                         }
                     />
+                </div>
+                <div className="nav-subgroup">
+                    <h5>Somatic Variant Calling</h5>
                     <Dropdown
                         parentTitle="SMaHT Single-Nucleotide Variant Calling"
                         parentLink="/docs/additional-resources/pipeline-docs/smaht-snv-calling"
@@ -359,15 +375,46 @@ export const PipelineDocsNavigation = (props) => {
                                 href: '#short-read-variant-calling',
                             },
                             {
-                                title: 'Software Version',
-                                href: '#software-version',
+                                title: 'Long-Read Variant Calling',
+                                href: '#long-read-variant-calling',
+                            },
+                            {
+                                title: 'Calls Merging and Normalization',
+                                href: '#calls-merging-and-normalization',
+                            },
+                            {
+                                title: 'Hierarchical Filtering',
+                                href: '#hierarchical-filtering',
+                            },
+                            {
+                                title: 'Cross-Technology Validation',
+                                href: '#cross-technology-validation',
+                            },
+                            {
+                                title: 'Donor Level Refinement',
+                                href: '#donor-level-refinement',
+                            },
+                            {
+                                title: 'Confidence Designation',
+                                href: '#confidence-designation',
                             },
                         ]}
                         overview={
                             <p>
-                                Placeholder overview text for the SMaHT
-                                Single-Nucleotide Variant Calling pipeline
-                                documentation page.
+                                The SMaHT SNV pipeline detects somatic
+                                single-nucleotide variants (SNVs) across
+                                multiple sequencing technologies. The pipeline
+                                integrates four somatic SNV callers: three
+                                short-read-based callers (Strelka2, Mutect2,
+                                RUFUS), and one long-read-based caller
+                                (longcallD). Raw calls generated by the
+                                individual tools are merged and then processed
+                                through hierarchical filtering and
+                                cross-evidence validation to produce
+                                high-confidence SNV calls. The pipeline is
+                                designed for per-tissue sample execution while
+                                leveraging donor-level information to validate
+                                and refine candidate variants.
                             </p>
                         }
                     />
