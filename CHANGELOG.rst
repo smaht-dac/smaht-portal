@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.22.5
+======
+
+`PR 644: Add donor_groups property to abstract_donor <https://github.com/smaht-dac/smaht-portal/pull/644>`_
+
+* to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
+
 1.22.3
 ======
 
