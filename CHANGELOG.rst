@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.22.6
+======
+
+`PR 639: feat: pipeline docs updates <https://github.com/smaht-dac/smaht-portal/pull/639>`_
+
+* Update pipeline documentation pages
+
+
 1.22.5
 ======
 
@@ -14,12 +22,15 @@ Change Log
 
 * to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
 
+
 1.22.4
 ======
 
 `PR 645: fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/645>`_
 
-* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries 
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries
+
+
 1.22.3
 ======
 
