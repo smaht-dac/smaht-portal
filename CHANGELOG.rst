@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.22.6
+======
+
+`PR 635: feat: update account creation doc <https://github.com/smaht-dac/smaht-portal/pull/635>`_
+
+* Update account creation documentation
+
+
 1.22.5
 ======
 
@@ -14,18 +22,22 @@ Change Log
 
 * to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
 
+
 1.22.4
 ======
 
 `PR 645: fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/645>`_
 
-* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries 
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries
+
+
 1.22.3
 ======
 
 `PR 642: update enum for braak_and_braak_ad field in brain_pathology_report <https://github.com/smaht-dac/smaht-portal/pull/642>`_
 
 * add '0' to enum in brain_pathology_report schema in braak_and_braak_ad field"
+
 
 1.22.2
 ======
