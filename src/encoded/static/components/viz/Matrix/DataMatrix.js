@@ -1735,9 +1735,12 @@ DataMatrix.resultTransformedPostProcessFuncs = {
         const variantCallSetData = nonDsaData.filter((row) => variantCallAnalysisDetails.includes(row['analysis_details']));
         const nonDsaNonVariantCallSetData = nonDsaData.filter((row) => !variantCallAnalysisDetails.includes(row['analysis_details']));
         const derivedLabelField = columnGrouping === 'assay' ? columnGrouping : 'assay';
+        const derivedGroupingProperties = columnGrouping === 'assay'
+            ? groupingProperties
+            : _.uniq([...(groupingProperties || []), columnGrouping]);
 
-        const transformedDsa = DataMatrix.transformDSA(nonDsaData, data.row_totals, dsaData, groupingProperties, derivedLabelField);
-        const transformedSnv = DataMatrix.transformSNV(variantCallSetData, groupingProperties, derivedLabelField);
+        const transformedDsa = DataMatrix.transformDSA(nonDsaData, data.row_totals, dsaData, derivedGroupingProperties, derivedLabelField);
+        const transformedSnv = DataMatrix.transformSNV(variantCallSetData, derivedGroupingProperties, derivedLabelField);
 
         return {
             ...data,
