@@ -487,6 +487,22 @@ export class VisualBody extends React.PureComponent {
             const fallbackSummaryCounts = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, this.props)?.counts;
             return fallbackSummaryCounts?.donors ?? fallbackSummaryCounts?.donor_count ?? 0;
         };
+        const getUniqueValueCountFromItems = (items, fieldName) => {
+            if (!fieldName) return 0;
+            const valueSet = new Set();
+            (items || []).forEach((item) => {
+                if (!item) return;
+                const fieldValue = item[fieldName];
+                if (Array.isArray(fieldValue)) {
+                    fieldValue.forEach((value) => {
+                        if (value != null && value !== 'No value') valueSet.add(String(value));
+                    });
+                } else if (fieldValue != null && fieldValue !== 'No value') {
+                    valueSet.add(String(fieldValue));
+                }
+            });
+            return valueSet.size;
+        };
         const getFilesCountFromItem = (item) => {
             if (item && item.counts && typeof item.counts.files === 'number') return item.counts.files;
             if (item && typeof item.files === 'number') return item.files;
@@ -505,6 +521,8 @@ export class VisualBody extends React.PureComponent {
             };
         }, { fileCount: 0, totalCoverage: 0 });
         const donorCount = getUniqueDonorCountFromItems(dataForCounts);
+        const isTissueColumnGrouping = (fieldChangeMap?.[columnGrouping] || columnGrouping) === 'sample_summary.tissues';
+        const tissueCount = isTissueColumnGrouping ? getUniqueValueCountFromItems(dataForCounts, columnGrouping) : 0;
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
         const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
 
@@ -593,12 +611,15 @@ export class VisualBody extends React.PureComponent {
                                         <div className="label me-05">
                                             {isTissueGrouping
                                                 ? 'Total Donors'
-                                                : (additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] ? secondaryGrpPropTitle : StackedBlockVisual.pluralize(secondaryGrpPropTitle))}
+                                                : (isTissueColumnGrouping ? 'Total Tissues'
+                                                    : (additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] ? secondaryGrpPropTitle : StackedBlockVisual.pluralize(secondaryGrpPropTitle)))
+                                            }
                                         </div>
                                         <div className="value">
                                             {isTissueGrouping
                                                 ? (donorCount || '--')
-                                                : (secondaryGrpPropUniqueCount || additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || '--')}
+                                                : (isTissueColumnGrouping ? (tissueCount || '--')
+                                                    : (secondaryGrpPropUniqueCount || additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || '--'))}
                                         </div>
                                     </div>
                                     {additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ?
