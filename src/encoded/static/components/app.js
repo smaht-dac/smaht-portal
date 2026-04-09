@@ -1813,7 +1813,7 @@ class BodyElement extends React.PureComponent {
             lastHref: props.href,
             // Whether Test Data warning banner is visible.
             // testWarningPresent: !globals.productionHost[props.hrefParts.hostname] || false
-            testWarningPresent: false,
+            testWarningPresent: true,
         };
 
         /**

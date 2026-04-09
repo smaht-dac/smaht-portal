@@ -513,7 +513,12 @@ def test_get_sequencing_and_assay_codes(
     errors: bool,
 ) -> None:
     """Test sequencing and assay codes retrieval for annotated filenames."""
-    result = get_sequencing_and_assay_codes(file, sequencers, assays)
+    result = get_sequencing_and_assay_codes(
+        request_handler=None,
+        file=file,
+        sequencers=sequencers,
+        assays=assays
+    )
     assert_filename_part_matches(result, expected, errors)
 
 

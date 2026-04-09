@@ -1404,6 +1404,18 @@ body[data-pathname^="/users/"] {
 		p:last-child {
 			margin-bottom: 0 !important;
 		}
+
+		&.restricted-email {
+			color: #572e06;
+
+			> div {
+				color: #572e06;
+			}
+			
+			.icon {
+				font-size: 2rem;
+			}
+		}
 	}
 
 	.self-registration-alert-icon {
