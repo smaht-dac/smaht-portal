@@ -295,6 +295,7 @@
             "type": "string",
             "description": "A semiquantitative measure of distribution and severity of neurofibrillary tangle (NFT) pathology",
             "enum": [
+                "0",
                 "I",
                 "II",
                 "III",

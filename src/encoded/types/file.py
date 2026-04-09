@@ -467,6 +467,7 @@ def _build_file_embedded_list() -> List[str]:
         "donors.sex",
         "donors.hardy_scale",
         "donors.tags",
+        "donors.donor_groups"
     ]
 
 
