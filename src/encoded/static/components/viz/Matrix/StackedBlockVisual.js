@@ -451,6 +451,9 @@ export class VisualBody extends React.PureComponent {
         const browseUrl = generateBrowseUrl();
 
         const dataForCounts = Array.isArray(data) ? data : (data ? [data] : []);
+        const rowSummaryItems = effectiveBlockType === 'row-summary'
+            ? (Array.isArray(blockProps.data) ? blockProps.data : (blockProps.data ? [blockProps.data] : []))
+            : [];
         const isTissueGrouping = (() => {
             const primaryGroupingProp = Array.isArray(groupingProperties) ? groupingProperties[0] : primaryGrpProp;
             const primaryGroupingField = fieldChangeMap?.[primaryGroupingProp] || primaryGroupingProp;
@@ -522,7 +525,9 @@ export class VisualBody extends React.PureComponent {
         }, { fileCount: 0, totalCoverage: 0 });
         const donorCount = getUniqueDonorCountFromItems(dataForCounts);
         const isTissueColumnGrouping = (fieldChangeMap?.[columnGrouping] || columnGrouping) === 'sample_summary.tissues';
-        const tissueCount = isTissueColumnGrouping ? getUniqueValueCountFromItems(dataForCounts, columnGrouping) : 0;
+        const tissueCount = isTissueColumnGrouping
+            ? getUniqueValueCountFromItems(effectiveBlockType === 'row-summary' ? rowSummaryItems : dataForCounts, columnGrouping)
+            : 0;
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
         const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
 
