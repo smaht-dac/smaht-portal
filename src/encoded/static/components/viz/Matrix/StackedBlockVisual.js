@@ -331,9 +331,12 @@ export class VisualBody extends React.PureComponent {
         // e.g. Germ Layer (Ectoderm, Mesoderm, Endoderm ...etc) if available
         let secondaryGrpPropCategoryValue = aggrData.germLayer || null;
         if (!secondaryGrpPropCategoryValue && rowGroupsExtended) {
-            const rowGroupSourceValue = secondaryGrpPropValue || yAxisGroupingValue || primaryGrpPropValue;
-            if (rowGroupSourceValue) {
+            const rowGroupSourceValues = _.uniq(_.compact([secondaryGrpPropValue, primaryGrpPropValue, yAxisGroupingValue]));
+            for (const rowGroupSourceValue of rowGroupSourceValues) {
                 secondaryGrpPropCategoryValue = this.findKeyByValue(rowGroupsExtended, rowGroupSourceValue);
+                if (secondaryGrpPropCategoryValue) {
+                    break;
+                }
             }
         }
 
