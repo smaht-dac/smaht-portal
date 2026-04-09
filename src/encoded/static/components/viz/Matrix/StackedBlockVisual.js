@@ -227,12 +227,27 @@ export class VisualBody extends React.PureComponent {
     }
 
     findKeyByValue(obj, value) {
-        for (const [key, group] of Object.entries(obj)) {
-            if (group.values && Array.isArray(group.values) && group.values.includes(value)) {
-                return key;
-            }
+        const values = Array.isArray(value) ? value : [value];
+        const matchingKeys = _.chain(values)
+            .compact()
+            .reduce((memo, currentValue) => {
+                Object.entries(obj).forEach(([key, group]) => {
+                    if (group.values && Array.isArray(group.values) && group.values.includes(currentValue)) {
+                        memo.push(key);
+                    }
+                });
+                return memo;
+            }, [])
+            .uniq()
+            .value();
+
+        if (matchingKeys.length === 0) {
+            return null;
         }
-        return null;
+        if (matchingKeys.length > 1) {
+            return 'Multiple';
+        }
+        return matchingKeys[0];
     }
 
     /**
