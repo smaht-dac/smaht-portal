@@ -310,18 +310,17 @@ export class VisualBody extends React.PureComponent {
         const secondaryGrpPropTitle = (secondaryGrpProp && titleMap[secondaryGrpProp]) || secondaryGrpProp || null;
         const secondaryGrpPropValue = aggrData[secondaryGrpProp];
         const secondaryGrpPropUniqueCount = Array.isArray(aggrData[secondaryGrpProp]) ? aggrData[secondaryGrpProp].length : (aggrData[secondaryGrpProp] && aggrData[secondaryGrpProp] !== 'No value' ? 1 : 0);
+        // Title area values
+        const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
+        const yAxisGroupingValue = aggrData[columnGrouping] || (isGroup ? data[0][columnGrouping] : data[columnGrouping]) || columnKey;
         // e.g. Germ Layer (Ectoderm, Mesoderm, Endoderm ...etc) if available
-        let secondaryGrpPropCategoryValue = null;
-        if (rowGroupsExtended) {
-            const rowGroupSourceValue = secondaryGrpPropValue || primaryGrpPropValue;
+        let secondaryGrpPropCategoryValue = aggrData.germLayer || null;
+        if (!secondaryGrpPropCategoryValue && rowGroupsExtended) {
+            const rowGroupSourceValue = secondaryGrpPropValue || yAxisGroupingValue || primaryGrpPropValue;
             if (rowGroupSourceValue) {
                 secondaryGrpPropCategoryValue = this.findKeyByValue(rowGroupsExtended, rowGroupSourceValue);
             }
         }
-
-        // Title area values
-        const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
-        const yAxisGroupingValue = aggrData[columnGrouping] || (isGroup ? data[0][columnGrouping] : data[columnGrouping]) || columnKey;
 
         // URL builder: converts current block state into browse filters
         function generateBrowseUrl() {
@@ -579,8 +578,8 @@ export class VisualBody extends React.PureComponent {
                                         <div className="value">{primaryGrpPropUniqueCount || '--'}</div>
                                     </div>
                                     <div className="col-4">
-                                        <div className="label">{isTissueGrouping ? 'Total Donors' : StackedBlockVisual.pluralize(secondaryGrpPropTitle)}</div>
-                                        <div className="value">{isTissueGrouping ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--')}</div>
+                                        <div className="label">{secondaryGrpPropCategoryValue ? 'Germ Layer' : (isTissueGrouping ? 'Total Donors' : StackedBlockVisual.pluralize(secondaryGrpPropTitle))}</div>
+                                        <div className="value">{secondaryGrpPropCategoryValue || (isTissueGrouping ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--'))}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
