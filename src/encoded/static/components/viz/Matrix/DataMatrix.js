@@ -594,7 +594,7 @@ export default class DataMatrix extends React.PureComponent {
             - counts.files: take from any row (they should all be equal after step 2)
             - other fields: distinct values; single => scalar, multiple => array
     */
-    static transformDSA(nonDsaData, row_totals, dsaData, groupingProperties, derivedField = 'assay') {
+    static transformDSA(nonDsaData, row_totals, dsaData, groupingProperties, derivedField = 'assay', useAssayFamilyCount = false) {
         const getFilesCount = (row) => Number(row && row.counts && row.counts.files) || 0;
 
         // Helper: build a grouping key like "COLO829BL||No value"
@@ -660,12 +660,23 @@ export default class DataMatrix extends React.PureComponent {
         const mergedDsa = Object.values(dsaGrouped).map((rowsInGroup) => {
             const firstRow = rowsInGroup[0];
             const mergedRow = {};
+            const derivedAssayFamilyCount = useAssayFamilyCount
+                ? _.chain(rowsInGroup)
+                    .pluck('_derivedAssayFamily')
+                    .compact()
+                    .uniq()
+                    .value().length
+                : 0;
 
             // Iterate over all fields of the first row (assuming schema is consistent)
             for (const field of Object.keys(firstRow)) {
                 if (field === 'counts') {
-                    // Rule 1: counts.files value is same; take from one row
-                    mergedRow[field] = firstRow[field];
+                    mergedRow[field] = {
+                        ...(firstRow[field] || {}),
+                        files: useAssayFamilyCount ? (derivedAssayFamilyCount || getFilesCount(firstRow)) : getFilesCount(firstRow)
+                    };
+                } else if (field === '_derivedAssayFamily') {
+                    continue;
                 } else {
                     // Rule 2: collect distinct values for this field across group
                     const values = Array.from(
@@ -767,6 +778,9 @@ export default class DataMatrix extends React.PureComponent {
                 }
                 if (cloned.counts && cloned.counts.files && cloned.counts.files > 0) {
                     if (typeof cloned.assay === 'string') {
+                        cloned._derivedAssayFamily = (valueChangeMap?.assay || {})[cloned.assay] || cloned.assay;
+                    }
+                    if (typeof cloned.assay === 'string') {
                         cloned.assay = DataMatrix.getMappedAssayDisplayValue(
                             cloned,
                             valueChangeMap,
@@ -812,7 +826,7 @@ export default class DataMatrix extends React.PureComponent {
                 transformed.push(cloned);
             };
 
-            // result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : PRODUCTION_TEST_DATA;
+            // result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : PRODUCTION_TEST_DATA_DA);
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
@@ -968,6 +982,9 @@ export default class DataMatrix extends React.PureComponent {
                 };
 
                 if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE && fieldChangeMap.assay) {
+                    if (fieldChangeMap.tissue) {
+                        rowAggFields.push(fieldChangeMap.tissue);
+                    }
                     rowAggFields.push(fieldChangeMap.assay);
                     if (fieldChangeMap.platform) {
                         rowAggFields.push(fieldChangeMap.platform);
@@ -1739,7 +1756,14 @@ DataMatrix.resultTransformedPostProcessFuncs = {
             ? groupingProperties
             : _.uniq([...(groupingProperties || []), columnGrouping]);
 
-        const transformedDsa = DataMatrix.transformDSA(nonDsaData, data.row_totals, dsaData, derivedGroupingProperties, derivedLabelField);
+        const transformedDsa = DataMatrix.transformDSA(
+            nonDsaData,
+            data.row_totals,
+            dsaData,
+            derivedGroupingProperties,
+            derivedLabelField,
+            columnGrouping !== 'assay'
+        );
         const transformedSnv = DataMatrix.transformSNV(variantCallSetData, derivedGroupingProperties, derivedLabelField);
 
         return {
