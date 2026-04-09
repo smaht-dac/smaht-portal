@@ -879,7 +879,21 @@ export class StackedBlockVisual extends React.PureComponent {
         this.setState({ 'mounted' : false });
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
+        const { activeBlock, openBlock } = this.state;
+        const layoutChanged =
+            prevProps.columnGrouping !== this.props.columnGrouping ||
+            !_.isEqual(prevProps.groupingProperties, this.props.groupingProperties) ||
+            prevProps.countFor !== this.props.countFor ||
+            prevProps.data !== this.props.data ||
+            prevProps.rowTotals !== this.props.rowTotals ||
+            prevProps.columnTotals !== this.props.columnTotals;
+
+        if (layoutChanged && (activeBlock || openBlock)) {
+            this.setState({ activeBlock: null, openBlock: null });
+            return;
+        }
+
         const nextScrollContainerEl = this.containerRef
             ? (this.containerRef.closest('.matrix-visual-scroll-region') || this.containerRef.closest('.matrix-mode-scroll-region'))
             : null;
