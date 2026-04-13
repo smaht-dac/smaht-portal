@@ -404,6 +404,7 @@ def get_tissue_samples_from_derived_from(file: Dict[str, Any], request_handler: 
         if (file_sets := get_derived_from_file_sets(file, request_handler)):
             if (tissue_samples := get_tissue_samples(get_samples(file_sets, request_handler))):
                 return tissue_samples
+    return None
 
 
 def get_sample_sources(
