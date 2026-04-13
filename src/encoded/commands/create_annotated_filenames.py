@@ -551,6 +551,7 @@ def get_annotated_filename(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissues,
+        associated_items.file
     )
     aliquot_id = get_aliquot_id(
         request_handler,
@@ -767,19 +768,28 @@ def get_protocol_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissues: List[Dict[str, Any]],
+    file: Dict[str, Any],
 ) -> FilenamePart:
     """Get protocol ID for file."""
     parts = []
     if cell_culture_mixtures or cell_lines:
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if tissues:
-        parts.append(get_protocol_id_from_tissues(tissues))
+        parts.append(get_protocol_id_from_tissues(tissues, file))
     return get_exclusive_filename_part(parts, "protocol ID")
 
 
-def get_protocol_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
-    """Get protocol ID from tissue items."""
+def get_protocol_id_from_tissues(
+        tissues: List[Dict[str, Any]],
+        file: Dict[str, Any]
+    ) -> FilenamePart:
+    """Get protocol ID from tissue items.
+    
+    If file is a DSA file, allow multiple protocol IDs
+    """
     protocol_ids = [tissue_utils.get_protocol_id(tissue) for tissue in tissues]
+    if len(protocol_ids) > 1 and supp_file_utils.get_donor_specific_assembly(file):
+        return get_filename_part(value="MT")
     return get_filename_part_for_values(
         protocol_ids, "protocol ID", source_name="tissue"
     )
