@@ -365,7 +365,8 @@
             "aggregation_type": "stats"
         },
         "sample_summary.tissues": {
-            "title": "Tissue"
+            "title": "Tissue",
+            "group_by_field": "sample_summary.category"
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
