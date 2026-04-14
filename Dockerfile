@@ -82,8 +82,9 @@ ENV INI_BASE=${INI_BASE:-"smaht_any_alpha.ini"} \
     PATH="/opt/venv/bin:$PATH"
 
 # Install runtime-only system dependencies
+# git is required by dcicutils at startup (used to resolve version info during ini generation)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-client libpq5 libmagic1 curl ca-certificates make && \
+    postgresql-client libpq5 libmagic1 curl ca-certificates make git && \
     rm -rf /var/lib/apt/lists/*
 
 # Install nginx (creates nginx user/group)
