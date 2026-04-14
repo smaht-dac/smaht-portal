@@ -1,5 +1,6 @@
 # SMaHT-Portal (Production) Dockerfile
-# Multi-stage build: frontend -> backend -> runtime
+# Multi-stage build: frontend assets built in node stage, then everything else
+# in a single runtime stage to preserve system dependency co-location.
 
 # =============================================================================
 # Stage 1: Frontend build
@@ -26,42 +27,7 @@ RUN npm run build && npm run build-scss
 
 
 # =============================================================================
-# Stage 2: Backend dependency build
-# =============================================================================
-FROM python:3.11.12-slim-bullseye AS backend
-
-ENV VIRTUAL_ENV=/opt/venv \
-    PATH="/opt/venv/bin:$PATH" \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on
-
-RUN python -m venv $VIRTUAL_ENV && \
-    pip install --upgrade pip && \
-    pip install poetry==1.8.5
-
-# Install build-time system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential gcc zlib1g-dev libpq-dev git make curl libmagic-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-WORKDIR /home/nginx/smaht-portal
-
-# Install Python dependencies first (cached unless pyproject.toml/poetry.lock change)
-# README.rst is required by pyproject.toml (readme = "README.rst")
-COPY pyproject.toml poetry.lock poetry.toml README.rst ./
-RUN poetry install --without dev --no-root -vvv
-
-# Copy source and install local package
-COPY src/ src/
-COPY setup_eb.py Makefile ./
-COPY scripts/ scripts/
-RUN poetry install --without dev -vvv && \
-    python setup_eb.py develop && \
-    make fix-dist-info
-
-
-# =============================================================================
-# Stage 3: Runtime
+# Stage 2: Runtime (backend build + runtime in one stage)
 # =============================================================================
 FROM python:3.11.12-slim-bullseye
 
@@ -69,58 +35,65 @@ LABEL maintainer="William Ronchetti <william_ronchetti@hms.harvard.edu>"
 
 # Build arguments
 ARG INI_BASE
+ENV INI_BASE=${INI_BASE:-"smaht_any_alpha.ini"}
 
-# Runtime environment
-ENV INI_BASE=${INI_BASE:-"smaht_any_alpha.ini"} \
-    VIRTUAL_ENV=/opt/venv \
+# Configure environment
+ENV VIRTUAL_ENV=/opt/venv \
     PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100 \
-    PATH="/opt/venv/bin:$PATH" \
-    GIT_PYTHON_GIT_EXECUTABLE=/usr/bin/git
+    PIP_DEFAULT_TIMEOUT=100
 
-# Install runtime-only system dependencies (excluding git -- installed after nginx)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-client libpq5 libmagic1 curl ca-certificates make && \
-    rm -rf /var/lib/apt/lists/*
+# Create Python virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install nginx (creates nginx user/group).
-# The nginx install script runs apt-get autoremove internally, which can remove
-# packages installed before it. Install git afterwards to ensure it survives.
-COPY deploy/docker/production/install_nginx_bullseye.sh /tmp/install_nginx.sh
-RUN bash /tmp/install_nginx.sh && rm /tmp/install_nginx.sh && \
-    apt-get update && apt-get install -y --no-install-recommends ca-certificates git && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (build + runtime)
+WORKDIR /home/nginx/.nvm
+ENV NVM_DIR=/home/nginx/.nvm
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends ca-certificates build-essential \
+    gcc zlib1g-dev postgresql-client libpq-dev git make curl libmagic-dev && \
+    pip install --upgrade pip && \
+    pip install poetry==1.8.5 && \
+    curl -o aws-ip-ranges.json https://ip-ranges.amazonaws.com/ip-ranges.json
 
-# Copy virtualenv with all Python deps from backend builder
-COPY --from=backend /opt/venv /opt/venv
+# Install nginx (creates nginx user/group)
+COPY deploy/docker/production/install_nginx_bullseye.sh /install_nginx.sh
+RUN bash /install_nginx.sh && \
+    chown -R nginx:nginx /opt/venv && \
+    mkdir -p /home/nginx/smaht-portal && \
+    mv aws-ip-ranges.json /home/nginx/smaht-portal/aws-ip-ranges.json && \
+    apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+    apt-get clean
 
+# Build application
 WORKDIR /home/nginx/smaht-portal
 
-# Copy application source
-COPY src/ src/
+# Install Python deps first (cached unless pyproject.toml/poetry.lock change)
+COPY pyproject.toml poetry.lock poetry.toml README.rst ./
+RUN poetry install --without dev --no-root -vvv
 
-# Overlay built frontend assets from frontend stage
+# Copy application source and install local package
+COPY src/ src/
+COPY setup_eb.py Makefile ./
+COPY scripts/ scripts/
+RUN poetry install --without dev -vvv && \
+    python setup_eb.py develop && \
+    make fix-dist-info
+
+# Overlay built frontend assets from frontend stage (replaces node-built files only)
 COPY --from=frontend /home/nginx/smaht-portal/src/encoded/static/build/ src/encoded/static/build/
 COPY --from=frontend /home/nginx/smaht-portal/src/encoded/static/css/style.css src/encoded/static/css/style.css
 COPY --from=frontend /home/nginx/smaht-portal/src/encoded/static/css/style.css.map src/encoded/static/css/style.css.map
 COPY --from=frontend /home/nginx/smaht-portal/src/encoded/static/css/print.css src/encoded/static/css/print.css
 COPY --from=frontend /home/nginx/smaht-portal/src/encoded/static/css/print.css.map src/encoded/static/css/print.css.map
 
-# Copy files needed by poetry at runtime
-COPY pyproject.toml poetry.lock poetry.toml Makefile ./
-
-# Fetch restricted domain list with error checking
-RUN curl --fail --silent --show-error -o restricted_domains.txt \
-        https://gist.githubusercontent.com/ammarshah/f5c2624d767f91a7cbdc4e54db8dd0bf/raw && \
-    touch restricted_emails.txt
-
-# Fetch AWS IP ranges
-RUN curl --fail --silent --show-error -o aws-ip-ranges.json \
-        https://ip-ranges.amazonaws.com/ip-ranges.json
+# Remove build-only system dependencies to reduce image size
+RUN apt-get purge -y --auto-remove build-essential gcc g++ cpp && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Configure nginx
 RUN rm -f /etc/nginx/nginx.conf /etc/nginx/conf.d/default.conf
@@ -134,6 +107,11 @@ RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
     chown -R nginx:nginx /var/log/nginx && \
     mkdir -p /data/nginx/cache && chown -R nginx:nginx /data/nginx/cache
 
+# Fetch restricted domain/email lists with error checking
+RUN curl --fail --silent --show-error -o restricted_domains.txt \
+        https://gist.githubusercontent.com/ammarshah/f5c2624d767f91a7cbdc4e54db8dd0bf/raw && \
+    touch restricted_emails.txt
+
 # Local development files
 COPY deploy/docker/local/docker_development.ini development.ini
 COPY deploy/docker/local/entrypoint.sh entrypoint_local.sh
@@ -144,7 +122,6 @@ RUN chown nginx:nginx development.ini && chmod +x entrypoint_local.sh
 RUN chown nginx:nginx poetry.toml && \
     touch production.ini session-secret.b64 supervisord.log supervisord.sock supervisord.pid && \
     chown nginx:nginx production.ini session-secret.b64 supervisord.log supervisord.sock supervisord.pid
-
 COPY deploy/docker/production/$INI_BASE deploy/ini_files/.
 COPY deploy/docker/production/entrypoint.sh .
 COPY deploy/docker/production/entrypoint_portal.sh .
