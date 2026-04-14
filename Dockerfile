@@ -79,7 +79,8 @@ ENV INI_BASE=${INI_BASE:-"smaht_any_alpha.ini"} \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/opt/venv/bin:$PATH" \
+    GIT_PYTHON_GIT_EXECUTABLE=/usr/bin/git
 
 # Install runtime-only system dependencies (excluding git -- installed after nginx)
 RUN apt-get update && apt-get install -y --no-install-recommends \
