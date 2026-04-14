@@ -44,7 +44,8 @@ ENV VIRTUAL_ENV=/opt/venv \
     PYTHONHASHSEED=random \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100
+    PIP_DEFAULT_TIMEOUT=100 \ 
+    GIT_PYTHON_REFRESH=quiet
 
 # Create Python virtual environment
 RUN python -m venv /opt/venv
@@ -131,9 +132,6 @@ RUN chmod +x entrypoint.sh entrypoint_portal.sh entrypoint_deployment.sh \
               entrypoint_indexer.sh entrypoint_ingester.sh assume_identity.py
 
 EXPOSE 8000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
 
 # Container does not run as root
 USER nginx
