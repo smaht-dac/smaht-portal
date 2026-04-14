@@ -40,6 +40,22 @@ const germLayerTissueMapping = {
     },
 };
 
+const tissueCategoryOrder = [
+    'Ectoderm',
+    'Mesoderm',
+    'Endoderm',
+    'Germ cells',
+    'Clinically accessible',
+];
+
+const tissueCategoryOrderIndex = tissueCategoryOrder.reduce(
+    (acc, category, index) => {
+        acc[category] = index;
+        return acc;
+    },
+    {}
+);
+
 /**
  * Reverse look up map for tissue names to their respective categories.
  */
@@ -150,6 +166,19 @@ const compareTissueFacetTerms = (a, b) => {
     if (!aKey) return 1;
     if (!bKey) return -1;
 
+    const aIsGroupingTerm = Array.isArray(a?.props?.term?.terms);
+    const bIsGroupingTerm = Array.isArray(b?.props?.term?.terms);
+    if (aIsGroupingTerm || bIsGroupingTerm) {
+        const aCategoryIndex =
+            tissueCategoryOrderIndex[aKey] ?? Number.MAX_SAFE_INTEGER;
+        const bCategoryIndex =
+            tissueCategoryOrderIndex[bKey] ?? Number.MAX_SAFE_INTEGER;
+        if (aCategoryIndex !== bCategoryIndex) {
+            return aCategoryIndex - bCategoryIndex;
+        }
+        return String(aKey).localeCompare(String(bKey));
+    }
+
     const aParsed = parseTissueTermForSort(aKey);
     const bParsed = parseTissueTermForSort(bKey);
     if (aParsed.hasCode !== bParsed.hasCode) {
@@ -195,6 +224,7 @@ const getTissueCategoryFromFacetTerm = (termKey) => {
 
 export {
     germLayerTissueMapping,
+    tissueCategoryOrder,
     tissueToCategory,
     compareTissueFacetTerms,
     getTissueInternalCodeFromFacetTerm,
