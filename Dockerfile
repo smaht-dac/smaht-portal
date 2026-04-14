@@ -91,10 +91,6 @@ COPY --from=frontend /home/nginx/smaht-portal/src/encoded/static/css/style.css.m
 COPY --from=frontend /home/nginx/smaht-portal/src/encoded/static/css/print.css src/encoded/static/css/print.css
 COPY --from=frontend /home/nginx/smaht-portal/src/encoded/static/css/print.css.map src/encoded/static/css/print.css.map
 
-# Remove build-only system dependencies to reduce image size
-RUN apt-get purge -y --auto-remove build-essential gcc g++ cpp && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # Configure nginx
 RUN rm -f /etc/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 COPY deploy/docker/production/nginx.conf /etc/nginx/nginx.conf
