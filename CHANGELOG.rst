@@ -18,6 +18,14 @@ Change Log
 * Update the release script to release ExternalQualityMetrics items
 
 
+1.22.7
+======
+
+`PR 648: SN Add pileup enum <https://github.com/smaht-dac/smaht-portal/pull/648>`_
+
+* Add "Alignment Pileups" enum to `data_category`
+
+
 1.22.6
 ======
 
