@@ -56,6 +56,15 @@ const tissueCategoryOrderIndex = tissueCategoryOrder.reduce(
     {}
 );
 
+const getTissueCategoryOrderIndex = (category) => {
+    const normalizedCategory = String(category || '').trim().toLowerCase();
+    const canonicalCategory = tissueCategoryOrder.find(
+        (item) => item.toLowerCase() === normalizedCategory
+    );
+    if (!canonicalCategory) return Number.MAX_SAFE_INTEGER;
+    return tissueCategoryOrderIndex[canonicalCategory];
+};
+
 /**
  * Reverse look up map for tissue names to their respective categories.
  */
@@ -160,8 +169,8 @@ const parseTissueTermForSort = (termKey) => {
  * @returns {number} Comparison result for sorting.
  */
 const compareTissueFacetTerms = (a, b) => {
-    const aKey = a?.key || a?.props?.term?.key || '';
-    const bKey = b?.key || b?.props?.term?.key || '';
+    const aKey = a?.props?.term?.key || a?.key || '';
+    const bKey = b?.props?.term?.key || b?.key || '';
     if (!aKey && !bKey) return 0;
     if (!aKey) return 1;
     if (!bKey) return -1;
@@ -169,10 +178,8 @@ const compareTissueFacetTerms = (a, b) => {
     const aIsGroupingTerm = Array.isArray(a?.props?.term?.terms);
     const bIsGroupingTerm = Array.isArray(b?.props?.term?.terms);
     if (aIsGroupingTerm || bIsGroupingTerm) {
-        const aCategoryIndex =
-            tissueCategoryOrderIndex[aKey] ?? Number.MAX_SAFE_INTEGER;
-        const bCategoryIndex =
-            tissueCategoryOrderIndex[bKey] ?? Number.MAX_SAFE_INTEGER;
+        const aCategoryIndex = getTissueCategoryOrderIndex(aKey);
+        const bCategoryIndex = getTissueCategoryOrderIndex(bKey);
         if (aCategoryIndex !== bCategoryIndex) {
             return aCategoryIndex - bCategoryIndex;
         }
