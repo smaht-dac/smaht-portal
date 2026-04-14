@@ -81,16 +81,17 @@ ENV INI_BASE=${INI_BASE:-"smaht_any_alpha.ini"} \
     PIP_DEFAULT_TIMEOUT=100 \
     PATH="/opt/venv/bin:$PATH"
 
-# Install runtime-only system dependencies
-# git is required by dcicutils at startup (used to resolve version info during ini generation)
+# Install runtime-only system dependencies (excluding git -- installed after nginx)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-client libpq5 libmagic1 curl ca-certificates make git && \
+    postgresql-client libpq5 libmagic1 curl ca-certificates make && \
     rm -rf /var/lib/apt/lists/*
 
-# Install nginx (creates nginx user/group)
+# Install nginx (creates nginx user/group).
+# The nginx install script runs apt-get autoremove internally, which can remove
+# packages installed before it. Install git afterwards to ensure it survives.
 COPY deploy/docker/production/install_nginx_bullseye.sh /tmp/install_nginx.sh
 RUN bash /tmp/install_nginx.sh && rm /tmp/install_nginx.sh && \
-    apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+    apt-get update && apt-get install -y --no-install-recommends ca-certificates git && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy virtualenv with all Python deps from backend builder
