@@ -1,17 +1,46 @@
+# Version control
+.git
+.github/
+
+# Docker
 docker-compose.yml
 Dockerfile
+
+# Node (rebuilt in frontend stage)
 node_modules/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+*.egg
 .cache
 .pytest_cache
-aws-ip-ranges.json
-.git
-*~
-*env/
+
+# IDE / editor
 .idea/
-.ebextensions/
-.elasticbeanstalk/
+.vscode/
+*~
+*.swp
+*.swo
+
+# Environment / config
+*env/
 .python-version
 .python-cmd
-*.DS_Store/
-.egg-info/
+.env
+.env.*
+
+# AWS / EB
+.ebextensions/
+.elasticbeanstalk/
+aws-ip-ranges.json
+
+# OS files
+*.DS_Store
+
+# Build artifacts
+.sass-cache
 DEBUGLOG-*
