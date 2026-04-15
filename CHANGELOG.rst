@@ -7,13 +7,29 @@ smaht-portal
 Change Log
 ----------
 
-1.22.6
+1.22.8
 ======
 
 `PR 639: feat: pipeline docs updates <https://github.com/smaht-dac/smaht-portal/pull/639>`_
 
 * Update pipeline documentation pages
 
+
+1.22.7
+======
+
+`PR 648: SN Add pileup enum <https://github.com/smaht-dac/smaht-portal/pull/648>`_
+
+* Add "Alignment Pileups" enum to `data_category`
+
+
+1.22.6
+======
+
+`PR 647: Adjust filenames for multiple tissue DSAs <https://github.com/smaht-dac/smaht-portal/pull/647>`_
+
+* Use code `MT` for DSA files with multiple tissue sources
+* Update `get_access_status` for Benchmarking Genome Annotation files
 
 1.22.5
 ======
