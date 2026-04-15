@@ -77,8 +77,27 @@ export const PipelineDocsNavigation = (props) => {
                 in their analysis.
             </p>
 
+            {/* Top navigation for pipeline doc sections */}
+            <div class="account-creation-nav mb-4">
+                <a class="nav-link" target="" href="#data-type">
+                    <i class="icon icon-globe fas"> </i>
+                    <span class="nav-link-title">Data Type</span>
+                    <span class="nav-link-subtitle">Data Type</span>
+                </a>
+                <a class="nav-link" target="" href="#variant-calling">
+                    <i class="icon icon-globe fas"> </i>
+                    <span class="nav-link-title">Variant Calling</span>
+                    <span class="nav-link-subtitle">Variant Calling</span>
+                </a>
+                <a class="nav-link" target="" href="#reference-files">
+                    <i class="icon icon-globe fas"> </i>
+                    <span class="nav-link-title">Reference Files</span>
+                    <span class="nav-link-subtitle">Reference Files</span>
+                </a>
+            </div>
+
             <div className="nav-group">
-                <h3>Data Type</h3>
+                <h3 id="data-type">Data Type</h3>
                 <div className="nav-subgroup">
                     <h5>Whole Genome Sequencing (WGS) and Hi-C</h5>
                     <p>
@@ -325,7 +344,7 @@ export const PipelineDocsNavigation = (props) => {
                 </div>
             </div>
             <div className="nav-group">
-                <h3>Variant Calling</h3>
+                <h3 id="variant-calling">Variant Calling</h3>
                 <div className="nav-subgroup">
                     <h5>Germline Variant Calling</h5>
                     <Dropdown
@@ -421,7 +440,7 @@ export const PipelineDocsNavigation = (props) => {
                 </div>
             </div>
             <div className="nav-group">
-                <h3>Reference Files</h3>
+                <h3 id="reference-files">Reference Files</h3>
                 <p>
                     All workflows share a set of common reference resources,
                     organized into:
