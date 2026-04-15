@@ -78,7 +78,7 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             {/* Top navigation for pipeline doc sections */}
-            <div class="account-creation-nav mb-4">
+            <div class="sections-nav mb-4">
                 <a class="nav-link" target="" href="#data-type">
                     <i class="icon icon-globe fas"> </i>
                     <span class="nav-link-title">Data Type</span>
