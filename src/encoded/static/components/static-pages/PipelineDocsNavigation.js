@@ -78,26 +78,32 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             {/* Top navigation for pipeline doc sections */}
-            <div class="sections-nav mb-4">
-                <a class="nav-link" target="" href="#data-type">
-                    <i class="icon icon-globe fas"> </i>
-                    <span class="nav-link-title">Data Type</span>
-                    <span class="nav-link-subtitle">Data Type</span>
+            <div class="sections-nav mb-5">
+                <a class="nav-link" target="" href="#sequencing-data-type">
+                    <i class="icon icon-dna fas"> </i>
+                    <span class="nav-link-title">Sequencing Data Type</span>
+                    <span class="nav-link-subtitle">
+                        WGS and Hi-C & RNA-seq
+                    </span>
                 </a>
                 <a class="nav-link" target="" href="#variant-calling">
-                    <i class="icon icon-globe fas"> </i>
+                    <i class="icon icon-code-branch fas"> </i>
                     <span class="nav-link-title">Variant Calling</span>
-                    <span class="nav-link-subtitle">Variant Calling</span>
+                    <span class="nav-link-subtitle">
+                        Germline & Somatic Variants
+                    </span>
                 </a>
                 <a class="nav-link" target="" href="#reference-files">
-                    <i class="icon icon-globe fas"> </i>
+                    <i class="icon icon-file-code fas"> </i>
                     <span class="nav-link-title">Reference Files</span>
-                    <span class="nav-link-subtitle">Reference Files</span>
+                    <span class="nav-link-subtitle">
+                        Builds, Annotations, and Databases
+                    </span>
                 </a>
             </div>
 
             <div className="nav-group">
-                <h3 id="data-type">Data Type</h3>
+                <h3 id="sequencing-data-type">Sequencing Data Type</h3>
                 <div className="nav-subgroup">
                     <h5>Whole Genome Sequencing (WGS) and Hi-C</h5>
                     <p>
