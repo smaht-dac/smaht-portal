@@ -149,6 +149,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Alignment Pileups",
                     "Consensus Reads",
                     "Genome Annotation",
                     "Genome Region",
