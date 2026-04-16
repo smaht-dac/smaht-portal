@@ -7,6 +7,41 @@ smaht-portal
 Change Log
 ----------
 
+1.22.7
+======
+
+`PR 648: SN Add pileup enum <https://github.com/smaht-dac/smaht-portal/pull/648>`_
+
+* Add "Alignment Pileups" enum to `data_category`
+
+
+1.22.6
+======
+
+`PR 647: Adjust filenames for multiple tissue DSAs <https://github.com/smaht-dac/smaht-portal/pull/647>`_
+
+* Use code `MT` for DSA files with multiple tissue sources
+* Update `get_access_status` for Benchmarking Genome Annotation files
+
+1.22.5
+======
+
+`PR 644: Add donor_groups property to abstract_donor <https://github.com/smaht-dac/smaht-portal/pull/644>`_
+
+* to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
+
+1.22.4
+======
+
+`PR 645: fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/645>`_
+
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries 
+1.22.3
+======
+
+`PR 642: update enum for braak_and_braak_ad field in brain_pathology_report <https://github.com/smaht-dac/smaht-portal/pull/642>`_
+
+* add '0' to enum in brain_pathology_report schema in braak_and_braak_ad field"
 
 1.22.2
 ======

@@ -149,6 +149,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Alignment Pileups",
                     "Consensus Reads",
                     "Genome Annotation",
                     "Genome Region",
@@ -323,6 +324,9 @@
         "donors.display_title": {
             "title": "Donor",
             "search_type": "basic"
+        },
+        "donors.donor_groups": {
+            "title": "Donor Groups"
         },
         "donors.age": {
             "title": "Donor Age",
