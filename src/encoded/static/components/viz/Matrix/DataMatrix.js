@@ -1188,7 +1188,7 @@ export default class DataMatrix extends React.PureComponent {
         }
 
         if (nextMatrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
-            const donorTissueBaseColor = '#c84d5c';
+            const donorTissueBaseColor = '#47adff';
             return {
                 matrixMode: nextMatrixMode,
                 countFor: 'files',
@@ -1518,7 +1518,7 @@ export default class DataMatrix extends React.PureComponent {
                         <div className="matrix-top-controls matrix-assay-select-control">
                             <div className="matrix-assay-select-inline">
                                 <label className="matrix-assay-select-label" htmlFor={`matrix-assay-select-${idLabel || 'default'}`}>
-                                    <i className="icon fas icon-hourglass-half me-1" /> Assay
+                                    <i className="icon fas icon-dna" /> Assay
                                 </label>
                                 <select
                                     id={`matrix-assay-select-${idLabel || 'default'}`}
