@@ -111,6 +111,8 @@ def get_sequencers(
     properties: Dict[str, Any], request_handler: RequestHandler
 ) -> List[str]:
     """Get sequencers associated with file."""
+    if (overrides := get_override_sequencers(properties)):
+        return overrides
     sequencings = get_sequencings(properties, request_handler)
     return get_property_values_from_identifiers(
         request_handler, sequencings, sequencing.get_sequencer
@@ -132,6 +134,8 @@ def get_assays(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get assays associated with file."""
+    if (overrides := get_override_assays(properties)):
+        return overrides
     if request_handler:
         return get_property_values_from_identifiers(
             request_handler,
@@ -445,6 +449,16 @@ def has_structural_variants(file: Dict[str, Any]) -> bool:
 def has_mobile_element_insertions(file: Dict[str, Any]) -> bool:
     """Check if file has MEIs."""
     return "MEI" in get_data_type(file)
+
+
+def get_override_assays(file: Dict[str, Any]) -> List[str]:
+    """Get override assays from properties."""
+    return file.get("override_assays", [])
+
+
+def get_override_sequencers(file: Dict[str, Any]) -> List[str]:
+    """Get override sequencers from properties."""
+    return file.get("override_sequencers", [])
 
 
 def get_override_group_coverage(file: Dict[str, Any]) -> str:

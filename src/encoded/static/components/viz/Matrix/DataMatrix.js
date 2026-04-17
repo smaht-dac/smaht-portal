@@ -148,15 +148,15 @@ export default class DataMatrix extends React.PureComponent {
     static defaultProps = {
         "query": {
             "url": "/data_matrix_aggregations/?type=File&status=open&limit=all",
-            "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
+            "columnAggFields": ["assays.display_title", "sequencers.platform"],
             "rowAggFields": ["donors.display_title", "sample_summary.tissues", "sample_summary.category"]
         },
         "fieldChangeMap": {
-            "assay": "file_sets.libraries.assay.display_title",
+            "assay": "assays.display_title",
             "donor": "donors.display_title",
             "tissue": "sample_summary.tissues",
             "germLayer": "sample_summary.category",
-            "platform": "sequencing.sequencer.platform",
+            "platform": "sequencers.platform",
             "data_type": "data_type",
             "file_format": "file_format.display_title",
             "data_category": "data_category",
@@ -271,14 +271,14 @@ export default class DataMatrix extends React.PureComponent {
         // allowedFields is for the configurator
         "allowedFields": [
             "donors.display_title",
-            "sequencing.sequencer.display_title",
-            "file_sets.libraries.assay.display_title",
+            "sequencers.display_title",
+            "assays.display_title",
             "sample_summary.tissues",
             "data_type",
             "file_format.display_title",
             "data_category",
             "software.display_title",
-            "sequencing.sequencer.platform",
+            "sequencers.platform",
             "sample_summary.studies",
             "dataset",
         ],
@@ -1356,7 +1356,7 @@ DataMatrix.resultTransformedPostProcessFuncs = {
 };
 DataMatrix.browseFilteringTransformFuncs = {
     "analysisDerivedColumns": function (filteringProperties, blockType) {
-        const assayField = 'file_sets.libraries.assay.display_title';
+        const assayField = 'assays.display_title';
         const hasAssayFilter = typeof filteringProperties[assayField] !== 'undefined';
         const studies = filteringProperties['sample_summary.studies'];
         const studiesList = Array.isArray(studies) ? studies : (typeof studies === 'string' ? [studies] : []);
