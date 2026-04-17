@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.23.1
+======
+
+`PR 652: fix: move alert in registration modal to bottom of form <https://github.com/smaht-dac/smaht-portal/pull/652>`_
+
+* Move the blocked email error registration alert to the bottom of the form
+
+
 1.23.0
 ======
 
