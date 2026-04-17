@@ -53,8 +53,15 @@ export const formatTissueData = (data) => {
 
     if (!data) return defaultTissueCategories;
 
-    // group data by tissue category
-    const grouped_data = data.reduce((acc, { key }) => {
+    // Flatten any nested terms
+    const flattenedTissueTerms = data.flatMap((t) => {
+        if (Array.isArray(t?.terms) && t.terms.length > 0) {
+            return t.terms;
+        }
+        return t ? [t] : [];
+    });
+
+    const grouped_data = flattenedTissueTerms.reduce((acc, { key }) => {
         // if category is not present in lookup map, assign to 'Unknown' group
         const tissueCategory = getTissueCategoryFromFacetTerm(key) || 'Unknown';
 
