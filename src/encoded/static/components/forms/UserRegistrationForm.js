@@ -360,8 +360,6 @@ export default class UserRegistrationForm extends React.PureComponent {
 
         return (
             <div className="user-registration-form-container position-relative">
-                {errorIndicator}
-
                 {heading}
 
                 <div className={isConsortiumMember === true ? null : "mb-3"}>
@@ -513,6 +511,13 @@ export default class UserRegistrationForm extends React.PureComponent {
                                 </div>
                             </div>
                         </div>
+
+                        <div className="row">
+                            <div className="col-12">
+                                {errorIndicator}
+                            </div>
+                        </div>
+
 
                         <div className="row mt-15 recaptcha-privacy-row">
                             <div className="col-12 col-lg-5">
