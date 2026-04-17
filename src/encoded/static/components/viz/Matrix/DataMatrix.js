@@ -302,6 +302,7 @@ export default class DataMatrix extends React.PureComponent {
         "excludePrimaryColumnNoValue": true,
         "autoPopulateColumnGroupsMapFields": null,
         "donorTissueColumnGroups": DataMatrix.DEFAULT_DONOR_TISSUE_COLUMN_GROUPS,
+        "donorTissueShrinkEmptyColumns": false,
         "donorTissueAssayOptions": DataMatrix.DEFAULT_DONOR_TISSUE_ASSAY_OPTIONS,
         "initialMatrixMode": DataMatrix.MATRIX_MODES.DONOR_ASSAY,
     };
@@ -366,6 +367,7 @@ export default class DataMatrix extends React.PureComponent {
             'value': PropTypes.string
         }),
         'donorTissueColumnGroups': PropTypes.object,
+        'donorTissueShrinkEmptyColumns': PropTypes.bool,
         'donorTissueAssayOptions': PropTypes.arrayOf(PropTypes.string),
         'initialMatrixMode': PropTypes.oneOf(_.values(DataMatrix.MATRIX_MODES))
     };
@@ -1064,6 +1066,7 @@ export default class DataMatrix extends React.PureComponent {
 
     getDerivedDonorTissueResults(results = null) {
         const { matrixMode, donorTissueAssay, groupingProperties, columnGrouping } = this.state;
+        const { donorTissueShrinkEmptyColumns } = this.props;
         if (matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE || !results) {
             return results;
         }
@@ -1124,12 +1127,25 @@ export default class DataMatrix extends React.PureComponent {
         const effectiveColumnTotalKeys = columnTotalKeys.length > 0
             ? columnTotalKeys
             : _.uniq([columnGrouping, 'germLayer']);
+        const filteredColumnTotals = aggregateRowsByKeys(filteredAll, effectiveColumnTotalKeys);
+        const zeroCounts = { files: 0, total_coverage: 0, donors: 0, donor_count: 0 };
+        const effectiveColumnTotals = donorTissueShrinkEmptyColumns
+            ? filteredColumnTotals
+            : _.map(results.column_totals || [], (columnTotalRow) => {
+                const matchedColumnTotal = _.find(filteredColumnTotals, (filteredColumnTotalRow) => (
+                    filteredColumnTotalRow?.[columnGrouping] === columnTotalRow?.[columnGrouping]
+                ));
+                return matchedColumnTotal || {
+                    ..._.pick(columnTotalRow, effectiveColumnTotalKeys),
+                    counts: { ...zeroCounts }
+                };
+            });
 
         return {
             ...results,
             all: filteredAll,
             row_totals: aggregateRowsByKeys(filteredAll, effectiveRowTotalKeys),
-            column_totals: aggregateRowsByKeys(filteredAll, effectiveColumnTotalKeys),
+            column_totals: effectiveColumnTotals,
             overallCounts: aggregateCounts(filteredAll)
         };
     }
@@ -1411,7 +1427,7 @@ export default class DataMatrix extends React.PureComponent {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
             baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor, showMatrixModeTabs,
-            showFacetTermsPanel, facetTermsPanelFields
+            showFacetTermsPanel, facetTermsPanelFields, donorTissueShrinkEmptyColumns
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -1456,6 +1472,9 @@ export default class DataMatrix extends React.PureComponent {
             baseBrowseFilesPath,
             activeFacetHref: effectiveFacetHref || query?.url || null,
             showUniqueDonorsAssayBand: this.props.showUniqueDonorsAssayBand,
+            shrinkEmptyColumns: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
+                ? donorTissueShrinkEmptyColumns
+                : true,
             countFor,
             overallCounts: effectiveOverallCounts,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),

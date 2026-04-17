@@ -704,7 +704,7 @@ export class VisualBody extends React.PureComponent {
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
-                    'countFor', 'overallCounts', 'showUniqueDonorsAssayBand',
+                    'countFor', 'overallCounts', 'showUniqueDonorsAssayBand', 'shrinkEmptyColumns',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing',
                     'headerLeftControls')}
                 blockPopover={this.blockPopover}
@@ -1217,7 +1217,7 @@ export class StackedBlockVisual extends React.PureComponent {
     }
 
     renderContents(){
-        const { data : propData, rowTotals: propRowTotals, columnTotals: propColumnTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, showColumnSummary, blockHeight, blockVerticalSpacing } = this.props;
+        const { data : propData, rowTotals: propRowTotals, columnTotals: propColumnTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, showColumnSummary, blockHeight, blockVerticalSpacing, shrinkEmptyColumns = true } = this.props;
         const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
         if (!mounted) return null;
         // prepare data
@@ -1230,6 +1230,14 @@ export class StackedBlockVisual extends React.PureComponent {
         let groupedDataIndices = null;
         if (typeof columnGrouping === 'string'){
             groupedDataIndices = _.groupBy(data, columnGrouping);
+            if (!shrinkEmptyColumns && Array.isArray(propColumnTotals)) {
+                propColumnTotals.forEach((columnTotalRow) => {
+                    const columnKey = columnTotalRow?.[columnGrouping];
+                    if (typeof columnKey !== 'undefined' && columnKey !== null && !groupedDataIndices[columnKey]) {
+                        groupedDataIndices[columnKey] = [];
+                    }
+                });
+            }
         }
 
         if (Array.isArray(nestedData) || !nestedData) {
