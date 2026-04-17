@@ -956,7 +956,7 @@ class FileRelease:
         if "SmahtSNV" in software_codes:
             return "Filtered somatic SNV vcf"
         elif software_codes & {"rufus", "longcalld", "strelka2", "sentieon_tnhaplotyper2"}:
-            return "Unfiltered somatic SNV vcf"
+            return "Unfiltered somatic SNV"
         else:
             self.print_error_and_exit(
                 f"Could not determine Release Tracker description"
@@ -1085,6 +1085,9 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_GENOME_ANNOTATION: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (

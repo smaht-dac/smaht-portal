@@ -7,13 +7,39 @@ smaht-portal
 Change Log
 ----------
 
-1.22.6
+1.23.1
 ======
 
 `PR 635: feat: update account creation doc <https://github.com/smaht-dac/smaht-portal/pull/635>`_
 
 * Update account creation documentation
 
+
+1.23.0
+======
+
+`PR 649: Add assays and sequencers calcprops to File <https://github.com/smaht-dac/smaht-portal/pull/649>`_
+
+* Add ``assays`` (was already present) and ``sequencers`` as top-level calculated properties on File, derived from linked FileSets
+* Add ``override_assays`` and ``override_sequencers`` restricted properties to allow manual overrides
+* Update facet and column configuration to reference the new top-level ``assays`` and ``sequencers`` fields
+
+
+1.22.7
+======
+
+`PR 648: SN Add pileup enum <https://github.com/smaht-dac/smaht-portal/pull/648>`_
+
+* Add "Alignment Pileups" enum to `data_category`
+
+
+1.22.6
+======
+
+`PR 647: Adjust filenames for multiple tissue DSAs <https://github.com/smaht-dac/smaht-portal/pull/647>`_
+
+* Use code `MT` for DSA files with multiple tissue sources
+* Update `get_access_status` for Benchmarking Genome Annotation files
 
 1.22.5
 ======

@@ -96,7 +96,7 @@ recent_files_summary_raw_results = {
             }
         },
         {
-            "field": "file_sets.libraries.assay.display_title",
+            "field": "assays.display_title",
             "title": "Experimental Assay",
             "total": 0,
             "aggregation_type": "terms",
@@ -119,7 +119,7 @@ recent_files_summary_raw_results = {
             }
         },
         {
-            "field": "file_sets.sequencing.sequencer.display_title",
+            "field": "sequencers.display_title",
             "title": "Sequencing Platform",
             "total": 0,
             "aggregation_type": "terms",
@@ -738,10 +738,10 @@ recent_files_summary_raw_results = {
         "annotated_filename": {
             "title": "File"
         },
-        "file_sets.libraries.assay.display_title": {
+        "assays.display_title": {
             "title": "Assay"
         },
-        "file_sets.sequencing.sequencer.display_title": {
+        "sequencers.display_title": {
             "title": "Platform"
         },
         "file_format.display_title": {
