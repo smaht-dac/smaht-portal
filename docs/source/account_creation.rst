@@ -224,6 +224,7 @@ Looks like your institutional email is already used as the primary email on a di
 **I tried to log in with my Google account, but the portal says: “Account Unauthorized: An account associated with the email address does not exist in the system.” What should I do?**
 
 This means that SMaHT DAC hasn't finished setting up your account. If you have not requested access yet, please return to Step 2 above. You can also click the “Help Desk” button on the top right corner of the SMaHT data portal homepage (`https://data.smaht.org <https://data.smaht.org>`__) or the “Request Access” button in the “Account Unauthorized” popup to start an email request to DAC in your computer's default email client.
+
 |
 
 **I tried to log in with my Google account, but the portal says: “Something went wrong.” What should I do?**
