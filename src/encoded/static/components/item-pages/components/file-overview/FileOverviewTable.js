@@ -299,10 +299,10 @@ export const FileOverviewTable = (props) => {
                 hideColumns={[
                     'display_title',
                     'data_type',
-                    'file_sets.sequencing.sequencer.display_title',
+                    'sequencers.display_title',
                     'file_format.display_title',
                     'submission_centers.display_title',
-                    'file_sets.libraries.assay.display_title',
+                    'assays.display_title',
                     'sequencing_center.display_title',
                 ]}
                 columns={{

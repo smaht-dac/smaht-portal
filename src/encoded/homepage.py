@@ -22,7 +22,7 @@ class SearchBase:
         'type': 'File',
         'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
         'additional_facet': [
-            'file_sets.libraries.assay.display_title'
+            'assays.display_title'
         ]
     }
     COLO829_RELEASED_FILES_SEARCH_PARAMS = {
@@ -30,7 +30,7 @@ class SearchBase:
         'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
         'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl'],
         'additional_facet': [
-            'file_sets.libraries.assay.display_title'
+            'assays.display_title'
         ]
     }
     HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
@@ -38,7 +38,7 @@ class SearchBase:
         'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
         'dataset': ['hapmap'],
         'additional_facet': [
-            'file_sets.libraries.assay.display_title'
+            'assays.display_title'
         ]
     }
     IPSC_RELEASED_FILES_SEARCH_PARAMS = {
@@ -46,7 +46,7 @@ class SearchBase:
         'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
         'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60'],
         'additional_facet': [
-            'file_sets.libraries.assay.display_title'
+            'assays.display_title'
         ]
     }
     TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
@@ -62,7 +62,7 @@ class SearchBase:
             'ST004-1Q'
         ],
         'additional_facet': [
-            'donors.display_title', 'file_sets.libraries.assay.display_title'
+            'donors.display_title', 'assays.display_title'
         ]  # required since this is default_hidden for now
     }
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
@@ -70,7 +70,7 @@ class SearchBase:
         'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
         'sample_summary.studies': ['Production'],
         'additional_facet': [
-            'file_sets.libraries.assay.display_title',
+            'assays.display_title',
             'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
         ]
     }
@@ -136,7 +136,7 @@ def generate_colo829_cell_line_file_count(context, request):
 def generate_colo829_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts for colo829 """
     search_param = SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
 
 
 def generate_hapmap_cell_line_file_count(context, request):
@@ -148,7 +148,7 @@ def generate_hapmap_cell_line_file_count(context, request):
 def generate_hapmap_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts for hapmap """
     search_param = SearchBase.HAPMAP_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
 
 
 def generate_ipsc_cell_line_file_count(context, request):
@@ -160,7 +160,7 @@ def generate_ipsc_cell_line_file_count(context, request):
 def generate_ipsc_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts for ipsc """
     search_param = SearchBase.IPSC_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
 
 
 def generate_tissue_file_count(context, request):
@@ -178,7 +178,7 @@ def generate_tissue_donor_count(context, request):
 def generate_tissue_assay_count(context, request):
     """ Get total assay count for benchmarking tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
 
 
 def generate_production_file_count(context, request):
@@ -196,7 +196,7 @@ def generate_production_tissue_donor_count(context, request):
 def generate_production_tissue_assay_count(context, request):
     """ Get production tissue assay counts """
     search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
 
 
 def generate_production_tissue_type_count(context, request):
