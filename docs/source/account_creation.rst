@@ -61,7 +61,7 @@ Step 2: Connecting via Google's “OAuth” authentication system
 
 |
 
-Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth authentication system, which will allow you to login using a Google account linked to your institutional email address.
+Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth authentication system, which will allow you to log in using a Google account linked to your institutional email address.
 
 Please note that if you think that you may potentially apply to obtain protected-access data (under dbGaP), *data access regulations require you to use the same institutional e-mail address* that you plan to use when you apply for dbGaP access.
 
@@ -123,14 +123,14 @@ Instructions
 ============
 
 
-Step 1: Network membership needs to be verified by  SMaHT OC
+Step 1: Network membership needs to be verified by SMaHT OC
 ------------------------------------------------------------
 
 SMaHT Network membership is verified by the Organization Center (OC). If you are a new Network member or an associate Network member, please email the OC at `smahtsupport@gowustl.onmicrosoft.com <mailto:smahtsupport@gowustl.onmicrosoft.com>`_ to be verified before contacting DAC about creating the portal access. When contacting OC, the new Network members should cc their PIs and provide their institutional email address. Upon the Network membership verification, the institutional e-mail addresses added to the SMaHT Network Directory will be used to log into the SMaHT Data Portal (see **Step 2**).
 
 
 
-Step 2: Contact  SMaHT DAC to set up your portal account
+Step 2: Contact SMaHT DAC to set up your portal account
 --------------------------------------------------------
 
 Please email the SMaHT Data Analysis Center (DAC) at `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_ to have a portal account created as a Network member. Network members have early access to the SMaHT data, and their accounts have different privileges than those who self-register at the portal.
@@ -145,7 +145,7 @@ We will notify you once your account is created. In the meantime, please complet
 Step 3: Create a Google Account using Your Institutional Email Address
 ----------------------------------------------------------------------
 
-The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which allows you to login using a Google account. Please create a Google Account that must be linked to your institutional email address in the SMaHT Network Directory (*DO NOT use your Gmail* or other personal e-mail address!).
+The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which allows you to log in using a Google account. Please create a Google Account that must be linked to your institutional email address in the SMaHT Network Directory (*DO NOT use your Gmail* or other personal e-mail address!).
 
 .. IMPORTANT::
     You will create and USE A GOOGLE ACCOUNT, **NOT** A GMAIL ACCOUNT. To link your institutional email to a google account, follow the steps below:
