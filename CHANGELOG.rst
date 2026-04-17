@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.23.1
+======
+
+`PR 653: feat: remove truth set tabs from benchmarking tables <https://github.com/smaht-dac/smaht-portal/pull/653>`_
+
+* Remove truth set tabs from benchmarking
+
+
 1.23.0
 ======
 
