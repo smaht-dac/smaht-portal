@@ -2154,10 +2154,14 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     if (overallValue == null) return null;
                     const overallHeaderItemStyle = StackedBlockGroupedRow.getHeaderItemStyleForKey('overall-summary', props);
                     const overallSummaryBlockStyle = getSummaryBlockStyle('overall-summary');
+                    const hasOpenBlock = props.openBlock?.columnIdx === columnKeys.length
+                        && props.openBlock?.summaryRowType === summaryBlockType;
+                    const hasActiveBlock = props.activeBlock?.columnIdx === columnKeys.length
+                        && props.activeBlock?.summaryRowType === summaryBlockType;
                     return (
                     <div
                         key={`col-summary-overall-${summaryCountFor}`}
-                        className={`column-group-header overall-summary ${summaryBlockType === 'col-secondary-summary' ? 'col-secondary-summary' : ''}`}
+                        className={`column-group-header overall-summary ${summaryBlockType === 'col-secondary-summary' ? 'col-secondary-summary' : ''}${hasOpenBlock ? ' open-block-column' : ''}${hasActiveBlock ? ' active-block-column' : ''}`}
                         style={overallHeaderItemStyle}>
                         <div
                             className="block-container-group"

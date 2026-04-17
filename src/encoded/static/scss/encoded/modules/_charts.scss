@@ -2731,6 +2731,19 @@ body[data-path="/statistics"] {
                     }
                 }
             }
+
+            &.matrix-yaxis-donor.has-open-block {
+                .stacked-block.is-open-block[data-block-type="col-secondary-summary"] {
+                    color: #cf8d64 !important;
+                    border-color: #ffd0b3 !important;
+                }
+
+                .stacked-block.is-open-block[data-block-type="col-summary"],
+                .stacked-block.is-open-block[data-block-type="row-summary"] {
+                    color: #cf8d64 !important;
+                    border-color: #f3c19e !important;
+                }
+            }
         }
     }
 }
