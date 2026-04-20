@@ -139,7 +139,7 @@ export const BrowseDonorVizWrapper = (props) => {
 
     const initialFields = [
         'sample_summary.tissues',
-        'sequencing.sequencer.display_title',
+        'sequencers.display_title',
     ];
 
     const fileFilters = useMemo(() => {

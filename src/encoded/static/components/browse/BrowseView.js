@@ -182,7 +182,7 @@ const BrowseFileBody = (props) => {
 
     const initialFields = [
         'sample_summary.tissues',
-        'sequencing.sequencer.display_title',
+        'sequencers.display_title',
     ];
 
     return (
@@ -655,7 +655,7 @@ export function createBrowseFileColumnExtensionMap({
             },
         },
         // Assay
-        'file_sets.libraries.assay.display_title': {
+        'assays.display_title': {
             widthMap: { lg: 100, md: 100, sm: 100 },
         },
         // Tissue
@@ -715,7 +715,7 @@ export function createBrowseFileColumnExtensionMap({
             },
         },
         // Platform
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             widthMap: { lg: 170, md: 160, sm: 150 },
         },
         // Format
@@ -761,10 +761,10 @@ export function createBrowseFileColumnExtensionMap({
         'sample_summary.tissues': {
             title: 'Tissue',
         },
-        'file_sets.libraries.assay.display_title': {
+        'assays.display_title': {
             title: 'Assay',
         },
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             title: 'Platform',
         },
         'file_status_tracking.release_dates.initial_release_date': {

@@ -256,7 +256,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
             const assayFacets = panelDetails?.searchCache?.facets?.find(
-                (f) => f.field === 'file_sets.libraries.assay.display_title'
+                (f) => f.field === 'assays.display_title'
             );
 
             // Pull out terms and label overrides from facet
@@ -321,7 +321,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                     <li key={j}>
                                                         <span>
                                                             <a
-                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&file_sets.libraries.assay.display_title=${assay}`}
+                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&assays.display_title=${assay}`}
                                                                 target="_blank"
                                                                 rel="noreferrer noopener">
                                                                 {assayTitle}
@@ -576,7 +576,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                     ?.find(
                         (f) =>
                             f.field ===
-                            'file_sets.libraries.assay.display_title'
+                            'assays.display_title'
                     )
                     ?.terms?.reduce(
                         (acc, curr) => acc + (curr?.terms?.length ?? 1),
@@ -776,7 +776,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
             },
         },
         // Platform
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             widthMap: { lg: 170, md: 160, sm: 150 },
         },
         // Format

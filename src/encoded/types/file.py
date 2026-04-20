@@ -122,6 +122,16 @@ class CalcPropConstants:
             "linkTo": "Sequencing",
         },
     }
+    SEQUENCERS_SCHEMA = {
+        "title": "Sequencers",
+        "description": "Sequencers associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Sequencer",
+        },
+    }
     ASSAYS_SCHEMA = {
         "title": "Assays",
         "description": "Assays associated with the file",
@@ -420,6 +430,9 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.sequencing.sequencer",
         "file_sets.sequencing.target_coverage",
         "file_sets.sequencing.target_read_count",
+
+        "assays.category",
+        "sequencers.platform",
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
@@ -894,11 +907,14 @@ class File(Item, CoreFile):
         return self._get_sequencing(request, file_sets=file_sets)
 
     @calculated_property(schema=CalcPropConstants.ASSAYS_SCHEMA)
-    def assays(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
+    def assays(self, request: Request) -> Union[List[str], None]:
         """Get Assays associated with the file."""
-        return self._get_assays(request, file_sets=file_sets)
+        return self._get_assays(request)
+
+    @calculated_property(schema=CalcPropConstants.SEQUENCERS_SCHEMA)
+    def sequencers(self, request: Request) -> Union[List[str], None]:
+        """Get Sequencers associated with the file."""
+        return self._get_sequencers(request)
 
     @calculated_property(schema=CalcPropConstants.ANALYTES_SCHEMA)
     def analytes(
@@ -937,10 +953,10 @@ class File(Item, CoreFile):
 
     @calculated_property(schema=CalcPropConstants.DATA_GENERATION_SCHEMA)
     def data_generation_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
+        self, request: Request
     ) -> Union[Dict[str, Any], None]:
         """Get data generation summary for display on file overview page."""
-        return self._get_data_generation_summary(request, file_sets=file_sets)
+        return self._get_data_generation_summary(request)
 
     @calculated_property(schema=CalcPropConstants.SAMPLE_SUMMARY_SCHEMA)
     def sample_summary(
@@ -1011,14 +1027,16 @@ class File(Item, CoreFile):
             result = file_utils.get_sequencings(self.properties, request_handler)
         return result or None
 
-    def _get_assays(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> List[str]:
+    def _get_assays(self, request: Request) -> List[str]:
         """Get the assays associated with the file."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = file_utils.get_assays(self.properties, request_handler)
+        request_handler = RequestHandler(request=request)
+        result = file_utils.get_assays(self.properties, request_handler)
+        return result or None
+    
+    def _get_sequencers(self, request: Request) -> List[str]:
+        """Get the sequencers associated with the file."""
+        request_handler = RequestHandler(request=request)
+        result = file_utils.get_sequencers(self.properties, request_handler)
         return result or None
 
     def _get_analytes(
@@ -1105,7 +1123,7 @@ class File(Item, CoreFile):
         }
 
     def _get_data_generation_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
+        self, request: Request
     ) -> Union[Dict[str, Any], None]:
         """Get data generation summary for display on file overview page."""
         request_handler = RequestHandler(request=request)
