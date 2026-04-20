@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+1.23.0
+======
+
+`PR 649: Add assays and sequencers calcprops to File <https://github.com/smaht-dac/smaht-portal/pull/649>`_
+
+* Add ``assays`` (was already present) and ``sequencers`` as top-level calculated properties on File, derived from linked FileSets
+* Add ``override_assays`` and ``override_sequencers`` restricted properties to allow manual overrides
+* Update facet and column configuration to reference the new top-level ``assays`` and ``sequencers`` fields
+
+
 1.22.7
 ======
 
