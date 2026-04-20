@@ -1,5 +1,6 @@
 import argparse
 import pprint
+import re
 from dataclasses import dataclass
 from functools import cached_property, partial
 from typing import Callable, Dict, List, Any
@@ -951,11 +952,11 @@ class FileRelease:
 
     def get_release_tracker_description_af(self, file) -> str:
         # Get a release tracker description for an analysis file
-        software_codes = [s["code"] for s in file.get("software", [])]
+        software_codes = {s["code"] for s in file.get("software", [])}
         if "SmahtSNV" in software_codes:
             return "Filtered somatic SNV vcf"
-        # elif "rufus" in software_codes: #TODO add raw callers
-        #     return "Unfiltered somatic SNV vcf"
+        elif software_codes & {"rufus", "longcalld", "strelka2", "sentieon_tnhaplotyper2"}:
+            return "Unfiltered somatic SNV"
         else:
             self.print_error_and_exit(
                 f"Could not determine Release Tracker description"
@@ -967,7 +968,11 @@ class FileRelease:
             return AnnotatedFilenameInfo(annotated_filename, {})
 
         annotated_filename = caf.get_annotated_filename(
-            file, self.request_handler, file_sets=self.file_sets, analysis_run=self.analysis_run
+            file,
+            self.request_handler,
+            file_sets=self.file_sets,
+            analysis_run=self.analysis_run,
+            output_meta_workflow_run=self.output_meta_workflow_run,
         )
         if caf.has_errors(annotated_filename):
             errors = "; ".join(annotated_filename.errors)
@@ -1080,6 +1085,9 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_GENOME_ANNOTATION: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (

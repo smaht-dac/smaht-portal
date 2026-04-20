@@ -149,6 +149,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Alignment Pileups",
                     "Consensus Reads",
                     "Genome Annotation",
                     "Genome Region",
@@ -242,6 +243,30 @@
                 "type": "string"
             }
         },
+        "override_assays": {
+            "title": "Assays Override",
+            "desciption": "An override list of assay links used to override the assays calcprop if present",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "Assay"
+            },
+            "minItems": 1,
+            "uniqueItems": true,
+            "permission": "restricted_fields"
+        },
+        "override_sequencers": {
+            "title": "Sequencers Override",
+            "desciption": "An override list of sequencer links used to override the sequencers calcprop if present",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "Sequencer"
+            },
+            "minItems": 1,
+            "uniqueItems": true,
+            "permission": "restricted_fields"
+        },
         "override_average_coverage": {
             "title": "Average Coverage Override",
             "desciption": "An override count for estimated average coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
@@ -324,6 +349,9 @@
             "title": "Donor",
             "search_type": "basic"
         },
+        "donors.donor_groups": {
+            "title": "Donor Groups"
+        },
         "donors.age": {
             "title": "Donor Age",
             "aggregation_type": "range",
@@ -364,17 +392,17 @@
         "sample_summary.tissues": {
             "title": "Tissue"
         },
-        "file_sets.libraries.assay.display_title": {
+        "assays.display_title": {
             "title": "Experimental Assay",
             "search_type": "basic",
             "sayt_item_type": "Assay",
-            "group_by_field": "file_sets.libraries.assay.category",
+            "group_by_field": "assays.category",
             "label_overrides": {
                 "No value": "Multiple Assays",
                 "(Missing group)": "Multiple Assays"
             }
         },
-        "file_sets.sequencing.sequencer.display_title": {
+        "sequencers.display_title": {
             "title": "Sequencing Platform",
             "label_overrides": {
                 "No value": "Multiple Platforms"
@@ -429,10 +457,10 @@
         "annotated_filename": {
             "title": "File"
         },
-        "file_sets.libraries.assay.display_title": {
+        "assays.display_title": {
             "title": "Assay"
         },
-        "file_sets.sequencing.sequencer.display_title": {
+        "sequencers.display_title": {
             "title": "Platform"
         },
         "file_format.display_title": {

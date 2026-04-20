@@ -69,6 +69,7 @@
                 "type": "string",
                 "enum": [
                     "Ligation",
+                    "PCR",
                     "Tagmentation",
                     "Not Applicable"
                 ]
@@ -100,6 +101,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Heat",
                     "Mechanical",
                     "Sonication",
                     "Restriction Enzyme",

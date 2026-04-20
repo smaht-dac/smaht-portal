@@ -2035,6 +2035,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     const donorsCount = isPrimarySummaryBand
                         ? getPrimaryGroupCountFromGroupedRows(columnKey)
                         : (totalsCounts?.donors ?? totalsCounts?.donor_count ?? getPrimaryGroupCountFromGroupedRows(columnKey));
+                    const summaryCounts = isPrimarySummaryBand
+                        ? { donors: donorsCount }
+                        : { ...(totalsCounts || {}), donors: donorsCount };
                     const columnSummaryData = summaryCountFor === 'donors'
                         ? [{ counts: { donors: donorsCount } }]
                         : summaryCountFor === 'total_coverage'
@@ -2059,7 +2062,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     popoverPrimaryTitle={props.rowGroupKey}
                                     columnKey={columnKey}
                                     countFor={summaryCountFor}
-                                    summaryCounts={isPrimarySummaryBand ? { donors: donorsCount } : totalsCounts}
+                                    summaryCounts={summaryCounts}
                                     summaryRowType={summaryBlockType}
                                 />
                             </div>

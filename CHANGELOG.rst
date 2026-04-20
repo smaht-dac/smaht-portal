@@ -7,6 +7,116 @@ smaht-portal
 Change Log
 ----------
 
+1.23.0
+======
+
+`PR 649: Add assays and sequencers calcprops to File <https://github.com/smaht-dac/smaht-portal/pull/649>`_
+
+* Add ``assays`` (was already present) and ``sequencers`` as top-level calculated properties on File, derived from linked FileSets
+* Add ``override_assays`` and ``override_sequencers`` restricted properties to allow manual overrides
+* Update facet and column configuration to reference the new top-level ``assays`` and ``sequencers`` fields
+
+
+1.22.7
+======
+
+`PR 648: SN Add pileup enum <https://github.com/smaht-dac/smaht-portal/pull/648>`_
+
+* Add "Alignment Pileups" enum to `data_category`
+
+
+1.22.6
+======
+
+`PR 647: Adjust filenames for multiple tissue DSAs <https://github.com/smaht-dac/smaht-portal/pull/647>`_
+
+* Use code `MT` for DSA files with multiple tissue sources
+* Update `get_access_status` for Benchmarking Genome Annotation files
+
+1.22.5
+======
+
+`PR 644: Add donor_groups property to abstract_donor <https://github.com/smaht-dac/smaht-portal/pull/644>`_
+
+* to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
+
+1.22.4
+======
+
+`PR 645: fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/645>`_
+
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries 
+1.22.3
+======
+
+`PR 642: update enum for braak_and_braak_ad field in brain_pathology_report <https://github.com/smaht-dac/smaht-portal/pull/642>`_
+
+* add '0' to enum in brain_pathology_report schema in braak_and_braak_ad field"
+
+1.22.2
+======
+
+`PR 638: Bump SPC to 0.1.97 <https://github.com/smaht-dac/smaht-portal/pull/638>`_
+
+* Bump @hms-dbmi-bgm/shared-portal-components from 0.1.96 to 0.1.97 that basically fixes data fetch for 20+ selected facet terms.
+
+
+1.22.1
+======
+
+`PR 636: Support release of core specific analysis files <https://github.com/smaht-dac/smaht-portal/pull/636>`_
+
+* Support core specific analysis files in release script 
+
+
+1.22.0
+======
+
+* Implement CADR email restrictions on login
+* Add command for setting restricted emails to deleted
+* Update user registration modal alerts
+
+
+1.21.6
+======
+
+`PR 629: fix: prevent long URL generation from release tracker <https://github.com/smaht-dac/smaht-portal/pull/629>`_
+
+* Prevent the release tracker queries from getting too long
+
+
+1.21.5
+======
+
+`PR 634: feat: update auth0 text <https://github.com/smaht-dac/smaht-portal/pull/634>`_
+
+* Update auth0 modal text
+
+
+1.21.4
+======
+
+`PR 633: Add phased analysis support and fix donor count logic <https://github.com/smaht-dac/smaht-portal/pull/633>`_
+
+* Include phased analysis files in Variant Call Sets for the Production data matrix and donor-view data matrices.
+* Fix donor counts in Total Files summary popovers for DSA and Variant Call Sets.
+
+
+1.21.3
+======
+
+`PR 631: feat: add homepage alerts for restricted user access <https://github.com/smaht-dac/smaht-portal/pull/631>`_
+
+* Add alert in announcements section
+* Add navigation bar alert
+
+
+1.21.2
+======
+`PR 630: Apply facet label overrides in browse facet charts <https://github.com/smaht-dac/smaht-portal/pull/630>`_
+
+* Use facet term label overrides for facet charts in file/donor browse views
+
 
 1.21.1
 ======
@@ -127,7 +237,7 @@ Change Log
 `PR 616: feat: add software facet <https://github.com/smaht-dac/smaht-portal/pull/616>`_
 
 * Add software facet
-* Reorder facets 
+* Reorder facets
 
 
 1.17.0

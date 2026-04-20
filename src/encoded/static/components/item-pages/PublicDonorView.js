@@ -242,7 +242,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                     assays: resp?.facets?.find(
                         (facet) =>
                             facet.field ===
-                            'file_sets.libraries.assay.display_title'
+                            'assays.display_title'
                     )?.original_terms?.length,
                     files: resp?.total,
                 });
@@ -306,10 +306,10 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&analysis_details=No+value&analysis_details=Filtered&donors.display_title=${context.display_title}&limit=all`,
+                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&analysis_details=No+value&analysis_details=Filtered&analysis_details=Phased&donors.display_title=${context.display_title}&limit=all`,
                                         columnAggFields: [
-                                            'file_sets.libraries.assay.display_title',
-                                            'sequencing.sequencer.platform',
+                                            'assays.display_title',
+                                            'sequencers.platform',
                                         ],
                                         rowAggFields: [
                                             'donors.display_title',
