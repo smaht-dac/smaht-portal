@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.23.1
+======
+
+`PR 650: Group by and sort tissue facet terms <https://github.com/smaht-dac/smaht-portal/pull/650>`_
+
+* Groups tissue facet terms by germ layer and sorts them alphabetically within those groups
+
+
 1.23.0
 ======
 
