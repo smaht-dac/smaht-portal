@@ -7,6 +7,25 @@ smaht-portal
 Change Log
 ----------
 
+
+1.24.0
+======
+
+`PR 651: Update donor x tissue data matrix view <https://github.com/smaht-dac/smaht-portal/pull/651>`_
+
+* Enhance the Donor x tissue data matrix with donor-tissue assay selection, client-side assay filtering, and improved handling of available assay options
+* Fix donor-tissue derived assay counts, hidden analysis field handling, and row summary popovers to show germ layer and tissue counts correctly
+* Refine donor-tissue matrix presentation and interactions, including focus styling, color updates, assay selector polish, and removal of the Included Properties bottom border in that view only
+
+
+1.23.1
+======
+
+`PR 650: Group by and sort tissue facet terms <https://github.com/smaht-dac/smaht-portal/pull/650>`_
+
+* Groups tissue facet terms by germ layer and sorts them alphabetically within those groups
+
+
 1.23.0
 ======
 
