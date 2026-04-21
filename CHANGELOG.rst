@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.23.2
+======
+
+`PR : Add donor_groups facet to donor and proected_donor schemas <https://github.com/smaht-dac/smaht-portal/pull/>`_
+
+* Add facet to Donor schemas for donor_groups property
+
+
 1.23.1
 ======
 
