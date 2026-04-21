@@ -53,8 +53,15 @@ export const formatTissueData = (data) => {
 
     if (!data) return defaultTissueCategories;
 
-    // group data by tissue category
-    const grouped_data = data.reduce((acc, { key }) => {
+    // Flatten any nested terms
+    const flattenedTissueTerms = data.flatMap((t) => {
+        if (Array.isArray(t?.terms) && t.terms.length > 0) {
+            return t.terms;
+        }
+        return t ? [t] : [];
+    });
+
+    const grouped_data = flattenedTissueTerms.reduce((acc, { key }) => {
         // if category is not present in lookup map, assign to 'Unknown' group
         const tissueCategory = getTissueCategoryFromFacetTerm(key) || 'Unknown';
 
@@ -489,9 +496,13 @@ export function createBrowseProtectedDonorColumnExtensionMap({
 
                 const { data, loading, error } = parentProps?.fetchedProps;
 
-                const tissueCount = data?.find(
+                const tissueFacet = data?.find(
                     (f) => f.field === 'sample_summary.tissues'
-                )?.terms?.length;
+                );
+                const tissueTerms = tissueFacet?.has_group_by
+                    ? tissueFacet?.original_terms || tissueFacet?.terms
+                    : tissueFacet?.terms;
+                const tissueCount = tissueTerms?.length;
 
                 if (loading) {
                     return (
