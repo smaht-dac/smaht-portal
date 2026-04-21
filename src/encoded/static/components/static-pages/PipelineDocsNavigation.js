@@ -83,7 +83,7 @@ export const PipelineDocsNavigation = (props) => {
                     <i class="icon icon-dna fas"> </i>
                     <span class="nav-link-title">Sequencing Data Type</span>
                     <span class="nav-link-subtitle">
-                        WGS and Hi-C & RNA-seq
+                        Short- & Long-read WGS, RNA-Seq, Kinnex
                     </span>
                 </a>
                 <a class="nav-link" target="" href="#variant-calling">
@@ -97,7 +97,8 @@ export const PipelineDocsNavigation = (props) => {
                     <i class="icon icon-file-code fas"> </i>
                     <span class="nav-link-title">Reference Files</span>
                     <span class="nav-link-subtitle">
-                        Builds, Annotations, and Databases
+                        Human Genome Reference, Gene Annotation, and other
+                        annotation databases
                     </span>
                 </a>
             </div>
@@ -105,7 +106,10 @@ export const PipelineDocsNavigation = (props) => {
             <div className="nav-group">
                 <h3 id="sequencing-data-type">Sequencing Data Type</h3>
                 <div className="nav-subgroup">
-                    <h5>Whole Genome Sequencing (WGS) and Hi-C</h5>
+                    <h5>
+                        Bulk Whole Genome Sequencing (WGS), single-cell WGS
+                        (PTA), and Hi-C
+                    </h5>
                     <p>
                         WGS workflows are structured according to the main
                         processing steps, preprocessing and alignment:
