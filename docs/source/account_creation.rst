@@ -102,7 +102,7 @@ Step 4: Complete the Self-Registration Form
 
 |
 
-Once you have reached this form, please double-check that you created a Google account with the email address shown in “Primary email”. Then, enter your first and last name and the name of your affiliation/institution. Finally, click "Sign Up" and you will have created a SMaHT Data Portal account!
+Once you have reached this form, please double-check that you created a Google account with the email address shown in "Email”. Then, enter your first and last name and the name of your affiliation/institution. Finally, click "Sign Up" and you will have created a SMaHT Data Portal account!
 
 After you have created the SMaHT Data Portal account, the next time when you log in you will be directed straight to our OAuth authentication system with Google to log in. We hope you enjoy using the SMaHT Data Portal!
 
