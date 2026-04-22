@@ -21,7 +21,7 @@ How to Create a SMaHT Data Portal Account
 
 
 ************************************************
-For Non-Members: through Self Registration
+For Non-SMaHT Network Members: through Self Registration
 ************************************************
 
 Overview
