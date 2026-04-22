@@ -658,7 +658,7 @@ function getFirstPositiveRegularBlockText(matrixId) {
     });
 }
 
-function testDonorAssayFilesCoverageToggle(matrixId) {
+export function testDonorAssayFilesCoverageToggle(matrixId) {
     let donorAssayFileCount = null;
 
     getMatrixToggleButton(matrixId, 'Files')

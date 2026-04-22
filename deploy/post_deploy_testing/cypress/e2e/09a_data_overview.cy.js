@@ -1,6 +1,6 @@
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
-import { testMatrixPopoverValidation, testProductionMatrixModeTabs } from "../support/utils/dataMatrixUtils";
+import { testDonorAssayFilesCoverageToggle, testMatrixPopoverValidation, testProductionMatrixModeTabs } from "../support/utils/dataMatrixUtils";
 
 const EMPTY_DM_PROD_OPTS = {
     donors: [],
@@ -303,6 +303,8 @@ function stepDataMatrixBenchmarking(caps) {
                 "#data-matrix-for_benchmarking",
                 caps.expectedDataMatrixBenchmarkingOpts
             );
+
+            testDonorAssayFilesCoverageToggle("#data-matrix-for_benchmarking");
         })
         .end();
 }
