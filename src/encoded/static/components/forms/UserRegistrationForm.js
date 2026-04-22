@@ -380,7 +380,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                             checked={isConsortiumMember === false}
                             onChange={this.onConsortiumMemberNo}
                             className="col-12 col-lg-auto">
-                            No, I am&nbsp;<strong>not</strong>&nbsp;a SMaHT network member
+                            No, I am&nbsp;<strong>not</strong>&nbsp;a SMaHT Network member
                         </Checkbox>
                     </div>
                 </div>

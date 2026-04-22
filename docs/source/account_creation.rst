@@ -5,7 +5,7 @@ How to Create a SMaHT Data Portal Account
 .. raw:: html
 
     <div class="account-creation-nav static-page-top-navigation-container mb-4">
-        <a class="nav-link" href="#for-non-members-through-self-registration">
+        <a class="nav-link" href="#for-non-smaht-network-members-through-self-registration">
             <i class="icon icon-globe fas"> </i>
             <span class="nav-link-title">Non-Members</span>
             <span class="nav-link-subtitle">Self-Registration</span>
@@ -20,9 +20,9 @@ How to Create a SMaHT Data Portal Account
 
 
 
-************************************************
+********************************************************
 For Non-SMaHT Network Members: through Self Registration
-************************************************
+********************************************************
 
 Overview
 ========
@@ -63,7 +63,7 @@ Step 2: Connecting via Google's “OAuth” authentication system
 
 Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth authentication system, which will allow you to log in using a Google account linked to your institutional email address.
 
-If you plan to access protected data (under dbGaP control) in the SMaHT Data Portal, please ensure that you register with your institutional e-mail address that you will use to apply to dbGaP for protected-access data. In the near future, the Data Portal will interface with dbGaP to automatically authenticate dbGaP-apporved portal users when they log into the portal. Users with different e-mail addresses associated with the Data Portal login and dbGaP will not be able to access the protected data.
+If you plan to access protected data (under dbGaP control) in the SMaHT Data Portal, please ensure that you register with your institutional e-mail address that you will use to apply to dbGaP for protected-access data. In the near future, the Data Portal will interface with dbGaP to automatically authenticate dbGaP-approved portal users when they log into the portal. Users with different e-mail addresses associated with the Data Portal login and dbGaP will not be able to access the protected data.
 
 To create a Google account linked to your institutional email (not your Gmail!), follow the steps below:
 
