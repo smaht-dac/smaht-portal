@@ -1725,6 +1725,47 @@ body[data-path="/statistics"] {
         }
     }
 
+        .matrix-assay-select-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+        min-width: 280px;
+        max-width: 320px;
+        border: 1px solid #d7dde5;
+        border-radius: 999px;
+        background: #ffffff;
+        overflow: hidden;
+
+        .matrix-assay-select-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.50rem;
+            margin-bottom: 0;
+            padding: 0.38rem 0.4rem 0.38rem 0.85rem;
+            background: #8a1218;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 0 0 auto;
+
+            .icon {
+                font-size: 0.85rem;
+            }
+        }
+
+        .matrix-assay-select {
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            min-width: 0;
+            width: 100%;
+            padding: 0.38rem 2rem 0.38rem 0.8rem;
+            font-size: 0.85rem;
+            background-color: transparent;
+        }
+    }
+
     .matrix-visual-panel {
         min-width: 0;
         overflow: visible;
@@ -1839,6 +1880,13 @@ body[data-path="/statistics"] {
                         margin-bottom: 0 !important;
                         justify-content: flex-start;
                         width: 100%;
+                    }
+
+                    .matrix-assay-select-control {
+                        position: relative;
+                        left: 0;
+                        width: 320px;
+                        max-width: 320px;
                     }
                 }
             }
@@ -2602,6 +2650,99 @@ body[data-path="/statistics"] {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    &.matrix-mode-donor-tissue {
+        .matrix-counts-panel {
+            .matrix-facet-terms-panel.search-view-controls-and-results {
+                .facets-container .facets-header.row {
+                    &[data-excluding="false"] {
+                        background-color: #ffede3 !important;
+                        border-bottom: none;
+
+                        .facets-title-column .icon-toggle {
+                            button[aria-pressed='true']{
+                                background-color: #f5c8a7 !important;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .stacked-block-viz-container {
+            .header-for-viz {
+                .header-col-text .column-group-header {
+                    > .inner {
+                        transform: rotate(-60deg);
+                        transform-origin: 0 0;
+                    }
+                }
+            }
+
+            &.matrix-yaxis-donor {
+                .grouping.header-section-lower {
+                    .grouping-row.total-donors-summary-row {
+                        background-color: #ffede3;
+
+                        .label-section > .label-container,
+                        .list-section {
+                            background-color: #ffede3;
+                        }
+
+                        .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                        .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                            background-color: #fbe0d0 !important;
+                            border-color: #ffd0b3 !important;
+                            color: #2f3440 !important;
+                        }
+                    }
+
+                    .grouping-row:not(.total-donors-summary-row) {
+                        background-color: #ffe2ce;
+                        border-bottom: 2px solid #f3c19e;
+
+                        .label-section > .label-container,
+                        .list-section {
+                            background-color: #ffe2ce;
+                        }
+
+                        .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                            background-color: #f8d2b7 !important;
+                            border-color: #f3c19e !important;
+                            color: #2f3440 !important;
+                        }
+                    }
+                }
+
+                .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                    background-color: #f8d2b7 !important;
+                    border-color: #f3c19e !important;
+                    color: #2f3440 !important;
+                }
+
+                .header-summary {
+                    .block-container-group {
+                        .stacked-block[data-block-type="col-summary"] {
+                            border-color: #f3c19e;
+                        }
+                    }
+                }
+            }
+
+            &.matrix-yaxis-donor.has-open-block {
+                .stacked-block.is-open-block[data-block-type="col-secondary-summary"] {
+                    color: #cf8d64 !important;
+                    border-color: #ffd0b3 !important;
+                }
+
+                .stacked-block.is-open-block[data-block-type="col-summary"],
+                .stacked-block.is-open-block[data-block-type="row-summary"] {
+                    color: #cf8d64 !important;
+                    border-color: #f3c19e !important;
                 }
             }
         }

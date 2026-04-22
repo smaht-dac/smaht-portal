@@ -74,7 +74,7 @@
         },
         "donor_groups": {
             "title": "Donor Groups",
-            "description": "Useful and somewhat arbitrary terms used to group sets of donors",
+            "description": "Donor groups associated with specific publications or categories defined by the SMaHT Network",
             "type": "array",
             "permission": "restricted_fields",
             "minItems": 1,

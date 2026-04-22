@@ -364,9 +364,13 @@ export function createBrowseDonorColumnExtensionMap({
 
                 const { data, loading } = parentProps?.fetchedProps;
 
-                const tissueCount = data?.find(
+                const tissueFacet = data?.find(
                     (f) => f.field === 'sample_summary.tissues'
-                )?.terms?.length;
+                );
+                const tissueTerms = tissueFacet?.has_group_by
+                    ? tissueFacet?.original_terms || tissueFacet?.terms
+                    : tissueFacet?.terms;
+                const tissueCount = tissueTerms?.length;
 
                 if (loading) {
                     return <span className="value text-center loading"></span>;

@@ -7,7 +7,7 @@ import memoize from 'memoize-one';
 
 import { console, layout, searchFilters, analytics, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Schemas } from './../../util';
-import { getTissueInternalCodeFromFacetTerm, getTissueCategoryFromFacetTerm } from './../../util/data';
+import { getTissueInternalCodeFromFacetTerm, getTissueCategoryFromFacetTerm, tissueCategoryOrder } from './../../util/data';
 import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
@@ -22,14 +22,9 @@ export class UIControlsWrapper extends React.PureComponent {
     static TISSUE_FIELD = 'sample_summary.tissues';
     static TISSUE_CATEGORY_ALL = 'All';
     static TISSUE_CATEGORY_UNKNOWN = 'Unknown';
-    static TISSUE_CATEGORY_ORDER = [
-        'Ectoderm',
-        'Mesoderm',
-        'Endoderm',
-        'Germ cells',
-        'Clinically accessible',
+    static TISSUE_CATEGORY_ORDER = tissueCategoryOrder.concat([
         UIControlsWrapper.TISSUE_CATEGORY_UNKNOWN
-    ];
+    ]);
     static TISSUE_CATEGORY_CANONICAL_BY_LOWER = {
         'ectoderm': 'Ectoderm',
         'mesoderm': 'Mesoderm',
