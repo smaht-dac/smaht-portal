@@ -635,8 +635,16 @@ function waitForMatrixModeRender(matrixId) {
     cy.get(`${matrixId} .matrix-refresh-overlay`).should('not.exist');
 }
 
+function getDisplayedMatrixFileCount(matrixId) {
+    return cy.get(`${matrixId} .matrix-total-files-count`)
+        .should('be.visible')
+        .invoke('text')
+        .then((text) => parseInt(String(text).replace(/[^0-9]/g, ''), 10));
+}
+
 export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_production') {
     const tabLabels = ['Donor x Assay', 'Tissue x Assay', 'Donor x Tissue'];
+    const fileCountsByMode = {};
 
     cy.get(matrixId).should('exist').within(() => {
         cy.get('.matrix-mode-tabs .matrix-mode-tab')
@@ -656,6 +664,9 @@ export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_produc
         .and('not.have.class', 'matrix-mode-donor-tissue');
     cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
     cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        fileCountsByMode.donorAssay = count;
+    });
 
     cy.contains(`${matrixId} .matrix-mode-tab`, 'Tissue x Assay')
         .click({ force: true })
@@ -667,6 +678,13 @@ export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_produc
         .and('not.have.class', 'matrix-mode-donor-tissue');
     cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
     cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        fileCountsByMode.tissueAssay = count;
+        expect(
+            count,
+            'left facet-panel file count should match between Donor x Assay and Tissue x Assay'
+        ).to.equal(fileCountsByMode.donorAssay);
+    });
 
     cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Tissue')
         .click({ force: true })
@@ -682,6 +700,13 @@ export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_produc
         .find('option')
         .its('length')
         .should('be.greaterThan', 0);
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        fileCountsByMode.donorTissue = count;
+        expect(
+            count,
+            'left facet-panel file count should match between Donor x Assay and Donor x Tissue'
+        ).to.equal(fileCountsByMode.donorAssay);
+    });
 
     cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Assay')
         .click({ force: true })
@@ -693,4 +718,10 @@ export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_produc
         .and('not.have.class', 'matrix-mode-donor-tissue');
     cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
     cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should be unchanged after switching back to Donor x Assay'
+        ).to.equal(fileCountsByMode.donorAssay);
+    });
 }
