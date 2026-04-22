@@ -1,6 +1,6 @@
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
-import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
+import { testMatrixPopoverValidation, testProductionMatrixModeTabs } from "../support/utils/dataMatrixUtils";
 
 const EMPTY_DM_PROD_OPTS = {
     donors: [],
@@ -262,6 +262,8 @@ function stepDataMatrixProduction(caps) {
                     "#data-matrix-for_production",
                     caps.expectedDataMatrixProductionOpts
                 );
+
+                testProductionMatrixModeTabs("#data-matrix-for_production");
             });
         })
         .end();

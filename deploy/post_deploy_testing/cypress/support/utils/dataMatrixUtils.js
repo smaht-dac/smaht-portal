@@ -15,7 +15,7 @@ export function parseIntSafe(text) {
     return Number.isNaN(n) ? 0 : n;
 }
 
-/** 
+/**
  * Waits for the popover to become visible.
  * @param {number} timeout - The maximum time to wait for the popover to become visible, in milliseconds.
  * @returns {Cypress.Chainable} A Cypress chainable that resolves when the popover is visible.
@@ -625,4 +625,72 @@ export function testMatrixPopoverValidation(
             });
         }
     });
+}
+
+function waitForMatrixModeRender(matrixId) {
+    cy.get(`${matrixId} .matrix-render-surface`, { timeout: 20000 })
+        .should('exist')
+        .and('not.have.class', 'is-refreshing');
+
+    cy.get(`${matrixId} .matrix-refresh-overlay`).should('not.exist');
+}
+
+export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_production') {
+    const tabLabels = ['Donor x Assay', 'Tissue x Assay', 'Donor x Tissue'];
+
+    cy.get(matrixId).should('exist').within(() => {
+        cy.get('.matrix-mode-tabs .matrix-mode-tab')
+            .should('have.length', tabLabels.length)
+            .then(($tabs) => {
+                const labels = [...$tabs].map((tab) => tab.textContent.trim().replace(/\s+/g, ' '));
+                expect(labels).to.deep.equal(tabLabels);
+            });
+    });
+
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Assay')
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('not.have.class', 'matrix-mode-tissue')
+        .and('not.have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
+    cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Tissue x Assay')
+        .click({ force: true })
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('have.class', 'matrix-mode-tissue')
+        .and('not.have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
+    cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Tissue')
+        .click({ force: true })
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('have.class', 'matrix-mode-tissue')
+        .and('have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('not.exist');
+    cy.get(`${matrixId} .matrix-assay-select`)
+        .should('be.visible')
+        .find('option')
+        .its('length')
+        .should('be.greaterThan', 0);
+
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Assay')
+        .click({ force: true })
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('not.have.class', 'matrix-mode-tissue')
+        .and('not.have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
+    cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
 }
