@@ -642,6 +642,83 @@ function getDisplayedMatrixFileCount(matrixId) {
         .then((text) => parseInt(String(text).replace(/[^0-9]/g, ''), 10));
 }
 
+function getMatrixToggleButton(matrixId, label) {
+    return cy.contains(`${matrixId} .matrix-counts-toggle-inline .view-toggle button`, label);
+}
+
+function getFirstPositiveRegularBlockText(matrixId) {
+    return cy.get(`${matrixId} [data-block-type="regular"]`).then(($blocks) => {
+        const firstPositiveBlock = [...$blocks].find((block) => {
+            const blockValue = parseFloat(block.getAttribute('data-block-value'));
+            return Cypress.$(block).is(':visible') && !Number.isNaN(blockValue) && blockValue > 0;
+        });
+
+        expect(firstPositiveBlock, 'expected at least one visible positive regular matrix block').to.exist;
+        return cy.wrap(firstPositiveBlock).find('span').invoke('text').then((text) => String(text).trim());
+    });
+}
+
+function testDonorAssayFilesCoverageToggle(matrixId) {
+    let donorAssayFileCount = null;
+
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Coverage')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        donorAssayFileCount = count;
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Donor x Assay files view should show plain numeric block labels').to.not.match(/X$/);
+    });
+
+    getMatrixToggleButton(matrixId, 'Coverage').click({ force: true });
+
+    waitForMatrixModeRender(matrixId);
+    getMatrixToggleButton(matrixId, 'Coverage')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should stay the same in Coverage view'
+        ).to.equal(donorAssayFileCount);
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Donor x Assay coverage view should show coverage labels ending with X').to.match(/X$/);
+    });
+
+    getMatrixToggleButton(matrixId, 'Files').click({ force: true });
+
+    waitForMatrixModeRender(matrixId);
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Coverage')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should return unchanged after toggling back to Files'
+        ).to.equal(donorAssayFileCount);
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Donor x Assay files view should be restored after toggling back').to.not.match(/X$/);
+    });
+}
+
 export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_production') {
     const tabLabels = ['Donor x Assay', 'Tissue x Assay', 'Donor x Tissue'];
     const fileCountsByMode = {};
@@ -664,6 +741,7 @@ export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_produc
         .and('not.have.class', 'matrix-mode-donor-tissue');
     cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
     cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+    testDonorAssayFilesCoverageToggle(matrixId);
     getDisplayedMatrixFileCount(matrixId).then((count) => {
         fileCountsByMode.donorAssay = count;
     });
