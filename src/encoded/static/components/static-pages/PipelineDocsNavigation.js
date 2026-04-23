@@ -78,7 +78,7 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             {/* Top navigation for pipeline doc sections */}
-            <div class="sections-nav mb-5">
+            <div class="static-page-top-navigation-container mb-5">
                 <a class="nav-link" target="" href="#sequencing-data-type">
                     <i class="icon icon-dna fas"> </i>
                     <span class="nav-link-title">Sequencing Data Type</span>
