@@ -517,7 +517,7 @@ describe("Data Overview by role", () => {
                     stepDataMatrixProductionTissueAssayToggle(caps);
                 });
 
-                it("Production Data tab — Donor x Tissue tab state, assay selector, and left-panel count parity", () => {
+                it("Production Data tab — Donor x Tissue tab state, assay dropdown filtering, and non-All assay total reconciliation", () => {
                     if (!caps.runDataMatrixProduction) {
                         assertCannotAccessDataMatrixPage(caps);
                         return;
