@@ -799,7 +799,7 @@ export function testDonorAssayFilesCoverageToggle(matrixId) {
     });
 }
 
-function testTissueAssayFilesDonorsToggle(matrixId) {
+export function testTissueAssayFilesDonorsToggle(matrixId) {
     let displayedFileCount = null;
     let totalTissuesCount = null;
     let totalFilesSummaryValue = null;
@@ -907,6 +907,23 @@ function testTissueAssayFilesDonorsToggle(matrixId) {
     });
 }
 
+export function testDonorTissueMode(matrixId) {
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Tissue')
+        .click({ force: true })
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('have.class', 'matrix-mode-tissue')
+        .and('have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('not.exist');
+    cy.get(`${matrixId} .matrix-assay-select`)
+        .should('be.visible')
+        .find('option')
+        .its('length')
+        .should('be.greaterThan', 0);
+}
+
 export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_production') {
     const tabLabels = ['Donor x Assay', 'Tissue x Assay', 'Donor x Tissue'];
     const fileCountsByMode = {};
@@ -953,20 +970,7 @@ export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_produc
         ).to.equal(fileCountsByMode.donorAssay);
     });
 
-    cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Tissue')
-        .click({ force: true })
-        .should('have.class', 'active');
-
-    waitForMatrixModeRender(matrixId);
-    cy.get(matrixId)
-        .should('have.class', 'matrix-mode-tissue')
-        .and('have.class', 'matrix-mode-donor-tissue');
-    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('not.exist');
-    cy.get(`${matrixId} .matrix-assay-select`)
-        .should('be.visible')
-        .find('option')
-        .its('length')
-        .should('be.greaterThan', 0);
+    testDonorTissueMode(matrixId);
     getDisplayedMatrixFileCount(matrixId).then((count) => {
         fileCountsByMode.donorTissue = count;
         expect(
