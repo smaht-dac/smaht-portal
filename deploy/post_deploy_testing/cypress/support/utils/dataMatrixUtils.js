@@ -658,6 +658,75 @@ function getFirstPositiveRegularBlockText(matrixId) {
     });
 }
 
+function getFirstPositiveRegularBlockInfo(matrixId) {
+    return cy.get(`${matrixId} [data-block-type="regular"]`).then(($blocks) => {
+        const firstPositiveBlock = [...$blocks].find((block) => {
+            const blockValue = parseFloat(block.getAttribute('data-block-value'));
+            return Cypress.$(block).is(':visible') && !Number.isNaN(blockValue) && blockValue > 0;
+        });
+
+        expect(firstPositiveBlock, 'expected at least one visible positive regular matrix block').to.exist;
+
+        const rawValue = parseFloat(firstPositiveBlock.getAttribute('data-block-value'));
+        return cy.wrap(firstPositiveBlock).find('span').invoke('text').then((text) => {
+            return {
+                element: firstPositiveBlock,
+                rawValue,
+                displayText: String(text).trim()
+            };
+        });
+    });
+}
+
+function formatCoverageBoxValue(rawValue) {
+    if (rawValue <= 0) return '0';
+    const rounded = rawValue < 100 ? Math.round(rawValue * 10) / 10 : Math.round(rawValue);
+    return `${rounded.toLocaleString()}X`;
+}
+
+function parseCoverageValue(text) {
+    return parseFloat(String(text).replace(/,/g, '').replace(/X/g, '').trim());
+}
+
+function assertCoverageBlockMatchesPopover(matrixId, contextLabel = 'Coverage view') {
+    getFirstPositiveRegularBlockInfo(matrixId).then(({ element, rawValue, displayText }) => {
+        const expectedBoxValue = formatCoverageBoxValue(rawValue);
+        const expectedPopoverValue = Math.round(rawValue * 100) / 100;
+
+        expect(
+            displayText,
+            `${contextLabel} box value should match coverage formatting for the underlying block value`
+        ).to.equal(expectedBoxValue);
+
+        cy.wrap(element).scrollIntoView().click({ force: true });
+
+        cy.waitForPopoverShow().then(() =>
+            waitForPopoverVisible().then((popoverEl) => {
+                cy.wrap(popoverEl).should('be.visible').within(() => {
+                    cy.get('.secondary-row .col-4', { timeout: 10000 })
+                        .eq(1)
+                        .find('.value')
+                        .invoke('text')
+                        .then((text) => {
+                            const popoverCoverageValue = parseCoverageValue(text);
+                            expect(
+                                popoverCoverageValue,
+                                `${contextLabel} popover Total Coverage should match the clicked box value`
+                            ).to.equal(expectedPopoverValue);
+                        });
+                });
+            })
+        )
+            .then(() => {
+                cy.document()
+                    .its('body')
+                    .then((body) => cy.wrap(body).click(0, 0, { force: true }));
+
+                return waitUntilPopoverClosed();
+            });
+    });
+}
+
 function getSummaryBandOverallValue(matrixId, labelText) {
     return cy.contains(`${matrixId} .header-section-lower .grouping-row .label-section span`, labelText)
         .closest('.grouping-row')
@@ -705,6 +774,8 @@ export function testDonorAssayFilesCoverageToggle(matrixId) {
     getFirstPositiveRegularBlockText(matrixId).then((text) => {
         expect(text, 'Donor x Assay coverage view should show coverage labels ending with X').to.match(/X$/);
     });
+
+    assertCoverageBlockMatchesPopover(matrixId, 'Donor x Assay coverage view');
 
     getMatrixToggleButton(matrixId, 'Files').click({ force: true });
 
