@@ -658,6 +658,15 @@ function getFirstPositiveRegularBlockText(matrixId) {
     });
 }
 
+function getSummaryBandOverallValue(matrixId, labelText) {
+    return cy.contains(`${matrixId} .header-section-lower .grouping-row .label-section span`, labelText)
+        .closest('.grouping-row')
+        .find('[data-group-key="overall-summary"] [data-block-type="col-summary"]')
+        .should('exist')
+        .invoke('attr', 'data-block-value')
+        .then((value) => parseFloat(String(value).trim()));
+}
+
 export function testDonorAssayFilesCoverageToggle(matrixId) {
     let donorAssayFileCount = null;
 
@@ -719,6 +728,114 @@ export function testDonorAssayFilesCoverageToggle(matrixId) {
     });
 }
 
+function testTissueAssayFilesDonorsToggle(matrixId) {
+    let displayedFileCount = null;
+    let totalTissuesCount = null;
+    let totalFilesSummaryValue = null;
+
+    cy.get(matrixId).within(() => {
+        validateLowerHeaders(['Total Tissues', 'Total Files']);
+    });
+
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Donors')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        displayedFileCount = count;
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Tissues').then((value) => {
+        totalTissuesCount = value;
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Files').then((value) => {
+        totalFilesSummaryValue = value;
+        expect(
+            value,
+            'Tissue x Assay overall Total Files summary should match the left facet-panel file count'
+        ).to.equal(displayedFileCount);
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Tissue x Assay files view should show plain numeric block labels').to.not.match(/X$/);
+    });
+
+    getMatrixToggleButton(matrixId, 'Donors').click({ force: true });
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId).within(() => {
+        validateLowerHeaders(['Total Tissues', 'Total Donors']);
+    });
+
+    getMatrixToggleButton(matrixId, 'Donors')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should stay the same in Tissue x Assay donors view'
+        ).to.equal(displayedFileCount);
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Tissues').then((value) => {
+        expect(
+            value,
+            'Tissue x Assay overall Total Tissues summary should stay the same when toggling to Donors'
+        ).to.equal(totalTissuesCount);
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Donors').then((value) => {
+        expect(
+            value,
+            'Tissue x Assay overall Total Donors summary should be numeric'
+        ).to.be.greaterThan(0);
+        expect(
+            value,
+            'Tissue x Assay overall Total Donors summary should differ from the Total Files summary after toggling'
+        ).to.not.equal(totalFilesSummaryValue);
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Tissue x Assay donors view should still show plain numeric block labels').to.not.match(/X$/);
+    });
+
+    getMatrixToggleButton(matrixId, 'Files').click({ force: true });
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId).within(() => {
+        validateLowerHeaders(['Total Tissues', 'Total Files']);
+    });
+
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Donors')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should return unchanged after toggling Tissue x Assay back to Files'
+        ).to.equal(displayedFileCount);
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Files').then((value) => {
+        expect(
+            value,
+            'Tissue x Assay overall Total Files summary should be restored after toggling back'
+        ).to.equal(totalFilesSummaryValue);
+    });
+}
+
 export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_production') {
     const tabLabels = ['Donor x Assay', 'Tissue x Assay', 'Donor x Tissue'];
     const fileCountsByMode = {};
@@ -756,6 +873,7 @@ export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_produc
         .and('not.have.class', 'matrix-mode-donor-tissue');
     cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
     cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+    testTissueAssayFilesDonorsToggle(matrixId);
     getDisplayedMatrixFileCount(matrixId).then((count) => {
         fileCountsByMode.tissueAssay = count;
         expect(
