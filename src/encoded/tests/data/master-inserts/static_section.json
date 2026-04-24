@@ -637,6 +637,25 @@
         ]
     },
     {
+        "identifier": "recent_releases",
+        "title": "Recent Releases",
+        "file": "/docs/public/recent_releases.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "8ad6252d-6c17-4a34-9259-82734ebcca1c",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "submission_data_dictionary",
         "title": "Submission Data Dictionary",
         "file": "/docs/public/submission_data_dictionary.jsx",

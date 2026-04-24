@@ -139,6 +139,253 @@
     }
 }
 
+.recent-releases-page {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    min-width: 0;
+
+    .card {
+        border: 1px solid #d6deef;
+        border-radius: 0.65rem;
+        box-shadow: 0 1px 3px rgba(30, 54, 90, 0.08);
+        min-width: 0;
+    }
+
+    .recent-releases-title {
+        color: #2e4769;
+        font-size: 1.125rem;
+        font-weight: 700;
+    }
+
+    .recent-releases-subtitle {
+        color: #5d7192;
+        font-size: 0.875rem;
+    }
+
+    .recent-releases-months {
+        max-height: 72vh;
+        overflow-y: auto;
+        padding-right: 0.25rem;
+    }
+
+    .release-month-nav {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        .btn {
+            min-width: 84px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+        }
+    }
+
+    .release-month-section + .release-month-section {
+        margin-top: 0.75rem;
+    }
+
+    .release-month-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.35rem;
+
+        h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #35527a;
+        }
+
+        .count-badge {
+            font-size: 0.72rem;
+            color: #5a739f;
+            background: #eef4ff;
+            border: 1px solid #d6e3ff;
+            border-radius: 999px;
+            padding: 0.1rem 0.5rem;
+        }
+    }
+
+    .release-weekdays-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.2rem;
+        margin-bottom: 0.2rem;
+
+        .release-weekday-label {
+            text-align: center;
+            font-size: 0.62rem;
+            color: #7a8ca8;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+    }
+
+    .release-calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.25rem;
+    }
+
+    .release-day-pad {
+        display: block;
+        min-height: 40px;
+        border-radius: 0.4rem;
+    }
+
+    .release-day-btn {
+        border: 1px solid #d9e2f2;
+        background: #f8fbff;
+        border-radius: 0.42rem;
+        padding: 0.2rem 0.15rem;
+        min-height: 42px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+        color: #9eb0cc;
+        position: relative;
+        overflow: hidden;
+
+        .day-num {
+            font-size: 0.84rem;
+            line-height: 1.1;
+            font-weight: 600;
+        }
+
+        .day-count {
+            position: absolute;
+            right: 0.18rem;
+            bottom: 0.14rem;
+            font-size: 0.52rem;
+            color: #1f4b90;
+            font-weight: 700;
+            line-height: 1.05;
+            border-radius: 999px;
+            background: rgba(66, 130, 224, 0.2);
+            border: 1px solid rgba(66, 130, 224, 0.22);
+            padding: 0.06rem 0.22rem;
+            min-width: 1.1rem;
+            text-align: center;
+        }
+
+        &.has-data {
+            border-color: #9fc0f3;
+            background: #eef5ff;
+            color: #2e4f80;
+            cursor: pointer;
+
+            &:hover,
+            &:focus {
+                border-color: #6f9be0;
+                background: #e2edff;
+                outline: none;
+            }
+        }
+
+        &.no-data {
+            opacity: 0.65;
+            cursor: default;
+
+            &:disabled {
+                pointer-events: none;
+            }
+        }
+
+        &.selected {
+            border-color: #2f67cc;
+            background: #dce9ff;
+            box-shadow: inset 0 0 0 1px rgba(47, 103, 204, 0.22);
+            color: #1c3f79;
+        }
+    }
+
+    .recent-releases-matrix-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .recent-releases-matrix-column,
+    .recent-releases-matrix-column .card-body {
+        min-width: 0;
+    }
+
+    .data-matrix-container {
+        border: 1px solid #e1e8f5;
+        border-radius: 0.5rem;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.35rem;
+    }
+
+    .data-matrix {
+        min-width: 0;
+    }
+
+    // DataMatrix uses bootstrap `.row` internally; neutralize gutter overflow in this page.
+    .data-matrix > .row.matrix-render-surface {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .data-matrix > .row.matrix-render-surface > .w-100 {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .data-matrix .matrix-visual-scroll-region {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .data-matrix .matrix-visual-scroll-content {
+        min-width: 0;
+        width: max-content;
+    }
+
+    .data-matrix .matrix-mode-layout {
+        padding: 0.35rem 0.2rem 0.2rem;
+    }
+
+    .data-matrix .stacked-block-viz-container {
+        padding-left: 0;
+        padding-right: 0.5rem;
+    }
+
+    .recent-releases-loading,
+    .recent-releases-empty {
+        margin-top: 1rem;
+    }
+
+    .recent-releases-loading {
+        text-align: center;
+        color: #57719e;
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 1199px) {
+    .recent-releases-page {
+        grid-template-columns: 1fr;
+
+        .recent-releases-months {
+            max-height: 40vh;
+        }
+    }
+}
+
 .static-section-entry {
     &:not([id]) .section-title > i.icon-link {
         display: none;

@@ -191,9 +191,10 @@ const CustomWrapper = React.memo(function CustomWrapper({
     const tocExists = toc && toc.enabled !== false;
     const parsedHrefPathname =
         typeof href === 'string' ? memoizedUrlParse(href).pathname : null;
-    // Keep `/data-matrix` on a wide layout without affecting other static pages.
-    const isDataMatrixPage = parsedHrefPathname === '/data-matrix';
-    const wrapperClassName = isDataMatrixPage ? 'container-wide' : 'container';
+    // Keep wide-layout pages without affecting other static pages.
+    const isWideLayoutPage = parsedHrefPathname === '/data-matrix'
+        || parsedHrefPathname === '/recent-releases';
+    const wrapperClassName = isWideLayoutPage ? 'container-wide' : 'container';
 
     return (
         <div className={wrapperClassName} id="content">
