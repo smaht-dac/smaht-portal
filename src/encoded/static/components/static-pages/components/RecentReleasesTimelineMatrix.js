@@ -73,10 +73,13 @@ const buildMatrixQueryFromBrowseQuery = (browseQuery = '', selectedDayValue = ''
 const normalizeData = (items = []) => (
     (items || [])
         .map((monthItem = {}) => {
-            const monthValue = monthItem.value;
+            const monthValue = monthItem.value || monthItem.key || monthItem.key_as_string || '';
             const days = (monthItem.items || [])
                 .map((dayItem = {}) => {
-                    const dayValue = dayItem.value;
+                    const dayValue = dayItem.value || dayItem.key || dayItem.key_as_string || '';
+                    if (!dayValue) {
+                        return null;
+                    }
                     const dayParts = formatDayParts(dayValue);
                     return {
                         key: dayValue,
@@ -87,6 +90,7 @@ const normalizeData = (items = []) => (
                         ...dayParts
                     };
                 })
+                .filter(Boolean)
                 .sort((a, b) => String(b.value).localeCompare(String(a.value)));
             return {
                 key: monthValue,
@@ -195,7 +199,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
 
         setIsLoading(true);
         ajax.load(
-            `/recent_files_summary?format=json&nmonths=${RECENT_MONTHS}`,
+            `/recent_release_days?format=json&nmonths=${RECENT_MONTHS}`,
             (resp) => {
                 if (isCancelled) return;
                 const normalizedMonths = normalizeData(resp?.items || []);
