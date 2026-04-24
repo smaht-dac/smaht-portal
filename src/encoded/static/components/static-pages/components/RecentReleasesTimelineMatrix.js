@@ -35,7 +35,7 @@ const formatDayParts = (dayValue = '') => {
     };
 };
 
-const buildMatrixQueryFromBrowseQuery = (browseQuery = '') => {
+const buildMatrixQueryFromBrowseQuery = (browseQuery = '', selectedDayValue = '') => {
     const [path, queryString = ''] = String(browseQuery).split('?');
     if (!path || !queryString) {
         return '/data_matrix_aggregations/?type=File&limit=all';
@@ -44,6 +44,29 @@ const buildMatrixQueryFromBrowseQuery = (browseQuery = '') => {
     if (!queryParams.get('limit')) {
         queryParams.set('limit', 'all');
     }
+    // Hide empty assay/platform buckets to avoid "N/A" synthetic columns.
+    if (!queryParams.get('assays.display_title!')) {
+        queryParams.set('assays.display_title!', 'No value');
+    }
+    if (!queryParams.get('sequencers.platform!')) {
+        queryParams.set('sequencers.platform!', 'No value');
+    }
+
+    // Force day-exact filtering so matrix totals match calendar day totals.
+    // Keep only one date field for precision and remove broad/month range variants.
+    if (selectedDayValue) {
+        Array.from(queryParams.keys()).forEach((key) => {
+            const lowerKey = String(key).toLowerCase();
+            const isDateLike = lowerKey.includes('date');
+            if (!isDateLike) return;
+            if (lowerKey.endsWith('.from') || lowerKey.endsWith('.to') || lowerKey.endsWith('_date')) {
+                queryParams.delete(key);
+            }
+        });
+        queryParams.set('file_status_tracking.release_dates.initial_release_date.from', selectedDayValue);
+        queryParams.set('file_status_tracking.release_dates.initial_release_date.to', selectedDayValue);
+    }
+
     return `/data_matrix_aggregations/?${queryParams.toString()}`;
 };
 
@@ -60,7 +83,7 @@ const normalizeData = (items = []) => (
                         value: dayValue,
                         count: dayItem.count || 0,
                         browseQuery: dayItem.query || null,
-                        matrixQuery: buildMatrixQueryFromBrowseQuery(dayItem.query || ''),
+                        matrixQuery: buildMatrixQueryFromBrowseQuery(dayItem.query || '', dayValue),
                         ...dayParts
                     };
                 })
@@ -153,9 +176,11 @@ const buildCalendarCells = (monthValue = '', monthDays = []) => {
 const matrixQueryTemplate = {
     columnAggFields: ['assays.display_title', 'sequencers.platform'],
     rowAggFields: [
-        'donors.display_title',
-        'sample_summary.tissues',
-        'sample_summary.category'
+        "donors.display_title",
+        "sample_summary.tissues",
+        "data_type",
+        "analysis_details",
+        "sample_summary.category"
     ]
 };
 
@@ -333,12 +358,15 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                 }}
                                 headerFor={null}
                                 idLabel="recent-releases"
-                                showCountFor={false}
+                                showCountFor={true}
                                 showMatrixModeTabs={false}
-                                showColumnSummary={false}
+                                showColumnSummary={true}
                                 showFacetTermsPanel={false}
                                 showAxisLabels={false}
                                 disableConfigurator={true}
+                                showUniqueDonorsAssayBand={true}
+                                resultTransformedPostProcessFuncKey="analysisDerivedColumns"
+                                browseFilteringTransformFuncKey="analysisDerivedColumns"
                                 excludePrimaryColumnNoValue={true}
                             />
                         </div>
