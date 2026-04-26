@@ -2749,8 +2749,8 @@ body[data-path="/statistics"] {
     }
 }
 
-// hide page title for /data-matrix
-body[data-path="/data-matrix"] {
+// hide page title for /data-matrix and /recent-releases
+body[data-path="/data-matrix"], body[data-path="/recent-releases"] {
     .static-page {
         margin-top: 0px !important;
         

@@ -249,7 +249,8 @@
 
     .release-day-pad {
         display: block;
-        min-height: 40px;
+        min-height: 0;
+        aspect-ratio: 1 / 1;
         border-radius: 0.4rem;
     }
 
@@ -257,36 +258,40 @@
         border: 1px solid #d9e2f2;
         background: #f8fbff;
         border-radius: 0.42rem;
-        padding: 0.2rem 0.15rem;
-        min-height: 42px;
+        padding: 0.24rem 0.2rem 0.3rem;
+        min-height: 0;
+        aspect-ratio: 1 / 1;
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        align-items: flex-start;
+        justify-content: flex-start;
         transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
         color: #9eb0cc;
         position: relative;
         overflow: hidden;
 
         .day-num {
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             line-height: 1.1;
             font-weight: 600;
+            padding-left: 0.04rem;
         }
 
         .day-count {
             position: absolute;
-            right: 0.18rem;
+            right: 0.16rem;
             bottom: 0.14rem;
             font-size: 0.52rem;
             color: #1f4b90;
             font-weight: 700;
             line-height: 1.05;
+            white-space: nowrap;
+            max-width: calc(100% - 0.4rem);
+            overflow: hidden;
             border-radius: 999px;
             background: rgba(66, 130, 224, 0.2);
             border: 1px solid rgba(66, 130, 224, 0.22);
-            padding: 0.06rem 0.22rem;
-            min-width: 1.1rem;
+            padding: 0.07rem 0.22rem;
+            min-width: 1.28rem;
             text-align: center;
         }
 
@@ -395,6 +400,21 @@
 
         .recent-releases-months {
             max-height: 40vh;
+        }
+
+        .release-day-btn {
+            padding: 0.2rem 0.16rem 0.24rem;
+
+            .day-num {
+                font-size: 0.8rem;
+            }
+
+            .day-count {
+                font-size: 0.5rem;
+                min-width: 1.16rem;
+                right: 0.14rem;
+                bottom: 0.12rem;
+            }
         }
     }
 }

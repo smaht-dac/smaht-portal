@@ -35,6 +35,20 @@ const formatDayParts = (dayValue = '') => {
     };
 };
 
+const formatCalendarDayCount = (count = 0) => {
+    const numericCount = Number(count) || 0;
+    if (numericCount < 1000) {
+        return String(numericCount);
+    }
+    if (numericCount < 10000) {
+        return `${Math.round(numericCount / 100) / 10}K`;
+    }
+    if (numericCount < 1000000) {
+        return `${Math.round(numericCount / 1000)}K`;
+    }
+    return `${Math.round(numericCount / 100000) / 10}M`;
+};
+
 const buildMatrixQueryFromBrowseQuery = (browseQuery = '', selectedDayValue = '') => {
     const [path, queryString = ''] = String(browseQuery).split('?');
     if (!path || !queryString) {
@@ -353,7 +367,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                 title={cell.fullLabel}>
                                                 <span className="day-num">{cell.dayNumber}</span>
                                                 {cell.hasData ? (
-                                                    <span className="day-count">{cell.count}</span>
+                                                    <span className="day-count">{formatCalendarDayCount(cell.count)}</span>
                                                 ) : null}
                                             </button>
                                         );
