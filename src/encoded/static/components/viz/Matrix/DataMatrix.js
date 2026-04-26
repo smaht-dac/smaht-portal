@@ -275,6 +275,7 @@ export default class DataMatrix extends React.PureComponent {
         "showAxisLabels": true,
         "showColumnSummary": true,
         "defaultOpen": false,
+        "defaultExpandedRowIndices": null,
         "valueDelimiter": " - ",
         "disableConfigurator": true,
         "idLabel": "",
@@ -349,6 +350,7 @@ export default class DataMatrix extends React.PureComponent {
         'showAxisLabels': PropTypes.bool,
         'showColumnSummary': PropTypes.bool,
         'defaultOpen': PropTypes.bool,
+        'defaultExpandedRowIndices': PropTypes.arrayOf(PropTypes.number),
         'valueDelimiter': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
@@ -1697,6 +1699,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 // eslint-disable-next-line react/destructuring-assignment
                                                 results={effectiveResults}
                                                 defaultDepthsOpen={[defaultOpen, false, false]}
+                                                defaultExpandedRowIndices={this.props.defaultExpandedRowIndices}
                                                 // keysToInclude={[]}
                                             />
                                         </div>
@@ -1717,6 +1720,7 @@ export default class DataMatrix extends React.PureComponent {
                                 // eslint-disable-next-line react/destructuring-assignment
                                 results={effectiveResults}
                                 defaultDepthsOpen={[defaultOpen, false, false]}
+                                defaultExpandedRowIndices={this.props.defaultExpandedRowIndices}
                                 // keysToInclude={[]}
                             />
                         </div>

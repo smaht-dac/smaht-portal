@@ -210,6 +210,19 @@
             border-radius: 999px;
             padding: 0.1rem 0.5rem;
         }
+
+        .count-badge-link {
+            text-decoration: none;
+            cursor: pointer;
+
+            &:hover,
+            &:focus {
+                text-decoration: none;
+                color: #35527a;
+                border-color: #b9cff8;
+                background: #e8f0ff;
+            }
+        }
     }
 
     .release-weekdays-grid {

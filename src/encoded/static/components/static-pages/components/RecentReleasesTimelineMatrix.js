@@ -97,6 +97,7 @@ const normalizeData = (items = []) => (
                 value: monthValue,
                 label: formatMonthLabel(monthValue),
                 count: monthItem.count || 0,
+                browseQuery: monthItem.query || null,
                 days
             };
         })
@@ -192,6 +193,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [months, setMonths] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
+    const [selectedMatrixTarget, setSelectedMatrixTarget] = useState(null);
     const [monthWindowStartIndex, setMonthWindowStartIndex] = useState(0);
 
     useEffect(() => {
@@ -211,6 +213,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                     .value() || null;
                 setMonths(monthsWithGaps);
                 setSelectedDay(firstDay);
+                setSelectedMatrixTarget(firstDay);
                 setMonthWindowStartIndex(0);
                 setIsLoading(false);
             },
@@ -222,6 +225,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 }
                 setMonths([]);
                 setSelectedDay(null);
+                setSelectedMatrixTarget(null);
                 setMonthWindowStartIndex(0);
                 setIsLoading(false);
             }
@@ -232,7 +236,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         };
     }, []);
 
-    const selectedDayLabel = useMemo(() => selectedDay?.fullLabel || null, [selectedDay]);
+    const selectedDayLabel = useMemo(() => selectedMatrixTarget?.fullLabel || null, [selectedMatrixTarget]);
     const visibleMonths = useMemo(
         () => months.slice(monthWindowStartIndex, monthWindowStartIndex + 2),
         [months, monthWindowStartIndex]
@@ -291,9 +295,27 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                             <section key={month.key} className="release-month-section">
                                 <header className="release-month-header">
                                     <h4>{month.label}</h4>
-                                    <span className="count-badge">
-                                        {month.count} {month.count === 1 ? 'file' : 'files'}
-                                    </span>
+                                    {month.browseQuery && month.count > 0 ? (
+                                        <button
+                                            type="button"
+                                            className="count-badge count-badge-link"
+                                            onClick={() => {
+                                                setSelectedDay(null);
+                                                setSelectedMatrixTarget({
+                                                    key: `month-${month.value}`,
+                                                    fullLabel: month.label,
+                                                    browseQuery: month.browseQuery,
+                                                    matrixQuery: buildMatrixQueryFromBrowseQuery(month.browseQuery || '')
+                                                });
+                                            }}
+                                            title={`Browse files released in ${month.label}`}>
+                                            {month.count} {month.count === 1 ? 'file' : 'files'}
+                                        </button>
+                                    ) : (
+                                        <span className="count-badge">
+                                            {month.count} {month.count === 1 ? 'file' : 'files'}
+                                        </span>
+                                    )}
                                 </header>
                                 <div className="release-weekdays-grid">
                                     {WEEKDAY_LABELS.map((weekdayLabel) => (
@@ -318,8 +340,14 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                 key={cell.key}
                                                 type="button"
                                                 className={dayClasses}
-                                                onClick={cell.hasData ? () => setSelectedDay(cell.data) : undefined}
-                                                onFocus={cell.hasData ? () => setSelectedDay(cell.data) : undefined}
+                                                onClick={cell.hasData ? () => {
+                                                    setSelectedDay(cell.data);
+                                                    setSelectedMatrixTarget(cell.data);
+                                                } : undefined}
+                                                onFocus={cell.hasData ? () => {
+                                                    setSelectedDay(cell.data);
+                                                    setSelectedMatrixTarget(cell.data);
+                                                } : undefined}
                                                 aria-pressed={isSelected}
                                                 disabled={!cell.hasData}
                                                 title={cell.fullLabel}>
@@ -345,20 +373,20 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                 <p className="recent-releases-subtitle mb-0">{selectedDayLabel}</p>
                             ) : null}
                         </div>
-                        {selectedDay?.browseQuery ? (
-                            <a href={selectedDay.browseQuery} className="btn btn-outline-primary btn-sm">
+                        {selectedMatrixTarget?.browseQuery ? (
+                            <a href={selectedMatrixTarget.browseQuery} className="btn btn-outline-primary btn-sm">
                                 Browse Files
                             </a>
                         ) : null}
                     </div>
-                    {selectedDay?.matrixQuery ? (
+                    {selectedMatrixTarget?.matrixQuery ? (
                         <div className="data-matrix-container recent-releases-matrix-scroll">
                             <DataMatrix
-                                key={`recent-releases-${selectedDay.key}`}
+                                key={`recent-releases-${selectedMatrixTarget.key}`}
                                 session={session}
                                 query={{
                                     ...matrixQueryTemplate,
-                                    url: selectedDay.matrixQuery
+                                    url: selectedMatrixTarget.matrixQuery
                                 }}
                                 headerFor={null}
                                 idLabel="recent-releases"
@@ -372,6 +400,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                 resultTransformedPostProcessFuncKey="analysisDerivedColumns"
                                 browseFilteringTransformFuncKey="analysisDerivedColumns"
                                 excludePrimaryColumnNoValue={true}
+                                defaultExpandedRowIndices={[0]}
                             />
                         </div>
                     ) : null}

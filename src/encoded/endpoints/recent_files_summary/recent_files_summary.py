@@ -602,6 +602,7 @@ def recent_release_days(request: PyramidRequest,
                     "date_histogram": {
                         "field": f"embedded.{field}",
                         "calendar_interval": "day",
+                        "min_doc_count": 1,
                         "format": "yyyy-MM-dd",
                         "missing": "1970-01-01",
                         "order": {"_key": "desc"}
@@ -689,7 +690,7 @@ def recent_release_days(request: PyramidRequest,
             for day_bucket in day_buckets:
                 day_value = normalize_key_as_date_string(day_bucket, month_precision=False)
                 day_count = day_bucket.get("doc_count", 0) or 0
-                if not day_value:
+                if (not day_value) or (day_count <= 0):
                     continue
                 day_query_args = deepcopy(base_query_args)
                 day_query_args[f"{date_property_name}_date.from"] = day_value
