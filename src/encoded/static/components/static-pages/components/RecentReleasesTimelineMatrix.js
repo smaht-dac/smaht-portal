@@ -394,7 +394,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                         ) : null}
                     </div>
                     {selectedMatrixTarget?.matrixQuery ? (
-                        <div className="data-matrix-container recent-releases-matrix-scroll">
+                        <div className="recent-releases-matrix-scroll">
                             <DataMatrix
                                 key={`recent-releases-${selectedMatrixTarget.key}`}
                                 session={session}

@@ -339,7 +339,11 @@
         min-width: 0;
     }
 
-    .data-matrix-container {
+    .recent-releases-matrix-column .card-body {
+        overflow: hidden;
+    }
+
+    .recent-releases-matrix-scroll {
         border: 1px solid #e1e8f5;
         border-radius: 0.5rem;
         max-width: 100%;
@@ -375,6 +379,11 @@
 
     .data-matrix .matrix-mode-layout {
         padding: 0.35rem 0.2rem 0.2rem;
+    }
+
+    .data-matrix .matrix-mode-body,
+    .data-matrix .matrix-visual-panel {
+        overflow: hidden;
     }
 
     .data-matrix .stacked-block-viz-container {
