@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.24.3
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
+
+
 1.24.2
 ======
 
@@ -30,6 +38,14 @@ Change Log
 
 * Add facet to Donor schemas for donor_groups property
 * Update description of donor_groups property to clarify its purpose and usage
+
+
+1.24.1
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
 
 
 1.24.0
