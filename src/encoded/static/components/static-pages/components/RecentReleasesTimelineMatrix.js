@@ -6,6 +6,17 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const RECENT_MONTHS = 6;
+const TIMELINE_MODES = {
+    DAILY: 'daily',
+    WEEKLY: 'weekly',
+    MONTHLY: 'monthly'
+};
+const TIMELINE_MONTH_WINDOW_SIZE = {
+    [TIMELINE_MODES.DAILY]: 2,
+    [TIMELINE_MODES.WEEKLY]: 4,
+    [TIMELINE_MODES.MONTHLY]: 6
+};
+const RELEASE_DATE_FIELD = 'file_status_tracking.release_dates.initial_release_date';
 
 const formatMonthLabel = (monthValue = '') => {
     const parsed = new Date(`${monthValue}-01T00:00:00`);
@@ -49,7 +60,48 @@ const formatCalendarDayCount = (count = 0) => {
     return `${Math.round(numericCount / 100000) / 10}M`;
 };
 
-const buildMatrixQueryFromBrowseQuery = (browseQuery = '', selectedDayValue = '') => {
+const toDateKey = (dateObj) => (
+    `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`
+);
+
+const stripDateFiltersFromParams = (queryParams = new URLSearchParams()) => {
+    Array.from(queryParams.keys()).forEach((key) => {
+        const lowerKey = String(key).toLowerCase();
+        const isDateLike = lowerKey.includes('date');
+        if (!isDateLike) return;
+        if (lowerKey.endsWith('.from') || lowerKey.endsWith('.to') || lowerKey.endsWith('_date')) {
+            queryParams.delete(key);
+        }
+    });
+};
+
+const normalizeDateFilter = (dateFilter = null) => {
+    if (!dateFilter) return null;
+    if (typeof dateFilter === 'string') {
+        return { from: dateFilter, to: dateFilter };
+    }
+    if (typeof dateFilter === 'object' && dateFilter.from && dateFilter.to) {
+        return { from: dateFilter.from, to: dateFilter.to };
+    }
+    return null;
+};
+
+const buildBrowseQueryWithDateRange = (browseQuery = '', dateFilter = null) => {
+    const [path, queryString = ''] = String(browseQuery).split('?');
+    if (!path || !queryString) {
+        return '/browse/?type=File';
+    }
+    const queryParams = new URLSearchParams(queryString);
+    const normalizedDateFilter = normalizeDateFilter(dateFilter);
+    if (normalizedDateFilter) {
+        stripDateFiltersFromParams(queryParams);
+        queryParams.set(`${RELEASE_DATE_FIELD}.from`, normalizedDateFilter.from);
+        queryParams.set(`${RELEASE_DATE_FIELD}.to`, normalizedDateFilter.to);
+    }
+    return `/browse/?${queryParams.toString()}`;
+};
+
+const buildMatrixQueryFromBrowseQuery = (browseQuery = '', dateFilter = null) => {
     const [path, queryString = ''] = String(browseQuery).split('?');
     if (!path || !queryString) {
         return '/data_matrix_aggregations/?type=File&limit=all';
@@ -66,19 +118,11 @@ const buildMatrixQueryFromBrowseQuery = (browseQuery = '', selectedDayValue = ''
         queryParams.set('sequencers.platform!', 'No value');
     }
 
-    // Force day-exact filtering so matrix totals match calendar day totals.
-    // Keep only one date field for precision and remove broad/month range variants.
-    if (selectedDayValue) {
-        Array.from(queryParams.keys()).forEach((key) => {
-            const lowerKey = String(key).toLowerCase();
-            const isDateLike = lowerKey.includes('date');
-            if (!isDateLike) return;
-            if (lowerKey.endsWith('.from') || lowerKey.endsWith('.to') || lowerKey.endsWith('_date')) {
-                queryParams.delete(key);
-            }
-        });
-        queryParams.set('file_status_tracking.release_dates.initial_release_date.from', selectedDayValue);
-        queryParams.set('file_status_tracking.release_dates.initial_release_date.to', selectedDayValue);
+    const normalizedDateFilter = normalizeDateFilter(dateFilter);
+    if (normalizedDateFilter) {
+        stripDateFiltersFromParams(queryParams);
+        queryParams.set(`${RELEASE_DATE_FIELD}.from`, normalizedDateFilter.from);
+        queryParams.set(`${RELEASE_DATE_FIELD}.to`, normalizedDateFilter.to);
     }
 
     return `/data_matrix_aggregations/?${queryParams.toString()}`;
@@ -100,7 +144,7 @@ const normalizeData = (items = []) => (
                         value: dayValue,
                         count: dayItem.count || 0,
                         browseQuery: dayItem.query || null,
-                        matrixQuery: buildMatrixQueryFromBrowseQuery(dayItem.query || '', dayValue),
+                        matrixQuery: buildMatrixQueryFromBrowseQuery(dayItem.query || '', { from: dayValue, to: dayValue }),
                         ...dayParts
                     };
                 })
@@ -203,12 +247,66 @@ const matrixQueryTemplate = {
     ]
 };
 
+const formatWeekLabel = (fromDateKey = '', toDateKey = '') => {
+    const fromDate = new Date(`${fromDateKey}T00:00:00`);
+    const toDate = new Date(`${toDateKey}T00:00:00`);
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+        return `${fromDateKey} - ${toDateKey}`;
+    }
+    return `${fromDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${toDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+};
+
+const buildWeekBucketsForMonth = (month = {}) => {
+    const dayItems = Array.isArray(month.days) ? month.days : [];
+    const weekMap = {};
+    dayItems.forEach((day) => {
+        const parsed = new Date(`${day.value}T00:00:00`);
+        if (Number.isNaN(parsed.getTime())) return;
+        const weekday = parsed.getDay();
+        const start = new Date(parsed);
+        start.setDate(parsed.getDate() - weekday);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        const from = toDateKey(start);
+        const to = toDateKey(end);
+        const key = `${from}_${to}`;
+        if (!weekMap[key]) {
+            weekMap[key] = {
+                key: `week-${key}`,
+                from,
+                to,
+                count: 0
+            };
+        }
+        weekMap[key].count += Number(day.count) || 0;
+    });
+    return _.chain(weekMap)
+        .values()
+        .map((week) => {
+            const browseQuery = buildBrowseQueryWithDateRange(month.browseQuery || '/browse/?type=File', {
+                from: week.from,
+                to: week.to
+            });
+            return {
+                ...week,
+                label: formatWeekLabel(week.from, week.to),
+                fullLabel: `Week of ${formatWeekLabel(week.from, week.to)}`,
+                browseQuery,
+                matrixQuery: buildMatrixQueryFromBrowseQuery(browseQuery)
+            };
+        })
+        .sortBy((week) => week.from)
+        .reverse()
+        .value();
+};
+
 export const RecentReleasesTimelineMatrix = ({ session }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [months, setMonths] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
     const [selectedMatrixTarget, setSelectedMatrixTarget] = useState(null);
     const [monthWindowStartIndex, setMonthWindowStartIndex] = useState(0);
+    const [timelineMode, setTimelineMode] = useState(TIMELINE_MODES.DAILY);
 
     useEffect(() => {
         let isCancelled = false;
@@ -251,12 +349,60 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     }, []);
 
     const selectedDayLabel = useMemo(() => selectedMatrixTarget?.fullLabel || null, [selectedMatrixTarget]);
+    const monthWindowSize = useMemo(
+        () => TIMELINE_MONTH_WINDOW_SIZE[timelineMode] || TIMELINE_MONTH_WINDOW_SIZE[TIMELINE_MODES.DAILY],
+        [timelineMode]
+    );
     const visibleMonths = useMemo(
-        () => months.slice(monthWindowStartIndex, monthWindowStartIndex + 2),
-        [months, monthWindowStartIndex]
+        () => months.slice(monthWindowStartIndex, monthWindowStartIndex + monthWindowSize),
+        [months, monthWindowStartIndex, monthWindowSize]
+    );
+    const visibleMonthsWithWeeks = useMemo(
+        () => visibleMonths.map((month) => ({ ...month, weeks: buildWeekBucketsForMonth(month) })),
+        [visibleMonths]
     );
     const canGoToNewerMonths = monthWindowStartIndex > 0;
-    const canGoToOlderMonths = monthWindowStartIndex + 2 < months.length;
+    const canGoToOlderMonths = monthWindowStartIndex + monthWindowSize < months.length;
+
+    useEffect(() => {
+        if (!months?.length) return;
+        const maxStartIndex = Math.max(0, months.length - monthWindowSize);
+        if (monthWindowStartIndex > maxStartIndex) {
+            setMonthWindowStartIndex(maxStartIndex);
+        }
+    }, [months, monthWindowSize, monthWindowStartIndex]);
+
+    useEffect(() => {
+        if (!months?.length) return;
+        if (timelineMode === TIMELINE_MODES.DAILY) {
+            if (selectedDay?.key) {
+                setSelectedMatrixTarget(selectedDay);
+                return;
+            }
+            const firstDay = _.chain(months).pluck('days').flatten().find((day) => !!day).value() || null;
+            setSelectedDay(firstDay);
+            setSelectedMatrixTarget(firstDay);
+            return;
+        }
+        if (timelineMode === TIMELINE_MODES.WEEKLY) {
+            const firstWeek = _.chain(months)
+                .map((month) => buildWeekBucketsForMonth(month))
+                .flatten()
+                .find((week) => (week?.count || 0) > 0)
+                .value() || null;
+            setSelectedDay(null);
+            setSelectedMatrixTarget(firstWeek);
+            return;
+        }
+        const firstMonth = _.find(months, (month) => (month?.count || 0) > 0) || null;
+        setSelectedDay(null);
+        setSelectedMatrixTarget(firstMonth ? {
+            key: `month-${firstMonth.value}`,
+            fullLabel: firstMonth.label,
+            browseQuery: firstMonth.browseQuery,
+            matrixQuery: buildMatrixQueryFromBrowseQuery(firstMonth.browseQuery || '')
+        } : null);
+    }, [timelineMode, months]);
 
     if (isLoading) {
         return (
@@ -284,9 +430,31 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 <div className="card-body">
                     <h3 className="recent-releases-title">Recently Released Files</h3>
                     <p className="recent-releases-subtitle mb-2">
-                        Select a release day to view file details in the matrix.
+                        {timelineMode === TIMELINE_MODES.DAILY ? 'Select a release day to view file details in the matrix.' : null}
+                        {timelineMode === TIMELINE_MODES.WEEKLY ? 'Select a release week to view file details in the matrix.' : null}
+                        {timelineMode === TIMELINE_MODES.MONTHLY ? 'Select a release month to view file details in the matrix.' : null}
                     </p>
-                    {months.length > 2 ? (
+                    <div className="release-view-mode-toggle mb-2">
+                        <button
+                            type="button"
+                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.DAILY ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setTimelineMode(TIMELINE_MODES.DAILY)}>
+                            Daily
+                        </button>
+                        <button
+                            type="button"
+                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.WEEKLY ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setTimelineMode(TIMELINE_MODES.WEEKLY)}>
+                            Weekly
+                        </button>
+                        <button
+                            type="button"
+                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.MONTHLY ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setTimelineMode(TIMELINE_MODES.MONTHLY)}>
+                            Monthly
+                        </button>
+                    </div>
+                    {months.length > monthWindowSize ? (
                         <div className="release-month-nav">
                             <button
                                 type="button"
@@ -298,14 +466,14 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => setMonthWindowStartIndex((idx) => Math.min(months.length - 2, idx + 1))}
+                                onClick={() => setMonthWindowStartIndex((idx) => Math.min(Math.max(0, months.length - monthWindowSize), idx + 1))}
                                 disabled={!canGoToOlderMonths}>
                                 Older
                             </button>
                         </div>
                     ) : null}
                     <div className="recent-releases-months">
-                        {visibleMonths.map((month) => (
+                        {visibleMonthsWithWeeks.map((month) => (
                             <section key={month.key} className="release-month-section">
                                 <header className="release-month-header">
                                     <h4>{month.label}</h4>
@@ -331,48 +499,91 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                         </span>
                                     )}
                                 </header>
-                                <div className="release-weekdays-grid">
-                                    {WEEKDAY_LABELS.map((weekdayLabel) => (
-                                        <span key={`${month.key}-${weekdayLabel}`} className="release-weekday-label">
-                                            {weekdayLabel}
-                                        </span>
-                                    ))}
-                                </div>
-                                <div className="release-calendar-grid">
-                                    {buildCalendarCells(month.value, month.days).map((cell) => {
-                                        if (cell.kind === 'padding') {
-                                            return <span key={cell.key} className="release-day-pad" aria-hidden="true"></span>;
-                                        }
-                                        const isSelected = selectedDay?.key === cell.key;
-                                        const dayClasses = [
-                                            'release-day-btn',
-                                            cell.hasData ? 'has-data' : 'no-data',
-                                            isSelected ? 'selected' : ''
-                                        ].filter(Boolean).join(' ');
-                                        return (
-                                            <button
-                                                key={cell.key}
-                                                type="button"
-                                                className={dayClasses}
-                                                onClick={cell.hasData ? () => {
-                                                    setSelectedDay(cell.data);
-                                                    setSelectedMatrixTarget(cell.data);
-                                                } : undefined}
-                                                onFocus={cell.hasData ? () => {
-                                                    setSelectedDay(cell.data);
-                                                    setSelectedMatrixTarget(cell.data);
-                                                } : undefined}
-                                                aria-pressed={isSelected}
-                                                disabled={!cell.hasData}
-                                                title={cell.fullLabel}>
-                                                <span className="day-num">{cell.dayNumber}</span>
-                                                {cell.hasData ? (
-                                                    <span className="day-count">{formatCalendarDayCount(cell.count)}</span>
-                                                ) : null}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                {timelineMode === TIMELINE_MODES.DAILY ? (
+                                    <React.Fragment>
+                                        <div className="release-weekdays-grid">
+                                            {WEEKDAY_LABELS.map((weekdayLabel) => (
+                                                <span key={`${month.key}-${weekdayLabel}`} className="release-weekday-label">
+                                                    {weekdayLabel}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <div className="release-calendar-grid">
+                                            {buildCalendarCells(month.value, month.days).map((cell) => {
+                                                if (cell.kind === 'padding') {
+                                                    return <span key={cell.key} className="release-day-pad" aria-hidden="true"></span>;
+                                                }
+                                                const isSelected = selectedDay?.key === cell.key;
+                                                const dayClasses = [
+                                                    'release-day-btn',
+                                                    cell.hasData ? 'has-data' : 'no-data',
+                                                    isSelected ? 'selected' : ''
+                                                ].filter(Boolean).join(' ');
+                                                return (
+                                                    <button
+                                                        key={cell.key}
+                                                        type="button"
+                                                        className={dayClasses}
+                                                        onClick={cell.hasData ? () => {
+                                                            setSelectedDay(cell.data);
+                                                            setSelectedMatrixTarget(cell.data);
+                                                        } : undefined}
+                                                        onFocus={cell.hasData ? () => {
+                                                            setSelectedDay(cell.data);
+                                                            setSelectedMatrixTarget(cell.data);
+                                                        } : undefined}
+                                                        aria-pressed={isSelected}
+                                                        disabled={!cell.hasData}
+                                                        title={cell.fullLabel}>
+                                                        <span className="day-num">{cell.dayNumber}</span>
+                                                        {cell.hasData ? (
+                                                            <span className="day-count">{formatCalendarDayCount(cell.count)}</span>
+                                                        ) : null}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </React.Fragment>
+                                ) : null}
+                                {timelineMode === TIMELINE_MODES.WEEKLY ? (
+                                    <div className="release-bucket-list">
+                                        {(month.weeks || []).map((week) => {
+                                            const isSelected = selectedMatrixTarget?.key === week.key;
+                                            return (
+                                                <button
+                                                    key={week.key}
+                                                    type="button"
+                                                    className={`release-bucket-btn ${isSelected ? 'selected' : ''}`}
+                                                    onClick={() => {
+                                                        setSelectedDay(null);
+                                                        setSelectedMatrixTarget(week);
+                                                    }}>
+                                                    <span className="bucket-label">{week.label}</span>
+                                                    <span className="bucket-count">{formatCalendarDayCount(week.count)}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                ) : null}
+                                {timelineMode === TIMELINE_MODES.MONTHLY ? (
+                                    <div className="release-bucket-list">
+                                        <button
+                                            type="button"
+                                            className={`release-bucket-btn ${selectedMatrixTarget?.key === `month-${month.value}` ? 'selected' : ''}`}
+                                            onClick={() => {
+                                                setSelectedDay(null);
+                                                setSelectedMatrixTarget({
+                                                    key: `month-${month.value}`,
+                                                    fullLabel: month.label,
+                                                    browseQuery: month.browseQuery,
+                                                    matrixQuery: buildMatrixQueryFromBrowseQuery(month.browseQuery || '')
+                                                });
+                                            }}>
+                                            <span className="bucket-label">{month.label}</span>
+                                            <span className="bucket-count">{formatCalendarDayCount(month.count)}</span>
+                                        </button>
+                                    </div>
+                                ) : null}
                             </section>
                         ))}
                     </div>
@@ -382,7 +593,11 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 <div className="card-body">
                     <div className="recent-releases-matrix-header">
                         <div>
-                            <h3 className="recent-releases-title mb-0">Release Day Details</h3>
+                            <h3 className="recent-releases-title mb-0">
+                                {timelineMode === TIMELINE_MODES.DAILY ? 'Release Day Details' : null}
+                                {timelineMode === TIMELINE_MODES.WEEKLY ? 'Release Week Details' : null}
+                                {timelineMode === TIMELINE_MODES.MONTHLY ? 'Release Month Details' : null}
+                            </h3>
                             {selectedDayLabel ? (
                                 <p className="recent-releases-subtitle mb-0">{selectedDayLabel}</p>
                             ) : null}
