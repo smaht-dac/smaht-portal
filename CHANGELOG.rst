@@ -15,6 +15,14 @@ Change Log
 * Remove truth set tabs from benchmarking
 
 
+1.24.2
+======
+
+`PR 656: fix: decrease release tracker months <https://github.com/smaht-dac/smaht-portal/pull/656>`_
+
+* Load only last 3 months in release tracker
+
+
 1.24.1
 ======
 
