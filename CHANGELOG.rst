@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.24.3
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
+
+
 1.24.2
 ======
 
