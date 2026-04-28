@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { ajax, console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 import DataMatrix from '../../viz/Matrix/DataMatrix';
+import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
+import { SelectAllAboveTableComponent } from './SelectAllAboveTableComponent';
+import { createBrowseFileColumnExtensionMap } from '../../browse/BrowseView';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const RECENT_MONTHS = 6;
@@ -10,6 +14,10 @@ const TIMELINE_MODES = {
     DAILY: 'daily',
     WEEKLY: 'weekly',
     MONTHLY: 'monthly'
+};
+const DETAIL_VIEW_MODES = {
+    MATRIX: 'matrix',
+    TABLE: 'table'
 };
 const TIMELINE_MONTH_WINDOW_SIZE = {
     [TIMELINE_MODES.DAILY]: 2,
@@ -247,6 +255,48 @@ const matrixQueryTemplate = {
     ]
 };
 
+const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(props) {
+    const {
+        session,
+        searchHref,
+        href,
+        context,
+        selectedItems = new Set(),
+        onSelectItem,
+        onResetSelectedItems
+    } = props;
+
+    const selectedFileProps = useMemo(() => ({
+        selectedItems,
+        onSelectItem,
+        onResetSelectedItems
+    }), [selectedItems, onSelectItem, onResetSelectedItems]);
+
+    const { columnExtensionMap, columns, hideFacets } = useMemo(
+        () => createBrowseFileColumnExtensionMap(selectedFileProps),
+        [selectedFileProps]
+    );
+
+    return (
+        <EmbeddedItemSearchTable
+            searchHref={searchHref}
+            href={href}
+            context={context}
+            session={session}
+            facets={null}
+            columnExtensionMap={columnExtensionMap}
+            columns={columns}
+            hideFacets={hideFacets}
+            aboveTableComponent={<SelectAllAboveTableComponent session={session} deniedAccessPopoverType="login" />}
+            rowHeight={31}
+            openRowHeight={40}
+            maxResultsBodyHeight={620}
+            maxHeight={700}
+            clearSelectedItemsOnFilter
+        />
+    );
+});
+
 const formatWeekLabel = (fromDateKey = '', toDateKey = '') => {
     const fromDate = new Date(`${fromDateKey}T00:00:00`);
     const toDate = new Date(`${toDateKey}T00:00:00`);
@@ -307,6 +357,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     const [selectedMatrixTarget, setSelectedMatrixTarget] = useState(null);
     const [monthWindowStartIndex, setMonthWindowStartIndex] = useState(0);
     const [timelineMode, setTimelineMode] = useState(TIMELINE_MODES.DAILY);
+    const [detailViewMode, setDetailViewMode] = useState(DETAIL_VIEW_MODES.TABLE);
 
     useEffect(() => {
         let isCancelled = false;
@@ -349,6 +400,10 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     }, []);
 
     const selectedDayLabel = useMemo(() => selectedMatrixTarget?.fullLabel || null, [selectedMatrixTarget]);
+    const selectedBrowseHref = useMemo(() => selectedMatrixTarget?.browseQuery || null, [selectedMatrixTarget]);
+    const selectedSearchContext = useMemo(() => (
+        selectedBrowseHref ? { '@id': selectedBrowseHref, total: 0 } : { '@id': '/browse/?type=File', total: 0 }
+    ), [selectedBrowseHref]);
     const monthWindowSize = useMemo(
         () => TIMELINE_MONTH_WINDOW_SIZE[timelineMode] || TIMELINE_MONTH_WINDOW_SIZE[TIMELINE_MODES.DAILY],
         [timelineMode]
@@ -602,13 +657,22 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                 <p className="recent-releases-subtitle mb-0">{selectedDayLabel}</p>
                             ) : null}
                         </div>
-                        {selectedMatrixTarget?.browseQuery ? (
-                            <a href={selectedMatrixTarget.browseQuery} className="btn btn-outline-primary btn-sm">
-                                Browse Files
-                            </a>
-                        ) : null}
+                        <div className="recent-releases-results-mode-toggle">
+                            <button
+                                type="button"
+                                className={`btn btn-sm ${detailViewMode === DETAIL_VIEW_MODES.MATRIX ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setDetailViewMode(DETAIL_VIEW_MODES.MATRIX)}>
+                                Data Matrix
+                            </button>
+                            <button
+                                type="button"
+                                className={`btn btn-sm ${detailViewMode === DETAIL_VIEW_MODES.TABLE ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setDetailViewMode(DETAIL_VIEW_MODES.TABLE)}>
+                                File Table
+                            </button>
+                        </div>
                     </div>
-                    {selectedMatrixTarget?.matrixQuery ? (
+                    {detailViewMode === DETAIL_VIEW_MODES.MATRIX && selectedMatrixTarget?.matrixQuery ? (
                         <div className="recent-releases-matrix-scroll">
                             <DataMatrix
                                 key={`recent-releases-${selectedMatrixTarget.key}`}
@@ -631,6 +695,21 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                 excludePrimaryColumnNoValue={true}
                                 defaultExpandedRowIndices={[0]}
                             />
+                        </div>
+                    ) : null}
+                    {detailViewMode === DETAIL_VIEW_MODES.TABLE && selectedBrowseHref ? (
+                        <div className="recent-releases-table-scroll">
+                            <SelectedItemsController
+                                context={selectedSearchContext}
+                                href={selectedBrowseHref}
+                                currentAction="multiselect">
+                                <RecentReleasesFileTable
+                                    key={`recent-releases-table-${selectedMatrixTarget?.key || 'default'}`}
+                                    searchHref={selectedBrowseHref}
+                                    href={selectedBrowseHref}
+                                    session={session}
+                                />
+                            </SelectedItemsController>
                         </div>
                     ) : null}
                 </div>

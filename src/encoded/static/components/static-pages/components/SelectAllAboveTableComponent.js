@@ -37,7 +37,7 @@ export const SelectAllAboveTableComponent = (props) => {
         removeHiddenColumn,
         columnDefinitions,
         session,
-        selectedItems, // From SelectedItemsController
+        selectedItems = new Set(), // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         deniedAccessPopoverType = 'login', // default to login popover
@@ -74,12 +74,12 @@ export const SelectAllAboveTableComponent = (props) => {
                 {canDownloadFiles ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
-                        disabled={selectedItems.size === 0}
+                        disabled={(selectedItems?.size || 0) === 0}
                         className="download-button has-access btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
-                        Download {selectedItems.size} Selected Files
+                        Download {selectedItems?.size || 0} Selected Files
                     </SelectedItemsDownloadButton>
                 ) : (
                     <OverlayTrigger
@@ -98,7 +98,7 @@ export const SelectAllAboveTableComponent = (props) => {
                             className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
-                            Download {selectedItems.size} Selected Files
+                            Download {selectedItems?.size || 0} Selected Files
                         </button>
                     </OverlayTrigger>
                 )}

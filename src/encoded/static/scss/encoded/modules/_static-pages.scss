@@ -395,6 +395,17 @@
         margin-bottom: 0.75rem;
     }
 
+    .recent-releases-results-mode-toggle {
+        display: inline-flex;
+        gap: 0.35rem;
+
+        .btn {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+        }
+    }
+
     .recent-releases-matrix-column,
     .recent-releases-matrix-column .card-body {
         min-width: 0;
@@ -411,6 +422,17 @@
         overflow-x: auto;
         overflow-y: hidden;
         padding: 0.35rem;
+    }
+
+    .recent-releases-table-scroll {
+        border: 1px solid #e1e8f5;
+        border-radius: 0.5rem;
+        padding: 0.35rem;
+        overflow: hidden;
+    }
+
+    .recent-releases-table-scroll .embedded-search-view-outer-container {
+        min-width: 0;
     }
 
     .data-matrix {
