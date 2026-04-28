@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-1.23.3
+1.24.4
 ======
 
 `PR 652: fix: move alert in registration modal to bottom of form <https://github.com/smaht-dac/smaht-portal/pull/652>`_
 
 * Move the blocked email error registration alert to the bottom of the form
+
+
+1.24.3
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
 
 
 1.24.2
@@ -23,6 +31,14 @@ Change Log
 * Remove truth set tabs from benchmarking
 
 
+1.24.2
+======
+
+`PR 656: fix: decrease release tracker months <https://github.com/smaht-dac/smaht-portal/pull/656>`_
+
+* Load only last 3 months in release tracker
+
+
 1.24.1
 ======
 
@@ -30,6 +46,14 @@ Change Log
 
 * Add facet to Donor schemas for donor_groups property
 * Update description of donor_groups property to clarify its purpose and usage
+
+
+1.24.1
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
 
 
 1.24.0
