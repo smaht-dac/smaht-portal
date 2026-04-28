@@ -277,6 +277,10 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
         () => createBrowseFileColumnExtensionMap(selectedFileProps),
         [selectedFileProps]
     );
+    const hideFacetsForRecentReleases = useMemo(
+        () => _.uniq([...(hideFacets || []), RELEASE_DATE_FIELD]),
+        [hideFacets]
+    );
     const alignedColumnExtensionMap = useMemo(() => ({
         ...columnExtensionMap,
         '@type': {
@@ -327,10 +331,9 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             href={href}
             context={context}
             session={session}
-            facets={null}
             columnExtensionMap={alignedColumnExtensionMap}
             columns={columns}
-            hideFacets={hideFacets}
+            hideFacets={hideFacetsForRecentReleases}
             aboveTableComponent={
                 <SelectAllAboveTableComponent
                     session={session}
@@ -344,7 +347,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             openRowHeight={40}
             maxResultsBodyHeight={620}
             maxHeight={700}
-            clearSelectedItemsOnFilter
+            clearSelectedItemsOnFilter={false}
             useCustomSelectionController
         />
     );
@@ -739,7 +742,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                 showCountFor={true}
                                 showMatrixModeTabs={false}
                                 showColumnSummary={true}
-                                showFacetTermsPanel={false}
+                                showFacetTermsPanel={true}
                                 showAxisLabels={false}
                                 disableConfigurator={true}
                                 showUniqueDonorsAssayBand={true}
