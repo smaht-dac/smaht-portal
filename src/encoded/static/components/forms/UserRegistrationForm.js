@@ -340,7 +340,7 @@ export default class UserRegistrationForm extends React.PureComponent {
             );
         } else if (registrationStatus === 'restricted-email') {
             errorIndicator = (
-                <div className="alert alert-warning d-flex align-items-center self-registration-alert restricted-email" role="alert">
+                <div className="alert alert-warning d-flex align-items-center self-registration-alert restricted-email mb-1" role="alert">
                     <i className="fas icon icon-ban me-2 self-registration-alert-icon"></i>
                     <div>
                         <span>
@@ -360,8 +360,6 @@ export default class UserRegistrationForm extends React.PureComponent {
 
         return (
             <div className="user-registration-form-container position-relative">
-                {errorIndicator}
-
                 {heading}
 
                 <div className={isConsortiumMember === true ? null : "mb-3"}>
@@ -546,6 +544,12 @@ export default class UserRegistrationForm extends React.PureComponent {
                                     improve the quality of user experience and/or
                                     security assurance purposes.
                                 </p>
+                            </div>
+                        </div>
+
+                        <div className="row">
+                            <div className="col-12">
+                                {errorIndicator}
                             </div>
                         </div>
 
