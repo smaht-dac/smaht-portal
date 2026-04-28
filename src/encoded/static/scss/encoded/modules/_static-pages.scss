@@ -435,6 +435,66 @@
         min-width: 0;
     }
 
+    // Keep selection checkbox and lock columns aligned in embedded table mode.
+    .recent-releases-table-scroll {
+        .search-results-container {
+            .search-headers-column-block[data-first-visible-column],
+            .search-result-column-block[data-first-visible-column] {
+                padding-left: 0 !important;
+            }
+
+            .search-headers-row {
+                .search-headers-column-block[data-field="@type"],
+                .search-headers-column-block[data-field="access_status"] {
+                    width: 56px;
+                    min-width: 56px;
+                    max-width: 56px;
+
+                    .inner {
+                        padding-left: 0;
+                        padding-right: 0;
+                        justify-content: center;
+                        text-align: center;
+                        display: flex;
+                        align-items: center;
+                    }
+                }
+            }
+
+            .search-result-row {
+                .search-result-column-block[data-field="@type"],
+                .search-result-column-block[data-field="access_status"] {
+                    width: 56px;
+                    min-width: 56px;
+                    max-width: 56px;
+                    padding-left: 0;
+                    padding-right: 0;
+
+                    .inner {
+                        padding-left: 0;
+                        padding-right: 0;
+                        justify-content: center;
+                        text-align: center;
+                        display: flex;
+                        align-items: center;
+                    }
+                }
+            }
+
+            .search-headers-column-block[data-field="@type"] input[type="checkbox"],
+            .search-result-column-block[data-field="@type"] input[type="checkbox"] {
+                margin: 0 !important;
+                display: block;
+            }
+
+            .search-headers-column-block[data-field="access_status"] .icon-lock,
+            .search-result-column-block[data-field="access_status"] .icon-lock {
+                margin: 0 auto;
+                display: inline-block;
+            }
+        }
+    }
+
     .data-matrix {
         min-width: 0;
     }

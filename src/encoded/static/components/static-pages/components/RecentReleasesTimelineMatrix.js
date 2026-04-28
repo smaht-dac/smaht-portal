@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { ajax, console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
+import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import DataMatrix from '../../viz/Matrix/DataMatrix';
 import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
-import { SelectAllAboveTableComponent } from './SelectAllAboveTableComponent';
+import { SelectAllAboveTableComponent, SelectAllFilesButton } from './SelectAllAboveTableComponent';
 import { createBrowseFileColumnExtensionMap } from '../../browse/BrowseView';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -276,6 +277,49 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
         () => createBrowseFileColumnExtensionMap(selectedFileProps),
         [selectedFileProps]
     );
+    const alignedColumnExtensionMap = useMemo(() => ({
+        ...columnExtensionMap,
+        '@type': {
+            ...(columnExtensionMap?.['@type'] || {}),
+            noSort: true,
+            widthMap: { lg: 60, md: 60, sm: 60 },
+            colTitle: (
+                <div className="d-flex align-items-center justify-content-center w-100">
+                    <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
+                </div>
+            ),
+            render: (result) => (
+                <div className="d-flex align-items-center justify-content-center w-100">
+                    <SelectionItemCheckbox
+                        {...{ selectedItems, onSelectItem, result }}
+                        isMultiSelect={true}
+                    />
+                </div>
+            )
+        },
+        access_status: {
+            ...(columnExtensionMap?.access_status || {}),
+            noSort: true,
+            widthMap: { lg: 60, md: 60, sm: 60 },
+            colTitle: (
+                <div className="d-flex align-items-center justify-content-center w-100">
+                    <i className="icon icon-lock fas" data-tip="Access" />
+                </div>
+            ),
+            render: (result = {}) => {
+                const accessStatus = result?.access_status || null;
+                return (
+                    <div className="d-flex align-items-center justify-content-center w-100">
+                        {accessStatus === 'Protected' ? (
+                            <i className="icon icon-lock fas" data-tip="Protected" />
+                        ) : (
+                            <span className="value text-center">{accessStatus || ''}</span>
+                        )}
+                    </div>
+                );
+            }
+        }
+    }), [columnExtensionMap, selectedFileProps, selectedItems, onSelectItem]);
 
     return (
         <EmbeddedItemSearchTable
@@ -284,7 +328,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             context={context}
             session={session}
             facets={null}
-            columnExtensionMap={columnExtensionMap}
+            columnExtensionMap={alignedColumnExtensionMap}
             columns={columns}
             hideFacets={hideFacets}
             aboveTableComponent={
@@ -301,6 +345,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             maxResultsBodyHeight={620}
             maxHeight={700}
             clearSelectedItemsOnFilter
+            useCustomSelectionController
         />
     );
 });
@@ -364,7 +409,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     const [selectedDay, setSelectedDay] = useState(null);
     const [selectedMatrixTarget, setSelectedMatrixTarget] = useState(null);
     const [monthWindowStartIndex, setMonthWindowStartIndex] = useState(0);
-    const [timelineMode, setTimelineMode] = useState(TIMELINE_MODES.DAILY);
+    const [timelineMode, setTimelineMode] = useState(TIMELINE_MODES.WEEKLY);
     const [detailViewMode, setDetailViewMode] = useState(DETAIL_VIEW_MODES.TABLE);
 
     useEffect(() => {
