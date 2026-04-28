@@ -424,7 +424,7 @@ export const DataReleaseTracker = ({ session }) => {
 
         if (isAccessResolved && isNetworkMember) {
             ajax.load(
-                '/recent_files_summary?format=json&nmonths=6',
+                '/recent_files_summary?format=json&nmonths=2',
                 (resp) => {
                     if (isCancelled) return;
                     setData(formatReleaseData(resp?.items));
