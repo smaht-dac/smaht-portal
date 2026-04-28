@@ -287,7 +287,15 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             columnExtensionMap={columnExtensionMap}
             columns={columns}
             hideFacets={hideFacets}
-            aboveTableComponent={<SelectAllAboveTableComponent session={session} deniedAccessPopoverType="login" />}
+            aboveTableComponent={
+                <SelectAllAboveTableComponent
+                    session={session}
+                    deniedAccessPopoverType="login"
+                    selectedItems={selectedItems}
+                    onSelectItem={onSelectItem}
+                    onResetSelectedItems={onResetSelectedItems}
+                />
+            }
             rowHeight={31}
             openRowHeight={40}
             maxResultsBodyHeight={620}
