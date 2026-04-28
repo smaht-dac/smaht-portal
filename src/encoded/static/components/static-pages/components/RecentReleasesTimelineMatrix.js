@@ -586,30 +586,32 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                     <div className="recent-releases-months">
                         {visibleMonthsWithWeeks.map((month) => (
                             <section key={month.key} className="release-month-section">
-                                <header className="release-month-header">
-                                    <h4>{month.label}</h4>
-                                    {month.browseQuery && month.count > 0 ? (
-                                        <button
-                                            type="button"
-                                            className="count-badge count-badge-link"
-                                            onClick={() => {
-                                                setSelectedDay(null);
-                                                setSelectedMatrixTarget({
-                                                    key: `month-${month.value}`,
-                                                    fullLabel: month.label,
-                                                    browseQuery: month.browseQuery,
-                                                    matrixQuery: buildMatrixQueryFromBrowseQuery(month.browseQuery || '')
-                                                });
-                                            }}
-                                            title={`Browse files released in ${month.label}`}>
-                                            {month.count} {month.count === 1 ? 'file' : 'files'}
-                                        </button>
-                                    ) : (
-                                        <span className="count-badge">
-                                            {month.count} {month.count === 1 ? 'file' : 'files'}
-                                        </span>
-                                    )}
-                                </header>
+                                {timelineMode !== TIMELINE_MODES.MONTHLY ? (
+                                    <header className="release-month-header">
+                                        <h4>{month.label}</h4>
+                                        {month.browseQuery && month.count > 0 ? (
+                                            <button
+                                                type="button"
+                                                className="count-badge count-badge-link"
+                                                onClick={() => {
+                                                    setSelectedDay(null);
+                                                    setSelectedMatrixTarget({
+                                                        key: `month-${month.value}`,
+                                                        fullLabel: month.label,
+                                                        browseQuery: month.browseQuery,
+                                                        matrixQuery: buildMatrixQueryFromBrowseQuery(month.browseQuery || '')
+                                                    });
+                                                }}
+                                                title={`Browse files released in ${month.label}`}>
+                                                {month.count} {month.count === 1 ? 'file' : 'files'}
+                                            </button>
+                                        ) : (
+                                            <span className="count-badge">
+                                                {month.count} {month.count === 1 ? 'file' : 'files'}
+                                            </span>
+                                        )}
+                                    </header>
+                                ) : null}
                                 {timelineMode === TIMELINE_MODES.DAILY ? (
                                     <React.Fragment>
                                         <div className="release-weekdays-grid">
@@ -691,7 +693,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                 });
                                             }}>
                                             <span className="bucket-label">{month.label}</span>
-                                            <span className="bucket-count">{formatCalendarDayCount(month.count)}</span>
+                                            <span className="bucket-count">{month.count} {month.count === 1 ? 'file' : 'files'}</span>
                                         </button>
                                     </div>
                                 ) : null}
