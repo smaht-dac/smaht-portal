@@ -453,7 +453,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/dnascope-hybrid",
-        "title": "DNAscope Hybrid",
+        "title": "Phased Germline: Sentieon DNAScope-Hybrid & Statistical and long-read-based phasing",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -472,7 +472,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/smaht-snv-calling",
-        "title": "SMaHT SNV Calling",
+        "title": "Somatic: SMaHT SNV Pipeline",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2

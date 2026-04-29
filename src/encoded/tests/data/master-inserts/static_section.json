@@ -777,7 +777,7 @@
     },
     {
         "identifier": "dnascope-hybrid",
-        "title": "DNAscope Hybrid",
+        "title": "Phased Germline: Sentieon DNAScope-Hybrid & Statistical and long-read-based phasing",
         "uuid": "572bc97f-3749-4d0b-850e-793e3d2b33ea",
         "section_type": "Page Section",
         "status": "open",
@@ -794,7 +794,7 @@
     },
     {
         "identifier": "smaht-snv-calling",
-        "title": "SMaHT SNV Calling",
+        "title": "Somatic: SMaHT SNV Pipeline",
         "uuid": "607beb40-d109-46c5-b38d-f4008c296a16",
         "section_type": "Page Section",
         "status": "open",
