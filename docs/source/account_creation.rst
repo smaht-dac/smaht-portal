@@ -4,8 +4,8 @@ How to Create a SMaHT Data Portal Account
 
 .. raw:: html
 
-    <div class="static-page-top-navigation-container mb-4">
-        <a class="nav-link" target="" href="#for-non-smaht-network-members-self-registration">
+    <div class="account-creation-nav static-page-top-navigation-container mb-4">
+        <a class="nav-link" href="#for-non-network-members-self-registration">
             <i class="icon icon-globe fas"> </i>
             <span class="nav-link-title">Non-Members</span>
             <span class="nav-link-subtitle">Self-Registration</span>
@@ -73,7 +73,7 @@ To create a Google account linked to your institutional email (not your Gmail!),
 #. Enter your name.
 #. Enter your basic information.
 #. Click *Use your existing email*.
-#. Enter your institutional email address..
+#. Enter your institutional email address.
 #. Click *Next*.
 #. Verify your email address with the code sent to your existing email.
 #. Click *Verify*.
