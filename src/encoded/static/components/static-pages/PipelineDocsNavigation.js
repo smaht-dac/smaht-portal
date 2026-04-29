@@ -59,7 +59,7 @@ export const Dropdown = ({
 export const PipelineDocsNavigation = (props) => {
     return (
         <div>
-            <p className="introduction md-2">
+            <p className="introduction">
                 Welcome to the documentation for SMaHT analysis pipelines and
                 associated resources. SMaHT runs a set of standardized workflows
                 for processing genomic data. The documentation is organized
@@ -251,7 +251,7 @@ export const PipelineDocsNavigation = (props) => {
                 </div>
                 <div className="nav-subgroup">
                     <h5>RNA-seq</h5>
-                    <p>
+                    <p className="mb-2">
                         RNA-seq workflows include alignment and downstream
                         analysis for:
                     </p>
