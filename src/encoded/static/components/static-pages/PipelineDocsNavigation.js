@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RightArrowIcon } from '../util/icon';
+import { TableOfContents } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/TableOfContents';
+import { scrollToAnchor } from '../static-pages/StaticPage';
 
 export const Dropdown = ({
     parentTitle,
@@ -66,25 +68,27 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             {/* Top navigation for pipeline doc sections */}
-            <div class="static-page-top-navigation-container mb-5">
-                <a class="nav-link" target="" href="#sequencing-data-type">
-                    <i class="icon icon-dna fas"> </i>
-                    <span class="nav-link-title">Sequencing Data Type</span>
-                    <span class="nav-link-subtitle">
+            <div
+                className="static-page-top-navigation-container mb-5"
+                onClick={(e) => scrollToAnchor(e, props)}>
+                <a className="nav-link" href="#sequencing-data-type">
+                    <i className="icon icon-dna fas"> </i>
+                    <span className="nav-link-title">Sequencing Data Type</span>
+                    <span className="nav-link-subtitle">
                         Short- & Long-read WGS, RNA-Seq, Kinnex
                     </span>
                 </a>
-                <a class="nav-link" target="" href="#variant-calling">
-                    <i class="icon icon-code-branch fas"> </i>
-                    <span class="nav-link-title">Variant Calling</span>
-                    <span class="nav-link-subtitle">
+                <a className="nav-link" href="#variant-calling">
+                    <i className="icon icon-code-branch fas"> </i>
+                    <span className="nav-link-title">Variant Calling</span>
+                    <span className="nav-link-subtitle">
                         Germline & Somatic Variants
                     </span>
                 </a>
-                <a class="nav-link" target="" href="#reference-files">
-                    <i class="icon icon-file-code fas"> </i>
-                    <span class="nav-link-title">Reference Files</span>
-                    <span class="nav-link-subtitle">
+                <a className="nav-link" href="#reference-files">
+                    <i className="icon icon-file-code fas"> </i>
+                    <span className="nav-link-title">Reference Files</span>
+                    <span className="nav-link-subtitle">
                         Human Genome Reference, Gene Annotation, and other
                         annotation databases
                     </span>
