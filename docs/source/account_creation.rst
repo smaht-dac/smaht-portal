@@ -154,7 +154,7 @@ The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/wh
     #. Enter your name.
     #. Enter your basic information.
     #. Click *Use your existing email*.
-    #. Enter your institutional email address..
+    #. Enter your institutional email address.
     #. Click *Next*.
     #. Verify your email address with the code sent to your existing email.
     #. Click *Verify*.
