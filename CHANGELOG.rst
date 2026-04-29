@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-1.24.5
+1.24.6
 ======
 
 `PR 635: feat: update account creation doc <https://github.com/smaht-dac/smaht-portal/pull/635>`_
 
 * Update account creation documentation
+
+
+1.24.5
+======
+
+`PR 639: feat: pipeline docs updates <https://github.com/smaht-dac/smaht-portal/pull/639>`_
+
+* Update pipeline documentation pages
 
 
 1.24.4

@@ -176,6 +176,24 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     return <div className={cls}>{renderedContent}</div>;
 });
 
+// Intercept clicks on top nav links and scroll to section
+export const scrollToAnchor = (e, props) => {
+    const linkEl = e.target.closest('a.nav-link');
+    if (!linkEl) return;
+
+    const href = linkEl.getAttribute('href');
+    if (!href) return;
+
+    // Only intercept in-page anchors
+    if (!href.startsWith('#')) return;
+
+    e.preventDefault();
+
+    const id = href.slice(1);
+
+    TableOfContents.scrollToLink(id, 75, props.navigate);
+};
+
 const CustomWrapper = React.memo(function CustomWrapper({
     tableOfContents = false,
     tocListStyles = ['decimal', 'lower-alpha', 'lower-roman'],
@@ -203,22 +221,7 @@ const CustomWrapper = React.memo(function CustomWrapper({
         if (!container) return;
 
         // Intercept clicks on top nav links and scroll to section
-        const handler = (e) => {
-            const linkEl = e.target.closest('a.nav-link');
-            if (!linkEl) return;
-
-            const href = linkEl.getAttribute('href');
-            if (!href) return;
-
-            // Only intercept in-page anchors
-            if (!href.startsWith('#')) return;
-
-            e.preventDefault();
-
-            const id = href.slice(1);
-
-            TableOfContents.scrollToLink(id, 75, props.navigate);
-        };
+        const handler = (e) => scrollToAnchor(e, props);
 
         container.addEventListener('click', handler);
 

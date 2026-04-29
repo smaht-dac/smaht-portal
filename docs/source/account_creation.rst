@@ -4,8 +4,8 @@ How to Create a SMaHT Data Portal Account
 
 .. raw:: html
 
-    <div class="account-creation-nav static-page-top-navigation-container mb-4">
-        <a class="nav-link" href="#for-non-network-members-self-registration">
+    <div class="static-page-top-navigation-container mb-4">
+        <a class="nav-link" target="" href="#for-non-smaht-network-members-self-registration">
             <i class="icon icon-globe fas"> </i>
             <span class="nav-link-title">Non-Members</span>
             <span class="nav-link-subtitle">Self-Registration</span>
