@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.24.6
+======
+
+`PR 635: feat: update account creation doc <https://github.com/smaht-dac/smaht-portal/pull/635>`_
+
+* Update account creation documentation
+
+
 1.24.5
 ======
 
@@ -130,6 +138,7 @@ Change Log
 `PR 642: update enum for braak_and_braak_ad field in brain_pathology_report <https://github.com/smaht-dac/smaht-portal/pull/642>`_
 
 * add '0' to enum in brain_pathology_report schema in braak_and_braak_ad field"
+
 
 1.22.2
 ======
