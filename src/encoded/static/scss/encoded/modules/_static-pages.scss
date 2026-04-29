@@ -3553,7 +3553,7 @@ FAQ page styles
     }
 }
 
-.account-creation-nav {
+.static-page-top-navigation-container {
     display: flex;
     justify-content: center;
     gap: 20px;
@@ -3563,7 +3563,7 @@ FAQ page styles
         flex-direction: column;
         flex: 1;
         justify-content: center;
-        padding: 25px 15px;
+        padding: 25px 30px;
         background-color: #edf6fe;
         border: 1px solid #e4f0fa;
         color: #343741;
@@ -3614,12 +3614,13 @@ FAQ page styles
 
 // SMaHT Data Account Creation
 [data-at-type='DocsAccessCreating-an-accountPage'] {
-    h3#for-non-smaht-network-members-self-registration,
+    h3#for-non-network-members-self-registration,
     h3#for-smaht-network-members-membership-verification-account-creation,
     h3#faq-and-troubleshooting {
         border-bottom: 1px solid #f4f4f4;
         padding-bottom: 15px;
         font-size: 1.5rem;
+        scroll-margin: 60px;
     }
 
     .static-section-entry {
@@ -3645,13 +3646,16 @@ FAQ page styles
         }
     }
     h3 {
-        font-size: 20px;
+        font-size: 1.5rem;
     }
     h4 {
         font-size: 20px;
     }
     h5 {
         font-size: 16px;
+        color: #2e385a;
+        margin-bottom: 20px;
+        margin-top: 40px;
     }
     h6 {
         font-size: 0.95rem;
@@ -3722,7 +3726,7 @@ FAQ page styles
     .static-section-entry {
         .section-content {
             .introduction {
-                margin-bottom: 3rem;
+                margin-bottom: 2rem;
                 color: #343741;
             }
 
@@ -3734,7 +3738,6 @@ FAQ page styles
                 margin-bottom: 4rem;
 
                 h3 {
-                    color: #343741;
                     padding-bottom: 15px;
                     margin-bottom: 25px;
                     border-bottom: 1px solid #f4f4f4;
