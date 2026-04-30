@@ -1631,24 +1631,39 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return foundOverride ? sum : null;
     }
 
-    // Computes per-column files by grouping rows on the resolved override field
-    // and taking the max files per group to avoid double counting overlaps.
-    static getColumnFilesDedupedByOverrideField(columnKey, props) {
-        const rows = props.groupedDataIndices[columnKey] || [];
-        if (!Array.isArray(rows) || rows.length === 0) return 0;
+    // Derives a target column's files total by group using:
+    // target = row summary files - sum(non-target column files) for each group.
+    // This is useful when the target column can include overlap across sub-rows.
+    static getDerivedColumnFilesFromRowSummary(rows, columnKey, props) {
+        if (!Array.isArray(rows) || rows.length === 0) return null;
         const overrideField = StackedBlockGroupedRow.resolveOverrideFieldForRows(rows, props);
-        if (!overrideField) {
-            return _.reduce(rows, (sum, row) => sum + (Number(row?.counts?.files) || 0), 0);
-        }
-        const maxByGroup = {};
-        rows.forEach((row) => {
-            const groupValue = row?.[overrideField];
-            if (groupValue == null) return;
-            const key = String(groupValue);
-            const files = Number(row?.counts?.files) || 0;
-            maxByGroup[key] = Math.max(maxByGroup[key] || 0, files);
-        });
-        return _.reduce(_.values(maxByGroup), (sum, count) => sum + count, 0);
+        if (!overrideField) return null;
+        const overridesForField = props.rowSummaryCountsByGroup?.[overrideField];
+        if (!overridesForField) return null;
+        const columnField = props.columnGrouping;
+        let foundGroup = false;
+        const groupValues = _.chain(rows)
+            .map((row) => row?.[overrideField])
+            .compact()
+            .map((value) => String(value))
+            .uniq()
+            .value();
+        const total = _.reduce(groupValues, (sum, groupValue) => {
+            const rowSummaryFiles = overridesForField?.[groupValue]?.files;
+            if (typeof rowSummaryFiles !== 'number') return sum;
+            const rowsForGroup = _.filter(rows, (row) => String(row?.[overrideField]) === groupValue);
+            // Sum every non-target column in this group; overlap is assumed to be isolated
+            // to the target column in this fallback strategy.
+            const nonTargetSum = _.reduce(rowsForGroup, (memo, row) => {
+                if (row?.[columnField] === columnKey) return memo;
+                return memo + (Number(row?.counts?.files) || 0);
+            }, 0);
+            // Clamp to zero as a safety guard for inconsistent upstream aggregates.
+            const derived = rowSummaryFiles - nonTargetSum;
+            foundGroup = true;
+            return sum + Math.max(0, derived);
+        }, 0);
+        return foundGroup ? total : null;
     }
 
     /** @todo Convert to functional memoized React component */
@@ -1749,6 +1764,26 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 }));
 
                 const columnKeys = sortColumnKeys(_.keys(blocksByColumnGroup));
+                const currentGroupingField = props.groupingProperties?.[props.depth];
+                const rowSummaryFiles = (props.countFor === 'files' || props.countFor === 'tissue_files')
+                    ? props.rowSummaryCountsByGroup?.[currentGroupingField]?.[props.group]?.files
+                    : null;
+                const derivedCollapsedCellOverrides = {};
+                if (typeof rowSummaryFiles === 'number' && columnKeys.indexOf('DSA') > -1) {
+                    // For collapsed rows, derive DSA as:
+                    // row summary files - sum(non-DSA column files).
+                    const sumFilesForColumn = (columnKey) => _.reduce(blocksByColumnGroup[columnKey] || [], (sum, row) => {
+                        return sum + (Number(row?.counts?.files) || 0);
+                    }, 0);
+                    const sumNonDsaFiles = _.reduce(columnKeys, (sum, columnKey) => {
+                        if (columnKey === 'DSA') return sum;
+                        return sum + sumFilesForColumn(columnKey);
+                    }, 0);
+                    const derivedDsaFiles = rowSummaryFiles - sumNonDsaFiles;
+                    if (derivedDsaFiles >= 0) {
+                        derivedCollapsedCellOverrides.DSA = derivedDsaFiles;
+                    }
+                }
 
                 inner = _.map(columnKeys, function(k, colIdx){
                     var blocksForGroup = blocksByColumnGroup[k];
@@ -1773,7 +1808,17 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     // We have columnSubGrouping so these are -pairs- of (0) columnSubGrouping val, (1) blocks
                                     blockData = blockData[1];
                                 }
-                                return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockData} indexInGroup={i} rowIndex={props.index} colIndex={colIdx} blockType="regular" />;
+                                const explicitOverrideFiles = derivedCollapsedCellOverrides[k];
+                                const blockDataForRender = typeof explicitOverrideFiles === 'number'
+                                    ? [{
+                                        ...(blockData[0] || {}),
+                                        counts: {
+                                            ...(blockData[0]?.counts || {}),
+                                            files: explicitOverrideFiles
+                                        }
+                                    }]
+                                    : blockData;
+                                return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockDataForRender} indexInGroup={i} rowIndex={props.index} colIndex={colIdx} blockType="regular" />;
                             }) }
                         </div>
                     );
@@ -2171,8 +2216,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 {columnKeys.map(function (columnKey, colIndex) {
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
                     const totalsCounts = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, props)?.counts;
-                    const dedupedFilesForColumn = props.rowSummaryCountsByGroup
-                        ? StackedBlockGroupedRow.getColumnFilesDedupedByOverrideField(columnKey, props)
+                    const sectionRows = getAllSectionRows();
+                    // Apply derived fallback only for DSA column summary files.
+                    // Other columns continue using backend/standard summary paths.
+                    const shouldDeriveDsaFiles = (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
+                        && summaryBlockType === 'col-summary'
+                        && columnKey === 'DSA'
+                        && !!props.rowSummaryCountsByGroup;
+                    const derivedDsaFiles = shouldDeriveDsaFiles
+                        ? StackedBlockGroupedRow.getDerivedColumnFilesFromRowSummary(sectionRows, columnKey, props)
                         : null;
                     const donorsCount = isPrimarySummaryBand
                         ? getPrimaryGroupCountFromGroupedRows(columnKey)
@@ -2182,16 +2234,14 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         : {
                             ...(totalsCounts || {}),
                             donors: donorsCount,
-                            ...((summaryCountFor === 'files' || summaryCountFor === 'tissue_files') && typeof dedupedFilesForColumn === 'number'
-                                ? { files: dedupedFilesForColumn }
-                                : null)
+                            ...((typeof derivedDsaFiles === 'number') ? { files: derivedDsaFiles } : null)
                         };
                     const columnSummaryData = summaryCountFor === 'donors'
                         ? [{ counts: { donors: donorsCount } }]
                         : summaryCountFor === 'total_coverage'
                             ? []
-                            : ((summaryCountFor === 'files' || summaryCountFor === 'tissue_files') && typeof dedupedFilesForColumn === 'number'
-                                ? [{ counts: { files: dedupedFilesForColumn } }]
+                            : (typeof derivedDsaFiles === 'number'
+                                ? [{ counts: { files: derivedDsaFiles } }]
                                 : getColumnSummaryData(columnKey));
                     const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
                     const hasOpenBlock = props.openBlock?.columnIdx === colIndex && props.openBlock?.summaryRowType === summaryBlockType;
