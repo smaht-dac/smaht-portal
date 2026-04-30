@@ -92,7 +92,7 @@ export default class DataMatrix extends React.PureComponent {
     };
     static DEFAULT_COLUMN_GROUPS = {
         "Bulk WGS": {
-            "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'Fiber-Seq'],
             "backgroundColor": "#e04141",
             "textColor": "#ffffff",
             "shortName": "WGS"
@@ -197,6 +197,7 @@ export default class DataMatrix extends React.PureComponent {
                 "Single-cell PTA WGS - Illumina": "PTA-amplified WGS",
                 "TEnCATS - ONT": "TEnCATS",
                 "WGS - ONT": "WGS - Standard ONT",
+                "WGS - Element": "WGS - Element AVITI",
                 "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
                 "HiDEF-seq - Illumina": "HiDEF-seq",
                 "HiDEF-seq - PacBio": "HiDEF-seq",
@@ -845,6 +846,19 @@ export default class DataMatrix extends React.PureComponent {
             updatedState['overallCounts'] = result.counts || null;
             updatedState['facetsForPanel'] = result.facets || [];
             updatedState['facetFiltersForPanel'] = result.filters || [];
+            // Build generic row-summary overrides from backend facet counts.
+            // This keeps visual components dimension-agnostic (not donor-specific).
+            const donorFacet = _.findWhere(result.facets || [], { field: 'donors.display_title' });
+            const donorValueMap = valueChangeMap?.donor || {};
+            const donorSummaryCounts = donorFacet && Array.isArray(donorFacet.terms)
+                ? _.reduce(donorFacet.terms, (memo, term) => {
+                    const key = donorValueMap[term?.key] || term?.key;
+                    if (!key || key === 'No value') return memo;
+                    memo[key] = { files: Number(term?.doc_count) || 0 };
+                    return memo;
+                }, {})
+                : null;
+            updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
             const availableDonorTissueAssays = _.uniq(_.compact(_.map(transformedData.all, (r) => r.assay)));
             updatedState['availableDonorTissueAssays'] = availableDonorTissueAssays;
             // sum files in transformedData array
@@ -1140,13 +1154,28 @@ export default class DataMatrix extends React.PureComponent {
                     counts: { ...zeroCounts }
                 };
             });
+        const facetsForPanel = this.state?.facetsForPanel || [];
+        const donorFacet = _.findWhere(facetsForPanel, { field: 'donors.display_title' });
+        const donorValueMap = this.props?.valueChangeMap?.donor || {};
+        const hasAssayFilter = donorTissueAssay && donorTissueAssay !== DataMatrix.DONOR_TISSUE_ALL_ASSAYS;
+        // In donor-tissue mode with assay filtering, facet counts no longer represent global donor totals,
+        // so disable donor summary overrides in that case.
+        const donorSummaryCounts = !hasAssayFilter && donorFacet && Array.isArray(donorFacet.terms)
+            ? _.reduce(donorFacet.terms, (memo, term) => {
+                const key = donorValueMap[term?.key] || term?.key;
+                if (!key || key === 'No value') return memo;
+                memo[key] = { files: Number(term?.doc_count) || 0 };
+                return memo;
+            }, {})
+            : null;
 
         return {
             ...results,
             all: filteredAll,
             row_totals: aggregateRowsByKeys(filteredAll, effectiveRowTotalKeys),
             column_totals: effectiveColumnTotals,
-            overallCounts: aggregateCounts(filteredAll)
+            overallCounts: aggregateCounts(filteredAll),
+            rowSummaryCountsByGroup: donorSummaryCounts ? { donor: donorSummaryCounts } : null
         };
     }
 
@@ -1436,7 +1465,7 @@ export default class DataMatrix extends React.PureComponent {
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
             defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel, isFetching,
-            matrixMode, donorTissueAssay, availableDonorTissueAssays
+            matrixMode, donorTissueAssay, availableDonorTissueAssays, rowSummaryCountsByGroup
         } = this.state;
 
         const resultKey = "_results";
@@ -1477,6 +1506,8 @@ export default class DataMatrix extends React.PureComponent {
                 : true,
             countFor,
             overallCounts: effectiveOverallCounts,
+            // Prefer state-level overrides from the latest payload; fallback to derived-mode overrides.
+            rowSummaryCountsByGroup: rowSummaryCountsByGroup || effectiveResults?.rowSummaryCountsByGroup || null,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };

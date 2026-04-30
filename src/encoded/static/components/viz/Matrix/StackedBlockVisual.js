@@ -706,7 +706,7 @@ export class VisualBody extends React.PureComponent {
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
                     'countFor', 'overallCounts', 'showUniqueDonorsAssayBand', 'shrinkEmptyColumns',
-                    'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing',
+                    'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing', 'rowSummaryCountsByGroup',
                     'headerLeftControls')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -1613,7 +1613,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle',
-            'countFor');
+            // Generic summary overrides keyed by grouping field and row value.
+            'countFor', 'rowSummaryCountsByGroup');
         const getContainerGroupStyle = function(columnKey = 'overall-summary') {
             const width = StackedBlockGroupedRow.getColumnWidthForKey(columnKey, props);
             return {
@@ -1728,6 +1729,22 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     const filteredRowTotalChildBlocks = _.filter(rowTotalChildBlocks, function(blockData){
                         return blockData[props.groupingProperties[props.depth]] === props.group;
                     });
+                    const currentGroupingField = props.groupingProperties?.[props.depth];
+                    // Pull an override for the current row dimension (e.g. donor, tissue, etc.) if provided.
+                    const overrideCounts = currentGroupingField
+                        ? props.rowSummaryCountsByGroup?.[currentGroupingField]?.[props.group]
+                        : null;
+                    const overrideFiles = typeof overrideCounts?.files === 'number' ? overrideCounts.files : null;
+                    // If an override exists, replace summary counts for this row without changing child block data.
+                    const rowTotalsForBlock = (typeof overrideFiles === 'number')
+                        ? [{
+                            ...(filteredRowTotalChildBlocks[0] || { [props.groupingProperties[props.depth]]: props.group }),
+                            counts: { ...(filteredRowTotalChildBlocks[0]?.counts || {}), ...overrideCounts }
+                        }]
+                        : filteredRowTotalChildBlocks;
+                    const summaryCounts = (typeof overrideFiles === 'number')
+                        ? { ...(filteredRowTotalChildBlocks[0]?.counts || {}), ...overrideCounts }
+                        : (filteredRowTotalChildBlocks[0]?.counts || null);
                     rowSummaryBlock = (
                         <div className="block-container-group" style={getContainerGroupStyle('overall-summary')}
                             key={'total'} data-block-count={totalRowCount} data-group-key={'row-summary'}>
@@ -1735,10 +1752,10 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 {...commonProps}
                                 key={inner.length}
                                 data={allChildBlocks}
-                                rowTotals={filteredRowTotalChildBlocks}
+                                rowTotals={rowTotalsForBlock}
                                 rowIndex={props.index}
                                 blockType="row-summary"
-                                summaryCounts={filteredRowTotalChildBlocks[0]?.counts || null}
+                                summaryCounts={summaryCounts}
                             />
                         </div>
                     );
