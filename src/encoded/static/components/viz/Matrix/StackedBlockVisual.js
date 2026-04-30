@@ -1595,6 +1595,62 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return { width, minWidth: width };
     }
 
+    // Returns the override field (e.g. donor, tissue) that is both configured in
+    // rowSummaryCountsByGroup and present on the provided rows.
+    static resolveOverrideFieldForRows(rows, props) {
+        const overridesByField = props.rowSummaryCountsByGroup;
+        if (!overridesByField || typeof overridesByField !== 'object') return null;
+        return _.find(_.keys(overridesByField), (field) => {
+            return _.some(rows || [], (row) => row && row[field] != null);
+        });
+    }
+
+    // Computes the overall files count from row summary overrides by summing one
+    // override value per unique group key for the resolved override field.
+    static getOverallFilesFromRowSummaryOverrides(rows, props) {
+        const overrideField = StackedBlockGroupedRow.resolveOverrideFieldForRows(rows, props);
+        if (!overrideField) return null;
+        const overridesForField = props.rowSummaryCountsByGroup?.[overrideField];
+        if (!overridesForField) return null;
+        const groupValues = _.chain(rows || [])
+            .map((row) => row?.[overrideField])
+            .compact()
+            .map((value) => String(value))
+            .uniq()
+            .value();
+        if (groupValues.length === 0) return null;
+        let foundOverride = false;
+        const sum = _.reduce(groupValues, (memo, groupValue) => {
+            const overrideFiles = overridesForField?.[groupValue]?.files;
+            if (typeof overrideFiles === 'number') {
+                foundOverride = true;
+                return memo + overrideFiles;
+            }
+            return memo;
+        }, 0);
+        return foundOverride ? sum : null;
+    }
+
+    // Computes per-column files by grouping rows on the resolved override field
+    // and taking the max files per group to avoid double counting overlaps.
+    static getColumnFilesDedupedByOverrideField(columnKey, props) {
+        const rows = props.groupedDataIndices[columnKey] || [];
+        if (!Array.isArray(rows) || rows.length === 0) return 0;
+        const overrideField = StackedBlockGroupedRow.resolveOverrideFieldForRows(rows, props);
+        if (!overrideField) {
+            return _.reduce(rows, (sum, row) => sum + (Number(row?.counts?.files) || 0), 0);
+        }
+        const maxByGroup = {};
+        rows.forEach((row) => {
+            const groupValue = row?.[overrideField];
+            if (groupValue == null) return;
+            const key = String(groupValue);
+            const files = Number(row?.counts?.files) || 0;
+            maxByGroup[key] = Math.max(maxByGroup[key] || 0, files);
+        });
+        return _.reduce(_.values(maxByGroup), (sum, count) => sum + count, 0);
+    }
+
     /** @todo Convert to functional memoized React component */
     static collapsedChildBlocks = memoize(function(data, rowTotals, props){
 
@@ -2101,13 +2157,13 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const getSummaryBlockStyle = (columnKey) => {
             const columnWidth = StackedBlockGroupedRow.getColumnWidthForKey(columnKey, props);
             return {
-            'width': columnWidth, // Width for each column
-            'minWidth': columnWidth,
-            'minHeight': props.blockHeight + props.blockVerticalSpacing, // Height for each row
-            'paddingLeft': props.blockHorizontalSpacing,
-            'paddingRight': props.blockHorizontalSpacing,
-            'paddingTop': props.blockVerticalSpacing
-        };
+                'width': columnWidth, // Width for each column
+                'minWidth': columnWidth,
+                'minHeight': props.blockHeight + props.blockVerticalSpacing, // Height for each row
+                'paddingLeft': props.blockHorizontalSpacing,
+                'paddingRight': props.blockHorizontalSpacing,
+                'paddingTop': props.blockVerticalSpacing
+            };
         };
 
         const renderSummaryBlocks = (summaryCountFor = props.countFor, summaryBlockType = 'col-summary') => (
@@ -2115,17 +2171,28 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 {columnKeys.map(function (columnKey, colIndex) {
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
                     const totalsCounts = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, props)?.counts;
+                    const dedupedFilesForColumn = props.rowSummaryCountsByGroup
+                        ? StackedBlockGroupedRow.getColumnFilesDedupedByOverrideField(columnKey, props)
+                        : null;
                     const donorsCount = isPrimarySummaryBand
                         ? getPrimaryGroupCountFromGroupedRows(columnKey)
                         : (totalsCounts?.donors ?? totalsCounts?.donor_count ?? getPrimaryGroupCountFromGroupedRows(columnKey));
                     const summaryCounts = isPrimarySummaryBand
                         ? { donors: donorsCount }
-                        : { ...(totalsCounts || {}), donors: donorsCount };
+                        : {
+                            ...(totalsCounts || {}),
+                            donors: donorsCount,
+                            ...((summaryCountFor === 'files' || summaryCountFor === 'tissue_files') && typeof dedupedFilesForColumn === 'number'
+                                ? { files: dedupedFilesForColumn }
+                                : null)
+                        };
                     const columnSummaryData = summaryCountFor === 'donors'
                         ? [{ counts: { donors: donorsCount } }]
                         : summaryCountFor === 'total_coverage'
                             ? []
-                            : getColumnSummaryData(columnKey);
+                            : ((summaryCountFor === 'files' || summaryCountFor === 'tissue_files') && typeof dedupedFilesForColumn === 'number'
+                                ? [{ counts: { files: dedupedFilesForColumn } }]
+                                : getColumnSummaryData(columnKey));
                     const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
                     const hasOpenBlock = props.openBlock?.columnIdx === colIndex && props.openBlock?.summaryRowType === summaryBlockType;
                     const hasActiveBlock = props.activeBlock?.columnIdx === colIndex && props.activeBlock?.summaryRowType === summaryBlockType;
@@ -2156,18 +2223,21 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     if (summaryCountFor === 'total_coverage') return null;
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
                     const sectionRows = getAllSectionRows();
+                    // If row summary overrides exist for this grouping field, use them for the
+                    // corner overall files value to avoid re-summing potentially overlapping child rows.
+                    const overallFilesOverride = StackedBlockGroupedRow.getOverallFilesFromRowSummaryOverrides(sectionRows, props);
                     const overallValue = summaryCountFor === 'donors'
                         ? (isPrimarySummaryBand
                             ? getOverallPrimaryGroupCountFromRows()
                             : (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? getUniqueDonorCountFromRows(sectionRows)))
                         : summaryCountFor === 'tissue_files'
-                            ? _.reduce(sectionRows, function (sum, item) {
+                            ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
                                 return sum + (Number(item?.counts?.files) || 0);
-                            }, 0)
+                            }, 0))
                         : summaryCountFor === 'files'
-                            ? _.reduce(sectionRows, function (sum, item) {
+                            ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
                                 return sum + (Number(item?.counts?.files) || 0);
-                            }, 0)
+                            }, 0))
                             : props.overallCounts?.[summaryCountFor];
                     if (overallValue == null) return null;
                     const overallHeaderItemStyle = StackedBlockGroupedRow.getHeaderItemStyleForKey('overall-summary', props);
