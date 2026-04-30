@@ -548,6 +548,7 @@ export class VisualBody extends React.PureComponent {
             : 0;
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
         const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
+        const formatGermLayerValue = (value) => (value && value !== 'No value' ? value : '--');
 
         // Render
         return (
@@ -571,7 +572,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label me-05">{'Germ Layer'}</div>
-                                        <div className="value">{ additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || secondaryGrpPropCategoryValue || '--'}</div>
+                                        <div className="value">{formatGermLayerValue(additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || secondaryGrpPropCategoryValue)}</div>
                                     </div>
                                 </div>
                             ) : null}
@@ -620,7 +621,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">{secondaryGrpPropCategoryValue ? 'Germ Layer' : (isTissueGrouping ? 'Total Donors' : StackedBlockVisual.pluralize(secondaryGrpPropTitle))}</div>
-                                        <div className="value">{secondaryGrpPropCategoryValue || (isTissueGrouping ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--'))}</div>
+                                        <div className="value">{secondaryGrpPropCategoryValue ? formatGermLayerValue(secondaryGrpPropCategoryValue) : (isTissueGrouping ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--'))}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
@@ -648,7 +649,7 @@ export class VisualBody extends React.PureComponent {
                                     {additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ?
                                         <div className="col-4">
                                             <div className="label">{'Germ Layer'}</div>
-                                            <div className="value">{additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] || '--'}</div>
+                                            <div className="value">{formatGermLayerValue(additionalPopoverData?.[primaryGrpPropValue]?.["secondary"])}</div>
                                         </div> :
                                         <div className="col-4">
                                             &nbsp;
@@ -668,7 +669,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">{'Germ Layer'}</div>
-                                        <div className="value">{secondaryGrpPropCategoryValue || '--'}</div>
+                                        <div className="value">{formatGermLayerValue(secondaryGrpPropCategoryValue)}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
