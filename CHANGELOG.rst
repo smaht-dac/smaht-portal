@@ -7,6 +7,78 @@ smaht-portal
 Change Log
 ----------
 
+1.24.7
+======
+
+`PR 658: Fix: URL truncation issue while sorting in browse/search view <https://github.com/smaht-dac/smaht-portal/pull/658>`_
+
+* Fix URL truncation issue in browse/search view sorting when specific query param exceeds 20 values
+
+
+1.24.6
+======
+
+`PR 635: feat: update account creation doc <https://github.com/smaht-dac/smaht-portal/pull/635>`_
+
+* Update account creation documentation
+
+
+1.24.5
+======
+
+`PR 639: feat: pipeline docs updates <https://github.com/smaht-dac/smaht-portal/pull/639>`_
+
+* Update pipeline documentation pages
+
+
+1.24.4
+======
+
+`PR 652: fix: move alert in registration modal to bottom of form <https://github.com/smaht-dac/smaht-portal/pull/652>`_
+
+* Move the blocked email error registration alert to the bottom of the form
+
+
+1.24.3
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
+
+
+1.24.2
+======
+
+`PR 653: feat: remove truth set tabs from benchmarking tables <https://github.com/smaht-dac/smaht-portal/pull/653>`_
+
+* Remove truth set tabs from benchmarking
+
+
+1.24.2
+======
+
+`PR 656: fix: decrease release tracker months <https://github.com/smaht-dac/smaht-portal/pull/656>`_
+
+* Load only last 3 months in release tracker
+
+
+1.24.1
+======
+
+`PR 655: Add donor_groups facet to donor and proected_donor schemas <https://github.com/smaht-dac/smaht-portal/pull/655>`_
+
+* Add facet to Donor schemas for donor_groups property
+* Update description of donor_groups property to clarify its purpose and usage
+
+
+1.24.1
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
+
 
 1.24.0
 ======
@@ -59,18 +131,22 @@ Change Log
 
 * to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
 
+
 1.22.4
 ======
 
 `PR 645: fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/645>`_
 
-* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries 
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries
+
+
 1.22.3
 ======
 
 `PR 642: update enum for braak_and_braak_ad field in brain_pathology_report <https://github.com/smaht-dac/smaht-portal/pull/642>`_
 
 * add '0' to enum in brain_pathology_report schema in braak_and_braak_ad field"
+
 
 1.22.2
 ======
