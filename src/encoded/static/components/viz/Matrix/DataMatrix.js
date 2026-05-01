@@ -597,7 +597,15 @@ export default class DataMatrix extends React.PureComponent {
             - counts.files: take from any row (they should all be equal after step 2)
             - other fields: distinct values; single => scalar, multiple => array
     */
-    static transformDSA(nonDsaData, row_totals, dsaData, groupingProperties, derivedField = 'assay', useAssayFamilyCount = false) {
+    static transformDSA(
+        nonDsaData,
+        row_totals,
+        dsaData,
+        groupingProperties,
+        derivedField = 'assay',
+        useAssayFamilyCount = false,
+        dsaCountStrategy = 'diff'
+    ) {
         const getFilesCount = (row) => Number(row && row.counts && row.counts.files) || 0;
 
         // Helper: build a grouping key like "COLO829BL||No value"
@@ -628,17 +636,31 @@ export default class DataMatrix extends React.PureComponent {
             diffFilesByGroup[key] = rowTotals - allTotals;
         });
 
+        // Build a per-group fallback from raw DSA rows.
+        // This avoids overcount when row_totals is exploded by additional dimensions
+        // (e.g. donor+tissue with assay/platform/data_type expansions).
+        const maxDsaFilesByGroup = {};
+        for (const row of dsaData) {
+            const key = makeGroupKey(row);
+            const files = getFilesCount(row);
+            maxDsaFilesByGroup[key] = Math.max(maxDsaFilesByGroup[key] || 0, files);
+        }
+
         // 4) First-pass transform of dsa entries
         const newDsa = dsaData.map((row) => {
             const key = makeGroupKey(row);
             const diffFiles = diffFilesByGroup[key];
+            const maxDsaFiles = maxDsaFilesByGroup[key];
+            const resolvedFiles = dsaCountStrategy === 'max_dsa_row'
+                ? (typeof maxDsaFiles === 'number' ? maxDsaFiles : getFilesCount(row))
+                : (typeof diffFiles === 'number' ? diffFiles : getFilesCount(row));
 
             return {
                 ...row,
                 // If we have a diff for this group, use it; otherwise keep original value
                 counts: {
                     ...(row.counts || {}),
-                    files: typeof diffFiles === 'number' ? diffFiles : getFilesCount(row),
+                    files: resolvedFiles,
                 },
                 [derivedField]: 'DSA',
             };
@@ -861,13 +883,13 @@ export default class DataMatrix extends React.PureComponent {
             updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
             const availableDonorTissueAssays = _.uniq(_.compact(_.map(transformedData.all, (r) => r.assay)));
             updatedState['availableDonorTissueAssays'] = availableDonorTissueAssays;
-            // sum files in transformedData array
-            let totalFiles = 0;
-            _.forEach(transformedData.row_totals, (r) => {
-                if (r.counts && typeof r.counts.files === 'number') {
-                    totalFiles += r.counts.files;
-                }
-            });
+            // Keep top-level included-properties count aligned with backend search context.
+            // Note: backend may return numeric-looking strings; coerce before deciding fallback.
+            // Fallback to aggregated rows only if backend count is truly unavailable.
+            const backendTotalFiles = Number(result?.counts?.files);
+            const totalFiles = Number.isFinite(backendTotalFiles)
+                ? backendTotalFiles
+                : _.reduce(transformedData.all, (sum, r) => sum + (Number(r?.counts?.files) || 0), 0);
             updatedState['totalFiles'] = totalFiles;
 
             //extend existing rowGroupsExtended from transformed data using mapping fields
@@ -1475,9 +1497,12 @@ export default class DataMatrix extends React.PureComponent {
         const effectiveYAxisLabel = isTissueMatrixCount ? 'Tissue' : yAxisLabel;
         const effectiveResults = this.getDerivedDonorTissueResults(this.state[resultKey]);
         const effectiveOverallCounts = effectiveResults?.overallCounts || overallCounts;
-        const effectiveTotalFiles = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
-            ? (effectiveOverallCounts?.files ?? totalFiles)
-            : totalFiles;
+        const effectiveRowSummaryCountsByGroup = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
+            ? (effectiveResults?.rowSummaryCountsByGroup || null)
+            : (rowSummaryCountsByGroup || null);
+        // In donor/tissue mode, assay dropdown refines matrix rendering only.
+        // Keep header included-properties count anchored to unfiltered backend context.
+        const effectiveTotalFiles = totalFiles;
 
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
@@ -1506,8 +1531,9 @@ export default class DataMatrix extends React.PureComponent {
                 : true,
             countFor,
             overallCounts: effectiveOverallCounts,
-            // Prefer state-level overrides from the latest payload; fallback to derived-mode overrides.
-            rowSummaryCountsByGroup: rowSummaryCountsByGroup || effectiveResults?.rowSummaryCountsByGroup || null,
+            // Use mode-appropriate summary overrides: donor/tissue mode may null these out
+            // under assay filter to avoid inconsistencies with facet-driven contexts.
+            rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };
@@ -1812,7 +1838,12 @@ DataMatrix.resultTransformedPostProcessFuncs = {
             dsaData,
             derivedGroupingProperties,
             derivedLabelField,
-            columnGrouping !== 'assay'
+            // Keep DSA in "file count" mode for all matrix modes.
+            // Assay-family counting inflated donor x tissue tuples (e.g. SMHT023/3AC => 3 instead of 1).
+            false,
+            // For non-assay grouping (e.g. Donor x Tissue), use max raw DSA row count per tuple
+            // instead of row_totals diff, which can be exploded by assay/platform dimensions.
+            columnGrouping === 'assay' ? 'diff' : 'max_dsa_row'
         );
         const transformedSnv = DataMatrix.transformSNV(variantCallSetData, derivedGroupingProperties, derivedLabelField);
 
