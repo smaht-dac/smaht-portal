@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.24.8
+======
+
+`PR 660: feat: update npm packages <https://github.com/smaht-dac/smaht-portal/pull/660>`_
+
+* Update npm packages to address vulnerabilities
+
+
 1.24.7
 ======
 
