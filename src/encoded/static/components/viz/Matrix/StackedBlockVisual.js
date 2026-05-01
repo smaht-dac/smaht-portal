@@ -10,6 +10,7 @@ import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
 import { Popover, Button } from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
 import { console, object, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 import { roundLargeNumber } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { isPrimitive } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/misc';
 
@@ -434,7 +435,7 @@ export class VisualBody extends React.PureComponent {
             }
 
             const hrefParts = url.parse(initialHref, true);
-            const hrefQuery = _.clone(hrefParts.query);
+            const hrefQuery = normalizeQueryValuesForStringify(_.clone(hrefParts.query));
 
             if (customUrlParamsPositiveKeys) {
                 customUrlParamsPositiveKeys.forEach((key) => {
@@ -453,7 +454,7 @@ export class VisualBody extends React.PureComponent {
             delete hrefQuery.limit;
             delete hrefQuery.field;
             _.extend(hrefQuery, currentFilteringPropertiesVals);
-            hrefParts.search = '?' + queryString.stringify(hrefQuery);
+            hrefParts.search = '?' + queryString.stringify(normalizeQueryValuesForStringify(hrefQuery));
             const linkHref = url.format(hrefParts);
 
             return linkHref;
