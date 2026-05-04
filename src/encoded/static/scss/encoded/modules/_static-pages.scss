@@ -3994,8 +3994,8 @@ FAQ page styles
         display: flex;
         flex-direction: column;
         flex: 1;
-        justify-content: center;
-        padding: 25px 30px;
+        justify-content: flex-start;
+        padding: 35px 30px 25px;
         background-color: #edf6fe;
         border: 1px solid #e4f0fa;
         color: #343741;
