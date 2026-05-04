@@ -7,6 +7,123 @@ smaht-portal
 Change Log
 ----------
 
+1.24.9
+======
+
+`PR 660: feat: update npm packages <https://github.com/smaht-dac/smaht-portal/pull/660>`_
+
+* Update npm packages to address vulnerabilities
+
+
+1.24.8
+======
+
+`PR 659: style: update pipeline doc link style <https://github.com/smaht-dac/smaht-portal/pull/659>`_
+
+* Update style for pipeline docs
+
+
+1.24.7
+======
+
+`PR 658: Fix: URL truncation issue while sorting in browse/search view <https://github.com/smaht-dac/smaht-portal/pull/658>`_
+
+* Fix URL truncation issue in browse/search view sorting when specific query param exceeds 20 values
+
+
+1.24.6
+======
+
+`PR 635: feat: update account creation doc <https://github.com/smaht-dac/smaht-portal/pull/635>`_
+
+* Update account creation documentation
+
+
+1.24.5
+======
+
+`PR 639: feat: pipeline docs updates <https://github.com/smaht-dac/smaht-portal/pull/639>`_
+
+* Update pipeline documentation pages
+
+
+1.24.4
+======
+
+`PR 652: fix: move alert in registration modal to bottom of form <https://github.com/smaht-dac/smaht-portal/pull/652>`_
+
+* Move the blocked email error registration alert to the bottom of the form
+
+
+1.24.3
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
+
+
+1.24.2
+======
+
+`PR 653: feat: remove truth set tabs from benchmarking tables <https://github.com/smaht-dac/smaht-portal/pull/653>`_
+
+* Remove truth set tabs from benchmarking
+
+
+1.24.2
+======
+
+`PR 656: fix: decrease release tracker months <https://github.com/smaht-dac/smaht-portal/pull/656>`_
+
+* Load only last 3 months in release tracker
+
+
+1.24.1
+======
+
+`PR 655: Add donor_groups facet to donor and proected_donor schemas <https://github.com/smaht-dac/smaht-portal/pull/655>`_
+
+* Add facet to Donor schemas for donor_groups property
+* Update description of donor_groups property to clarify its purpose and usage
+
+
+1.24.1
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
+
+
+1.24.0
+======
+
+`PR 651: Update donor x tissue data matrix view <https://github.com/smaht-dac/smaht-portal/pull/651>`_
+
+* Enhance the Donor x tissue data matrix with donor-tissue assay selection, client-side assay filtering, and improved handling of available assay options
+* Fix donor-tissue derived assay counts, hidden analysis field handling, and row summary popovers to show germ layer and tissue counts correctly
+* Refine donor-tissue matrix presentation and interactions, including focus styling, color updates, assay selector polish, and removal of the Included Properties bottom border in that view only
+
+
+1.23.1
+======
+
+`PR 650: Group by and sort tissue facet terms <https://github.com/smaht-dac/smaht-portal/pull/650>`_
+
+* Groups tissue facet terms by germ layer and sorts them alphabetically within those groups
+
+
+1.23.0
+======
+
+`PR 649: Add assays and sequencers calcprops to File <https://github.com/smaht-dac/smaht-portal/pull/649>`_
+
+* Add ``assays`` (was already present) and ``sequencers`` as top-level calculated properties on File, derived from linked FileSets
+* Add ``override_assays`` and ``override_sequencers`` restricted properties to allow manual overrides
+* Update facet and column configuration to reference the new top-level ``assays`` and ``sequencers`` fields
+
+
 1.22.7
 ======
 
@@ -30,18 +147,22 @@ Change Log
 
 * to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
 
+
 1.22.4
 ======
 
 `PR 645: fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/645>`_
 
-* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries 
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries
+
+
 1.22.3
 ======
 
 `PR 642: update enum for braak_and_braak_ad field in brain_pathology_report <https://github.com/smaht-dac/smaht-portal/pull/642>`_
 
 * add '0' to enum in brain_pathology_report schema in braak_and_braak_ad field"
+
 
 1.22.2
 ======
