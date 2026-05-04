@@ -1,7 +1,8 @@
 // Sends a GET request to the given URL and returns the `total` field from JSON response
 export function getApiTotalFromUrl(url) {
     // Ensure the URL requests JSON format (append if missing)
-    const fullUrl = url.includes('format=json') ? url : `${url}&format=json&frame=raw`;
+    const normalizedUrl = String(url).replace(/^(https?:\/\/[^/]+)\/\/+/, '$1/').replace(/^\/\/+/, '/');
+    const fullUrl = normalizedUrl.includes('format=json') ? normalizedUrl : `${normalizedUrl}&format=json&frame=raw`;
 
     return cy.request({
         method: 'GET',
