@@ -7,6 +7,7 @@ import url from 'url';
 import queryString from 'query-string';
 import { get as getSchemas, Term } from './../../util/Schemas';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 import { columnExtensionMap as columnExtensionMapSMaHT } from './../../browse/columnExtensionMap';
 import { EmbeddedSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 
@@ -143,9 +144,14 @@ export const SearchTableTitle = React.memo(function (props) {
         currentSearchHref = contextAtID || null;
         if (currentSearchHref) {
             const parts = url.parse(currentSearchHref, true);
+            const normalizedQuery = normalizeQueryValuesForStringify(
+                parts.query
+            );
             parts.search =
                 '?' +
-                queryString.stringify(_.omit(parts.query, 'from', 'limit'));
+                queryString.stringify(
+                    _.omit(normalizedQuery, 'from', 'limit')
+                );
             currentSearchHref = url.format(parts);
         }
     }

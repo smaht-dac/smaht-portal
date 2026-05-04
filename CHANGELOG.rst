@@ -7,6 +7,30 @@ smaht-portal
 Change Log
 ----------
 
+1.24.9
+======
+
+`PR 660: feat: update npm packages <https://github.com/smaht-dac/smaht-portal/pull/660>`_
+
+* Update npm packages to address vulnerabilities
+
+
+1.24.8
+======
+
+`PR 659: style: update pipeline doc link style <https://github.com/smaht-dac/smaht-portal/pull/659>`_
+
+* Update style for pipeline docs
+
+
+1.24.7
+======
+
+`PR 658: Fix: URL truncation issue while sorting in browse/search view <https://github.com/smaht-dac/smaht-portal/pull/658>`_
+
+* Fix URL truncation issue in browse/search view sorting when specific query param exceeds 20 values
+
+
 1.24.6
 ======
 
