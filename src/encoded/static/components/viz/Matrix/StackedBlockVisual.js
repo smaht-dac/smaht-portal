@@ -2282,11 +2282,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             ? getOverallPrimaryGroupCountFromRows()
                             : (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? getUniqueDonorCountFromRows(sectionRows)))
                         : summaryCountFor === 'tissue_files'
-                            ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
+                            ? (props.overallCounts?.files ?? overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
                                 return sum + (Number(item?.counts?.files) || 0);
                             }, 0))
                         : summaryCountFor === 'files'
-                            ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
+                            ? (props.overallCounts?.files ?? overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
                                 return sum + (Number(item?.counts?.files) || 0);
                             }, 0))
                             : props.overallCounts?.[summaryCountFor];
