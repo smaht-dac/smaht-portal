@@ -2286,7 +2286,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 return sum + (Number(item?.counts?.files) || 0);
                             }, 0))
                         : summaryCountFor === 'files'
-                            ? (props.overallCounts?.files ?? overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
+                            ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
                                 return sum + (Number(item?.counts?.files) || 0);
                             }, 0))
                             : props.overallCounts?.[summaryCountFor];

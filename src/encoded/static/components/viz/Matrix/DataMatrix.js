@@ -871,12 +871,16 @@ export default class DataMatrix extends React.PureComponent {
                             matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
                         );
                     }
-                    // Keep assay as scalar to avoid "array assay" rows silently missing
-                    // from dropdown filtering and summary calculations.
-                    cloned.assay = DataMatrix.normalizeAssayToSingleValue(cloned.assay);
-                    cloned = DataMatrix.normalizeMissingAssayBucket(cloned, 'assay');
-                    if (typeof cloned.assay === 'string') {
-                        cloned._derivedAssayFamily = cloned.assay;
+                    // These safeguards are donor x tissue specific.
+                    // Applying them globally can change donor/cell-line assay rollups.
+                    if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
+                        // Keep assay as scalar to avoid "array assay" rows silently missing
+                        // from dropdown filtering and summary calculations.
+                        cloned.assay = DataMatrix.normalizeAssayToSingleValue(cloned.assay);
+                        cloned = DataMatrix.normalizeMissingAssayBucket(cloned, 'assay');
+                        if (typeof cloned.assay === 'string') {
+                            cloned._derivedAssayFamily = cloned.assay;
+                        }
                     }
                     if (valueChangeMap) {
                         _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
