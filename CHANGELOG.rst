@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.26.0
+======
+
+`PR 662: Fix Data Matrix count inconsistencies (DSA dedup + stable totals + Element AVITI mapping) <https://github.com/smaht-dac/smaht-portal/pull/662>`_
+
+* Refactor data matrix file count logic to deduplicate DSA-associated files, ensure stable totals across views, and map Element AVITI files to the correct assay category for accurate counting in the data matrix.
+
+
 1.25.0
 ======
 
@@ -16,6 +24,7 @@ Change Log
 * For ExternalOutputFiles that don't have `file_sets` and do have `derived_from`, if the linked `derived_from` file has file_sets get tissue sample info from there, otherwise if the output MWFR of the `derived_from` file has `file_sets` get tissue sample info from there, otherwise check the input files of the output MWFR to get the tissue sample info. If none of these have `file_sets`, use "X"
 * Fix DSA filenames to use directly linked `file_sets` on SupplementaryFile, rather than grabbing from `derived_from`
 * Update the release script to release ExternalQualityMetrics items
+
 
 1.24.9
 ======
