@@ -1649,10 +1649,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             .map((value) => String(value))
             .uniq()
             .value();
+        const rowsByGroupValue = _.groupBy(rows, (row) => String(row?.[overrideField]));
         const total = _.reduce(groupValues, (sum, groupValue) => {
             const rowSummaryFiles = overridesForField?.[groupValue]?.files;
             if (typeof rowSummaryFiles !== 'number') return sum;
-            const rowsForGroup = _.filter(rows, (row) => String(row?.[overrideField]) === groupValue);
+            const rowsForGroup = rowsByGroupValue[groupValue] || [];
             // Sum every non-target column in this group; overlap is assumed to be isolated
             // to the target column in this fallback strategy.
             const nonTargetSum = _.reduce(rowsForGroup, (memo, row) => {
