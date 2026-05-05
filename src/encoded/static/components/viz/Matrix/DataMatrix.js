@@ -1636,7 +1636,16 @@ export default class DataMatrix extends React.PureComponent {
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
-            browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
+            browseFilteringTransformFunc: browseFilteringTransformFuncKey
+                ? ((filteringProperties, blockType) => {
+                    const transformFn = DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey];
+                    if (typeof transformFn !== 'function') return filteringProperties;
+                    return transformFn(filteringProperties, blockType, {
+                        matrixMode,
+                        donorTissueAssay
+                    });
+                })
+                : null
         };
 
         const colAgg = Array.isArray(query.columnAggFields) ? query.columnAggFields : [query.columnAggFields];
@@ -1955,23 +1964,45 @@ DataMatrix.resultTransformedPostProcessFuncs = {
     }
 };
 DataMatrix.browseFilteringTransformFuncs = {
-    "analysisDerivedColumns": function (filteringProperties, blockType) {
+    "analysisDerivedColumns": function (filteringProperties, blockType, matrixContext = null) {
         const assayField = 'assays.display_title';
-        const hasAssayFilter = typeof filteringProperties[assayField] !== 'undefined';
+        const isDonorTissueMode = matrixContext?.matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE;
+        const selectedDonorTissueAssay = matrixContext?.donorTissueAssay;
+        const hasSelectedDonorTissueAssay = isDonorTissueMode &&
+            selectedDonorTissueAssay &&
+            selectedDonorTissueAssay !== DataMatrix.DONOR_TISSUE_ALL_ASSAYS;
+
+        // Donor x Tissue regular cells might not include assay in URL params.
+        // Inject currently selected assay to keep browse links scoped correctly.
+        if (hasSelectedDonorTissueAssay && typeof filteringProperties[assayField] === 'undefined') {
+            filteringProperties[assayField] = selectedDonorTissueAssay;
+        }
+
+        const assayFilterRaw = filteringProperties[assayField];
+        const assayFilterList = Array.isArray(assayFilterRaw)
+            ? assayFilterRaw
+            : (typeof assayFilterRaw === 'string' ? [assayFilterRaw] : []);
+        const hasAssayFilter = assayFilterList.length > 0;
+        const hasDSAAssayFilter = assayFilterList.includes('DSA');
+        const hasVariantCallSetsAssayFilter = assayFilterList.includes('Variant Call Sets');
         const studies = filteringProperties['sample_summary.studies'];
         const studiesList = Array.isArray(studies) ? studies : (typeof studies === 'string' ? [studies] : []);
         const isProductionStudy = studiesList.includes('Production');
 
-        if (filteringProperties[assayField] === 'DSA') {
+        if (hasDSAAssayFilter) {
             // extend data_type filter to include Chain File along with DSA
             filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
-        } else if (filteringProperties[assayField] === 'Variant Call Sets') {
+        } else if (hasVariantCallSetsAssayFilter) {
             filteringProperties['analysis_details'] = [...(filteringProperties['analysis_details'] || []), 'Filtered', 'Phased'];
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
         } else if (
-            (blockType === 'regular') ||
+            // IMPORTANT:
+            // Only apply non-DSA exclusion when an assay filter exists.
+            // In donor x tissue, regular blocks may not carry assays.display_title in URL params;
+            // forcing data_type! in that case incorrectly removes DSA/Chain rows.
+            ((blockType === 'regular') && hasAssayFilter) ||
             ((blockType === 'col-summary' || blockType === 'col-secondary-summary') && hasAssayFilter)
         ) {
             // for non-DSA columns we exclude DSA-related data types;
