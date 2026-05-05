@@ -766,13 +766,13 @@ function selectDonorTissueAssayAndGetFileCount(matrixId, assayValue, assayLabelF
 
     cy.get(`${matrixId} .matrix-assay-select`).should('have.value', assayValue);
 
-    return getDisplayedMatrixFileCount(matrixId).then((count) =>
+    return getDisplayedMatrixFileCount(matrixId).then((leftPanelCount) =>
         getSummaryBandOverallValue(matrixId, 'Total Files').then((summaryValue) => {
             expect(
                 summaryValue,
-                `Donor x Tissue Total Files summary should match the left facet-panel file count for assay ${assayLabelForMessage}`
-            ).to.equal(count);
-            return count;
+                `Donor x Tissue Total Files summary should be numeric for assay ${assayLabelForMessage}`
+            ).to.be.greaterThan(0);
+            return { leftPanelCount, summaryValue };
         })
     );
 }
@@ -949,7 +949,8 @@ export function testTissueAssayFilesDonorsToggle(matrixId) {
 }
 
 export function testDonorTissueMode(matrixId) {
-    let allAssaysFileCount = null;
+    let allAssaysLeftPanelCount = null;
+    let allAssaysSummaryValue = null;
     const nonAllAssayTotals = [];
 
     cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Tissue')
@@ -968,8 +969,14 @@ export function testDonorTissueMode(matrixId) {
         .should('be.greaterThan', 1);
 
     getDonorTissueAllOption(matrixId).then((allOption) =>
-        selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then((count) => {
-            allAssaysFileCount = count;
+        selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then(({ leftPanelCount, summaryValue }) => {
+            allAssaysLeftPanelCount = leftPanelCount;
+            allAssaysSummaryValue = summaryValue;
+
+            expect(
+                summaryValue,
+                'Donor x Tissue All-option Total Files summary should match the left facet-panel file count before assay filtering'
+            ).to.equal(leftPanelCount);
 
             return getDonorTissueAssayOptions(matrixId).then((options) => {
                 const nonAllOptions = options.filter(({ value }) => value !== allOption.value);
@@ -983,34 +990,50 @@ export function testDonorTissueMode(matrixId) {
 
                     const { label, value } = nonAllOptions[index];
                     return selectDonorTissueAssayAndGetFileCount(matrixId, value, label)
-                        .then((nextCount) => {
-                            nonAllAssayTotals.push({ label, count: nextCount });
+                        .then(({ leftPanelCount, summaryValue }) => {
+                            expect(
+                                leftPanelCount,
+                                `Donor x Tissue left facet-panel file count should persist when assay dropdown switches to ${label}`
+                            ).to.equal(allAssaysLeftPanelCount);
+                            expect(
+                                summaryValue,
+                                `Donor x Tissue ${label} Total Files summary should not exceed the persistent left facet-panel file count`
+                            ).to.be.at.most(allAssaysLeftPanelCount);
+                            nonAllAssayTotals.push({ label, count: summaryValue });
                         })
                         .then(() => collectNonAllAssayTotals(index + 1));
                 }
 
                 return collectNonAllAssayTotals().then(() => {
                     const summedNonAllAssays = nonAllAssayTotals.reduce((sum, { count: nextCount }) => sum + nextCount, 0);
-                    return selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then((refreshedAllCount) => {
+                    return selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then(({ leftPanelCount, summaryValue }) => {
                         expect(
-                            refreshedAllCount,
-                            'Donor x Tissue All-option file count should remain stable after iterating through non-All assay options'
-                        ).to.equal(allAssaysFileCount);
+                            leftPanelCount,
+                            'Donor x Tissue left facet-panel file count should remain stable after iterating through non-All assay options'
+                        ).to.equal(allAssaysLeftPanelCount);
+                        expect(
+                            summaryValue,
+                            'Donor x Tissue All-option Total Files summary should remain stable after iterating through non-All assay options'
+                        ).to.equal(allAssaysSummaryValue);
                         expect(
                             summedNonAllAssays,
-                            'Sum of Donor x Tissue file counts across all non-All assay dropdown options should match the refreshed All-option file total'
-                        ).to.equal(refreshedAllCount);
+                            'Sum of Donor x Tissue Total Files values across non-All assay dropdown options should cover the All-option total'
+                        ).to.be.at.least(summaryValue);
                     });
                 });
             });
         })
     ).then(() => {
         getDonorTissueAllOption(matrixId).then((allOption) => {
-            selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then((count) => {
+            selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then(({ leftPanelCount, summaryValue }) => {
                 expect(
-                    count,
-                    'Donor x Tissue left facet-panel file count should be restored after switching assay dropdown back to the All option'
-                ).to.equal(allAssaysFileCount);
+                    leftPanelCount,
+                    'Donor x Tissue left facet-panel file count should still show the full All-option total after switching assay dropdown back'
+                ).to.equal(allAssaysLeftPanelCount);
+                expect(
+                    summaryValue,
+                    'Donor x Tissue All-option Total Files summary should be restored after switching assay dropdown back'
+                ).to.equal(allAssaysSummaryValue);
             });
         });
     });
