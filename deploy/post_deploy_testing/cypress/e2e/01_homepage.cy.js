@@ -17,7 +17,7 @@ const ROLE_MATRIX = {
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
         runDRTExists: true,
-        runDRTCountsCheck: true,
+        runDRTCountsCheck: false, // non-network users can't access DRT items, so skip count checks
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: false,
 
@@ -71,7 +71,7 @@ const ROLE_MATRIX = {
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
         runDRTExists: true,
-        runDRTCountsCheck: true,
+        runDRTCountsCheck: false, // non-network users can't access DRT items, so skip count checks
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
@@ -88,7 +88,7 @@ const ROLE_MATRIX = {
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
         runDRTExists: true,
-        runDRTCountsCheck: true,
+        runDRTCountsCheck: false, // non-network users can't access DRT items, so skip count checks
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
@@ -173,8 +173,54 @@ function stepTimelineAccordionChecks(caps) {
                         expect($el).not.to.have.class('show');
                     }
                 });
+
+            // Get production files count from second accordion (index 4)
+            if (index === 4) {
+                cy.get('.card')
+                    .eq(index)
+                    .find('.accordion-collapse .number-group')
+                    .contains('Generated')
+                    .closest('.number-group')
+                    .find('h4')
+                    .invoke('text')
+                    .then((text) => {
+                        const timelineCount = parseInt(text.trim(), 10) || 0;
+                        expect(timelineCount).to.be.greaterThan(0);
+                        cy.wrap(timelineCount).as(
+                            'timelineProductionFilesCount'
+                        );
+                    });
+            }
         }
     );
+
+    // Compare stored production file count with Browse by File page results
+    cy.get('@timelineProductionFilesCount').then((timelineCount) => {
+        cy.visit(
+            '/browse/?type=File' +
+                '&sort=-file_status_tracking.release_dates.initial_release_date' +
+                '&sample_summary.studies=Production' +
+                '&dataset%21=No+value' +
+                '&status=open&status=open-early&status=open-network' +
+                '&status=protected&status=protected-early&status=protected-network',
+            { headers: cypressVisitHeaders, failOnStatusCode: false }
+        );
+        cy.get('#slow-load-container')
+            .should('not.have.class', 'visible')
+            .end();
+        cy.searchPageTotalResultCount().then((browseCount) => {
+            // Network members should be able to see all files, counts should match
+            if (
+                caps.label === 'SMAHT_DBGAP' ||
+                caps.label === 'SMAHT_NON_DBGAP'
+            ) {
+                expect(browseCount).to.be.equal(timelineCount);
+            } else {
+                expect(browseCount).to.be.lte(timelineCount);
+            }
+        });
+        gotoUrl();
+    });
 }
 
 // Tier buttons (Benchmarking / Production) + visual class assertion
@@ -237,7 +283,7 @@ function stepDRTCountsCheck(caps) {
     // Note: DRT access temporarily restricted to network members.
     // Remove this conditional if/when DRT access is restored,
     // and public users can view DRT items.
-    if (caps.expectedLimitedReleaseTrackerAccess) {
+    if (!caps.label === 'SMAHT_DBGAP' || !caps.label === 'SMAHT_NON_DBGAP') {
         cy.get(
             '.data-release-tracker .announcement-container.public-release'
         ).should('be.visible');
