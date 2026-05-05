@@ -1642,7 +1642,8 @@ export default class DataMatrix extends React.PureComponent {
                     if (typeof transformFn !== 'function') return filteringProperties;
                     return transformFn(filteringProperties, blockType, {
                         matrixMode,
-                        donorTissueAssay
+                        donorTissueAssay,
+                        valueChangeMap
                     });
                 })
                 : null
@@ -1966,6 +1967,7 @@ DataMatrix.resultTransformedPostProcessFuncs = {
 DataMatrix.browseFilteringTransformFuncs = {
     "analysisDerivedColumns": function (filteringProperties, blockType, matrixContext = null) {
         const assayField = 'assays.display_title';
+        const platformField = 'sequencers.platform';
         const isDonorTissueMode = matrixContext?.matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE;
         const selectedDonorTissueAssay = matrixContext?.donorTissueAssay;
         const hasSelectedDonorTissueAssay = isDonorTissueMode &&
@@ -1975,7 +1977,23 @@ DataMatrix.browseFilteringTransformFuncs = {
         // Donor x Tissue regular cells might not include assay in URL params.
         // Inject currently selected assay to keep browse links scoped correctly.
         if (hasSelectedDonorTissueAssay && typeof filteringProperties[assayField] === 'undefined') {
-            filteringProperties[assayField] = selectedDonorTissueAssay;
+            const assayValueMap = matrixContext?.valueChangeMap?.assay || {};
+            const rawAssayCandidates = _.filter(_.keys(assayValueMap), (rawKey) => assayValueMap[rawKey] === selectedDonorTissueAssay);
+            const rawSelectedAssay = rawAssayCandidates[0] || selectedDonorTissueAssay;
+            const delim = ' - ';
+            const splitIdx = typeof rawSelectedAssay === 'string' ? rawSelectedAssay.lastIndexOf(delim) : -1;
+
+            // If selected assay contains platform suffix (e.g. "WGS - ONT"), split into raw assay + platform.
+            if (splitIdx > 0) {
+                const rawAssay = rawSelectedAssay.slice(0, splitIdx);
+                const rawPlatform = rawSelectedAssay.slice(splitIdx + delim.length);
+                filteringProperties[assayField] = rawAssay;
+                if (rawPlatform) {
+                    filteringProperties[platformField] = rawPlatform;
+                }
+            } else {
+                filteringProperties[assayField] = rawSelectedAssay;
+            }
         }
 
         const assayFilterRaw = filteringProperties[assayField];
