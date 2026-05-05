@@ -66,16 +66,3 @@ def get_derived_from(
             dsa_utils.get_derived_from,
         )
     return properties.get("derived_from", [])
-
-
-def get_derived_from_file_sets(
-    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
-) -> List[Union[str, Dict[str, Any]]]:
-    """Get file_sets of the derived_from files associated with file."""
-    if request_handler:
-        return get_property_values_from_identifiers(
-            request_handler,
-            get_derived_from(properties,request_handler),
-            file_utils.get_file_sets,
-        )
-    return properties.get("file_sets", [])
