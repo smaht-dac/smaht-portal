@@ -253,7 +253,7 @@ def bar_plot_chart(context, request):
         },
         "total_assays": {
             "cardinality": {
-                "field": "embedded.file_sets.libraries.assay.display_title.raw",
+                "field": "embedded.assays.display_title.raw",
                 "precision_threshold": 10000
             }
         },
