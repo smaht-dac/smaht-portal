@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.26.1
+======
+
+`PR 657: Cypress: enhance data matrix tab routing and donor x tissue view validation tests <https://github.com/smaht-dac/smaht-portal/pull/657>`_
+
+* Enhanced Cypress tests for data matrix tab routing to validate correct URL updates and view rendering when switching between Production, Benchmarking, Donor x Assay, and Tissue x Assay tabs
+
+
 1.26.0
 ======
 
