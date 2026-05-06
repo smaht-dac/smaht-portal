@@ -88,9 +88,19 @@ def is_production(properties: Dict[str, Any]) -> bool:
     return PRODUCTION_TISSUE_REGEX.match(external_id) is not None
 
 
+def is_tpc_alt(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is from TPC alternative study (SN-prefixed donors)."""
+    external_id = item.get_external_id(properties)
+    return TPC_ALT_TISSUE_REGEX.match(external_id) is not None
+
+
 def is_valid_external_id(external_id: str) -> bool:
-    """Check if tissue external_id matches Benchmarking or Production."""
-    return PRODUCTION_TISSUE_REGEX.match(external_id) is not None or BENCHMARKING_TISSUE_REGEX.match(external_id) is not None
+    """Check if tissue external_id matches Benchmarking, Production, or TPC alt."""
+    return (
+        PRODUCTION_TISSUE_REGEX.match(external_id) is not None
+        or BENCHMARKING_TISSUE_REGEX.match(external_id) is not None
+        or TPC_ALT_TISSUE_REGEX.match(external_id) is not None
+    )
 
 
 def get_project_id(properties: Dict[str, Any]) -> str:
@@ -124,7 +134,7 @@ def get_donor_id_from_external_id(external_id: str) -> str:
 
 def get_protocol_id(properties: Dict[str, Any]) -> str:
     """Get protocol ID associated with tissue."""
-    if is_benchmarking(properties) or is_production(properties):
+    if is_benchmarking(properties) or is_production(properties) or is_tpc_alt(properties):
         external_id = item.get_external_id(properties)
         return get_protocol_id_from_external_id(external_id)
     return ""
