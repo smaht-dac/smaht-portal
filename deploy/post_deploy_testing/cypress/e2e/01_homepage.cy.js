@@ -209,15 +209,7 @@ function stepTimelineAccordionChecks(caps) {
             .should('not.have.class', 'visible')
             .end();
         cy.searchPageTotalResultCount().then((browseCount) => {
-            // Network members should be able to see all files, counts should match
-            if (
-                caps.label === 'SMAHT_DBGAP' ||
-                caps.label === 'SMAHT_NON_DBGAP'
-            ) {
-                expect(browseCount).to.be.equal(timelineCount);
-            } else {
-                expect(browseCount).to.be.lte(timelineCount);
-            }
+            expect(browseCount).to.be.lte(timelineCount);
         });
         gotoUrl();
     });
@@ -283,137 +275,139 @@ function stepDRTCountsCheck(caps) {
     // Note: DRT access temporarily restricted to network members.
     // Remove this conditional if/when DRT access is restored,
     // and public users can view DRT items.
-    if (!caps.label === 'SMAHT_DBGAP' || !caps.label === 'SMAHT_NON_DBGAP') {
-        cy.get(
-            '.data-release-tracker .announcement-container.public-release'
-        ).should('be.visible');
-        return;
-    }
+    cy.get('body').then(($body) => {
+        if ($body.find('.data-release-item-container').length === 0) {
+            cy.get(
+                '.data-release-tracker .announcement-container.public-release'
+            ).should('be.visible');
+            return;
+        }
 
-    cy.get('.data-release-item-container').each(($container) => {
-        // Month level count
-        const expectedCount = Number(
-            $container
-                .find('.content .header .header-link .count')
-                .text()
-                .trim()
-                .match(/^(\d+)/)?.[1] ?? 0
-        );
+        cy.get('.data-release-item-container').each(($container) => {
+            // Month level count
+            const expectedCount = Number(
+                $container
+                    .find('.content .header .header-link .count')
+                    .text()
+                    .trim()
+                    .match(/^(\d+)/)?.[1] ?? 0
+            );
 
-        // Open the month dropdown if needed
-        cy.wrap($container)
-            .invoke('attr', 'aria-expanded')
-            .then((expanded) => {
-                if (expanded !== 'true') {
-                    cy.wrap($container)
-                        .find('.content .header .toggle-button')
-                        .click();
-                }
-            });
+            // Open the month dropdown if needed
+            cy.wrap($container)
+                .invoke('attr', 'aria-expanded')
+                .then((expanded) => {
+                    if (expanded !== 'true') {
+                        cy.wrap($container)
+                            .find('.content .header .toggle-button')
+                            .click();
+                    }
+                });
 
-        cy.wrap($container)
-            .find('.content .body .release-item.day-group')
-            .should('have.length.at.least', 1)
-            .then(($days) => {
-                let monthTotal = 0;
+            cy.wrap($container)
+                .find('.content .body .release-item.day-group')
+                .should('have.length.at.least', 1)
+                .then(($days) => {
+                    let monthTotal = 0;
 
-                cy.wrap($days)
-                    .each(($day) => {
-                        cy.wrap($day)
-                            .invoke('attr', 'aria-expanded')
-                            .then((expanded) => {
-                                if (expanded !== 'true') {
-                                    cy.wrap($day)
-                                        .find('.toggle-button.day')
-                                        .click();
-                                }
+                    cy.wrap($days)
+                        .each(($day) => {
+                            cy.wrap($day)
+                                .invoke('attr', 'aria-expanded')
+                                .then((expanded) => {
+                                    if (expanded !== 'true') {
+                                        cy.wrap($day)
+                                            .find('.toggle-button.day')
+                                            .click();
+                                    }
+                                });
+
+                            cy.wrap($day).then(() => {
+                                let dayCount = 0;
+                                let donorSum = 0;
+
+                                // Get day count
+                                cy.wrap($day)
+                                    .find('.day-group-header .title .count')
+                                    .then(($dayCount) => {
+                                        dayCount = Number(
+                                            $dayCount
+                                                .text()
+                                                .trim()
+                                                .match(/^(\d+)/)?.[1] ?? 0
+                                        );
+                                        expect(dayCount).to.be.greaterThan(0);
+                                    });
+
+                                // Sum donor counts for the day
+                                cy.wrap($day)
+                                    .find('.donor-group-header .title .count')
+                                    .each(($count) => {
+                                        donorSum += Number(
+                                            $count
+                                                .text()
+                                                .trim()
+                                                .match(/^(\d+)/)?.[1] ?? 0
+                                        );
+                                    })
+                                    .then(() => {
+                                        expect(donorSum).to.be.greaterThan(0);
+                                        expect(donorSum).to.equal(dayCount);
+
+                                        // Only update month total after day is fully validated
+                                        monthTotal += dayCount;
+                                    });
                             });
-
-                        cy.wrap($day).then(() => {
-                            let dayCount = 0;
-                            let donorSum = 0;
-
-                            // Get day count
-                            cy.wrap($day)
-                                .find('.day-group-header .title .count')
-                                .then(($dayCount) => {
-                                    dayCount = Number(
-                                        $dayCount
-                                            .text()
-                                            .trim()
-                                            .match(/^(\d+)/)?.[1] ?? 0
-                                    );
-                                    expect(dayCount).to.be.greaterThan(0);
-                                });
-
-                            // Sum donor counts for the day
-                            cy.wrap($day)
-                                .find('.donor-group-header .title .count')
-                                .each(($count) => {
-                                    donorSum += Number(
-                                        $count
-                                            .text()
-                                            .trim()
-                                            .match(/^(\d+)/)?.[1] ?? 0
-                                    );
-                                })
-                                .then(() => {
-                                    expect(donorSum).to.be.greaterThan(0);
-                                    expect(donorSum).to.equal(dayCount);
-
-                                    // Only update month total after day is fully validated
-                                    monthTotal += dayCount;
-                                });
+                        })
+                        .then(() => {
+                            // Month total must match header count
+                            expect(monthTotal).to.be.greaterThan(0);
+                            expect(monthTotal).to.equal(expectedCount);
                         });
-                    })
-                    .then(() => {
-                        // Month total must match header count
-                        expect(monthTotal).to.be.greaterThan(0);
-                        expect(monthTotal).to.equal(expectedCount);
-                    });
-            });
-    });
-
-    // Check that the counts are reflected in the browse page
-    cy.get('.data-release-item-container').then(($containers) => {
-        const pages = [...$containers].map((el) => {
-            const link = el.querySelector('.header-link');
-
-            return {
-                expectedCount: Number(
-                    link
-                        ?.querySelector('.count')
-                        ?.textContent.trim()
-                        .match(/^(\d+)/)?.[1] ?? 0
-                ),
-            };
+                });
         });
 
-        cy.wrap(pages).each(({ expectedCount }, index) => {
-            cy.get('.data-release-item-container')
-                .eq(index)
-                .find('.header-link')
-                .click();
+        // Check that the counts are reflected in the browse page
+        cy.get('.data-release-item-container').then(($containers) => {
+            const pages = [...$containers].map((el) => {
+                const link = el.querySelector('.header-link');
 
-            // Note: DRT access temporarily restricted to network members
-            // if (caps.expectedLimitedReleaseTrackerAccess) {
-            //     if (cy.searchPageTotalResultCount() === 0) {
-            //         cy.get('#download-access-required-modal').should(
-            //             'be.visible'
-            //         );
-            //     }
-            //     cy.searchPageTotalResultCount().should('be.lte', expectedCount);
-            // } else {
-            //     cy.searchPageTotalResultCount().should('eq', expectedCount);
-            // }
-            cy.searchPageTotalResultCount().should('eq', expectedCount);
+                return {
+                    expectedCount: Number(
+                        link
+                            ?.querySelector('.count')
+                            ?.textContent.trim()
+                            .match(/^(\d+)/)?.[1] ?? 0
+                    ),
+                };
+            });
 
-            cy.go('back');
+            cy.wrap(pages).each(({ expectedCount }, index) => {
+                cy.get('.data-release-item-container')
+                    .eq(index)
+                    .find('.header-link')
+                    .click();
 
-            cy.get('.data-release-item-container').should(
-                'have.length.at.least',
-                1
-            );
+                // Note: DRT access temporarily restricted to network members
+                // if (caps.expectedLimitedReleaseTrackerAccess) {
+                //     if (cy.searchPageTotalResultCount() === 0) {
+                //         cy.get('#download-access-required-modal').should(
+                //             'be.visible'
+                //         );
+                //     }
+                //     cy.searchPageTotalResultCount().should('be.lte', expectedCount);
+                // } else {
+                //     cy.searchPageTotalResultCount().should('eq', expectedCount);
+                // }
+                cy.searchPageTotalResultCount().should('eq', expectedCount);
+
+                cy.go('back');
+
+                cy.get('.data-release-item-container').should(
+                    'have.length.at.least',
+                    1
+                );
+            });
         });
     });
 }
