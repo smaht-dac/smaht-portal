@@ -7,10 +7,37 @@ smaht-portal
 Change Log
 ----------
 
-1.24.10
+1.26.2
 =======
 
 * Bugfix - compute category for output files
+=======
+
+1.26.1
+======
+
+`PR 657: Cypress: enhance data matrix tab routing and donor x tissue view validation tests <https://github.com/smaht-dac/smaht-portal/pull/657>`_
+
+* Enhanced Cypress tests for data matrix tab routing to validate correct URL updates and view rendering when switching between Production, Benchmarking, Donor x Assay, and Tissue x Assay tabs
+
+
+1.26.0
+======
+
+`PR 662: Fix Data Matrix count inconsistencies (DSA dedup + stable totals + Element AVITI mapping) <https://github.com/smaht-dac/smaht-portal/pull/662>`_
+
+* Refactor data matrix file count logic to deduplicate DSA-associated files, ensure stable totals across views, and map Element AVITI files to the correct assay category for accurate counting in the data matrix.
+
+
+1.25.0
+======
+
+`PR 624: SN EOF tissue info <https://github.com/smaht-dac/smaht-portal/pull/624>`_
+
+* Update the `create_annotated_filenames` script to have special handling of the tissue aliquot part for ExternalOutputFiles
+* For ExternalOutputFiles that don't have `file_sets` and do have `derived_from`, if the linked `derived_from` file has file_sets get tissue sample info from there, otherwise if the output MWFR of the `derived_from` file has `file_sets` get tissue sample info from there, otherwise check the input files of the output MWFR to get the tissue sample info. If none of these have `file_sets`, use "X"
+* Fix DSA filenames to use directly linked `file_sets` on SupplementaryFile, rather than grabbing from `derived_from`
+* Update the release script to release ExternalQualityMetrics items
 
 
 1.24.9

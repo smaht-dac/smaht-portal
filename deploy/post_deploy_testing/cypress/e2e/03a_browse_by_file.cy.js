@@ -209,11 +209,29 @@ function getTissueCategoryFromAxisTerm(term) {
 }
 
 function getVisibleTissueAxisTerms() {
-    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible').then(($labels) => {
+    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible', { timeout: 30000 }).then(($labels) => {
         return Array.from($labels)
             .map((labelNode) => (labelNode.getAttribute('data-term') || '').trim())
             .filter(Boolean);
     });
+}
+
+function waitForFileFacetBarPlotReady() {
+    return cy
+        .get('#slow-load-container', { timeout: 30000 })
+        .should('not.have.class', 'visible')
+        .get('.facet-charts.loading', { timeout: 30000 })
+        .should('not.exist')
+        .get('#facet-charts-container', { timeout: 30000 })
+        .should('exist')
+        .get('#facet-charts-container button', { timeout: 30000 })
+        .should('have.length.greaterThan', 0)
+        .get('.bar-plot-chart', { timeout: 30000 })
+        .should('exist')
+        .get('.bar-plot-chart .chart-bar[data-term]', { timeout: 30000 })
+        .should('have.length.greaterThan', 0)
+        .get('.bar-plot-chart .rotated-label[data-term]:visible', { timeout: 30000 })
+        .should('have.length.greaterThan', 0);
 }
 
 function visitBrowseByFile(){
@@ -527,11 +545,13 @@ function stepTissueTypeFilterTests(caps) {
     }
 
     visitBrowseByFile().then(() => {
+        waitForFileFacetBarPlotReady();
         tissueTypeFilterOptions.forEach(({ buttonText, expectedCategory }) => {
             cy.contains('#facet-charts-container button', buttonText)
                 .should('be.visible')
                 .click({ force: true });
 
+            waitForFileFacetBarPlotReady();
             getVisibleTissueAxisTerms().then((axisTerms) => {
                 expect(axisTerms.length, `${buttonText} should leave visible tissue axis labels`).to.be.greaterThan(0);
 
@@ -554,6 +574,7 @@ function stepTissueTypeFilterTests(caps) {
 function stepFacetChartBarPlotTests(caps) {
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
         visitBrowseByFile().then(() => {
+            waitForFileFacetBarPlotReady();
             cy.get('#select-barplot-field-1')
                 .should('contain', 'Sequencer')
                 .end()

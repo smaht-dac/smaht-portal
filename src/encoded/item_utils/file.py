@@ -91,6 +91,11 @@ def get_quality_metrics(properties: Dict[str, Any]) -> List[Union[str, Dict[str,
     return properties.get("quality_metrics", [])
 
 
+def get_external_quality_metrics(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get external quality metrics from properties."""
+    return properties.get("external_quality_metrics", [])
+
+
 def is_uploaded(properties: Dict[str, Any]) -> bool:
     """Check if file is uploaded."""
     return item.get_status(properties) == "uploaded"
@@ -519,3 +524,8 @@ def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -
             tissue.get_category, request_handler=request_handler
         )
     )
+
+
+def get_meta_workflow_run_outputs(file: Dict[str, Any]) -> Union[List[str], List[Dict[str, Any]]]:
+    """Get output metaworkflow_run from file."""
+    return file.get("meta_workflow_run_outputs",[])
