@@ -132,10 +132,14 @@ def test_is_tpc_alt(properties: Dict[str, Any], expected: bool) -> None:
     [
         ({}, ""),
         ({"external_id": "FooBar"}, ""),
+        ({"external_id": "PS0235"}, ""),
         ({"external_id": "ST001-1A"}, "1A"),
         ({"external_id": "SMHT001-1A"}, "1A"),
         ({"external_id": "SN001-3A"}, "3A"),
         ({"external_id": "SN001-3B"}, "3B"),
+        ({"external_id": "CB0-3A"}, "3A"),
+        ({"external_id": "CB0-3B"}, "3B"),
+        ({"external_id": "ST001-3AC"}, "3AC"),
     ],
 )
 def test_get_protocol_id(properties: Dict[str, Any], expected: str) -> None:

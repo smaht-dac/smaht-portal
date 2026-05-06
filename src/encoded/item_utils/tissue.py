@@ -75,6 +75,8 @@ TPC_ALT_TISSUE_REGEX = re.compile(
     rf"{TPC_ALT_ID_REGEX}$"
 )
 
+PROTOCOL_ID_REGEX = re.compile(r"-([0-9][A-Z]{1,2})$")
+
  
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
     """Check if tissue is from benchmarking study."""
@@ -133,16 +135,20 @@ def get_donor_id_from_external_id(external_id: str) -> str:
 
 
 def get_protocol_id(properties: Dict[str, Any]) -> str:
-    """Get protocol ID associated with tissue."""
-    if is_benchmarking(properties) or is_production(properties) or is_tpc_alt(properties):
-        external_id = item.get_external_id(properties)
-        return get_protocol_id_from_external_id(external_id)
-    return ""
+    """Get protocol ID associated with tissue.
+
+    Extracts the protocol code (e.g. '3A', '3B', '3AC') from the tissue
+    external_id by matching the trailing '-[digit][letters]' pattern.
+    Works for any donor naming convention (ST, SMHT, SN, CB, etc.).
+    """
+    external_id = item.get_external_id(properties)
+    return get_protocol_id_from_external_id(external_id)
 
 
 def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""
-    return external_id.split("-")[1]
+    match = PROTOCOL_ID_REGEX.search(external_id)
+    return match.group(1) if match else ""
 
 
 def is_fibroblast(properties: Dict[str, Any]) -> bool:
