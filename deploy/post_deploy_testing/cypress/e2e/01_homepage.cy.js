@@ -448,9 +448,17 @@ const ROLES_TO_TEST = [
 ];
 
 describe('Home Page by role', () => {
+    const baseUrl = Cypress.config().baseUrl || "";
+
     ROLES_TO_TEST.forEach((roleKey) => {
         const caps = ROLE_MATRIX[roleKey];
         const label = caps.label || String(roleKey);
+
+        if (baseUrl.includes("devtest.smaht.org")) {
+            if (roleKey === ROLE_TYPES.SMAHT_NON_DBGAP) {
+                caps.expectedLimitedReleaseTrackerAccess = true; // should not browse DRT items
+            }
+        }
 
         context(`${label} → homepage capabilities`, () => {
             before(() => {

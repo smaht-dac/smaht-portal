@@ -1,7 +1,8 @@
 // Sends a GET request to the given URL and returns the `total` field from JSON response
 export function getApiTotalFromUrl(url) {
     // Ensure the URL requests JSON format (append if missing)
-    const fullUrl = url.includes('format=json') ? url : `${url}&format=json&frame=raw`;
+    const normalizedUrl = String(url).replace(/^(https?:\/\/[^/]+)\/\/+/, '$1/').replace(/^\/\/+/, '/');
+    const fullUrl = normalizedUrl.includes('format=json') ? normalizedUrl : `${normalizedUrl}&format=json&frame=raw`;
 
     return cy.request({
         method: 'GET',
@@ -15,7 +16,7 @@ export function parseIntSafe(text) {
     return Number.isNaN(n) ? 0 : n;
 }
 
-/** 
+/**
  * Waits for the popover to become visible.
  * @param {number} timeout - The maximum time to wait for the popover to become visible, in milliseconds.
  * @returns {Cypress.Chainable} A Cypress chainable that resolves when the popover is visible.
@@ -624,5 +625,489 @@ export function testMatrixPopoverValidation(
                 });
             });
         }
+    });
+}
+
+function waitForMatrixModeRender(matrixId) {
+    cy.get(`${matrixId} .matrix-render-surface`, { timeout: 20000 })
+        .should('exist')
+        .and('not.have.class', 'is-refreshing');
+
+    cy.get(`${matrixId} .matrix-refresh-overlay`).should('not.exist');
+}
+
+function getDisplayedMatrixFileCount(matrixId) {
+    return cy.get(`${matrixId} .matrix-total-files-count`)
+        .should('be.visible')
+        .invoke('text')
+        .then((text) => parseInt(String(text).replace(/[^0-9]/g, ''), 10));
+}
+
+function getMatrixToggleButton(matrixId, label) {
+    return cy.contains(`${matrixId} .matrix-counts-toggle-inline .view-toggle button`, label);
+}
+
+function getFirstPositiveRegularBlockText(matrixId) {
+    return cy.get(`${matrixId} [data-block-type="regular"]`).then(($blocks) => {
+        const firstPositiveBlock = [...$blocks].find((block) => {
+            const blockValue = parseFloat(block.getAttribute('data-block-value'));
+            return Cypress.$(block).is(':visible') && !Number.isNaN(blockValue) && blockValue > 0;
+        });
+
+        expect(firstPositiveBlock, 'expected at least one visible positive regular matrix block').to.exist;
+        return cy.wrap(firstPositiveBlock).find('span').invoke('text').then((text) => String(text).trim());
+    });
+}
+
+function getFirstPositiveRegularBlockInfo(matrixId) {
+    return cy.get(`${matrixId} [data-block-type="regular"]`).then(($blocks) => {
+        const firstPositiveBlock = [...$blocks].find((block) => {
+            const blockValue = parseFloat(block.getAttribute('data-block-value'));
+            return Cypress.$(block).is(':visible') && !Number.isNaN(blockValue) && blockValue > 0;
+        });
+
+        expect(firstPositiveBlock, 'expected at least one visible positive regular matrix block').to.exist;
+
+        const rawValue = parseFloat(firstPositiveBlock.getAttribute('data-block-value'));
+        return cy.wrap(firstPositiveBlock).find('span').invoke('text').then((text) => {
+            return {
+                element: firstPositiveBlock,
+                rawValue,
+                displayText: String(text).trim()
+            };
+        });
+    });
+}
+
+function formatCoverageBoxValue(rawValue) {
+    if (rawValue <= 0) return '0';
+    const rounded = rawValue < 100 ? Math.round(rawValue * 10) / 10 : Math.round(rawValue);
+    return `${rounded.toLocaleString()}X`;
+}
+
+function parseCoverageValue(text) {
+    return parseFloat(String(text).replace(/,/g, '').replace(/X/g, '').trim());
+}
+
+function assertCoverageBlockMatchesPopover(matrixId, contextLabel = 'Coverage view') {
+    getFirstPositiveRegularBlockInfo(matrixId).then(({ element, rawValue, displayText }) => {
+        const expectedBoxValue = formatCoverageBoxValue(rawValue);
+        const expectedPopoverValue = Math.round(rawValue * 100) / 100;
+
+        expect(
+            displayText,
+            `${contextLabel} box value should match coverage formatting for the underlying block value`
+        ).to.equal(expectedBoxValue);
+
+        cy.wrap(element).scrollIntoView().click({ force: true });
+
+        cy.waitForPopoverShow().then(() =>
+            waitForPopoverVisible().then((popoverEl) => {
+                cy.wrap(popoverEl).should('be.visible').within(() => {
+                    cy.get('.secondary-row .col-4', { timeout: 10000 })
+                        .eq(1)
+                        .find('.value')
+                        .invoke('text')
+                        .then((text) => {
+                            const popoverCoverageValue = parseCoverageValue(text);
+                            expect(
+                                popoverCoverageValue,
+                                `${contextLabel} popover Total Coverage should match the clicked box value`
+                            ).to.equal(expectedPopoverValue);
+                        });
+                });
+            })
+        )
+            .then(() => {
+                cy.document()
+                    .its('body')
+                    .then((body) => cy.wrap(body).click(0, 0, { force: true }));
+
+                return waitUntilPopoverClosed();
+            });
+    });
+}
+
+function getSummaryBandOverallValue(matrixId, labelText) {
+    return cy.contains(`${matrixId} .header-section-lower .grouping-row .label-section span`, labelText)
+        .closest('.grouping-row')
+        .find('[data-group-key="overall-summary"] [data-block-type="col-summary"]')
+        .should('exist')
+        .invoke('attr', 'data-block-value')
+        .then((value) => parseFloat(String(value).trim()));
+}
+
+function getDonorTissueAssayOptions(matrixId) {
+    return cy.get(`${matrixId} .matrix-assay-select`)
+        .should('be.visible')
+        .find('option')
+        .then(($options) => [...$options].map((option) => {
+            return {
+                label: option.textContent.trim(),
+                value: option.value
+            };
+        }));
+}
+
+function getDonorTissueAllOption(matrixId) {
+    return getDonorTissueAssayOptions(matrixId).then((options) => {
+        const [allOption] = options;
+        expect(allOption, 'Donor x Tissue assay dropdown should include an All option first').to.exist;
+        return allOption;
+    });
+}
+
+function selectDonorTissueAssayAndGetFileCount(matrixId, assayValue, assayLabelForMessage = assayValue) {
+    cy.get(`${matrixId} .matrix-assay-select`)
+        .select(assayValue, { force: true })
+        .should('have.value', assayValue);
+
+    waitForMatrixModeRender(matrixId);
+
+    cy.get(`${matrixId} .matrix-assay-select`).should('have.value', assayValue);
+
+    return getDisplayedMatrixFileCount(matrixId).then((leftPanelCount) =>
+        getSummaryBandOverallValue(matrixId, 'Total Files').then((summaryValue) => {
+            expect(
+                summaryValue,
+                `Donor x Tissue Total Files summary should be numeric for assay ${assayLabelForMessage}`
+            ).to.be.greaterThan(0);
+            return { leftPanelCount, summaryValue };
+        })
+    );
+}
+
+export function testDonorAssayFilesCoverageToggle(matrixId) {
+    let donorAssayFileCount = null;
+
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Coverage')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        donorAssayFileCount = count;
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Donor x Assay files view should show plain numeric block labels').to.not.match(/X$/);
+    });
+
+    getMatrixToggleButton(matrixId, 'Coverage').click({ force: true });
+
+    waitForMatrixModeRender(matrixId);
+    getMatrixToggleButton(matrixId, 'Coverage')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should stay the same in Coverage view'
+        ).to.equal(donorAssayFileCount);
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Donor x Assay coverage view should show coverage labels ending with X').to.match(/X$/);
+    });
+
+    assertCoverageBlockMatchesPopover(matrixId, 'Donor x Assay coverage view');
+
+    getMatrixToggleButton(matrixId, 'Files').click({ force: true });
+
+    waitForMatrixModeRender(matrixId);
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Coverage')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should return unchanged after toggling back to Files'
+        ).to.equal(donorAssayFileCount);
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Donor x Assay files view should be restored after toggling back').to.not.match(/X$/);
+    });
+}
+
+export function testTissueAssayFilesDonorsToggle(matrixId) {
+    let displayedFileCount = null;
+    let totalTissuesCount = null;
+    let totalFilesSummaryValue = null;
+
+    cy.get(matrixId).within(() => {
+        validateLowerHeaders(['Total Tissues', 'Total Files']);
+    });
+
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Donors')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        displayedFileCount = count;
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Tissues').then((value) => {
+        totalTissuesCount = value;
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Files').then((value) => {
+        totalFilesSummaryValue = value;
+        expect(
+            value,
+            'Tissue x Assay overall Total Files summary should match the left facet-panel file count'
+        ).to.equal(displayedFileCount);
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Tissue x Assay files view should show plain numeric block labels').to.not.match(/X$/);
+    });
+
+    getMatrixToggleButton(matrixId, 'Donors').click({ force: true });
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId).within(() => {
+        validateLowerHeaders(['Total Tissues', 'Total Donors']);
+    });
+
+    getMatrixToggleButton(matrixId, 'Donors')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should stay the same in Tissue x Assay donors view'
+        ).to.equal(displayedFileCount);
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Tissues').then((value) => {
+        expect(
+            value,
+            'Tissue x Assay overall Total Tissues summary should stay the same when toggling to Donors'
+        ).to.equal(totalTissuesCount);
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Donors').then((value) => {
+        expect(
+            value,
+            'Tissue x Assay overall Total Donors summary should be numeric'
+        ).to.be.greaterThan(0);
+        expect(
+            value,
+            'Tissue x Assay overall Total Donors summary should differ from the Total Files summary after toggling'
+        ).to.not.equal(totalFilesSummaryValue);
+    });
+
+    getFirstPositiveRegularBlockText(matrixId).then((text) => {
+        expect(text, 'Tissue x Assay donors view should still show plain numeric block labels').to.not.match(/X$/);
+    });
+
+    getMatrixToggleButton(matrixId, 'Files').click({ force: true });
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId).within(() => {
+        validateLowerHeaders(['Total Tissues', 'Total Files']);
+    });
+
+    getMatrixToggleButton(matrixId, 'Files')
+        .should('have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'true');
+    getMatrixToggleButton(matrixId, 'Donors')
+        .should('not.have.class', 'active')
+        .and('have.attr', 'aria-pressed', 'false');
+
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should return unchanged after toggling Tissue x Assay back to Files'
+        ).to.equal(displayedFileCount);
+    });
+
+    getSummaryBandOverallValue(matrixId, 'Total Files').then((value) => {
+        expect(
+            value,
+            'Tissue x Assay overall Total Files summary should be restored after toggling back'
+        ).to.equal(totalFilesSummaryValue);
+    });
+}
+
+export function testDonorTissueMode(matrixId) {
+    let allAssaysLeftPanelCount = null;
+    let allAssaysSummaryValue = null;
+    const nonAllAssayTotals = [];
+
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Tissue')
+        .click({ force: true })
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('have.class', 'matrix-mode-tissue')
+        .and('have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('not.exist');
+    cy.get(`${matrixId} .matrix-assay-select`)
+        .should('be.visible')
+        .find('option')
+        .its('length')
+        .should('be.greaterThan', 1);
+
+    getDonorTissueAllOption(matrixId).then((allOption) =>
+        selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then(({ leftPanelCount, summaryValue }) => {
+            allAssaysLeftPanelCount = leftPanelCount;
+            allAssaysSummaryValue = summaryValue;
+
+            expect(
+                summaryValue,
+                'Donor x Tissue All-option Total Files summary should match the left facet-panel file count before assay filtering'
+            ).to.equal(leftPanelCount);
+
+            return getDonorTissueAssayOptions(matrixId).then((options) => {
+                const nonAllOptions = options.filter(({ value }) => value !== allOption.value);
+
+                expect(nonAllOptions, 'Donor x Tissue assay dropdown should include non-All assay options').to.have.length.greaterThan(0);
+
+                function collectNonAllAssayTotals(index = 0) {
+                    if (index >= nonAllOptions.length) {
+                        return cy.wrap(null);
+                    }
+
+                    const { label, value } = nonAllOptions[index];
+                    return selectDonorTissueAssayAndGetFileCount(matrixId, value, label)
+                        .then(({ leftPanelCount, summaryValue }) => {
+                            expect(
+                                leftPanelCount,
+                                `Donor x Tissue left facet-panel file count should persist when assay dropdown switches to ${label}`
+                            ).to.equal(allAssaysLeftPanelCount);
+                            expect(
+                                summaryValue,
+                                `Donor x Tissue ${label} Total Files summary should not exceed the persistent left facet-panel file count`
+                            ).to.be.at.most(allAssaysLeftPanelCount);
+                            nonAllAssayTotals.push({ label, count: summaryValue });
+                        })
+                        .then(() => collectNonAllAssayTotals(index + 1));
+                }
+
+                return collectNonAllAssayTotals().then(() => {
+                    const summedNonAllAssays = nonAllAssayTotals.reduce((sum, { count: nextCount }) => sum + nextCount, 0);
+                    return selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then(({ leftPanelCount, summaryValue }) => {
+                        expect(
+                            leftPanelCount,
+                            'Donor x Tissue left facet-panel file count should remain stable after iterating through non-All assay options'
+                        ).to.equal(allAssaysLeftPanelCount);
+                        expect(
+                            summaryValue,
+                            'Donor x Tissue All-option Total Files summary should remain stable after iterating through non-All assay options'
+                        ).to.equal(allAssaysSummaryValue);
+                        expect(
+                            summedNonAllAssays,
+                            'Sum of Donor x Tissue Total Files values across non-All assay dropdown options should cover the All-option total'
+                        ).to.be.at.least(summaryValue);
+                    });
+                });
+            });
+        })
+    ).then(() => {
+        getDonorTissueAllOption(matrixId).then((allOption) => {
+            selectDonorTissueAssayAndGetFileCount(matrixId, allOption.value, allOption.label).then(({ leftPanelCount, summaryValue }) => {
+                expect(
+                    leftPanelCount,
+                    'Donor x Tissue left facet-panel file count should still show the full All-option total after switching assay dropdown back'
+                ).to.equal(allAssaysLeftPanelCount);
+                expect(
+                    summaryValue,
+                    'Donor x Tissue All-option Total Files summary should be restored after switching assay dropdown back'
+                ).to.equal(allAssaysSummaryValue);
+            });
+        });
+    });
+}
+
+export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_production') {
+    const tabLabels = ['Donor x Assay', 'Tissue x Assay', 'Donor x Tissue'];
+    const fileCountsByMode = {};
+
+    cy.get(matrixId).should('exist').within(() => {
+        cy.get('.matrix-mode-tabs .matrix-mode-tab')
+            .should('have.length', tabLabels.length)
+            .then(($tabs) => {
+                const labels = [...$tabs].map((tab) => tab.textContent.trim().replace(/\s+/g, ' '));
+                expect(labels).to.deep.equal(tabLabels);
+            });
+    });
+
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Assay')
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('not.have.class', 'matrix-mode-tissue')
+        .and('not.have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
+    cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+    testDonorAssayFilesCoverageToggle(matrixId);
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        fileCountsByMode.donorAssay = count;
+    });
+
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Tissue x Assay')
+        .click({ force: true })
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('have.class', 'matrix-mode-tissue')
+        .and('not.have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
+    cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+    testTissueAssayFilesDonorsToggle(matrixId);
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        fileCountsByMode.tissueAssay = count;
+        expect(
+            count,
+            'left facet-panel file count should match between Donor x Assay and Tissue x Assay'
+        ).to.equal(fileCountsByMode.donorAssay);
+    });
+
+    testDonorTissueMode(matrixId);
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        fileCountsByMode.donorTissue = count;
+        expect(
+            count,
+            'left facet-panel file count should match between Donor x Assay and Donor x Tissue'
+        ).to.equal(fileCountsByMode.donorAssay);
+    });
+
+    cy.contains(`${matrixId} .matrix-mode-tab`, 'Donor x Assay')
+        .click({ force: true })
+        .should('have.class', 'active');
+
+    waitForMatrixModeRender(matrixId);
+    cy.get(matrixId)
+        .should('not.have.class', 'matrix-mode-tissue')
+        .and('not.have.class', 'matrix-mode-donor-tissue');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
+    cy.get(`${matrixId} .matrix-assay-select`).should('not.exist');
+    getDisplayedMatrixFileCount(matrixId).then((count) => {
+        expect(
+            count,
+            'left facet-panel file count should be unchanged after switching back to Donor x Assay'
+        ).to.equal(fileCountsByMode.donorAssay);
     });
 }
