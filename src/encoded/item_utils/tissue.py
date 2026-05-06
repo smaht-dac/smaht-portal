@@ -193,8 +193,10 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
 def get_category(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
     """
     Get category associated with tissue.
-    
+
     Special handling of fibroblast, ovary, testis, blood, and buccal swab.
+    For tissues whose external_id doesn't encode the protocol code (e.g. non-TPC
+    donors), falls back to the ontology tissue_type tag (e.g. "3A - Whole Blood").
     """
     if is_germ_cell(properties):
         return "Germ Cells"
@@ -203,7 +205,20 @@ def get_category(properties: Dict[str, Any], request_handler: RequestHandler) ->
     elif is_fibroblast(properties):
         return "Mesoderm"
     else:
-        germ_layer = get_grouping_term_from_tag(properties, request_handler=request_handler, tag="germ_layer")
+        tissue_type = get_grouping_term_from_tag(
+            properties, request_handler=request_handler, tag="tissue_type"
+        )
+        if tissue_type and " - " in tissue_type:
+            protocol_id = tissue_type.split(" - ")[0].strip()
+            if protocol_id in ["3A", "3B"]:
+                return "Clinically Accessible"
+            if protocol_id in ["3U", "3V", "3W", "3X", "3Y", "3Z", "3AA", "3AB"]:
+                return "Germ Cells"
+            if protocol_id == "3AC":
+                return "Mesoderm"
+        germ_layer = get_grouping_term_from_tag(
+            properties, request_handler=request_handler, tag="germ_layer"
+        )
         return germ_layer or None
 
 
