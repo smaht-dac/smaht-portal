@@ -567,11 +567,25 @@ function getTissueCategoryFromAxisTerm(term) {
 }
 
 function getVisibleTissueAxisTerms() {
-    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible').then(($labels) => {
+    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible', { timeout: 30000 }).then(($labels) => {
         return Array.from($labels)
             .map((labelNode) => (labelNode.getAttribute('data-term') || '').trim())
             .filter(Boolean);
     });
+}
+
+function waitForDonorFacetBarPlotReady() {
+    return cy
+        .get('#slow-load-container', { timeout: 30000 })
+        .should('not.have.class', 'visible')
+        .get('.facet-charts.loading', { timeout: 30000 })
+        .should('not.exist')
+        .get('.bar-plot-chart', { timeout: 30000 })
+        .should('exist')
+        .get('.bar-plot-chart .chart-bar[data-term]', { timeout: 30000 })
+        .should('have.length.greaterThan', 0)
+        .get('.bar-plot-chart .rotated-label[data-term]:visible', { timeout: 30000 })
+        .should('have.length.greaterThan', 0);
 }
 
 function stepTissueTypeFilterTests(caps) {
@@ -583,11 +597,13 @@ function stepTissueTypeFilterTests(caps) {
     }
 
     visitBrowseByDonor(caps).toggleView('Donor').then(() => {
+        waitForDonorFacetBarPlotReady();
         tissueTypeFilterOptions.forEach(({ buttonText, expectedCategory }) => {
             cy.contains('button', buttonText)
                 .should('be.visible')
                 .click({ force: true });
 
+            waitForDonorFacetBarPlotReady();
             getVisibleTissueAxisTerms().then((axisTerms) => {
                 expect(axisTerms.length, `${buttonText} should leave visible tissue axis labels`).to.be.greaterThan(0);
 
@@ -610,6 +626,7 @@ function stepTissueTypeFilterTests(caps) {
 function stepFacetChartBarPlotTests(caps) {
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
         visitBrowseByDonor(caps).toggleView('Donor').then(() => {
+            waitForDonorFacetBarPlotReady();
             cy.get('#select-barplot-field-1')
                 .should('contain', 'Sequencer')
                 .end()
