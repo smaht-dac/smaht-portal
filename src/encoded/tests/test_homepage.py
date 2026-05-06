@@ -27,6 +27,6 @@ def test_home_page_workbook(es_testapp, workbook):
     # not including 1 released output file (status excluded) and 1 reference file (no dataset)
     assert home['@graph'][0]['categories'][0]['figures'][-1]['value'] == 5
     assert home['@graph'][0]['categories'][0]['figures'][-1]['unit'] == 'Files Generated'
-    # check assay count (should be 4 as of right now)
-    assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 2
+    # check assay count for colo829 (bulk_wgs, bulk_mas_iso_seq, bulk_rna_seq)
+    assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 3
     assert home['@graph'][0]['categories'][0]['figures'][1]['unit'] == 'Assays'
