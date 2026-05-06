@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-1.26.2
+1.26.3
 ======
 
 `PR 663: fix: update status param for homepage endpoint <https://github.com/smaht-dac/smaht-portal/pull/663>`_
 
 * Update statuses in homepage counts parameters
+
+
+1.26.2
+======
+
+`PR 661: feat: remove homepage top banner <https://github.com/smaht-dac/smaht-portal/pull/661>`_
+
+* Remove restricted access top banner alert in homepage
 
 
 1.26.1
