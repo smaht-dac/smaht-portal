@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.26.2
+======
+
+`PR 661: feat: remove homepage top banner <https://github.com/smaht-dac/smaht-portal/pull/661>`_
+
+* Remove restricted access top banner alert in homepage
+
 
 1.26.2
 ======
