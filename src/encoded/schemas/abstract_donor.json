@@ -72,6 +72,17 @@
             "minimum": 0,
             "maximum": 89
         },
+        "donor_groups": {
+            "title": "Donor Groups",
+            "description": "Donor groups associated with specific publications or categories defined by the SMaHT Network",
+            "type": "array",
+            "permission": "restricted_fields",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
+        },
         "eligibility": {
             "title": "Eligibility",
             "description": "Whether donor was deemed eligible for the study",

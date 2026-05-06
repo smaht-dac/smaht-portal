@@ -7,7 +7,7 @@ import memoize from 'memoize-one';
 
 import { console, layout, searchFilters, analytics, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Schemas } from './../../util';
-import { getTissueInternalCodeFromFacetTerm, getTissueCategoryFromFacetTerm } from './../../util/data';
+import { getTissueInternalCodeFromFacetTerm, getTissueCategoryFromFacetTerm, tissueCategoryOrder } from './../../util/data';
 import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
@@ -22,14 +22,9 @@ export class UIControlsWrapper extends React.PureComponent {
     static TISSUE_FIELD = 'sample_summary.tissues';
     static TISSUE_CATEGORY_ALL = 'All';
     static TISSUE_CATEGORY_UNKNOWN = 'Unknown';
-    static TISSUE_CATEGORY_ORDER = [
-        'Ectoderm',
-        'Mesoderm',
-        'Endoderm',
-        'Germ cells',
-        'Clinically accessible',
+    static TISSUE_CATEGORY_ORDER = tissueCategoryOrder.concat([
         UIControlsWrapper.TISSUE_CATEGORY_UNKNOWN
-    ];
+    ]);
     static TISSUE_CATEGORY_CANONICAL_BY_LOWER = {
         'ectoderm': 'Ectoderm',
         'mesoderm': 'Mesoderm',
@@ -75,13 +70,13 @@ export class UIControlsWrapper extends React.PureComponent {
         availableFields_XAxis: [
             // { title: 'Donor', field: 'donors.display_title' },
             { title: 'Tissue', field: 'sample_summary.tissues' },
-            { title: 'Assay Type', field: 'file_sets.libraries.assay.display_title' },
-            { title: 'Sequencer', field: 'sequencing.sequencer.display_title' },
+            { title: 'Assay Type', field: 'assays.display_title' },
+            { title: 'Sequencer', field: 'sequencers.display_title' },
         ],
         availableFields_Subdivision: [
             // { title: 'Donor', field: 'donors.display_title' },
-            { title: 'Sequencer', field: 'sequencing.sequencer.display_title' },
-            { title: 'Assay Type', field: 'file_sets.libraries.assay.display_title' },
+            { title: 'Sequencer', field: 'sequencers.display_title' },
+            { title: 'Assay Type', field: 'assays.display_title' },
             { title: 'Tissue', field: 'sample_summary.tissues' },
             // { title: 'Data Type', field: 'data_type' },
             // { title: 'File Format', field: 'file_format.display_title' },
@@ -262,7 +257,7 @@ export class UIControlsWrapper extends React.PureComponent {
      * @returns {React.Component} Cloned & extended props.children.
      */
     adjustedChildChart() {
-        const { children, barplot_data_fields } = this.props;
+        const { children, barplot_data_fields, termLabelTransform } = this.props;
         const { showState, aggregateType, tissueCategoryFilter } = this.state;
         const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForTissueCategory();
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
@@ -282,6 +277,7 @@ export class UIControlsWrapper extends React.PureComponent {
                 'aggregateType': aggregateType,
                 'barplot_data_unfiltered': barplot_data_unfiltered,
                 'barplot_data_filtered': barplot_data_filtered,
+                'termLabelTransform': termLabelTransform,
                 'xAxisTermLabelMapper': xAxisTermLabelMapper
             }
         ));
@@ -596,6 +592,8 @@ export class UIControlsWrapper extends React.PureComponent {
                                 height={legendContainerHeight}
                                 barplot_data_filtered={barplotDataFiltered}
                                 barplot_data_unfiltered={barplotDataUnfiltered}
+                                // Keep legend labels aligned with chart bar/popover labels.
+                                termLabelTransform={this.props.termLabelTransform}
                                 field={_.findWhere(availableFields_Subdivision, { 'field': barplot_data_fields[1] }) || null}
                                 showType={showState} />
                         </div>
@@ -668,14 +666,16 @@ export class AggregatedLegend extends React.Component {
     }
 
     getFieldForLegend() {
-        const { field, barplot_data_unfiltered, barplot_data_filtered, aggregateType, showType } = this.props;
+        const { field, barplot_data_unfiltered, barplot_data_filtered, aggregateType, showType, termLabelTransform } = this.props;
         return Legend.barPlotFieldDataToLegendFieldsData(
             AggregatedLegend.collectSubDivisionFieldTermCounts(
                 showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered || barplot_data_unfiltered,
                 aggregateType || 'files',
                 field
             ),
-            function (term) { return typeof term[aggregateType] === 'number' ? -term[aggregateType] : 'term'; }
+            function (term) { return typeof term[aggregateType] === 'number' ? -term[aggregateType] : 'term'; },
+            undefined,
+            termLabelTransform
         );
     }
 

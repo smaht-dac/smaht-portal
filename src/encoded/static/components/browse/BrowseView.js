@@ -49,7 +49,7 @@ export const BROWSE_STATUS_FILTERS =
 
 export const BROWSE_LINKS = {
     file:
-        '/browse/?type=File&sample_summary.studies=Production&dataset!=No+value&' +
+        '/browse/?type=File&sort=-file_status_tracking.release_dates.initial_release_date&sample_summary.studies=Production&dataset!=No+value&' +
         BROWSE_STATUS_FILTERS,
     donor:
         '/browse/?type=Donor&study=Production&tags=has_released_files&' +
@@ -113,18 +113,30 @@ export const NoResultsBrowseModal = ({
     const hasNoResults = context?.total === 0;
     const isBaseBrowsePath = isBaseBrowseParams(type, context?.filters);
 
+    // Check if user sent from Release Tracker by checking for
+    // file_release_tracking facet in `context.facet`
+    let hasReleaseTrackerParam = false;
+    if (type === 'file') {
+        hasReleaseTrackerParam = context?.facets?.some(
+            (facet) =>
+                facet.field ===
+                'file_status_tracking.release_dates.initial_release'
+        );
+    }
+
     /**
      * Show No results modal if all of the following are true:
      * - `userDownloadAccess` has reached a stable state
      * - The user is not a member of the SMaHT consortium
      * - There are no files in the search results
      * - The URL is the base browse path (no additional filters applied)
+     *   or the URL contains the release date filter
      */
     const shouldShowNoResultsModal =
         userDownloadAccessUpdated &&
         isPublicUser &&
         hasNoResults &&
-        isBaseBrowsePath;
+        (isBaseBrowsePath || hasReleaseTrackerParam);
 
     return shouldShowNoResultsModal ? (
         <Modal
@@ -170,7 +182,7 @@ const BrowseFileBody = (props) => {
 
     const initialFields = [
         'sample_summary.tissues',
-        'sequencing.sequencer.display_title',
+        'sequencers.display_title',
     ];
 
     return (
@@ -181,8 +193,8 @@ const BrowseFileBody = (props) => {
                 <div className="stats-column col-auto">
                     <BrowseSummaryStatsViewer
                         {...{
-                            session,
                             href,
+                            session,
                             windowWidth,
                             useCompactFor,
                             mapping: 'all',
@@ -502,6 +514,8 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     let BrowseType = null;
     switch (context['@type'][0]) {
         case 'FileSearchResults':
+        case 'SubmittedFileSearchResults':
+        case 'OutputFileSearchResults':
             BrowseType = 'File';
             break;
         case 'DonorSearchResults':
@@ -758,7 +772,7 @@ export function createBrowseFileColumnExtensionMap({
             },
         },
         // Assay
-        'file_sets.libraries.assay.display_title': {
+        'assays.display_title': {
             widthMap: { lg: 100, md: 100, sm: 100 },
         },
         // Tissue
@@ -818,7 +832,7 @@ export function createBrowseFileColumnExtensionMap({
             },
         },
         // Platform
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             widthMap: { lg: 170, md: 160, sm: 150 },
         },
         // Format
@@ -864,10 +878,10 @@ export function createBrowseFileColumnExtensionMap({
         'sample_summary.tissues': {
             title: 'Tissue',
         },
-        'file_sets.libraries.assay.display_title': {
+        'assays.display_title': {
             title: 'Assay',
         },
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             title: 'Platform',
         },
         'file_status_tracking.release_dates.initial_release_date': {

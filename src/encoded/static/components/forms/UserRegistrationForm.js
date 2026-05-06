@@ -234,7 +234,9 @@ export default class UserRegistrationForm extends React.PureComponent {
                     // TODO
                     // If validation failure, set / show status message, return;
                     // Else If unknown failure:
-                    this.setState({ registrationStatus: 'network-failure' });
+                    this.setState({ 
+                        registrationStatus: err.code === 403 ? 'restricted-email' : 'network-failure',
+                    });
                     logger.error(
                         'Registration Error - Error on post to /create-unauthorized-user.'
                     );
@@ -336,6 +338,20 @@ export default class UserRegistrationForm extends React.PureComponent {
                     </span>
                 </div>
             );
+        } else if (registrationStatus === 'restricted-email') {
+            errorIndicator = (
+                <div className="alert alert-warning d-flex align-items-center self-registration-alert restricted-email mb-1" role="alert">
+                    <i className="fas icon icon-ban me-2 self-registration-alert-icon"></i>
+                    <div>
+                        <span>
+                            <b>Failed to register new account using your e-mail
+                            address.</b> Please try again using your institutional
+                            e-mail address to register, or contact the SMaHT Data
+                            Analysis Center.
+                        </span>
+                    </div>
+                </div>
+            );
         }
 
         const isInstitutional = this.isInstitutionalEmail(unverifiedUserEmail);
@@ -344,8 +360,6 @@ export default class UserRegistrationForm extends React.PureComponent {
 
         return (
             <div className="user-registration-form-container position-relative">
-                {errorIndicator}
-
                 {heading}
 
                 <div className={isConsortiumMember === true ? null : "mb-3"}>
@@ -358,13 +372,13 @@ export default class UserRegistrationForm extends React.PureComponent {
                             checked={isConsortiumMember === true}
                             onChange={this.onConsortiumMemberYes}
                             className="col-12 col-lg-auto">
-                            Yes, I am a member of the SMaHT network
+                            Yes, I am a SMaHT network member
                         </Checkbox>
                         <Checkbox
                             checked={isConsortiumMember === false}
                             onChange={this.onConsortiumMemberNo}
                             className="col-12 col-lg-auto">
-                            No, I am&nbsp;<strong>not</strong>&nbsp;a member of the SMaHT network
+                            No, I am&nbsp;<strong>not</strong>&nbsp;a SMaHT Network member
                         </Checkbox>
                     </div>
                 </div>
@@ -530,6 +544,12 @@ export default class UserRegistrationForm extends React.PureComponent {
                                     improve the quality of user experience and/or
                                     security assurance purposes.
                                 </p>
+                            </div>
+                        </div>
+
+                        <div className="row">
+                            <div className="col-12">
+                                {errorIndicator}
                             </div>
                         </div>
 
