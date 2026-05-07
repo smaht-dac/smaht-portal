@@ -69,7 +69,7 @@ class SearchBase:
         'type': 'File',
         'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
         'sample_summary.studies': ['Production'],
-        'dataset': ['!No value'],
+        'dataset!': ['No value'],
         'additional_facet': [
             'assays.display_title',
             'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
