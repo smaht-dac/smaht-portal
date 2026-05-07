@@ -31,34 +31,34 @@ def _get_reference_file_json(context, request, tag):
         return response
 
     try:
-        # search_params = {
-        #     "type": REFERENCE_FILE,
-        #     "limit": 1,
-        #     "sort": "-date_created",
-        #     "tags": tag,
-        #     "version": JSON_VERSION,
-        # }
-        # subreq = make_search_subreq(
-        #     request, f"/search?{urlencode(search_params, True)}", inherit_user=True
-        # )
-        # search_res = search(context, subreq)["@graph"]
+        search_params = {
+            "type": REFERENCE_FILE,
+            "limit": 1,
+            "sort": "-date_created",
+            "tags": tag,
+            "version": JSON_VERSION,
+        }
+        subreq = make_search_subreq(
+            request, f"/search?{urlencode(search_params, True)}", inherit_user=True
+        )
+        search_res = search(context, subreq)["@graph"]
 
-        # if len(search_res) != 1:
-        #     response["error_msg"] = f"Reference file not found for tag '{tag}'."
-        #     return response
+        if len(search_res) != 1:
+            response["error_msg"] = f"Reference file not found for tag '{tag}'."
+            return response
 
-        # upload_key = search_res[0]["upload_key"]
+        upload_key = search_res[0]["upload_key"]
         upload_bucket = request.registry.settings.get("file_upload_bucket")
 
         #For local testing purposes
-        if tag == "somalier_data":
-            upload_key = (
-                "2d1e6abc-22ce-4db0-9a8f-cc09a810aac7/SMAFI55NZZKE.json"
-            )
-        elif tag == "qc_metrics_data":
-            upload_key = (
-                "cf683b4b-832f-46df-bd59-7dde5c4945ba/SMAFISSLEHWK.json"
-            )
+        # if tag == "somalier_data":
+        #     upload_key = (
+        #         "2d1e6abc-22ce-4db0-9a8f-cc09a810aac7/SMAFI55NZZKE.json"
+        #     )
+        # elif tag == "qc_metrics_data":
+        #     upload_key = (
+        #         "cf683b4b-832f-46df-bd59-7dde5c4945ba/SMAFISSLEHWK.json"
+        #     )
 
         if upload_bucket:
             s3 = boto_client("s3")
