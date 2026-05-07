@@ -3646,16 +3646,13 @@ FAQ page styles
         }
     }
     h3 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
     h4 {
         font-size: 20px;
     }
     h5 {
         font-size: 16px;
-        color: #2e385a;
-        margin-bottom: 20px;
-        margin-top: 40px;
     }
     h6 {
         font-size: 0.95rem;
@@ -3893,6 +3890,18 @@ FAQ page styles
 
         &.help-entry#pipeline_docs {
             margin-top: 50px;
+        }
+    }
+
+    &[data-path='/docs/additional-resources/pipeline-docs'] {
+        h3 {
+            font-size: 1.5rem;
+        }
+        h5 {
+            font-size: 16px;
+            color: #2e385a;
+            margin-bottom: 20px;
+            margin-top: 40px;
         }
     }
 }

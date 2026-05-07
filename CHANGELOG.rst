@@ -10,9 +10,10 @@ Change Log
 1.26.3
 ======
 
-`PR 663: fix: update status param for homepage endpoint <https://github.com/smaht-dac/smaht-portal/pull/663>`_
+`PR 665: fix: update pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/665>`_
 
-* Update statuses in homepage counts parameters
+* Update pipeline docs styles
+* Update title of new pipeline docs page
 
 
 1.26.2
