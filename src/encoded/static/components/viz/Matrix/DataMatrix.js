@@ -92,7 +92,7 @@ export default class DataMatrix extends React.PureComponent {
     };
     static DEFAULT_COLUMN_GROUPS = {
         "Bulk WGS": {
-            "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'Fiber-Seq'],
             "backgroundColor": "#e04141",
             "textColor": "#ffffff",
             "shortName": "WGS"
@@ -197,6 +197,7 @@ export default class DataMatrix extends React.PureComponent {
                 "Single-cell PTA WGS - Illumina": "PTA-amplified WGS",
                 "TEnCATS - ONT": "TEnCATS",
                 "WGS - ONT": "WGS - Standard ONT",
+                "WGS - Element": "WGS - Element AVITI",
                 "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
                 "HiDEF-seq - Illumina": "HiDEF-seq",
                 "HiDEF-seq - PacBio": "HiDEF-seq",
@@ -598,7 +599,15 @@ export default class DataMatrix extends React.PureComponent {
             - counts.files: take from any row (they should all be equal after step 2)
             - other fields: distinct values; single => scalar, multiple => array
     */
-    static transformDSA(nonDsaData, row_totals, dsaData, groupingProperties, derivedField = 'assay', useAssayFamilyCount = false) {
+    static transformDSA(
+        nonDsaData,
+        row_totals,
+        dsaData,
+        groupingProperties,
+        derivedField = 'assay',
+        useAssayFamilyCount = false,
+        dsaCountStrategy = 'diff'
+    ) {
         const getFilesCount = (row) => Number(row && row.counts && row.counts.files) || 0;
 
         // Helper: build a grouping key like "COLO829BL||No value"
@@ -629,17 +638,38 @@ export default class DataMatrix extends React.PureComponent {
             diffFilesByGroup[key] = rowTotals - allTotals;
         });
 
+        // Build a per-group fallback from raw DSA rows.
+        // This avoids overcount when row_totals is exploded by additional dimensions
+        // (e.g. donor+tissue with assay/platform/data_type expansions).
+        const maxDsaFilesByGroup = {};
+        const dsaFilesByGroupAndType = {};
+        for (const row of dsaData) {
+            const key = makeGroupKey(row);
+            const files = getFilesCount(row);
+            maxDsaFilesByGroup[key] = Math.max(maxDsaFilesByGroup[key] || 0, files);
+            const dataType = String(row?.data_type || 'No value');
+            if (!dsaFilesByGroupAndType[key]) {
+                dsaFilesByGroupAndType[key] = {};
+            }
+            dsaFilesByGroupAndType[key][dataType] = Math.max(dsaFilesByGroupAndType[key][dataType] || 0, files);
+        }
+
         // 4) First-pass transform of dsa entries
         const newDsa = dsaData.map((row) => {
             const key = makeGroupKey(row);
             const diffFiles = diffFilesByGroup[key];
+            const maxDsaFiles = maxDsaFilesByGroup[key];
+            const dsaByTypeTotal = _.reduce(dsaFilesByGroupAndType[key] || {}, (sum, filesByType) => sum + (Number(filesByType) || 0), 0);
+            const resolvedFiles = dsaCountStrategy === 'max_dsa_row'
+                ? (dsaByTypeTotal || (typeof maxDsaFiles === 'number' ? maxDsaFiles : getFilesCount(row)))
+                : (typeof diffFiles === 'number' ? diffFiles : getFilesCount(row));
 
             return {
                 ...row,
                 // If we have a diff for this group, use it; otherwise keep original value
                 counts: {
                     ...(row.counts || {}),
-                    files: typeof diffFiles === 'number' ? diffFiles : getFilesCount(row),
+                    files: resolvedFiles,
                 },
                 [derivedField]: 'DSA',
             };
@@ -736,6 +766,58 @@ export default class DataMatrix extends React.PureComponent {
         });
     }
 
+    /**
+     * Some backend rows can arrive with assay label missing ("No value").
+     * In donor x tissue view, leaving these rows as-is creates hidden buckets
+     * that are counted in "All" but are not selectable in assay dropdown.
+     *
+     * We remap those rows into visible logical assay buckets:
+     * - DSA-like data types -> "DSA"
+     * - Variant-call-like rows -> "Variant Call Sets"
+     */
+    static normalizeMissingAssayBucket(row = null, derivedField = 'assay') {
+        if (!row || typeof row !== 'object') return row;
+        const assayValue = row[derivedField];
+        const isMissingAssay = !assayValue || assayValue === 'No value' || assayValue === 'No value - No value';
+        if (!isMissingAssay) return row;
+
+        const dataType = row?.data_type;
+        const analysisDetails = row?.analysis_details;
+        const dsaDataTypes = new Set(['DSA', 'Chain File', 'Sequence Interval']);
+        const isVariantLikeDataType = typeof dataType === 'string' && /(SNV|Indel)/i.test(dataType);
+        const isVariantLikeAnalysis = analysisDetails === 'Filtered' || analysisDetails === 'Phased';
+
+        if (dsaDataTypes.has(dataType)) {
+            return { ...row, [derivedField]: 'DSA' };
+        }
+
+        if (isVariantLikeDataType || isVariantLikeAnalysis) {
+            return { ...row, [derivedField]: 'Variant Call Sets' };
+        }
+
+        return row;
+    }
+
+    /**
+     * Ensure assay value is a single comparable string.
+     *
+     * Why:
+     * - During transform/merge, assay can become an array.
+     * - Filtering logic and dropdown matching require a scalar string.
+     *
+     * Rule:
+     * - If array => pick first non-empty string.
+     * - If string => keep as-is.
+     * - Otherwise => null.
+     */
+    static normalizeAssayToSingleValue(assayValue) {
+        if (Array.isArray(assayValue)) {
+            const firstValid = _.find(assayValue, (v) => typeof v === 'string' && v.trim() !== '');
+            return firstValid || null;
+        }
+        return typeof assayValue === 'string' ? assayValue : null;
+    }
+
     loadSearchQueryResults() {
         const requestId = ++this.latestLoadRequestId;
         const {
@@ -780,7 +862,7 @@ export default class DataMatrix extends React.PureComponent {
                 if (resultItemPostProcessFuncKey && typeof DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey] === 'function') {
                     cloned = DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey](cloned);
                 }
-                if (cloned.counts && cloned.counts.files && cloned.counts.files > 0) {
+                if (cloned.counts && Number(cloned.counts.files) > 0) {
                     if (typeof cloned.assay === 'string') {
                         cloned._derivedAssayFamily = (valueChangeMap?.assay || {})[cloned.assay] || cloned.assay;
                     }
@@ -790,6 +872,17 @@ export default class DataMatrix extends React.PureComponent {
                             valueChangeMap,
                             matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
                         );
+                    }
+                    // These safeguards are donor x tissue specific.
+                    // Applying them globally can change donor/cell-line assay rollups.
+                    if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
+                        // Keep assay as scalar to avoid "array assay" rows silently missing
+                        // from dropdown filtering and summary calculations.
+                        cloned.assay = DataMatrix.normalizeAssayToSingleValue(cloned.assay);
+                        cloned = DataMatrix.normalizeMissingAssayBucket(cloned, 'assay');
+                        if (typeof cloned.assay === 'string') {
+                            cloned._derivedAssayFamily = cloned.assay;
+                        }
                     }
                     if (valueChangeMap) {
                         _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
@@ -847,15 +940,28 @@ export default class DataMatrix extends React.PureComponent {
             updatedState['overallCounts'] = result.counts || null;
             updatedState['facetsForPanel'] = result.facets || [];
             updatedState['facetFiltersForPanel'] = result.filters || [];
+            // Build generic row-summary overrides from backend facet counts.
+            // This keeps visual components dimension-agnostic (not donor-specific).
+            const donorFacet = _.findWhere(result.facets || [], { field: 'donors.display_title' });
+            const donorValueMap = valueChangeMap?.donor || {};
+            const donorSummaryCounts = donorFacet && Array.isArray(donorFacet.terms)
+                ? _.reduce(donorFacet.terms, (memo, term) => {
+                    const key = donorValueMap[term?.key] || term?.key;
+                    if (!key || key === 'No value') return memo;
+                    memo[key] = { files: Number(term?.doc_count) || 0 };
+                    return memo;
+                }, {})
+                : null;
+            updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
             const availableDonorTissueAssays = _.uniq(_.compact(_.map(transformedData.all, (r) => r.assay)));
             updatedState['availableDonorTissueAssays'] = availableDonorTissueAssays;
-            // sum files in transformedData array
-            let totalFiles = 0;
-            _.forEach(transformedData.row_totals, (r) => {
-                if (r.counts && typeof r.counts.files === 'number') {
-                    totalFiles += r.counts.files;
-                }
-            });
+            // Keep top-level included-properties count aligned with backend search context.
+            // Note: backend may return numeric-looking strings; coerce before deciding fallback.
+            // Fallback to aggregated rows only if backend count is truly unavailable.
+            const backendTotalFiles = Number(result?.counts?.files);
+            const totalFiles = Number.isFinite(backendTotalFiles)
+                ? backendTotalFiles
+                : _.reduce(transformedData.all, (sum, r) => sum + (Number(r?.counts?.files) || 0), 0);
             updatedState['totalFiles'] = totalFiles;
 
             //extend existing rowGroupsExtended from transformed data using mapping fields
@@ -1050,10 +1156,19 @@ export default class DataMatrix extends React.PureComponent {
     getDonorTissueAssayOptions(availableAssays = null) {
         const configuredDisplayValues = this.props.donorTissueAssayOptions || [];
         const hasAvailableAssays = Array.isArray(availableAssays);
-        const assayDisplayValues = (hasAvailableAssays
+        // Dropdown should never hide meaningful rows behind "No value".
+        // Map missing assay labels to a visible virtual bucket.
+        const normalizeAssayOption = (displayValue) => {
+            if (!displayValue || displayValue === 'No value' || displayValue === 'No value - No value') {
+                return 'Variant Call Sets';
+            }
+            return displayValue;
+        };
+        const assayDisplayValues = _.uniq((hasAvailableAssays
             ? _.uniq(availableAssays)
             : _.uniq(configuredDisplayValues.map((displayValue) => this.props.valueChangeMap?.assay?.[displayValue] || displayValue)))
-            .filter((displayValue) => displayValue && displayValue !== 'No value' && displayValue !== 'No value - No value');
+            .map(normalizeAssayOption))
+            .filter((displayValue) => !!displayValue);
 
         return [
             { label: DataMatrix.DONOR_TISSUE_ALL_ASSAYS, value: DataMatrix.DONOR_TISSUE_ALL_ASSAYS },
@@ -1074,7 +1189,11 @@ export default class DataMatrix extends React.PureComponent {
         }
         const filteredAll = (!donorTissueAssay || donorTissueAssay === DataMatrix.DONOR_TISSUE_ALL_ASSAYS)
             ? (results.all || [])
-            : (results.all || []).filter((row) => row.assay === donorTissueAssay);
+            : (results.all || []).filter((row) => {
+                // Defensive normalization in case any row still carries array assay.
+                const assayValue = DataMatrix.normalizeAssayToSingleValue(row?.assay);
+                return assayValue === donorTissueAssay;
+            });
         const aggregateCounts = (rows = []) => {
             const donorValues = _.chain(rows)
                 .map((row) => row?.donor)
@@ -1142,13 +1261,43 @@ export default class DataMatrix extends React.PureComponent {
                     counts: { ...zeroCounts }
                 };
             });
+        const facetsForPanel = this.state?.facetsForPanel || [];
+        const donorFacet = _.findWhere(facetsForPanel, { field: 'donors.display_title' });
+        const donorValueMap = this.props?.valueChangeMap?.donor || {};
+        const hasAssayFilter = donorTissueAssay && donorTissueAssay !== DataMatrix.DONOR_TISSUE_ALL_ASSAYS;
+        // In donor-tissue mode with assay filtering, facet counts no longer represent global donor totals,
+        // so disable donor summary overrides in that case.
+        const donorSummaryCounts = !hasAssayFilter && donorFacet && Array.isArray(donorFacet.terms)
+            ? _.reduce(donorFacet.terms, (memo, term) => {
+                const key = donorValueMap[term?.key] || term?.key;
+                if (!key || key === 'No value') return memo;
+                memo[key] = { files: Number(term?.doc_count) || 0 };
+                return memo;
+            }, {})
+            : null;
+
+        // In "All", keep donor x tissue overall aligned to visible assay buckets.
+        // In filtered mode, aggregate from the already-filtered matrix rows.
+        const backendOverallCounts = this.state?.overallCounts || null;
+        const visibleAssayOptions = this.getDonorTissueAssayOptions(this.state?.availableDonorTissueAssays || [])
+            .map(({ value }) => value)
+            .filter((value) => value && value !== DataMatrix.DONOR_TISSUE_ALL_ASSAYS);
+        const visibleAssaySet = new Set(visibleAssayOptions);
+        const visibleAllRows = (results.all || []).filter((row) => {
+            const assayValue = DataMatrix.normalizeAssayToSingleValue(row?.assay);
+            return assayValue && visibleAssaySet.has(assayValue);
+        });
+        const effectiveOverallCounts = hasAssayFilter
+            ? aggregateCounts(filteredAll)
+            : (aggregateCounts(visibleAllRows) || backendOverallCounts || aggregateCounts(filteredAll));
 
         return {
             ...results,
             all: filteredAll,
             row_totals: aggregateRowsByKeys(filteredAll, effectiveRowTotalKeys),
             column_totals: effectiveColumnTotals,
-            overallCounts: aggregateCounts(filteredAll)
+            overallCounts: effectiveOverallCounts,
+            rowSummaryCountsByGroup: donorSummaryCounts ? { donor: donorSummaryCounts } : null
         };
     }
 
@@ -1438,7 +1587,7 @@ export default class DataMatrix extends React.PureComponent {
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
             defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel, isFetching,
-            matrixMode, donorTissueAssay, availableDonorTissueAssays
+            matrixMode, donorTissueAssay, availableDonorTissueAssays, rowSummaryCountsByGroup
         } = this.state;
 
         const resultKey = "_results";
@@ -1448,9 +1597,15 @@ export default class DataMatrix extends React.PureComponent {
         const effectiveYAxisLabel = isTissueMatrixCount ? 'Tissue' : yAxisLabel;
         const effectiveResults = this.getDerivedDonorTissueResults(this.state[resultKey]);
         const effectiveOverallCounts = effectiveResults?.overallCounts || overallCounts;
-        const effectiveTotalFiles = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
-            ? (effectiveOverallCounts?.files ?? totalFiles)
-            : totalFiles;
+        // Row-summary overrides are useful for donor/assay benchmarking rollups,
+        // but in donor/tissue mode they can conflict with assay-dropdown totals.
+        // Keep donor/tissue overall driven by effective overallCounts only.
+        const effectiveRowSummaryCountsByGroup = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
+            ? null
+            : (rowSummaryCountsByGroup || null);
+        // In donor/tissue mode, assay dropdown refines matrix rendering only.
+        // Keep header included-properties count anchored to unfiltered backend context.
+        const effectiveTotalFiles = totalFiles;
 
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
@@ -1479,8 +1634,21 @@ export default class DataMatrix extends React.PureComponent {
                 : true,
             countFor,
             overallCounts: effectiveOverallCounts,
+            // Use mode-appropriate summary overrides: donor/tissue mode may null these out
+            // under assay filter to avoid inconsistencies with facet-driven contexts.
+            rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
-            browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
+            browseFilteringTransformFunc: browseFilteringTransformFuncKey
+                ? ((filteringProperties, blockType) => {
+                    const transformFn = DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey];
+                    if (typeof transformFn !== 'function') return filteringProperties;
+                    return transformFn(filteringProperties, blockType, {
+                        matrixMode,
+                        donorTissueAssay,
+                        valueChangeMap
+                    });
+                })
+                : null
         };
 
         const colAgg = Array.isArray(query.columnAggFields) ? query.columnAggFields : [query.columnAggFields];
@@ -1785,7 +1953,12 @@ DataMatrix.resultTransformedPostProcessFuncs = {
             dsaData,
             derivedGroupingProperties,
             derivedLabelField,
-            columnGrouping !== 'assay'
+            // Keep DSA in "file count" mode for all matrix modes.
+            // Assay-family counting inflated donor x tissue tuples (e.g. SMHT023/3AC => 3 instead of 1).
+            false,
+            // For non-assay grouping (e.g. Donor x Tissue), use max raw DSA row count per tuple
+            // instead of row_totals diff, which can be exploded by assay/platform dimensions.
+            columnGrouping === 'assay' ? 'diff' : 'max_dsa_row'
         );
         const transformedSnv = DataMatrix.transformSNV(variantCallSetData, derivedGroupingProperties, derivedLabelField);
 
@@ -1796,23 +1969,62 @@ DataMatrix.resultTransformedPostProcessFuncs = {
     }
 };
 DataMatrix.browseFilteringTransformFuncs = {
-    "analysisDerivedColumns": function (filteringProperties, blockType) {
+    "analysisDerivedColumns": function (filteringProperties, blockType, matrixContext = null) {
         const assayField = 'assays.display_title';
-        const hasAssayFilter = typeof filteringProperties[assayField] !== 'undefined';
+        const platformField = 'sequencers.platform';
+        const isDonorTissueMode = matrixContext?.matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE;
+        const selectedDonorTissueAssay = matrixContext?.donorTissueAssay;
+        const hasSelectedDonorTissueAssay = isDonorTissueMode &&
+            selectedDonorTissueAssay &&
+            selectedDonorTissueAssay !== DataMatrix.DONOR_TISSUE_ALL_ASSAYS;
+
+        // Donor x Tissue regular cells might not include assay in URL params.
+        // Inject currently selected assay to keep browse links scoped correctly.
+        if (hasSelectedDonorTissueAssay && typeof filteringProperties[assayField] === 'undefined') {
+            const assayValueMap = matrixContext?.valueChangeMap?.assay || {};
+            const rawAssayCandidates = _.filter(_.keys(assayValueMap), (rawKey) => assayValueMap[rawKey] === selectedDonorTissueAssay);
+            const rawSelectedAssay = rawAssayCandidates[0] || selectedDonorTissueAssay;
+            const delim = ' - ';
+            const splitIdx = typeof rawSelectedAssay === 'string' ? rawSelectedAssay.lastIndexOf(delim) : -1;
+
+            // If selected assay contains platform suffix (e.g. "WGS - ONT"), split into raw assay + platform.
+            if (splitIdx > 0) {
+                const rawAssay = rawSelectedAssay.slice(0, splitIdx);
+                const rawPlatform = rawSelectedAssay.slice(splitIdx + delim.length);
+                filteringProperties[assayField] = rawAssay;
+                if (rawPlatform) {
+                    filteringProperties[platformField] = rawPlatform;
+                }
+            } else {
+                filteringProperties[assayField] = rawSelectedAssay;
+            }
+        }
+
+        const assayFilterRaw = filteringProperties[assayField];
+        const assayFilterList = Array.isArray(assayFilterRaw)
+            ? assayFilterRaw
+            : (typeof assayFilterRaw === 'string' ? [assayFilterRaw] : []);
+        const hasAssayFilter = assayFilterList.length > 0;
+        const hasDSAAssayFilter = assayFilterList.includes('DSA');
+        const hasVariantCallSetsAssayFilter = assayFilterList.includes('Variant Call Sets');
         const studies = filteringProperties['sample_summary.studies'];
         const studiesList = Array.isArray(studies) ? studies : (typeof studies === 'string' ? [studies] : []);
         const isProductionStudy = studiesList.includes('Production');
 
-        if (filteringProperties[assayField] === 'DSA') {
+        if (hasDSAAssayFilter) {
             // extend data_type filter to include Chain File along with DSA
             filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
-        } else if (filteringProperties[assayField] === 'Variant Call Sets') {
+        } else if (hasVariantCallSetsAssayFilter) {
             filteringProperties['analysis_details'] = [...(filteringProperties['analysis_details'] || []), 'Filtered', 'Phased'];
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
         } else if (
-            (blockType === 'regular') ||
+            // IMPORTANT:
+            // Only apply non-DSA exclusion when an assay filter exists.
+            // In donor x tissue, regular blocks may not carry assays.display_title in URL params;
+            // forcing data_type! in that case incorrectly removes DSA/Chain rows.
+            ((blockType === 'regular') && hasAssayFilter) ||
             ((blockType === 'col-summary' || blockType === 'col-secondary-summary') && hasAssayFilter)
         ) {
             // for non-DSA columns we exclude DSA-related data types;
