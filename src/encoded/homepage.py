@@ -67,7 +67,7 @@ class SearchBase:
     }
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
+        'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
         'sample_summary.studies': ['Production'],
         'dataset': ['!No value'],
         'additional_facet': [
