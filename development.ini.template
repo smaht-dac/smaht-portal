@@ -25,6 +25,10 @@ pyramid.default_locale_name = en
 # note for smaht for now we only load_prod_data, extension can be done later
 # load_test_data = snovault.loadxl:load_local_data
 load_test_data = snovault.loadxl:load_prod_data
+# this value when set to true will skip validators that rely on es
+# best to try to deploy local with set to false (or comment out) and 
+# if insert loading fails on deploy then set to true
+skip_es_validation = false
 encoded_version = 100.200.300
 snovault_version = 200.300.400
 utils_version = 300.400.500

@@ -10,6 +10,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "genome_size": 3100000000
+        "genome_size": 3100000000,
+        "version": "1.0.0"
     }
 ]

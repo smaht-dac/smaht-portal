@@ -97,8 +97,6 @@ const AnalysisInformationTab = (props) => {
 
 // DotRouterTab content for displaying QC information for the current file.
 const QCOverviewTab = ({ session, context }) => {
-    const userDownloadAccess = useUserDownloadAccess(session);
-
     // Check if quality metrics exist and are valid
     const fileHasQualityMetrics =
         context?.quality_metrics && context?.quality_metrics?.length > 0;

@@ -965,6 +965,10 @@ i.status-indicator-dot {
 		.callout-text { 
 			color: #0E4855;
 			font-size: 1rem;
+
+			b {
+				font-weight: 500;
+			}
 		}
 
 		a {
@@ -1351,21 +1355,88 @@ body[data-pathname^="/users/"] {
 	}
 	#email-address{
 		border-radius: 7px;
-		border: 1px solid #cae5fe;
-		background: #f1f9ff;
+		border: 1px solid #f0f0f0;
+		background: #fbfbfb;
 		box-shadow: none;
 		padding: 5px 15px;
+		align-items: center;
+
+		&.warning {
+  			background: #fff3cd !important;
+  			border: 1px solid #ffeeba !important;
+		}
 	}
+	.email-warning-message {
+  		background: #fff8e1;
+  		border-left: 4px solid #ffc107;
+  		padding: 8px 12px;
+  		border-radius: 4px;
+  		font-size: 0.9rem;
+  		color: #7a5b00;
+	}
+
+	.change-email-link {
+  		font-size: 0.9rem;
+  		text-decoration: none;
+
+		&:hover {
+  			text-decoration: underline;
+		}
+	}
+
 	div.alert-danger {
-		color: #DD999A;
+		color: #923333;
 		background-color: #fdf2f2;
 		> div {
 			color: #6c4545;
 		}
 	}
+
+	.self-registration-alert {
+		> div {
+			color: #923333;
+		}
+
+		p {
+			margin-bottom: 0.5rem !important;
+		}
+
+		p:last-child {
+			margin-bottom: 0 !important;
+		}
+
+		&.restricted-email {
+			color: #572e06;
+
+			> div {
+				color: #572e06;
+			}
+			
+			.icon {
+				font-size: 2rem;
+			}
+		}
+	}
+
+	.self-registration-alert-icon {
+		font-size: 2.6rem;
+	}
+
+	.recaptcha-privacy-row {
+		padding-bottom: 0.75rem;
+
+		@include media-breakpoint-up(lg) {
+			> .col-lg-5,
+			> .col-lg-7 {
+				display: flex;
+				align-items: center;
+			}
+		}
+	}
 	.lh-lg {
 		line-height: 1.75 !important;
 	}
+
 	.loading-indicator {
 		position: absolute;
 		display: flex;
@@ -1378,12 +1449,96 @@ body[data-pathname^="/users/"] {
 		bottom: 0;
 		top: 0;
 	}
-	.footer-button-container {
-		background-color: #f8f8f8;
+		.footer-button-container {
+			background-color: #f8f8f8;
   		width: calc(100% + 2.5rem);
   		margin-left: -1.25rem;
   		padding-left: 0.75rem;
   		padding-right: 0.75rem;
+		}
+
+		.self-registration-footer {
+			border-top: 1px solid #dee2e6;
+		}
+
+		.network-member-panel {
+			border-radius: 8px;
+			border: 1px solid #cae5fe;
+			background: #f1f7fd;
+			padding: 1rem 1.25rem;
+
+			.section-header {
+				border-bottom-color: #c6d8e8;
+			}
+
+			.icon-users {
+				color: #c6d8e8 !important;
+			}
+
+			.section-title {
+				color: #343741;
+				font-weight: 600 !important;
+			}
+		}
+
+		.network-member-step {
+			height: 100%;
+			border-radius: 10px;
+			border: 1px solid #cae5fe;
+			background: #fffffeed;
+			padding: .75rem 1rem;
+
+			.network-member-step-title {
+				text-align: center;
+				font-size: 1rem;
+				font-weight: 600;
+				margin-bottom: 1rem;
+			}
+
+			ul {
+				padding-left: 1.25rem;
+			}
+
+			li {
+				margin-bottom: 0.75rem;
+			}
+
+			p,
+			li {
+				font-size: 0.85rem;
+			}
+		}
+
+		.network-member-footer {
+			border-top: #dee2e6 solid 1px;
+			margin-top: 2rem !important;
+
+			.btn {
+				// min-width: 280px;
+				padding: 6px 40px;
+			}
+
+			.btn-outline-primary {
+				color: #1074d2;
+				background-color: #fff;
+				border-color: #dee2e6;
+				border-width: 1.5px;
+
+				&:hover,
+				&:focus,
+				&:active,
+				&:active:focus {
+					color: #1074d2;
+					background-color: #eef5ff;
+					border-color: #dee2e6;
+				}
+			}
+
+		@include media-breakpoint-down(lg) {
+			.btn {
+				min-width: 100%;
+			}
+		}
 	}
 }
 
@@ -1658,11 +1813,6 @@ File and Donor Overview Styles
 							word-break: break-word;
 							align-content: center;
 							font-weight: 400;
-
-							&.coming-soon {
-								color: #CCCCCC;
-							}
-
 						}
 
 						&:last-of-type {
@@ -2489,34 +2639,36 @@ File and Donor Overview Styles
 	}
 }
 
-.item-page-container {
-	.callout-card {
-		&.protected-data {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			max-width: none;
-			padding: 35px 40px;
-			height: auto;
-			width: auto;
-			margin: auto 10px;
-			text-align: center;
+.callout-card {
+	&.protected-data {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		max-width: none;
+		padding: 35px 40px;
+		height: auto;
+		width: auto;
+		margin: auto 10px;
+		text-align: center;
 
-			i {
-				color: #CECECE;
-				font-size: 2.5rem;
-			}
+		i {
+			color: #CECECE;
+			font-size: 2.5rem;
+		}
 
-			h4 {
-				color: #0E3669;
-				font-weight: 400;
-				font-size: 1.25rem;
-			}
-			span {
-				color: #597598;
-				font-size: 0.875rem;
-			}
+		h4 {
+			color: #0E3669;
+			font-weight: 400;
+			font-size: 1.25rem;
+		}
+		span {
+			color: #597598;
+			font-size: 0.875rem;
+		}
+
+		img {
+			width: 40px;
 		}
 	}
 }
@@ -2536,6 +2688,69 @@ Popover Styles for Item Pages
 		.popover-header {
 			font-weight: 600;
 			background-color: #F1F9FF;
+		}
+
+		&#description-definitions-popover-hardy {
+			border-radius: 12px;
+			max-width: 730px;
+
+			.popover-body {
+				border-radius: inherit;
+			}
+			
+			.table {
+				border-radius: inherit;
+				overflow: hidden;
+			}
+
+			thead > tr > th {
+				border-radius: 12px 12px 0px 0px;
+			}
+
+			tbody {
+				border-radius: 0px 0px 12px 12px;
+				& > tr > td {
+					padding-right: 30px;
+
+					b {
+						font-weight: 600;
+					}
+
+					&.index-cell {
+						width: 120px;
+						padding-right: 12px;
+					}
+					&.footnote-cell {
+
+						a {
+							display: inline-flex;
+							align-items: center;
+						}
+
+						.icon {
+							// font-size: 0.75rem;
+							margin-left: 5px;
+						}
+					}
+				}
+				
+				& > tr:last-child {
+					border-radius: 0px 0px 12px 12px;
+
+					> td {
+						border-radius: inherit;
+					}
+				}
+				
+			}
+		}
+
+			
+		&#chart-info-popover-donor-progress {
+			max-width: 340px;
+		}
+		&#chart-info-popover-ethnicity {
+			max-width: 400px;
 		}
 	}
 

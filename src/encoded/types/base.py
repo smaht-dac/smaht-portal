@@ -186,6 +186,9 @@ class Item(SnovaultItem):
         'open': acl.ALLOW_EVERYONE_VIEW_ACL,
     }
 
+    # Items of these statuses are filtered out from rev links
+    filtered_rev_statuses = ('deleted')
+
     def __init__(self, registry, models):
         super().__init__(registry, models)
         self.STATUS_ACL = self.__class__.STATUS_ACL

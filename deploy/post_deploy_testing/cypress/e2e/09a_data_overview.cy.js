@@ -1,7 +1,11 @@
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
-import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
-import * as _ from "underscore";
+import {
+    testDonorAssayFilesCoverageToggle,
+    testDonorTissueMode,
+    testMatrixPopoverValidation,
+    testTissueAssayFilesDonorsToggle
+} from "../support/utils/dataMatrixUtils";
 
 const EMPTY_DM_PROD_OPTS = {
     donors: [],
@@ -14,9 +18,9 @@ const EMPTY_DM_PROD_OPTS = {
 };
 const BASE_DM_PROD_OPTS = {
     donors: ["SMHT004", "SMHT008", "SMHT009"],
-    mustLabels: ["Non-exposed Skin", "Heart", "Blood"],
+    mustLabels: ["3AD - Skin, Calf", "3S - Heart", "3A - Whole Blood"],
     optionalLabels: [],
-    expectedLowerLabels: ["Donors"],
+    expectedLowerLabels: ["Total Donors", "Total Files"],
     expectedFilesCount: 40,
     expectedTissuesCount: null,
     verifyTotalFromApi: true,
@@ -24,8 +28,8 @@ const BASE_DM_PROD_OPTS = {
 const BASE_DM_BENCHMARKING_OPTS = {
     donors: ["ST001", "ST002", "ST003", "ST004"],
     mustLabels: [],
-    optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
-    expectedLowerLabels: ["Cell Lines", "Donors"],
+    optionalLabels: ["Skin, Abdomen", "Lung", "Brain", "Liver", "Colon, Asc"],
+    expectedLowerLabels: ["Total Cell Lines", "Total Files", "Total Benchmarking Donors", "Total Files"],
     expectedFilesCount: 50,
     expectedTissuesCount: null,
     verifyTotalFromApi: true,
@@ -44,14 +48,14 @@ const ROLE_MATRIX = {
         isAuthenticated: false,
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: false,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -95,14 +99,14 @@ const ROLE_MATRIX = {
         isAuthenticated: true, // set to false if truly public in your app
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -112,14 +116,14 @@ const ROLE_MATRIX = {
         isAuthenticated: true, // set to false if not logged in
 
         runRetractedFilesList: false,
-        runDataMatrixProduction: true,
-        runDataMatrixBenchmarking: true,
+        runDataMatrixProduction: false,
+        runDataMatrixBenchmarking: false,
 
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -214,8 +218,7 @@ function stepVisitRetractedFilesList(caps) {
         .end();
 }
 
-/** Data Matrix (Production) — expand donors and validate popovers */
-function stepDataMatrixProduction(caps) {
+function openDataMatrixPageFromMenu() {
     cy.get(dataNavBarItemSelectorStr)
         .should("have.class", "dropdown-toggle")
         .click()
@@ -232,56 +235,141 @@ function stepDataMatrixProduction(caps) {
             cy.contains("div#page-title-container h1.page-title", "Data Matrix")
                 .should("be.visible");
 
-            cy.get('#data-matrix-for_production').then(($el) => {
-                const fileCount = $el.attr('data-files-count');
-
-                if (fileCount === '0') {
-                    // When data-files-count is 0, the tab should be hidden (display: none)
-                    cy.wrap($el)
-                        .parents('.tab-card')
-                        .should('have.css', 'display', 'none');
-
-                    expect(caps.expectedDataMatrixProductionOpts.expectedFilesCount).to.equal(0);
-
-                    // Stop the test here since the tab is not visible
-                    cy.log('Tab is hidden because data-files-count=0. Test stopped here.');
-                    return; // exit early
-                }
-
-                // If we reach this point, the tab should be visible
-                testMatrixPopoverValidation(
-                    "#data-matrix-for_production",
-                    caps.expectedDataMatrixProductionOpts
-                );
-            });
+            cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
         })
         .end();
 }
 
+function activateProductionDataMatrix(caps) {
+    openDataMatrixPageFromMenu();
+
+    cy.get("body").then(($body) => {
+        const $titleEl = Cypress.$($body)
+            .find(".tab-header .title")
+            .filter((_, el) => Cypress.$(el).text().trim() === "Production Data");
+
+        if ($titleEl.length === 0) {
+            cy.get("#data-matrix-for_production")
+                .parents(".tab-card")
+                .should("have.css", "display", "none");
+            expect(caps.expectedDataMatrixProductionOpts.expectedFilesCount).to.equal(0);
+            cy.log("Production tab hidden (no data).");
+            return;
+        }
+
+        const $headerBtn = $titleEl.closest(".tab-header");
+        cy.wrap($headerBtn)
+            .should("be.visible")
+            .click();
+
+        cy.get("#data-matrix-for_production")
+            .parents(".tab-card")
+            .should("have.class", "is-active")
+            .and("have.attr", "aria-hidden", "false");
+    });
+}
+
+function activateBenchmarkingDataMatrix() {
+    openDataMatrixPageFromMenu();
+
+    cy.contains(".tab-header .title", "Benchmarking Data")
+        .closest(".tab-header")
+        .should("be.visible")
+        .click();
+
+    cy.get("#data-matrix-for_benchmarking")
+        .parents(".tab-card")
+        .should("have.class", "is-active")
+        .and("have.attr", "aria-hidden", "false");
+}
+
+/** Data Matrix (Production) — expand donors and validate popovers */
+function stepDataMatrixProductionPopovers(caps) {
+    activateProductionDataMatrix(caps);
+
+    cy.get("body").then(($body) => {
+        const $titleEl = Cypress.$($body)
+            .find(".tab-header .title")
+            .filter((_, el) => Cypress.$(el).text().trim() === "Production Data");
+
+        if ($titleEl.length === 0) {
+            return;
+        }
+
+        testMatrixPopoverValidation(
+            "#data-matrix-for_production",
+            caps.expectedDataMatrixProductionOpts
+        );
+    });
+}
+
+function stepDataMatrixProductionDonorAssayCoverage(caps) {
+    activateProductionDataMatrix(caps);
+
+    cy.get("body").then(($body) => {
+        const $titleEl = Cypress.$($body)
+            .find(".tab-header .title")
+            .filter((_, el) => Cypress.$(el).text().trim() === "Production Data");
+
+        if ($titleEl.length === 0) {
+            return;
+        }
+
+        testDonorAssayFilesCoverageToggle("#data-matrix-for_production");
+    });
+}
+
+function stepDataMatrixProductionTissueAssayToggle(caps) {
+    activateProductionDataMatrix(caps);
+
+    cy.get("body").then(($body) => {
+        const $titleEl = Cypress.$($body)
+            .find(".tab-header .title")
+            .filter((_, el) => Cypress.$(el).text().trim() === "Production Data");
+
+        if ($titleEl.length === 0) {
+            return;
+        }
+
+        cy.contains("#data-matrix-for_production .matrix-mode-tab", "Tissue x Assay")
+            .click({ force: true })
+            .should("have.class", "active");
+
+        testTissueAssayFilesDonorsToggle("#data-matrix-for_production");
+    });
+}
+
+function stepDataMatrixProductionDonorTissueMode(caps) {
+    activateProductionDataMatrix(caps);
+
+    cy.get("body").then(($body) => {
+        const $titleEl = Cypress.$($body)
+            .find(".tab-header .title")
+            .filter((_, el) => Cypress.$(el).text().trim() === "Production Data");
+
+        if ($titleEl.length === 0) {
+            return;
+        }
+
+        testDonorTissueMode("#data-matrix-for_production");
+    });
+}
+
 /** Data Matrix (Benchmarking) — expand donors/cell lines and validate popovers */
-function stepDataMatrixBenchmarking(caps) {
-    cy.get(dataNavBarItemSelectorStr)
-        .should("have.class", "dropdown-toggle")
-        .click()
-        .should("have.class", "dropdown-open-for")
-        .then(() => {
-            cy.get('.big-dropdown-menu.is-open a.big-link[href="/data-matrix"]')
-                .click({ force: true })
-                .then(($linkElem) => {
-                    cy.get("#slow-load-container").should("not.have.class", "visible").end();
-                    const linkHref = $linkElem.attr("href");
-                    cy.location("pathname").should("equal", linkHref);
-                });
+function stepDataMatrixBenchmarkingPopovers(caps) {
+    activateBenchmarkingDataMatrix();
 
-            cy.contains("div#page-title-container h1.page-title", "Data Matrix")
-                .should("be.visible");
+    testMatrixPopoverValidation(
+        "#data-matrix-for_benchmarking",
+        caps.expectedDataMatrixBenchmarkingOpts
+    );
+}
 
-            testMatrixPopoverValidation(
-                "#data-matrix-for_benchmarking",
-                caps.expectedDataMatrixBenchmarkingOpts
-            );
-        })
-        .end();
+/** Data Matrix (Benchmarking) — verify donor x assay Files/Coverage toggle */
+function stepDataMatrixBenchmarkingCoverageToggle() {
+    activateBenchmarkingDataMatrix();
+
+    testDonorAssayFilesCoverageToggle("#data-matrix-for_benchmarking");
 }
 
 function assertCanSeeRetractedFilesMenu(caps) {
@@ -326,6 +414,42 @@ function assertCannotAccessDataMatrixPage(caps) {
     });
 }
 
+function stepVerifyDataMatrixHashRouting() {
+    goto({ url: "/data-matrix#benchmarking" });
+
+    cy.contains("div#page-title-container h1.page-title", "Data Matrix")
+        .should("be.visible");
+
+    cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
+    cy.location("hash").should("equal", "#benchmarking");
+
+    cy.contains(".tab-header .title", "Benchmarking Data")
+        .closest(".tab-header")
+        .should("have.class", "is-active");
+
+    cy.get("#data-matrix-for_benchmarking").should("exist");
+    cy.get("#data-matrix-for_production").should("not.exist");
+    cy.contains(".matrix-panel-title h2", "Benchmarking Data Matrix")
+        .should("be.visible");
+
+    goto({ url: "/data-matrix#production" });
+
+    cy.contains("div#page-title-container h1.page-title", "Data Matrix")
+        .should("be.visible");
+
+    cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
+    cy.location("hash").should("equal", "#production");
+
+    cy.contains(".tab-header .title", "Production Data")
+        .closest(".tab-header")
+        .should("have.class", "is-active");
+
+    cy.get("#data-matrix-for_production").should("exist");
+    cy.get("#data-matrix-for_benchmarking").should("not.exist");
+    cy.contains(".matrix-panel-title h2", "Production Data Matrix")
+        .should("be.visible");
+}
+
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
 const ROLES_TO_TEST = [
@@ -340,14 +464,6 @@ describe("Data Overview by role", () => {
     ROLES_TO_TEST.forEach((roleKey) => {
         const caps = ROLE_MATRIX[roleKey];
         const label = caps.label || String(roleKey);
-
-        // override caps for data/staging environment
-        const baseUrl = Cypress.config().baseUrl || "";
-        if ((baseUrl.includes("data.smaht.org") || baseUrl.includes("staging.smaht.org")) && ['UNAUTH', ROLE_TYPES.PUBLIC_DBGAP, ROLE_TYPES.PUBLIC_NON_DBGAP].includes(roleKey)) {
-            caps.runDataMatrixBenchmarking = false;
-            caps.runDataMatrixProduction = false;
-            caps.expectedDataMatrixResponseCode = 403;
-        }
 
         context(`${label} → data overview capabilities`, () => {
             before(() => {
@@ -368,20 +484,64 @@ describe("Data Overview by role", () => {
                 stepVisitRetractedFilesList(caps);
             });
 
-            it(`Data Matrix — Production (enabled: ${caps.runDataMatrixProduction})`, () => {
-                if (!caps.runDataMatrixProduction) {
-                    assertCannotAccessDataMatrixPage(caps);
-                    return;
-                }
-                stepDataMatrixProduction(caps);
+            context(`Data Matrix — Production (enabled: ${caps.runDataMatrixProduction})`, () => {
+                it("hash routing between #benchmarking and #production", () => {
+                    if (!caps.runDataMatrixProduction) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepVerifyDataMatrixHashRouting();
+                });
+
+                it("Production Data tab — popovers and total reconciliation", () => {
+                    if (!caps.runDataMatrixProduction) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepDataMatrixProductionPopovers(caps);
+                });
+
+                it("Production Data tab — Donor x Assay Files/Coverage toggle, left-panel count parity, and coverage-popover match", () => {
+                    if (!caps.runDataMatrixProduction) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepDataMatrixProductionDonorAssayCoverage(caps);
+                });
+
+                it("Production Data tab — Tissue x Assay Files/Donors toggle and summary-band consistency", () => {
+                    if (!caps.runDataMatrixProduction) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepDataMatrixProductionTissueAssayToggle(caps);
+                });
+
+                it("Production Data tab — Donor x Tissue tab state, persistent left-panel total, assay dropdown filtering, and summary reconciliation", () => {
+                    if (!caps.runDataMatrixProduction) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepDataMatrixProductionDonorTissueMode(caps);
+                });
             });
 
-            it(`Data Matrix — Benchmarking (enabled: ${caps.runDataMatrixBenchmarking})`, () => {
-                if (!caps.runDataMatrixBenchmarking) {
-                    assertCannotAccessDataMatrixPage(caps);
-                    return;
-                }
-                stepDataMatrixBenchmarking(caps);
+            context(`Data Matrix — Benchmarking (enabled: ${caps.runDataMatrixBenchmarking})`, () => {
+                it("Benchmarking Data tab — popovers and total reconciliation", () => {
+                    if (!caps.runDataMatrixBenchmarking) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepDataMatrixBenchmarkingPopovers(caps);
+                });
+
+                it("Benchmarking Data tab — Donor x Assay Files/Coverage toggle, left-panel count parity, and coverage-popover match", () => {
+                    if (!caps.runDataMatrixBenchmarking) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepDataMatrixBenchmarkingCoverageToggle();
+                });
             });
         });
     });

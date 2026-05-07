@@ -1,15 +1,19 @@
 'use strict';
 
-import React from 'react';
+import React, { useState } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { Modal, OverlayTrigger, Popover } from 'react-bootstrap';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+import {
+    contextFiltersToExpSetFilters as contextFiltersToSetFilters,
+    compareExpSetFilters as compareSetFilters,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { Schemas } from './../util';
@@ -30,9 +34,10 @@ import { BrowseLink } from './browse-view/BrowseLink';
 import { BrowseSummaryStatsViewer } from './browse-view/BrowseSummaryStatController';
 import { FacetCharts } from './components/FacetCharts';
 import { navigate } from '../util/navigate';
+import { compareTissueFacetTerms } from '../util/data';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
-import { transformedFacets } from './SearchView';
+import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
@@ -44,7 +49,7 @@ export const BROWSE_STATUS_FILTERS =
 
 export const BROWSE_LINKS = {
     file:
-        '/browse/?type=File&sample_summary.studies=Production&dataset!=No+value&' +
+        '/browse/?type=File&sort=-file_status_tracking.release_dates.initial_release_date&sample_summary.studies=Production&dataset!=No+value&' +
         BROWSE_STATUS_FILTERS,
     donor:
         '/browse/?type=Donor&study=Production&tags=has_released_files&' +
@@ -54,17 +59,132 @@ export const BROWSE_LINKS = {
         BROWSE_STATUS_FILTERS,
 };
 
+export const FILE_BROWSE_HIDE_FACETS = [
+    'dataset',
+    'file_sets.libraries.analytes.samples.sample_sources.code',
+    'status',
+    'validation_errors.name',
+    'version',
+    'sample_summary.studies',
+    'submission_centers.display_title',
+    'donors.tags',
+];
+
 export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
 }
 
+/**
+ * Helper function to check if the filters in the context are the same as the
+ * base browse path that corresponds to the given type. Compares sets of filter
+ * fields and terms.
+ * @param { string } type the type of browse page (e.g. file, donor, etc.)
+ * @param { object } filters the filters from the context
+ * @returns { boolean } whether the filters are the same as base browse path
+ */
+const isBaseBrowseParams = (type, filters) => {
+    // Create filters object for base browse path comparison
+    const DUMMY_URL = 'https://dummy.url';
+    const baseBrowseFilters = [
+        ...new URL(DUMMY_URL + BROWSE_LINKS[type]).searchParams,
+    ].map(([key, value]) => ({ field: key, term: value }));
+
+    // Convert filter objects to sets of filters
+    const setFiltersFromContext = contextFiltersToSetFilters(filters);
+    const setFiltersFromBaseBrowsePath =
+        contextFiltersToSetFilters(baseBrowseFilters);
+
+    // Compare sets of filters from context and base browse path
+    return compareSetFilters(
+        setFiltersFromContext,
+        setFiltersFromBaseBrowsePath
+    );
+};
+
+// Modal for empty Donor and ProtectedDonor Browse
+export const NoResultsBrowseModal = ({
+    type,
+    context = { total: 0 },
+    userDownloadAccess,
+    isAccessResolved,
+}) => {
+    const userDownloadAccessUpdated = isAccessResolved;
+    const isPublicUser = userDownloadAccess?.['open-network'] === false;
+    const hasNoResults = context?.total === 0;
+    const isBaseBrowsePath = isBaseBrowseParams(type, context?.filters);
+
+    // Check if user sent from Release Tracker by checking for
+    // file_release_tracking facet in `context.facet`
+    let hasReleaseTrackerParam = false;
+    if (type === 'file') {
+        hasReleaseTrackerParam = context?.facets?.some(
+            (facet) =>
+                facet.field ===
+                'file_status_tracking.release_dates.initial_release'
+        );
+    }
+
+    /**
+     * Show No results modal if all of the following are true:
+     * - `userDownloadAccess` has reached a stable state
+     * - The user is not a member of the SMaHT consortium
+     * - There are no files in the search results
+     * - The URL is the base browse path (no additional filters applied)
+     *   or the URL contains the release date filter
+     */
+    const shouldShowNoResultsModal =
+        userDownloadAccessUpdated &&
+        isPublicUser &&
+        hasNoResults &&
+        (isBaseBrowsePath || hasReleaseTrackerParam);
+
+    return shouldShowNoResultsModal ? (
+        <Modal
+            id="download-access-required-modal"
+            show={true}
+            centered
+            className="download-access-required-modal"
+            backdropClassName="download-access-required-modal-backdrop">
+            <Modal.Body>
+                <div className="callout-card protected-data">
+                    <img
+                        src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                        alt="SMaHT Logo"
+                    />
+                    <h4>
+                        SMaHT Donor Data: <br />
+                        Official Release - Coming Soon
+                    </h4>
+                    <span>
+                        Production data are available to the SMaHT Network
+                        members at this time. <br />
+                        Please check back for the official release of the SMaHT
+                        data.
+                    </span>
+                </div>
+            </Modal.Body>
+        </Modal>
+    ) : null;
+};
+
 const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
-    const { session, href, windowWidth, windowHeight, isFullscreen } = props;
+    const {
+        context,
+        session,
+        href,
+        windowWidth,
+        windowHeight,
+        isFullscreen,
+        userDownloadAccess,
+        isAccessResolved,
+    } = props;
+
     const initialFields = [
         'sample_summary.tissues',
-        'sequencing.sequencer.display_title',
+        'sequencers.display_title',
     ];
+
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
@@ -73,8 +193,8 @@ const BrowseFileBody = (props) => {
                 <div className="stats-column col-auto">
                     <BrowseSummaryStatsViewer
                         {...{
-                            session,
                             href,
+                            session,
                             windowWidth,
                             useCompactFor,
                             mapping: 'all',
@@ -109,9 +229,18 @@ const BrowseFileBody = (props) => {
             <hr />
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable
-                    userDownloadAccess={props.userDownloadAccess}
+                    userDownloadAccess={userDownloadAccess}
                 />
             </BrowseViewControllerWithSelections>
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    context={context}
+                    type="file"
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </>
     );
 };
@@ -141,7 +270,8 @@ const renderBrowseBody = (props) => {
  */
 const BrowseViewContent = (props) => {
     const { context, session } = props;
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess, isAccessResolved } =
+        useUserDownloadAccess(session);
 
     // Include `userDownloadAccess` in the props passed to child components
     const passProps = {
@@ -151,6 +281,7 @@ const BrowseViewContent = (props) => {
             clear_filters: BROWSE_LINKS.file,
         },
         userDownloadAccess,
+        isAccessResolved,
     };
 
     return (
@@ -252,6 +383,9 @@ export const BrowseFileSearchTable = (props) => {
 
     const { columnExtensionMap, columns, hideFacets } =
         createBrowseFileColumnExtensionMap(selectedFileProps);
+    const facetListSortFxns = {
+        'sample_summary.tissues': compareTissueFacetTerms,
+    };
 
     return (
         <CommonSearchView
@@ -261,6 +395,7 @@ export const BrowseFileSearchTable = (props) => {
                 tableColumnClassName,
                 facetColumnClassName,
                 facets,
+                facetListSortFxns,
                 aboveFacetListComponent,
                 aboveTableComponent,
                 columns,
@@ -271,7 +406,7 @@ export const BrowseFileSearchTable = (props) => {
             isFullscreen={false}
             toggleFullScreen={() => {}}
             renderDetailPane={null}
-            termTransformFxn={Schemas.Term.toName}
+            termTransformFxn={termTransformFxnWithOverrides(facets)}
             separateSingleTermFacets={false}
             rowHeight={31}
             openRowHeight={40}
@@ -306,6 +441,8 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     let BrowseType = null;
     switch (context['@type'][0]) {
         case 'FileSearchResults':
+        case 'SubmittedFileSearchResults':
+        case 'OutputFileSearchResults':
             BrowseType = 'File';
             break;
         case 'DonorSearchResults':
@@ -518,11 +655,13 @@ export function createBrowseFileColumnExtensionMap({
             },
         },
         // Assay
-        'file_sets.libraries.assay.display_title': {
-            widthMap: { lg: 136, md: 136, sm: 136 },
+        'assays.display_title': {
+            widthMap: { lg: 100, md: 100, sm: 100 },
         },
         // Tissue
-        'sample_summary.tissues': {},
+        'sample_summary.tissues': {
+            widthMap: { lg: 145, md: 145, sm: 145 },
+        },
         // Data Category
         data_category: {
             render: function (result, parentProps) {
@@ -568,13 +707,15 @@ export function createBrowseFileColumnExtensionMap({
             colTitle: 'Released',
             widthMap: { lg: 115, md: 115, sm: 115 },
             render: function (result, parentProps) {
-                const value = result?.file_status_tracking?.release_dates?.initial_release_date;
+                const value =
+                    result?.file_status_tracking?.release_dates
+                        ?.initial_release_date;
                 if (!value) return null;
                 return <span className="value text-end">{value}</span>;
             },
         },
         // Platform
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             widthMap: { lg: 170, md: 160, sm: 150 },
         },
         // Format
@@ -620,17 +761,17 @@ export function createBrowseFileColumnExtensionMap({
         'sample_summary.tissues': {
             title: 'Tissue',
         },
-        'file_sets.libraries.assay.display_title': {
+        'assays.display_title': {
             title: 'Assay',
         },
-        file_size: {
-            title: 'File Size',
+        'sequencers.display_title': {
+            title: 'Platform',
         },
         'file_status_tracking.release_dates.initial_release_date': {
             title: 'Release Date',
         },
-        'file_sets.sequencing.sequencer.display_title': {
-            title: 'Platform',
+        file_size: {
+            title: 'File Size',
         },
         'file_format.display_title': {
             title: 'Format',
@@ -646,17 +787,7 @@ export function createBrowseFileColumnExtensionMap({
         },
     };
 
-    const hideFacets = [
-        'dataset',
-        'file_sets.libraries.analytes.samples.sample_sources.code',
-        'status',
-        'validation_errors.name',
-        'version',
-        'sample_summary.studies',
-        'submission_centers.display_title',
-        'software.display_title',
-        'donors.tags',
-    ];
+    const hideFacets = FILE_BROWSE_HIDE_FACETS;
 
     return { columnExtensionMap, columns, hideFacets };
 }

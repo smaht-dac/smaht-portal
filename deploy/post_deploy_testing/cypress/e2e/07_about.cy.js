@@ -73,7 +73,7 @@ function logoutIfNeeded(roleKey) {
 /* ----------------------------- STEP HELPERS ----------------------------- */
 
 /** Consortium Members: legend count must match table count by abbreviation
- *  + For each row, assert the "Project number" label and NIH Reporter link exist and look valid.
+ *  + For each row, assert the "Award number" label and NIH Reporter link exist and look valid.
  */
 function stepAwardeesCount() {
     cy.get('#about-menu-item')
@@ -109,18 +109,18 @@ function stepAwardeesCount() {
                         });
                 })
 
-                // --- Part 2: For each table row, validate Project number + link ---
+                // --- Part 2: For each table row, validate Award number + link ---
                 .then(() => {
                     // Grab every row in the consortium table body
                     cy.get('.table.table-sm.table-striped > tbody > tr').each(($tr) => {
-                        // The 5th column (<td>) contains title + <small>Project number: <a ...>CODE</a>
+                        // The 5th column (<td>) contains title + <small>Award number: <a ...>CODE</a>
                         cy.wrap($tr).find('td').eq(4).as('projectCell');
 
                         // 2.1 Ensure the label exists
                         cy.get('@projectCell')
-                            .should('contain.text', 'Project number:')
+                            .should('contain.text', 'Award number:')
                             .find('small')
-                            .should('contain.text', 'Project number:');
+                            .should('contain.text', 'Award number:');
 
                         // 2.2 Validate the anchor element exists and has a sensible href
                         cy.get('@projectCell')
@@ -131,10 +131,9 @@ function stepAwardeesCount() {
                                 const text = ($a.text() || '').trim();
                                 const href = $a.attr('href') || '';
 
-                                // Link text should look like a grant code (non-empty, contains hyphen)
-                                // e.g., "1UM1DA058235-01"
+                                // Link text should look like a grant code (non-empty)
+                                // e.g., "1UM1DA058235"
                                 expect(text, 'project code text').to.match(/[A-Z0-9-]+/);
-                                expect(text.includes('-'), 'project code has hyphen').to.be.true;
 
                                 // Href should point to NIH Reporter project-details/<digits>
                                 expect(href, 'NIH Reporter URL').to.match(/^https:\/\/reporter\.nih\.gov\/project-details\/\d+$/);

@@ -67,11 +67,6 @@
             "description": "Additional notes or other findings related to the sample",
             "type": "string"
         },
-        "anatomical_sample_location": {
-            "title": "Anatomical Sample Location",
-            "description": "Anatomical location from which the sample was taken",
-            "type": "string"
-        },
         "final_review_determination": {
             "title": "Final Review Determination",
             "description": "Whether a final review determination was made for the sample",
@@ -99,109 +94,10 @@
                 "Unacceptable"
             ]
         },
-        "pathologic_findings": {
-            "title": "Pathologic Findings",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "finding_type",
-                    "finding_present"
-                ],
-                "properties": {
-                    "finding_type": {
-                        "title": "Pathologic Finding Type",
-                        "description": "Type of pathologic/unexpected finding present in the sample",
-                        "type": "string"
-                    },
-                    "finding_present": {
-                        "title": "Pathologic Finding Present",
-                        "description": "Whether pathologic/unexpected finding is present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Yes",
-                            "No"
-                        ]
-                    },
-                    "finding_description": {
-                        "title": "Pathologic Finding Description",
-                        "description": "Description of pathologic/unexpected finding",
-                        "type": "string"
-                    },
-                    "finding_percentage": {
-                        "title": "Pathologic Finding Percentage",
-                        "description": "Percentage range of the sample that displayed the pathologic/unexpected finding (%)",
-                        "type": "string",
-                        "enum": [
-                            "[0-10]",
-                            "[11-25]",
-                            "[26-49]",
-                            "[50-100]"
-                        ]
-                    }
-                }
-            }
-        },
-        "tissue_autolysis_score": {
-            "title": "Overall Tissue Autolysis Score",
-            "description": "Overall tissue autolysis score of the sample. 0=None, 1=mild , 2=moderate, 3=severe",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3
-        },
         "tissue_name": {
             "title": "Tissue Name",
             "description": "Name of the type of tissue the sample was taken from",
             "type": "string"
-        },
-        "target_tissues": {
-            "title": "Target Tissues",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "target_tissue_subtype",
-                    "target_tissue_present",
-                    "target_tissue_percentage"
-                ],
-                "properties": {
-                    "target_tissue_subtype": {
-                        "title": "Target Tissue Subtype",
-                        "description": "Subtype of target tissue in sample",
-                        "type": "string"
-                    },
-                    "target_tissue_present": {
-                        "title": "Target Tissue Present",
-                        "description": "Whether the target tissue subtype was present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Yes",
-                            "No"
-                        ]
-                    },
-                    "target_tissue_percentage": {
-                        "title": "Target Tissue Subtype Percentage",
-                        "description": "Percentage range of the sample that was the target tissue subtype (%)",
-                        "type": "string",
-                        "enum": [
-                            "[0]",
-                            "[0-10]",
-                            "[11-25]",
-                            "[26-49]",
-                            "[50-100]"
-                        ]
-                    },
-                    "target_tissue_autolysis_score": {
-                        "title": "Target Tissue Autolysis Score",
-                        "description": "Autolysis score of the target tissue in the sample. 0=None, 1=mild , 2=moderate, 3=severe",
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 3
-                    }
-                }
-            }
         },
         "unacceptable_description": {
             "title": "Unacceptable Description",

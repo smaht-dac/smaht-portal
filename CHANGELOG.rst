@@ -7,9 +7,776 @@ smaht-portal
 Change Log
 ----------
 
+1.26.2
+======
+
+`PR 661: feat: remove homepage top banner <https://github.com/smaht-dac/smaht-portal/pull/661>`_
+
+* Remove restricted access top banner alert in homepage
+
+
+1.26.1
+======
+
+`PR 657: Cypress: enhance data matrix tab routing and donor x tissue view validation tests <https://github.com/smaht-dac/smaht-portal/pull/657>`_
+
+* Enhanced Cypress tests for data matrix tab routing to validate correct URL updates and view rendering when switching between Production, Benchmarking, Donor x Assay, and Tissue x Assay tabs
+
+
+1.26.0
+======
+
+`PR 662: Fix Data Matrix count inconsistencies (DSA dedup + stable totals + Element AVITI mapping) <https://github.com/smaht-dac/smaht-portal/pull/662>`_
+
+* Refactor data matrix file count logic to deduplicate DSA-associated files, ensure stable totals across views, and map Element AVITI files to the correct assay category for accurate counting in the data matrix.
+
+
+1.25.0
+======
+
+`PR 624: SN EOF tissue info <https://github.com/smaht-dac/smaht-portal/pull/624>`_
+
+* Update the `create_annotated_filenames` script to have special handling of the tissue aliquot part for ExternalOutputFiles
+* For ExternalOutputFiles that don't have `file_sets` and do have `derived_from`, if the linked `derived_from` file has file_sets get tissue sample info from there, otherwise if the output MWFR of the `derived_from` file has `file_sets` get tissue sample info from there, otherwise check the input files of the output MWFR to get the tissue sample info. If none of these have `file_sets`, use "X"
+* Fix DSA filenames to use directly linked `file_sets` on SupplementaryFile, rather than grabbing from `derived_from`
+* Update the release script to release ExternalQualityMetrics items
+
+
+1.24.9
+======
+
+`PR 660: feat: update npm packages <https://github.com/smaht-dac/smaht-portal/pull/660>`_
+
+* Update npm packages to address vulnerabilities
+
+
+1.24.8
+======
+
+`PR 659: style: update pipeline doc link style <https://github.com/smaht-dac/smaht-portal/pull/659>`_
+
+* Update style for pipeline docs
+
+
+1.24.7
+======
+
+`PR 658: Fix: URL truncation issue while sorting in browse/search view <https://github.com/smaht-dac/smaht-portal/pull/658>`_
+
+* Fix URL truncation issue in browse/search view sorting when specific query param exceeds 20 values
+
+
+1.24.6
+======
+
+`PR 635: feat: update account creation doc <https://github.com/smaht-dac/smaht-portal/pull/635>`_
+
+* Update account creation documentation
+
+
+1.24.5
+======
+
+`PR 639: feat: pipeline docs updates <https://github.com/smaht-dac/smaht-portal/pull/639>`_
+
+* Update pipeline documentation pages
+
+
+1.24.4
+======
+
+`PR 652: fix: move alert in registration modal to bottom of form <https://github.com/smaht-dac/smaht-portal/pull/652>`_
+
+* Move the blocked email error registration alert to the bottom of the form
+
+
+1.24.3
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
+
+
+1.24.2
+======
+
+`PR 653: feat: remove truth set tabs from benchmarking tables <https://github.com/smaht-dac/smaht-portal/pull/653>`_
+
+* Remove truth set tabs from benchmarking
+
+
+1.24.2
+======
+
+`PR 656: fix: decrease release tracker months <https://github.com/smaht-dac/smaht-portal/pull/656>`_
+
+* Load only last 3 months in release tracker
+
+
+1.24.1
+======
+
+`PR 655: Add donor_groups facet to donor and proected_donor schemas <https://github.com/smaht-dac/smaht-portal/pull/655>`_
+
+* Add facet to Donor schemas for donor_groups property
+* Update description of donor_groups property to clarify its purpose and usage
+
+
+1.24.1
+======
+
+`PR 654: feat: add sort parameter to browse file link <https://github.com/smaht-dac/smaht-portal/pull/654>`_
+
+* Sort browse view table by initial release date
+
+
+1.24.0
+======
+
+`PR 651: Update donor x tissue data matrix view <https://github.com/smaht-dac/smaht-portal/pull/651>`_
+
+* Enhance the Donor x tissue data matrix with donor-tissue assay selection, client-side assay filtering, and improved handling of available assay options
+* Fix donor-tissue derived assay counts, hidden analysis field handling, and row summary popovers to show germ layer and tissue counts correctly
+* Refine donor-tissue matrix presentation and interactions, including focus styling, color updates, assay selector polish, and removal of the Included Properties bottom border in that view only
+
+
+1.23.1
+======
+
+`PR 650: Group by and sort tissue facet terms <https://github.com/smaht-dac/smaht-portal/pull/650>`_
+
+* Groups tissue facet terms by germ layer and sorts them alphabetically within those groups
+
+
+1.23.0
+======
+
+`PR 649: Add assays and sequencers calcprops to File <https://github.com/smaht-dac/smaht-portal/pull/649>`_
+
+* Add ``assays`` (was already present) and ``sequencers`` as top-level calculated properties on File, derived from linked FileSets
+* Add ``override_assays`` and ``override_sequencers`` restricted properties to allow manual overrides
+* Update facet and column configuration to reference the new top-level ``assays`` and ``sequencers`` fields
+
+
+1.22.7
+======
+
+`PR 648: SN Add pileup enum <https://github.com/smaht-dac/smaht-portal/pull/648>`_
+
+* Add "Alignment Pileups" enum to `data_category`
+
+
+1.22.6
+======
+
+`PR 647: Adjust filenames for multiple tissue DSAs <https://github.com/smaht-dac/smaht-portal/pull/647>`_
+
+* Use code `MT` for DSA files with multiple tissue sources
+* Update `get_access_status` for Benchmarking Genome Annotation files
+
+1.22.5
+======
+
+`PR 644: Add donor_groups property to abstract_donor <https://github.com/smaht-dac/smaht-portal/pull/644>`_
+
+* to allow arbitraty grouping of donors for faceting purposes - eg. P25 donors
+
+
+1.22.4
+======
+
+`PR 645: fix: update enums in library_preparation <https://github.com/smaht-dac/smaht-portal/pull/645>`_
+
+* Add to enum in library_preparation schema for adapter_inclusion_method and fragmentation_method to support STORM-seq libraries
+
+
+1.22.3
+======
+
+`PR 642: update enum for braak_and_braak_ad field in brain_pathology_report <https://github.com/smaht-dac/smaht-portal/pull/642>`_
+
+* add '0' to enum in brain_pathology_report schema in braak_and_braak_ad field"
+
+
+1.22.2
+======
+
+`PR 638: Bump SPC to 0.1.97 <https://github.com/smaht-dac/smaht-portal/pull/638>`_
+
+* Bump @hms-dbmi-bgm/shared-portal-components from 0.1.96 to 0.1.97 that basically fixes data fetch for 20+ selected facet terms.
+
+
+1.22.1
+======
+
+`PR 636: Support release of core specific analysis files <https://github.com/smaht-dac/smaht-portal/pull/636>`_
+
+* Support core specific analysis files in release script 
+
+
+1.22.0
+======
+
+* Implement CADR email restrictions on login
+* Add command for setting restricted emails to deleted
+* Update user registration modal alerts
+
+
+1.21.6
+======
+
+`PR 629: fix: prevent long URL generation from release tracker <https://github.com/smaht-dac/smaht-portal/pull/629>`_
+
+* Prevent the release tracker queries from getting too long
+
+
+1.21.5
+======
+
+`PR 634: feat: update auth0 text <https://github.com/smaht-dac/smaht-portal/pull/634>`_
+
+* Update auth0 modal text
+
+
+1.21.4
+======
+
+`PR 633: Add phased analysis support and fix donor count logic <https://github.com/smaht-dac/smaht-portal/pull/633>`_
+
+* Include phased analysis files in Variant Call Sets for the Production data matrix and donor-view data matrices.
+* Fix donor counts in Total Files summary popovers for DSA and Variant Call Sets.
+
+
+1.21.3
+======
+
+`PR 631: feat: add homepage alerts for restricted user access <https://github.com/smaht-dac/smaht-portal/pull/631>`_
+
+* Add alert in announcements section
+* Add navigation bar alert
+
+
+1.21.2
+======
+`PR 630: Apply facet label overrides in browse facet charts <https://github.com/smaht-dac/smaht-portal/pull/630>`_
+
+* Use facet term label overrides for facet charts in file/donor browse views
+
+
+1.21.1
+======
+
+`PR 623: Cypress browse view & donor view & data matrix updates <https://github.com/smaht-dac/smaht-portal/pull/623>`_
+
+* Update Cypress tests for browse view, donor view, and data matrix to reflect recent UI changes and ensure continued test coverage of these features
+
+
+1.21.0
+======
+
+`PR 609: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/609>`_
+
+* Restructure Release Tracker for network members only
+* Implement alert for public users
+* Add new smaht-wolf cypress GA workflow
+
+
+1.20.4
+======
+
+`PR 627: feat: analysis methods banner <https://github.com/smaht-dac/smaht-portal/pull/627>`_
+
+* Adds banner to analysis methods page
+
+
+1.20.3
+======
+
+`PR 625: Bug Fix - filtered variant calls in donor view data matrix <https://github.com/smaht-dac/smaht-portal/pull/625>`_
+
+* Fixes missing Variant Call Sets column in Protected and Public Donor View data matrices
+
+
+1.20.2
+======
+
+`PR 621: fix: update Reference Genome term value <https://github.com/smaht-dac/smaht-portal/pull/621>`_
+
+* Update override label for No value in Reference Genome term
+
+
+1.20.1
+======
+
+`PR 607: Support release of analysis files <https://github.com/smaht-dac/smaht-portal/pull/607>`_
+
+* Support release of analysis files from an analysis run
+
+
+1.20.0
+======
+
+`PR 599: Data Matrix: sticky headers, split Production matrices, and corrected donor/file summaries <https://github.com/smaht-dac/smaht-portal/pull/599>`_
+
+* Expanded the data matrix to support multiple count modes, including files, donors, tissue files, and total coverage, with updated summary rows and popovers.
+* Added a tabbed matrix mode and refreshed controls/layout for donor x assay and tissue x assay views, including improved facet-panel integration.
+* Improved donor-count handling across tissue summaries, benchmarking views, and column totals so summary values and popovers stay consistent across metrics.
+* Updated matrix styling and rendering for clearer donor-focused views, summary bands, coverage display, loading states, and sticky column-header behavior.
+* Extended data-matrix aggregation and filtering logic to better handle analysis-derived columns, DSA/variant-call labeling, and browse/filter interactions.
+
+
+1.19.1
+======
+
+`PR 622: fix: update mapping in donor view <https://github.com/smaht-dac/smaht-portal/pull/622>`_
+
+* Update tissue name mapping for donor view
+
+
+1.19.0
+======
+
+`PR 620: Browse Viz: add tissue type filtering <https://github.com/smaht-dac/smaht-portal/pull/620>`_
+
+* Adds Tissue Type filtering to Facet Charts for tissue-based browse visualizations.
+* Displays TPC/internal tissue codes on chart axis labels for cleaner, consistent tissue labeling.
+
+
+1.18.0
+======
+
+`PR 618: SN Update DSA release <https://github.com/smaht-dac/smaht-portal/pull/618>`_
+
+* Update `release_tracker_description` for SupplementaryFile to be "DSA" for files with `donor_specific_assembly` property
+* Update the `release_file` script to allow batch release of files from the same DSA
+
+
+1.17.4
+======
+
+`PR 619: feat: Add Link to DSA in Donor View <https://github.com/smaht-dac/smaht-portal/pull/619>`_
+
+* Add link to DSA files associated with a donor if they exists
+
+
+1.17.3
+======
+
+`PR 615: feat: facet overrides for variant call sets <https://github.com/smaht-dac/smaht-portal/pull/615>`_
+
+* Add override fields for No value and Missing group terms in schema
+* Create term transform function to update facet terms
+
+
+1.17.2
+======
+
+`PR 617: Fetch tissues/donors, add copy button & cleanup <https://github.com/smaht-dac/smaht-portal/pull/617>`_
+
+* Adjust Submission Status and Analysis status to work with new tissue labels. Some frontend improvements (which required minor schema changes)
+
+
+1.17.1
+======
+
+`PR 616: feat: add software facet <https://github.com/smaht-dac/smaht-portal/pull/616>`_
+
+* Add software facet
+* Reorder facets
+
+
+1.17.0
+======
+
+`PR 613: User registration form updates <https://github.com/smaht-dac/smaht-portal/pull/613>`_
+
+* Enhances the user registration flow, especially for distinguishing between SMaHT Network members and self-registering users
+* Improves the user interface and messaging for both groups
+
+
+1.16.0
+======
+
+`PR 611: Update OutputFile calcprops <https://github.com/smaht-dac/smaht-portal/pull/611>`_
+
+* Add calcprops to OutputFile to handle those files linked to AnalysisRuns instead of FileSets
+* Added utility functions for this
+* Updated tests and added new tests for these calcprops
+* Added AnalysisRun linkTo to file_links mixin
+* Added revlink to AnalysisRun for OutputFiles linked to it
+
+1.15.0
+======
+
+* Fix propagation of links by disabling user email resolution by default in revision history
+
+
+1.14.1
+======
+
+`PR 596: SN Update tissue type labels <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Update the calculated property for `sample_summary`` in files to adjust the tissue type label for Fibroblast and Benchmarking tissues
+
+
+1.14.0
+======
+
+`PR 603: Add ExternalOutputFile <https://github.com/smaht-dac/smaht-portal/pull/603>`_
+
+* Add new item ExternalOutputFile
+* Update calcprops for sample_sources, donors, sample_summary, and release_tracker to function with new links
+* Update annotated filename and release script to function for External Output Files
+* Add new property analysis_details to File
+
+
+1.13.1
+======
+
+`PR 606: Avoid rev_link_atids for ReferenceFile <https://github.com/smaht-dac/smaht-portal/pull/606>`_
+
+* Avoid rev_link_atids for ReferenceFile
+* Improve efficiency of `open_data_url`` calc prop
+
+
+1.13.0
+======
+
+`PR 605: feat: new DSA column for production data matrix <https://github.com/smaht-dac/smaht-portal/pull/605>`_
+
+* Adds DSA column for production data matrix to group files associated with multiple assay types and sequencers
+
+
+1.12.2
+======
+
+`PR 598: feat: update modal and banner <https://github.com/smaht-dac/smaht-portal/pull/598>`_
+
+* Update the Browse View Modal
+* Update the Donor View redirect banner
+
+
+1.12.1
+======
+
+`PR: 594: Sort tissues in alphabetical order in facet terms and the data matrix <https://github.com/smaht-dac/smaht-portal/pull/594>`_
+
+* Sorts tissues in alphabetical order in facet terms and the data matrix
+* Refactors data matrix in the process to simplify and remove redundant code
+
+
+1.12.0
+======
+
+`PR 591: SN Fix DSA release script <https://github.com/smaht-dac/smaht-portal/pull/591>`_
+
+* Update means of getting chain file code for annotated filenames to do a search query on `code` and `title` of ReferenceGenomes and return either "DSA" or the unique `code` value
+* Add `version` as a required property to DonorSpecificAssembly
+* Update the annotated filename for DSA fasta and bed files to include `DSA_[version]`
+* Add bed files to access status function
+
+
+1.11.7
+======
+
+`PR 600: feature: add tissue validator for preservation type <https://github.com/smaht-dac/smaht-portal/pull/600>`_
+
+* Add a new validator to Tissue that checks if the external_id tissue code matches the expected preservation type based on the valid_protocol_ids of the linked OntologyTerms and the preservation_type property
+
+
+1.11.6
+======
+
+* Remove loremipsum and rebuild poetry lockfile to resolve failing pep517 build
+
+
+1.11.5
+======
+
+`PR 566: chore: update npm packages with vulnerabilities <https://github.com/smaht-dac/smaht-portal/pull/566>`_
+
+* Run npm audit fix and update vulnerable dependencies
+
+
+1.11.4
+======
+
+`PR 597: Fix: sticky headers in browse/search page's results table <https://github.com/smaht-dac/smaht-portal/pull/597>`_
+
+* Fix CSS to ensure that sticky headers in the results table of browse and search pages function correctly without layout issues.
+
+
+1.11.3
+======
+
+`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
+
+* Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
+* Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
+* Reorder properties and format output of the PathologyReport schema for ease of submission for TPC
+
+
+1.11.2
+======
+
+`PR 595: update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
+
+* Add support for Tissue Aliquot category validation in TissueSample validator
+
+
+1.11.1
+======
+
+`PR 593: Bugfix for Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Make sure all final output files are displayed on the Analysis Status page
+
+
+1.11.0
+======
+
+`PR 590: Data matrix germ layer - tissue mappings <https://github.com/smaht-dac/smaht-portal/pull/590>`_
+
+* Convert hard-coded germ layer - tissue mappings to generate from fetched data on the fly
+
+
+1.10.3
+======
+
+`PR 592: fix: modal styles udpate <https://github.com/smaht-dac/smaht-portal/pull/592>`_
+
+* Fix browse page modal styles
+
+
+1.10.2
+=====
+
+`PR 586: feat: update master-inserts to make pipeline docs open <https://github.com/smaht-dac/smaht-portal/pull/586>`_
+
+* Update Page and StaticSection items related to the Analysis Pipeline
+
+
+1.10.1
+======
+
+`PR 587: New cypress test for analysis pipeline documentation page <https://github.com/smaht-dac/smaht-portal/pull/587>`_
+
+* Tests the new analysis pipeline page and its features (collapsible panels, links, and table of contents) are working properly
+
+
+1.10.0
+======
+
+`PR 572: feat: Browse Page Modals <https://github.com/smaht-dac/smaht-portal/pull/572>`_
+
+* Implement Modal for empty browse pages
+
+
+1.9.0
+=====
+
+`PR 588: Add donors field and final outputs to AnalysisRun <https://github.com/smaht-dac/smaht-portal/pull/588>`_
+
+* Add donor field to AnalysisRun
+* Display final output files from completed MetaWorkflowRuns on Analysis Status page
+
+
+1.8.8
+=====
+
+`PR 580: Pathology Report Schema updates <https://github.com/smaht-dac/smaht-portal/pull/580>`_
+
+* Reconfigured the abstract pathology_report schema to accommodate the changes needded for brain_pathology_reports
+* Made corresponding updates to non_brain_pathology_report schema - note that no major property changes were made here, primarily schema structure
+* Updated brain_pathology_report schema to simplify and better reflect the data being collected
+* fixed a couple of pre-existing typos
+* added workbook insert for brain_pathology_report
+* udated enum value from '[0]' to '0' for target_tissue_percentage as submitr was converting former to an array
+
+
+1.8.7
+=====
+
+`PR 584: Snovault upgrade for range facet improvements <https://github.com/smaht-dac/smaht-portal/pull/584>`_
+
+* Bumped snovault to 11.28.0
+  - Range facet calculations excluded values equal to the upper bound. The intended margin
+    using SMALLEST_NONZERO_IEEE_32 was ineffective due to precision limits. This has now been corrected
+
+
+1.8.6
+=====
+
+`PR 583: Restrict QC metrics endpoint  <https://github.com/smaht-dac/smaht-portal/pull/583>`_
+
+* Restrict QC metrics endpoint to users with dbgap access only
+
+
+1.8.5
+=====
+
+`PR 579: feat: update hardy scale popover <https://github.com/smaht-dac/smaht-portal/pull/579>`_
+
+* Update content of hardy scale popover
+
+
+1.8.5
+=====
+
+`PR 581: udate README <https://github.com/smaht-dac/smaht-portal/pull/581>`_
+
+* Update the README page
+
+
+1.8.4
+======
+
+`PR 582: test: cypress updates <https://github.com/smaht-dac/smaht-portal/pull/582>`_
+
+* Update the awardees page cypress tests
+
+
+1.8.3
+======
+
+`PR 575: Donor Sequencing Progress Chart <https://github.com/smaht-dac/smaht-portal/pull/575>`_
+
+* Add Donor Sequencing Progress chart to Browse by Donor page
+* Remove Self-Reported Ethnicity chart from Browse by Donor page
+* Add stroke while hovering for Donor Ages and Hardy Scale charts
+
+
+1.8.2
+======
+
+`PR 577: feat: updates to Donor Metadata Dictionary page <https://github.com/smaht-dac/smaht-portal/pull/577>`_
+
+* Update Availability and Access Doc table
+
+
+1.8.1
+=====
+
+`PR 578: Update Sample and File Nomenclature <https://github.com/smaht-dac/smaht-portal/pull/578>`_
+
+* Update Sample and File Nomenclature page, specifically adding new protocol IDs for fixed brain tissues
+
+
+1.8.0
+=====
+
+`PR 518: feat: Add Pipeline Docs to portal <https://github.com/smaht-dac/smaht-portal/pull/518>`_
+
+* Add Pipeline documentation to the portal as static pages
+
+
+1.7.1
+======
+
+`PR 576: feat: reorder browse table columns <https://github.com/smaht-dac/smaht-portal/pull/576>`_
+
+* Reorders table columns for browse view
+
+
+1.7.0
+=====
+
+`PR 570: Add Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/570>`_
+
+* Add Analysis Status page
+* Add AnalysisRun item
+
+
+1.6.5
+=====
+
+`PR 573: exclude deleted tissue_samples from validation <https://github.com/smaht-dac/smaht-portal/pull/573>`_
+
+* filter out deleted tissue_samples from validator checks
+
+
+1.6.4
+=====
+
+`PR 571: update calcprops for revlinks of meta_workflow_runs <https://github.com/smaht-dac/smaht-portal/pull/571>`_
+
+* filter out deleted items from being retrieved as revlinks
+* simplified calcprops that got file revlinks for meta_workflow_runs (No longer need to explicitly filter out deleted items)
+* updated tests
+
+1.6.3
+======
+
+`PR 574: feat: updates to Awardees page <https://github.com/smaht-dac/smaht-portal/pull/574>`_
+
+* Update Awardees page content
+
+
+1.6.2
+======
+
+`PR 563: feat: access doc updates <https://github.com/smaht-dac/smaht-portal/pull/563>`_
+
+* Update Availability and Access Doc table
+
+
+1.6.1
+======
+
+`PR 561: fix: update styles for dropdown toggle <https://github.com/smaht-dac/smaht-portal/pull/561>`_
+
+* Fix incorrect CSS selector
+
+
+1.6.0
+=====
+
+* Open Data URL support for SMaHT
+* New calc-prop 'open_data_url' which will show the location
+  of files in open data buckets
+* Redirect with no auth will be processed for public files, otherwise
+  a redirect with auth will be sent
+* Requires update to permissions for S3 Federation user
+
+
+1.5.17
+======
+
+`PR 565: Data matrix tab control <https://github.com/smaht-dac/smaht-portal/pull/565>`_
+
+* Introduced the new DataMatrixComparisonTabs component that replaces the previous static tab layout
+* Refactored Cypress tests for data matrix overview to interact with the new tab-based UI
+
+
+1.5.16
+======
+
+`PR 564: Add react-workflow-viz build and watch tasks to Gulp <https://github.com/smaht-dac/smaht-portal/pull/564>`_
+
+* adds support for linking, building, and watching the @hms-dbmi-bgm/react-workflow-viz package in the development workflow
+
+
+1.5.15
+=====
+
+`PR 568: feat: add data retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/568>`_
+
+* Add data retraction announcement
+
+
+1.5.14
+======
+
+`PR 567: Add flag for local deployment so es validator can be turned off <https://github.com/smaht-dac/smaht-portal/pull/567>`_
+
+* Add 'skip_es_validation' flag to development.ini.template to allow local deployments to skip ES validation if needed
+  NB: This flag should not be used in production deployments and is set to false - change to true if needed for local deployments
+* added code in tissue_sample validator to skip ES validation if the flag is set to true
+
 
 1.5.13
-=====
+======
 
 `PR 562: Add enum value for target_tissues.target_tissue_percentage in pathology_report <https://github.com/smaht-dac/smaht-portal/pull/562>`_
 
@@ -172,9 +939,9 @@ Change Log
 =====
 `PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
 
-* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`. 
-  `status_tracking` contains timestamps and dates when the file switched status. 
-  `release_dates` evaluates these status changes and provides timestamps and dates for 
+* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`.
+  `status_tracking` contains timestamps and dates when the file switched status.
+  `release_dates` evaluates these status changes and provides timestamps and dates for
   `initial_release`, `public_release`, `network_release`.
 
 

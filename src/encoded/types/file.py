@@ -1,12 +1,21 @@
+import datetime
+import os
+import pytz
+import structlog
+from typing import Any, Dict, List, Optional, Union
+from pyramid.httpexceptions import (
+    HTTPForbidden,
+    HTTPTemporaryRedirect,
+    HTTPNotFound,
+)
 from boto3 import client as boto_client
+from botocore.config import Config
 from datetime import datetime
 import functools
-from pyramid.exceptions import HTTPForbidden
 from pyramid.request import Request
-from pyramid.response import Response
-from pyramid.view import view_config
-from typing import Any, Dict, List, Optional, Union
-
+from botocore.exceptions import ClientError
+from dcicutils.secrets_utils import assume_identity
+from dcicutils.misc_utils import override_environ
 from encoded_core.types.file import (
     HREF_SCHEMA,
     UNMAPPED_OBJECT_SCHEMA,
@@ -16,8 +25,12 @@ from encoded_core.types.file import (
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
+    is_file_to_download,
+    get_submitter_title,
+    get_experiment_or_assay_type,
+    get_file_type,
+    update_google_analytics,
     drs as CoreDRS,
-    download as CoreDownload,
     post_upload as CorePostUpload,
     get_upload as CoreGetUpload,
     download_cli as CoreDownloadCli,
@@ -28,19 +41,7 @@ from snovault import (
     load_schema,
     abstract_collection,
 )
-from snovault.elasticsearch import ELASTIC_SEARCH
-from snovault.schema_utils import schema_validator
-from snovault.search.search_utils import make_search_subreq
-from snovault.util import debug_log, get_item_or_none
-from snovault.validators import (
-    validate_item_content_post,
-    validate_item_content_put,
-    validate_item_content_patch,
-    validate_item_content_in_place,
-    no_validate_item_content_post,
-    no_validate_item_content_put,
-    no_validate_item_content_patch
-)
+from snovault.util import get_item_or_none
 from snovault.server_defaults import add_last_modified
 
 from . import acl
@@ -66,6 +67,37 @@ from ..item_utils.utils import (
     get_unique_values,
     RequestHandler,
 )
+from pyramid.response import Response
+from pyramid.settings import asbool
+from pyramid.view import view_config
+from snovault.elasticsearch import ELASTIC_SEARCH
+from snovault.schema_utils import schema_validator
+from snovault.util import debug_log
+from snovault.validators import (
+    validate_item_content_post,
+    validate_item_content_put,
+    validate_item_content_patch,
+    validate_item_content_in_place,
+    no_validate_item_content_post,
+    no_validate_item_content_put,
+    no_validate_item_content_patch
+)
+from urllib.parse import (
+    parse_qs,
+    urlparse,
+)
+from snovault.authentication import session_properties
+from snovault.search.search import make_search_subreq
+from snovault.util import check_user_is_logged_in, make_s3_client
+from snovault.types.base import (
+    get_item_or_none,
+    collection_add,
+    item_edit,
+)
+from encoded import OPEN_DATA_S3_CLIENT
+
+
+log = structlog.getLogger(__name__)
 
 
 class CalcPropConstants:
@@ -88,6 +120,16 @@ class CalcPropConstants:
         "items": {
             "type": "string",
             "linkTo": "Sequencing",
+        },
+    }
+    SEQUENCERS_SCHEMA = {
+        "title": "Sequencers",
+        "description": "Sequencers associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Sequencer",
         },
     }
     ASSAYS_SCHEMA = {
@@ -389,6 +431,9 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.sequencing.target_coverage",
         "file_sets.sequencing.target_read_count",
 
+        "assays.category",
+        "sequencers.platform",
+
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
         "file_sets.libraries.analytes.samples.sample_sources.code",
@@ -435,6 +480,7 @@ def _build_file_embedded_list() -> List[str]:
         "donors.sex",
         "donors.hardy_scale",
         "donors.tags",
+        "donors.donor_groups"
     ]
 
 
@@ -714,8 +760,8 @@ class File(Item, CoreFile):
             of the file changed - from this we can determine several things:
                 1. When metadata for this file was submitted (status = uploading or in review)
                 2. When the file was uploaded (status = uploaded)
-                3. When the file was released to consortia 
-                4. When the file was made public 
+                3. When the file was released to consortia
+                4. When the file was made public
                 5. If protected data, when it was made released (status = restricted)
 
             To make this reasonably efficient, we assume the following ordering:
@@ -765,15 +811,15 @@ class File(Item, CoreFile):
                         status_tracking[status] = last_modified["date_modified"]
 
         network_release_dates = [
-            status_tracking[status] 
-            for status in self.STATUS_TO_CHECK_NETWORK_RELEASE_DATE 
+            status_tracking[status]
+            for status in self.STATUS_TO_CHECK_NETWORK_RELEASE_DATE
             if status in status_tracking
         ]
         network_release_date = min(network_release_dates) if network_release_dates else None
 
         public_release_dates = [
-            status_tracking[status] 
-            for status in self.STATUS_TO_CHECK_PUBLIC_RELEASE_DATE 
+            status_tracking[status]
+            for status in self.STATUS_TO_CHECK_PUBLIC_RELEASE_DATE
             if status in status_tracking
         ]
         public_release_date = min(public_release_dates) if public_release_dates else None
@@ -829,21 +875,10 @@ class File(Item, CoreFile):
         }
     )
     def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
+        if self.type_info.name == "ReferenceFile":
+            return
         result = self.rev_link_atids(request, "meta_workflow_run_inputs")
-        if result:
-            if self.type_info.name == "ReferenceFile":
-                return
-            request_handler = RequestHandler(request = request)
-            mwfrs=[
-                mwfr for mwfr in result
-                if get_property_value_from_identifier(
-                    request_handler,
-                    mwfr,
-                    item_utils.get_status
-                ) != "deleted"
-            ]
-            return mwfrs if mwfrs else None
-        return
+        return result or None
 
     @calculated_property(
         schema={
@@ -857,44 +892,7 @@ class File(Item, CoreFile):
     )
     def meta_workflow_run_outputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_outputs")
-        if result:
-            request_handler = RequestHandler(request = request)
-            mwfrs=[
-                mwfr for mwfr in result
-                if get_property_value_from_identifier(
-                    request_handler,
-                    mwfr,
-                    item_utils.get_status
-                ) != "deleted"
-            ]
-            return mwfrs if mwfrs else None
-        return
-    
-    @calculated_property(schema={
-        "title": "Input of Workflow Runs",
-        "description": "All workflow runs that this file serves as an input to",
-        "type": "array",
-        "items": {
-            "title": "Input of Workflow Run",
-            "type": ["string", "object"],
-            "linkTo": "WorkflowRun"
-        }
-    })
-    def workflow_run_inputs(self, request):
-        return self.rev_link_atids(request, "workflow_run_inputs")
-
-    @calculated_property(schema={
-        "title": "Output of Workflow Runs",
-        "description": "All workflow runs that this file serves as an output from",
-        "type": "array",
-        "items": {
-            "title": "Output of Workflow Run",
-            "type": "string",
-            "linkTo": "WorkflowRun"
-        }
-    })
-    def workflow_run_outputs(self, request):
-        return self.rev_link_atids(request, "workflow_run_outputs")    
+        return result or None
 
     @calculated_property(schema=CalcPropConstants.LIBRARIES_SCHEMA)
     def libraries(
@@ -911,11 +909,14 @@ class File(Item, CoreFile):
         return self._get_sequencing(request, file_sets=file_sets)
 
     @calculated_property(schema=CalcPropConstants.ASSAYS_SCHEMA)
-    def assays(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
+    def assays(self, request: Request) -> Union[List[str], None]:
         """Get Assays associated with the file."""
-        return self._get_assays(request, file_sets=file_sets)
+        return self._get_assays(request)
+
+    @calculated_property(schema=CalcPropConstants.SEQUENCERS_SCHEMA)
+    def sequencers(self, request: Request) -> Union[List[str], None]:
+        """Get Sequencers associated with the file."""
+        return self._get_sequencers(request)
 
     @calculated_property(schema=CalcPropConstants.ANALYTES_SCHEMA)
     def analytes(
@@ -954,10 +955,10 @@ class File(Item, CoreFile):
 
     @calculated_property(schema=CalcPropConstants.DATA_GENERATION_SCHEMA)
     def data_generation_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
+        self, request: Request
     ) -> Union[Dict[str, Any], None]:
         """Get data generation summary for display on file overview page."""
-        return self._get_data_generation_summary(request, file_sets=file_sets)
+        return self._get_data_generation_summary(request)
 
     @calculated_property(schema=CalcPropConstants.SAMPLE_SUMMARY_SCHEMA)
     def sample_summary(
@@ -1028,14 +1029,16 @@ class File(Item, CoreFile):
             result = file_utils.get_sequencings(self.properties, request_handler)
         return result or None
 
-    def _get_assays(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> List[str]:
+    def _get_assays(self, request: Request) -> List[str]:
         """Get the assays associated with the file."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = file_utils.get_assays(self.properties, request_handler)
+        request_handler = RequestHandler(request=request)
+        result = file_utils.get_assays(self.properties, request_handler)
+        return result or None
+    
+    def _get_sequencers(self, request: Request) -> List[str]:
+        """Get the sequencers associated with the file."""
+        request_handler = RequestHandler(request=request)
+        result = file_utils.get_sequencers(self.properties, request_handler)
         return result or None
 
     def _get_analytes(
@@ -1122,7 +1125,7 @@ class File(Item, CoreFile):
         }
 
     def _get_data_generation_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
+        self, request: Request
     ) -> Union[Dict[str, Any], None]:
         """Get data generation summary for display on file overview page."""
         request_handler = RequestHandler(request=request)
@@ -1220,11 +1223,10 @@ class File(Item, CoreFile):
     ) -> Union[Dict[str, Any], None]:
         """Get sample summary for display on file overview page."""
         result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_sample_summary_fields(
-                request_handler, self.properties
-            )
+        request_handler = RequestHandler(request=request)
+        result = self._get_sample_summary_fields(
+            request_handler, self.properties
+        )
         return result or None
 
     def _get_sample_summary_fields(
@@ -1362,7 +1364,7 @@ class File(Item, CoreFile):
             ]
             return " ".join(to_include)
         if "file_sets" in file_properties:
-            assay_title= get_unique_values(
+            assay_title = get_unique_values(
                 request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
                 item_utils.get_display_title,
                 )
@@ -1384,6 +1386,109 @@ class File(Item, CoreFile):
             ]
         if to_include:
             return " ".join(to_include)
+
+    @staticmethod
+    def get_presigned_url_location(client, external, request, filename) -> str:
+        """ Opens an S3 boto3 client and returns a presigned url for the requested file to be downloaded"""
+        param_get_object = {
+            'Bucket': external['bucket'],
+            'Key': external['key'],
+            'ResponseContentDisposition': "attachment; filename=" + filename
+        }
+        if request.range:
+            param_get_object.update({'Range': request.headers.get('Range')})
+            del param_get_object['ResponseContentDisposition']
+        location = client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params=param_get_object,
+            ExpiresIn=36*60*60
+        )
+        return location
+
+    def get_open_data_url_or_presigned_url_location(self, external, request, filename, datastore_is_database) -> str:
+        """ This function differs materially from fourfront - we have three possibilities, one where we are
+            directing to truly public data, another where we are directing to protected data in the open
+            data account (with auth) and another where we are directing to data we hold in our buckets (with auth) """
+        open_data_url = None
+        s3_client = self.registry[OPEN_DATA_S3_CLIENT]
+        if datastore_is_database:  # view model came from DB - must compute calc prop
+            open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+        else:  # view model came from elasticsearch - calc props should be here
+            if hasattr(self.model, 'source'):
+                es_model_props = self.model.source['embedded']
+                open_data_url = es_model_props.get('open_data_url', '')
+                if filename not in open_data_url:  # we requested an extra_file, so recompute with correct filename
+                    open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+            if not open_data_url:  # fallback to DB
+                open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+
+        # Redirect with no auth
+        if open_data_url and 'smaht-open-data-public' in open_data_url:
+            return open_data_url
+        # Redirect with auth, note this is somewhat fragile if they ever change the
+        # URL for s3 (not likely) - Will 30 Nov 2025
+        elif open_data_url and 'smaht-open-data-protected' in open_data_url:
+            base = "https://smaht-open-data-protected.s3.amazonaws.com/"
+            open_data_key = open_data_url[len(base):]
+            open_data_external = {
+                'bucket': 'smaht-open-data-protected',
+                'key': open_data_key
+            }
+            return self.get_presigned_url_location(s3_client, open_data_external, request, filename)
+        else:
+            return self.get_presigned_url_location(s3_client, external, request, filename)
+
+    @staticmethod
+    def _head_s3(client, bucket, key):
+        """ Helper for below method for mocking purposes. """
+        return client.head_object(Bucket=bucket, Key=key)
+
+    def _open_data_url(self, s3_client, status, filename):
+        """ Helper for below method containing core functionality. """
+        if not filename:
+            return None
+
+        # Resolve which bucket to look in
+        if status == 'open':
+            open_data_bucket = 'smaht-open-data-public'
+        elif status in ['protected', 'protected-network', 'protected-early']:
+            open_data_bucket = 'smaht-open-data-protected'
+        else:
+            return None
+
+        # Resolve which key to check
+        if self.type_info.name == 'OutputFile':
+            bucket_type = 'wfoutput'
+        else:
+            bucket_type = 'files'
+        open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
+            bucket_type=bucket_type, uuid=self.uuid, filename=filename
+        )
+
+        # Check the bucket/key
+        try:
+            self._head_s3(s3_client, open_data_bucket, open_data_key)
+        except ClientError as e:
+            return None  # not there yet
+        location = 'https://{open_data_bucket}.s3.amazonaws.com/{open_data_key}'.format(
+            open_data_bucket=open_data_bucket, open_data_key=open_data_key
+        )
+        return location
+
+    @calculated_property(schema={
+        "title": "Open Data URL",
+        "description": "Location of file on Open Data Bucket, if it exists",
+        "type": "string"
+    })
+    def open_data_url(self, request, accession, file_format, status=None):
+        """ Computes the open data URL and checks if it exists. """
+        if status not in ['open', 'protected', 'protected-network', 'protected-early']:
+            return None
+
+        fformat = get_item_or_none(request, file_format, frame='raw')  # no calc props needed
+        filename = "{}.{}".format(accession, fformat.get('standard_file_extension', ''))
+        s3_client = self.registry[OPEN_DATA_S3_CLIENT]
+        return self._open_data_url(s3_client, status, filename)
 
 
 @view_config(name='drs', context=File, request_method='GET',
@@ -1454,7 +1559,115 @@ def download(context, request):
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
         raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
-    return CoreDownload(context, request)
+
+    # Download implementation, which requires non-trivial overrides follows
+    check_user_is_logged_in(request)
+
+    # first check for restricted status
+    try:
+        user_props = session_properties(context, request)
+    except Exception as e:
+        user_props = {'error': str(e)}
+
+    user_uuid = user_props.get('details', {}).get('uuid', None)
+    user_groups = user_props.get('details', {}).get('groups', None)
+    if user_groups:
+        user_groups.sort()
+
+    tracking_values = {'user_agent': request.user_agent, 'remote_ip': request.remote_addr,
+                       'user_uuid': user_props.get('details', {}).get('uuid', 'anonymous'),
+                       'request_path': request.path_info, 'request_headers': str(dict(request.headers))}
+
+    # proxy triggers if we should use Axel-redirect, useful for s3 range byte queries
+    try:
+        use_download_proxy = request.client_addr not in request.registry['aws_ipset']
+    except TypeError:
+        # this fails in testing due to testapp not having ip
+        use_download_proxy = False
+
+    # with extra_files the user may be trying to download the main file
+    # or one of the files in extra files, the following logic will
+    # search to find the "right" file and redirect to a download link for that one
+    properties = context.upgrade_properties()
+    file_format = get_item_or_none(request, properties.get('file_format'), 'file-formats')
+    _filename = None
+    if request.subpath:
+        _filename, = request.subpath
+    filename = is_file_to_download(properties, file_format, _filename)
+    if not filename:
+        found = False
+        for extra in properties.get('extra_files', []):
+            eformat = get_item_or_none(request, extra.get('file_format'), 'file-formats')
+            filename = is_file_to_download(extra, eformat, _filename)
+            if filename:
+                found = True
+                properties = extra
+                external = context.propsheets.get('external' + eformat.get('uuid'))
+                if eformat is not None:
+                    tracking_values['file_format'] = eformat.get('file_format')
+                break
+        if not found:
+            raise HTTPNotFound(_filename)
+    else:
+        external = context.propsheets.get('external', {})
+        if file_format is not None:
+            tracking_values['file_format'] = file_format.get('file_format')
+    tracking_values['filename'] = filename
+
+    # Calculate bytes downloaded from Range header
+    file_size_downloaded = properties.get('file_size', 0)
+    if request.range:
+        file_size_downloaded = 0
+        # Assume range unit is bytes
+        if hasattr(request.range, "ranges"):
+            for (range_start, range_end) in request.range.ranges:
+                file_size_downloaded += (
+                        (range_end or properties.get('file_size', 0)) -
+                        (range_start or 0)
+                )
+        else:
+            file_size_downloaded = (
+                    (request.range.end or properties.get('file_size', 0)) -
+                    (request.range.start or 0)
+            )
+
+    request_datastore_is_database = (request.datastore == 'database')
+    if not external:
+        external = context.build_external_creds(request.registry, context.uuid, properties)
+    if external.get('service') == 's3':
+        location = context.get_open_data_url_or_presigned_url_location(external, request, filename,
+                                                                       request_datastore_is_database)
+    else:
+        raise ValueError(external.get('service'))
+
+    # Analytics Stuff
+    ga_config = request.registry.settings.get('ga_config')
+
+    if ga_config:
+        submitter_title = get_submitter_title(request, context, properties)
+        exp_or_assay_type = get_experiment_or_assay_type(request, context, properties)
+        file_type = get_file_type(request, context, properties)
+        file_at_id = context.jsonld_id(request)
+        dataset = properties.get('dataset')
+        update_google_analytics(context, request, ga_config, filename, file_size_downloaded, file_at_id,
+                                submitter_title,
+                                user_uuid, user_groups, exp_or_assay_type, dataset, file_type)
+
+    if asbool(request.params.get('soft')):
+        expires = int(parse_qs(urlparse(location).query)['Expires'][0])
+        return {
+            '@type': ['SoftRedirect'],
+            'location': location,
+            'expires': datetime.datetime.fromtimestamp(expires, pytz.utc).isoformat(),
+        }
+
+    # We don't use X-Accel-Redirect here so that client behaviour is similar for
+    # both aws and non-aws users.
+    if use_download_proxy:
+        location = request.registry.settings.get('download_proxy', '') + str(location)
+
+    # 307 redirect specifies to keep original method
+    raise HTTPTemporaryRedirect(location=location)
 
 
 # This /files/upload_file_size endpoint was added specifically (2024-08-22) for smaht-submitr to

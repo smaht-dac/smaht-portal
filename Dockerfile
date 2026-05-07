@@ -23,7 +23,7 @@ ENV NGINX_USER=nginx \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
     NVM_VERSION=v0.39.1 \
-    NODE_VERSION=20.17.0
+    NODE_VERSION=21.7.3
 
 # Configure Python3.9 venv
 ENV VIRTUAL_ENV=/opt/venv
@@ -137,6 +137,9 @@ RUN chmod +x entrypoint.sh && \
     chmod +x entrypoint_indexer.sh && \
     chmod +x entrypoint_ingester.sh && \
     chmod +x assume_identity.py
+
+# grab restricted domain list
+RUN curl https://gist.githubusercontent.com/ammarshah/f5c2624d767f91a7cbdc4e54db8dd0bf/raw > restricted_domains.txt
 EXPOSE 8000
 
 # Container does not run as root

@@ -361,7 +361,7 @@ const FileViewHeader = (props) => {
 /** Top-level component for the File Overview Page */
 const FileView = (props) => {
     const { context, session, href } = props;
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess } = useUserDownloadAccess(session);
 
     return (
         <div className="file-view">

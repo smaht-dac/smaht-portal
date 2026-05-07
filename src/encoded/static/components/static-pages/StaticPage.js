@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
@@ -13,7 +13,7 @@ import {
 import {
     console,
     object,
-    isServerSide,
+    memoizedUrlParse,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { StaticPageBase } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/StaticPageBase';
 import { replaceString as replacePlaceholderString } from './placeholders';
@@ -69,12 +69,13 @@ export const parseSectionsContent = memoize(function (context) {
                     <div style={{ position: 'relative' }}>
                         <object.CopyWrapper
                             value={children}
-                            className={(className || '') + " mt-2"}
+                            className={(className || '') + ' mt-2'}
                             wrapperElement="pre"
                             whitespace={false}>
                             {children}
                         </object.CopyWrapper>
-                    </div>);
+                    </div>
+                );
             }
         },
     };
@@ -139,7 +140,12 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     props
 ) {
     const { section, className } = props;
-    const { content = null, content_as_html = null, options = {}, filetype = null } = section;
+    const {
+        content = null,
+        content_as_html = null,
+        options = {},
+        filetype = null,
+    } = section;
     let renderedContent;
 
     if (!content) return null;
@@ -170,12 +176,30 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     return <div className={cls}>{renderedContent}</div>;
 });
 
+// Intercept clicks on top nav links and scroll to section
+export const scrollToAnchor = (e, props) => {
+    const linkEl = e.target.closest('a.nav-link');
+    if (!linkEl) return;
+
+    const href = linkEl.getAttribute('href');
+    if (!href) return;
+
+    // Only intercept in-page anchors
+    if (!href.startsWith('#')) return;
+
+    e.preventDefault();
+
+    const id = href.slice(1);
+
+    TableOfContents.scrollToLink(id, 75, props.navigate);
+};
+
 const CustomWrapper = React.memo(function CustomWrapper({
     tableOfContents = false,
     tocListStyles = ['decimal', 'lower-alpha', 'lower-roman'],
     ...props
 }) {
-    const { children, title, context, windowWidth } = props;
+    const { children, title, context, windowWidth, href } = props;
     const toc =
         (context && context['table-of-contents']) ||
         (tableOfContents && typeof tableOfContents === 'object'
@@ -183,9 +207,31 @@ const CustomWrapper = React.memo(function CustomWrapper({
             : null);
     const pageTitle = title || (context && context.title) || null;
     const tocExists = toc && toc.enabled !== false;
+    const parsedHrefPathname =
+        typeof href === 'string' ? memoizedUrlParse(href).pathname : null;
+    // Keep `/data-matrix` on a wide layout without affecting other static pages.
+    const isDataMatrixPage = parsedHrefPathname === '/data-matrix';
+    const wrapperClassName = isDataMatrixPage ? 'container-wide' : 'container';
+
+    // Prepare event listeners for top nav links to scroll to section
+    useEffect(() => {
+        const container = document.querySelector(
+            '.static-page-top-navigation-container'
+        );
+        if (!container) return;
+
+        // Intercept clicks on top nav links and scroll to section
+        const handler = (e) => scrollToAnchor(e, props);
+
+        container.addEventListener('click', handler);
+
+        return () => {
+            container.removeEventListener('click', handler);
+        };
+    }, [props.navigate]);
 
     return (
-        <div className="container" id="content">
+        <div className={wrapperClassName} id="content">
             <div className="static-page row" key="wrapper">
                 {tocExists ? (
                     <div

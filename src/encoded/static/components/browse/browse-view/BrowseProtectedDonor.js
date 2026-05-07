@@ -9,20 +9,25 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import { BROWSE_STATUS_FILTERS, BROWSE_LINKS } from '../BrowseView';
+import {
+    BROWSE_STATUS_FILTERS,
+    BROWSE_LINKS,
+    NoResultsBrowseModal,
+} from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
+import { getTissueCategoryFromFacetTerm } from '../../util/data';
 
 /**
  * Format tissue data by grouping it into predefined categories.
- * @param {*} data - The raw tissue data to format.
+ * @param {Array} data - The raw tissue data to format.
  * @returns {Object} - The formatted tissue data grouped by category.
  */
-const formatTissueData = (data) => {
+export const formatTissueData = (data) => {
     const defaultTissueCategories = {
         Ectoderm: {
             title: 'Ectoderm',
@@ -46,10 +51,19 @@ const formatTissueData = (data) => {
         },
     };
 
-    // group data by tissue category
-    const grouped_data = data.reduce((acc, { key }) => {
+    if (!data) return defaultTissueCategories;
+
+    // Flatten any nested terms
+    const flattenedTissueTerms = data.flatMap((t) => {
+        if (Array.isArray(t?.terms) && t.terms.length > 0) {
+            return t.terms;
+        }
+        return t ? [t] : [];
+    });
+
+    const grouped_data = flattenedTissueTerms.reduce((acc, { key }) => {
         // if category is not present in lookup map, assign to 'Unknown' group
-        const tissueCategory = tissueToCategory.get(key) || 'Unknown';
+        const tissueCategory = getTissueCategoryFromFacetTerm(key) || 'Unknown';
 
         if (!acc[tissueCategory]) {
             acc[tissueCategory] = { title: tissueCategory, values: [key] };
@@ -67,7 +81,7 @@ const formatTissueData = (data) => {
  * TissueDetailPane component that displays tissue data for a donor. Fetches tissue
  * data based on the donor's display title and formats it for display.
  * @param {*} itemDetails - The details of the item to display.
- * @returns TissueDetailPane component that displays tissue data for a donor.
+ * @returns {JSX.Element} TissueDetailPane component that displays tissue data for a donor.
  */
 const TissueDetailPane = React.memo(function TissueDetailPane({
     itemDetails,
@@ -155,10 +169,11 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
 
 /**
  * Format tissue data by grouping it into predefined categories.
- * @param {*} data - The raw tissue data to format.
+ * @param {Array} data - The raw tissue data to format.
+ * @param {Object} - Label overrides for particular strings
  * @returns {Object} - The formatted tissue data grouped by category.
  */
-const formatAssayData = (data) => {
+export const formatAssayData = (data, labelOverridesFromFacets = {}) => {
     const defaultAssayCategories = {
         'Bulk WGS': {
             title: 'Bulk WGS',
@@ -180,10 +195,6 @@ const formatAssayData = (data) => {
             title: 'Targeted Seq',
             values: [],
         },
-        'Single-cell RNA-seq': {
-            title: 'Single-cell RNA-Seq',
-            values: [],
-        },
         Other: {
             title: 'Other',
             values: [],
@@ -192,16 +203,33 @@ const formatAssayData = (data) => {
 
     // group data by assay category
     const grouped_data = data.reduce((acc, item) => {
-        const assayCategory = item?.key || 'Other';
+        // Check for label override
+        const assayCategory = item?.key ?? 'Other';
 
+        // Populate object for label overrides if they exist
+        const labelOverrides = {};
+        if (labelOverridesFromFacets?.[assayCategory]) {
+            labelOverrides[assayCategory] =
+                labelOverridesFromFacets[assayCategory];
+        }
+
+        // Get terms and add label overrides
+        const termsMap = item?.terms.map((t) => {
+            if (labelOverridesFromFacets[t?.key]) {
+                labelOverrides[t.key] = labelOverridesFromFacets[t.key];
+            }
+            return t?.key;
+        });
+
+        // Add terms to new or existing category
         if (!acc[assayCategory]) {
             acc[assayCategory] = {
                 title: assayCategory,
-                values: item?.terms.map((t) => t.key),
+                values: termsMap,
+                label_overrides: labelOverrides ?? {},
             };
         } else {
-            // If category exists, push tissue to that category
-            acc[assayCategory].values.push(...item?.terms.map((t) => t.key));
+            acc[assayCategory].values.push(...termsMap);
         }
         return acc;
     }, defaultAssayCategories);
@@ -213,7 +241,8 @@ const formatAssayData = (data) => {
  * AssayDetailPane component that displays assay data for a donor. Fetches assay
  * data based on the donor's display title and formats it for display.
  * @param {*} itemDetails - The details of the item to display.
- * @returns AssayDetailPane component that displays tissue data for a donor.
+ * @param {*} panelDetails - The details of the item to display.
+ * @returns {JSX.Element} AssayDetailPane component that displays tissue data for a donor.
  */
 const AssayDetailPane = React.memo(function AssayDetailPane({
     itemDetails,
@@ -226,15 +255,21 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
-            setAssayData(
-                formatAssayData(
-                    panelDetails?.searchCache?.facets?.find(
-                        (f) =>
-                            f.field ===
-                            'file_sets.libraries.assay.display_title'
-                    )?.terms || []
-                )
+            const assayFacets = panelDetails?.searchCache?.facets?.find(
+                (f) => f.field === 'assays.display_title'
             );
+
+            // Pull out terms and label overrides from facet
+            const termsFromFacets = assayFacets?.terms || [];
+            const labelOverridesFromFacets = assayFacets?.label_overrides || {};
+
+            // Get assay terms from facet
+            const assayTerms = formatAssayData(
+                termsFromFacets,
+                labelOverridesFromFacets
+            );
+
+            setAssayData(assayTerms);
         } else {
             panelDetails.searchRequest(searchURL);
         }
@@ -254,30 +289,47 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
             </div>
             <div className="detail-body">
                 {Object?.keys(assayData).map((category, i) => {
-                    const assays = assayData[category]['values'] || [];
+                    const {
+                        title,
+                        values = [],
+                        label_overrides = {},
+                    } = assayData[category];
+
+                    // Override category title if label override exists
+                    const categoryTitle = label_overrides?.[title] ?? title;
+                    const categoryAssays = values;
+
                     return (
                         <div key={i} className="tissue-category">
                             <div className="header-container">
-                                <h3>{assayData[category]?.title}</h3>
+                                <h3>{categoryTitle}</h3>
                             </div>
                             <div className="tissue-list-container">
-                                {assays.length > 0 ? (
+                                {categoryAssays.length > 0 ? (
                                     <ul>
-                                        {assays.map((assay, j) => {
-                                            // Create a link to search for files with this assay
-                                            return (
-                                                <li key={j}>
-                                                    <span>
-                                                        <a
-                                                            href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&file_sets.libraries.assay.display_title=${assay}`}
-                                                            target="_blank"
-                                                            rel="noreferrer noopener">
-                                                            {assay}
-                                                        </a>
-                                                    </span>
-                                                </li>
-                                            );
-                                        })}
+                                        {categoryAssays
+                                            .sort((a, b) => a.localeCompare(b))
+                                            .map((assay, j) => {
+                                                // Override assay title if label override exists
+                                                const assayTitle =
+                                                    label_overrides?.[assay] ??
+                                                    assay;
+
+                                                // Create a link to search for files with this assay
+                                                // Note: The assay link uses the original assay term
+                                                return (
+                                                    <li key={j}>
+                                                        <span>
+                                                            <a
+                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&assays.display_title=${assay}`}
+                                                                target="_blank"
+                                                                rel="noreferrer noopener">
+                                                                {assayTitle}
+                                                            </a>
+                                                        </span>
+                                                    </li>
+                                                );
+                                            })}
                                     </ul>
                                 ) : (
                                     <span className="text-secondary">N/A</span>
@@ -297,7 +349,14 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
     );
 });
 
-// Detail Pane
+/**
+ * Custom detail pane component for the donor view.
+ * @param {*} itemDetails - Details of the donor.
+ * @param {*} rowIndex - Index of the row.
+ * @param {*} panelWidth - Width of the detail pane.
+ * @param {*} panelDetails - Details of the donor view.
+ * @returns {JSX.Element} Custom detail pane component for the donor view.
+ */
 const customRenderDetailPane = (
     itemDetails = {},
     rowIndex,
@@ -437,9 +496,13 @@ export function createBrowseProtectedDonorColumnExtensionMap({
 
                 const { data, loading, error } = parentProps?.fetchedProps;
 
-                const tissueCount = data?.find(
+                const tissueFacet = data?.find(
                     (f) => f.field === 'sample_summary.tissues'
-                )?.terms?.length;
+                );
+                const tissueTerms = tissueFacet?.has_group_by
+                    ? tissueFacet?.original_terms || tissueFacet?.terms
+                    : tissueFacet?.terms;
+                const tissueCount = tissueTerms?.length;
 
                 if (loading) {
                     return (
@@ -517,7 +580,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                     ?.find(
                         (f) =>
                             f.field ===
-                            'file_sets.libraries.assay.display_title'
+                            'assays.display_title'
                     )
                     ?.terms?.reduce(
                         (acc, curr) => acc + (curr?.terms?.length ?? 1),
@@ -717,7 +780,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
             },
         },
         // Platform
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             widthMap: { lg: 170, md: 160, sm: 150 },
         },
         // Format
@@ -890,8 +953,8 @@ const BrowseProtectedDonorSearchTable = (props) => {
 
 // Browse Protected Donor Body Component
 export const BrowseProtectedDonorBody = (props) => {
-    const { alerts } = props;
-
+    const { context, alerts, href, userDownloadAccess, isAccessResolved } =
+        props;
     return (
         <>
             <Alerts alerts={alerts} className="mt-2" />
@@ -900,6 +963,15 @@ export const BrowseProtectedDonorBody = (props) => {
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseProtectedDonorSearchTable />
             </BrowseViewControllerWithSelections>
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    type="protected_donor"
+                    context={context}
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </>
     );
 };

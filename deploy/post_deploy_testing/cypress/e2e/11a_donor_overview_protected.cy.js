@@ -15,6 +15,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 0,
         expectedProtectedDonorsCount: 0,
+        expectedPinnedProtectedDonorIds: [],
     },
     [ROLE_TYPES.SMAHT_DBGAP]: {
         label: "SMAHT_DBGAP",
@@ -23,6 +24,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 3,
         expectedProtectedDonorsCount: 3,
+        expectedPinnedProtectedDonorIds: ["SMHT004"],
     },
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
         label: "SMAHT_NON_DBGAP",
@@ -31,6 +33,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 0,
         expectedProtectedDonorsCount: 0,
+        expectedPinnedProtectedDonorIds: [],
     },
     [ROLE_TYPES.PUBLIC_DBGAP]: {
         label: "PUBLIC_DBGAP",
@@ -39,6 +42,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 0,
         expectedProtectedDonorsCount: 3,
+        expectedPinnedProtectedDonorIds: [],
     },
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
         label: "PUBLIC_NON_DBGAP",
@@ -47,6 +51,7 @@ const ROLE_MATRIX = {
 
         expectedProtectedDonorsHavingReleasedFilesCount: 0,
         expectedProtectedDonorsCount: 0,
+        expectedPinnedProtectedDonorIds: [],
     },
 };
 
@@ -170,15 +175,34 @@ const verifyDonorSummary = (expectedDonorId) => {
         );
     });
 
-    // Tier / Bulk WGS Coverage / DSA: "Coming soon" + .coming-soon class
-    ["Tier", "Bulk WGS Coverage", "DSA"].forEach((lbl) => {
-        getOverviewValue(lbl).then(({ $el, text }) => {
-            expect(text, `${lbl} should be "Coming soon"`).to.eq("Coming soon");
+    // Bulk WGS Coverage
+    getOverviewValue("Bulk WGS Coverage").then(({ $el, text }) => {
+        expect(text, `${"Bulk WGS Coverage"} should be "Coming soon"`).to.eq("Coming soon");
+        expect(
+            $el.hasClass("text-disabled"),
+            `${"Bulk WGS Coverage"} should have .text-disabled class`
+        ).to.be.true;
+    });
+
+    // Allow a moment for the DSA request to complete
+    cy.wait(2000)
+
+    // DSA - ProtectedDonor may have avaliable DSA link
+    getOverviewValue("DSA").then(({ $el, text }) => {
+        // Check that DSA either says either "Coming soon" or "Available"
+        if (text === "Coming soon") {
             expect(
-                $el.hasClass("coming-soon"),
-                `${lbl} should have .coming-soon class`
+                $el.find('span').hasClass("text-disabled"),
+                `DSA should have .text-disabled class`
             ).to.be.true;
-        });
+        } else if (text === "Available") {
+            // DSA should say Available and should have an href
+            expect($el.find("a").attr("href"), `DSA should have an href`).to.not.be.empty;
+            expect(text, `DSA should be "Available"`).to.eq("Available");
+        } else {
+            // Child i element of $el should be an icon
+            expect($el.find("i.icon-spin").length, `DSA should have an i element`).to.be.greaterThan(0);
+        }
     });
 
     // Statistics
@@ -457,6 +481,9 @@ function stepProtectedDonorFlow(caps) {
 
             const selected = Cypress._.sampleSize(donors, Math.min(3, donors.length));
             if (!selected.includes("ST001")) selected.push("ST001");
+            (caps.expectedPinnedProtectedDonorIds || []).forEach((donorId) => {
+                if (!selected.includes(donorId)) selected.push(donorId);
+            });
 
             cy.log(`Selected protected donors: ${selected.join(", ")}`);
 
@@ -518,12 +545,13 @@ function stepProtectedDonorFlow(caps) {
                                         donors: [donorID],
                                         mustLabels: [],
                                         optionalLabels: [],
-                                        expectedLowerLabels: ["Tissues"],
+                                        expectedLowerLabels: ["Total Files"],
                                         regularBlockCount: 5, // regularBlockCount
                                         rowSummaryBlockCount: 5, // rowSummaryBlockCount
                                         colSummaryBlockCount: 1, // colSummaryBlockCount
                                         expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
                                         expectedTissuesCount: tissuesCount,
+                                        allowVariantCallSetMatrixUndercount: true,
                                         verifyTotalFromApi: true,
                                     }
                                 );

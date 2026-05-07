@@ -28,43 +28,13 @@ Schema Documentation
             <tbody class="table-border-inner">
                 <tr>
                     <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v2.0.pdf" download>
+                        <a href="/static/files/SMaHT Sample and File Nomenclature v2.1.pdf" download>
                             <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
                     </td>
-                    <td>2.0</td>
-                    <td>09/19/2025</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v2.0.pdf" download>SMaHT Sample and File Nomenclature v2.0.pdf</a></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.2.pdf" download>
-                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
-                        </a>
-                    </td>
-                    <td>1.2</td>
-                    <td>11/01/2024</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.2.pdf" download>SMaHT Sample and File Nomenclature v1.2.pdf</a></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>
-                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
-                        </a>
-                    </td>
-                    <td>1.1</td>
-                    <td>06/20/2024</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>SMaHT Sample and File Nomenclature v1.1.pdf</a></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.0.pdf" download>
-                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
-                        </a>
-                    </td>
-                    <td>1.0</td>
-                    <td>03/01/2024</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.0.pdf" download>SMaHT Sample and File Nomenclature v1.0.pdf</a></td>
+                    <td>2.1 (latest)</td>
+                    <td>01/02/2026</td>
+                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v2.1.pdf" download>SMaHT Sample and File Nomenclature v2.1.pdf</a></td>
                 </tr>
             </tbody>
         </table>
@@ -465,6 +435,31 @@ Table 2B. Protocol IDs for SMaHT production tissues.
                     <td>3AO</td>
                     <td>Hippocampus, Brain, Right hemisphere</td>
                     <td>Snap Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AP</td>
+                    <td>Frontal Lobe, Brain, Left hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AQ</td>
+                    <td>Temporal Lobe, Brain, Left hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AR</td>
+                    <td>Cerebellum, Brain, Left hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AS</td>
+                    <td>Hippocampus, Brain, Left hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AT</td>
+                    <td>Hippocampus, Brain, Right hemisphere</td>
+                    <td>Fixed</td>
                 </tr>
             </tbody>
         </table>

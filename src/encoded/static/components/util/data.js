@@ -40,6 +40,31 @@ const germLayerTissueMapping = {
     },
 };
 
+const tissueCategoryOrder = [
+    'Ectoderm',
+    'Mesoderm',
+    'Endoderm',
+    'Germ cells',
+    'Clinically accessible',
+];
+
+const tissueCategoryOrderIndex = tissueCategoryOrder.reduce(
+    (acc, category, index) => {
+        acc[category] = index;
+        return acc;
+    },
+    {}
+);
+
+const getTissueCategoryOrderIndex = (category) => {
+    const normalizedCategory = String(category || '').trim().toLowerCase();
+    const canonicalCategory = tissueCategoryOrder.find(
+        (item) => item.toLowerCase() === normalizedCategory
+    );
+    if (!canonicalCategory) return Number.MAX_SAFE_INTEGER;
+    return tissueCategoryOrderIndex[canonicalCategory];
+};
+
 /**
  * Reverse look up map for tissue names to their respective categories.
  */
@@ -51,4 +76,164 @@ for (const [category, { values }] of Object.entries(germLayerTissueMapping)) {
     }
 }
 
-export { germLayerTissueMapping, tissueToCategory };
+const tissueInternalCodeByTpcCode = {
+    '3A': 'BLOO',
+    '3B': 'BUCC',
+    '3C': 'ESOP',
+    '3E': 'COAS',
+    '3G': 'CODS',
+    '3I': 'LIVR',
+    '3K': 'ADGL',
+    '3M': 'ADGR',
+    '3O': 'AORT',
+    '3Q': 'LUNG',
+    '3S': 'HART',
+    '3U': 'TESL',
+    '3W': 'TESR',
+    '3Y': 'OVAL',
+    '3AA': 'OVAR',
+    '3AC': 'FBRO',
+    '3AD': 'SKSE',
+    '3AF': 'SKNE',
+    '3AH': 'MUSC',
+    '3AK': 'BRFL',
+    '3AL': 'BRTL',
+    '3AM': 'BRCE',
+    '3AN': 'BRHL',
+    '3AO': 'BRHR',
+};
+
+const tissueInternalCodeByTissueName = {
+    Fibroblast: 'FBRO',
+};
+
+// this mapping is for fallback case when File item has missing tissue category (sample_summary.category)
+// it will be removed when all items have tissue category, but for now it is needed to categorize items without tissue category
+const tissueCategoryByTpcCode = {
+    '3A': 'Clinically accessible',
+    '3B': 'Clinically accessible',
+    '3C': 'Endoderm',
+    '3E': 'Endoderm',
+    '3G': 'Endoderm',
+    '3I': 'Endoderm',
+    '3K': 'Mesoderm',
+    '3M': 'Mesoderm',
+    '3O': 'Mesoderm',
+    '3Q': 'Endoderm',
+    '3S': 'Mesoderm',
+    '3U': 'Germ cells',
+    '3W': 'Germ cells',
+    '3Y': 'Germ cells',
+    '3AA': 'Germ cells',
+    '3AC': 'Mesoderm',
+    '3AD': 'Ectoderm',
+    '3AF': 'Ectoderm',
+    '3AH': 'Mesoderm',
+    '3AK': 'Ectoderm',
+    '3AL': 'Ectoderm',
+    '3AM': 'Ectoderm',
+    '3AN': 'Ectoderm',
+    '3AO': 'Ectoderm',
+};
+
+const tissueCategoryByTissueName = {
+    Fibroblast: 'Mesoderm',
+};
+
+/**
+ * Parse a tissue facet term into a short code (if present).
+ * E.g. 3AK - Brain, Frontal Lobe =>  { code: '3AK', tissue: 'Brain, Frontal Lobe', hasCode: true }
+ * E.g. 3Y - Ovary, L =>  { code: '3Y', tissue: 'Ovary, L', hasCode: true }
+ * E.g. 3I - Liver =>  { code: '3I', tissue: 'Liver', hasCode: true }
+ */
+const parseTissueTermForSort = (termKey) => {
+    const raw = String(termKey || '').trim();
+    if (!raw) {
+        return { tissue: '', code: '', hasCode: false };
+    }
+    const parts = raw.split(' - ');
+    if (parts.length >= 2) {
+        const code = parts.shift().trim();
+        const tissuePart = parts.join(' - ').trim();
+        const tissue = tissuePart.split(',')[0].trim();
+        return { tissue, code, hasCode: code.length > 0 };
+    }
+    const tissue = raw.split(',')[0].trim();
+    return { tissue, code: '', hasCode: false };
+};
+
+/**
+ * Currently, we only use tissue code for the comparison/sorting of tissue facet terms.
+ * @param {*} a - First tissue facet term to compare.
+ * @param {*} b - Second tissue facet term to compare.
+ * @returns {number} Comparison result for sorting.
+ */
+const compareTissueFacetTerms = (a, b) => {
+    const aKey = a?.props?.term?.key || a?.key || '';
+    const bKey = b?.props?.term?.key || b?.key || '';
+    if (!aKey && !bKey) return 0;
+    if (!aKey) return 1;
+    if (!bKey) return -1;
+
+    const aIsGroupingTerm = Array.isArray(a?.props?.term?.terms);
+    const bIsGroupingTerm = Array.isArray(b?.props?.term?.terms);
+    if (aIsGroupingTerm || bIsGroupingTerm) {
+        const aCategoryIndex = getTissueCategoryOrderIndex(aKey);
+        const bCategoryIndex = getTissueCategoryOrderIndex(bKey);
+        if (aCategoryIndex !== bCategoryIndex) {
+            return aCategoryIndex - bCategoryIndex;
+        }
+        return String(aKey).localeCompare(String(bKey));
+    }
+
+    const aParsed = parseTissueTermForSort(aKey);
+    const bParsed = parseTissueTermForSort(bKey);
+    if (aParsed.hasCode !== bParsed.hasCode) {
+        return aParsed.hasCode ? -1 : 1;
+    }
+    if (aParsed.hasCode && bParsed.hasCode) {
+        const codeCmp = aParsed.code.localeCompare(bParsed.code, undefined, {
+            numeric: true,
+            sensitivity: 'base',
+        });
+        if (codeCmp !== 0) {
+            return codeCmp;
+        }
+    }
+    return String(aKey).localeCompare(String(bKey));
+};
+
+/**
+ * Returns internal tissue code for a tissue facet term if available.
+ * Prioritizes TPC code mapping and then falls back to tissue name mapping.
+ */
+const getTissueInternalCodeFromFacetTerm = (termKey) => {
+    const { tissue, code, hasCode } = parseTissueTermForSort(termKey);
+    if (hasCode) {
+        const mappedByCode = tissueInternalCodeByTpcCode[String(code).toUpperCase()];
+        if (mappedByCode) return mappedByCode;
+    }
+    return tissueInternalCodeByTissueName[tissue] || null;
+};
+
+/**
+ * Returns tissue category for a tissue facet term if available.
+ * Prioritizes TPC code mapping and then falls back to tissue name mapping.
+ */
+const getTissueCategoryFromFacetTerm = (termKey) => {
+    const { tissue, code, hasCode } = parseTissueTermForSort(termKey);
+    if (hasCode) {
+        const mappedByCode = tissueCategoryByTpcCode[String(code).toUpperCase()];
+        if (mappedByCode) return mappedByCode;
+    }
+    return tissueCategoryByTissueName[tissue] || null;
+};
+
+export {
+    germLayerTissueMapping,
+    tissueCategoryOrder,
+    tissueToCategory,
+    compareTissueFacetTerms,
+    getTissueInternalCodeFromFacetTerm,
+    getTissueCategoryFromFacetTerm,
+};

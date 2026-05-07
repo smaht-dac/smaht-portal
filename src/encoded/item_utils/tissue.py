@@ -13,6 +13,7 @@ from .utils import (
     RequestHandler,
 )
 
+
 def is_tissue(properties: Dict[str, Any]) -> bool:
     """Check if sample source is tissue."""
     return item.get_type(properties) == "Tissue"
@@ -74,6 +75,7 @@ TPC_ALT_TISSUE_REGEX = re.compile(
     rf"{TPC_ALT_ID_REGEX}$"
 )
 
+ 
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
     """Check if tissue is from benchmarking study."""
     external_id = item.get_external_id(properties)
@@ -152,18 +154,26 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
     """
     Get tissue type of tissue from ontology term.
     
-    Special handling of fibroblasts (3AC)
+    Special handling of fibroblasts (3AC) and Benchmarking tissues
     """
+     # Use tissue code from external id to identify fibroblast
     fibroblast = is_fibroblast(properties)
     if fibroblast:
-        return "Fibroblast"
-    return get_grouping_term_from_tag(
+        return "3AC - Fibroblast"
+    # otherwise use ontology term `preferred name` to set tissue type
+    tissue_type = get_grouping_term_from_tag(
         properties,
         request_handler=request_handler,
         tag="tissue_type"
     )
-
-
+    # Use donor code from external id to identify benchmarking samples
+    if tissue_type and is_benchmarking(properties):
+        if " - " in tissue_type:
+            # NOTE: Relies on formatting of ontology term to be [TPC code] - [Tissue type]
+            return tissue_type.split(' - ')[1]
+    return tissue_type
+        
+    
 def get_category(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
     """
     Get category associated with tissue.
@@ -180,4 +190,12 @@ def get_category(properties: Dict[str, Any], request_handler: RequestHandler) ->
         germ_layer = get_grouping_term_from_tag(properties, request_handler=request_handler, tag="germ_layer")
         return germ_layer or None
 
-        
+
+def get_preservation_type(properties: Dict[str, Any]) -> str:
+    """Get preservation type of tissue."""
+    return properties.get("preservation_type","")
+
+
+def is_fixed(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is fixed based on preservation type."""
+    return get_preservation_type(properties) == "Fixed"

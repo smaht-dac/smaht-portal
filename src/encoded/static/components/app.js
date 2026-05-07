@@ -1812,8 +1812,7 @@ class BodyElement extends React.PureComponent {
             // See: https://stackoverflow.com/questions/49723019/compare-with-previous-props-in-getderivedstatefromprops
             lastHref: props.href,
             // Whether Test Data warning banner is visible.
-            // testWarningPresent: !globals.productionHost[props.hrefParts.hostname] || false
-            testWarningPresent: false,
+            testWarningPresent: false
         };
 
         /**
@@ -2236,9 +2235,9 @@ class BodyElement extends React.PureComponent {
             // TODO: This is a bit of a hack, but we need to ensure that Data-matrixPage
             // is full screen, so we add this class to the body. Another way to do this would be to
             // add field to schema
-            if (context['@type'].indexOf('Data-matrixPage') > -1) {
-                bodyClassList.push('is-full-screen');
-            }
+            // if (context['@type'].indexOf('Data-matrixPage') > -1) {
+            //     bodyClassList.push('is-full-screen');
+            // }
         }
 
         if (bodyClassList.length > 0) {

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "1.5.13"
+version = "1.26.2"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -12,7 +12,7 @@ packages = [
   { include="encoded", from="src" }
 ]
 classifiers = [
-    # How mature is this project? Common values are
+    # How mature is this project? Common values are÷
     #   3 - Alpha
     #   4 - Beta
     #   5 - Production/Stable
@@ -44,7 +44,7 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "^11.26.0"
+dcicsnovault = "11.29.0"
 dcicutils = "^8.18.3"
 docutils = ">=0.16,<1"
 encoded-core = "^0.9.6"
@@ -55,7 +55,6 @@ humanfriendly = "^1.44.9"
 hupper = "^1.12.1"
 idna = "^3.10"
 jmespath = "0.9.0"
-loremipsum = "1.0.5"
 netaddr = ">=0.8.0,<1"
 openpyxl = "^3.0.7,!=3.0.8"  # a version 3.0.8 appeared but then got withdrawn, for now just pin 3.0.7. try again later.
 passlib = "^1.7.4"
@@ -186,6 +185,7 @@ load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
 prepare-docker = "encoded.commands.prepare_template:prepare_docker_main"
 prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
+prune-restricted-users = "encoded.commands.prune_restricted_users:main"
 release-file = "encoded.commands.release_file:main"
 release-donor-metadata = "encoded.commands.release_donor_metadata:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only

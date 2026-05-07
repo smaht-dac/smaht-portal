@@ -54,6 +54,8 @@ def _build_meta_workflow_run_embedded_list():
         "workflow_runs.workflow_run.output_files.workflow_argument_name",
         # "workflow_runs.workflow_run.output_files.*",
         # "workflow_runs.workflow_run.output_files.value.workflow_run_outputs.@id"
+        "workflow_runs.output.file.accession",
+        "workflow_runs.output.file.output_status"
     ]
 
 

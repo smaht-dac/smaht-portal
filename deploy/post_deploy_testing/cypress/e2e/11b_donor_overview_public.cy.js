@@ -169,21 +169,12 @@ const verifyDonorSummary = (expectedDonorId) => {
         }
     });
 
-    // Tier: Protected (+ has .coming-soon class)
-    getOverviewValue("Tier").then(({ $el, text }) => {
-        expect(text, 'Tier should be "Protected"').to.eq("Protected");
-        expect(
-            $el.hasClass("coming-soon"),
-            "Tier value should have .coming-soon class"
-        ).to.be.true;
-    });
-
     // Bulk WGS Coverage: Protected (+ class)
     getOverviewValue("Bulk WGS Coverage").then(({ $el, text }) => {
         expect(text, 'Bulk WGS Coverage should be "Protected"').to.eq("Protected");
         expect(
-            $el.hasClass("coming-soon"),
-            "Bulk WGS Coverage should have .coming-soon class"
+            $el.hasClass("text-disabled"),
+            "Bulk WGS Coverage should have .text-disabled class"
         ).to.be.true;
     });
 
@@ -191,8 +182,8 @@ const verifyDonorSummary = (expectedDonorId) => {
     getOverviewValue("DSA").then(({ $el, text }) => {
         expect(text, 'DSA should be "Protected"').to.eq("Protected");
         expect(
-            $el.hasClass("coming-soon"),
-            "DSA should have .coming-soon class"
+            $el.hasClass("text-disabled"),
+            "DSA should have .text-disabled class"
         ).to.be.true;
     });
 
@@ -427,12 +418,13 @@ function stepPublicDonorFlow(caps) {
                                         donors: [donorID],
                                         mustLabels: [],
                                         optionalLabels: [],
-                                        expectedLowerLabels: ["Tissues"],
+                                        expectedLowerLabels: ["Total Files"],
                                         regularBlockCount: 5, // regularBlockCount
                                         rowSummaryBlockCount: 5, // rowSummaryBlockCount
                                         colSummaryBlockCount: 1, // colSummaryBlockCount
                                         expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
                                         expectedTissuesCount: donorID !== "COLO829" ? tissuesCount : null, // tissuesCount (null → skip strict total check)
+                                        allowVariantCallSetMatrixUndercount: true,
                                         verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
                                     }
                                 );

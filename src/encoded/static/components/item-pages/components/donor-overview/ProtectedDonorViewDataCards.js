@@ -1,33 +1,59 @@
 'use strict';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
 import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { BROWSE_STATUS_FILTERS } from '../../../browse/BrowseView';
+
 /**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
  * description field.
+ * @param {function} handleShowPopover - function to handle popover visibility
+ * @param {string} customId - custom id for popover
  * @returns {JSX.Element} Popover component with term definitions
  *
  * Note: Use regular function here, as Bootstrap relies on `this`.
  */
-export function renderHardyScaleDescriptionPopover(customId) {
+export function renderHardyScaleDescriptionPopover(
+    handleShowPopover,
+    customId
+) {
     return (
         <Popover
             id={customId ?? 'description-definitions-popover-hardy'}
-            className="w-auto description-definitions-popover">
+            className="w-auto description-definitions-popover"
+            onMouseEnter={() =>
+                handleShowPopover ? handleShowPopover(true) : null
+            }
+            onMouseLeave={() =>
+                handleShowPopover ? handleShowPopover(false) : null
+            }>
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>
                         <tr>
-                            <th className="text-left" colSpan={2}>
+                            <th className="text-left px-4" colSpan={2}>
                                 Hardy Scale - Death Classification
                             </th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr className="w-100">
+                            <td
+                                className="fw-light text-left px-4 py-3"
+                                colSpan={2}>
+                                The Hardy scale is a way to provide standardized
+                                information about a donor's death processes
+                                without providing specific (potentially
+                                identifiable) information about the cause or
+                                manner of death. <br />
+                                <i>The definition of each score is below:</i>
+                            </td>
+                        </tr>
                         <tr>
-                            <td className="fs-5 align-middle text-center px-5">
+                            <td className="fs-5 align-middle text-center index-cell">
                                 0
                             </td>
                             <td className="text-left">
@@ -36,48 +62,62 @@ export function renderHardyScaleDescriptionPopover(customId) {
                             </td>
                         </tr>
                         <tr>
-                            <td className="fs-5 align-middle text-center px-5">
+                            <td className="fs-5 align-middle text-center index-cell">
                                 1
                             </td>
                             <td className="text-left">
                                 <b>Violent and fast death.</b> Deaths due to
-                                accident, blunt force trauma or suicide,
-                                terminal phase estimated at &lt; 10 min.
+                                accident, blunt force trauma or suicide, with
+                                death occurring in less than 10 minutes.
                             </td>
                         </tr>
                         <tr>
-                            <td className="fs-5 align-middle text-center px-5">
+                            <td className="fs-5 align-middle text-center index-cell">
                                 2
                             </td>
                             <td className="text-left">
                                 <b>Fast death of natural causes.</b> Sudden
                                 unexpected deaths of people who had been
-                                reasonably healthy, after a terminal phase
-                                estimated at &lt; 1 hr (with sudden death from a
-                                myocardial infarction as a model cause of death
-                                for this category).
+                                reasonably healthy, with death occurring in less
+                                than 1 hour (for example a heart attack).
                             </td>
                         </tr>
                         <tr>
-                            <td className="fs-5 align-middle text-center px-5">
+                            <td className="fs-5 align-middle text-center index-cell">
                                 3
                             </td>
                             <td className="text-left">
-                                <b>Intermediate death.</b> Death after a
-                                terminal phase of 1 to 24 hrs (not classifiable
-                                as 2 or 4); patients who were ill but death was
+                                <b>Intermediate death.</b> Intermediate time
+                                frame of death, taking 1 to 24 hours (not
+                                classifiable as 2 or 4); this category also
+                                includes patients who were ill but death was
                                 unexpected.
                             </td>
                         </tr>
                         <tr>
-                            <td className="fs-5 align-middle text-center px-5">
+                            <td className="fs-5 align-middle text-center index-cell">
                                 4
                             </td>
                             <td className="text-left">
-                                <b>Slow death.</b> Death after a long illness,
-                                with a terminal phase longer than 1 day
-                                (commonly cancer or chronic pulmonary disease);
-                                deaths that are not unexpected
+                                <b>Slow death.</b> Slow death after a long
+                                illness, with death taking longer than 1 day
+                                (commonly cancer or chronic lung disease);
+                                deaths that are not unexpected.
+                            </td>
+                        </tr>
+                        <tr colSpan={2}>
+                            <td
+                                className="text-left w-100 px-4 py-3 footnote-cell"
+                                colSpan={2}>
+                                For more information, please see Hardy, J. et.
+                                al. (1985) J. Neural Transm.{' '}
+                                <a
+                                    href="https://pubmed.ncbi.nlm.nih.gov/3989524/"
+                                    target="_blank"
+                                    rel="noreferrer noopener">
+                                    PubMed
+                                    <i className="icon icon-external-link"></i>
+                                </a>
                             </td>
                         </tr>
                     </tbody>
@@ -221,14 +261,8 @@ const default_donor_information = [
     {
         title: 'Hardy Scale',
         getProp: (context = {}) => context?.hardy_scale,
-        titlePopover: renderHardyScaleDescriptionPopover(),
-    },
-];
-
-const default_data_summary = [
-    {
-        title: 'Donor ID',
-        getProp: (context = {}) => context?.external_id,
+        titlePopover: (handleShowPopover) =>
+            renderHardyScaleDescriptionPopover(handleShowPopover),
     },
 ];
 
@@ -378,6 +412,68 @@ const ExposureCard = ({ data, popover }) => {
 };
 
 /**
+ * Checks if donor has DSA files and returns a link to browse the DSA files if
+ * available or "Coming Soon" if not. Shows a loading indicator during check.
+ * @param {*} props
+ * @returns {JSX.Element} Link to browse DSA files if available
+ */
+const DonorDSAValue = ({ donorId }) => {
+    const [link, setLink] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        let cancelled = false;
+        setIsLoading(true);
+
+        if (!link) {
+            // peek metadata to see if there are any DSA fields
+            const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${donorId}&sample_summary.studies=Production&${BROWSE_STATUS_FILTERS}&type=File`;
+            ajax.load(
+                '/peek-metadata/' + searchQuery,
+                (resp) => {
+                    if (cancelled) return;
+                    // Check that some files are present in the metadata
+                    if (
+                        resp
+                            ?.find((f) => f.field === 'type')
+                            ?.terms.find((t) => t.key === 'File')?.doc_count > 0
+                    ) {
+                        setIsLoading(false);
+                        setLink('/browse/' + searchQuery);
+                    } else {
+                        // No DSA files found
+                        setIsLoading(false);
+                    }
+                },
+                'GET',
+                (err) => {
+                    setIsLoading(false);
+                    console.error(resp.error);
+                }
+            );
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    if (isLoading) {
+        return <i className="icon icon-spin icon-circle-notch fas" />;
+    }
+
+    return link ? (
+        <span>
+            <a href={link} target="_blank">
+                Available
+            </a>
+        </span>
+    ) : (
+        <span className="text-disabled">Coming soon</span>
+    );
+};
+
+/**
  * Parent component for the data cards containing information on the file.
  * @param {object} context the context of the item being viewed
  */
@@ -437,24 +533,16 @@ export const ProtectedDonorViewDataCards = ({
                                 </div>
                                 <div className="d-flex flex-column">
                                     <DataCardRow
-                                        title={'Tier'}
-                                        value={'Coming soon'}
-                                    />
-                                    <DataCardRow
                                         title={'Bulk WGS Coverage'}
                                         value={'Coming soon'}
                                     />
                                     <DataCardRow
-                                        title={
-                                            <span>
-                                                DSA
-                                                <i
-                                                    className="icon icon-info-circle fas ms-1"
-                                                    data-tip="Donor Specific genome Assembly [DSA]"
-                                                />
-                                            </span>
+                                        title={'DSA'}
+                                        value={
+                                            <DonorDSAValue
+                                                donorId={context?.external_id}
+                                            />
                                         }
-                                        value={'Coming soon'}
                                     />
                                 </div>
                             </div>

@@ -91,6 +91,11 @@ def get_quality_metrics(properties: Dict[str, Any]) -> List[Union[str, Dict[str,
     return properties.get("quality_metrics", [])
 
 
+def get_external_quality_metrics(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get external quality metrics from properties."""
+    return properties.get("external_quality_metrics", [])
+
+
 def is_uploaded(properties: Dict[str, Any]) -> bool:
     """Check if file is uploaded."""
     return item.get_status(properties) == "uploaded"
@@ -111,6 +116,8 @@ def get_sequencers(
     properties: Dict[str, Any], request_handler: RequestHandler
 ) -> List[str]:
     """Get sequencers associated with file."""
+    if (overrides := get_override_sequencers(properties)):
+        return overrides
     sequencings = get_sequencings(properties, request_handler)
     return get_property_values_from_identifiers(
         request_handler, sequencings, sequencing.get_sequencer
@@ -132,6 +139,8 @@ def get_assays(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get assays associated with file."""
+    if (overrides := get_override_assays(properties)):
+        return overrides
     if request_handler:
         return get_property_values_from_identifiers(
             request_handler,
@@ -392,10 +401,19 @@ def is_variant_calls(file: Dict[str, Any]) -> bool:
         or "Somatic Variant Calls" in data_category
     )
 
+def is_germline(file: Dict[str, Any]) -> bool:
+    """Check if file is germline variant calls."""
+    return "Germline Variant Calls" in get_data_category(file)
+
 
 def get_alignment_details(file: Dict[str, Any]) -> List[str]:
     """Get alignment details from file."""
     return file.get("alignment_details", [])
+
+
+def get_analysis_details(file: Dict[str, Any]) -> List[str]:
+    """Get analysis details from file."""
+    return file.get("analysis_details", [])
 
 
 def are_reads_sorted(file: Dict[str, Any]) -> bool:
@@ -405,12 +423,22 @@ def are_reads_sorted(file: Dict[str, Any]) -> bool:
 
 def are_reads_phased(file: Dict[str, Any]) -> bool:
     """Check if file is phased."""
-    return "Phased" in get_alignment_details(file)
+    return "Phased" in get_alignment_details(file) or "Phased" in get_analysis_details(file)
+
+
+def is_filtered(file: Dict[str, Any]) -> bool:
+    """Check if file is filtered."""
+    return "Filtered" in get_analysis_details(file)
 
 
 def has_single_nucleotide_variants(file: Dict[str, Any]) -> bool:
     """Check if file has SNVs."""
     return "SNV" in get_data_type(file)
+
+
+def has_indel_variants(file: Dict[str, Any]) -> bool:
+    """Check if file has Indels."""
+    return "Indel" in get_data_type(file)
 
 
 def has_copy_number_variants(file: Dict[str, Any]) -> bool:
@@ -426,6 +454,16 @@ def has_structural_variants(file: Dict[str, Any]) -> bool:
 def has_mobile_element_insertions(file: Dict[str, Any]) -> bool:
     """Check if file has MEIs."""
     return "MEI" in get_data_type(file)
+
+
+def get_override_assays(file: Dict[str, Any]) -> List[str]:
+    """Get override assays from properties."""
+    return file.get("override_assays", [])
+
+
+def get_override_sequencers(file: Dict[str, Any]) -> List[str]:
+    """Get override sequencers from properties."""
+    return file.get("override_sequencers", [])
 
 
 def get_override_group_coverage(file: Dict[str, Any]) -> str:
@@ -486,3 +524,8 @@ def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -
             tissue.get_category, request_handler=request_handler
         )
     )
+
+
+def get_meta_workflow_run_outputs(file: Dict[str, Any]) -> Union[List[str], List[Dict[str, Any]]]:
+    """Get output metaworkflow_run from file."""
+    return file.get("meta_workflow_run_outputs",[])

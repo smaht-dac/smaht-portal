@@ -89,11 +89,6 @@ export class NavigationBar extends React.PureComponent {
             hideTestWarning,
         } = this.props;
         const testWarningVisible = !!(testWarningPresent & !isFullscreen); // Hidden on full screen mode.
-        const message =
-            context?.test_warning ||
-            'The Data Portal will have limited access from Sept 29 - Oct 10. Please visit again after October 10th, 2025.';
-        //const navClassName = "navbar-container" + (testWarningVisible ? ' test-warning-visible' : '');
-
 
         return (
             <div className="navbar-container">
@@ -104,7 +99,6 @@ export class NavigationBar extends React.PureComponent {
                     <TestWarning
                         visible={testWarningVisible}
                         setHidden={hideTestWarning}
-                        message={message}
                         href={href}
                     />
                     <div className="navbar-inner-container">

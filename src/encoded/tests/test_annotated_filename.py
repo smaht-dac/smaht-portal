@@ -271,6 +271,126 @@ TISSUE_EXTERNAL_ID = f"{TISSUE_PROJECT_ID}{TISSUE_DONOR_KIT_ID}-{TISSUE_PROTOCOL
 SOME_TISSUE = {"uuid": "some-uuid", "external_id": TISSUE_EXTERNAL_ID}
 ANOTHER_TISSUE = {"uuid": "another-uuid", "external_id": "SMHT100-1B"}
 
+SOME_FILE = {"data_category": ["Aligned Reads"]}
+SOME_EOF_FILE = {"@type": ["ExternalOutputFile"]}
+
+SOFTWARE_CODE = "foo"
+SOFTWARE_VERSION = "1.2.3"
+SOME_SOFTWARE = {"code": SOFTWARE_CODE, "version": SOFTWARE_VERSION}
+ANOTHER_SOFTWARE_CODE = "bar"
+ANOTHER_SOFTWARE_VERSION = "2.3.4"
+ANOTHER_SOFTWARE = {"code": ANOTHER_SOFTWARE_CODE, "version": ANOTHER_SOFTWARE_VERSION}
+REFERENCE_GENOME_CODE = "GRCh38"
+DSA_CODE = "Hela_DSA"
+DSA_VALUE = "DSA"
+HAPLOTYPE_CODE = "hapX"
+
+KINNEX_ASSAY_CODE = "102"
+KINNEX_ASSAY = {"code": KINNEX_ASSAY_CODE, "identifier": "bulk_mas_iso_seq", "category": "Bulk RNA-seq"}
+DUPLEX_ASSAY_CODE = "007"
+DUPLEX_ASSAY = {"code": DUPLEX_ASSAY_CODE, "identifier": "codec", "category": "Duplex-seq WGS"}
+SOME_DUPLEX_ASSAY_CODE = "017"
+SOME_DUPLEX_ASSAY = {"code": SOME_DUPLEX_ASSAY_CODE, "identifier": "compduplex_seq", "category": "Duplex-seq WGS"}
+
+GENE_ANNOTATION_CODE = "gencode"
+GENE_ANNOTATION_VERSION = "v45"
+SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
+SOME_GENE_ANNOTATION = [{"code": GENE_ANNOTATION_CODE, "version": GENE_ANNOTATION_VERSION}]
+SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
+SOME_ALIGNED_READS = {"data_category": "Sequencing Reads", "data_type": ["Aligned Reads"]}
+RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
+DSA_VERSION = "1.0.0"
+SOME_DSA = {
+    "@type": ["DonorSpecificAssembly"],
+    "code": DSA_CODE,
+    "version": DSA_VERSION
+}
+SOME_TARGET_ASSEMBLY = REFERENCE_GENOME_CODE
+SOME_SOURCE_ASSEMBLY = DSA_VALUE
+SOME_CHAIN_FILE = {
+    "data_category": ["Reference Conversion"],
+    "data_type": ["Chain File"],
+    "source_assembly": DSA_CODE,
+    "target_assembly":  REFERENCE_GENOME_CODE
+}
+SOME_FASTA_FILE = {
+    "data_type": ["DSA"],
+    "data_category": ["Genome Assembly"],
+    "donor_specific_assembly": "Some_DSA",
+    "haplotype": HAPLOTYPE_CODE,
+    "version": "1.0"
+}
+SOME_BED_FILE = {
+    "data_type": ["DSA", "Genome Annotation"],
+    "data_category": ["Sequence Interval"],
+    "donor_specific_assembly": "Some_DSA",
+}
+ANOTHER_FASTA_FILE = {
+    "data_category": ["Genome Assembly"],
+    "data_type": ["Reference Sequence"],
+}
+SOME_TSV_FILE = {
+    "data_category": ["RNA Quantification"],
+    "data_type": ["Gene Expression"],
+}
+SOME_OTHER_FILE = {
+    "data_category": ["RNA Quantification"]
+}
+SOME_ISOFORM_TSV_FILE = {
+    "data_category": ["RNA Quantification"],
+    "data_type": ["Transcript Expression"],
+}
+SOME_SOMATIC_VARIANT_CALLS = {"data_category": ["Somatic Variant Calls"]}
+SOME_VARIANT_CALLS = {
+    "data_category": ["Somatic Variant Calls"],
+    "data_type": ["SNV", "CNV", "MEI", "SV", "Indel"],
+}
+SOME_CONSENSUS_BAM_FILE = {
+    "data_category": ["Consensus Reads"],
+    "data_type": ["Aligned Reads"],
+}
+SOME_ISOFORM_FASTA_FILE = {
+    "data_category": ["Consensus Reads"],
+    "data_type": ["Transcript Sequence"],
+}
+SOME_KINNEX_FILE = {
+    "data_category": ["RNA Quantification"],
+    "data_type": ["Transcript Expression"],
+}
+SOME_JUNCTION_ANNOTATIONS_TXT_FILE = {
+    "data_category": ["RNA Quantification"],
+    "data_type": ["Transcript Model"],
+}
+SOME_FILE_EXTENSION = {
+    "identifier": "BAM",
+    "standard_file_extension": "bam",
+    "valid_item_types": ["AlignedReads"]
+}
+VCF_FILE_EXTENSION = {
+    "identifier": "VCF",
+    "standard_file_extension": "vcf.gz",
+    "valid_item_types": ["VariantCalls"]
+}
+CHAIN_FILE_EXTENSION = {
+    "identifier": "CHAIN",
+    "standard_file_extension": "chain.gz",
+    "valid_item_types": ["SupplementaryFile"]
+}
+FASTA_FILE_EXTENSION = {
+    "identifier": "FASTA",
+    "standard_file_extension": "fa",
+    "valid_item_types": ["SupplementaryFile"]
+}
+TSV_FILE_EXTENSION = {
+    "identifier": "TSV",
+    "standard_file_extension": "tsv",
+    "valid_item_types": ["SupplementaryFile", "OutputFile"]
+}
+BED_FILE_EXTENSION = {
+   "identifier": "BED",
+    "standard_file_extension": "bed",
+    "valid_item_types": ["SupplementaryFile"]
+}
 
 @pytest.mark.parametrize(
     "cell_culture_mixtures,cell_lines,tissues,expected,errors",
@@ -347,34 +467,38 @@ def test_get_sample_source_id(
 
 
 @pytest.mark.parametrize(
-    "cell_culture_mixtures,cell_lines,tissues,expected,errors",
+    "cell_culture_mixtures,cell_lines,tissues,file,expected,errors",
     [
-        ([], [], [], "", True),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_ABSENT_FIELD, False),
-        ([], [SOME_CELL_LINE], [], DEFAULT_ABSENT_FIELD, False),
+        ([], [], [], {}, "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [], SOME_FILE, DEFAULT_ABSENT_FIELD, False),
+        ([], [SOME_CELL_LINE], [], SOME_FILE, DEFAULT_ABSENT_FIELD, False),
         (
             [SOME_CELL_CULTURE_MIXTURE],
             [SOME_CELL_LINE],
             [],
+            SOME_FILE,
             DEFAULT_ABSENT_FIELD,
             False,
         ),
-        ([], [], [SOME_TISSUE], TISSUE_PROTOCOL_ID, False),
-        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], "", True),
-        ([], [], [SOME_TISSUE, SOME_ITEM], "", True),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], "", True),
-        ([], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
+        ([], [], [SOME_TISSUE], SOME_FILE, TISSUE_PROTOCOL_ID, False),
+        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], SOME_FILE, "", True),
+        ([], [], [SOME_TISSUE, SOME_ITEM],SOME_FILE, "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], SOME_FILE, "", True),
+        ([], [SOME_CELL_LINE], [SOME_TISSUE], SOME_FILE, "", True),
+        ([], [], [SOME_TISSUE], SOME_FASTA_FILE, TISSUE_PROTOCOL_ID, False), # fasta file with single protocol ID
+        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], SOME_FASTA_FILE, "MT", False) # fasta file with multiple protocol IDs
     ],
 )
 def test_get_protocol_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissues: List[Dict[str, Any]],
+    file: Dict[str, Any],
     expected: str,
     errors: bool,
 ) -> None:
     """Test protocol ID retrieval for annotated filenames."""
-    result = get_protocol_id(cell_culture_mixtures, cell_lines, tissues)
+    result = get_protocol_id(cell_culture_mixtures, cell_lines, tissues, file)
     assert_filename_part_matches(result, expected, errors)
 
 
@@ -406,40 +530,54 @@ SOME_LIQUID_TISSUE_SAMPLE = {
 SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
 
 @pytest.mark.parametrize(
-    "cell_culture_mixtures,cell_lines,tissue_samples,expected,errors",
+    "file,cell_culture_mixtures,cell_lines,tissue_samples,derived_from_tissue_samples,expected,errors",
     [
-        ([], [], [], "", True),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_ABSENT_FIELD, False),
-        ([], [SOME_CELL_LINE], [], DEFAULT_ABSENT_FIELD, False),
+        (SOME_FILE, [], [], [], [], "", True),
+        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [], [], DEFAULT_ABSENT_FIELD, False),
+        (SOME_FILE, [], [SOME_CELL_LINE], [], [], DEFAULT_ABSENT_FIELD, False),
         (
+            SOME_FILE, 
             [SOME_CELL_CULTURE_MIXTURE],
             [SOME_CELL_LINE],
+            [],
             [],
             DEFAULT_ABSENT_FIELD,
             False,
         ),
-        ([], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], "", True),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], "MAMC", False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
-        ([], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
-        ([], [], [SOME_LIQUID_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], "MAMC", False),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], "", True),
-        ([], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], "", True),
+        (SOME_FILE, [], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], [], "", True),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], [], "MAMC", False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], [], "100MC", False),
+        (SOME_EOF_FILE, [], [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False), # derived_from tissue samples
+        (SOME_EOF_FILE, [], [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], "MAMC", False), # derived_from tissue samples
+        (SOME_EOF_FILE, [], [], [], [], DEFAULT_ABSENT_FIELD, False), # derived_from tissue samples
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        (SOME_FILE, [], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], [], DEFAULT_ABSENT_FIELD * 2, False),
+        (SOME_FILE, [], [], [SOME_LIQUID_TISSUE_SAMPLE], [], DEFAULT_ABSENT_FIELD * 2, False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], [], "MAMC", False),
+        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], [], "", True),
+        (SOME_FILE, [], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], [], "", True),
+
     ],
 )
 def test_get_aliquot_id(
+    file: Dict[str, Any],
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
+    derived_from_tissue_samples: List[str],
     expected: str,
     errors: bool,
 ) -> None:
     """Test aliquot ID retrieval for annotated filenames."""
-    result = get_aliquot_id(cell_culture_mixtures, cell_lines, tissue_samples)
+    result = get_aliquot_id(
+        request_handler=None,
+        file=file,
+        cell_culture_mixtures=cell_culture_mixtures,
+        cell_lines=cell_lines,
+        tissue_samples=tissue_samples,
+        derived_from_tissue_samples=derived_from_tissue_samples
+    )
     assert_filename_part_matches(result, expected, errors)
 
 
@@ -472,8 +610,6 @@ def test_get_donor_sex_and_age_parts(
         result = get_donor_sex_and_age(donors, [])
         assert_filename_part_matches(result, expected, errors)
 
-
-SOME_FILE = {"data_category": ["Aligned Reads"]}
 REFERENCE_FILE = {"data_category": ["Genome Assembly"]}
 SEQUENCER_CODE = "A"
 SOME_SEQUENCER = {"code": SEQUENCER_CODE}
@@ -492,6 +628,7 @@ ANOTHER_ASSAY = {"code": "002", "identifier": "bulk_wgs", "category": "Bulk WGS"
         (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
         (SOME_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
         (REFERENCE_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
+        (SOME_EOF_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
         (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
         (SOME_FILE,[SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
     ],
@@ -504,7 +641,12 @@ def test_get_sequencing_and_assay_codes(
     errors: bool,
 ) -> None:
     """Test sequencing and assay codes retrieval for annotated filenames."""
-    result = get_sequencing_and_assay_codes(file, sequencers, assays)
+    result = get_sequencing_and_assay_codes(
+        request_handler=None,
+        file=file,
+        sequencers=sequencers,
+        assays=assays
+    )
     assert_filename_part_matches(result, expected, errors)
 
 
@@ -526,116 +668,6 @@ def test_get_sequencing_center_code(
     """Test sequencing center code retrieval for annotated filenames."""
     result = get_sequencing_center_code(sequencing_center)
     assert_filename_part_matches(result, expected, errors)
-
-
-SOFTWARE_CODE = "foo"
-SOFTWARE_VERSION = "1.2.3"
-SOME_SOFTWARE = {"code": SOFTWARE_CODE, "version": SOFTWARE_VERSION}
-ANOTHER_SOFTWARE_CODE = "bar"
-ANOTHER_SOFTWARE_VERSION = "2.3.4"
-ANOTHER_SOFTWARE = {"code": ANOTHER_SOFTWARE_CODE, "version": ANOTHER_SOFTWARE_VERSION}
-REFERENCE_GENOME_CODE = "GRCh38"
-DSA_CODE = "Hela_DSA"
-DSA_VALUE = "DSA"
-HAPLOTYPE_CODE = "hapX"
-
-KINNEX_ASSAY_CODE = "102"
-KINNEX_ASSAY = {"code": KINNEX_ASSAY_CODE, "identifier": "bulk_mas_iso_seq", "category": "Bulk RNA-seq"}
-DUPLEX_ASSAY_CODE = "007"
-DUPLEX_ASSAY = {"code": DUPLEX_ASSAY_CODE, "identifier": "codec", "category": "Duplex-seq WGS"}
-SOME_DUPLEX_ASSAY_CODE = "017"
-SOME_DUPLEX_ASSAY = {"code": SOME_DUPLEX_ASSAY_CODE, "identifier": "compduplex_seq", "category": "Duplex-seq WGS"}
-
-GENE_ANNOTATION_CODE = "gencode"
-GENE_ANNOTATION_VERSION = "v45"
-SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
-SOME_GENE_ANNOTATION = [{"code": GENE_ANNOTATION_CODE, "version": GENE_ANNOTATION_VERSION}]
-SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
-SOME_ALIGNED_READS = {"data_category": "Sequencing Reads", "data_type": ["Aligned Reads"]}
-RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
-
-SOME_TARGET_ASSEMBLY = {
-    "@type": ["ReferenceGenome"],
-    "code": REFERENCE_GENOME_CODE
-}
-SOME_SOURCE_ASSEMBLY = {
-    "@type": ["DonorSpecificAssembly"],
-    "code": DSA_CODE
-}
-SOME_CHAIN_FILE = {
-    "data_category": ["Reference Conversion"],
-    "data_type": ["Chain File"],
-    "source_assembly": DSA_CODE,
-    "target_assembly":  REFERENCE_GENOME_CODE
-}
-SOME_FASTA_FILE = {
-    "data_type": ["DSA"],
-    "data_category": ["Genome Assembly"],
-    "donor_specific_assembly": "Some_DSA",
-    "haplotype": HAPLOTYPE_CODE
-}
-
-ANOTHER_FASTA_FILE = {
-    "data_category": ["Genome Assembly"],
-    "data_type": ["Reference Sequence"],
-}
-SOME_TSV_FILE = {
-    "data_category": ["RNA Quantification"],
-    "data_type": ["Gene Expression"],
-}
-SOME_OTHER_FILE = {
-    "data_category": ["RNA Quantification"]
-}
-SOME_ISOFORM_TSV_FILE = {
-    "data_category": ["RNA Quantification"],
-    "data_type": ["Transcript Expression"],
-}
-SOME_SOMATIC_VARIANT_CALLS = {"data_category": ["Somatic Variant Calls"]}
-SOME_VARIANT_CALLS = {
-    "data_category": ["Somatic Variant Calls"],
-    "data_type": ["SNV", "CNV", "MEI", "SV", "Indel"],
-}
-SOME_CONSENSUS_BAM_FILE = {
-    "data_category": ["Consensus Reads"],
-    "data_type": ["Aligned Reads"],
-}
-SOME_ISOFORM_FASTA_FILE = {
-    "data_category": ["Consensus Reads"],
-    "data_type": ["Transcript Sequence"],
-}
-SOME_KINNEX_FILE = {
-    "data_category": ["RNA Quantification"],
-    "data_type": ["Transcript Expression"],
-}
-SOME_JUNCTION_ANNOTATIONS_TXT_FILE = {
-    "data_category": ["RNA Quantification"],
-    "data_type": ["Transcript Model"],
-}
-SOME_FILE_EXTENSION = {
-    "identifier": "BAM",
-    "standard_file_extension": "bam",
-    "valid_item_types": ["AlignedReads"]
-}
-VCF_FILE_EXTENSION = {
-    "identifier": "VCF",
-    "standard_file_extension": "vcf.gz",
-    "valid_item_types": ["VariantCalls"]
-}
-CHAIN_FILE_EXTENSION = {
-    "identifier": "CHAIN",
-    "standard_file_extension": "chain.gz",
-    "valid_item_types": ["SupplementaryFile"]
-}
-FASTA_FILE_EXTENSION = {
-    "identifier": "FASTA",
-    "standard_file_extension": "fa",
-    "valid_item_types": ["SupplementaryFile"]
-}
-TSV_FILE_EXTENSION = {
-    "identifier": "TSV",
-    "standard_file_extension": "tsv",
-    "valid_item_types": ["SupplementaryFile", "OutputFile"]
-}
 
 
 @pytest.mark.parametrize(
@@ -733,10 +765,10 @@ TSV_FILE_EXTENSION = {
             CHAIN_FILE_EXTENSION,
             SOME_TARGET_ASSEMBLY,
             SOME_SOURCE_ASSEMBLY,
-            SOME_SOURCE_ASSEMBLY,
+            SOME_DSA,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
             False,
-        ),
+        ), # Chain file from DSA
         (
             SOME_CHAIN_FILE,
             [],
@@ -746,10 +778,10 @@ TSV_FILE_EXTENSION = {
             CHAIN_FILE_EXTENSION,
             {},
             {},
-            SOME_SOURCE_ASSEMBLY,
+            SOME_DSA,
             "",
             True,
-        ),
+        ), # Chain file from DSA without target and source assembly
         (
             SOME_FASTA_FILE,
             [],
@@ -759,10 +791,36 @@ TSV_FILE_EXTENSION = {
             FASTA_FILE_EXTENSION,
             {},
             {},
-            SOME_SOURCE_ASSEMBLY, 
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{HAPLOTYPE_CODE}",
+            SOME_DSA, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}_{HAPLOTYPE_CODE}",
             False,
-        ),
+        ), # Fasta file from DSA
+        (
+            SOME_BED_FILE,
+            [],
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            BED_FILE_EXTENSION,
+            {},
+            {},
+            SOME_DSA, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}",
+            False,
+        ), # Bed file from DSA
+                (
+            SOME_BED_FILE,
+            [],
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            BED_FILE_EXTENSION,
+            {},
+            {},
+            {}, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
+            False,
+        ), # Bed file not from DSA
         (
             ANOTHER_FASTA_FILE,
             [],
@@ -775,7 +833,7 @@ TSV_FILE_EXTENSION = {
             {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
-        ),
+        ), # Fasta file not from DSA
         (
             SOME_TSV_FILE,
             [],
@@ -788,7 +846,7 @@ TSV_FILE_EXTENSION = {
             {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_gene",
             False,
-        ),
+        ), # gene count TSV file from RNA-Seq with gene annotation
         (
             SOME_ISOFORM_TSV_FILE,
             [],
@@ -801,7 +859,7 @@ TSV_FILE_EXTENSION = {
             {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_isoform",
             False
-        ),
+        ), # isoform count TSV file from RNA-Seq with gene annotation
         (
             SOME_OTHER_FILE,
             [],
@@ -814,7 +872,7 @@ TSV_FILE_EXTENSION = {
             {},
             "",
             True
-        ),
+        ), # some TSV file not from RNA-Seq
         (
             SOME_ALIGNED_READS,
             [],
@@ -827,7 +885,7 @@ TSV_FILE_EXTENSION = {
             {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}",
             False
-        ),
+        ), # bam file from RNA-Seq with gene annotation
         (
             RNA_ALIGNED_READS,
             [SOME_ASSAY],
@@ -945,6 +1003,19 @@ TSV_FILE_EXTENSION = {
             "",
             True
         ), # Consensus BAM without assay
+        (
+            SOME_VARIANT_CALLS,
+            [],
+            [SOME_SOFTWARE, SOME_ITEM],
+            SOME_DSA,
+            {},
+            VCF_FILE_EXTENSION,
+            {},
+            {},
+            {}, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}",
+            False,
+        ), # VCF file with DSA reference
     ],
 )
 def test_get_analysis(
@@ -954,8 +1025,8 @@ def test_get_analysis(
     reference_genome: Dict[str, Any],
     annotation: Dict[str, Any],
     file_extension: Dict[str, Any],
-    target_assembly: Dict[str, Any],
-    source_assembly: Dict[str, Any],
+    target_assembly: str,
+    source_assembly: str,
     dsa: Dict[str, Any],
     expected: str,
     errors: bool,
@@ -994,7 +1065,6 @@ def test_get_software_and_versions(
 FILE_EXTENSION = "foo"
 SOME_FILE_FORMAT = {"standard_file_extension": FILE_EXTENSION}
 
-
 @pytest.mark.parametrize(
     "file,file_format,expected,errors",
     [
@@ -1010,6 +1080,36 @@ SOME_FILE_FORMAT = {"standard_file_extension": FILE_EXTENSION}
             {"alignment_details": ["Sorted"]},
             SOME_FILE_FORMAT,
             "sorted.foo",
+            False,
+        ),
+        (
+            {"analysis_details": ["Phased"]},
+            SOME_FILE_FORMAT,
+            "phased.foo",
+            False,
+        ),
+        (
+            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV", "Indel"], "analysis_details": ["Phased"]},
+            VCF_FILE_EXTENSION,
+            "phased.germline.vcf.gz",
+            False,
+        ),
+        (
+            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV"], "analysis_details": ["Phased"]},
+            VCF_FILE_EXTENSION,
+            "phased.germline.snv.vcf.gz",
+            False,
+        ),
+        (
+            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV", "Indel"], "analysis_details": ["Phased"]},
+            VCF_FILE_EXTENSION,
+            "phased.germline.vcf.gz",
+            False,
+        ),
+        (
+            {"data_category": ["Somatic Variant Calls"], "data_type": ["SNV"], "analysis_details": ["Filtered"]},
+            VCF_FILE_EXTENSION,
+            "filtered.snv.vcf.gz",
             False,
         ),
     ],

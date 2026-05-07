@@ -318,6 +318,13 @@ Layout
 			padding: 20px 32px 20px 20px;
 			overflow: scroll;
 		}
+		@supports selector(:has(*)) {
+			// workaround to make sticky headers work with search results page
+			.sliding-sidebar-layout-container:has(.search-results-outer-container.is-own-page .search-headers-row) {
+				padding: 20px 62px 20px 20px;
+				overflow: visible !important;
+			}
+		}
 
 		// Side nav
 		.sliding-sidebar-nav-container {
