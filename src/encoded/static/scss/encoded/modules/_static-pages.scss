@@ -448,6 +448,9 @@
                 margin-bottom: 0;
                 margin-top: 0;
                 margin-left: -20px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
                 &:focus {
                     text-decoration: none;
                     color: $link-color;
