@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.27.3
+======
+
+`PR 688: feat: update latest release date on timeline <https://github.com/smaht-dac/smaht-portal/pull/688>`_
+
+* Add parameters for latest file search for release date
+* Update homepage tests
+
+
 1.27.2
 ======
 
