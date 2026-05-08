@@ -7,12 +7,21 @@ smaht-portal
 Change Log
 ----------
 
-1.26.3
+1.27.2
 ======
 
 `PR 663: fix: update status param for homepage endpoint <https://github.com/smaht-dac/smaht-portal/pull/663>`_
 
 * Update statuses in homepage counts parameters
+
+
+1.27.1
+======
+
+`PR 665: fix: update pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/665>`_
+
+* Update pipeline docs styles
+* Update title of new pipeline docs page
 
 
 1.27.0
