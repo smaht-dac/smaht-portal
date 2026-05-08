@@ -15,6 +15,14 @@ Change Log
 * Update statuses in homepage counts parameters
 
 
+1.27.0
+======
+
+`PR 666: QC metrics improvements <https://github.com/smaht-dac/smaht-portal/pull/666>`_
+
+* Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
+
+
 1.26.2
 ======
 
