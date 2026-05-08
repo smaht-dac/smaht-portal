@@ -26,14 +26,14 @@ class SearchBase:
     }
     ALL_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'additional_facet': [
             'assays.display_title'
         ]
     }
     COLO829_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl'],
         'additional_facet': [
             'assays.display_title'
@@ -41,7 +41,7 @@ class SearchBase:
     }
     HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['hapmap'],
         'additional_facet': [
             'assays.display_title'
@@ -49,7 +49,7 @@ class SearchBase:
     }
     IPSC_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60'],
         'additional_facet': [
             'assays.display_title'
@@ -57,7 +57,7 @@ class SearchBase:
     }
     TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['tissue'],
         'file_sets.libraries.analytes.samples.sample_sources.code': [
             'ST001-1A',
@@ -73,8 +73,9 @@ class SearchBase:
     }
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
         'sample_summary.studies': ['Production'],
+        'dataset!': ['No value'],
         'additional_facet': [
             'assays.display_title',
             'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
