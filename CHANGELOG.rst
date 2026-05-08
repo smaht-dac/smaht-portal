@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.27.1
+======
+
+`PR 665: fix: update pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/665>`_
+
+* Update pipeline docs styles
+* Update title of new pipeline docs page
+
+
 1.27.0
 ======
 

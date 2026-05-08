@@ -350,7 +350,7 @@ export const PipelineDocsNavigation = (props) => {
                 <div className="nav-subgroup">
                     <h5>Single Nucleotide Variant (SNV) and Indel</h5>
                     <Dropdown
-                        parentTitle="Phased Germline: Sentieon DNAScope-Hybrid & Statistical and long-read-based phasing"
+                        parentTitle="Phased Germline: Sentieon DNAScope-Hybrid & Statistical and Long-Read Based Phasing"
                         parentLink="/docs/additional-resources/pipeline-docs/dnascope-hybrid"
                         subLinks={[
                             {
