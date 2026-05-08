@@ -18,6 +18,12 @@ def includeme(config):
 
 class SearchBase:
     """ Contains search params for getting various bits of information from the ES """
+    LATEST_RELEASE_DATE_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
+        'sort': '-file_status_tracking.release_dates.initial_release_date',
+        'limit': 1,
+    }
     ALL_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
@@ -132,6 +138,14 @@ def generate_colo829_cell_line_file_count(context, request):
     search_param = SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS
     return generate_search_total(context, request, search_param)
 
+def generate_latest_release_date(context, request):
+    """ Makes a search subrequest for the latest release date """
+    search_param = SearchBase.LATEST_RELEASE_DATE_SEARCH_PARAMS
+    result = generate_admin_search_given_params(context, request, search_param)
+    graph = result.get('@graph', [])
+    if not graph:
+        return None
+    return graph[0].get('file_status_tracking', {}).get('release_dates', {}).get('initial_release_date')
 
 def generate_colo829_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts for colo829 """
@@ -213,34 +227,35 @@ def home(context, request):
         homepage statistics
     """
     search_results = make_concurrent_search_requests([
+        # latest release date
+        (generate_latest_release_date, {'context': context, 'request': request}),  # 0
         # colo829 stats
-        (generate_colo829_assay_count, {'context': context, 'request': request}),  # 0
-        (generate_colo829_cell_line_file_count, {'context': context, 'request': request}),  # 1
+        (generate_colo829_assay_count, {'context': context, 'request': request}),  # 1
+        (generate_colo829_cell_line_file_count, {'context': context, 'request': request}),  # 2
 
         # HapMap stats
-        (generate_hapmap_assay_count, {'context': context, 'request': request}),  # 2
-        (generate_hapmap_cell_line_file_count, {'context': context, 'request': request}),  # 3
+        (generate_hapmap_assay_count, {'context': context, 'request': request}),  # 3
+        (generate_hapmap_cell_line_file_count, {'context': context, 'request': request}),  # 4
 
         # iPSC & Fibroblast stats
-        (generate_ipsc_assay_count, {'context': context, 'request': request}),  # 4
-        (generate_ipsc_cell_line_file_count, {'context': context, 'request': request}),  # 5
+        (generate_ipsc_assay_count, {'context': context, 'request': request}),  # 5
+        (generate_ipsc_cell_line_file_count, {'context': context, 'request': request}),  # 6
 
         # Tissue stats
-        (generate_tissue_file_count, {'context': context, 'request': request}),  # 6
-        (generate_tissue_donor_count, {'context': context, 'request': request}),  # 7
-        (generate_tissue_assay_count, {'context': context, 'request': request}),  # 8
+        (generate_tissue_file_count, {'context': context, 'request': request}),  # 7
+        (generate_tissue_donor_count, {'context': context, 'request': request}),  # 8
+        (generate_tissue_assay_count, {'context': context, 'request': request}),  # 9
 
         # Production stats
-        (generate_production_file_count, {'context': context, 'request': request}),  # 9
-        (generate_production_tissue_donor_count, {'context': context, 'request': request}),  # 10
-        (generate_production_tissue_assay_count, {'context': context, 'request': request}),  # 11
-        (generate_production_tissue_type_count, {'context': context, 'request': request}),  # 12
+        (generate_production_file_count, {'context': context, 'request': request}),  # 10
+        (generate_production_tissue_donor_count, {'context': context, 'request': request}),  # 11
+        (generate_production_tissue_assay_count, {'context': context, 'request': request}),  # 12
+        (generate_production_tissue_type_count, {'context': context, 'request': request}),  # 13
     ])
-    time = datetime.now(timezone('EST'))
     response = {
         '@context': '/home',
         '@id': '/home',
-        'date': f'{time.strftime("%Y-%m-%d %H:%M")} EST',
+        'date': datetime.fromisoformat(search_results[0]).strftime("%Y-%m-%d") + ' EST' if search_results[0] else None,
         '@graph': [
             {
                 "title": "Benchmarking",
@@ -251,10 +266,10 @@ def home(context, request):
                         "link": "/data/benchmarking/COLO829",
                         "figures": [
                             { "value": 2, "unit": "Cell Lines" },
-                            { "value": search_results[0],
+                            { "value": search_results[1],
                               "unit": "Assays" },
                             { "value": 0, "unit": "Mutations" },
-                            { "value": search_results[1],
+                            { "value": search_results[2],
                               "unit": "Files Generated" }
                         ]
                     },
@@ -263,9 +278,9 @@ def home(context, request):
                         "link": "/data/benchmarking/HapMap",
                         "figures": [
                             { "value": 6, "unit": "Cell Lines" },
-                            { "value": search_results[2], "unit": "Assays" },
+                            { "value": search_results[3], "unit": "Assays" },
                             { "value": 0, "unit": "Mutations" },
-                            { "value": search_results[3], "unit": "Files Generated" }
+                            { "value": search_results[4], "unit": "Files Generated" }
                         ]
                     },
                     {
@@ -273,19 +288,19 @@ def home(context, request):
                         "link": "/data/benchmarking/iPSC-fibroblasts",
                         "figures": [
                             { "value": 5, "unit": "Cell Lines" },
-                            { "value": search_results[4], "unit": "Assays" },
+                            { "value": search_results[5], "unit": "Assays" },
                             { "value": 0, "unit": "Mutations" },
-                            { "value": search_results[5], "unit": "Files Generated" }
+                            { "value": search_results[6], "unit": "Files Generated" }
                         ]
                     },
                     {
                         "title": "Benchmarking Tissues",
                         "link": "/data/benchmarking/donor-st001",
                         "figures": [
-                            { "value": search_results[7], "unit": "Donors" },
+                            { "value": search_results[8], "unit": "Donors" },
                             { "value": 4, "unit": "Tissue Types" },
-                            { "value": search_results[8], "unit": "Assays" },
-                            { "value": search_results[6], "unit": "Files Generated" }
+                            { "value": search_results[9], "unit": "Assays" },
+                            { "value": search_results[7], "unit": "Files Generated" }
                         ]
                     }
                 ]
@@ -298,10 +313,10 @@ def home(context, request):
                         "title": "Primary Tissues",
                         "link": "/browse",
                         "figures": [
-                            { "value": search_results[10], "unit": "Donors" },
-                            { "value": search_results[12], "unit": "Tissue Types" },
-                            { "value": search_results[11], "unit": "Assays" },
-                            { "value": search_results[9], "unit": "Files Generated" }
+                            { "value": search_results[11], "unit": "Donors" },
+                            { "value": search_results[13], "unit": "Tissue Types" },
+                            { "value": search_results[12], "unit": "Assays" },
+                            { "value": search_results[10], "unit": "Files Generated" }
                         ]
                     }
                 ]
