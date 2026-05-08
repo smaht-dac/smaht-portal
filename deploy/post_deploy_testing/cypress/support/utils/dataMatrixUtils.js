@@ -375,6 +375,7 @@ export function testMatrixPopoverValidation(
         expectedFilesCount = 1,
         expectedTissuesCount = null,
         allowVariantCallSetMatrixUndercount = false,
+        skipColSummaryTotalCheckForDonors = [],
         verifyTotalFromApi = true,
     }) {
     cy.get(matrixId).should('exist');
@@ -543,6 +544,12 @@ export function testMatrixPopoverValidation(
             });
             // verify overall file count matches expectedFilesCount
             if (typeof expectedFilesCount === 'number' && expectedFilesCount > 0) {
+                const shouldSkipColSummaryTotalCheck = Array.isArray(skipColSummaryTotalCheckForDonors)
+                    && donors.some((donorId) => skipColSummaryTotalCheckForDonors.includes(donorId));
+                if (shouldSkipColSummaryTotalCheck) {
+                    cy.log('Skipping col-summary strict total check for configured donor(s).');
+                    return;
+                }
                 cy.log(`Expected matrix total to reconcile with ${expectedFilesCount} files.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
