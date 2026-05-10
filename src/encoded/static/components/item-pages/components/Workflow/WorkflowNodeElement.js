@@ -52,6 +52,13 @@ export function doesRunDataExist(node){
     }
 }
 
+function getNodeRunDataFiles(node){
+    const runDataFile = node && node.meta && node.meta.run_data && node.meta.run_data.file;
+    if (Array.isArray(runDataFile)) return runDataFile;
+    if (runDataFile) return [runDataFile];
+    return [];
+}
+
 
 /** TODO codify what we want shown here and cleanup code - breakup into separate functional components */
 
@@ -183,7 +190,16 @@ export class WorkflowNodeElement extends React.PureComponent {
             let argumentName = nodeType;
             argumentName = argumentName.charAt(0).toUpperCase() + argumentName.slice(1);
             hasRunDataFile = isNodeFile(node) && doesRunDataExist(node);
-            const fileTitle = hasRunDataFile && (meta.run_data.file.display_title || meta.run_data.file.accession);
+            const runDataFiles = getNodeRunDataFiles(node);
+            const groupedFilesCount = runDataFiles.reduce(function(total, file){
+                const grouped = Array.isArray(file && file.grouped_files) ? file.grouped_files.length : 0;
+                return total + grouped;
+            }, 0);
+            const fileTitle = hasRunDataFile && (
+                runDataFiles.length > 1
+                    ? `${runDataFiles.length} grouped entries${groupedFilesCount > 0 ? ` (${groupedFilesCount} files)` : ''}`
+                    : (runDataFiles[0] && (runDataFiles[0].display_title || runDataFiles[0].accession))
+            );
             if (fileTitle) {
                 output += '<small>' + argumentName + ' File</small>';
                 output += '<h5 class="text-600 tooltip-title">' + fileTitle + '</h5>';
@@ -196,9 +212,12 @@ export class WorkflowNodeElement extends React.PureComponent {
         }
 
         // If file, and has file-size, add it (idk, why not)
-        const fileSize = hasRunDataFile && typeof meta.run_data.file.file_size === 'number' && meta.run_data.file.file_size;
-        if (fileSize){
-            output += '<div class="mb-05"><span class="text-300">Size:</span> ' + valueTransforms.bytesToLargerUnit(meta.run_data.file.file_size) + '</div>';
+        const runDataFiles = getNodeRunDataFiles(node);
+        const totalFileSize = hasRunDataFile ? runDataFiles.reduce(function(total, file){
+            return total + (typeof file.file_size === 'number' ? file.file_size : 0);
+        }, 0) : 0;
+        if (totalFileSize){
+            output += '<div class="mb-05"><span class="text-300">Size:</span> ' + valueTransforms.bytesToLargerUnit(totalFileSize) + '</div>';
         }
 
         // Workflow name, if any
@@ -362,11 +381,14 @@ export class WorkflowNodeElement extends React.PureComponent {
         if (nodeType === 'input-group'){
             var files = node.meta.run_data.file;
             if (Array.isArray(files)){
-                var len = files.length - 1;
+                var groupedFilesCount = files.reduce(function(total, file){
+                    const grouped = Array.isArray(file && file.grouped_files) ? file.grouped_files.length : 1;
+                    return total + grouped;
+                }, 0);
                 return (
                     <div className="node-name">
                         { this.icon() }
-                        <b>{ files.length - 1 }</b> similar file{ len === 1 ? '' : 's' }
+                        <b>{ groupedFilesCount }</b> similar file{ groupedFilesCount === 1 ? '' : 's' }
                     </div>
                 );
             }
@@ -377,11 +399,13 @@ export class WorkflowNodeElement extends React.PureComponent {
         }
 
         if (isNodeFile(node) && doesRunDataExist(node)){
-            const { file : { accession, display_title } } = run_data;
+            const runDataFiles = getNodeRunDataFiles(node);
+            const firstFile = runDataFiles[0] || {};
+            const { accession, display_title } = firstFile;
             return (
                 <div className={"node-name" + (accession ? ' text-monospace' : '')}>
                     { this.icon() }
-                    { typeof file === 'string' ? ioType : accession || display_title }
+                    { runDataFiles.length > 1 ? `${runDataFiles.length} grouped entries` : accession || display_title || ioType }
                 </div>
             );
         }

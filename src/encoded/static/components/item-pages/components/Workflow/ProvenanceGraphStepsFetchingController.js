@@ -223,12 +223,18 @@ function collapseRunDataFilesOnStep(step) {
             }
             const [first] = list;
             const groupedId = `group:${idSafeStep}:${idSafeArg}:${idx}`;
+            const totalFileSize = list.reduce(function(total, entry){
+                const fsz = entry && entry.file && typeof entry.file.file_size === 'number' ? entry.file.file_size : 0;
+                return total + fsz;
+            }, 0);
+            const pluralSuffix = list.length === 1 ? '' : 's';
             const groupedFile = {
                 '@id': groupedId,
-                'display_title': `${list.length} similar files`,
+                'display_title': `${list.length} ${label} file${pluralSuffix}`,
                 'file_format': first.file && first.file.file_format
             };
             groupedFile.grouped_files = list.map(({ file }) => file);
+            groupedFile.file_size = totalFileSize;
             groupedFiles.push(groupedFile);
             groupedMeta.push(list[0].meta || null);
         });

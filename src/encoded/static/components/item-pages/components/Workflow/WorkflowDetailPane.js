@@ -198,6 +198,20 @@ function QualityMetricBtn(props){
 
 function GroupedFilesList({ files = [] }){
     if (!Array.isArray(files) || files.length === 0) return null;
+    const totalSize = files.reduce(function(total, file){
+        const fileSize = file && typeof file.file_size === 'number' ? file.file_size : 0;
+        return total + fileSize;
+    }, 0);
+    const formatCounts = files.reduce(function(memo, file){
+        const ff = file && file.file_format;
+        const formatLabel = typeof ff === 'string' ? ff : ((ff && (ff.display_title || ff.file_format)) || 'unknown');
+        memo[formatLabel] = (memo[formatLabel] || 0) + 1;
+        return memo;
+    }, {});
+    const formatSummary = Object.keys(formatCounts).map(function(formatLabel){
+        return `${formatCounts[formatLabel]} ${formatLabel}`;
+    }).join(', ');
+
     function formatStatus(f){
         const { status } = f || {};
         if (!status) return null;
@@ -221,7 +235,14 @@ function GroupedFilesList({ files = [] }){
     }
     return (
         <div className="detail-row">
-            {/* <label className="d-block">Grouped Files</label> */}
+            <label className="d-block">Grouped Files</label>
+            <div className="mb-08">
+                <small className="text-500">
+                    {files.length} files
+                    {totalSize > 0 ? ` • ${valueTransforms.bytesToLargerUnit(totalSize)}` : ''}
+                    {formatSummary ? ` • ${formatSummary}` : ''}
+                </small>
+            </div>
             <div className="table-responsive">
                 <table className="table table-sm mb-0 grouped-files-table">
                     <thead>
