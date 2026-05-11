@@ -233,14 +233,35 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                             .should('contain.text', expectedAssayLabel);
                     }
 
-                    // file count – retry until text is numeric and equals expected
+                    // Validate that expected block value appears in numeric popover metrics
+                    // (e.g. Donors or Total Files depending on clicked summary row).
                     cy.get('.secondary-row .col-4', { timeout: 10000 })
-                        .eq(2)
-                        .find('.value')
-                        .invoke('text')
-                        .then((t) => parseInt(t.trim(), 10))
-                        .should('equal', value)
-                        .then((uiCount) => {
+                        .then(($cols) => {
+                            const numericValues = [];
+                            let totalFilesValue = null;
+
+                            [...$cols].forEach((col) => {
+                                const $col = Cypress.$(col);
+                                const label = $col.find('.label').text().trim();
+                                const rawText = $col.find('.value').text().trim();
+                                const numericValue = parseInt(rawText, 10);
+                                if (!Number.isNaN(numericValue)) {
+                                    numericValues.push(numericValue);
+                                    if (label === 'Total Files') {
+                                        totalFilesValue = numericValue;
+                                    }
+                                }
+                            });
+
+                            expect(
+                                numericValues,
+                                `Popover numeric metrics should include expected value ${value}`
+                            ).to.include(value);
+
+                            const uiCountForApiValidation = totalFilesValue !== null
+                                ? totalFilesValue
+                                : (numericValues.length > 0 ? Math.max(...numericValues) : value);
+
                             if (verifyTotalFromApi) {
                                 // Get the URL from the "Browse Files" button in footer
                                 cy.get('.footer-row a.btn.btn-primary')
@@ -253,14 +274,16 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
 
                                         // Fetch API total and compare it with UI count
                                         return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                                .to.equal(uiCount);
+                                            expect(
+                                                apiTotal,
+                                                `API total (${apiTotal}) should match popover Total Files (${uiCountForApiValidation})`
+                                            ).to.equal(uiCountForApiValidation);
                                         });
                                     });
                             } else {
                                 Cypress.log({
                                     name: 'Skipping API total check for col-summary',
-                                    message: `UI count is ${uiCount}, but API check is skipped as per parameters.`,
+                                    message: `Popover expected value is ${value}, but API check is skipped as per parameters.`,
                                 });
                             }
                         });
