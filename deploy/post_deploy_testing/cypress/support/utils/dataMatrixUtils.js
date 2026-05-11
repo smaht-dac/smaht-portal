@@ -411,6 +411,10 @@ function rowHasDSAColumn($row, regularBlocksSelector) {
  * @param {number|null} expectedFilesCount - The expected number of files to be found, set "null" to skip strict total check.
  * @param {boolean} allowVariantCallSetMatrixUndercount - Allow donor overview matrices with Variant Call Sets
  * to undercount vs summary because some files are intentionally omitted from the matrix.
+ * @param {boolean} allowDSARowSummaryOvercount - Allow relaxed row-summary reconciliation
+ * when DSA summary columns are present.
+ * @param {string[]} skipColSummaryTotalCheckForDonors - Donor allowlist to skip strict
+ * col-summary total reconciliation.
  * @param {boolean} verifyTotalFromApi - Whether to cross-check the total file count from the API.
  * @returns {void}
  * This function performs the following validations:
