@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.27.3
+======
+
+`PR 670: fix: prevent 0 value type cast <https://github.com/smaht-dac/smaht-portal/pull/670>` 
+
+* Align Protected with Public donor browse pages
+* Prevent "-" appearing for 0 value hardy_scale
+
+
 1.27.2
 ======
 
