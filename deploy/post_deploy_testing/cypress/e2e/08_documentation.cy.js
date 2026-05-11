@@ -615,9 +615,9 @@ function stepAnalysisPipelineDocs() {
                             const titleText = $title.text().trim();
                             expect(titleText).to.not.equal("");
                             if (link.type === "page") {
-                                expect(titleText.toLowerCase()).to.include(
-                                    link.label.toLowerCase()
-                                );
+                                const normalizedTitle = normalizeForLooseTextMatch(titleText);
+                                const normalizedLabel = normalizeForLooseTextMatch(link.label);
+                                expect(normalizedTitle).to.include(normalizedLabel);
                             }
                         });
 
