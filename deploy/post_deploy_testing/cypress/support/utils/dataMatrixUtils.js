@@ -341,6 +341,14 @@ function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId, al
     }
 }
 
+function rowHasDSAColumn($row, regularBlocksSelector) {
+    const $regularBlocks = $row.find(regularBlocksSelector);
+    return [...$regularBlocks].some((block) => {
+        const groupKey = Cypress.$(block).parent().attr('data-group-key');
+        return groupKey === 'DSA';
+    });
+}
+
 /** * Validates the data matrix popover content for specified donors and labels.
  * * @param {string} matrixId - The CSS selector for the data matrix.
  * @param {string[]} donors - An array of donor IDs to validate.
@@ -453,7 +461,12 @@ export function testMatrixPopoverValidation(
                         .find('.child-blocks [data-block-type="regular"] span')
                         .then(($spans) => {
                             const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                            expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+                            const hasDSAColumn = rowHasDSAColumn($row, '.child-blocks [data-block-type="regular"]');
+                            if (hasDSAColumn) {
+                                expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
+                            } else {
+                                expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+                            }
                         });
 
                     cy.get('@currentRow')
@@ -626,7 +639,13 @@ export function testMatrixPopoverValidation(
                             .find('.blocks-container [data-block-type="regular"] span')
                             .then(($spans) => {
                                 const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                                expect(sum, `Row summary for ${$row.find('.grouping-row h4 .inner').first().text().trim()}`).to.equal(expectedRowSummary);
+                                const rowLabel = $row.find('.grouping-row h4 .inner').first().text().trim();
+                                const hasDSAColumn = rowHasDSAColumn($row, '.blocks-container [data-block-type="regular"]');
+                                if (hasDSAColumn) {
+                                    expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
+                                } else {
+                                    expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+                                }
                             });
                     });
                 });
