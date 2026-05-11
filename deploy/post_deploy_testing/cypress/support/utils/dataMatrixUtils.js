@@ -323,8 +323,28 @@ function hasNonZeroVariantCallSetsSummary(matrixId) {
     });
 }
 
-function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId, allowVariantCallSetMatrixUndercount) {
+function hasNonZeroDSASummary(matrixId) {
+    const $dsaSummaryBlocks = Cypress.$(
+        `${matrixId} [data-group-key="DSA"] [data-block-type="col-summary"]`
+    );
+    return [...$dsaSummaryBlocks].some((el) => {
+        const value = parseInt(
+            ((el.getAttribute('data-block-value') || Cypress.$(el).text()) || '').trim(),
+            10
+        );
+        return value > 0;
+    });
+}
+
+function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId, allowVariantCallSetMatrixUndercount, allowDSARowSummaryOvercount) {
     if (!allowVariantCallSetMatrixUndercount) {
+        if (allowDSARowSummaryOvercount && label.includes('row-summary') && hasNonZeroDSASummary(matrixId)) {
+            expect(
+                sum,
+                `${label} with DSA present should be at least donor summary file count`
+            ).to.be.at.least(expectedFilesCount);
+            return;
+        }
         expect(sum, `${label} should be at least expected file count`).to.be.at.least(expectedFilesCount);
         return;
     }
@@ -337,6 +357,13 @@ function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId, al
             `${label} with Variant Call Sets present should be at most donor summary file count`
         ).to.be.at.most(expectedFilesCount);
     } else {
+        if (allowDSARowSummaryOvercount && label.includes('row-summary') && hasNonZeroDSASummary(matrixId)) {
+            expect(
+                sum,
+                `${label} with DSA present should be at least donor summary file count`
+            ).to.be.at.least(expectedFilesCount);
+            return;
+        }
         expect(sum, `${label} should match donor summary file count`).to.equal(expectedFilesCount);
     }
 }
@@ -383,6 +410,7 @@ export function testMatrixPopoverValidation(
         expectedFilesCount = 1,
         expectedTissuesCount = null,
         allowVariantCallSetMatrixUndercount = false,
+        allowDSARowSummaryOvercount = false,
         skipColSummaryTotalCheckForDonors = [],
         verifyTotalFromApi = true,
     }) {
@@ -536,7 +564,8 @@ export function testMatrixPopoverValidation(
                     expectedFilesCount,
                     'Total file count across row-summary blocks',
                     matrixId,
-                    allowVariantCallSetMatrixUndercount
+                    allowVariantCallSetMatrixUndercount,
+                    allowDSARowSummaryOvercount
                 );
             }
         });
@@ -580,7 +609,8 @@ export function testMatrixPopoverValidation(
                     expectedFilesCount,
                     'Total file count across col-summary blocks',
                     matrixId,
-                    allowVariantCallSetMatrixUndercount
+                    allowVariantCallSetMatrixUndercount,
+                    allowDSARowSummaryOvercount
                 );
             }
         });
