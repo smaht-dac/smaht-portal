@@ -27,31 +27,28 @@ const PublicationStatistics = ({ context, isLoading = false }) => {
     const journalCount =
         context?.facets?.find((f) => f.field === 'journal')?.terms?.length || 0;
     return (
-        <div className="data-summary d-flex flex-column gap-3">
-            <div className="d-flex gap-3">
-                <div className="donor-statistic tissues d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-lungs fas"></i>Publications
-                    </div>
-                    <div className="donor-statistic-value text-center">
-                        {publicationCount}
-                    </div>
+        <div className="data-summary">
+            <div className="donor-statistic publications d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    Publications
                 </div>
-                <div className="donor-statistic assays d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-dna fas"></i>Journals /
-                        Preprints
-                    </div>
-                    <div className="donor-statistic-value text-center">
-                        {journalCount}
-                    </div>
+                <div className="donor-statistic-value text-center">
+                    {publicationCount}
                 </div>
-                <div className="donor-statistic files d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-file fas"></i>Files Analyzed
-                    </div>
-                    <div className="donor-statistic-value text-center">0</div>
+            </div>
+            <div className="donor-statistic journals d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    Journals / Preprints
                 </div>
+                <div className="donor-statistic-value text-center">
+                    {journalCount}
+                </div>
+            </div>
+            <div className="donor-statistic files d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    Files Analyzed
+                </div>
+                <div className="donor-statistic-value text-center">0</div>
             </div>
         </div>
     );
@@ -240,32 +237,35 @@ export const BrowsePublicationBody = (props) => {
         <div className="browse-publication-body text-gray-70">
             <div className="introduction">
                 <div className="text">
-                    <span>
-                        <span className="text-slate-70 fw-medium">
-                            Benchmarking
+                    <div>
+                        <span>
+                            <span className="text-slate-70 fw-medium">
+                                Benchmarking
+                            </span>
+                            <span className="text-gray-20"> | </span>
+                            <span className="text-slate-70 fw-light">
+                                Publication
+                            </span>
                         </span>
-                        <span className="text-gray-20"> | </span>
-                        <span className="text-slate-70 fw-light">
-                            Publication
-                        </span>
-                    </span>
-                    <h2 className="text-gray-70">
-                        Benchmarking Somatic Mutation Detection
-                    </h2>
-                    <p>
-                        Somatic mosaicism is important yet hard to detect. The
-                        SMaHT Network benchmarked sequencing and computational
-                        methods across multiple samples using deep short- and
-                        long-read data. We integrated bulk, single-cell, and
-                        duplex approaches, and made use of donor-specific
-                        assemblies and the pangenome for accurate detection of
-                        somatic mutation, identifying optimal, genome-wide
-                        strategies.
-                    </p>
-                    <p>
-                        Here, we present the compendium of papers as the result
-                        of the benchmarking studies from the SMaHT Network.
-                    </p>
+                        <h2 className="text-gray-70 fw-semibold fs-3">
+                            Benchmarking Somatic Mutation Detection
+                        </h2>
+                        <p className="fw-light">
+                            Somatic mosaicism is important yet hard to detect.
+                            The SMaHT Network benchmarked sequencing and
+                            computational methods across multiple samples using
+                            deep short- and long-read data. We integrated bulk,
+                            single-cell, and duplex approaches, and made use of
+                            donor-specific assemblies and the pangenome for
+                            accurate detection of somatic mutation, identifying
+                            optimal, genome-wide strategies.
+                        </p>
+                        <p className="fw-light">
+                            Here, we present the compendium of papers as the
+                            result of the benchmarking studies from the SMaHT
+                            Network.
+                        </p>
+                    </div>
                     <div className="statistics-block">
                         <PublicationStatistics context={context} />
                     </div>
