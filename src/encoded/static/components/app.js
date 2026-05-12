@@ -40,7 +40,6 @@ import { requestAnimationFrame as raf } from '@hms-dbmi-bgm/shared-portal-compon
 import { PageTitleSection, toRegistryLookupContext } from './PageTitleSection';
 import { ChartDataController } from './viz/chart-data-controller';
 
-
 // import './encoded/static/scss/style.css'; // @TODO: currently not resolving; need to fix
 // import './encoded/static/scss/print.css';
 
@@ -458,10 +457,16 @@ export default class App extends React.PureComponent {
 
         // We could migrate this block of code to ChartDataController if it were stored in Redux.
         if (prevState.session !== session) {
-            _.keys(navigate.getBrowseBaseParams.mappings).forEach(function (mapping) {
+            _.keys(navigate.getBrowseBaseParams.mappings).forEach(function (
+                mapping
+            ) {
                 if (ChartDataController.isInitialized(mapping)) {
                     setTimeout(function () {
-                        console.log("SYNCING CHART DATA - " + mapping + " - DUE TO SESSION CHANGE");
+                        console.log(
+                            'SYNCING CHART DATA - ' +
+                                mapping +
+                                ' - DUE TO SESSION CHANGE'
+                        );
                         ChartDataController.sync(mapping);
                     }, 0);
                 }
@@ -1535,7 +1540,7 @@ export default class App extends React.PureComponent {
                         crossOrigin="true"
                     />
                     <link
-                        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@800&display=swap"
+                        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@800&display=swap"
                         rel="stylesheet"
                     />
                     {/* Can set webpack.config.js browser build's externals "react":"React" and load via CDN but need to then allow cross-origin requests to CDN domain
