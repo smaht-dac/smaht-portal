@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.27.3
+======
+
+* Bugfix - compute category for output files
+
+
 1.27.2
 ======
 
