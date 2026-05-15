@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.27.4
+======
+
+`PR 671: style: increase width of notifications panel <https://github.com/smaht-dac/smaht-portal/pull/671>`_
+
+* Increase width of notifications panel on larger screens
+
+
 1.27.3
 ======
 
