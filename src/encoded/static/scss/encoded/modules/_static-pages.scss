@@ -1636,6 +1636,9 @@ body[data-path='/'] > #application > #layout {
                 .homepage-figure-container {
                     justify-content: center;
                 }
+                .notifications-panel {
+                    width: 23vw;
+                }
             }
         }
     }
@@ -1655,7 +1658,7 @@ body[data-path='/'] > #application > #layout {
                 }
 
                 .notifications-panel {
-                    width: 400px;
+                    width: 450px;
                     padding: 38px 27px;
                 }
             }
