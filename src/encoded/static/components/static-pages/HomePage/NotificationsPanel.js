@@ -1,6 +1,10 @@
 import React from 'react';
 import { DataReleaseTracker } from './DataReleaseTracker';
 import { AnnouncementsSection } from './AnnouncementsSection';
+import { Popover, OverlayTrigger } from 'react-bootstrap';
+
+const FILTERD_SOMATIC_VARIANTS_URL =
+    '/browse/?analysis_details=Filtered&data_category=Somatic Variant Calls&donors.donor_groups=First 25 Donors [P25]&type=File';
 
 /**
  * NotificationsPanel component displays a panel containing the data release
@@ -9,8 +13,36 @@ import { AnnouncementsSection } from './AnnouncementsSection';
  */
 export const NotificationsPanel = (props) => {
     const { session } = props;
+    const popover = (
+        <Popover className="download-popover">
+            <Popover.Header as="h3">P25 Data Freeze</Popover.Header>
+            <Popover.Body>
+                Filtered Somatic and germline variant call sets from the first
+                25 donors analyzed for the P25 paper.
+            </Popover.Body>
+        </Popover>
+    );
     return (
         <div className="notifications-panel container">
+            <div className="section data-freeze">
+                <h3 className="section-header">
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="left"
+                        overlay={popover}>
+                        <span>
+                            P25 Data Freeze
+                            <i className="icon icon-fw icon-info-circle fas ms-1"></i>
+                        </span>
+                    </OverlayTrigger>
+                </h3>
+                <a className="p25-link" href={FILTERD_SOMATIC_VARIANTS_URL}>
+                    <span>
+                        <i className="icon icon-fw icon-filter fas me-1"></i>
+                        Filtered Somatic Variants
+                    </span>
+                </a>
+            </div>
             <DataReleaseTracker session={session} />
             <AnnouncementsSection />
             <div className="about-consortium section">
