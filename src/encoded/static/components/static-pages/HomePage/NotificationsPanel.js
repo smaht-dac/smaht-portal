@@ -19,7 +19,7 @@ export const NotificationsPanel = (props) => {
                     P25 Data Freeze
                     <i
                         className="icon icon-fw icon-info-circle fas ms-1"
-                        data-tip="P25 represents the first 25 donors in the P25 cohort. The P25 cohort is a subset of the P25 cohort, which is a subset of the first 25 donors in the cohort."></i>
+                        data-tip="P25 Data Freeze..."></i>
                 </h3>
                 <a className="p25-link" href={FILTERD_SOMATIC_VARIANTS_URL}>
                     <span>
