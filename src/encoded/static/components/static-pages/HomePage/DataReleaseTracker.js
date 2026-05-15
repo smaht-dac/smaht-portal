@@ -4,208 +4,41 @@ import { useToggle } from '../../util/hooks';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 /**
- * Replaces the `release_tracker_title` parameter in the query with the donor
- * @param {string} url - Full URL or path with optional query string
- * @param {string} donor - Donor title
- * @returns {string}
+ * WeekGroup renders a single link row for a Mon–Sun ISO week.
+ * @param {Date} weekStart - Monday of the week.
+ * @param {Date} weekEnd - Sunday of the week.
+ * @param {number} count - Total file count for the week.
+ * @param {string} query - URL to the file browser filtered to this week's releases.
+ * @returns {JSX.Element}
  */
-const updateURLParamsWithDonor = (url, donor = '') => {
-    if (!donor || donor.trim().length === 0) {
-        return url;
-    }
+const WeekGroup = ({ weekStart, weekEnd, count, query }) => {
+    const formatWeekDate = (date) =>
+        date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    const [path, queryString = ''] = url.split('?');
-    const params = new URLSearchParams(queryString);
-
-    // Remove release_tracker_title param
-    params.delete('release_tracker_title');
-
-    // Set new param for donor
-    params.set('donors.display_title', donor.trim());
-
-    const newQuery = params.toString();
-
-    return newQuery ? `${path}?${newQuery}` : path;
-};
-
-/**
- * TissueGroup component displays a tissue group with a toggle to show/hide its items.
- * @param {string} tissue_group - The name of the tissue group.
- * @param {Array} items - The list of items (file groups) within the tissue group.
- * @returns {JSX.Element} The rendered TissueGroup component.
- */
-const TissueGroup = ({ count, tissue, value }) => {
-    const [isToggled, toggle] = useToggle();
+    const weekLabel = `${formatWeekDate(weekStart)} - ${formatWeekDate(
+        weekEnd
+    )}`;
 
     return (
-        <li className="tissue-group-header" aria-expanded={isToggled}>
-            <button className="toggle-button tissue" onClick={() => toggle()}>
-                <i
-                    className={`icon icon-${isToggled ? 'minus' : 'plus'} fas`}
-                />
-                <span>{tissue}</span>
-            </button>
-            {isToggled ? (
-                <ul className="file-group-list">
-                    <li>
-                        <span>
-                            {count} {value}
-                        </span>
-                    </li>
-                </ul>
-            ) : null}
-        </li>
-    );
-};
-
-/**
- * DonorGroup component displays a donor group with a toggle to show/hide its tissue groups.
- * @param {number} count - The total count of files in the donor group.
- * @param {Object} donorGroups - The object containing all donor groups.
- * @param {string} donorGroup - The name of the donor group.
- * @param {string} query - The query URL for the donor group.
- * @returns {JSX.Element} The rendered DonorGroup component.
- */
-const DonorGroup = (props) => {
-    const { count, items, donor, query, donorGroupIndex, releaseItemIndex } =
-        props;
-    const [isToggled, toggle] = useToggle(
-        donorGroupIndex === 0 && releaseItemIndex === 0
-    );
-
-    // Add donor as filter param to query
-    const updatedQuery = updateURLParamsWithDonor(query, donor);
-
-    return (
-        <div className="release-item" aria-expanded={isToggled}>
-            <div
-                className={`donor-group-header ${isToggled ? 'expanded' : ''}`}>
-                <button
-                    className="toggle-button donor"
-                    onClick={() => {
-                        toggle();
-                    }}>
-                    <i
-                        className={`icon icon-${
-                            isToggled ? 'minus' : 'plus'
-                        }`}></i>
-                </button>
-                <div
-                    className="title"
-                    onClick={(e) => {
-                        // Prevent toggle when clicking on the link
-                        if (e.target.tagName === 'A' && e.target.href) {
-                            return;
-                        }
-                        toggle();
-                    }}>
-                    {donor}
-                    <a className="count" href={updatedQuery}>
-                        {count ?? 0} {count > 1 ? 'Files' : 'File'}
-                        <i className="icon icon-arrow-right"></i>
-                    </a>
-                </div>
+        <a className="week-link" href={count > 0 ? query : null}>
+            <span className="range">{weekLabel}</span>
+            <div className="count">
+                <span>{count.toLocaleString('en-US')}</span>
             </div>
-            {isToggled ? (
-                <ul className="tissue-list">
-                    {Object.keys(items).map((tissueGroup, i) => {
-                        const { count, query, value } = items[tissueGroup];
-                        return (
-                            <TissueGroup
-                                key={tissueGroup}
-                                count={count}
-                                tissue={tissueGroup}
-                                query={query}
-                                value={value}
-                            />
-                        );
-                    })}
-                </ul>
-            ) : null}
-        </div>
-    );
-};
-
-const DayGroup = (props) => {
-    const {
-        count,
-        date,
-        query,
-        items: donorGroups,
-        dayGroupIndex,
-        releaseItemIndex,
-    } = props;
-    const [isToggled, toggle] = useToggle(
-        dayGroupIndex === 0 && releaseItemIndex === 0
-    );
-
-    const dayTitle = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-
-    return (
-        <div className="release-item day-group" aria-expanded={isToggled}>
-            <div className={`day-group-header ${isToggled ? 'expanded' : ''}`}>
-                <button
-                    className="toggle-button day"
-                    onClick={() => {
-                        toggle();
-                    }}>
-                    <i
-                        className={`icon icon-${
-                            isToggled ? 'minus' : 'plus'
-                        }`}></i>
-                </button>
-                <div
-                    className="title"
-                    onClick={(e) => {
-                        // Prevent toggle when clicking on the link
-                        if (e.target.tagName === 'A' && e.target.href) {
-                            return;
-                        }
-                        toggle();
-                    }}>
-                    <span>{dayTitle}</span>
-                    <a className="count" href={query}>
-                        {count ?? 0} {count > 1 ? 'Files' : 'File'}
-                        <i className="icon icon-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-            {isToggled ? (
-                <ul className="donor-list">
-                    {Object.keys(donorGroups).map((donorGroup, i) => {
-                        const { count, items, query } = donorGroups[donorGroup];
-                        return (
-                            <DonorGroup
-                                key={donorGroup}
-                                count={count}
-                                donor={donorGroup}
-                                items={items}
-                                query={query}
-                                donorGroupIndex={i}
-                                releaseItemIndex={releaseItemIndex}
-                            />
-                        );
-                    })}
-                </ul>
-            ) : null}
-        </div>
+        </a>
     );
 };
 
 /**
- * DataReleaseItem component displays information about a specific data release.
+ * DataReleaseItem displays information about a specific data release.
  * @param {object} data - The data object containing release information.
  * @param {number} releaseItemIndex - The index of the release item.
- * @param {JSX.Element|null} callout - Optional callout component to display above the donor groups.
+ * @param {JSX.Element|null} callout - Optional callout component to display above the week groups.
  * @returns {JSX.Element} The rendered DataReleaseItem component.
  */
 const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     const [isToggled, toggle] = useToggle(releaseItemIndex === 0);
-    const { count, items: dayGroups, query, value } = data;
+    const { count, items: weekGroups, query, value } = data;
 
     // Replace hyphens with slashes and add day field for Safari compatibility
     const date_formatted = value.replace(/-/g, '/') + '/01';
@@ -245,21 +78,23 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                     </a>
                 </div>
                 <div className="body">
-                    {/* Map day items to drop-downs */}
                     {callout ? <div className="callout">{callout}</div> : null}
-                    {Object.keys(dayGroups)
+                    {Object.keys(weekGroups)
                         .sort((a, b) => b.localeCompare(a))
-                        .map((day, i) => {
-                            const { items, count, query } = dayGroups[day];
+                        .map((weekKey) => {
+                            const {
+                                weekStart,
+                                weekEnd,
+                                count: weekCount,
+                                query: weekQuery,
+                            } = weekGroups[weekKey];
                             return (
-                                <DayGroup
-                                    key={day}
-                                    date={day}
-                                    items={items}
-                                    count={count}
-                                    query={query}
-                                    dayGroupIndex={i}
-                                    releaseItemIndex={releaseItemIndex}
+                                <WeekGroup
+                                    key={weekKey}
+                                    weekStart={weekStart}
+                                    weekEnd={weekEnd}
+                                    count={weekCount}
+                                    query={weekQuery}
                                 />
                             );
                         })}
@@ -269,128 +104,79 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     );
 };
 
-// Return a formatted object for release data related to a single donor
-const formatDonorReleaseData = (data) => {
-    const { count, items, value, query } = data;
+/**
+ * `getISOWeekRange` produces the Monday–Sunday ISO week range for a given date
+ * string (YYYY-MM-DD)
+ * @param {*} dateStr - The date string in the format YYYY-MM-DD
+ * @returns {object} An object containing the start and end dates of the ISO week
+ */
+const getISOWeekRange = (dateStr) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    const day = date.getDay();
 
-    // Pull out Donor and add to [acc]
-    const [donor, tissueCode] = value?.trim()?.split('-');
+    // Get the Monday at the start of the week
+    const diff = day === 0 ? -6 : 1 - day;
+    const weekStart = new Date(date);
+    weekStart.setDate(date.getDate() + diff);
 
-    const formattedDonorItems = items.reduce((acc, item) => {
-        const { count, value, query, additional_value } = item;
-        const formattedTissue = { count, value, query, additional_value };
+    // Get the Sunday at the end of the week
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
 
-        // Check if tissue code is present in additional_value
-        // Looks for pattern: 3G - Colon, or {#}{letter} - {Capital letter}
-        const hasTissueCode = additional_value.match(
-            /\d+[A-Z]{1,2}\s-\s+[A-Z]/
-        );
-
-        const tissueTitle = hasTissueCode
-            ? additional_value
-            : tissueCode + ' - ' + additional_value;
-
-        if (acc?.[tissueTitle]) {
-            // add to existing group
-            acc[tissueTitle] = {
-                ...acc[tissueTitle],
-                items: Object.assign(
-                    acc[tissueTitle]?.items || {},
-                    formattedTissue?.items || {}
-                ),
-                count: acc[tissueTitle].count + formattedTissue.count,
-                additional_value,
-            };
-        } else {
-            acc[tissueTitle] = formattedTissue;
-        }
-        return acc;
-    }, {});
-
-    return {
-        count,
-        donor: donor,
-        query,
-        items: formattedDonorItems,
-    };
-};
-
-// Return a formatted object for release data related to a single day
-const formatDayReleaseData = (data) => {
-    const { count, query } = data;
-
-    const formattedDayItems = data.items.reduce((acc, item) => {
-        // Each item is a donor release, should be donor as key
-        const [donor, tissueCode] = item?.value?.split('-');
-
-        // Trim whitespace from donor title
-        const donorTitle = donor.trim();
-
-        const formattedDonor = formatDonorReleaseData(item);
-
-        if (acc?.[donorTitle]) {
-            // add to existing group
-            acc[donorTitle] = {
-                ...acc[donorTitle],
-                items: Object.assign(
-                    acc[donorTitle].items,
-                    formattedDonor.items
-                ),
-                count: acc[donorTitle].count + formattedDonor.count,
-            };
-        } else {
-            acc[donorTitle] = formattedDonor;
-        }
-
-        return acc;
-    }, {});
-
-    return {
-        query: query,
-        items: formattedDayItems,
-        count: count,
-    };
+    return { weekStart, weekEnd };
 };
 
 /**
- * `formatReleaseData` formats the release tracker data into a structure
- * that more closely matches the UI by grouping the data by donor and tissue
- * @param {Array} data - The raw release tracker data from the API.
- * @returns {Array} The formatted release tracker data.
+ * `formatReleaseData` processes the API response into month and week buckets.
+ * Each week stores only the total count and the query URL from its first day.
+ * @param {Array} data - Raw items from /recent_files_summary.
+ * @returns {Array}
  */
 const formatReleaseData = (data = []) => {
     if (data.length === 0) return [];
     return data.map((month) => {
         const { count, value, query } = month;
-        // Format items in the month by grouping and sorting them by day
-        const formattedMonthItems = month?.items?.reduce((acc, item) => {
-            const { count: dayCount, value: dayValue } = item;
 
-            const date = dayValue;
-
-            const formattedDay = formatDayReleaseData(item);
-
-            // Use date to group items in object
-            if (acc?.[date]) {
-                // add to existing group
-                acc[date] = {
-                    ...acc[date],
-                    items: Object.assign(acc[date].items, formattedDay.items),
-                    count: acc[date].count + dayCount,
-                };
+        // Collapse API day items into { "YYYY-MM-DD": { count, query } }
+        const dayItems = month?.items?.reduce((acc, item) => {
+            const { count: dayCount, value: dayValue, query: dayQuery } = item;
+            if (acc?.[dayValue]) {
+                acc[dayValue].count += dayCount;
             } else {
-                acc[date] = formattedDay;
+                acc[dayValue] = { count: dayCount, query: dayQuery };
             }
-
             return acc;
         }, {});
 
-        return {
-            count,
-            value,
-            items: formattedMonthItems,
-            query,
-        };
+        // Pad the day number with leading zeros for consistent date formatting
+        const pad = (n) => String(n).padStart(2, '0');
+
+        // Group days into ISO weeks
+        // Note: week key is the Monday date (YYYY-MM-DD)
+        const weekItems = Object.entries(dayItems).reduce(
+            (weekAcc, [dateKey, dayData]) => {
+                const { weekStart, weekEnd } = getISOWeekRange(dateKey);
+                const weekKey = `${weekStart.getFullYear()}-${pad(
+                    weekStart.getMonth() + 1
+                )}-${pad(weekStart.getDate())}`;
+
+                if (weekAcc[weekKey]) {
+                    weekAcc[weekKey].count += dayData.count;
+                } else {
+                    // First day encountered for this week sets the query link
+                    weekAcc[weekKey] = {
+                        weekStart,
+                        weekEnd,
+                        count: dayData.count,
+                        query: dayData.query,
+                    };
+                }
+                return weekAcc;
+            },
+            {}
+        );
+
+        return { count, value, items: weekItems, query };
     });
 };
 
