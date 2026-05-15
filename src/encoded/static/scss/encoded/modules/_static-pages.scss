@@ -907,6 +907,7 @@ body[data-path='/'] > #application > #layout {
                                         font-weight: 700;
                                         border-radius: 7px;
                                         font-size: 0.625rem;
+                                        margin-bottom: 5px;
 
                                         .count {
                                             color: hsla(241, 84%, 40%, 0.6);
@@ -969,238 +970,32 @@ body[data-path='/'] > #application > #layout {
                                     .body {
                                         color: #485983;
                                         font-size: 0.75rem;
+                                        display: flex;
+                                        flex-direction: column;
+                                        gap: 5px;
 
-                                        .release-item {
-                                            padding: 5px 0px;
+                                        .week-link {
+                                            display: flex;
+                                            flex: 1;
+                                            justify-content: space-between;
+                                            border: 1px solid #deedff;
+                                            border-radius: 7px;
+                                            padding: 6px 8px;
+                                            color: #345b8c;
+                                            background-color: #f6fbfe;
 
-                                            .day-group-header {
-                                                display: flex;
-                                                padding: 2px 0px;
-                                                margin: 0px;
-                                                padding: 0px 0px 0px 10px;
-                                                background-color: transparent;
-
-                                                .toggle-button {
-                                                    display: flex;
-                                                    margin: auto;
-                                                    border: 1px solid
-                                                        transparent;
-                                                    border-radius: 100%;
-                                                    padding: 2px;
-                                                    color: #485983;
-                                                    background-color: transparent;
-                                                }
-
-                                                .title {
-                                                    display: flex;
-                                                    justify-content: space-between;
-                                                    flex: 1;
-                                                    padding: 4px 8px;
-                                                    border-radius: 7px;
-                                                    font-weight: 700;
-                                                    font-size: 0.875rem;
-                                                    color: #485983;
-
-                                                    .count {
-                                                        display: flex;
-                                                        gap: 4px;
-                                                        align-items: center;
-                                                        font-size: 0.6875rem;
-                                                        color: #65759f;
-
-                                                        &:hover {
-                                                            color: #3c71f9;
-                                                        }
-                                                    }
-
-                                                    &:hover {
-                                                        cursor: pointer;
-                                                        background-color: #e7f1fb;
-                                                        transition: background-color
-                                                            100ms;
-                                                    }
-                                                }
+                                            .range {
+                                                font-weight: 600;
                                             }
-
-                                            .donor-list {
+                                            .count {
                                                 display: flex;
-                                                flex-direction: column;
-                                                gap: 4px;
-                                                padding: 8px 10px;
-                                                background-color: #f3f9fe;
-
-                                                .release-item {
-                                                    padding: 0px;
-
-                                                    &[aria-expanded='true'] {
-                                                        padding-bottom: 8px;
-                                                    }
-                                                }
-                                            }
-                                            .donor-group-header {
-                                                display: flex;
+                                                justify-content: center;
+                                                border: 1px solid #deedff;
                                                 border-radius: 4px;
-                                                gap: 4px;
-                                                padding-bottom: 0px;
-
-                                                .toggle-button {
-                                                    display: flex;
-                                                    border-radius: 100%;
-                                                    padding: 2px;
-                                                    color: #485983;
-                                                    margin: auto;
-                                                    width: 16px;
-                                                }
-
-                                                .title {
-                                                    display: flex;
-                                                    flex: 1;
-                                                    justify-content: space-between;
-                                                    font-weight: 500;
-                                                    font-size: 0.875rem;
-                                                    width: max-content;
-                                                    padding: 4px 8px;
-                                                    color: #485983;
-                                                    border: 1px solid
-                                                        transparent;
-                                                    border-radius: 7px;
-                                                    align-items: baseline;
-                                                    transition: background-color
-                                                        100ms;
-                                                    margin-bottom: 0px;
-
-                                                    .count {
-                                                        display: flex;
-                                                        gap: 4px;
-                                                        align-items: center;
-                                                        font-size: 0.6875rem;
-                                                        color: #65759f;
-
-                                                        &:hover {
-                                                            color: #3c71f9;
-                                                        }
-                                                    }
-
-                                                    &:hover {
-                                                        cursor: pointer;
-                                                        background-color: #ddeaf7;
-                                                        transition: background-color
-                                                            100ms;
-
-                                                        i {
-                                                            fill: #3c71f9;
-                                                        }
-                                                    }
-                                                }
-
-                                                &.expanded {
-                                                    .title {
-                                                        background-color: #e7f1fb;
-                                                        border-radius: 7px 7px
-                                                            0px 0px;
-                                                        border-color: #b8d3ef;
-
-                                                        &:hover {
-                                                            background-color: #e0ecf8;
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            .tissue-group-header
-                                                .toggle-button {
-                                                display: flex;
-                                                gap: 6px;
-                                                align-items: center;
-                                            }
-
-                                            .tissue-list {
-                                                margin-top: 0px;
-                                                list-style-type: none;
-                                                background: #fbfdff;
-                                                padding: 5px;
-                                                padding-left: 0px;
-                                                margin-left: 20px;
-                                                border-radius: 0px 0px 7px 7px;
-                                                border: 1px solid #b8d3ef;
-                                                border-top: none;
-
-                                                svg {
-                                                    display: none;
-                                                }
-
-                                                &:hover {
-                                                    svg {
-                                                        display: inline-flex;
-                                                        vertical-align: text-top;
-                                                        fill: #3c71f9;
-                                                        width: 12px;
-                                                        margin-left: 4px;
-                                                    }
-                                                }
-                                            }
-
-                                            ul {
-                                                margin-top: 0px;
-                                                padding-left: 1rem;
-
-                                                li {
-                                                    font-weight: 300;
-                                                    line-height: 1rem;
-                                                    margin-top: 0.25rem;
-                                                    border-radius: 0px 0px 7px
-                                                        7px;
-                                                    margin-top: 0px;
-                                                    padding: 4px;
-
-                                                    a {
-                                                        color: #485983;
-
-                                                        &:hover {
-                                                            text-decoration: underline;
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            .file-group-list {
-                                                padding-left: 37px;
-                                            }
-
-                                            &[aria-expanded='true'] {
-                                                .day-group-header {
-                                                    background-color: #e7f1fb;
-                                                    border: 1px solid #d3dbe6;
-                                                    border-bottom: none;
-                                                    border-radius: 8px 8px 0px
-                                                        0px;
-                                                }
-                                                .donor-list {
-                                                    border: 1px solid #d3dbe6;
-                                                    border-radius: 0px 0px 8px
-                                                        8px;
-                                                }
-                                            }
-                                        }
-
-                                        .toggle-button {
-                                            &.donor {
-                                                background-color: transparent;
-                                                border: none;
-                                                color: #485983;
-                                            }
-                                            &.tissue {
-                                                background-color: transparent;
-                                                border: none;
-                                                color: #485983;
-
-                                                span {
-                                                    max-width: 160px;
-                                                    text-align: left;
-                                                    text-overflow: ellipsis;
-                                                    white-space: nowrap;
-                                                    overflow: hidden;
-                                                }
+                                                padding: 0px 6px;
+                                                background-color: #e8f3ff;
+                                                font-weight: 700;
+                                                font-size: 0.625rem;
                                             }
                                         }
                                     }
