@@ -23,6 +23,7 @@ from encoded.item_utils import (
     file_format as file_format_utils,
     file_set as file_set_utils,
     item as item_utils,
+    meta_workflow_run as mwfr_utils,
     sample as sample_utils,
     sample_source as sample_source_utils,
     supplementary_file as supp_file_utils,
@@ -30,7 +31,6 @@ from encoded.item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
     donor_specific_assembly as dsa_utils,
-    reference_genome as rg_utils,
     external_output_file as eof_utils
 )
 from encoded.item_utils.constants import (
@@ -129,6 +129,7 @@ class AssociatedItems:
     donors: List[Dict[str, Any]]
     target_assembly: Union[str, None]
     source_assembly: Union[str, None]
+    derived_from_tissue_samples: Union[List[Dict[str, Any]], None]
 
 
 def get_associated_items(
@@ -151,16 +152,17 @@ def get_associated_items(
     target_assembly = None
     source_assembly = None
     if donor_specific_assembly:
-        file_sets = get_derived_from_file_sets(file, request_handler)
         if file_format_utils.is_chain_file(file_format):
             target_assembly = get_target_assembly(file, request_handler)
             source_assembly = get_source_assembly(file, request_handler)
-    else:
-        file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
+    file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
     assays = get_assays(file_sets, request_handler)
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
     tissue_samples = get_tissue_samples(samples)
+    derived_from_tissue_samples = None
+    if eof_utils.is_external_output_file(file) and not file_sets:
+        derived_from_tissue_samples = get_tissue_samples_from_derived_from(file, request_handler)
     sample_sources = get_sample_sources(file, samples, request_handler, analysis_run=analysis_run)
     cell_culture_mixtures = get_cell_culture_mixtures(sample_sources)
     tissues = get_tissues(sample_sources)
@@ -184,7 +186,8 @@ def get_associated_items(
         cell_lines=cell_lines,
         donors=donors,
         target_assembly=target_assembly,
-        source_assembly=source_assembly
+        source_assembly=source_assembly,
+        derived_from_tissue_samples=derived_from_tissue_samples
     )
 
 
@@ -232,9 +235,19 @@ def get_derived_from_file_sets(
     file: Dict[str, Any],
     request_handler: RequestHandler
 ) -> List[Dict[str, Any]]:
-    """Get file sets from derived_from files."""
-    to_get = supp_file_utils.get_derived_from_file_sets(file,request_handler)
-    return get_items(to_get,request_handler)
+    """Get file sets from derived_from files.
+    
+    If file_sets not present, get file_sets from MWFR or from input files of MWFR
+    """
+    to_get = []
+    if (derived_from_filesets := submitted_file_utils.get_derived_from_file_sets(file, request_handler)):
+        to_get = derived_from_filesets
+    elif (mwfr_file_sets := eof_utils.get_mwfr_file_sets_from_derived_from(file, request_handler)):
+        to_get = mwfr_file_sets
+    elif (mwfr_input_file_sets := eof_utils.get_mwfr_input_file_sets_from_derived_from(file, request_handler)):
+        to_get = mwfr_input_file_sets
+    return get_items(to_get, request_handler)
+
 
 
 def get_donor_specific_assembly(
@@ -383,6 +396,15 @@ def get_samples(
 def get_tissue_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Filter samples to get tissue samples."""
     return [sample for sample in samples if sample_utils.is_tissue_sample(sample)]
+
+
+def get_tissue_samples_from_derived_from(file: Dict[str, Any], request_handler: RequestHandler) -> List[Dict[str, Any]]:
+    """Get tissue samples from linked derived from files."""
+    if submitted_file_utils.get_derived_from(file):
+        if (file_sets := get_derived_from_file_sets(file, request_handler)):
+            if (tissue_samples := get_tissue_samples(get_samples(file_sets, request_handler))):
+                return tissue_samples
+    return None
 
 
 def get_sample_sources(
@@ -551,6 +573,7 @@ def get_annotated_filename(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissues,
+        associated_items.file
     )
     aliquot_id = get_aliquot_id(
         request_handler,
@@ -558,6 +581,7 @@ def get_annotated_filename(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissue_samples,
+        associated_items.derived_from_tissue_samples,
         analysis_run=analysis_run,
         output_meta_workflow_run=output_meta_workflow_run
     )
@@ -767,19 +791,28 @@ def get_protocol_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissues: List[Dict[str, Any]],
+    file: Dict[str, Any],
 ) -> FilenamePart:
     """Get protocol ID for file."""
     parts = []
     if cell_culture_mixtures or cell_lines:
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if tissues:
-        parts.append(get_protocol_id_from_tissues(tissues))
+        parts.append(get_protocol_id_from_tissues(tissues, file))
     return get_exclusive_filename_part(parts, "protocol ID")
 
 
-def get_protocol_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
-    """Get protocol ID from tissue items."""
+def get_protocol_id_from_tissues(
+        tissues: List[Dict[str, Any]],
+        file: Dict[str, Any]
+    ) -> FilenamePart:
+    """Get protocol ID from tissue items.
+    
+    If file is a DSA file, allow multiple protocol IDs
+    """
     protocol_ids = [tissue_utils.get_protocol_id(tissue) for tissue in tissues]
+    if len(protocol_ids) > 1 and supp_file_utils.get_donor_specific_assembly(file):
+        return get_filename_part(value="MT")
     return get_filename_part_for_values(
         protocol_ids, "protocol ID", source_name="tissue"
     )
@@ -791,12 +824,21 @@ def get_aliquot_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
+    derived_from_tissue_samples: Union[List[Dict[str, Any], None]],
     analysis_run: Optional[Dict[str, Any]] = None,
     output_meta_workflow_run: Optional[Dict[str, Any]] = None
 ) -> FilenamePart:
-    """Get tissue aliquot ID for file."""
+    """Get tissue aliquot ID for file.
+    
+    If it is an External Output File with derived_from files, use tissue samples from those files.
+    """
     parts = []
-    if cell_culture_mixtures or cell_lines or eof_utils.is_external_output_file(file):
+    if eof_utils.is_external_output_file(file):
+        if derived_from_tissue_samples:
+            parts.append(get_aliquot_id_from_samples(derived_from_tissue_samples))
+        else:
+            parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
+    if cell_culture_mixtures or cell_lines:
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if analysis_run:
         parts.append(get_aliquot_id_from_mwfr_input(request_handler, output_meta_workflow_run))

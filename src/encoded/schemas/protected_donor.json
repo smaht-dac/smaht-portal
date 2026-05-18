@@ -81,6 +81,9 @@
         "external_id": {
             "title": "Donor ID"
         },
+        "donor_groups": {
+            "title": "Donor Groups"
+        },
         "age": {
             "title": "Age",
             "aggregation_type": "range",

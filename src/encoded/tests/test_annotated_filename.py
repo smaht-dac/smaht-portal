@@ -271,279 +271,8 @@ TISSUE_EXTERNAL_ID = f"{TISSUE_PROJECT_ID}{TISSUE_DONOR_KIT_ID}-{TISSUE_PROTOCOL
 SOME_TISSUE = {"uuid": "some-uuid", "external_id": TISSUE_EXTERNAL_ID}
 ANOTHER_TISSUE = {"uuid": "another-uuid", "external_id": "SMHT100-1B"}
 
-
-@pytest.mark.parametrize(
-    "cell_culture_mixtures,cell_lines,tissues,expected,errors",
-    [
-        ([], [], [], "", True),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_PROJECT_ID, False),
-        ([], [SOME_CELL_LINE], [], DEFAULT_PROJECT_ID, False),
-        ([SOME_CELL_CULTURE_MIXTURE], [SOME_CELL_LINE], [], DEFAULT_PROJECT_ID, False),
-        ([], [], [SOME_TISSUE], TISSUE_PROJECT_ID, False),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], "", True),
-        ([], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
-        ([], [], [SOME_TISSUE, SOME_TISSUE], TISSUE_PROJECT_ID, False),
-        (
-            [SOME_CELL_CULTURE_MIXTURE],
-            [SOME_CELL_LINE],
-            [ANOTHER_TISSUE],
-            DEFAULT_PROJECT_ID,
-            False,
-        ),
-        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], "", True),
-        ([], [], [SOME_TISSUE, SOME_ITEM], "", True),
-    ],
-)
-def test_get_project_id(
-    cell_culture_mixtures: List[Dict[str, Any]],
-    cell_lines: List[Dict[str, Any]],
-    tissues: List[Dict[str, Any]],
-    expected: str,
-    errors: bool,
-) -> None:
-    """Test project ID retrieval for annotated filenames."""
-    result = get_project_id(cell_culture_mixtures, cell_lines, tissues)
-    assert_filename_part_matches(result, expected, errors)
-
-
-@contextmanager
-def patch_is_only_cell_culture_mixture_derived(value: bool) -> mock.MagicMock:
-    """Patch is_only_cell_culture_mixture_derived."""
-    with mock.patch(
-        (
-            "encoded.commands.create_annotated_filenames"
-            ".is_only_cell_culture_mixture_derived"
-        ),
-        return_value=value,
-    ) as mock_is_only_cell_culture_mixture_derived:
-        yield mock_is_only_cell_culture_mixture_derived
-
-
-@pytest.mark.parametrize(
-    "only_mixture_derived,cell_culture_mixtures,cell_lines,tissues,expected,errors",
-    [
-        (False, [], [], [], "", True),
-        (True, [SOME_CELL_CULTURE_MIXTURE], [], [], MIXTURE_CODE, False),
-        (True, [SOME_CELL_CULTURE_MIXTURE, SOME_ITEM], [], [], "", True),
-        (False, [], [SOME_CELL_LINE], [], CELL_LINE_CODE, False),
-        (False, [], [SOME_CELL_LINE, SOME_ITEM], [], "", True),
-        (False, [], [], [SOME_TISSUE], TISSUE_DONOR_KIT_ID, False),
-        (False, [], [], [SOME_TISSUE, SOME_ITEM], "", True),
-        (False, [SOME_CELL_CULTURE_MIXTURE], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
-    ],
-)
-def test_get_sample_source_id(
-    only_mixture_derived: bool,
-    cell_culture_mixtures: List[Dict[str, Any]],
-    cell_lines: List[Dict[str, Any]],
-    tissues: List[Dict[str, Any]],
-    expected: str,
-    errors: bool,
-) -> None:
-    """Test sample source ID retrieval for annotated filenames."""
-    with patch_is_only_cell_culture_mixture_derived(only_mixture_derived):
-        result = get_sample_source_id([], cell_culture_mixtures, cell_lines, tissues)
-        assert_filename_part_matches(result, expected, errors)
-
-
-@pytest.mark.parametrize(
-    "cell_culture_mixtures,cell_lines,tissues,expected,errors",
-    [
-        ([], [], [], "", True),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_ABSENT_FIELD, False),
-        ([], [SOME_CELL_LINE], [], DEFAULT_ABSENT_FIELD, False),
-        (
-            [SOME_CELL_CULTURE_MIXTURE],
-            [SOME_CELL_LINE],
-            [],
-            DEFAULT_ABSENT_FIELD,
-            False,
-        ),
-        ([], [], [SOME_TISSUE], TISSUE_PROTOCOL_ID, False),
-        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], "", True),
-        ([], [], [SOME_TISSUE, SOME_ITEM], "", True),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], "", True),
-        ([], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
-    ],
-)
-def test_get_protocol_id(
-    cell_culture_mixtures: List[Dict[str, Any]],
-    cell_lines: List[Dict[str, Any]],
-    tissues: List[Dict[str, Any]],
-    expected: str,
-    errors: bool,
-) -> None:
-    """Test protocol ID retrieval for annotated filenames."""
-    result = get_protocol_id(cell_culture_mixtures, cell_lines, tissues)
-    assert_filename_part_matches(result, expected, errors)
-
 SOME_FILE = {"data_category": ["Aligned Reads"]}
 SOME_EOF_FILE = {"@type": ["ExternalOutputFile"]}
-
-
-TISSUE_SAMPLE_ALIQUOT_ID = "100A3"
-TISSUE_SAMPLE_ALIQUOT_ID2 = "101B2"
-TISSUE_SAMPLE_ALIQUOT_ID3 = "100B2"
-
-TISSUE_SAMPLE_EXTERNAL_ID = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID}"
-TISSUE_SAMPLE_EXTERNAL_ID2 = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID2}"
-TISSUE_SAMPLE_EXTERNAL_ID3 = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID3}"
-
-SOME_CORE_TISSUE_SAMPLE = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID}
-CORE_TISSUE_SAMPLE2 = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID2}
-CORE_TISSUE_SAMPLE3 = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID3}
-
-TPC_TISSUE_SAMPLE = {
-    "category": "Core", 
-    "external_id": TISSUE_SAMPLE_EXTERNAL_ID
-}
-
-SOME_HOMOGENATE_TISSUE_SAMPLE = {
-    "category": "Homogenate",
-    "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
-}
-SOME_LIQUID_TISSUE_SAMPLE = {
-    "category": "Liquid",
-    "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
-}
-SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
-
-@pytest.mark.parametrize(
-    "file,cell_culture_mixtures,cell_lines,tissue_samples,expected,errors",
-    [
-        (SOME_FILE, [], [], [], "", True),
-        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_ABSENT_FIELD, False),
-        (SOME_FILE, [], [SOME_CELL_LINE], [], DEFAULT_ABSENT_FIELD, False),
-        (
-            SOME_FILE, 
-            [SOME_CELL_CULTURE_MIXTURE],
-            [SOME_CELL_LINE],
-            [],
-            DEFAULT_ABSENT_FIELD,
-            False,
-        ),
-        (SOME_FILE, [], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], "", True),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], "MAMC", False),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
-        (SOME_FILE, [], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
-        (SOME_FILE, [], [], [SOME_LIQUID_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], "MAMC", False),
-        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], "", True),
-        (SOME_FILE, [], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], "", True),
-        (SOME_EOF_FILE, [], [], [], DEFAULT_ABSENT_FIELD, False),
-
-    ],
-)
-def test_get_aliquot_id(
-    file: Dict[str, Any],
-    cell_culture_mixtures: List[Dict[str, Any]],
-    cell_lines: List[Dict[str, Any]],
-    tissue_samples: List[Dict[str, Any]],
-    expected: str,
-    errors: bool,
-) -> None:
-    """Test aliquot ID retrieval for annotated filenames."""
-    result = get_aliquot_id(
-        request_handler=None,
-        file=file,
-        cell_culture_mixtures=cell_culture_mixtures,
-        cell_lines=cell_lines,
-        tissue_samples=tissue_samples,
-    )
-    assert_filename_part_matches(result, expected, errors)
-
-
-SOME_AGE = 30
-SOME_SEX = "Male"
-SOME_DONOR = {"age": SOME_AGE, "sex": SOME_SEX}
-ANOTHER_DONOR = {"age": 35, "sex": "Female"}
-
-
-@pytest.mark.parametrize(
-    "donors,only_mixture_derived,expected,errors",
-    [
-        ([], False, "", True),
-        ([], True, "NN", False),
-        ([SOME_DONOR], False, "M30", False),
-        ([ANOTHER_DONOR], False, "F35", False),
-        ([SOME_DONOR, ANOTHER_DONOR], False, "", True),
-        ([SOME_DONOR], True, "M30", False),
-        ([SOME_DONOR, ANOTHER_DONOR], True, "NN", False),
-    ],
-)
-def test_get_donor_sex_and_age_parts(
-    donors: List[Dict[str, Any]],
-    only_mixture_derived: bool,
-    expected: str,
-    errors: bool,
-) -> None:
-    """Test sex and age retrieval for annotated filenames."""
-    with patch_is_only_cell_culture_mixture_derived(only_mixture_derived):
-        result = get_donor_sex_and_age(donors, [])
-        assert_filename_part_matches(result, expected, errors)
-
-REFERENCE_FILE = {"data_category": ["Genome Assembly"]}
-SEQUENCER_CODE = "A"
-SOME_SEQUENCER = {"code": SEQUENCER_CODE}
-ANOTHER_SEQUENCER = {"code": "B"}
-ASSAY_CODE = "001"
-SOME_ASSAY = {"code": ASSAY_CODE, "identifier": "bulk_wgs_pcr_free", "category": "Bulk WGS"}
-ANOTHER_ASSAY = {"code": "002", "identifier": "bulk_wgs", "category": "Bulk WGS"}
-
-
-@pytest.mark.parametrize(
-    "file,sequencers,assays,expected,errors",
-    [
-        (SOME_FILE,[], [], "", True),
-        (SOME_FILE,[SOME_SEQUENCER], [], "", True),
-        (SOME_FILE,[], [SOME_ASSAY], "", True),
-        (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
-        (SOME_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
-        (REFERENCE_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
-        (SOME_EOF_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
-        (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
-        (SOME_FILE,[SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
-    ],
-)
-def test_get_sequencing_and_assay_codes(
-    file: Dict[str, Any],
-    sequencers: List[Dict[str, Any]],
-    assays: List[Dict[str, Any]],
-    expected: str,
-    errors: bool,
-) -> None:
-    """Test sequencing and assay codes retrieval for annotated filenames."""
-    result = get_sequencing_and_assay_codes(
-        request_handler=None,
-        file=file,
-        sequencers=sequencers,
-        assays=assays
-    )
-    assert_filename_part_matches(result, expected, errors)
-
-
-SEQUENCING_CENTER_CODE = "dac"
-SOME_SEQUENCING_CENTER = {"code": SEQUENCING_CENTER_CODE}
-
-
-@pytest.mark.parametrize(
-    "sequencing_center,expected,errors",
-    [
-        ({}, "", True),
-        (SOME_SEQUENCING_CENTER, SEQUENCING_CENTER_CODE, False),
-        (SOME_ITEM, "", True),
-    ],
-)
-def test_get_sequencing_center_code(
-    sequencing_center: Dict[str, Any], expected: str, errors: bool
-) -> None:
-    """Test sequencing center code retrieval for annotated filenames."""
-    result = get_sequencing_center_code(sequencing_center)
-    assert_filename_part_matches(result, expected, errors)
-
 
 SOFTWARE_CODE = "foo"
 SOFTWARE_VERSION = "1.2.3"
@@ -662,6 +391,283 @@ BED_FILE_EXTENSION = {
     "standard_file_extension": "bed",
     "valid_item_types": ["SupplementaryFile"]
 }
+
+@pytest.mark.parametrize(
+    "cell_culture_mixtures,cell_lines,tissues,expected,errors",
+    [
+        ([], [], [], "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_PROJECT_ID, False),
+        ([], [SOME_CELL_LINE], [], DEFAULT_PROJECT_ID, False),
+        ([SOME_CELL_CULTURE_MIXTURE], [SOME_CELL_LINE], [], DEFAULT_PROJECT_ID, False),
+        ([], [], [SOME_TISSUE], TISSUE_PROJECT_ID, False),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], "", True),
+        ([], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
+        ([], [], [SOME_TISSUE, SOME_TISSUE], TISSUE_PROJECT_ID, False),
+        (
+            [SOME_CELL_CULTURE_MIXTURE],
+            [SOME_CELL_LINE],
+            [ANOTHER_TISSUE],
+            DEFAULT_PROJECT_ID,
+            False,
+        ),
+        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], "", True),
+        ([], [], [SOME_TISSUE, SOME_ITEM], "", True),
+    ],
+)
+def test_get_project_id(
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
+    expected: str,
+    errors: bool,
+) -> None:
+    """Test project ID retrieval for annotated filenames."""
+    result = get_project_id(cell_culture_mixtures, cell_lines, tissues)
+    assert_filename_part_matches(result, expected, errors)
+
+
+@contextmanager
+def patch_is_only_cell_culture_mixture_derived(value: bool) -> mock.MagicMock:
+    """Patch is_only_cell_culture_mixture_derived."""
+    with mock.patch(
+        (
+            "encoded.commands.create_annotated_filenames"
+            ".is_only_cell_culture_mixture_derived"
+        ),
+        return_value=value,
+    ) as mock_is_only_cell_culture_mixture_derived:
+        yield mock_is_only_cell_culture_mixture_derived
+
+
+@pytest.mark.parametrize(
+    "only_mixture_derived,cell_culture_mixtures,cell_lines,tissues,expected,errors",
+    [
+        (False, [], [], [], "", True),
+        (True, [SOME_CELL_CULTURE_MIXTURE], [], [], MIXTURE_CODE, False),
+        (True, [SOME_CELL_CULTURE_MIXTURE, SOME_ITEM], [], [], "", True),
+        (False, [], [SOME_CELL_LINE], [], CELL_LINE_CODE, False),
+        (False, [], [SOME_CELL_LINE, SOME_ITEM], [], "", True),
+        (False, [], [], [SOME_TISSUE], TISSUE_DONOR_KIT_ID, False),
+        (False, [], [], [SOME_TISSUE, SOME_ITEM], "", True),
+        (False, [SOME_CELL_CULTURE_MIXTURE], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
+    ],
+)
+def test_get_sample_source_id(
+    only_mixture_derived: bool,
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
+    expected: str,
+    errors: bool,
+) -> None:
+    """Test sample source ID retrieval for annotated filenames."""
+    with patch_is_only_cell_culture_mixture_derived(only_mixture_derived):
+        result = get_sample_source_id([], cell_culture_mixtures, cell_lines, tissues)
+        assert_filename_part_matches(result, expected, errors)
+
+
+@pytest.mark.parametrize(
+    "cell_culture_mixtures,cell_lines,tissues,file,expected,errors",
+    [
+        ([], [], [], {}, "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [], SOME_FILE, DEFAULT_ABSENT_FIELD, False),
+        ([], [SOME_CELL_LINE], [], SOME_FILE, DEFAULT_ABSENT_FIELD, False),
+        (
+            [SOME_CELL_CULTURE_MIXTURE],
+            [SOME_CELL_LINE],
+            [],
+            SOME_FILE,
+            DEFAULT_ABSENT_FIELD,
+            False,
+        ),
+        ([], [], [SOME_TISSUE], SOME_FILE, TISSUE_PROTOCOL_ID, False),
+        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], SOME_FILE, "", True),
+        ([], [], [SOME_TISSUE, SOME_ITEM],SOME_FILE, "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], SOME_FILE, "", True),
+        ([], [SOME_CELL_LINE], [SOME_TISSUE], SOME_FILE, "", True),
+        ([], [], [SOME_TISSUE], SOME_FASTA_FILE, TISSUE_PROTOCOL_ID, False), # fasta file with single protocol ID
+        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], SOME_FASTA_FILE, "MT", False) # fasta file with multiple protocol IDs
+    ],
+)
+def test_get_protocol_id(
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
+    file: Dict[str, Any],
+    expected: str,
+    errors: bool,
+) -> None:
+    """Test protocol ID retrieval for annotated filenames."""
+    result = get_protocol_id(cell_culture_mixtures, cell_lines, tissues, file)
+    assert_filename_part_matches(result, expected, errors)
+
+
+TISSUE_SAMPLE_ALIQUOT_ID = "100A3"
+TISSUE_SAMPLE_ALIQUOT_ID2 = "101B2"
+TISSUE_SAMPLE_ALIQUOT_ID3 = "100B2"
+
+TISSUE_SAMPLE_EXTERNAL_ID = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID}"
+TISSUE_SAMPLE_EXTERNAL_ID2 = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID2}"
+TISSUE_SAMPLE_EXTERNAL_ID3 = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID3}"
+
+SOME_CORE_TISSUE_SAMPLE = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID}
+CORE_TISSUE_SAMPLE2 = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID2}
+CORE_TISSUE_SAMPLE3 = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID3}
+
+TPC_TISSUE_SAMPLE = {
+    "category": "Core", 
+    "external_id": TISSUE_SAMPLE_EXTERNAL_ID
+}
+
+SOME_HOMOGENATE_TISSUE_SAMPLE = {
+    "category": "Homogenate",
+    "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
+}
+SOME_LIQUID_TISSUE_SAMPLE = {
+    "category": "Liquid",
+    "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
+}
+SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
+
+@pytest.mark.parametrize(
+    "file,cell_culture_mixtures,cell_lines,tissue_samples,derived_from_tissue_samples,expected,errors",
+    [
+        (SOME_FILE, [], [], [], [], "", True),
+        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [], [], DEFAULT_ABSENT_FIELD, False),
+        (SOME_FILE, [], [SOME_CELL_LINE], [], [], DEFAULT_ABSENT_FIELD, False),
+        (
+            SOME_FILE, 
+            [SOME_CELL_CULTURE_MIXTURE],
+            [SOME_CELL_LINE],
+            [],
+            [],
+            DEFAULT_ABSENT_FIELD,
+            False,
+        ),
+        (SOME_FILE, [], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], [], "", True),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], [], "MAMC", False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], [], "100MC", False),
+        (SOME_EOF_FILE, [], [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False), # derived_from tissue samples
+        (SOME_EOF_FILE, [], [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], "MAMC", False), # derived_from tissue samples
+        (SOME_EOF_FILE, [], [], [], [], DEFAULT_ABSENT_FIELD, False), # derived_from tissue samples
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        (SOME_FILE, [], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], [], DEFAULT_ABSENT_FIELD * 2, False),
+        (SOME_FILE, [], [], [SOME_LIQUID_TISSUE_SAMPLE], [], DEFAULT_ABSENT_FIELD * 2, False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], [], "MAMC", False),
+        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], [], "", True),
+        (SOME_FILE, [], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], [], "", True),
+
+    ],
+)
+def test_get_aliquot_id(
+    file: Dict[str, Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissue_samples: List[Dict[str, Any]],
+    derived_from_tissue_samples: List[str],
+    expected: str,
+    errors: bool,
+) -> None:
+    """Test aliquot ID retrieval for annotated filenames."""
+    result = get_aliquot_id(
+        request_handler=None,
+        file=file,
+        cell_culture_mixtures=cell_culture_mixtures,
+        cell_lines=cell_lines,
+        tissue_samples=tissue_samples,
+        derived_from_tissue_samples=derived_from_tissue_samples
+    )
+    assert_filename_part_matches(result, expected, errors)
+
+
+SOME_AGE = 30
+SOME_SEX = "Male"
+SOME_DONOR = {"age": SOME_AGE, "sex": SOME_SEX}
+ANOTHER_DONOR = {"age": 35, "sex": "Female"}
+
+
+@pytest.mark.parametrize(
+    "donors,only_mixture_derived,expected,errors",
+    [
+        ([], False, "", True),
+        ([], True, "NN", False),
+        ([SOME_DONOR], False, "M30", False),
+        ([ANOTHER_DONOR], False, "F35", False),
+        ([SOME_DONOR, ANOTHER_DONOR], False, "", True),
+        ([SOME_DONOR], True, "M30", False),
+        ([SOME_DONOR, ANOTHER_DONOR], True, "NN", False),
+    ],
+)
+def test_get_donor_sex_and_age_parts(
+    donors: List[Dict[str, Any]],
+    only_mixture_derived: bool,
+    expected: str,
+    errors: bool,
+) -> None:
+    """Test sex and age retrieval for annotated filenames."""
+    with patch_is_only_cell_culture_mixture_derived(only_mixture_derived):
+        result = get_donor_sex_and_age(donors, [])
+        assert_filename_part_matches(result, expected, errors)
+
+REFERENCE_FILE = {"data_category": ["Genome Assembly"]}
+SEQUENCER_CODE = "A"
+SOME_SEQUENCER = {"code": SEQUENCER_CODE}
+ANOTHER_SEQUENCER = {"code": "B"}
+ASSAY_CODE = "001"
+SOME_ASSAY = {"code": ASSAY_CODE, "identifier": "bulk_wgs_pcr_free", "category": "Bulk WGS"}
+ANOTHER_ASSAY = {"code": "002", "identifier": "bulk_wgs", "category": "Bulk WGS"}
+
+
+@pytest.mark.parametrize(
+    "file,sequencers,assays,expected,errors",
+    [
+        (SOME_FILE,[], [], "", True),
+        (SOME_FILE,[SOME_SEQUENCER], [], "", True),
+        (SOME_FILE,[], [SOME_ASSAY], "", True),
+        (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
+        (SOME_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
+        (REFERENCE_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
+        (SOME_EOF_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
+        (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
+        (SOME_FILE,[SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
+    ],
+)
+def test_get_sequencing_and_assay_codes(
+    file: Dict[str, Any],
+    sequencers: List[Dict[str, Any]],
+    assays: List[Dict[str, Any]],
+    expected: str,
+    errors: bool,
+) -> None:
+    """Test sequencing and assay codes retrieval for annotated filenames."""
+    result = get_sequencing_and_assay_codes(
+        request_handler=None,
+        file=file,
+        sequencers=sequencers,
+        assays=assays
+    )
+    assert_filename_part_matches(result, expected, errors)
+
+
+SEQUENCING_CENTER_CODE = "dac"
+SOME_SEQUENCING_CENTER = {"code": SEQUENCING_CENTER_CODE}
+
+
+@pytest.mark.parametrize(
+    "sequencing_center,expected,errors",
+    [
+        ({}, "", True),
+        (SOME_SEQUENCING_CENTER, SEQUENCING_CENTER_CODE, False),
+        (SOME_ITEM, "", True),
+    ],
+)
+def test_get_sequencing_center_code(
+    sequencing_center: Dict[str, Any], expected: str, errors: bool
+) -> None:
+    """Test sequencing center code retrieval for annotated filenames."""
+    result = get_sequencing_center_code(sequencing_center)
+    assert_filename_part_matches(result, expected, errors)
 
 
 @pytest.mark.parametrize(

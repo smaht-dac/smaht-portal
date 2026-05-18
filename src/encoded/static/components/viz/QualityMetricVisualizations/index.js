@@ -13,7 +13,10 @@ import Tabs from 'react-bootstrap/Tabs';
 
 export const QualityMetricVisualizations = () => {
     const [qcData, setQcData] = useState(null);
-    const [tab, setTab] = useState('sample-integrity');
+    const [somalierData, setSomalierData] = useState(null);
+    const [somalierLoading, setSomalierLoading] = useState(false);
+    const [somalierLoadingFailed, setSomalierLoadingFailed] = useState(false);
+    const [tab, setTab] = useState('key-metrics');
     const [preselectedTab, setPreselectedTab] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [loadingFailed, setLoadingFailed] = useState(false);
@@ -60,6 +63,34 @@ export const QualityMetricVisualizations = () => {
         );
     }, []);
 
+    useEffect(() => {
+        if (tab !== 'sample-integrity' || somalierData || somalierLoading) return;
+        setSomalierLoading(true);
+        ajaxWithRetry(
+            '/get_somalier_overview/',
+            (resp) => {
+                setSomalierLoading(false);
+                if (resp.error) {
+                    setSomalierLoadingFailed(true);
+                    console.error(resp.error_msg);
+                    return;
+                }
+                setSomalierData(resp.data);
+            },
+            'POST',
+            () => {
+                setSomalierLoading(false);
+                setSomalierLoadingFailed(true);
+                console.log('ERROR loading somalier data after all retry attempts');
+            },
+            {
+                maxRetries: 3,
+                retryDelay: 1000,
+                retryDelayMultiplier: 2
+            }
+        );
+    }, [tab]);
+
     return qcData ? (
         <>
             <Tabs
@@ -67,12 +98,6 @@ export const QualityMetricVisualizations = () => {
                 activeKey={tab}
                 onSelect={(t) => setTab(t)}
                 className="mb-3">
-                <Tab eventKey="sample-integrity" title="Sample Integrity">
-                    <SampleContamination
-                        qcData={qcData}
-                        preselectedFile={selectedFile}
-                    />
-                </Tab>
                 <Tab eventKey="key-metrics" title="Key Metrics">
                     <KeyMetrics qcData={qcData} />
                 </Tab>
@@ -97,6 +122,27 @@ export const QualityMetricVisualizations = () => {
                         qcData={qcData}
                         preselectedFile={selectedFile}
                     />
+                </Tab>
+                <Tab eventKey="sample-integrity" title="Sample Integrity">
+                    {somalierLoading && (
+                        <div className="text-center m-5">
+                            <span className="spinner">
+                                <i className="icon icon-spin icon-circle-notch fas" />{' '}
+                                Loading...
+                            </span>
+                        </div>
+                    )}
+                    {somalierLoadingFailed && (
+                        <div className="alert alert-danger m-3">
+                            Failed to load sample integrity data.
+                        </div>
+                    )}
+                    {somalierData && (
+                        <SampleContamination
+                            qcData={{ ...qcData, somalier_results: somalierData }}
+                            preselectedFile={selectedFile}
+                        />
+                    )}
                 </Tab>
             </Tabs>
         </>

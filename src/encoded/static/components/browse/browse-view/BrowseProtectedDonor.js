@@ -53,8 +53,15 @@ export const formatTissueData = (data) => {
 
     if (!data) return defaultTissueCategories;
 
-    // group data by tissue category
-    const grouped_data = data.reduce((acc, { key }) => {
+    // Flatten any nested terms
+    const flattenedTissueTerms = data.flatMap((t) => {
+        if (Array.isArray(t?.terms) && t.terms.length > 0) {
+            return t.terms;
+        }
+        return t ? [t] : [];
+    });
+
+    const grouped_data = flattenedTissueTerms.reduce((acc, { key }) => {
         // if category is not present in lookup map, assign to 'Unknown' group
         const tissueCategory = getTissueCategoryFromFacetTerm(key) || 'Unknown';
 
@@ -249,7 +256,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
             const assayFacets = panelDetails?.searchCache?.facets?.find(
-                (f) => f.field === 'file_sets.libraries.assay.display_title'
+                (f) => f.field === 'assays.display_title'
             );
 
             // Pull out terms and label overrides from facet
@@ -314,7 +321,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                     <li key={j}>
                                                         <span>
                                                             <a
-                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&file_sets.libraries.assay.display_title=${assay}`}
+                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&assays.display_title=${assay}`}
                                                                 target="_blank"
                                                                 rel="noreferrer noopener">
                                                                 {assayTitle}
@@ -489,9 +496,13 @@ export function createBrowseProtectedDonorColumnExtensionMap({
 
                 const { data, loading, error } = parentProps?.fetchedProps;
 
-                const tissueCount = data?.find(
+                const tissueFacet = data?.find(
                     (f) => f.field === 'sample_summary.tissues'
-                )?.terms?.length;
+                );
+                const tissueTerms = tissueFacet?.has_group_by
+                    ? tissueFacet?.original_terms || tissueFacet?.terms
+                    : tissueFacet?.terms;
+                const tissueCount = tissueTerms?.length;
 
                 if (loading) {
                     return (
@@ -569,7 +580,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                     ?.find(
                         (f) =>
                             f.field ===
-                            'file_sets.libraries.assay.display_title'
+                            'assays.display_title'
                     )
                     ?.terms?.reduce(
                         (acc, curr) => acc + (curr?.terms?.length ?? 1),
@@ -769,7 +780,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
             },
         },
         // Platform
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             widthMap: { lg: 170, md: 160, sm: 150 },
         },
         // Format

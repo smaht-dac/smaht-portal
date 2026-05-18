@@ -15,6 +15,7 @@ import { useUserDownloadAccess } from '../../util/hooks';
 
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 
 /**
  * Donor self-reported ethnicity data
@@ -139,12 +140,12 @@ export const BrowseDonorVizWrapper = (props) => {
 
     const initialFields = [
         'sample_summary.tissues',
-        'sequencing.sequencer.display_title',
+        'sequencers.display_title',
     ];
 
     const fileFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);
-        const hrefQuery = _.clone(hrefParts.query);
+        const hrefQuery = normalizeQueryValuesForStringify(_.clone(hrefParts.query));
         delete hrefQuery.limit;
         delete hrefQuery.field;
 
@@ -165,7 +166,7 @@ export const BrowseDonorVizWrapper = (props) => {
 
     const donorFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);
-        const hrefQuery = _.clone(hrefParts.query);
+        const hrefQuery = normalizeQueryValuesForStringify(_.clone(hrefParts.query));
         delete hrefQuery.limit;
         delete hrefQuery.field;
 
@@ -309,7 +310,7 @@ export const BrowseDonorVizWrapper = (props) => {
             const searchUrl = navigate.getBrowseBaseHref(null, 'all');
 
             const hrefParts = url.parse(searchUrl, true);
-            let hrefQuery = _.clone(hrefParts.query);
+            let hrefQuery = normalizeQueryValuesForStringify(_.clone(hrefParts.query));
 
             delete hrefQuery.limit;
             delete hrefQuery.field;
