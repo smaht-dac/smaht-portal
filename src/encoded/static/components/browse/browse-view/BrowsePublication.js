@@ -7,6 +7,7 @@ import { Schemas } from '../../util';
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
+import { BrowsePublicationSearchTable } from '../components/PublicationSearchTable';
 import {
     BROWSE_STATUS_FILTERS,
     BROWSE_LINKS,
@@ -54,180 +55,9 @@ const PublicationStatistics = ({ context, isLoading = false }) => {
     );
 };
 
-// A column extension map specifically for browse view file tables.
-export function createBrowsePublicationColumnExtensionMap({
-    selectedItems,
-    onSelectItem,
-    onResetSelectedItems,
-}) {
-    const columnExtensionMap = {
-        ...originalColExtMap, // Pull in defaults for all tables
-        // Then overwrite or add onto the ones that already are there:
-        // Select all button
-        '@type': {
-            colTitle: (
-                // Context now passed in from HeadersRowColumn (for file count)
-                <SelectAllFilesButton
-                    {...{ selectedItems, onSelectItem, onResetSelectedItems }}
-                    type="checkbox"
-                />
-            ),
-            hideTooltip: true,
-            noSort: true,
-            widthMap: { lg: 60, md: 60, sm: 60 },
-            render: (result, parentProps) => {
-                return (
-                    <SelectionItemCheckbox
-                        {...{ selectedItems, onSelectItem, result }}
-                        isMultiSelect={true}
-                    />
-                );
-            },
-        },
-        // File
-        annotated_filename: {
-            widthMap: { lg: 120, md: 120, sm: 120 },
-            render: function (result, parentProps) {
-                const {
-                    '@id': atId,
-                    display_title,
-                    annotated_filename,
-                } = result || {};
-
-                return (
-                    <span className="value text-start">
-                        <a
-                            href={atId}
-                            target="_blank"
-                            rel="noreferrer noopener">
-                            {annotated_filename || display_title}
-                        </a>
-                    </span>
-                );
-            },
-        },
-        // Released
-        'file_status_tracking.release_dates.initial_release_date': {
-            colTitle: 'Released',
-            widthMap: { lg: 115, md: 115, sm: 115 },
-            render: function (result, parentProps) {
-                const value =
-                    result?.file_status_tracking?.release_dates
-                        ?.initial_release_date;
-                if (!value) return null;
-                return <span className="value text-end">{value}</span>;
-            },
-        },
-        // Date Created
-        date_created: {
-            widthMap: { lg: 151, md: 151, sm: 151 },
-            render: function (result, parentProps) {
-                const value = result?.date_created;
-                if (!value) return null;
-                return (
-                    <span className="value text-end">
-                        <LocalizedTime
-                            timestamp={value}
-                            formatType="date-file"
-                        />
-                    </span>
-                );
-            },
-        },
-    };
-
-    const columns = {
-        '@type': {
-            title: 'Selected',
-        },
-        annotated_filename: {
-            title: 'Donor',
-        },
-    };
-
-    const hideFacets = [];
-
-    return { columnExtensionMap, columns, hideFacets };
-}
-
-// Search Table
-const BrowsePublicationSearchTable = (props) => {
-    const {
-        session,
-        context,
-        currentAction,
-        schemas,
-        selectedItems,
-        onSelectItem,
-        onResetSelectedItems,
-        userDownloadAccess,
-    } = props;
-
-    const facets = transformedFacets(context, currentAction, schemas);
-    const tableColumnClassName = 'results-column col';
-    const facetColumnClassName = 'facets-column col-auto';
-
-    const selectedFileProps = {
-        selectedItems, // From SelectedItemsController
-        onSelectItem, // From SelectedItemsController
-        onResetSelectedItems, // From SelectedItemsController
-    };
-
-    // Pass modified context to CommonSearchView to set default filters
-    const passProps = {
-        ...props,
-        context: {
-            ...context,
-            clear_filters: BROWSE_LINKS.publication,
-        },
-    };
-
-    const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
-    const aboveTableComponent = (
-        <BrowseViewAboveSearchTableControls
-            topLeftChildren={
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
-            }></BrowseViewAboveSearchTableControls>
-    );
-
-    const { columnExtensionMap, columns, hideFacets } =
-        createBrowsePublicationColumnExtensionMap(selectedFileProps);
-
-    // Custom sort functions for specific facet lists
-    const facetListSortFxns = {
-        hardy_scale: (a, b) => {
-            return a.key - b.key;
-        },
-    };
-
-    return (
-        <CommonSearchView
-            {...passProps}
-            {...{
-                columnExtensionMap,
-                tableColumnClassName,
-                facetColumnClassName,
-                facets,
-                facetListSortFxns,
-                aboveFacetListComponent,
-                aboveTableComponent,
-                columns,
-                hideFacets,
-            }}
-            useCustomSelectionController
-            hideStickyFooter
-            termTransformFxn={Schemas.Term.toName}
-            separateSingleTermFacets={false}
-            rowHeight={31}
-            openRowHeight={100}
-        />
-    );
-};
-
 // Browse Publication Body Component
 export const BrowsePublicationBody = (props) => {
-    const { context, alerts, href, userDownloadAccess, isAccessResolved } =
-        props;
+    const { context } = props;
 
     useEffect(() => {
         console.log('BrowsePublicationBody props', props);
@@ -278,7 +108,10 @@ export const BrowsePublicationBody = (props) => {
                 </div>
             </div>
             <BrowseViewControllerWithSelections {...props}>
-                <BrowsePublicationSearchTable />
+                <BrowsePublicationSearchTable
+                    {...props}
+                    header_title="Variant Detection from SMaHT Working Groups"
+                />
             </BrowseViewControllerWithSelections>
         </div>
     );
