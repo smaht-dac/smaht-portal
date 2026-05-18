@@ -59,6 +59,37 @@ function getNodeRunDataFiles(node){
     return [];
 }
 
+function compactStepTitle(rawTitle){
+    if (typeof rawTitle !== 'string') return rawTitle;
+    const cleaned = rawTitle.replace(/^sentieon\s+/i, '').trim();
+    if (cleaned.length <= 28) return cleaned;
+    const words = cleaned.split(/\s+/).filter(Boolean);
+    if (words.length < 2) return cleaned;
+    const first = words.slice(0, 2).join(' ');
+    const acronym = words.slice(2).map(function(w){ return w.charAt(0).toUpperCase(); }).join('');
+    if (!acronym) return first;
+    return first + ' ' + acronym;
+}
+
+function humanizeStepTitle(rawTitle){
+    if (typeof rawTitle !== 'string') return rawTitle;
+    const normalized = rawTitle.toLowerCase().replace(/\[[^\]]+\]/g, '').trim();
+    const aliases = [
+        [/fastp/, 'FASTQ read cleanup'],
+        [/bwa[-\s]?mem/, 'Read alignment'],
+        [/addreadgroups?/, 'Add read groups'],
+        [/locuscollector/, 'Collect duplicate metrics'],
+        [/shards?\s+to\s+readgroups?/, 'Shard reads by group'],
+        [/realigner/, 'Local realignment'],
+        [/qualcal/, 'Base quality recalibration'],
+        [/samtools\s+merge/, 'Merge BAM files'],
+        [/bam\s+to\s+cram/, 'Convert BAM to CRAM']
+    ];
+    const matched = aliases.find(function([re]){ return re.test(normalized); });
+    if (matched) return matched[1];
+    return compactStepTitle(rawTitle.replace(/\s*\[[^\]]+\]\s*/g, '').trim());
+}
+
 
 /** TODO codify what we want shown here and cleanup code - breakup into separate functional components */
 
@@ -96,6 +127,9 @@ export class WorkflowNodeElement extends React.PureComponent {
     }
 
     static getFileFormatString(node){
+        if (node && node._isAuxiliaryGroup) {
+            return "aux";
+        }
         const fileFormatItem = WorkflowNodeElement.getFileFormat(node);
 
         if (!fileFormatItem) {
@@ -394,11 +428,28 @@ export class WorkflowNodeElement extends React.PureComponent {
             }
         }
 
-        if (nodeType === 'step' && workflow && typeof workflow === 'object' && workflow.display_title){
-            return <div className="node-name">{ this.icon() }{ workflow.display_title }</div>;
+        if (nodeType === 'step'){
+            const rawStepTitle =
+                (workflow && typeof workflow === 'object' && (workflow.display_title || workflow.name)) ||
+                (node.meta && (node.meta.display_title || node.meta.name)) ||
+                title ||
+                name ||
+                'Workflow step';
+            const userFacingTitle = humanizeStepTitle(rawStepTitle);
+            return <div className="node-name" title={rawStepTitle}>{ this.icon() }{ userFacingTitle || 'Workflow step' }</div>;
         }
 
         if (isNodeFile(node) && doesRunDataExist(node)){
+            if (node && node._isAuxiliaryGroup){
+                const count = node._mergedCount || getNodeRunDataFiles(node).length || 1;
+                const noun = count === 1 ? 'file' : 'files';
+                return (
+                    <div className="node-name">
+                        { this.icon() }
+                        {`${count} auxiliary ${noun}`}
+                    </div>
+                );
+            }
             const runDataFiles = getNodeRunDataFiles(node);
             const firstFile = runDataFiles[0] || {};
             const { accession, display_title } = firstFile;
@@ -416,6 +467,42 @@ export class WorkflowNodeElement extends React.PureComponent {
 
         // Fallback / Default - use node.name
         return <div className="node-name">{ this.icon() }{ title || name }</div>;
+    }
+
+    mergedCountBadge(){
+        const { node } = this.props;
+        const mergedCount = node && node._mergedCount;
+        if (!mergedCount || mergedCount < 2) return null;
+        return (
+            <div className="merged-count-node-badge" title={`${mergedCount} similar nodes are compacted here`}>
+                x{mergedCount}
+            </div>
+        );
+    }
+
+    renderNodeBadges(){
+        const { node } = this.props;
+        if (!isNodeFile(node) || !doesRunDataExist(node)) return null;
+        const runDataFiles = getNodeRunDataFiles(node);
+        const firstFile = runDataFiles[0] || {};
+        const status = (firstFile.status || '').toLowerCase();
+        const hasQM = !!(firstFile.quality_metric || (Array.isArray(firstFile.quality_metrics) && firstFile.quality_metrics.length > 0));
+        const hasGrouped = runDataFiles.length > 1 || !!firstFile.grouped_files;
+        const badges = [];
+
+        if (hasGrouped) badges.push({ key: 'grouped', label: 'G', title: 'Grouped files', cls: 'badge-grouped' });
+        if (hasQM) badges.push({ key: 'qm', label: 'Q', title: 'Quality metrics available', cls: 'badge-qm' });
+        if (status) badges.push({ key: 'status', label: valueTransforms.capitalizeSentence(status).charAt(0), title: 'Status: ' + valueTransforms.capitalizeSentence(status), cls: 'status-' + status });
+
+        const shown = badges.slice(0, 2);
+        if (shown.length === 0) return null;
+        return (
+            <div className="workflow-node-badges">
+                {shown.map(function(badge){
+                    return <span key={badge.key} className={'workflow-node-badge ' + badge.cls} title={badge.title}>{badge.label}</span>;
+                })}
+            </div>
+        );
     }
 
     /**
@@ -473,6 +560,8 @@ export class WorkflowNodeElement extends React.PureComponent {
             <div className="node-visible-element" key="outer">
                 <div className="innermost" data-tip={this.tooltip()} data-place="top" data-html key="node-title">
                     { this.nodeTitle() }
+                    { this.renderNodeBadges() }
+                    { this.mergedCountBadge() }
                 </div>
                 { this.qcMarker() }
                 { this.belowNodeTitle() }

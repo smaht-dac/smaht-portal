@@ -14,6 +14,153 @@ import { WorkflowDetailPane } from './WorkflowDetailPane';
 import { WorkflowNodeElement } from './WorkflowNodeElement';
 import { Legend } from './Legend';
 
+function nodeDisplayLabel(node = {}) {
+    return (node.title || node.name || '').toString().trim();
+}
+
+function extractNodeFileFormat(node = {}) {
+    const metaFF = node && node.meta && node.meta.file_format;
+    const runDataFile = node && node.meta && node.meta.run_data && node.meta.run_data.file;
+    const pickFormat = function(ff){
+        if (!ff) return null;
+        if (typeof ff === 'string') return ff.toLowerCase();
+        return (ff.file_format || ff.display_title || '').toString().toLowerCase() || null;
+    };
+    const fromMeta = pickFormat(metaFF);
+    if (fromMeta) return fromMeta;
+    if (Array.isArray(runDataFile) && runDataFile.length > 0){
+        const first = runDataFile[0];
+        return pickFormat(first && first.file_format);
+    }
+    if (runDataFile){
+        return pickFormat(runDataFile.file_format);
+    }
+    return null;
+}
+
+const ESSENTIAL_FORMATS = new Set([
+    'fastq_gz', 'fastq', 'bam', 'cram', 'vcf_gz', 'vcf', 'bwt', 'fa', 'fasta', 'interval_list'
+]);
+
+const AUXILIARY_FORMATS = new Set([
+    'txt', 'pdf', 'json', 'zip', 'tsv', 'csv', 'log', 'html', 'yaml', 'yml', 'metrics'
+]);
+
+function isAuxiliaryNode(node = {}) {
+    const format = extractNodeFileFormat(node);
+    const ioType = ((node && node.ioType) || '').toLowerCase();
+    if (ioType === 'qc' || ioType === 'report') return true;
+    if (!format) return false;
+    if (AUXILIARY_FORMATS.has(format)) return true;
+    if (ESSENTIAL_FORMATS.has(format)) return false;
+    // Unknown formats default to auxiliary in compact view to reduce noise.
+    return true;
+}
+
+function relatedStepAnchor(node = {}) {
+    const outputOf = node && node.outputOf;
+    if (outputOf && (outputOf.id || outputOf.name)) return outputOf.id || outputOf.name;
+    const inputOf = node && node.inputOf;
+    if (Array.isArray(inputOf) && inputOf.length > 0){
+        const first = inputOf[0];
+        if (first && (first.id || first.name)) return first.id || first.name;
+    }
+    return 'no-step';
+}
+
+function updateAuxGroupLabel(node = {}) {
+    if (!node || !node._isAuxiliaryGroup) return;
+    const count = node._mergedCount || 1;
+    const fmt = 'auxiliary';
+    const noun = count === 1 ? 'file' : 'files';
+    node.name = `${count} ${fmt} ${noun}`;
+    node.title = node.name;
+}
+
+function reindexByColumn(nodes = []) {
+    const byColumn = _.groupBy(nodes, function(node){ return node.column || 0; });
+    _.forEach(byColumn, function(colNodes){
+        _.sortBy(colNodes, function(node){ return node.y || node.indexInColumn || 0; })
+            .forEach(function(node, idx){
+                node.indexInColumn = idx;
+            });
+    });
+}
+
+function coalesceGraphForCompactMode(graphData = {}) {
+    const { nodes = [], edges = [] } = graphData;
+    if (!Array.isArray(nodes) || nodes.length === 0) return graphData;
+
+    const mergedNodes = [];
+    const mergeMap = new Map(); // original node object -> merged node object
+    const mergedByKey = new Map();
+
+    function compactKey(node) {
+        const nodeType = node.nodeType || '';
+        const col = typeof node.column === 'number' ? node.column : 0;
+        const label = nodeDisplayLabel(node).toLowerCase();
+        if (nodeType === 'step') return `step|${col}|${label}`;
+        if (nodeType === 'input' || nodeType === 'output' || nodeType === 'input-group' || nodeType === 'output-group') {
+            // Aggressively compact auxiliary artifacts (txt/pdf), which are often
+            // diagnostics and dominate the view without improving pipeline readability.
+            if ((nodeType === 'input' || nodeType === 'output') && isAuxiliaryNode(node)) {
+                const ioType = (node.ioType || '').toLowerCase();
+                const stepAnchor = relatedStepAnchor(node);
+                return `${nodeType}|${col}|${ioType}|${stepAnchor}|aux-super-group`;
+            }
+            return `${nodeType}|${col}|${label}|${(node.ioType || '').toLowerCase()}`;
+        }
+        return null;
+    }
+
+    nodes.forEach(function(node){
+        const key = compactKey(node);
+        if (!key) {
+            mergeMap.set(node, node);
+            mergedNodes.push(node);
+            return;
+        }
+
+        const existing = mergedByKey.get(key);
+        if (!existing) {
+            const cloned = { ...node, _mergedCount: 1, _compactedNodes: [node] };
+            if ((node.nodeType === 'input' || node.nodeType === 'output') && isAuxiliaryNode(node)) {
+                cloned._isAuxiliaryGroup = true;
+            }
+            updateAuxGroupLabel(cloned);
+            mergedByKey.set(key, cloned);
+            mergeMap.set(node, cloned);
+            mergedNodes.push(cloned);
+            return;
+        }
+
+        existing._mergedCount = (existing._mergedCount || 1) + 1;
+        if (!Array.isArray(existing._compactedNodes)) existing._compactedNodes = [];
+        existing._compactedNodes.push(node);
+        if ((node.nodeType === 'input' || node.nodeType === 'output') && isAuxiliaryNode(node)) {
+            existing._isAuxiliaryGroup = true;
+        }
+        updateAuxGroupLabel(existing);
+        if (node.isCurrentContext) existing.isCurrentContext = true;
+        mergeMap.set(node, existing);
+    });
+
+    const dedupEdges = new Map();
+    const mergedEdges = [];
+    edges.forEach(function(edge){
+        const source = mergeMap.get(edge.source) || edge.source;
+        const target = mergeMap.get(edge.target) || edge.target;
+        if (!source || !target || source === target) return;
+        const edgeKey = `${source.id || source.name || ''}|${target.id || target.name || ''}`;
+        if (dedupEdges.has(edgeKey)) return;
+        dedupEdges.set(edgeKey, true);
+        mergedEdges.push({ ...edge, source, target });
+    });
+
+    reindexByColumn(mergedNodes);
+    return { ...graphData, nodes: mergedNodes, edges: mergedEdges };
+}
+
 export class WorkflowGraphSection extends React.PureComponent {
 
     constructor(props){
@@ -25,6 +172,7 @@ export class WorkflowGraphSection extends React.PureComponent {
         this.onToggleShowParameters     = _.throttle(this.onToggleShowParameters.bind(this), 1000);
         this.onToggleReferenceFiles     = _.throttle(this.onToggleReferenceFiles.bind(this), 1000);
         this.onToggleIndirectFiles      = _.throttle(this.onToggleIndirectFiles.bind(this), 1000);
+        this.onToggleExpandedDetails    = _.throttle(this.onToggleExpandedDetails.bind(this), 1000);
         this.onChangeRowSpacingType     = _.throttle(this.onChangeRowSpacingType.bind(this), 1000, { trailing : false });
         this.renderDetailPane = this.renderDetailPane.bind(this);
         this.renderNodeElement = this.renderNodeElement.bind(this);
@@ -36,30 +184,62 @@ export class WorkflowGraphSection extends React.PureComponent {
         };
 
         this.state = {
-            'showChart': analysisStepsSet(props.context) ? 'detail' : 'basic',
+            // Start with compact graph for readability; user can switch to detailed Analysis Steps.
+            'showChart': 'basic',
+            'showExpandedDetails': false,
             'showDetailsInPopup': true,
             'showParameters' : false,
             'showReferenceFiles' : false,
-            'rowSpacingType' : 'stacked',
+            'rowSpacingType' : 'compact',
             'showIndirectFiles': false
         };
     }
 
 
     parseAnalysisSteps(steps){
-        const { showReferenceFiles, showParameters, showIndirectFiles, showChart } = this.state;
+        const { showReferenceFiles, showParameters, showIndirectFiles, showChart, showExpandedDetails } = this.state;
         const parsingOptions = { showReferenceFiles, showParameters, "showIndirectFiles": true };
-        return (showChart === 'basic' ?
+        const graphData = (showChart === 'basic' ?
             this.memoized.parseBasicIOAnalysisSteps(steps, {}, parsingOptions)
             :
             this.memoized.parseAnalysisSteps(steps, parsingOptions)
         );
+        if (showChart === 'basic' && !showExpandedDetails) {
+            return coalesceGraphForCompactMode(graphData);
+        }
+        return graphData;
     }
 
     commonGraphProps(){
         const { steps, includeAllRunsInSteps } = this.props;
         const { showParameters, showReferenceFiles, rowSpacingType } = this.state;
         const graphData = this.parseAnalysisSteps(steps);
+        const { nodes = [] } = graphData;
+        const { width: viewportWidth = 1200 } = this.props;
+
+        const maxColumn = _.reduce(nodes, function(memo, node){
+            return Math.max(memo, typeof node.column === 'number' ? node.column : 0);
+        }, 0);
+        const columnCount = maxColumn + 1;
+        const minNodeWidth = 170;
+        const maxNodeWidth = 260;
+        const minSpacing = 70;
+        const maxSpacing = 220;
+        const innerMargin = { top: 70, bottom: 70, left: 28, right: 28 };
+        const availableWidth = Math.max(900, viewportWidth - 30);
+
+        let columnWidth = 210;
+        let columnSpacing = 120;
+        if (columnCount >= 2){
+            const targetNodeWidth = Math.max(
+                minNodeWidth,
+                Math.min(maxNodeWidth, Math.floor((availableWidth * 0.58) / columnCount))
+            );
+            const remaining = availableWidth - innerMargin.left - innerMargin.right - (columnCount * targetNodeWidth);
+            const targetSpacing = Math.floor(remaining / (columnCount - 1));
+            columnWidth = targetNodeWidth;
+            columnSpacing = Math.max(minSpacing, Math.min(maxSpacing, targetSpacing));
+        }
 
         // Filter out legend items which aren't relevant for this context.
         const keepItems = ['Input File', 'Output File', 'Input Reference File'];
@@ -77,8 +257,11 @@ export class WorkflowGraphSection extends React.PureComponent {
             ...commonGraphProps,
             ...graphData,
             rowSpacingType,
+            innerMargin,
+            columnWidth,
+            columnSpacing,
             legendItems,
-            scale: includeAllRunsInSteps ? 0.85 : 1.0,
+            zoomControlsPortalSelector: '.workflow-zoom-controls-slot',
             renderDetailPane: this.renderDetailPane,
             renderNodeElement: this.renderNodeElement
         };
@@ -115,6 +298,15 @@ export class WorkflowGraphSection extends React.PureComponent {
         });
     }
 
+    onToggleExpandedDetails(){
+        this.setState(function({ showExpandedDetails }){
+            return {
+                showExpandedDetails: !showExpandedDetails,
+                showChart: !showExpandedDetails ? 'detail' : 'basic'
+            };
+        });
+    }
+
     onChangeRowSpacingType(eventKey, evt){
         this.setState(function({ rowSpacingType }){
             if (eventKey === rowSpacingType) return null;
@@ -134,7 +326,7 @@ export class WorkflowGraphSection extends React.PureComponent {
     }
 
     render(){
-        const { rowSpacingType, showParameters, showReferenceFiles, showIndirectFiles, showDetailsInPopup, showChart } = this.state;
+        const { rowSpacingType, showParameters, showReferenceFiles, showIndirectFiles, showDetailsInPopup, showChart, showExpandedDetails } = this.state;
         const { context, mounted, width, steps = [] } = this.props;
         const { anyIndirectPathIONodes, anyReferenceFileNodes } = this.memoized.checkIfIndirectOrReferenceNodesExist(context.steps || steps);
         const commonGraphProps = this.commonGraphProps();
@@ -144,10 +336,14 @@ export class WorkflowGraphSection extends React.PureComponent {
             body = null;
         } else {
             body = (
-                <React.Fragment>
-                    <Graph {...commonGraphProps} />
-                    <Legend items={commonGraphProps.legendItems} />
-                </React.Fragment>
+                <div className="graph-with-inline-legend">
+                    <div className="graph-toolbar-row">
+                        <Legend items={commonGraphProps.legendItems} title={null} />
+                    </div>
+                    <div className="graph-canvas-row">
+                        <Graph {...commonGraphProps} />
+                    </div>
+                </div>
             );
         }
 
@@ -165,6 +361,7 @@ export class WorkflowGraphSection extends React.PureComponent {
                         showParameters={showParameters}
                         showDetailsInPopup={showDetailsInPopup}
                         showReferenceFiles={showReferenceFiles}
+                        showExpandedDetails={showExpandedDetails}
                         // `showIndirectFiles=false` doesn't currently work in parsing for MWFRs, needs research.
                         // showIndirectFiles={showIndirectFiles}
                         onChangeShowChartType={this.onChangeShowChartType}
@@ -174,6 +371,7 @@ export class WorkflowGraphSection extends React.PureComponent {
                         // onToggleIndirectFiles={this.onToggleIndirectFiles}
                         isReferenceFilesCheckboxDisabled={!anyReferenceFileNodes}
                         onToggleShowDetailsInPopup={this.onToggleShowDetailsInPopup}
+                        onToggleExpandedDetails={this.onToggleExpandedDetails}
                     />
                 </h3>
                 <hr className="tab-section-title-horiz-divider"/>
@@ -192,13 +390,15 @@ export const WorkflowGraphSectionControls = React.memo(function WorkflowGraphSec
         windowWidth, context,
         rowSpacingType, onRowSpacingTypeSelect,
         includeAllRunsInSteps, toggleAllRuns, isLoadingGraphSteps,
-        showDetailsInPopup, onToggleShowDetailsInPopup
+        showDetailsInPopup, onToggleShowDetailsInPopup,
+        showExpandedDetails, onToggleExpandedDetails
     } = props;
     return (
         <CollapsibleItemViewButtonToolbar windowWidth={windowWidth}>
             {typeof showDetailsInPopup === "boolean" ?
                 <ShowDetailsInPopupCheckBox checked={showDetailsInPopup} onChange={onToggleShowDetailsInPopup} disabled={false} />
                 : null}
+            <ExpandedDetailsCheckbox checked={showExpandedDetails} onChange={onToggleExpandedDetails} />
             <ShowAllRunsCheckbox checked={includeAllRunsInSteps} onChange={toggleAllRuns} disabled={isLoadingGraphSteps} />
             { typeof showReferenceFiles === "boolean" ?
                 <ReferenceFilesCheckbox checked={showReferenceFiles} onChange={onToggleReferenceFiles} />
@@ -210,11 +410,22 @@ export const WorkflowGraphSectionControls = React.memo(function WorkflowGraphSec
                 <IndirectFilesCheckbox checked={showIndirectFiles} onChange={onToggleIndirectFiles} />
                 : null }
             {/* <IndirectFilesCheckbox checked={showIndirectFiles} onChange={onParsingOptChange} /> */}
+            {/* Keep as fallback control, but primary exploration is explicit expanded-details toggle. */}
             <ChartTypeDropdown context={context} showChartType={showChartType} onSelect={onChangeShowChartType} />
             <RowSpacingTypeSelect rowSpacingType={rowSpacingType} onSelect={onRowSpacingTypeSelect} />
+            <div className="workflow-zoom-controls-slot" />
         </CollapsibleItemViewButtonToolbar>
     );
 });
+
+function ExpandedDetailsCheckbox({ checked, onChange, disabled = false }){
+    return (
+        <Checkbox checked={!!checked} onChange={onChange} disabled={disabled}
+            className="checkbox-container for-state-showExpandedDetails" name="showExpandedDetails">
+            Expanded Details
+        </Checkbox>
+    );
+}
 
 function analysisStepsSet(context){
     // if (!context) return false;
@@ -260,20 +471,20 @@ function ReferenceFilesCheckbox({ checked, onChange, disabled }){
  */
 function ChartTypeDropdown({ context, showChartType, onSelect }){
     const titleMap = {
-        'detail': 'Analysis Steps',
-        'basic': 'Basic Inputs & Outputs',
+        'detail': 'Detailed Steps',
+        'basic': 'Compact View',
         'cwl': 'CWL Graph'
     };
 
     const detail = analysisStepsSet(context) ? (
         <DropdownItem eventKey="detail" active={showChartType === 'detail'}>
-            Analysis Steps
+            Detailed Steps
         </DropdownItem>
     ) : null;
 
     const basic = (
         <DropdownItem eventKey="basic" active={showChartType === 'basic'}>
-            Basic Inputs & Outputs
+            Compact View
         </DropdownItem>
     );
 

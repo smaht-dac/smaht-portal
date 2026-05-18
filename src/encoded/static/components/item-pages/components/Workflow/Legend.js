@@ -9,9 +9,10 @@ import ReactTooltip from 'react-tooltip';
 const LegendItem = React.memo(function Legend({ title, className, tooltip }){
     return (
         <div className="legend-item">
-            <span className="d-inline-block" data-tip={tooltip || null} data-place="right" data-html>
-                <div className={"color-patch " + className}/> { title }
-            </span>
+            <div className="legend-title-row" data-tip={tooltip || null} data-place="right" data-html>
+                <div className={"color-patch " + className}/> <span className="legend-title-text">{ title }</span>
+            </div>
+            { tooltip ? <small className="legend-description d-block">{ tooltip.replace(/<[^>]*>/g, '') }</small> : null }
         </div>
     );
 });

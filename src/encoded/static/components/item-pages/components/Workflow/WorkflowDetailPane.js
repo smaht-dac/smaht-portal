@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Modal from 'react-bootstrap/esm/Modal';
@@ -29,17 +29,29 @@ export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
         return <div className="detail-pane-container no-contents"/>;
     }
 
-    console.log('SELECTED NODE', node, minHeight);
-
     const { nodeType } = node;
+    const mergedCount = node && node._mergedCount;
+    const compactedNote = (mergedCount && mergedCount > 1) ? `${mergedCount} similar nodes compacted in this view` : null;
 
     const file = getFile(node);
+    const compactedFiles = getCompactedFilesFromNode(node);
+    const isCompactedFileGroup = !!(file && mergedCount > 1 && compactedFiles.length > 1);
+    const isAuxiliaryCompactedGroup = !!(isCompactedFileGroup && node && node._isAuxiliaryGroup);
     let body, title, typeName;
 
     if (file){
         const { display_title, accession, '@id': atId } = file;
         typeName = schemaTransforms.getItemTypeTitle(file, schemas) || "File";
         const isGroupedBundle = Array.isArray(file.grouped_files);
+        if (isCompactedFileGroup){
+            typeName = "Compacted Files";
+            const groupTitle = isAuxiliaryCompactedGroup ? 'auxiliary' : (
+                (file.file_format && (file.file_format.display_title || file.file_format.file_format)) ||
+                (node && node.meta && node.meta.file_format && (node.meta.file_format.display_title || node.meta.file_format.file_format)) ||
+                'file'
+            );
+            title = `${compactedFiles.length} ${groupTitle} files`;
+        } else
         if (isGroupedBundle){
             title = display_title || accession;
         } else if (context && context['@id'] === atId) {
@@ -48,7 +60,7 @@ export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
             title = <a href={atId}>{accession || display_title}</a>;
         }
 
-        body = <FileDetailBody {...props} {...{file, title, typeName, canDownloadFile}} />;
+        body = <FileDetailBody {...props} {...{file, title, typeName, canDownloadFile, compactedNote, isCompactedFileGroup, compactedFiles, isAuxiliaryCompactedGroup}} />;
     } else if (nodeType === "step"){
         const { meta = {}, name: stepNodeName } = node;
         const { '@id': stepID, workflow = null, display_title } = meta;
@@ -62,7 +74,7 @@ export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
         } else {
             title = display_title || stepNodeName;
         }
-        body = <StepDetailBody {...props} {...{title, typeName}} />;
+        body = <StepDetailBody {...props} {...{title, typeName, compactedNote}} />;
     }
 
     return !showDetailsInPopup ?
@@ -100,14 +112,22 @@ export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
 WorkflowDetailPane.Legend = Legend;
 
 function FileDetailBody(props){
-    const { node, file, deselectNode, title, typeName, showDetailsInPopup, canDownloadFile, session } = props;
+    const { node, file, deselectNode, title, typeName, showDetailsInPopup, canDownloadFile, session, compactedNote, isCompactedFileGroup = false, compactedFiles: compactedFilesFromProps = [], isAuxiliaryCompactedGroup = false } = props;
     const {
-        "@Id": atId,
+        "@id": atId,
+        output_type: outputType,
         quality_metric: propQC,
         quality_metrics: propQCs = [],
         file_format: { display_title: dataFormat } = {},
         file_size = 0,
         status,
+        biological_replicates: biologicalReplicates = [],
+        technical_replicates: technicalReplicates = [],
+        mapped_to_genome_assembly: mappingAssembly,
+        genome_annotation: genomeAnnotation,
+        software_versions: softwareVersions = [],
+        date_created: dateCreated,
+        lab,
         data_generation_summary: {
             sequencing_center,
             assays: [experimentalAssay] = [],
@@ -122,16 +142,22 @@ function FileDetailBody(props){
 
     const qualityMetric = propQC || (Array.isArray(propQCs) && propQCs.length > 0 ? propQCs[0] : {});
     const groupedFiles = file && Array.isArray(file.grouped_files) ? file.grouped_files : null;
+    const compactedFiles = Array.isArray(compactedFilesFromProps) ? compactedFilesFromProps : getCompactedFilesFromNode(node);
+    const labName = (lab && (lab.title || lab.display_title)) || null;
+    const softwareSummary = Array.isArray(softwareVersions) && softwareVersions.length > 0
+        ? softwareVersions.map(function(sw){
+            const item = sw && sw.software ? sw.software : sw;
+            if (!item) return null;
+            const name = item.name || item.title || item.display_title || '';
+            const version = sw && sw.version ? sw.version : item.version;
+            return [name, version].filter(Boolean).join(' ');
+        }).filter(Boolean).join(', ')
+        : null;
+    const bioRepDisplay = Array.isArray(biologicalReplicates) && biologicalReplicates.length > 0 ? `[${biologicalReplicates.join(', ')}]` : null;
+    const techRepDisplay = Array.isArray(technicalReplicates) && technicalReplicates.length > 0 ? `[${technicalReplicates.join(', ')}]` : null;
 
-    const statusWithIcon = (
-        <React.Fragment>
-            <i
-                className="status-indicator-dot me-07"
-                data-status={status}
-            />
-            {valueTransforms.capitalizeSentence(status)}
-        </React.Fragment>
-    );
+    const statusText = valueTransforms.capitalizeSentence(status);
+    const statusWithIcon = <StatusBadge status={status} text={statusText} />;
 
     const downloadEnabled = (canDownloadFile === true) && ['public', 'released'].indexOf(status) !== -1;
     const downloadButton =  downloadEnabled && (
@@ -147,6 +173,34 @@ function FileDetailBody(props){
         </SelectedItemsDownloadButton>
     );
 
+    const summaryRows = [
+        { label: "Status", value: statusWithIcon, showAlways: true },
+        { label: "Output", value: outputType },
+        { label: "Data Format", value: dataFormat },
+        { label: "File Size", value: valueTransforms.bytesToLargerUnit(file_size), showAlways: true },
+        { label: "Data Category", value: dataCategory },
+        { label: "Data Type", value: dataType },
+        { label: "Sequencing Center", value: sequencing_center },
+        { label: "Generated By", value: submissionCenter }
+    ];
+
+    const detailRows = [
+        { label: "Biological Replicate(s)", value: bioRepDisplay },
+        { label: "Technical Replicate(s)", value: techRepDisplay },
+        { label: "Mapping Assembly", value: mappingAssembly },
+        { label: "Genome Annotation", value: genomeAnnotation },
+        { label: "Lab", value: labName },
+        { label: "Date Added", value: dateCreated, isDate: true },
+        { label: "Public Release Date", value: released, isDate: true },
+        { label: "Software", value: softwareSummary },
+        { label: "Experimental Assay", value: experimentalAssay },
+        { label: "Sequencing Platform", value: sequencingPlatform },
+        { label: "Dataset Target Coverage", value: targetGroupCoverage && (targetGroupCoverage + 'X') }
+    ];
+    const hasSummaryRows = hasRenderableRows(summaryRows);
+    const hasDetailRows = hasRenderableRows(detailRows);
+    const showSingleFileSections = !isCompactedFileGroup;
+
     return (
         <React.Fragment>
             {!showDetailsInPopup &&
@@ -161,24 +215,34 @@ function FileDetailBody(props){
                 </div>
             }
             <div className="details">
-                <QualityMetricBtn {...qualityMetric} />
-                {groupedFiles ? <GroupedFilesList files={groupedFiles} /> : null}
-                {!groupedFiles && (
+                <ValueRow label="Compact View" value={compactedNote} />
+                <div className="workflow-detail-summary-bar">
+                    {!isCompactedFileGroup ? <QualityMetricBtn {...qualityMetric} /> : null}
+                    {!isCompactedFileGroup && downloadButton ? <div className="workflow-download-btn-wrap">{downloadButton}</div> : null}
+                </div>
+                {groupedFiles ? <GroupedFilesList files={groupedFiles} title="Grouped Files" /> : null}
+                {!groupedFiles && compactedFiles.length > 1 ? (
+                    <GroupedFilesList files={compactedFiles} title={isAuxiliaryCompactedGroup ? "Auxiliary Files" : "Compacted Files"} tabByFormat={isAuxiliaryCompactedGroup} />
+                ) : null}
+                {!groupedFiles && showSingleFileSections && (
                     <React.Fragment>
-                        <ValueRow label="Status" value={statusWithIcon} />
-                        <ValueRow label="Data Format" value={dataFormat} />
-                        <ValueRow label="Size" value={valueTransforms.bytesToLargerUnit(file_size)} />
-                        <ValueRow label="Public Release Date" value={released} isDate />
-                        <ValueRow label="Data Category" value={dataCategory} />
-                        <ValueRow label="Data Type" value={dataType} />
-                        <ValueRow label="Sequencing Center" value={sequencing_center} />
-                        <ValueRow label="Generated By" value={submissionCenter} />
-                        <ValueRow label="Experimental Assay" value={experimentalAssay} />
-                        <ValueRow label="Sequencing Platform" value={sequencingPlatform} />
-                        <ValueRow label="Dataset Target Coverage" value={targetGroupCoverage && (targetGroupCoverage + 'X')} />
+                        {hasSummaryRows ? (
+                            <DetailSection title="Summary">
+                                <DetailGrid rows={summaryRows} />
+                            </DetailSection>
+                        ) : null}
+                        {hasDetailRows ? (
+                            <DetailSection title="Metadata">
+                                <DetailGrid rows={detailRows} />
+                            </DetailSection>
+                        ) : null}
+                        {!hasSummaryRows && !hasDetailRows ? (
+                            <div className="workflow-detail-empty-message">
+                                No additional metadata available.
+                            </div>
+                        ) : null}
                     </React.Fragment>
                 )}
-                <ValueRow label="" value={downloadButton} />
             </div>
         </React.Fragment>
     );
@@ -196,7 +260,7 @@ function QualityMetricBtn(props){
     );
 }
 
-function GroupedFilesList({ files = [] }){
+function GroupedFilesList({ files = [], title = "Grouped Files", tabByFormat = false }){
     if (!Array.isArray(files) || files.length === 0) return null;
     const totalSize = files.reduce(function(total, file){
         const fileSize = file && typeof file.file_size === 'number' ? file.file_size : 0;
@@ -210,6 +274,14 @@ function GroupedFilesList({ files = [] }){
     }, {});
     const formatSummary = Object.keys(formatCounts).map(function(formatLabel){
         return `${formatCounts[formatLabel]} ${formatLabel}`;
+    }).join(', ');
+    const statusCounts = files.reduce(function(memo, file){
+        const status = (file && file.status) || 'unknown';
+        memo[status] = (memo[status] || 0) + 1;
+        return memo;
+    }, {});
+    const statusSummary = Object.keys(statusCounts).map(function(status){
+        return `${statusCounts[status]} ${valueTransforms.capitalizeSentence(status)}`;
     }).join(', ');
 
     function formatStatus(f){
@@ -233,16 +305,56 @@ function GroupedFilesList({ files = [] }){
         if (!file_size && file_size !== 0) return null;
         return valueTransforms.bytesToLargerUnit(file_size);
     }
+    const filesByFormat = useMemo(function(){
+        return files.reduce(function(memo, file){
+            const key = (formatFileFormat(file) || 'unknown').toLowerCase();
+            if (!memo[key]) memo[key] = [];
+            memo[key].push(file);
+            return memo;
+        }, {});
+    }, [files]);
+    const formatTabs = useMemo(function(){
+        return Object.keys(filesByFormat)
+            .map(function(key){
+                return { key, count: filesByFormat[key].length };
+            })
+            .sort(function(a, b){
+                return b.count - a.count || a.key.localeCompare(b.key);
+            });
+    }, [filesByFormat]);
+    const [activeFormat, setActiveFormat] = useState(null);
+    const selectedFormat = (tabByFormat && formatTabs.length > 0)
+        ? (activeFormat && filesByFormat[activeFormat] ? activeFormat : formatTabs[0].key)
+        : null;
+    const visibleFiles = selectedFormat ? filesByFormat[selectedFormat] : files;
+
     return (
         <div className="detail-row">
-            <label className="d-block">Grouped Files</label>
+            <label className="d-block">{title}</label>
             <div className="mb-08">
                 <small className="text-500">
                     {files.length} files
                     {totalSize > 0 ? ` • ${valueTransforms.bytesToLargerUnit(totalSize)}` : ''}
                     {formatSummary ? ` • ${formatSummary}` : ''}
+                    {statusSummary ? ` • ${statusSummary}` : ''}
                 </small>
             </div>
+            {tabByFormat && formatTabs.length > 1 ? (
+                <div className="workflow-file-format-tabs mb-08">
+                    {formatTabs.map(function(tab){
+                        const isActive = tab.key === selectedFormat;
+                        return (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                className={"btn btn-sm " + (isActive ? "btn-primary" : "btn-outline-secondary")}
+                                onClick={function(){ setActiveFormat(tab.key); }}>
+                                {tab.key} <span className="ms-04">({tab.count})</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            ) : null}
             <div className="table-responsive">
                 <table className="table table-sm mb-0 grouped-files-table">
                     <thead>
@@ -255,7 +367,7 @@ function GroupedFilesList({ files = [] }){
                         </tr>
                     </thead>
                     <tbody>
-                        { files.map(function(f, idx){
+                        { visibleFiles.map(function(f, idx){
                             const { '@id': fid, display_title: dt } = f || {};
                             const content = fid ? <a href={fid}>{dt || fid}</a> : (dt || 'File');
                             return (
@@ -275,11 +387,73 @@ function GroupedFilesList({ files = [] }){
     );
 }
 
+function getCompactedFilesFromNode(node){
+    const compactedNodes = Array.isArray(node && node._compactedNodes) ? node._compactedNodes : [];
+    if (compactedNodes.length === 0) return [];
+    const seen = new Set();
+    const files = [];
+    compactedNodes.forEach(function(n){
+        const runDataFile = n && n.meta && n.meta.run_data && n.meta.run_data.file;
+        const list = Array.isArray(runDataFile) ? runDataFile : (runDataFile ? [runDataFile] : []);
+        list.forEach(function(f){
+            if (!f) return;
+            const key = f['@id'] || f.accession || f.uuid || JSON.stringify([f.display_title, f.file_format && (f.file_format.file_format || f.file_format.display_title), f.file_size]);
+            if (seen.has(key)) return;
+            seen.add(key);
+            files.push(f);
+        });
+    });
+    return files;
+}
+
 function StepDetailBody(props){
-    const { node, deselectNode, title, typeName, showDetailsInPopup, context, schemas } = props;
-    // const { meta = {}, name: stepNodeName } = node;
-    // const { '@id' : stepID, workflow = null, display_title } = meta;
-    // const { '@id' : workflowID, display_title: workflowTitle } = workflow || {};
+    const { node, deselectNode, title, typeName, showDetailsInPopup, context, schemas, compactedNote } = props;
+    const { meta = {}, _inputs = [], _outputs = [], name: stepNodeName } = node;
+    const {
+        workflow = null,
+        analysis_step_types: analysisStepTypes = [],
+        aliases: stepAliases = [],
+        software_versions: softwareVersions = [],
+        input_files: inputFiles = [],
+        output_files: outputFiles = []
+    } = meta;
+    const workflowTitle = (workflow && (workflow.display_title || workflow.title || workflow.name)) || null;
+    const workflowHref = workflow && workflow['@id'] ? workflow['@id'] : null;
+
+    const stepTypeValue = normalizeToList(analysisStepTypes, _inputs)
+        .concat(normalizeToList(meta.step_type, _inputs))
+        .filter(Boolean)
+        .join(', ');
+
+    const aliasesValue = normalizeToList(stepAliases)
+        .concat(stepNodeName ? [stepNodeName] : [])
+        .filter(Boolean)
+        .join(', ');
+
+    const inputValue = summarizeIOList(_inputs, 'source').join(', ');
+    const outputValue = summarizeIOList(_outputs, 'target').join(', ');
+    const softwareValue = summarizeSoftware(softwareVersions);
+    const inputFilesCount = Array.isArray(inputFiles) ? inputFiles.length : 0;
+    const outputFilesCount = Array.isArray(outputFiles) ? outputFiles.length : 0;
+
+    const summaryRows = [
+        { label: "Step Type", value: stepTypeValue },
+        { label: "Step Alias(es)", value: aliasesValue },
+        { label: "Input", value: inputValue },
+        { label: "Output", value: outputValue },
+        { label: "Pipeline", value: workflowHref ? <a href={workflowHref}>{workflowTitle || workflowHref}</a> : workflowTitle },
+        { label: "Software", value: softwareValue }
+    ];
+
+    const detailRows = [
+        { label: "Input Arguments", value: Array.isArray(_inputs) ? _inputs.length : null },
+        { label: "Output Arguments", value: Array.isArray(_outputs) ? _outputs.length : null },
+        { label: "Input Files", value: inputFilesCount || null },
+        { label: "Output Files", value: outputFilesCount || null }
+    ];
+    const hasSummaryRows = hasRenderableRows(summaryRows);
+    const hasDetailRows = hasRenderableRows(detailRows);
+
     return (
         <React.Fragment>
             {!showDetailsInPopup &&
@@ -293,6 +467,26 @@ function StepDetailBody(props){
                     </div>
                 </div>
             }
+            <div className="details">
+                {compactedNote ? (
+                    <ValueRow label="Compact View" value={compactedNote} />
+                ) : null}
+                {hasSummaryRows ? (
+                    <DetailSection title="Summary">
+                        <DetailGrid rows={summaryRows} />
+                    </DetailSection>
+                ) : null}
+                {hasDetailRows ? (
+                    <DetailSection title="Metadata">
+                        <DetailGrid rows={detailRows} />
+                    </DetailSection>
+                ) : null}
+                {!hasSummaryRows && !hasDetailRows ? (
+                    <div className="workflow-detail-empty-message">
+                        No additional step metadata available.
+                    </div>
+                ) : null}
+            </div>
         </React.Fragment>
     );
 }
@@ -307,4 +501,84 @@ function ValueRow({ value, label = '[Label]', showAlways = false, fallbackValue 
         );
     }
     return null;
+}
+
+function DetailSection({ title, children }){
+    return (
+        <div className="workflow-detail-section">
+            <h5 className="workflow-detail-section-title">{title}</h5>
+            {children}
+        </div>
+    );
+}
+
+function DetailGrid({ rows = [] }){
+    return (
+        <div className="workflow-detail-grid">
+            {rows.map(function(row, idx){
+                const { label, value, showAlways = false, fallbackValue = '-', isDate = false } = row;
+                const valueNode = value ? (!isDate ? value : <LocalizedTime timestamp={value} formatType="date-md" dateTimeSeparator=" " />) : fallbackValue;
+                if (!value && !showAlways) return null;
+                return (
+                    <div className="workflow-detail-grid-row" key={`${label}-${idx}`}>
+                        <div className="workflow-detail-grid-label">{label}</div>
+                        <div className="workflow-detail-grid-value">{valueNode}</div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function hasRenderableRows(rows = []){
+    return rows.some(function(row){
+        if (!row) return false;
+        const { value, showAlways = false } = row;
+        return !!value || !!showAlways;
+    });
+}
+
+function normalizeToList(value, fallbackList = []){
+    if (Array.isArray(value)) return value;
+    if (value) return [value];
+    return Array.isArray(fallbackList) ? [] : [];
+}
+
+function summarizeIOList(list = [], sourceOrTarget = 'source'){
+    if (!Array.isArray(list)) return [];
+    const names = [];
+    list.forEach(function(io){
+        if (!io) return;
+        const ioName = io.name || (io.meta && io.meta.name) || null;
+        const endpoints = Array.isArray(io[sourceOrTarget]) ? io[sourceOrTarget] : [];
+        if (endpoints.length > 0){
+            endpoints.forEach(function(ep){
+                if (ep && ep.name) names.push(ep.name);
+            });
+        } else if (ioName){
+            names.push(ioName);
+        }
+    });
+    return _.uniq(names.filter(Boolean));
+}
+
+function summarizeSoftware(softwareVersions = []){
+    if (!Array.isArray(softwareVersions)) return null;
+    const software = softwareVersions.map(function(sw){
+        const item = sw && sw.software ? sw.software : sw;
+        if (!item) return null;
+        const name = item.name || item.title || item.display_title || '';
+        const version = sw && sw.version ? sw.version : item.version;
+        return [name, version].filter(Boolean).join(' ');
+    }).filter(Boolean);
+    return software.length > 0 ? software.join(', ') : null;
+}
+
+function StatusBadge({ status, text }){
+    return (
+        <span className={`workflow-status-badge status-${status || 'unknown'}`}>
+            <i className="status-indicator-dot me-06" data-status={status} />
+            {text || '-'}
+        </span>
+    );
 }

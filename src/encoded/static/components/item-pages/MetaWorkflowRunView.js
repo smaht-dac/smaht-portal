@@ -39,14 +39,32 @@ export function commonGraphPropsFromProps(props){
         },
         'rowSpacingType'    : 'wide',
         'nodeClassName'     : function(node){
+            const classNames = [];
+            const contextAtId = props && props.context && props.context['@id'];
             const runDataFile = node.meta && node.meta.run_data && node.meta.run_data.file;
+            const firstRunDataFile = Array.isArray(runDataFile) ? runDataFile[0] : runDataFile;
+            const runDataAtId = firstRunDataFile && firstRunDataFile['@id'];
             const hasGroupedFiles = Array.isArray(runDataFile) ?
                 runDataFile.some(function(f){ return f && f.grouped_files; }) :
                 runDataFile && runDataFile.grouped_files;
             if (hasGroupedFiles || (node.nodeType && node.nodeType.indexOf('group') > -1)) {
-                return 'node-grouped';
+                classNames.push('node-grouped');
             }
-            return '';
+            if (contextAtId && runDataAtId && contextAtId === runDataAtId) {
+                classNames.push('node-current-context');
+            }
+            if (node.nodeType === 'step') {
+                const stepTitle = (
+                    node.meta && node.meta.workflow &&
+                    (node.meta.workflow.display_title || node.meta.workflow.name || '')
+                ) || '';
+                const title = stepTitle.toLowerCase();
+                if (/(align|bwa|realign)/.test(title)) classNames.push('step-phase-align');
+                else if (/(qual|duplicate|metrics|collector)/.test(title)) classNames.push('step-phase-qc');
+                else if (/(merge|convert|cram|format|shard)/.test(title)) classNames.push('step-phase-transform');
+                else classNames.push('step-phase-core');
+            }
+            return classNames.join(' ');
         },
         'onNodeClick'       : typeof props.onNodeClick !== 'undefined' ? props.onNodeClick : null,
         'windowWidth'       : props.windowWidth
