@@ -7,13 +7,29 @@ smaht-portal
 Change Log
 ----------
 
-1.27.3
+1.27.5
 ======
 
 `PR 670: fix: prevent 0 value type cast <https://github.com/smaht-dac/smaht-portal/pull/670>` 
 
 * Align Protected with Public donor browse pages
 * Prevent "-" appearing for 0 value hardy_scale
+
+
+1.27.4
+======
+
+`PR 669: Stabilize Cypress docs navigation checks and allow donor-specific matrix total-check skip <https://github.com/smaht-dac/smaht-portal/pull/669>`_
+
+* made pipeline docs dropdown expansion assertions resilient to re-render/navigation behavior
+* normalized section-link text comparisons (e.g. donor-level vs donor level)
+* added a donor-specific escape hatch for strict matrix column-summary total validation
+
+
+1.27.3
+======
+
+* Bugfix - compute category for output files
 
 
 1.27.2
