@@ -326,7 +326,7 @@ export class WorkflowGraphSection extends React.PureComponent {
 
     commonGraphProps(){
         const { steps, includeAllRunsInSteps } = this.props;
-        const { showParameters, showReferenceFiles, rowSpacingType } = this.state;
+        const { showParameters, showReferenceFiles, rowSpacingType, showDetailsInPopup } = this.state;
         const graphData = this.parseAnalysisSteps(steps);
         const { nodes = [] } = graphData;
         const { width: viewportWidth = 1200 } = this.props;
@@ -371,6 +371,7 @@ export class WorkflowGraphSection extends React.PureComponent {
             ...commonGraphProps,
             ...graphData,
             rowSpacingType,
+            dimNonPathOnSelect: !showDetailsInPopup,
             innerMargin,
             columnWidth,
             columnSpacing,
