@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 import { Modal, OverlayTrigger, Popover } from 'react-bootstrap';
@@ -230,6 +230,7 @@ const BrowseFileBody = (props) => {
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable
                     userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
                 />
             </BrowseViewControllerWithSelections>
             {context?.total === 0 && (
@@ -323,6 +324,59 @@ export class BrowseViewBody extends React.PureComponent {
     }
 }
 
+/**
+ * Calculates the total number of downloadble files in the current search
+ * results based on the status filter and facet term counts and the user's
+ * download access for each status.
+ * @param {context} statusFilterTerms Context object for the search
+ * @param {*} userDownloadAccessObj Object containing download access
+ * @returns number of downloadable files in the table for the current user
+ *
+ * Note: compares filters with facets because facets may include statuses
+ * not in the URL params (e.g. obsolete)
+ */
+export const getDownloadableFileCount = (
+    context = {},
+    userDownloadAccessObj
+) => {
+    // Pull out the current status filters
+    const currentStatusFilters =
+        context?.filters?.flatMap((f) =>
+            f.field === 'status' ? f.term : []
+        ) || [];
+
+    // Pull out status facet terms
+    const statusFacetTerms =
+        context?.facets?.find((facet) => facet.field === 'status')?.terms || [];
+
+    console.log('statusFacetTerms', statusFacetTerms);
+
+    // Map through the terms to get count for downloadable files
+    const totalDownloadableFileCount = statusFacetTerms?.reduce(
+        (acc, { key, doc_count }) => {
+            // Check if user has download access for this status
+            const userCanDownload =
+                currentStatusFilters.includes(key) &&
+                userDownloadAccessObj?.[key];
+
+            console.log(
+                'userCanDownload',
+                userCanDownload,
+                'currentStatusFilters',
+                currentStatusFilters,
+                currentStatusFilters.includes(key),
+                userDownloadAccessObj?.[key],
+                key
+            );
+            return acc + (userCanDownload ? doc_count : 0);
+        },
+        0
+    );
+
+    console.log('getDownloadableFileCount', totalDownloadableFileCount);
+    return totalDownloadableFileCount;
+};
+
 export const BrowseFileSearchTable = (props) => {
     const {
         session,
@@ -333,15 +387,31 @@ export const BrowseFileSearchTable = (props) => {
         onSelectItem,
         onResetSelectedItems,
         userDownloadAccess,
+        isAccessResolved,
     } = props;
     const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
 
+    const downloadableFileCount = isAccessResolved
+        ? getDownloadableFileCount(context, userDownloadAccess)
+        : 0;
+
+    console.log(
+        'downloadableFileCount',
+        isAccessResolved,
+        downloadableFileCount,
+        userDownloadAccess
+    );
+
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
+        session,
+        context,
+        userDownloadAccess,
+        downloadableFileCount,
     };
 
     const passProps = _.omit(props, 'isFullscreen', 'toggleFullScreen');
@@ -350,11 +420,14 @@ export const BrowseFileSearchTable = (props) => {
     const aboveTableComponent = (
         <BrowseViewAboveSearchTableControls
             topLeftChildren={
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+                <SelectAllFilesButton
+                    {...selectedFileProps}
+                    {...{ session, context }}
+                />
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />
-                {userDownloadAccess?.['protected'] ? (
+                {userDownloadAccess?.['open'] && downloadableFileCount > 0 ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
@@ -530,6 +603,32 @@ const TypeColumnTitlePopover = function (props) {
     );
 };
 
+const CustomColTitle = ({
+    session, // pass down session information
+    selectedItems,
+    onSelectItem,
+    onResetSelectedItems,
+    context,
+    userDownloadAccess,
+    downloadableFileCount,
+}) => {
+    // Context now passed in from HeadersRowColumn (for file count)
+    return (
+        <SelectAllFilesButton
+            {...{
+                session, // pass down session information
+                selectedItems,
+                onSelectItem,
+                onResetSelectedItems,
+                context,
+                userDownloadAccess,
+                downloadableFileCount,
+            }}
+            type="checkbox"
+        />
+    );
+};
+
 /**
  *  A column extension map specifically for browse view file tables.
  */
@@ -537,6 +636,10 @@ export function createBrowseFileColumnExtensionMap({
     selectedItems,
     onSelectItem,
     onResetSelectedItems,
+    session,
+    context,
+    userDownloadAccess,
+    downloadableFileCount,
 }) {
     const columnExtensionMap = {
         ...originalColExtMap, // Pull in defaults for all tables
@@ -547,20 +650,34 @@ export function createBrowseFileColumnExtensionMap({
         // Select all button
         '@type': {
             colTitle: (
-                // Context now passed in from HeadersRowColumn (for file count)
-                <SelectAllFilesButton
-                    {...{ selectedItems, onSelectItem, onResetSelectedItems }}
-                    type="checkbox"
+                <CustomColTitle
+                    selectedItems={selectedItems}
+                    onSelectItem={onSelectItem}
+                    onResetSelectedItems={onResetSelectedItems}
+                    session={session}
+                    context={context}
+                    userDownloadAccess={userDownloadAccess}
+                    downloadableFileCount={downloadableFileCount}
                 />
             ),
             hideTooltip: true,
             noSort: true,
             widthMap: { lg: 60, md: 60, sm: 60 },
             render: (result, parentProps) => {
-                return (
+                const userHasDownloadAccess =
+                    parentProps?.userDownloadAccess?.[result?.status];
+
+                return userHasDownloadAccess ? (
                     <SelectionItemCheckbox
                         {...{ selectedItems, onSelectItem, result }}
                         isMultiSelect={true}
+                    />
+                ) : (
+                    <input
+                        type="checkbox"
+                        data-tip="You do not have access to download this item"
+                        disabled="disabled"
+                        className="me-2"
                     />
                 );
             },

@@ -45,10 +45,12 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
         runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -63,10 +65,12 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
         runTissueTypeFilterTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
+        expectedLimitedDownloadAccess: false,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -81,10 +85,12 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
         runTissueTypeFilterTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -99,10 +105,12 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
         runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -117,10 +125,12 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
         runTissueTypeFilterTests: false,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 };
 
@@ -632,6 +642,75 @@ function stepFacetChartBarPlotTests(caps) {
     }
 };
 
+/** Browse file selection tests */
+function stepBrowseFileSelectionTests(caps) {
+    if (caps.expectedStatsSummaryOpts.totalFiles === 0 && caps.expectedNoResultsModalVisible) {
+        return;
+    }
+
+    // For users who have limited download access
+    // 1. SelectAllFilesButton and the SelectAll Checkbox are enabled
+    cy.get('.search-view-controls-and-results #select-all-files-button').should('be.enabled');
+    cy.get('.search-results-outer-container .search-headers-row #select-all-checkbox[type="checkbox"]').should('be.enabled');
+
+    // 2. SelectAllFilesButton says "Select Open Access Files"
+    if (!caps.expectedLimitedDownloadAccess) {
+        cy.get('.search-view-controls-and-results #select-all-files-button')
+          .then(($selectAllBtn) => {
+            if ($selectAllBtn.hasClass('btn-secondary')) {
+                cy.wrap($selectAllBtn).should('have.text', 'Deselect All  Files');
+            } else {
+                cy.wrap($selectAllBtn)
+                  .should('have.text', 'Select All  Files');
+            }
+          })
+    } else {
+        cy.get('.search-view-controls-and-results #select-all-files-button')
+          .should('have.text', 'Select Open Access Files')
+          .then(($selectAllBtn) => {
+            // 3. Hovering over the SelectAllFilesButton should show a popover
+            cy.wrap($selectAllBtn).trigger('mouseover');
+            cy.get('#select-all-files-popover').should('be.visible');
+            cy.wrap($selectAllBtn).trigger('mouseout');
+            cy.get('#select-all-files-popover').should('not.exist');
+          })
+    }
+
+    // 4. Clicking the SelectAllFilesButton should enable the Download # Selected Files button
+    cy.get('.search-view-controls-and-results #select-all-files-button').click();
+    cy.get('.search-view-controls-and-results #select-all-files-button').should('have.class', 'btn-secondary');
+    cy.get('.search-view-controls-and-results .right-buttons #download_tsv_multiselect').should('not.be.disabled');
+    
+    cy.get('.search-view-controls-and-results .right-buttons #download_tsv_multiselect')
+      .then(($downloadBtn) => {
+        // 4a. The Download button should have the same number of files as the Access Facet (Open)
+        const selectedFileTotal = Number($downloadBtn.text().match(/\d+/)[0]);
+
+        // If limited download access, ensure only open files are selected
+        if (caps.expectedLimitedDownloadAccess) {
+            // Get the number of Open Access files through the access_status facet
+            cy.get('.search-view-controls-and-results .facets-body .facet[data-field="access_status"]')
+              .then(($accessStatusFacet) => {
+                if ($accessStatusFacet.hasClass('closed')) {
+                    cy.wrap($accessStatusFacet).click();
+                }
+
+                cy.get('.search-view-controls-and-results .facets-body .facet[data-field="access_status"] .facet-list-element[data-key="Open"] a.term .facet-count')
+                  .then(($openAccessTerm) => {
+                    const openAccessTermText = Number($openAccessTerm.text().trim());
+                    expect(openAccessTermText).to.equal(selectedFileTotal);
+                  });
+              });
+        } else {
+            cy.get('.search-view-controls-and-results .facets-column #results-count')
+              .then(($resultsCount) => {
+                const resultsCountText = Number($resultsCount.text().trim());
+                expect(resultsCountText).to.equal(selectedFileTotal);
+              });
+        }
+      })
+}
+
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
 const ROLES_TO_TEST = [
@@ -690,6 +769,11 @@ describe('Browse by role — File', () => {
             it(`Facet exclude grouping → sub-terms omitted (enabled: ${caps.runFacetExcludeGrouping})`, () => {
                 if (!caps.runFacetExcludeGrouping) return;
                 stepFacetExcludeGrouping(caps);
+            });
+            
+            it(`Browse file selection tests → Select files and verify counts (enabled: ${caps.runBrowseFileSelectionTests})`, () => {
+                if (!caps.runBrowseFileSelectionTests) return;
+                stepBrowseFileSelectionTests(caps);
             });
 
             it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, 3AL - Brain, Temporal Lobe" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
