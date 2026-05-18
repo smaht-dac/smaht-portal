@@ -216,6 +216,12 @@
     "facets": {
         "journal": {
             "title": "Journal"
+        },
+        "date_published": {
+            "title": "Year"
+        },
+        "authors.last_name": {
+            "title": "Author"
         }
     },
     "columns": {
