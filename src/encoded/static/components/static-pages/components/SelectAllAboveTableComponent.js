@@ -120,18 +120,7 @@ const manifest_enum_map = [
 
 export class SelectAllFilesButton extends React.PureComponent {
     /** These are fields included when "Select All" button is clicked to AJAX all files in */
-    static fieldsToRequest = [
-        'accession',
-        'display_title',
-        '@id',
-        '@type',
-        'status',
-        'data_type',
-        'file_format.*',
-        'submission_centers.display_title',
-        'consortia.display_title',
-        'file_sets',
-    ];
+    static fieldsToRequest = ['accession', '@id', 'file_sets.@id'];
 
     constructor(props) {
         super(props);
