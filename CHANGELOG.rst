@@ -7,6 +7,48 @@ smaht-portal
 Change Log
 ----------
 
+
+1.27.4
+======
+
+`PR 669: Stabilize Cypress docs navigation checks and allow donor-specific matrix total-check skip <https://github.com/smaht-dac/smaht-portal/pull/669>`_
+
+* made pipeline docs dropdown expansion assertions resilient to re-render/navigation behavior
+* normalized section-link text comparisons (e.g. donor-level vs donor level)
+* added a donor-specific escape hatch for strict matrix column-summary total validation
+
+
+1.27.3
+======
+
+* Bugfix - compute category for output files
+
+
+1.27.2
+======
+
+`PR 663: fix: update status param for homepage endpoint <https://github.com/smaht-dac/smaht-portal/pull/663>`_
+
+* Update statuses in homepage counts parameters
+
+
+1.27.1
+======
+
+`PR 665: fix: update pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/665>`_
+
+* Update pipeline docs styles
+* Update title of new pipeline docs page
+
+
+1.27.0
+======
+
+`PR 666: QC metrics improvements <https://github.com/smaht-dac/smaht-portal/pull/666>`_
+
+* Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
+
+
 1.26.2
 ======
 
