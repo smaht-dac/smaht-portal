@@ -8,6 +8,16 @@ Change Log
 ----------
 
 
+1.28.0
+======
+
+`PR 608: Add publication item to the portal schema/types <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* schema for Publication item
+* types file for Publication item
+* dummy inserts for tests
+
+
 1.27.4
 ======
 
