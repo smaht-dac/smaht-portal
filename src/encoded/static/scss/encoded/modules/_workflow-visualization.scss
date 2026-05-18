@@ -11,43 +11,48 @@
             .node {
                 font-size: 0.9rem;
             }
-            // Higher-contrast, colorblind-friendlier palette for file node categories.
-            .node.node-type-global-input .node-visible-element {
-                background-color: #cfe0ff;
-                border-color: #2f6fda;
-                color: #0f2957;
+            // Higher-contrast palette mapped to actual runtime selectors.
+            // Runtime uses:
+            // - .node-type-input / .node-type-output
+            // - [data-node-global="true"]
+            // - [data-node-type-detail="reference file"]
+            // Default IO nodes (non-global): keep readable but distinct from global.
+            .node.node-type-input .node-visible-element,
+            .node.node-type-output .node-visible-element {
+                background-color: #d1d5db;
+                border-color: #6b7280;
+                color: #111827;
             }
-            .node.node-type-global-output .node-visible-element {
-                background-color: #d6efc9;
-                border-color: #2f8f48;
-                color: #10351d;
+
+            .node.node-type-input[data-node-global="true"] .node-visible-element {
+                background-color: #c7b6ff;
+                border-color: #6646d7;
+                color: #24155f;
             }
-            .node.node-type-input-file-reference .node-visible-element {
-                background-color: #e3d4ff;
-                border-color: #7a42d1;
-                color: #2d0f57;
+            .node.node-type-output[data-node-global="true"] .node-visible-element {
+                background-color: #bde7a8;
+                border-color: #2d7a3f;
+                color: #0f2f1a;
             }
-            .node.node-type-io-default .node-visible-element {
-                background-color: #fff0cc;
-                border-color: #c8821f;
-                color: #5b3600;
+            .node.node-type-input[data-node-type-detail="reference file"] .node-visible-element,
+            .node.node-type-input.node-item-type-file-reference .node-visible-element {
+                background-color: #b8d4ff;
+                border-color: #3a74d9;
+                color: #102b58;
             }
-            // Keep grouped nodes colorful too (avoid fallback gray look).
-            .node.node-grouped.node-type-global-input .node-visible-element {
+            // Ensure global/reference colors win over the base io color.
+            .node.node-type-input[data-node-global="true"] .node-visible-element {
                 background-color: #cfe0ff !important;
                 border-color: #2f6fda !important;
             }
-            .node.node-grouped.node-type-global-output .node-visible-element {
+            .node.node-type-output[data-node-global="true"] .node-visible-element {
                 background-color: #d6efc9 !important;
                 border-color: #2f8f48 !important;
             }
-            .node.node-grouped.node-type-input-file-reference .node-visible-element {
+            .node.node-type-input[data-node-type-detail="reference file"] .node-visible-element,
+            .node.node-type-input.node-item-type-file-reference .node-visible-element {
                 background-color: #e3d4ff !important;
                 border-color: #7a42d1 !important;
-            }
-            .node.node-grouped.node-type-io-default .node-visible-element {
-                background-color: #fff0cc !important;
-                border-color: #c8821f !important;
             }
             .node.node-type-step .node-visible-element .innermost .node-name {
                 white-space: normal;
@@ -352,23 +357,23 @@
 }
 
 .workflow-legend-container .color-patch.node-type-global-input {
-    background-color: #cfe0ff !important;
-    border-color: #2f6fda !important;
+    background-color: #c7b6ff !important;
+    border-color: #6646d7 !important;
 }
 
 .workflow-legend-container .color-patch.node-type-global-output {
-    background-color: #d6efc9 !important;
-    border-color: #2f8f48 !important;
+    background-color: #bde7a8 !important;
+    border-color: #2d7a3f !important;
 }
 
 .workflow-legend-container .color-patch.node-type-input-file-reference {
-    background-color: #e3d4ff !important;
-    border-color: #7a42d1 !important;
+    background-color: #b8d4ff !important;
+    border-color: #3a74d9 !important;
 }
 
 .workflow-legend-container .color-patch.node-type-io-default {
-    background-color: #fff0cc !important;
-    border-color: #c8821f !important;
+    background-color: #d1d5db !important;
+    border-color: #6b7280 !important;
 }
 
 .workflow-node-badges {

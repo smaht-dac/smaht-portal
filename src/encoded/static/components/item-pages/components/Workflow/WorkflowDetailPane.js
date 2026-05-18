@@ -63,13 +63,17 @@ export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
         body = <FileDetailBody {...props} {...{file, title, typeName, canDownloadFile, compactedNote, isCompactedFileGroup, compactedFiles, isAuxiliaryCompactedGroup}} />;
     } else if (nodeType === "step"){
         const { meta = {}, name: stepNodeName } = node;
+        const compactedSteps = getCompactedStepsFromNode(node);
+        const isCompactedStepGroup = (node && node._mergedCount > 1) || compactedSteps.length > 1;
         const { '@id': stepID, workflow = null, display_title } = meta;
         const { '@id': workflowID, display_title: workflowTitle } = workflow || {};
-        typeName = "Workflow Step";
+        typeName = isCompactedStepGroup ? "Workflow Steps" : "Workflow Step";
         if (workflowID && workflowTitle) {
-            typeName = "Workflow Run";
+            typeName = isCompactedStepGroup ? "Workflow Runs" : "Workflow Run";
         }
-        if (stepID && display_title) {
+        if (isCompactedStepGroup && node.title) {
+            title = node.title;
+        } else if (stepID && display_title) {
             title = <a href={stepID}>{display_title}</a>;
         } else {
             title = display_title || stepNodeName;
@@ -406,9 +410,26 @@ function getCompactedFilesFromNode(node){
     return files;
 }
 
+function getCompactedStepsFromNode(node){
+    const compactedNodes = Array.isArray(node && node._compactedNodes) ? node._compactedNodes : [];
+    if (compactedNodes.length === 0) return [];
+    const seen = new Set();
+    const steps = [];
+    compactedNodes.forEach(function(n){
+        if (!n || (n.nodeType || '') !== 'step') return;
+        const key = n.id || n.name || (n.meta && (n.meta.uuid || n.meta['@id'] || n.meta.display_title));
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        steps.push(n);
+    });
+    return steps;
+}
+
 function StepDetailBody(props){
     const { node, deselectNode, title, typeName, showDetailsInPopup, context, schemas, compactedNote } = props;
     const { meta = {}, _inputs = [], _outputs = [], name: stepNodeName } = node;
+    const compactedSteps = getCompactedStepsFromNode(node);
+    const isCompactedStepGroup = (node && node._mergedCount > 1) || compactedSteps.length > 1;
     const {
         workflow = null,
         analysis_step_types: analysisStepTypes = [],
@@ -419,6 +440,32 @@ function StepDetailBody(props){
     } = meta;
     const workflowTitle = (workflow && (workflow.display_title || workflow.title || workflow.name)) || null;
     const workflowHref = workflow && workflow['@id'] ? workflow['@id'] : null;
+    const stepGroupItems = (compactedSteps.length > 0 ? compactedSteps : [node]).filter(Boolean);
+    const groupStepTypes = _.uniq(
+        stepGroupItems.reduce(function(all, stepNode){
+            const m = (stepNode && stepNode.meta) || {};
+            return all.concat(
+                normalizeToList(m.analysis_step_types),
+                normalizeToList(m.step_type)
+            );
+        }, []).filter(Boolean)
+    );
+    const groupStepNames = _.uniq(stepGroupItems.map(function(stepNode){
+        const m = (stepNode && stepNode.meta) || {};
+        return m.display_title || m.title || stepNode.name || null;
+    }).filter(Boolean));
+    const groupWorkflowTitles = _.uniq(stepGroupItems.map(function(stepNode){
+        const wf = stepNode && stepNode.meta && stepNode.meta.workflow;
+        return wf && (wf.display_title || wf.title || wf.name);
+    }).filter(Boolean));
+    const groupInputArgCount = _.reduce(stepGroupItems, function(sum, stepNode){
+        const stepInputs = Array.isArray(stepNode && stepNode._inputs) ? stepNode._inputs.length : 0;
+        return sum + stepInputs;
+    }, 0);
+    const groupOutputArgCount = _.reduce(stepGroupItems, function(sum, stepNode){
+        const stepOutputs = Array.isArray(stepNode && stepNode._outputs) ? stepNode._outputs.length : 0;
+        return sum + stepOutputs;
+    }, 0);
 
     const stepTypeValue = normalizeToList(analysisStepTypes, _inputs)
         .concat(normalizeToList(meta.step_type, _inputs))
@@ -436,7 +483,12 @@ function StepDetailBody(props){
     const inputFilesCount = Array.isArray(inputFiles) ? inputFiles.length : 0;
     const outputFilesCount = Array.isArray(outputFiles) ? outputFiles.length : 0;
 
-    const summaryRows = [
+    const summaryRows = isCompactedStepGroup ? [
+        { label: "Grouped Steps", value: stepGroupItems.length, showAlways: true },
+        { label: "Step Type(s)", value: groupStepTypes.join(', ') || null },
+        { label: "Step Names", value: groupStepNames.slice(0, 8).join(', ') + (groupStepNames.length > 8 ? ` (+${groupStepNames.length - 8} more)` : '') },
+        { label: "Pipeline(s)", value: groupWorkflowTitles.join(', ') || null }
+    ] : [
         { label: "Step Type", value: stepTypeValue },
         { label: "Step Alias(es)", value: aliasesValue },
         { label: "Input", value: inputValue },
@@ -445,7 +497,10 @@ function StepDetailBody(props){
         { label: "Software", value: softwareValue }
     ];
 
-    const detailRows = [
+    const detailRows = isCompactedStepGroup ? [
+        { label: "Input Arguments (total)", value: groupInputArgCount || null },
+        { label: "Output Arguments (total)", value: groupOutputArgCount || null }
+    ] : [
         { label: "Input Arguments", value: Array.isArray(_inputs) ? _inputs.length : null },
         { label: "Output Arguments", value: Array.isArray(_outputs) ? _outputs.length : null },
         { label: "Input Files", value: inputFilesCount || null },
@@ -471,6 +526,9 @@ function StepDetailBody(props){
                 {compactedNote ? (
                     <ValueRow label="Compact View" value={compactedNote} />
                 ) : null}
+                {isCompactedStepGroup ? (
+                    <GroupedStepsList steps={stepGroupItems} title="Compacted Steps" />
+                ) : null}
                 {hasSummaryRows ? (
                     <DetailSection title="Summary">
                         <DetailGrid rows={summaryRows} />
@@ -488,6 +546,49 @@ function StepDetailBody(props){
                 ) : null}
             </div>
         </React.Fragment>
+    );
+}
+
+function GroupedStepsList({ steps = [], title = "Compacted Steps" }){
+    if (!Array.isArray(steps) || steps.length === 0) return null;
+    return (
+        <div className="detail-row">
+            <label className="d-block">{title}</label>
+            <div className="table-responsive">
+                <table className="table table-sm mb-0 grouped-files-table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40px' }}>#</th>
+                            <th>Step</th>
+                            <th>Type</th>
+                            <th className="text-end">In Args</th>
+                            <th className="text-end">Out Args</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {steps.map(function(stepNode, idx){
+                            const m = (stepNode && stepNode.meta) || {};
+                            const stepName = m.display_title || m.title || stepNode.name || '-';
+                            const stepType = normalizeToList(m.analysis_step_types)
+                                .concat(normalizeToList(m.step_type))
+                                .filter(Boolean)
+                                .join(', ');
+                            const inCount = Array.isArray(stepNode && stepNode._inputs) ? stepNode._inputs.length : 0;
+                            const outCount = Array.isArray(stepNode && stepNode._outputs) ? stepNode._outputs.length : 0;
+                            return (
+                                <tr key={(stepNode.id || stepNode.name || idx) + '-' + idx}>
+                                    <td>{idx + 1}</td>
+                                    <td>{stepName}</td>
+                                    <td>{stepType || '-'}</td>
+                                    <td className="text-end">{inCount}</td>
+                                    <td className="text-end">{outCount}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     );
 }
 

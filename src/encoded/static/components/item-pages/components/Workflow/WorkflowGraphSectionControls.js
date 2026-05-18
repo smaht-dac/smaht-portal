@@ -86,6 +86,13 @@ function updateAuxGroupLabel(node = {}) {
     node.title = `${count} ${fmt} ${noun}`;
 }
 
+function updateStepGroupLabel(node = {}) {
+    if (!node || !node._isAuxStepGroup) return;
+    const count = node._mergedCount || 1;
+    const noun = count === 1 ? 'step' : 'steps';
+    node.title = `${count} auxiliary ${noun}`;
+}
+
 function reindexByColumn(nodes = []) {
     const byColumn = _.groupBy(nodes, function(node){ return node.column || 0; });
     _.forEach(byColumn, function(colNodes){
@@ -122,9 +129,40 @@ function mergeNodeConnectivity(targetNode = {}, incomingNode = {}){
     targetNode._target = mergeUniqueNodeRefs(targetNode._target, incomingNode._target);
 }
 
-function coalesceGraphForCompactMode(graphData = {}) {
+function coalesceGraphForCompactMode(graphData = {}, options = {}) {
     const { nodes = [], edges = [] } = graphData;
+    const {
+        groupStepNodes = false,
+        groupCoreFiles = true,
+        groupAuxiliaryFiles = true
+    } = options;
     if (!Array.isArray(nodes) || nodes.length === 0) return graphData;
+
+    const stepNodeHints = new Map();
+    if (groupStepNodes) {
+        const stepToOutputs = new Map();
+        edges.forEach(function(edge){
+            const source = edge && edge.source;
+            const target = edge && edge.target;
+            if (!source || !target) return;
+            if ((source.nodeType || '') !== 'step') return;
+            if ((target.nodeType || '') !== 'output' && (target.nodeType || '') !== 'output-group') return;
+            if (!stepToOutputs.has(source)) stepToOutputs.set(source, []);
+            stepToOutputs.get(source).push(target);
+        });
+
+        nodes.forEach(function(node){
+            if ((node.nodeType || '') !== 'step') return;
+            const outputNodes = stepToOutputs.get(node) || [];
+            if (outputNodes.length === 0) return;
+            const allAuxOutputs = outputNodes.every(function(outNode){
+                return isPrimaryDataNode(outNode) && isAuxiliaryNode(outNode);
+            });
+            if (allAuxOutputs) {
+                stepNodeHints.set(node, 'aux-step');
+            }
+        });
+    }
 
     const mergedNodes = [];
     const mergeMap = new Map(); // original node object -> merged node object
@@ -134,9 +172,16 @@ function coalesceGraphForCompactMode(graphData = {}) {
         const nodeType = node.nodeType || '';
         const col = typeof node.column === 'number' ? node.column : 0;
         const label = nodeDisplayLabel(node).toLowerCase();
-        // Do not compact step nodes. Over-compacting steps collapses path context
-        // and makes selected-path arrows appear broken.
-        if (nodeType === 'step') return null;
+        if (nodeType === 'step') {
+            // Expanded details can still be noisy on repeated runs. Allow optional
+            // coalescing of exact step-title duplicates in the same column.
+            if (!groupStepNodes) return null;
+            const hint = stepNodeHints.get(node);
+            if (hint === 'aux-step') {
+                return `${nodeType}|${col}|aux-step-group`;
+            }
+            return `${nodeType}|${col}|${label}|step-coalesced`;
+        }
         if (nodeType === 'input' || nodeType === 'output' || nodeType === 'input-group' || nodeType === 'output-group') {
             // Compact by side+step+format (ignoring argument-name text) to reduce repeated
             // bam/fastq/etc while preserving directionality and step context.
@@ -147,9 +192,11 @@ function coalesceGraphForCompactMode(graphData = {}) {
                 // Keep all auxiliary artifacts in a single bucket per side/column
                 // to avoid fragmented 15+4+1 style groups.
                 if (tier === 'aux') {
+                    if (!groupAuxiliaryFiles) return null;
                     return `${nodeType}|${col}|${ioType}|tier:aux|io-compact`;
                 }
                 // Core pipeline files still grouped by format.
+                if (!groupCoreFiles) return null;
                 return `${nodeType}|${col}|${ioType}|fmt:${fmt}|tier:${tier}|io-compact`;
             }
             return `${nodeType}|${col}|${label}|${(node.ioType || '').toLowerCase()}`;
@@ -171,7 +218,11 @@ function coalesceGraphForCompactMode(graphData = {}) {
             if (isPrimaryDataNode(node) && isAuxiliaryNode(node)) {
                 cloned._isAuxiliaryGroup = true;
             }
+            if ((node.nodeType || '') === 'step' && stepNodeHints.get(node) === 'aux-step') {
+                cloned._isAuxStepGroup = true;
+            }
             updateAuxGroupLabel(cloned);
+            updateStepGroupLabel(cloned);
             mergedByKey.set(key, cloned);
             mergeMap.set(node, cloned);
             mergedNodes.push(cloned);
@@ -184,8 +235,12 @@ function coalesceGraphForCompactMode(graphData = {}) {
         if (isPrimaryDataNode(node) && isAuxiliaryNode(node)) {
             existing._isAuxiliaryGroup = true;
         }
+        if ((node.nodeType || '') === 'step' && stepNodeHints.get(node) === 'aux-step') {
+            existing._isAuxStepGroup = true;
+        }
         mergeNodeConnectivity(existing, node);
         updateAuxGroupLabel(existing);
+        updateStepGroupLabel(existing);
         if (node.isCurrentContext) existing.isCurrentContext = true;
         mergeMap.set(node, existing);
     });
@@ -250,7 +305,21 @@ export class WorkflowGraphSection extends React.PureComponent {
             this.memoized.parseAnalysisSteps(steps, parsingOptions)
         );
         if (showChart === 'basic' && !showExpandedDetails) {
-            return coalesceGraphForCompactMode(graphData);
+            return coalesceGraphForCompactMode(graphData, {
+                groupStepNodes: false,
+                groupCoreFiles: true,
+                groupAuxiliaryFiles: true
+            });
+        }
+        if (showChart === 'detail' && showExpandedDetails) {
+            // Keep detailed step-level graph, but reduce visual noise:
+            // 1) group duplicated step nodes by title in the same column
+            // 2) group auxiliary and repeated core file nodes
+            return coalesceGraphForCompactMode(graphData, {
+                groupStepNodes: true,
+                groupCoreFiles: true,
+                groupAuxiliaryFiles: true
+            });
         }
         return graphData;
     }
