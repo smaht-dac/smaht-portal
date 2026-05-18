@@ -58,8 +58,17 @@ const PublicationView = React.memo(function PublicationView(props) {
     const pubYear = context?.date_published?.split('-')[0];
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
     const doiCode = context?.doi ? context.doi.split('/').pop() : '';
+    // shorten the authors list to 10 items and last item
+    const shortenedAuthorsList = [...context?.authors.slice(0, 20)];
+    const lastAuthor = context?.authors[context?.authors.length - 1];
     const citationString =
-        context?.authors?.join(', ') +
+        shortenedAuthorsList
+            .map((a) => a.last_name + ', ' + a.first_name)
+            ?.join(', ') +
+        ' ... ' +
+        lastAuthor.last_name +
+        ', ' +
+        lastAuthor.first_name +
         ' (' +
         pubYear +
         '). ' +
