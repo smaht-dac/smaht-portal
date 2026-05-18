@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataReleaseTracker } from './DataReleaseTracker';
 import { AnnouncementsSection } from './AnnouncementsSection';
 import { Popover, OverlayTrigger } from 'react-bootstrap';
+import { useUserDownloadAccess } from '../../util/hooks';
 
 const FILTERD_SOMATIC_VARIANTS_URL =
     '/browse/?analysis_details=Filtered&data_category=Somatic Variant Calls&donors.donor_groups=First 25 Donors [P25]&type=File';
@@ -12,6 +13,10 @@ const FILTERD_SOMATIC_VARIANTS_URL =
  * @returns {JSX.Element} The rendered NotificationsPanel component.
  */
 export const NotificationsPanel = (props) => {
+    const { userDownloadAccess, isAccessResolved } = useUserDownloadAccess(
+        props.session
+    );
+
     const { session } = props;
     const popover = (
         <Popover className="download-popover">
@@ -24,25 +29,27 @@ export const NotificationsPanel = (props) => {
     );
     return (
         <div className="notifications-panel container">
-            <div className="section data-freeze">
-                <h3 className="section-header">
-                    <OverlayTrigger
-                        trigger={['hover', 'focus']}
-                        placement="left"
-                        overlay={popover}>
+            {isAccessResolved && userDownloadAccess?.['open-network'] && (
+                <div className="section data-freeze">
+                    <h3 className="section-header">
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            placement="left"
+                            overlay={popover}>
+                            <span>
+                                P25 Data Freeze
+                                <i className="icon icon-fw icon-info-circle fas ms-1"></i>
+                            </span>
+                        </OverlayTrigger>
+                    </h3>
+                    <a className="p25-link" href={FILTERD_SOMATIC_VARIANTS_URL}>
                         <span>
-                            P25 Data Freeze
-                            <i className="icon icon-fw icon-info-circle fas ms-1"></i>
+                            <i className="icon icon-fw icon-filter fas me-1"></i>
+                            Filtered Somatic Variants
                         </span>
-                    </OverlayTrigger>
-                </h3>
-                <a className="p25-link" href={FILTERD_SOMATIC_VARIANTS_URL}>
-                    <span>
-                        <i className="icon icon-fw icon-filter fas me-1"></i>
-                        Filtered Somatic Variants
-                    </span>
-                </a>
-            </div>
+                    </a>
+                </div>
+            )}
             <DataReleaseTracker session={session} />
             <AnnouncementsSection />
             <div className="about-consortium section">
