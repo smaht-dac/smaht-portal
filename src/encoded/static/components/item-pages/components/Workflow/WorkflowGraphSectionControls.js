@@ -57,6 +57,14 @@ function isAuxiliaryNode(node = {}) {
     return true;
 }
 
+function isPrimaryDataNode(node = {}) {
+    const nodeType = (node && node.nodeType) || '';
+    const ioType = ((node && node.ioType) || '').toLowerCase();
+    if (nodeType !== 'input' && nodeType !== 'output') return false;
+    if (ioType === 'reference file' || ioType === 'parameter') return false;
+    return true;
+}
+
 function relatedStepAnchor(node = {}) {
     const outputOf = node && node.outputOf;
     if (outputOf && (outputOf.id || outputOf.name)) return outputOf.id || outputOf.name;
@@ -73,8 +81,9 @@ function updateAuxGroupLabel(node = {}) {
     const count = node._mergedCount || 1;
     const fmt = 'auxiliary';
     const noun = count === 1 ? 'file' : 'files';
-    node.name = `${count} ${fmt} ${noun}`;
-    node.title = node.name;
+    // Keep `name` stable for relation/path computations in react-workflow-viz.
+    // Use `title` as the user-facing grouped label.
+    node.title = `${count} ${fmt} ${noun}`;
 }
 
 function reindexByColumn(nodes = []) {
@@ -85,6 +94,32 @@ function reindexByColumn(nodes = []) {
                 node.indexInColumn = idx;
             });
     });
+}
+
+function mergeUniqueNodeRefs(existingList, incomingList){
+    const left = Array.isArray(existingList) ? existingList : [];
+    const right = Array.isArray(incomingList) ? incomingList : [];
+    if (right.length === 0) return left;
+    const seen = new Set(left.map(function(n){ return (n && (n.id || n.name)) || null; }));
+    const merged = left.slice();
+    right.forEach(function(n){
+        const key = (n && (n.id || n.name)) || null;
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        merged.push(n);
+    });
+    return merged;
+}
+
+function mergeNodeConnectivity(targetNode = {}, incomingNode = {}){
+    // Preserve relation/path discovery after compaction by aggregating references
+    // that react-workflow-viz uses for selection/path highlighting.
+    targetNode.inputOf = mergeUniqueNodeRefs(targetNode.inputOf, incomingNode.inputOf);
+    targetNode.outputOf = targetNode.outputOf || incomingNode.outputOf || null;
+    targetNode.inputNodes = mergeUniqueNodeRefs(targetNode.inputNodes, incomingNode.inputNodes);
+    targetNode.outputNodes = mergeUniqueNodeRefs(targetNode.outputNodes, incomingNode.outputNodes);
+    targetNode._source = mergeUniqueNodeRefs(targetNode._source, incomingNode._source);
+    targetNode._target = mergeUniqueNodeRefs(targetNode._target, incomingNode._target);
 }
 
 function coalesceGraphForCompactMode(graphData = {}) {
@@ -99,14 +134,23 @@ function coalesceGraphForCompactMode(graphData = {}) {
         const nodeType = node.nodeType || '';
         const col = typeof node.column === 'number' ? node.column : 0;
         const label = nodeDisplayLabel(node).toLowerCase();
-        if (nodeType === 'step') return `step|${col}|${label}`;
+        // Do not compact step nodes. Over-compacting steps collapses path context
+        // and makes selected-path arrows appear broken.
+        if (nodeType === 'step') return null;
         if (nodeType === 'input' || nodeType === 'output' || nodeType === 'input-group' || nodeType === 'output-group') {
-            // Aggressively compact auxiliary artifacts (txt/pdf), which are often
-            // diagnostics and dominate the view without improving pipeline readability.
-            if ((nodeType === 'input' || nodeType === 'output') && isAuxiliaryNode(node)) {
-                const ioType = (node.ioType || '').toLowerCase();
-                const stepAnchor = relatedStepAnchor(node);
-                return `${nodeType}|${col}|${ioType}|${stepAnchor}|aux-super-group`;
+            // Compact by side+step+format (ignoring argument-name text) to reduce repeated
+            // bam/fastq/etc while preserving directionality and step context.
+            if (isPrimaryDataNode(node)) {
+                const ioType = (node.ioType || 'data file').toLowerCase();
+                const fmt = extractNodeFileFormat(node) || 'any';
+                const tier = isAuxiliaryNode(node) ? 'aux' : 'core';
+                // Keep all auxiliary artifacts in a single bucket per side/column
+                // to avoid fragmented 15+4+1 style groups.
+                if (tier === 'aux') {
+                    return `${nodeType}|${col}|${ioType}|tier:aux|io-compact`;
+                }
+                // Core pipeline files still grouped by format.
+                return `${nodeType}|${col}|${ioType}|fmt:${fmt}|tier:${tier}|io-compact`;
             }
             return `${nodeType}|${col}|${label}|${(node.ioType || '').toLowerCase()}`;
         }
@@ -124,7 +168,7 @@ function coalesceGraphForCompactMode(graphData = {}) {
         const existing = mergedByKey.get(key);
         if (!existing) {
             const cloned = { ...node, _mergedCount: 1, _compactedNodes: [node] };
-            if ((node.nodeType === 'input' || node.nodeType === 'output') && isAuxiliaryNode(node)) {
+            if (isPrimaryDataNode(node) && isAuxiliaryNode(node)) {
                 cloned._isAuxiliaryGroup = true;
             }
             updateAuxGroupLabel(cloned);
@@ -137,9 +181,10 @@ function coalesceGraphForCompactMode(graphData = {}) {
         existing._mergedCount = (existing._mergedCount || 1) + 1;
         if (!Array.isArray(existing._compactedNodes)) existing._compactedNodes = [];
         existing._compactedNodes.push(node);
-        if ((node.nodeType === 'input' || node.nodeType === 'output') && isAuxiliaryNode(node)) {
+        if (isPrimaryDataNode(node) && isAuxiliaryNode(node)) {
             existing._isAuxiliaryGroup = true;
         }
+        mergeNodeConnectivity(existing, node);
         updateAuxGroupLabel(existing);
         if (node.isCurrentContext) existing.isCurrentContext = true;
         mergeMap.set(node, existing);

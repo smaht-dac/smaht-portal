@@ -440,6 +440,17 @@ export class WorkflowNodeElement extends React.PureComponent {
         }
 
         if (isNodeFile(node) && doesRunDataExist(node)){
+            if (node && node._mergedCount > 1 && !node._isAuxiliaryGroup){
+                const count = node._mergedCount || 1;
+                const fmt = WorkflowNodeElement.getFileFormatString(node) || 'file';
+                const noun = count === 1 ? 'file' : 'files';
+                return (
+                    <div className="node-name">
+                        { this.icon() }
+                        {`${count} ${fmt} ${noun}`}
+                    </div>
+                );
+            }
             if (node && node._isAuxiliaryGroup){
                 const count = node._mergedCount || getNodeRunDataFiles(node).length || 1;
                 const noun = count === 1 ? 'file' : 'files';

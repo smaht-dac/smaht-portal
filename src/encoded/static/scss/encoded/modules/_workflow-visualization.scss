@@ -11,6 +11,44 @@
             .node {
                 font-size: 0.9rem;
             }
+            // Higher-contrast, colorblind-friendlier palette for file node categories.
+            .node.node-type-global-input .node-visible-element {
+                background-color: #cfe0ff;
+                border-color: #2f6fda;
+                color: #0f2957;
+            }
+            .node.node-type-global-output .node-visible-element {
+                background-color: #d6efc9;
+                border-color: #2f8f48;
+                color: #10351d;
+            }
+            .node.node-type-input-file-reference .node-visible-element {
+                background-color: #e3d4ff;
+                border-color: #7a42d1;
+                color: #2d0f57;
+            }
+            .node.node-type-io-default .node-visible-element {
+                background-color: #fff0cc;
+                border-color: #c8821f;
+                color: #5b3600;
+            }
+            // Keep grouped nodes colorful too (avoid fallback gray look).
+            .node.node-grouped.node-type-global-input .node-visible-element {
+                background-color: #cfe0ff !important;
+                border-color: #2f6fda !important;
+            }
+            .node.node-grouped.node-type-global-output .node-visible-element {
+                background-color: #d6efc9 !important;
+                border-color: #2f8f48 !important;
+            }
+            .node.node-grouped.node-type-input-file-reference .node-visible-element {
+                background-color: #e3d4ff !important;
+                border-color: #7a42d1 !important;
+            }
+            .node.node-grouped.node-type-io-default .node-visible-element {
+                background-color: #fff0cc !important;
+                border-color: #c8821f !important;
+            }
             .node.node-type-step .node-visible-element .innermost .node-name {
                 white-space: normal;
                 line-height: 1.1;
@@ -38,9 +76,8 @@
                 border-color: #809eb9;
             }
             .node-grouped .node-visible-element {
-                background-color: #c1c7d6;
-                border-color: #8a95b2;
-                color: #0f1423;
+                // Remove intrusive grouped borders; keep clean color blocks.
+                box-shadow: none;
             }
         }
 
@@ -306,10 +343,32 @@
 }
 
 .workflow-legend-container .color-patch {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     margin-right: 0;
     top: 0;
+    border-radius: 2px;
+    border: none;
+}
+
+.workflow-legend-container .color-patch.node-type-global-input {
+    background-color: #cfe0ff !important;
+    border-color: #2f6fda !important;
+}
+
+.workflow-legend-container .color-patch.node-type-global-output {
+    background-color: #d6efc9 !important;
+    border-color: #2f8f48 !important;
+}
+
+.workflow-legend-container .color-patch.node-type-input-file-reference {
+    background-color: #e3d4ff !important;
+    border-color: #7a42d1 !important;
+}
+
+.workflow-legend-container .color-patch.node-type-io-default {
+    background-color: #fff0cc !important;
+    border-color: #c8821f !important;
 }
 
 .workflow-node-badges {
