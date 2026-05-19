@@ -7,12 +7,38 @@ smaht-portal
 Change Log
 ----------
 
-1.27.4
+1.27.7
 ======
 
 `PR 671: style: increase width of notifications panel <https://github.com/smaht-dac/smaht-portal/pull/671>`_
 
 * Increase width of notifications panel on larger screens
+
+
+1.27.6
+======
+
+`PR 673: feat: add p25 data freeze button on homepage <https://github.com/smaht-dac/smaht-portal/pull/673>`_
+
+* Add p25 button for data freeze
+
+
+1.27.5
+======
+
+`PR 674: fix: remove unecessary fields from selection query <https://github.com/smaht-dac/smaht-portal/pull/674>`_
+
+* Remove unused fields from selectAll query
+
+
+1.27.4
+======
+
+`PR 669: Stabilize Cypress docs navigation checks and allow donor-specific matrix total-check skip <https://github.com/smaht-dac/smaht-portal/pull/669>`_
+
+* made pipeline docs dropdown expansion assertions resilient to re-render/navigation behavior
+* normalized section-link text comparisons (e.g. donor-level vs donor level)
+* added a donor-specific escape hatch for strict matrix column-summary total validation
 
 
 1.27.3
