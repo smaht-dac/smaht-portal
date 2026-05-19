@@ -120,7 +120,13 @@ const manifest_enum_map = [
 
 export class SelectAllFilesButton extends React.PureComponent {
     /** These are fields included when "Select All" button is clicked to AJAX all files in */
-    static fieldsToRequest = ['accession', 'display_title', '@id', '@type', 'file_sets.@id'];
+    static fieldsToRequest = [
+        'accession',
+        'display_title',
+        '@id',
+        '@type',
+        'file_sets.@id',
+    ];
 
     constructor(props) {
         super(props);
@@ -174,6 +180,10 @@ export class SelectAllFilesButton extends React.PureComponent {
                 const currentHrefQuery = _.extend({}, currentHrefParts.query);
                 currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
                 currentHrefQuery.limit = 'all';
+
+                // Strip sort to avoid ES returning duplicate entries
+                delete currentHrefQuery.sort;
+
                 const reqHref =
                     currentHrefParts.pathname +
                     '?' +
