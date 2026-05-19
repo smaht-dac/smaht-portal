@@ -125,7 +125,14 @@ export class SelectAllFilesButton extends React.PureComponent {
         'display_title',
         '@id',
         '@type',
-        'file_sets.@id',
+        // 'file_sets.@id', //uncomment later
+        // comment below lines after testing SPC 0.1.100
+        'status',
+        'data_type',
+        'file_format.*',
+        'submission_centers.display_title',
+        'consortia.display_title',
+        'file_sets',
     ];
 
     constructor(props) {
@@ -182,7 +189,7 @@ export class SelectAllFilesButton extends React.PureComponent {
                 currentHrefQuery.limit = 'all';
 
                 // Strip sort to avoid ES returning duplicate entries
-                delete currentHrefQuery.sort;
+                // delete currentHrefQuery.sort; //temporarily commented for testing SPC 0.1.100
 
                 const reqHref =
                     currentHrefParts.pathname +
