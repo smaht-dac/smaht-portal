@@ -7,6 +7,91 @@ smaht-portal
 Change Log
 ----------
 
+
+1.27.5
+======
+
+`PR 674: fix: remove unecessary fields from selection query <https://github.com/smaht-dac/smaht-portal/pull/674>`_
+
+* Remove unused fields from selectAll query
+
+
+1.27.4
+======
+
+`PR 669: Stabilize Cypress docs navigation checks and allow donor-specific matrix total-check skip <https://github.com/smaht-dac/smaht-portal/pull/669>`_
+
+* made pipeline docs dropdown expansion assertions resilient to re-render/navigation behavior
+* normalized section-link text comparisons (e.g. donor-level vs donor level)
+* added a donor-specific escape hatch for strict matrix column-summary total validation
+
+
+1.27.3
+======
+
+* Bugfix - compute category for output files
+
+
+1.27.2
+======
+
+`PR 663: fix: update status param for homepage endpoint <https://github.com/smaht-dac/smaht-portal/pull/663>`_
+
+* Update statuses in homepage counts parameters
+
+
+1.27.1
+======
+
+`PR 665: fix: update pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/665>`_
+
+* Update pipeline docs styles
+* Update title of new pipeline docs page
+
+
+1.27.0
+======
+
+`PR 666: QC metrics improvements <https://github.com/smaht-dac/smaht-portal/pull/666>`_
+
+* Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
+
+
+1.26.2
+======
+
+`PR 661: feat: remove homepage top banner <https://github.com/smaht-dac/smaht-portal/pull/661>`_
+
+* Remove restricted access top banner alert in homepage
+
+
+1.26.1
+======
+
+`PR 657: Cypress: enhance data matrix tab routing and donor x tissue view validation tests <https://github.com/smaht-dac/smaht-portal/pull/657>`_
+
+* Enhanced Cypress tests for data matrix tab routing to validate correct URL updates and view rendering when switching between Production, Benchmarking, Donor x Assay, and Tissue x Assay tabs
+
+
+1.26.0
+======
+
+`PR 662: Fix Data Matrix count inconsistencies (DSA dedup + stable totals + Element AVITI mapping) <https://github.com/smaht-dac/smaht-portal/pull/662>`_
+
+* Refactor data matrix file count logic to deduplicate DSA-associated files, ensure stable totals across views, and map Element AVITI files to the correct assay category for accurate counting in the data matrix.
+
+
+1.25.0
+======
+
+`PR 624: SN EOF tissue info <https://github.com/smaht-dac/smaht-portal/pull/624>`_
+
+* Update the `create_annotated_filenames` script to have special handling of the tissue aliquot part for ExternalOutputFiles
+* For ExternalOutputFiles that don't have `file_sets` and do have `derived_from`, if the linked `derived_from` file has file_sets get tissue sample info from there, otherwise if the output MWFR of the `derived_from` file has `file_sets` get tissue sample info from there, otherwise check the input files of the output MWFR to get the tissue sample info. If none of these have `file_sets`, use "X"
+* Fix DSA filenames to use directly linked `file_sets` on SupplementaryFile, rather than grabbing from `derived_from`
+* Update the release script to release ExternalQualityMetrics items
+
+
 1.24.9
 ======
 

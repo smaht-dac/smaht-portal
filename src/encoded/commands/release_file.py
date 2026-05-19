@@ -137,6 +137,10 @@ class FileRelease:
         return self.get_items(file_utils.get_software(self.file))
 
     @cached_property
+    def external_quality_metrics(self) -> List[dict]:
+        return self.get_items(file_utils.get_external_quality_metrics(self.file))
+
+    @cached_property
     def quality_metrics(self) -> List[dict]:
         quality_metrics = self.get_items(file_utils.get_quality_metrics(self.file))
         if (
@@ -571,7 +575,7 @@ class FileRelease:
             # Currently only relevant for RNA-Seq data
             self.add_release_file_patchdict(file, dataset)
 
-        # Quality metrics and metrics zip will get the same status as the file
+        # Quality metrics, metrics zip, and external quality metrics will get the same status as the file
         self.add_release_items_to_patchdict(
             self.quality_metrics, "QualityMetric", self.target_file_status
         )
@@ -579,6 +583,9 @@ class FileRelease:
             self.quality_metrics_zips,
             "Compressed QC metrics file",
             self.target_file_status,
+        )
+        self.add_release_items_to_patchdict(
+            self.external_quality_metrics, "ExternalQualityMetric", self.target_file_status
         )
 
         if self.release_type != ANALYSIS_RUN_FILE_RELEASE:
