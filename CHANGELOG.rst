@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.27.6
+======
+
+`PR 673: feat: add p25 data freeze button on homepage <https://github.com/smaht-dac/smaht-portal/pull/673>`_
+
+* Add p25 button for data freeze
+
+
 1.27.5
 ======
 

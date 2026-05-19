@@ -843,6 +843,39 @@ body[data-path='/'] > #application > #layout {
                         }
                     }
 
+                    &.data-freeze {
+                        flex: none;
+
+                        .section-header span:hover {
+                            cursor: default;
+                        }
+
+                        .p25-link {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            background-color: #fcfdfe;
+                            border: 1px solid $cobalt-20;
+                            border-radius: 8px;
+                            color: #356588;
+                            font-size: 1rem;
+                            font-weight: 500;
+                            padding: 10px;
+                            transition: background-color 15ms ease-in;
+
+                            i {
+                                color: $cobalt-20;
+                                margin: auto;
+                            }
+
+                            &:hover {
+                                background-color: #f6f7f8;
+                            }
+                            &:hover {
+                                background-color: #f5f7f8;
+                            }
+                        }
+                    }
                     &.data-release-tracker {
                         display: flex;
 
