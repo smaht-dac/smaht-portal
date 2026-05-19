@@ -213,7 +213,13 @@ export class WorkflowNodeElement extends React.PureComponent {
                 output += '<small>Step</small>'; // Reg Step
             }
             // Step Title
-            output += '<h5 class="text-600 tooltip-title">' + ((meta && (meta.display_title || meta.name)) || name) + '</h5>';
+            const stepTitle = (
+                (meta && (meta.display_title || meta.name))
+                || node.title
+                || name
+                || 'Workflow step'
+            );
+            output += '<h5 class="text-600 tooltip-title">' + stepTitle + '</h5>';
         }
 
         if (nodeType === 'input-group'){
