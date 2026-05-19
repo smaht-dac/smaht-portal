@@ -8,12 +8,20 @@ Change Log
 ----------
 
 
-1.27.5
+1.27.6
 ======
 
 `PR 673: feat: add p25 data freeze button on homepage <https://github.com/smaht-dac/smaht-portal/pull/673>`_
 
 * Add p25 button for data freeze
+
+
+1.27.5
+======
+
+`PR 674: fix: remove unecessary fields from selection query <https://github.com/smaht-dac/smaht-portal/pull/674>`_
+
+* Remove unused fields from selectAll query
 
 
 1.27.4
