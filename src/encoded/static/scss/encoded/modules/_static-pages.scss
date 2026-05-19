@@ -846,6 +846,10 @@ body[data-path='/'] > #application > #layout {
                     &.data-freeze {
                         flex: none;
 
+                        .section-header span:hover {
+                            cursor: default;
+                        }
+
                         .p25-link {
                             display: flex;
                             justify-content: center;
