@@ -5,7 +5,7 @@ import { Popover, OverlayTrigger } from 'react-bootstrap';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 const FILTERD_SOMATIC_VARIANTS_URL =
-    '/browse/?analysis_details=Filtered&data_category=Somatic Variant Calls&donors.donor_groups=First 25 Donors [P25]&type=File';
+    '/browse/?analysis_details=Filtered&analysis_details=Phased&data_category=Somatic+Variant+Calls&data_category=Germline+Variant+Calls&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File';
 
 /**
  * NotificationsPanel component displays a panel containing the data release
@@ -45,7 +45,7 @@ export const NotificationsPanel = (props) => {
                     <a className="p25-link" href={FILTERD_SOMATIC_VARIANTS_URL}>
                         <span>
                             <i className="icon icon-fw icon-filter fas me-1"></i>
-                            Filtered Somatic Variants
+                            Filtered Variant Call Sets
                         </span>
                     </a>
                 </div>
