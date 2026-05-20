@@ -8,7 +8,7 @@ Change Log
 ----------
 
 
-1.27.8
+1.28.0
 ======
 
 `PR 608: feat: update latest release date on timeline <https://github.com/smaht-dac/smaht-portal/pull/608>`_
