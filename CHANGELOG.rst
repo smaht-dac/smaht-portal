@@ -7,13 +7,22 @@ smaht-portal
 Change Log
 ----------
 
-1.27.8
+1.27.9
 ======
 
 `PR 670: fix: prevent 0 value type cast <https://github.com/smaht-dac/smaht-portal/pull/670>` 
 
 * Align Protected with Public donor browse pages
 * Prevent "-" appearing for 0 value hardy_scale
+
+
+1.27.8
+======
+
+`PR 688: feat: update latest release date on timeline <https://github.com/smaht-dac/smaht-portal/pull/688>`_
+
+* Add parameters for latest file search for release date
+* Update homepage tests
 
 
 1.27.7
