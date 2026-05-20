@@ -186,9 +186,9 @@
             },
             "permission": "restricted_fields"
         },
-        "publication_group": {
-            "title": "Publication Group",
-            "description": "Field to specify this publication as belonging to a specific group.",
+        "publication_groups": {
+            "title": "Publication Group(s)",
+            "description": "Field to specify this publication as belonging to specific group(s).",
             "type": "array",
             "items": {
                 "type": "string",

@@ -15,7 +15,7 @@
         "repository_urls": ["https://example.com"],
         "journal_url": "https://examplejournal.com",
         "scope": "Network",
-        "publication_group": "Production",
+        "publication_groups": ["Production"],
         "is_preprint": false,
         "key_image_link": "https://example.com/image1",
         "key_image_thumbnail_link": "https://example.com/image1_thumb",
@@ -37,7 +37,7 @@
         "repository_urls": ["https://anotherexample.com"],
         "journal_url": "https://anotherjournal.com",
         "scope": "Individual Lab",
-        "publication_group": "Benchmarking",
+        "publication_groups": ["Benchmarking"],
         "is_preprint": true,
         "preprint_version": "2",
         "consortia": [
@@ -56,7 +56,7 @@
         "repository_urls": ["https://sampleexample.com", "https://sample2example.com"],
         "journal_url": "https://samplejournal.com",
         "scope": "Working group",
-        "publication_group": "Production",
+        "publication_groups": ["Production"],
         "is_preprint": false,
         "consortia": [
             "smaht"
