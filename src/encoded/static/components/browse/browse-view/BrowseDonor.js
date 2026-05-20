@@ -444,11 +444,7 @@ export function createBrowseDonorColumnExtensionMap({
                 const { data, loading, error } = parentProps?.fetchedProps;
 
                 const assayCount = data
-                    ?.find(
-                        (f) =>
-                            f.field ===
-                            'assays.display_title'
-                    )
+                    ?.find((f) => f.field === 'assays.display_title')
                     ?.terms?.reduce(
                         (acc, curr) => acc + (curr?.terms?.length ?? 1),
                         0

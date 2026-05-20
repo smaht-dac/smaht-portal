@@ -1,0 +1,153 @@
+import React from 'react';
+import { transformedFacets } from '../SearchView';
+import { BROWSE_LINKS } from '../BrowseView';
+import { BrowseViewAboveSearchTableControls } from '../browse-view/BrowseViewAboveSearchTableControls';
+import { SelectAllFilesButton } from '../../static-pages/components/SelectAllAboveTableComponent';
+import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
+import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
+import { Schemas } from '../../util';
+
+// Custom result row component for publication search results
+export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
+    const {
+        '@id': atId,
+        display_title,
+        annotated_filename,
+        short_citation = '',
+        scope = '',
+        date_published = '',
+        journal = '',
+        journal_url = '',
+        doi = '',
+    } = result || {};
+
+    return (
+        <div className="search-result-row">
+            <div className="">
+                <div className="thumbnail"></div>
+                <div className="title">
+                    <h4 className="value text-start fw-semibold">
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {display_title}
+                        </a>
+                    </h4>
+                    {short_citation && (
+                        <span className="text-gray-70">{short_citation}</span>
+                    )}
+                </div>
+            </div>
+            <div className="detail">
+                {scope && <span className="text-gray-70 fw-bold">{scope}</span>}
+                {date_published && <span>{date_published}</span>}
+                {journal_url && journal && (
+                    <a
+                        href={journal_url}
+                        target="_blank"
+                        rel="noreferrer noopener">
+                        {journal}
+                        {doi && <span>, {doi}</span>}
+                    </a>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// A column extension map specifically for browse view file tables.
+export function createBrowsePublicationColumnExtensionMap() {
+    const columnExtensionMap = {
+        ...originalColExtMap, // Pull in defaults for all tables
+    };
+
+    const columns = [];
+    const hideFacets = [];
+
+    return { columnExtensionMap, columns, hideFacets };
+}
+
+// Search Table
+export const BrowsePublicationSearchTable = (props) => {
+    const {
+        context,
+        currentAction,
+        schemas,
+        selectedItems,
+        onSelectItem,
+        onResetSelectedItems,
+        showFacets = true, // Passed in from BrowsePublicationSearch
+    } = props;
+
+    const facets = transformedFacets(context, currentAction, schemas);
+    const tableColumnClassName = 'results-column col';
+    const facetColumnClassName = 'facets-column col-auto';
+
+    const selectedFileProps = {
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+    };
+
+    // Pass modified context to CommonSearchView to set default filters
+    const passProps = {
+        ...props,
+        context: {
+            ...context,
+            clear_filters: BROWSE_LINKS.publication,
+        },
+    };
+
+    // Remove above table component
+    const aboveTableComponent = null;
+
+    const { columnExtensionMap, columns, hideFacets } =
+        createBrowsePublicationColumnExtensionMap(selectedFileProps);
+
+    return (
+        <div className="publication-search-table-container">
+            <h2 className="table-header text-gray-70 fs-3 fw-semibold">
+                {props.header_title || 'Publications'}
+            </h2>
+            <CommonSearchView
+                {...passProps}
+                {...{
+                    columnExtensionMap,
+                    tableColumnClassName,
+                    facetColumnClassName,
+                    facets,
+                    aboveFacetListComponent: null,
+                    aboveTableComponent,
+                    columns,
+                    hideFacets,
+                }}
+                toggleIcons={{
+                    open: <i className="icon icon-chevron-up" />,
+                    closed: <i className="icon icon-chevron-down" />,
+                }}
+                // Hide header row and facets header
+                hideHeaderRow={true}
+                hideFacetHeader={true}
+                rowHeight={150} // match your panel height so infinite scroll calculates correctly
+                renderResultRow={(result, rowNumber, rowProps) => {
+                    return (
+                        <PublicationSearchResultRow
+                            result={result}
+                            rowNumber={rowNumber}
+                            rowProps={rowProps}
+                        />
+                    );
+                }}
+                useCustomSelectionController
+                defaultClosedFacets={true}
+                hideStickyFooter
+                termTransformFxn={Schemas.Term.toName}
+                separateSingleTermFacets={false}
+                rowHeight={31}
+                openRowHeight={100}
+            />
+        </div>
+    );
+};

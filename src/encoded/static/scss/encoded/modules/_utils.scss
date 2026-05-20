@@ -2,13 +2,20 @@
 Assorted Mixins and other SASS utilities for making our lives easier.
 */
 
-
 .underline {
     text-decoration: underline;
 }
 
 .readable {
     max-width: 1000px;
+}
+
+// Text color utilities — generated from $text-color-utilities map in _tokens.scss
+// Usage: <span class="text-cobalt-70"> or <p class="text-slate-60">
+@each $name, $color in $text-color-utilities {
+    .text-#{$name} {
+        color: $color !important;
+    }
 }
 
 // Mixins
