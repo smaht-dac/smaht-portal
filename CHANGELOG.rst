@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+
+1.27.8
+======
+
+`PR 608: feat: update latest release date on timeline <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* Add publication item - schema, types, and dummy inserts for tests
+
 1.27.8
 ======
 
