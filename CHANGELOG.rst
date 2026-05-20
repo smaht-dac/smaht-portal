@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+
+1.28.0
+======
+
+`PR 608: feat: update latest release date on timeline <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* Add publication item - schema, types, and dummy inserts for tests
+
 1.27.8
 ======
 
@@ -38,6 +46,16 @@ Change Log
 `PR 674: fix: remove unecessary fields from selection query <https://github.com/smaht-dac/smaht-portal/pull/674>`_
 
 * Remove unused fields from selectAll query
+
+
+1.28.0
+======
+
+`PR 608: Add publication item to the portal schema/types <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* schema for Publication item
+* types file for Publication item
+* dummy inserts for tests
 
 
 1.27.4
