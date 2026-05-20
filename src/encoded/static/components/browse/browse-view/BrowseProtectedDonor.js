@@ -577,11 +577,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                 const { data, loading, error } = parentProps?.fetchedProps;
 
                 const assayCount = data
-                    ?.find(
-                        (f) =>
-                            f.field ===
-                            'assays.display_title'
-                    )
+                    ?.find((f) => f.field === 'assays.display_title')
                     ?.terms?.reduce(
                         (acc, curr) => acc + (curr?.terms?.length ?? 1),
                         0
@@ -707,12 +703,11 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         hardy_scale: {
             widthMap: { lg: 140, md: 140, sm: 140 },
             render: function (result, parentProps) {
-                const hardy_scale = result?.hardy_scale;
-                return hardy_scale ? (
+                return (
                     <span className="value text-center">
-                        {result?.hardy_scale}
+                        {result?.hardy_scale ?? null}
                     </span>
-                ) : null;
+                );
             },
         },
         // Cancer History
