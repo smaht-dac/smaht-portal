@@ -18,6 +18,25 @@ const FALLBACK_GROUP_NAME = 'N/A';
 const DEFAULT_MATRIX_BLOCK_WIDTH = 35;
 const DEFAULT_MATRIX_BLOCK_HORIZONTAL_EXTEND = 5;
 
+function getCountValueFromItem(item, countField) {
+    if (!item) return 0;
+    if (countField === 'donors') {
+        const donorsVal = Number(item?.counts?.donors);
+        if (Number.isFinite(donorsVal)) return donorsVal;
+        const donorCountVal = Number(item?.counts?.donor_count);
+        return Number.isFinite(donorCountVal) ? donorCountVal : 0;
+    }
+    const valueFromCounts = Number(item?.counts?.[countField]);
+    if (Number.isFinite(valueFromCounts)) return valueFromCounts;
+    const valueFromRoot = Number(item?.[countField]);
+    if (Number.isFinite(valueFromRoot)) return valueFromRoot;
+    if (countField === 'total_coverage') {
+        const fallbackCoverage = Number(item?.counts?.total_coverage ?? item?.total_coverage);
+        return Number.isFinite(fallbackCoverage) ? fallbackCoverage : 0;
+    }
+    return 0;
+}
+
 function renderVerticalRowGroupsExtended({
     rowGroupsExtended,
     rowGroupsExtendedKeys,
@@ -96,17 +115,6 @@ export class VisualBody extends React.PureComponent {
         const countFor = blockProps && blockProps.countFor ? blockProps.countFor : 'files';
         const blockType = blockProps && blockProps.blockType ? blockProps.blockType : 'regular';
         const countField = countFor === 'tissue_files' ? 'files' : countFor;
-        const getCountValue = (item) => {
-            if (!item || !item.counts) return 0;
-            if (countField === 'donors') {
-                const donorsVal = item.counts.donors;
-                if (typeof donorsVal === 'number') return donorsVal;
-                const donorCountVal = item.counts.donor_count;
-                return typeof donorCountVal === 'number' ? donorCountVal : 0;
-            }
-            const value = item.counts[countField];
-            return typeof value === 'number' ? value : 0;
-        };
         const getUniqueDonorCountFromItems = (items) => {
             if (!Array.isArray(items)) return null;
             const donorSet = new Set();
@@ -127,11 +135,11 @@ export class VisualBody extends React.PureComponent {
                     const uniqueDonorCount = getUniqueDonorCountFromItems(data);
                     if (uniqueDonorCount !== null) return uniqueDonorCount;
                     return _.reduce(data, function (maxValue, item) {
-                        return Math.max(maxValue, getCountValue(item));
+                        return Math.max(maxValue, getCountValueFromItem(item, countField));
                     }, 0);
                 })()
-                : _.reduce(data, function (sum, item) { return sum + getCountValue(item); }, 0))
-            : (data ? getCountValue(data) : 0);
+                : _.reduce(data, function (sum, item) { return sum + getCountValueFromItem(item, countField); }, 0))
+            : (data ? getCountValueFromItem(data, countField) : 0);
 
         // For total_coverage, we want to display the value with "X" and
         // use a different formatting logic. For other count types, we display the raw count with standard formatting.
@@ -713,7 +721,7 @@ export class VisualBody extends React.PureComponent {
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
                     'countFor', 'overallCounts', 'showUniqueDonorsAssayBand', 'shrinkEmptyColumns',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing', 'rowSummaryCountsByGroup',
-                    'compactCoverageText', 'disableRowExpand',
+                    'compactCoverageText', 'disableRowExpand', 'disableBlockOpen',
                     'headerLeftControls')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -1071,6 +1079,10 @@ export class StackedBlockVisual extends React.PureComponent {
     };
 
     handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType = null) => {
+        if (this.props.disableBlockOpen) {
+            this.setState({ openBlock: null });
+            return;
+        }
         const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType } : null;
         if (openBlock) {
             setTimeout(() => {
@@ -2532,17 +2544,6 @@ const Block = React.memo(function Block(props){
 
     const countFor = props.countFor || 'files';
     const effectiveCountFor = countFor === 'tissue_files' ? 'files' : countFor;
-    const getCountValue = (item) => {
-        if (!item || !item.counts) return 0;
-        if (effectiveCountFor === 'donors') {
-            const donorsVal = item.counts.donors;
-            if (typeof donorsVal === 'number') return donorsVal;
-            const donorCountVal = item.counts.donor_count;
-            return typeof donorCountVal === 'number' ? donorCountVal : 0;
-        }
-        const value = item.counts[effectiveCountFor];
-        return typeof value === 'number' ? value : 0;
-    };
     const getUniqueDonorCountFromItems = (items) => {
         if (!Array.isArray(items)) return null;
         const donorSet = new Set();
@@ -2562,10 +2563,10 @@ const Block = React.memo(function Block(props){
             ? (() => {
                 const uniqueDonorCount = getUniqueDonorCountFromItems(argData);
                 if (uniqueDonorCount !== null) return uniqueDonorCount;
-                return _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValue(item)); }, 0);
+                return _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValueFromItem(item, effectiveCountFor)); }, 0);
             })()
-            : _.reduce(argData, function (sum, item) { return sum + getCountValue(item); }, 0))
-        : (argData ? getCountValue(argData) : 0);
+            : _.reduce(argData, function (sum, item) { return sum + getCountValueFromItem(item, effectiveCountFor); }, 0))
+        : (argData ? getCountValueFromItem(argData, effectiveCountFor) : 0);
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
     const hideCoverageSummaryBlock = countFor === 'total_coverage' && blockType === 'col-summary';
     if (hideCoverageBlock || hideCoverageSummaryBlock) {
@@ -2587,7 +2588,11 @@ const Block = React.memo(function Block(props){
         return range ? range.color : null;
     };
 
-    const color = getColor(blockValue, blockType);
+    let color = getColor(blockValue, blockType);
+    if (!color && blockType === 'regular' && blockValue > 0 && Array.isArray(colorRanges) && colorRanges.length > 0) {
+        // Ensure positive coverage cells never look empty when value is present.
+        color = colorRanges[0].color || null;
+    }
 
     const isOpenBlock = openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
         ((blockType === 'col-summary' || blockType === 'col-secondary-summary')
@@ -2600,8 +2605,15 @@ const Block = React.memo(function Block(props){
         style['borderColor'] = 'transparent';
         style['pointerEvents'] = 'none';
     } else if (isOpenBlock) {
-        style['color'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
-        style['borderColor'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
+        if (isSummaryBlock(blockType)) {
+            style['color'] = '#8a8aaa';
+            style['borderColor'] = '#8a8aaa';
+        } else {
+            // Keep valid data blocks visually filled while "open" so they don't look empty.
+            style['backgroundColor'] = color;
+            style['color'] = '#ffffff';
+            style['borderColor'] = color;
+        }
         style['pointerEvents'] = 'none'; // disable pointer events when block is open
         className += ' is-open-block';
     } else {

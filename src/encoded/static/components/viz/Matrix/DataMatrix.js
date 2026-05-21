@@ -1633,6 +1633,7 @@ export default class DataMatrix extends React.PureComponent {
             countFor,
             compactCoverageText: countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             disableRowExpand: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            disableBlockOpen: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             overallCounts: effectiveOverallCounts,
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
