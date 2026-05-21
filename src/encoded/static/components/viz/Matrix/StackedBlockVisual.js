@@ -143,10 +143,15 @@ export class VisualBody extends React.PureComponent {
                 return <span data-count={blockSum}>-</span>;
             }
             if (blockSum <= 0) return <span data-count={blockSum}>0</span>;
-            const rounded = blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum);
+            const compactCoverageText = !!(blockProps && blockProps.compactCoverageText);
+            const rounded = compactCoverageText
+                ? Math.round(blockSum)
+                : (blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum));
             const tooltipValue = rounded.toLocaleString();
             const display = `${rounded.toLocaleString()}X`;
-            const fontSize = display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem');
+            const fontSize = compactCoverageText
+                ? (display.length > 6 ? '0.60rem' : (display.length > 4 ? '0.66rem' : '0.72rem'))
+                : (display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem'));
             return (
                 <span style={{ fontSize }} data-count={blockSum} data-tip={tooltipValue}>
                     {display}
@@ -696,9 +701,9 @@ export class VisualBody extends React.PureComponent {
     }
 
     render(){
-        const { results: { all, row_totals, column_totals } } = this.props;
+        const { results: { all, row_totals, column_totals }, disableRowExpand = false } = this.props;
         return (
-            <StackedBlockVisual data={all} rowTotals={row_totals} columnTotals={column_totals} checkCollapsibility
+            <StackedBlockVisual data={all} rowTotals={row_totals} columnTotals={column_totals} checkCollapsibility={!disableRowExpand}
                 {..._.pick(this.props,
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
                     'columnSubGrouping', 'defaultDepthsOpen',
@@ -708,6 +713,7 @@ export class VisualBody extends React.PureComponent {
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
                     'countFor', 'overallCounts', 'showUniqueDonorsAssayBand', 'shrinkEmptyColumns',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing', 'rowSummaryCountsByGroup',
+                    'compactCoverageText', 'disableRowExpand',
                     'headerLeftControls')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -1687,7 +1693,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle',
             // Generic summary overrides keyed by grouping field and row value.
-            'countFor', 'rowSummaryCountsByGroup');
+            'countFor', 'rowSummaryCountsByGroup', 'compactCoverageText');
         const getContainerGroupStyle = function(columnKey = 'overall-summary') {
             const width = StackedBlockGroupedRow.getColumnWidthForKey(columnKey, props);
             return {
@@ -2381,7 +2387,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const getChildRowsKeys = () => (!Array.isArray(data) ? _.keys(data).sort() : null);
         const getHasIdentifiableChildren = (childRowsKeys) => {
-            if (!checkCollapsibility) return true;
+            if (!checkCollapsibility) return false;
             return (depth + 2 >= groupingProperties.length) &&
                 childRowsKeys && childRowsKeys.length > 0 &&
                 !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');

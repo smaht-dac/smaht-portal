@@ -1631,11 +1631,15 @@ export default class DataMatrix extends React.PureComponent {
                 ? donorTissueShrinkEmptyColumns
                 : true,
             countFor,
+            compactCoverageText: countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            disableRowExpand: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             overallCounts: effectiveOverallCounts,
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
-            ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
+            ...(countFor === 'total_coverage' && matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
+                ? { blockWidth: 60, blockHorizontalExtend: 10 }
+                : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey
                 ? ((filteringProperties, blockType) => {
                     const transformFn = DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey];
