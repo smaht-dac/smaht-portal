@@ -125,21 +125,108 @@ export class SelectAllFilesButton extends React.PureComponent {
         'display_title',
         '@id',
         '@type',
-        // 'file_sets.@id', //uncomment later
-        // comment below lines after testing SPC 0.1.100
-        'status',
-        'data_type',
-        'file_format.*',
-        'submission_centers.display_title',
-        'consortia.display_title',
-        'file_sets',
+        'file_sets.@id'
     ];
+    // Keep local batches intentionally small for easier debugging and request tracing.
+    // Production/staging continue to use a larger default for fewer round trips.
+    static defaultPageSize =
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1')
+            ? 25
+            : 500;
+    static defaultConcurrentRequests = 4;
+    static propTypes = {
+        context: PropTypes.object,
+        selectedItems: PropTypes.object,
+        onSelectItem: PropTypes.func,
+        onResetSelectedItems: PropTypes.func,
+        type: PropTypes.string,
+        selectAllPageSize: PropTypes.number,
+        selectAllConcurrentRequests: PropTypes.number,
+    };
 
     constructor(props) {
         super(props);
         this.isAllSelected = this.isAllSelected.bind(this);
         this.handleSelectAll = this.handleSelectAll.bind(this);
+        this.fetchAllPagesForSelection = this.fetchAllPagesForSelection.bind(
+            this
+        );
         this.state = { selecting: false };
+    }
+
+    getSelectAllConfig() {
+        const {
+            context = {},
+            selectAllPageSize = SelectAllFilesButton.defaultPageSize,
+            selectAllConcurrentRequests = SelectAllFilesButton.defaultConcurrentRequests,
+        } = this.props;
+        const { total = 0 } = context;
+        const safeTotal = Number.isFinite(total) ? total : 0;
+        const safePageSize = Math.max(1, Number(selectAllPageSize) || 1);
+        const safeConcurrentRequests = Math.max(
+            1,
+            Number(selectAllConcurrentRequests) || 1
+        );
+        return {
+            total: safeTotal,
+            pageSize: safePageSize,
+            concurrentRequests: safeConcurrentRequests,
+        };
+    }
+
+    async fetchAllPagesForSelection(searchHref) {
+        const currentHrefParts = memoizedUrlParse(searchHref);
+        const currentHrefQuery = _.extend({}, currentHrefParts.query);
+        const { total, pageSize, concurrentRequests } = this.getSelectAllConfig();
+
+        currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
+        currentHrefQuery.limit = pageSize;
+
+        delete currentHrefQuery.sort;
+
+        // Build pagination offsets (`from`) and request each page with `limit=pageSize`.
+        const pageStarts = [];
+        for (let from = 0; from < total; from += pageSize) {
+            pageStarts.push(from);
+        }
+        if (pageStarts.length === 0) {
+            pageStarts.push(0);
+        }
+
+        const fetchedResults = [];
+
+        // Fetch in bounded concurrent batches to avoid overwhelming the API.
+        for (
+            let batchStart = 0;
+            batchStart < pageStarts.length;
+            batchStart += concurrentRequests
+        ) {
+            const batchStarts = pageStarts.slice(
+                batchStart,
+                batchStart + concurrentRequests
+            );
+            const batchResponses = await Promise.all(
+                batchStarts.map((from) => {
+                    const query = { ...currentHrefQuery, from };
+                    const reqHref =
+                        currentHrefParts.pathname +
+                        '?' +
+                        queryString.stringify(query);
+                    return ajax.promise(reqHref);
+                })
+            );
+
+            batchResponses.forEach((resp) => {
+                const pageItems = (resp && resp['@graph']) || [];
+                if (Array.isArray(pageItems) && pageItems.length > 0) {
+                    fetchedResults.push(...pageItems);
+                }
+            });
+        }
+
+        return fetchedResults;
     }
 
     isEnabled() {
@@ -183,56 +270,57 @@ export class SelectAllFilesButton extends React.PureComponent {
 
         this.setState({ selecting: true }, () => {
             if (!this.isAllSelected()) {
-                const currentHrefParts = memoizedUrlParse(searchHref);
-                const currentHrefQuery = _.extend({}, currentHrefParts.query);
-                currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
-                currentHrefQuery.limit = 'all';
+                this.fetchAllPagesForSelection(searchHref)
+                    .then((filesToSelect) => {
+                        onSelectItem(filesToSelect, true);
+                        this.setState({ selecting: false });
 
-                // Strip sort to avoid ES returning duplicate entries
-                // delete currentHrefQuery.sort; //temporarily commented for testing SPC 0.1.100
-
-                const reqHref =
-                    currentHrefParts.pathname +
-                    '?' +
-                    queryString.stringify(currentHrefQuery);
-
-                ajax.load(reqHref, (resp) => {
-                    const filesToSelect = resp['@graph'] || [];
-                    onSelectItem(filesToSelect, true);
-                    this.setState({ selecting: false });
-
-                    //analytics
-                    const extData = {
-                        item_list_name: analytics.hrefToListName(
-                            window && window.location.href
-                        ),
-                    };
-                    const products = analytics.transformItemsToProducts(
-                        filesToSelect,
-                        extData
-                    );
-                    const productsLength = Array.isArray(products)
-                        ? products.length
-                        : filesToSelect.length;
-                    analytics.event(
-                        'add_to_cart',
-                        'SelectAllFilesButton',
-                        'Select All',
-                        function () {
-                            console.info(
-                                `Adding ${productsLength} items from cart.`
-                            );
-                        },
-                        {
-                            items: Array.isArray(products) ? products : null,
-                            list_name: extData.item_list_name,
-                            value: productsLength,
-                            // filters: analytics.getStringifiedCurrentFilters(
-                            //     (context && context.filters) || null
-                            // ),
-                        }
-                    );
-                });
+                        //analytics
+                        const extData = {
+                            item_list_name: analytics.hrefToListName(
+                                window && window.location.href
+                            ),
+                        };
+                        const products = analytics.transformItemsToProducts(
+                            filesToSelect,
+                            extData
+                        );
+                        const productsLength = Array.isArray(products)
+                            ? products.length
+                            : filesToSelect.length;
+                        analytics.event(
+                            'add_to_cart',
+                            'SelectAllFilesButton',
+                            'Select All',
+                            function () {
+                                console.info(
+                                    `Adding ${productsLength} items from cart.`
+                                );
+                            },
+                            {
+                                items: Array.isArray(products)
+                                    ? products
+                                    : null,
+                                list_name: extData.item_list_name,
+                                value: productsLength,
+                                // filters: analytics.getStringifiedCurrentFilters(
+                                //     (context && context.filters) || null
+                                // ),
+                            }
+                        );
+                    })
+                    .catch((err) => {
+                        console.error(
+                            'Failed to fetch all pages for Select All',
+                            err
+                        );
+                        Alerts.queue({
+                            title: 'Select All Failed',
+                            message:
+                                'Unable to fetch all pages of files for selection. Please try again.',
+                        });
+                        this.setState({ selecting: false });
+                    });
             } else {
                 onResetSelectedItems();
                 this.setState({ selecting: false });
