@@ -2414,6 +2414,8 @@ body[data-path="/statistics"] {
             }
 
             .stacked-block.is-open-block {
+                // Keep semantic fill color from JS (do not force white), otherwise
+                // valid coverage cells can look empty when selected/open.
                 opacity: 1 !important;
                 font-weight: 600 !important;
                 border-width: 2px !important;

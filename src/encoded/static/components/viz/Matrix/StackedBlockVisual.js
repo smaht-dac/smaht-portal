@@ -30,6 +30,8 @@ function getCountValueFromItem(item, countField) {
     if (Number.isFinite(valueFromCounts)) return valueFromCounts;
     const valueFromRoot = Number(item?.[countField]);
     if (Number.isFinite(valueFromRoot)) return valueFromRoot;
+    // Coverage payloads are not perfectly uniform across transformed rows;
+    // guard both nested and root aliases so valid values don't render as empty.
     if (countField === 'total_coverage') {
         const fallbackCoverage = Number(item?.counts?.total_coverage ?? item?.total_coverage);
         return Number.isFinite(fallbackCoverage) ? fallbackCoverage : 0;
@@ -1079,6 +1081,7 @@ export class StackedBlockVisual extends React.PureComponent {
     };
 
     handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType = null) => {
+        // Donor x Tissue view keeps blocks non-interactive to avoid accidental "open" white-state styling.
         if (this.props.disableBlockOpen) {
             this.setState({ openBlock: null });
             return;
@@ -2589,8 +2592,9 @@ const Block = React.memo(function Block(props){
     };
 
     let color = getColor(blockValue, blockType);
+    // Safety fallback: if a positive value misses a color bucket, still paint it so
+    // value-present cells never appear as blank white boxes.
     if (!color && blockType === 'regular' && blockValue > 0 && Array.isArray(colorRanges) && colorRanges.length > 0) {
-        // Ensure positive coverage cells never look empty when value is present.
         color = colorRanges[0].color || null;
     }
 

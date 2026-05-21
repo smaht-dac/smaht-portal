@@ -1631,8 +1631,12 @@ export default class DataMatrix extends React.PureComponent {
                 ? donorTissueShrinkEmptyColumns
                 : true,
             countFor,
+            // Donor x Tissue can exceed horizontal space in coverage view; keep default cell width here
+            // and render compact labels instead of widening cells.
             compactCoverageText: countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            // Donor x Tissue should not expose expand controls.
             disableRowExpand: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            // Donor x Tissue blocks are informational; disable click-to-open highlighting/popover selection.
             disableBlockOpen: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             overallCounts: effectiveOverallCounts,
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
