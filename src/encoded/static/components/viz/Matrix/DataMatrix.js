@@ -1786,8 +1786,8 @@ export default class DataMatrix extends React.PureComponent {
                     const headerLeftControls = (assaySelect || metricToggle) ? (
                         isDonorTissueMatrix ? (
                             <div className="matrix-donor-tissue-controls-stack">
-                                {assaySelect}
                                 {metricToggle}
+                                {assaySelect}
                             </div>
                         ) : (
                             <React.Fragment>
