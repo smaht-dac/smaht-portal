@@ -1702,7 +1702,7 @@ export default class DataMatrix extends React.PureComponent {
                     const showLeftPanel = showFacetsPanel;
 
                     const assaySelect = isDonorTissueMatrix ? (
-                        <div className="matrix-top-controls matrix-assay-select-control">
+                        <div className={isDonorTissueMatrix ? "matrix-assay-select-control" : "matrix-top-controls matrix-assay-select-control"}>
                             <div className="matrix-assay-select-inline">
                                 <label className="matrix-assay-select-label" htmlFor={`matrix-assay-select-${idLabel || 'default'}`}>
                                     <i className="icon fas icon-dna" /> Assay
@@ -1720,8 +1720,8 @@ export default class DataMatrix extends React.PureComponent {
                         </div>
                     ) : null;
 
-                    const metricToggle = showCountsPanel && !isDonorTissueMatrix ? (
-                        <div className="matrix-top-controls matrix-visual-metric-controls">
+                    const metricToggle = showCountsPanel ? (
+                        <div className={isDonorTissueMatrix ? "matrix-visual-metric-controls" : "matrix-top-controls matrix-visual-metric-controls"}>
                             <div className="matrix-counts-toggle matrix-counts-toggle-inline">
                                 <IconToggle
                                     options={isTissueMatrix ? [
@@ -1772,6 +1772,20 @@ export default class DataMatrix extends React.PureComponent {
                                 />
                             </div>
                         </div>
+                    ) : null;
+
+                    const headerLeftControls = (assaySelect || metricToggle) ? (
+                        isDonorTissueMatrix ? (
+                            <div className="matrix-donor-tissue-controls-stack">
+                                {assaySelect}
+                                {metricToggle}
+                            </div>
+                        ) : (
+                            <React.Fragment>
+                                {assaySelect}
+                                {metricToggle}
+                            </React.Fragment>
+                        )
                     ) : null;
 
                     return (
@@ -1860,7 +1874,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField')}
                                                 {...bodyProps}
                                                 headerPadding={effectiveHeaderPadding}
-                                                headerLeftControls={assaySelect || metricToggle}
+                                                headerLeftControls={headerLeftControls}
                                                 columnSubGrouping=""// leave blank for now
                                                 // eslint-disable-next-line react/destructuring-assignment
                                                 results={effectiveResults}

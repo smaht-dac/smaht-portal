@@ -1589,6 +1589,7 @@ body[data-path="/statistics"] {
         overflow: visible;
     }
 
+
     .matrix-mode-tabs-row {
         border-bottom: 1px solid #c7d5e4;
         width: 100%;
@@ -1888,6 +1889,7 @@ body[data-path="/statistics"] {
                         width: 320px;
                         max-width: 320px;
                     }
+
                 }
             }
 
@@ -2656,6 +2658,64 @@ body[data-path="/statistics"] {
     }
 
     &.matrix-mode-donor-tissue {
+        .stacked-block-viz-container {
+            .header-for-viz {
+                .header-group-text {
+                    .header-group-controls-inline {
+                        width: 240px;
+                        max-width: 240px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.35rem;
+                        justify-content: center;
+                        align-items: flex-start;
+
+                        .matrix-donor-tissue-controls-stack {
+                            width: 240px;
+                            max-width: 240px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.3rem;
+                            margin-bottom: 0.65rem;
+
+                            .matrix-assay-select-control,
+                            .matrix-visual-metric-controls {
+                                width: 240px;
+                                max-width: 240px;
+                                margin: 0 !important;
+                            }
+
+                            .matrix-assay-select-inline {
+                                min-width: 240px;
+                                max-width: 240px;
+                            }
+
+                            .matrix-visual-metric-controls {
+                                .matrix-counts-toggle-inline {
+                                    width: 240px;
+
+                                    .view-toggle {
+                                        width: 100%;
+                                        display: grid;
+                                        grid-template-columns: 1fr 1fr;
+                                        column-gap: 0.25rem;
+                                        justify-content: initial;
+
+                                        .btn {
+                                            width: 100%;
+                                            min-width: 0;
+                                            justify-content: center;
+                                            text-align: center;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         .matrix-counts-panel {
             .matrix-facet-terms-panel.search-view-controls-and-results {
                 .facets-container .facets-header.row {
