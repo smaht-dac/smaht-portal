@@ -154,7 +154,42 @@ export class SelectAllFilesButton extends React.PureComponent {
         this.fetchAllPagesForSelection = this.fetchAllPagesForSelection.bind(
             this
         );
-        this.state = { selecting: false, selectingProgress: 0 };
+        this.updateProgressTrackWidth = this.updateProgressTrackWidth.bind(this);
+        this.selectAllButtonRef = React.createRef();
+        this.state = { selecting: false, selectingProgress: 0, progressTrackWidth: null };
+    }
+
+    componentDidMount() {
+        this.updateProgressTrackWidth();
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', this.updateProgressTrackWidth);
+        }
+    }
+
+    componentWillUnmount() {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('resize', this.updateProgressTrackWidth);
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        const { selecting, selectingProgress } = this.state;
+        if (
+            prevState.selecting !== selecting ||
+            prevState.selectingProgress !== selectingProgress
+        ) {
+            this.updateProgressTrackWidth();
+        }
+    }
+
+    updateProgressTrackWidth() {
+        if (!this.selectAllButtonRef.current) return;
+        const nextWidth = Math.ceil(
+            this.selectAllButtonRef.current.getBoundingClientRect().width
+        );
+        if (nextWidth > 0 && this.state.progressTrackWidth !== nextWidth) {
+            this.setState({ progressTrackWidth: nextWidth });
+        }
     }
 
     getSelectAllConfig() {
@@ -358,7 +393,7 @@ export class SelectAllFilesButton extends React.PureComponent {
     }
 
     render() {
-        const { selecting, selectingProgress } = this.state;
+        const { selecting, selectingProgress, progressTrackWidth } = this.state;
         const { type } = this.props;
 
         const isAllSelected = this.isAllSelected();
@@ -392,6 +427,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         return (
             <div className="d-inline-flex flex-column">
                 <button
+                    ref={this.selectAllButtonRef}
                     type="button"
                     id="select-all-files-button"
                     disabled={selecting || (!isAllSelected && !isEnabled)}
@@ -411,7 +447,16 @@ export class SelectAllFilesButton extends React.PureComponent {
                 {selecting ? (
                     <div
                         className="progress mt-03"
-                        style={{ height: '3px', minWidth: '120px' }}>
+                        style={{
+                            height: '3px',
+                            width:
+                                progressTrackWidth && Number.isFinite(progressTrackWidth)
+                                    ? `${progressTrackWidth}px`
+                                    : '100%',
+                            minWidth: '120px',
+                            overflow: 'hidden',
+                            boxSizing: 'border-box',
+                        }}>
                         <div
                             className="progress-bar"
                             role="progressbar"
