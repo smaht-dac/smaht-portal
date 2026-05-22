@@ -136,6 +136,7 @@ export class SelectAllFilesButton extends React.PureComponent {
             ? 25
             : 500;
     static defaultConcurrentRequests = 4;
+    static localhostBatchDelayMs = 1500;
     static propTypes = {
         context: PropTypes.object,
         selectedItems: PropTypes.object,
@@ -153,7 +154,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         this.fetchAllPagesForSelection = this.fetchAllPagesForSelection.bind(
             this
         );
-        this.state = { selecting: false };
+        this.state = { selecting: false, selectingProgress: 0 };
     }
 
     getSelectAllConfig() {
@@ -196,6 +197,10 @@ export class SelectAllFilesButton extends React.PureComponent {
         }
 
         const fetchedResults = [];
+        const isLocalhost =
+            typeof window !== 'undefined' &&
+            (window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1');
 
         // Fetch in bounded concurrent batches to avoid overwhelming the API.
         for (
@@ -217,6 +222,14 @@ export class SelectAllFilesButton extends React.PureComponent {
                     return ajax.promise(reqHref);
                 })
             );
+            const completedPages = Math.min(
+                pageStarts.length,
+                batchStart + batchStarts.length
+            );
+            const selectingProgress = Math.round(
+                (completedPages / pageStarts.length) * 100
+            );
+            this.setState({ selectingProgress });
 
             batchResponses.forEach((resp) => {
                 const pageItems = (resp && resp['@graph']) || [];
@@ -224,6 +237,16 @@ export class SelectAllFilesButton extends React.PureComponent {
                     fetchedResults.push(...pageItems);
                 }
             });
+
+            // Dev-only pacing so progress UI can be observed with small local datasets.
+            if (isLocalhost && batchStart + batchStarts.length < pageStarts.length) {
+                await new Promise((resolve) => {
+                    window.setTimeout(
+                        resolve,
+                        SelectAllFilesButton.localhostBatchDelayMs
+                    );
+                });
+            }
         }
 
         return fetchedResults;
@@ -268,12 +291,15 @@ export class SelectAllFilesButton extends React.PureComponent {
             );
         }
 
-        this.setState({ selecting: true }, () => {
+        this.setState({ selecting: true, selectingProgress: 0 }, () => {
             if (!this.isAllSelected()) {
                 this.fetchAllPagesForSelection(searchHref)
                     .then((filesToSelect) => {
                         onSelectItem(filesToSelect, true);
-                        this.setState({ selecting: false });
+                        this.setState({
+                            selecting: false,
+                            selectingProgress: 0,
+                        });
 
                         //analytics
                         const extData = {
@@ -319,17 +345,20 @@ export class SelectAllFilesButton extends React.PureComponent {
                             message:
                                 'Unable to fetch all pages of files for selection. Please try again.',
                         });
-                        this.setState({ selecting: false });
+                        this.setState({
+                            selecting: false,
+                            selectingProgress: 0,
+                        });
                     });
             } else {
                 onResetSelectedItems();
-                this.setState({ selecting: false });
+                this.setState({ selecting: false, selectingProgress: 0 });
             }
         });
     }
 
     render() {
-        const { selecting } = this.state;
+        const { selecting, selectingProgress } = this.state;
         const { type } = this.props;
 
         const isAllSelected = this.isAllSelected();
@@ -361,19 +390,39 @@ export class SelectAllFilesButton extends React.PureComponent {
         }
 
         return (
-            <button
-                type="button"
-                id="select-all-files-button"
-                disabled={selecting || (!isAllSelected && !isEnabled)}
-                className={cls}
-                onClick={this.handleSelectAll}
-                data-tip={tooltip}>
-                <i className={iconClassName} />
-                <span className="d-none d-md-inline text-400">
-                    {isAllSelected ? 'Deselect' : 'Select'}{' '}
-                </span>
-                <span className="text-600">All</span>
-            </button>
+            <div className="d-inline-flex flex-column">
+                <button
+                    type="button"
+                    id="select-all-files-button"
+                    disabled={selecting || (!isAllSelected && !isEnabled)}
+                    className={cls}
+                    onClick={this.handleSelectAll}
+                    data-tip={tooltip}>
+                    <i className={iconClassName} />
+                    <span className="d-none d-md-inline text-400">
+                        {selecting
+                            ? `Selecting ${selectingProgress}%`
+                            : isAllSelected
+                            ? 'Deselect'
+                            : 'Select'}{' '}
+                    </span>
+                    <span className="text-600">All</span>
+                </button>
+                {selecting ? (
+                    <div
+                        className="progress mt-03"
+                        style={{ height: '3px', minWidth: '120px' }}>
+                        <div
+                            className="progress-bar"
+                            role="progressbar"
+                            style={{ width: `${selectingProgress}%` }}
+                            aria-valuenow={selectingProgress}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        />
+                    </div>
+                ) : null}
+            </div>
         );
     }
 }
