@@ -7,43 +7,10 @@ smaht-portal
 Change Log
 ----------
 
-1.27.3
-======
+1.26.2
+=======
 
 * Bugfix - compute category for output files
-
-
-1.27.2
-======
-
-`PR 663: fix: update status param for homepage endpoint <https://github.com/smaht-dac/smaht-portal/pull/663>`_
-
-* Update statuses in homepage counts parameters
-
-
-1.27.1
-======
-
-`PR 665: fix: update pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/665>`_
-
-* Update pipeline docs styles
-* Update title of new pipeline docs page
-
-
-1.27.0
-======
-
-`PR 666: QC metrics improvements <https://github.com/smaht-dac/smaht-portal/pull/666>`_
-
-* Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
-
-
-1.26.2
-======
-
-`PR 661: feat: remove homepage top banner <https://github.com/smaht-dac/smaht-portal/pull/661>`_
-
-* Remove restricted access top banner alert in homepage
 
 
 1.26.1
