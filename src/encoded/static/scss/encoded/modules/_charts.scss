@@ -2663,35 +2663,40 @@ body[data-path="/statistics"] {
             .header-for-viz {
                 .header-group-text {
                     .header-group-controls-inline {
-                        width: 240px;
-                        max-width: 240px;
+                        width: 300px;
+                        max-width: 300px;
                         display: flex;
                         flex-direction: column;
                         gap: 0.35rem;
                         justify-content: center;
-                        align-items: flex-start;
+                        align-items: center;
+                        transform: translateY(-70%);
 
                         .matrix-donor-tissue-controls-stack {
-                            width: 240px;
-                            max-width: 240px;
+                            width: 300px;
+                            max-width: 300px;
                             display: flex;
                             flex-direction: column;
-                            gap: 0.3rem;
+                            gap: 0.55rem;
                             margin-bottom: 0.65rem;
 
                             .matrix-assay-select-control,
-                            .matrix-visual-metric-controls {
-                                width: 240px;
-                                max-width: 240px;
-                                margin: 0 !important;
+                            .matrix-visual-metric-controls { margin: 0 !important; }
+
+                            .matrix-assay-select-control {
+                                width: 300px;
+                                max-width: 300px;
                             }
 
                             .matrix-assay-select-inline {
-                                min-width: 240px;
-                                max-width: 240px;
+                                min-width: 280px;
+                                max-width: 280px;
                             }
 
                             .matrix-visual-metric-controls {
+                                width: 240px;
+                                max-width: 240px;
+
                                 .matrix-counts-toggle-inline {
                                     width: 240px;
 
