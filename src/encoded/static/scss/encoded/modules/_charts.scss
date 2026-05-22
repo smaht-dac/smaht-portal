@@ -2694,21 +2694,15 @@ body[data-path="/statistics"] {
                             }
 
                             .matrix-visual-metric-controls {
-                                width: 240px;
-                                max-width: 240px;
-
                                 .matrix-counts-toggle-inline {
-                                    width: 240px;
-
                                     .view-toggle {
-                                        width: 100%;
-                                        display: grid;
-                                        grid-template-columns: 1fr 1fr;
+                                        width: auto;
+                                        display: inline-flex;
                                         column-gap: 0.25rem;
                                         justify-content: initial;
 
                                         .btn {
-                                            width: 100%;
+                                            width: auto;
                                             min-width: 0;
                                             justify-content: center;
                                             text-align: center;
