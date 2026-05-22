@@ -17,6 +17,7 @@ import {
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
+import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
@@ -420,7 +421,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                 );
             },
         },
-        // Display title
+        // External ID
         external_id: {
             widthMap: { lg: 120, md: 120, sm: 120 },
             colTitle: <>Donor</>,
@@ -472,7 +473,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
             widthMap: { lg: 80, md: 80, sm: 80 },
             render: function (result, parentProps) {
                 return (
-                    <span className="text-center w-100">
+                    <span className="value text-center w-100">
                         {result?.sex?.substring(0, 1) ?? null}
                     </span>
                 );
@@ -675,13 +676,13 @@ export function createBrowseProtectedDonorColumnExtensionMap({
 
                 if (loading) {
                     return (
-                        <span className="value loading">
+                        <span className="value text-center loading">
                             {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
                     return fileSize ? (
-                        <span className="value">
+                        <span className="value text-center">
                             {valueTransforms.bytesToLargerUnit(
                                 fileSize,
                                 0,

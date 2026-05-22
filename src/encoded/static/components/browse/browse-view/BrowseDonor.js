@@ -288,15 +288,15 @@ export function createBrowseDonorColumnExtensionMap({
                 );
             },
         },
-        // File
-        annotated_filename: {
+        // External ID
+        external_id: {
             widthMap: { lg: 120, md: 120, sm: 120 },
             colTitle: <>Donor</>,
             render: function (result, parentProps) {
                 const {
                     '@id': atId,
                     display_title,
-                    annotated_filename,
+                    external_id,
                 } = result || {};
 
                 return (
@@ -305,7 +305,7 @@ export function createBrowseDonorColumnExtensionMap({
                             href={atId}
                             target="_blank"
                             rel="noreferrer noopener">
-                            {annotated_filename || display_title}
+                            {external_id || display_title}
                         </a>
                     </span>
                 );
@@ -444,11 +444,7 @@ export function createBrowseDonorColumnExtensionMap({
                 const { data, loading, error } = parentProps?.fetchedProps;
 
                 const assayCount = data
-                    ?.find(
-                        (f) =>
-                            f.field ===
-                            'assays.display_title'
-                    )
+                    ?.find((f) => f.field === 'assays.display_title')
                     ?.terms?.reduce(
                         (acc, curr) => acc + (curr?.terms?.length ?? 1),
                         0
@@ -651,7 +647,7 @@ export function createBrowseDonorColumnExtensionMap({
         '@type': {
             title: 'Selected',
         },
-        annotated_filename: {
+        external_id: {
             title: 'Donor',
         },
         age: {
