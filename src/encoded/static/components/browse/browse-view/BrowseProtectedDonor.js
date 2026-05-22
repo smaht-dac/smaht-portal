@@ -420,15 +420,15 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                 );
             },
         },
-        // File
-        annotated_filename: {
+        // Display title
+        external_id: {
             widthMap: { lg: 120, md: 120, sm: 120 },
             colTitle: <>Donor</>,
             render: function (result, parentProps) {
                 const {
                     '@id': atId,
                     display_title,
-                    annotated_filename,
+                    external_id,
                 } = result || {};
 
                 return (
@@ -437,7 +437,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                             href={atId}
                             target="_blank"
                             rel="noreferrer noopener">
-                            {annotated_filename || display_title}
+                            {external_id || display_title}
                         </a>
                     </span>
                 );
@@ -806,13 +806,10 @@ export function createBrowseProtectedDonorColumnExtensionMap({
     };
 
     const columns = {
-        // display_title: {
-        //     title: 'display_title',
-        // },
         '@type': {
             title: 'Selected',
         },
-        annotated_filename: {
+        external_id: {
             title: 'Donor',
         },
         age: {
