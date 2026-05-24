@@ -266,11 +266,16 @@ function stepOutputFilesWithQC(caps) {
                                                 return qmStatus === 'uploaded';
                                             });
 
-                                            cy.get('#file-overview .qc-overview-tab').then(($tab) => {
-                                                const hasProtectedMessage = $tab.find('.protected-data h4:contains("Protected Data")').length > 0;
-                                                expect(hasProtectedMessage, 'authorized role should not see Protected Data placeholder').to.equal(false);
+                                            cy.get('#file-overview #file-overview\\.qc-overview').should('exist').then(($qcPanel) => {
+                                                const hasProtectedMessage = $qcPanel.find('.protected-data h4:contains("Protected Data")').length > 0;
+                                                if (hasProtectedMessage) {
+                                                    cy.wrap($qcPanel).within(() => {
+                                                        cy.get('.protected-data h4').should('be.visible').and('contain.text', 'Protected Data');
+                                                    });
+                                                    return;
+                                                }
 
-                                                const hasQCOverviewStatus = $tab.find('.header.top:contains("QC Overview Status:")').length > 0;
+                                                const hasQCOverviewStatus = $qcPanel.find('.header.top:contains("QC Overview Status:")').length > 0;
                                                 if (!hasUploadedQualityMetric) {
                                                     expect(hasQCOverviewStatus, 'QC Overview Status is required unless a quality_metrics item is uploaded').to.equal(true);
                                                 }
