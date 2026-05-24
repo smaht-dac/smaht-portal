@@ -15,7 +15,8 @@ const ROLE_MATRIX = {
 
         expectedCanDownloadFile: false,
         expectedCanDownloadProtectedFile: false,
-        expectedQCOverviewTabVisible: false,
+        expectedQCOverviewTabVisible: true,
+        expectedCanViewProtectedQCContent: false,
         expectedShouldNotVisibleStatus: ["open-early", "open-network", "protected-early", "protected-network", "in review"],
     },
 
@@ -28,6 +29,7 @@ const ROLE_MATRIX = {
         expectedCanDownloadFile: true,
         expectedCanDownloadProtectedFile: true,
         expectedQCOverviewTabVisible: true,
+        expectedCanViewProtectedQCContent: true,
         expectedShouldNotVisibleStatus: ["in review"],
     },
 
@@ -40,6 +42,7 @@ const ROLE_MATRIX = {
         expectedCanDownloadFile: true,
         expectedCanDownloadProtectedFile: false,
         expectedQCOverviewTabVisible: false,
+        expectedCanViewProtectedQCContent: false,
         expectedShouldNotVisibleStatus: ["in review"],
     },
 
@@ -52,6 +55,7 @@ const ROLE_MATRIX = {
         expectedCanDownloadFile: true,
         expectedCanDownloadProtectedFile: true,
         expectedQCOverviewTabVisible: true,
+        expectedCanViewProtectedQCContent: true,
         expectedShouldNotVisibleStatus: ["open-early", "open-network", "protected-early", "protected-network", "in review"],
     },
 
@@ -64,6 +68,7 @@ const ROLE_MATRIX = {
         expectedCanDownloadFile: true,
         expectedCanDownloadProtectedFile: false,
         expectedQCOverviewTabVisible: false,
+        expectedCanViewProtectedQCContent: false,
         expectedShouldNotVisibleStatus: ["open-early", "open-network", "protected-early", "protected-network", "in review"],
     },
 };
@@ -246,8 +251,8 @@ function stepOutputFilesWithQC(caps) {
                                 .parents('button')
                                 .click();
 
-                            cy.get('@status').then((status) => {
-                                if (caps.expectedQCOverviewTabVisible === true || status.toLowerCase().includes('open')) {
+                            cy.get('@status').then(() => {
+                                if (caps.expectedQCOverviewTabVisible === true && caps.expectedCanViewProtectedQCContent === true) {
                                     // 1. QC Overview Status must have a value
                                     cy.get('#file-overview .qc-overview-tab .header.top')
                                         .should('contain.text', 'QC Overview Status:')
