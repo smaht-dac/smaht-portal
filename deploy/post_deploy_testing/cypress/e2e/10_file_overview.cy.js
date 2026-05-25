@@ -266,7 +266,10 @@ function stepOutputFilesWithQC(caps) {
                                                 return qmStatus === 'uploaded';
                                             });
 
-                                            cy.get('#file-overview #file-overview\\.qc-overview').should('exist').then(($qcPanel) => {
+                                            cy.get('#file-overview #file-overview\\.qc-overview').should('exist');
+                                            cy.contains('#file-overview #file-overview\\.qc-overview', 'Loading').should('not.exist');
+
+                                            cy.get('#file-overview #file-overview\\.qc-overview').then(($qcPanel) => {
                                                 const hasProtectedMessage = $qcPanel.find('.protected-data h4:contains("Protected Data")').length > 0;
                                                 if (hasProtectedMessage) {
                                                     cy.wrap($qcPanel).within(() => {
@@ -280,12 +283,12 @@ function stepOutputFilesWithQC(caps) {
                                                     expect(hasQCOverviewStatus, 'QC Overview Status is required unless a quality_metrics item is uploaded').to.equal(true);
                                                 }
                                                 if (hasQCOverviewStatus) {
-                                                    cy.get('#file-overview .qc-overview-tab .header.top')
+                                                    cy.wrap($qcPanel).find('.header.top')
                                                         .should('contain.text', 'QC Overview Status:');
                                                 }
 
                                                 // 2. "View Relatedness Chart" button params under Critical QC
-                                                cy.get('#file-overview .qc-overview-tab h2.header.mb-2')
+                                                cy.wrap($qcPanel).find('h2.header.mb-2')
                                                     .contains('Critical QC')
                                                     .parent()
                                                     .within(() => {
@@ -303,7 +306,7 @@ function stepOutputFilesWithQC(caps) {
                                                     });
 
                                                 // 3. "Visualize Quality Metrics" button params
-                                                cy.get('#file-overview .qc-overview-tab .header.top')
+                                                cy.wrap($qcPanel).find('.header.top')
                                                     .find('a.btn-primary')
                                                     .should('exist')
                                                     .should((a) => {
@@ -317,7 +320,7 @@ function stepOutputFilesWithQC(caps) {
                                                     });
 
                                                 // 4. General QC table must have at least one row
-                                                cy.get('#file-overview .qc-overview-tab h2.header.mb-2')
+                                                cy.wrap($qcPanel).find('h2.header.mb-2')
                                                     .contains('General QC')
                                                     .parent()
                                                     .within(() => {
