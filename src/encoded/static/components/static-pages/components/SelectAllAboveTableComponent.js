@@ -24,27 +24,14 @@ import { useUserDownloadAccess } from '../../util/hooks';
 
 export const SelectAllAboveTableComponent = (props) => {
     const {
-        href,
-        searchHref,
         context,
-        onFilter,
-        schemas,
-        isContextLoading = false, // Present only on embedded search views,
-        navigate,
-        sortBy,
-        sortColumns,
-        hiddenColumns,
-        addHiddenColumn,
-        removeHiddenColumn,
-        columnDefinitions,
         session,
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         deniedAccessPopoverType = 'login', // default to login popover
     } = props;
-    const { filters: ctxFilters = null, total: totalResultCount = 0 } =
-        context || {};
+    const { total: totalResultCount = 0 } = context || {};
 
     // Get user download access
     const { userDownloadAccess } = useUserDownloadAccess(session);
@@ -96,6 +83,7 @@ export const SelectAllAboveTableComponent = (props) => {
                             )
                         }>
                         <button
+                            type="button"
                             className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
@@ -191,7 +179,8 @@ export class SelectAllFilesButton extends React.PureComponent {
         const nextWidth = Math.ceil(
             this.selectAllButtonRef.current.getBoundingClientRect().width
         );
-        if (nextWidth > 0 && this.state.progressTrackWidth !== nextWidth) {
+        const { progressTrackWidth } = this.state;
+        if (nextWidth > 0 && progressTrackWidth !== nextWidth) {
             this.setState({ progressTrackWidth: nextWidth });
         }
     }
@@ -410,8 +399,8 @@ export class SelectAllFilesButton extends React.PureComponent {
             (selecting
                 ? 'circle-notch icon-spin fas'
                 : isAllSelected
-                ? 'square far'
-                : 'check-square far');
+                    ? 'square far'
+                    : 'check-square far');
         const cls =
             'btn btn-sm me-05 align-items-center ' +
             (isAllSelected ? 'btn-secondary' : 'btn-outline-secondary');
@@ -446,8 +435,8 @@ export class SelectAllFilesButton extends React.PureComponent {
                         {selecting
                             ? `Selecting ${selectingProgress}%`
                             : isAllSelected
-                            ? 'Deselect'
-                            : 'Select'}{' '}
+                                ? 'Deselect'
+                                : 'Select'}{' '}
                     </span>
                     <span className="text-600">All</span>
                 </button>
@@ -531,7 +520,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         } = this.props;
         const { modalOpen } = this.state;
         const isDisabled =
-            typeof disabled === 'boolean' ? disabled : fileCountWithDupes === 0;
+            typeof disabled === 'boolean' ? disabled : selectedItems.size === 0;
         btnProps.className =
             'btn ' + (modalOpen ? 'active ' : '') + btnProps.className;
         return (
@@ -1124,6 +1113,12 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
 
 const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
     const { filename, session, setIsAWSDownload, isAWSDownload } = props;
+    const onTabSelect = useCallback(
+        (k) => {
+            setIsAWSDownload(k === 'aws');
+        },
+        [setIsAWSDownload]
+    );
 
     // Assign html and plain values for each command
     const aws_cli = {
@@ -1195,9 +1190,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
             <Tabs
                 defaultActiveKey="curl"
                 variant="pills"
-                onSelect={(k) => {
-                    setIsAWSDownload(k === 'aws');
-                }}>
+                onSelect={onTabSelect}>
                 <Tab
                     eventKey="curl"
                     title={
@@ -1264,7 +1257,6 @@ const SelectedItemsDownloadStartButton = React.memo(
     function SelectedItemsDownloadStartButton(props) {
         const {
             suggestedFilename,
-            selectedItems,
             accessionArray = [],
             action,
             isAWSDownload,
@@ -1302,10 +1294,7 @@ const SelectedItemsDownloadStartButton = React.memo(
                         className="btn btn-primary mt-0 me-1 btn-block-xs-only"
                         data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                         <i className="icon icon-fw icon-download fas me-1" />
-                        Download <b>
-                            {isAWSDownload ? 'AWS CLI ' : 'cURL'}
-                        </b>{' '}
-                        File Manifest
+                        Download <b>{isAWSDownload ? 'AWS CLI ' : 'cURL'}</b> File Manifest
                     </button>
                 </form>
             </>
