@@ -34,6 +34,8 @@ import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
+import { PublicationCollectionsNavigation } from '../PublicationCollectionsNavigation';
+import { PublicationCollection } from '../PublicationCollection';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -65,6 +67,8 @@ const placeholders = {
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
     PipelineDocsNavigation,
+    PublicationCollectionsNavigation,
+    PublicationCollection,
 };
 
 export const replaceString = memoize(
