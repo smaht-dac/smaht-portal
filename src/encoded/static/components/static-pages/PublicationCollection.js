@@ -4,10 +4,9 @@ import { EmbeddedItemSearchTable } from '../item-pages/components/EmbeddedItemSe
 
 // Links for PublicationCollection page tables
 const PUBLICATION_LINKS = {
-    // benchmarking: '/search/?type=Publication&study=Benchmarking',
-    benchmarking: '/search/?type=Publication',
-    p25: '/search/?type=Publication&study=p25',
-    p150: '/search/?type=Publication&study=p150',
+    benchmarking: '/search/?type=Publication&study=Benchmarking',
+    p25: '/search/?type=Publication&study=P25',
+    p150: '/search/?type=Publication&study=P150',
 };
 
 // Sttatistics for Publication Browse
