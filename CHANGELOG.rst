@@ -7,13 +7,32 @@ smaht-portal
 Change Log
 ----------
 
-1.27.10
+1.28.1
 ======
 
 `PR 678: feat: fix donor display_title column <https://github.com/smaht-dac/smaht-portal/pull/678>` 
 
 * Update the donor display_title column to use correct field
 * Refactor Donor Browse code
+
+
+1.28.0
+=======
+
+`PR 677: Improve Select All scalability with paginated fetch + progress UI; remove Bluebird Babel coupling <https://github.com/smaht-dac/smaht-portal/pull/677>`_
+
+* Improves the Select All workflow for large file result sets by replacing limit=all with paginated requests and adding user-visible progress feedback
+* Removes a fragile Babel Bluebird coupling that caused CI/CodeBuild failures
+
+
+1.27.10
+=======
+
+`PR 679: Enhance QC overview and search functionality with validation updates <https://github.com/smaht-dac/smaht-portal/pull/679>`_
+
+* Better alignment with real role permissions and current QC lifecycle.
+* Fewer flaky failures from loading/timing and tab order assumptions.
+* Stronger, more semantically correct validations for QC visibility and content.
 
 
 1.27.9
