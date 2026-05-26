@@ -81,7 +81,9 @@ export const BrowsePublicationSearchTable = (props) => {
         showFacets = true, // Passed in from BrowsePublicationSearch
     } = props;
 
-    const facets = transformedFacets(context, currentAction, schemas);
+    const facets = context?.facets
+        ? transformedFacets(context, currentAction, schemas)
+        : [];
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
 
