@@ -58,7 +58,7 @@ export const BROWSE_LINKS = {
     protected_donor:
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
         BROWSE_STATUS_FILTERS,
-    publication: '/browse/?type=Publication' + BROWSE_STATUS_FILTERS,
+    publication: '/browse/?type=Publication',
 };
 
 export const FILE_BROWSE_HIDE_FACETS = [
