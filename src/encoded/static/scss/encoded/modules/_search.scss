@@ -1160,15 +1160,15 @@ body[data-pathname^='/browse']:not([data-current-action='add']):not(
 // Publication Browse Page and Static Publication Collection styles
 body[data-pathname^='/browse']:not([data-current-action='add']):not(
         [data-current-action='edit']
-    ):not([data-at-type*='Error'])
-    [data-at-type='PublicationSearchResults'],
+    ):not([data-at-type*='Error'])[data-at-type='PublicationSearchResults'],
 body[data-at-type^='Publication-collections'] {
-    .browse-publication-body {
+    .browse-publication-body,
+    .publication-collection-layout {
         padding: 20px;
 
         .introduction {
             display: flex;
-            padding: 40px 70px;
+            padding: 0px;
             justify-content: space-between;
 
             .text {
@@ -1279,83 +1279,91 @@ body[data-at-type^='Publication-collections'] {
     }
 
     // Publication Search Table Styles
-    .publication-search-table-container,
-    .embedded-search-container {
+    .publication-search-table-container {
+        margin-top: 50px;
+
         .table-header {
             background-color: $baby-20;
             padding: 10px 20px;
             margin: 0px;
         }
+        .embedded-search-container {
+            .search-page-container > div.search-view-controls-and-results.row,
+            .search-view-controls-and-results {
+                flex-direction: column;
 
-        .search-page-container > div.search-view-controls-and-results.row,
-        .search-view-controls-and-results {
-            flex-direction: column;
-
-            div.facets-column {
-                position: sticky;
-                top: 40px;
-                z-index: 1;
-                width: 100%;
-                z-index: 1;
-                background-color: $pure-white;
-
-                .facets-body {
-                    display: flex;
-                    padding: 10px 20px;
-                    gap: 10px;
+                div.facets-column {
+                    position: sticky;
+                    top: 40px;
+                    z-index: 1;
+                    width: 100%;
+                    z-index: 1;
                     background-color: $pure-white;
 
-                    .facet {
-                        min-width: 201px;
-                        padding: 0px;
+                    .facets-body {
+                        display: flex;
+                        padding: 10px 20px;
+                        gap: 10px;
                         background-color: $pure-white;
 
-                        &-title {
-                            display: flex;
-                            flex-direction: row-reverse;
-                            justify-content: space-between;
-                            background-color: #f9fcff;
-                            height: 30px;
-                            color: $gray-70;
-                            border: 1px solid #cadae6;
-                            border-radius: 5px;
-                            padding: 5px 10px;
-                            font-weight: 400;
-
-                            .closed-terms-count {
-                                display: none;
-                            }
-                            .expand-toggle {
-                                margin: 0px;
-                            }
-                        }
-                        &-list {
+                        .facet {
+                            min-width: 201px;
                             padding: 0px;
-                            .expandable-list {
-                                padding-top: 5px;
+                            background-color: $pure-white;
+
+                            &-title {
+                                display: flex;
+                                flex-direction: row-reverse;
+                                justify-content: space-between;
+                                background-color: #f9fcff;
+                                height: 30px;
+                                color: $gray-70;
+                                border: 1px solid #cadae6;
+                                border-radius: 5px;
+                                padding: 5px 10px;
+                                font-weight: 400;
+
+                                .closed-terms-count {
+                                    display: none;
+                                }
+                                .expand-toggle {
+                                    margin: 0px;
+                                }
                             }
-                            .expandable-list .collapse,
-                            .expandable-list .collapsing {
-                                position: absolute;
-                                width: 200px;
-                                background-color: $pure-white;
-                                border: 1px solid $mercury;
+                            &-list {
+                                padding: 0px;
+                                .expandable-list {
+                                    padding-top: 5px;
+                                }
+                                .expandable-list .collapse,
+                                .expandable-list .collapsing {
+                                    position: absolute;
+                                    width: 200px;
+                                    background-color: $pure-white;
+                                    border: 1px solid $mercury;
+                                }
                             }
                         }
                     }
                 }
-            }
-            .results-column {
-                .search-result-row {
-                    display: flex;
-                    justify-content: space-between;
-                    height: 150px;
-                    padding: 15px 30px;
+                .search-results-container {
+                    border: 1px solid $mercury;
+                    border-bottom: none;
+                    border-top: 1px solid $gray-40;
 
-                    .detail {
+                    .search-result-row {
                         display: flex;
-                        flex-direction: column;
-                        align-items: end;
+                        justify-content: space-between;
+                        height: 150px;
+                        padding: 15px 30px;
+                        border-bottom: 1px solid $mercury;
+                        box-shadow: none;
+
+                        .detail {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: end;
+                        }
                     }
                 }
             }
