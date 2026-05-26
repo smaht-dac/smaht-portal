@@ -16,13 +16,7 @@ module.exports = function (api) {
             '@babel/plugin-proposal-class-properties',
             'babel-plugin-minify-dead-code-elimination',
             ['@babel/plugin-proposal-decorators', { legacy: true }],
-            [
-                '@babel/transform-async-to-generator',
-                {
-                    module: 'bluebird',
-                    method: 'coroutine',
-                },
-            ],
+            ['@babel/transform-async-to-generator'],
             [
                 '@babel/plugin-proposal-pipeline-operator',
                 { proposal: 'minimal' },
