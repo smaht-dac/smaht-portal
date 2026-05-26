@@ -156,29 +156,33 @@ export class SelectAllFilesButton extends React.PureComponent {
         );
         this.updateProgressTrackWidth = this.updateProgressTrackWidth.bind(this);
         this.selectAllButtonRef = React.createRef();
+        this.selectAllButtonResizeObserver = null;
         this.state = { selecting: false, selectingProgress: 0, progressTrackWidth: null };
     }
 
     componentDidMount() {
         this.updateProgressTrackWidth();
-        if (typeof window !== 'undefined') {
+        if (
+            typeof window !== 'undefined' &&
+            typeof window.ResizeObserver === 'function' &&
+            this.selectAllButtonRef.current
+        ) {
+            this.selectAllButtonResizeObserver = new window.ResizeObserver(() => {
+                this.updateProgressTrackWidth();
+            });
+            this.selectAllButtonResizeObserver.observe(this.selectAllButtonRef.current);
+        } else if (typeof window !== 'undefined') {
+            // Fallback for environments lacking ResizeObserver support.
             window.addEventListener('resize', this.updateProgressTrackWidth);
         }
     }
 
     componentWillUnmount() {
-        if (typeof window !== 'undefined') {
+        if (this.selectAllButtonResizeObserver) {
+            this.selectAllButtonResizeObserver.disconnect();
+            this.selectAllButtonResizeObserver = null;
+        } else if (typeof window !== 'undefined') {
             window.removeEventListener('resize', this.updateProgressTrackWidth);
-        }
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        const { selecting, selectingProgress } = this.state;
-        if (
-            prevState.selecting !== selecting ||
-            prevState.selectingProgress !== selectingProgress
-        ) {
-            this.updateProgressTrackWidth();
         }
     }
 
