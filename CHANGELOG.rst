@@ -7,12 +7,49 @@ smaht-portal
 Change Log
 ----------
 
-1.27.8
+1.28.1
 ======
 
 `PR 675: chore: remove old announcements <https://github.com/smaht-dac/smaht-portal/pull/675>`_
 
 * Remove old announcements from the notification panel
+
+
+1.28.0
+=======
+
+`PR 677: Improve Select All scalability with paginated fetch + progress UI; remove Bluebird Babel coupling <https://github.com/smaht-dac/smaht-portal/pull/677>`_
+
+* Improves the Select All workflow for large file result sets by replacing limit=all with paginated requests and adding user-visible progress feedback
+* Removes a fragile Babel Bluebird coupling that caused CI/CodeBuild failures
+
+
+1.27.10
+=======
+
+`PR 679: Enhance QC overview and search functionality with validation updates <https://github.com/smaht-dac/smaht-portal/pull/679>`_
+
+* Better alignment with real role permissions and current QC lifecycle.
+* Fewer flaky failures from loading/timing and tab order assumptions.
+* Stronger, more semantically correct validations for QC visibility and content.
+
+
+1.27.9
+======
+
+`PR 670: fix: prevent 0 value type cast <https://github.com/smaht-dac/smaht-portal/pull/670>` 
+
+* Align Protected with Public donor browse pages
+* Prevent "-" appearing for 0 value hardy_scale
+
+
+1.27.8
+======
+
+`PR 688: feat: update latest release date on timeline <https://github.com/smaht-dac/smaht-portal/pull/688>`_
+
+* Add parameters for latest file search for release date
+* Update homepage tests
 
 
 1.27.7
