@@ -186,11 +186,19 @@
             },
             "permission": "restricted_fields"
         },
-        "study": {
-            "title": "Study",
-            "description": "Study associated with this publication.",
-            "type": "string",
-            "enum": ["Benchmarking", "Production"]
+        "publication_groups": {
+            "title": "Publication Group(s)",
+            "description": "Field to specify this publication as belonging to specific group(s).",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "Benchmarking",
+                    "Production",
+                    "P25"
+                ]
+            },
+            "permission": "restricted_fields"
         },
         "scope": {
             "title": "Scope",
