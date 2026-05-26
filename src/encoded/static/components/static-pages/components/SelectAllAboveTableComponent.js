@@ -128,14 +128,13 @@ export class SelectAllFilesButton extends React.PureComponent {
         '@type',
         'file_sets.@id'
     ];
-    // Keep local batches intentionally small for easier debugging and request tracing.
-    // Production/staging continue to use a larger default for fewer round trips.
-    static defaultPageSize =
+    static isLocalhost =
         typeof window !== 'undefined' &&
         (window.location.hostname === 'localhost' ||
-            window.location.hostname === '127.0.0.1')
-            ? 25
-            : 500;
+            window.location.hostname === '127.0.0.1');
+    // Keep local batches intentionally small for easier debugging and request tracing.
+    // Production/staging continue to use a larger default for fewer round trips.
+    static defaultPageSize = SelectAllFilesButton.isLocalhost ? 25 : 500;
     static defaultConcurrentRequests = 4;
     static localhostBatchDelayMs = 1500;
     static propTypes = {
@@ -233,12 +232,11 @@ export class SelectAllFilesButton extends React.PureComponent {
         }
 
         const fetchedResults = [];
-        const isLocalhost =
-            typeof window !== 'undefined' &&
-            (window.location.hostname === 'localhost' ||
-                window.location.hostname === '127.0.0.1');
 
         // Fetch in bounded concurrent batches to avoid overwhelming the API.
+        // Intentional await-in-loop: each chunk waits for the previous chunk so we enforce a
+        // fixed concurrency cap across the full request set.
+        /* eslint-disable no-await-in-loop */
         for (
             let batchStart = 0;
             batchStart < pageStarts.length;
@@ -275,7 +273,10 @@ export class SelectAllFilesButton extends React.PureComponent {
             });
 
             // Dev-only pacing so progress UI can be observed with small local datasets.
-            if (isLocalhost && batchStart + batchStarts.length < pageStarts.length) {
+            if (
+                SelectAllFilesButton.isLocalhost &&
+                batchStart + batchStarts.length < pageStarts.length
+            ) {
                 await new Promise((resolve) => {
                     window.setTimeout(
                         resolve,
@@ -284,6 +285,7 @@ export class SelectAllFilesButton extends React.PureComponent {
                 });
             }
         }
+        /* eslint-enable no-await-in-loop */
 
         return fetchedResults;
     }
