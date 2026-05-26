@@ -18,6 +18,7 @@ import {
     logger,
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { display as dateTimeDisplay } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { useUserDownloadAccess } from '../../util/hooks';
 
