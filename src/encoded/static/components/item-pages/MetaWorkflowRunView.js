@@ -173,6 +173,25 @@ export function transformMetaWorkflowRunToSteps (metaWorkflowRunItem) {
         };
     });
 
+    // Build file→producer and file→consumer WFR maps from the WFR items' own input/output file lists.
+    // workflow_run_outputs/inputs may not be embedded on file items, so we build these ourselves.
+    const fileToProducerWFR = {};   // fileAtID → WFR @id that outputs it
+    const fileToConsumerWFRs = {};  // fileAtID → [WFR @id, ...] that consume it
+    combinedMWFRs.forEach(function(wr) {
+        const { workflow_run: { "@id": wfrAtID, input_files: inFiles = [], output_files: outFiles = [] } = {} } = wr;
+        if (!wfrAtID) return;
+        (outFiles || []).forEach(function(fo) {
+            const fid = fo && fo.value && fo.value["@id"];
+            if (fid) fileToProducerWFR[fid] = wfrAtID;
+        });
+        (inFiles || []).forEach(function(fo) {
+            const fid = fo && fo.value && fo.value["@id"];
+            if (!fid) return;
+            if (!fileToConsumerWFRs[fid]) fileToConsumerWFRs[fid] = [];
+            fileToConsumerWFRs[fid].push(wfrAtID);
+        });
+    });
+
     const incompleteSteps = combinedMWFRs.map(function(workflowRunObject){
         const {
             // This 'name' is same as workflow name, we don't use it because want unique name/identifier for each step.
@@ -235,8 +254,9 @@ export function transformMetaWorkflowRunToSteps (metaWorkflowRunItem) {
                     const { "@id": fileAtID, workflow_run_outputs = [] } = fileItem || {};
                     const [ { "@id": outputOfWFRAtID } = {} ] = workflow_run_outputs;
                     const sourceObject = { ...initialSource, "for_file": fileAtID };
-                    if (outputOfWFRAtID) {
-                        sourceObject.step = outputOfWFRAtID;
+                    const effectiveProducerWFR = outputOfWFRAtID || fileToProducerWFR[fileAtID];
+                    if (effectiveProducerWFR) {
+                        sourceObject.step = effectiveProducerWFR;
                     }
                     initialSourceList.push(sourceObject);
                 });
@@ -332,7 +352,14 @@ export function transformMetaWorkflowRunToSteps (metaWorkflowRunItem) {
                         initialTargetList.push(targetObject);
                     });
                 } else {
-                    initialTargetList.push({ ...initialTarget, "for_file": fileAtID });
+                    const consumerWFRs = fileToConsumerWFRs[fileAtID] || [];
+                    if (consumerWFRs.length > 0) {
+                        consumerWFRs.forEach(function(consumerWFRAtID) {
+                            initialTargetList.push({ ...initialTarget, "for_file": fileAtID, "step": consumerWFRAtID });
+                        });
+                    } else {
+                        initialTargetList.push({ ...initialTarget, "for_file": fileAtID });
+                    }
                 }
             } else {
                 initialTargetList.push(initialTarget);

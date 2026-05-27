@@ -93,6 +93,253 @@ function updateStepGroupLabel(node = {}) {
     node.title = `${count} auxiliary ${noun}`;
 }
 
+/**
+ * Reassigns node.column values so that the workflow graph renders as a proper
+ * left-to-right DAG instead of a flat "all steps in one column" layout.
+ *
+ * Uses context.meta_workflow.workflows (always present on MetaWorkflowRun items)
+ * to determine step ordering. Each MWF workflow step has input[j].source giving
+ * the upstream step name. We build a level map (longest-path topological sort)
+ * then connect graph step nodes to levels via their workflow @id.
+ *
+ * Falls back to edge/node connectivity for non-MetaWorkflow graphs (plain
+ * Workflow/WorkflowRun views where context.meta_workflow is absent).
+ *
+ * Mutates nodes in place; idempotent.
+ */
+
+/**
+ * After library parsing, group nodes that represent the same set of files may appear twice:
+ * once as an output of a step (with run_data.file = group_obj from collapseRunDataFilesOnStep)
+ * and once as an input (with a different synthetic @id for the same underlying files).
+ * This merges duplicate IO nodes by matching them on their underlying file @ids.
+ * Mutates graphData in place.
+ */
+function mergeGroupedFileNodes(graphData = {}) {
+    const { nodes, edges } = graphData;
+    if (!nodes || !edges) return;
+
+    function fileSetKey(n) {
+        const rf = n.meta && n.meta.run_data && n.meta.run_data.file;
+        if (!rf) return null;
+        if (Array.isArray(rf.grouped_files) && rf.grouped_files.length > 0) {
+            const ids = rf.grouped_files.map(function(f) { return f && f['@id']; }).filter(Boolean).sort();
+            return ids.length > 0 ? 'group:' + ids.join('|') : null;
+        }
+        const fid = rf['@id'];
+        if (fid && fid.indexOf('group:') !== 0) {
+            return 'file:' + fid;
+        }
+        return null;
+    }
+
+    const keyToNodes = new Map();
+    nodes.forEach(function(n) {
+        if (n.nodeType === 'step') return;
+        const key = fileSetKey(n);
+        if (!key) return;
+        if (!keyToNodes.has(key)) keyToNodes.set(key, []);
+        keyToNodes.get(key).push(n);
+    });
+
+    const toRemove = new Set();
+    keyToNodes.forEach(function(fileNodes) {
+        if (fileNodes.length <= 1) return;
+        const primary = fileNodes.find(function(n) { return n.outputOf; }) || fileNodes[0];
+        fileNodes.forEach(function(dup) {
+            if (dup === primary) return;
+            if (Array.isArray(dup.inputOf)) {
+                if (!primary.inputOf) primary.inputOf = [];
+                dup.inputOf.forEach(function(s) {
+                    if (primary.inputOf.indexOf(s) === -1) primary.inputOf.push(s);
+                });
+            }
+            if (dup.outputOf && !primary.outputOf) primary.outputOf = dup.outputOf;
+            edges.forEach(function(e) {
+                if (e.source === dup) e.source = primary;
+                if (e.target === dup) e.target = primary;
+            });
+            toRemove.add(dup);
+        });
+    });
+
+    if (toRemove.size > 0) {
+        graphData.nodes = nodes.filter(function(n) { return !toRemove.has(n); });
+    }
+}
+
+function reassignColumnsFromTopology(graphData = {}, context = {}) {
+    const { nodes = [], edges = [] } = graphData;
+    if (nodes.length === 0) return;
+
+    const stepNodes = nodes.filter(function(n) { return n.nodeType === 'step'; });
+    if (stepNodes.length === 0) return;
+
+    // --- Build edge-based file↔step maps (used for file column propagation) ---
+    const fileInputSteps = new Map();  // file node → Set<step nodes it feeds>
+    const fileOutputStep = new Map();  // file node → step node that produced it
+    edges.forEach(function(edge) {
+        const s = edge.source, t = edge.target;
+        if (!s || !t) return;
+        if (s.nodeType !== 'step' && t.nodeType === 'step') {
+            if (!fileInputSteps.has(s)) fileInputSteps.set(s, new Set());
+            fileInputSteps.get(s).add(t);
+        } else if (s.nodeType === 'step' && t.nodeType !== 'step') {
+            fileOutputStep.set(t, s);
+        }
+    });
+
+    // --- Attempt to derive step levels from MetaWorkflow definition ---
+    // context.meta_workflow.workflows[i]:
+    //   .name        — MWF step name (e.g. "bwa_mem")
+    //   .workflow    — linked workflow item (has "@id")
+    //   .input[j].source — name of the upstream MWF step (if any)
+    const mwfWorkflows = context && context.meta_workflow && Array.isArray(context.meta_workflow.workflows)
+        ? context.meta_workflow.workflows : [];
+
+    // Map: workflow @id  →  MWF step name
+    const wfIdToMwfName = {};
+    // Map: MWF step name → Set<upstream MWF step names>
+    const mwfPred = {};
+    mwfWorkflows.forEach(function(mwfStep) {
+        const { name } = mwfStep;
+        if (!name) return;
+        if (!mwfPred[name]) mwfPred[name] = new Set();
+        const wfId = mwfStep.workflow && (mwfStep.workflow['@id'] || mwfStep.workflow);
+        if (wfId) wfIdToMwfName[wfId] = name;
+        (mwfStep.input || []).forEach(function(inp) {
+            if (inp.source) mwfPred[name].add(inp.source);
+        });
+    });
+
+    // Topological longest-path BFS on MWF step names → level
+    const mwfLevel = {};
+    const mwfNames = Object.keys(mwfPred);
+    if (mwfNames.length > 1) {
+        const mwfSucc = {};
+        mwfNames.forEach(function(n) { mwfSucc[n] = new Set(); });
+        mwfNames.forEach(function(n) {
+            mwfPred[n].forEach(function(p) { if (mwfSucc[p]) mwfSucc[p].add(n); });
+        });
+        const inDeg = {};
+        mwfNames.forEach(function(n) { inDeg[n] = mwfPred[n].size; });
+        const queue = [];
+        mwfNames.forEach(function(n) {
+            if (inDeg[n] === 0) { mwfLevel[n] = 0; queue.push(n); }
+        });
+        let head = 0;
+        while (head < queue.length) {
+            const n = queue[head++];
+            const lv = mwfLevel[n];
+            (mwfSucc[n] || new Set()).forEach(function(s) {
+                mwfLevel[s] = Math.max(mwfLevel[s] || 0, lv + 1);
+                inDeg[s]--;
+                if (inDeg[s] <= 0) queue.push(s);
+            });
+        }
+    }
+
+    // Map graph step nodes → level via workflow @id → MWF step name → level
+    const stepLevel = new Map();
+    let hasMwfLevels = false;
+    stepNodes.forEach(function(n) {
+        const wfId = n.meta && n.meta.workflow && (n.meta.workflow['@id'] || n.meta.workflow);
+        const mwfName = wfIdToMwfName[wfId];
+        if (mwfName !== undefined && mwfLevel[mwfName] !== undefined) {
+            stepLevel.set(n, mwfLevel[mwfName]);
+            if (mwfLevel[mwfName] > 0) hasMwfLevels = true;
+        }
+    });
+
+    // --- Fallback: derive levels from edge/node connectivity ---
+    if (!hasMwfLevels) {
+        const stepByName = new Map();
+        stepNodes.forEach(function(n) { stepByName.set(n.name, n); });
+        const stepPred = new Map();
+        stepNodes.forEach(function(n) { stepPred.set(n, new Set()); });
+
+        const addDep = function(upstream, downstream) {
+            if (!upstream || !downstream || upstream === downstream) return;
+            if (stepPred.has(downstream)) stepPred.get(downstream).add(upstream);
+        };
+
+        fileInputSteps.forEach(function(downstreamSteps, fileNode) {
+            const upstream = fileOutputStep.get(fileNode);
+            if (!upstream) return;
+            downstreamSteps.forEach(function(ds) { addDep(upstream, ds); });
+        });
+        nodes.forEach(function(node) {
+            if (node.nodeType === 'step') return;
+            const upstream = node.outputOf;
+            if (!upstream) return;
+            (node.inputOf || []).forEach(function(ds) { addDep(upstream, ds); });
+            (node._target || []).forEach(function(t) {
+                if (t.step == null) return;
+                addDep(upstream, stepByName.get(t.step));
+            });
+        });
+        nodes.forEach(function(node) {
+            if (node.nodeType === 'step') return;
+            if (!Array.isArray(node.inputOf) || !Array.isArray(node._source)) return;
+            node._source.forEach(function(s) {
+                if (s.step == null) return;
+                const upstream = stepByName.get(s.step);
+                if (!upstream) return;
+                node.inputOf.forEach(function(ds) { addDep(upstream, ds); });
+            });
+        });
+
+        const stepSucc = new Map();
+        stepNodes.forEach(function(n) { stepSucc.set(n, new Set()); });
+        stepPred.forEach(function(preds, n) {
+            preds.forEach(function(p) { if (stepSucc.has(p)) stepSucc.get(p).add(n); });
+        });
+        const inDeg2 = new Map();
+        stepNodes.forEach(function(n) { inDeg2.set(n, stepPred.get(n).size); });
+        const queue2 = [];
+        stepNodes.forEach(function(n) {
+            if (inDeg2.get(n) === 0) { stepLevel.set(n, 0); queue2.push(n); }
+        });
+        let head2 = 0;
+        while (head2 < queue2.length) {
+            const n = queue2[head2++];
+            const lv = stepLevel.get(n);
+            stepSucc.get(n).forEach(function(s) {
+                stepLevel.set(s, Math.max(stepLevel.get(s) || 0, lv + 1));
+                const rem = (inDeg2.get(s) || 1) - 1;
+                inDeg2.set(s, rem);
+                if (rem <= 0) queue2.push(s);
+            });
+        }
+        const anyLevel = stepNodes.some(function(n) { return (stepLevel.get(n) || 0) > 0; });
+        if (!anyLevel) return;
+    }
+
+    // --- Apply step columns (library formula: col = (level+1)*2 - 1) ---
+    stepNodes.forEach(function(n) {
+        if (!stepLevel.has(n)) return;
+        n.column = (stepLevel.get(n) + 1) * 2 - 1;
+    });
+
+    // --- Propagate to file nodes ---
+    nodes.forEach(function(n) {
+        if (n.nodeType === 'step') return;
+        const producedBy = fileOutputStep.get(n) || n.outputOf;
+        if (producedBy && stepLevel.has(producedBy)) {
+            n.column = producedBy.column + 1;
+            return;
+        }
+        const consumers = fileInputSteps.get(n);
+        if (consumers && consumers.size > 0) {
+            let minStepCol = Infinity;
+            consumers.forEach(function(s) {
+                if (typeof s.column === 'number') minStepCol = Math.min(minStepCol, s.column);
+            });
+            if (minStepCol !== Infinity) n.column = Math.max(0, minStepCol - 1);
+        }
+    });
+}
+
 function reindexByColumn(nodes = []) {
     const byColumn = _.groupBy(nodes, function(node){ return node.column || 0; });
     _.forEach(byColumn, function(colNodes){
@@ -298,12 +545,15 @@ export class WorkflowGraphSection extends React.PureComponent {
 
     parseAnalysisSteps(steps){
         const { showReferenceFiles, showParameters, showIndirectFiles, showChart, showExpandedDetails } = this.state;
+        const { context } = this.props;
         const parsingOptions = { showReferenceFiles, showParameters, "showIndirectFiles": true };
         const graphData = (showChart === 'basic' ?
             this.memoized.parseBasicIOAnalysisSteps(steps, {}, parsingOptions)
             :
             this.memoized.parseAnalysisSteps(steps, parsingOptions)
         );
+        mergeGroupedFileNodes(graphData);
+        reassignColumnsFromTopology(graphData, context);
         if (showChart === 'basic' && !showExpandedDetails) {
             return coalesceGraphForCompactMode(graphData, {
                 groupStepNodes: false,
