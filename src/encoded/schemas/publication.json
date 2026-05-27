@@ -236,6 +236,9 @@
         "title": {
             "title": "Title"
         },
+        "short_citation": {
+            "title": "Short Citation"
+        },
         "date_published": {
             "title": "Year"
         },
