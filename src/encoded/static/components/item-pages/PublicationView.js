@@ -1,7 +1,15 @@
 'use strict';
 
 import React, { useState, useEffect } from 'react';
+import { useToggle } from '../util/hooks';
 import DefaultItemView from './DefaultItemView';
+import { BrowseSummaryStatsViewer } from '../browse/BrowseView';
+import { BrowseSummaryStat } from '../browse/browse-view/BrowseSummaryStatController';
+import { BrowseLinkIcon } from '../browse/browse-view/BrowseLinkIcon';
+import {
+    DotRouter,
+    DotRouterTab,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 
 // Page containing the details of Items of type File
 export default class PublicationOverview extends DefaultItemView {
@@ -48,10 +56,120 @@ const PublicationViewTitle = () => {
     );
 };
 
+const PublicationStatViewerItem = ({
+    value,
+    units,
+    subtitle,
+    loading,
+    type,
+}) => {
+    // const [value, setValue] = useState(1);
+    // const [units, setUnits] = useState('files');
+    // const [loading, setLoading] = useState(false);
+
+    return (
+        <div className="browse-summary-stat d-flex flex-row">
+            <BrowseLinkIcon
+                {...{ type }}
+                cls="mt-04 browse-summary-stat-icon-smaller"
+            />
+            <div className="ms-2 ">
+                {loading && (
+                    <div className="browse-summary-stat-value">
+                        {' '}
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    </div>
+                )}
+                {!loading && (
+                    <>
+                        <div className="browse-summary-stat-value">
+                            {!value && value !== 0 ? '-' : value}
+                            {units && <span>&nbsp;{units}</span>}
+                        </div>
+                    </>
+                )}
+                <div className="browse-summary-stat-subtitle">{subtitle}</div>
+            </div>
+        </div>
+    );
+};
+
+const PublicationStatViewer = ({}) => {
+    return (
+        <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
+            {[
+                {
+                    value: 0,
+                    subtitle: 'Files Generated',
+                    loading: false,
+                    type: 'File',
+                },
+                {
+                    value: 0,
+                    subtitle: 'Donors',
+                    loading: false,
+                    type: 'Donor',
+                },
+                {
+                    value: 0,
+                    subtitle: 'Tissues',
+                    loading: false,
+                    type: 'Tissue',
+                },
+                {
+                    value: 0,
+                    subtitle: 'Assays',
+                    loading: false,
+                    type: 'Assay',
+                },
+                {
+                    value: 0,
+                    subtitle: 'Total File Size',
+                    loading: false,
+                    type: 'File Size',
+                },
+            ].map((item, i) => {
+                return (
+                    <PublicationStatViewerItem
+                        key={i}
+                        {...item}
+                        containerCls="ms-2"
+                    />
+                );
+            })}
+        </div>
+    );
+};
+
+const PublicationViewTabs = (props) => {
+    return (
+        <div className="tabs-container">
+            <DotRouter
+                href={props.href}
+                navClassName=""
+                isActive={true}
+                {...props}
+                prependDotPath="publication-overview">
+                <DotRouterTab
+                    dotPath=".supplementary-data"
+                    tabTitle="Key Supplementary Data"
+                    arrowTabs={false}
+                    cache={true}
+                    default>
+                    <div className="content">hello</div>
+                </DotRouterTab>
+            </DotRouter>
+        </div>
+    );
+};
+
 /** Top-level component for the Donor Overview Page */
 const PublicationView = React.memo(function PublicationView(props) {
     const { context, session, href } = props;
+    const [showFullAuthorList, toggleFullAuthorList] = useToggle(false);
     console.log('PublicationView', context);
+
+    const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
     useEffect(() => {}, []);
 
@@ -79,6 +197,10 @@ const PublicationView = React.memo(function PublicationView(props) {
         doiCode;
     '.' + doiLink;
 
+    const fullAuthorsList = context?.authors
+        .map((a) => a.last_name + ', ' + a.first_name)
+        ?.join(', ');
+
     return (
         <div className="publication-view">
             <PublicationViewTitle />
@@ -104,35 +226,100 @@ const PublicationView = React.memo(function PublicationView(props) {
                     </div>
                 </div>
 
+                {/* Publication Citation */}
                 <div className="citation-container">
-                    <div className="citation-text">
-                        <span>Publication Citation</span>
-                        <span className="citation">{citationString}</span>
+                    <div className="citation-body">
+                        <div className="citation-text">
+                            <h5>Publication Citation</h5>
+                            <span className="citation">{citationString}</span>
+                            <button
+                                className="author-details-toggle"
+                                onClick={toggleFullAuthorList}>
+                                <span>
+                                    {showFullAuthorList ? 'Hide' : 'Show'} Full
+                                    Author List & Details{' '}
+                                    <i
+                                        className={`icon icon-fw icon-chevron-${
+                                            showFullAuthorList ? 'up' : 'down'
+                                        }`}></i>
+                                </span>
+                            </button>
+                        </div>
+                        <div className="citation-links">
+                            <h5>External Links</h5>
+                            {context?.journal_url && (
+                                <a
+                                    className="btn btn-primary"
+                                    href={context.journal_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer">
+                                    Journal
+                                    <i className="icon icon-external-link-alt fas"></i>
+                                </a>
+                            )}
+                            {context?.repository_urls?.length > 0 && (
+                                <a
+                                    className="btn btn-primary"
+                                    href={context.repository_urls[0]}
+                                    target="_blank"
+                                    rel="noopener noreferrer">
+                                    Code Repository
+                                    <i className="icon icon-external-link-alt fas"></i>
+                                </a>
+                            )}
+                        </div>
                     </div>
-                    <div className="citation-links">
-                        {context?.journal_url && (
-                            <a
-                                className="btn btn-primary"
-                                href={context.journal_url}
-                                target="_blank"
-                                rel="noopener noreferrer">
-                                Journal
-                                <i className="icon icon-external-link-alt fas"></i>
-                            </a>
-                        )}
-                        {context?.pubmed_id && (
-                            <a
-                                className="btn btn-primary"
-                                href={`https://pubmed.ncbi.nlm.nih.gov/${context.pubmed_id}/`}
-                                target="_blank"
-                                rel="noopener noreferrer">
-                                Pubmed
-                                <i className="icon icon-external-link-alt fas"></i>
-                            </a>
-                        )}
-                    </div>
+                    {showFullAuthorList && (
+                        <div className="citation-details">
+                            <div className="details-container">
+                                <div className="full-authors">
+                                    <h5>Authors</h5>
+                                    <div className="author-list">
+                                        {fullAuthorsList}
+                                    </div>
+                                </div>
+                                <div className="journal-details">
+                                    <h5>Journal Details</h5>
+                                    {context?.journal && (
+                                        <span>
+                                            Link:{' '}
+                                            <a
+                                                href={context.journal_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer">
+                                                {context.journal}
+                                            </a>
+                                        </span>
+                                    )}
+                                    {doiLink && (
+                                        <span>
+                                            DOI:{' '}
+                                            <a
+                                                href={doiLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer">
+                                                {doiLink}
+                                            </a>
+                                        </span>
+                                    )}
+                                    {context?.pubmed_id && (
+                                        <span>
+                                            PMID:{' '}
+                                            <a
+                                                href={`https://pubmed.ncbi.nlm.nih.gov/${context.pubmed_id}/`}
+                                                target="_blank"
+                                                rel="noopener noreferrer">
+                                                {context?.pubmed_id}
+                                            </a>
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
+                {/* Data cards */}
                 <div className="data-cards-container">
                     <div className="data-card abstract">
                         <div className="header">
@@ -190,6 +377,11 @@ const PublicationView = React.memo(function PublicationView(props) {
                         </div>
                     </div>
                 </div>
+
+                {/* Data Analyzed Section */}
+                <h2 className="section-header fw-semibold">Data Analyzed</h2>
+                <PublicationStatViewer />
+                {/* <PublicationViewTabs {...props} /> */}
             </div>
         </div>
     );
