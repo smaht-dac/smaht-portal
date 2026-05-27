@@ -23,7 +23,7 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
     } = result || {};
 
     return (
-        <div className="search-result-row">
+        <div className="search-result-row publication-search-result-row">
             <div className="">
                 <div className="thumbnail"></div>
                 <div className="title">
@@ -78,7 +78,6 @@ export const BrowsePublicationSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
-        showFacets = true, // Passed in from BrowsePublicationSearch
     } = props;
 
     const facets = context?.facets
@@ -125,14 +124,7 @@ export const BrowsePublicationSearchTable = (props) => {
                     columns,
                     hideFacets,
                 }}
-                toggleIcons={{
-                    open: <i className="icon icon-chevron-up" />,
-                    closed: <i className="icon icon-chevron-down" />,
-                }}
-                // Hide header row and facets header
-                hideHeaderRow={true}
-                hideFacetHeader={true}
-                rowHeight={150} // match your panel height so infinite scroll calculates correctly
+                rowHeight={150}
                 renderResultRow={(result, rowNumber, rowProps) => {
                     return (
                         <PublicationSearchResultRow
@@ -143,11 +135,9 @@ export const BrowsePublicationSearchTable = (props) => {
                     );
                 }}
                 useCustomSelectionController
-                defaultClosedFacets={true}
                 hideStickyFooter
                 termTransformFxn={Schemas.Term.toName}
                 separateSingleTermFacets={false}
-                rowHeight={31}
                 openRowHeight={100}
             />
         </div>

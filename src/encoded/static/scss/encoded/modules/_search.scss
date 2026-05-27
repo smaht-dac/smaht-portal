@@ -1346,25 +1346,28 @@ body[data-at-type^='Publication-collections'] {
                         }
                     }
                 }
-                .search-results-container {
-                    border: 1px solid $mercury;
-                    border-bottom: none;
-                    border-top: 1px solid $gray-40;
+            }
+            .search-results-container {
+                border: 1px solid $mercury;
+                border-bottom: none;
+                border-top: 1px solid $gray-40;
+            }
+        }
+        .publication-search-result-row {
+            display: flex;
+            justify-content: space-between;
+            height: 150px;
+            padding: 15px 30px;
+            border-bottom: 1px solid $mercury;
+            box-shadow: none;
 
-                    .search-result-row {
-                        display: flex;
-                        justify-content: space-between;
-                        height: 150px;
-                        padding: 15px 30px;
-                        border-bottom: 1px solid $mercury;
-                        box-shadow: none;
+            .detail {
+                display: flex;
+                flex-direction: column;
+                align-items: end;
 
-                        .detail {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: end;
-                        }
-                    }
+                a {
+                    text-align: right;
                 }
             }
         }

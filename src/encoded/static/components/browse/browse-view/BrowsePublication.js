@@ -32,10 +32,7 @@ export const BrowsePublicationBody = (props) => {
     return (
         <div className="browse-publication-body text-gray-70">
             <BrowseViewControllerWithSelections {...props}>
-                <BrowsePublicationSearchTable
-                    {...props}
-                    header_title="Variant Detection from SMaHT Working Groups"
-                />
+                <BrowsePublicationSearchTable {...props} />
             </BrowseViewControllerWithSelections>
         </div>
     );
