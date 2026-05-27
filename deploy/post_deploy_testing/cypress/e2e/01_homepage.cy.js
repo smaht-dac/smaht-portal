@@ -401,6 +401,7 @@ function stepDRTCountsCheck(caps) {
                 const link = el.querySelector('.header-link');
 
                 return {
+                    href: link?.getAttribute('href') || '',
                     expectedCount: Number(
                         link
                             ?.querySelector('.count')
@@ -410,11 +411,9 @@ function stepDRTCountsCheck(caps) {
                 };
             });
 
-            cy.wrap(pages).each(({ expectedCount }, index) => {
-                cy.get('.data-release-item-container')
-                    .eq(index)
-                    .find('.header-link')
-                    .click();
+            cy.wrap(pages).each(({ href, expectedCount }) => {
+                expect(href, 'DRT link href should exist').to.not.equal('');
+                cy.visit(href, { headers: cypressVisitHeaders });
 
                 // Note: DRT access temporarily restricted to network members
                 // if (caps.expectedLimitedReleaseTrackerAccess) {
@@ -429,7 +428,7 @@ function stepDRTCountsCheck(caps) {
                 // }
                 cy.searchPageTotalResultCount().should('eq', expectedCount);
 
-                cy.go('back');
+                cy.visit('/', { headers: cypressVisitHeaders });
 
                 cy.get('.data-release-item-container').should(
                     'have.length.at.least',
