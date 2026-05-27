@@ -224,11 +224,17 @@
     "facets": {
         "journal": {
             "title": "Journal"
+        },
+        "authors.last_name": {
+            "title": "Authors"
+        },
+        "date_published": {
+            "title": "Year"
         }
     },
     "columns": {
-        "accession": {
-            "title": "Accession"
+        "title": {
+            "title": "Title"
         },
         "date_published": {
             "title": "Year"
