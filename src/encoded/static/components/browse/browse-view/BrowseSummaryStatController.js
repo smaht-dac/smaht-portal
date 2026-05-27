@@ -23,6 +23,7 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
         autoSync = false,
         mapping = 'donor',
     } = props;
+    console.log('BrowseSummaryStatsViewer', props);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [data, setData] = useState(null);
@@ -208,7 +209,7 @@ BrowseSummaryStatController.propTypes = {
     error: PropTypes.bool.isRequired,
 };
 
-const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
+export const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
     const { type, value, loading, units, containerCls = 'ms-2' } = props;
 
     let subtitle;
