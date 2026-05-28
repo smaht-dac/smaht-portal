@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.28.1
+======
+
+`PR 675: chore: remove old announcements <https://github.com/smaht-dac/smaht-portal/pull/675>`_
+
+* Remove old announcements from the notification panel
+
 
 1.28.0
 =======
