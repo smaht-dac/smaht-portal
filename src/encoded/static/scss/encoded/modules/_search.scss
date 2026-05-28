@@ -1356,15 +1356,59 @@ body[data-at-type^='Publication-collections'] {
         .publication-search-result-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             height: 150px;
             padding: 15px 30px;
             border-bottom: 1px solid $mercury;
             box-shadow: none;
 
+            .thumbnail-title {
+                display: flex;
+                align-items: center;
+
+                .title {
+                    h4 {
+                        font-size: 1.125rem;
+                    }
+                }
+            }
+
+            .thumbnail {
+                flex-shrink: 0;
+                height: 100px;
+                width: 160px;
+                margin-right: 20px;
+                border: 1px solid #cfebff;
+                border-radius: 6px;
+                overflow: hidden;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+                .thumbnail-placeholder {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100%;
+                    height: 100%;
+                    background-color: $mercury;
+                    margin: auto;
+
+                    i {
+                        font-size: 1.75rem;
+                        color: #9a9a9a;
+                    }
+                }
+            }
+
             .detail {
                 display: flex;
                 flex-direction: column;
                 align-items: end;
+                font-size: 0.75rem;
 
                 a {
                     text-align: right;
