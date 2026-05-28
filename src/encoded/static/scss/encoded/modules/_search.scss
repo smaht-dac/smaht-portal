@@ -1286,6 +1286,17 @@ body[data-at-type^='Publication-collections'] {
             background-color: $baby-20;
             padding: 10px 20px;
             margin: 0px;
+            border-bottom: 1px solid #9ba5b7;
+            z-index: 1;
+        }
+        .results-column {
+            .table-header {
+                position: sticky;
+                top: 39px;
+            }
+        }
+        .search-headers-row {
+            border: none;
         }
         .embedded-search-container {
             .search-page-container > div.search-view-controls-and-results.row,
@@ -1359,7 +1370,8 @@ body[data-at-type^='Publication-collections'] {
             align-items: center;
             height: 150px;
             padding: 15px 30px;
-            border-bottom: 1px solid $mercury;
+            border: 1px solid $mercury;
+            border-top: none;
             box-shadow: none;
 
             .thumbnail-title {

@@ -115,9 +115,6 @@ export const BrowsePublicationSearchTable = (props) => {
 
     return (
         <div className="publication-search-table-container">
-            <h2 className="table-header text-gray-70 fs-3 fw-semibold">
-                {props.header_title || 'Publications'}
-            </h2>
             <CommonSearchView
                 {...passProps}
                 {...{
@@ -140,6 +137,11 @@ export const BrowsePublicationSearchTable = (props) => {
                         />
                     );
                 }}
+                aboveTableComponent={
+                    <h2 className="table-header text-gray-70 fs-3 fw-semibold">
+                        {props.header_title || 'Publications'}
+                    </h2>
+                }
                 useCustomSelectionController
                 hideStickyFooter
                 termTransformFxn={Schemas.Term.toName}
