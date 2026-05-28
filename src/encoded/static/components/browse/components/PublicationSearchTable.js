@@ -17,12 +17,21 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
         journal = '',
         journal_url = '',
         doi = '',
+        thumbnail_url = '',
     } = result || {};
 
     return (
         <div className="search-result-row publication-search-result-row">
-            <div className="">
-                <div className="thumbnail"></div>
+            <div className="thumbnail-title">
+                <div className="thumbnail">
+                    {thumbnail_url ? (
+                        <img src={thumbnail_url} alt={display_title} />
+                    ) : (
+                        <div className="thumbnail-placeholder">
+                            <i className="icon icon-fw icon-newspaper fas" />
+                        </div>
+                    )}
+                </div>
                 <div className="title">
                     <h4 className="value text-start fw-semibold">
                         <a
