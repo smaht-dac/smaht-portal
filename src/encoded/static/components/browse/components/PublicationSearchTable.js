@@ -1,10 +1,7 @@
 import React from 'react';
 import { transformedFacets } from '../SearchView';
 import { BROWSE_LINKS } from '../BrowseView';
-import { BrowseViewAboveSearchTableControls } from '../browse-view/BrowseViewAboveSearchTableControls';
-import { SelectAllFilesButton } from '../../static-pages/components/SelectAllAboveTableComponent';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
-import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { Schemas } from '../../util';
 

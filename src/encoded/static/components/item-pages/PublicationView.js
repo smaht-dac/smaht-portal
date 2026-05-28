@@ -1,10 +1,8 @@
 'use strict';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useToggle } from '../util/hooks';
 import DefaultItemView from './DefaultItemView';
-import { BrowseSummaryStatsViewer } from '../browse/BrowseView';
-import { BrowseSummaryStat } from '../browse/browse-view/BrowseSummaryStatController';
 import { BrowseLinkIcon } from '../browse/browse-view/BrowseLinkIcon';
 import {
     DotRouter,
