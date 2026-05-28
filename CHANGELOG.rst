@@ -7,12 +7,22 @@ smaht-portal
 Change Log
 ----------
 
-1.28.0
+
+1.29.0
 ======
 
-`PR 608: feat: update latest release date on timeline <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+`PR 608: <https://github.com/smaht-dac/smaht-portal/pull/608>`_
 
-* Add publication item - schema, types, and dummy inserts for tests
+* Add publication item - schema, types, calcprops and dummy inserts for tests
+
+
+1.28.0
+=======
+
+`PR 677: Improve Select All scalability with paginated fetch + progress UI; remove Bluebird Babel coupling <https://github.com/smaht-dac/smaht-portal/pull/677>`_
+
+* Improves the Select All workflow for large file result sets by replacing limit=all with paginated requests and adding user-visible progress feedback
+* Removes a fragile Babel Bluebird coupling that caused CI/CodeBuild failures
 
 
 1.27.10
