@@ -7,6 +7,21 @@ smaht-portal
 Change Log
 ----------
 
+
+1.29.1
+======
+
+`PR 676: Improve donor x tissue controls and coverage rendering behavior <https://github.com/smaht-dac/smaht-portal/pull/676>`_
+
+* Refines the Donor x Tissue matrix UI/behavior so assay filtering and coverage view are both usable and visually consistent
+
+
+1.29.0
+======
+
+* Hook in snovault version solving memory management problems
+
+
 1.28.1
 ======
 
@@ -114,7 +129,7 @@ Change Log
 
 `PR 666: QC metrics improvements <https://github.com/smaht-dac/smaht-portal/pull/666>`_
 
-* Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
+*Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
 
 
 1.26.2
@@ -123,7 +138,6 @@ Change Log
 `PR 661: feat: remove homepage top banner <https://github.com/smaht-dac/smaht-portal/pull/661>`_
 
 * Remove restricted access top banner alert in homepage
-
 
 1.26.1
 ======
