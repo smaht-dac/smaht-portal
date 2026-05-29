@@ -140,7 +140,7 @@ export default function RetractedFilesTable(props) {
             },
         },
         retraction_reason: {
-            widthMap: { lg: 250, md: 120, sm: 120 },
+            widthMap: { lg: 210, md: 120, sm: 120 },
             colAlignment: 'text-start',
             render: function (result, props) {
                 const { retraction_reason } = result || {};
