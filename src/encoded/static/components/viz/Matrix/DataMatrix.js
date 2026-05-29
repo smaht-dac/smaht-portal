@@ -1631,11 +1631,20 @@ export default class DataMatrix extends React.PureComponent {
                 ? donorTissueShrinkEmptyColumns
                 : true,
             countFor,
+            // Donor x Tissue can exceed horizontal space in coverage view; keep default cell width here
+            // and render compact labels instead of widening cells.
+            compactCoverageText: countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            // Donor x Tissue should not expose expand controls.
+            disableRowExpand: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            // Donor x Tissue blocks are informational; disable click-to-open highlighting/popover selection.
+            disableBlockOpen: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             overallCounts: effectiveOverallCounts,
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
-            ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
+            ...(countFor === 'total_coverage' && matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
+                ? { blockWidth: 60, blockHorizontalExtend: 10 }
+                : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey
                 ? ((filteringProperties, blockType) => {
                     const transformFn = DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey];
@@ -1702,7 +1711,7 @@ export default class DataMatrix extends React.PureComponent {
                     const showLeftPanel = showFacetsPanel;
 
                     const assaySelect = isDonorTissueMatrix ? (
-                        <div className="matrix-top-controls matrix-assay-select-control">
+                        <div className="matrix-assay-select-control">
                             <div className="matrix-assay-select-inline">
                                 <label className="matrix-assay-select-label" htmlFor={`matrix-assay-select-${idLabel || 'default'}`}>
                                     <i className="icon fas icon-dna" /> Assay
@@ -1720,8 +1729,8 @@ export default class DataMatrix extends React.PureComponent {
                         </div>
                     ) : null;
 
-                    const metricToggle = showCountsPanel && !isDonorTissueMatrix ? (
-                        <div className="matrix-top-controls matrix-visual-metric-controls">
+                    const metricToggle = showCountsPanel ? (
+                        <div className={isDonorTissueMatrix ? "matrix-visual-metric-controls" : "matrix-top-controls matrix-visual-metric-controls"}>
                             <div className="matrix-counts-toggle matrix-counts-toggle-inline">
                                 <IconToggle
                                     options={isTissueMatrix ? [
@@ -1772,6 +1781,20 @@ export default class DataMatrix extends React.PureComponent {
                                 />
                             </div>
                         </div>
+                    ) : null;
+
+                    const headerLeftControls = (assaySelect || metricToggle) ? (
+                        isDonorTissueMatrix ? (
+                            <div className="matrix-donor-tissue-controls-stack">
+                                {metricToggle}
+                                {assaySelect}
+                            </div>
+                        ) : (
+                            <React.Fragment>
+                                {assaySelect}
+                                {metricToggle}
+                            </React.Fragment>
+                        )
                     ) : null;
 
                     return (
@@ -1860,7 +1883,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField')}
                                                 {...bodyProps}
                                                 headerPadding={effectiveHeaderPadding}
-                                                headerLeftControls={assaySelect || metricToggle}
+                                                headerLeftControls={headerLeftControls}
                                                 columnSubGrouping=""// leave blank for now
                                                 // eslint-disable-next-line react/destructuring-assignment
                                                 results={effectiveResults}

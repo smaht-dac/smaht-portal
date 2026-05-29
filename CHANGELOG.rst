@@ -7,13 +7,21 @@ smaht-portal
 Change Log
 ----------
 
-1.29.1
+1.29.2
 ======
 
 `PR 681: feat: update retracted files table <https://github.com/smaht-dac/smaht-portal/pull/681>`_
 
 * Fix retraction table sorting param
 * Update columns to access fallback fields for new SNV vcfs
+
+
+1.29.1
+======
+
+`PR 676: Improve donor x tissue controls and coverage rendering behavior <https://github.com/smaht-dac/smaht-portal/pull/676>`_
+
+* Refines the Donor x Tissue matrix UI/behavior so assay filtering and coverage view are both usable and visually consistent
 
 
 1.29.0
