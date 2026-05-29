@@ -12,7 +12,7 @@ export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
     const searchHref =
         propSearchHref ||
-        '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted_date';
+        '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
 
     const columnExtensionMap = {
         access_status: {
@@ -116,11 +116,47 @@ export default function RetractedFilesTable(props) {
                 );
             },
         },
+        assays: {
+            colTitle: 'Assays',
+            widthMap: { lg: 100, md: 75, sm: 75 },
+            defaultColAlignment: 'text-start',
+            render: function (result, props) {
+                const assayString =
+                    result?.assays?.length > 0
+                        ? result.assays
+                              ?.map((assay) => assay?.display_title)
+                              ?.join(', ')
+                        : null;
+
+                return assayString ? (
+                    <span className="value text-start">{assayString}</span>
+                ) : null;
+            },
+        },
         release_tracker_description: {
-            widthMap: { lg: 150, md: 75, sm: 75 },
+            colTitle: 'Description',
+            widthMap: { lg: 250, md: 75, sm: 75 },
+            render: function (result, props) {
+                return result?.release_tracker_description ? (
+                    <span className="value text-start">
+                        {result.release_tracker_description}
+                    </span>
+                ) : null;
+            },
         },
         'sample_summary.sample_names': {
             widthMap: { lg: 160, md: 120, sm: 120 },
+            render: function (result, props) {
+                const { sample_summary, sample_sources } = result || {};
+
+                const sampleName =
+                    sample_summary?.sample_names?.[0] ??
+                    sample_sources?.[0]?.display_title;
+
+                return sampleName ? (
+                    <span className="value text-start">{sampleName}</span>
+                ) : null;
+            },
         },
         'data_generation_summary.sequencing_center': {
             widthMap: { lg: 110, md: 90, sm: 90 },
@@ -146,8 +182,11 @@ export default function RetractedFilesTable(props) {
         'replaced_by.display_title': {
             title: 'Replaced By',
         },
+        assays: {
+            title: 'Assays',
+        },
         release_tracker_description: {
-            title: 'Assay',
+            title: 'Description',
         },
         'sample_summary.sample_names': {
             title: 'Sample',
