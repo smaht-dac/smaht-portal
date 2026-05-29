@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.29.0
+======
+
+* Hook in snovault version solving memory management problems
+
+
 1.28.1
 ======
 
@@ -114,7 +120,7 @@ Change Log
 
 `PR 666: QC metrics improvements <https://github.com/smaht-dac/smaht-portal/pull/666>`_
 
-* Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
+*Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
 
 
 1.26.2
@@ -123,7 +129,6 @@ Change Log
 `PR 661: feat: remove homepage top banner <https://github.com/smaht-dac/smaht-portal/pull/661>`_
 
 * Remove restricted access top banner alert in homepage
-
 
 1.26.1
 ======
