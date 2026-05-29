@@ -1506,11 +1506,15 @@ export default class DataMatrix extends React.PureComponent {
                     colorRangeSegmentStep: prevState.colorRangeSegmentStep
                 });
             } else {
-                nextState.query = {
-                    ...prevState.query,
-                    rowAggFields: baseRowAggFields
-                };
-                nextState.groupingProperties = baseGroupingProperties;
+                // In Donor x Tissue mode, files <-> coverage is display-only.
+                // Keep current query/grouping to avoid a one-time query-shape flip/refetch.
+                if (prevState.matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
+                    nextState.query = {
+                        ...prevState.query,
+                        rowAggFields: baseRowAggFields
+                    };
+                    nextState.groupingProperties = baseGroupingProperties;
+                }
                 nextState.colorRanges = this.getColorRanges({
                     colorRangeBaseColor: baseColorRangeBaseColor,
                     colorRangeSegments: prevState.colorRangeSegments,
