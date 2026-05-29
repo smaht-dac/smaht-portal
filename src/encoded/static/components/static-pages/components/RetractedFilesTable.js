@@ -1,10 +1,7 @@
 'use strict';
 
 import React, { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import memoize from 'memoize-one';
-
 import {
     EmbeddedItemSearchTable,
     SearchTableTitle,
@@ -26,8 +23,7 @@ export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
     const searchHref =
         propSearchHref ||
-        // '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
-        '/search/?type=File&status=retracted&sort=-file_status_tracking.status_tracking.retracted';
+        '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
 
     const outerRef = useRef(null);
     const [showShadow, setShowShadow] = useState(false);
@@ -206,14 +202,14 @@ export default function RetractedFilesTable(props) {
                 const { sample_summary, sample_sources } = result || {};
 
                 // Pull out either sample names or sample sources
-                let samplesList =
+                const samplesList =
                     sample_summary?.sample_names?.length > 0
-                        ? sample_summary?.sample_names
+                        ? sample_summary.sample_names
                         : sample_sources?.map(
                               (source) => source.display_title
                           ) || null;
 
-                let sampleNames = samplesList?.join(', ');
+                const sampleNames = samplesList?.join(', ');
                 return sampleNames ? (
                     <span className="value text-start">{sampleNames}</span>
                 ) : null;
