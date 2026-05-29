@@ -124,7 +124,7 @@ export default function RetractedFilesTable(props) {
                 const assayString =
                     result?.assays?.length > 0
                         ? result.assays
-                              ?.map((assay) => assay?.display_title)
+                              .map((assay) => assay?.display_title)
                               ?.join(', ')
                         : null;
 
