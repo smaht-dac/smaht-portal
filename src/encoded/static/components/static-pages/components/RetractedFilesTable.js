@@ -86,8 +86,16 @@ export default function RetractedFilesTable(props) {
                 );
             },
         },
-        'file_status_tracking.status_tracking.retracted_date': {
+        'file_status_tracking.status_tracking.retracted': {
             widthMap: { lg: 140, md: 90, sm: 90 },
+            render: function (result, props) {
+                const { file_status_tracking = {} } = result || {};
+                const { status_tracking = {} } = file_status_tracking || {};
+                const { retracted_date } = status_tracking || {};
+                return retracted_date ? (
+                    <span className="value text-start">{retracted_date}</span>
+                ) : null;
+            },
         },
         accession: {
             widthMap: { lg: 145, md: 120, sm: 120 },
@@ -224,7 +232,7 @@ export default function RetractedFilesTable(props) {
         access_status: {
             title: 'Access',
         },
-        'file_status_tracking.status_tracking.retracted_date': {
+        'file_status_tracking.status_tracking.retracted': {
             title: 'Retracted On',
         },
         accession: {
