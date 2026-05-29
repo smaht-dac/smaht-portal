@@ -5,8 +5,22 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
 
-import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
+import {
+    EmbeddedItemSearchTable,
+    SearchTableTitle,
+} from '../../item-pages/components/EmbeddedItemSearchTable';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+
+function RetractedFilesTableHeader({ context, href }) {
+    return context?.total > 0 ? (
+        <SearchTableTitle
+            totalCount={context?.total}
+            href={href}
+            title="Retracted File"
+            headerElement="h4"
+        />
+    ) : null;
+}
 
 export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
