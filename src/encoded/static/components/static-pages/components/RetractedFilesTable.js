@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
@@ -28,6 +28,45 @@ export default function RetractedFilesTable(props) {
         propSearchHref ||
         // '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
         '/search/?type=File&status=retracted&sort=-file_status_tracking.status_tracking.retracted';
+
+    const outerRef = useRef(null);
+    const [showShadow, setShowShadow] = useState(false);
+
+    // Tracks scroll container to show shadow whenever there is more content
+    // below the visible area
+    useEffect(() => {
+        const outer = outerRef.current;
+        if (!outer) return;
+
+        const updateShadow = ({ scrollTop, clientHeight, scrollHeight }) => {
+            setShowShadow(scrollTop + clientHeight < scrollHeight - 2);
+        };
+
+        // Capture-phase listener on the outer scroll container to update the shadow
+        // state whenever the scroll position changes.
+        const onScroll = (e) => updateShadow(e.target);
+        outer.addEventListener('scroll', onScroll, {
+            passive: true,
+            capture: true,
+        });
+
+        // Observer to compute the initial shadow state as soon as the virtual
+        // scroll container appears after the first load
+        const observer = new MutationObserver(() => {
+            const scrollContainer = outer.querySelector(
+                '.react-infinite-container'
+            );
+            if (!scrollContainer) return;
+            updateShadow(scrollContainer);
+            observer.disconnect();
+        });
+        observer.observe(outer, { childList: true, subtree: true });
+
+        return () => {
+            outer.removeEventListener('scroll', onScroll, { capture: true });
+            observer.disconnect();
+        };
+    }, []);
 
     const columnExtensionMap = {
         access_status: {
@@ -199,7 +238,7 @@ export default function RetractedFilesTable(props) {
             title: 'File',
         },
         retraction_reason: {
-            title: 'Reason of Retraction',
+            title: 'Reason for Retraction',
         },
         'replaced_by.display_title': {
             title: 'Replaced By',
@@ -219,16 +258,36 @@ export default function RetractedFilesTable(props) {
     };
 
     return (
-        <div className="retracted-files-table">
+        <div
+            className="retracted-files-table"
+            ref={outerRef}
+            style={{ position: 'relative' }}>
             <EmbeddedItemSearchTable
                 searchHref={searchHref}
                 schemas={schemas}
                 session={session}
                 facets={null}
                 rowHeight={31}
+                maxResultsBodyHeight={600}
                 columns={columns}
                 columnExtensionMap={columnExtensionMap}
+                embeddedTableHeader={<RetractedFilesTableHeader />}
             />
+            {showShadow && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 60,
+                        background:
+                            'linear-gradient(to bottom, transparent, rgba(255,255,255,0.88))',
+                        pointerEvents: 'none',
+                        zIndex: 10,
+                    }}
+                />
+            )}
         </div>
     );
 }

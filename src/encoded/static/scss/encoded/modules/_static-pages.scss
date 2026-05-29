@@ -3307,6 +3307,8 @@ body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
 .retracted-files-table {
     .tab-section-title {
         font-size: 1.125rem;
+        min-height: auto;
+        margin-bottom: 10px;
     }
     .search-headers-row {
         background-color: #fff1f1 !important;
