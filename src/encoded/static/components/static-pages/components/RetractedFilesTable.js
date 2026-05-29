@@ -12,7 +12,8 @@ export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
     const searchHref =
         propSearchHref ||
-        '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
+        // '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
+        '/search/?type=File&status=retracted&sort=-file_status_tracking.status_tracking.retracted';
 
     const columnExtensionMap = {
         access_status: {
@@ -125,7 +126,7 @@ export default function RetractedFilesTable(props) {
                     result?.assays?.length > 0
                         ? result.assays
                               .map((assay) => assay?.display_title)
-                              ?.join(', ')
+                              .join(', ')
                         : null;
 
                 return assayString ? (
@@ -149,12 +150,17 @@ export default function RetractedFilesTable(props) {
             render: function (result, props) {
                 const { sample_summary, sample_sources } = result || {};
 
-                const sampleName =
-                    sample_summary?.sample_names?.[0] ??
-                    sample_sources?.[0]?.display_title;
+                // Pull out either sample names or sample sources
+                let samplesList =
+                    sample_summary?.sample_names?.length > 0
+                        ? sample_summary?.sample_names
+                        : sample_sources?.map(
+                              (source) => source.display_title
+                          ) || null;
 
-                return sampleName ? (
-                    <span className="value text-start">{sampleName}</span>
+                let sampleNames = samplesList?.join(', ');
+                return sampleNames ? (
+                    <span className="value text-start">{sampleNames}</span>
                 ) : null;
             },
         },
