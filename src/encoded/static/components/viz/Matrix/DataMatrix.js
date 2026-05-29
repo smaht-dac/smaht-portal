@@ -1711,7 +1711,7 @@ export default class DataMatrix extends React.PureComponent {
                     const showLeftPanel = showFacetsPanel;
 
                     const assaySelect = isDonorTissueMatrix ? (
-                        <div className={isDonorTissueMatrix ? "matrix-assay-select-control" : "matrix-top-controls matrix-assay-select-control"}>
+                        <div className="matrix-assay-select-control">
                             <div className="matrix-assay-select-inline">
                                 <label className="matrix-assay-select-label" htmlFor={`matrix-assay-select-${idLabel || 'default'}`}>
                                     <i className="icon fas icon-dna" /> Assay
