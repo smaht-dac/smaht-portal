@@ -12,8 +12,7 @@ export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
     const searchHref =
         propSearchHref ||
-        // '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
-        '/search/?type=File&status=retracted&sort=-file_status_tracking.status_tracking.retracted';
+        '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
 
     const columnExtensionMap = {
         access_status: {
