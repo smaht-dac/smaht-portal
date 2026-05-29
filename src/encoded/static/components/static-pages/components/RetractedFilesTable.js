@@ -12,7 +12,8 @@ export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
     const searchHref =
         propSearchHref ||
-        '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
+        // '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
+        '/search/?type=File&status=retracted&sort=-file_status_tracking.status_tracking.retracted';
 
     const columnExtensionMap = {
         access_status: {
@@ -83,6 +84,7 @@ export default function RetractedFilesTable(props) {
         },
         retraction_reason: {
             widthMap: { lg: 250, md: 120, sm: 120 },
+            colAlignment: 'text-start',
             render: function (result, props) {
                 const { retraction_reason } = result || {};
                 if (!retraction_reason) return null;
@@ -95,6 +97,7 @@ export default function RetractedFilesTable(props) {
         },
         'replaced_by.display_title': {
             widthMap: { lg: 170, md: 120, sm: 120 },
+            colAlignment: 'text-start',
             render: function (result, props) {
                 const {
                     replaced_by: {
@@ -119,7 +122,7 @@ export default function RetractedFilesTable(props) {
         assays: {
             colTitle: 'Assays',
             widthMap: { lg: 100, md: 75, sm: 75 },
-            defaultColAlignment: 'text-start',
+            colAlignment: 'text-start',
             render: function (result, props) {
                 const assayString =
                     result?.assays?.length > 0
@@ -127,15 +130,14 @@ export default function RetractedFilesTable(props) {
                               .map((assay) => assay?.display_title)
                               .join(', ')
                         : null;
-
-                return assayString ? (
-                    <span className="value text-start">{assayString}</span>
-                ) : null;
+                if (!assayString) return null;
+                return <span className="value text-start">{assayString}</span>;
             },
         },
         release_tracker_description: {
             colTitle: 'Description',
             widthMap: { lg: 250, md: 75, sm: 75 },
+            colAlignment: 'text-start',
             render: function (result, props) {
                 return result?.release_tracker_description ? (
                     <span className="value text-start">
@@ -146,6 +148,7 @@ export default function RetractedFilesTable(props) {
         },
         'sample_summary.sample_names': {
             widthMap: { lg: 160, md: 120, sm: 120 },
+            colAlignment: 'text-start',
             render: function (result, props) {
                 const { sample_summary, sample_sources } = result || {};
 
