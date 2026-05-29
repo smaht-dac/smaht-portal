@@ -25,7 +25,7 @@ def includeme(config):
     config.scan(__name__)
 
 
-TSV_WIDTH = 27 # There are 27 columns in the file manifest
+TSV_WIDTH = 31 # There are 31 columns in the file manifest
 # Encode manifest file types
 FILE = 0
 CLINICAL = 1
@@ -803,7 +803,7 @@ def generate_file_download_header(download_file_name: str, cli=False):
     
         Number of columns generated set in TSV_WIDTH
     """
-    header1 = ['###', 'Metadata TSV Download', 'Column Count', TSV_WIDTH] + ([''] * (TSV_WIDTH-4))  # length 27
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', TSV_WIDTH] + ([''] * (TSV_WIDTH-4))  # length 31
     if cli:
         header2 = ['Suggested command to download: ', '', '',
                    (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
