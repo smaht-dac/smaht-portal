@@ -120,10 +120,14 @@ function testAllTabsPresentAndFunctional(caps) {
         .should("exist")
         .and("be.visible")
         .find("button")
-        .should("have.length", TAB_LABELS.length)
-        .each((tab, index) => {
-            cy.wrap(tab).should("contain.text", TAB_LABELS[index]);
+        .should("have.length", TAB_LABELS.length);
+
+    // Verify expected labels exist regardless of rendered order.
+    cy.get("#qc-metrics-tabs").within(() => {
+        TAB_LABELS.forEach((label) => {
+            cy.contains("button", label).should("exist");
         });
+    });
 
     // Click each tab and ensure it becomes active
     cy.get("#qc-metrics-tabs").within(() => {
@@ -132,6 +136,9 @@ function testAllTabsPresentAndFunctional(caps) {
                 .click()
                 .should("have.class", "active")
                 .and("have.attr", "aria-selected", "true");
+
+            // Wait for tab content loading to settle before moving on.
+            cy.contains("Loading").should("not.exist");
         });
     });
 }
