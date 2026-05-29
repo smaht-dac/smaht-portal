@@ -1083,7 +1083,9 @@ export class StackedBlockVisual extends React.PureComponent {
     handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType = null) => {
         // Donor x Tissue view keeps blocks non-interactive to avoid accidental "open" white-state styling.
         if (this.props.disableBlockOpen) {
-            this.setState({ openBlock: null });
+            if (this.state.openBlock !== null) {
+                this.setState({ openBlock: null });
+            }
             return;
         }
         const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType } : null;
