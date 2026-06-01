@@ -46,6 +46,7 @@ const RenamedFilesColumnExtensionMap = {
     },
     // Workaround for displaying tags on multiple columns
     'tags.0': {
+        noSort: true,
         widthMap: { lg: 140, md: 140, sm: 140 },
         render: function (result, parentProps) {
             const { tags } = result || {};
@@ -58,6 +59,7 @@ const RenamedFilesColumnExtensionMap = {
     },
     // Workaround for displaying tags on multiple columns
     'tags.1': {
+        noSort: true,
         widthMap: { lg: 220, md: 220, sm: 220 },
         render: function (result, parentProps) {
             const { tags } = result || {};
@@ -69,6 +71,7 @@ const RenamedFilesColumnExtensionMap = {
         },
     },
     notes_to_tsv: {
+        noSort: true,
         widthMap: { lg: 500, md: 400, sm: 400 },
         render: function (result, parentProps) {
             const { notes_to_tsv } = result || {};
