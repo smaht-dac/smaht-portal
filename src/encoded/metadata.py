@@ -3,12 +3,16 @@ from pyramid.response import Response
 from snovault.elasticsearch import ELASTIC_SEARCH
 from snovault.util import debug_log
 from dcicutils.misc_utils import ignored
+from snovault.search.search import search
 from snovault.search.search_utils import (
     build_permission_filter,
     execute_streaming_search,
     get_es_index,
+    make_search_subreq,
 )
 from typing import Tuple, NamedTuple, List
+from urllib.parse import urlencode
+from webob.multidict import MultiDict
 import csv
 import json
 from datetime import datetime
@@ -923,15 +927,6 @@ _METADATA_ES_BATCH_SIZE = 1000
 _METADATA_ES_TIMEOUT = '60s'
 
 
-# URL-style param keys that should NOT be turned into ES field filters when
-# parsing a /peek-metadata GET request. These are search-control params
-# (pagination, frame, additional_facet, etc.) rather than item-field filters.
-_PEEK_METADATA_NON_FILTER_PARAMS = frozenset([
-    'additional_facet', 'sort', 'limit', 'from', 'frame', 'datastore',
-    'q', 'searchTerm', 'format', 'include_extra_files',
-])
-
-
 def _build_metadata_es_filter(request, type_param, accessions=None,
                               status=None, uuids=None):
     """Construct the ES `bool.filter` for a /metadata query.
@@ -1010,81 +1005,70 @@ def _stream_metadata_items(request, *, type_param, accessions=None, status=None,
         yield source.get('embedded', {})
 
 
-def _build_es_filter_from_request_params(request):
-    """Translate /peek-metadata GET query params into an ES `bool` query.
-
-    The UI fires GETs like
-        /peek-metadata/?additional_facet=file_size&type=File
-                       &donors.display_title=DAC_DONOR_COLO829
-                       &dataset!=No+value&status=public&status=released
-    instead of POSTing an accession list. These are snovault-style filters,
-    not /metadata's accession+status shape, so `handle_metadata_arguments`
-    rejects them and the endpoint used to fall back to a full snovault
-    `search()` — bringing back every default facet aggregation, which is
-    what's still blowing the upstream timeout.
-
-    This translator handles the filter shapes peek-metadata callers actually
-    use:
-        field=value         positive terms filter
-        field!=value        negative terms filter (must_not)
-        field=A&field=B     OR-within-field (a single terms clause)
-        type=Foo            mapped to embedded.@type.raw
-    Range filters (`field.from`, `field.to`) are not handled — peek-metadata
-    callers in this codebase don't use them. Add support here if a new
-    caller needs it.
-
-    The permission filter is always included so we don't leak items the
-    caller can't view.
-    """
-    must_terms = {}      # ES field -> set of values
-    must_not_terms = {}
-
-    for key in set(request.params.keys()):
-        if key in _PEEK_METADATA_NON_FILTER_PARAMS:
-            continue
-        # snovault uses `field!=value` to mean "must_not field=value".
-        negative = key.endswith('!')
-        field = key[:-1] if negative else key
-        if field == 'type':
-            es_field = 'embedded.@type.raw'
-        else:
-            es_field = f'embedded.{field}.raw'
-        bucket = must_not_terms if negative else must_terms
-        bucket.setdefault(es_field, set()).update(request.params.getall(key))
-
-    filter_clauses = [build_permission_filter(request)]
-    for es_field, values in must_terms.items():
-        filter_clauses.append({'terms': {es_field: sorted(values)}})
-
-    bool_query = {'filter': filter_clauses}
-    if must_not_terms:
-        bool_query['must_not'] = [
-            {'terms': {es_field: sorted(values)}}
-            for es_field, values in must_not_terms.items()
-        ]
-    return {'bool': bool_query}
-
-
 def _aggregate_from_request_params(request):
     """Run the peek-metadata file_size aggregation for a GET-style request.
 
-    Parses URL filter params (`type=...`, `donors.display_title=...`, etc.)
-    instead of expecting an accession list in the body. Returns the raw ES
-    response in the same shape as `_aggregate_metadata_file_size`, so the
-    caller can format the facets array uniformly.
+    Rather than hand-translate URL params to ES (which gets snovault's
+    nested-field / schema-aware / subtype-aware logic wrong in subtle ways
+    that match the wrong document set and blow ES timeouts), forward the
+    URL through snovault's own search() with two extra query params:
+      - `additional_facet=file_size` — request the stats facet we want
+      - `skip_default_facets=true`   — skip the dozens of schema facets
+                                       that made the original peek-metadata
+                                       slow path time out
+    Plus `limit=0` so no document hits are scanned/returned.
+
+    snovault's filter construction (including nested-field wrapping, type
+    subtype expansion, must_not handling, principals_allowed.view filtering)
+    runs unchanged — same query shape /search would build for the same URL,
+    minus the default facet aggregations.
+
+    Returns a response in the same shape as `_aggregate_metadata_file_size`
+    so the caller can reuse the response formatter.
     """
-    es = request.registry[ELASTIC_SEARCH]
-    type_param = request.params.get('type') or 'File'
-    es_index = get_es_index(request, [type_param])
-    body = {
-        'query': _build_es_filter_from_request_params(request),
-        'size': 0,
-        'track_total_hits': True,
-        'aggs': {
-            'file_size': {'stats': {'field': 'embedded.file_size'}},
+    # Build a /search URL from the caller's params, forcing limit=0,
+    # additional_facet=file_size, and skip_default_facets=true. Use a fresh
+    # MultiDict so we can preserve repeated keys (status=A&status=B etc).
+    forwarded = MultiDict()
+    for key in request.params.keys():
+        if key in ('limit', 'from', 'skip_default_facets'):
+            # Override unconditionally; we don't want the caller's value here.
+            continue
+        for value in request.params.getall(key):
+            forwarded.add(key, value)
+    forwarded.add('limit', '0')
+    forwarded.add('skip_default_facets', 'true')
+    if 'additional_facet' not in forwarded:
+        forwarded.add('additional_facet', 'file_size')
+
+    subreq = make_search_subreq(
+        request,
+        '/search?{}'.format(urlencode(list(forwarded.items()), True)),
+        inherit_user=True,
+    )
+    result = search(None, subreq)
+
+    # Snovault's facet output is a list of dicts with `field` and stats keys.
+    # Surface it via the same `aggregations`/`hits.total.value` shape the
+    # POST path returns from ES directly, so peek_metadata's formatter
+    # is shape-agnostic.
+    facets_by_field = {f.get('field'): f for f in (result.get('facets') or [])}
+    file_size_facet = facets_by_field.get('file_size') or {}
+    total = (result.get('total') or 0) if isinstance(result.get('total'), int) \
+        else (result.get('total', {}) or {}).get('value', 0)
+
+    return {
+        'hits': {'total': {'value': total}},
+        'aggregations': {
+            'file_size': {
+                'count': file_size_facet.get('count', 0),
+                'min': file_size_facet.get('min'),
+                'max': file_size_facet.get('max'),
+                'avg': file_size_facet.get('avg'),
+                'sum': file_size_facet.get('sum', 0),
+            },
         },
     }
-    return es.search(index=es_index, body=body, timeout=_METADATA_ES_TIMEOUT)
 
 
 def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
