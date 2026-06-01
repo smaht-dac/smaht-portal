@@ -1,11 +1,15 @@
 from pyramid.view import view_config
 from pyramid.response import Response
+from snovault.elasticsearch import ELASTIC_SEARCH
 from snovault.util import debug_log
 from dcicutils.misc_utils import ignored
-from snovault.search.search import (
-    get_iterable_search_results, search
+from snovault.search.search import search
+from snovault.search.search_utils import (
+    build_permission_filter,
+    execute_streaming_search,
+    get_es_index,
+    make_search_subreq,
 )
-from snovault.search.search_utils import make_search_subreq
 from typing import Tuple, NamedTuple, List
 from urllib.parse import urlencode
 import csv
@@ -911,6 +915,136 @@ def _compile_tsv_mapping(tsv_mapping):
     return compiled
 
 
+# ES batch size for streaming /metadata queries. With search_after pagination
+# (used by execute_streaming_search) there's no per-page upper bound, so we
+# size for fewer round trips against thousands of accessions while staying
+# below typical ES coordinator memory budgets.
+_METADATA_ES_BATCH_SIZE = 1000
+
+# Per-batch timeout for direct ES calls. Each search_after page must complete
+# within this; the total streaming duration is allowed to exceed it.
+_METADATA_ES_TIMEOUT = '60s'
+
+
+def _build_metadata_es_filter(request, type_param, accessions=None,
+                              status=None, uuids=None):
+    """Construct the ES `bool.filter` for a /metadata query.
+
+    Reproduces only the filters relevant to /metadata:
+    - the standard view-permission filter (so the caller can't read items
+      they're not authorized to see),
+    - a type filter on the indexed @type list (so subtypes match — e.g.
+      `File` matches OutputFile/SubmittedFile/ReferenceFile),
+    - optional accession / status / uuid filters.
+
+    Deliberately omits snovault's default status!=deleted and status!=replaced
+    exclusions because /metadata callers pass explicit accession lists and
+    expect those items returned regardless of status. If that turns out to be
+    wrong for some workflow, add the exclusion here, gated on `status` being
+    unset by the caller.
+    """
+    item_type = type_param or 'File'
+    filter_clauses = [
+        build_permission_filter(request),
+        {'terms': {'embedded.@type.raw': [item_type]}},
+    ]
+    if accessions:
+        filter_clauses.append({'terms': {'embedded.accession.raw': list(accessions)}})
+    if uuids:
+        filter_clauses.append({'terms': {'embedded.uuid.raw': list(uuids)}})
+    if status:
+        filter_clauses.append({'terms': {'embedded.status.raw': [status]}})
+    return {'bool': {'filter': filter_clauses}}
+
+
+def _stream_metadata_items(request, *, type_param, accessions=None, status=None,
+                           uuids=None, source_fields, sort_param=None):
+    """Stream `embedded` views of items matching the metadata query.
+
+    This is the workhorse that lets /metadata scale to thousands of files
+    without timing out. It bypasses snovault.search.search() entirely —
+    that function computes ALL default facets for the item type on every
+    paginated batch, and uses from/size pagination (O(N^2) total). Both
+    were dominating wall-clock time for large manifests.
+
+    Yields one `embedded` dict per hit. Source filtering keeps each hit's
+    payload to the columns the TSV actually reads.
+    """
+    es = request.registry[ELASTIC_SEARCH]
+    es_index = get_es_index(request, [type_param or 'File'])
+
+    # search_after needs a stable, unique sort. The user's sort_param is
+    # applied as the primary key when present; uuid acts as the unique
+    # tiebreaker so we never skip or duplicate documents at page boundaries.
+    sort_fields = []
+    if sort_param:
+        sort_fields.append({f'embedded.{sort_param}.raw': {'order': 'asc'}})
+    sort_fields.append({'embedded.uuid.raw': {'order': 'asc'}})
+
+    source_includes = (
+        [f'embedded.{p}' for p in source_fields]
+        + ['embedded.@id', 'embedded.@type', 'embedded.uuid']
+    )
+
+    query = _build_metadata_es_filter(
+        request, type_param, accessions=accessions, status=status, uuids=uuids,
+    )
+    for source in execute_streaming_search(
+        es,
+        index=es_index,
+        query=query,
+        source_includes=source_includes,
+        sort_fields=sort_fields,
+        batch_size=_METADATA_ES_BATCH_SIZE,
+        timeout=_METADATA_ES_TIMEOUT,
+    ):
+        # `_source` is shaped `{'embedded': {...}}` because we asked for
+        # `embedded.*` includes. Hand the embedded view to the caller —
+        # that's what the existing generators expect.
+        yield source.get('embedded', {})
+
+
+def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
+                                  status=None, include_extra_files=False):
+    """Run a single ES aggregation for /peek-metadata.
+
+    peek_metadata previously called snovault.search() with limit=1 just to
+    read the file_size stats facet off the end of the response. snovault
+    still computed every default facet for File (~15-20 aggregations), each
+    scanning every document matching the (potentially thousands of) accessions
+    — enough to time out the upstream proxy. Here we ask ES for only the one
+    aggregation we actually use.
+    """
+    es = request.registry[ELASTIC_SEARCH]
+    es_index = get_es_index(request, [type_param or 'File'])
+
+    aggs = {
+        'file_size': {'stats': {'field': 'embedded.file_size'}},
+    }
+    if include_extra_files:
+        # extra_files is indexed as a nested type, so its sum must live
+        # inside a `nested` aggregation that addresses the inner docs.
+        aggs['extra_files_file_size'] = {
+            'nested': {'path': 'embedded.extra_files'},
+            'aggs': {
+                'sum': {'sum': {'field': 'embedded.extra_files.file_size'}},
+            },
+        }
+
+    body = {
+        'query': _build_metadata_es_filter(
+            request, type_param, accessions=accessions, status=status,
+        ),
+        # We only want the aggregation result; no need to fetch any hits.
+        'size': 0,
+        # Total hits is cheap on a filter-only query and useful for the UI's
+        # "downloading N files" summary, so leave it enabled here.
+        'track_total_hits': True,
+        'aggs': aggs,
+    }
+    return es.search(index=es_index, body=body, timeout=_METADATA_ES_TIMEOUT)
+
+
 def _collect_source_fields(tsv_mapping, include_extra_files):
     """Collect the set of embedded paths needed to populate a TSV.
 
@@ -1036,34 +1170,63 @@ def handle_metadata_arguments(context, request):
 @view_config(route_name='peek_metadata', request_method=['GET', 'POST'])
 @debug_log
 def peek_metadata(context, request):
-    """ Helper for the UI that will retrieve faceting information about data retrieved from /metadata """
-    # get arguments from helper
+    """ Lightweight preview endpoint used by the UI to summarize a manifest
+        before download (file count, total size).
+
+        Implementation: a single ES aggregation query. The previous
+        implementation went through snovault.search() which forced computation
+        of every default facet for the type (~15-20 aggregations for File),
+        each scanning every document matching the (often thousands of)
+        accessions — that was the source of upstream 504s.
+    """
     args = handle_metadata_arguments(context, request)
     if isinstance(args, Response):
-        # dmichaels/2024-12-16: Hackish fix for now; handle_metadata_arguments not returning MetadataArgs for ...
+        # dmichaels/2024-12-16: Hackish fix for now; handle_metadata_arguments
+        # didn't parse the request body, so fall back to the original facet
+        # path with whatever the UI sent us.
         subreq = make_search_subreq(request, '{}?{}'.format('/search', urlencode(request.params, True)), inherit_user=True)
         result = search(context, subreq)
         return result['facets']
 
-    # Generate search
-    search_param = {}
-    if not args.type_param:
-        search_param['type'] = 'File'
-    else:
-        search_param['type'] = args.type_param
-    if args.accessions:
-        search_param['accession'] = args.accessions
-    if args.sort_param:
-        search_param['sort'] = args.sort_param
-    if args.status:
-        search_param['status'] = args.status
-    search_param['limit'] = [1]  # we don't care about results, just the facets
-    search_param['additional_facet'] = ['file_size']
+    es_result = _aggregate_metadata_file_size(
+        request,
+        type_param=args.type_param,
+        accessions=args.accessions,
+        status=args.status,
+        include_extra_files=args.include_extra_files,
+    )
+
+    # Shape the response to match the subset of snovault's `facets` output
+    # that peek_metadata consumers actually read (file_size stats and the
+    # optional extra_files.file_size sum).
+    aggs = es_result.get('aggregations') or {}
+    file_size_stats = aggs.get('file_size') or {}
+    total = ((es_result.get('hits') or {}).get('total') or {}).get('value', 0)
+
+    facets = [{
+        'field': 'file_size',
+        'title': 'File Size',
+        'aggregation_type': 'stats',
+        'total': total,
+        'count': file_size_stats.get('count', 0),
+        'min': file_size_stats.get('min'),
+        'max': file_size_stats.get('max'),
+        'avg': file_size_stats.get('avg'),
+        'sum': file_size_stats.get('sum', 0),
+    }]
+
     if args.include_extra_files:
-        search_param['additional_facet'].append('extra_files.file_size')
-    subreq = make_search_subreq(request, '{}?{}'.format('/search', urlencode(search_param, True)), inherit_user=True)
-    result = search(context, subreq)
-    return result['facets']
+        ef_agg = aggs.get('extra_files_file_size') or {}
+        ef_sum = ((ef_agg.get('sum') or {}).get('value')) or 0
+        facets.append({
+            'field': 'extra_files.file_size',
+            'title': 'Extra Files Size',
+            'aggregation_type': 'stats',
+            'total': total,
+            'sum': ef_sum,
+        })
+
+    return facets
 
 
 def generate_file_manifest(request, args, search_iter, cli):
@@ -1116,13 +1279,14 @@ def generate_sample_manifest(request, args, search_iter):
     if not samples:
         return
 
-    # Restrict ES source to only the fields we read, dramatically reducing payload
-    search_param = {
-        'type': 'Sample',
-        'uuid': list(samples),
-        'field': _collect_source_fields(args.tsv_mapping, include_extra_files=False),
-    }
-    sample_search_iter = get_iterable_search_results(request, param_lists=search_param)
+    # Direct ES streaming search — no default facets, no URL serialization
+    # of the (possibly thousands of) sample UUIDs, search_after pagination.
+    sample_search_iter = _stream_metadata_items(
+        request,
+        type_param='Sample',
+        uuids=samples,
+        source_fields=_collect_source_fields(args.tsv_mapping, include_extra_files=False),
+    )
 
     compiled = _compile_tsv_mapping(args.tsv_mapping)
     for sample in sample_search_iter:
@@ -1152,12 +1316,12 @@ def generate_analyte_manifest(request, args, search_iter):
     if not analytes:
         return
 
-    search_param = {
-        'type': 'Analyte',
-        'uuid': list(analytes),
-        'field': _collect_source_fields(args.tsv_mapping, include_extra_files=False),
-    }
-    analyte_search_iter = get_iterable_search_results(request, param_lists=search_param)
+    analyte_search_iter = _stream_metadata_items(
+        request,
+        type_param='Analyte',
+        uuids=analytes,
+        source_fields=_collect_source_fields(args.tsv_mapping, include_extra_files=False),
+    )
 
     compiled = _compile_tsv_mapping(args.tsv_mapping)
     for analyte in analyte_search_iter:
@@ -1187,12 +1351,12 @@ def generate_experimental_manifest(request, args, search_iter):
     if not file_sets:
         return
 
-    search_param = {
-        'type': 'FileSet',
-        'uuid': list(file_sets),
-        'field': _collect_source_fields(args.tsv_mapping, include_extra_files=False),
-    }
-    file_set_search_iter = get_iterable_search_results(request, param_lists=search_param)
+    file_set_search_iter = _stream_metadata_items(
+        request,
+        type_param='FileSet',
+        uuids=file_sets,
+        source_fields=_collect_source_fields(args.tsv_mapping, include_extra_files=False),
+    )
 
     compiled = _compile_tsv_mapping(args.tsv_mapping)
     for fs in file_set_search_iter:
@@ -1215,40 +1379,40 @@ def metadata_tsv(context, request):
 
     Alternatively, can accept a GET request wherein all files from ExpSets matching search query params are included.
     """
-    # get arguments from helper
     args = handle_metadata_arguments(context, request)
 
-    # Generate search
-    search_param = {}
-    if not args.type_param:
-        search_param['type'] = 'File'
-    else:
-        search_param['type'] = args.type_param
-    if args.accessions:
-        search_param['accession'] = args.accessions
-    if args.sort_param:
-        search_param['sort'] = args.sort_param
-    if args.status:
-        search_param['status'] = args.status
-
-    # Restrict the ES `_source` to only the paths the manifest will read.
-    # For the FILE manifest we read from the file itself, so the field list comes
-    # from TSV_MAPPING directly. For sub-entity manifests (sample/analyte/file_set)
-    # the top-level search only needs the discriminator field to extract UUIDs
-    # for the secondary search — everything else is filtered on the secondary call.
+    # Pick the source fields the top-level streaming search needs to fetch.
+    # For FILE the manifest reads from these documents directly, so we need
+    # every TSV column path. For sub-entity manifests we only need the
+    # discriminator the secondary search keys off — the rest of the columns
+    # are fetched by that secondary call.
     if args.manifest_enum == FILE:
-        search_param['field'] = _collect_source_fields(
-            args.tsv_mapping, include_extra_files=args.include_extra_files
+        source_fields = _collect_source_fields(
+            args.tsv_mapping, include_extra_files=args.include_extra_files,
         )
     elif args.manifest_enum == SAMPLE:
-        search_param['field'] = ['samples.uuid']
+        source_fields = ['samples.uuid']
     elif args.manifest_enum == EXPERIMENT_ANALYTE:
-        search_param['field'] = ['analytes.uuid']
+        source_fields = ['analytes.uuid']
     elif args.manifest_enum == EXPERIMENT_LIBRARY:
-        search_param['field'] = ['file_sets.uuid']
+        source_fields = ['file_sets.uuid']
+    else:
+        source_fields = []
 
+    # Stream the top-level matches directly from Elasticsearch. The previous
+    # path went through snovault.search() / get_iterable_search_results, which
+    # computed every default facet for the type on every paginated batch and
+    # used O(N^2) from/size pagination — together that was the source of
+    # 504s on requests with thousands of accessions.
     cli = args.cli
-    search_iter = get_iterable_search_results(request, param_lists=search_param)
+    search_iter = _stream_metadata_items(
+        request,
+        type_param=args.type_param,
+        accessions=args.accessions,
+        status=args.status,
+        sort_param=args.sort_param,
+        source_fields=source_fields,
+    )
     if args.manifest_enum == SAMPLE:
         data_lines = generate_sample_manifest(request, args, search_iter)
     elif args.manifest_enum == FILE:
