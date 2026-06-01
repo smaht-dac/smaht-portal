@@ -104,7 +104,7 @@ const RenamedFilesColumns = {
         title: 'Accession',
     },
     annotated_filename: {
-        title: 'File',
+        title: 'Current Name',
     },
 };
 
