@@ -24,7 +24,7 @@ export function createBrowseDonorColumnExtensionMap(props) {
     return {
         columnExtensionMap,
         columns,
-        hideFacets: [...hideFacets, 'tissues'],
+        hideFacets,
     };
 }
 

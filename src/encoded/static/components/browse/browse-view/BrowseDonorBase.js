@@ -212,7 +212,9 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
             const termsFromFacets = assayFacets?.terms || [];
             const labelOverridesFromFacets = assayFacets?.label_overrides || {};
 
-            setAssayData(formatAssayData(termsFromFacets, labelOverridesFromFacets));
+            setAssayData(
+                formatAssayData(termsFromFacets, labelOverridesFromFacets)
+            );
         } else {
             panelDetails.searchRequest(searchURL);
         }
@@ -696,6 +698,7 @@ export function createBaseDonorColumnExtensionMap({
         'dataset',
         'file_sets.libraries.analytes.samples.sample_sources.code',
         'status',
+        'tissue.display_title',
         'validation_errors.name',
         'version',
         'study',
