@@ -25,7 +25,7 @@ def includeme(config):
     config.scan(__name__)
 
 
-TSV_WIDTH = 34 # There are 31 columns in the file manifest
+TSV_WIDTH = 35 # There are 35 columns in the file manifest
 # Encode manifest file types
 FILE = 0
 CLINICAL = 1
@@ -153,6 +153,9 @@ TSV_MAPPING = {
         'FilteringMethods': TSVDescriptor(field_type=FILE,
                                           field_name=['filtering_methods'],
                                            use_base_metadata=True),  # do not traverse extra_files for this
+        'ComparatorDescription': TSVDescriptor(field_type=FILE,
+                                               field_name=['comparator_description'],
+                                               use_base_metadata=True),  # do not traverse extra_files for this
         'FileFormat': TSVDescriptor(field_type=FILE,
                                     field_name=['file_format.display_title']),
         'SampleName': TSVDescriptor(field_type=FILE,
