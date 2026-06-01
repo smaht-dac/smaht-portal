@@ -1,7 +1,6 @@
 'use strict';
 
 import React from 'react';
-import _ from 'underscore';
 import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
 
 // Renamed Files query
