@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.29.2
+======
+
+`PR 678: feat: fix donor display_title column <https://github.com/smaht-dac/smaht-portal/pull/678>` 
+
+* Update the donor display_title column to use correct field
+* Refactor Donor Browse code
+
 
 1.29.1
 ======
