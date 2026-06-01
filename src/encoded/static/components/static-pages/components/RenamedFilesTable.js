@@ -46,8 +46,8 @@ const RenamedFilesColumnExtensionMap = {
             return <span className="value text-start">{access_status}</span>;
         },
     },
-    // Workaround for displaying tags on multiple columns
-    'tags.0': {
+    // Use undefined column names as work around to render custom columns
+    renamed_on_tag: {
         noSort: true,
         widthMap: { lg: 140, md: 140, sm: 140 },
         render: function (result, parentProps) {
@@ -59,8 +59,8 @@ const RenamedFilesColumnExtensionMap = {
             return <span className="value text-start">{renameDate}</span>;
         },
     },
-    // Workaround for displaying tags on multiple columns
-    'tags.1': {
+    // Use undefined column names as work around to render custom columns
+    rename_reason_tag: {
         noSort: true,
         widthMap: { lg: 220, md: 220, sm: 220 },
         render: function (result, parentProps) {
@@ -91,10 +91,10 @@ const RenamedFilesColumns = {
     access_status: {
         title: 'Access',
     },
-    'tags.0': {
+    renamed_on_tag: {
         title: 'Renamed On',
     },
-    'tags.1': {
+    rename_reason_tag: {
         title: 'Rename Reason',
     },
     notes_to_tsv: {
