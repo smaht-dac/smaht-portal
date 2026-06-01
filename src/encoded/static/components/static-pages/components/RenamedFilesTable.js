@@ -7,9 +7,12 @@ import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedIte
 const RENAMED_FILES_QUERY = '/search/?type=File&tags=rename';
 
 /**
- * Utility function to extract previous the file name from note_to_tsv
+ * Utility function to extract previous the file name from notes_to_tsv
  * @param {Array} notesToTsv - The notes_to_tsv array from the file object
  * @returns {string|null} - The previous file name if found, otherwise null
+ *
+ * Note: expects one of the notes to include a string in the format "This
+ * file was originally named [previous_file_name] due to [reason]."
  */
 const extractPreviousFileName = (notesToTsv = null) => {
     if (!notesToTsv || !Array.isArray(notesToTsv)) return null;
@@ -108,7 +111,7 @@ const RenamedFilesColumns = {
 export default function RenamedFilesTable(props) {
     const { session, schemas } = props;
     return (
-        <div className="renamed-files-table retracted-files-table">
+        <div className="renamed-files-table">
             <EmbeddedItemSearchTable
                 searchHref={RENAMED_FILES_QUERY}
                 schemas={schemas}
