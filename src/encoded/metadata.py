@@ -1073,74 +1073,81 @@ def _aggregate_from_request_params(request):
 
 def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
                                   status=None, include_extra_files=False):
-    """Run the peek-metadata file_size aggregation for the POST/accessions path.
+    """Compute the peek-metadata file_size summary by streaming matching docs.
 
-    Forwards to snovault.search() with `skip_default_facets=true` rather than
-    constructing the ES query directly. Reasons:
-      - snovault knows which embedded fields are mapped as `nested` (e.g.
-        `extra_files`) and wraps aggregations accordingly. The earlier direct
-        version assumed extra_files was nested unconditionally, which produces
-        an aggregation ES either rejects or matches nothing against — neither
-        gives us the sum the UI needs.
-      - snovault expands `type=File` to all File subtype indices and adds the
-        standard `must_not` exclusions for deleted/replaced items. Matching
-        /search's filter shape exactly keeps the POST path semantically
-        identical to a /search the user could run by hand.
-      - `skip_default_facets=true` (added on snovault side) short-circuits
-        the ~15-20 schema facet aggregations that were the actual bottleneck
-        — without that flag this routing would behave like the original
-        slow path. Only the `additional_facet` aggregations execute.
+    Why this is faster than an ES aggregation: /metadata already proves that
+    streaming the same filter set with search_after is quick (each batch
+    returns ~1000 hits in a few hundred ms). The previous implementations
+    asked ES to produce a single aggregated answer — that forces every shard
+    to scan every matched document and the coordinator to wait for the
+    slowest shard before responding. For multi-shard, multi-index queries
+    (File spans every File-subtype index) that's been pushing past the
+    upstream 30s timeout.
 
-    Returns a response shaped like an ES aggregation result so the caller
-    can use the same formatter as the GET path.
+    Streaming the matching docs and summing in Python avoids the
+    aggregation phase entirely while reusing /metadata's already-fast
+    `execute_streaming_search` path. For 5K matching docs that's roughly
+    5 ES batches × a few hundred ms each — well within the timeout.
+
+    We only ask ES for the fields we'll actually read, so each hit's
+    payload is tiny.
     """
-    forwarded = MultiDict()
-    forwarded.add('type', type_param or 'File')
-    if status:
-        forwarded.add('status', status)
-    for accession in (accessions or ()):
-        forwarded.add('accession', accession)
-    forwarded.add('limit', '0')
-    forwarded.add('skip_default_facets', 'true')
-    forwarded.add('additional_facet', 'file_size')
+    source_fields = ['file_size']
     if include_extra_files:
-        forwarded.add('additional_facet', 'extra_files.file_size')
+        # Include the whole extra_files array per doc; we walk it client-side.
+        # extra_files isn't nested-mapped in this schema, so a nested ES
+        # aggregation would have either errored or matched nothing — the
+        # client-side walk sidesteps that entire question.
+        source_fields.append('extra_files')
 
-    subreq = make_search_subreq(
+    count = 0
+    file_size_sum = 0
+    file_size_min = None
+    file_size_max = None
+    extra_files_size_sum = 0
+    extra_files_count = 0
+
+    for source in _stream_metadata_items(
         request,
-        '/search?{}'.format(urlencode(list(forwarded.items()), True)),
-        inherit_user=True,
-    )
-    result = search(None, subreq)
-
-    facets_by_field = {f.get('field'): f for f in (result.get('facets') or [])}
-    file_size_facet = facets_by_field.get('file_size') or {}
-    extra_files_facet = facets_by_field.get('extra_files.file_size') or {}
-    total_raw = result.get('total')
-    if isinstance(total_raw, int):
-        total = total_raw
-    else:
-        total = ((total_raw or {}).get('value', 0))
+        type_param=type_param,
+        accessions=accessions,
+        status=status,
+        source_fields=source_fields,
+    ):
+        count += 1
+        fs = source.get('file_size')
+        if fs is not None:
+            file_size_sum += fs
+            if file_size_min is None or fs < file_size_min:
+                file_size_min = fs
+            if file_size_max is None or fs > file_size_max:
+                file_size_max = fs
+        if include_extra_files:
+            for ef in source.get('extra_files') or ():
+                ef_size = ef.get('file_size') if isinstance(ef, Mapping) else None
+                if ef_size is not None:
+                    extra_files_size_sum += ef_size
+                    extra_files_count += 1
 
     aggs = {
         'file_size': {
-            'count': file_size_facet.get('count', 0),
-            'min': file_size_facet.get('min'),
-            'max': file_size_facet.get('max'),
-            'avg': file_size_facet.get('avg'),
-            'sum': file_size_facet.get('sum', 0),
+            'count': count,
+            'min': file_size_min,
+            'max': file_size_max,
+            'avg': (file_size_sum / count) if count else None,
+            'sum': file_size_sum,
         },
     }
     if include_extra_files:
-        # Snovault returns stats-style aggregations as a flat dict on the
-        # facet — re-wrap into the `{sum: {value: ...}}` shape the formatter
-        # below already understands so we share the same response builder.
+        # Mirror the shape the response formatter already handles for
+        # ES-returned nested aggregations.
         aggs['extra_files_file_size'] = {
-            'sum': {'value': extra_files_facet.get('sum', 0)},
+            'sum': {'value': extra_files_size_sum},
+            'count': extra_files_count,
         }
 
     return {
-        'hits': {'total': {'value': total}},
+        'hits': {'total': {'value': count}},
         'aggregations': aggs,
     }
 
@@ -1320,6 +1327,9 @@ def peek_metadata(context, request):
     }]
 
     if include_extra_files:
+        # `extra_files_file_size` is shaped as `{sum: {value: ...}, count: N}`
+        # regardless of source (Python aggregation vs the legacy nested-ES
+        # aggregation) so the UI sees a consistent facet body.
         ef_agg = aggs.get('extra_files_file_size') or {}
         ef_sum = ((ef_agg.get('sum') or {}).get('value')) or 0
         facets.append({
@@ -1327,6 +1337,7 @@ def peek_metadata(context, request):
             'title': 'Extra Files Size',
             'aggregation_type': 'stats',
             'total': total,
+            'count': ef_agg.get('count', 0),
             'sum': ef_sum,
         })
 
