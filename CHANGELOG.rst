@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.29.3
+======
+
+`PR 683: feat: renamed files table <https://github.com/smaht-dac/smaht-portal/pull/683>`_
+
+* Update retracted files table to include renamed files table
+
+
 1.29.2
 ======
 
@@ -14,14 +22,6 @@ Change Log
 
 * Fix retraction table sorting param
 * Update columns to access fallback fields for new SNV vcfs
-
-
-1.29.2
-======
-
-`PR 683: feat: renamed files table <https://github.com/smaht-dac/smaht-portal/pull/683>`_
-
-* Update retracted files table to include renamed files table
 
 
 1.29.1
