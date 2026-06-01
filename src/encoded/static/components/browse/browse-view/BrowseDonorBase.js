@@ -173,7 +173,7 @@ export const formatAssayData = (data, labelOverridesFromFacets = {}) => {
                 labelOverridesFromFacets[assayCategory];
         }
 
-        const termsMap = item?.terms.map((t) => {
+        const termsMap = item?.terms?.map((t) => {
             if (labelOverridesFromFacets[t?.key]) {
                 labelOverrides[t.key] = labelOverridesFromFacets[t.key];
             }
