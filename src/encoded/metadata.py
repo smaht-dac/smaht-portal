@@ -1073,43 +1073,76 @@ def _aggregate_from_request_params(request):
 
 def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
                                   status=None, include_extra_files=False):
-    """Run a single ES aggregation for /peek-metadata.
+    """Run the peek-metadata file_size aggregation for the POST/accessions path.
 
-    peek_metadata previously called snovault.search() with limit=1 just to
-    read the file_size stats facet off the end of the response. snovault
-    still computed every default facet for File (~15-20 aggregations), each
-    scanning every document matching the (potentially thousands of) accessions
-    — enough to time out the upstream proxy. Here we ask ES for only the one
-    aggregation we actually use.
+    Forwards to snovault.search() with `skip_default_facets=true` rather than
+    constructing the ES query directly. Reasons:
+      - snovault knows which embedded fields are mapped as `nested` (e.g.
+        `extra_files`) and wraps aggregations accordingly. The earlier direct
+        version assumed extra_files was nested unconditionally, which produces
+        an aggregation ES either rejects or matches nothing against — neither
+        gives us the sum the UI needs.
+      - snovault expands `type=File` to all File subtype indices and adds the
+        standard `must_not` exclusions for deleted/replaced items. Matching
+        /search's filter shape exactly keeps the POST path semantically
+        identical to a /search the user could run by hand.
+      - `skip_default_facets=true` (added on snovault side) short-circuits
+        the ~15-20 schema facet aggregations that were the actual bottleneck
+        — without that flag this routing would behave like the original
+        slow path. Only the `additional_facet` aggregations execute.
+
+    Returns a response shaped like an ES aggregation result so the caller
+    can use the same formatter as the GET path.
     """
-    es = request.registry[ELASTIC_SEARCH]
-    es_index = get_es_index(request, [type_param or 'File'])
+    forwarded = MultiDict()
+    forwarded.add('type', type_param or 'File')
+    if status:
+        forwarded.add('status', status)
+    for accession in (accessions or ()):
+        forwarded.add('accession', accession)
+    forwarded.add('limit', '0')
+    forwarded.add('skip_default_facets', 'true')
+    forwarded.add('additional_facet', 'file_size')
+    if include_extra_files:
+        forwarded.add('additional_facet', 'extra_files.file_size')
+
+    subreq = make_search_subreq(
+        request,
+        '/search?{}'.format(urlencode(list(forwarded.items()), True)),
+        inherit_user=True,
+    )
+    result = search(None, subreq)
+
+    facets_by_field = {f.get('field'): f for f in (result.get('facets') or [])}
+    file_size_facet = facets_by_field.get('file_size') or {}
+    extra_files_facet = facets_by_field.get('extra_files.file_size') or {}
+    total_raw = result.get('total')
+    if isinstance(total_raw, int):
+        total = total_raw
+    else:
+        total = ((total_raw or {}).get('value', 0))
 
     aggs = {
-        'file_size': {'stats': {'field': 'embedded.file_size'}},
+        'file_size': {
+            'count': file_size_facet.get('count', 0),
+            'min': file_size_facet.get('min'),
+            'max': file_size_facet.get('max'),
+            'avg': file_size_facet.get('avg'),
+            'sum': file_size_facet.get('sum', 0),
+        },
     }
     if include_extra_files:
-        # extra_files is indexed as a nested type, so its sum must live
-        # inside a `nested` aggregation that addresses the inner docs.
+        # Snovault returns stats-style aggregations as a flat dict on the
+        # facet — re-wrap into the `{sum: {value: ...}}` shape the formatter
+        # below already understands so we share the same response builder.
         aggs['extra_files_file_size'] = {
-            'nested': {'path': 'embedded.extra_files'},
-            'aggs': {
-                'sum': {'sum': {'field': 'embedded.extra_files.file_size'}},
-            },
+            'sum': {'value': extra_files_facet.get('sum', 0)},
         }
 
-    body = {
-        'query': _build_metadata_es_filter(
-            request, type_param, accessions=accessions, status=status,
-        ),
-        # We only want the aggregation result; no need to fetch any hits.
-        'size': 0,
-        # Total hits is cheap on a filter-only query and useful for the UI's
-        # "downloading N files" summary, so leave it enabled here.
-        'track_total_hits': True,
-        'aggs': aggs,
+    return {
+        'hits': {'total': {'value': total}},
+        'aggregations': aggs,
     }
-    return es.search(index=es_index, body=body, timeout=_METADATA_ES_TIMEOUT)
 
 
 def _collect_source_fields(tsv_mapping, include_extra_files):
