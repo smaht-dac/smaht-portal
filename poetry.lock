@@ -2444,6 +2444,17 @@ typing = ["typing-extensions"]
 xmp = ["defusedxml"]
 
 [[package]]
+name = "pip"
+version = "26.1.1"
+description = "The PyPA recommended tool for installing Python packages."
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "pip-26.1.1-py3-none-any.whl", hash = "sha256:99cb1c2899893b075ff56e4ed0af55669a955b49ad7fb8d8603ecdaf4ed653fb"},
+    {file = "pip-26.1.1.tar.gz", hash = "sha256:d36762751d156a4ee895de8af39aa0abeeeb577f93a2eca6ab62467bbf0f8a78"},
+]
+
+[[package]]
 name = "pip-licenses"
 version = "3.5.5"
 description = "Dump the software license list of Python packages installed with pip."
@@ -4624,4 +4635,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "5aeb57b3ea537d60a0d634a30abc036c2c969b0f0a09d6c1277ff2aba1a4b940"
+content-hash = "35c29555a7b05faef3bfdf72e37dafd31a17840a37d1d5ef7fde6695853e0463"

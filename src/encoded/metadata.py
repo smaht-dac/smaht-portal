@@ -846,23 +846,36 @@ def descend_field(request, prop, field_names, cli=False):
     Traverses the given property object according to potential field name paths.
     Handles nested dicts/lists and flattens multiple values into a sorted string,
     preserving native number types when applicable.
+
+    Note: for tight per-row loops over thousands of search hits, prefer
+    `descend_field_compiled` which avoids re-splitting paths on every call.
     """
-    for possible_field in field_names:
-        field_parts = possible_field.split('.')
+    return descend_field_compiled(
+        request, prop, field_names, [p.split('.') for p in field_names], cli=cli
+    )
+
+
+def descend_field_compiled(request, prop, raw_paths, split_paths, cli=False):
+    """
+    Same as `descend_field` but takes pre-split paths so the dot-split is
+    hoisted out of the per-row loop. `raw_paths[i]` and `split_paths[i]` must
+    correspond to the same logical path.
+    """
+    for raw_path, field_parts in zip(raw_paths, split_paths):
         values = extract_values(prop, field_parts)
 
         if not values:
             continue
 
         # Special handling for 'href'
-        if possible_field == 'href':
+        if raw_path == 'href':
             href = values[0]
             if not cli:
                 return f'{request.scheme}://{request.host}{href}'
             return f'{request.scheme}://{request.host}{href.replace("@@download", "@@download_cli")}'
 
         # file_sets.file_group: return first valid value
-        if possible_field == 'file_sets.file_group':
+        if raw_path == 'file_sets.file_group':
             val = values[0]
             if isinstance(val, Mapping) and 'file_group' in val:  # make resistent to further nesting
                 return val.get('file_group')
@@ -880,6 +893,49 @@ def descend_field(request, prop, field_names, cli=False):
             return ','.join(map(str, sorted_vals))
 
     return None
+
+
+def _compile_tsv_mapping(tsv_mapping):
+    """Precompute per-row constants for a TSV mapping.
+
+    Returns a list of (field_name, raw_paths, split_paths, use_base_metadata)
+    tuples. Hoisting `.field_name()`, the split on '.', and `.use_base_metadata()`
+    out of the per-row loop saves ~3 attribute/method calls per (file × column),
+    which is non-trivial for thousands of files × ~27 columns.
+    """
+    compiled = []
+    for field_name, tsv_descriptor in tsv_mapping.items():
+        raw_paths = tsv_descriptor.field_name()
+        split_paths = [p.split('.') for p in raw_paths]
+        compiled.append((field_name, raw_paths, split_paths, tsv_descriptor.use_base_metadata()))
+    return compiled
+
+
+def _collect_source_fields(tsv_mapping, include_extra_files):
+    """Collect the set of embedded paths needed to populate a TSV.
+
+    Used to pass `field=` params to the search so Elasticsearch returns only
+    the source fields actually consumed by the manifest generator, instead of
+    the full embedded document per file (which can be multi-MB for large
+    Files with many file_sets, libraries, samples, donors, etc).
+
+    Returns a sorted list of unique paths.
+    """
+    fields = set()
+    for tsv_descriptor in tsv_mapping.values():
+        for path in tsv_descriptor.field_name():
+            fields.add(path)
+    if include_extra_files:
+        # `extra_files` is a list of nested objects mirroring the parent file
+        # for the fields where `use_base_metadata=False`. Pull both the bare
+        # `extra_files` (so the iteration loop sees the array) and any
+        # per-extra-file paths the manifest will read.
+        fields.add('extra_files')
+        for tsv_descriptor in tsv_mapping.values():
+            if not tsv_descriptor.use_base_metadata():
+                for path in tsv_descriptor.field_name():
+                    fields.add(f'extra_files.{path}')
+    return sorted(fields)
 
 
 def handle_file_group(field: dict) -> str:
@@ -1011,152 +1067,140 @@ def peek_metadata(context, request):
 
 
 def generate_file_manifest(request, args, search_iter, cli):
-    """ Helper that executes the file manifest generation, factored out now to support
-        multiple manifest files
+    """ Generator that yields one TSV row at a time for the file manifest.
+
+    Yielding rows (vs. accumulating into a list) keeps memory constant in the
+    number of files. For thousands of files × ~27 columns, the old list-based
+    approach buffered the entire TSV in memory before any bytes left the server.
     """
-    # Process search iter
-    data_lines = []
+    compiled = _compile_tsv_mapping(args.tsv_mapping)
     for file in search_iter:
         line = []
-        for field_name, tsv_descriptor in args.tsv_mapping.items():
-            traversal_path = tsv_descriptor.field_name()
-            if field_name == FILE_GROUP:
-                field = descend_field(request, file, traversal_path, cli=cli) or ''
-                if field:  # requires special care
-                    field = handle_file_group(field)
-            else:
-                field = descend_field(request, file, traversal_path, cli=cli) or ''
+        for field_name, raw_paths, split_paths, _use_base in compiled:
+            field = descend_field_compiled(request, file, raw_paths, split_paths, cli=cli) or ''
+            if field and field_name == FILE_GROUP:  # requires special care
+                field = handle_file_group(field)
             line.append(field)
-        data_lines += [line]
+        yield line
 
         # Repeat the above process for extra files
         # This requires extra care - most fields we take from extra_files directly,
         # but some must be taken from the parent metadata, such as anything related to library/assay/sample
         # or the file merge group
         if args.include_extra_files and 'extra_files' in file:
-            efs = file.get('extra_files')
-            for ef in efs:
+            for ef in file.get('extra_files') or ():
                 ef_line = []
-                for field_name, tsv_descriptor in args.tsv_mapping.items():
-                    traversal_path = tsv_descriptor.field_name()
-                    if tsv_descriptor.use_base_metadata():
-                        field = descend_field(request, file, traversal_path, cli=cli) or ''
-                        if field_name == FILE_GROUP:  # requires special care
-                            field = handle_file_group(field)
-                    else:
-                        field = descend_field(request, ef, traversal_path, cli=cli) or ''
+                for field_name, raw_paths, split_paths, use_base in compiled:
+                    source = file if use_base else ef
+                    field = descend_field_compiled(request, source, raw_paths, split_paths, cli=cli) or ''
+                    if use_base and field and field_name == FILE_GROUP:  # requires special care
+                        field = handle_file_group(field)
                     ef_line.append(field)
-                data_lines += [ef_line]
-
-    return data_lines
+                yield ef_line
 
 
 def generate_sample_manifest(request, args, search_iter):
     """ For the sample manifest, we first traverse the original search_iter for sample IDs, then
         execute another search to retrieve all those samples and write the manifest from
-        that search
+        that search. Yields one TSV row at a time so memory stays constant.
     """
-    # Extract sample IDs
-    samples = []
+    # Extract unique sample UUIDs using a set for O(1) dedupe (was O(n) per insertion)
+    samples = set()
     for f in search_iter:
-        sample_arr = f.get('samples', [])
-        for sample in sample_arr:
-            if sample['uuid'] not in samples:
-                samples.append(sample['uuid'])
+        for sample in f.get('samples', []) or ():
+            uuid = sample.get('uuid') if isinstance(sample, Mapping) else sample
+            if uuid:
+                samples.add(uuid)
 
     # if no samples detected, manifest is empty
     if not samples:
-        return []
+        return
 
-    # Generate, execute iter for sample search
+    # Restrict ES source to only the fields we read, dramatically reducing payload
     search_param = {
         'type': 'Sample',
-        'uuid': samples
+        'uuid': list(samples),
+        'field': _collect_source_fields(args.tsv_mapping, include_extra_files=False),
     }
     sample_search_iter = get_iterable_search_results(request, param_lists=search_param)
-    data_lines = []
+
+    compiled = _compile_tsv_mapping(args.tsv_mapping)
     for sample in sample_search_iter:
         line = []
-        for field_name, tsv_descriptor in args.tsv_mapping.items():
-            traversal_path = tsv_descriptor.field_name()
-            field = descend_field(request, sample, traversal_path) or ''
-            if field_name == SAMPLE_TYPE:
-                if field:  # requires special care
+        for field_name, raw_paths, split_paths, _use_base in compiled:
+            field = descend_field_compiled(request, sample, raw_paths, split_paths) or ''
+            if field:
+                if field_name == SAMPLE_TYPE:
                     field = handle_sample_type(field)
-            elif field_name == SAMPLE_SOURCE_TYPE:
-                if field:
+                elif field_name == SAMPLE_SOURCE_TYPE:
                     field = handle_sample_source_type(field)
-            else:
-                field = descend_field(request, sample, traversal_path) or ''
             line.append(field)
-        data_lines += [line]
-    return data_lines
+        yield line
 
 
 def generate_analyte_manifest(request, args, search_iter):
     """ For the experiment manifest (analyte), we can extract analytes from files to get
-        the various fields
+        the various fields. Yields one TSV row at a time so memory stays constant.
     """
-    # Extract analyte IDs
-    analytes = []
+    analytes = set()
     for f in search_iter:
-        analyte_array = f.get('analytes', [])
-        for analyte in analyte_array:
-            if analyte['uuid'] not in analytes:
-                analytes.append(analyte['uuid'])
+        for analyte in f.get('analytes', []) or ():
+            uuid = analyte.get('uuid') if isinstance(analyte, Mapping) else analyte
+            if uuid:
+                analytes.add(uuid)
 
-    # if no analytes detected, manifest is empty
     if not analytes:
-        return []
+        return
 
-    # generate, execute iter for analyte search
     search_param = {
         'type': 'Analyte',
-        'uuid': analytes
+        'uuid': list(analytes),
+        'field': _collect_source_fields(args.tsv_mapping, include_extra_files=False),
     }
-    sample_search_iter = get_iterable_search_results(request, param_lists=search_param)
-    data_lines = []
-    for sample in sample_search_iter:
+    analyte_search_iter = get_iterable_search_results(request, param_lists=search_param)
+
+    compiled = _compile_tsv_mapping(args.tsv_mapping)
+    for analyte in analyte_search_iter:
         line = []
-        for field_name, tsv_descriptor in args.tsv_mapping.items():
-            traversal_path = tsv_descriptor.field_name()
-            field = descend_field(request, sample, traversal_path) or ''
+        for _field_name, raw_paths, split_paths, _use_base in compiled:
+            field = descend_field_compiled(request, analyte, raw_paths, split_paths) or ''
             line.append(field)
-        data_lines += [line]
-    return data_lines
+        yield line
 
 
 def generate_experimental_manifest(request, args, search_iter):
     """ Generates data lines for an experimental manifest file, similar to sample
         but based on fileset - both versions of the experiment manifest focus on
-        fileset, so the same functionality can be used with different tsv mappings
+        fileset, so the same functionality can be used with different tsv mappings.
+        Yields one TSV row at a time so memory stays constant.
     """
-    # Extract file set IDs, only the first
-    file_sets = []
+    # Extract the FIRST file_set UUID per file (preserving existing semantics)
+    file_sets = set()
     for f in search_iter:
         fs = f.get('file_sets', [])
-        if fs and fs[0]['uuid'] not in file_sets:
-            file_sets.append(fs[0]['uuid'])
+        if fs:
+            first = fs[0]
+            uuid = first.get('uuid') if isinstance(first, Mapping) else first
+            if uuid:
+                file_sets.add(uuid)
 
-    # If no file sets, manifest is empty
     if not file_sets:
-        return []
+        return
 
-    # Generate, execute iter for file set search
     search_param = {
         'type': 'FileSet',
-        'uuid': file_sets
+        'uuid': list(file_sets),
+        'field': _collect_source_fields(args.tsv_mapping, include_extra_files=False),
     }
     file_set_search_iter = get_iterable_search_results(request, param_lists=search_param)
-    data_lines = []
+
+    compiled = _compile_tsv_mapping(args.tsv_mapping)
     for fs in file_set_search_iter:
         line = []
-        for field_name, tsv_descriptor in args.tsv_mapping.items():
-            traversal_path = tsv_descriptor.field_name()
-            field = descend_field(request, fs, traversal_path) or ''
+        for _field_name, raw_paths, split_paths, _use_base in compiled:
+            field = descend_field_compiled(request, fs, raw_paths, split_paths) or ''
             line.append(field)
-        data_lines += [line]
-    return data_lines
+        yield line
 
 
 @view_config(route_name='metadata', request_method=['GET', 'POST'])
@@ -1186,6 +1230,23 @@ def metadata_tsv(context, request):
         search_param['sort'] = args.sort_param
     if args.status:
         search_param['status'] = args.status
+
+    # Restrict the ES `_source` to only the paths the manifest will read.
+    # For the FILE manifest we read from the file itself, so the field list comes
+    # from TSV_MAPPING directly. For sub-entity manifests (sample/analyte/file_set)
+    # the top-level search only needs the discriminator field to extract UUIDs
+    # for the secondary search — everything else is filtered on the secondary call.
+    if args.manifest_enum == FILE:
+        search_param['field'] = _collect_source_fields(
+            args.tsv_mapping, include_extra_files=args.include_extra_files
+        )
+    elif args.manifest_enum == SAMPLE:
+        search_param['field'] = ['samples.uuid']
+    elif args.manifest_enum == EXPERIMENT_ANALYTE:
+        search_param['field'] = ['analytes.uuid']
+    elif args.manifest_enum == EXPERIMENT_LIBRARY:
+        search_param['field'] = ['file_sets.uuid']
+
     cli = args.cli
     search_iter = get_iterable_search_results(request, param_lists=search_param)
     if args.manifest_enum == SAMPLE:
