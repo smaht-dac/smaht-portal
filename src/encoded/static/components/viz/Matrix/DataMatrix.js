@@ -534,6 +534,12 @@ export default class DataMatrix extends React.PureComponent {
     componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
         const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen, countFor } = this.state;
+        const countForChanged = countFor !== pastState.countFor;
+        const isCoverageToggleOnly =
+            countForChanged &&
+            ((countFor === 'files' && pastState.countFor === 'total_coverage') ||
+                (countFor === 'total_coverage' && pastState.countFor === 'files'));
+        const shouldFetchForCountForChange = countForChanged && !isCoverageToggleOnly;
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
@@ -541,7 +547,7 @@ export default class DataMatrix extends React.PureComponent {
             !_.isEqual(groupingProperties, pastState.groupingProperties) ||
             showColumnSummary !== pastState.showColumnSummary ||
             defaultOpen !== pastState.defaultOpen ||
-            countFor !== pastState.countFor ||
+            shouldFetchForCountForChange ||
             this.state.facetNavigationHref !== pastState.facetNavigationHref) {
             this.loadSearchQueryResults();
         }
@@ -1500,11 +1506,15 @@ export default class DataMatrix extends React.PureComponent {
                     colorRangeSegmentStep: prevState.colorRangeSegmentStep
                 });
             } else {
-                nextState.query = {
-                    ...prevState.query,
-                    rowAggFields: baseRowAggFields
-                };
-                nextState.groupingProperties = baseGroupingProperties;
+                // In Donor x Tissue mode, files <-> coverage is display-only.
+                // Keep current query/grouping to avoid a one-time query-shape flip/refetch.
+                if (prevState.matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
+                    nextState.query = {
+                        ...prevState.query,
+                        rowAggFields: baseRowAggFields
+                    };
+                    nextState.groupingProperties = baseGroupingProperties;
+                }
                 nextState.colorRanges = this.getColorRanges({
                     colorRangeBaseColor: baseColorRangeBaseColor,
                     colorRangeSegments: prevState.colorRangeSegments,

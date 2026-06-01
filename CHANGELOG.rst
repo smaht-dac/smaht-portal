@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.29.2
+======
+
+`PR 681: feat: update retracted files table <https://github.com/smaht-dac/smaht-portal/pull/681>`_
+
+* Fix retraction table sorting param
+* Update columns to access fallback fields for new SNV vcfs
+
 
 1.29.2
 ======
