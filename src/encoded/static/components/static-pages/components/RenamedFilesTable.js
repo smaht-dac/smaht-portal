@@ -1,10 +1,26 @@
 'use strict';
 
 import React from 'react';
-import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
+import {
+    EmbeddedItemSearchTable,
+    SearchTableTitle,
+} from '../../item-pages/components/EmbeddedItemSearchTable';
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 // Renamed Files query
 const RENAMED_FILES_QUERY = '/search/?type=File&tags=rename';
+
+// Renamed Files header component containing total count
+function RenamedFilesTableHeader({ context, href }) {
+    return context?.total > 0 ? (
+        <SearchTableTitle
+            totalCount={context?.total}
+            href={href}
+            title="Renamed File"
+            headerElement="h4"
+        />
+    ) : null;
+}
 
 /**
  * Utility function to extract previous the file name from notes_to_tsv
@@ -87,9 +103,16 @@ const RenamedFilesColumnExtensionMap = {
         render: function (result, parentProps) {
             const { tags } = result || {};
 
-            const renameReason = (tags || [])
+            let renameReason = (tags || [])
                 .find((s) => s.includes('rename_reason'))
                 ?.split('|')?.[1];
+
+            // Formats rename reason tag to be more human readable
+            if (renameReason) {
+                renameReason = capitalizeSentence(
+                    renameReason.replace(/_/g, ' ')
+                );
+            }
             return <span className="value text-start">{renameReason}</span>;
         },
     },
@@ -119,13 +142,13 @@ const RenamedFilesColumns = {
         title: 'Accession',
     },
     notes_to_tsv: {
-        title: 'Previous File Name',
+        title: 'Incorrect File Name',
     },
     rename_reason_tag: {
         title: 'Rename Reason',
     },
     annotated_filename: {
-        title: 'Current Name',
+        title: 'Current File Name',
     },
 };
 
@@ -141,6 +164,7 @@ export default function RenamedFilesTable(props) {
                 rowHeight={31}
                 columns={RenamedFilesColumns}
                 columnExtensionMap={RenamedFilesColumnExtensionMap}
+                embeddedTableHeader={<RenamedFilesTableHeader />}
             />
         </div>
     );
