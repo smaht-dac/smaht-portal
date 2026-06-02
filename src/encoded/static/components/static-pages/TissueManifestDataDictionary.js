@@ -247,10 +247,6 @@ export const TissueManifestDataDictionary = () => {
                         <span className="category p-1 fw-bold">Category</span>.
                         <span className="field p-1 fw-bold">Field</span>
                     </p>
-                    <img
-                        src="/static/img/docs/tissue_manifest_breakdown.png"
-                        alt="Tissue Manifest Breakdown"
-                    />
                 </div>
             </div>
             {/* Search bar */}
@@ -317,7 +313,10 @@ const fieldsToDisplay = new Map([
             { title: 'ph', example: '6.8' },
             { title: 'preservation_medium', example: 'OCT' },
             { title: 'preservation_type' },
-            { title: 'prosector_notes', example: 'Collected under sterile conditions' },
+            {
+                title: 'prosector_notes',
+                example: 'Collected under sterile conditions',
+            },
             { title: 'sample_count', example: '12' },
             { title: 'size', example: '2.5' },
             { title: 'size_unit' },
@@ -355,7 +354,10 @@ const fieldsToDisplay = new Map([
             { title: 'category' },
             { title: 'core_size' },
             { title: 'processing_date', example: '2024-03-15' },
-            { title: 'processing_notes', example: 'Snap frozen within 30 min of collection' },
+            {
+                title: 'processing_notes',
+                example: 'Snap frozen within 30 min of collection',
+            },
             { title: 'preservation_medium', example: 'OCT' },
             { title: 'preservation_type' },
             {
