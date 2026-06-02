@@ -7,13 +7,22 @@ smaht-portal
 Change Log
 ----------
 
-1.29.2
+1.29.3
 ======
 
 `PR 681: feat: update retracted files table <https://github.com/smaht-dac/smaht-portal/pull/681>`_
 
 * Fix retraction table sorting param
 * Update columns to access fallback fields for new SNV vcfs
+
+
+1.29.2
+======
+
+`PR 678: feat: fix donor display_title column <https://github.com/smaht-dac/smaht-portal/pull/678>` 
+
+* Update the donor display_title column to use correct field
+* Refactor Donor Browse code
 
 
 1.29.1
