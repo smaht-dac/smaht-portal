@@ -690,6 +690,7 @@
             "6e144832-6abc-47e2-bea5-f720598cf61a",
             "b3e754fd-be49-4998-bd05-040623617cdf",
             "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
+            "756f4848-ea84-46f5-b684-6326e6b40258",
             "27d149b5-164a-4351-9095-7be11d6371f7",
             "389b52ce-5161-4f08-b49b-b1b3b18f09e2"
         ],
@@ -752,6 +753,24 @@
             "enabled": false
         },
         "title": "Donor Metadata Dictionary",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/tissue-manifest-dictionary",
+        "uuid": "756f4848-ea84-46f5-b684-6326e6b40258",
+        "status": "open",
+        "content": [
+            "b2d1c77a-5603-4708-8a0b-429e9b17caf5"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Tissue Metadata Dictionary",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

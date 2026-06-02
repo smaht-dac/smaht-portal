@@ -933,6 +933,25 @@
         ]
     },
     {
+        "identifier": "tissue_manifest_dictionary",
+        "title": "Tissue Metadata Dictionary",
+        "file": "/docs/public/tissue_manifest_dictionary.jsx",
+        "status": "open",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "b2d1c77a-5603-4708-8a0b-429e9b17caf5",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "data_availability_and_access",
         "title": "SMaHT Data Availability and Access",
         "file": "/docs/source/data_availability_and_access.rst",
