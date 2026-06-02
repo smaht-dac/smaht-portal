@@ -59,6 +59,27 @@ const RenamedFilesColumnExtensionMap = {
             return <span className="value text-start">{renameDate}</span>;
         },
     },
+    accession: {
+        widthMap: { lg: 145, md: 120, sm: 120 },
+        render: function (result, props) {
+            const { '@id': atId, accession } = result || {};
+
+            return (
+                <span className="value text-start">
+                    {accession ? (
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {accession}
+                        </a>
+                    ) : (
+                        '-'
+                    )}
+                </span>
+            );
+        },
+    },
     // Use undefined column names as work around to render custom columns
     rename_reason_tag: {
         noSort: true,
@@ -94,14 +115,14 @@ const RenamedFilesColumns = {
     renamed_on_tag: {
         title: 'Renamed On',
     },
-    rename_reason_tag: {
-        title: 'Rename Reason',
+    accession: {
+        title: 'Accession',
     },
     notes_to_tsv: {
         title: 'Previous File Name',
     },
-    accession: {
-        title: 'Accession',
+    rename_reason_tag: {
+        title: 'Rename Reason',
     },
     annotated_filename: {
         title: 'Current Name',
