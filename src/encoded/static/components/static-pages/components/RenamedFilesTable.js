@@ -129,6 +129,27 @@ const RenamedFilesColumnExtensionMap = {
             ) : null;
         },
     },
+    annotated_filename: {
+        widthMap: { lg: 500, md: 400, sm: 400 },
+        render: function (result, props) {
+            const { '@id': atId, annotated_filename } = result || {};
+
+            return (
+                <span className="value text-start">
+                    {annotated_filename ? (
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {annotated_filename}
+                        </a>
+                    ) : (
+                        '-'
+                    )}
+                </span>
+            );
+        },
+    },
 };
 
 const RenamedFilesColumns = {
