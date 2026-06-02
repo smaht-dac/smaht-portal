@@ -33,6 +33,7 @@ import RetractedFilesTable from '../components/RetractedFilesTable';
 import RenamedFilesTable from '../components/RenamedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
+import { TissueManifestDataDictionary } from '../TissueManifestDataDictionary';
 import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
 
@@ -66,6 +67,7 @@ const placeholders = {
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
+    TissueManifestDataDictionary,
     PipelineDocsNavigation,
 };
 
