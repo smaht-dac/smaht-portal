@@ -8,6 +8,7 @@ import {
 } from '../../item-pages/components/EmbeddedItemSearchTable';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
+// Retracted Files header component containing total count
 function RetractedFilesTableHeader({ context, href }) {
     return context?.total > 0 ? (
         <SearchTableTitle
