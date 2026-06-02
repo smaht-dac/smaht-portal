@@ -67,6 +67,9 @@ export const AccountNav = React.memo(function AccountNav(props) {
     const { session, updateAppSessionState, schemas, ...passProps } = props;
     const { windowWidth, href } = passProps;
 
+    const auth0PopupText = '<p><span class="text-danger fw-bold">NOTE</span> - If you are logging-in for the first time, please <a href="https://data.smaht.org/docs/access/creating-an-account" target="_blank">READ THIS DOCUMENT PAGE</a> about creating your account!<p>';
+
+
     if (!session) {
         const auth0PopupText = `<h4 class="text-danger text-600 text-center mb-2">Attention New Users!!</h4><p><strong>All users must register with an institutional email address linked to a Google account to log in.</strong><br />For instructions on how to create a Google account linked to non-Gmail emails, see </b><a href="https://data.smaht.org/docs/access/creating-an-account" target="_blank">here</a>.</p><p><strong>Self-registration as a non-SMaHT-Network member</strong> will give you access to open-access data <em>only</em>.</p><p class="mb-3"><strong>If you want protected-access data:</strong> you are <em>required</em> to self-register using your institutional email address linked to the NIH/eRA or Login.gov, and obtain dbGaP approval for protected-access SMaHT data. Learn how to obtain dbGaP approval <a href="/docs/access/getting-dbgap-access" target="_blank" rel="noreferrer noopener">here</a>.</p>`;
         // Render login button

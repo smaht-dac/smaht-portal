@@ -203,7 +203,7 @@ class CalcPropConstants:
                 "title": "Annotated Name",
                 "type": "string",
             },
-            FILE_SUMMARY_ACCESS_STATUS : {
+            FILE_SUMMARY_ACCESS_STATUS: {
                 "title": "Access",
                 "type": "string",
             },
@@ -505,6 +505,8 @@ class File(Item, CoreFile):
     rev = {
         "meta_workflow_run_inputs": ("MetaWorkflowRun", "input.files.file"),
         "meta_workflow_run_outputs": ("MetaWorkflowRun", "workflow_runs.output.file"),
+        'workflow_run_inputs': ('WorkflowRun', 'input_files.value'),
+        'workflow_run_outputs': ('WorkflowRun', 'output_files.value'),
     }
     STATUS_TO_CHECK_REVISIONS = [
         'uploading',
