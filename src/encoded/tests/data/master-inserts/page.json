@@ -453,7 +453,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/dnascope-hybrid",
-        "title": "Phased Germline: Sentieon DNAScope-Hybrid & Statistical and long-read-based phasing",
+        "title": "Phased Germline: Sentieon DNAScope-Hybrid & Statistical and Long-Read Based Phasing",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2

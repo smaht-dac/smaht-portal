@@ -18,6 +18,27 @@ const FALLBACK_GROUP_NAME = 'N/A';
 const DEFAULT_MATRIX_BLOCK_WIDTH = 35;
 const DEFAULT_MATRIX_BLOCK_HORIZONTAL_EXTEND = 5;
 
+function getCountValueFromItem(item, countField) {
+    if (!item) return 0;
+    if (countField === 'donors') {
+        const donorsVal = Number(item?.counts?.donors);
+        if (Number.isFinite(donorsVal)) return donorsVal;
+        const donorCountVal = Number(item?.counts?.donor_count);
+        return Number.isFinite(donorCountVal) ? donorCountVal : 0;
+    }
+    const valueFromCounts = Number(item?.counts?.[countField]);
+    if (Number.isFinite(valueFromCounts)) return valueFromCounts;
+    const valueFromRoot = Number(item?.[countField]);
+    if (Number.isFinite(valueFromRoot)) return valueFromRoot;
+    // Coverage payloads are not perfectly uniform across transformed rows;
+    // guard both nested and root aliases so valid values don't render as empty.
+    if (countField === 'total_coverage') {
+        const fallbackCoverage = Number(item?.counts?.total_coverage ?? item?.total_coverage);
+        return Number.isFinite(fallbackCoverage) ? fallbackCoverage : 0;
+    }
+    return 0;
+}
+
 function renderVerticalRowGroupsExtended({
     rowGroupsExtended,
     rowGroupsExtendedKeys,
@@ -96,17 +117,6 @@ export class VisualBody extends React.PureComponent {
         const countFor = blockProps && blockProps.countFor ? blockProps.countFor : 'files';
         const blockType = blockProps && blockProps.blockType ? blockProps.blockType : 'regular';
         const countField = countFor === 'tissue_files' ? 'files' : countFor;
-        const getCountValue = (item) => {
-            if (!item || !item.counts) return 0;
-            if (countField === 'donors') {
-                const donorsVal = item.counts.donors;
-                if (typeof donorsVal === 'number') return donorsVal;
-                const donorCountVal = item.counts.donor_count;
-                return typeof donorCountVal === 'number' ? donorCountVal : 0;
-            }
-            const value = item.counts[countField];
-            return typeof value === 'number' ? value : 0;
-        };
         const getUniqueDonorCountFromItems = (items) => {
             if (!Array.isArray(items)) return null;
             const donorSet = new Set();
@@ -127,11 +137,11 @@ export class VisualBody extends React.PureComponent {
                     const uniqueDonorCount = getUniqueDonorCountFromItems(data);
                     if (uniqueDonorCount !== null) return uniqueDonorCount;
                     return _.reduce(data, function (maxValue, item) {
-                        return Math.max(maxValue, getCountValue(item));
+                        return Math.max(maxValue, getCountValueFromItem(item, countField));
                     }, 0);
                 })()
-                : _.reduce(data, function (sum, item) { return sum + getCountValue(item); }, 0))
-            : (data ? getCountValue(data) : 0);
+                : _.reduce(data, function (sum, item) { return sum + getCountValueFromItem(item, countField); }, 0))
+            : (data ? getCountValueFromItem(data, countField) : 0);
 
         // For total_coverage, we want to display the value with "X" and
         // use a different formatting logic. For other count types, we display the raw count with standard formatting.
@@ -143,10 +153,15 @@ export class VisualBody extends React.PureComponent {
                 return <span data-count={blockSum}>-</span>;
             }
             if (blockSum <= 0) return <span data-count={blockSum}>0</span>;
-            const rounded = blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum);
+            const compactCoverageText = !!(blockProps && blockProps.compactCoverageText);
+            const rounded = compactCoverageText
+                ? Math.round(blockSum)
+                : (blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum));
             const tooltipValue = rounded.toLocaleString();
             const display = `${rounded.toLocaleString()}X`;
-            const fontSize = display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem');
+            const fontSize = compactCoverageText
+                ? (display.length > 6 ? '0.60rem' : (display.length > 4 ? '0.66rem' : '0.72rem'))
+                : (display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem'));
             return (
                 <span style={{ fontSize }} data-count={blockSum} data-tip={tooltipValue}>
                     {display}
@@ -696,9 +711,9 @@ export class VisualBody extends React.PureComponent {
     }
 
     render(){
-        const { results: { all, row_totals, column_totals } } = this.props;
+        const { results: { all, row_totals, column_totals }, disableRowExpand = false } = this.props;
         return (
-            <StackedBlockVisual data={all} rowTotals={row_totals} columnTotals={column_totals} checkCollapsibility
+            <StackedBlockVisual data={all} rowTotals={row_totals} columnTotals={column_totals} checkCollapsibility={!disableRowExpand}
                 {..._.pick(this.props,
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
                     'columnSubGrouping', 'defaultDepthsOpen', 'defaultExpandedRowIndices',
@@ -708,6 +723,7 @@ export class VisualBody extends React.PureComponent {
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
                     'countFor', 'overallCounts', 'showUniqueDonorsAssayBand', 'shrinkEmptyColumns',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing', 'rowSummaryCountsByGroup',
+                    'compactCoverageText', 'disableRowExpand', 'disableBlockOpen',
                     'headerLeftControls')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -1065,6 +1081,13 @@ export class StackedBlockVisual extends React.PureComponent {
     };
 
     handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType = null) => {
+        // Donor x Tissue view keeps blocks non-interactive to avoid accidental "open" white-state styling.
+        if (this.props.disableBlockOpen) {
+            if (this.state.openBlock !== null) {
+                this.setState({ openBlock: null });
+            }
+            return;
+        }
         const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType } : null;
         if (openBlock) {
             setTimeout(() => {
@@ -1687,7 +1710,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle',
             // Generic summary overrides keyed by grouping field and row value.
-            'countFor', 'rowSummaryCountsByGroup');
+            'countFor', 'rowSummaryCountsByGroup', 'compactCoverageText');
         const getContainerGroupStyle = function(columnKey = 'overall-summary') {
             const width = StackedBlockGroupedRow.getColumnWidthForKey(columnKey, props);
             return {
@@ -2387,7 +2410,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const getChildRowsKeys = () => (!Array.isArray(data) ? _.keys(data).sort() : null);
         const getHasIdentifiableChildren = (childRowsKeys) => {
-            if (!checkCollapsibility) return true;
+            if (!checkCollapsibility) return false;
             return (depth + 2 >= groupingProperties.length) &&
                 childRowsKeys && childRowsKeys.length > 0 &&
                 !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');
@@ -2532,17 +2555,6 @@ const Block = React.memo(function Block(props){
 
     const countFor = props.countFor || 'files';
     const effectiveCountFor = countFor === 'tissue_files' ? 'files' : countFor;
-    const getCountValue = (item) => {
-        if (!item || !item.counts) return 0;
-        if (effectiveCountFor === 'donors') {
-            const donorsVal = item.counts.donors;
-            if (typeof donorsVal === 'number') return donorsVal;
-            const donorCountVal = item.counts.donor_count;
-            return typeof donorCountVal === 'number' ? donorCountVal : 0;
-        }
-        const value = item.counts[effectiveCountFor];
-        return typeof value === 'number' ? value : 0;
-    };
     const getUniqueDonorCountFromItems = (items) => {
         if (!Array.isArray(items)) return null;
         const donorSet = new Set();
@@ -2562,10 +2574,10 @@ const Block = React.memo(function Block(props){
             ? (() => {
                 const uniqueDonorCount = getUniqueDonorCountFromItems(argData);
                 if (uniqueDonorCount !== null) return uniqueDonorCount;
-                return _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValue(item)); }, 0);
+                return _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValueFromItem(item, effectiveCountFor)); }, 0);
             })()
-            : _.reduce(argData, function (sum, item) { return sum + getCountValue(item); }, 0))
-        : (argData ? getCountValue(argData) : 0);
+            : _.reduce(argData, function (sum, item) { return sum + getCountValueFromItem(item, effectiveCountFor); }, 0))
+        : (argData ? getCountValueFromItem(argData, effectiveCountFor) : 0);
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
     const hideCoverageSummaryBlock = countFor === 'total_coverage' && blockType === 'col-summary';
     if (hideCoverageBlock || hideCoverageSummaryBlock) {
@@ -2587,7 +2599,12 @@ const Block = React.memo(function Block(props){
         return range ? range.color : null;
     };
 
-    const color = getColor(blockValue, blockType);
+    let color = getColor(blockValue, blockType);
+    // Safety fallback: if a positive value misses a color bucket, still paint it so
+    // value-present cells never appear as blank white boxes.
+    if (!color && blockType === 'regular' && blockValue > 0 && Array.isArray(colorRanges) && colorRanges.length > 0) {
+        color = colorRanges[0].color || null;
+    }
 
     const isOpenBlock = openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
         ((blockType === 'col-summary' || blockType === 'col-secondary-summary')
@@ -2600,8 +2617,15 @@ const Block = React.memo(function Block(props){
         style['borderColor'] = 'transparent';
         style['pointerEvents'] = 'none';
     } else if (isOpenBlock) {
-        style['color'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
-        style['borderColor'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
+        if (isSummaryBlock(blockType)) {
+            style['color'] = '#8a8aaa';
+            style['borderColor'] = '#8a8aaa';
+        } else {
+            // Keep valid data blocks visually filled while "open" so they don't look empty.
+            style['backgroundColor'] = color;
+            style['color'] = '#ffffff';
+            style['borderColor'] = color;
+        }
         style['pointerEvents'] = 'none'; // disable pointer events when block is open
         className += ' is-open-block';
     } else {

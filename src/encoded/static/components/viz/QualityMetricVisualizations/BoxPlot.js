@@ -43,12 +43,6 @@ export const BoxPlot = ({
     // Specify the dimensions of the chart.
     const chartWidth = 928;
     const chartHeight = 700;
-    const margins = {
-        top: 50,
-        right: 50,
-        bottom: 100,
-        left: 100,
-    };
 
     useEffect(() => {
         let doRerender = false;
@@ -58,6 +52,20 @@ export const BoxPlot = ({
         }
 
         if (!isDrawn.current || doRerender) {
+            const numGroups = new Set(
+                (customFilter
+                    ? qc_results.filter(customFilter)
+                    : qc_results
+                ).map((d) => d[qcCategory])
+            ).size;
+
+            const margins = {
+                top: 50,
+                right: 50,
+                bottom: numGroups > 5 ? 180 : 100,
+                left: 100,
+            };
+
             const container = d3.select(containerRef.current);
             container.selectAll('*').remove();
             // Create the SVG containers
@@ -135,9 +143,14 @@ export const BoxPlot = ({
             defs.append('clipPath')
                 .attr('id', 'clipx-' + plotId)
                 .append('rect')
-                .attr('x', 0)
+                .attr('x', numGroups > 5 ? -margins.left : 0)
                 .attr('y', chartHeight - margins.bottom)
-                .attr('width', chartWidth - margins.left - margins.right)
+                .attr(
+                    'width',
+                    numGroups > 5
+                        ? chartWidth - margins.right
+                        : chartWidth - margins.left - margins.right
+                )
                 .attr('height', margins.bottom / 2)
                 .attr('transform', 'translate(' + margins.left + ',0)');
 
@@ -268,6 +281,15 @@ export const BoxPlot = ({
                 )
                 .attr('style', 'font-family: Inter; font-size: 1.2rem')
                 .call(xAxis);
+
+            if (groupedData.size > 5) {
+                gX.selectAll('text')
+                    .attr('transform', 'rotate(-45)')
+                    .attr('text-anchor', 'end')
+                    .attr('style', 'font-family: Inter; font-size: 1.0rem')
+                    .attr('dx', '-0.5em')
+                    .attr('dy', '0.15em');
+            }
 
             const y = d3
                 .scaleLinear()
