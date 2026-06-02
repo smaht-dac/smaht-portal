@@ -8,6 +8,18 @@ Change Log
 ----------
 
 
+1.30.0
+======
+
+* Optimize ``/metadata`` and ``/peek-metadata`` to handle thousands of files without upstream timeouts
+* ``/metadata``: yield TSV rows from a generator instead of buffering the full manifest in memory; ES batch size is now constant regardless of file count
+* ``/metadata``: top-level and sub-entity (sample/analyte/file_set) searches now bypass snovault's default-facet machinery and paginate via ES ``search_after`` (O(N) instead of O(N²) from/size), using a new ``execute_streaming_search`` primitive
+* ``/metadata``: restrict ES ``_source`` to only the columns the TSV reads, dropping per-hit payload by ~10×
+* ``/metadata``: pre-compile per-row field-path splits so each hit pays one dict lookup per column instead of repeated ``str.split`` calls
+* ``/peek-metadata``: compute the file_size summary by streaming the matched docs (same path as ``/metadata``) and summing in Python, instead of issuing an ES ``stats`` aggregation that was blocking on slow-shard coordination
+* ``/peek-metadata``: GET-style requests (search-filter URL params) now forward through snovault ``search()`` with the new ``skip_default_facets=true`` flag, preserving nested-field correctness while skipping the dozens of schema-default facet aggregations
+
+
 1.29.1
 ======
 
