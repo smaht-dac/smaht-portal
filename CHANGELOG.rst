@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.29.5
+======
+
+`PR 672: feat: release tracker restructure <https://github.com/smaht-dac/smaht-portal/pull/672>`_
+
+* Update release tracker UI to group releases by week
+
+
 1.29.4
 ======
 
