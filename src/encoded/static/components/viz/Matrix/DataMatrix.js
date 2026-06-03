@@ -534,6 +534,12 @@ export default class DataMatrix extends React.PureComponent {
     componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
         const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen, countFor } = this.state;
+        const countForChanged = countFor !== pastState.countFor;
+        const isCoverageToggleOnly =
+            countForChanged &&
+            ((countFor === 'files' && pastState.countFor === 'total_coverage') ||
+                (countFor === 'total_coverage' && pastState.countFor === 'files'));
+        const shouldFetchForCountForChange = countForChanged && !isCoverageToggleOnly;
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
@@ -541,7 +547,7 @@ export default class DataMatrix extends React.PureComponent {
             !_.isEqual(groupingProperties, pastState.groupingProperties) ||
             showColumnSummary !== pastState.showColumnSummary ||
             defaultOpen !== pastState.defaultOpen ||
-            countFor !== pastState.countFor ||
+            shouldFetchForCountForChange ||
             this.state.facetNavigationHref !== pastState.facetNavigationHref) {
             this.loadSearchQueryResults();
         }
@@ -1500,11 +1506,15 @@ export default class DataMatrix extends React.PureComponent {
                     colorRangeSegmentStep: prevState.colorRangeSegmentStep
                 });
             } else {
-                nextState.query = {
-                    ...prevState.query,
-                    rowAggFields: baseRowAggFields
-                };
-                nextState.groupingProperties = baseGroupingProperties;
+                // In Donor x Tissue mode, files <-> coverage is display-only.
+                // Keep current query/grouping to avoid a one-time query-shape flip/refetch.
+                if (prevState.matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
+                    nextState.query = {
+                        ...prevState.query,
+                        rowAggFields: baseRowAggFields
+                    };
+                    nextState.groupingProperties = baseGroupingProperties;
+                }
                 nextState.colorRanges = this.getColorRanges({
                     colorRangeBaseColor: baseColorRangeBaseColor,
                     colorRangeSegments: prevState.colorRangeSegments,
@@ -1631,11 +1641,20 @@ export default class DataMatrix extends React.PureComponent {
                 ? donorTissueShrinkEmptyColumns
                 : true,
             countFor,
+            // Donor x Tissue can exceed horizontal space in coverage view; keep default cell width here
+            // and render compact labels instead of widening cells.
+            compactCoverageText: countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            // Donor x Tissue should not expose expand controls.
+            disableRowExpand: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            // Donor x Tissue blocks are informational; disable click-to-open highlighting/popover selection.
+            disableBlockOpen: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             overallCounts: effectiveOverallCounts,
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
-            ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
+            ...(countFor === 'total_coverage' && matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
+                ? { blockWidth: 60, blockHorizontalExtend: 10 }
+                : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey
                 ? ((filteringProperties, blockType) => {
                     const transformFn = DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey];
@@ -1702,7 +1721,7 @@ export default class DataMatrix extends React.PureComponent {
                     const showLeftPanel = showFacetsPanel;
 
                     const assaySelect = isDonorTissueMatrix ? (
-                        <div className="matrix-top-controls matrix-assay-select-control">
+                        <div className="matrix-assay-select-control">
                             <div className="matrix-assay-select-inline">
                                 <label className="matrix-assay-select-label" htmlFor={`matrix-assay-select-${idLabel || 'default'}`}>
                                     <i className="icon fas icon-dna" /> Assay
@@ -1720,8 +1739,8 @@ export default class DataMatrix extends React.PureComponent {
                         </div>
                     ) : null;
 
-                    const metricToggle = showCountsPanel && !isDonorTissueMatrix ? (
-                        <div className="matrix-top-controls matrix-visual-metric-controls">
+                    const metricToggle = showCountsPanel ? (
+                        <div className={isDonorTissueMatrix ? "matrix-visual-metric-controls" : "matrix-top-controls matrix-visual-metric-controls"}>
                             <div className="matrix-counts-toggle matrix-counts-toggle-inline">
                                 <IconToggle
                                     options={isTissueMatrix ? [
@@ -1772,6 +1791,20 @@ export default class DataMatrix extends React.PureComponent {
                                 />
                             </div>
                         </div>
+                    ) : null;
+
+                    const headerLeftControls = (assaySelect || metricToggle) ? (
+                        isDonorTissueMatrix ? (
+                            <div className="matrix-donor-tissue-controls-stack">
+                                {metricToggle}
+                                {assaySelect}
+                            </div>
+                        ) : (
+                            <React.Fragment>
+                                {assaySelect}
+                                {metricToggle}
+                            </React.Fragment>
+                        )
                     ) : null;
 
                     return (
@@ -1860,7 +1893,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField')}
                                                 {...bodyProps}
                                                 headerPadding={effectiveHeaderPadding}
-                                                headerLeftControls={assaySelect || metricToggle}
+                                                headerLeftControls={headerLeftControls}
                                                 columnSubGrouping=""// leave blank for now
                                                 // eslint-disable-next-line react/destructuring-assignment
                                                 results={effectiveResults}

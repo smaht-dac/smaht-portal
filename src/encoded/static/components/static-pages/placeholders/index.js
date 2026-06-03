@@ -30,6 +30,7 @@ import { DownloadAllFilesFromSearchHrefButton } from '../components/challenges/D
 import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables';
 import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
+import RenamedFilesTable from '../components/RenamedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
@@ -62,6 +63,7 @@ const placeholders = {
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
     RetractedFilesTable,
+    RenamedFilesTable,
     DataMatrixComparisonTabs,
     DataMatrix,
     SubmissionDataDictionary,

@@ -1448,7 +1448,8 @@
         "uuid": "c39ea4df-22c5-4d81-a495-6694c3360447",
         "status": "protected-network",
         "content": [
-            "d523e166-89bf-439d-9770-ee92e4bcb72b"
+            "d523e166-89bf-439d-9770-ee92e4bcb72b",
+            "70f3ade6-2741-4e1d-b96e-d052b66f0981"
         ],
         "table-of-contents": {
             "enabled": false

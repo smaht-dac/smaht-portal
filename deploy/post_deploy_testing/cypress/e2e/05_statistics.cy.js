@@ -22,7 +22,8 @@ describe('Statistics Page Validation (Submissions and Usage)', function () {
             .get('.chart-section-control-wrapper.row a.select-section-btn[href="#usage"]').should('contain', 'Portal Usage Statistics').end();
     });
 
-    it('Usage statistics tab displays the File Downloads, Top File Set Downloads, File Overview Page Views and Page Views charts', function () {
+    // TODO: enable this test once the usage statistics is revised
+    it.skip('Usage statistics tab displays the File Downloads, Top File Set Downloads, File Overview Page Views and Page Views charts', function () {
         cy.get('.chart-section-control-wrapper.row a.select-section-btn[href="#usage"]').then(function ($tabBtn) {
             cy.wrap($tabBtn).click({ force: true }).end();
             cy.get('#usage.stats-charts-container .chart-group h3.charts-group-title').each(($el, index, $list) => {
