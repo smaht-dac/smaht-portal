@@ -8,6 +8,7 @@ import {
 } from '../../item-pages/components/EmbeddedItemSearchTable';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
+// Retracted Files header component containing total count
 function RetractedFilesTableHeader({ context, href }) {
     return context?.total > 0 ? (
         <SearchTableTitle
@@ -140,7 +141,7 @@ export default function RetractedFilesTable(props) {
             },
         },
         retraction_reason: {
-            widthMap: { lg: 210, md: 120, sm: 120 },
+            widthMap: { lg: 180, md: 140, sm: 140 },
             colAlignment: 'text-start',
             render: function (result, props) {
                 const { retraction_reason } = result || {};
@@ -242,7 +243,7 @@ export default function RetractedFilesTable(props) {
             title: 'File',
         },
         retraction_reason: {
-            title: 'Reason for Retraction',
+            title: 'Retraction Reason',
         },
         'replaced_by.display_title': {
             title: 'Replaced By',

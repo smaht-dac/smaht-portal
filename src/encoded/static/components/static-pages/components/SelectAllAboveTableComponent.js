@@ -422,24 +422,25 @@ export class SelectAllFilesButton extends React.PureComponent {
 
         return (
             <div className="d-inline-flex flex-column">
-                <button
-                    ref={this.selectAllButtonRef}
-                    type="button"
-                    id="select-all-files-button"
-                    disabled={selecting || (!isAllSelected && !isEnabled)}
-                    className={cls}
-                    onClick={this.handleSelectAll}
-                    data-tip={tooltip}>
-                    <i className={iconClassName} />
-                    <span className="d-none d-md-inline text-400">
-                        {selecting
-                            ? `Selecting ${selectingProgress}%`
-                            : isAllSelected
-                                ? 'Deselect'
-                                : 'Select'}{' '}
-                    </span>
-                    <span className="text-600">All</span>
-                </button>
+                <span className="d-inline-block" data-tip={tooltip}>
+                    <button
+                        ref={this.selectAllButtonRef}
+                        type="button"
+                        id="select-all-files-button"
+                        disabled={selecting || (!isAllSelected && !isEnabled)}
+                        className={cls}
+                        onClick={this.handleSelectAll}>
+                        <i className={iconClassName} />
+                        <span className="d-none d-md-inline text-400">
+                            {selecting
+                                ? `Selecting ${selectingProgress}%`
+                                : isAllSelected
+                                    ? 'Deselect'
+                                    : 'Select'}{' '}
+                        </span>
+                        <span className="text-600">All</span>
+                    </button>
+                </span>
                 {selecting ? (
                     <div
                         className="progress mt-03"
