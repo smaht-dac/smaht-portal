@@ -22,6 +22,14 @@ Change Log
 * Defensive only — the upstream cause was fixed in snovault 11.30.1; this prevents already-corrupted documents in ES from breaking rendering until a full reindex
 
 
+1.29.4
+======
+
+`PR 683: feat: renamed files table <https://github.com/smaht-dac/smaht-portal/pull/683>`_
+
+* Update retracted files table to include renamed files table
+
+
 1.29.3
 ======
 
