@@ -541,26 +541,25 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 <div className="card-body">
                     <h3 className="recent-releases-title">Recently Released Files</h3>
                     <p className="recent-releases-subtitle mb-2">
-                        {timelineMode === TIMELINE_MODES.DAILY ? 'Select a release day to view file details in the matrix.' : null}
-                        {timelineMode === TIMELINE_MODES.WEEKLY ? 'Select a release week to view file details in the matrix.' : null}
-                        {timelineMode === TIMELINE_MODES.MONTHLY ? 'Select a release month to view file details in the matrix.' : null}
+                        Select a time range below to view files
                     </p>
+                    <div className="recent-releases-divider" />
                     <div className="release-view-mode-toggle mb-2">
                         <button
                             type="button"
-                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.DAILY ? 'btn-primary' : 'btn-outline-primary'}`}
+                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.DAILY ? 'btn-primary active' : 'btn-outline-primary'}`}
                             onClick={() => setTimelineMode(TIMELINE_MODES.DAILY)}>
                             Daily
                         </button>
                         <button
                             type="button"
-                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.WEEKLY ? 'btn-primary' : 'btn-outline-primary'}`}
+                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.WEEKLY ? 'btn-primary active' : 'btn-outline-primary'}`}
                             onClick={() => setTimelineMode(TIMELINE_MODES.WEEKLY)}>
                             Weekly
                         </button>
                         <button
                             type="button"
-                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.MONTHLY ? 'btn-primary' : 'btn-outline-primary'}`}
+                            className={`btn btn-sm ${timelineMode === TIMELINE_MODES.MONTHLY ? 'btn-primary active' : 'btn-outline-primary'}`}
                             onClick={() => setTimelineMode(TIMELINE_MODES.MONTHLY)}>
                             Monthly
                         </button>
@@ -570,16 +569,18 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => setMonthWindowStartIndex((idx) => Math.max(0, idx - 1))}
-                                disabled={!canGoToNewerMonths}>
-                                Newer
+                                onClick={() => setMonthWindowStartIndex((idx) => Math.min(Math.max(0, months.length - monthWindowSize), idx + 1))}
+                                disabled={!canGoToOlderMonths}>
+                                <i className="icon icon-chevron-left fas" />
+                                <span>Older</span>
                             </button>
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => setMonthWindowStartIndex((idx) => Math.min(Math.max(0, months.length - monthWindowSize), idx + 1))}
-                                disabled={!canGoToOlderMonths}>
-                                Older
+                                onClick={() => setMonthWindowStartIndex((idx) => Math.max(0, idx - 1))}
+                                disabled={!canGoToNewerMonths}>
+                                <span>Newer</span>
+                                <i className="icon icon-chevron-right fas" />
                             </button>
                         </div>
                     ) : null}
@@ -603,11 +604,11 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                     });
                                                 }}
                                                 title={`Browse files released in ${month.label}`}>
-                                                {month.count} {month.count === 1 ? 'file' : 'files'}
+                                                {month.count} {month.count === 1 ? 'File' : 'Files'}
                                             </button>
                                         ) : (
                                             <span className="count-badge">
-                                                {month.count} {month.count === 1 ? 'file' : 'files'}
+                                                {month.count} {month.count === 1 ? 'File' : 'Files'}
                                             </span>
                                         )}
                                     </header>
@@ -693,7 +694,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                 });
                                             }}>
                                             <span className="bucket-label">{month.label}</span>
-                                            <span className="bucket-count">{month.count} {month.count === 1 ? 'file' : 'files'}</span>
+                                            <span className="bucket-count">{month.count}</span>
                                         </button>
                                     </div>
                                 ) : null}
@@ -715,7 +716,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                 <p className="recent-releases-subtitle mb-0">{selectedDayLabel}</p>
                             ) : null}
                         </div>
-                        <div className="recent-releases-results-mode-toggle">
+                        <div className="recent-releases-results-mode-toggle d-none">
                             <button
                                 type="button"
                                 className={`btn btn-sm ${detailViewMode === DETAIL_VIEW_MODES.MATRIX ? 'btn-primary' : 'btn-outline-primary'}`}
@@ -730,6 +731,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                             </button>
                         </div>
                     </div>
+                    <div className="recent-releases-divider" />
                     {detailViewMode === DETAIL_VIEW_MODES.MATRIX && selectedMatrixTarget?.matrixQuery ? (
                         <div className="recent-releases-matrix-scroll">
                             <DataMatrix

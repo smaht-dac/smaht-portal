@@ -156,56 +156,141 @@
 
     .recent-releases-title {
         color: #2e4769;
-        font-size: 1.125rem;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.35;
+        margin-bottom: 0 !important;
     }
 
     .recent-releases-subtitle {
         color: #5d7192;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
+        line-height: 1.7;
+        margin-top: 0 !important;
+    }
+
+    .recent-releases-divider {
+        height: 1px;
+        background: #d7e3f5;
+        margin: 1rem 0 1.15rem;
+    }
+
+    .recent-releases-timeline-column .card-body,
+    .recent-releases-matrix-column .card-body {
+        padding: 1.65rem 1.25rem 1.25rem;
     }
 
     .recent-releases-months {
         max-height: 72vh;
         overflow-y: auto;
-        padding-right: 0.25rem;
+        padding-right: 0.35rem;
     }
 
     .release-month-nav {
         display: flex;
         justify-content: space-between;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
+        gap: 1rem;
+        margin: 1rem 0 1.2rem;
 
         .btn {
-            min-width: 84px;
+            min-width: 4.6rem;
             font-size: 0.72rem;
-            font-weight: 600;
-            padding: 0.2rem 0.55rem;
+            font-weight: 500;
+            line-height: 1.15;
+            padding: 0.32rem 0.62rem;
+            border-radius: 999px;
+            border-width: 1.5px;
+            border-color: #d3dbe8;
+            color: #334;
+            background: #ffffff;
+            box-shadow: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+
+            &:hover,
+            &:focus {
+                border-color: #b8c8e3;
+                background: #f8fbff;
+                color: #35527a;
+            }
+
+            &:disabled {
+                color: #a0aec7;
+                background: #fbfcfe;
+                border-color: #d7e1f0;
+                opacity: 1;
+                cursor: default;
+            }
+
+            .icon {
+                font-size: 0.66rem;
+            }
         }
     }
 
     .release-view-mode-toggle {
-        display: inline-flex;
-        gap: 0.35rem;
-        margin-bottom: 0.35rem;
+        display: flex;
+        width: 100%;
+        gap: 0.2rem;
+        margin: 0 0 0.65rem;
+        padding: 0.15rem;
+        border: 1px solid #d4dff0;
+        border-radius: 999px;
+        background: #ffffff;
 
         .btn {
-            font-size: 0.72rem;
-            font-weight: 600;
-            padding: 0.16rem 0.48rem;
+            flex: 1 1 0;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1.2;
+            min-width: 0;
+            padding: 0.56rem 0.6rem;
+            border-width: 0;
+            border-radius: 999px;
+            box-shadow: none;
+            letter-spacing: 0.01em;
+            transition: background-color 120ms ease, color 120ms ease;
+
+            &.btn-outline-primary {
+                color: #5b82bb;
+                border-color: transparent;
+                background: transparent;
+
+                &:hover,
+                &:focus {
+                    color: #355f99;
+                    border-color: transparent;
+                    background: #f5f9ff;
+                }
+            }
+
+            &.btn-primary,
+            &.active {
+                background: #114a82;
+                border-color: transparent;
+                color: #ffffff;
+
+                &:hover,
+                &:focus {
+                    background: #114a82;
+                    border-color: transparent;
+                    color: #ffffff;
+                }
+            }
         }
     }
 
     .release-month-section + .release-month-section {
-        margin-top: 0.75rem;
+        margin-top: 1rem;
     }
 
     .release-month-header {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        margin-bottom: 0.35rem;
+        margin-bottom: 0.45rem;
 
         h4 {
             margin: 0;
@@ -215,12 +300,15 @@
         }
 
         .count-badge {
-            font-size: 0.72rem;
-            color: #5a739f;
-            background: #eef4ff;
-            border: 1px solid #d6e3ff;
-            border-radius: 999px;
-            padding: 0.1rem 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: #5f82b7;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            line-height: 1.2;
+            white-space: nowrap;
         }
 
         .count-badge-link {
@@ -231,8 +319,7 @@
             &:focus {
                 text-decoration: none;
                 color: #35527a;
-                border-color: #b9cff8;
-                background: #e8f0ff;
+                background: transparent;
             }
         }
     }
@@ -262,48 +349,51 @@
     .release-bucket-list {
         display: flex;
         flex-direction: column;
-        gap: 0.28rem;
+        gap: 0.46rem;
     }
 
     .release-bucket-btn {
-        border: 1px solid #d9e2f2;
-        background: #f8fbff;
-        border-radius: 0.42rem;
-        padding: 0.28rem 0.42rem;
+        border: 1px solid #d7e3f7;
+        background: #f7fbff;
+        border-radius: 0.56rem;
+        padding: 0.26rem 0.34rem 0.26rem 0.42rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
         text-align: left;
         color: #325180;
-        font-size: 0.78rem;
+        font-size: 0.84rem;
+        min-height: 2.45rem;
+        transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
 
         .bucket-label {
             font-weight: 600;
         }
 
         .bucket-count {
-            color: #1f4b90;
+            color: #3567b6;
             font-weight: 700;
             border-radius: 999px;
-            background: rgba(66, 130, 224, 0.2);
-            border: 1px solid rgba(66, 130, 224, 0.22);
-            padding: 0.04rem 0.28rem;
-            min-width: 2rem;
+            background: #d9e9ff;
+            border: 1px solid #b6d1fb;
+            padding: 0.36rem 0.55rem;
+            min-width: 2.35rem;
             text-align: center;
-            margin-left: 0.5rem;
+            line-height: 1;
+            margin-left: 0.75rem;
         }
 
         &:hover,
         &:focus {
-            border-color: #6f9be0;
-            background: #e2edff;
+            border-color: #9cbbef;
+            background: #edf5ff;
             outline: none;
         }
 
         &.selected {
             border-color: #2f67cc;
-            background: #dce9ff;
-            box-shadow: inset 0 0 0 1px rgba(47, 103, 204, 0.22);
+            background: #e7f0ff;
+            box-shadow: inset 0 0 0 1px rgba(47, 103, 204, 0.18);
             color: #1c3f79;
         }
     }
@@ -392,7 +482,7 @@
         justify-content: space-between;
         align-items: flex-start;
         gap: 0.75rem;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0;
     }
 
     .recent-releases-results-mode-toggle {
@@ -425,10 +515,10 @@
     }
 
     .recent-releases-table-scroll {
-        border: 1px solid #e1e8f5;
-        border-radius: 0.5rem;
-        padding: 0.35rem;
-        overflow: hidden;
+        // border: 1px solid #e1e8f5;
+        // border-radius: 0.5rem;
+        // padding: 0.35rem;
+        // overflow: hidden;
     }
 
     .recent-releases-table-scroll .embedded-search-view-outer-container {
