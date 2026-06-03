@@ -265,6 +265,9 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                             ) : null}
                                             <DataMatrix
                                                 {...(selectedTab.matrixProps || {})}
+                                                showCountFor={typeof selectedTab?.matrixProps?.showCountFor === 'boolean'
+                                                    ? selectedTab.matrixProps.showCountFor
+                                                    : true}
                                                 key={(selectedTab.matrixProps && selectedTab.matrixProps.key) || selectedTab.key}
                                                 session={session}
                                                 onDataLoaded={handleDataLoaded(selectedTab.key)}
