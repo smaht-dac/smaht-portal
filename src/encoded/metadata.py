@@ -1100,12 +1100,21 @@ def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
         # client-side walk sidesteps that entire question.
         source_fields.append('extra_files')
 
-    count = 0
+    # Two counts: `total` is "matched docs" (analog of `hits.total.value`),
+    # `file_size_count` is "matched docs that have file_size set" (analog of
+    # an ES `stats` aggregation's count, which the UI reads as facet.count).
+    # The distinction matters for item types where not every record carries
+    # a file_size — without it, we'd inflate the count vs the previous
+    # ES-aggregation-based implementation.
+    total = 0
+    file_size_count = 0
     file_size_sum = 0
     file_size_min = None
     file_size_max = None
     extra_files_size_sum = 0
     extra_files_count = 0
+    extra_files_size_min = None
+    extra_files_size_max = None
 
     for source in _stream_metadata_items(
         request,
@@ -1114,9 +1123,10 @@ def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
         status=status,
         source_fields=source_fields,
     ):
-        count += 1
+        total += 1
         fs = source.get('file_size')
         if fs is not None:
+            file_size_count += 1
             file_size_sum += fs
             if file_size_min is None or fs < file_size_min:
                 file_size_min = fs
@@ -1128,26 +1138,34 @@ def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
                 if ef_size is not None:
                     extra_files_size_sum += ef_size
                     extra_files_count += 1
+                    if extra_files_size_min is None or ef_size < extra_files_size_min:
+                        extra_files_size_min = ef_size
+                    if extra_files_size_max is None or ef_size > extra_files_size_max:
+                        extra_files_size_max = ef_size
 
     aggs = {
         'file_size': {
-            'count': count,
+            'count': file_size_count,
             'min': file_size_min,
             'max': file_size_max,
-            'avg': (file_size_sum / count) if count else None,
+            'avg': (file_size_sum / file_size_count) if file_size_count else None,
             'sum': file_size_sum,
         },
     }
     if include_extra_files:
         # Mirror the shape the response formatter already handles for
-        # ES-returned nested aggregations.
+        # ES-returned nested aggregations — full stats (count/min/max/avg/sum)
+        # so consumers can use the same fields they would on the file_size facet.
         aggs['extra_files_file_size'] = {
             'sum': {'value': extra_files_size_sum},
             'count': extra_files_count,
+            'min': extra_files_size_min,
+            'max': extra_files_size_max,
+            'avg': (extra_files_size_sum / extra_files_count) if extra_files_count else None,
         }
 
     return {
-        'hits': {'total': {'value': count}},
+        'hits': {'total': {'value': total}},
         'aggregations': aggs,
     }
 
@@ -1327,9 +1345,9 @@ def peek_metadata(context, request):
     }]
 
     if include_extra_files:
-        # `extra_files_file_size` is shaped as `{sum: {value: ...}, count: N}`
-        # regardless of source (Python aggregation vs the legacy nested-ES
-        # aggregation) so the UI sees a consistent facet body.
+        # `extra_files_file_size` carries full stats — `sum` is the legacy
+        # nested-ES shape (`{value: ...}`) while count/min/max/avg are flat
+        # so the UI's `stats` facet schema matches the file_size facet above.
         ef_agg = aggs.get('extra_files_file_size') or {}
         ef_sum = ((ef_agg.get('sum') or {}).get('value')) or 0
         facets.append({
@@ -1338,6 +1356,9 @@ def peek_metadata(context, request):
             'aggregation_type': 'stats',
             'total': total,
             'count': ef_agg.get('count', 0),
+            'min': ef_agg.get('min'),
+            'max': ef_agg.get('max'),
+            'avg': ef_agg.get('avg'),
             'sum': ef_sum,
         })
 
