@@ -1006,28 +1006,37 @@ def _stream_metadata_items(request, *, type_param, accessions=None, status=None,
 
 
 def _facets_via_search(request, params):
-    """Forward to snovault `/search` and return its facets array.
+    """Forward to snovault `/search` and return only the facets the caller asked for.
 
-    Returns whatever facets snovault.search() emits for the given URL params —
-    both schema-default facets AND any `additional_facet` aggregations.
-    Type-agnostic: works for File, Donor, Assay, or anything else the schema
-    configures. The shape matches what `/search` itself returns, which is the
-    same array the legacy peek_metadata fallback returned before the perf
-    refactor.
+    Runs the search with two extra params on top of the caller's:
+      - `limit=0`             — no hit documents are fetched (we only want facets)
+      - `skip_default_facets=true` — snovault skips the 15-20 schema-default
+                                     facet aggregations. Only the facets in
+                                     `additional_facet` are computed.
 
-    Used by GET requests so callers like `ProtectedDonorViewDataCards`
-    (`resp.find(f => f.field === 'type')?.terms.find(...).doc_count > 0`)
-    keep working — they rely on the default `type` facet being present.
+    The `type` facet is always added as an `additional_facet` if the caller
+    didn't already request it, because every current peek-metadata UI consumer
+    that reads a default facet reads `type` at minimum (see
+    `ProtectedDonorViewDataCards.js` checking for File results, and
+    `BrowseDonorBase.js`'s file-count column).
 
-    `limit=0` suppresses hit fetching; only the facet aggregations run.
+    Callers that need other facets (e.g. `sample_summary.tissues`,
+    `assays.display_title`, `file_size`) must list them via `additional_facet=…`
+    in the URL — that's how to keep peek-metadata fast for any item type.
+    Without this discipline we re-pay the same per-item-type default-facet
+    cost that the /metadata work was meant to eliminate.
     """
     forwarded = MultiDict()
     for key in params.keys():
-        if key in ('limit', 'from'):
+        if key in ('limit', 'from', 'skip_default_facets'):
             continue
         for value in params.getall(key):
             forwarded.add(key, value)
     forwarded.add('limit', '0')
+    forwarded.add('skip_default_facets', 'true')
+
+    if 'type' not in forwarded.getall('additional_facet'):
+        forwarded.add('additional_facet', 'type')
 
     subreq = make_search_subreq(
         request,
