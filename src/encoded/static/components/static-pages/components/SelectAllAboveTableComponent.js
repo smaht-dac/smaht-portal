@@ -25,6 +25,7 @@ import { useUserDownloadAccess } from '../../util/hooks';
 export const SelectAllAboveTableComponent = (props) => {
     const {
         context,
+        searchHref,
         session,
         selectedItems = new Set(), // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
@@ -57,7 +58,7 @@ export const SelectAllAboveTableComponent = (props) => {
                 Results
             </div>
             <div className="ms-auto col-auto me-0 d-flex pe-0">
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+                <SelectAllFilesButton {...selectedFileProps} {...{ context, searchHref }} />
                 {/* Show popover if user has the access needed for this table */}
                 {canDownloadFiles ? (
                     <SelectedItemsDownloadButton
@@ -127,6 +128,7 @@ export class SelectAllFilesButton extends React.PureComponent {
     static localhostBatchDelayMs = 1500;
     static propTypes = {
         context: PropTypes.object,
+        searchHref: PropTypes.string,
         selectedItems: PropTypes.object,
         onSelectItem: PropTypes.func,
         onResetSelectedItems: PropTypes.func,
@@ -209,9 +211,18 @@ export class SelectAllFilesButton extends React.PureComponent {
         const currentHrefParts = memoizedUrlParse(searchHref);
         const currentHrefQuery = _.extend({}, currentHrefParts.query);
         const { total, pageSize, concurrentRequests } = this.getSelectAllConfig();
+        const requestPathname = (() => {
+            const parsedPathname =
+                currentHrefParts?.pathname || String(searchHref || '').split('?')[0] || '/search/';
+            if (parsedPathname === '/browse/' || parsedPathname === '/browse') {
+                return '/search/';
+            }
+            return parsedPathname;
+        })();
 
         currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
         currentHrefQuery.limit = pageSize;
+        currentHrefQuery.format = 'json';
 
         delete currentHrefQuery.sort;
 
@@ -242,10 +253,7 @@ export class SelectAllFilesButton extends React.PureComponent {
             const batchResponses = await Promise.all(
                 batchStarts.map((from) => {
                     const query = { ...currentHrefQuery, from };
-                    const reqHref =
-                        currentHrefParts.pathname +
-                        '?' +
-                        queryString.stringify(query);
+                    const reqHref = requestPathname + '?' + queryString.stringify(query);
                     return ajax.promise(reqHref);
                 })
             );
@@ -305,10 +313,12 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     handleSelectAll(evt) {
         const {
-            context: { '@id': searchHref } = {},
+            context: { '@id': contextSearchHref } = {},
+            searchHref: propSearchHref = null,
             onSelectItem,
             onResetSelectedItems,
         } = this.props;
+        const searchHref = contextSearchHref || propSearchHref;
 
         if (
             typeof onSelectItem !== 'function' ||
@@ -320,6 +330,15 @@ export class SelectAllFilesButton extends React.PureComponent {
             throw new Error(
                 "No 'onSelectItems' or 'onResetSelectedItems' function prop passed from SelectedItemsController."
             );
+        }
+        if (!searchHref) {
+            logger.error("No search href available for Select All.");
+            Alerts.queue({
+                title: 'Select All Failed',
+                message:
+                    'Unable to determine which files to fetch for selection. Please try again.',
+            });
+            return;
         }
 
         this.setState({ selecting: true, selectingProgress: 0 }, () => {

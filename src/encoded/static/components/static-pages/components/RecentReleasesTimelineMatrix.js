@@ -289,7 +289,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             widthMap: { lg: 60, md: 60, sm: 60 },
             colTitle: (
                 <div className="d-flex align-items-center justify-content-center w-100">
-                    <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
+                    <SelectAllFilesButton {...selectedFileProps} searchHref={searchHref} type="checkbox" />
                 </div>
             ),
             render: (result) => (
@@ -337,6 +337,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             aboveTableComponent={
                 <SelectAllAboveTableComponent
                     session={session}
+                    searchHref={searchHref}
                     deniedAccessPopoverType="login"
                     selectedItems={selectedItems}
                     onSelectItem={onSelectItem}
