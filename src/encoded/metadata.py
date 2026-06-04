@@ -1014,6 +1014,19 @@ _PEEK_METADATA_NON_FILTER_PARAMS = frozenset([
     'include_extra_files',
 ])
 
+# A few snovault facet field names don't correspond to embedded properties of
+# the same name — they're computed from another path. We mirror snovault's
+# behavior so a caller can request `additional_facet=type` and get terms
+# from the embedded `@type` list under the field name `type`.
+_PEEK_METADATA_FACET_SOURCE_OVERRIDES = {
+    'type': '@type',
+}
+
+
+def _facet_source_path(field):
+    """Map a facet field name to the embedded source path that holds its data."""
+    return _PEEK_METADATA_FACET_SOURCE_OVERRIDES.get(field, field)
+
 
 def _facets_via_search(request, params):
     """Stream matching docs directly from ES and compute facets in Python.
@@ -1059,10 +1072,11 @@ def _facets_via_search(request, params):
     # maybe a kilobyte per hit, not the full embedded view.
     es = request.registry[ELASTIC_SEARCH]
     es_index = get_es_index(request, [type_param])
-    source_includes = (
-        [f'embedded.{f}' for f in requested]
-        + ['embedded.@id', 'embedded.@type', 'embedded.uuid']
-    )
+    # Use _facet_source_path so e.g. `additional_facet=type` pulls
+    # `embedded.@type` from the source. @type / @id / uuid are always present.
+    source_includes = list({
+        f'embedded.{_facet_source_path(f)}' for f in requested
+    } | {'embedded.@id', 'embedded.@type', 'embedded.uuid'})
 
     items = []
     for source in execute_streaming_search(
@@ -1154,9 +1168,11 @@ def _walk_dot_path(item, path):
 
 def _compute_terms_facet(items, field, total):
     """Aggregate a terms facet in Python — frequency count per value."""
+    source_path = _facet_source_path(field)
     counter = {}
     for item in items:
-        value = _walk_dot_path(item, field) if '.' in field else item.get(field)
+        value = (_walk_dot_path(item, source_path) if '.' in source_path
+                 else item.get(source_path))
         if value is None:
             continue
         values = value if isinstance(value, list) else [value]
@@ -1179,9 +1195,11 @@ def _compute_terms_facet(items, field, total):
 
 def _compute_stats_facet(items, field, total):
     """Aggregate a stats facet in Python — count/min/max/avg/sum over numerics."""
+    source_path = _facet_source_path(field)
     numeric_values = []
     for item in items:
-        v = _walk_dot_path(item, field) if '.' in field else item.get(field)
+        v = (_walk_dot_path(item, source_path) if '.' in source_path
+             else item.get(source_path))
         if v is None:
             continue
         if isinstance(v, list):
