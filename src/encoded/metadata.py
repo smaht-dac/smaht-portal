@@ -3,16 +3,12 @@ from pyramid.response import Response
 from snovault.elasticsearch import ELASTIC_SEARCH
 from snovault.util import debug_log
 from dcicutils.misc_utils import ignored
-from snovault.search.search import search
 from snovault.search.search_utils import (
     build_permission_filter,
     execute_streaming_search,
     get_es_index,
-    make_search_subreq,
 )
 from typing import Tuple, NamedTuple, List
-from urllib.parse import urlencode
-from webob.multidict import MultiDict
 import csv
 import json
 from datetime import datetime
@@ -1005,45 +1001,215 @@ def _stream_metadata_items(request, *, type_param, accessions=None, status=None,
         yield source.get('embedded', {})
 
 
+# peek-metadata GET callers list each facet they need via `additional_facet=...`.
+# These two are always included if not specified — every UI consumer reads `type`,
+# and the dominant File-summary use case reads `file_size`.
+_PEEK_METADATA_DEFAULT_FACETS = ('type', 'file_size')
+
+# URL params that aren't item-field filters — should not be folded into the
+# ES filter clauses when translating a peek-metadata URL.
+_PEEK_METADATA_NON_FILTER_PARAMS = frozenset([
+    'additional_facet', 'sort', 'limit', 'from', 'frame',
+    'datastore', 'q', 'searchTerm', 'format', 'skip_default_facets',
+    'include_extra_files',
+])
+
+
 def _facets_via_search(request, params):
-    """Forward to snovault `/search` and return only the facets the caller asked for.
+    """Stream matching docs directly from ES and compute facets in Python.
 
-    Runs the search with two extra params on top of the caller's:
-      - `limit=0`             — no hit documents are fetched (we only want facets)
-      - `skip_default_facets=true` — snovault skips the 15-20 schema-default
-                                     facet aggregations. Only the facets in
-                                     `additional_facet` are computed.
+    Avoids snovault.search() entirely. For each `additional_facet` the caller
+    requested, the value is computed by iterating the streamed hits — terms
+    aggregations as a frequency map, stats aggregations as count/min/max/avg/sum.
+    `type` and `file_size` are included by default.
 
-    The `type` facet is always added as an `additional_facet` if the caller
-    didn't already request it, because every current peek-metadata UI consumer
-    that reads a default facet reads `type` at minimum (see
-    `ProtectedDonorViewDataCards.js` checking for File results, and
-    `BrowseDonorBase.js`'s file-count column).
+    Why bypass /search at all?
+      - Even with `skip_default_facets=true`, /search runs the full Pyramid
+        subrequest pipeline (filter construction, principal injection, type
+        subtype expansion, response shaping) plus N additional-facet ES
+        aggregations. For per-row UI callers like BrowseDonor that fire a
+        peek-metadata per donor (up to ~150), that pipeline cost dominates.
+      - For non-File types where the entire matched set is small (<= 200 items
+        is typical for Donor / Assay browses), the cost of a single ES hit
+        fetch + Python aggregation is lower than the aggregation-phase
+        coordination across shards.
+      - For File types, the same streaming primitive we already use for
+        /metadata works fine here too — search_after gives O(N) iteration.
 
-    Callers that need other facets (e.g. `sample_summary.tissues`,
-    `assays.display_title`, `file_size`) must list them via `additional_facet=…`
-    in the URL — that's how to keep peek-metadata fast for any item type.
-    Without this discipline we re-pay the same per-item-type default-facet
-    cost that the /metadata work was meant to eliminate.
+    The URL→ES filter translator only handles the shapes the current
+    peek-metadata callers send:
+        field=value          → must terms
+        field!=value         → must_not terms
+        field=A&field=B      → must terms over [A, B] (OR within field)
+        type=Foo             → embedded.@type.raw
+    Range filters and nested-field wrapping aren't covered — add them here
+    if a caller needs them. Permission filter is always added.
     """
-    forwarded = MultiDict()
-    for key in params.keys():
-        if key in ('limit', 'from', 'skip_default_facets'):
-            continue
-        for value in params.getall(key):
-            forwarded.add(key, value)
-    forwarded.add('limit', '0')
-    forwarded.add('skip_default_facets', 'true')
+    type_param = params.get('type') or 'File'
 
-    if 'type' not in forwarded.getall('additional_facet'):
-        forwarded.add('additional_facet', 'type')
+    # Decide which facets to compute. Caller's additional_facet list + the
+    # default facets (deduped, order-preserving).
+    requested = list(params.getall('additional_facet'))
+    for default in _PEEK_METADATA_DEFAULT_FACETS:
+        if default not in requested:
+            requested.append(default)
 
-    subreq = make_search_subreq(
-        request,
-        '/search?{}'.format(urlencode(list(forwarded.items()), True)),
-        inherit_user=True,
+    # Stream matching docs, source-filtered to only the facet fields. This
+    # keeps each hit's payload tiny — for 150 donor-related Files we ship
+    # maybe a kilobyte per hit, not the full embedded view.
+    es = request.registry[ELASTIC_SEARCH]
+    es_index = get_es_index(request, [type_param])
+    source_includes = (
+        [f'embedded.{f}' for f in requested]
+        + ['embedded.@id', 'embedded.@type', 'embedded.uuid']
     )
-    return search(None, subreq).get('facets', []) or []
+
+    items = []
+    for source in execute_streaming_search(
+        es,
+        index=es_index,
+        query=_build_peek_metadata_es_query(request, params, type_param),
+        source_includes=source_includes,
+        batch_size=_METADATA_ES_BATCH_SIZE,
+        timeout=_METADATA_ES_TIMEOUT,
+    ):
+        items.append(source.get('embedded', {}))
+
+    total = len(items)
+
+    # Build the facets array. `file_size` is special-cased as stats since
+    # the smaht-portal schema doesn't carry aggregation_type=stats anymore;
+    # everything else is treated as terms (matches snovault's default).
+    facets = []
+    for field in requested:
+        if field == 'file_size':
+            facets.append(_compute_stats_facet(items, field, total))
+        else:
+            facets.append(_compute_terms_facet(items, field, total))
+    return facets
+
+
+def _build_peek_metadata_es_query(request, params, type_param):
+    """Translate peek-metadata URL params into an ES bool/filter query."""
+    must_terms = {}
+    must_not_terms = {}
+
+    for key in set(params.keys()):
+        if key in _PEEK_METADATA_NON_FILTER_PARAMS:
+            continue
+        negative = key.endswith('!')
+        field = key[:-1] if negative else key
+        es_field = 'embedded.@type.raw' if field == 'type' \
+            else f'embedded.{field}.raw'
+        bucket = must_not_terms if negative else must_terms
+        bucket.setdefault(es_field, set()).update(params.getall(key))
+
+    # Permission + type filter are always present.
+    filter_clauses = [build_permission_filter(request)]
+    type_field = 'embedded.@type.raw'
+    if type_field not in must_terms:
+        must_terms[type_field] = {type_param}
+    for es_field, values in must_terms.items():
+        filter_clauses.append({'terms': {es_field: sorted(values)}})
+
+    bool_query = {'filter': filter_clauses}
+    if must_not_terms:
+        bool_query['must_not'] = [
+            {'terms': {es_field: sorted(values)}}
+            for es_field, values in must_not_terms.items()
+        ]
+    return {'bool': bool_query}
+
+
+def _walk_dot_path(item, path):
+    """Resolve a dot-path against a possibly-nested dict, flattening lists.
+
+    Mirrors how Elasticsearch addresses nested embedded paths so a peek-metadata
+    caller can request `additional_facet=sample_summary.tissues` and get back
+    the same field they'd see in the embedded document.
+    """
+    parts = path.split('.')
+    cur = item
+    for part in parts:
+        if cur is None:
+            return None
+        if isinstance(cur, list):
+            collected = []
+            for sub in cur:
+                if isinstance(sub, Mapping):
+                    val = sub.get(part)
+                    if val is None:
+                        continue
+                    if isinstance(val, list):
+                        collected.extend(val)
+                    else:
+                        collected.append(val)
+            cur = collected or None
+        elif isinstance(cur, Mapping):
+            cur = cur.get(part)
+        else:
+            return None
+    return cur
+
+
+def _compute_terms_facet(items, field, total):
+    """Aggregate a terms facet in Python — frequency count per value."""
+    counter = {}
+    for item in items:
+        value = _walk_dot_path(item, field) if '.' in field else item.get(field)
+        if value is None:
+            continue
+        values = value if isinstance(value, list) else [value]
+        for v in values:
+            key = v if isinstance(v, (str, int, float, bool)) else str(v)
+            counter[key] = counter.get(key, 0) + 1
+
+    terms = [
+        {'key': k, 'doc_count': c}
+        for k, c in sorted(counter.items(), key=lambda kv: kv[1], reverse=True)
+    ]
+    return {
+        'field': field,
+        'title': field.replace('_', ' ').replace('.', ' ').title(),
+        'aggregation_type': 'terms',
+        'total': total,
+        'terms': terms,
+    }
+
+
+def _compute_stats_facet(items, field, total):
+    """Aggregate a stats facet in Python — count/min/max/avg/sum over numerics."""
+    numeric_values = []
+    for item in items:
+        v = _walk_dot_path(item, field) if '.' in field else item.get(field)
+        if v is None:
+            continue
+        if isinstance(v, list):
+            numeric_values.extend(x for x in v if isinstance(x, (int, float))
+                                  and not isinstance(x, bool))
+        elif isinstance(v, (int, float)) and not isinstance(v, bool):
+            numeric_values.append(v)
+
+    if not numeric_values:
+        return {
+            'field': field,
+            'title': field.replace('_', ' ').replace('.', ' ').title(),
+            'aggregation_type': 'stats',
+            'total': total,
+            'count': 0, 'min': None, 'max': None, 'avg': None, 'sum': 0,
+        }
+
+    return {
+        'field': field,
+        'title': field.replace('_', ' ').replace('.', ' ').title(),
+        'aggregation_type': 'stats',
+        'total': total,
+        'count': len(numeric_values),
+        'min': min(numeric_values),
+        'max': max(numeric_values),
+        'avg': sum(numeric_values) / len(numeric_values),
+        'sum': sum(numeric_values),
+    }
 
 
 def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
