@@ -14,6 +14,13 @@ import { compareTissueFacetTerms } from '../../util/data';
 import { FILE_BROWSE_HIDE_FACETS } from '../../browse/BrowseView';
 import { termTransformFxnWithOverrides } from '../../browse/SearchView';
 
+export function isLocalEnv() {
+    if (typeof window !== 'undefined' && window.location && window.location.href) {
+        return window.location.href.indexOf('localhost') >= 0 ||
+            window.location.href.indexOf('127.0.0.1') >= 0;
+    }
+    return false;
+}
 
 export default class DataMatrix extends React.PureComponent {
 
@@ -280,6 +287,7 @@ export default class DataMatrix extends React.PureComponent {
         "disableConfigurator": true,
         "idLabel": "",
         "onDataLoaded": null,
+        "debugLoadingDelayMs": 0,
         // allowedFields is for the configurator
         "allowedFields": [
             "donors.display_title",
@@ -354,6 +362,7 @@ export default class DataMatrix extends React.PureComponent {
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
         'onDataLoaded': PropTypes.func,
+        'debugLoadingDelayMs': PropTypes.number,
         'schemas': PropTypes.object,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'baseBrowseFilesPath': PropTypes.string,
@@ -512,6 +521,8 @@ export default class DataMatrix extends React.PureComponent {
             "summaryBackgroundColor": props.summaryBackgroundColor,
             "defaultOpen": props.defaultOpen,
             "countFor": "files",
+            // Distinguishes full shell loading (matrix mode switch) from inline refreshes (count toggles).
+            "loadingContext": null,
             "matrixMode": normalizedInitialMatrixMode,
             "donorTissueAssay": DataMatrix.DONOR_TISSUE_ALL_ASSAYS,
             "availableDonorTissueAssays": [],
@@ -523,7 +534,15 @@ export default class DataMatrix extends React.PureComponent {
             Object.assign(initialState, this.getNextStateForMatrixMode(normalizedInitialMatrixMode, initialState));
         }
         this.latestLoadRequestId = 0;
+        this.loadingDelayTimeout = null;
         this.state = initialState;
+    }
+
+    componentWillUnmount() {
+        if (this.loadingDelayTimeout) {
+            clearTimeout(this.loadingDelayTimeout);
+            this.loadingDelayTimeout = null;
+        }
     }
 
     componentDidMount() {
@@ -829,6 +848,7 @@ export default class DataMatrix extends React.PureComponent {
             resultItemPostProcessFuncKey,
             resultTransformedPostProcessFuncKey,
             onDataLoaded,
+            debugLoadingDelayMs = 0,
             autoPopulateRowGroupsExtendedMapFields,
             autoPopulateColumnGroupsMapFields
         } = this.props;
@@ -842,7 +862,6 @@ export default class DataMatrix extends React.PureComponent {
             columnGroups,
             matrixMode
         } = this.state;
-
         const commonCallback = (result) => {
             if (requestId !== this.latestLoadRequestId) {
                 return;
@@ -941,6 +960,7 @@ export default class DataMatrix extends React.PureComponent {
 
             updatedState[resultKey] = transformedData;
             updatedState['isFetching'] = false;
+            updatedState['loadingContext'] = null;
             updatedState['overallCounts'] = result.counts || null;
             updatedState['facetsForPanel'] = result.facets || [];
             updatedState['facetFiltersForPanel'] = result.filters || [];
@@ -1022,14 +1042,30 @@ export default class DataMatrix extends React.PureComponent {
                 updatedState['donorTissueAssay'] = hasCurrentAssay ? currentDonorTissueAssay : DataMatrix.DONOR_TISSUE_ALL_ASSAYS;
             }
 
-            this.setState(updatedState, () => ReactTooltip.rebuild());
-            if (typeof onDataLoaded === 'function') {
-                onDataLoaded({
-                    hasData: totalFiles > 0,
-                    totalFiles,
-                    query: this.state.query,
-                    results: transformedData
-                });
+            const commitLoadedState = () => {
+                if (requestId !== this.latestLoadRequestId) {
+                    return;
+                }
+                this.setState(updatedState, () => ReactTooltip.rebuild());
+                if (typeof onDataLoaded === 'function') {
+                    onDataLoaded({
+                        hasData: totalFiles > 0,
+                        totalFiles,
+                        query: this.state.query,
+                        results: transformedData
+                    });
+                }
+            };
+
+            if (this.loadingDelayTimeout) {
+                clearTimeout(this.loadingDelayTimeout);
+                this.loadingDelayTimeout = null;
+            }
+            // Optional local-only delay so the intermediate loading treatment is easier to tune.
+            if (debugLoadingDelayMs > 0) {
+                this.loadingDelayTimeout = setTimeout(commitLoadedState, debugLoadingDelayMs);
+            } else {
+                commitLoadedState();
             }
         };
 
@@ -1042,17 +1078,34 @@ export default class DataMatrix extends React.PureComponent {
             const updatedState = {};
             updatedState[resultKey] = false;
             updatedState['isFetching'] = false;
+            updatedState['loadingContext'] = null;
             updatedState['facetsForPanel'] = [];
             updatedState['facetFiltersForPanel'] = [];
-            this.setState(updatedState);
-            if (typeof onDataLoaded === 'function') {
-                onDataLoaded({
-                    hasData: false,
-                    totalFiles: 0,
-                    query: this.state.query,
-                    results: null,
-                    error: result
-                });
+            const commitLoadedState = () => {
+                if (requestId !== this.latestLoadRequestId) {
+                    return;
+                }
+                this.setState(updatedState);
+                if (typeof onDataLoaded === 'function') {
+                    onDataLoaded({
+                        hasData: false,
+                        totalFiles: 0,
+                        query: this.state.query,
+                        results: null,
+                        error: result
+                    });
+                }
+            };
+
+            if (this.loadingDelayTimeout) {
+                clearTimeout(this.loadingDelayTimeout);
+                this.loadingDelayTimeout = null;
+            }
+            // Keep error and empty states on the same delayed cadence while debugging loading UI.
+            if (debugLoadingDelayMs > 0) {
+                this.loadingDelayTimeout = setTimeout(commitLoadedState, debugLoadingDelayMs);
+            } else {
+                commitLoadedState();
             }
         };
         this.setState(
@@ -1415,7 +1468,15 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     onMatrixModeChange(nextMatrixMode) {
-        this.setState((prevState) => this.getNextStateForMatrixMode(nextMatrixMode, prevState));
+        this.setState((prevState) => {
+            return {
+                ...this.getNextStateForMatrixMode(nextMatrixMode, prevState),
+                // Clear stale cells immediately on matrix-mode switches so the loading shell
+                // reflects the next mode instead of briefly showing the previous view's columns.
+                _results: null,
+                loadingContext: 'matrix-mode'
+            };
+        });
     }
 
     onApplyConfiguration({
@@ -1473,6 +1534,9 @@ export default class DataMatrix extends React.PureComponent {
     onCountForChange(e) {
         const nextValue = e && e.target ? e.target.value : 'files';
         this.setState((prevState) => {
+            const isCoverageToggleOnly =
+                (nextValue === 'files' && prevState.countFor === 'total_coverage') ||
+                (nextValue === 'total_coverage' && prevState.countFor === 'files');
             const nextState = {
                 countFor: nextValue,
                 matrixMode: (nextValue === 'donors' || nextValue === 'tissue_files')
@@ -1520,6 +1584,10 @@ export default class DataMatrix extends React.PureComponent {
                     colorRangeSegments: prevState.colorRangeSegments,
                     colorRangeSegmentStep: prevState.colorRangeSegmentStep
                 });
+            }
+
+            if (nextValue !== prevState.countFor && !isCoverageToggleOnly) {
+                nextState.loadingContext = 'count-toggle';
             }
 
             return nextState;
@@ -1573,20 +1641,18 @@ export default class DataMatrix extends React.PureComponent {
         return false;
     }
 
-    isLocalEnv() {
-        if (window && window.location && window.location.href) {
-            return window.location.href.indexOf('localhost') >= 0 ||
-                window.location.href.indexOf('127.0.0.1') >= 0;
-        }
-        return false;
-    }
+    // isLocalEnv() {
+    //     return isLocalEnv();
+    // }
 
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
             baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor, showMatrixModeTabs,
-            showFacetTermsPanel, facetTermsPanelFields, donorTissueShrinkEmptyColumns
+            showFacetTermsPanel, facetTermsPanelFields, donorTissueShrinkEmptyColumns,
+            headerPadding, showUniqueDonorsAssayBand, schemas,
+            titleMap, statePrioritizationForGroups, fallbackNameForBlankField
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -1595,15 +1661,15 @@ export default class DataMatrix extends React.PureComponent {
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
             defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel, isFetching,
-            matrixMode, donorTissueAssay, availableDonorTissueAssays, rowSummaryCountsByGroup
+            matrixMode, donorTissueAssay, availableDonorTissueAssays, rowSummaryCountsByGroup, loadingContext,
+            _results: rawResults
         } = this.state;
 
-        const resultKey = "_results";
         const effectiveFacetHref = this.getEffectiveFacetHref(query?.url);
         const isTissueMatrixCount = matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY;
-        const effectiveHeaderPadding = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? 232 : this.props.headerPadding;
+        const effectiveHeaderPadding = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? 232 : headerPadding;
         const effectiveYAxisLabel = isTissueMatrixCount ? 'Tissue' : yAxisLabel;
-        const effectiveResults = this.getDerivedDonorTissueResults(this.state[resultKey]);
+        const effectiveResults = this.getDerivedDonorTissueResults(rawResults);
         const effectiveOverallCounts = effectiveResults?.overallCounts || overallCounts;
         // Row-summary overrides are useful for donor/assay benchmarking rollups,
         // but in donor/tissue mode they can conflict with assay-dropdown totals.
@@ -1615,20 +1681,17 @@ export default class DataMatrix extends React.PureComponent {
         // Keep header included-properties count anchored to unfiltered backend context.
         const effectiveTotalFiles = totalFiles;
 
-        const isLoading =
-            // eslint-disable-next-line react/destructuring-assignment
-            this.state['_results'] === null && query && query.url !== null && typeof query.url !== 'undefined';
-        const isRefreshing = !!(isFetching && this.state['_results'] !== null && this.state['_results'] !== false);
-
-        if (isLoading) {
-            return (
-                <div>
-                    <div className="text-center mt-5 mb-5" style={{ fontSize: '2rem', opacity: 0.5 }}>
-                        <i className="mt-3 icon icon-spin icon-circle-notch fas" />
-                    </div>
-                </div>
-            );
-        }
+        const isLoading = rawResults === null && query && query.url !== null && typeof query.url !== 'undefined';
+        const isRefreshing = !!(isFetching && rawResults !== null && rawResults !== false);
+        // Count toggles keep the current header/labels visible; matrix-mode switches use the blank shell.
+        const isCountToggleRefreshing = isRefreshing && loadingContext === 'count-toggle';
+        const isTissueMatrix = matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY;
+        const isDonorTissueMatrix = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE;
+        const isCoverageView = countFor === 'total_coverage';
+        const showCountsPanel = showCountFor;
+        const shouldShowMatrixModeTabs = showCountFor && showMatrixModeTabs && idLabel !== 'benchmarking';
+        const showFacetsPanel = showFacetTermsPanel;
+        const showLeftPanel = showCountsPanel || showFacetsPanel;
         const bodyProps = {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
@@ -1636,7 +1699,7 @@ export default class DataMatrix extends React.PureComponent {
             summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
             activeFacetHref: effectiveFacetHref || query?.url || null,
-            showUniqueDonorsAssayBand: this.props.showUniqueDonorsAssayBand,
+            showUniqueDonorsAssayBand,
             shrinkEmptyColumns: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
                 ? donorTissueShrinkEmptyColumns
                 : true,
@@ -1648,6 +1711,11 @@ export default class DataMatrix extends React.PureComponent {
             disableRowExpand: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             // Donor x Tissue blocks are informational; disable click-to-open highlighting/popover selection.
             disableBlockOpen: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            isGridRefreshing: isCountToggleRefreshing,
+            // Avoid showing the fallback N/A germ-layer band while a donor/tissue refresh is in flight.
+            hideFallbackColumnGroupHeader: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE && isRefreshing,
+            // Avoid showing the fallback row band while any matrix view is refreshing.
+            hideFallbackRowGroupHeader: isRefreshing,
             overallCounts: effectiveOverallCounts,
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
@@ -1712,14 +1780,6 @@ export default class DataMatrix extends React.PureComponent {
                 {configurator}
                 {headerFor || null}
                 {(showCountFor || showFacetTermsPanel) ? (() => {
-                    const isTissueMatrix = matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY;
-                    const isDonorTissueMatrix = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE;
-                    const isCoverageView = countFor === 'total_coverage';
-                    const showCountsPanel = showCountFor;
-                    const shouldShowMatrixModeTabs = showCountFor && showMatrixModeTabs && idLabel !== 'benchmarking';
-                    const showFacetsPanel = showFacetTermsPanel;
-                    const showLeftPanel = showFacetsPanel;
-
                     const assaySelect = isDonorTissueMatrix ? (
                         <div className="matrix-assay-select-control">
                             <div className="matrix-assay-select-inline">
@@ -1790,6 +1850,11 @@ export default class DataMatrix extends React.PureComponent {
                                     divCls="view-toggle p-1"
                                 />
                             </div>
+                            {isCountToggleRefreshing ? (
+                                <div className="matrix-inline-refresh-indicator" aria-hidden="true">
+                                    <i className="icon icon-spin icon-circle-notch fas" />
+                                </div>
+                            ) : null}
                         </div>
                     ) : null;
 
@@ -1854,12 +1919,19 @@ export default class DataMatrix extends React.PureComponent {
                                                             onFilter={this.onFacetFilter}
                                                             onFilterMultiple={this.onFacetFilterMultiple}
                                                             href={effectiveFacetHref || query?.url || null}
-                                                            schemas={this.props.schemas || null}
+                                                            schemas={schemas || null}
                                                         />
                                                     </div>
                                                 </div>
                                             );
-                                        })() : null}
+                                        })() : (
+                                            <div className="matrix-facet-terms-wrapper">
+                                                <div className="matrix-total-files-count">
+                                                    {typeof totalFiles === 'number' ? `${effectiveTotalFiles.toLocaleString()} Files` : 'Loading…'}
+                                                </div>
+                                                <div className="matrix-facet-terms-panel mt-1 search-view-controls-and-results" aria-hidden="true" style={{ minHeight: '160px' }} />
+                                            </div>
+                                        )}
                                     </div>
                                 ) : null}
                                 <div className="matrix-visual-panel flex-grow-1">
@@ -1890,13 +1962,14 @@ export default class DataMatrix extends React.PureComponent {
                                     <div className="matrix-visual-scroll-region">
                                         <div className="matrix-visual-scroll-content">
                                             <VisualBody
-                                                {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField')}
+                                                {...{ titleMap, statePrioritizationForGroups, fallbackNameForBlankField }}
                                                 {...bodyProps}
                                                 headerPadding={effectiveHeaderPadding}
                                                 headerLeftControls={headerLeftControls}
+                                                showLoadingHeaderLeftControls={loadingContext === 'count-toggle'}
                                                 columnSubGrouping=""// leave blank for now
-                                                // eslint-disable-next-line react/destructuring-assignment
-                                                results={effectiveResults}
+                                                isLoading={isLoading}
+                                                results={effectiveResults || { all: [], row_totals: [], column_totals: [] }}
                                                 defaultDepthsOpen={[defaultOpen, false, false]}
                                                 // keysToInclude={[]}
                                             />
@@ -1910,13 +1983,14 @@ export default class DataMatrix extends React.PureComponent {
                     <div className="matrix-visual-scroll-region">
                         <div className="matrix-visual-scroll-content">
                             <VisualBody
-                                {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField')}
+                                {...{ titleMap, statePrioritizationForGroups, fallbackNameForBlankField }}
                                 {...bodyProps}
                                 headerPadding={effectiveHeaderPadding}
                                 headerLeftControls={null}
+                                showLoadingHeaderLeftControls={false}
                                 columnSubGrouping=""// leave blank for now
-                                // eslint-disable-next-line react/destructuring-assignment
-                                results={effectiveResults}
+                                isLoading={isLoading}
+                                results={effectiveResults || { all: [], row_totals: [], column_totals: [] }}
                                 defaultDepthsOpen={[defaultOpen, false, false]}
                                 // keysToInclude={[]}
                             />
@@ -1932,7 +2006,7 @@ export default class DataMatrix extends React.PureComponent {
             <div id={`data-matrix-for_${idLabel}`} className={dataMatrixClassName} data-files-count={totalFiles}>
                 <div className={`row matrix-render-surface${isRefreshing ? ' is-refreshing' : ''}`}>
                     {body}
-                    {isRefreshing ? (
+                    {isRefreshing && !isCountToggleRefreshing ? (
                         <div className="matrix-refresh-overlay d-flex align-items-center justify-content-center">
                             <i className="icon icon-spin icon-circle-notch fas" />
                         </div>
