@@ -104,16 +104,8 @@ const BrowseProtectedDonorSearchTable = (props) => {
             ...context,
             clear_filters: BROWSE_LINKS.protected_donor,
         },
-        // peek-metadata skips schema-default facets for speed (the per-row
-        // calls add up); list every facet the row-render code below reads so
-        // the response contains exactly what's needed, no more.
-        // BrowseDonorBase.js reads: sample_summary.tissues, assays.display_title,
-        // type, file_size. `type` is auto-included by peek-metadata.
         customColumnSearchHref: (result) =>
-            `/peek-metadata/?additional_facet=file_size` +
-            `&additional_facet=sample_summary.tissues` +
-            `&additional_facet=assays.display_title` +
-            `&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=` +
+            `/peek-metadata/?additional_facet=file_size&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=` +
             result?.display_title,
         defaultColAlignment: 'text-left',
     };
