@@ -206,7 +206,7 @@ function stepVisitRetractedFilesList(caps) {
             }
 
             if (caps.expectedRetractedFilesCount > 0) {
-                cy.get(".search-result-row[data-row-number]").as("resultRows");
+                cy.get(".retracted-files-table .search-result-row[data-row-number]").as("resultRows");
                 cy.get("@resultRows").should("have.length.at.least", caps.expectedRetractedFilesCount);
 
                 testVisit(0);
