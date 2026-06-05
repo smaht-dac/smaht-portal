@@ -191,14 +191,16 @@ export class VisualBody extends React.PureComponent {
         // For total_coverage, we want to display the value with "X" and
         // use a different formatting logic. For other count types, we display the raw count with standard formatting.
         if (countFor === 'total_coverage') {
-            if (blockType === 'col-summary') {
+            const shouldShowCoverageSummary = !!blockProps?.showCoverageSummaries;
+            if (!shouldShowCoverageSummary && (blockType === 'col-summary' || blockType === 'row-summary' || blockType === 'col-secondary-summary')) {
                 return <span data-count={blockSum}>&nbsp;</span>;
             }
-            if (blockType === 'row-summary') {
-                return <span data-count={blockSum}>-</span>;
-            }
             if (blockSum <= 0) return <span data-count={blockSum}>0</span>;
-            const compactCoverageText = !!(blockProps && blockProps.compactCoverageText);
+            // Summary cells are narrower than the regular coverage tiles, so
+            // prefer the compact formatter there unless a caller overrides it.
+            const compactCoverageText = typeof blockProps?.compactCoverageText === 'boolean'
+                ? blockProps.compactCoverageText
+                : (blockType === 'col-summary' || blockType === 'row-summary' || blockType === 'col-secondary-summary');
             const rounded = compactCoverageText
                 ? Math.round(blockSum)
                 : (blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum));
@@ -819,7 +821,7 @@ export class VisualBody extends React.PureComponent {
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
                     'countFor', 'overallCounts', 'showUniqueDonorsAssayBand', 'shrinkEmptyColumns',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing', 'rowSummaryCountsByGroup',
-                    'compactCoverageText', 'disableRowExpand', 'disableBlockOpen',
+                    'compactCoverageText', 'showCoverageSummaries', 'disableRowExpand', 'disableBlockOpen',
                     'headerLeftControls', 'hideFallbackColumnGroupHeader', 'hideFallbackRowGroupHeader', 'isGridRefreshing')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -1822,7 +1824,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle',
             // Generic summary overrides keyed by grouping field and row value.
-            'countFor', 'rowSummaryCountsByGroup', 'compactCoverageText');
+            'countFor', 'rowSummaryCountsByGroup', 'compactCoverageText', 'showCoverageSummaries');
         const getContainerGroupStyle = function(columnKey = 'overall-summary') {
             const width = StackedBlockGroupedRow.getColumnWidthForKey(columnKey, props);
             return {
@@ -2354,6 +2356,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
                     const totalsCounts = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, props)?.counts;
                     const sectionRows = getAllSectionRows();
+                    const derivedCoverageTotal = summaryCountFor === 'total_coverage'
+                        ? _.reduce(props.groupedDataIndices[columnKey] || [], function(sum, item) {
+                            return sum + getCountValueFromItem(item, 'total_coverage');
+                        }, 0)
+                        : null;
                     // Apply derived fallback only for DSA column summary files.
                     // Other columns continue using backend/standard summary paths.
                     const shouldDeriveDsaFiles = (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
@@ -2371,12 +2378,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         : {
                             ...(totalsCounts || {}),
                             donors: donorsCount,
+                            ...(summaryCountFor === 'total_coverage' ? { total_coverage: totalsCounts?.total_coverage ?? derivedCoverageTotal ?? 0 } : null),
                             ...((typeof derivedDsaFiles === 'number') ? { files: derivedDsaFiles } : null)
                         };
                     const columnSummaryData = summaryCountFor === 'donors'
                         ? [{ counts: { donors: donorsCount } }]
                         : summaryCountFor === 'total_coverage'
-                            ? []
+                            ? (props.showCoverageSummaries
+                                ? [{ counts: { total_coverage: summaryCounts?.total_coverage || 0 } }]
+                                : [])
                             : (typeof derivedDsaFiles === 'number'
                                 ? [{ counts: { files: derivedDsaFiles } }]
                                 : getColumnSummaryData(columnKey));
@@ -2407,7 +2417,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     );
                 })}
                 {(() => {
-                    if (summaryCountFor === 'total_coverage') return null;
+                    if (summaryCountFor === 'total_coverage' && !props.showCoverageSummaries) return null;
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
                     const sectionRows = getAllSectionRows();
                     // If row summary overrides exist for this grouping field, use them for the
@@ -2417,6 +2427,10 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         ? (isPrimarySummaryBand
                             ? getOverallPrimaryGroupCountFromRows()
                             : (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? getUniqueDonorCountFromRows(sectionRows)))
+                        : summaryCountFor === 'total_coverage'
+                            ? (props.overallCounts?.total_coverage ?? _.reduce(sectionRows, function(sum, item) {
+                                return sum + getCountValueFromItem(item, 'total_coverage');
+                            }, 0))
                         : summaryCountFor === 'tissue_files'
                             ? (props.overallCounts?.files ?? overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
                                 return sum + (Number(item?.counts?.files) || 0);
@@ -2691,8 +2705,7 @@ const Block = React.memo(function Block(props){
             : _.reduce(argData, function (sum, item) { return sum + getCountValueFromItem(item, effectiveCountFor); }, 0))
         : (argData ? getCountValueFromItem(argData, effectiveCountFor) : 0);
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
-    const hideCoverageSummaryBlock = countFor === 'total_coverage' && blockType === 'col-summary';
-    if (hideCoverageBlock || hideCoverageSummaryBlock) {
+    if (hideCoverageBlock) {
         popover = null;
     }
 
@@ -2724,7 +2737,7 @@ const Block = React.memo(function Block(props){
             : (openBlock?.rowKey === group));
 
     // Apply open/active styles
-    if (hideCoverageBlock || hideCoverageSummaryBlock) {
+    if (hideCoverageBlock) {
         style['backgroundColor'] = 'transparent';
         style['borderColor'] = 'transparent';
         style['pointerEvents'] = 'none';
@@ -2760,7 +2773,7 @@ const Block = React.memo(function Block(props){
             data-block-type={blockType || 'regular'}
             onMouseEnter={() => typeof handleBlockMouseEnter === 'function' && handleBlockMouseEnter(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}
             onMouseLeave={handleBlockMouseLeave}
-            onClick={()=> !(hideCoverageBlock || hideCoverageSummaryBlock) && popover && handleBlockClick(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}>
+            onClick={()=> !hideCoverageBlock && popover && handleBlockClick(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}>
             {contents}
         </div>
     );
