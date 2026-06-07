@@ -39,6 +39,77 @@ function getCountValueFromItem(item, countField) {
     return 0;
 }
 
+function formatCompactedNumericValue(value, {
+    decimalsByThreshold = null,
+    units = [
+        { threshold: 1e9, suffix: 'B' },
+        { threshold: 1e6, suffix: 'M' },
+        { threshold: 1e3, suffix: 'K' }
+    ]
+} = {}) {
+    const normalizedValue = Number(value) || 0;
+    if (normalizedValue === 0) {
+        return {
+            display: '0',
+            tooltipValue: '0',
+            isCompacted: false
+        };
+    }
+
+    const absValue = Math.abs(normalizedValue);
+    const matchingUnit = units.find(({ threshold }) => absValue >= threshold) || null;
+    if (!matchingUnit) {
+        return {
+            display: normalizedValue.toLocaleString(),
+            tooltipValue: normalizedValue.toLocaleString(),
+            isCompacted: false
+        };
+    }
+
+    const scaledValue = normalizedValue / matchingUnit.threshold;
+    const decimals = typeof decimalsByThreshold === 'function'
+        ? decimalsByThreshold(scaledValue, matchingUnit)
+        : (scaledValue >= 100 ? 0 : 1);
+    const formattedValue = `${parseFloat(scaledValue.toFixed(decimals)).toLocaleString()}${matchingUnit.suffix}`;
+
+    return {
+        display: formattedValue,
+        tooltipValue: normalizedValue.toLocaleString(),
+        isCompacted: !!matchingUnit
+    };
+}
+
+function formatCoverageDisplayValue(value, compact = false) {
+    const normalizedValue = Number(value) || 0;
+    if (normalizedValue <= 0) {
+        return {
+            display: '0X',
+            tooltipValue: '0',
+            isCompacted: false
+        };
+    }
+
+    const compactedValue = formatCompactedNumericValue(normalizedValue, {
+        decimalsByThreshold: (scaledValue) => (scaledValue >= 100 ? 0 : 1)
+    });
+
+    if (compactedValue.isCompacted) {
+        return {
+            ...compactedValue,
+            display: `${compactedValue.display}X`
+        };
+    }
+
+    const roundedValue = compact
+        ? Math.round(normalizedValue)
+        : (normalizedValue < 100 ? Math.round(normalizedValue * 10) / 10 : Math.round(normalizedValue));
+    return {
+        display: `${roundedValue.toLocaleString()}X`,
+        tooltipValue: normalizedValue.toLocaleString(),
+        isCompacted: false
+    };
+}
+
 function renderVerticalRowGroupsExtended({
     rowGroupsExtended,
     rowGroupsExtendedKeys,
@@ -201,16 +272,15 @@ export class VisualBody extends React.PureComponent {
             const compactCoverageText = typeof blockProps?.compactCoverageText === 'boolean'
                 ? blockProps.compactCoverageText
                 : (blockType === 'col-summary' || blockType === 'row-summary' || blockType === 'col-secondary-summary');
-            const rounded = compactCoverageText
-                ? Math.round(blockSum)
-                : (blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum));
-            const tooltipValue = rounded.toLocaleString();
-            const display = `${rounded.toLocaleString()}X`;
+            const { display, tooltipValue, isCompacted } = formatCoverageDisplayValue(blockSum, compactCoverageText);
             const fontSize = compactCoverageText
                 ? (display.length > 6 ? '0.60rem' : (display.length > 4 ? '0.66rem' : '0.72rem'))
                 : (display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem'));
             return (
-                <span style={{ fontSize }} data-count={blockSum} data-tip={tooltipValue}>
+                <span
+                    style={{ fontSize }}
+                    data-count={blockSum}
+                    {...(isCompacted ? { 'data-tip': `${tooltipValue}X` } : {})}>
                     {display}
                 </span>
             );
@@ -218,9 +288,12 @@ export class VisualBody extends React.PureComponent {
 
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
+            const compactedValue = formatCompactedNumericValue(blockSum, {
+                decimalsByThreshold: (scaledValue) => (scaledValue >= 10 ? 0 : decimal)
+            });
             return (
                 <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum} data-tip={blockSum}>
-                    { roundLargeNumber(blockSum, decimal) }
+                    { compactedValue.isCompacted ? compactedValue.display : roundLargeNumber(blockSum, decimal) }
                 </span>
             );
         }
@@ -2704,6 +2777,16 @@ const Block = React.memo(function Block(props){
             })()
             : _.reduce(argData, function (sum, item) { return sum + getCountValueFromItem(item, effectiveCountFor); }, 0))
         : (argData ? getCountValueFromItem(argData, effectiveCountFor) : 0);
+    const shouldShowCoverageSummary = !!props.showCoverageSummaries;
+    const shouldShowCompactCoverageTooltip = (() => {
+        if (countFor !== 'total_coverage') return false;
+        if (!(blockType === 'col-summary' || blockType === 'row-summary' || blockType === 'col-secondary-summary')) return false;
+        if (!shouldShowCoverageSummary) return false;
+        const compactCoverageText = typeof props.compactCoverageText === 'boolean'
+            ? props.compactCoverageText
+            : true;
+        return formatCoverageDisplayValue(blockValue, compactCoverageText).isCompacted;
+    })();
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
     if (hideCoverageBlock) {
         popover = null;
@@ -2771,6 +2854,7 @@ const Block = React.memo(function Block(props){
             data-place="bottom"
             data-block-value={blockValue}
             data-block-type={blockType || 'regular'}
+            {...(shouldShowCompactCoverageTooltip ? { 'data-tip': `${Number(blockValue || 0).toLocaleString()}X` } : {})}
             onMouseEnter={() => typeof handleBlockMouseEnter === 'function' && handleBlockMouseEnter(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}
             onMouseLeave={handleBlockMouseLeave}
             onClick={()=> !hideCoverageBlock && popover && handleBlockClick(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}>
