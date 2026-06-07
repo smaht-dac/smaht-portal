@@ -443,7 +443,7 @@ export class VisualBody extends React.PureComponent {
             rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath,
             browseFilteringTransformFunc, activeFacetHref
         } = this.props;
-        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey, summaryCounts = null } = blockProps;
+        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey, summaryCounts = null, countFor = 'files' } = blockProps;
         const effectiveBlockType = blockType === 'col-secondary-summary' ? 'col-summary' : blockType;
         let isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
@@ -728,6 +728,10 @@ export class VisualBody extends React.PureComponent {
             : 0;
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
         const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
+        const totalCoverageDisplay = roundedTotalCoverage > 0 ? `${formatLocalizedNumber(roundedTotalCoverage, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        })}X` : '--';
         const formatGermLayerValue = (value) => (value && value !== 'No value' ? value : '--');
 
         // Render
@@ -794,20 +798,22 @@ export class VisualBody extends React.PureComponent {
                                 </div>
                             ) : null}
                             {effectiveBlockType === 'col-summary' ? (
-                                <div className="row secondary-row pb-1 mt-1">
-                                    <div className="col-4">
-                                        <div className="label me-05">{StackedBlockVisual.pluralize(primaryGrpPropTitle)}</div>
-                                        <div className="value">{primaryGrpPropUniqueCount || '--'}</div>
+                                <React.Fragment>
+                                    <div className="row secondary-row pb-1 mt-1">
+                                        <div className="col-4">
+                                            <div className="label me-05">{StackedBlockVisual.pluralize(primaryGrpPropTitle)}</div>
+                                            <div className="value">{primaryGrpPropUniqueCount || '--'}</div>
+                                        </div>
+                                        <div className="col-4">
+                                            <div className="label">{secondaryGrpPropCategoryValue ? 'Germ Layer' : (isTissueGrouping ? 'Total Donors' : StackedBlockVisual.pluralize(secondaryGrpPropTitle))}</div>
+                                            <div className="value">{secondaryGrpPropCategoryValue ? formatGermLayerValue(secondaryGrpPropCategoryValue) : (isTissueGrouping ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--'))}</div>
+                                        </div>
+                                        <div className="col-4">
+                                            <div className="label">{countFor === 'total_coverage' ? 'Total Coverage' : 'Total Files'}</div>
+                                            <div className="value">{countFor === 'total_coverage' ? totalCoverageDisplay : fileCount}</div>
+                                        </div>
                                     </div>
-                                    <div className="col-4">
-                                        <div className="label">{secondaryGrpPropCategoryValue ? 'Germ Layer' : (isTissueGrouping ? 'Total Donors' : StackedBlockVisual.pluralize(secondaryGrpPropTitle))}</div>
-                                        <div className="value">{secondaryGrpPropCategoryValue ? formatGermLayerValue(secondaryGrpPropCategoryValue) : (isTissueGrouping ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--'))}</div>
-                                    </div>
-                                    <div className="col-4">
-                                        <div className="label">Total Files</div>
-                                        <div className="value">{fileCount}</div>
-                                    </div>
-                                </div>
+                                </React.Fragment>
                             ) : null}
                             {effectiveBlockType === 'row-summary' && depth === 0 ? (
                                 <div className="row secondary-row pb-1 mt-1">
