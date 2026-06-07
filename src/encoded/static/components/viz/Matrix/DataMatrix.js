@@ -559,6 +559,9 @@ export default class DataMatrix extends React.PureComponent {
             ((countFor === 'files' && pastState.countFor === 'total_coverage') ||
                 (countFor === 'total_coverage' && pastState.countFor === 'files'));
         const shouldFetchForCountForChange = countForChanged && !isCoverageToggleOnly;
+        if (isCoverageToggleOnly) {
+            ReactTooltip.rebuild();
+        }
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
@@ -1704,9 +1707,12 @@ export default class DataMatrix extends React.PureComponent {
                 ? donorTissueShrinkEmptyColumns
                 : true,
             countFor,
-            // Donor x Tissue can exceed horizontal space in coverage view; keep default cell width here
-            // and render compact labels instead of widening cells.
-            compactCoverageText: countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
+            // Donor-oriented coverage views keep the default cell width and rely on compact labels
+            // instead of widening each matrix cell.
+            compactCoverageText: countFor === 'total_coverage' && (
+                matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ||
+                matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY
+            ),
             // Coverage summary totals are only meaningful in Donor x Tissue.
             showCoverageSummaries: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             // Donor x Tissue should not expose expand controls.
@@ -1722,7 +1728,7 @@ export default class DataMatrix extends React.PureComponent {
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
-            ...(countFor === 'total_coverage' && matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
+            ...(countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY
                 ? { blockWidth: 60, blockHorizontalExtend: 10 }
                 : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey

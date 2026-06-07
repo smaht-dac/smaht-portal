@@ -39,6 +39,28 @@ function getCountValueFromItem(item, countField) {
     return 0;
 }
 
+function formatLocalizedNumber(value, options = undefined) {
+    const normalizedValue = Number(value) || 0;
+    const {
+        minimumFractionDigits = 0,
+        maximumFractionDigits = 3
+    } = options || {};
+    const fixedValue = normalizedValue.toFixed(maximumFractionDigits);
+    let [integerPart, fractionPart = ''] = fixedValue.split('.');
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+    if (maximumFractionDigits === 0) {
+        return integerPart;
+    }
+
+    fractionPart = fractionPart.replace(/0+$/, '');
+    if (fractionPart.length < minimumFractionDigits) {
+        fractionPart = fractionPart.padEnd(minimumFractionDigits, '0');
+    }
+
+    return fractionPart.length > 0 ? `${integerPart}.${fractionPart}` : integerPart;
+}
+
 function formatCompactedNumericValue(value, {
     decimalsByThreshold = null,
     units = [
@@ -60,8 +82,8 @@ function formatCompactedNumericValue(value, {
     const matchingUnit = units.find(({ threshold }) => absValue >= threshold) || null;
     if (!matchingUnit) {
         return {
-            display: normalizedValue.toLocaleString(),
-            tooltipValue: normalizedValue.toLocaleString(),
+            display: formatLocalizedNumber(normalizedValue),
+            tooltipValue: formatLocalizedNumber(normalizedValue),
             isCompacted: false
         };
     }
@@ -70,11 +92,14 @@ function formatCompactedNumericValue(value, {
     const decimals = typeof decimalsByThreshold === 'function'
         ? decimalsByThreshold(scaledValue, matchingUnit)
         : (scaledValue >= 100 ? 0 : 1);
-    const formattedValue = `${parseFloat(scaledValue.toFixed(decimals)).toLocaleString()}${matchingUnit.suffix}`;
+    const formattedValue = `${formatLocalizedNumber(parseFloat(scaledValue.toFixed(decimals)), {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals
+    })}${matchingUnit.suffix}`;
 
     return {
         display: formattedValue,
-        tooltipValue: normalizedValue.toLocaleString(),
+        tooltipValue: formatLocalizedNumber(normalizedValue),
         isCompacted: !!matchingUnit
     };
 }
@@ -104,8 +129,8 @@ function formatCoverageDisplayValue(value, compact = false) {
         ? Math.round(normalizedValue)
         : (normalizedValue < 100 ? Math.round(normalizedValue * 10) / 10 : Math.round(normalizedValue));
     return {
-        display: `${roundedValue.toLocaleString()}X`,
-        tooltipValue: normalizedValue.toLocaleString(),
+        display: `${formatLocalizedNumber(roundedValue)}X`,
+        tooltipValue: formatLocalizedNumber(normalizedValue),
         isCompacted: false
     };
 }
@@ -292,7 +317,7 @@ export class VisualBody extends React.PureComponent {
                 decimalsByThreshold: (scaledValue) => (scaledValue >= 10 ? 0 : decimal)
             });
             return (
-                <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum} data-tip={blockSum}>
+                <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum}>
                     { compactedValue.isCompacted ? compactedValue.display : roundLargeNumber(blockSum, decimal) }
                 </span>
             );
@@ -2787,6 +2812,12 @@ const Block = React.memo(function Block(props){
             : true;
         return formatCoverageDisplayValue(blockValue, compactCoverageText).isCompacted;
     })();
+    const compactedCountTooltip = (() => {
+        if (countFor === 'total_coverage') {
+            return shouldShowCompactCoverageTooltip ? `${formatLocalizedNumber(blockValue)}X` : null;
+        }
+        return blockValue >= 1000 ? formatLocalizedNumber(blockValue) : null;
+    })();
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
     if (hideCoverageBlock) {
         popover = null;
@@ -2854,7 +2885,7 @@ const Block = React.memo(function Block(props){
             data-place="bottom"
             data-block-value={blockValue}
             data-block-type={blockType || 'regular'}
-            {...(shouldShowCompactCoverageTooltip ? { 'data-tip': `${Number(blockValue || 0).toLocaleString()}X` } : {})}
+            {...(compactedCountTooltip ? { 'data-tip': compactedCountTooltip } : {})}
             onMouseEnter={() => typeof handleBlockMouseEnter === 'function' && handleBlockMouseEnter(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}
             onMouseLeave={handleBlockMouseLeave}
             onClick={()=> !hideCoverageBlock && popover && handleBlockClick(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}>
