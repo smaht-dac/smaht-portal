@@ -1443,10 +1443,9 @@ export default class DataMatrix extends React.PureComponent {
             };
         }
 
-        const countFor = prevState.countFor === 'total_coverage' ? 'total_coverage' : 'files';
         return {
             matrixMode: nextMatrixMode,
-            countFor,
+            countFor: 'files',
             query: {
                 ...prevState.query,
                 columnAggFields: baseColumnAggFields,
