@@ -11,6 +11,7 @@ import { createBrowseFileColumnExtensionMap } from '../../browse/BrowseView';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const RECENT_MONTHS = 6;
+const OLDEST_NAVIGABLE_MONTH = '2025-01';
 const TIMELINE_MODES = {
     DAILY: 'daily',
     WEEKLY: 'weekly',
@@ -186,10 +187,29 @@ const addMonthOffset = (monthKey = '', offset = 0) => {
     return getMonthKey(shifted);
 };
 
-const withEmptyMonths = (normalizedMonths = [], nmonths = RECENT_MONTHS) => {
+const compareMonthKeys = (leftMonthKey = '', rightMonthKey = '') => (
+    String(leftMonthKey).localeCompare(String(rightMonthKey))
+);
+
+const countMonthsInclusive = (latestMonthKey = '', oldestMonthKey = '') => {
+    if (!latestMonthKey || !oldestMonthKey || compareMonthKeys(latestMonthKey, oldestMonthKey) < 0) {
+        return 0;
+    }
+    const [latestYear, latestMonth] = String(latestMonthKey).split('-').map(Number);
+    const [oldestYear, oldestMonth] = String(oldestMonthKey).split('-').map(Number);
+    if (!latestYear || !latestMonth || !oldestYear || !oldestMonth) {
+        return 0;
+    }
+    return ((latestYear - oldestYear) * 12) + (latestMonth - oldestMonth) + 1;
+};
+
+const buildMonthRange = (latestMonthKey = getMonthKey(new Date()), nmonths = RECENT_MONTHS) => (
+    _.range(0, nmonths).map((idx) => addMonthOffset(latestMonthKey, -idx))
+);
+
+const withEmptyMonths = (normalizedMonths = [], nmonths = RECENT_MONTHS, latestMonthKey = getMonthKey(new Date())) => {
     const monthMap = _.indexBy(normalizedMonths, 'value');
-    const currentMonthKey = getMonthKey(new Date());
-    const orderedKeys = _.range(0, nmonths).map((idx) => addMonthOffset(currentMonthKey, -idx));
+    const orderedKeys = buildMonthRange(latestMonthKey, nmonths);
     return orderedKeys.map((monthKey) => {
         const existing = monthMap[monthKey];
         if (existing) return existing;
@@ -202,6 +222,16 @@ const withEmptyMonths = (normalizedMonths = [], nmonths = RECENT_MONTHS) => {
         };
     });
 };
+
+const mergeMonths = (existingMonths = [], incomingMonths = []) => (
+    _.chain([...(existingMonths || []), ...(incomingMonths || [])])
+        .compact()
+        .groupBy('value')
+        .map((monthGroup = []) => monthGroup[0])
+        .sortBy((month) => String(month?.value || ''))
+        .reverse()
+        .value()
+);
 
 const toPadded = (value) => String(value).padStart(2, '0');
 
@@ -409,6 +439,7 @@ const buildWeekBucketsForMonth = (month = {}) => {
 
 export const RecentReleasesTimelineMatrix = ({ session }) => {
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingOlderMonths, setIsLoadingOlderMonths] = useState(false);
     const [months, setMonths] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
     const [selectedMatrixTarget, setSelectedMatrixTarget] = useState(null);
@@ -474,7 +505,13 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         [visibleMonths]
     );
     const canGoToNewerMonths = monthWindowStartIndex > 0;
-    const canGoToOlderMonths = monthWindowStartIndex + monthWindowSize < months.length;
+    const hasLocalOlderMonths = monthWindowStartIndex + monthWindowSize < months.length;
+    const oldestLoadedMonth = months[months.length - 1]?.value || null;
+    const canFetchOlderMonths = oldestLoadedMonth
+        ? compareMonthKeys(oldestLoadedMonth, OLDEST_NAVIGABLE_MONTH) > 0
+        : false;
+    const canGoToOlderMonths = hasLocalOlderMonths || canFetchOlderMonths;
+    const isOlderButtonDisabled = isLoadingOlderMonths || !canGoToOlderMonths;
 
     useEffect(() => {
         if (!months?.length) return;
@@ -483,6 +520,42 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
             setMonthWindowStartIndex(maxStartIndex);
         }
     }, [months, monthWindowSize, monthWindowStartIndex]);
+
+    const loadOlderMonths = () => {
+        if (isLoadingOlderMonths || !months.length) return Promise.resolve(false);
+        if (!oldestLoadedMonth) return Promise.resolve(false);
+        if (compareMonthKeys(oldestLoadedMonth, OLDEST_NAVIGABLE_MONTH) <= 0) {
+            return Promise.resolve(false);
+        }
+
+        const nextChunkLatestMonthKey = addMonthOffset(oldestLoadedMonth, -1);
+        const nextChunkOldestMonthKey = compareMonthKeys(
+            addMonthOffset(nextChunkLatestMonthKey, -(RECENT_MONTHS - 1)),
+            OLDEST_NAVIGABLE_MONTH
+        ) < 0
+            ? OLDEST_NAVIGABLE_MONTH
+            : addMonthOffset(nextChunkLatestMonthKey, -(RECENT_MONTHS - 1));
+        const nextChunkMonthCount = countMonthsInclusive(nextChunkLatestMonthKey, nextChunkOldestMonthKey);
+        const chunkStartDate = `${nextChunkOldestMonthKey}-01`;
+        const chunkEndDate = new Date(`${nextChunkLatestMonthKey}-01T00:00:00`);
+        chunkEndDate.setMonth(chunkEndDate.getMonth() + 1, 0);
+        const thruDate = toDateKey(chunkEndDate);
+
+        setIsLoadingOlderMonths(true);
+        return ajax.promise(
+            `/recent_release_days?format=json&from_date=${chunkStartDate}&thru_date=${thruDate}`
+        ).then((resp) => {
+            const normalizedMonths = normalizeData(resp?.items || []);
+            const monthsWithGaps = withEmptyMonths(normalizedMonths, nextChunkMonthCount, nextChunkLatestMonthKey);
+            setMonths((prevMonths) => mergeMonths(prevMonths, monthsWithGaps));
+            setIsLoadingOlderMonths(false);
+            return true;
+        }).catch((err) => {
+            console.log('ERROR RecentReleasesTimelineMatrix older months response', err);
+            setIsLoadingOlderMonths(false);
+            return false;
+        });
+    };
 
     useEffect(() => {
         if (!months?.length) return;
@@ -614,10 +687,20 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => setMonthWindowStartIndex((idx) => Math.min(Math.max(0, months.length - monthWindowSize), idx + monthWindowSize))}
-                                disabled={!canGoToOlderMonths}>
+                                onClick={() => {
+                                    if (hasLocalOlderMonths) {
+                                        setMonthWindowStartIndex((idx) => Math.min(Math.max(0, months.length - monthWindowSize), idx + monthWindowSize));
+                                        return;
+                                    }
+                                    loadOlderMonths().then((didLoad) => {
+                                        if (didLoad) {
+                                            setMonthWindowStartIndex((idx) => idx + monthWindowSize);
+                                        }
+                                    });
+                                }}
+                                disabled={isOlderButtonDisabled}>
                                 <i className="icon icon-chevron-left fas" />
-                                <span>Older</span>
+                                <span>{isLoadingOlderMonths ? 'Loading' : 'Older'}</span>
                             </button>
                             <button
                                 type="button"
