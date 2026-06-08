@@ -22,7 +22,7 @@ const DETAIL_VIEW_MODES = {
 };
 const TIMELINE_MONTH_WINDOW_SIZE = {
     [TIMELINE_MODES.DAILY]: 2,
-    [TIMELINE_MODES.WEEKLY]: 4,
+    [TIMELINE_MODES.WEEKLY]: 3,
     [TIMELINE_MODES.MONTHLY]: 6
 };
 const RELEASE_DATE_FIELD = 'file_status_tracking.release_dates.initial_release_date';
@@ -614,7 +614,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => setMonthWindowStartIndex((idx) => Math.min(Math.max(0, months.length - monthWindowSize), idx + 1))}
+                                onClick={() => setMonthWindowStartIndex((idx) => Math.min(Math.max(0, months.length - monthWindowSize), idx + monthWindowSize))}
                                 disabled={!canGoToOlderMonths}>
                                 <i className="icon icon-chevron-left fas" />
                                 <span>Older</span>
@@ -622,7 +622,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => setMonthWindowStartIndex((idx) => Math.max(0, idx - 1))}
+                                onClick={() => setMonthWindowStartIndex((idx) => Math.max(0, idx - monthWindowSize))}
                                 disabled={!canGoToNewerMonths}>
                                 <span>Newer</span>
                                 <i className="icon icon-chevron-right fas" />
