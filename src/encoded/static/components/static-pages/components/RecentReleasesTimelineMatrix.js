@@ -519,8 +519,52 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     if (isLoading) {
         return (
             <div className="recent-releases-page">
-                <div className="recent-releases-loading">
-                    <i className="icon fas icon-spinner icon-spin"></i>
+                <div className="recent-releases-timeline-column card recent-releases-loading-card">
+                    <div className="card-body">
+                        <h3 className="recent-releases-title">Recently Released Files</h3>
+                        <p className="recent-releases-subtitle mb-2">
+                            Select a time range below to view files
+                        </p>
+                        <div className="recent-releases-divider" />
+                        <div className="release-view-mode-toggle mb-2">
+                            <button type="button" className="btn btn-sm btn-outline-primary" disabled>
+                                Daily
+                            </button>
+                            <button type="button" className="btn btn-sm btn-primary active" disabled>
+                                Weekly
+                            </button>
+                            <button type="button" className="btn btn-sm btn-outline-primary" disabled>
+                                Monthly
+                            </button>
+                        </div>
+                        <div className="release-month-nav recent-releases-loading-nav">
+                            <button type="button" className="btn btn-outline-secondary btn-sm" disabled>
+                                <i className="icon icon-chevron-left fas" />
+                                <span>Older</span>
+                            </button>
+                            <button type="button" className="btn btn-outline-secondary btn-sm" disabled>
+                                <span>Newer</span>
+                                <i className="icon icon-chevron-right fas" />
+                            </button>
+                        </div>
+                        <div className="recent-releases-loading-spinner-wrap">
+                            <i className="icon fas icon-spinner icon-spin"></i>
+                        </div>
+                    </div>
+                </div>
+                <div className="recent-releases-matrix-column card recent-releases-loading-card">
+                    <div className="card-body">
+                        <div className="recent-releases-matrix-header">
+                            <div>
+                                <h3 className="recent-releases-title mb-0">Release Week Details</h3>
+                                <p className="recent-releases-subtitle mb-0">Loading recent release data...</p>
+                            </div>
+                        </div>
+                        <div className="recent-releases-divider" />
+                        <div className="recent-releases-loading-spinner-wrap recent-releases-loading-spinner-wrap-right">
+                            <i className="icon fas icon-spinner icon-spin"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         );

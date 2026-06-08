@@ -624,15 +624,32 @@
         padding-right: 0.5rem;
     }
 
-    .recent-releases-loading,
     .recent-releases-empty {
         margin-top: 1rem;
     }
 
-    .recent-releases-loading {
-        text-align: center;
+    .recent-releases-loading-card {
+        .card-body {
+            min-height: 42rem;
+        }
+    }
+
+    .recent-releases-loading-nav {
+        margin-bottom: 1.2rem;
+    }
+
+    .recent-releases-loading-spinner-wrap {
+        min-height: 16rem;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 2rem;
         color: #57719e;
         font-size: 1.5rem;
+    }
+
+    .recent-releases-loading-spinner-wrap-right {
+        min-height: 18rem;
     }
 }
 
