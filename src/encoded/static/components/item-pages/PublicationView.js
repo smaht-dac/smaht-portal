@@ -158,23 +158,34 @@ const PublicationViewTabs = (props) => {
                         <h2 className="header">Reference Set Generation</h2>
                         <div className="description">
                             <p>
-                                The COLO829-BLT50 reference set was generated
-                                using a biologically controlled 1:49 mixture of
-                                the melanoma cell line COLO829 and its matched
-                                normal counterpart COLO829BL, producing expected
-                                mosaic variants at ~1-2% VAF. These candidates
-                                were stringently validated using high-coverage
-                                PacBio HiFi long-read data, requiring
-                                tumor-specific support and absence in the
-                                matched normal, with additional filters to
-                                remove alignment artifacts, germline variants,
-                                and culture-derived mutations, yielding a
-                                high-confidence genome-wide mosaic reference
-                                set.
+                                Lorem ipsum dolor sit amet, consectetur
+                                adipiscing elit. In vel urna dapibus, varius
+                                erat at, hendrerit ligula. Vestibulum ante ipsum
+                                primis in faucibus orci luctus et ultrices
+                                posuere cubilia curae; Donec aliquam, lacus eu
+                                vehicula tincidunt, lacus ex bibendum nisi, ut
+                                dictum odio dui vitae purus. Phasellus blandit
+                                gravida sapien sed ullamcorper. Donec laoreet
+                                lorem nec tellus scelerisque, a imperdiet enim
+                                ultricies. Proin lorem ante, blandit et lacinia
+                                in, rutrum eu nibh. Nullam eu lacus ullamcorper,
+                                semper neque vel, aliquet lectus. Suspendisse
+                                potenti. Donec sagittis risus id ornare congue.
+                                Ut euismod mauris in porta mattis. Cras
+                                malesuada in neque egestas fermentum. Nam eget
+                                sapien ac urna tincidunt sagittis et vitae
+                                massa. Sed tristique ultricies tellus, lobortis
+                                dignissim magna tristique venenatis. Cras
+                                lobortis tellus sed ante convallis, et egestas
+                                urna ornare. Sed pulvinar lorem ut ornare
+                                luctus. Maecenas nec molestie neque. In sodales
+                                eros id lacus lacinia elementum. Maecenas
+                                dignissim eget est vel vehicula. Etiam vel
+                                luctus sapien.
                             </p>
                             <img
                                 className="thumbnail"
-                                src="https://placehold.co/300x200"
+                                src="https://placehold.co/463x300"
                                 alt="placeholder"
                             />
                         </div>
