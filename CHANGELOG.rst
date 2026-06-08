@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.31.0
+======
+
+`PR 608: <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* Add publication item - schema, types, calcprops and dummy inserts for tests
+
+
 1.30.0
 ======
 
@@ -70,14 +79,6 @@ Change Log
 * Remove old announcements from the notification panel
 
 
-1.29.0
-======
-
-`PR 608: <https://github.com/smaht-dac/smaht-portal/pull/608>`_
-
-* Add publication item - schema, types, calcprops and dummy inserts for tests
-
-
 1.28.0
 =======
 
@@ -137,16 +138,6 @@ Change Log
 `PR 674: fix: remove unecessary fields from selection query <https://github.com/smaht-dac/smaht-portal/pull/674>`_
 
 * Remove unused fields from selectAll query
-
-
-1.28.0
-======
-
-`PR 608: Add publication item to the portal schema/types <https://github.com/smaht-dac/smaht-portal/pull/608>`_
-
-* schema for Publication item
-* types file for Publication item
-* dummy inserts for tests
 
 
 1.27.4
