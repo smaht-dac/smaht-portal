@@ -4,14 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useToggle } from '../util/hooks';
 import DefaultItemView from './DefaultItemView';
 import { BrowseSummaryStatController } from '../browse/browse-view/BrowseSummaryStatController';
-import {
-    DotRouter,
-    DotRouterTab,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 import url from 'url';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 import * as _ from 'underscore';
+import { FileOverviewTableController } from './components/file-overview/FileOverviewTable';
 
 // Page containing the details of Items of type File
 export default class PublicationOverview extends DefaultItemView {
@@ -63,6 +60,7 @@ const PublicationViewTitle = () => {
  * in a publication, including number of files, donors, tissues, assays, and
  * total file size
  * @param {*} doi - DOI of the publication to retrieve stats for
+ * @param {*} session - User session object
  * @returns
  */
 const PublicationStatViewer = ({ doi, session }) => {
@@ -88,7 +86,7 @@ const PublicationStatViewer = ({ doi, session }) => {
             setData(data);
         };
 
-        const fallbackFxn = (resp) => {
+        const fallbackFxn = () => {
             setLoading(false);
             setError(true);
         };
@@ -132,23 +130,58 @@ const PublicationStatViewer = ({ doi, session }) => {
 };
 
 const PublicationViewTabs = (props) => {
+    const { context, session, href, schemas } = props;
+
+    const fileSearchUrl = `/search/?type=File&doi_list=${context?.doi}&limit=all`;
+    const tableProps = {
+        embeddedTableHeaderText: 'Published Data from this Publication',
+        associatedFilesSearchHref: fileSearchUrl,
+        schemas,
+        session,
+        href,
+        context,
+    };
     return (
         <div className="tabs-container">
-            <DotRouter
-                href={props.href}
-                navClassName=""
-                isActive={true}
-                {...props}
-                prependDotPath="publication-overview">
-                <DotRouterTab
-                    dotPath=".supplementary-data"
-                    tabTitle="Key Supplementary Data"
-                    arrowTabs={false}
-                    cache={true}
-                    default>
-                    <div className="content">hello</div>
-                </DotRouterTab>
-            </DotRouter>
+            <div className="tab-router">
+                <nav className="dot-tab-nav">
+                    <div className="dot-tab-nav-list">
+                        <button type="button" className="active">
+                            <div className="btn-title">
+                                Key Supplementary Data
+                            </div>
+                        </button>
+                    </div>
+                </nav>
+                <div className="tab-router-contents">
+                    <div className="content">
+                        <h2 className="header">Reference Set Generation</h2>
+                        <div className="description">
+                            <p>
+                                The COLO829-BLT50 reference set was generated
+                                using a biologically controlled 1:49 mixture of
+                                the melanoma cell line COLO829 and its matched
+                                normal counterpart COLO829BL, producing expected
+                                mosaic variants at ~1-2% VAF. These candidates
+                                were stringently validated using high-coverage
+                                PacBio HiFi long-read data, requiring
+                                tumor-specific support and absence in the
+                                matched normal, with additional filters to
+                                remove alignment artifacts, germline variants,
+                                and culture-derived mutations, yielding a
+                                high-confidence genome-wide mosaic reference
+                                set.
+                            </p>
+                            <img
+                                className="thumbnail"
+                                src="https://placehold.co/300x200"
+                                alt="placeholder"
+                            />
+                        </div>
+                        <FileOverviewTableController {...tableProps} />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
@@ -157,10 +190,6 @@ const PublicationViewTabs = (props) => {
 const PublicationView = React.memo(function PublicationView(props) {
     const { context, session, href } = props;
     const [showFullAuthorList, toggleFullAuthorList] = useToggle(false);
-
-    const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
-
-    useEffect(() => {}, []);
 
     const pubYear = context?.date_published?.split('-')[0];
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
@@ -370,7 +399,7 @@ const PublicationView = React.memo(function PublicationView(props) {
                 {/* Data Analyzed Section */}
                 <h2 className="section-header fw-semibold">Data Analyzed</h2>
                 <PublicationStatViewer doi={context?.doi} session={session} />
-                {/* <PublicationViewTabs {...props} /> */}
+                <PublicationViewTabs {...props} />
             </div>
         </div>
     );
