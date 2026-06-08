@@ -2803,15 +2803,25 @@ File, Donor, and Publication Overview Styles
                 }
             }
         }
-        .tab-router-contents .content .description {
-            display: flex;
-            justify-content: space-between;
-            margin: 30px 0px;
-            gap: 50px;
+        .tabs-container .tab-router-contents {
+            padding: 20px 30px;
 
-            p {
-                font-size: 0.9375rem;
-                line-height: 1.75rem;
+            .content {
+                .header {
+                    font-size: 1.375rem;
+                    padding-bottom: 15px;
+                    margin-bottom: 20px;
+                }
+                .description {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 50px;
+
+                    p {
+                        font-size: 0.9375rem;
+                        line-height: 1.75rem;
+                    }
+                }
             }
         }
     }
