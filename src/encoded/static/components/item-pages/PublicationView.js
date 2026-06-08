@@ -1,13 +1,17 @@
 'use strict';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToggle } from '../util/hooks';
 import DefaultItemView from './DefaultItemView';
-import { BrowseLinkIcon } from '../browse/browse-view/BrowseLinkIcon';
+import { BrowseSummaryStatController } from '../browse/browse-view/BrowseSummaryStatController';
 import {
     DotRouter,
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
+import url from 'url';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
+import * as _ from 'underscore';
 
 // Page containing the details of Items of type File
 export default class PublicationOverview extends DefaultItemView {
@@ -54,87 +58,75 @@ const PublicationViewTitle = () => {
     );
 };
 
-const PublicationStatViewerItem = ({
-    value,
-    units,
-    subtitle,
-    loading,
-    type,
-}) => {
-    // const [value, setValue] = useState(1);
-    // const [units, setUnits] = useState('files');
-    // const [loading, setLoading] = useState(false);
+/**
+ * Function to retrive and display summary statistics related to the files used
+ * in a publication, including number of files, donors, tissues, assays, and
+ * total file size
+ * @param {*} doi - DOI of the publication to retrieve stats for
+ * @returns
+ */
+const PublicationStatViewer = ({ doi, session }) => {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
 
-    return (
-        <div className="browse-summary-stat d-flex flex-row">
-            <BrowseLinkIcon
-                {...{ type }}
-                cls="mt-04 browse-summary-stat-icon-smaller"
-            />
-            <div className="ms-2 ">
-                {loading && (
-                    <div className="browse-summary-stat-value">
-                        {' '}
-                        <i className="icon icon-circle-notch icon-spin fas" />
-                    </div>
-                )}
-                {!loading && (
-                    <>
-                        <div className="browse-summary-stat-value">
-                            {!value && value !== 0 ? '-' : value}
-                            {units && <span>&nbsp;{units}</span>}
-                        </div>
-                    </>
-                )}
-                <div className="browse-summary-stat-subtitle">{subtitle}</div>
-            </div>
-        </div>
-    );
-};
+    // only re-fetch data when [session] changes
+    useEffect(() => {
+        if (!loading) setLoading(true);
+        if (error) setError(false);
 
-const PublicationStatViewer = ({}) => {
+        const callbackFxn = (resp) => {
+            setLoading(false);
+            setError(false);
+            const data = {
+                files: resp.total.files,
+                donors: resp.total.donors,
+                tissues: resp.total.tissues,
+                assays: resp.total.assays,
+                file_size: resp.total.file_size,
+            };
+            setData(data);
+        };
+
+        const fallbackFxn = (resp) => {
+            setLoading(false);
+            setError(true);
+        };
+
+        const searchUrl = `/search/?type=File&doi_list=${doi}&limit=all`;
+
+        const hrefParts = url.parse(searchUrl, true);
+        let hrefQuery = normalizeQueryValuesForStringify(
+            _.clone(hrefParts.query)
+        );
+        delete hrefQuery.limit;
+        delete hrefQuery.field;
+
+        const requestBody = {
+            search_query_params: hrefQuery,
+            fields_to_aggregate_for: ['sample_summary.tissues'],
+        };
+
+        ajax.load(
+            '/bar_plot_aggregations/',
+            callbackFxn,
+            'POST',
+            fallbackFxn,
+            JSON.stringify(requestBody),
+            {},
+            null
+        );
+    }, [session]);
+
+    const statsProps = { session, loading, error, data };
     return (
         <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
-            {[
-                {
-                    value: 0,
-                    subtitle: 'Files Generated',
-                    loading: false,
-                    type: 'File',
-                },
-                {
-                    value: 0,
-                    subtitle: 'Donors',
-                    loading: false,
-                    type: 'Donor',
-                },
-                {
-                    value: 0,
-                    subtitle: 'Tissues',
-                    loading: false,
-                    type: 'Tissue',
-                },
-                {
-                    value: 0,
-                    subtitle: 'Assays',
-                    loading: false,
-                    type: 'Assay',
-                },
-                {
-                    value: 0,
-                    subtitle: 'Total File Size',
-                    loading: false,
-                    type: 'File Size',
-                },
-            ].map((item, i) => {
-                return (
-                    <PublicationStatViewerItem
-                        key={i}
-                        {...item}
-                        containerCls="ms-2"
-                    />
-                );
-            })}
+            <BrowseSummaryStatController type="File" {...statsProps} />
+            <BrowseSummaryStatController type="Donor" {...statsProps} />
+            <BrowseSummaryStatController type="Tissue" {...statsProps} />
+            <BrowseSummaryStatController type="Assay" {...statsProps} />
+            <hr />
+            <BrowseSummaryStatController type="File Size" {...statsProps} />
         </div>
     );
 };
@@ -165,7 +157,6 @@ const PublicationViewTabs = (props) => {
 const PublicationView = React.memo(function PublicationView(props) {
     const { context, session, href } = props;
     const [showFullAuthorList, toggleFullAuthorList] = useToggle(false);
-    console.log('PublicationView', context);
 
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
@@ -378,7 +369,7 @@ const PublicationView = React.memo(function PublicationView(props) {
 
                 {/* Data Analyzed Section */}
                 <h2 className="section-header fw-semibold">Data Analyzed</h2>
-                <PublicationStatViewer />
+                <PublicationStatViewer doi={context?.doi} session={session} />
                 {/* <PublicationViewTabs {...props} /> */}
             </div>
         </div>

@@ -23,7 +23,6 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
         autoSync = false,
         mapping = 'donor',
     } = props;
-    console.log('BrowseSummaryStatsViewer', props);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [data, setData] = useState(null);
