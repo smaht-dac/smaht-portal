@@ -685,7 +685,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                             Monthly
                         </button>
                     </div>
-                    {months.length > monthWindowSize ? (
+                    {(canGoToOlderMonths || canGoToNewerMonths || isLoadingOlderMonths) ? (
                         <div className="release-month-nav">
                             <button
                                 type="button"
