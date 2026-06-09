@@ -297,11 +297,13 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
         onResetSelectedItems
     } = props;
 
-    const selectedFileProps = useMemo(() => ({
-        selectedItems,
-        onSelectItem,
-        onResetSelectedItems
-    }), [selectedItems, onSelectItem, onResetSelectedItems]);
+    const selectedFileProps = useMemo(() => {
+        return {
+            selectedItems,
+            onSelectItem,
+            onResetSelectedItems
+        };
+    }, [selectedItems, onSelectItem, onResetSelectedItems]);
 
     const { columnExtensionMap, columns, hideFacets } = useMemo(
         () => createBrowseFileColumnExtensionMap(selectedFileProps),
@@ -891,6 +893,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                     {detailViewMode === DETAIL_VIEW_MODES.TABLE && selectedBrowseHref ? (
                         <div className="recent-releases-table-scroll">
                             <SelectedItemsController
+                                key={`recent-releases-selection-${selectedMatrixTarget?.key || selectedBrowseHref}`}
                                 context={selectedSearchContext}
                                 href={selectedBrowseHref}
                                 currentAction="multiselect">

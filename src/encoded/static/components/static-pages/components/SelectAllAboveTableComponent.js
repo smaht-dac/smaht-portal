@@ -167,6 +167,23 @@ export class SelectAllFilesButton extends React.PureComponent {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        const prevSearchHref =
+            prevProps?.context?.['@id'] || prevProps?.searchHref || null;
+        const nextSearchHref =
+            this.props?.context?.['@id'] || this.props?.searchHref || null;
+        if (prevSearchHref !== nextSearchHref) {
+            this.setState(
+                {
+                    selecting: false,
+                    selectingProgress: 0,
+                    progressTrackWidth: null,
+                },
+                this.updateProgressTrackWidth
+            );
+        }
+    }
+
     componentWillUnmount() {
         if (this.selectAllButtonResizeObserver) {
             this.selectAllButtonResizeObserver.disconnect();
