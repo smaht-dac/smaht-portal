@@ -383,7 +383,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             openRowHeight={40}
             maxResultsBodyHeight={620}
             maxHeight={700}
-            clearSelectedItemsOnFilter={false}
+            clearSelectedItemsOnFilter
             //useCustomSelectionController
         />
     );
