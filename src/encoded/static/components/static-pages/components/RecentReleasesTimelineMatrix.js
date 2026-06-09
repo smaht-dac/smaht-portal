@@ -361,10 +361,10 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             href={href}
             context={context}
             session={session}
-            columnExtensionMap={alignedColumnExtensionMap}
-            columns={columns}
-            hideFacets={hideFacetsForRecentReleases}
-            aboveTableComponent={
+            selectedItems={selectedItems}
+            onSelectItem={onSelectItem}
+            onResetSelectedItems={onResetSelectedItems}
+            embeddedTableHeader={
                 <SelectAllAboveTableComponent
                     session={session}
                     searchHref={searchHref}
@@ -374,12 +374,15 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
                     onResetSelectedItems={onResetSelectedItems}
                 />
             }
+            columnExtensionMap={alignedColumnExtensionMap}
+            columns={columns}
+            hideFacets={hideFacetsForRecentReleases}
             rowHeight={31}
             openRowHeight={40}
             maxResultsBodyHeight={620}
             maxHeight={700}
             clearSelectedItemsOnFilter={false}
-            useCustomSelectionController
+            //useCustomSelectionController
         />
     );
 });
