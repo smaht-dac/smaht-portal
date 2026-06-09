@@ -276,7 +276,8 @@ export default class DataMatrix extends React.PureComponent {
         "columnSubGroupingOrder": [],
         "colorRangeBaseColor": "#47adff", // color hex or rgba code (if set, will override colorRanges)
         "colorRangeSegments": 5, // split color ranges into 5 equal parts
-        "colorRangeSegmentStep": 20, // step size for each segment
+        "colorRangeSegmentStep": 20, // step size for each files/donor segment
+        "coverageColorRangeSegmentStep": 200, // step size for each coverage segment
         "summaryBackgroundColor": "#ececff",
         "xAxisLabel": "Assay",
         "yAxisLabel": "Donor",
@@ -338,6 +339,7 @@ export default class DataMatrix extends React.PureComponent {
         'colorRangeBaseColor': PropTypes.string,
         'colorRangeSegments': PropTypes.number,
         'colorRangeSegmentStep': PropTypes.number,
+        'coverageColorRangeSegmentStep': PropTypes.number,
         'summaryBackgroundColor': PropTypes.string,
         'columnGroups': PropTypes.object,
         'showColumnGroups': PropTypes.bool,
@@ -463,6 +465,13 @@ export default class DataMatrix extends React.PureComponent {
         return colorRanges;
     }
 
+    getColorRangeSegmentStepForCountFor(countFor, state = this.state) {
+        if (countFor === 'total_coverage') {
+            return state.coverageColorRangeSegmentStep;
+        }
+        return state.colorRangeSegmentStep;
+    }
+
     constructor(props) {
         super(props);
         this.loadSearchQueryResults = this.loadSearchQueryResults.bind(this);
@@ -518,6 +527,7 @@ export default class DataMatrix extends React.PureComponent {
             "baseColorRangeBaseColor": props.colorRangeBaseColor,
             "colorRangeSegments": props.colorRangeSegments,
             "colorRangeSegmentStep": props.colorRangeSegmentStep,
+            "coverageColorRangeSegmentStep": props.coverageColorRangeSegmentStep,
             "summaryBackgroundColor": props.summaryBackgroundColor,
             "defaultOpen": props.defaultOpen,
             "countFor": "files",
@@ -1376,8 +1386,7 @@ export default class DataMatrix extends React.PureComponent {
             baseRowGroupsExtended,
             baseShowRowGroupsExtended,
             baseColorRangeBaseColor,
-            colorRangeSegments,
-            colorRangeSegmentStep
+            colorRangeSegments
         } = prevState;
         const { donorTissueColumnGroups } = this.props;
 
@@ -1409,7 +1418,7 @@ export default class DataMatrix extends React.PureComponent {
                 colorRanges: this.getColorRanges({
                     colorRangeBaseColor: countFor === 'donors' ? '#8989FF' : baseColorRangeBaseColor,
                     colorRangeSegments,
-                    colorRangeSegmentStep
+                    colorRangeSegmentStep: this.getColorRangeSegmentStepForCountFor(countFor, prevState)
                 })
             };
         }
@@ -1437,7 +1446,7 @@ export default class DataMatrix extends React.PureComponent {
                 colorRanges: this.getColorRanges({
                     colorRangeBaseColor: donorTissueBaseColor,
                     colorRangeSegments,
-                    colorRangeSegmentStep
+                    colorRangeSegmentStep: this.getColorRangeSegmentStepForCountFor('files', prevState)
                 }),
                 colorRangeBaseColor: donorTissueBaseColor
             };
@@ -1464,7 +1473,7 @@ export default class DataMatrix extends React.PureComponent {
             colorRanges: this.getColorRanges({
                 colorRangeBaseColor: baseColorRangeBaseColor,
                 colorRangeSegments,
-                colorRangeSegmentStep
+                colorRangeSegmentStep: this.getColorRangeSegmentStepForCountFor('files', prevState)
             })
         };
     }
@@ -1569,7 +1578,7 @@ export default class DataMatrix extends React.PureComponent {
                 nextState.colorRanges = this.getColorRanges({
                     colorRangeBaseColor: nextValue === 'donors' ? '#8989FF' : baseColorRangeBaseColor,
                     colorRangeSegments: prevState.colorRangeSegments,
-                    colorRangeSegmentStep: prevState.colorRangeSegmentStep
+                    colorRangeSegmentStep: this.getColorRangeSegmentStepForCountFor(nextValue, prevState)
                 });
             } else {
                 // In Donor x Tissue mode, files <-> coverage is display-only.
@@ -1584,7 +1593,7 @@ export default class DataMatrix extends React.PureComponent {
                 nextState.colorRanges = this.getColorRanges({
                     colorRangeBaseColor: baseColorRangeBaseColor,
                     colorRangeSegments: prevState.colorRangeSegments,
-                    colorRangeSegmentStep: prevState.colorRangeSegmentStep
+                    colorRangeSegmentStep: this.getColorRangeSegmentStepForCountFor(nextValue, prevState)
                 });
             }
 
