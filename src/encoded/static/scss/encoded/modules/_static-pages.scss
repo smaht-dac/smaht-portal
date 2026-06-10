@@ -4054,6 +4054,12 @@ FAQ page styles
                 max-width: none;
                 width: 76px;
                 aspect-ratio: 372 / 364;
+                opacity: 0.25;
+                transition: opacity 100ms ease-out;
+
+                &.loaded {
+                    opacity: 1;
+                }
             }
 
             .details {

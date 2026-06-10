@@ -121,6 +121,7 @@ const DonorThumbnail = ({
     sex = 'M',
     donorHref = '',
 }) => {
+    const [imgLoaded, setImgLoaded] = useState(false);
     const thumbnailSrc =
         sex === 'F'
             ? '/static/img/anatomy-icons/donor-thumbnail-f.png'
@@ -137,7 +138,12 @@ const DonorThumbnail = ({
                 {donorId}
             </div>
             <div className="donor-thumbnail-image">
-                <img src={thumbnailSrc} alt="" />
+                <img
+                    src={thumbnailSrc}
+                    alt=""
+                    className={imgLoaded ? 'loaded' : ''}
+                    onLoad={() => setImgLoaded(true)}
+                />
                 <div className="details" aria-hidden="true">
                     <span className="age fw-medium">{age}</span>
                     <span className="sex fw-medium">{sex}</span>
