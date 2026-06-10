@@ -22,7 +22,7 @@ const quickLinks = [
     },
 ];
 
-// Search for P25 donors
+// Search query for P25 donor data
 const searchQuery =
     '/search/?donor_groups=First+25+Donors+%5BP25%5D&type=ProtectedDonor&limit=all';
 
