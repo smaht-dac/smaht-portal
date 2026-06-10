@@ -64,7 +64,11 @@ def _format_apa_author_list(authors):
 class Publication(Item):
     item_type = "publication"
     schema = load_schema("encoded:schemas/publication.json")
-    embedded_list = []
+    embedded_list = [
+        "static_content.content.body",
+        "static_content.content.title",
+        "static_content.content.options",
+    ]
 
     @calculated_property(
         schema={

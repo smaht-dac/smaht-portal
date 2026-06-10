@@ -9,6 +9,14 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 import * as _ from 'underscore';
 import { FileOverviewTableController } from './components/file-overview/FileOverviewTable';
+import { BasicStaticSectionBody } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/BasicStaticSectionBody';
+import { replaceString as placeholderReplacementFxn } from './../static-pages/placeholders';
+
+function getStaticContentSection(staticContent, location) {
+    if (!Array.isArray(staticContent)) return null;
+    const entry = staticContent.find((s) => s.location === location);
+    return entry?.content || null;
+}
 
 // Page containing the details of Items of type File
 export default class PublicationOverview extends DefaultItemView {
@@ -132,6 +140,17 @@ const PublicationStatViewer = ({ doi, session }) => {
 const PublicationViewTabs = (props) => {
     const { context, session, href, schemas } = props;
 
+    const refSetGenSection = getStaticContentSection(
+        context.static_content,
+        'reference-set-generation'
+    );
+
+    console.log('[PublicationViewTabs] ref-set-gen section:', refSetGenSection);
+    if (refSetGenSection) {
+        console.log('[PublicationViewTabs] ref-set-gen .body:', refSetGenSection.body);
+        console.log('[PublicationViewTabs] ref-set-gen .options:', refSetGenSection.options);
+    }
+
     const fileSearchUrl = `/search/?type=File&doi_list=${context?.doi}&limit=all`;
     const tableProps = {
         embeddedTableHeaderText: 'Published Data from this Publication',
@@ -156,39 +175,17 @@ const PublicationViewTabs = (props) => {
                 <div className="tab-router-contents">
                     <div className="content">
                         <h2 className="header">Reference Set Generation</h2>
-                        <div className="description">
-                            <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipiscing elit. In vel urna dapibus, varius
-                                erat at, hendrerit ligula. Vestibulum ante ipsum
-                                primis in faucibus orci luctus et ultrices
-                                posuere cubilia curae; Donec aliquam, lacus eu
-                                vehicula tincidunt, lacus ex bibendum nisi, ut
-                                dictum odio dui vitae purus. Phasellus blandit
-                                gravida sapien sed ullamcorper. Donec laoreet
-                                lorem nec tellus scelerisque, a imperdiet enim
-                                ultricies. Proin lorem ante, blandit et lacinia
-                                in, rutrum eu nibh. Nullam eu lacus ullamcorper,
-                                semper neque vel, aliquet lectus. Suspendisse
-                                potenti. Donec sagittis risus id ornare congue.
-                                Ut euismod mauris in porta mattis. Cras
-                                malesuada in neque egestas fermentum. Nam eget
-                                sapien ac urna tincidunt sagittis et vitae
-                                massa. Sed tristique ultricies tellus, lobortis
-                                dignissim magna tristique venenatis. Cras
-                                lobortis tellus sed ante convallis, et egestas
-                                urna ornare. Sed pulvinar lorem ut ornare
-                                luctus. Maecenas nec molestie neque. In sodales
-                                eros id lacus lacinia elementum. Maecenas
-                                dignissim eget est vel vehicula. Etiam vel
-                                luctus sapien.
-                            </p>
-                            <img
-                                className="thumbnail"
-                                src="https://placehold.co/463x300"
-                                alt="placeholder"
-                            />
-                        </div>
+                        {refSetGenSection && (
+                            <div className="description">
+                                <BasicStaticSectionBody
+                                    content={refSetGenSection.body}
+                                    filetype={refSetGenSection.options?.filetype}
+                                    placeholderReplacementFxn={
+                                        placeholderReplacementFxn
+                                    }
+                                />
+                            </div>
+                        )}
                         <FileOverviewTableController {...tableProps} />
                     </div>
                 </div>
@@ -197,10 +194,22 @@ const PublicationViewTabs = (props) => {
     );
 };
 
-/** Top-level component for the Donor Overview Page */
+/** Top-level component for the Publication Overview Page */
 const PublicationView = React.memo(function PublicationView(props) {
     const { context, session, href } = props;
     const [showFullAuthorList, toggleFullAuthorList] = useToggle(false);
+
+    const keyFindingsSection = getStaticContentSection(
+        context.static_content,
+        'key-findings'
+    );
+
+    console.log('[PublicationView] static_content raw:', context.static_content);
+    console.log('[PublicationView] key-findings section:', keyFindingsSection);
+    if (keyFindingsSection) {
+        console.log('[PublicationView] key-findings .body:', keyFindingsSection.body);
+        console.log('[PublicationView] key-findings .options:', keyFindingsSection.options);
+    }
 
     const pubYear = context?.date_published?.split('-')[0];
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
@@ -235,11 +244,13 @@ const PublicationView = React.memo(function PublicationView(props) {
             <PublicationViewTitle />
             <div className="view-content">
                 <div className="publication-header">
-                    <img
-                        className="thumbnail"
-                        src="https://placehold.co/600x400"
-                        alt="placeholder"
-                    />
+                    {context?.key_image_thumbnail_link && (
+                        <img
+                            className="thumbnail"
+                            src={context.key_image_thumbnail_link}
+                            alt={context.title || 'Publication key figure'}
+                        />
+                    )}
                     <div className="publication-header-text">
                         <h2 className="title">{context?.display_title}</h2>
                         <div className="details">
@@ -249,8 +260,14 @@ const PublicationView = React.memo(function PublicationView(props) {
                                         context.authors[0]}
                                 </span>
                             )}
-                            <span>|</span>
-                            <span>Placeholder Category</span>
+                            {context?.publication_groups?.length > 0 && (
+                                <>
+                                    <span>|</span>
+                                    <span>
+                                        {context.publication_groups.join(' · ')}
+                                    </span>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -364,46 +381,17 @@ const PublicationView = React.memo(function PublicationView(props) {
                                 Key / Novel Findings
                             </span>
                         </div>
-                        <div className="body">
-                            <div className="data-card-callout">
-                                <div className="callout-header">
-                                    Lorem ipsum dolor sit amet, consectetur
-                                    adipiscing elit.
-                                </div>
-                                <div className="callout-body">
-                                    Mauris imperdiet ipsum sed leo efficitur,
-                                    nec scelerisque mauris vulputate. Sed at
-                                    finibus metus, et bibendum quam. Proin
-                                    dignissim felis non augue finibus, non
-                                    egestas dui viverra. Vestibulum non dui id
-                                    massa commodo bibendum euismod nec orci.
-                                </div>
+                        {keyFindingsSection && (
+                            <div className="body">
+                                <BasicStaticSectionBody
+                                    content={keyFindingsSection.body}
+                                    filetype={keyFindingsSection.options?.filetype}
+                                    placeholderReplacementFxn={
+                                        placeholderReplacementFxn
+                                    }
+                                />
                             </div>
-                            <div className="data-card-callout">
-                                <div className="callout-header">
-                                    Nam felis dui, tincidunt a pharetra vel,
-                                    gravida eget felis.
-                                </div>
-                                <div className="callout-body">
-                                    Fusce tincidunt tortor non orci rhoncus
-                                    interdum. In hac habitasse platea dictumst.
-                                    Quisque porttitor varius porttitor. Donec
-                                    mattis bibendum orci sed maximus.
-                                </div>
-                            </div>
-                            <div className="data-card-callout">
-                                <div className="callout-header">
-                                    Nam felis dui, tincidunt a pharetra vel,
-                                    gravida eget felis.
-                                </div>
-                                <div className="callout-body">
-                                    Fusce tincidunt tortor non orci rhoncus
-                                    interdum. In hac habitasse platea dictumst.
-                                    Quisque porttitor varius porttitor. Donec
-                                    mattis bibendum orci sed maximus.
-                                </div>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
