@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { RightArrowIcon } from '../util/icon';
 
 // Quick links to the data portal
@@ -21,209 +22,88 @@ const quickLinks = [
     },
 ];
 
-// Donors are grouped by age group
-const donorGroups = [
-    {
-        title: 'Ages 31-55',
-        donors: [
-            {
-                donorId: 'SMHT001',
-                age: '42',
-                sex: 'M',
-                conditions: ['Cancer', 'Tobacco'],
-                href: '/protected-donors/0c83b75c-aece-4d1f-bddd-9c5fc62cd475/',
-            },
-            {
-                donorId: 'SMHT008',
-                age: '47',
-                sex: 'F',
-                conditions: ['Cancer'],
-                href: '/protected-donors/9982fac2-229a-4b0f-9d96-3dee65bd6aec/',
-            },
-            {
-                donorId: 'SMHT004',
-                age: '51',
-                sex: 'M',
-                conditions: ['Tobacco'],
-                href: '/protected-donors/b7fe7d42-5058-41be-b0c2-40300cd8c541/',
-            },
-            {
-                donorId: 'SMHT043',
-                age: '52',
-                sex: 'M',
-                conditions: ['Tobacco'],
-                href: '/protected-donors/ed31dae3-6c25-4a04-9a56-010366b8aa93/',
-            },
-        ],
-    },
-    {
-        title: 'Ages 56-65',
-        donors: [
-            {
-                donorId: 'SMHT023',
-                age: '57',
-                sex: 'M',
-                conditions: ['Tobacco'],
-                href: '/protected-donors/ffc2942e-cb80-42e3-b528-97e5ba9c1068/',
-            },
-            {
-                donorId: 'SMHT005',
-                age: '59',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/abb8dc5e-738c-463e-a814-0c967d3a8ef5/',
-            },
-            {
-                donorId: 'SMHT006',
-                age: '60',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/f5295467-653b-4d7d-9fa3-72f7090b9251/',
-            },
-            {
-                donorId: 'SMHT035',
-                age: '60',
-                sex: 'F',
-                conditions: ['Tobacco'],
-                href: '/protected-donors/a48bab79-1a29-474a-84a9-e1581efde67f/',
-            },
-            {
-                donorId: 'SMHT022',
-                age: '63',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/02de2368-8d8c-49f8-aa72-0401dbfd0e7c/',
-            },
-            {
-                donorId: 'SMHT015',
-                age: '65',
-                sex: 'F',
-                conditions: ['Tobacco'],
-                href: '/protected-donors/0881921b-c804-4aae-9ecb-a17bc3bc646e/',
-            },
-            {
-                donorId: 'SMHT024',
-                age: '65',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/3f53ab1c-bf6f-4f28-a1e5-9688072db668/',
-            },
-            {
-                donorId: 'SMHT031',
-                age: '65',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/10397f66-3a86-496c-8a23-3f51f1f158de/',
-            },
-        ],
-    },
-    {
-        title: 'Ages 66-80',
-        donors: [
-            {
-                donorId: 'SMHT012',
-                age: '66',
-                sex: 'M',
-                conditions: ['Cancer', 'Tobacco'],
-                href: '/protected-donors/5362df2a-075e-4af8-ad4b-9fb8944facae/',
-            },
-            {
-                donorId: 'SMHT007',
-                age: '67',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/6ae6ec37-1b05-4874-bda3-45c11bcb3efc/',
-            },
-            {
-                donorId: 'SMHT027',
-                age: '67',
-                sex: 'F',
-                conditions: [],
-                href: '/protected-donors/8551d4b7-2571-41ef-acb8-bbc9892343e0/',
-            },
-            {
-                donorId: 'SMHT029',
-                age: '72',
-                sex: 'M',
-                conditions: ['Tobacco'],
-                href: '/protected-donors/d02ee5e4-291e-4a4b-9379-79f87f5dd217/',
-            },
-            {
-                donorId: 'SMHT039',
-                age: '74',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/80507a57-e52f-4961-9304-6db163ecab0a/',
-            },
-            {
-                donorId: 'SMHT042',
-                age: '79',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/35e7ab13-11af-411f-93dc-5e2229bc540d/',
-            },
-        ],
-    },
-    {
-        title: 'Ages 80+',
-        donors: [
-            {
-                donorId: 'SMHT020',
-                age: '81',
-                sex: 'M',
-                conditions: [],
-                href: '/protected-donors/e7f50ad0-2e84-4a55-b674-1c4a14bf39ff/',
-            },
-            {
-                donorId: 'SMHT017',
-                age: '86',
-                sex: 'F',
-                conditions: [],
-                href: '/protected-donors/a39ed366-096b-418e-a855-7ffd369e7334/',
-            },
-            {
-                donorId: 'SMHT009',
-                age: '87',
-                sex: 'F',
-                conditions: [],
-                href: '/protected-donors/6b1e4ec3-df75-4460-9e40-0c84b62f82bb/',
-            },
-            {
-                donorId: 'SMHT028',
-                age: '87',
-                sex: 'M',
-                conditions: ['Cancer', 'Tobacco'],
-                href: '/protected-donors/21892d81-d77d-414e-b851-061753e0742c/',
-            },
-            {
-                donorId: 'SMHT018',
-                age: '89+',
-                sex: 'F',
-                conditions: ['Tobacco'],
-                href: '/protected-donors/98ebfe66-fa33-448e-ac00-b5d001ecbabc/',
-            },
-            {
-                donorId: 'SMHT016',
-                age: '89+',
-                sex: 'F',
-                conditions: ['Cancer', 'Tobacco'],
-                href: '/protected-donors/25bd749a-8ebb-47c6-a63d-d9863514e715/',
-            },
-            {
-                donorId: 'SMHT040',
-                age: '89+',
-                sex: 'F',
-                conditions: ['Cancer', 'Tobacco'],
-                href: '/protected-donors/5cece9ea-55c4-4d93-82ab-c22a9c8f68fb/',
-            },
-        ],
-    },
+// Search for P25 donors
+const searchQuery =
+    '/search/?donor_groups=First+25+Donors+%5BP25%5D&type=ProtectedDonor&limit=all';
+
+const AGE_GROUP_DEFINITIONS = [
+    { title: 'Ages 31-55', min: 31, max: 55 },
+    { title: 'Ages 56-65', min: 56, max: 65 },
+    { title: 'Ages 66-80', min: 66, max: 80 },
+    { title: 'Ages 80+', min: 81 },
 ];
 
-// Flattened and sorted version of the donor data used by the text list view
-const donorList = donorGroups
-    .flatMap((group) => group.donors)
-    .sort((a, b) => a.donorId.localeCompare(b.donorId));
+// Transform donor data from the P25 search endpoint into the format needed for display
+const transformDonor = ({
+    external_id,
+    age,
+    sex,
+    '@id': id,
+    medical_history = {},
+}) => {
+    const conditions = [];
+    if (medical_history.cancer_history === 'Yes') conditions.push('Cancer');
+    if (medical_history.tobacco_use === 'Yes') conditions.push('Tobacco');
+    return {
+        donorId: external_id,
+        age: age >= 89 ? '89+' : String(age),
+        sex: sex === 'Female' ? 'F' : 'M',
+        href: id,
+        conditions,
+    };
+};
+
+/**
+ * Groups donors by age into predefined age groups
+ * @param {Array} donors - The list of donors to group
+ * @returns {Array} The list of donor groups
+ */
+const groupDonorsByAge = (donors) => {
+    return AGE_GROUP_DEFINITIONS.map(({ title, min, max }) => ({
+        title,
+        donors: donors
+            .filter((d) => {
+                const n = d.age === '89+' ? 89 : Number(d.age);
+                return n >= min && (max === undefined || n <= max);
+            })
+            .sort((a, b) => {
+                const na = a.age === '89+' ? 89 : Number(a.age);
+                const nb = b.age === '89+' ? 89 : Number(b.age);
+                return na - nb;
+            }),
+    }));
+};
+
+// Function for loading donor data from the P25 search endpoint
+const useP25Donors = () => {
+    const [donors, setDonors] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        ajax.load(
+            searchQuery,
+            (resp) => {
+                if (cancelled) return;
+                console.log('resp', resp);
+                setDonors((resp['@graph'] || []).map(transformDonor));
+                setLoading(false);
+            },
+            'GET',
+            () => {
+                if (cancelled) return;
+                setError(true);
+                setLoading(false);
+            }
+        );
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    return { donors, loading, error };
+};
 
 /**
  * DonorThumbnail component renders a donor thumbnail with age and sex
@@ -343,6 +223,12 @@ const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
  * @returns {JSX.Element} The rendered ConsortiumHub component
  */
 export const ConsortiumHub = () => {
+    const { donors, loading, error } = useP25Donors();
+    const donorGroups = groupDonorsByAge(donors);
+    const donorList = [...donors].sort((a, b) =>
+        a.donorId.localeCompare(b.donorId)
+    );
+
     return (
         <div className="consortium-hub-container">
             <p>
@@ -354,15 +240,23 @@ export const ConsortiumHub = () => {
                 <div className="cohort-thumbnails-container">
                     <div className="nav-group">
                         <h6>P25 Donor Cohort</h6>
-                        <div className="donor-groups">
-                            {donorGroups.map((group) => (
-                                <DonorGroupContainer
-                                    key={group.title}
-                                    title={group.title}
-                                    donors={group.donors}
-                                />
-                            ))}
-                        </div>
+                        {loading && (
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        )}
+                        {error && (
+                            <span className="">Failed to load donor data.</span>
+                        )}
+                        {!loading && !error && (
+                            <div className="donor-groups">
+                                {donorGroups.map((group) => (
+                                    <DonorGroupContainer
+                                        key={group.title}
+                                        title={group.title}
+                                        donors={group.donors}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="quick-links-container">
@@ -392,6 +286,14 @@ export const ConsortiumHub = () => {
                     <div className="nav-group">
                         <h6>Cohort Details</h6>
                         <CohortDetailsDropdown title="Cancer & Tobacco Status - List View">
+                            {loading && (
+                                <i className="icon icon-circle-notch icon-spin fas" />
+                            )}
+                            {error && (
+                                <span className="">
+                                    Failed to load donor data.
+                                </span>
+                            )}
                             <ol className="cohort-details-list">
                                 {donorList.map((donor) => (
                                     <li key={donor.donorId}>
