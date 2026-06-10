@@ -3954,9 +3954,16 @@ FAQ page styles
 }
 
 [data-at-type='Consortium-hubPage'] {
-    .consortium-hub-container {
+    .static-section-entry .section-content .consortium-hub-container {
         display: flex;
         flex-direction: column;
+
+        h3 {
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
         .consortium-hub-content {
             display: flex;
             flex: 1;
@@ -4097,6 +4104,7 @@ FAQ page styles
 
     .static-section-entry .section-content .dropdown .body {
         padding: 15px 35px 25px;
+
         .cohort-details-list {
             flex: 1;
             list-style: decimal;
