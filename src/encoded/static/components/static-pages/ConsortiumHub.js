@@ -340,7 +340,7 @@ const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
 
 /**
  * Main component for the Consortium Hub page
- * @returns {JSX.Element} The rendered DonorPage component
+ * @returns {JSX.Element} The rendered ConsortiumHub component
  */
 export const ConsortiumHub = () => {
     return (
