@@ -3960,7 +3960,7 @@ FAQ page styles
 
         h3 {
             padding-bottom: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             border-bottom: 1px solid #f4f4f4;
         }
 
@@ -3969,6 +3969,7 @@ FAQ page styles
             flex: 1;
             gap: 50px;
             flex-wrap: wrap;
+            margin-top: 20px;
 
             .cohort-thumbnails-container {
                 flex: 1;

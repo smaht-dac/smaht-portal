@@ -279,12 +279,12 @@ export const ConsortiumHub = () => {
 
     return (
         <div className="consortium-hub-container">
+            <h3>P25 Data Freeze</h3>
             <p>
                 Welcome to the consortium hub for the P25 Data Freeze. Below are
                 the resources that you will need to gather all the relevant data
                 to facilitate analysis.
             </p>
-            <h3>P25 Data Freeze</h3>
             <div className="consortium-hub-content">
                 <div className="cohort-thumbnails-container">
                     <div className="nav-group">
