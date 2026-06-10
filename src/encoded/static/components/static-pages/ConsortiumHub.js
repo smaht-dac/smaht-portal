@@ -264,10 +264,22 @@ const donorList = donorGroups
     .sort((a, b) => a.donorId.localeCompare(b.donorId));
 
 const quickLinks = [
-    { title: 'Sequencing Data (BAMs & CRAMs)', href: '' },
-    { title: 'Transcript Quantification Data (tsv & txt)', href: '' },
-    { title: 'Filtered Variant Callsets (VCFs)', href: '' },
-    { title: 'DSA (FASTA, BED, Chain)', href: '' },
+    {
+        title: 'Sequencing Data (BAMs & CRAMs)',
+        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=cram&file_format.display_title=bam&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
+    {
+        title: 'Transcript Quantification Data (tsv & txt)',
+        href: '/browse/?data_category=RNA+Quantification&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
+    {
+        title: 'Filtered Variant Callsets (VCFs)',
+        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=vcf&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
+    {
+        title: 'DSA (FASTA, BED, Chain)',
+        href: '/browse/?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
 ];
 
 export const ConsortiumHub = () => {
@@ -318,7 +330,9 @@ export const ConsortiumHub = () => {
                                 {donorList.map((donor) => (
                                     <li key={donor.donorId}>
                                         <div className="donor-id">
-                                            <a href={donor.href}>{donor.donorId}:</a>{' '}
+                                            <a href={donor.href}>
+                                                {donor.donorId}:
+                                            </a>{' '}
                                             <span className="age-sex">
                                                 <span className="age">
                                                     {donor.age}
