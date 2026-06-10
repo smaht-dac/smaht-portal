@@ -208,7 +208,7 @@ BrowseSummaryStatController.propTypes = {
     error: PropTypes.bool.isRequired,
 };
 
-const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
+export const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
     const { type, value, loading, units, containerCls = 'ms-2' } = props;
 
     let subtitle;

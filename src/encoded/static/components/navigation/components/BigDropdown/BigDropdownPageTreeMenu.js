@@ -343,9 +343,32 @@ function CustomStaticLinks({ pathName, href, session }) {
                             </>
                         )}
                     </div>
+                    {session && (
+                        <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
+                            <h3 className="mt-2 text-400 text-larger">
+                                Publication
+                            </h3>
+                            <hr className="mb-0" />
+                            <BigDropdownBigLink
+                                href="/publication-collections"
+                                titleIcon="file fas"
+                                className="primary-big-link">
+                                <h4 className="text-large">
+                                    Browse SMaHT Collections
+                                </h4>
+                            </BigDropdownBigLink>
+                            <BigDropdownBigLink
+                                href={BROWSE_LINKS.publication}
+                                titleIcon="users fas"
+                                className="primary-big-link">
+                                <h4 className="text-large">
+                                    Browse All Publications
+                                </h4>
+                            </BigDropdownBigLink>
+                        </div>
+                    )}
                 </div>
             );
         default:
-            return null;
     }
 }
