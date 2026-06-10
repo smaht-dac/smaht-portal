@@ -1,4 +1,3 @@
-from typing import List, Dict, Any
 
 from snovault import collection, load_schema
 from snovault.util import debug_log
@@ -182,25 +181,18 @@ def run_pathologic_findings_validation(request, data):
         percentage = finding.get("finding_percentage")
 
         if present == "Yes":
-            if description is None or (
+            desc_missing = description is None or (
                 isinstance(description, str) and description.strip() == ""
-            ):
+            )
+            pct_missing = percentage is None or percentage == ""
+            if desc_missing and pct_missing:
                 request.errors.add(
                     "body",
                     f"{_ITEM_TYPE}: invalid property",
                     f"{_PATHOLOGIC_FINDINGS_PROPERTY}[{index}] "
                     f"(finding_type: {finding_type}): "
                     f"when finding_present is 'Yes', "
-                    f"finding_description must be provided",
-                )
-            if percentage is None or percentage == "":
-                request.errors.add(
-                    "body",
-                    f"{_ITEM_TYPE}: invalid property",
-                    f"{_PATHOLOGIC_FINDINGS_PROPERTY}[{index}] "
-                    f"(finding_type: {finding_type}): "
-                    f"when finding_present is 'Yes', "
-                    f"finding_percentage must be provided",
+                    f"at least one of finding_description or finding_percentage must be provided",
                 )
 
         elif present == "No":
@@ -259,13 +251,13 @@ def non_brain_pathology_report_add(context, request, render=None):
     return collection_add(context, request, render)
 
 
-NON_BRAIN_PATHOLOGY_REPORT_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_non_brain_pathology_on_edit,
-]
+NON_BRAIN_PATHOLOGY_REPORT_EDIT_PATCH_VALIDATORS = (
+    SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [validate_non_brain_pathology_on_edit]
+)
 
-NON_BRAIN_PATHOLOGY_REPORT_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_non_brain_pathology_on_edit,
-]
+NON_BRAIN_PATHOLOGY_REPORT_EDIT_PUT_VALIDATORS = (
+    SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [validate_non_brain_pathology_on_edit]
+)
 
 
 @view_config(

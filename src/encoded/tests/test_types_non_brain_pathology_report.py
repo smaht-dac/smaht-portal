@@ -444,7 +444,7 @@ def test_validate_non_target_tissues_on_add(
 @pytest.mark.parametrize(
     "patch_body,expected_status",
     [
-        # Valid: present=Yes, description and percentage both provided
+        # Valid: present=Yes, both description and percentage provided
         (
             {
                 "pathologic_findings": [
@@ -452,6 +452,32 @@ def test_validate_non_target_tissues_on_add(
                         "finding_type": "Inflammation",
                         "finding_present": "Yes",
                         "finding_description": "Mild lymphocytic infiltrate",
+                        "finding_percentage": "10",
+                    }
+                ]
+            },
+            200,
+        ),
+        # Valid: present=Yes, only description provided
+        (
+            {
+                "pathologic_findings": [
+                    {
+                        "finding_type": "Inflammation",
+                        "finding_present": "Yes",
+                        "finding_description": "Mild lymphocytic infiltrate",
+                    }
+                ]
+            },
+            200,
+        ),
+        # Valid: present=Yes, only percentage provided
+        (
+            {
+                "pathologic_findings": [
+                    {
+                        "finding_type": "Inflammation",
+                        "finding_present": "Yes",
                         "finding_percentage": "10",
                     }
                 ]
@@ -470,20 +496,19 @@ def test_validate_non_target_tissues_on_add(
             },
             200,
         ),
-        # Invalid: present=Yes, description absent
+        # Invalid: present=Yes, neither description nor percentage
         (
             {
                 "pathologic_findings": [
                     {
                         "finding_type": "Inflammation",
                         "finding_present": "Yes",
-                        "finding_percentage": "10",
                     }
                 ]
             },
             422,
         ),
-        # Invalid: present=Yes, description is whitespace-only
+        # Invalid: present=Yes, description is whitespace-only and no percentage
         (
             {
                 "pathologic_findings": [
@@ -491,20 +516,6 @@ def test_validate_non_target_tissues_on_add(
                         "finding_type": "Inflammation",
                         "finding_present": "Yes",
                         "finding_description": "   ",
-                        "finding_percentage": "10",
-                    }
-                ]
-            },
-            422,
-        ),
-        # Invalid: present=Yes, percentage absent
-        (
-            {
-                "pathologic_findings": [
-                    {
-                        "finding_type": "Inflammation",
-                        "finding_present": "Yes",
-                        "finding_description": "Mild lymphocytic infiltrate",
                     }
                 ]
             },
@@ -544,7 +555,7 @@ def test_validate_pathologic_findings_on_edit(
 @pytest.mark.parametrize(
     "finding,expected_status,index",
     [
-        # Valid: present=Yes, all required fields provided
+        # Valid: present=Yes, both fields provided
         (
             {
                 "finding_type": "Inflammation",
@@ -555,6 +566,26 @@ def test_validate_pathologic_findings_on_edit(
             201,
             1,
         ),
+        # Valid: present=Yes, only description provided
+        (
+            {
+                "finding_type": "Inflammation",
+                "finding_present": "Yes",
+                "finding_description": "Mild lymphocytic infiltrate",
+            },
+            201,
+            2,
+        ),
+        # Valid: present=Yes, only percentage provided
+        (
+            {
+                "finding_type": "Inflammation",
+                "finding_present": "Yes",
+                "finding_percentage": "10",
+            },
+            201,
+            3,
+        ),
         # Valid: present=No
         (
             {
@@ -562,38 +593,26 @@ def test_validate_pathologic_findings_on_edit(
                 "finding_present": "No",
             },
             201,
-            2,
+            4,
         ),
-        # Invalid: present=Yes, description absent
+        # Invalid: present=Yes, neither description nor percentage
         (
             {
                 "finding_type": "Inflammation",
                 "finding_present": "Yes",
-                "finding_percentage": "10",
             },
             422,
-            3,
+            5,
         ),
-        # Invalid: present=Yes, description is empty string
+        # Invalid: present=Yes, description is empty string and no percentage
         (
             {
                 "finding_type": "Inflammation",
                 "finding_present": "Yes",
                 "finding_description": "",
-                "finding_percentage": "10",
             },
             422,
-            4,
-        ),
-        # Invalid: present=Yes, percentage absent
-        (
-            {
-                "finding_type": "Inflammation",
-                "finding_present": "Yes",
-                "finding_description": "Mild lymphocytic infiltrate",
-            },
-            422,
-            5,
+            6,
         ),
         # Invalid: present=No, percentage provided
         (
@@ -603,7 +622,7 @@ def test_validate_pathologic_findings_on_edit(
                 "finding_percentage": "10",
             },
             422,
-            6,
+            7,
         ),
     ],
 )
@@ -677,7 +696,7 @@ def test_target_tissue_error_message_format(
 def test_pathologic_finding_error_message_format(
     es_testapp: TestApp, workbook: None
 ) -> None:
-    """Validation error for a missing finding_description has the expected location and name."""
+    """Validation error when finding_present=Yes with neither field has expected format."""
     uuid = get_item(es_testapp, _WORKBOOK_REPORT_ID, collection=_COLLECTION)["uuid"]
     res = patch_item(
         es_testapp,
@@ -686,8 +705,7 @@ def test_pathologic_finding_error_message_format(
                 {
                     "finding_type": "Fibrosis",
                     "finding_present": "Yes",
-                    "finding_percentage": "5",
-                    # finding_description deliberately absent
+                    # both finding_description and finding_percentage deliberately absent
                 }
             ]
         },

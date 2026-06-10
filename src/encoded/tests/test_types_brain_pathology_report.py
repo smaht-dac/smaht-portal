@@ -1,11 +1,3 @@
-import pytest
-from webtest import TestApp
-
-from .utils import get_item
-
-
-
-
 from typing import Dict, Any
 
 import pytest
@@ -22,20 +14,20 @@ from .utils import (
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-_WORKBOOK_REPORT_ID = "TEST_BRAIN-PATH-REPORT_001"
+_WORKBOOK_REPORT_ID = "TEST_BRAIN-PATHOLOGY-REPORT_SMHT001-3AJ-001S1"
 _ITEM_TYPE = "brain_pathology_report"
 _COLLECTION = "BrainPathologyReport"
 
 # Stable valid brain subregion for use as a default in POST bodies
 _VALID_BRAIN_SUBREGION = {
-    "subregion": "Frontal cortex",
+    "subregion": "Frontal Lobe Left Hemisphere",
     "is_present": "Yes",
-    "tissue_autolysis_score": "1",
+    "tissue_autolysis_score": 1,
 }
 
 # Neuropathology field pair used across neuropathology_present tests
-_NEUROPATH_PRESENT_FIELD = "hippocampal_sclerosis_present"
-_NEUROPATH_DESCRIPTION_FIELD = "hippocampal_sclerosis_description"
+_NEUROPATH_PRESENT_FIELD = "inflammatory_neuropathology_present"
+_NEUROPATH_DESCRIPTION_FIELD = "inflammatory_neuropathology_description"
 
 # Base scalar fields included in every POST body.
 # All *_present fields are set to "No" so no *_description is required.
@@ -210,9 +202,9 @@ def test_validate_neuropathology_present_on_add(
             {
                 "brain_subregions": [
                     {
-                        "subregion": "Frontal cortex",
+                        "subregion": "Frontal Lobe Left Hemisphere",
                         "is_present": "Yes",
-                        "tissue_autolysis_score": "1",
+                        "tissue_autolysis_score": 1,
                     }
                 ]
             },
@@ -223,7 +215,7 @@ def test_validate_neuropathology_present_on_add(
             {
                 "brain_subregions": [
                     {
-                        "subregion": "Frontal cortex",
+                        "subregion": "Frontal Lobe Left Hemisphere",
                         "is_present": "No",
                     }
                 ]
@@ -235,7 +227,7 @@ def test_validate_neuropathology_present_on_add(
             {
                 "brain_subregions": [
                     {
-                        "subregion": "Frontal cortex",
+                        "subregion": "Frontal Lobe Left Hemisphere",
                         "is_present": "Yes",
                     }
                 ]
@@ -247,9 +239,9 @@ def test_validate_neuropathology_present_on_add(
             {
                 "brain_subregions": [
                     {
-                        "subregion": "Frontal cortex",
+                        "subregion": "Frontal Lobe Left Hemisphere",
                         "is_present": "No",
-                        "tissue_autolysis_score": "1",
+                        "tissue_autolysis_score": 1,
                     }
                 ]
             },
@@ -279,9 +271,9 @@ def test_validate_brain_subregions_on_edit(
         # Valid: is_present=Yes, autolysis_score provided
         (
             {
-                "subregion": "Frontal cortex",
+                "subregion": "Frontal Lobe Left Hemisphere",
                 "is_present": "Yes",
-                "tissue_autolysis_score": "1",
+                "tissue_autolysis_score": 1,
             },
             201,
             1,
@@ -289,7 +281,7 @@ def test_validate_brain_subregions_on_edit(
         # Valid: is_present=No, autolysis_score absent
         (
             {
-                "subregion": "Frontal cortex",
+                "subregion": "Frontal Lobe Left Hemisphere",
                 "is_present": "No",
             },
             201,
@@ -298,7 +290,7 @@ def test_validate_brain_subregions_on_edit(
         # Invalid: is_present=Yes, autolysis_score absent
         (
             {
-                "subregion": "Frontal cortex",
+                "subregion": "Frontal Lobe Left Hemisphere",
                 "is_present": "Yes",
             },
             422,
@@ -307,9 +299,9 @@ def test_validate_brain_subregions_on_edit(
         # Invalid: is_present=No, autolysis_score provided
         (
             {
-                "subregion": "Frontal cortex",
+                "subregion": "Frontal Lobe Left Hemisphere",
                 "is_present": "No",
-                "tissue_autolysis_score": "1",
+                "tissue_autolysis_score": 1,
             },
             422,
             4,
@@ -464,7 +456,7 @@ def test_brain_subregion_error_message_format(
         {
             "brain_subregions": [
                 {
-                    "subregion": "Hippocampus",
+                    "subregion": "Hippocampus Left Hemisphere",
                     "is_present": "Yes",
                     # tissue_autolysis_score deliberately absent
                 }
