@@ -1,6 +1,27 @@
 import React, { useState } from 'react';
 import { RightArrowIcon } from '../util/icon';
 
+// Quick links to the data portal
+const quickLinks = [
+    {
+        title: 'Sequencing Data (BAMs & CRAMs)',
+        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=cram&file_format.display_title=bam&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
+    {
+        title: 'Transcript Quantification Data (tsv & txt)',
+        href: '/browse/?data_category=RNA+Quantification&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
+    {
+        title: 'Filtered Variant Callsets (VCFs)',
+        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=vcf&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
+    {
+        title: 'DSA (FASTA, BED, Chain)',
+        href: '/browse/?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
+];
+
+// Donors are grouped by age group
 const donorGroups = [
     {
         title: 'Ages 31-55',
@@ -199,10 +220,20 @@ const donorGroups = [
     },
 ];
 
+// Flattened and sorted version of the donor data used by the text list view
 const donorList = donorGroups
     .flatMap((group) => group.donors)
     .sort((a, b) => a.donorId.localeCompare(b.donorId));
 
+/**
+ * DonorThumbnail component renders a donor thumbnail with age and sex
+ * information that can be clicked to navigate to the donor's profile
+ * @param {string} donorId - The donor ID
+ * @param {number} age - The donor age
+ * @param {string} sex - The donor sex
+ * @param {string} donorHref - The href for the donor
+ * @returns {JSX.Element} The rendered DonorThumbnail component
+ */
 const DonorThumbnail = ({
     donorId = null,
     age = null,
@@ -235,6 +266,12 @@ const DonorThumbnail = ({
     );
 };
 
+/**
+ * DonorGroupContainer component renders a container for a group of donor thumbnails
+ * @param {string} title - The title of the donor group
+ * @param {Array} donors - The list of donors in the group
+ * @returns {JSX.Element} The rendered DonorGroupContainer component
+ */
 const DonorGroupContainer = ({ title, donors }) => (
     <div className="donor-group-container">
         <div className="donor-group-header fw-semibold">{title}</div>
@@ -250,8 +287,18 @@ const DonorGroupContainer = ({ title, donors }) => (
     </div>
 );
 
+/**
+ * CohortDetailsDropdown component renders a dropdown container for cohort
+ * details, such as age and sex distribution, and a list of donors in the
+ * cohort, and links to the donor profiles
+ * @param {string} title - The title of the dropdown
+ * @param {React.ReactNode} children - The child nodes to display in the dropdown
+ * @param {boolean} expanded - Whether the dropdown is initially expanded
+ * @returns {JSX.Element} The rendered CohortDetailsDropdown component
+ */
 const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
     const [isExpanded, setIsExpanded] = useState(expanded);
+    // ID derived from the title so the toggle can reference the body region via aria controls
     const bodyId = `dropdown-body-${title.replace(/\s+/g, '-').toLowerCase()}`;
 
     const handleKeyDown = (e) => {
@@ -291,25 +338,10 @@ const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
     );
 };
 
-const quickLinks = [
-    {
-        title: 'Sequencing Data (BAMs & CRAMs)',
-        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=cram&file_format.display_title=bam&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
-    },
-    {
-        title: 'Transcript Quantification Data (tsv & txt)',
-        href: '/browse/?data_category=RNA+Quantification&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
-    },
-    {
-        title: 'Filtered Variant Callsets (VCFs)',
-        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=vcf&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
-    },
-    {
-        title: 'DSA (FASTA, BED, Chain)',
-        href: '/browse/?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
-    },
-];
-
+/**
+ * Main component for the Consortium Hub page
+ * @returns {JSX.Element} The rendered DonorPage component
+ */
 export const ConsortiumHub = () => {
     return (
         <div className="consortium-hub-container">
