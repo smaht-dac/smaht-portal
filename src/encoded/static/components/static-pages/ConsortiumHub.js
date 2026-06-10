@@ -213,16 +213,20 @@ const DonorThumbnail = ({
         sex === 'F'
             ? '/static/img/anatomy-icons/donor-thumbnail-f.png'
             : '/static/img/anatomy-icons/donor-thumbnail-m.png';
+    const sexLabel = sex === 'F' ? 'Female' : 'Male';
     return (
         <a
             className={`donor-thumbnail-container ${
                 sex === 'F' ? 'female' : 'male'
             }`}
-            href={donorHref}>
-            <div className="donor-id fw-medium">{donorId}</div>
+            href={donorHref}
+            aria-label={`Donor ${donorId}, age ${age}, ${sexLabel}`}>
+            <div className="donor-id fw-medium" aria-hidden="true">
+                {donorId}
+            </div>
             <div className="donor-thumbnail-image">
-                <img src={thumbnailSrc} alt="donor thumbnail" />
-                <div className="details">
+                <img src={thumbnailSrc} alt="" />
+                <div className="details" aria-hidden="true">
                     <span className="age fw-medium">{age}</span>
                     <span className="sex fw-medium">{sex}</span>
                 </div>
@@ -248,6 +252,15 @@ const DonorGroupContainer = ({ title, donors }) => (
 
 const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
     const [isExpanded, setIsExpanded] = useState(expanded);
+    const bodyId = `dropdown-body-${title.replace(/\s+/g, '-').toLowerCase()}`;
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsExpanded((prev) => !prev);
+        }
+    };
+
     return (
         <div className="dropdown">
             <div className="header">
@@ -256,17 +269,22 @@ const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
                     role="button"
                     tabIndex={0}
                     aria-expanded={isExpanded}
-                    onClick={() => setIsExpanded(!isExpanded)}>
+                    aria-controls={bodyId}
+                    onClick={() => setIsExpanded((prev) => !prev)}
+                    onKeyDown={handleKeyDown}>
                     <i
                         className={`icon ${
                             isExpanded ? 'icon-minus' : 'icon-plus'
                         } fas me-1`}
+                        aria-hidden="true"
                     />
                     <span className="parent-link">{title}</span>
                 </div>
             </div>
             {isExpanded && <hr className="my-auto" />}
-            <div className={`body ${isExpanded ? 'open' : 'closed'}`}>
+            <div
+                id={bodyId}
+                className={`body ${isExpanded ? 'open' : 'closed'}`}>
                 {children}
             </div>
         </div>
@@ -328,7 +346,11 @@ export const ConsortiumHub = () => {
                                             {link.title}
                                         </a>
                                     </div>
-                                    <a className="header-link" href={link.href}>
+                                    <a
+                                        className="header-link"
+                                        href={link.href}
+                                        aria-hidden="true"
+                                        tabIndex={-1}>
                                         <RightArrowIcon />
                                     </a>
                                 </div>
@@ -347,14 +369,24 @@ export const ConsortiumHub = () => {
                                             </a>{' '}
                                             <span className="age-sex">
                                                 <span className="age">
+                                                    <span className="visually-hidden">
+                                                        Age{' '}
+                                                    </span>
                                                     {donor.age}
                                                 </span>
                                                 <span className="sex">
-                                                    {donor.sex}
+                                                    <span className="visually-hidden">
+                                                        {donor.sex === 'F'
+                                                            ? 'Female'
+                                                            : 'Male'}
+                                                    </span>
+                                                    <span aria-hidden="true">
+                                                        {donor.sex}
+                                                    </span>
                                                 </span>
                                             </span>
                                         </div>
-                                        {' - '}
+                                        <span aria-hidden="true">{' - '}</span>
                                         <span
                                             className={
                                                 donor.conditions.length
