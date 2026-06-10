@@ -177,6 +177,7 @@ const DonorGroupContainer = ({ title, donors }) => (
 // Donor counts for each group, used to determine skeleton
 const SKELETON_COUNTS = [4, 8, 6, 7];
 
+// Donor thumbnail skeleton
 const DonorThumbnailSkeleton = () => (
     <div
         className="donor-thumbnail-container donor-thumbnail-container-skeleton"
@@ -186,6 +187,7 @@ const DonorThumbnailSkeleton = () => (
     </div>
 );
 
+// Donor groups skeleton shown while loading donor data
 const DonorGroupsSkeleton = () => (
     <div
         className="donor-groups"
@@ -273,6 +275,7 @@ export const ConsortiumHub = () => {
                 the resources that you will need to gather all the relevant data
                 to facilitate analysis.
             </p>
+            <h3>P25 Data Freeze</h3>
             <div className="consortium-hub-content">
                 <div className="cohort-thumbnails-container">
                     <div className="nav-group">
