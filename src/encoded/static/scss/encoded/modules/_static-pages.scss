@@ -3682,7 +3682,8 @@ FAQ page styles
 }
 
 // Pages under Pipeline Documentation
-[data-at-type^='DocsAdditional-resourcesPipeline-docs'] {
+[data-at-type^='DocsAdditional-resourcesPipeline-docs'],
+[data-at-type='Consortium-hubPage'] {
     // Custom header sizing
     h2 {
         font-size: 24px;
@@ -3948,6 +3949,182 @@ FAQ page styles
             color: #2e385a;
             margin-bottom: 20px;
             margin-top: 40px;
+        }
+    }
+}
+
+[data-at-type='Consortium-hubPage'] {
+    .consortium-hub-container {
+        display: flex;
+        flex-direction: column;
+        .consortium-hub-content {
+            display: flex;
+            flex: 1;
+            gap: 50px;
+            flex-wrap: wrap;
+
+            .cohort-thumbnails-container {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .quick-links-container {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-width: 350px;
+
+                .nav-group {
+                    margin-bottom: 0px;
+                }
+            }
+        }
+    }
+    .donor-groups {
+        display: flex;
+        gap: 0.75rem;
+
+        @include media-breakpoint-down(md) {
+            flex-wrap: wrap;
+        }
+    }
+
+    .donor-group-container {
+        flex: 1;
+        border: 1px solid #bacfeb;
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 180px;
+
+        .donor-group-header {
+            color: #0e3669;
+            background-color: #edf5fb;
+            font-size: 0.9rem;
+            text-align: center;
+            border-bottom: 1px solid #bacfeb;
+        }
+
+        .donor-group-grid {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 30px 8px;
+            padding: 20px 0px;
+            background-color: #fcfdfe;
+
+            .donor-thumbnail-container {
+                // width: 50%;
+                width: 85px;
+            }
+        }
+
+        &:first-of-type {
+            min-width: 90px;
+
+            .donor-thumbnail-container {
+                display: flex;
+                flex: 1;
+                // width: auto;
+            }
+        }
+    }
+
+    .donor-thumbnail-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .donor-id {
+            color: #416485;
+            font-size: 0.8rem;
+            line-height: 1rem;
+            margin-bottom: -5px;
+        }
+
+        .donor-thumbnail-image {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            width: min-content;
+
+            img {
+                max-width: none;
+                width: 76px;
+                height: auto;
+            }
+
+            .details {
+                position: absolute;
+                bottom: 0px;
+                left: 50%;
+                transform: translateX(-50%);
+                white-space: nowrap;
+
+                .age {
+                    font-size: 0.8rem;
+                }
+                .sex {
+                    font-size: 0.6rem;
+                }
+            }
+        }
+
+        &.male .details {
+            color: #7d96b6;
+        }
+        &.female .details {
+            color: #b57db6;
+        }
+    }
+
+    .static-section-entry .section-content .dropdown .body {
+        padding: 15px 35px 25px;
+        .cohort-details-list {
+            flex: 1;
+            list-style: decimal;
+            padding-left: 1.5rem;
+            margin: 0;
+
+            li {
+                margin-bottom: 0.25rem;
+                font-size: 0.9rem;
+                color: $homepage-card-text-color;
+                line-height: 1.25rem;
+
+                .donor-id {
+                    display: inline-flex;
+                    justify-content: flex-end;
+                    text-align: end;
+                }
+
+                .age-sex {
+                    margin-left: 5px;
+
+                    .age {
+                        display: inline-flex;
+                        width: 35px;
+                    }
+                    .sex {
+                        display: inline-flex;
+                        justify-content: center;
+                        width: 10px;
+                        margin-right: 5px;
+                    }
+                }
+
+                a {
+                    color: #428cca;
+                    font-weight: 500;
+                    width: 80px;
+                    text-align: left;
+                }
+            }
+
+            .no-conditions {
+                color: #ccd3d9;
+            }
         }
     }
 }
