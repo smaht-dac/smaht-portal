@@ -27,6 +27,10 @@ const TIMELINE_MONTH_WINDOW_SIZE = {
     [TIMELINE_MODES.MONTHLY]: 6
 };
 const RELEASE_DATE_FIELD = 'file_status_tracking.release_dates.initial_release_date';
+const RELEASE_DATE_FACET_FIELDS = [
+    'file_status_tracking.release_dates.initial_release',
+    'file_status_tracking.release_dates.initial_release_date'
+];
 
 const formatMonthLabel = (monthValue = '') => {
     const parsed = new Date(`${monthValue}-01T00:00:00`);
@@ -310,7 +314,10 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
         [selectedFileProps]
     );
     const hideFacetsForRecentReleases = useMemo(
-        () => _.uniq([...(hideFacets || []), RELEASE_DATE_FIELD]),
+        // The calendar/timeline selection already defines the release-date scope.
+        // Hiding both facet variants keeps the embedded search title/query aligned
+        // with the selected day/week/month bucket.
+        () => _.uniq([...(hideFacets || []), ...RELEASE_DATE_FACET_FIELDS]),
         [hideFacets]
     );
     const alignedColumnExtensionMap = useMemo(() => ({
