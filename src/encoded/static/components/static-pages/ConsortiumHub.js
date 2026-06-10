@@ -26,6 +26,7 @@ const quickLinks = [
 const searchQuery =
     '/search/?donor_groups=First+25+Donors+%5BP25%5D&type=ProtectedDonor&limit=all';
 
+// Age groups for donors
 const AGE_GROUP_DEFINITIONS = [
     { title: 'Ages 31-55', min: 31, max: 55 },
     { title: 'Ages 56-65', min: 56, max: 65 },
@@ -167,6 +168,36 @@ const DonorGroupContainer = ({ title, donors }) => (
     </div>
 );
 
+// Donor counts for each group, used to determine skeleton
+const SKELETON_COUNTS = [4, 8, 6, 7];
+
+const DonorThumbnailSkeleton = () => (
+    <div
+        className="donor-thumbnail-container donor-thumbnail-container-skeleton"
+        aria-hidden="true">
+        <div className="donor-thumbnail-skeleton-id" />
+        <div className="donor-thumbnail-skeleton-image" />
+    </div>
+);
+
+const DonorGroupsSkeleton = () => (
+    <div
+        className="donor-groups"
+        aria-busy="true"
+        aria-label="Loading donor cohort">
+        {SKELETON_COUNTS.map((count, i) => (
+            <div key={i} className="donor-group-container">
+                <div className="donor-group-header donor-group-header-skeleton" />
+                <div className="donor-group-body">
+                    {Array.from({ length: count }, (_, j) => (
+                        <DonorThumbnailSkeleton key={j} />
+                    ))}
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
 /**
  * CohortDetailsDropdown component renders a dropdown container for cohort
  * details, such as age and sex distribution, and a list of donors in the
@@ -240,9 +271,7 @@ export const ConsortiumHub = () => {
                 <div className="cohort-thumbnails-container">
                     <div className="nav-group">
                         <h6>P25 Donor Cohort</h6>
-                        {loading && (
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        )}
+                        {loading && <DonorGroupsSkeleton />}
                         {error && (
                             <span className="">Failed to load donor data.</span>
                         )}
