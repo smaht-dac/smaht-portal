@@ -793,11 +793,16 @@ class File(Item, CoreFile):
         # _aggregate_for['uuid'] is the primary indexed item's UUID (set before
         # both @@object and @@embedded in indexing_views.py). If it differs from
         # self.uuid, we're a sub-embed. Only file_set explicitly embeds this field.
+        # Return None (not {}) to match other early-return paths in this function
+        # — calc props returning None are excluded from the properties dict,
+        # whereas {} would persist as an empty dict and could pollute cached
+        # @@object views consumed by FileSet indexing later in the same /index
+        # batch (the embed_cache is shared across items in a single transaction).
         if request._indexing_view:
             primary_uuid = request._aggregate_for.get('uuid')
             if primary_uuid and primary_uuid != str(self.uuid):
                 if request._aggregate_for.get('item_type') not in FILE_STATUS_TRACKING_REQUIRED_TYPES:
-                    return {}
+                    return None
 
         # we need the revision history
         status_tracking = {}
