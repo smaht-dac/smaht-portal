@@ -312,7 +312,9 @@ export const ConsortiumHub = () => {
                             <div key={link.title} className="dropdown">
                                 <div className="header">
                                     <div className="toggle d-flex align-items-center">
-                                        <a className="parent-link">
+                                        <a
+                                            className="parent-link"
+                                            href={link.href}>
                                             {link.title}
                                         </a>
                                     </div>
