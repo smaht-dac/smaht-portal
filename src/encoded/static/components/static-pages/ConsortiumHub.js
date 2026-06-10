@@ -1,66 +1,6 @@
 import React, { useState } from 'react';
 import { RightArrowIcon } from '../util/icon';
 
-const DonorThumbnail = ({ donorId = null, age = null, sex = 'M' }) => {
-    const thumbnailSrc =
-        sex === 'F'
-            ? '/static/img/anatomy-icons/donor-thumbnail-f.png'
-            : '/static/img/anatomy-icons/donor-thumbnail-m.png';
-    return (
-        <div
-            className={`donor-thumbnail-container ${
-                sex === 'F' ? 'female' : 'male'
-            }`}>
-            <div className="donor-id fw-medium">{donorId}</div>
-            <div className="donor-thumbnail-image">
-                <img src={thumbnailSrc} alt="donor thumbnail" />
-                <div className="details">
-                    <span className="age fw-medium">{age}</span>
-                    <span className="sex fw-medium">{sex}</span>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const DonorGroupContainer = ({ title, donors }) => (
-    <div className="donor-group-container">
-        <div className="donor-group-header fw-semibold">{title}</div>
-        <div className="donor-group-grid">
-            {donors.map((donor) => (
-                <DonorThumbnail key={donor.donorId} {...donor} />
-            ))}
-        </div>
-    </div>
-);
-
-const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
-    const [isExpanded, setIsExpanded] = useState(expanded);
-    return (
-        <div className="dropdown">
-            <div className="header">
-                <div
-                    className="toggle d-flex align-items-center"
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={isExpanded}
-                    onClick={() => setIsExpanded(!isExpanded)}>
-                    <i
-                        className={`icon ${
-                            isExpanded ? 'icon-minus' : 'icon-plus'
-                        } fas me-1`}
-                    />
-                    <span className="parent-link">{title}</span>
-                </div>
-            </div>
-            {isExpanded && <hr className="my-auto" />}
-            <div className={`body ${isExpanded ? 'open' : 'closed'}`}>
-                {children}
-            </div>
-        </div>
-    );
-};
-
 const donorGroups = [
     {
         title: 'Ages 31-55',
@@ -262,6 +202,76 @@ const donorGroups = [
 const donorList = donorGroups
     .flatMap((group) => group.donors)
     .sort((a, b) => a.donorId.localeCompare(b.donorId));
+
+const DonorThumbnail = ({
+    donorId = null,
+    age = null,
+    sex = 'M',
+    donorHref = '',
+}) => {
+    const thumbnailSrc =
+        sex === 'F'
+            ? '/static/img/anatomy-icons/donor-thumbnail-f.png'
+            : '/static/img/anatomy-icons/donor-thumbnail-m.png';
+    return (
+        <a
+            className={`donor-thumbnail-container ${
+                sex === 'F' ? 'female' : 'male'
+            }`}
+            href={donorHref}>
+            <div className="donor-id fw-medium">{donorId}</div>
+            <div className="donor-thumbnail-image">
+                <img src={thumbnailSrc} alt="donor thumbnail" />
+                <div className="details">
+                    <span className="age fw-medium">{age}</span>
+                    <span className="sex fw-medium">{sex}</span>
+                </div>
+            </div>
+        </a>
+    );
+};
+
+const DonorGroupContainer = ({ title, donors }) => (
+    <div className="donor-group-container">
+        <div className="donor-group-header fw-semibold">{title}</div>
+        <div className="donor-group-body">
+            {donors.map((donor) => (
+                <DonorThumbnail
+                    key={donor.donorId}
+                    {...donor}
+                    donorHref={donor.href}
+                />
+            ))}
+        </div>
+    </div>
+);
+
+const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
+    const [isExpanded, setIsExpanded] = useState(expanded);
+    return (
+        <div className="dropdown">
+            <div className="header">
+                <div
+                    className="toggle d-flex align-items-center"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    onClick={() => setIsExpanded(!isExpanded)}>
+                    <i
+                        className={`icon ${
+                            isExpanded ? 'icon-minus' : 'icon-plus'
+                        } fas me-1`}
+                    />
+                    <span className="parent-link">{title}</span>
+                </div>
+            </div>
+            {isExpanded && <hr className="my-auto" />}
+            <div className={`body ${isExpanded ? 'open' : 'closed'}`}>
+                {children}
+            </div>
+        </div>
+    );
+};
 
 const quickLinks = [
     {

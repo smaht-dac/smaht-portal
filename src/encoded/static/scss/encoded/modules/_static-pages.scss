@@ -4005,18 +4005,18 @@ FAQ page styles
             border-bottom: 1px solid #bacfeb;
         }
 
-        .donor-group-grid {
+        .donor-group-body {
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
             justify-content: flex-start;
             gap: 30px 8px;
-            padding: 20px 0px;
+            padding: 20px 5px;
             background-color: #fcfdfe;
 
             .donor-thumbnail-container {
-                // width: 50%;
-                width: 85px;
+                width: 80px;
+                border-radius: 5px;
             }
         }
 
@@ -4026,7 +4026,6 @@ FAQ page styles
             .donor-thumbnail-container {
                 display: flex;
                 flex: 1;
-                // width: auto;
             }
         }
     }
@@ -4035,6 +4034,7 @@ FAQ page styles
         display: flex;
         flex-direction: column;
         align-items: center;
+        padding: 2px;
 
         .donor-id {
             color: #416485;
@@ -4076,6 +4076,15 @@ FAQ page styles
         }
         &.female .details {
             color: #b57db6;
+        }
+
+        &:hover {
+            background-color: #edf5fb;
+            text-decoration: none;
+
+            .donor-id {
+                text-decoration: none;
+            }
         }
     }
 
