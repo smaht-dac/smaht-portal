@@ -22,9 +22,18 @@ const quickLinks = [
     },
 ];
 
-// Search query for P25 donor data
-const searchQuery =
-    '/search/?donor_groups=First+25+Donors+%5BP25%5D&type=ProtectedDonor&limit=all';
+// Search query for P25 donor data, limited to only the fields needed for display
+const searchQuery = [
+    '/search/?type=ProtectedDonor',
+    'donor_groups=First+25+Donors+%5BP25%5D',
+    'limit=all',
+    'field=external_id',
+    'field=age',
+    'field=sex',
+    'field=@id',
+    'field=medical_history.cancer_history',
+    'field=medical_history.tobacco_use',
+].join('&');
 
 // Age groups for donors
 const AGE_GROUP_DEFINITIONS = [
@@ -40,11 +49,12 @@ const transformDonor = ({
     age,
     sex,
     '@id': id,
-    medical_history = {},
+    medical_history = [],
 }) => {
+    const medical_history_obj = medical_history?.[0] ?? {};
     const conditions = [];
-    if (medical_history.cancer_history === 'Yes') conditions.push('Cancer');
-    if (medical_history.tobacco_use === 'Yes') conditions.push('Tobacco');
+    if (medical_history_obj.cancer_history === 'Yes') conditions.push('Cancer');
+    if (medical_history_obj.tobacco_use === 'Yes') conditions.push('Tobacco');
     return {
         donorId: external_id,
         age: age >= 89 ? '89+' : String(age),
@@ -87,7 +97,6 @@ const useP25Donors = () => {
             searchQuery,
             (resp) => {
                 if (cancelled) return;
-                console.log('resp', resp);
                 setDonors((resp['@graph'] || []).map(transformDonor));
                 setLoading(false);
             },
