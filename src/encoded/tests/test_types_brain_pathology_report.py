@@ -338,7 +338,7 @@ def test_validate_brain_subregions_on_add(
         (
             {
                 "additional_age-related_staining_performed": "Yes",
-                "abc_score_A": "A1",
+                "abc_score_A": 1,
             },
             200,
         ),
@@ -346,8 +346,8 @@ def test_validate_brain_subregions_on_add(
         (
             {
                 "additional_age-related_staining_performed": "Yes",
-                "abc_score_A": "A1",
-                "cerad_score": "C2",
+                "abc_score_A": 1,
+                "cerad_score": 25,
                 "braak_and_braak_ad": "IV",
             },
             200,
@@ -388,7 +388,7 @@ def test_validate_age_related_staining_on_edit(
         (
             {
                 "additional_age-related_staining_performed": "Yes",
-                "abc_score_A": "A1",
+                "abc_score_A": 1,
             },
             201,
             2,
@@ -397,9 +397,9 @@ def test_validate_age_related_staining_on_edit(
         (
             {
                 "additional_age-related_staining_performed": "Yes",
-                "thal": "Phase 2",
-                "braak_pd": "Stage 3",
-                "mckeith": "Brainstem predominant",
+                "thal": 2,
+                "braak_pd": 3,
+                "mckeith": 2,
             },
             201,
             3,

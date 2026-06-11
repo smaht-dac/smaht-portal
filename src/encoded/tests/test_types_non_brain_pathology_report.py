@@ -14,19 +14,19 @@ from .utils import (
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-_WORKBOOK_REPORT_ID = "TEST_NON-BRAIN-PATH-REPORT_001"
+_WORKBOOK_REPORT_ID = "TEST_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-1A-100A1"
 _ITEM_TYPE = "non_brain_pathology_report"
 _COLLECTION = "NonBrainPathologyReport"
 
 # Stable valid objects used as defaults when building POST bodies
 _VALID_TARGET_TISSUE = {
-    "target_tissue_subtype": "Liver parenchyma",
+    "target_tissue_subtype": "Liver",
     "target_tissue_present": "Yes",
-    "target_tissue_percentage": "80",
-    "target_tissue_autolysis_score": "1",
+    "target_tissue_percentage": "[50-100]",
+    "target_tissue_autolysis_score": 1,
 }
 _VALID_NON_TARGET_TISSUE = {
-    "non_target_tissue_subtype": "Connective tissue",
+    "non_target_tissue_subtype": "Fibroadipose",
     "non_target_tissue_present": "No",
 }
 _VALID_PATHOLOGIC_FINDING = {
@@ -104,10 +104,10 @@ def _build_post_body(
             {
                 "target_tissues": [
                     {
-                        "target_tissue_subtype": "Liver parenchyma",
+                        "target_tissue_subtype": "Liver",
                         "target_tissue_present": "Yes",
-                        "target_tissue_percentage": "80",
-                        "target_tissue_autolysis_score": "1",
+                        "target_tissue_percentage": "[50-100]",
+                        "target_tissue_autolysis_score": 1,
                     }
                 ]
             },
@@ -118,7 +118,7 @@ def _build_post_body(
             {
                 "target_tissues": [
                     {
-                        "target_tissue_subtype": "Liver parenchyma",
+                        "target_tissue_subtype": "Liver",
                         "target_tissue_present": "No",
                         "target_tissue_percentage": "0",
                     }
@@ -131,7 +131,7 @@ def _build_post_body(
             {
                 "target_tissues": [
                     {
-                        "target_tissue_subtype": "Liver parenchyma",
+                        "target_tissue_subtype": "Liver",
                         "target_tissue_present": "No",
                         "target_tissue_percentage": "30",
                     }
@@ -144,10 +144,10 @@ def _build_post_body(
             {
                 "target_tissues": [
                     {
-                        "target_tissue_subtype": "Liver parenchyma",
+                        "target_tissue_subtype": "Liver",
                         "target_tissue_present": "No",
                         "target_tissue_percentage": "0",
-                        "target_tissue_autolysis_score": "1",
+                        "target_tissue_autolysis_score": 1,
                     }
                 ]
             },
@@ -158,10 +158,10 @@ def _build_post_body(
             {
                 "target_tissues": [
                     {
-                        "target_tissue_subtype": "Liver parenchyma",
+                        "target_tissue_subtype": "Liver",
                         "target_tissue_present": "Yes",
                         "target_tissue_percentage": "0",
-                        "target_tissue_autolysis_score": "1",
+                        "target_tissue_autolysis_score": 1,
                     }
                 ]
             },
@@ -172,9 +172,9 @@ def _build_post_body(
             {
                 "target_tissues": [
                     {
-                        "target_tissue_subtype": "Liver parenchyma",
+                        "target_tissue_subtype": "Liver",
                         "target_tissue_present": "Yes",
-                        "target_tissue_percentage": "80",
+                        "target_tissue_percentage": "[50-100]",
                     }
                 ]
             },
@@ -185,9 +185,9 @@ def _build_post_body(
             {
                 "target_tissues": [
                     {
-                        "target_tissue_subtype": "Liver parenchyma",
+                        "target_tissue_subtype": "Liver",
                         "target_tissue_present": "Yes",
-                        "target_tissue_autolysis_score": "1",
+                        "target_tissue_autolysis_score": 1,
                     }
                 ]
             },
@@ -217,10 +217,10 @@ def test_validate_target_tissues_on_edit(
         # Valid: present=Yes
         (
             {
-                "target_tissue_subtype": "Liver parenchyma",
+                "target_tissue_subtype": "Liver",
                 "target_tissue_present": "Yes",
-                "target_tissue_percentage": "80",
-                "target_tissue_autolysis_score": "1",
+                "target_tissue_percentage": "[50-100]",
+                "target_tissue_autolysis_score": 1,
             },
             201,
             1,
@@ -228,7 +228,7 @@ def test_validate_target_tissues_on_edit(
         # Valid: present=No, percentage="0"
         (
             {
-                "target_tissue_subtype": "Liver parenchyma",
+                "target_tissue_subtype": "Liver",
                 "target_tissue_present": "No",
                 "target_tissue_percentage": "0",
             },
@@ -238,7 +238,7 @@ def test_validate_target_tissues_on_edit(
         # Invalid: present=No, percentage not "0"
         (
             {
-                "target_tissue_subtype": "Liver parenchyma",
+                "target_tissue_subtype": "Liver",
                 "target_tissue_present": "No",
                 "target_tissue_percentage": "30",
             },
@@ -248,10 +248,10 @@ def test_validate_target_tissues_on_edit(
         # Invalid: present=No, autolysis_score provided
         (
             {
-                "target_tissue_subtype": "Liver parenchyma",
+                "target_tissue_subtype": "Liver",
                 "target_tissue_present": "No",
                 "target_tissue_percentage": "0",
-                "target_tissue_autolysis_score": "1",
+                "target_tissue_autolysis_score": 1,
             },
             422,
             4,
@@ -259,10 +259,10 @@ def test_validate_target_tissues_on_edit(
         # Invalid: present=Yes, percentage is "0"
         (
             {
-                "target_tissue_subtype": "Liver parenchyma",
+                "target_tissue_subtype": "Liver",
                 "target_tissue_present": "Yes",
                 "target_tissue_percentage": "0",
-                "target_tissue_autolysis_score": "1",
+                "target_tissue_autolysis_score": 1,
             },
             422,
             5,
@@ -270,9 +270,9 @@ def test_validate_target_tissues_on_edit(
         # Invalid: present=Yes, autolysis_score absent
         (
             {
-                "target_tissue_subtype": "Liver parenchyma",
+                "target_tissue_subtype": "Liver",
                 "target_tissue_present": "Yes",
-                "target_tissue_percentage": "80",
+                "target_tissue_percentage": "[50-100]",
             },
             422,
             6,
@@ -280,9 +280,9 @@ def test_validate_target_tissues_on_edit(
         # Invalid: present=Yes, percentage absent
         (
             {
-                "target_tissue_subtype": "Liver parenchyma",
+                "target_tissue_subtype": "Liver",
                 "target_tissue_present": "Yes",
-                "target_tissue_autolysis_score": "1",
+                "target_tissue_autolysis_score": 1,
             },
             422,
             7,
@@ -315,9 +315,9 @@ def test_validate_target_tissues_on_add(
             {
                 "non_target_tissues": [
                     {
-                        "non_target_tissue_subtype": "Connective tissue",
+                        "non_target_tissue_subtype": "Fibroadipose",
                         "non_target_tissue_present": "Yes",
-                        "non_target_tissue_percentage": "15",
+                        "non_target_tissue_percentage": "[11-25]",
                     }
                 ]
             },
@@ -328,7 +328,7 @@ def test_validate_target_tissues_on_add(
             {
                 "non_target_tissues": [
                     {
-                        "non_target_tissue_subtype": "Connective tissue",
+                        "non_target_tissue_subtype": "Fibroadipose",
                         "non_target_tissue_present": "No",
                     }
                 ]
@@ -340,7 +340,7 @@ def test_validate_target_tissues_on_add(
             {
                 "non_target_tissues": [
                     {
-                        "non_target_tissue_subtype": "Connective tissue",
+                        "non_target_tissue_subtype": "Fibroadipose",
                         "non_target_tissue_present": "Yes",
                     }
                 ]
@@ -352,9 +352,9 @@ def test_validate_target_tissues_on_add(
             {
                 "non_target_tissues": [
                     {
-                        "non_target_tissue_subtype": "Connective tissue",
+                        "non_target_tissue_subtype": "Fibroadipose",
                         "non_target_tissue_present": "No",
-                        "non_target_tissue_percentage": "15",
+                        "non_target_tissue_percentage": "[11-25]",
                     }
                 ]
             },
@@ -384,9 +384,9 @@ def test_validate_non_target_tissues_on_edit(
         # Valid: present=Yes, percentage provided
         (
             {
-                "non_target_tissue_subtype": "Connective tissue",
+                "non_target_tissue_subtype": "Fibroadipose",
                 "non_target_tissue_present": "Yes",
-                "non_target_tissue_percentage": "15",
+                "non_target_tissue_percentage": "[11-25]",
             },
             201,
             1,
@@ -394,7 +394,7 @@ def test_validate_non_target_tissues_on_edit(
         # Valid: present=No, no percentage
         (
             {
-                "non_target_tissue_subtype": "Connective tissue",
+                "non_target_tissue_subtype": "Fibroadipose",
                 "non_target_tissue_present": "No",
             },
             201,
@@ -403,7 +403,7 @@ def test_validate_non_target_tissues_on_edit(
         # Invalid: present=Yes, percentage absent
         (
             {
-                "non_target_tissue_subtype": "Connective tissue",
+                "non_target_tissue_subtype": "Fibroadipose",
                 "non_target_tissue_present": "Yes",
             },
             422,
@@ -412,9 +412,9 @@ def test_validate_non_target_tissues_on_edit(
         # Invalid: present=No, percentage provided
         (
             {
-                "non_target_tissue_subtype": "Connective tissue",
+                "non_target_tissue_subtype": "Fibroadipose",
                 "non_target_tissue_present": "No",
-                "non_target_tissue_percentage": "15",
+                "non_target_tissue_percentage": "[11-25]",
             },
             422,
             4,
@@ -452,7 +452,7 @@ def test_validate_non_target_tissues_on_add(
                         "finding_type": "Inflammation",
                         "finding_present": "Yes",
                         "finding_description": "Mild lymphocytic infiltrate",
-                        "finding_percentage": "10",
+                        "finding_percentage": "[0-10]",
                     }
                 ]
             },
@@ -478,7 +478,7 @@ def test_validate_non_target_tissues_on_add(
                     {
                         "finding_type": "Inflammation",
                         "finding_present": "Yes",
-                        "finding_percentage": "10",
+                        "finding_percentage": "[0-10]",
                     }
                 ]
             },
@@ -528,7 +528,7 @@ def test_validate_non_target_tissues_on_add(
                     {
                         "finding_type": "Inflammation",
                         "finding_present": "No",
-                        "finding_percentage": "10",
+                        "finding_percentage": "[0-10]",
                     }
                 ]
             },
@@ -561,7 +561,7 @@ def test_validate_pathologic_findings_on_edit(
                 "finding_type": "Inflammation",
                 "finding_present": "Yes",
                 "finding_description": "Mild lymphocytic infiltrate",
-                "finding_percentage": "10",
+                "finding_percentage": "[0-10]",
             },
             201,
             1,
@@ -581,7 +581,7 @@ def test_validate_pathologic_findings_on_edit(
             {
                 "finding_type": "Inflammation",
                 "finding_present": "Yes",
-                "finding_percentage": "10",
+                "finding_percentage": "[0-10]",
             },
             201,
             3,
@@ -619,7 +619,7 @@ def test_validate_pathologic_findings_on_edit(
             {
                 "finding_type": "Inflammation",
                 "finding_present": "No",
-                "finding_percentage": "10",
+                "finding_percentage": "[0-10]",
             },
             422,
             7,
@@ -651,7 +651,7 @@ def test_non_brain_pathology_report_force_pass(
     invalid_patch = {
         "target_tissues": [
             {
-                "target_tissue_subtype": "Liver parenchyma",
+                "target_tissue_subtype": "Liver",
                 "target_tissue_present": "No",
                 "target_tissue_percentage": "30",  # invalid: must be "0" when present=No
             }
@@ -676,7 +676,7 @@ def test_target_tissue_error_message_format(
         {
             "target_tissues": [
                 {
-                    "target_tissue_subtype": "Liver parenchyma",
+                    "target_tissue_subtype": "Liver",
                     "target_tissue_present": "No",
                     "target_tissue_percentage": "30",
                 }
