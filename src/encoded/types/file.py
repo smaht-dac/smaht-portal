@@ -99,6 +99,10 @@ from encoded import OPEN_DATA_S3_CLIENT
 
 log = structlog.getLogger(__name__)
 
+# Item types (snake_case) that explicitly embed file_status_tracking and must
+# always compute it even when the File appears as a sub-embedded item.
+FILE_STATUS_TRACKING_REQUIRED_TYPES = frozenset(['file_set'])
+
 
 class CalcPropConstants:
 
@@ -783,6 +787,22 @@ class File(Item, CoreFile):
                     current_status: self.properties['date_created']
                 }
             }
+
+        # During indexing, skip the @@revision-history fetch when this File is
+        # sub-embedded inside an item that doesn't use file_status_tracking.
+        # _aggregate_for['uuid'] is the primary indexed item's UUID (set before
+        # both @@object and @@embedded in indexing_views.py). If it differs from
+        # self.uuid, we're a sub-embed. Only file_set explicitly embeds this field.
+        # Return None (not {}) to match other early-return paths in this function
+        # — calc props returning None are excluded from the properties dict,
+        # whereas {} would persist as an empty dict and could pollute cached
+        # @@object views consumed by FileSet indexing later in the same /index
+        # batch (the embed_cache is shared across items in a single transaction).
+        if request._indexing_view:
+            primary_uuid = request._aggregate_for.get('uuid')
+            if primary_uuid and primary_uuid != str(self.uuid):
+                if request._aggregate_for.get('item_type') not in FILE_STATUS_TRACKING_REQUIRED_TYPES:
+                    return None
 
         # we need the revision history
         status_tracking = {}

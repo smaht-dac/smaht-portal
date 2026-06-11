@@ -1589,6 +1589,7 @@ body[data-path="/statistics"] {
         overflow: visible;
     }
 
+
     .matrix-mode-tabs-row {
         border-bottom: 1px solid #c7d5e4;
         width: 100%;
@@ -1888,6 +1889,7 @@ body[data-path="/statistics"] {
                         width: 320px;
                         max-width: 320px;
                     }
+
                 }
             }
 
@@ -2412,8 +2414,9 @@ body[data-path="/statistics"] {
             }
 
             .stacked-block.is-open-block {
+                // Keep semantic fill color from JS (do not force white), otherwise
+                // valid coverage cells can look empty when selected/open.
                 opacity: 1 !important;
-                background-color: #fff !important;
                 font-weight: 600 !important;
                 border-width: 2px !important;
                 border-style: solid !important;
@@ -2656,6 +2659,63 @@ body[data-path="/statistics"] {
     }
 
     &.matrix-mode-donor-tissue {
+        .stacked-block-viz-container {
+            .header-for-viz {
+                .header-group-text {
+                    .header-group-controls-inline {
+                        width: 300px;
+                        max-width: 300px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.35rem;
+                        justify-content: center;
+                        align-items: center;
+                        transform: translateY(-70%);
+
+                        .matrix-donor-tissue-controls-stack {
+                            width: 300px;
+                            max-width: 300px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.55rem;
+                            margin-bottom: 0.65rem;
+
+                            .matrix-assay-select-control,
+                            .matrix-visual-metric-controls { margin: 0 !important; }
+
+                            .matrix-assay-select-control {
+                                width: 300px;
+                                max-width: 300px;
+                            }
+
+                            .matrix-assay-select-inline {
+                                min-width: 280px;
+                                max-width: 280px;
+                            }
+
+                            .matrix-visual-metric-controls {
+                                .matrix-counts-toggle-inline {
+                                    .view-toggle {
+                                        width: auto;
+                                        display: inline-flex;
+                                        column-gap: 0.25rem;
+                                        justify-content: initial;
+
+                                        .btn {
+                                            width: auto;
+                                            min-width: 0;
+                                            justify-content: center;
+                                            text-align: center;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         .matrix-counts-panel {
             .matrix-facet-terms-panel.search-view-controls-and-results {
                 .facets-container .facets-header.row {

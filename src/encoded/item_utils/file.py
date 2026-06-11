@@ -16,6 +16,7 @@ from . import (
 from .constants import file as file_constants
 from .utils import (
     RequestHandler,
+    dedupe_identifiers,
     get_property_value_from_identifier,
     get_property_values_from_identifiers,
 )
@@ -89,6 +90,11 @@ def get_file_sets(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]
 def get_quality_metrics(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get quality metrics from properties."""
     return properties.get("quality_metrics", [])
+
+
+def get_external_quality_metrics(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get external quality metrics from properties."""
+    return properties.get("external_quality_metrics", [])
 
 
 def is_uploaded(properties: Dict[str, Any]) -> bool:
@@ -262,7 +268,7 @@ def get_cell_cultures(
         for sample_source in sample_sources
         if cell_culture.is_cell_culture(request_handler.get_item(sample_source))
     ]
-    return list(set(cell_cultures_from_mixtures + direct_cell_cultures))
+    return dedupe_identifiers(cell_cultures_from_mixtures + direct_cell_cultures)
 
 
 def get_cell_lines(
@@ -273,16 +279,14 @@ def get_cell_lines(
     cell_culture_mixtures = get_cell_culture_mixtures(
         properties, request_handler=request_handler
     )
-    return list(
-        set(
-            get_property_values_from_identifiers(
-                request_handler, cell_cultures, cell_culture.get_cell_line
-            )
-            + get_property_values_from_identifiers(
-                request_handler,
-                cell_culture_mixtures,
-                partial(cell_culture_mixture.get_cell_lines, request_handler),
-            )
+    return dedupe_identifiers(
+        get_property_values_from_identifiers(
+            request_handler, cell_cultures, cell_culture.get_cell_line
+        )
+        + get_property_values_from_identifiers(
+            request_handler,
+            cell_culture_mixtures,
+            partial(cell_culture_mixture.get_cell_lines, request_handler),
         )
     )
 
@@ -294,14 +298,12 @@ def get_donors(
     if request_handler:
         tissues = get_tissues(properties, request_handler)
         cell_lines = get_cell_lines(properties, request_handler)
-        return list(
-            set(
-                get_property_values_from_identifiers(
-                    request_handler, tissues, tissue.get_donor
-                )
-                + get_property_values_from_identifiers(
-                    request_handler, cell_lines, partial(cell_line.get_source_donor, request_handler)
-                )
+        return dedupe_identifiers(
+            get_property_values_from_identifiers(
+                request_handler, tissues, tissue.get_donor
+            )
+            + get_property_values_from_identifiers(
+                request_handler, cell_lines, partial(cell_line.get_source_donor, request_handler)
             )
         )
     return properties.get("donors", [])
@@ -519,3 +521,8 @@ def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -
             tissue.get_category, request_handler=request_handler
         )
     )
+
+
+def get_meta_workflow_run_outputs(file: Dict[str, Any]) -> Union[List[str], List[Dict[str, Any]]]:
+    """Get output metaworkflow_run from file."""
+    return file.get("meta_workflow_run_outputs",[])

@@ -1,12 +1,16 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 from ..item_utils.utils import (
     RequestHandler,
-    get_property_values_from_identifiers
+    dedupe_identifiers,
+    get_property_values_from_identifiers,
 )
 from ..item_utils import (
     item as item_utils,
-    tissue as tissue_utils
+    tissue as tissue_utils,
+    file as file_utils,
+    meta_workflow_run as mwfr_utils,
+    submitted_file as submitted_file_utils,
 )
 
 
@@ -43,9 +47,12 @@ def get_donors(
     """Get donors associated with external output file."""
     if (donors := get_source_donors(properties)):
         return donors
-    return list(set(get_property_values_from_identifiers(
+    # dedupe_identifiers (not list(set(...))) so a tissue whose @@object
+    # returned donor as an embedded dict (instead of a bare linkTo path)
+    # doesn't crash this with `unhashable type: 'dict'`.
+    return dedupe_identifiers(get_property_values_from_identifiers(
         request_handler, get_tissues(properties), tissue_utils.get_donor
-    )))
+    ))
 
 
 def get_tissue_category(
@@ -91,4 +98,41 @@ def get_uberon_ids(
     return list(set(get_property_values_from_identifiers(
         request_handler, get_tissues(properties), tissue_utils.get_uberon_id
     )))
+
+
+def get_mwfr_file_sets_from_derived_from(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get file_sets from the output meta_workflow_run of the derived_from files associated with file."""
+    mwfr = get_property_values_from_identifiers(
+        request_handler,
+        submitted_file_utils.get_derived_from(properties),
+        file_utils.get_meta_workflow_run_outputs,
+    )
+    return get_property_values_from_identifiers(
+        request_handler,
+        mwfr,
+        mwfr_utils.get_file_sets,
+    )
+    
+
+def get_mwfr_input_file_sets_from_derived_from(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get file_sets from input files of the output meta_workflow_run of the derived_from files associated with file."""
+    mwfr = get_property_values_from_identifiers(
+        request_handler,
+        submitted_file_utils.get_derived_from(properties),
+        file_utils.get_meta_workflow_run_outputs,
+    )
+    input_files = get_property_values_from_identifiers(
+        request_handler,
+        mwfr,
+        mwfr_utils.get_files_from_input,
+    )
+    return get_property_values_from_identifiers(
+        request_handler,
+        input_files,
+        file_utils.get_file_sets,
+    )
 

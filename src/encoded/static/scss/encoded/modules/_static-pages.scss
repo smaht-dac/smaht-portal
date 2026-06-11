@@ -448,6 +448,9 @@
                 margin-bottom: 0;
                 margin-top: 0;
                 margin-left: -20px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
                 &:focus {
                     text-decoration: none;
                     color: $link-color;
@@ -840,6 +843,39 @@ body[data-path='/'] > #application > #layout {
                         }
                     }
 
+                    &.data-freeze {
+                        flex: none;
+
+                        .section-header span:hover {
+                            cursor: default;
+                        }
+
+                        .p25-link {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            background-color: #fcfdfe;
+                            border: 1px solid $cobalt-20;
+                            border-radius: 8px;
+                            color: #356588;
+                            font-size: 1rem;
+                            font-weight: 500;
+                            padding: 10px;
+                            transition: background-color 15ms ease-in;
+
+                            i {
+                                color: $cobalt-20;
+                                margin: auto;
+                            }
+
+                            &:hover {
+                                background-color: #f6f7f8;
+                            }
+                            &:hover {
+                                background-color: #f5f7f8;
+                            }
+                        }
+                    }
                     &.data-release-tracker {
                         display: flex;
 
@@ -1633,6 +1669,9 @@ body[data-path='/'] > #application > #layout {
                 .homepage-figure-container {
                     justify-content: center;
                 }
+                .notifications-panel {
+                    width: 23vw;
+                }
             }
         }
     }
@@ -1652,7 +1691,7 @@ body[data-path='/'] > #application > #layout {
                 }
 
                 .notifications-panel {
-                    width: 400px;
+                    width: 450px;
                     padding: 38px 27px;
                 }
             }
@@ -3265,7 +3304,14 @@ body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
 }
 
 /** Retracted Files Table styles **/
-.retracted-files-table {
+.retracted-files-table,
+.renamed-files-table {
+    .tab-section-title {
+        font-size: 1rem;
+        min-height: auto;
+        margin-top: 40px;
+        margin-bottom: 10px;
+    }
     .search-headers-row {
         background-color: #fff1f1 !important;
     }
@@ -3553,7 +3599,7 @@ FAQ page styles
     }
 }
 
-.account-creation-nav {
+.static-page-top-navigation-container {
     display: flex;
     justify-content: center;
     gap: 20px;
@@ -3562,8 +3608,8 @@ FAQ page styles
         display: flex;
         flex-direction: column;
         flex: 1;
-        justify-content: center;
-        padding: 25px 15px;
+        justify-content: flex-start;
+        padding: 35px 30px 25px;
         background-color: #edf6fe;
         border: 1px solid #e4f0fa;
         color: #343741;
@@ -3614,12 +3660,13 @@ FAQ page styles
 
 // SMaHT Data Account Creation
 [data-at-type='DocsAccessCreating-an-accountPage'] {
-    h3#for-non-smaht-network-members-self-registration,
+    h3#for-non-network-members-self-registration,
     h3#for-smaht-network-members-membership-verification-account-creation,
     h3#faq-and-troubleshooting {
         border-bottom: 1px solid #f4f4f4;
         padding-bottom: 15px;
         font-size: 1.5rem;
+        scroll-margin: 60px;
     }
 
     .static-section-entry {
@@ -3645,7 +3692,7 @@ FAQ page styles
         }
     }
     h3 {
-        font-size: 20px;
+        font-size: 1.25rem;
     }
     h4 {
         font-size: 20px;
@@ -3722,7 +3769,7 @@ FAQ page styles
     .static-section-entry {
         .section-content {
             .introduction {
-                margin-bottom: 3rem;
+                margin-bottom: 2rem;
                 color: #343741;
             }
 
@@ -3734,7 +3781,6 @@ FAQ page styles
                 margin-bottom: 4rem;
 
                 h3 {
-                    color: #343741;
                     padding-bottom: 15px;
                     margin-bottom: 25px;
                     border-bottom: 1px solid #f4f4f4;
@@ -3890,6 +3936,18 @@ FAQ page styles
 
         &.help-entry#pipeline_docs {
             margin-top: 50px;
+        }
+    }
+
+    &[data-path='/docs/additional-resources/pipeline-docs'] {
+        h3 {
+            font-size: 1.5rem;
+        }
+        h5 {
+            font-size: 16px;
+            color: #2e385a;
+            margin-bottom: 20px;
+            margin-top: 40px;
         }
     }
 }
