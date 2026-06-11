@@ -31,8 +31,7 @@
             },
             {
             "subregion": "Temporal Lobe Left Hemisphere",
-            "is_present": "No",
-            "tissue_autolysis_score": 1
+            "is_present": "No"
             }
         ],
         "developmental_neuropathology_present": "No",

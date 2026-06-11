@@ -7,9 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-1.30.1
+
+1.30.2
 ======
 
+`PR 689: add portal pathology report metadata validators <https://github.com/smaht-dac/smaht-portal/pull/689>`_
+
+* Portal validators for PathologyReport metadata as specified by TPC 
+* These are redundant with already implemented submitr validators, but are added to the portal to provide an additional layer of protection against bad metadata generated through non-standard submission 
+* validation makes sure that conditional requirements for both brain and non-brain pathology reports are met
+
+
+1.30.1
 `PR 682: add new fields to file manifest <https://github.com/smaht-dac/smaht-portal/pull/682>`_
 
 * Add new/missing fields to file manifest - 8 fields added including DataCategory and FileNotes and others that only apply to a subset of file types
