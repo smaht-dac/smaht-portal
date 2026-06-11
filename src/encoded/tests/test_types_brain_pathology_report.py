@@ -97,12 +97,10 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
             },
             200,
         ),
-        # Invalid: present=Yes, description absent
-        (
-            {_NEUROPATH_PRESENT_FIELD: "Yes"},
-            422,
-        ),
         # Invalid: present=Yes, description is whitespace-only
+        # Note: "present=Yes, description absent from PATCH" is not testable via
+        # PATCH on a shared workbook item — a prior 200 case writes the description
+        # into stored state and it persists through the merge. Covered by on_add.
         (
             {
                 _NEUROPATH_PRESENT_FIELD: "Yes",
@@ -339,11 +337,9 @@ def test_validate_brain_subregions_on_add(
             },
             200,
         ),
-        # Invalid: staining_performed=Yes, no staining fields present
-        (
-            {"additional_age-related_staining_performed": "Yes"},
-            422,
-        ),
+        # Note: "staining_performed=Yes, no staining fields in PATCH" is not testable via
+        # PATCH on a shared workbook item — the insert + prior 200 cases write staining
+        # fields into stored state and they persist through the merge. Covered by on_add.
     ],
 )
 def test_validate_age_related_staining_on_edit(
@@ -425,14 +421,23 @@ def test_brain_pathology_report_force_pass(
     """force_pass query parameter must bypass all BrainPathologyReport validators."""
     item = get_item(es_testapp, _WORKBOOK_REPORT_ID, collection=_COLLECTION)
     atid = item["@id"]
-    invalid_patch = {_NEUROPATH_PRESENT_FIELD: "Yes"}  # no description → validator rejects
+    original_brain_subregions = item.get("brain_subregions", [])
+    # is_present=Yes with no tissue_autolysis_score → always 422 regardless of prior state
+    # (array replacement means no stale fields survive from previous tests)
+    invalid_patch = {
+        "brain_subregions": [
+            {
+                "subregion": "Frontal Lobe Left Hemisphere",
+                "is_present": "Yes",
+            }
+        ]
+    }
     try:
         es_testapp.patch_json(f"/{atid}", invalid_patch, status=422)
         es_testapp.patch_json(f"/{atid}?force_pass", invalid_patch, status=200)
     finally:
-        # Restore: present=No requires no description → always a valid patch
         es_testapp.patch_json(
-            f"/{atid}", {_NEUROPATH_PRESENT_FIELD: "No"}, status=200
+            f"/{atid}", {"brain_subregions": original_brain_subregions}, status=200
         )
 
 
@@ -471,12 +476,18 @@ def test_brain_subregion_error_message_format(
 def test_age_related_staining_error_message_format(
     es_testapp: TestApp, workbook: None
 ) -> None:
-    """Validation error when staining_performed=Yes with no staining fields has the expected format."""
-    uuid = get_item(es_testapp, _WORKBOOK_REPORT_ID, collection=_COLLECTION)["uuid"]
+    """Staining-performed=Yes with no staining fields produces the expected error format."""
+    insert = get_item(es_testapp, _WORKBOOK_REPORT_ID, collection=_COLLECTION)
+    fresh = post_item(
+        es_testapp,
+        _build_post_body(insert, "ARSEMF"),
+        _ITEM_TYPE,
+        status=201,
+    )
     res = patch_item(
         es_testapp,
         {"additional_age-related_staining_performed": "Yes"},
-        uuid,
+        fresh["uuid"],
         status=422,
     )
     assert_validation_error_as_expected(
