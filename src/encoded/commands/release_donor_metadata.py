@@ -20,7 +20,9 @@ Core behavior:
 - Provides an interactive prompt for confirmation before patching.
 
 Usage:
-    python donor_release.py --donor DONOR_ID --env ENV [options]
+    release_donor_metadata --donor DONOR_ID --env ENV [options]
+    or 
+    python release_donor_metadata.py --donor DONOR_ID --env ENV [options]
 
 Options:
     --donor, -d DONOR_ID
@@ -57,10 +59,10 @@ Caveats:
 
 Examples:
     # Dry run a single donor release in a dev environment
-    python donor_release.py --donor 72205a8a-8480-43a6-84fe-c2d2bf8263a5 --env devtest --dry-run
+    python release_donor_metadata.py --donor 72205a8a-8480-43a6-84fe-c2d2bf8263a5 --env devtest --dry-run
 
     # Release multiple donors externally with tissues included
-    python donor_release.py -d SMADODDZCLFE -d SMADOGYU231H -e data --include-tissues --external
+    python release_donor_metadata.py  -d SMADODDZCLFE -d SMADOGYU231H -e data --include-tissues --external
 """
 
 import argparse
