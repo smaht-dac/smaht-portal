@@ -37,21 +37,6 @@ _BASE_VALID_BRAIN_FIELDS: Dict[str, Any] = {
 }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Fixture  (for non-workbook / force_pass tests only)
-# ─────────────────────────────────────────────────────────────────────────────
-
-@pytest.fixture
-def test_brain_pathology_report(testapp: TestApp) -> Dict[str, Any]:
-    """Create a minimal valid BrainPathologyReport for unit-style tests."""
-    item = {
-        "submitted_id": "TEST_BRAIN-PATH-REPORT_UNIT_001",
-        "submission_centers": ["smaht"],
-        "brain_subregions": [_VALID_BRAIN_SUBREGION],
-        **_BASE_VALID_BRAIN_FIELDS,
-    }
-    return post_item(testapp, item, _ITEM_TYPE, status=201)
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper
@@ -431,14 +416,22 @@ def test_validate_age_related_staining_on_add(
 # Force-pass bypass
 # ─────────────────────────────────────────────────────────────────────────────
 
+@pytest.mark.workbook
 def test_brain_pathology_report_force_pass(
-    testapp: TestApp, test_brain_pathology_report: Dict[str, Any]
+    es_testapp: TestApp, workbook: None
 ) -> None:
     """force_pass query parameter must bypass all BrainPathologyReport validators."""
-    atid = test_brain_pathology_report["@id"]
-    invalid_patch = {_NEUROPATH_PRESENT_FIELD: "Yes"}  # description deliberately absent
-    testapp.patch_json(f"/{atid}", invalid_patch, status=422)
-    testapp.patch_json(f"/{atid}?force_pass", invalid_patch, status=200)
+    item = get_item(es_testapp, _WORKBOOK_REPORT_ID, collection=_COLLECTION)
+    atid = item["@id"]
+    invalid_patch = {_NEUROPATH_PRESENT_FIELD: "Yes"}  # no description → validator rejects
+    try:
+        es_testapp.patch_json(f"/{atid}", invalid_patch, status=422)
+        es_testapp.patch_json(f"/{atid}?force_pass", invalid_patch, status=200)
+    finally:
+        # Restore: present=No requires no description → always a valid patch
+        es_testapp.patch_json(
+            f"/{atid}", {_NEUROPATH_PRESENT_FIELD: "No"}, status=200
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -35,22 +35,6 @@ _VALID_PATHOLOGIC_FINDING = {
 }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Fixture  (for non-workbook / force_pass tests only)
-# ─────────────────────────────────────────────────────────────────────────────
-
-@pytest.fixture
-def test_non_brain_pathology_report(testapp: TestApp) -> Dict[str, Any]:
-    """Create a minimal valid NonBrainPathologyReport for unit-style tests."""
-    item = {
-        "submitted_id": "TEST_NON-BRAIN-PATH-REPORT_UNIT_001",
-        "submission_centers": ["smaht"],
-        "target_tissues": [_VALID_TARGET_TISSUE],
-        "non_target_tissues": [_VALID_NON_TARGET_TISSUE],
-        "pathologic_findings": [_VALID_PATHOLOGIC_FINDING],
-    }
-    return post_item(testapp, item, _ITEM_TYPE, status=201)
-
 
 @pytest.mark.workbook
 def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None:
@@ -643,22 +627,34 @@ def test_validate_pathologic_findings_on_add(
 # Force-pass bypass
 # ─────────────────────────────────────────────────────────────────────────────
 
+@pytest.mark.workbook
 def test_non_brain_pathology_report_force_pass(
-    testapp: TestApp, test_non_brain_pathology_report: Dict[str, Any]
+    es_testapp: TestApp, workbook: None
 ) -> None:
     """force_pass query parameter must bypass all NonBrainPathologyReport validators."""
-    atid = test_non_brain_pathology_report["@id"]
+    item = get_item(es_testapp, _WORKBOOK_REPORT_ID, collection=_COLLECTION)
+    atid = item["@id"]
+    original_target_tissues = item.get("target_tissues", [])
+    # "[0-10]" is a valid schema enum but custom validator requires "0" when present="No"
     invalid_patch = {
         "target_tissues": [
             {
                 "target_tissue_subtype": "Liver",
                 "target_tissue_present": "No",
-                "target_tissue_percentage": "30",  # invalid: must be "0" when present=No
+                "target_tissue_percentage": "[0-10]",
             }
         ]
     }
-    testapp.patch_json(f"/{atid}", invalid_patch, status=422)
-    testapp.patch_json(f"/{atid}?force_pass", invalid_patch, status=200)
+    try:
+        es_testapp.patch_json(f"/{atid}", invalid_patch, status=422)
+        es_testapp.patch_json(f"/{atid}?force_pass", invalid_patch, status=200)
+    finally:
+        # Restore original target_tissues — replacing the array with valid data
+        es_testapp.patch_json(
+            f"/{atid}",
+            {"target_tissues": original_target_tissues},
+            status=200,
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
