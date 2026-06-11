@@ -37,7 +37,6 @@ _BASE_VALID_BRAIN_FIELDS: Dict[str, Any] = {
 }
 
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper
 # ─────────────────────────────────────────────────────────────────────────────
@@ -50,13 +49,16 @@ def _build_post_body(
     """
     Build a POST body for a new BrainPathologyReport.
 
-    Derives submitted_id and submission_centers from a workbook insert and
-    seeds every other field with a stable valid default.  Pass keyword
-    arguments to override any field (including brain_subregions).
+    Derives required scalar fields and submission_centers from a workbook
+    insert and seeds every other field with a stable valid default. Pass
+    keyword arguments to override any field (including brain_subregions).
     """
     base: Dict[str, Any] = {
         "submitted_id": f"{insert['submitted_id']}_{suffix}",
         "submission_centers": insert.get("submission_centers", ["smaht"]),
+        "tissue_name": insert["tissue_name"],
+        "outcome": insert["outcome"],
+        "tissue_samples": insert["tissue_samples"],
         "brain_subregions": [_VALID_BRAIN_SUBREGION],
         **_BASE_VALID_BRAIN_FIELDS,
     }

@@ -35,7 +35,6 @@ _VALID_PATHOLOGIC_FINDING = {
 }
 
 
-
 @pytest.mark.workbook
 def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None:
     """Ensure submitted_id is resource path for non-brain pathology report with PathologyReport collection.
@@ -58,13 +57,16 @@ def _build_post_body(
     """
     Build a POST body for a new NonBrainPathologyReport.
 
-    Derives submitted_id and submission_centers from a workbook insert.
-    Each of the three array fields defaults to a stable valid value;
+    Derives required scalar fields and submission_centers from a workbook
+    insert. Each of the three array fields defaults to a stable valid value;
     pass the field name as a keyword argument to override it.
     """
     return {
         "submitted_id": f"{insert['submitted_id']}_{suffix}",
         "submission_centers": insert.get("submission_centers", ["smaht"]),
+        "tissue_name": insert["tissue_name"],
+        "outcome": insert["outcome"],
+        "tissue_samples": insert["tissue_samples"],
         "target_tissues": array_overrides.get("target_tissues", [_VALID_TARGET_TISSUE]),
         "non_target_tissues": array_overrides.get(
             "non_target_tissues", [_VALID_NON_TARGET_TISSUE]
@@ -674,7 +676,7 @@ def test_target_tissue_error_message_format(
                 {
                     "target_tissue_subtype": "Liver",
                     "target_tissue_present": "No",
-                    "target_tissue_percentage": "30",
+                    "target_tissue_percentage": "[0-10]",
                 }
             ]
         },
@@ -699,7 +701,7 @@ def test_pathologic_finding_error_message_format(
         {
             "pathologic_findings": [
                 {
-                    "finding_type": "Fibrosis",
+                    "finding_type": "Inflammation",
                     "finding_present": "Yes",
                     # both finding_description and finding_percentage deliberately absent
                 }
