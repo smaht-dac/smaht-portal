@@ -552,7 +552,7 @@ export class VisualBody extends React.PureComponent {
                 );
                 //2. traverse rowAggFields to see if facetField exists there
                 if (!compositeFacetPairs && Array.isArray(rowAggFields)) {
-                    for (const field in rowAggFields) {
+                    for (const field of rowAggFields) {
                         compositeFacetPairs = VisualBody.getFacetPairs(
                             facetField,
                             facetTerm,

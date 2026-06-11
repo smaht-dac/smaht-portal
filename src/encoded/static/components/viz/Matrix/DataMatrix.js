@@ -1652,10 +1652,6 @@ export default class DataMatrix extends React.PureComponent {
         return false;
     }
 
-    // isLocalEnv() {
-    //     return isLocalEnv();
-    // }
-
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
