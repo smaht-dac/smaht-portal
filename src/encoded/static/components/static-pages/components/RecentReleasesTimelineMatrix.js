@@ -281,7 +281,10 @@ const getURLDateForSelectedTarget = (timelineMode = TIMELINE_MODES.WEEKLY, selec
         return selectedDay?.key || selectedMatrixTarget?.key || null;
     }
     if (timelineMode === TIMELINE_MODES.WEEKLY) {
-        return selectedMatrixTarget?.from || null;
+        return selectedMatrixTarget?.from
+            || selectedMatrixTarget?.key?.replace(/^month-/, '')
+            || selectedMatrixTarget?.browseQuery?.match(/\d{4}-\d{2}(?:-\d{2})?/)?.[0]
+            || null;
     }
     return selectedMatrixTarget?.key?.replace(/^month-/, '') || selectedMatrixTarget?.browseQuery?.match(/\d{4}-\d{2}/)?.[0] || null;
 };
