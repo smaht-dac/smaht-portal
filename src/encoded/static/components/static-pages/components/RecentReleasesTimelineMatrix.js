@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { ajax, console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -31,6 +31,10 @@ const RELEASE_DATE_FACET_FIELDS = [
     'file_status_tracking.release_dates.initial_release',
     'file_status_tracking.release_dates.initial_release_date'
 ];
+const RECENT_RELEASES_URL_PARAMS = {
+    VIEW: 'view',
+    DATE: 'date'
+};
 
 const formatMonthLabel = (monthValue = '') => {
     const parsed = new Date(`${monthValue}-01T00:00:00`);
@@ -191,6 +195,113 @@ const addMonthOffset = (monthKey = '', offset = 0) => {
     return getMonthKey(shifted);
 };
 
+const isValidTimelineMode = (value = '') => Object.values(TIMELINE_MODES).includes(value);
+
+const isValidDetailViewMode = (value = '') => Object.values(DETAIL_VIEW_MODES).includes(value);
+
+const getMonthKeyFromDateString = (dateString = '') => {
+    if (/^\d{4}-\d{2}$/.test(String(dateString))) {
+        return String(dateString);
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(dateString))) {
+        return String(dateString).slice(0, 7);
+    }
+    return null;
+};
+
+const getDateStringFromLocation = () => {
+    if (typeof window === 'undefined') return '';
+    return window.location?.search || '';
+};
+
+const getRecentReleasesURLState = () => {
+    // Recent Releases supports deep-linking into a specific timeline mode/date,
+    // e.g. `?view=weekly&date=2026-04-19`.
+    const queryString = getDateStringFromLocation();
+    const queryParams = new URLSearchParams(queryString);
+    const view = queryParams.get(RECENT_RELEASES_URL_PARAMS.VIEW);
+    const date = queryParams.get(RECENT_RELEASES_URL_PARAMS.DATE);
+
+    return {
+        timelineMode: isValidTimelineMode(view) ? view : TIMELINE_MODES.WEEKLY,
+        selectedDate: date || null
+    };
+};
+
+const buildRecentReleasesTargetFromDate = (months = [], timelineMode = TIMELINE_MODES.WEEKLY, selectedDate = null) => {
+    if (!selectedDate || !months.length) {
+        return null;
+    }
+
+    if (timelineMode === TIMELINE_MODES.DAILY) {
+        const day = _.chain(months).pluck('days').flatten().find((item) => item?.key === selectedDate).value() || null;
+        return day ? {
+            monthKey: getMonthKeyFromDateString(day.key),
+            selectedDay: day,
+            selectedMatrixTarget: day
+        } : null;
+    }
+
+    if (timelineMode === TIMELINE_MODES.WEEKLY) {
+        const allWeeks = _.chain(months).map((month) => buildWeekBucketsForMonth(month)).flatten().value();
+        const week = _.find(allWeeks, (item) => item?.from <= selectedDate && item?.to >= selectedDate) || null;
+        return week ? {
+            monthKey: getMonthKeyFromDateString(selectedDate),
+            selectedDay: null,
+            selectedMatrixTarget: week
+        } : null;
+    }
+
+    const monthKey = getMonthKeyFromDateString(selectedDate);
+    const month = _.find(months, (item) => item?.value === monthKey) || null;
+    return month ? {
+        monthKey,
+        selectedDay: null,
+        selectedMatrixTarget: {
+            key: `month-${month.value}`,
+            fullLabel: month.label,
+            browseQuery: month.browseQuery,
+            matrixQuery: buildMatrixQueryFromBrowseQuery(month.browseQuery || '')
+        }
+    } : null;
+};
+
+const getMonthWindowStartIndexForTarget = (months = [], monthWindowSize = 1, monthKey = null) => {
+    if (!monthKey || !months.length) return 0;
+    const targetMonthIndex = _.findIndex(months, (month) => month?.value === monthKey);
+    if (targetMonthIndex < 0) return 0;
+    return Math.min(
+        targetMonthIndex,
+        Math.max(0, months.length - monthWindowSize)
+    );
+};
+
+const getURLDateForSelectedTarget = (timelineMode = TIMELINE_MODES.WEEKLY, selectedDay = null, selectedMatrixTarget = null) => {
+    if (timelineMode === TIMELINE_MODES.DAILY) {
+        return selectedDay?.key || selectedMatrixTarget?.key || null;
+    }
+    if (timelineMode === TIMELINE_MODES.WEEKLY) {
+        return selectedMatrixTarget?.from || null;
+    }
+    return selectedMatrixTarget?.key?.replace(/^month-/, '') || selectedMatrixTarget?.browseQuery?.match(/\d{4}-\d{2}/)?.[0] || null;
+};
+
+const syncRecentReleasesURLState = ({ timelineMode, selectedDate }) => {
+    if (typeof window === 'undefined') return;
+    // Keep the URL in sync with the current calendar selection so reloading,
+    // sharing, or opening in a new tab lands on the same Recent Releases state.
+    const url = new URL(window.location.href);
+    if (timelineMode) {
+        url.searchParams.set(RECENT_RELEASES_URL_PARAMS.VIEW, timelineMode);
+    }
+    if (selectedDate) {
+        url.searchParams.set(RECENT_RELEASES_URL_PARAMS.DATE, selectedDate);
+    } else {
+        url.searchParams.delete(RECENT_RELEASES_URL_PARAMS.DATE);
+    }
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+};
+
 const compareMonthKeys = (leftMonthKey = '', rightMonthKey = '') => (
     String(leftMonthKey).localeCompare(String(rightMonthKey))
 );
@@ -320,49 +431,51 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
         () => _.uniq([...(hideFacets || []), ...RELEASE_DATE_FACET_FIELDS]),
         [hideFacets]
     );
-    const alignedColumnExtensionMap = useMemo(() => ({
-        ...columnExtensionMap,
-        '@type': {
-            ...(columnExtensionMap?.['@type'] || {}),
-            noSort: true,
-            widthMap: { lg: 60, md: 60, sm: 60 },
-            colTitle: (
-                <div className="d-flex align-items-center justify-content-center w-100">
-                    <SelectAllFilesButton {...selectedFileProps} searchHref={searchHref} type="checkbox" />
-                </div>
-            ),
-            render: (result) => (
-                <div className="d-flex align-items-center justify-content-center w-100">
-                    <SelectionItemCheckbox
-                        {...{ selectedItems, onSelectItem, result }}
-                        isMultiSelect={true}
-                    />
-                </div>
-            )
-        },
-        access_status: {
-            ...(columnExtensionMap?.access_status || {}),
-            noSort: true,
-            widthMap: { lg: 60, md: 60, sm: 60 },
-            colTitle: (
-                <div className="d-flex align-items-center justify-content-center w-100">
-                    <i className="icon icon-lock fas" data-tip="Access" />
-                </div>
-            ),
-            render: (result = {}) => {
-                const accessStatus = result?.access_status || null;
-                return (
+    const alignedColumnExtensionMap = useMemo(() => {
+        return {
+            ...columnExtensionMap,
+            '@type': {
+                ...(columnExtensionMap?.['@type'] || {}),
+                noSort: true,
+                widthMap: { lg: 60, md: 60, sm: 60 },
+                colTitle: (
                     <div className="d-flex align-items-center justify-content-center w-100">
-                        {accessStatus === 'Protected' ? (
-                            <i className="icon icon-lock fas" data-tip="Protected" />
-                        ) : (
-                            <span className="value text-center">{accessStatus || ''}</span>
-                        )}
+                        <SelectAllFilesButton {...selectedFileProps} searchHref={searchHref} type="checkbox" />
                     </div>
-                );
+                ),
+                render: (result) => (
+                    <div className="d-flex align-items-center justify-content-center w-100">
+                        <SelectionItemCheckbox
+                            {...{ selectedItems, onSelectItem, result }}
+                            isMultiSelect={true}
+                        />
+                    </div>
+                )
+            },
+            access_status: {
+                ...(columnExtensionMap?.access_status || {}),
+                noSort: true,
+                widthMap: { lg: 60, md: 60, sm: 60 },
+                colTitle: (
+                    <div className="d-flex align-items-center justify-content-center w-100">
+                        <i className="icon icon-lock fas" data-tip="Access" />
+                    </div>
+                ),
+                render: (result = {}) => {
+                    const accessStatus = result?.access_status || null;
+                    return (
+                        <div className="d-flex align-items-center justify-content-center w-100">
+                            {accessStatus === 'Protected' ? (
+                                <i className="icon icon-lock fas" data-tip="Protected" />
+                            ) : (
+                                <span className="value text-center">{accessStatus || ''}</span>
+                            )}
+                        </div>
+                    );
+                }
             }
-        }
-    }), [columnExtensionMap, selectedFileProps, selectedItems, onSelectItem]);
+        };
+    }, [columnExtensionMap, selectedFileProps, selectedItems, onSelectItem]);
 
     return (
         <EmbeddedItemSearchTable
@@ -450,14 +563,17 @@ const buildWeekBucketsForMonth = (month = {}) => {
 };
 
 export const RecentReleasesTimelineMatrix = ({ session }) => {
+    const initialURLState = useMemo(() => getRecentReleasesURLState(), []);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingOlderMonths, setIsLoadingOlderMonths] = useState(false);
     const [months, setMonths] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
     const [selectedMatrixTarget, setSelectedMatrixTarget] = useState(null);
     const [monthWindowStartIndex, setMonthWindowStartIndex] = useState(0);
-    const [timelineMode, setTimelineMode] = useState(TIMELINE_MODES.WEEKLY);
+    const [timelineMode, setTimelineMode] = useState(initialURLState.timelineMode);
     const [detailViewMode, setDetailViewMode] = useState(DETAIL_VIEW_MODES.TABLE);
+    const pendingURLTargetRef = useRef(initialURLState.selectedDate);
+    const isApplyingURLStateRef = useRef(!!initialURLState.selectedDate);
 
     useEffect(() => {
         let isCancelled = false;
@@ -571,6 +687,34 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
 
     useEffect(() => {
         if (!months?.length) return;
+        if (isApplyingURLStateRef.current && pendingURLTargetRef.current) {
+            const requestedMonthKey = getMonthKeyFromDateString(pendingURLTargetRef.current);
+            const requestedTarget = buildRecentReleasesTargetFromDate(months, timelineMode, pendingURLTargetRef.current);
+
+            if (requestedTarget) {
+                setMonthWindowStartIndex(getMonthWindowStartIndexForTarget(months, monthWindowSize, requestedTarget.monthKey));
+                setSelectedDay(requestedTarget.selectedDay);
+                setSelectedMatrixTarget(requestedTarget.selectedMatrixTarget);
+                pendingURLTargetRef.current = null;
+                isApplyingURLStateRef.current = false;
+                return;
+            }
+
+            if (
+                requestedMonthKey &&
+                oldestLoadedMonth &&
+                compareMonthKeys(requestedMonthKey, oldestLoadedMonth) < 0 &&
+                compareMonthKeys(requestedMonthKey, OLDEST_NAVIGABLE_MONTH) >= 0 &&
+                !isLoadingOlderMonths
+            ) {
+                loadOlderMonths();
+                return;
+            }
+
+            pendingURLTargetRef.current = null;
+            isApplyingURLStateRef.current = false;
+        }
+
         if (timelineMode === TIMELINE_MODES.DAILY) {
             if (selectedDay?.key) {
                 setSelectedMatrixTarget(selectedDay);
@@ -599,7 +743,15 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
             browseQuery: firstMonth.browseQuery,
             matrixQuery: buildMatrixQueryFromBrowseQuery(firstMonth.browseQuery || '')
         } : null);
-    }, [timelineMode, months]);
+    }, [timelineMode, months, monthWindowSize, oldestLoadedMonth, isLoadingOlderMonths]);
+
+    useEffect(() => {
+        if (isLoading || isApplyingURLStateRef.current) return;
+        syncRecentReleasesURLState({
+            timelineMode,
+            selectedDate: getURLDateForSelectedTarget(timelineMode, selectedDay, selectedMatrixTarget)
+        });
+    }, [isLoading, timelineMode, selectedDay, selectedMatrixTarget]);
 
     if (isLoading) {
         return (
@@ -612,13 +764,13 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                         </p>
                         <div className="recent-releases-divider" />
                         <div className="release-view-mode-toggle mb-2">
-                            <button type="button" className="btn btn-sm btn-outline-primary" disabled>
+                            <button type="button" className={`btn btn-sm ${timelineMode === TIMELINE_MODES.DAILY ? 'btn-primary active' : 'btn-outline-primary'}`} disabled>
                                 Daily
                             </button>
-                            <button type="button" className="btn btn-sm btn-primary active" disabled>
+                            <button type="button" className={`btn btn-sm ${timelineMode === TIMELINE_MODES.WEEKLY ? 'btn-primary active' : 'btn-outline-primary'}`} disabled>
                                 Weekly
                             </button>
-                            <button type="button" className="btn btn-sm btn-outline-primary" disabled>
+                            <button type="button" className={`btn btn-sm ${timelineMode === TIMELINE_MODES.MONTHLY ? 'btn-primary active' : 'btn-outline-primary'}`} disabled>
                                 Monthly
                             </button>
                         </div>
@@ -641,7 +793,11 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                     <div className="card-body">
                         <div className="recent-releases-matrix-header">
                             <div>
-                                <h3 className="recent-releases-title mb-0">Release Week Details</h3>
+                                <h3 className="recent-releases-title mb-0">
+                                    {timelineMode === TIMELINE_MODES.DAILY ? 'Release Day Details' : null}
+                                    {timelineMode === TIMELINE_MODES.WEEKLY ? 'Release Week Details' : null}
+                                    {timelineMode === TIMELINE_MODES.MONTHLY ? 'Release Month Details' : null}
+                                </h3>
                                 <p className="recent-releases-subtitle mb-0">Loading recent release data...</p>
                             </div>
                         </div>
