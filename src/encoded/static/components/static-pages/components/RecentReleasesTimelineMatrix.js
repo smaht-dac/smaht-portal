@@ -238,7 +238,7 @@ const buildRecentReleasesTargetFromDate = (months = [], timelineMode = TIMELINE_
         return day ? {
             monthKey: getMonthKeyFromDateString(day.key),
             selectedDay: day,
-            selectedMatrixTarget: day
+            selectedTimelineTarget: day
         } : null;
     }
 
@@ -248,7 +248,7 @@ const buildRecentReleasesTargetFromDate = (months = [], timelineMode = TIMELINE_
         return week ? {
             monthKey: getMonthKeyFromDateString(selectedDate),
             selectedDay: null,
-            selectedMatrixTarget: week
+            selectedTimelineTarget: week
         } : null;
     }
 
@@ -257,7 +257,7 @@ const buildRecentReleasesTargetFromDate = (months = [], timelineMode = TIMELINE_
     return month ? {
         monthKey,
         selectedDay: null,
-        selectedMatrixTarget: {
+        selectedTimelineTarget: {
             key: `month-${month.value}`,
             fullLabel: month.label,
             browseQuery: month.browseQuery,
@@ -276,17 +276,17 @@ const getMonthWindowStartIndexForTarget = (months = [], monthWindowSize = 1, mon
     );
 };
 
-const getURLDateForSelectedTarget = (timelineMode = TIMELINE_MODES.WEEKLY, selectedDay = null, selectedMatrixTarget = null) => {
+const getURLDateForSelectedTarget = (timelineMode = TIMELINE_MODES.WEEKLY, selectedDay = null, selectedTimelineTarget = null) => {
     if (timelineMode === TIMELINE_MODES.DAILY) {
-        return selectedDay?.key || selectedMatrixTarget?.key || null;
+        return selectedDay?.key || selectedTimelineTarget?.key || null;
     }
     if (timelineMode === TIMELINE_MODES.WEEKLY) {
-        return selectedMatrixTarget?.from
-            || selectedMatrixTarget?.key?.replace(/^month-/, '')
-            || selectedMatrixTarget?.browseQuery?.match(/\d{4}-\d{2}(?:-\d{2})?/)?.[0]
+        return selectedTimelineTarget?.from
+            || selectedTimelineTarget?.key?.replace(/^month-/, '')
+            || selectedTimelineTarget?.browseQuery?.match(/\d{4}-\d{2}(?:-\d{2})?/)?.[0]
             || null;
     }
-    return selectedMatrixTarget?.key?.replace(/^month-/, '') || selectedMatrixTarget?.browseQuery?.match(/\d{4}-\d{2}/)?.[0] || null;
+    return selectedTimelineTarget?.key?.replace(/^month-/, '') || selectedTimelineTarget?.browseQuery?.match(/\d{4}-\d{2}/)?.[0] || null;
 };
 
 const syncRecentReleasesURLState = ({ timelineMode, selectedDate }) => {
@@ -571,7 +571,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     const [isLoadingOlderMonths, setIsLoadingOlderMonths] = useState(false);
     const [months, setMonths] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
-    const [selectedMatrixTarget, setSelectedMatrixTarget] = useState(null);
+    const [selectedTimelineTarget, setSelectedTimelineTarget] = useState(null);
     const [monthWindowStartIndex, setMonthWindowStartIndex] = useState(0);
     const [timelineMode, setTimelineMode] = useState(initialURLState.timelineMode);
     const [detailViewMode, setDetailViewMode] = useState(DETAIL_VIEW_MODES.TABLE);
@@ -595,7 +595,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                     .value() || null;
                 setMonths(monthsWithGaps);
                 setSelectedDay(firstDay);
-                setSelectedMatrixTarget(firstDay);
+                setSelectedTimelineTarget(firstDay);
                 setMonthWindowStartIndex(0);
                 setIsLoading(false);
             },
@@ -607,7 +607,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 }
                 setMonths([]);
                 setSelectedDay(null);
-                setSelectedMatrixTarget(null);
+                setSelectedTimelineTarget(null);
                 setMonthWindowStartIndex(0);
                 setIsLoading(false);
             }
@@ -618,8 +618,8 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         };
     }, []);
 
-    const selectedDayLabel = useMemo(() => selectedMatrixTarget?.fullLabel || null, [selectedMatrixTarget]);
-    const selectedBrowseHref = useMemo(() => selectedMatrixTarget?.browseQuery || null, [selectedMatrixTarget]);
+    const selectedDayLabel = useMemo(() => selectedTimelineTarget?.fullLabel || null, [selectedTimelineTarget]);
+    const selectedBrowseHref = useMemo(() => selectedTimelineTarget?.browseQuery || null, [selectedTimelineTarget]);
     const selectedSearchContext = useMemo(() => (
         selectedBrowseHref ? { '@id': selectedBrowseHref, total: 0 } : { '@id': '/browse/?type=File', total: 0 }
     ), [selectedBrowseHref]);
@@ -697,7 +697,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
             if (requestedTarget) {
                 setMonthWindowStartIndex(getMonthWindowStartIndexForTarget(months, monthWindowSize, requestedTarget.monthKey));
                 setSelectedDay(requestedTarget.selectedDay);
-                setSelectedMatrixTarget(requestedTarget.selectedMatrixTarget);
+                setSelectedTimelineTarget(requestedTarget.selectedTimelineTarget);
                 pendingURLTargetRef.current = null;
                 isApplyingURLStateRef.current = false;
                 return;
@@ -720,12 +720,12 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
 
         if (timelineMode === TIMELINE_MODES.DAILY) {
             if (selectedDay?.key) {
-                setSelectedMatrixTarget(selectedDay);
+                setSelectedTimelineTarget(selectedDay);
                 return;
             }
             const firstDay = _.chain(months).pluck('days').flatten().find((day) => !!day).value() || null;
             setSelectedDay(firstDay);
-            setSelectedMatrixTarget(firstDay);
+            setSelectedTimelineTarget(firstDay);
             return;
         }
         if (timelineMode === TIMELINE_MODES.WEEKLY) {
@@ -735,12 +735,12 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 .find((week) => (week?.count || 0) > 0)
                 .value() || null;
             setSelectedDay(null);
-            setSelectedMatrixTarget(firstWeek);
+            setSelectedTimelineTarget(firstWeek);
             return;
         }
         const firstMonth = _.find(months, (month) => (month?.count || 0) > 0) || null;
         setSelectedDay(null);
-        setSelectedMatrixTarget(firstMonth ? {
+        setSelectedTimelineTarget(firstMonth ? {
             key: `month-${firstMonth.value}`,
             fullLabel: firstMonth.label,
             browseQuery: firstMonth.browseQuery,
@@ -752,9 +752,9 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         if (isLoading || isApplyingURLStateRef.current) return;
         syncRecentReleasesURLState({
             timelineMode,
-            selectedDate: getURLDateForSelectedTarget(timelineMode, selectedDay, selectedMatrixTarget)
+            selectedDate: getURLDateForSelectedTarget(timelineMode, selectedDay, selectedTimelineTarget)
         });
-    }, [isLoading, timelineMode, selectedDay, selectedMatrixTarget]);
+    }, [isLoading, timelineMode, selectedDay, selectedTimelineTarget]);
 
     if (isLoading) {
         return (
@@ -895,7 +895,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                 className="count-badge count-badge-link"
                                                 onClick={() => {
                                                     setSelectedDay(null);
-                                                    setSelectedMatrixTarget({
+                                                    setSelectedTimelineTarget({
                                                         key: `month-${month.value}`,
                                                         fullLabel: month.label,
                                                         browseQuery: month.browseQuery,
@@ -961,7 +961,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                 {timelineMode === TIMELINE_MODES.WEEKLY ? (
                                     <div className="release-bucket-list">
                                         {(month.weeks || []).map((week) => {
-                                            const isSelected = selectedMatrixTarget?.key === week.key;
+                                            const isSelected = selectedTimelineTarget?.key === week.key;
                                             return (
                                                 <button
                                                     key={week.key}
@@ -969,7 +969,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                     className={`release-bucket-btn ${isSelected ? 'selected' : ''}`}
                                                     onClick={() => {
                                                         setSelectedDay(null);
-                                                        setSelectedMatrixTarget(week);
+                                                        setSelectedTimelineTarget(week);
                                                     }}>
                                                     <span className="bucket-label">{week.label}</span>
                                                     <span className="bucket-count">{formatCalendarDayCount(week.count)}</span>
@@ -982,10 +982,10 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                     <div className="release-bucket-list">
                                         <button
                                             type="button"
-                                            className={`release-bucket-btn ${selectedMatrixTarget?.key === `month-${month.value}` ? 'selected' : ''}`}
+                                            className={`release-bucket-btn ${selectedTimelineTarget?.key === `month-${month.value}` ? 'selected' : ''}`}
                                             onClick={() => {
                                                 setSelectedDay(null);
-                                                setSelectedMatrixTarget({
+                                                setSelectedTimelineTarget({
                                                     key: `month-${month.value}`,
                                                     fullLabel: month.label,
                                                     browseQuery: month.browseQuery,
@@ -1031,14 +1031,14 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                         </div>
                     </div>
                     <div className="recent-releases-divider" />
-                    {detailViewMode === DETAIL_VIEW_MODES.MATRIX && selectedMatrixTarget?.matrixQuery ? (
+                    {detailViewMode === DETAIL_VIEW_MODES.MATRIX && selectedTimelineTarget?.matrixQuery ? (
                         <div className="recent-releases-matrix-scroll">
                             <DataMatrix
-                                key={`recent-releases-${selectedMatrixTarget.key}`}
+                                key={`recent-releases-${selectedTimelineTarget.key}`}
                                 session={session}
                                 query={{
                                     ...matrixQueryTemplate,
-                                    url: selectedMatrixTarget.matrixQuery
+                                    url: selectedTimelineTarget.matrixQuery
                                 }}
                                 headerFor={null}
                                 idLabel="recent-releases"
@@ -1059,12 +1059,12 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                     {detailViewMode === DETAIL_VIEW_MODES.TABLE && selectedBrowseHref ? (
                         <div className="recent-releases-table-scroll">
                             <SelectedItemsController
-                                key={`recent-releases-selection-${selectedMatrixTarget?.key || selectedBrowseHref}`}
+                                key={`recent-releases-selection-${selectedTimelineTarget?.key || selectedBrowseHref}`}
                                 context={selectedSearchContext}
                                 href={selectedBrowseHref}
                                 currentAction="multiselect">
                                 <RecentReleasesFileTable
-                                    key={`recent-releases-table-${selectedMatrixTarget?.key || 'default'}`}
+                                    key={`recent-releases-table-${selectedTimelineTarget?.key || 'default'}`}
                                     searchHref={selectedBrowseHref}
                                     href={selectedBrowseHref}
                                     session={session}
