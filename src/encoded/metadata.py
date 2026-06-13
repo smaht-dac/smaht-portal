@@ -30,7 +30,7 @@ def includeme(config):
     config.scan(__name__)
 
 
-TSV_WIDTH = 27 # There are 27 columns in the file manifest
+TSV_WIDTH = 35 # There are 35 columns in the file manifest
 # Encode manifest file types
 FILE = 0
 CLINICAL = 1
@@ -137,9 +137,30 @@ TSV_MAPPING = {
                                  field_name=['file_size']),
         'md5sum': TSVDescriptor(field_type=FILE,
                                 field_name=['md5sum']),
+        'DataCategory': TSVDescriptor(field_type=FILE,
+                                     field_name=['data_category'],
+                                     use_base_metadata=True),  # do not traverse extra_files for this
         'DataType': TSVDescriptor(field_type=FILE,
                                   field_name=['data_type'],
                                   use_base_metadata=True),  # do not traverse extra_files for this
+        'DataDescription': TSVDescriptor(field_type=FILE,
+                                         field_name=['data_description'],
+                                         use_base_metadata=True),  # do not traverse extra_files for this
+        'AnalysisDetails': TSVDescriptor(field_type=FILE,
+                                         field_name=['analysis_details'],
+                                         use_base_metadata=True),  # do not traverse extra_files for this
+        'AlignmentDetails': TSVDescriptor(field_type=FILE,
+                                          field_name=['alignment_details'],
+                                          use_base_metadata=True),  # do not traverse extra_files for this
+        'AnnotationDetails': TSVDescriptor(field_type=FILE,
+                                           field_name=['annotation.display_title'],
+                                           use_base_metadata=True),  # do not traverse extra_files for this
+        'FilteringMethods': TSVDescriptor(field_type=FILE,
+                                          field_name=['filtering_methods'],
+                                           use_base_metadata=True),  # do not traverse extra_files for this
+        'ComparatorDescription': TSVDescriptor(field_type=FILE,
+                                               field_name=['comparator_description'],
+                                               use_base_metadata=True),  # do not traverse extra_files for this
         'FileFormat': TSVDescriptor(field_type=FILE,
                                     field_name=['file_format.display_title']),
         'SampleName': TSVDescriptor(field_type=FILE,
@@ -176,11 +197,14 @@ TSV_MAPPING = {
                                        field_name=['quality_metrics.overall_quality_status_display'],
                                        use_base_metadata=True),
         'QCComments': TSVDescriptor(field_type=FILE,
-                                       field_name=['qc_comments'],
-                                       use_base_metadata=True),
+                                    field_name=['qc_comments'],
+                                    use_base_metadata=True),
         'QCNotes': TSVDescriptor(field_type=FILE,
-                                       field_name=['quality_metrics.qc_notes'],
-                                       use_base_metadata=True),
+                                 field_name=['quality_metrics.qc_notes'],
+                                 use_base_metadata=True),
+        'FileNotes': TSVDescriptor(field_type=FILE,
+                                   field_name=['tsv_notes'],
+                                   use_base_metadata=True),
         FILE_GROUP: TSVDescriptor(field_type=FILE,
                                   field_name=['file_sets.file_group'],
                                   use_base_metadata=False)   # omit this field on extra files
@@ -796,7 +820,7 @@ def generate_file_download_header(download_file_name: str, cli=False):
     
         Number of columns generated set in TSV_WIDTH
     """
-    header1 = ['###', 'Metadata TSV Download', 'Column Count', TSV_WIDTH] + ([''] * (TSV_WIDTH-4))  # length 27
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', TSV_WIDTH] + ([''] * (TSV_WIDTH-4))  # length 31
     if cli:
         header2 = ['Suggested command to download: ', '', '',
                    (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
