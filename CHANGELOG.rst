@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.31.0
+======
+
+`PR 688: feat: consortium hub page <https://github.com/smaht-dac/smaht-portal/pull/688>`_
+
+* Add a new ConsortiumHub static page
+
+
 1.30.2
 ======
 
