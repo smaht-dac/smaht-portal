@@ -116,23 +116,18 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
 };
 
 /**
- * `getISOWeekRange` produces the Monday to Sunday ISO week range for a given date
- * string (YYYY-MM-DD).
+ * `getWeekRange` produces the Sunday to Saturday week range for a given date
+ * string (YYYY-MM-DD), matching the convention used in RecentReleasesTimelineMatrix.
  * @param {string} dateStr - Date string in the format YYYY-MM-DD
  * @returns {object}
  */
-const getISOWeekRange = (dateStr) => {
+const getWeekRange = (dateStr) => {
     const date = new Date(dateStr + 'T00:00:00');
-    const day = date.getDay();
-
-    // Get the Monday at the start of the week
-    const diff = day === 0 ? -6 : 1 - day;
     const weekStart = new Date(date);
-    weekStart.setDate(date.getDate() + diff);
+    weekStart.setDate(date.getDate() - date.getDay()); // back to Sunday
 
-    // Get the Sunday at the end of the week
     const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setDate(weekStart.getDate() + 6); // forward to Saturday
 
     return { weekStart, weekEnd };
 };
@@ -161,11 +156,10 @@ const formatReleaseData = (data = []) => {
 
         const pad = (n) => String(n).padStart(2, '0');
 
-        // Group days into ISO weeks
-        // Note: week key is the Monday date (YYYY-MM-DD)
+        // Group days into Sun–Sat weeks. Week key is the Sunday date (YYYY-MM-DD)
         const weekItems = Object.entries(dayItems).reduce(
             (weekAcc, [dateKey, dayData]) => {
-                const { weekStart, weekEnd } = getISOWeekRange(dateKey);
+                const { weekStart, weekEnd } = getWeekRange(dateKey);
                 const weekKey = `${weekStart.getFullYear()}-${pad(
                     weekStart.getMonth() + 1
                 )}-${pad(weekStart.getDate())}`;
