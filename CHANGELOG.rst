@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.32.0
+======
+
+`PR 686: feat: add Recent Releases timeline page with dynamic timeline navigation <https://github.com/smaht-dac/smaht-portal/pull/686>`_
+
+* Add a new Recent Releases page with timeline views for recently released files
+
+
 1.31.0
 ======
 

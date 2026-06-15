@@ -35,6 +35,7 @@ import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
+import { RecentReleasesTimelineMatrix } from '../components/RecentReleasesTimelineMatrix';
 import { ConsortiumHub } from '../ConsortiumHub';
 
 /**
@@ -68,6 +69,7 @@ const placeholders = {
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
     PipelineDocsNavigation,
+    RecentReleasesTimelineMatrix,
     ConsortiumHub,
 };
 
