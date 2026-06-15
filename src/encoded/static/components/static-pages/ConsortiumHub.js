@@ -9,7 +9,7 @@ const quickLinks = [
         href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=cram&file_format.display_title=bam&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
     },
     {
-        title: 'Transcript Quantification Data (tsv & txt)',
+        title: 'Transcript Quantification Data (tsv, txt, gff)',
         href: '/browse/?data_category=RNA+Quantification&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
     },
     {
