@@ -8,6 +8,15 @@ Change Log
 ----------
 
 
+1.30.3
+======
+
+`PR 687: Improve Data Matrix coverage summaries and loading behavior <https://github.com/smaht-dac/smaht-portal/pull/687>`_
+
+* Fix click when shadow layer rendered above table
+* Add tests for Renamed files table
+
+
 1.30.2
 ======
 
