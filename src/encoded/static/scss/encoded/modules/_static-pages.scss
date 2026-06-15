@@ -850,7 +850,7 @@ body[data-path='/'] > #application > #layout {
                             cursor: default;
                         }
 
-                        .p25-link {
+                        .consortium-hub-link {
                             display: flex;
                             justify-content: center;
                             align-items: center;
@@ -3682,7 +3682,8 @@ FAQ page styles
 }
 
 // Pages under Pipeline Documentation
-[data-at-type^='DocsAdditional-resourcesPipeline-docs'] {
+[data-at-type^='DocsAdditional-resourcesPipeline-docs'],
+[data-at-type='Consortium-hubPage'] {
     // Custom header sizing
     h2 {
         font-size: 24px;
@@ -3949,5 +3950,244 @@ FAQ page styles
             margin-bottom: 20px;
             margin-top: 40px;
         }
+    }
+}
+
+[data-at-type='Consortium-hubPage'] {
+    .static-section-entry .section-content .consortium-hub-container {
+        display: flex;
+        flex-direction: column;
+
+        h3 {
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .consortium-hub-content {
+            display: flex;
+            flex: 1;
+            gap: 50px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+
+            .cohort-thumbnails-container {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .quick-links-container {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-width: 350px;
+
+                .nav-group {
+                    margin-bottom: 0px;
+                }
+            }
+        }
+    }
+    .donor-groups {
+        display: flex;
+        gap: 0.75rem;
+
+        @include media-breakpoint-down(md) {
+            flex-wrap: wrap;
+        }
+    }
+
+    .donor-group-container {
+        flex: 1;
+        border: 1px solid #bacfeb;
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 190px;
+
+        .donor-group-header {
+            color: #0e3669;
+            background-color: #edf5fb;
+            font-size: 0.9rem;
+            text-align: center;
+            border-bottom: 1px solid #bacfeb;
+        }
+
+        .donor-group-body {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 30px 8px;
+            padding: 20px 8px;
+            background-color: #fcfdfe;
+
+            .donor-thumbnail-container {
+                width: 80px;
+                border-radius: 5px;
+            }
+        }
+
+        &:first-of-type {
+            min-width: 90px;
+
+            .donor-thumbnail-container {
+                display: flex;
+                flex: 1;
+            }
+        }
+    }
+
+    .donor-thumbnail-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2px;
+        min-height: 90px;
+
+        .donor-id {
+            color: #416485;
+            font-size: 0.8rem;
+            line-height: 1rem;
+            margin-bottom: -5px;
+        }
+
+        .donor-thumbnail-image {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            width: min-content;
+
+            img {
+                max-width: none;
+                width: 76px;
+                aspect-ratio: 372 / 364;
+                opacity: 0.25;
+                transition: opacity 100ms ease-out;
+
+                &.loaded {
+                    opacity: 1;
+                }
+            }
+
+            .details {
+                position: absolute;
+                bottom: 0px;
+                left: 50%;
+                transform: translateX(-50%);
+                white-space: nowrap;
+
+                .age {
+                    font-size: 0.8rem;
+                }
+                .sex {
+                    font-size: 0.6rem;
+                }
+            }
+        }
+
+        &.male .details {
+            color: #7d96b6;
+        }
+        &.female .details {
+            color: #b57db6;
+        }
+
+        &:hover {
+            background-color: #edf5fb;
+            text-decoration: none;
+
+            .donor-id {
+                text-decoration: none;
+            }
+        }
+    }
+
+    .static-section-entry .section-content .dropdown .body {
+        padding: 15px 35px 25px;
+
+        .cohort-details-list {
+            flex: 1;
+            list-style: decimal;
+            padding-left: 1.5rem;
+            margin: 0;
+
+            li {
+                margin-bottom: 0.25rem;
+                font-size: 0.9rem;
+                color: $homepage-card-text-color;
+                line-height: 1.25rem;
+
+                .donor-id {
+                    display: inline-flex;
+                    justify-content: flex-end;
+                    text-align: end;
+                }
+
+                .age-sex {
+                    margin-left: 5px;
+
+                    .age {
+                        display: inline-flex;
+                        width: 35px;
+                    }
+                    .sex {
+                        display: inline-flex;
+                        justify-content: center;
+                        width: 10px;
+                        margin-right: 5px;
+                    }
+                }
+
+                a {
+                    color: #428cca;
+                    font-weight: 500;
+                    width: 80px;
+                    text-align: left;
+                }
+            }
+
+            .no-conditions {
+                color: #ccd3d9;
+            }
+        }
+    }
+
+    .donor-group-header-skeleton,
+    .donor-thumbnail-skeleton-id,
+    .donor-thumbnail-skeleton-image {
+        background: linear-gradient(
+            90deg,
+            #edf5fb 25%,
+            #f0f8ff 50%,
+            #edf5fb 75%
+        );
+        background-size: 600px 100%;
+        animation: skeleton-shimmer 1.5s ease-in-out infinite;
+        border-radius: 3px;
+    }
+
+    .donor-group-header-skeleton {
+        height: 1.75rem;
+        border-radius: 0;
+    }
+
+    .donor-thumbnail-container-skeleton {
+        pointer-events: none;
+
+        .donor-thumbnail-skeleton-image {
+            width: 80px;
+            height: 90px;
+            border-radius: 4px;
+        }
+    }
+}
+
+@keyframes skeleton-shimmer {
+    from {
+        background-position: -300px 0;
+    }
+    to {
+        background-position: calc(300px + 100%) 0;
     }
 }
