@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.32.1
+======
+
+* Small fixes to peek-metadata to route non-file requests back to search
+
+
 1.32.0
 ======
 
