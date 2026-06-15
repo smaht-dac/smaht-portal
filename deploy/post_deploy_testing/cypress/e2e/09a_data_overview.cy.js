@@ -180,7 +180,7 @@ function stepVisitRetractedFilesList(caps) {
                     .then(($a) => {
                         const expectedAccession = $a.text().trim();
 
-                        cy.wrap($a).invoke("removeAttr", "target").click();
+                        cy.wrap($a).invoke("removeAttr", "target").click({ force: true });
 
                         cy.get(".file-view-header", { timeout: 10000 }).should("be.visible");
 
