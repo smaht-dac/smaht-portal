@@ -918,7 +918,7 @@ export class VisualBody extends React.PureComponent {
             <StackedBlockVisual data={all} rowTotals={row_totals} columnTotals={column_totals} checkCollapsibility={!disableRowExpand}
                 {..._.pick(this.props,
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
-                    'columnSubGrouping', 'defaultDepthsOpen',
+                    'columnSubGrouping', 'defaultDepthsOpen', 'defaultExpandedRowIndices',
                     'columnSubGroupingOrder', 'colorRanges',
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
@@ -2118,7 +2118,13 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     constructor(props){
         super(props);
         this.toggleOpen = _.throttle(this.toggleOpen.bind(this), 250);
-        var initOpen = (Array.isArray(props.defaultDepthsOpen) && props.defaultDepthsOpen[props.depth]) || false;
+        const shouldExpandByIndex = (
+            props.depth === 0 &&
+            typeof props.index === 'number' &&
+            Array.isArray(props.defaultExpandedRowIndices) &&
+            props.defaultExpandedRowIndices.includes(props.index)
+        );
+        var initOpen = shouldExpandByIndex || ((Array.isArray(props.defaultDepthsOpen) && props.defaultDepthsOpen[props.depth]) || false);
         this.state = { 'open' : initOpen };
     }
 
