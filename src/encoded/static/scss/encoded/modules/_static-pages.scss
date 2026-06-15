@@ -4003,7 +4003,7 @@ FAQ page styles
         border: 1px solid #bacfeb;
         border-radius: 8px;
         overflow: hidden;
-        min-width: 180px;
+        min-width: 190px;
 
         .donor-group-header {
             color: #0e3669;
@@ -4017,9 +4017,9 @@ FAQ page styles
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
-            justify-content: flex-start;
+            justify-content: space-between;
             gap: 30px 8px;
-            padding: 20px 5px;
+            padding: 20px 8px;
             background-color: #fcfdfe;
 
             .donor-thumbnail-container {
