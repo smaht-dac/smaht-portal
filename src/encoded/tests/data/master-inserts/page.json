@@ -1479,5 +1479,23 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "recent-releases",
+        "uuid": "ec8d344b-9ca0-41a4-aa95-0c6acdcfe7b2",
+        "status": "protected-network",
+        "content": [
+            "8ad6252d-6c17-4a34-9259-82734ebcca1c"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Recent Releases",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
