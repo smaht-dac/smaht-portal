@@ -7,12 +7,48 @@ smaht-portal
 Change Log
 ----------
 
-1.29.5
+1.30.3
 ======
 
 `PR 672: feat: release tracker restructure <https://github.com/smaht-dac/smaht-portal/pull/672>`_
 
 * Update release tracker UI to group releases by week
+
+
+1.30.2
+======
+
+`PR 687: Improve Data Matrix coverage summaries and loading behavior <https://github.com/smaht-dac/smaht-portal/pull/687>`_
+
+* added total coverage support to matrix summary rows and popovers
+* improved compact coverage value formatting and tooltip behavior
+* introduced a separate color range segment step for coverage values
+* reset incompatible count toggles when switching between matrix modes
+* refined loading-state rendering to avoid confusing stale data during tab/view transitions
+* adjusted matrix loading layout and spinner positioning for a more stable UX
+
+
+1.30.1
+======
+
+`PR 682: add new fields to file manifest <https://github.com/smaht-dac/smaht-portal/pull/682>`_
+
+* Add new/missing fields to file manifest - 8 fields added including DataCategory and FileNotes and others that only apply to a subset of file types
+
+
+1.30.0
+======
+
+* Optimize ``/metadata`` and ``/peek-metadata`` to handle thousands of files without upstream timeouts
+* ``/metadata``: yield TSV rows from a generator instead of buffering the full manifest in memory; ES batch size is now constant regardless of file count
+* ``/metadata``: top-level and sub-entity (sample/analyte/file_set) searches now bypass snovault's default-facet machinery and paginate via ES ``search_after`` (O(N) instead of O(N²) from/size), using a new ``execute_streaming_search`` primitive
+* ``/metadata``: restrict ES ``_source`` to only the columns the TSV reads, dropping per-hit payload by ~10×
+* ``/metadata``: pre-compile per-row field-path splits so each hit pays one dict lookup per column instead of repeated ``str.split`` calls
+* ``/peek-metadata``: compute the file_size summary by streaming the matched docs (same path as ``/metadata``) and summing in Python, instead of issuing an ES ``stats`` aggregation that was blocking on slow-shard coordination
+* ``/peek-metadata``: GET-style requests (search-filter URL params) now forward through snovault ``search()`` with the new ``skip_default_facets=true`` flag, preserving nested-field correctness while skipping the dozens of schema-default facet aggregations
+* Fix ``TypeError: unhashable type: 'dict'`` raised from ``file.py:get_donors`` (and the parallel paths in ``get_cell_cultures``, ``get_cell_lines``, ``analysis_run.get_donors``, ``external_output_file.get_donors``) when an upstream ``@@object`` view carries an embedded sub-object where a bare linkTo path was expected
+* Adds ``dedupe_identifiers`` in ``item_utils/utils.py`` that dedupes by string/uuid/@id instead of relying on ``set()``, preserving first-occurrence order
+* Defensive only — the upstream cause was fixed in snovault 11.30.1; this prevents already-corrupted documents in ES from breaking rendering until a full reindex
 
 
 1.29.4
