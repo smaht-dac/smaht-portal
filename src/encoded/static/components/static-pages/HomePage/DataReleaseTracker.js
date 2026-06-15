@@ -4,10 +4,10 @@ import { useToggle } from '../../util/hooks';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 /**
- * WeekGroup renders a single link row for a Mon–Sun ISO week.
- * @param {Date} weekStart - Monday of the week.
- * @param {Date} weekEnd - Sunday of the week.
- * @param {number} count - Total file count for the week.
+ * WeekGroup renders a single link row for a Mon to Sun ISO week.
+ * @param {Date} weekStart - Monday of the week
+ * @param {Date} weekEnd - Sunday of the week
+ * @param {number} count - Total file count for the week
  * @returns {JSX.Element}
  */
 const WeekGroup = ({ weekStart, weekEnd, count }) => {
@@ -38,10 +38,10 @@ const WeekGroup = ({ weekStart, weekEnd, count }) => {
 
 /**
  * DataReleaseItem displays information about a specific data release.
- * @param {object} data - The data object containing release information.
- * @param {number} releaseItemIndex - The index of the release item.
- * @param {JSX.Element|null} callout - Optional callout component to display above the week groups.
- * @returns {JSX.Element} The rendered DataReleaseItem component.
+ * @param {object} data - The data object containing release information
+ * @param {number} releaseItemIndex - The index of the release item
+ * @param {JSX.Element|null} callout - Optional callout component to display above the week groups
+ * @returns {JSX.Element}
  */
 const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     const [isToggled, toggle] = useToggle(releaseItemIndex === 0);
@@ -116,10 +116,10 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
 };
 
 /**
- * `getISOWeekRange` produces the Monday–Sunday ISO week range for a given date
- * string (YYYY-MM-DD)
- * @param {*} dateStr - The date string in the format YYYY-MM-DD
- * @returns {object} An object containing the start and end dates of the ISO week
+ * `getISOWeekRange` produces the Monday to Sunday ISO week range for a given date
+ * string (YYYY-MM-DD).
+ * @param {string} dateStr - Date string in the format YYYY-MM-DD
+ * @returns {object}
  */
 const getISOWeekRange = (dateStr) => {
     const date = new Date(dateStr + 'T00:00:00');
@@ -139,14 +139,14 @@ const getISOWeekRange = (dateStr) => {
 
 /**
  * `formatReleaseData` processes the API response into month and week buckets.
- * Each week stores the total count and the individual day items it contains.
- * @param {Array} data - Raw items from /recent_release_days.
+ * Each week stores only the total count.
+ * @param {Array} data - Raw items from /recent_release_days
  * @returns {Array}
  */
 const formatReleaseData = (data = []) => {
     if (data.length === 0) return [];
     return data.map((month) => {
-        const { count, value, query } = month;
+        const { count, value } = month;
 
         // Collapse API day items into { "YYYY-MM-DD": { count } }
         const dayItems = month?.items?.reduce((acc, item) => {
@@ -159,7 +159,6 @@ const formatReleaseData = (data = []) => {
             return acc;
         }, {});
 
-        // Pad the day number with leading zeros for consistent date formatting
         const pad = (n) => String(n).padStart(2, '0');
 
         // Group days into ISO weeks
@@ -185,7 +184,7 @@ const formatReleaseData = (data = []) => {
             {}
         );
 
-        return { count, value, items: weekItems, query };
+        return { count, value, items: weekItems };
     });
 };
 
