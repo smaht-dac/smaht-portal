@@ -8,10 +8,9 @@ import { useUserDownloadAccess } from '../../util/hooks';
  * @param {Date} weekStart - Monday of the week.
  * @param {Date} weekEnd - Sunday of the week.
  * @param {number} count - Total file count for the week.
- * @param {string} query - URL to the file browser filtered to this week's releases.
  * @returns {JSX.Element}
  */
-const WeekGroup = ({ weekStart, weekEnd, count, query }) => {
+const WeekGroup = ({ weekStart, weekEnd, count }) => {
     const formatWeekDate = (date) =>
         date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -19,8 +18,16 @@ const WeekGroup = ({ weekStart, weekEnd, count, query }) => {
         weekEnd
     )}`;
 
+    const pad = (n) => String(n).padStart(2, '0');
+    const toDateKey = (d) =>
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const weekHref =
+        count > 0
+            ? `/recent-releases?view=weekly&date=${toDateKey(weekStart)}`
+            : null;
+
     return (
-        <a className="week-link" href={count > 0 ? query : null}>
+        <a className="week-link" href={weekHref}>
             <span className="range">{weekLabel}</span>
             <div className="count">
                 <span>{count.toLocaleString('en-US')}</span>
@@ -38,7 +45,7 @@ const WeekGroup = ({ weekStart, weekEnd, count, query }) => {
  */
 const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     const [isToggled, toggle] = useToggle(releaseItemIndex === 0);
-    const { count, items: weekGroups, query, value } = data;
+    const { count, items: weekGroups, value } = data;
 
     // Replace hyphens with slashes and add day field for Safari compatibility
     const date_formatted = value.replace(/-/g, '/') + '/01';
@@ -64,7 +71,13 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                                 isToggled ? 'minus' : 'plus'
                             }`}></i>
                     </button>
-                    <a className="header-link" href={count > 0 ? query : null}>
+                    <a
+                        className="header-link"
+                        href={
+                            count > 0
+                                ? `/recent-releases?view=monthly&date=${value}`
+                                : null
+                        }>
                         <span>
                             {releaseItemIndex === 0 && 'Latest: '} {month}{' '}
                             {year}
@@ -86,7 +99,6 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                                 weekStart,
                                 weekEnd,
                                 count: weekCount,
-                                query: weekQuery,
                             } = weekGroups[weekKey];
                             return (
                                 <WeekGroup
@@ -94,7 +106,6 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                                     weekStart={weekStart}
                                     weekEnd={weekEnd}
                                     count={weekCount}
-                                    query={weekQuery}
                                 />
                             );
                         })}
@@ -128,8 +139,8 @@ const getISOWeekRange = (dateStr) => {
 
 /**
  * `formatReleaseData` processes the API response into month and week buckets.
- * Each week stores only the total count and the query URL from its first day.
- * @param {Array} data - Raw items from /recent_files_summary.
+ * Each week stores the total count and the individual day items it contains.
+ * @param {Array} data - Raw items from /recent_release_days.
  * @returns {Array}
  */
 const formatReleaseData = (data = []) => {
@@ -137,13 +148,13 @@ const formatReleaseData = (data = []) => {
     return data.map((month) => {
         const { count, value, query } = month;
 
-        // Collapse API day items into { "YYYY-MM-DD": { count, query } }
+        // Collapse API day items into { "YYYY-MM-DD": { count } }
         const dayItems = month?.items?.reduce((acc, item) => {
-            const { count: dayCount, value: dayValue, query: dayQuery } = item;
+            const { count: dayCount, value: dayValue } = item;
             if (acc?.[dayValue]) {
                 acc[dayValue].count += dayCount;
             } else {
-                acc[dayValue] = { count: dayCount, query: dayQuery };
+                acc[dayValue] = { count: dayCount };
             }
             return acc;
         }, {});
@@ -163,12 +174,10 @@ const formatReleaseData = (data = []) => {
                 if (weekAcc[weekKey]) {
                     weekAcc[weekKey].count += dayData.count;
                 } else {
-                    // First day encountered for this week sets the query link
                     weekAcc[weekKey] = {
                         weekStart,
                         weekEnd,
                         count: dayData.count,
-                        query: dayData.query,
                     };
                 }
                 return weekAcc;
@@ -210,7 +219,7 @@ export const DataReleaseTracker = ({ session }) => {
 
         if (isAccessResolved && isNetworkMember) {
             ajax.load(
-                '/recent_files_summary?format=json&nmonths=2',
+                '/recent_release_days?format=json&nmonths=2',
                 (resp) => {
                     if (isCancelled) return;
                     setData(formatReleaseData(resp?.items));
