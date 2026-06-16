@@ -121,6 +121,22 @@ function assertSelectedCountMatchesResultsCount(expectedText) {
         });
 }
 
+function assertWeekViewMonthCountAtLeastWeekCount(weekCountText) {
+    const weekCount = parseRecentReleasesCount(weekCountText);
+    expect(weekCount, "expected weekly bucket count").to.be.greaterThan(0);
+
+    cy.get(".recent-releases-months .release-month-section")
+        .first()
+        .find(".count-badge, .count-badge-link")
+        .invoke("text")
+        .then((monthCountText) => {
+            const monthCount = parseRecentReleasesCount(monthCountText);
+            expect(monthCount, "month count in weekly view").to.be.at.least(
+                weekCount
+            );
+        });
+}
+
 function stepInitialLoad(caps) {
     if (!caps.runInitialLoadChecks) return;
 
@@ -209,6 +225,7 @@ function stepWeeklyMode(caps) {
         .should("have.length", 1)
         .invoke("text")
         .then((text) => {
+            assertWeekViewMonthCountAtLeastWeekCount(text);
             assertSelectedCountMatchesResultsCount(text);
         });
     assertLocationState("weekly", /^\d{4}-\d{2}-\d{2}$/);
