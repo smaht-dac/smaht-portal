@@ -4,9 +4,9 @@ import { useToggle } from '../../util/hooks';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 /**
- * WeekGroup renders a single link row for a Mon to Sun ISO week.
- * @param {Date} weekStart - Monday of the week
- * @param {Date} weekEnd - Sunday of the week
+ * WeekGroup renders a single link row for a Sun to Sat week.
+ * @param {Date} weekStart - Sunday of the week
+ * @param {Date} weekEnd - Saturday of the week
  * @param {number} count - Total file count for the week
  * @returns {JSX.Element}
  */
@@ -212,7 +212,7 @@ export const DataReleaseTracker = ({ session }) => {
 
         if (isAccessResolved && isNetworkMember) {
             ajax.load(
-                '/recent_release_days?format=json&nmonths=6',
+                '/recent_release_days?format=json&nmonths=2',
                 (resp) => {
                     if (isCancelled) return;
                     setData(formatReleaseData(resp?.items));
