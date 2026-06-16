@@ -89,6 +89,38 @@ function assertLocationState(expectedView, datePattern) {
     });
 }
 
+function parseRecentReleasesCount(text = "") {
+    const cleaned = String(text).trim().replace(/^(?:Results?\s*)?/i, "");
+    const match = cleaned.match(/^(\d+(?:\.\d+)?)([KM]?)$/i);
+    if (!match) {
+        return Number.parseInt(cleaned.replace(/[^\d]/g, ""), 10) || 0;
+    }
+
+    const value = Number.parseFloat(match[1]) || 0;
+    const suffix = match[2].toUpperCase();
+    if (suffix === "K") return Math.round(value * 1000);
+    if (suffix === "M") return Math.round(value * 1000000);
+    return Math.round(value);
+}
+
+function assertSelectedCountMatchesResultsCount(expectedText) {
+    const expectedCount = parseRecentReleasesCount(expectedText);
+    expect(expectedCount, "expected selected bucket count").to.be.greaterThan(0);
+
+    cy.get(".recent-releases-table-scroll").should("be.visible");
+    cy.get(".recent-releases-table-scroll .icon-spinner").should("not.exist");
+    cy.get(".recent-releases-table-scroll #results-count")
+        .should("be.visible")
+        .should(($resultsCount) => {
+            const resultsCount = parseRecentReleasesCount(
+                $resultsCount.text()
+            );
+            expect(resultsCount, "results table count").to.equal(
+                expectedCount
+            );
+        });
+}
+
 function stepInitialLoad(caps) {
     if (!caps.runInitialLoadChecks) return;
 
@@ -121,7 +153,12 @@ function stepInitialLoad(caps) {
         "contain",
         "Release Week Details"
     );
-    cy.get(".release-bucket-btn.selected").should("have.length", 1);
+    cy.get(".release-bucket-btn.selected .bucket-count")
+        .should("have.length", 1)
+        .invoke("text")
+        .then((text) => {
+            assertSelectedCountMatchesResultsCount(text);
+        });
     assertLocationState("weekly", /^\d{4}-\d{2}-\d{2}$/);
 }
 
@@ -140,7 +177,15 @@ function stepDailyMode(caps) {
     cy.get(".release-day-btn.selected")
         .should("have.length", 1)
         .and("have.class", "has-data");
-    cy.get(".release-day-btn.selected").invoke("attr", "title").should("match", /^[A-Za-z]+\s+\d{1,2},\s+\d{4}$/);
+    cy.get(".release-day-btn.selected .day-count")
+        .should("have.length", 1)
+        .invoke("text")
+        .then((text) => {
+            assertSelectedCountMatchesResultsCount(text);
+        });
+    cy.get(".release-day-btn.selected")
+        .invoke("attr", "title")
+        .should("match", /^[A-Za-z]+\s+\d{1,2},\s+\d{4}$/);
     assertLocationState("daily", /^\d{4}-\d{2}-\d{2}$/);
 }
 
@@ -160,7 +205,12 @@ function stepWeeklyMode(caps) {
         const targetIndex = $buttons.length > 1 ? 1 : 0;
         cy.wrap($buttons.eq(targetIndex)).click({ force: true });
     });
-    cy.get(".release-bucket-btn.selected").should("have.length", 1);
+    cy.get(".release-bucket-btn.selected .bucket-count")
+        .should("have.length", 1)
+        .invoke("text")
+        .then((text) => {
+            assertSelectedCountMatchesResultsCount(text);
+        });
     assertLocationState("weekly", /^\d{4}-\d{2}-\d{2}$/);
 }
 
@@ -180,7 +230,12 @@ function stepMonthlyMode(caps) {
         const targetIndex = $buttons.length > 1 ? 1 : 0;
         cy.wrap($buttons.eq(targetIndex)).click({ force: true });
     });
-    cy.get(".release-bucket-btn.selected").should("have.length", 1);
+    cy.get(".release-bucket-btn.selected .bucket-count")
+        .should("have.length", 1)
+        .invoke("text")
+        .then((text) => {
+            assertSelectedCountMatchesResultsCount(text);
+        });
     assertLocationState("monthly", /^\d{4}-\d{2}$/);
 }
 
