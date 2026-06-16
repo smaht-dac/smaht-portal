@@ -38,7 +38,7 @@ const BASE_DM_BENCHMARKING_OPTS = {
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle each step per role:
 
-   - runRetractedFilesList:     "Retracted Files" page + detail checks
+   - runRetractedFilesList:     "Retracted Files" + "Renamed Files" sections + detail checks
    - runDataMatrixProduction:   Data Matrix (Production) + popover checks
    - runDataMatrixBenchmarking: Data Matrix (Benchmarking) + popover checks
 ------------------------------------------------------------------------- */
@@ -54,6 +54,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesMenuVisible: false,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 5,
+        expectedRenamedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
@@ -71,6 +72,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 200,
         expectedRetractedFilesCount: 5,
+        expectedRenamedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixResponseCode: 200,
         expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,
@@ -88,6 +90,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 200,
         expectedRetractedFilesCount: 0,
+        expectedRenamedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixResponseCode: 200,
         expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,
@@ -105,6 +108,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
+        expectedRenamedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
@@ -122,6 +126,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
+        expectedRenamedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixResponseCode: 403,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
@@ -147,7 +152,7 @@ function logoutIfNeeded(roleKey) {
 
 /* ----------------------------- STEP HELPERS ----------------------------- */
 
-/** Retracted Files page + row-by-row detail checks (up to 5 rows) */
+/** Retracted and Renamed Files sections + row-by-row detail checks */
 function stepVisitRetractedFilesList(caps) {
 
     cy.get(dataNavBarItemSelectorStr)
@@ -163,13 +168,14 @@ function stepVisitRetractedFilesList(caps) {
                     cy.location("pathname").should("equal", linkHref);
                 });
 
+            // --- Retracted Files section ---
             cy.contains("div#retracted-files h2.section-title", "List of Retracted Files")
                 .should("be.visible");
 
-            function testVisit(index) {
+            function testVisitRetracted(index) {
                 if (index >= caps.expectedRetractedFilesCount) return;
 
-                cy.get("@resultRows").eq(index).as("currentRow");
+                cy.get("@retractedRows").eq(index).as("currentRow");
 
                 cy.get("@currentRow")
                     .find('[data-field="retraction_reason"] .value')
@@ -198,20 +204,66 @@ function stepVisitRetractedFilesList(caps) {
 
                 cy.go("back");
 
-                cy.get(".search-result-row[data-row-number]", { timeout: 10000 })
+                cy.get(".retracted-files-table .search-result-row[data-row-number]", { timeout: 10000 })
                     .should("have.length.at.least", caps.expectedRetractedFilesCount)
-                    .as("resultRows");
+                    .as("retractedRows");
 
-                cy.then(() => testVisit(index + 1));
+                cy.then(() => testVisitRetracted(index + 1));
             }
 
             if (caps.expectedRetractedFilesCount > 0) {
-                cy.get(".retracted-files-table .search-result-row[data-row-number]").as("resultRows");
-                cy.get("@resultRows").should("have.length.at.least", caps.expectedRetractedFilesCount);
+                cy.get(".retracted-files-table .search-result-row[data-row-number]").as("retractedRows");
+                cy.get("@retractedRows").should("have.length.at.least", caps.expectedRetractedFilesCount);
 
-                testVisit(0);
+                testVisitRetracted(0);
             } else if (caps.expectedRetractedFilesCount === 0) {
                 cy.get(".retracted-files-table .search-results-container", { timeout: 10000 })
+                    .should("contain.text", "No Results");
+            }
+
+            // --- Renamed Files section ---
+            cy.contains("div#renamed-files h2.section-title", "List of Renamed Files")
+                .should("be.visible");
+
+            function testVisitRenamed(index) {
+                if (index >= caps.expectedRenamedFilesCount) return;
+
+                cy.get("@renamedRows").eq(index).as("currentRow");
+
+                cy.get("@currentRow")
+                    .find('[data-field="renamed_on_tag"] .value')
+                    .should("not.be.empty");
+
+                cy.get("@currentRow")
+                    .find('[data-field="accession"] a')
+                    .then(($a) => {
+                        const expectedAccession = $a.text().trim();
+
+                        cy.wrap($a).invoke("removeAttr", "target").click({ force: true });
+
+                        cy.get(".file-view-header", { timeout: 10000 }).should("be.visible");
+
+                        cy.get(".accession")
+                            .should("be.visible")
+                            .and("have.text", expectedAccession);
+                    });
+
+                cy.go("back");
+
+                cy.get(".renamed-files-table .search-result-row[data-row-number]", { timeout: 10000 })
+                    .should("have.length.at.least", caps.expectedRenamedFilesCount)
+                    .as("renamedRows");
+
+                cy.then(() => testVisitRenamed(index + 1));
+            }
+
+            if (caps.expectedRenamedFilesCount > 0) {
+                cy.get(".renamed-files-table .search-result-row[data-row-number]").as("renamedRows");
+                cy.get("@renamedRows").should("have.length.at.least", caps.expectedRenamedFilesCount);
+
+                testVisitRenamed(0);
+            } else if (caps.expectedRenamedFilesCount === 0) {
+                cy.get(".renamed-files-table .search-results-container", { timeout: 10000 })
                     .should("contain.text", "No Results");
             }
         })
@@ -475,7 +527,7 @@ describe("Data Overview by role", () => {
                 logoutIfNeeded(roleKey);
             });
 
-            it(`Retracted Files list (enabled: ${caps.runRetractedFilesList})`, () => {
+            it(`Retracted and Renamed Files lists (enabled: ${caps.runRetractedFilesList})`, () => {
                 if (!caps.runRetractedFilesList) {
                     assertCanSeeRetractedFilesMenu(caps);
                     assertCannotAccessRetractedFilesPage(caps);
