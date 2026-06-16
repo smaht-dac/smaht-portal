@@ -7,14 +7,35 @@ smaht-portal
 Change Log
 ----------
 
-
-1.30.3
+1.32.2
 ======
 
-`PR 687: Improve Data Matrix coverage summaries and loading behavior <https://github.com/smaht-dac/smaht-portal/pull/687>`_
+`PR 690: test: update cypress tests for retracted files table <https://github.com/smaht-dac/smaht-portal/pull/690>`_
 
 * Fix click when shadow layer rendered above table
 * Add tests for Renamed files table
+
+
+1.32.1
+======
+
+* Small fixes to peek-metadata to route non-file requests back to search
+
+
+1.32.0
+======
+
+`PR 686: feat: add Recent Releases timeline page with dynamic timeline navigation <https://github.com/smaht-dac/smaht-portal/pull/686>`_
+
+* Add a new Recent Releases page with timeline views for recently released files
+
+
+1.31.0
+======
+
+`PR 688: feat: consortium hub page <https://github.com/smaht-dac/smaht-portal/pull/688>`_
+
+* Add a new ConsortiumHub static page
 
 
 1.30.2
