@@ -152,6 +152,50 @@ function logoutIfNeeded(roleKey) {
 
 /* ----------------------------- STEP HELPERS ----------------------------- */
 
+/**
+ * Recursively visits each row in a files table, navigates to the file page,
+ * runs optional in-page assertions, then returns. Shared by both Retracted and
+ * Renamed sections.
+ */
+function testVisitRows({ tableSelector, dataField, countCap, rowAlias, assertOnFilePage }) {
+    function visit(index) {
+        if (index >= countCap) return;
+
+        cy.get(`@${rowAlias}`).eq(index).as("currentRow");
+
+        cy.get("@currentRow")
+            .find(`[data-field="${dataField}"] .value`)
+            .should("not.be.empty");
+
+        cy.get("@currentRow")
+            .find('[data-field="accession"] a')
+            .then(($a) => {
+                const expectedAccession = $a.text().trim();
+
+                // shadow overlay at table bottom covers rows near the fold;
+                // force bypasses Cypress actionability check
+                cy.wrap($a).invoke("removeAttr", "target").click({ force: true });
+
+                cy.get(".file-view-header", { timeout: 10000 }).should("be.visible");
+
+                if (assertOnFilePage) assertOnFilePage();
+
+                cy.get(".accession")
+                    .should("be.visible")
+                    .and("have.text", expectedAccession);
+            });
+
+        cy.go("back");
+
+        cy.get(`${tableSelector} .search-result-row[data-row-number]`, { timeout: 10000 })
+            .should("have.length.at.least", countCap)
+            .as(rowAlias);
+
+        cy.then(() => visit(index + 1));
+    }
+    visit(0);
+}
+
 /** Retracted and Renamed Files sections + row-by-row detail checks */
 function stepVisitRetractedFilesList(caps) {
 
@@ -172,50 +216,23 @@ function stepVisitRetractedFilesList(caps) {
             cy.contains("div#retracted-files h2.section-title", "List of Retracted Files")
                 .should("be.visible");
 
-            function testVisitRetracted(index) {
-                if (index >= caps.expectedRetractedFilesCount) return;
-
-                cy.get("@retractedRows").eq(index).as("currentRow");
-
-                cy.get("@currentRow")
-                    .find('[data-field="retraction_reason"] .value')
-                    .should("not.be.empty");
-
-                cy.get("@currentRow")
-                    .find('[data-field="accession"] a')
-                    .then(($a) => {
-                        const expectedAccession = $a.text().trim();
-
-                        cy.wrap($a).invoke("removeAttr", "target").click({ force: true });
-
-                        cy.get(".file-view-header", { timeout: 10000 }).should("be.visible");
-
-                        cy.get(".status-group .file-status")
-                            .should("be.visible")
-                            .and("contain.text", "Retracted");
-
-                        cy.get(".callout.warning .callout-text")
-                            .should("contain.text", "was retracted");
-
-                        cy.get(".accession")
-                            .should("be.visible")
-                            .and("have.text", expectedAccession);
-                    });
-
-                cy.go("back");
-
-                cy.get(".retracted-files-table .search-result-row[data-row-number]", { timeout: 10000 })
-                    .should("have.length.at.least", caps.expectedRetractedFilesCount)
-                    .as("retractedRows");
-
-                cy.then(() => testVisitRetracted(index + 1));
-            }
-
             if (caps.expectedRetractedFilesCount > 0) {
                 cy.get(".retracted-files-table .search-result-row[data-row-number]").as("retractedRows");
                 cy.get("@retractedRows").should("have.length.at.least", caps.expectedRetractedFilesCount);
 
-                testVisitRetracted(0);
+                testVisitRows({
+                    tableSelector: ".retracted-files-table",
+                    dataField: "retraction_reason",
+                    countCap: caps.expectedRetractedFilesCount,
+                    rowAlias: "retractedRows",
+                    assertOnFilePage: () => {
+                        cy.get(".status-group .file-status")
+                            .should("be.visible")
+                            .and("contain.text", "Retracted");
+                        cy.get(".callout.warning .callout-text")
+                            .should("contain.text", "was retracted");
+                    },
+                });
             } else if (caps.expectedRetractedFilesCount === 0) {
                 cy.get(".retracted-files-table .search-results-container", { timeout: 10000 })
                     .should("contain.text", "No Results");
@@ -225,43 +242,16 @@ function stepVisitRetractedFilesList(caps) {
             cy.contains("div#renamed-files h2.section-title", "List of Renamed Files")
                 .should("be.visible");
 
-            function testVisitRenamed(index) {
-                if (index >= caps.expectedRenamedFilesCount) return;
-
-                cy.get("@renamedRows").eq(index).as("currentRow");
-
-                cy.get("@currentRow")
-                    .find('[data-field="renamed_on_tag"] .value')
-                    .should("not.be.empty");
-
-                cy.get("@currentRow")
-                    .find('[data-field="accession"] a')
-                    .then(($a) => {
-                        const expectedAccession = $a.text().trim();
-
-                        cy.wrap($a).invoke("removeAttr", "target").click({ force: true });
-
-                        cy.get(".file-view-header", { timeout: 10000 }).should("be.visible");
-
-                        cy.get(".accession")
-                            .should("be.visible")
-                            .and("have.text", expectedAccession);
-                    });
-
-                cy.go("back");
-
-                cy.get(".renamed-files-table .search-result-row[data-row-number]", { timeout: 10000 })
-                    .should("have.length.at.least", caps.expectedRenamedFilesCount)
-                    .as("renamedRows");
-
-                cy.then(() => testVisitRenamed(index + 1));
-            }
-
             if (caps.expectedRenamedFilesCount > 0) {
                 cy.get(".renamed-files-table .search-result-row[data-row-number]").as("renamedRows");
                 cy.get("@renamedRows").should("have.length.at.least", caps.expectedRenamedFilesCount);
 
-                testVisitRenamed(0);
+                testVisitRows({
+                    tableSelector: ".renamed-files-table",
+                    dataField: "renamed_on_tag",
+                    countCap: caps.expectedRenamedFilesCount,
+                    rowAlias: "renamedRows",
+                });
             } else if (caps.expectedRenamedFilesCount === 0) {
                 cy.get(".renamed-files-table .search-results-container", { timeout: 10000 })
                     .should("contain.text", "No Results");
