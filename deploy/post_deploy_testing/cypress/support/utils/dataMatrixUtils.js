@@ -1044,7 +1044,7 @@ export function testDonorTissueMode(matrixId) {
     cy.get(matrixId)
         .should('have.class', 'matrix-mode-tissue')
         .and('have.class', 'matrix-mode-donor-tissue');
-    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('not.exist');
+    cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
     cy.get(`${matrixId} .matrix-assay-select`)
         .should('be.visible')
         .find('option')

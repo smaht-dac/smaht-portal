@@ -37,6 +37,8 @@ import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
 import { PublicationCollectionsNavigation } from '../PublicationCollectionsNavigation';
 import { PublicationCollection } from '../PublicationCollection';
+import { RecentReleasesTimelineMatrix } from '../components/RecentReleasesTimelineMatrix';
+import { ConsortiumHub } from '../ConsortiumHub';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -71,6 +73,8 @@ const placeholders = {
     PipelineDocsNavigation,
     PublicationCollectionsNavigation,
     PublicationCollection,
+    RecentReleasesTimelineMatrix,
+    ConsortiumHub,
 };
 
 export const replaceString = memoize(

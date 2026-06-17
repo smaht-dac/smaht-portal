@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import DataMatrix from '../../viz/Matrix/DataMatrix';
+import DataMatrix, { isLocalEnv } from '../../viz/Matrix/DataMatrix';
 
 export function DataMatrixComparisonTabs({ session, tabs }) {
     const tabConfigs = useMemo(() => tabs || [], [tabs]);
@@ -140,10 +140,12 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
     const handleDataLoaded = useCallback((tabKey) => (payload = {}) => {
         const totalFiles = typeof payload.totalFiles === 'number' ? payload.totalFiles : 0;
         const hasData = typeof payload.hasData === 'boolean' ? payload.hasData : totalFiles > 0;
-        setTabDataState((prev) => ({
-            ...prev,
-            [tabKey]: { hasData, totalFiles, loaded: true }
-        }));
+        setTabDataState((prev) => {
+            return {
+                ...prev,
+                [tabKey]: { hasData, totalFiles, loaded: true }
+            };
+        });
     }, []);
 
     const hasAnyLoaded = tabConfigs.some((tab) => tabDataState[tab.key]?.loaded);
@@ -207,11 +209,6 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         <div key="data-matrix-tabs" className="data-matrix-container container-fluid px-0">
             <div className="row">
                 <div className="tabs-container d-flex flex-column" aria-busy={isLoading}>
-                    {isLoading ? (
-                        <div className="tabs-loading-overlay d-flex align-items-center justify-content-center">
-                            <i className="icon icon-spin icon-circle-notch fas" />
-                        </div>
-                    ) : null}
                     <div className="tab-headers d-flex flex-wrap gap-3">
                         {renderTabs.map((tab) => {
                             const isActive = tab.key === selectedTab?.key;
@@ -268,6 +265,8 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                                 showCountFor={typeof selectedTab?.matrixProps?.showCountFor === 'boolean'
                                                     ? selectedTab.matrixProps.showCountFor
                                                     : true}
+                                                // Keep loading visible while iterating on matrix UX locally.
+                                                debugLoadingDelayMs={isLocalEnv() ? 2500 : 0}
                                                 key={(selectedTab.matrixProps && selectedTab.matrixProps.key) || selectedTab.key}
                                                 session={session}
                                                 onDataLoaded={handleDataLoaded(selectedTab.key)}
