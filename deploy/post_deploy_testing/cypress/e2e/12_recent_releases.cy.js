@@ -125,6 +125,16 @@ function assertSelectedCountMatchesResultsCount(expectedText) {
         });
 }
 
+function assertReleaseDateFacetIsHidden() {
+    cy.get(".facets-container").should("be.visible");
+    cy.get(".facets-container .facet[data-field=\"file_status_tracking.release_dates.initial_release_date\"]")
+        .should("not.exist");
+    cy.get(".facets-container .facet[data-field=\"file_status_tracking.release_dates.initial_release\"]")
+        .should("not.exist");
+    cy.get(".facets-container .facet-title")
+        .should("not.contain.text", "Release Date");
+}
+
 function assertMonthNavButtonsAreFunctional() {
     cy.get(".recent-releases-months .release-month-section h4")
         .first()
@@ -283,6 +293,7 @@ function stepInitialLoad(caps) {
         "contain",
         "Release Week Details"
     );
+    assertReleaseDateFacetIsHidden();
     cy.get(".release-bucket-btn.selected .bucket-count")
         .should("have.length", 1)
         .invoke("text")
@@ -304,6 +315,7 @@ function stepDailyMode(caps) {
         "contain",
         "Release Day Details"
     );
+    assertReleaseDateFacetIsHidden();
     cy.get(".release-calendar-grid .release-day-btn.has-data")
         .should("have.length.at.least", 1);
     cy.get(".release-day-btn.selected")
@@ -339,6 +351,7 @@ function stepWeeklyMode(caps) {
         "contain",
         "Release Week Details"
     );
+    assertReleaseDateFacetIsHidden();
     cy.get(".release-bucket-list .release-bucket-btn")
         .should("have.length.at.least", 1);
     cy.get(".release-bucket-list .release-bucket-btn").then(($buttons) => {
@@ -376,6 +389,7 @@ function stepMonthlyMode(caps) {
         "contain",
         "Release Month Details"
     );
+    assertReleaseDateFacetIsHidden();
     logViewMode("Monthly", "bucket click stays Monthly");
     assertMonthlyBucketClickStaysMonthly();
 
