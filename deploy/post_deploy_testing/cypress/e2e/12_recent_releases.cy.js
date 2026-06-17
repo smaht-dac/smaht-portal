@@ -125,30 +125,14 @@ function assertSelectedCountMatchesResultsCount(expectedText) {
         });
 }
 
-function assertWeekViewMonthCountAtLeastWeekCount(weekCountText) {
-    const weekCount = parseRecentReleasesCount(weekCountText);
-    expect(weekCount, "expected weekly bucket count").to.be.greaterThan(0);
-
-    cy.get(".recent-releases-months .release-month-section")
-        .first()
-        .find(".count-badge, .count-badge-link")
-        .invoke("text")
-        .then((monthCountText) => {
-            const monthCount = parseRecentReleasesCount(monthCountText);
-            expect(monthCount, "month count in weekly view").to.be.at.least(
-                weekCount
-            );
-        });
-}
-
 function assertMonthNavButtonsAreFunctional() {
     cy.get(".recent-releases-months .release-month-section h4")
         .first()
         .invoke("text")
         .then((initialMonthLabel) => {
-            cy.log(`Recent Releases month nav start: ${initialMonthLabel}`);
+            cy.log(`[Recent Releases][Weekly] month nav starts at ${initialMonthLabel}`);
 
-            cy.log("Clicking Older to move the weekly month window back");
+            cy.log("[Recent Releases][Weekly] Older");
             cy.contains(".release-month-nav button", "Older")
                 .click({ force: true });
 
@@ -165,16 +149,16 @@ function assertMonthNavButtonsAreFunctional() {
                     ).to.not.equal(initialMonthLabel);
                 })
                 .then(($heading) => {
-                    cy.log(`Older moved to: ${$heading.text().trim()}`);
+                    cy.log(`[Recent Releases][Weekly] moved to ${$heading.text().trim()}`);
                 });
 
             cy.contains(".release-month-nav button", "Older")
                 .should("be.visible")
                 .then(($btn) => {
-                    cy.log(`Older button state: ${$btn.text().trim()}`);
+                    cy.log(`[Recent Releases][Weekly] Older button: ${$btn.text().trim()}`);
                 });
 
-            cy.log("Clicking Newer to return to the original month window");
+            cy.log("[Recent Releases][Weekly] Newer");
             cy.contains(".release-month-nav button", "Newer")
                 .click({ force: true });
 
@@ -187,8 +171,83 @@ function assertMonthNavButtonsAreFunctional() {
                     ).to.equal(initialMonthLabel);
                 })
                 .then(($heading) => {
-                    cy.log(`Newer returned to: ${$heading.text().trim()}`);
+                    cy.log(`[Recent Releases][Weekly] returned to ${$heading.text().trim()}`);
                 });
+        });
+}
+
+function assertMonthCountBadgeSwitchesToMonthlyView(viewLabel) {
+    cy.get(".recent-releases-months .release-month-section")
+        .first()
+        .as("firstMonthSection");
+
+    cy.get("@firstMonthSection")
+        .find("h4")
+        .invoke("text")
+        .then((monthLabel) => {
+            const trimmedMonthLabel = monthLabel.trim();
+            cy.log(
+                `[Recent Releases][${viewLabel}] month badge -> Monthly: ${trimmedMonthLabel}`
+            );
+
+            cy.get("@firstMonthSection")
+                .find(".count-badge-link")
+                .should("be.visible")
+                .click({ force: true });
+
+            cy.get(".recent-releases-matrix-column .recent-releases-title")
+                .should("contain", "Release Month Details");
+            cy.contains(".release-view-mode-toggle button", "Monthly")
+                .should("have.class", "active");
+            cy.get(".release-bucket-btn.selected .bucket-label")
+                .should("have.length", 1)
+                .and("have.text", trimmedMonthLabel);
+            cy.get(".release-bucket-btn.selected .bucket-count")
+                .should("have.length", 1)
+                .invoke("text")
+                .then((text) => {
+                    cy.log(
+                        `[Recent Releases][Monthly] month results: ${String(text).trim()}`
+                    );
+                    assertSelectedCountMatchesResultsCount(text);
+                });
+            assertLocationState("monthly", /^\d{4}-\d{2}$/);
+        });
+}
+
+function assertMonthlyBucketClickStaysMonthly() {
+    cy.get(".release-bucket-list .release-bucket-btn")
+        .should("have.length.at.least", 1)
+        .then(($buttons) => {
+            const targetIndex = $buttons.length > 1 ? 1 : 0;
+            const targetButton = $buttons.eq(targetIndex);
+            const targetLabel = Cypress.$(targetButton)
+                .find(".bucket-label")
+                .text()
+                .trim();
+
+            cy.log(
+                `[Recent Releases][Monthly] bucket ${targetIndex + 1}/${$buttons.length}: ${targetLabel}`
+            );
+
+            cy.wrap(targetButton).click({ force: true });
+
+            cy.get(".recent-releases-matrix-column .recent-releases-title")
+                .should("contain", "Release Month Details");
+            cy.contains(".release-view-mode-toggle button", "Monthly")
+                .should("have.class", "active");
+            cy.get(".release-bucket-btn.selected .bucket-label")
+                .should("have.text", targetLabel);
+            cy.get(".release-bucket-btn.selected .bucket-count")
+                .should("have.length", 1)
+                .invoke("text")
+                .then((text) => {
+                    cy.log(
+                        `[Recent Releases][Monthly] bucket results: ${String(text).trim()}`
+                    );
+                    assertSelectedCountMatchesResultsCount(text);
+                });
+            assertLocationState("monthly", /^\d{4}-\d{2}$/);
         });
 }
 
@@ -236,11 +295,11 @@ function stepInitialLoad(caps) {
 function stepDailyMode(caps) {
     if (!caps.runDailyModeChecks) return;
 
-    logViewMode("Daily", "switching to Daily view");
+    logViewMode("Daily", "switch to Daily");
     cy.contains(".release-view-mode-toggle button", "Daily")
         .click({ force: true });
 
-    logViewMode("Daily", "verifying day heading and selected day count");
+    logViewMode("Daily", "check day view and results");
     cy.get(".recent-releases-matrix-column .recent-releases-title").should(
         "contain",
         "Release Day Details"
@@ -259,17 +318,23 @@ function stepDailyMode(caps) {
     cy.get(".release-day-btn.selected")
         .invoke("attr", "title")
         .should("match", /^[A-Za-z]+\s+\d{1,2},\s+\d{4}$/);
+
     assertLocationState("daily", /^\d{4}-\d{2}-\d{2}$/);
+    logViewMode(
+        "Daily",
+        "month badge -> Monthly"
+    );
+    assertMonthCountBadgeSwitchesToMonthlyView("Daily");
 }
 
 function stepWeeklyMode(caps) {
     if (!caps.runWeeklyModeChecks) return;
 
-    logViewMode("Weekly", "switching to Weekly view");
+    logViewMode("Weekly", "switch to Weekly");
     cy.contains(".release-view-mode-toggle button", "Weekly")
         .click({ force: true });
 
-    logViewMode("Weekly", "selecting a weekly bucket and comparing counts");
+    logViewMode("Weekly", "check week bucket and results");
     cy.get(".recent-releases-matrix-column .recent-releases-title").should(
         "contain",
         "Release Week Details"
@@ -287,38 +352,33 @@ function stepWeeklyMode(caps) {
         .should("have.length", 1)
         .invoke("text")
         .then((text) => {
-            cy.log(`Weekly bucket count: ${String(text).trim()}`);
-            assertMonthNavButtonsAreFunctional();
-            assertWeekViewMonthCountAtLeastWeekCount(text);
+            cy.log(`[Recent Releases][Weekly] bucket results: ${String(text).trim()}`);
             assertSelectedCountMatchesResultsCount(text);
+            assertLocationState("weekly", /^\d{4}-\d{2}-\d{2}$/);
+            assertMonthNavButtonsAreFunctional();
+            logViewMode(
+                "Weekly",
+                "month badge -> Monthly"
+            );
+            assertMonthCountBadgeSwitchesToMonthlyView("Weekly");
         });
-    assertLocationState("weekly", /^\d{4}-\d{2}-\d{2}$/);
 }
 
 function stepMonthlyMode(caps) {
     if (!caps.runMonthlyModeChecks) return;
 
-    logViewMode("Monthly", "switching to Monthly view");
+    logViewMode("Monthly", "switch to Monthly");
     cy.contains(".release-view-mode-toggle button", "Monthly")
         .click({ force: true });
 
-    logViewMode("Monthly", "selecting a monthly bucket and comparing counts");
+    logViewMode("Monthly", "check month bucket and results");
     cy.get(".recent-releases-matrix-column .recent-releases-title").should(
         "contain",
         "Release Month Details"
     );
-    cy.get(".release-bucket-list .release-bucket-btn")
-        .should("have.length.at.least", 1);
-    cy.get(".release-bucket-list .release-bucket-btn").then(($buttons) => {
-        const targetIndex = $buttons.length > 1 ? 1 : 0;
-        cy.wrap($buttons.eq(targetIndex)).click({ force: true });
-    });
-    cy.get(".release-bucket-btn.selected .bucket-count")
-        .should("have.length", 1)
-        .invoke("text")
-        .then((text) => {
-            assertSelectedCountMatchesResultsCount(text);
-        });
+    logViewMode("Monthly", "bucket click stays Monthly");
+    assertMonthlyBucketClickStaysMonthly();
+
     assertLocationState("monthly", /^\d{4}-\d{2}$/);
 }
 
@@ -345,7 +405,7 @@ describe("Recent Releases by role", () => {
                 });
             } else {
                 it("should open Recent Releases and verify the timeline controls", () => {
-                    logViewMode("All", "verifying default weekly view state");
+                    logViewMode("All", "default view is Weekly");
                     cy.location("pathname").should("eq", "/recent-releases");
                     cy.title().should("contain", "Recent Releases");
                     cy.get(".recent-releases-page").should("be.visible");
