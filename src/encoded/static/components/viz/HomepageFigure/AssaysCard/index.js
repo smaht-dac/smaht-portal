@@ -48,13 +48,19 @@ export const AssaysCard = ({ currentTier }) => {
             items: [
                 {
                     iconSrc: '',
-                    title: 'Illumina NovaSeq',
+                    title: 'Illumina',
                     tier_0: true,
                     tier_1: true,
                 },
                 {
                     iconSrc: '',
                     title: 'Ultima Genomics',
+                    tier_0: true,
+                    tier_1: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Element AVITI',
                     tier_0: true,
                     tier_1: true,
                 },
@@ -76,6 +82,12 @@ export const AssaysCard = ({ currentTier }) => {
                     tier_0: true,
                     tier_1: true,
                 },
+                {
+                    iconSrc: '',
+                    title: 'Ultra-long ONT',
+                    tier_0: true,
+                    tier_1: true,
+                },
             ],
         },
         {
@@ -84,13 +96,13 @@ export const AssaysCard = ({ currentTier }) => {
             items: [
                 {
                     iconSrc: '',
-                    title: 'Illumina NovaSeq',
+                    title: 'Illumina',
                     tier_0: true,
                     tier_1: true,
                 },
                 {
                     iconSrc: '',
-                    title: 'MAS-Seq',
+                    title: 'Kinnex',
                     tier_0: true,
                     tier_1: true,
                 },
@@ -102,19 +114,13 @@ export const AssaysCard = ({ currentTier }) => {
             items: [
                 {
                     iconSrc: '',
-                    title: 'DLP+',
+                    title: 'PTA',
                     tier_0: true,
                     tier_1: true,
                 },
                 {
                     iconSrc: '',
-                    title: 'MALBAC',
-                    tier_0: true,
-                    tier_1: false,
-                },
-                {
-                    iconSrc: '',
-                    title: 'PTA and PTA-HAT-Seq',
+                    title: 'PTA and HAT-Seq',
                     tier_0: true,
                     tier_1: false,
                 },
@@ -142,12 +148,6 @@ export const AssaysCard = ({ currentTier }) => {
                     tier_0: true,
                     tier_1: false,
                 },
-                {
-                    iconSrc: '',
-                    title: 'Tranquil-Seq',
-                    tier_0: true,
-                    tier_1: false,
-                },
             ],
         },
         {
@@ -168,9 +168,15 @@ export const AssaysCard = ({ currentTier }) => {
                 },
                 {
                     iconSrc: '',
-                    title: 'Duplex sequencing',
+                    title: 'ppmSeq',
                     tier_0: true,
-                    tier_1: true,
+                    tier_1: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'VISTA-Seq',
+                    tier_0: true,
+                    tier_1: false,
                 },
                 {
                     iconSrc: '',
@@ -182,7 +188,7 @@ export const AssaysCard = ({ currentTier }) => {
                     iconSrc: '',
                     title: 'CompDuplex-Seq',
                     tier_0: true,
-                    tier_1: false,
+                    tier_1: true,
                 },
             ],
         },
@@ -190,12 +196,6 @@ export const AssaysCard = ({ currentTier }) => {
             header: 'Epigenome profiling',
             iconSrc: '/static/img/assay-icons/Epigenome profiling.svg',
             items: [
-                {
-                    iconSrc: '',
-                    title: 'NT-Seq',
-                    tier_0: true,
-                    tier_1: false,
-                },
                 {
                     iconSrc: '',
                     title: 'Fiber-Seq',
@@ -210,13 +210,7 @@ export const AssaysCard = ({ currentTier }) => {
                 },
                 {
                     iconSrc: '',
-                    title: 'GoTchA',
-                    tier_0: true,
-                    tier_1: false,
-                },
-                {
-                    iconSrc: '',
-                    title: 'ATAC-Seq/MetaCS',
+                    title: 'ATAC-Seq',
                     tier_0: true,
                     tier_1: false,
                 },
