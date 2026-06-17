@@ -577,6 +577,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     const [detailViewMode, setDetailViewMode] = useState(DETAIL_VIEW_MODES.TABLE);
     const pendingURLTargetRef = useRef(initialURLState.selectedDate);
     const isApplyingURLStateRef = useRef(!!initialURLState.selectedDate);
+    const pendingTimelineSelectionRef = useRef(null);
 
     useEffect(() => {
         let isCancelled = false;
@@ -716,6 +717,14 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
 
             pendingURLTargetRef.current = null;
             isApplyingURLStateRef.current = false;
+        }
+
+        if (pendingTimelineSelectionRef.current?.timelineMode === timelineMode) {
+            const { selectedDay: pendingSelectedDay = null, selectedTimelineTarget: pendingSelectedTimelineTarget = null } = pendingTimelineSelectionRef.current;
+            setSelectedDay(pendingSelectedDay);
+            setSelectedTimelineTarget(pendingSelectedTimelineTarget);
+            pendingTimelineSelectionRef.current = null;
+            return;
         }
 
         if (timelineMode === TIMELINE_MODES.DAILY) {
@@ -894,13 +903,23 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                 type="button"
                                                 className="count-badge count-badge-link"
                                                 onClick={() => {
-                                                    setSelectedDay(null);
-                                                    setSelectedTimelineTarget({
+                                                    const nextMonthlyTarget = {
                                                         key: `month-${month.value}`,
                                                         fullLabel: month.label,
                                                         browseQuery: month.browseQuery,
                                                         matrixQuery: buildMatrixQueryFromBrowseQuery(month.browseQuery || '')
-                                                    });
+                                                    };
+                                                    if (timelineMode !== TIMELINE_MODES.MONTHLY) {
+                                                        pendingTimelineSelectionRef.current = {
+                                                            timelineMode: TIMELINE_MODES.MONTHLY,
+                                                            selectedDay: null,
+                                                            selectedTimelineTarget: nextMonthlyTarget
+                                                        };
+                                                        setTimelineMode(TIMELINE_MODES.MONTHLY);
+                                                    } else {
+                                                        setSelectedDay(null);
+                                                        setSelectedTimelineTarget(nextMonthlyTarget);
+                                                    }
                                                 }}
                                                 title={`Browse files released in ${month.label}`}>
                                                 {month.count} {month.count === 1 ? 'File' : 'Files'}
@@ -939,11 +958,11 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                         className={dayClasses}
                                                         onClick={cell.hasData ? () => {
                                                             setSelectedDay(cell.data);
-                                                            setSelectedMatrixTarget(cell.data);
+                                                            setSelectedTimelineTarget(cell.data);
                                                         } : undefined}
                                                         onFocus={cell.hasData ? () => {
                                                             setSelectedDay(cell.data);
-                                                            setSelectedMatrixTarget(cell.data);
+                                                            setSelectedTimelineTarget(cell.data);
                                                         } : undefined}
                                                         aria-pressed={isSelected}
                                                         disabled={!cell.hasData}
