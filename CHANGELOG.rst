@@ -12,7 +12,7 @@ Change Log
 
 `PR 692: fix: update vcf link <https://github.com/smaht-dac/smaht-portal/pull/692>`_
 
-* Update VCF link in consortium hub page
+* Split VCF link into somatic and germline callsets
 
 
 1.32.2
