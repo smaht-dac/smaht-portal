@@ -365,7 +365,8 @@
         color: #325180;
         font-size: 0.84rem;
         min-height: 2.45rem;
-        transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
+        transition: border-color 120ms ease, background-color 120ms ease,
+            box-shadow 120ms ease, color 120ms ease;
 
         .bucket-label {
             font-weight: 600;
@@ -416,7 +417,8 @@
         display: flex;
         align-items: flex-start;
         justify-content: flex-start;
-        transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+        transition: border-color 120ms ease, background-color 120ms ease,
+            color 120ms ease;
         color: #9eb0cc;
         position: relative;
         overflow: hidden;
@@ -535,8 +537,8 @@
             }
 
             .search-headers-row {
-                .search-headers-column-block[data-field="@type"],
-                .search-headers-column-block[data-field="access_status"] {
+                .search-headers-column-block[data-field='@type'],
+                .search-headers-column-block[data-field='access_status'] {
                     width: 56px;
                     min-width: 56px;
                     max-width: 56px;
@@ -553,8 +555,8 @@
             }
 
             .search-result-row {
-                .search-result-column-block[data-field="@type"],
-                .search-result-column-block[data-field="access_status"] {
+                .search-result-column-block[data-field='@type'],
+                .search-result-column-block[data-field='access_status'] {
                     width: 56px;
                     min-width: 56px;
                     max-width: 56px;
@@ -572,14 +574,16 @@
                 }
             }
 
-            .search-headers-column-block[data-field="@type"] input[type="checkbox"],
-            .search-result-column-block[data-field="@type"] input[type="checkbox"] {
+            .search-headers-column-block[data-field='@type']
+                input[type='checkbox'],
+            .search-result-column-block[data-field='@type']
+                input[type='checkbox'] {
                 margin: 0 !important;
                 display: block;
             }
 
-            .search-headers-column-block[data-field="access_status"] .icon-lock,
-            .search-result-column-block[data-field="access_status"] .icon-lock {
+            .search-headers-column-block[data-field='access_status'] .icon-lock,
+            .search-result-column-block[data-field='access_status'] .icon-lock {
                 margin: 0 auto;
                 display: inline-block;
             }
@@ -4320,6 +4324,10 @@ FAQ page styles
 
                 .nav-group {
                     margin-bottom: 0px;
+
+                    a.header:hover {
+                        text-decoration: none;
+                    }
                 }
             }
         }
