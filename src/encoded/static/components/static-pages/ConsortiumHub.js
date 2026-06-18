@@ -14,7 +14,7 @@ const quickLinks = [
     },
     {
         title: 'Filtered Variant Callsets (VCFs)',
-        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=vcf&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=vcf_gz&file_format.display_title=vcf&release_tracker_description=Filtered+somatic+SNV+vcf+vcf_gz&release_tracker_description=NanoSeq+Illumina+NovaSeq+X+Plus+vcf&release_tracker_description=CODEC+Illumina+NovaSeq+X+Plus+vcf&release_tracker_description=VISTA-seq+Illumina+NovaSeq+X+vcf&release_tracker_description=Phased+Germline+Variant+vcf_gz&release_tracker_description%21=No+value&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
     },
     {
         title: 'DSA (FASTA, BED, Chain)',
