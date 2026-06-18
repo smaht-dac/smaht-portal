@@ -7,13 +7,29 @@ smaht-portal
 Change Log
 ----------
 
-1.32.2
+1.32.4
 ======
 
 `PR 690: test: update cypress tests for retracted and renamed files table <https://github.com/smaht-dac/smaht-portal/pull/690>`_
 
 * Fix click when shadow layer rendered above table
 * Add tests for Renamed files table
+
+
+1.32.3
+======
+
+`PR 692: fix: update vcf link <https://github.com/smaht-dac/smaht-portal/pull/692>`_
+
+* Split VCF link into somatic and germline callsets
+
+
+1.32.2
+======
+
+`PR 672: feat: release tracker restructure <https://github.com/smaht-dac/smaht-portal/pull/672>`_
+
+* Update release tracker UI to group releases by week
 
 
 1.32.1
