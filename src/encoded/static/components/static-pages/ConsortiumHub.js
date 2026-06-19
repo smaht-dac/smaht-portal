@@ -13,8 +13,12 @@ const quickLinks = [
         href: '/browse/?data_category=RNA+Quantification&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
     },
     {
-        title: 'Filtered Variant Callsets (VCFs)',
-        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=vcf&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+        title: 'Filtered Somatic Variant Callsets',
+        href: '/browse/?analysis_details=Filtered&data_category=Somatic+Variant+Calls&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&release_tracker_description%21=No+value&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+    },
+    {
+        title: 'Germline Variant Callsets',
+        href: '/browse/?data_category=Germline+Variant+Calls&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&release_tracker_description%21=No+value&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
     },
     {
         title: 'DSA (FASTA, BED, Chain)',
@@ -310,23 +314,23 @@ export const ConsortiumHub = () => {
                     <div className="nav-group">
                         <h6>Quick Links to the P25 Dataset</h6>
                         {quickLinks.map((link) => (
-                            <div key={link.title} className="dropdown">
-                                <div className="header">
+                            <div className="dropdown">
+                                <a
+                                    className="header"
+                                    key={link.title}
+                                    href={link.href}>
                                     <div className="toggle d-flex align-items-center">
-                                        <a
-                                            className="parent-link"
-                                            href={link.href}>
+                                        <span className="parent-link">
                                             {link.title}
-                                        </a>
+                                        </span>
                                     </div>
-                                    <a
+                                    <span
                                         className="header-link"
-                                        href={link.href}
                                         aria-hidden="true"
                                         tabIndex={-1}>
                                         <RightArrowIcon />
-                                    </a>
-                                </div>
+                                    </span>
+                                </a>
                             </div>
                         ))}
                     </div>
