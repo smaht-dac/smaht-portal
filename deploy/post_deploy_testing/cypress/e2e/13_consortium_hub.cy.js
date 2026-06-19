@@ -49,6 +49,77 @@ const QUICK_LINK_TITLES = [
     "DSA (FASTA, BED, Chain)",
 ];
 
+const SEQUENCING_DEFAULT_SEARCH_PARAMS = [
+    "type=File",
+    "donors.donor_groups=First 25 Donors [P25]",
+    "file_format.display_title=cram",
+    "file_format.display_title=bam",
+    "sample_summary.studies=Production",
+    "status=open",
+    "status=open-early",
+    "status=open-network",
+    "status=protected",
+    "status=protected-early",
+    "status=protected-network",
+];
+
+const TRANSCRIPT_DEFAULT_SEARCH_PARAMS = [
+    "type=File",
+    "data_category=RNA Quantification",
+    "donors.donor_groups=First 25 Donors [P25]",
+    "sample_summary.studies=Production",
+    "status=open",
+    "status=open-early",
+    "status=open-network",
+    "status=protected",
+    "status=protected-early",
+    "status=protected-network",
+];
+
+const FILTERED_SOMATIC_DEFAULT_SEARCH_PARAMS = [
+    "type=File",
+    "analysis_details=Filtered",
+    "data_category=Somatic Variant Calls",
+    "donors.donor_groups=First 25 Donors [P25]",
+    "release_tracker_description!=No value",
+    "sample_summary.studies=Production",
+    "status=open",
+    "status=open-early",
+    "status=open-network",
+    "status=protected",
+    "status=protected-early",
+    "status=protected-network",
+];
+
+const GERMLINE_DEFAULT_SEARCH_PARAMS = [
+    "type=File",
+    "data_category=Germline Variant Calls",
+    "donors.donor_groups=First 25 Donors [P25]",
+    "release_tracker_description!=No value",
+    "sample_summary.studies=Production",
+    "status=open",
+    "status=open-early",
+    "status=open-network",
+    "status=protected",
+    "status=protected-early",
+    "status=protected-network",
+];
+
+const DSA_DEFAULT_SEARCH_PARAMS = [
+    "type=File",
+    "data_type=DSA",
+    "data_type=Chain File",
+    "data_type=Sequence Interval",
+    "donors.donor_groups=First 25 Donors [P25]",
+    "sample_summary.studies=Production",
+    "status=open",
+    "status=open-early",
+    "status=open-network",
+    "status=protected",
+    "status=protected-early",
+    "status=protected-network",
+];
+
 function loginIfNeeded(roleKey) {
     const caps = ROLE_MATRIX[roleKey];
     if (caps.isAuthenticated) {
@@ -61,6 +132,19 @@ function logoutIfNeeded(roleKey) {
     if (caps.isAuthenticated) {
         cy.logoutSMaHT();
     }
+}
+
+function expectSearchToIncludeParams(search, expectedParams) {
+    const searchParams = new URLSearchParams(search);
+
+    expectedParams.forEach((param) => {
+        const [rawKey, rawValue = ""] = param.split("=");
+        const actualValues = searchParams.getAll(rawKey);
+        expect(
+            actualValues,
+            `Expected search params for ${rawKey} to include ${rawValue}`
+        ).to.include(rawValue);
+    });
 }
 
 /** Defensive: silence known hydration warnings in Cypress for SSR */
@@ -130,6 +214,136 @@ function assertQuickLinks() {
         });
 }
 
+const QUICK_LINK_TESTS = [
+    {
+        title: "Sequencing Data (BAMs & CRAMs)",
+        expectedSearchParams: SEQUENCING_DEFAULT_SEARCH_PARAMS,
+        extraAssertions() {
+            cy.get('.facet[data-field="donors.donor_groups"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "First 25 Donors [P25]");
+
+            cy.get('.facet[data-field="file_format.display_title"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("have.length", 2)
+                .then(($items) => {
+                    const selected = Array.from($items, (item) =>
+                        Cypress.$(item).text().trim()
+                    );
+                    expect(selected).to.include("cram");
+                    expect(selected).to.include("bam");
+                });
+
+            cy.searchPageTotalResultCount().should("equal", 8);
+        },
+    },
+    {
+        title: "Transcript Quantification Data (tsv, txt, gff)",
+        expectedSearchParams: TRANSCRIPT_DEFAULT_SEARCH_PARAMS,
+        extraAssertions() {
+            cy.get('.facet[data-field="donors.donor_groups"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "First 25 Donors [P25]");
+
+            cy.get('.facet[data-field="data_category"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "RNA Quantification");
+
+            cy.searchPageTotalResultCount().should("equal", 0);
+        },
+    },
+    {
+        title: "Filtered Somatic Variant Callsets",
+        expectedSearchParams: FILTERED_SOMATIC_DEFAULT_SEARCH_PARAMS,
+        extraAssertions() {
+            cy.searchPageTotalResultCount().should("equal", 1);
+
+            cy.get('.facet[data-field="donors.donor_groups"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "First 25 Donors [P25]");
+
+            cy.get('.facet[data-field="data_category"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "Somatic Variant Calls");
+
+            cy.get('.facet[data-field="analysis_details"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "Filtered Variant Calls");
+        },
+    },
+    {
+        title: "Germline Variant Callsets",
+        expectedSearchParams: GERMLINE_DEFAULT_SEARCH_PARAMS,
+        extraAssertions() {
+            cy.searchPageTotalResultCount().should("equal", 0);
+
+            cy.get('.facet[data-field="donors.donor_groups"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "First 25 Donors [P25]");
+
+            cy.get('.facet[data-field="data_category"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "Germline Variant Calls");
+        },
+    },
+    {
+        title: "DSA (FASTA, BED, Chain)",
+        expectedSearchParams: DSA_DEFAULT_SEARCH_PARAMS,
+        extraAssertions() {
+            cy.searchPageTotalResultCount().should("equal", 35);
+
+            cy.get('.facet[data-field="donors.donor_groups"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("contain", "First 25 Donors [P25]");
+
+            cy.get('.facet[data-field="data_type"]')
+                .find(".facet-list-element.selected .facet-item")
+                .should("have.length", 3)
+                .then(($items) => {
+                    const selected = Array.from($items, (item) =>
+                        Cypress.$(item).text().trim()
+                    );
+                    expect(selected).to.include("DSA");
+                    expect(selected).to.include("Sequence Interval");
+                    expect(selected).to.include("Chain File");
+                });
+        },
+    },
+];
+
+function clickQuickLinkAndAssertDefaults(index, quickLinkTest) {
+    cy.get(".quick-links-container > .nav-group")
+        .first()
+        .find("> .dropdown > a.header")
+        .eq(index)
+        .should("contain", quickLinkTest.title)
+        .then(($link) => {
+            const href = $link.attr("href");
+            expect(href, `${quickLinkTest.title} href`).to.match(/^\/browse\/\?/);
+
+            cy.wrap($link).click({ force: true });
+
+            cy.location("pathname").should("eq", "/browse/");
+            cy.location("search").should((search) => {
+                expectSearchToIncludeParams(search, quickLinkTest.expectedSearchParams);
+                if (href) {
+                    const expectedSearch = new URL(
+                        href,
+                        Cypress.config("baseUrl") || "http://localhost:8000"
+                    ).search;
+                    expect(search).to.equal(expectedSearch);
+                }
+            });
+            cy.get("#slow-load-container").should("not.have.class", "visible");
+            cy.get("#page-title-container .page-title")
+                .should("contain", "SMaHT Production Data");
+
+            if (typeof quickLinkTest.extraAssertions === "function") {
+                quickLinkTest.extraAssertions();
+            }
+        });
+}
+
 function assertAccordionBehavior(hasDonorData) {
     const toggleSelector =
         ".quick-links-container > .nav-group:nth-of-type(2) .toggle[role='button']";
@@ -196,7 +410,7 @@ describe("Consortium Hub by role", () => {
                 logoutIfNeeded(roleKey);
             });
 
-            it("shows the correct access state and hub content", () => {
+            it("shows the correct access state and quick-link browse defaults", () => {
                 if (!caps.canAccessHub) {
                     assertForbiddenPage();
                     return;
@@ -213,6 +427,16 @@ describe("Consortium Hub by role", () => {
                 } else {
                     assertFailedToLoadDonorData();
                 }
+
+                QUICK_LINK_TESTS.forEach((quickLinkTest, index) => {
+                    if (index > 0) {
+                        visitConsortiumHub(roleKey);
+                        assertHubShell();
+                        assertQuickLinks();
+                    }
+
+                    clickQuickLinkAndAssertDefaults(index, quickLinkTest);
+                });
             });
         });
     });
