@@ -1547,7 +1547,7 @@ body[data-pathname^="/users/"] {
 File and Donor Overview Styles
 *****************************/
 
-.item-page-container.type-File, .item-page-container.type-ProtectedDonor, .item-page-container.type-Donor  {
+.item-page-container.type-File, .item-page-container.type-ProtectedDonor, .item-page-container.type-Donor, .item-page-container.type-Tissue  {
 	font-family: 'Inter';
 
 	.view-title {
@@ -2636,6 +2636,338 @@ File and Donor Overview Styles
 				}
 			}
 		}
+	}
+}
+
+.item-page-container.type-Tissue {
+	.view-title {
+		background: url('/static/img/polygon-bg-header.svg'),
+			linear-gradient(165deg, rgba(233, 245, 255, 0.92), rgba(216, 236, 255, 0.72));
+		background-size: cover;
+	}
+
+	.view-content {
+		.tissue-statistics {
+			.donor-statistic {
+				flex: 1;
+				min-height: 92px;
+				border-radius: 6px;
+				border: 1px solid #DCE3EA;
+				background-color: #F8FBFF;
+
+				&-label {
+					color: #4E6884;
+					font-size: 1.25rem;
+					font-weight: 600;
+
+					i {
+						margin-right: 8px;
+					}
+				}
+
+				&-value {
+					color: #2F3E4C;
+					font-size: 2.25rem;
+					line-height: 1;
+					font-weight: 600;
+					min-height: 36px;
+				}
+
+				&.tissues {
+					background-color: #F3FBF5;
+					border-color: #CDEBD8;
+					.donor-statistic-label {
+						color: #1F9F55;
+					}
+				}
+
+				&.assays {
+					background-color: #FFF8EF;
+					border-color: #F2DAC1;
+					.donor-statistic-label {
+						color: #E77600;
+					}
+				}
+
+				&.files {
+					background-color: #F4F9FF;
+					border-color: #D5E5F7;
+					.donor-statistic-label {
+						color: #4677A9;
+					}
+				}
+			}
+		}
+
+		.tabs-container {
+			margin-top: 40px;
+
+			.tab-card {
+				position: relative;
+				display: flex;
+				overflow: hidden;
+				min-width: 300px;
+				flex-direction: column;
+
+				.header {
+					display: flex;
+					width: max-content;
+					border: 1px solid #E7F0F3;
+					border-top: 4px solid #E99415;
+					border-bottom: 1px solid white;
+					border-radius: 4px 4px 0px 0px;
+					color: #343741;
+					font-weight: 600;
+					background-color: white;
+					z-index: 1;
+
+					.title {
+						padding: 10px 15px;
+						margin-bottom: -2px;
+						background-color: white;
+						z-index: 0;
+					}
+				}
+
+				.body {
+					position: relative;
+					overflow: hidden;
+					display: flex;
+					flex: 1;
+					min-height: 560px;
+					border: 1px solid #E7F0F3;
+				}
+
+				&.matrix-tab {
+					flex: 3 1 720px;
+
+					.body {
+						padding: 20px;
+					}
+				}
+
+				&.aliquot-tab {
+					flex: 2 1 520px;
+
+					.body.aliquot-tab-body {
+						padding: 20px 24px;
+						min-height: 460px;
+						background: linear-gradient(180deg, #FFFFFF, #FBFDFF);
+					}
+				}
+			}
+		}
+
+		.callout-card {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 1.5rem;
+			margin: auto;
+			background-color: white;
+			border-radius: 12px;
+			width: 350px;
+			max-width: 70%;
+			height: 220px;
+			z-index: 0;
+			text-align: center;
+			box-shadow: 0 0 8px #D3D9E7;
+
+			i {
+				color: #87B5F0;
+				font-size: 2.5rem;
+			}
+
+			h4 {
+				color: #0E3669;
+				font-weight: 400;
+				font-size: 1.25rem;
+			}
+
+			span {
+				color: #597598;
+				font-size: 0.875rem;
+			}
+		}
+	}
+
+	@include media-breakpoint-down(md) {
+		.view-content {
+			.tissue-statistics {
+				flex-direction: column;
+			}
+
+			.tabs-container {
+				.tab-card {
+					&.matrix-tab,
+					&.aliquot-tab {
+						flex: 1 1 100%;
+					}
+				}
+			}
+		}
+	}
+}
+
+.aliquot-visualization {
+	width: 100%;
+
+	.aliquot-title {
+		color: #31465D;
+		font-size: 1rem;
+		font-weight: 600;
+		margin-bottom: 12px;
+	}
+
+	.aliquot-canvas-wrap {
+		position: relative;
+		border: 1px solid #E4EDF5;
+		border-radius: 8px;
+		padding: 16px 18px 10px;
+		background-color: #FFFFFF;
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+	}
+
+	.aliquot-canvas {
+		width: 100%;
+		height: auto;
+		overflow: visible;
+	}
+
+	.aliquot-box-outline polygon {
+		fill: none;
+		stroke: #20242A;
+		stroke-width: 2;
+	}
+
+	.aliquot-dimension,
+	.aliquot-depth-label {
+		line,
+		polygon {
+			fill: #111111;
+			stroke: #111111;
+			stroke-width: 1.1;
+		}
+
+		text {
+			fill: #1E2D3D;
+			font-size: 15px;
+			font-weight: 400;
+		}
+	}
+
+	.aliquot-slice {
+		transition: filter 180ms ease;
+
+		.slice-face {
+			transition:
+				transform 180ms ease,
+				filter 180ms ease,
+				opacity 180ms ease,
+				stroke-width 180ms ease;
+			vector-effect: non-scaling-stroke;
+			stroke-width: 1.5;
+		}
+
+		&:hover,
+		&.is-selected {
+			.slice-face {
+				filter: brightness(1.04) saturate(1.08);
+				stroke-width: 2.3;
+			}
+		}
+
+		.slice-top {
+			opacity: 0.92;
+		}
+
+		.slice-side {
+			opacity: 0.95;
+		}
+	}
+
+	.aliquot-slice-hitarea {
+		width: 100%;
+		height: 100%;
+		border: none;
+		padding: 0;
+		margin: 0;
+		background: transparent;
+		cursor: pointer;
+
+		&:focus-visible {
+			outline: 2px solid #0E74D2;
+			outline-offset: -2px;
+		}
+	}
+
+	.slice-inline-label {
+		fill: #30475F;
+		font-size: 12px;
+		font-weight: 600;
+		text-anchor: middle;
+		pointer-events: none;
+	}
+
+	.aliquot-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px 24px;
+		margin-top: 14px;
+		color: #4E6379;
+		font-size: 0.9rem;
+	}
+
+	.aliquot-legend-item {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.legend-swatch {
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+		border-radius: 4px;
+		border: 1px solid rgba(33, 41, 52, 0.2);
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+	}
+}
+
+.popover.aliquot-popover {
+	max-width: 290px;
+
+	.popover-header {
+		font-weight: 600;
+		background-color: #F4F9FF;
+	}
+
+	.popover-body {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.aliquot-popover-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 12px;
+		color: #4E6379;
+
+		strong {
+			color: #1E2D3D;
+			font-weight: 600;
+			text-align: right;
+		}
+	}
+
+	.aliquot-popover-description {
+		margin: 4px 0 0;
+		padding-top: 8px;
+		border-top: 1px solid #E4EDF5;
+		color: #5D7288;
+		font-size: 0.875rem;
 	}
 }
 
