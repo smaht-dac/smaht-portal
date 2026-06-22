@@ -2801,14 +2801,16 @@ File, Donor, and Publication Overview Styles
                         h3 {
                             background-color: #f6faff;
                             border: 1px solid #d5e4f3;
+                            color: #212529;
                             border-radius: 10px 10px 0 0;
                             font-size: 0.875rem;
                             font-weight: 500;
-                            padding: 5px 10px;
+                            padding: 10px;
                             margin: 0;
                         }
                         p {
                             border: 1px solid #d5e4f3;
+                            color: #212529;
                             border-top: none;
                             border-radius: 0 0 10px 10px;
                             font-size: 0.75rem;
@@ -2831,17 +2833,18 @@ File, Donor, and Publication Overview Styles
                     margin-bottom: 20px;
                 }
                 .description {
+                    position: relative;
+                    padding-right: 550px;
+                    min-height: 300px;
                     p {
                         font-size: 0.9375rem;
                         line-height: 1.75rem;
-
-                        &:last-of-type {
-                            float: right;
-                        }
                     }
                     img {
+                        position: absolute;
+                        top: 0px;
+                        right: 0px;
                         display: block;
-                        margin-top: 20px;
                         max-width: 463px;
                         width: 100%;
                         height: auto;

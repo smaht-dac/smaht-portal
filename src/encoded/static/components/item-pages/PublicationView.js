@@ -145,12 +145,6 @@ const PublicationViewTabs = (props) => {
         'reference-set-generation'
     );
 
-    console.log('[PublicationViewTabs] ref-set-gen section:', refSetGenSection);
-    if (refSetGenSection) {
-        console.log('[PublicationViewTabs] ref-set-gen .body:', refSetGenSection.body);
-        console.log('[PublicationViewTabs] ref-set-gen .options:', refSetGenSection.options);
-    }
-
     const fileSearchUrl = `/search/?type=File&doi_list=${context?.doi}&limit=all`;
     const tableProps = {
         embeddedTableHeaderText: 'Published Data from this Publication',
@@ -179,7 +173,9 @@ const PublicationViewTabs = (props) => {
                             <div className="description">
                                 <BasicStaticSectionBody
                                     content={refSetGenSection.body}
-                                    filetype={refSetGenSection.options?.filetype}
+                                    filetype={
+                                        refSetGenSection.options?.filetype
+                                    }
                                     placeholderReplacementFxn={
                                         placeholderReplacementFxn
                                     }
@@ -203,13 +199,6 @@ const PublicationView = React.memo(function PublicationView(props) {
         context.static_content,
         'key-findings'
     );
-
-    console.log('[PublicationView] static_content raw:', context.static_content);
-    console.log('[PublicationView] key-findings section:', keyFindingsSection);
-    if (keyFindingsSection) {
-        console.log('[PublicationView] key-findings .body:', keyFindingsSection.body);
-        console.log('[PublicationView] key-findings .options:', keyFindingsSection.options);
-    }
 
     const pubYear = context?.date_published?.split('-')[0];
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
@@ -247,7 +236,10 @@ const PublicationView = React.memo(function PublicationView(props) {
                     {context?.key_image_thumbnail_link && (
                         <img
                             className="thumbnail"
-                            src={context.key_image_thumbnail_link}
+                            src={
+                                // context.key_image_thumbnail_link ||
+                                'https://placehold.co/180x110'
+                            }
                             alt={context.title || 'Publication key figure'}
                         />
                     )}
@@ -385,7 +377,9 @@ const PublicationView = React.memo(function PublicationView(props) {
                             <div className="body">
                                 <BasicStaticSectionBody
                                     content={keyFindingsSection.body}
-                                    filetype={keyFindingsSection.options?.filetype}
+                                    filetype={
+                                        keyFindingsSection.options?.filetype
+                                    }
                                     placeholderReplacementFxn={
                                         placeholderReplacementFxn
                                     }
