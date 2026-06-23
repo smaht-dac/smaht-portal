@@ -721,13 +721,19 @@ export class VisualBody extends React.PureComponent {
                 totalCoverage: sum.totalCoverage + getTotalCoverageFromItem(item)
             };
         }, { fileCount: 0, totalCoverage: 0 });
+        const effectiveFileCount = typeof summaryCounts?.files === 'number'
+            ? summaryCounts.files
+            : fileCount;
+        const effectiveTotalCoverage = typeof summaryCounts?.total_coverage === 'number'
+            ? summaryCounts.total_coverage
+            : totalCoverage;
         const donorCount = getUniqueDonorCountFromItems(dataForCounts);
         const isTissueColumnGrouping = (fieldChangeMap?.[columnGrouping] || columnGrouping) === 'sample_summary.tissues';
         const tissueCount = isTissueColumnGrouping
             ? getUniqueValueCountFromItems(effectiveBlockType === 'row-summary' ? rowSummaryItems : dataForCounts, columnGrouping)
             : 0;
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
-        const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
+        const roundedTotalCoverage = effectiveTotalCoverage > 0 ? Math.round(effectiveTotalCoverage * 100) / 100 : 0;
         const totalCoverageDisplay = roundedTotalCoverage > 0 ? `${formatLocalizedNumber(roundedTotalCoverage, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
@@ -793,7 +799,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
-                                        <div className="value">{fileCount}</div>
+                                        <div className="value">{effectiveFileCount}</div>
                                     </div>
                                 </div>
                             ) : null}
@@ -810,7 +816,7 @@ export class VisualBody extends React.PureComponent {
                                         </div>
                                         <div className="col-4">
                                             <div className="label">{countFor === 'total_coverage' ? 'Total Coverage' : 'Total Files'}</div>
-                                            <div className="value">{countFor === 'total_coverage' ? totalCoverageDisplay : fileCount}</div>
+                                            <div className="value">{countFor === 'total_coverage' ? totalCoverageDisplay : effectiveFileCount}</div>
                                         </div>
                                     </div>
                                 </React.Fragment>
@@ -843,7 +849,7 @@ export class VisualBody extends React.PureComponent {
                                     }
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
-                                        <div className="value">{fileCount}</div>
+                                        <div className="value">{effectiveFileCount}</div>
                                     </div>
                                 </div>
                             ) : null}
@@ -859,12 +865,12 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
-                                        <div className="value">{fileCount}</div>
+                                        <div className="value">{effectiveFileCount}</div>
                                     </div>
                                 </div>
                             ) : null}
                             <div className="row footer-row p-1">
-                                {makeSearchButton(browseUrl, fileCount <= 0)}
+                                {makeSearchButton(browseUrl, effectiveFileCount <= 0)}
                             </div>
                         </div>
                         :
