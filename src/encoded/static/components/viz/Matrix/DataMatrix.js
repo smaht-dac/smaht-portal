@@ -864,7 +864,15 @@ export default class DataMatrix extends React.PureComponent {
         return _.reduce(rows, (memo, row) => {
             const columnValue = row?.[columnGrouping];
             const files = Number(row?.counts?.files) || 0;
+            const dataType = String(row?.data_type || '');
+            const isDsaLikeRow = dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval';
             if (!columnValue || files <= 0) {
+                return memo;
+            }
+
+            // Keep raw assay totals for normal columns, but do not leak DSA-like rows
+            // back into their parent assay cells. DSA continues to use its own derived path.
+            if (isDsaLikeRow && columnValue !== 'DSA') {
                 return memo;
             }
 
