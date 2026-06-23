@@ -91,12 +91,12 @@
                 "properties": {
                     "first_name": {
                         "title": "Given name and/or initials",
-                        "description": "An authors given (first) name and optional middle initial - or initials if that is only option",
+                        "description": "An author's given (first) name and optional middle initial - or initials if that is only option",
                         "type": "string"
                     },
                     "last_name": {
                         "title": "Surname",
-                        "description": "An authors surname (last name)",
+                        "description": "An author's surname (last name)",
                         "type": "string"
                     }
                 }
@@ -151,7 +151,7 @@
         "repository_urls": {
             "title": "Repository URLs",
             "description": "Link to the paper in the repositories (e.g. bioRxiv, PubMed).",
-            "comment": "preprints can be indexed in pubmed and an arxiv server",
+            "comment": "Preprints can be indexed in pubmed and an arxiv server",
             "type": "array",
             "items": {
                 "type": "string",
@@ -194,10 +194,10 @@
         },
         "working_group_name": {
             "title": "Working Group Name",
-            "description": "For publications with scope 'Working group' the name of the WG that produced the publication",
+            "description": "For publications with scope 'Working group', the name of the WG that produced the publication",
             "type": "string",
             "enum": [
-                "SNV/Indel Working Group",
+                "SNV/Indel",
                 "SV",
                 "MEI",
                 "Genome Assembly",
