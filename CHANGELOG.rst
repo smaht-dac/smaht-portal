@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.33.0
+======
+
+`PR 608: add publication <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* Add publication item - schema, types, calcprops and dummy inserts for tests
+
+
 1.32.3
 ======
 
