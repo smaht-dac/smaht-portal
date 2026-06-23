@@ -20,6 +20,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 NDRI_TPC_DISPLAY_TITLE = "NDRI TPC"
+PROCESSED_TAG = "tpc_metadata_synced"
 
 log = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ def get_non_tpc_tissue_samples(auth_key: dict) -> list:
     query = (
         "/search/?type=TissueSample"
         f"&submission_centers.display_title!={NDRI_TPC_DISPLAY_TITLE.replace(' ', '+')}"
+        f"&tags!={PROCESSED_TAG}"
         "&status!=deleted"
     )
     return ff_utils.search_metadata(query, key=auth_key, page_limit="all")
@@ -148,10 +150,15 @@ def main() -> None:
                 skipped_no_tpc += 1
                 continue
 
-            patch = build_patch(tpc_sample, sample)
+            patch = build_patch(tpc_sample, sample) or {}
+
+            existing_tags = sample.get("tags", [])
+            if PROCESSED_TAG not in existing_tags:
+                patch["tags"] = existing_tags + [PROCESSED_TAG]
+
             if not patch:
                 log.debug(
-                    "No changes needed for %s (external_id: %s)", uuid, external_id
+                    "Already processed %s (external_id: %s)", uuid, external_id
                 )
                 skipped_no_changes += 1
                 continue
@@ -180,7 +187,7 @@ def main() -> None:
 
     action = "Patched" if args.execute else "Would patch"
     log.info(
-        "Done. %s: %d | Skipped (no TPC match): %d | Skipped (no changes needed): %d | Errors: %d",
+        "Done. %s: %d | Skipped (no TPC match): %d | Skipped (already processed): %d | Errors: %d",
         action,
         patched,
         skipped_no_tpc,
