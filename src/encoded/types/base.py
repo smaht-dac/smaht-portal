@@ -30,6 +30,7 @@ from .utils import get_item
 from ..local_roles import DEBUG_PERMISSIONS
 from ..schema_formats import is_accession
 from ..utils import get_remote_user
+from ..security_logging import Outcome, log_data_modification
 
 
 def mixin_smaht_permission_types(schema: dict) -> dict:
@@ -365,6 +366,29 @@ def is_admin(user: Dict[str, Any]) -> bool:
     return "admin" in user.get("groups", [])
 
 
+def _modification_target(context, request, *, operation, result=None):
+    """Builds the security-event target block for a create/edit. Never logs the
+    request body (may contain PII/secrets) - only resource type/uuid + operation."""
+    details = {"operation": operation, "method": request.method}
+    resource_type = None
+    resource_uuid = None
+    try:
+        resource_type = context.type_info.name
+    except Exception:  # noqa
+        pass
+    if result is not None:
+        try:
+            resource_uuid = (result.get('@graph') or [{}])[0].get('uuid')
+        except Exception:  # noqa
+            pass
+    else:
+        try:
+            resource_uuid = str(context.uuid)
+        except Exception:  # noqa
+            pass
+    return {"resource_type": resource_type, "resource_uuid": resource_uuid, "details": details}
+
+
 @view_config(
     context=SMAHTCollection,
     permission='add',
@@ -382,7 +406,16 @@ def is_admin(user: Dict[str, Any]) -> bool:
 )
 @debug_log
 def collection_add(context, request, render=None):
-    return sno_collection_add(context, request, render)
+    try:
+        result = sno_collection_add(context, request, render)
+    except Exception:
+        log_data_modification(request, outcome=Outcome.FAILURE,
+                              target=_modification_target(context, request, operation="create"))
+        raise
+    log_data_modification(request, outcome=Outcome.SUCCESS,
+                          target=_modification_target(context, request, operation="create",
+                                                      result=result))
+    return result
 
 
 @view_config(context=Item, permission='edit', request_method='PUT',
@@ -405,4 +438,15 @@ def collection_add(context, request, render=None):
              request_param=['check_only=true'])
 @debug_log
 def item_edit(context, request, render=None):
-    return sno_item_edit(context, request, render)
+    # The check_only=true GET variant is a validation no-op (no mutation); skip logging.
+    if request.method == 'GET':
+        return sno_item_edit(context, request, render)
+    try:
+        result = sno_item_edit(context, request, render)
+    except Exception:
+        log_data_modification(request, outcome=Outcome.FAILURE,
+                              target=_modification_target(context, request, operation="edit"))
+        raise
+    log_data_modification(request, outcome=Outcome.SUCCESS,
+                          target=_modification_target(context, request, operation="edit"))
+    return result

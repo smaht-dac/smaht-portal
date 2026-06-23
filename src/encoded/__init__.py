@@ -30,6 +30,7 @@ from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
 from .appdefs import APP_VERSION_REGISTRY_KEY
 from .schema_formats import format_checker  # noqa
+from .security_logging import SECURITY_LOGGER_REGISTRY_KEY, SplunkHECClient
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
@@ -54,6 +55,7 @@ def include_encoded(config):
     """ Implements the includeme mechanism for encoded
         For detailed explanation see: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html
     """
+    config.include('encoded.security_logging')
     config.include('encoded.authentication')
     config.include('encoded.root')
     config.include('encoded.types')
@@ -270,6 +272,35 @@ def set_ga4_config(settings):
         settings['ga4.secret'] = settings.get('ga4.secret', os.environ.get('GA4Secret'))
 
 
+def set_splunk_config(settings):
+    """ Resolves Splunk HEC settings, pulling the token from the GAC when running
+        under an identity (mirrors set_ga4_config). """
+    settings['splunk.hec_url'] = settings.get('splunk.hec_url', os.environ.get('SplunkHecUrl'))
+    settings['splunk.source'] = settings.get('splunk.source', 'smaht-portal')
+    settings['splunk.sourcetype'] = settings.get('splunk.sourcetype', 'smaht:security')
+    if 'IDENTITY' in os.environ:
+        identity = assume_identity()
+        if 'splunk.hec_token' not in settings:
+            settings['splunk.hec_token'] = identity.get('SPLUNK_HEC_TOKEN', os.environ.get('SplunkHecToken'))
+        if not settings.get('splunk.hec_url'):
+            settings['splunk.hec_url'] = identity.get('SPLUNK_HEC_URL', os.environ.get('SplunkHecUrl'))
+    else:
+        settings['splunk.hec_token'] = settings.get('splunk.hec_token', os.environ.get('SplunkHecToken'))
+
+
+def build_splunk_client(settings):
+    """ Constructs the SplunkHECClient from resolved settings. Safe to call in the
+        app factory: the background worker thread starts lazily per-process. """
+    return SplunkHECClient(
+        hec_url=settings.get('splunk.hec_url'),
+        token=settings.get('splunk.hec_token'),
+        source=settings.get('splunk.source', 'smaht-portal'),
+        sourcetype=settings.get('splunk.sourcetype', 'smaht:security'),
+        index=settings.get('splunk.index'),
+        enabled=asbool(settings.get('splunk.enabled', False)),
+    )
+
+
 def set_mirror_settings(settings):
     # set mirrored Elasticsearch location (for staging and production servers)
     mirror = get_mirror_env_from_context(settings)
@@ -323,6 +354,8 @@ def main(global_config, **local_config):
     set_auth0_config(settings)
     # set google analytics keys
     set_ga4_config(settings)
+    # set Splunk HEC settings for security-event logging
+    set_splunk_config(settings)
 
     # enable invalidation scope, mirror settings
     settings[INVALIDATION_SCOPE_ENABLED] = True
@@ -383,6 +416,9 @@ def main(global_config, **local_config):
 
     # Set restricted email list
     config.registry[RESTRICTED_EMAILS] = generate_restricted_email_set()
+
+    # Set cached Splunk HEC client for security-event logging
+    config.registry[SECURITY_LOGGER_REGISTRY_KEY] = build_splunk_client(settings)
 
     # initialize CodeGuru profiling, if set
     # note that this is intentionally an env variable (so it is a TASK level setting)

@@ -95,6 +95,12 @@ from snovault.types.base import (
     item_edit,
 )
 from encoded import OPEN_DATA_S3_CLIENT
+from ..security_logging import (
+    Outcome,
+    log_access_denied,
+    log_data_access,
+    log_data_download,
+)
 
 
 log = structlog.getLogger(__name__)
@@ -1549,19 +1555,39 @@ def validate_user_has_public_protected_access(request):
     return False
 
 
+def _file_target(context, request, **details):
+    """ Builds the security-event target block for a File. """
+    target = {
+        "resource_type": "File",
+        "resource_uuid": str(context.uuid),
+    }
+    try:
+        target["resource_id"] = context.jsonld_id(request)
+    except Exception:  # noqa - never let logging break the request
+        pass
+    if details:
+        target["details"] = details
+    return target
+
+
 @view_config(name='download_cli', context=File, permission='view', request_method=['GET'])
 @debug_log
 def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
     # Download restriction for restricted status
     if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
+        log_access_denied(request, target=_file_target(context, request),
+                          reason="protected file - no dbGAP approval (cli)")
         raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     # Download restriction for protected
     if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
+        log_access_denied(request, target=_file_target(context, request),
+                          reason="protected file - no dbGAP approval (cli)")
         raise HTTPForbidden('This is a protected file and is not available through download_cli without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
+    log_data_access(request, outcome=Outcome.SUCCESS, target=_file_target(context, request))
     return CoreDownloadCli(context, request)
 
 
@@ -1570,11 +1596,15 @@ def download_cli(context, request):
 def download(context, request):
     # Download restriction for protected
     if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
+        log_access_denied(request, target=_file_target(context, request),
+                          reason="protected file - no dbGAP approval")
         raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     # Download restriction for protected
     if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
+        log_access_denied(request, target=_file_target(context, request),
+                          reason="protected file - no dbGAP approval")
         raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
 
@@ -1670,6 +1700,14 @@ def download(context, request):
         update_google_analytics(context, request, ga_config, filename, file_size_downloaded, file_at_id,
                                 submitter_title,
                                 user_uuid, user_groups, exp_or_assay_type, dataset, file_type)
+
+    # Security-event logging for the successful download. Reuse the tracking_values
+    # assembled above, but drop the raw stringified request_headers (which contains
+    # the bearer JWT and cookies) - extract_source records sanitized headers instead.
+    download_details = {k: v for k, v in tracking_values.items() if k != 'request_headers'}
+    download_details['file_size_downloaded'] = file_size_downloaded
+    log_data_download(request, outcome=Outcome.SUCCESS,
+                      target=_file_target(context, request, **download_details))
 
     if asbool(request.params.get('soft')):
         expires = int(parse_qs(urlparse(location).query)['Expires'][0])

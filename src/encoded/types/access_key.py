@@ -15,6 +15,7 @@ from snovault.validators import validate_item_content_post
 from .acl import ALLOW_AUTHENTICATED_CREATE_ACL, ONLY_ADMIN_VIEW_ACL
 from .base import DELETED_ACL
 from .base import Item
+from ..security_logging import EventType, Outcome, log_credential_event
 
 
 @collection(
@@ -53,7 +54,17 @@ class AccessKey(Item, SnovaultAccessKey):
              validators=[validate_item_content_post])
 @debug_log
 def access_key_add(context, request):
-    return sno_access_key_add(context, request)
+    try:
+        result = sno_access_key_add(context, request)
+    except Exception:
+        log_credential_event(request, EventType.CREDENTIAL_CREATE, outcome=Outcome.FAILURE,
+                             target={"resource_type": "AccessKey"})
+        raise
+    access_key_id = (result.get('@graph') or [{}])[0].get('access_key_id')
+    log_credential_event(request, EventType.CREDENTIAL_CREATE, outcome=Outcome.SUCCESS,
+                         target={"resource_type": "AccessKey",
+                                 "details": {"access_key_id": access_key_id}})
+    return result
 
 
 @view_config(name="reset-secret", context=AccessKey,
@@ -61,11 +72,22 @@ def access_key_add(context, request):
              request_method="POST", subpath_segments=0)
 @debug_log
 def access_key_reset_secret(context, request):
-    return sno_access_key_reset_secret(context, request)
+    try:
+        result = sno_access_key_reset_secret(context, request)
+    except Exception:
+        log_credential_event(request, EventType.CREDENTIAL_RESET, outcome=Outcome.FAILURE,
+                             target={"resource_type": "AccessKey", "resource_uuid": str(context.uuid)})
+        raise
+    log_credential_event(request, EventType.CREDENTIAL_RESET, outcome=Outcome.SUCCESS,
+                         target={"resource_type": "AccessKey", "resource_uuid": str(context.uuid)})
+    return result
 
 
 @view_config(context=AccessKey, permission="view_raw", request_method="GET",
              name="raw")
 @debug_log
 def access_key_view_raw(context, request):
-    return sno_access_key_view_raw(context, request)
+    result = sno_access_key_view_raw(context, request)
+    log_credential_event(request, EventType.CREDENTIAL_VIEW_RAW, outcome=Outcome.SUCCESS,
+                         target={"resource_type": "AccessKey", "resource_uuid": str(context.uuid)})
+    return result

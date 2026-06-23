@@ -24,6 +24,12 @@ from urllib.parse import urlencode
 import re
 
 from snovault.validation import ValidationFailure
+from .security_logging import (
+    log_login,
+    log_registration,
+    log_restricted_email,
+    Outcome,
+)
 
 # From NIH CADR List
 BLOCKED_TLDS = ["cn", "hk", "mo", "ru", "ir", "kp", "cu", "ve"]
@@ -82,12 +88,17 @@ def session_properties(context, request):
                 }
             }
         else:
+            log_login(request, outcome=Outcome.FAILURE, reason="login_denied_no_userid")
             raise LoginDenied(domain=request.domain)
 
     namespace, userid = principal.split('.', 1)
     properties = get_basic_properties_for_user(request, userid)
     email = properties.get('details', {}).get('email')
-    email_is_not_restricted(request.registry, None, email)
+    try:
+        email_is_not_restricted(request.registry, None, email)
+    except HTTPForbidden:
+        log_restricted_email(request, email=email, reason="NIH CADR restricted")
+        raise
     return properties
 
 
@@ -153,10 +164,16 @@ class SMAHTAuth0AuthenticationPolicy(Auth0AuthenticationPolicy):
             return None
 
         # Check email against domains
-        email_is_not_restricted(request.registry, jwt_info)
+        try:
+            email_is_not_restricted(request.registry, jwt_info)
+        except HTTPForbidden:
+            log_restricted_email(request, email=jwt_info.get('email'), reason="NIH CADR restricted")
+            raise
 
         # duplicates a small amount of effort but not meaningfully
-        return super().unauthenticated_userid(request)
+        userid = super().unauthenticated_userid(request)
+        log_login(request, outcome=Outcome.SUCCESS, email=jwt_info.get('email'))
+        return userid
 
 
 
@@ -175,10 +192,12 @@ def smaht_create_unauthorized_user(context, request):
     # env check
     env_name = request.registry.settings.get('env.name')
     if not app_project().env_allows_auto_registration(env_name):
+        log_registration(request, outcome=Outcome.FAILURE, reason="auto_registration_disallowed")
         raise LoginDenied(f'Tried to register on {env_name} but it is disallowed')
 
     recaptcha_resp = request.json.get('g-recaptcha-response')
     if not recaptcha_resp:
+        log_registration(request, outcome=Outcome.FAILURE, reason="no_recaptcha_response")
         raise LoginDenied(f'Did not receive response from recaptcha!')
 
     registry = request.registry
@@ -221,8 +240,14 @@ def smaht_create_unauthorized_user(context, request):
 
     user_props = request.json
     user_props_email = user_props.get("email", "<no e-mail supplied>").lower()
-    email_is_not_restricted(request.registry, None, email)
+    try:
+        email_is_not_restricted(request.registry, None, email)
+    except HTTPForbidden:
+        log_restricted_email(request, email=email, reason="NIH CADR restricted")
+        raise
     if user_props_email != email:
+        log_registration(request, outcome=Outcome.FAILURE, email=user_props_email,
+                         reason="email_not_validated_with_auth0")
         raise HTTPUnauthorized(
             title="Provided email {} not validated with Auth0. Try logging in again.".format(user_props_email),
             headers={
@@ -256,11 +281,17 @@ def smaht_create_unauthorized_user(context, request):
     if recap_res['success']:
         sno_res = sno_collection_add(user_coll, request, False)  # POST User
         if sno_res.get('status') == 'success':
+            log_registration(request, outcome=Outcome.SUCCESS, email=user_props_email,
+                             was_unauthorized=True)
             return sno_res
         else:
+            log_registration(request, outcome=Outcome.FAILURE, email=user_props_email,
+                             reason="user_creation_failed")
             raise HTTPForbidden(title="Could not create user. Try logging in again.")
     else:
         # error with re-captcha
+        log_registration(request, outcome=Outcome.FAILURE, email=user_props_email,
+                         reason="invalid_recaptcha")
         raise HTTPUnauthorized(
             title="Invalid reCAPTCHA. Try logging in again.",
             headers={

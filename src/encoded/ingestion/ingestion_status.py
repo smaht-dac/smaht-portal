@@ -5,6 +5,7 @@ from pyramid.view import view_config
 from dcicutils.misc_utils import is_uuid
 from snovault.util import debug_log, is_admin_request
 from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
+from encoded.security_logging import log_access_denied
 
 # This endpoint is to support progress tracking of the server-side ingester validation/submission
 # process by smaht-submitr. We use IngestionStatusCache, which is a Redis wrapper, to store
@@ -24,6 +25,8 @@ def ingestion_status(context, request):
             return IngestionStatusCache.connection(value, context).get(sort=_get_arg_bool("sort", request))
         # These are only for troubleshooting/testing (admin only).
         if not is_admin_request(request):
+            log_access_denied(request, reason="ingestion-status restricted (non-admin)",
+                              target={"resource_type": "ingestion_status", "details": {"value": value}})
             raise HTTPForbidden("The /ingestion-status API is restricted.")
         if (lvalue := value.lower()) == "info":
             return IngestionStatusCache.instance(context).info()
