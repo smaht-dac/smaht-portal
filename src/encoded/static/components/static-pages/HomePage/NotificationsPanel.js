@@ -42,10 +42,10 @@ export const NotificationsPanel = (props) => {
                             </span>
                         </OverlayTrigger>
                     </h3>
-                    <a className="p25-link" href={FILTERD_SOMATIC_VARIANTS_URL}>
+                    <a className="consortium-hub-link" href={'/consortium-hub'}>
                         <span>
-                            <i className="icon icon-fw icon-filter fas me-1"></i>
-                            Filtered Variant Call Sets
+                            <i className="icon icon-fw icon-users fas me-1"></i>
+                            SMaHT Consortium Hub
                         </span>
                     </a>
                 </div>

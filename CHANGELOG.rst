@@ -7,6 +7,65 @@ smaht-portal
 Change Log
 ----------
 
+1.32.3
+======
+
+`PR 692: fix: update vcf link <https://github.com/smaht-dac/smaht-portal/pull/692>`_
+
+* Split VCF link into somatic and germline callsets
+
+
+1.32.2
+======
+
+`PR 672: feat: release tracker restructure <https://github.com/smaht-dac/smaht-portal/pull/672>`_
+
+* Update release tracker UI to group releases by week
+
+
+1.32.1
+======
+
+* Small fixes to peek-metadata to route non-file requests back to search
+
+
+1.32.0
+======
+
+`PR 686: feat: add Recent Releases timeline page with dynamic timeline navigation <https://github.com/smaht-dac/smaht-portal/pull/686>`_
+
+* Add a new Recent Releases page with timeline views for recently released files
+
+
+1.31.0
+======
+
+`PR 688: feat: consortium hub page <https://github.com/smaht-dac/smaht-portal/pull/688>`_
+
+* Add a new ConsortiumHub static page
+
+
+1.30.2
+======
+
+`PR 687: Improve Data Matrix coverage summaries and loading behavior <https://github.com/smaht-dac/smaht-portal/pull/687>`_
+
+* added total coverage support to matrix summary rows and popovers
+* improved compact coverage value formatting and tooltip behavior
+* introduced a separate color range segment step for coverage values
+* reset incompatible count toggles when switching between matrix modes
+* refined loading-state rendering to avoid confusing stale data during tab/view transitions
+* adjusted matrix loading layout and spinner positioning for a more stable UX
+
+
+1.30.1
+======
+
+`PR 682: add new fields to file manifest <https://github.com/smaht-dac/smaht-portal/pull/682>`_
+
+* Add new/missing fields to file manifest - 8 fields added including DataCategory and FileNotes and others that only apply to a subset of file types
+
+
 1.30.0
 ======
 

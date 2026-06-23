@@ -30,7 +30,7 @@ def includeme(config):
     config.scan(__name__)
 
 
-TSV_WIDTH = 27 # There are 27 columns in the file manifest
+TSV_WIDTH = 35 # There are 35 columns in the file manifest
 # Encode manifest file types
 FILE = 0
 CLINICAL = 1
@@ -137,9 +137,30 @@ TSV_MAPPING = {
                                  field_name=['file_size']),
         'md5sum': TSVDescriptor(field_type=FILE,
                                 field_name=['md5sum']),
+        'DataCategory': TSVDescriptor(field_type=FILE,
+                                     field_name=['data_category'],
+                                     use_base_metadata=True),  # do not traverse extra_files for this
         'DataType': TSVDescriptor(field_type=FILE,
                                   field_name=['data_type'],
                                   use_base_metadata=True),  # do not traverse extra_files for this
+        'DataDescription': TSVDescriptor(field_type=FILE,
+                                         field_name=['data_description'],
+                                         use_base_metadata=True),  # do not traverse extra_files for this
+        'AnalysisDetails': TSVDescriptor(field_type=FILE,
+                                         field_name=['analysis_details'],
+                                         use_base_metadata=True),  # do not traverse extra_files for this
+        'AlignmentDetails': TSVDescriptor(field_type=FILE,
+                                          field_name=['alignment_details'],
+                                          use_base_metadata=True),  # do not traverse extra_files for this
+        'AnnotationDetails': TSVDescriptor(field_type=FILE,
+                                           field_name=['annotation.display_title'],
+                                           use_base_metadata=True),  # do not traverse extra_files for this
+        'FilteringMethods': TSVDescriptor(field_type=FILE,
+                                          field_name=['filtering_methods'],
+                                           use_base_metadata=True),  # do not traverse extra_files for this
+        'ComparatorDescription': TSVDescriptor(field_type=FILE,
+                                               field_name=['comparator_description'],
+                                               use_base_metadata=True),  # do not traverse extra_files for this
         'FileFormat': TSVDescriptor(field_type=FILE,
                                     field_name=['file_format.display_title']),
         'SampleName': TSVDescriptor(field_type=FILE,
@@ -176,11 +197,14 @@ TSV_MAPPING = {
                                        field_name=['quality_metrics.overall_quality_status_display'],
                                        use_base_metadata=True),
         'QCComments': TSVDescriptor(field_type=FILE,
-                                       field_name=['qc_comments'],
-                                       use_base_metadata=True),
+                                    field_name=['qc_comments'],
+                                    use_base_metadata=True),
         'QCNotes': TSVDescriptor(field_type=FILE,
-                                       field_name=['quality_metrics.qc_notes'],
-                                       use_base_metadata=True),
+                                 field_name=['quality_metrics.qc_notes'],
+                                 use_base_metadata=True),
+        'FileNotes': TSVDescriptor(field_type=FILE,
+                                   field_name=['tsv_notes'],
+                                   use_base_metadata=True),
         FILE_GROUP: TSVDescriptor(field_type=FILE,
                                   field_name=['file_sets.file_group'],
                                   use_base_metadata=False)   # omit this field on extra files
@@ -796,7 +820,7 @@ def generate_file_download_header(download_file_name: str, cli=False):
     
         Number of columns generated set in TSV_WIDTH
     """
-    header1 = ['###', 'Metadata TSV Download', 'Column Count', TSV_WIDTH] + ([''] * (TSV_WIDTH-4))  # length 27
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', TSV_WIDTH] + ([''] * (TSV_WIDTH-4))  # length 31
     if cli:
         header2 = ['Suggested command to download: ', '', '',
                    (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
@@ -1005,70 +1029,35 @@ def _stream_metadata_items(request, *, type_param, accessions=None, status=None,
         yield source.get('embedded', {})
 
 
-def _aggregate_from_request_params(request):
-    """Run the peek-metadata file_size aggregation for a GET-style request.
+def _facets_via_search(request, params):
+    """Forward to snovault `/search` and return its `facets` array as-is.
 
-    Rather than hand-translate URL params to ES (which gets snovault's
-    nested-field / schema-aware / subtype-aware logic wrong in subtle ways
-    that match the wrong document set and blow ES timeouts), forward the
-    URL through snovault's own search() with two extra query params:
-      - `additional_facet=file_size` — request the stats facet we want
-      - `skip_default_facets=true`   — skip the dozens of schema facets
-                                       that made the original peek-metadata
-                                       slow path time out
-    Plus `limit=0` so no document hits are scanned/returned.
+    Plain pass-through — snovault knows how to build the filter (nested-field
+    handling, type-subtype expansion, default `status!=deleted/replaced`
+    exclusions, principal filtering) and produces the facet array shape every
+    peek-metadata UI consumer already reads. Reusing it avoids re-implementing
+    those details in Python.
 
-    snovault's filter construction (including nested-field wrapping, type
-    subtype expansion, must_not handling, principals_allowed.view filtering)
-    runs unchanged — same query shape /search would build for the same URL,
-    minus the default facet aggregations.
+    `limit=0` suppresses hit fetching since callers only read `result['facets']`.
 
-    Returns a response in the same shape as `_aggregate_metadata_file_size`
-    so the caller can reuse the response formatter.
+    For the File-with-thousands-of-accessions case the POST path uses the
+    streaming aggregator instead — that's a different problem (URL bloat +
+    aggregation coordination timeout). Everything else goes through here.
     """
-    # Build a /search URL from the caller's params, forcing limit=0,
-    # additional_facet=file_size, and skip_default_facets=true. Use a fresh
-    # MultiDict so we can preserve repeated keys (status=A&status=B etc).
     forwarded = MultiDict()
-    for key in request.params.keys():
-        if key in ('limit', 'from', 'skip_default_facets'):
-            # Override unconditionally; we don't want the caller's value here.
+    for key in params.keys():
+        if key in ('limit', 'from'):
             continue
-        for value in request.params.getall(key):
+        for value in params.getall(key):
             forwarded.add(key, value)
     forwarded.add('limit', '0')
-    forwarded.add('skip_default_facets', 'true')
-    if 'additional_facet' not in forwarded:
-        forwarded.add('additional_facet', 'file_size')
 
     subreq = make_search_subreq(
         request,
         '/search?{}'.format(urlencode(list(forwarded.items()), True)),
         inherit_user=True,
     )
-    result = search(None, subreq)
-
-    # Snovault's facet output is a list of dicts with `field` and stats keys.
-    # Surface it via the same `aggregations`/`hits.total.value` shape the
-    # POST path returns from ES directly, so peek_metadata's formatter
-    # is shape-agnostic.
-    facets_by_field = {f.get('field'): f for f in (result.get('facets') or [])}
-    file_size_facet = facets_by_field.get('file_size') or {}
-    total = (result.get('total') or 0) if isinstance(result.get('total'), int) \
-        else (result.get('total', {}) or {}).get('value', 0)
-
-    return {
-        'hits': {'total': {'value': total}},
-        'aggregations': {
-            'file_size': {
-                'count': file_size_facet.get('count', 0),
-                'min': file_size_facet.get('min'),
-                'max': file_size_facet.get('max'),
-                'avg': file_size_facet.get('avg'),
-                'sum': file_size_facet.get('sum', 0),
-            },
-        },
-    }
+    return search(None, subreq).get('facets', []) or []
 
 
 def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
@@ -1305,29 +1294,47 @@ def peek_metadata(context, request):
         accessions — that was the source of upstream 504s.
     """
     args = handle_metadata_arguments(context, request)
-    if isinstance(args, Response):
-        # `handle_metadata_arguments` only accepts POST bodies. Most UI callers
-        # (e.g. BrowseDonor's per-row file_size column) GET this endpoint with
-        # search-style query params. Previously we'd fall back to snovault's
-        # full search() which recomputes every default facet for the type —
-        # that's still the source of the remaining 504s. Translate the URL
-        # params to an ES filter and run the same targeted aggregation as the
-        # POST path.
-        es_result = _aggregate_from_request_params(request)
-        include_extra_files = False
-    else:
-        es_result = _aggregate_metadata_file_size(
-            request,
-            type_param=args.type_param,
-            accessions=args.accessions,
-            status=args.status,
-            include_extra_files=args.include_extra_files,
-        )
-        include_extra_files = args.include_extra_files
 
-    # Shape the response to match the subset of snovault's `facets` output
-    # that peek_metadata consumers actually read (file_size stats and the
-    # optional extra_files.file_size sum).
+    # GET path — forward URL params verbatim to /search. Type-agnostic; the
+    # caller gets the same facets `/search?<their-params>` would return,
+    # which is what the legacy fallback did. This preserves callers like
+    # ProtectedDonorViewDataCards.js that read default facets (e.g. `type`)
+    # from the response.
+    if isinstance(args, Response):
+        return _facets_via_search(request, request.params)
+
+    # POST path — always use the streaming aggregator. peek-metadata POSTs
+    # come from File-related callers (SelectAllAboveTableComponent + the
+    # legacy file_size summary use case) and the only facet they read off
+    # the response is `file_size` / `extra_files.file_size`. The streaming
+    # aggregator:
+    #   - returns a stats-shaped facet regardless of how the schema's facets
+    #     config is set (necessary for the test assertions that check
+    #     count/min/max/sum, which would otherwise depend on whether the
+    #     smaht-portal schema specifies aggregation_type=stats for file_size
+    #     — it currently does not),
+    #   - completes in O(N) document scans without an ES stats aggregation
+    #     coordination step (avoiding the upstream-timeout class of bugs
+    #     when accessions lists are large),
+    #   - works for File and every File subtype (OutputFile, SubmittedFile,
+    #     etc.) since `_stream_metadata_items` resolves the type to the right
+    #     index set via `get_es_index`.
+    es_result = _aggregate_metadata_file_size(
+        request,
+        type_param=args.type_param,
+        accessions=args.accessions,
+        status=args.status,
+        include_extra_files=args.include_extra_files,
+    )
+    return _format_file_size_facets(es_result, args.include_extra_files)
+
+
+def _format_file_size_facets(es_result, include_extra_files) -> list:
+    """Format the streaming-aggregation result into snovault's facets array shape.
+
+    Only used by the File download summary fast path; the general path lets
+    snovault.search() emit the facets array directly.
+    """
     aggs = es_result.get('aggregations') or {}
     file_size_stats = aggs.get('file_size') or {}
     total = ((es_result.get('hits') or {}).get('total') or {}).get('value', 0)
@@ -1345,9 +1352,6 @@ def peek_metadata(context, request):
     }]
 
     if include_extra_files:
-        # `extra_files_file_size` carries full stats — `sum` is the legacy
-        # nested-ES shape (`{value: ...}`) while count/min/max/avg are flat
-        # so the UI's `stats` facet schema matches the file_size facet above.
         ef_agg = aggs.get('extra_files_file_size') or {}
         ef_sum = ((ef_agg.get('sum') or {}).get('value')) or 0
         facets.append({

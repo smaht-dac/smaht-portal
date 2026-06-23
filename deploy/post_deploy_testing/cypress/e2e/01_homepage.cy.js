@@ -286,13 +286,10 @@ function stepDRTExists(caps) {
     ).should('have.length.greaterThan', 0);
 }
 
-// Each DRT item navigates and matches file counts
+// Each DRT month item has a positive count and correct recent-releases links
 function stepDRTCountsCheck(caps) {
     if (!caps.runDRTCountsCheck) return;
 
-    // Note: DRT access temporarily restricted to network members.
-    // Remove this conditional if/when DRT access is restored,
-    // and public users can view DRT items.
     cy.get('body').then(($body) => {
         if ($body.find('.data-release-item-container').length === 0) {
             cy.get(
@@ -302,14 +299,25 @@ function stepDRTCountsCheck(caps) {
         }
 
         cy.get('.data-release-item-container').each(($container) => {
-            // Month level count
-            const expectedCount = Number(
-                $container
-                    .find('.content .header .header-link .count')
-                    .text()
-                    .trim()
-                    .match(/^(\d+)/)?.[1] ?? 0
-            );
+            // Monthly count should be positive
+            cy.wrap($container)
+                .find('.content .header .header-link .count')
+                .invoke('text')
+                .then((text) => {
+                    const monthCount = Number(
+                        text.trim().match(/^(\d+)/)?.[1] ?? 0
+                    );
+                    expect(monthCount).to.be.greaterThan(0);
+                });
+
+            // Monthly link should point to recent-releases page with monthly view
+            cy.wrap($container)
+                .find('.content .header .header-link')
+                .invoke('attr', 'href')
+                .should(
+                    'match',
+                    /\/recent-releases\?view=monthly&date=\d{4}-\d{2}/
+                );
 
             // Open the month dropdown if needed
             cy.wrap($container)
@@ -322,120 +330,152 @@ function stepDRTCountsCheck(caps) {
                     }
                 });
 
+            // Weekly links should exist with positive counts and correct hrefs
             cy.wrap($container)
-                .find('.content .body .release-item.day-group')
+                .find('.content .body .week-link')
                 .should('have.length.at.least', 1)
-                .then(($days) => {
-                    let monthTotal = 0;
+                .each(($weekLink) => {
+                    cy.wrap($weekLink)
+                        .invoke('attr', 'href')
+                        .should(
+                            'match',
+                            /\/recent-releases\?view=weekly&date=\d{4}-\d{2}-\d{2}/
+                        );
 
-                    cy.wrap($days)
-                        .each(($day) => {
-                            cy.wrap($day)
-                                .invoke('attr', 'aria-expanded')
-                                .then((expanded) => {
-                                    if (expanded !== 'true') {
-                                        cy.wrap($day)
-                                            .find('.toggle-button.day')
-                                            .click();
-                                    }
-                                });
+                    cy.wrap($weekLink)
+                        .find('.count span')
+                        .invoke('text')
+                        .then((text) => {
+                            const weekCount = Number(
+                                text.trim().replace(/,/g, '')
+                            );
+                            expect(weekCount).to.be.greaterThan(0);
+                        });
+                });
 
-                            cy.wrap($day).then(() => {
-                                let dayCount = 0;
-                                let donorSum = 0;
-
-                                // Get day count
-                                cy.wrap($day)
-                                    .find('.day-group-header .title .count')
-                                    .then(($dayCount) => {
-                                        dayCount = Number(
-                                            $dayCount
-                                                .text()
-                                                .trim()
-                                                .match(/^(\d+)/)?.[1] ?? 0
-                                        );
-                                        expect(dayCount).to.be.greaterThan(0);
-                                    });
-
-                                // Sum donor counts for the day
-                                cy.wrap($day)
-                                    .find('.donor-group-header .title .count')
-                                    .each(($count) => {
-                                        donorSum += Number(
-                                            $count
-                                                .text()
-                                                .trim()
-                                                .match(/^(\d+)/)?.[1] ?? 0
-                                        );
-                                    })
-                                    .then(() => {
-                                        expect(donorSum).to.be.greaterThan(0);
-                                        expect(donorSum).to.equal(dayCount);
-
-                                        // Only update month total after day is fully validated
-                                        monthTotal += dayCount;
-                                    });
-                            });
+            // Sum of week counts should equal the monthly total
+            cy.wrap($container)
+                .find('.content .header .header-link .count')
+                .invoke('text')
+                .then((monthText) => {
+                    const monthCount = Number(
+                        monthText.trim().match(/^(\d+)/)?.[1] ?? 0
+                    );
+                    let weekSum = 0;
+                    cy.wrap($container)
+                        .find('.content .body .week-link .count span')
+                        .each(($span) => {
+                            weekSum += Number(
+                                $span.text().trim().replace(/,/g, '')
+                            );
                         })
                         .then(() => {
-                            // TEMPORARY WORKAROUND (REMOVE AFTER DRT COUNT FIX):
-                            // Month-level DRT header count is currently known to be
-                            // inconsistent with the expanded day-group totals.
-                            //
-                            // REVERT STEPS:
-                            // 1) Remove this temporary tolerance block.
-                            // 2) Restore strict check:
-                            //      expect(monthTotal).to.equal(expectedCount);
-                            expect(monthTotal).to.be.greaterThan(0);
-                            expect(expectedCount).to.be.greaterThan(0);
-                            cy.log(
-                                `TEMP DRT month mismatch tolerated: expandedDays=${monthTotal}, header=${expectedCount}`
-                            );
+                            expect(weekSum).to.equal(monthCount);
                         });
                 });
         });
 
-        // Check that the counts are reflected in the browse page
-        cy.get('.data-release-item-container').then(($containers) => {
-            const pages = [...$containers].map((el) => {
-                const link = el.querySelector('.header-link');
+        // Navigate to the first month link and verify the recent-releases monthly view
+        cy.get('.data-release-item-container')
+            .first()
+            .then(($container) => {
+                const monthHref = $container
+                    .find('.content .header .header-link')
+                    .attr('href');
+                if (!monthHref) return;
 
-                return {
-                    href: link?.getAttribute('href') || '',
-                    expectedCount: Number(
-                        link
-                            ?.querySelector('.count')
-                            ?.textContent.trim()
-                            .match(/^(\d+)/)?.[1] ?? 0
-                    ),
-                };
-            });
+                cy.visit(monthHref, { headers: cypressVisitHeaders });
 
-            cy.wrap(pages).each(({ href, expectedCount }) => {
-                expect(href, 'DRT link href should exist').to.not.equal('');
-                cy.visit(href, { headers: cypressVisitHeaders });
+                cy.get('.release-view-mode-toggle .btn.active').should(
+                    'contain.text',
+                    'Monthly'
+                );
+                cy.get('.release-bucket-btn.selected').should('exist');
+                cy.get(
+                    '.recent-releases-matrix-column .card-body .recent-releases-table-scroll'
+                )
+                    .should('exist')
+                    .find(
+                        '.search-results-outer-container .react-infinite-container .search-result-row:not(.fin)'
+                    )
+                    .should('have.length.at.least', 1);
 
-                // Note: DRT access temporarily restricted to network members
-                // if (caps.expectedLimitedReleaseTrackerAccess) {
-                //     if (cy.searchPageTotalResultCount() === 0) {
-                //         cy.get('#download-access-required-modal').should(
-                //             'be.visible'
-                //         );
-                //     }
-                //     cy.searchPageTotalResultCount().should('be.lte', expectedCount);
-                // } else {
-                //     cy.searchPageTotalResultCount().should('eq', expectedCount);
-                // }
-                cy.searchPageTotalResultCount().should('eq', expectedCount);
-
-                cy.visit('/', { headers: cypressVisitHeaders });
-
+                gotoUrl();
                 cy.get('.data-release-item-container').should(
                     'have.length.at.least',
                     1
                 );
             });
-        });
+
+        // Navigate to the first week link and verify the recent-releases weekly view,
+        // selected bucket label, and file count reflected in the table
+        cy.get('.data-release-item-container')
+            .first()
+            .then(($firstContainer) => {
+                // Ensure dropdown is open
+                if ($firstContainer.attr('aria-expanded') !== 'true') {
+                    cy.wrap($firstContainer)
+                        .find('.content .header .toggle-button')
+                        .click();
+                }
+
+                cy.wrap($firstContainer)
+                    .find('.content .body .week-link')
+                    .first()
+                    .then(($weekLink) => {
+                        const weekHref = $weekLink.attr('href');
+                        const weekLabel = $weekLink
+                            .find('.range')
+                            .text()
+                            .trim();
+                        const weekCount = Number(
+                            $weekLink
+                                .find('.count span')
+                                .text()
+                                .trim()
+                                .replace(/,/g, '')
+                        );
+                        if (!weekHref || !weekLabel) return;
+
+                        cy.visit(weekHref, { headers: cypressVisitHeaders });
+
+                        // Weekly view mode should be active
+                        cy.get('.release-view-mode-toggle .btn.active').should(
+                            'contain.text',
+                            'Weekly'
+                        );
+
+                        // Selected week bucket label should match the DataReleaseTracker label
+                        cy.get('.release-bucket-btn.selected')
+                            .should('exist')
+                            .find('.bucket-label')
+                            .invoke('text')
+                            .then((selectedLabel) => {
+                                expect(selectedLabel.trim()).to.equal(
+                                    weekLabel
+                                );
+                            });
+
+                        // Table rows should exist and not exceed the week's file count
+                        cy.get(
+                            '.recent-releases-matrix-column .card-body .recent-releases-table-scroll'
+                        )
+                            .should('exist')
+                            .find(
+                                '.search-results-outer-container .react-infinite-container .search-result-row:not(.fin)'
+                            )
+                            .then(($rows) => {
+                                expect($rows.length).to.be.greaterThan(0);
+                                expect($rows.length).to.be.at.most(weekCount);
+                            });
+
+                        gotoUrl();
+                        cy.get('.data-release-item-container').should(
+                            'have.length.at.least',
+                            1
+                        );
+                    });
+            });
     });
 }
 
@@ -469,13 +509,13 @@ const ROLES_TO_TEST = [
 ];
 
 describe('Home Page by role', () => {
-    const baseUrl = Cypress.config().baseUrl || "";
+    const baseUrl = Cypress.config().baseUrl || '';
 
     ROLES_TO_TEST.forEach((roleKey) => {
         const caps = ROLE_MATRIX[roleKey];
         const label = caps.label || String(roleKey);
 
-        if (baseUrl.includes("devtest.smaht.org")) {
+        if (baseUrl.includes('devtest.smaht.org')) {
             if (roleKey === ROLE_TYPES.SMAHT_NON_DBGAP) {
                 caps.expectedLimitedReleaseTrackerAccess = true; // should not browse DRT items
             }
@@ -507,7 +547,7 @@ describe('Home Page by role', () => {
                 stepDRTExists(caps);
             });
 
-            it(`should navigate DRT items and match file counts (enabled: ${caps.runDRTCountsCheck})`, () => {
+            it(`should have DRT items with valid monthly and weekly counts (enabled: ${caps.runDRTCountsCheck})`, () => {
                 stepDRTCountsCheck(caps);
             });
 

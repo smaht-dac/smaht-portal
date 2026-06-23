@@ -6,7 +6,10 @@ from webob.multidict import MultiDict
 from urllib.parse import urlencode
 from snovault.search.search import search
 from snovault.util import debug_log
-from encoded.endpoints.recent_files_summary.recent_files_summary import recent_files_summary_endpoint
+from encoded.endpoints.recent_files_summary.recent_files_summary import (
+    recent_files_summary_endpoint,
+    recent_release_days_endpoint
+)
 
 log = structlog.getLogger(__name__)
 
@@ -15,6 +18,7 @@ log = structlog.getLogger(__name__)
 def includeme(config):
     config.add_route('browse', '/browse{slash:/?}')
     config.add_route("recent_files_summary", "/recent_files_summary")
+    config.add_route("recent_release_days", "/recent_release_days")
     config.scan(__name__)
 
 
@@ -42,3 +46,9 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
 @debug_log
 def recent_files_summary(context, request):
     return recent_files_summary_endpoint(context, request)
+
+
+@view_config(route_name="recent_release_days", request_method=["GET"], permission="search")
+@debug_log
+def recent_release_days(context, request):
+    return recent_release_days_endpoint(context, request)
