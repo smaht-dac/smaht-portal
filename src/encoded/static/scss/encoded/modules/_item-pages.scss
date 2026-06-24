@@ -2694,17 +2694,37 @@ File, Donor, and Publication Overview Styles
         .citation-container {
             background-color: #f5f9fb;
             border: 1px solid #e0e9ee;
-            border-radius: 10px;
+            border-radius: 9px;
             margin-top: 20px;
+            position: relative;
 
-            h5 {
-                font-size: 0.75rem;
-                margin: 0px;
+            .icon-quote-left {
+                position: absolute;
+                top: 0;
+                left: 0;
+                color: #7085a2;
+                font-size: 1.4rem;
+                top: 12px;
+                left: 6px;
+            }
+
+            .citation-title {
+                display: flex;
+                align-items: flex-end;
+                h5 {
+                    font-size: 0.75rem;
+                    margin: 0px;
+                }
+                .copy-wrapper {
+                    font-size: 0.75rem;
+                    color: #94959a;
+                    margin-left: 8px;
+                }
             }
 
             .citation-body {
                 display: flex;
-                padding: 20px 20px;
+                padding: 15px 20px 15px 40px;
 
                 .citation-text {
                     display: flex;
@@ -2724,6 +2744,10 @@ File, Donor, and Publication Overview Styles
                     flex-direction: column;
                     gap: 15px;
 
+                    h5 {
+                        font-size: 0.75rem;
+                    }
+
                     a {
                         display: flex;
                         justify-content: center;
@@ -2732,9 +2756,10 @@ File, Donor, and Publication Overview Styles
                         font-weight: 500;
                         font-size: 0.875rem;
                         padding: 4px 15px;
+                        border: 1px solid #0b62ba;
 
                         i {
-                            margin-left: 15px;
+                            margin-left: 12px;
                             font-size: 0.875rem;
                         }
                     }
