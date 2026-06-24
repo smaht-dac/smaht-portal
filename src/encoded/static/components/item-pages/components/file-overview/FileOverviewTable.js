@@ -29,6 +29,7 @@ export const FileOverviewTableController = (props) => {
         session,
         href,
         context,
+        customColumns = {},
     } = props;
 
     return (
@@ -44,6 +45,7 @@ export const FileOverviewTableController = (props) => {
                     href,
                     searchHref: associatedFilesSearchHref,
                     embeddedTableHeaderText,
+                    customColumns,
                 }}
             />
         </SelectedItemsController>
@@ -65,6 +67,7 @@ export const FileOverviewTable = (props) => {
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         originalColExtMap,
+        customColumns = {},
     } = props;
 
     const selectedFileProps = {
@@ -305,17 +308,21 @@ export const FileOverviewTable = (props) => {
                     'assays.display_title',
                     'sequencing_center.display_title',
                 ]}
-                columns={{
-                    '@type': {},
-                    access_status: {},
-                    annotated_filename: {},
-                    'software.display_title': {},
-                    'software.version': {},
-                    status: {},
-                    tsv_notes: {},
-                    release_date: {},
-                    file_size: {},
-                }}
+                columns={
+                    Object.keys(customColumns).length > 0
+                        ? customColumns
+                        : {
+                              '@type': {},
+                              access_status: {},
+                              annotated_filename: {},
+                              'software.display_title': {},
+                              'software.version': {},
+                              status: {},
+                              tsv_notes: {},
+                              release_date: {},
+                              file_size: {},
+                          }
+                }
             />
         </>
     );

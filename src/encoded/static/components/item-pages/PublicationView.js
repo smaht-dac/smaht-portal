@@ -77,9 +77,7 @@ const PublicationStatViewer = ({ doi, session }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
-    const searchUrl = doi
-        ? `/search/?type=File&doi_list=${doi}&limit=all`
-        : null;
+    const searchUrl = doi ? `/search/?type=File&doi_list=${doi}` : null;
 
     // only re-fetch data when [session] changes
     useEffect(() => {
@@ -151,6 +149,25 @@ const PublicationViewTabs = (props) => {
     );
 
     const fileSearchUrl = `/search/?type=ExternalOutputFile&doi_list=${context?.doi}&limit=all`;
+
+    const customColumns = {
+        '@type': {},
+        access_status: {},
+        annotated_filename: {},
+        description: {
+            widthMap: { lg: 400, md: 400, sm: 300 },
+            colTitle: 'Description',
+            colAlignment: 'text-start',
+            render: function (result, parentProps) {
+                const value = result?.description;
+                return <span className="value">{value}</span>;
+            },
+        },
+        file_size: {
+            colAlignment: 'text-start',
+        },
+    };
+
     const tableProps = {
         embeddedTableHeaderText: 'Published Data from this Publication',
         associatedFilesSearchHref: fileSearchUrl,
@@ -158,7 +175,9 @@ const PublicationViewTabs = (props) => {
         session,
         href,
         context,
+        customColumns,
     };
+
     return (
         <div className="tabs-container">
             <div className="tab-router">
