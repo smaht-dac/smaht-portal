@@ -1785,7 +1785,12 @@ export default class DataMatrix extends React.PureComponent {
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
-            rawRegularCountOverrides: this.state.rawRegularCountOverrides || null,
+            // Raw regular-cell overrides are only intended for Donor x Assay.
+            // Donor x Tissue derives its own filtered donor/tissue aggregates and
+            // should not reuse assay-oriented raw override maps.
+            rawRegularCountOverrides: matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY
+                ? (this.state.rawRegularCountOverrides || null)
+                : null,
             ...(countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY
                 ? { blockWidth: 60, blockHorizontalExtend: 10 }
                 : {}),
