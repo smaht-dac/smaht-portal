@@ -11,6 +11,7 @@ import * as _ from 'underscore';
 import { FileOverviewTableController } from './components/file-overview/FileOverviewTable';
 import { BasicStaticSectionBody } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/BasicStaticSectionBody';
 import { replaceString as placeholderReplacementFxn } from './../static-pages/placeholders';
+import { RightArrowIcon } from '../util/icon';
 
 function getStaticContentSection(staticContent, location) {
     if (!Array.isArray(staticContent)) return null;
@@ -76,6 +77,10 @@ const PublicationStatViewer = ({ doi, session }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
+    const searchUrl = doi
+        ? `/search/?type=File&doi_list=${doi}&limit=all`
+        : null;
+
     // only re-fetch data when [session] changes
     useEffect(() => {
         if (!loading) setLoading(true);
@@ -98,8 +103,6 @@ const PublicationStatViewer = ({ doi, session }) => {
             setLoading(false);
             setError(true);
         };
-
-        const searchUrl = `/search/?type=File&doi_list=${doi}&limit=all`;
 
         const hrefParts = url.parse(searchUrl, true);
         let hrefQuery = normalizeQueryValuesForStringify(
@@ -126,13 +129,15 @@ const PublicationStatViewer = ({ doi, session }) => {
 
     const statsProps = { session, loading, error, data };
     return (
-        <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
+        <div className="browse-summary publication-stat-viewer d-flex flex-row mt-2 mb-3 flex-wrap">
             <BrowseSummaryStatController type="File" {...statsProps} />
             <BrowseSummaryStatController type="Donor" {...statsProps} />
             <BrowseSummaryStatController type="Tissue" {...statsProps} />
             <BrowseSummaryStatController type="Assay" {...statsProps} />
-            <hr />
             <BrowseSummaryStatController type="File Size" {...statsProps} />
+            <a className="" href={searchUrl}>
+                <RightArrowIcon fill={'#70A3E2'} />
+            </a>
         </div>
     );
 };

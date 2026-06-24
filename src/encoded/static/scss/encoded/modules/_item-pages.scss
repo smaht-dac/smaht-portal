@@ -2823,6 +2823,18 @@ File, Donor, and Publication Overview Styles
                 }
             }
         }
+        .publication-stat-viewer {
+            a {
+                margin: auto 0px auto auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #70a3e2;
+                background-color: #e0efff;
+                border-radius: 100%;
+                padding: 19px 16px;
+            }
+        }
         .tabs-container .tab-router-contents {
             padding: 20px 30px;
 
