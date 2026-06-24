@@ -556,7 +556,10 @@ def recent_release_days(request: PyramidRequest,
         statuses = request_args(request, "status", QUERY_FILE_STATUSES)
         categories = request_args(request, "category", QUERY_FILE_CATEGORIES)
         dataset = request_args(request, "dataset", QUERY_FILE_DATASET)
-        tags = request_args(request, "tag", QUERY_FILE_TAGS)
+        # For the calendar endpoint, include tagged files by default unless a caller
+        # explicitly provides tag filters. Some production release items are tagged
+        # exclude_from_release_tracker but should still appear in the timeline.
+        tags = request_args(request, "tag")
         base_query_arguments = {
             "type": types if types else None,
             "status": statuses if statuses else None,
