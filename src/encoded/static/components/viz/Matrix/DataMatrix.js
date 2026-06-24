@@ -856,6 +856,48 @@ export default class DataMatrix extends React.PureComponent {
         return typeof assayValue === 'string' ? assayValue : null;
     }
 
+    static buildRawRegularCountOverrides(rows = [], groupingProperties = [], columnGrouping = null) {
+        if (!Array.isArray(rows) || rows.length === 0 || !Array.isArray(groupingProperties) || !columnGrouping) {
+            return {};
+        }
+
+        return _.reduce(rows, (memo, row) => {
+            const columnValue = row?.[columnGrouping];
+            const files = Number(row?.counts?.files) || 0;
+            const dataType = String(row?.data_type || '');
+            const isDsaLikeRow = dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval';
+            if (!columnValue || files <= 0) {
+                return memo;
+            }
+
+            // Keep raw assay totals for normal columns, but do not leak DSA-like rows
+            // back into their parent assay cells. DSA continues to use its own derived path.
+            if (isDsaLikeRow && columnValue !== 'DSA') {
+                return memo;
+            }
+
+            const pathValues = [];
+            for (let depth = 0; depth < groupingProperties.length; depth++) {
+                const groupingField = groupingProperties[depth];
+                const groupingValue = row?.[groupingField];
+                if (groupingValue == null || groupingValue === '') {
+                    break;
+                }
+                pathValues.push(String(groupingValue));
+                const pathKey = pathValues.join('||');
+                if (!memo[depth]) {
+                    memo[depth] = {};
+                }
+                if (!memo[depth][pathKey]) {
+                    memo[depth][pathKey] = {};
+                }
+                memo[depth][pathKey][String(columnValue)] = (memo[depth][pathKey][String(columnValue)] || 0) + files;
+            }
+
+            return memo;
+        }, {});
+    }
+
     loadSearchQueryResults() {
         const requestId = ++this.latestLoadRequestId;
         const {
@@ -885,6 +927,7 @@ export default class DataMatrix extends React.PureComponent {
             const updatedState = {};
 
             let transformedData = { all: [], row_totals: [], column_totals: [] };
+            const rawProcessedAllRows = [];
             const populatedRowGroups = {}; // not implemented yet
             // Helper to process each result row
             const processResultRow = (r, transformed) => {
@@ -931,6 +974,9 @@ export default class DataMatrix extends React.PureComponent {
                         });
                     }
                     transformed.push(cloned);
+                    if (transformed === transformedData.all) {
+                        rawProcessedAllRows.push(_.clone(cloned));
+                    }
                 }
                 if (autoPopulateRowGroupsProperty && cloned[autoPopulateRowGroupsProperty]) {
                     const rowGroupKey = cloned[autoPopulateRowGroupsProperty];
@@ -992,6 +1038,11 @@ export default class DataMatrix extends React.PureComponent {
                 }, {})
                 : null;
             updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
+            updatedState['rawRegularCountOverrides'] = DataMatrix.buildRawRegularCountOverrides(
+                rawProcessedAllRows,
+                groupingProperties,
+                columnGrouping
+            );
             const availableDonorTissueAssays = _.uniq(_.compact(_.map(transformedData.all, (r) => r.assay)));
             updatedState['availableDonorTissueAssays'] = availableDonorTissueAssays;
             // Keep top-level included-properties count aligned with backend search context.
@@ -1734,6 +1785,12 @@ export default class DataMatrix extends React.PureComponent {
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
+            // Raw regular-cell overrides are only intended for Donor x Assay.
+            // Donor x Tissue derives its own filtered donor/tissue aggregates and
+            // should not reuse assay-oriented raw override maps.
+            rawRegularCountOverrides: matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY
+                ? (this.state.rawRegularCountOverrides || null)
+                : null,
             ...(countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY
                 ? { blockWidth: 60, blockHorizontalExtend: 10 }
                 : {}),
@@ -2126,9 +2183,6 @@ DataMatrix.browseFilteringTransformFuncs = {
         const hasAssayFilter = assayFilterList.length > 0;
         const hasDSAAssayFilter = assayFilterList.includes('DSA');
         const hasVariantCallSetsAssayFilter = assayFilterList.includes('Variant Call Sets');
-        const studies = filteringProperties['sample_summary.studies'];
-        const studiesList = Array.isArray(studies) ? studies : (typeof studies === 'string' ? [studies] : []);
-        const isProductionStudy = studiesList.includes('Production');
 
         if (hasDSAAssayFilter) {
             // extend data_type filter to include Chain File along with DSA
@@ -2148,10 +2202,9 @@ DataMatrix.browseFilteringTransformFuncs = {
         ) {
             // for non-DSA columns we exclude DSA-related data types;
             // for overall summary (no assay filter) keep all data types.
+            // Keep filtered/phased rows in their parent assay browse links so
+            // regular blocks and summary columns match raw backend assay totals.
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
-            if (isProductionStudy) {
-                filteringProperties['analysis_details!'] = [...(filteringProperties['analysis_details!'] || []), 'Filtered', 'Phased'];
-            }
         }
         return filteringProperties;
     }

@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.33.1
+======
+
+`PR 694: Fix donor x assay matrix count inconsistencies <https://github.com/smaht-dac/smaht-portal/pull/694>`_
+
+* Resolve count mismatches for CODEC, NanoSeq, and VISTA-Seq assay types between the data matrix and browse view
+
+
 1.33.0
 ======
 
