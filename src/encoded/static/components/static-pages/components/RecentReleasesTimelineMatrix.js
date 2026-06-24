@@ -11,7 +11,7 @@ import { createBrowseFileColumnExtensionMap } from '../../browse/BrowseView';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const RECENT_MONTHS = 6;
-const OLDEST_NAVIGABLE_MONTH = '2025-01';
+const OLDEST_NAVIGABLE_MONTH = '2025-09';
 const TIMELINE_MODES = {
     DAILY: 'daily',
     WEEKLY: 'weekly',
