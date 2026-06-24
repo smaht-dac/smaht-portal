@@ -90,9 +90,11 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Runtime OS deps only. nginx (from Debian's repos), the nginx user, libmagic1
 # (python-magic loads it at runtime), and make (used by the local entrypoint).
 # psycopg2-binary bundles libpq, so libpq is not needed here; gcc/build tools are not
-# needed since wheels are already built in the builder stage.
+# needed since wheels are already built in the builder stage. adduser is required by
+# nginx's postinst (to create www-data); on this hardened base it isn't present unless
+# installed explicitly (in the single-stage build it came in transitively via postgresql-client).
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nginx ca-certificates passwd libmagic1 make && \
+    apt-get install -y --no-install-recommends nginx ca-certificates adduser passwd libmagic1 make && \
     /usr/sbin/groupadd --system --gid 121 nginx && \
     /usr/sbin/useradd --system --gid nginx --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin --uid 121 nginx && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
