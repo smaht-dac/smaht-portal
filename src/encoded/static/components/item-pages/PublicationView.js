@@ -150,7 +150,7 @@ const PublicationViewTabs = (props) => {
         'reference-set-generation'
     );
 
-    const fileSearchUrl = `/search/?type=File&doi_list=${context?.doi}&limit=all`;
+    const fileSearchUrl = `/search/?type=ExternalOutputFile&doi_list=${context?.doi}&limit=all`;
     const tableProps = {
         embeddedTableHeaderText: 'Published Data from this Publication',
         associatedFilesSearchHref: fileSearchUrl,
@@ -173,19 +173,23 @@ const PublicationViewTabs = (props) => {
                 </nav>
                 <div className="tab-router-contents">
                     <div className="content">
-                        <h2 className="header">Reference Set Generation</h2>
                         {refSetGenSection && (
-                            <div className="description">
-                                <BasicStaticSectionBody
-                                    content={refSetGenSection.body}
-                                    filetype={
-                                        refSetGenSection.options?.filetype
-                                    }
-                                    placeholderReplacementFxn={
-                                        placeholderReplacementFxn
-                                    }
-                                />
-                            </div>
+                            <>
+                                <h2 className="header">
+                                    Reference Set Generation
+                                </h2>
+                                <div className="description">
+                                    <BasicStaticSectionBody
+                                        content={refSetGenSection.body}
+                                        filetype={
+                                            refSetGenSection.options?.filetype
+                                        }
+                                        placeholderReplacementFxn={
+                                            placeholderReplacementFxn
+                                        }
+                                    />
+                                </div>
+                            </>
                         )}
                         <FileOverviewTableController {...tableProps} />
                     </div>
@@ -372,13 +376,13 @@ const PublicationView = React.memo(function PublicationView(props) {
                             <span>{context?.abstract}</span>
                         </div>
                     </div>
-                    <div className="data-card findings">
-                        <div className="header">
-                            <span className="header-text">
-                                Key / Novel Findings
-                            </span>
-                        </div>
-                        {keyFindingsSection && (
+                    {keyFindingsSection && (
+                        <div className="data-card findings">
+                            <div className="header">
+                                <span className="header-text">
+                                    Key / Novel Findings
+                                </span>
+                            </div>
                             <div className="body">
                                 <BasicStaticSectionBody
                                     content={keyFindingsSection.body}
@@ -390,8 +394,8 @@ const PublicationView = React.memo(function PublicationView(props) {
                                     }
                                 />
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Data Analyzed Section */}
