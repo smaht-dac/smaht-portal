@@ -242,16 +242,14 @@ const PublicationView = React.memo(function PublicationView(props) {
             <PublicationViewTitle />
             <div className="view-content">
                 <div className="publication-header">
-                    {context?.key_image_thumbnail_link && (
-                        <img
-                            className="thumbnail"
-                            src={
-                                // context.key_image_thumbnail_link ||
-                                'https://placehold.co/180x110'
-                            }
-                            alt={context.title || 'Publication key figure'}
-                        />
-                    )}
+                    <img
+                        className="thumbnail"
+                        src={
+                            context?.key_image_thumbnail_link ||
+                            'https://placehold.co/180x110'
+                        }
+                        alt={context.title || 'Publication key figure'}
+                    />
                     <div className="publication-header-text">
                         <h2 className="title">{context?.display_title}</h2>
                         <div className="details">
