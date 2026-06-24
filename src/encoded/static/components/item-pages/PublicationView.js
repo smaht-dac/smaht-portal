@@ -12,6 +12,7 @@ import { FileOverviewTableController } from './components/file-overview/FileOver
 import { BasicStaticSectionBody } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/BasicStaticSectionBody';
 import { replaceString as placeholderReplacementFxn } from './../static-pages/placeholders';
 import { RightArrowIcon } from '../util/icon';
+import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 function getStaticContentSection(staticContent, location) {
     if (!Array.isArray(staticContent)) return null;
@@ -128,9 +129,17 @@ const PublicationStatViewer = ({ doi, session }) => {
     const statsProps = { session, loading, error, data };
     return (
         <div className="browse-summary publication-stat-viewer d-flex flex-row mt-2 mb-3 flex-wrap">
-            <BrowseSummaryStatController type="File" {...statsProps} />
+            <BrowseSummaryStatController
+                type="File"
+                subtitle="Files Analyzed"
+                {...statsProps}
+            />
             <BrowseSummaryStatController type="Donor" {...statsProps} />
-            <BrowseSummaryStatController type="Tissue" {...statsProps} />
+            <BrowseSummaryStatController
+                type="Tissue"
+                subtitle="Cell Lines"
+                {...statsProps}
+            />
             <BrowseSummaryStatController type="Assay" {...statsProps} />
             <BrowseSummaryStatController type="File Size" {...statsProps} />
             <a className="" href={searchUrl}>
@@ -235,21 +244,22 @@ const PublicationView = React.memo(function PublicationView(props) {
     const shortenedAuthorsList = [...context?.authors.slice(0, 20)];
     const lastAuthor = context?.authors[context?.authors.length - 1];
     const citationString =
+        context?.citation ??
         shortenedAuthorsList
             .map((a) => a.last_name + ', ' + a.first_name)
             ?.join(', ') +
-        ' ... ' +
-        lastAuthor.last_name +
-        ', ' +
-        lastAuthor.first_name +
-        ' (' +
-        pubYear +
-        '). ' +
-        context?.title +
-        '. ' +
-        context?.journal +
-        '. ' +
-        doiCode;
+            ' ... ' +
+            lastAuthor.last_name +
+            ', ' +
+            lastAuthor.first_name +
+            ' (' +
+            pubYear +
+            '). ' +
+            context?.title +
+            '. ' +
+            context?.journal +
+            '. ' +
+            doiCode;
     '.' + doiLink;
 
     const fullAuthorsList = context?.authors
@@ -294,7 +304,13 @@ const PublicationView = React.memo(function PublicationView(props) {
                 <div className="citation-container">
                     <div className="citation-body">
                         <div className="citation-text">
-                            <h5>Publication Citation</h5>
+                            <div className="citation-title">
+                                <i className="icon icon-fw icon-quote-left fas"></i>
+                                <h5>Publication Citation</h5>
+                                <object.CopyWrapper
+                                    value={citationString}
+                                    wrapperElement="span"></object.CopyWrapper>
+                            </div>
                             <span className="citation">{citationString}</span>
                             <button
                                 className="author-details-toggle"

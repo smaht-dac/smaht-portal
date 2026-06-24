@@ -141,7 +141,14 @@ BrowseSummaryStatsViewer.propTypes = {
 };
 
 export const BrowseSummaryStatController = (props) => {
-    const { type, containerCls = 'ms-2', loading, error, data } = props;
+    const {
+        type,
+        containerCls = 'ms-2',
+        loading,
+        error,
+        data,
+        subtitle,
+    } = props;
 
     const [value, setValue] = useState('');
     const [units, setUnits] = useState('');
@@ -185,7 +192,9 @@ export const BrowseSummaryStatController = (props) => {
     }, [data, type, error, loading]);
 
     return (
-        <BrowseSummaryStat {...{ value, type, loading, units, containerCls }} />
+        <BrowseSummaryStat
+            {...{ value, type, loading, units, containerCls, subtitle }}
+        />
     );
 };
 BrowseSummaryStatController.propTypes = {
@@ -209,27 +218,36 @@ BrowseSummaryStatController.propTypes = {
 };
 
 export const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
-    const { type, value, loading, units, containerCls = 'ms-2' } = props;
+    const {
+        type,
+        value,
+        loading,
+        units,
+        containerCls = 'ms-2',
+        subtitle = '',
+    } = props;
 
-    let subtitle;
-    switch (type) {
-        case 'File':
-            subtitle = 'Files Generated';
-            break;
-        case 'Donor':
-            subtitle = 'Donors';
-            break;
-        case 'Tissue':
-            subtitle = 'Tissues';
-            break;
-        case 'Assay':
-            subtitle = 'Assays';
-            break;
-        case 'File Size':
-            subtitle = 'Total File Size';
-            break;
-        default:
-            throw new Error('Must provide a valid type.');
+    let subtitleText = subtitle;
+    if (!subtitleText) {
+        switch (type) {
+            case 'File':
+                subtitleText = 'Files Generated';
+                break;
+            case 'Donor':
+                subtitleText = 'Donors';
+                break;
+            case 'Tissue':
+                subtitleText = 'Tissues';
+                break;
+            case 'Assay':
+                subtitleText = 'Assays';
+                break;
+            case 'File Size':
+                subtitleText = 'Total File Size';
+                break;
+            default:
+                throw new Error('Must provide a valid type.');
+        }
     }
 
     return (
@@ -253,7 +271,9 @@ export const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
                         </div>
                     </>
                 )}
-                <div className="browse-summary-stat-subtitle">{subtitle}</div>
+                <div className="browse-summary-stat-subtitle">
+                    {subtitleText}
+                </div>
             </div>
         </div>
     );
