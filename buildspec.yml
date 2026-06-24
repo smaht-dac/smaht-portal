@@ -5,9 +5,18 @@ version: 0.2
 # pull it. Credentials are read from Secrets Manager (a JSON secret with username/token
 # keys). The CodeBuild service role needs secretsmanager:GetSecretValue on this secret.
 env:
+  variables:
+    DOCKER_BUILDKIT: "1"
   secrets-manager:
     DHI_USERNAME: "dhi-registry-credentials:username"
     DHI_TOKEN: "dhi-registry-credentials:token"
+
+# Reuse the Docker layer cache across builds when CodeBuild reuses a build host.
+# Requires the CodeBuild project's cache type to be set to LOCAL (and privileged mode,
+# already required for docker builds).
+cache:
+  modes:
+    - LOCAL_DOCKER_LAYER_CACHE
 
 phases:
   pre_build:
