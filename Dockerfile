@@ -92,7 +92,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # This hardened base strips standard accounts/tooling that Debian's nginx packaging
 # assumes, so we install the user tooling and create the `adm` group (nginx-common's
 # postinst does `chown root:adm /var/log/nginx`, which fails if `adm` doesn't exist)
-# BEFORE installing nginx. libmagic1 is for python-magic; make is for the local entrypoint.
+# BEFORE installing nginx. libmagic1 is for python-magic; make is for the local
+# entrypoint; git is invoked indirectly by dcicutils at runtime.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends adduser passwd init-system-helpers && \
     # nginx-common's postinst does `chown www-data:adm /var/log/nginx`; this hardened
@@ -100,7 +101,7 @@ RUN apt-get update && \
     ( getent group adm >/dev/null || /usr/sbin/groupadd --system adm ) && \
     ( getent group www-data >/dev/null || /usr/sbin/groupadd --system www-data ) && \
     ( getent passwd www-data >/dev/null || /usr/sbin/useradd --system --gid www-data --no-create-home --home-dir /var/www --shell /usr/sbin/nologin www-data ) && \
-    apt-get install -y --no-install-recommends nginx ca-certificates libmagic1 make && \
+    apt-get install -y --no-install-recommends nginx ca-certificates git libmagic1 make && \
     /usr/sbin/groupadd --system --gid 121 nginx && \
     /usr/sbin/useradd --system --gid nginx --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin --uid 121 nginx && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
