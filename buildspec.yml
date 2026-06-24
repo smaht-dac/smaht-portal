@@ -1,5 +1,14 @@
 version: 0.2
 
+# dhi.io (Docker Hardened Images) is a private registry, so the base image in the
+# Dockerfile (dhi.io/python:...) requires authentication before `docker build` can
+# pull it. Credentials are read from Secrets Manager (a JSON secret with username/token
+# keys). The CodeBuild service role needs secretsmanager:GetSecretValue on this secret.
+env:
+  secrets-manager:
+    DHI_USERNAME: "dhi-registry-credentials:username"
+    DHI_TOKEN: "dhi-registry-credentials:token"
+
 phases:
   pre_build:
     commands:
@@ -8,12 +17,42 @@ phases:
       - ./buildspec_create_gitinfo.sh
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - echo Logging in to dhi.io...
+      - echo "$DHI_TOKEN" | docker login dhi.io --username "$DHI_USERNAME" --password-stdin
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      # Pull the CrowdStrike Falcon Container Sensor and mirror it into ECR.
+      # Note: -c/--copy is the destination registry; -r/--region is the Falcon cloud
+      # (default us-1). The script pushes a versioned tag; we additionally tag latest.
+      # - echo Pulling Falcon Container Sensor image...
+      # - curl -sSL -o falcon-container-sensor-pull.sh https://raw.githubusercontent.com/CrowdStrike/falcon-scripts/main/bash/containers/falcon-container-sensor-pull/falcon-container-sensor-pull.sh
+      # - chmod +x falcon-container-sensor-pull.sh
+      # - FALCON_ECR=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      # # Resolve the destination repo name and version tag from the source image path
+      # # (e.g. .../falcon-sensor:7.x.x-...) so we don't hardcode them.
+      # - SENSOR_IMAGE_PATH=$(./falcon-container-sensor-pull.sh -u $FALCON_CLIENT_ID -s $FALCON_CLIENT_SECRET -t falcon-container --get-image-path)
+      # - SENSOR_TAG=${SENSOR_IMAGE_PATH##*:}
+      # - SENSOR_IMAGE_NAME=${SENSOR_IMAGE_PATH##*/}; SENSOR_IMAGE_NAME=${SENSOR_IMAGE_NAME%:*}
+      # # Copy the versioned image into ECR.
+      # - ./falcon-container-sensor-pull.sh -u $FALCON_CLIENT_ID -s $FALCON_CLIENT_SECRET -t falcon-container -c $FALCON_ECR
+      # # Tag/push as latest only if it differs from what's already in ECR. Compare the
+      # # manifest digest of the just-copied versioned tag against the current latest tag;
+      # # skip the pull/tag/push entirely when they already match.
+      # - NEW_DIGEST=$(aws ecr describe-images --repository-name $SENSOR_IMAGE_NAME --image-ids imageTag=$SENSOR_TAG --query 'imageDetails[0].imageDigest' --output text)
+      # - LATEST_DIGEST=$(aws ecr describe-images --repository-name $SENSOR_IMAGE_NAME --image-ids imageTag=latest --query 'imageDetails[0].imageDigest' --output text 2>/dev/null || true)
+      # - |
+      #   if [ "$NEW_DIGEST" = "$LATEST_DIGEST" ]; then
+      #     echo "ECR latest already matches $SENSOR_TAG ($NEW_DIGEST); skipping latest push";
+      #   else
+      #     echo "Tagging Falcon Container Sensor $SENSOR_TAG as latest (was $LATEST_DIGEST)...";
+      #     docker pull $FALCON_ECR/$SENSOR_IMAGE_NAME:$SENSOR_TAG;
+      #     docker tag $FALCON_ECR/$SENSOR_IMAGE_NAME:$SENSOR_TAG $FALCON_ECR/$SENSOR_IMAGE_NAME:latest;
+      #     docker push $FALCON_ECR/$SENSOR_IMAGE_NAME:latest;
+      #   fi
   post_build:
     commands:
       - echo Build completed on `date`
