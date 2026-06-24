@@ -2068,7 +2068,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     // We have columnSubGrouping so these are -pairs- of (0) columnSubGrouping val, (1) blocks
                                     blockData = blockData[1];
                                 }
-                                const rawOverrideFiles = StackedBlockGroupedRow.getRawRegularOverrideForColumn(k, props);
+                                const rawOverrideFiles = (props.countFor === 'files' || props.countFor === 'tissue_files')
+                                    ? StackedBlockGroupedRow.getRawRegularOverrideForColumn(k, props)
+                                    : null;
                                 const explicitOverrideFiles = typeof rawOverrideFiles === 'number' ? rawOverrideFiles : derivedCollapsedCellOverrides[k];
                                 const blockDataForRender = typeof explicitOverrideFiles === 'number'
                                     ? [{
