@@ -87,14 +87,20 @@ ENV NGINX_USER=nginx \
     VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Runtime OS deps only. nginx (from Debian's repos), the nginx user, libmagic1
-# (python-magic loads it at runtime), and make (used by the local entrypoint).
-# psycopg2-binary bundles libpq, so libpq is not needed here; gcc/build tools are not
-# needed since wheels are already built in the builder stage. adduser is required by
-# nginx's postinst (to create www-data); on this hardened base it isn't present unless
-# installed explicitly (in the single-stage build it came in transitively via postgresql-client).
+# Runtime OS deps only. psycopg2-binary bundles libpq, so libpq is not needed here;
+# gcc/build tools aren't needed since wheels are built in the builder stage.
+# This hardened base strips standard accounts/tooling that Debian's nginx packaging
+# assumes, so we install the user tooling and create the `adm` group (nginx-common's
+# postinst does `chown root:adm /var/log/nginx`, which fails if `adm` doesn't exist)
+# BEFORE installing nginx. libmagic1 is for python-magic; make is for the local entrypoint.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nginx ca-certificates adduser passwd libmagic1 make && \
+    apt-get install -y --no-install-recommends adduser passwd init-system-helpers && \
+    # nginx-common's postinst does `chown www-data:adm /var/log/nginx`; this hardened
+    # base ships neither the `adm` group nor the `www-data` user, so create both first.
+    ( getent group adm >/dev/null || /usr/sbin/groupadd --system adm ) && \
+    ( getent group www-data >/dev/null || /usr/sbin/groupadd --system www-data ) && \
+    ( getent passwd www-data >/dev/null || /usr/sbin/useradd --system --gid www-data --no-create-home --home-dir /var/www --shell /usr/sbin/nologin www-data ) && \
+    apt-get install -y --no-install-recommends nginx ca-certificates libmagic1 make && \
     /usr/sbin/groupadd --system --gid 121 nginx && \
     /usr/sbin/useradd --system --gid nginx --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin --uid 121 nginx && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
