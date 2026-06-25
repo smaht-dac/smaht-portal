@@ -161,7 +161,6 @@ const PublicationViewTabs = (props) => {
 
     const customColumns = {
         '@type': {},
-        access_status: {},
         annotated_filename: {},
         description: {
             widthMap: { lg: 400, md: 400, sm: 300 },
