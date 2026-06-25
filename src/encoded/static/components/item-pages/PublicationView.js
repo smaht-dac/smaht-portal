@@ -162,7 +162,7 @@ const PublicationViewTabs = (props) => {
     const customColumns = {
         '@type': {},
         filename: {
-            widthMap: { lg: 500, md: 400, sm: 300 },
+            widthMap: { lg: 380, md: 380, sm: 300 },
             colTitle: 'File Name',
             render: function (result) {
                 const { '@id': atId, display_title, filename } = result || {};
