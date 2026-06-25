@@ -1,1 +1,0 @@
-<PublicationCollection context={context} schemas={schemas} session={session} href={href} type="p25" />
