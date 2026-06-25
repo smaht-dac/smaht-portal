@@ -181,7 +181,7 @@ const PublicationViewTabs = (props) => {
             },
         },
         data_type: {
-            widthMap: { lg: 200, md: 200, sm: 150 },
+            widthMap: { lg: 130, md: 130, sm: 130 },
             colTitle: 'Data Type',
             colAlignment: 'text-start',
             render: function (result, parentProps) {
