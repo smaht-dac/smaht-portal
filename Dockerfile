@@ -85,8 +85,13 @@ ENV NGINX_USER=nginx \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
     VIRTUAL_ENV=/opt/venv \
-    GIT_PYTHON_GIT_EXECUTABLE=/usr/bin/git
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+    GIT_PYTHON_GIT_EXECUTABLE=/usr/bin/git \
+    NODE_VERSION=21.7.3
+# Node is required at runtime for server-side rendering. We don't reinstall the Node
+# toolchain here - just copy the prebuilt runtime from the builder (below) onto PATH,
+# which keeps the build toolchain (gcc, headers, npm build deps) out of the final image.
+ENV NODE_DIR=/home/nginx/.nvm/versions/node/v${NODE_VERSION}
+ENV PATH="$VIRTUAL_ENV/bin:${NODE_DIR}/bin:$PATH"
 
 # Runtime OS deps only. psycopg2-binary bundles libpq, so libpq is not needed here;
 # gcc/build tools aren't needed since wheels are built in the builder stage.
@@ -129,6 +134,8 @@ WORKDIR /home/nginx/smaht-portal
 # avoids a second full-size layer that a later `chown -R` would create.
 COPY --chown=nginx:nginx --from=builder /opt/venv /opt/venv
 COPY --chown=nginx:nginx --from=builder /home/nginx/smaht-portal /home/nginx/smaht-portal
+# Node runtime (for server-side rendering) - just the prebuilt interpreter, no toolchain.
+COPY --chown=nginx:nginx --from=builder ${NODE_DIR} ${NODE_DIR}
 
 # App config + entrypoints. entrypoint.sh dispatches by $application_type; *.ini must
 # match the env name in Secrets Manager.
