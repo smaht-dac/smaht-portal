@@ -171,10 +171,30 @@ const PublicationViewTabs = (props) => {
                 return <span className="value">{value}</span>;
             },
         },
+        data_category: {
+            widthMap: { lg: 200, md: 200, sm: 150 },
+            colTitle: 'Data Category',
+            colAlignment: 'text-start',
+            render: function (result, parentProps) {
+                const value = result?.data_category?.join(', ');
+                return <span className="value">{value}</span>;
+            },
+        },
+        data_type: {
+            widthMap: { lg: 200, md: 200, sm: 150 },
+            colTitle: 'Data Type',
+            colAlignment: 'text-start',
+            render: function (result, parentProps) {
+                const value = result?.data_type?.join(', ');
+                return <span className="value">{value}</span>;
+            },
+        },
         file_size: {
             colAlignment: 'text-start',
         },
     };
+
+    const customHideColumns = [];
 
     const tableProps = {
         embeddedTableHeaderText: 'Published Data from this Publication',
@@ -184,6 +204,7 @@ const PublicationViewTabs = (props) => {
         href,
         context,
         customColumns,
+        customHideColumns,
     };
 
     return (

@@ -30,6 +30,7 @@ export const FileOverviewTableController = (props) => {
         href,
         context,
         customColumns = {},
+        customHideColumns = null,
     } = props;
 
     return (
@@ -46,6 +47,7 @@ export const FileOverviewTableController = (props) => {
                     searchHref: associatedFilesSearchHref,
                     embeddedTableHeaderText,
                     customColumns,
+                    customHideColumns,
                 }}
             />
         </SelectedItemsController>
@@ -68,6 +70,7 @@ export const FileOverviewTable = (props) => {
         onResetSelectedItems, // From SelectedItemsController
         originalColExtMap,
         customColumns = {},
+        customHideColumns = null,
     } = props;
 
     const selectedFileProps = {
@@ -299,15 +302,17 @@ export const FileOverviewTable = (props) => {
                 }}
                 facets={null}
                 columnExtensionMap={FileOverviewColExtMap}
-                hideColumns={[
-                    'display_title',
-                    'data_type',
-                    'sequencers.display_title',
-                    'file_format.display_title',
-                    'submission_centers.display_title',
-                    'assays.display_title',
-                    'sequencing_center.display_title',
-                ]}
+                hideColumns={
+                    customHideColumns ?? [
+                        'display_title',
+                        'data_type',
+                        'sequencers.display_title',
+                        'file_format.display_title',
+                        'submission_centers.display_title',
+                        'assays.display_title',
+                        'sequencing_center.display_title',
+                    ]
+                }
                 columns={
                     Object.keys(customColumns).length > 0
                         ? customColumns
