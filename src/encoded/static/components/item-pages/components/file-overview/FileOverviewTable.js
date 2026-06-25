@@ -81,6 +81,7 @@ export const FileOverviewTable = (props) => {
 
     const FileOverviewColExtMap = {
         ...originalColExtMap,
+        ...customColumns,
         // Select all button
         '@type': {
             colTitle: (
