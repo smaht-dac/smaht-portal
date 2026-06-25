@@ -33,7 +33,8 @@ const RELEASE_DATE_FACET_FIELDS = [
 ];
 const RECENT_RELEASES_URL_PARAMS = {
     VIEW: 'view',
-    DATE: 'date'
+    DATE: 'date',
+    MONTH: 'month'
 };
 
 const formatMonthLabel = (monthValue = '') => {
@@ -221,14 +222,16 @@ const getRecentReleasesURLState = () => {
     const queryParams = new URLSearchParams(queryString);
     const view = queryParams.get(RECENT_RELEASES_URL_PARAMS.VIEW);
     const date = queryParams.get(RECENT_RELEASES_URL_PARAMS.DATE);
+    const month = queryParams.get(RECENT_RELEASES_URL_PARAMS.MONTH);
 
     return {
         timelineMode: isValidTimelineMode(view) ? view : TIMELINE_MODES.WEEKLY,
-        selectedDate: date || null
+        selectedDate: date || null,
+        selectedMonthKey: getMonthKeyFromDateString(month)
     };
 };
 
-const buildRecentReleasesTargetFromDate = (months = [], timelineMode = TIMELINE_MODES.WEEKLY, selectedDate = null) => {
+const buildRecentReleasesTargetFromDate = (months = [], timelineMode = TIMELINE_MODES.WEEKLY, selectedDate = null, selectedMonthKey = null) => {
     if (!selectedDate || !months.length) {
         return null;
     }
@@ -246,7 +249,7 @@ const buildRecentReleasesTargetFromDate = (months = [], timelineMode = TIMELINE_
         const allWeeks = _.chain(months).map((month) => buildWeekBucketsForMonth(month)).flatten().value();
         const week = _.find(allWeeks, (item) => item?.from <= selectedDate && item?.to >= selectedDate) || null;
         return week ? {
-            monthKey: getMonthKeyFromDateString(selectedDate),
+            monthKey: selectedMonthKey || getMonthKeyFromDateString(selectedDate),
             selectedDay: null,
             selectedTimelineTarget: week
         } : null;
@@ -289,7 +292,7 @@ const getURLDateForSelectedTarget = (timelineMode = TIMELINE_MODES.WEEKLY, selec
     return selectedTimelineTarget?.key?.replace(/^month-/, '') || selectedTimelineTarget?.browseQuery?.match(/\d{4}-\d{2}/)?.[0] || null;
 };
 
-const syncRecentReleasesURLState = ({ timelineMode, selectedDate }) => {
+const syncRecentReleasesURLState = ({ timelineMode, selectedDate, selectedMonthKey }) => {
     if (typeof window === 'undefined') return;
     // Keep the URL in sync with the current calendar selection so reloading,
     // sharing, or opening in a new tab lands on the same Recent Releases state.
@@ -301,6 +304,11 @@ const syncRecentReleasesURLState = ({ timelineMode, selectedDate }) => {
         url.searchParams.set(RECENT_RELEASES_URL_PARAMS.DATE, selectedDate);
     } else {
         url.searchParams.delete(RECENT_RELEASES_URL_PARAMS.DATE);
+    }
+    if (selectedMonthKey) {
+        url.searchParams.set(RECENT_RELEASES_URL_PARAMS.MONTH, selectedMonthKey);
+    } else {
+        url.searchParams.delete(RECENT_RELEASES_URL_PARAMS.MONTH);
     }
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
 };
@@ -572,6 +580,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
     const [months, setMonths] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
     const [selectedTimelineTarget, setSelectedTimelineTarget] = useState(null);
+    const [selectedMonthKey, setSelectedMonthKey] = useState(initialURLState.selectedMonthKey || null);
     const [monthWindowStartIndex, setMonthWindowStartIndex] = useState(0);
     const [timelineMode, setTimelineMode] = useState(initialURLState.timelineMode);
     const [detailViewMode, setDetailViewMode] = useState(DETAIL_VIEW_MODES.TABLE);
@@ -597,6 +606,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 setMonths(monthsWithGaps);
                 setSelectedDay(firstDay);
                 setSelectedTimelineTarget(firstDay);
+                setSelectedMonthKey(getMonthKeyFromDateString(firstDay?.key) || monthsWithGaps[0]?.value || null);
                 setMonthWindowStartIndex(0);
                 setIsLoading(false);
             },
@@ -609,6 +619,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 setMonths([]);
                 setSelectedDay(null);
                 setSelectedTimelineTarget(null);
+                setSelectedMonthKey(null);
                 setMonthWindowStartIndex(0);
                 setIsLoading(false);
             }
@@ -693,12 +704,18 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         if (!months?.length) return;
         if (isApplyingURLStateRef.current && pendingURLTargetRef.current) {
             const requestedMonthKey = getMonthKeyFromDateString(pendingURLTargetRef.current);
-            const requestedTarget = buildRecentReleasesTargetFromDate(months, timelineMode, pendingURLTargetRef.current);
+            const requestedTarget = buildRecentReleasesTargetFromDate(
+                months,
+                timelineMode,
+                pendingURLTargetRef.current,
+                initialURLState.selectedMonthKey
+            );
 
             if (requestedTarget) {
                 setMonthWindowStartIndex(getMonthWindowStartIndexForTarget(months, monthWindowSize, requestedTarget.monthKey));
                 setSelectedDay(requestedTarget.selectedDay);
                 setSelectedTimelineTarget(requestedTarget.selectedTimelineTarget);
+                setSelectedMonthKey(requestedTarget.monthKey);
                 pendingURLTargetRef.current = null;
                 isApplyingURLStateRef.current = false;
                 return;
@@ -720,9 +737,14 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         }
 
         if (pendingTimelineSelectionRef.current?.timelineMode === timelineMode) {
-            const { selectedDay: pendingSelectedDay = null, selectedTimelineTarget: pendingSelectedTimelineTarget = null } = pendingTimelineSelectionRef.current;
+            const {
+                selectedDay: pendingSelectedDay = null,
+                selectedTimelineTarget: pendingSelectedTimelineTarget = null,
+                selectedMonthKey: pendingSelectedMonthKey = null
+            } = pendingTimelineSelectionRef.current;
             setSelectedDay(pendingSelectedDay);
             setSelectedTimelineTarget(pendingSelectedTimelineTarget);
+            setSelectedMonthKey(pendingSelectedMonthKey);
             pendingTimelineSelectionRef.current = null;
             return;
         }
@@ -730,11 +752,13 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         if (timelineMode === TIMELINE_MODES.DAILY) {
             if (selectedDay?.key) {
                 setSelectedTimelineTarget(selectedDay);
+                setSelectedMonthKey(getMonthKeyFromDateString(selectedDay.key));
                 return;
             }
             const firstDay = _.chain(months).pluck('days').flatten().find((day) => !!day).value() || null;
             setSelectedDay(firstDay);
             setSelectedTimelineTarget(firstDay);
+            setSelectedMonthKey(getMonthKeyFromDateString(firstDay?.key));
             return;
         }
         if (timelineMode === TIMELINE_MODES.WEEKLY) {
@@ -743,12 +767,15 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                 .flatten()
                 .find((week) => (week?.count || 0) > 0)
                 .value() || null;
+            const firstWeekMonth = _.find(months, (month) => _.find(month.weeks || buildWeekBucketsForMonth(month), (week) => week?.key === firstWeek?.key)) || null;
             setSelectedDay(null);
             setSelectedTimelineTarget(firstWeek);
+            setSelectedMonthKey(firstWeekMonth?.value || getMonthKeyFromDateString(firstWeek?.from));
             return;
         }
         const firstMonth = _.find(months, (month) => (month?.count || 0) > 0) || null;
         setSelectedDay(null);
+        setSelectedMonthKey(firstMonth?.value || null);
         setSelectedTimelineTarget(firstMonth ? {
             key: `month-${firstMonth.value}`,
             fullLabel: firstMonth.label,
@@ -761,9 +788,10 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         if (isLoading || isApplyingURLStateRef.current) return;
         syncRecentReleasesURLState({
             timelineMode,
-            selectedDate: getURLDateForSelectedTarget(timelineMode, selectedDay, selectedTimelineTarget)
+            selectedDate: getURLDateForSelectedTarget(timelineMode, selectedDay, selectedTimelineTarget),
+            selectedMonthKey
         });
-    }, [isLoading, timelineMode, selectedDay, selectedTimelineTarget]);
+    }, [isLoading, timelineMode, selectedDay, selectedTimelineTarget, selectedMonthKey]);
 
     if (isLoading) {
         return (
@@ -913,11 +941,13 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                         pendingTimelineSelectionRef.current = {
                                                             timelineMode: TIMELINE_MODES.MONTHLY,
                                                             selectedDay: null,
+                                                            selectedMonthKey: month.value,
                                                             selectedTimelineTarget: nextMonthlyTarget
                                                         };
                                                         setTimelineMode(TIMELINE_MODES.MONTHLY);
                                                     } else {
                                                         setSelectedDay(null);
+                                                        setSelectedMonthKey(month.value);
                                                         setSelectedTimelineTarget(nextMonthlyTarget);
                                                     }
                                                 }}
@@ -958,10 +988,12 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                         className={dayClasses}
                                                         onClick={cell.hasData ? () => {
                                                             setSelectedDay(cell.data);
+                                                            setSelectedMonthKey(month.value);
                                                             setSelectedTimelineTarget(cell.data);
                                                         } : undefined}
                                                         onFocus={cell.hasData ? () => {
                                                             setSelectedDay(cell.data);
+                                                            setSelectedMonthKey(month.value);
                                                             setSelectedTimelineTarget(cell.data);
                                                         } : undefined}
                                                         aria-pressed={isSelected}
@@ -988,6 +1020,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                                     className={`release-bucket-btn ${isSelected ? 'selected' : ''}`}
                                                     onClick={() => {
                                                         setSelectedDay(null);
+                                                        setSelectedMonthKey(month.value);
                                                         setSelectedTimelineTarget(week);
                                                     }}>
                                                     <span className="bucket-label">{week.label}</span>
@@ -1004,6 +1037,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                                             className={`release-bucket-btn ${selectedTimelineTarget?.key === `month-${month.value}` ? 'selected' : ''}`}
                                             onClick={() => {
                                                 setSelectedDay(null);
+                                                setSelectedMonthKey(month.value);
                                                 setSelectedTimelineTarget({
                                                     key: `month-${month.value}`,
                                                     fullLabel: month.label,
