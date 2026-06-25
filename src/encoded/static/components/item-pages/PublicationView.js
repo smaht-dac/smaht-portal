@@ -13,6 +13,7 @@ import { BasicStaticSectionBody } from '@hms-dbmi-bgm/shared-portal-components/e
 import { replaceString as placeholderReplacementFxn } from './../static-pages/placeholders';
 import { RightArrowIcon } from '../util/icon';
 import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { OverlayTrigger, Popover } from 'react-bootstrap';
 
 function getStaticContentSection(staticContent, location) {
     if (!Array.isArray(staticContent)) return null;
@@ -187,9 +188,18 @@ const PublicationViewTabs = (props) => {
             render: function (result, parentProps) {
                 const value = result?.description;
                 return (
-                    <span className="value" data-tip={value}>
-                        {value}
-                    </span>
+                    <OverlayTrigger
+                        trigger="hover"
+                        placement="top"
+                        overlay={
+                            <Popover
+                                id="popover-description"
+                                className="description-definitions-popover">
+                                <Popover.Body>{value}</Popover.Body>
+                            </Popover>
+                        }>
+                        <span className="value">{value}</span>
+                    </OverlayTrigger>
                 );
             },
         },
