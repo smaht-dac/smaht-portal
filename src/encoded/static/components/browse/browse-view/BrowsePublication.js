@@ -5,12 +5,6 @@ import { BrowsePublicationSearchTable } from '../components/PublicationSearchTab
 
 // Browse Publication Body Component
 export const BrowsePublicationBody = (props) => {
-    const { context } = props;
-
-    useEffect(() => {
-        console.log('BrowsePublicationBody props', props);
-    }, []);
-
     return (
         <div className="browse-publication-body text-gray-70">
             <BrowseViewControllerWithSelections {...props}>
