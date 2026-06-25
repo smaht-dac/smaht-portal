@@ -224,7 +224,8 @@ const PublicationViewTabs = (props) => {
                         {refSetGenSection && (
                             <>
                                 <h2 className="header">
-                                    Reference Set Generation
+                                    {refSetGenSection?.title ??
+                                        'Reference Set Generation'}
                                 </h2>
                                 <div className="description">
                                     <BasicStaticSectionBody
