@@ -4,16 +4,26 @@
     "$id": "/profiles/publication.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": ["doi"],
+    "required": [
+        "doi"
+    ],
     "anyOf": [
         {
-            "required": ["submission_centers"]
+            "required": [
+                "submission_centers"
+            ]
         },
         {
-            "required": ["consortia"]
+            "required": [
+                "consortia"
+            ]
         }
     ],
-    "identifyingProperties": ["accession", "aliases", "uuid"],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "uuid"        
+    ],
     "additionalProperties": false,
     "mixinProperties": [
         {
@@ -43,7 +53,7 @@
         {
             "$ref": "mixins.json#/tags"
         },
-        {
+        {   
             "$ref": "mixins.json#/uuid"
         }
     ],
@@ -60,7 +70,7 @@
             "type": "string",
             "comment": "Please provide in the form of 10.1234/abc123"
         },
-        "pubmed_id": {
+        "pubmed_id":{
             "title": "Publication Identifier",
             "description": "PMID for the publication (if available).",
             "type": "string"
@@ -122,7 +132,7 @@
             "description": "Indicates whether the publication is a preprint.",
             "type": "boolean",
             "permission": "restricted_fields"
-        },
+        },        
         "journal": {
             "title": "Journal",
             "description": "Name of the journal in which the article was published.",
@@ -182,7 +192,11 @@
             "type": "array",
             "items": {
                 "type": "string",
-                "suggested_enum": ["Benchmarking", "Production", "P25"]
+                "suggested_enum": [
+                    "Benchmarking",
+                    "Production",
+                    "P25"
+                ]
             },
             "permission": "restricted_fields"
         },
