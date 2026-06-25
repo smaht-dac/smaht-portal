@@ -161,14 +161,36 @@ const PublicationViewTabs = (props) => {
 
     const customColumns = {
         '@type': {},
-        annotated_filename: {},
+        filename: {
+            widthMap: { lg: 500, md: 400, sm: 300 },
+            colTitle: 'File Name',
+            render: function (result) {
+                const { '@id': atId, display_title, filename } = result || {};
+
+                return (
+                    <span className="value">
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="link-underline-hover">
+                            {filename || display_title}
+                        </a>
+                    </span>
+                );
+            },
+        },
         description: {
             widthMap: { lg: 400, md: 400, sm: 300 },
             colTitle: 'Description',
             colAlignment: 'text-start',
             render: function (result, parentProps) {
                 const value = result?.description;
-                return <span className="value">{value}</span>;
+                return (
+                    <span className="value" data-tip={value}>
+                        {value}
+                    </span>
+                );
             },
         },
         data_category: {
