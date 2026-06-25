@@ -84,7 +84,8 @@ ENV NGINX_USER=nginx \
     PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
-    VIRTUAL_ENV=/opt/venv
+    VIRTUAL_ENV=/opt/venv \
+    GIT_PYTHON_GIT_EXECUTABLE=/usr/bin/git
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Runtime OS deps only. psycopg2-binary bundles libpq, so libpq is not needed here;
