@@ -4328,6 +4328,35 @@ FAQ page styles
                     a.header:hover {
                         text-decoration: none;
                     }
+
+                    .quick-link-badge {
+                        display: flex;
+                        align-items: center;
+                        padding: 4px 8px;
+                        border-radius: 20px;
+                        font-size: 0.75rem;
+                        font-weight: 600;
+                        letter-spacing: 0.03em;
+                        text-transform: uppercase;
+                        white-space: nowrap;
+                        margin-left: 8px;
+
+                        span {
+                            line-height: 0.75rem;
+                        }
+
+                        &.quick-link-badge-open {
+                            background-color: #d4edda;
+                            color: #1a6630;
+                            border: 1px solid #b8dfc2;
+                        }
+
+                        &.quick-link-badge-protected {
+                            background-color: #e8edf5;
+                            color: #3a5070;
+                            border: 1px solid #c8d4e6;
+                        }
+                    }
                 }
             }
         }
