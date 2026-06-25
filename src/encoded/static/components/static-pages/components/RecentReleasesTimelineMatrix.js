@@ -573,6 +573,44 @@ const buildWeekBucketsForMonth = (month = {}) => {
         .value();
 };
 
+// Rebuild a valid selection inside a specific month when the user switches
+// between Daily / Weekly / Monthly so we preserve month focus across views.
+const buildTimelineSelectionForMonth = (months = [], timelineMode = TIMELINE_MODES.WEEKLY, monthKey = null) => {
+    if (!monthKey || !months.length) return null;
+    const month = _.find(months, (item) => item?.value === monthKey) || null;
+    if (!month) return null;
+
+    if (timelineMode === TIMELINE_MODES.DAILY) {
+        // Prefer the first real release day inside the already focused month.
+        const firstDay = _.find(month.days || [], (day) => (day?.count || 0) > 0) || null;
+        return {
+            selectedDay: firstDay,
+            selectedTimelineTarget: firstDay,
+            selectedMonthKey: month.value
+        };
+    }
+
+    if (timelineMode === TIMELINE_MODES.WEEKLY) {
+        const firstWeek = _.find(buildWeekBucketsForMonth(month), (week) => (week?.count || 0) > 0) || null;
+        return {
+            selectedDay: null,
+            selectedTimelineTarget: firstWeek,
+            selectedMonthKey: month.value
+        };
+    }
+
+    return {
+        selectedDay: null,
+        selectedTimelineTarget: {
+            key: `month-${month.value}`,
+            fullLabel: month.label,
+            browseQuery: month.browseQuery,
+            matrixQuery: buildMatrixQueryFromBrowseQuery(month.browseQuery || '')
+        },
+        selectedMonthKey: month.value
+    };
+};
+
 export const RecentReleasesTimelineMatrix = ({ session }) => {
     const initialURLState = useMemo(() => getRecentReleasesURLState(), []);
     const [isLoading, setIsLoading] = useState(true);
@@ -655,6 +693,29 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         : false;
     const canGoToOlderMonths = hasLocalOlderMonths || canFetchOlderMonths;
     const isOlderButtonDisabled = isLoadingOlderMonths || !canGoToOlderMonths;
+
+    const handleTimelineModeChange = (nextTimelineMode) => {
+        if (nextTimelineMode === timelineMode) return;
+        // Carry the currently focused month across view-mode changes instead of
+        // resetting to the newest month / first available bucket in the dataset.
+        const targetMonthKey = selectedMonthKey
+            || getMonthKeyFromDateString(selectedDay?.key)
+            || getMonthKeyFromDateString(selectedTimelineTarget?.key?.replace(/^month-/, ''))
+            || getMonthKeyFromDateString(selectedTimelineTarget?.from)
+            || months[0]?.value
+            || null;
+        const nextSelection = buildTimelineSelectionForMonth(months, nextTimelineMode, targetMonthKey);
+        if (targetMonthKey) {
+            setMonthWindowStartIndex(getMonthWindowStartIndexForTarget(months, TIMELINE_MONTH_WINDOW_SIZE[nextTimelineMode] || 1, targetMonthKey));
+        }
+        if (nextSelection) {
+            pendingTimelineSelectionRef.current = {
+                timelineMode: nextTimelineMode,
+                ...nextSelection
+            };
+        }
+        setTimelineMode(nextTimelineMode);
+    };
 
     useEffect(() => {
         if (!months?.length) return;
@@ -874,19 +935,19 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
                         <button
                             type="button"
                             className={`btn btn-sm ${timelineMode === TIMELINE_MODES.DAILY ? 'btn-primary active' : 'btn-outline-primary'}`}
-                            onClick={() => setTimelineMode(TIMELINE_MODES.DAILY)}>
+                            onClick={() => handleTimelineModeChange(TIMELINE_MODES.DAILY)}>
                             Daily
                         </button>
                         <button
                             type="button"
                             className={`btn btn-sm ${timelineMode === TIMELINE_MODES.WEEKLY ? 'btn-primary active' : 'btn-outline-primary'}`}
-                            onClick={() => setTimelineMode(TIMELINE_MODES.WEEKLY)}>
+                            onClick={() => handleTimelineModeChange(TIMELINE_MODES.WEEKLY)}>
                             Weekly
                         </button>
                         <button
                             type="button"
                             className={`btn btn-sm ${timelineMode === TIMELINE_MODES.MONTHLY ? 'btn-primary active' : 'btn-outline-primary'}`}
-                            onClick={() => setTimelineMode(TIMELINE_MODES.MONTHLY)}>
+                            onClick={() => handleTimelineModeChange(TIMELINE_MODES.MONTHLY)}>
                             Monthly
                         </button>
                     </div>
