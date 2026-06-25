@@ -79,7 +79,9 @@ const PublicationStatViewer = ({ doi, session }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
-    const searchUrl = doi ? `/search/?type=File&doi_list=${doi}` : null;
+    const searchUrl = doi
+        ? `/search/?type=File&type!=ExternalOutputFile&doi_list=${doi}`
+        : null;
 
     // only re-fetch data when [session] changes
     useEffect(() => {
