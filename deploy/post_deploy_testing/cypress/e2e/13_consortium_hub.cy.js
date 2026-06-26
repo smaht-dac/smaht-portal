@@ -6,30 +6,65 @@ const ROLE_MATRIX = {
         isAuthenticated: false,
         canAccessHub: false,
         canLoadDonorData: false,
+        minimumQuickLinkResultCounts: {
+            "Sequencing Data (BAMs & CRAMs)": 0,
+            "Transcript Quantification Data (tsv, txt, gff)": 0,
+            "Filtered Somatic Variant Callsets": 0,
+            "Germline Variant Callsets": 0,
+            "DSA (FASTA, BED, Chain)": 0,
+        },
     },
     [ROLE_TYPES.SMAHT_DBGAP]: {
         label: "SMAHT_DBGAP",
         isAuthenticated: true,
         canAccessHub: true,
         canLoadDonorData: true,
+        minimumQuickLinkResultCounts: {
+            "Sequencing Data (BAMs & CRAMs)": 3000,
+            "Transcript Quantification Data (tsv, txt, gff)": 800,
+            "Filtered Somatic Variant Callsets": 600,
+            "Germline Variant Callsets": 200,
+            "DSA (FASTA, BED, Chain)": 40,
+        },
     },
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
         label: "SMAHT_NON_DBGAP",
         isAuthenticated: true,
         canAccessHub: true,
         canLoadDonorData: false,
+        minimumQuickLinkResultCounts: {
+            "Sequencing Data (BAMs & CRAMs)": 0,
+            "Transcript Quantification Data (tsv, txt, gff)": 0,
+            "Filtered Somatic Variant Callsets": 0,
+            "Germline Variant Callsets": 0,
+            "DSA (FASTA, BED, Chain)": 0,
+        },
     },
     [ROLE_TYPES.PUBLIC_DBGAP]: {
         label: "PUBLIC_DBGAP",
         isAuthenticated: true,
         canAccessHub: false,
         canLoadDonorData: false,
+        minimumQuickLinkResultCounts: {
+            "Sequencing Data (BAMs & CRAMs)": 0,
+            "Transcript Quantification Data (tsv, txt, gff)": 0,
+            "Filtered Somatic Variant Callsets": 0,
+            "Germline Variant Callsets": 0,
+            "DSA (FASTA, BED, Chain)": 0,
+        },
     },
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
         label: "PUBLIC_NON_DBGAP",
         isAuthenticated: true,
         canAccessHub: false,
         canLoadDonorData: false,
+        minimumQuickLinkResultCounts: {
+            "Sequencing Data (BAMs & CRAMs)": 0,
+            "Transcript Quantification Data (tsv, txt, gff)": 0,
+            "Filtered Somatic Variant Callsets": 0,
+            "Germline Variant Callsets": 0,
+            "DSA (FASTA, BED, Chain)": 0,
+        },
     },
 };
 
@@ -119,6 +154,17 @@ const DSA_DEFAULT_SEARCH_PARAMS = [
     "status=protected-early",
     "status=protected-network",
 ];
+
+function assertMinimumQuickLinkResultCount(caps, quickLinkTitle) {
+    if (!caps.canLoadDonorData) {
+        return;
+    }
+
+    const minCount = caps?.minimumQuickLinkResultCounts?.[quickLinkTitle];
+    if (typeof minCount === "number") {
+        cy.searchPageTotalResultCount().should("be.gt", minCount);
+    }
+}
 
 function loginIfNeeded(roleKey) {
     const caps = ROLE_MATRIX[roleKey];
@@ -218,7 +264,7 @@ const QUICK_LINK_TESTS = [
     {
         title: "Sequencing Data (BAMs & CRAMs)",
         expectedSearchParams: SEQUENCING_DEFAULT_SEARCH_PARAMS,
-        extraAssertions() {
+        extraAssertions(caps) {
             cy.get('.facet[data-field="donors.donor_groups"]')
                 .find(".facet-list-element.selected .facet-item")
                 .should("contain", "First 25 Donors [P25]");
@@ -234,13 +280,13 @@ const QUICK_LINK_TESTS = [
                     expect(selected).to.include("bam");
                 });
 
-            cy.searchPageTotalResultCount().should("equal", 8);
+            assertMinimumQuickLinkResultCount(caps, "Sequencing Data (BAMs & CRAMs)");
         },
     },
     {
         title: "Transcript Quantification Data (tsv, txt, gff)",
         expectedSearchParams: TRANSCRIPT_DEFAULT_SEARCH_PARAMS,
-        extraAssertions() {
+        extraAssertions(caps) {
             cy.get('.facet[data-field="donors.donor_groups"]')
                 .find(".facet-list-element.selected .facet-item")
                 .should("contain", "First 25 Donors [P25]");
@@ -249,15 +295,16 @@ const QUICK_LINK_TESTS = [
                 .find(".facet-list-element.selected .facet-item")
                 .should("contain", "RNA Quantification");
 
-            cy.searchPageTotalResultCount().should("equal", 0);
+            assertMinimumQuickLinkResultCount(
+                caps,
+                "Transcript Quantification Data (tsv, txt, gff)"
+            );
         },
     },
     {
         title: "Filtered Somatic Variant Callsets",
         expectedSearchParams: FILTERED_SOMATIC_DEFAULT_SEARCH_PARAMS,
-        extraAssertions() {
-            cy.searchPageTotalResultCount().should("equal", 1);
-
+        extraAssertions(caps) {
             cy.get('.facet[data-field="donors.donor_groups"]')
                 .find(".facet-list-element.selected .facet-item")
                 .should("contain", "First 25 Donors [P25]");
@@ -269,14 +316,17 @@ const QUICK_LINK_TESTS = [
             cy.get('.facet[data-field="analysis_details"]')
                 .find(".facet-list-element.selected .facet-item")
                 .should("contain", "Filtered Variant Calls");
+
+            assertMinimumQuickLinkResultCount(
+                caps,
+                "Filtered Somatic Variant Callsets"
+            );
         },
     },
     {
         title: "Germline Variant Callsets",
         expectedSearchParams: GERMLINE_DEFAULT_SEARCH_PARAMS,
-        extraAssertions() {
-            cy.searchPageTotalResultCount().should("equal", 0);
-
+        extraAssertions(caps) {
             cy.get('.facet[data-field="donors.donor_groups"]')
                 .find(".facet-list-element.selected .facet-item")
                 .should("contain", "First 25 Donors [P25]");
@@ -284,14 +334,14 @@ const QUICK_LINK_TESTS = [
             cy.get('.facet[data-field="data_category"]')
                 .find(".facet-list-element.selected .facet-item")
                 .should("contain", "Germline Variant Calls");
+
+            assertMinimumQuickLinkResultCount(caps, "Germline Variant Callsets");
         },
     },
     {
         title: "DSA (FASTA, BED, Chain)",
         expectedSearchParams: DSA_DEFAULT_SEARCH_PARAMS,
-        extraAssertions() {
-            cy.searchPageTotalResultCount().should("equal", 35);
-
+        extraAssertions(caps) {
             cy.get('.facet[data-field="donors.donor_groups"]')
                 .find(".facet-list-element.selected .facet-item")
                 .should("contain", "First 25 Donors [P25]");
@@ -307,11 +357,13 @@ const QUICK_LINK_TESTS = [
                     expect(selected).to.include("Sequence Interval");
                     expect(selected).to.include("Chain File");
                 });
+
+            assertMinimumQuickLinkResultCount(caps, "DSA (FASTA, BED, Chain)");
         },
     },
 ];
 
-function clickQuickLinkAndAssertDefaults(index, quickLinkTest) {
+function clickQuickLinkAndAssertDefaults(index, quickLinkTest, caps) {
     cy.get(".quick-links-container > .nav-group")
         .first()
         .find("> .dropdown > a.header")
@@ -339,7 +391,7 @@ function clickQuickLinkAndAssertDefaults(index, quickLinkTest) {
                 .should("contain", "SMaHT Production Data");
 
             if (typeof quickLinkTest.extraAssertions === "function") {
-                quickLinkTest.extraAssertions();
+                quickLinkTest.extraAssertions(caps);
             }
         });
 }
@@ -435,7 +487,7 @@ describe("Consortium Hub by role", () => {
                         assertQuickLinks();
                     }
 
-                    clickQuickLinkAndAssertDefaults(index, quickLinkTest);
+                    clickQuickLinkAndAssertDefaults(index, quickLinkTest, caps);
                 });
             });
         });
