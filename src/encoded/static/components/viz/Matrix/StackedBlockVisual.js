@@ -748,6 +748,7 @@ export class VisualBody extends React.PureComponent {
                 : totalCoverage);
         const donorCount = getUniqueDonorCountFromItems(dataForCounts);
         const isTissueColumnGrouping = (fieldChangeMap?.[columnGrouping] || columnGrouping) === 'sample_summary.tissues';
+        const assayCount = getUniqueValueCountFromItems(dataForCounts, 'assay');
         const tissueCount = isTissueColumnGrouping
             ? getUniqueValueCountFromItems(effectiveBlockType === 'row-summary' ? rowSummaryItems : dataForCounts, columnGrouping)
             : 0;
@@ -776,12 +777,17 @@ export class VisualBody extends React.PureComponent {
                                         <div className="value">{primaryGrpPropValue || '--'}</div>
                                     </div>
                                     <div className="col-4">
-                                        {depth > 0 || additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ? (
+                                        {isTissueGrouping || isTissueColumnGrouping ? (
+                                            <React.Fragment>
+                                                <div className="label">{yAxisGroupingTitle}</div>
+                                                <div className="value">{yAxisGroupingValue || '--'}</div>
+                                            </React.Fragment>
+                                        ) : (depth > 0 || additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ? (
                                             <React.Fragment>
                                                 <div className="label">{secondaryGrpPropTitle}</div>
                                                 <div className="value">{additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] || secondaryGrpPropValue}</div>
                                             </React.Fragment>
-                                        ) : null}
+                                        ) : null)}
                                     </div>
                                     <div className="col-4">
                                         <div className="label me-05">{'Germ Layer'}</div>
@@ -813,8 +819,8 @@ export class VisualBody extends React.PureComponent {
                             {effectiveBlockType === 'regular' ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
-                                        <div className="label me-05">{yAxisGroupingTitle}</div>
-                                        <div className="value">{yAxisGroupingValue || '--'}</div>
+                                        <div className="label me-05">{isTissueGrouping ? 'Total Donors' : (isTissueColumnGrouping ? 'Total Assays' : yAxisGroupingTitle)}</div>
+                                        <div className="value">{isTissueGrouping ? (donorCount || '--') : (isTissueColumnGrouping ? (assayCount || '--') : (yAxisGroupingValue || '--'))}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Coverage</div>
@@ -830,7 +836,15 @@ export class VisualBody extends React.PureComponent {
                                 <React.Fragment>
                                     <div className="row secondary-row pb-1 mt-1">
                                         <div className="col-4">
-                                            <div className="label me-05">{StackedBlockVisual.pluralize(primaryGrpPropTitle)}</div>
+                                            <div className="label me-05">
+                                                {
+                                                    primaryGrpProp === 'donor'
+                                                        ? 'Total Donors'
+                                                        : (primaryGrpProp === 'tissue'
+                                                            ? 'Total Tissues'
+                                                            : StackedBlockVisual.pluralize(primaryGrpPropTitle))
+                                                }
+                                            </div>
                                             <div className="value">{primaryGrpPropUniqueCount || '--'}</div>
                                         </div>
                                         <div className="col-4">
