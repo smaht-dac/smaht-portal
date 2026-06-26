@@ -1574,6 +1574,11 @@ body[data-path='/'] > #application > #layout {
                                                 font-weight: 700;
                                                 font-size: 0.625rem;
                                             }
+
+                                            &:hover {
+                                                background-color: #e6f5ff;
+                                                border-color: #b4c5d9;
+                                            }
                                         }
                                     }
                                     &:before {
