@@ -1,1 +1,1 @@
-<ConsortiumHub />
+<ConsortiumHub session={session} />
