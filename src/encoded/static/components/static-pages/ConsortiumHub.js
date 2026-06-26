@@ -341,11 +341,11 @@ export const ConsortiumHub = ({ session }) => {
                                         {link.badge && (
                                             <div
                                                 className={`quick-link-badge quick-link-badge-${link.badge}`}>
-                                                <span>
-                                                    {link.badge === 'open'
-                                                        ? 'Open'
-                                                        : 'Protected'}
-                                                </span>
+                                                {link.badge === 'open' ? (
+                                                    <span>Open</span>
+                                                ) : (
+                                                    <i className="icon icon-lock"></i>
+                                                )}
                                             </div>
                                         )}
                                     </div>
