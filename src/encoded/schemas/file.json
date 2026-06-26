@@ -199,6 +199,15 @@
                 ]
             }
         },
+        "doi_list": {
+            "title": "DOI List",
+            "description": "List of publication doi numbers that this file is associated with",
+            "type": "array",
+            "items": {
+                "title": "DOI",
+                "type": "string"
+            }
+        },
         "extra_files": {
             "$merge": "encoded_core:schemas/file.json#/properties/extra_files"
         },
