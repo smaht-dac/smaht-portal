@@ -407,18 +407,46 @@ function assertAccordionBehavior(hasDonorData) {
     if (hasDonorData) {
         cy.get(toggleSelector)
             .scrollIntoView()
-            .find("i.icon")
-            .first()
             .click({ force: true });
 
         cy.get(toggleSelector).should("have.attr", "aria-expanded", "true");
         cy.get(".cohort-details-list").should("be.visible");
-        cy.get(".cohort-details-list li").should("have.length.at.least", 1);
+        cy.get(".cohort-details-list li").should("have.length", 25);
+
+        cy.get(".cohort-details-list li").then(($items) => {
+            const statusCounts = {
+                cancer: 0,
+                tobacco: 0,
+                both: 0,
+            };
+
+            [...$items].forEach((item) => {
+                const $item = Cypress.$(item);
+                const sexText = $item.find(".sex [aria-hidden='true']").text().trim();
+                expect(["M", "F"], "donor sex marker").to.include(sexText);
+
+                const statusText = $item.text();
+                const hasCancer = /Cancer/i.test(statusText);
+                const hasTobacco = /Tobacco/i.test(statusText);
+
+                if (hasCancer) {
+                    statusCounts.cancer += 1;
+                }
+                if (hasTobacco) {
+                    statusCounts.tobacco += 1;
+                }
+                if (hasCancer && hasTobacco) {
+                    statusCounts.both += 1;
+                }
+            });
+
+            expect(statusCounts.cancer, "donors with Cancer").to.be.at.least(3);
+            expect(statusCounts.tobacco, "donors with Tobacco").to.be.at.least(3);
+            expect(statusCounts.both, "donors with both Cancer and Tobacco").to.be.at.least(3);
+        });
 
         cy.get(toggleSelector)
             .scrollIntoView()
-            .find("i.icon")
-            .first()
             .click({ force: true });
         cy.get(toggleSelector).should("have.attr", "aria-expanded", "false");
     } else {
