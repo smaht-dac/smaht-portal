@@ -109,6 +109,9 @@ const useP25Donors = ({ hasProtectedAccess = false, ready = false }) => {
     useEffect(() => {
         if (!ready) return;
         let cancelled = false;
+        setDonors([]);
+        setLoading(true);
+        setError(false);
         ajax.load(
             buildSearchQuery(hasProtectedAccess),
             (resp) => {
