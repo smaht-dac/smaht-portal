@@ -42,8 +42,12 @@ const buildSearchQuery = (hasProtectedAccess) =>
         'field=age',
         'field=sex',
         'field=@id',
-        'field=medical_history.cancer_history',
-        'field=medical_history.tobacco_use',
+        ...(hasProtectedAccess
+            ? [
+                  'field=medical_history.cancer_history',
+                  'field=medical_history.tobacco_use',
+              ]
+            : []),
     ].join('&');
 
 // Age groups for donors
