@@ -508,8 +508,19 @@ export class VisualBody extends React.PureComponent {
         // Title area values
         const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
         const yAxisGroupingValue = aggrData[columnGrouping] || (isGroup ? data[0][columnGrouping] : data[columnGrouping]) || columnKey;
+        const groupedItems = Array.isArray(data) ? data : (data ? [data] : []);
+        const groupedGermLayers = _.chain(groupedItems)
+            .map((item) => item?.germLayer)
+            .flatten()
+            .compact()
+            .filter((value) => value !== 'No value')
+            .map((value) => String(value))
+            .uniq()
+            .value();
         // e.g. Germ Layer (Ectoderm, Mesoderm, Endoderm ...etc) if available
-        let secondaryGrpPropCategoryValue = aggrData.germLayer || null;
+        let secondaryGrpPropCategoryValue = groupedGermLayers.length > 1
+            ? 'Multiple'
+            : (groupedGermLayers[0] || aggrData.germLayer || null);
         if (!secondaryGrpPropCategoryValue && rowGroupsExtended) {
             const rowGroupSourceValues = _.uniq(_.compact([secondaryGrpPropValue, primaryGrpPropValue, yAxisGroupingValue]));
             for (const rowGroupSourceValue of rowGroupSourceValues) {
@@ -2133,13 +2144,17 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     : null;
                                 const explicitOverrideFiles = typeof rawOverrideFiles === 'number' ? rawOverrideFiles : derivedCollapsedCellOverrides[k];
                                 const blockDataForRender = typeof explicitOverrideFiles === 'number'
-                                    ? [{
-                                        ...(blockData[0] || {}),
+                                    ? (blockData || []).map((item, itemIdx) => ({
+                                        ...item,
                                         counts: {
-                                            ...(blockData[0]?.counts || {}),
-                                            files: explicitOverrideFiles
+                                            ...(item?.counts || {}),
+                                            // Preserve the full grouped row set for popover metadata
+                                            // (e.g. multiple germ layers), while still rendering the
+                                            // overridden collapsed total by assigning it to the first
+                                            // row and zeroing the rest.
+                                            files: itemIdx === 0 ? explicitOverrideFiles : 0
                                         }
-                                    }]
+                                    }))
                                     : blockData;
                                 return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockDataForRender} indexInGroup={i} rowIndex={props.index} colIndex={colIdx} blockType="regular" />;
                             }) }
