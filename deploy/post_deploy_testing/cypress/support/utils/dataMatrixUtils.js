@@ -399,6 +399,20 @@ function rowHasDSAColumn($row, regularBlocksSelector) {
     });
 }
 
+function rowHasAnyAssayColumn($row, regularBlocksSelector, assayNames) {
+    const normalizedAssayNames = assayNames.map((assayName) =>
+        String(assayName).trim().toLowerCase()
+    );
+
+    const $regularBlocks = $row.find(regularBlocksSelector);
+    return [...$regularBlocks].some((block) => {
+        const groupKey = String(Cypress.$(block).parent().attr('data-group-key') || '')
+            .trim()
+            .toLowerCase();
+        return normalizedAssayNames.includes(groupKey);
+    });
+}
+
 /** * Validates the data matrix popover content for specified donors and labels.
  * * @param {string} matrixId - The CSS selector for the data matrix.
  * @param {string[]} donors - An array of donor IDs to validate.
@@ -517,7 +531,15 @@ export function testMatrixPopoverValidation(
                         .then(($spans) => {
                             const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
                             const hasDSAColumn = rowHasDSAColumn($row, '.child-blocks [data-block-type="regular"]');
-                            if (hasDSAColumn) {
+                            const hasVariantCallSetAssayColumn = rowHasAnyAssayColumn(
+                                $row,
+                                '.child-blocks [data-block-type="regular"]',
+                                ['CODEC', 'NanoSeq', 'VISTA-Seq']
+                            );
+                            const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
+                            if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
+                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/VISTA-Seq and Variant Call Sets`).to.be.greaterThan(expectedRowSummary);
+                            } else if (hasDSAColumn) {
                                 expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
                             } else {
                                 expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
@@ -693,17 +715,25 @@ export function testMatrixPopoverValidation(
                         const expectedRowSummary = parseInt(rowSummaryText, 10);
 
                         cy.wrap($row)
-                            .find('.blocks-container [data-block-type="regular"] span')
-                            .then(($spans) => {
-                                const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                                const rowLabel = $row.find('.grouping-row h4 .inner').first().text().trim();
-                                const hasDSAColumn = rowHasDSAColumn($row, '.blocks-container [data-block-type="regular"]');
-                                if (hasDSAColumn) {
-                                    expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
-                                } else {
-                                    expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
-                                }
-                            });
+                        .find('.blocks-container [data-block-type="regular"] span')
+                        .then(($spans) => {
+                            const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
+                            const rowLabel = $row.find('.grouping-row h4 .inner').first().text().trim();
+                            const hasDSAColumn = rowHasDSAColumn($row, '.blocks-container [data-block-type="regular"]');
+                            const hasVariantCallSetAssayColumn = rowHasAnyAssayColumn(
+                                $row,
+                                '.blocks-container [data-block-type="regular"]',
+                                ['CODEC', 'NanoSeq', 'VISTA-Seq']
+                            );
+                            const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
+                            if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
+                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/VISTA-Seq and Variant Call Sets`).to.be.greaterThan(expectedRowSummary);
+                            } else if (hasDSAColumn) {
+                                expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
+                            } else {
+                                expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+                            }
+                        });
                     });
                 });
             });
