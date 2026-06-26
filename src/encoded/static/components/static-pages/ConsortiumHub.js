@@ -337,17 +337,17 @@ export const ConsortiumHub = ({ session }) => {
                                     <div className="toggle d-flex align-items-center">
                                         <span className="parent-link">
                                             {link.title}
+                                            {link.badge && (
+                                                <span
+                                                    className={`quick-link-badge quick-link-badge-${link.badge}`}>
+                                                    {link.badge === 'open' ? (
+                                                        'Open'
+                                                    ) : (
+                                                        <i className="icon icon-lock"></i>
+                                                    )}
+                                                </span>
+                                            )}
                                         </span>
-                                        {link.badge && (
-                                            <div
-                                                className={`quick-link-badge quick-link-badge-${link.badge}`}>
-                                                {link.badge === 'open' ? (
-                                                    <span>Open</span>
-                                                ) : (
-                                                    <i className="icon icon-lock"></i>
-                                                )}
-                                            </div>
-                                        )}
                                     </div>
                                     <span
                                         className="header-link"

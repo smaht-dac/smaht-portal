@@ -4173,8 +4173,10 @@ FAQ page styles
                         padding: 15px;
 
                         .parent-link {
+                            display: block;
                             font-weight: 600;
                             color: $homepage-card-text-color;
+                            padding-right: 40px;
 
                             &:hover {
                                 color: #173b5d;
@@ -4330,8 +4332,9 @@ FAQ page styles
                     }
 
                     .quick-link-badge {
-                        display: flex;
+                        display: inline-flex;
                         align-items: center;
+                        vertical-align: 0.15em;
                         padding: 4px 8px;
                         border-radius: 20px;
                         font-size: 0.75rem;
@@ -4340,10 +4343,7 @@ FAQ page styles
                         text-transform: uppercase;
                         white-space: nowrap;
                         margin-left: 8px;
-
-                        span {
-                            line-height: 0.75rem;
-                        }
+                        line-height: 1;
 
                         &.quick-link-badge-open {
                             background-color: #d4edda;
