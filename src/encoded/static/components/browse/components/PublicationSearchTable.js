@@ -17,15 +17,15 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
         journal = '',
         journal_url = '',
         doi = '',
-        thumbnail_url = '',
+        key_image_link = '',
     } = result || {};
 
     return (
         <div className="search-result-row publication-search-result-row">
             <div className="thumbnail-title">
                 <div className="thumbnail">
-                    {thumbnail_url ? (
-                        <img src={thumbnail_url} alt={display_title} />
+                    {key_image_link ? (
+                        <img src={key_image_link} alt={display_title} />
                     ) : (
                         <div className="thumbnail-placeholder">
                             <i className="icon icon-fw icon-newspaper fas" />
