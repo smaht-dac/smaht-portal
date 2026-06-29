@@ -1574,6 +1574,11 @@ body[data-path='/'] > #application > #layout {
                                                 font-weight: 700;
                                                 font-size: 0.625rem;
                                             }
+
+                                            &:hover {
+                                                background-color: #e6f5ff;
+                                                border-color: #b4c5d9;
+                                            }
                                         }
                                     }
                                     &:before {
@@ -4173,8 +4178,10 @@ FAQ page styles
                         padding: 15px;
 
                         .parent-link {
+                            display: block;
                             font-weight: 600;
                             color: $homepage-card-text-color;
+                            padding-right: 40px;
 
                             &:hover {
                                 color: #173b5d;
@@ -4327,6 +4334,31 @@ FAQ page styles
 
                     a.header:hover {
                         text-decoration: none;
+                    }
+
+                    .quick-link-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        vertical-align: 0.15em;
+                        padding: 4px 8px;
+                        border-radius: 20px;
+                        font-size: 0.75rem;
+                        font-weight: 600;
+                        letter-spacing: 0.03em;
+                        text-transform: uppercase;
+                        white-space: nowrap;
+                        margin-left: 8px;
+                        line-height: 1;
+
+                        &.quick-link-badge-open {
+                            background-color: #d4edda;
+                            color: #1a6630;
+                            border: 1px solid #b8dfc2;
+                        }
+
+                        &.quick-link-badge-protected {
+                            color: #3a5070;
+                        }
                     }
                 }
             }
