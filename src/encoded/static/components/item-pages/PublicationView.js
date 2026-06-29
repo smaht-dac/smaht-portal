@@ -191,7 +191,7 @@ const PublicationViewTabs = (props) => {
                 const value = result?.description;
                 return (
                     <OverlayTrigger
-                        trigger="hover"
+                        trigger={['hover', 'focus']}
                         placement="top"
                         overlay={
                             <Popover
