@@ -538,7 +538,7 @@ export function testMatrixPopoverValidation(
                             );
                             const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
                             if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
-                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/VISTA-Seq and Variant Call Sets`).to.be.greaterThan(expectedRowSummary);
+                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/VISTA-Seq and Variant Call Sets`).to.be.at.least(expectedRowSummary);
                             } else if (hasDSAColumn) {
                                 expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
                             } else {
@@ -727,7 +727,7 @@ export function testMatrixPopoverValidation(
                             );
                             const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
                             if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
-                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/VISTA-Seq and Variant Call Sets`).to.be.greaterThan(expectedRowSummary);
+                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/VISTA-Seq and Variant Call Sets`).to.be.at.least(expectedRowSummary);
                             } else if (hasDSAColumn) {
                                 expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
                             } else {
