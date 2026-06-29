@@ -761,6 +761,10 @@ export class VisualBody extends React.PureComponent {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
         })}X` : '--';
+        const regularCoverageDisplay = roundedTotalCoverage > 0 ? `${formatLocalizedNumber(roundedTotalCoverage, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        })}X` : '--';
         const formattedFileCount = typeof effectiveFileCount === 'number' ? formatLocalizedNumber(effectiveFileCount) : effectiveFileCount;
         const formatGermLayerValue = (value) => (value && value !== 'No value' ? value : '--');
 
@@ -824,7 +828,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Coverage</div>
-                                        <div className="value">{roundedTotalCoverage > 0 ? roundedTotalCoverage + 'X' : '--'}</div>
+                                        <div className="value">{regularCoverageDisplay}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
