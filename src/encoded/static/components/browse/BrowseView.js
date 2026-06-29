@@ -40,6 +40,7 @@ import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAbov
 import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
+import { BrowsePublicationBody } from './browse-view/BrowsePublication';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
@@ -57,6 +58,7 @@ export const BROWSE_LINKS = {
     protected_donor:
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
         BROWSE_STATUS_FILTERS,
+    publication: '/browse/?type=Publication',
 };
 
 export const FILE_BROWSE_HIDE_FACETS = [
@@ -253,6 +255,8 @@ const renderBrowseBody = (props) => {
             return <BrowseDonorBody {...props} />;
         case 'ProtectedDonorSearchResults':
             return <BrowseProtectedDonorBody {...props} />;
+        case 'PublicationSearchResults':
+            return <BrowsePublicationBody {...props} />;
         // case 'TissueSearchResults':
         //     return <BrowseTissueBody {...props} />;
         // case 'AssaySearchResults':
@@ -283,6 +287,11 @@ const BrowseViewContent = (props) => {
         userDownloadAccess,
         isAccessResolved,
     };
+
+    // Don't render sidebar for Publication Browse
+    if (context?.['@type'][0] === 'PublicationSearchResults') {
+        return <div className="browse-body">{renderBrowseBody(passProps)}</div>;
+    }
 
     return (
         <SlidingSidebarLayout openByDefault={false}>

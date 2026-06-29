@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.34.0
+======
+
+`PR 637: feat: publication view <https://github.com/smaht-dac/smaht-portal/pull/637>`_
+
+* Implement page for publication items
+
+
 1.33.3
 ======
 

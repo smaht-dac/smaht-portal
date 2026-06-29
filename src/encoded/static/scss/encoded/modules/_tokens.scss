@@ -1,64 +1,72 @@
-/************ Brand Colors **********/
+// ========================================
+// FOUNDATION COLORS
+// ========================================
 
-$pure-white: #FFFFFF;
+$pure-white: #ffffff;
 
 // Blue
-$baby-20: #F1F9FF;
+$baby-20: #f1f9ff;
 
 // Cobalt
-$cobalt-0: #F8FDFF;
-$cobalt-10: #CFDEFB;
-$cobalt-20: #BBCCF9;
-$cobalt-30: #8C9EFE;
-$cobalt-40: #7490F2; 
-$cobalt-50: #4268F5;
-$cobalt-60: #001AFF;
-$cobalt-70:  #2440AA;
+$cobalt-0: #f8fdff;
+$cobalt-10: #cfdefb;
+$cobalt-20: #bbccf9;
+$cobalt-30: #8c9efe;
+$cobalt-40: #7490f2;
+$cobalt-50: #4268f5;
+$cobalt-60: #001aff;
+$cobalt-70: #2440aa;
 $cobalt-80: #044292;
 
-
 // Off White
-$azure: #DFFBF6;
-$porcelain: #E7F0F3;
-$mercury: #E5E5E5;
+$azure: #dffbf6;
+$porcelain: #e7f0f3;
+$mercury: #e5e5e5;
 
 // Greens
-$seafoam-20: #DFFBF6;
-$seafoam-40: #7FE9C7;
+$seafoam-40: #7fe9c7;
 $seafoam-60: #079483;
 
 // Slate
-$slate-10: #F5F9FB;
-$slate-20: #EDF3F6;
-$slate-60: #5B7595;
+$slate-10: #f5f9fb;
+$slate-20: #edf3f6;
+$slate-60: #5b7595;
+$slate-70: #5b698b;
 
 // Gray
-$gray-10: #F8F8F8;
-$gray-20: #CAD0D7;
-$gray-30: #9BA5B7;
+$gray-10: #f8f8f8;
+$gray-20: #e7e7e7;
+$gray-30: #cad0d7;
+$gray-40: #9ba5b7;
 $gray-70: #343741;
-$carbon-gray: #5D5E63;
-$text-disabled-gray: #CCCCCC;
 
+// ========================================
+// SEMANTIC TOKENS
+// ========================================
 
+$carbon-gray: #5d5e63;
+$text-disabled-gray: #cccccc;
+
+// ========================================
+// COMPONENT TOKENS
+// ========================================
 
 // Home Page
-$homepage-background: url(/static/img/polygon-bg.png), linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
-// $homepage-header-text-color: $cobalt-70;
-// $homepage-subtitle-text-color: $cobalt-40;
-$homepage-header-text-color: #2E385A;
-$homepage-subtitle-text-color: #5B7595;
+$homepage-background: url(/static/img/polygon-bg.png),
+    linear-gradient(303deg, #ccf6fc 0.52%, #fff 99.55%);
+$homepage-header-text-color: #2e385a;
+$homepage-subtitle-text-color: #5b7595;
 
-$homepage-card-border-color: #A5ECD5; 
+$homepage-card-border-color: #a5ecd5;
 $homepage-card-bg-color: $azure;
 $homepage-card-border-radius: 10px;
 $homepage-card-text-color: #416485;
 $homepage-card-icon-color: #416485;
 
-$homepage-timeline-border-color: #A4ECD5;
+$homepage-timeline-border-color: #a4ecd5;
 $homepage-timeline-bg-color: $azure;
 $homepage-timeline-text-color: $seafoam-60;
-$homepage-timeline-bg-color-inactive: #CDE4FF;
+$homepage-timeline-bg-color-inactive: #cde4ff;
 
 $homepage-about-consort-btn-bg-color: rgba($pure-white, 0.75);
 $homepage-about-consort-btn-border-color: $cobalt-20; // based on mockup supposed to be #B1C3F8; this is closest
@@ -67,4 +75,22 @@ $homepage-about-consort-text-color: $cobalt-70;
 $homepage-about-consort-border-radius: 4px;
 
 // Static Sections
-$ss-title-background: url(/static/img/polygon-bg-header.svg), linear-gradient(303deg, rgb(229, 241, 254) 0.52%, #f7fdff 99.55%);
+$ss-title-background: url(/static/img/polygon-bg-header.svg),
+    linear-gradient(303deg, rgb(229, 241, 254) 0.52%, #f7fdff 99.55%);
+
+// ========================================
+// UTILITY TOKENS
+// ========================================
+// Text color utility map — drives .text-{name} classes generated in _utils.scss
+$text-color-utilities: (
+    'cobalt-50': $cobalt-50,
+    'cobalt-70': $cobalt-70,
+    'slate-60': $slate-60,
+    'slate-70': $slate-70,
+    'seafoam-60': $seafoam-60,
+    'gray-20': $gray-20,
+    'gray-70': $gray-70,
+    'carbon-gray': $carbon-gray,
+    'text-disabled': $text-disabled-gray,
+    'white': $pure-white,
+);

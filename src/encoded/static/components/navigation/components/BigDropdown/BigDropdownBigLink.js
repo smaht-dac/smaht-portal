@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import { useUserDownloadAccess } from '../../../util/hooks';
 
@@ -13,7 +13,6 @@ export const BigDropdownBigLink = (props) => {
         disabled,
         protectedHref,
         href,
-        ...passProps // Contains: `rel`, `onClick`, etc.
     } = props;
 
     // Allow users with protected access to see protected links

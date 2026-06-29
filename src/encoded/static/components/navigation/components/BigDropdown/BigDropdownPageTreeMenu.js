@@ -296,22 +296,6 @@ function CustomStaticLinks({ pathName, href, session }) {
                                 Donor: ST001, ST002, ST003, ST004
                             </div>
                         </BigDropdownBigLink>
-                        <BigDropdownBigLink
-                            disabled={true}
-                            href={''}
-                            titleIcon="diagram-project"
-                            className="primary-big-link is-fa-icon">
-                            <h4 className="text-large">
-                                Somatic Variant Sets
-                                <span className="text-300 fst-italic text-medium">
-                                    {' '}
-                                    - Coming Soon
-                                </span>
-                            </h4>
-                            <div className="description text-medium">
-                                Published Somatic SNV/Indel, SV, MEI Call Sets
-                            </div>
-                        </BigDropdownBigLink>
                     </div>
                     <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">
@@ -343,9 +327,32 @@ function CustomStaticLinks({ pathName, href, session }) {
                             </>
                         )}
                     </div>
+                    {session && (
+                        <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
+                            <h3 className="mt-2 text-400 text-larger">
+                                Publication
+                            </h3>
+                            <hr className="mb-0" />
+                            <BigDropdownBigLink
+                                href="/publication-collections"
+                                titleIcon="bookmark fas"
+                                className="primary-big-link">
+                                <h4 className="text-large">
+                                    Browse SMaHT Collections
+                                </h4>
+                            </BigDropdownBigLink>
+                            <BigDropdownBigLink
+                                href={BROWSE_LINKS.publication}
+                                titleIcon="book-open fas"
+                                className="primary-big-link">
+                                <h4 className="text-large">
+                                    Browse All Publications
+                                </h4>
+                            </BigDropdownBigLink>
+                        </div>
+                    )}
                 </div>
             );
         default:
-            return null;
     }
 }
