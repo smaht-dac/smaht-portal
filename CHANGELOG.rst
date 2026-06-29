@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.33.3
+======
+
+`PR 690: test: update cypress tests for retracted and renamed files table <https://github.com/smaht-dac/smaht-portal/pull/690>`_
+
+* Fix click when shadow layer rendered above table
+* Add tests for Renamed files table
+
 
 1.33.2
 ======
