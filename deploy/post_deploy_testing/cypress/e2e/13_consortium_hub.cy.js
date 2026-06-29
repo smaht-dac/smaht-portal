@@ -253,9 +253,16 @@ function assertQuickLinks() {
 
             cy.get("> .dropdown > a.header").each(($link, index) => {
                 expect($link.attr("href"), "quick link href").to.match(/^\/browse\/\?/);
-                expect($link.find(".parent-link").text().trim()).to.equal(
-                    QUICK_LINK_TITLES[index]
-                );
+                const linkTitle = $link
+                    .find(".parent-link")
+                    .clone()
+                    .children(".quick-link-badge")
+                    .remove()
+                    .end()
+                    .text()
+                    .trim();
+
+                expect(linkTitle).to.equal(QUICK_LINK_TITLES[index]);
             });
         });
 }
