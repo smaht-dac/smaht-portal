@@ -1284,7 +1284,7 @@ body[data-at-type^='Publication-collections'] {
 
         .table-header {
             background-color: $baby-20;
-            padding: 10px 20px;
+            padding: 15px 20px;
             margin: 0px;
             border-bottom: 1px solid #9ba5b7;
             z-index: 1;
@@ -1293,6 +1293,8 @@ body[data-at-type^='Publication-collections'] {
             .table-header {
                 position: sticky;
                 top: 39px;
+                font-size: 1.125rem !important;
+                font-weight: 500 !important;
             }
         }
         .search-headers-row {
