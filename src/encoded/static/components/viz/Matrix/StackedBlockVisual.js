@@ -732,15 +732,20 @@ export class VisualBody extends React.PureComponent {
                 totalCoverage: sum.totalCoverage + getTotalCoverageFromItem(item)
             };
         }, { fileCount: 0, totalCoverage: 0 });
+        const rowSummaryFilesFromItems = _.reduce(rowSummaryItems, function(sum, item) {
+            return sum + getFilesCountFromItem(item);
+        }, 0);
         const shouldUseComputedSummaryValue = (
             (effectiveBlockType === 'col-summary' || effectiveBlockType === 'row-summary') &&
             typeof computedBlockValue === 'number'
         );
         const effectiveFileCount = ((countFor === 'files' || countFor === 'tissue_files') && shouldUseComputedSummaryValue)
             ? computedBlockValue
-            : (typeof summaryCounts?.files === 'number'
-                ? summaryCounts.files
-                : fileCount);
+            : (effectiveBlockType === 'row-summary' && countFor === 'donors' && rowSummaryFilesFromItems > 0)
+                ? rowSummaryFilesFromItems
+                : (typeof summaryCounts?.files === 'number'
+                    ? summaryCounts.files
+                    : fileCount);
         const effectiveTotalCoverage = (countFor === 'total_coverage' && shouldUseComputedSummaryValue)
             ? computedBlockValue
             : (typeof summaryCounts?.total_coverage === 'number'
