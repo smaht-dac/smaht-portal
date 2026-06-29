@@ -39,6 +39,44 @@ function getCountValueFromItem(item, countField) {
     return 0;
 }
 
+function getUniqueDonorCountFromItems(items) {
+    if (!Array.isArray(items)) return null;
+    const donorSet = new Set();
+    const donorCountCandidates = [];
+
+    const addDonorValue = (value) => {
+        if (Array.isArray(value)) {
+            value.forEach(addDonorValue);
+            return;
+        }
+        if (value == null) return;
+        if (typeof value === 'object') {
+            addDonorValue(value.display_title ?? value.accession ?? value.title ?? value.uuid);
+            return;
+        }
+        donorSet.add(String(value));
+    };
+
+    const addDonorCountCandidate = (value) => {
+        const numericValue = Number(value);
+        if (Number.isFinite(numericValue)) {
+            donorCountCandidates.push(numericValue);
+        }
+    };
+
+    items.forEach((item) => {
+        if (!item) return;
+        addDonorValue(item.donor);
+        addDonorValue(item.donors);
+        addDonorCountCandidate(item?.counts?.donors);
+        addDonorCountCandidate(item?.counts?.donor_count);
+    });
+
+    if (donorSet.size > 0) return donorSet.size;
+    if (donorCountCandidates.length > 0) return Math.max(...donorCountCandidates);
+    return null;
+}
+
 function formatLocalizedNumber(value, options = undefined) {
     const normalizedValue = Number(value) || 0;
     const {
@@ -258,20 +296,6 @@ export class VisualBody extends React.PureComponent {
         const countFor = blockProps && blockProps.countFor ? blockProps.countFor : 'files';
         const blockType = blockProps && blockProps.blockType ? blockProps.blockType : 'regular';
         const countField = countFor === 'tissue_files' ? 'files' : countFor;
-        const getUniqueDonorCountFromItems = (items) => {
-            if (!Array.isArray(items)) return null;
-            const donorSet = new Set();
-            items.forEach((item) => {
-                if (!item) return;
-                const donorValue = item.donor;
-                if (Array.isArray(donorValue)) {
-                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
-                } else if (donorValue != null) {
-                    donorSet.add(String(donorValue));
-                }
-            });
-            return donorSet.size > 0 ? donorSet.size : null;
-        };
         const blockSum = Array.isArray(data)
             ? (countField === 'donors'
                 ? (() => {
@@ -669,18 +693,9 @@ export class VisualBody extends React.PureComponent {
             return primaryGroupingField === 'sample_summary.tissues';
         })();
 
-        const getUniqueDonorCountFromItems = (items) => {
-            const donorSet = new Set();
-            (items || []).forEach((item) => {
-                if (!item) return;
-                const donorValue = item.donor;
-                if (Array.isArray(donorValue)) {
-                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
-                } else if (donorValue != null) {
-                    donorSet.add(String(donorValue));
-                }
-            });
-            if (donorSet.size > 0) return donorSet.size;
+        const getResolvedDonorCountFromItems = (items) => {
+            const uniqueDonorCount = getUniqueDonorCountFromItems(items);
+            if (uniqueDonorCount !== null) return uniqueDonorCount;
 
             // Tissue x Assay file summaries can be backed by aggregated rows that do not
             // carry donor identifiers, so fall back to the aggregate donor totals.
@@ -751,7 +766,7 @@ export class VisualBody extends React.PureComponent {
             : (typeof summaryCounts?.total_coverage === 'number'
                 ? summaryCounts.total_coverage
                 : totalCoverage);
-        const donorCount = getUniqueDonorCountFromItems(dataForCounts);
+        const donorCount = getResolvedDonorCountFromItems(dataForCounts);
         const isTissueColumnGrouping = (fieldChangeMap?.[columnGrouping] || columnGrouping) === 'sample_summary.tissues';
         const assayCount = getUniqueValueCountFromItems(dataForCounts, 'assay');
         const tissueCount = isTissueColumnGrouping
@@ -2940,20 +2955,6 @@ const Block = React.memo(function Block(props){
 
     const countFor = props.countFor || 'files';
     const effectiveCountFor = countFor === 'tissue_files' ? 'files' : countFor;
-    const getUniqueDonorCountFromItems = (items) => {
-        if (!Array.isArray(items)) return null;
-        const donorSet = new Set();
-        items.forEach((item) => {
-            if (!item) return;
-            const donorValue = item.donor;
-            if (Array.isArray(donorValue)) {
-                donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
-            } else if (donorValue != null) {
-                donorSet.add(String(donorValue));
-            }
-        });
-        return donorSet.size > 0 ? donorSet.size : null;
-    };
     const blockValue = Array.isArray(argData)
         ? (effectiveCountFor === 'donors'
             ? (() => {
