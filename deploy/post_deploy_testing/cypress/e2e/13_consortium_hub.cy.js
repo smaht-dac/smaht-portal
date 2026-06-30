@@ -412,13 +412,41 @@ function assertAccordionBehavior(hasDonorData) {
         .and("have.attr", "aria-expanded", "false");
 
     if (hasDonorData) {
+        cy.get(".cohort-thumbnails-container .donor-group-container").should(
+            "have.length",
+            4
+        );
+
         cy.get(toggleSelector)
             .scrollIntoView()
-            .click({ force: true });
+            .should("be.visible")
+            .click();
 
         cy.get(toggleSelector).should("have.attr", "aria-expanded", "true");
         cy.get(".cohort-details-list").should("be.visible");
         cy.get(".cohort-details-list li").should("have.length", 25);
+
+        cy.get(".cohort-thumbnails-container .donor-thumbnail-container .donor-id")
+            .then(($thumbnailIds) =>
+                [...$thumbnailIds].map((el) => Cypress.$(el).text().trim())
+            )
+            .then((thumbnailDonorIds) => {
+                cy.get(".cohort-details-list li .donor-id a")
+                    .then(($accordionIds) =>
+                        [...$accordionIds].map((el) =>
+                            Cypress.$(el)
+                                .text()
+                                .trim()
+                                .replace(/:$/, "")
+                        )
+                    )
+                    .then((accordionDonorIds) => {
+                        expect(
+                            thumbnailDonorIds.sort(),
+                            "donor IDs shown in thumbnails"
+                        ).to.deep.equal(accordionDonorIds.sort());
+                    });
+            });
 
         cy.get(".cohort-details-list li").then(($items) => {
             const statusCounts = {
@@ -454,7 +482,8 @@ function assertAccordionBehavior(hasDonorData) {
 
         cy.get(toggleSelector)
             .scrollIntoView()
-            .click({ force: true });
+            .should("be.visible")
+            .click();
         cy.get(toggleSelector).should("have.attr", "aria-expanded", "false");
     } else {
         cy.contains(".cohort-thumbnails-container", "Failed to load donor data.")
@@ -505,7 +534,6 @@ describe("Consortium Hub by role", () => {
 
                 assertHubShell();
                 assertQuickLinks();
-                assertAccordionBehavior(caps.canLoadDonorData);
 
                 if (caps.canLoadDonorData) {
                     // The data query is role-sensitive; some authenticated roles can
@@ -514,6 +542,8 @@ describe("Consortium Hub by role", () => {
                 } else {
                     assertFailedToLoadDonorData();
                 }
+
+                assertAccordionBehavior(caps.canLoadDonorData);
 
                 QUICK_LINK_TESTS.forEach((quickLinkTest, index) => {
                     if (index > 0) {
