@@ -1715,7 +1715,7 @@ export class StackedBlockVisual extends React.PureComponent {
                     {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
                     {
                         _.map(leftAxisKeys, (k, idx) =>
-                            <StackedBlockGroupedRow 
+                            <StackedBlockGroupedRow
                                 {...sharedRowProps}
                                 data={nestedData[k]}
                                 rowTotals={nestedRowTotals[k]}
@@ -1959,8 +1959,17 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
     // Returns the override field (e.g. donor, tissue) that is both configured in
     // rowSummaryCountsByGroup and present on the provided rows.
-    static resolveOverrideFieldForRows(rows, props) {
+    static getRowSummaryOverridesForContext(props) {
         const overridesByField = props.rowSummaryCountsByGroup;
+        if (!overridesByField || typeof overridesByField !== 'object') return null;
+        if (props.rowGroupKey && overridesByField[props.rowGroupKey] && typeof overridesByField[props.rowGroupKey] === 'object') {
+            return overridesByField[props.rowGroupKey];
+        }
+        return overridesByField;
+    }
+
+    static resolveOverrideFieldForRows(rows, props) {
+        const overridesByField = StackedBlockGroupedRow.getRowSummaryOverridesForContext(props);
         if (!overridesByField || typeof overridesByField !== 'object') return null;
         return _.find(_.keys(overridesByField), (field) => _.some(rows || [], (row) => row && row[field] != null));
     }
@@ -1970,7 +1979,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     static getOverallFilesFromRowSummaryOverrides(rows, props) {
         const overrideField = StackedBlockGroupedRow.resolveOverrideFieldForRows(rows, props);
         if (!overrideField) return null;
-        const overridesForField = props.rowSummaryCountsByGroup?.[overrideField];
+        const overridesForField = StackedBlockGroupedRow.getRowSummaryOverridesForContext(props)?.[overrideField];
         if (!overridesForField) return null;
         const groupValues = _.chain(rows || [])
             .map((row) => row?.[overrideField])
@@ -1998,7 +2007,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         if (!Array.isArray(rows) || rows.length === 0) return null;
         const overrideField = StackedBlockGroupedRow.resolveOverrideFieldForRows(rows, props);
         if (!overrideField) return null;
-        const overridesForField = props.rowSummaryCountsByGroup?.[overrideField];
+        const overridesForField = StackedBlockGroupedRow.getRowSummaryOverridesForContext(props)?.[overrideField];
         if (!overridesForField) return null;
         const columnField = props.columnGrouping;
         let foundGroup = false;
@@ -2277,8 +2286,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
     /**
      * renders the column headers and axis labels
-     * @param {*} props 
-     * @returns 
+     * @param {*} props
+     * @returns
      */
     static columnsAndHeader(props) {
         const {
@@ -2521,17 +2530,49 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         };
         const groupingBandLabel = secondarySummaryBandLabelByMetric[props.countFor] || `Total ${label}`;
 
+        const parseCustomUrlParams = (customUrlParams) => {
+            if (!customUrlParams || typeof customUrlParams !== 'string') return {};
+            try {
+                return queryString.parse(customUrlParams);
+            } catch (e) {
+                return {};
+            }
+        };
+
+        const rowMatchesCustomUrlParams = (row, customUrlParams) => {
+            const parsedParams = parseCustomUrlParams(customUrlParams);
+            const paramKeys = Object.keys(parsedParams);
+            if (paramKeys.length === 0) return true;
+
+            return paramKeys.every((key) => {
+                const isNegative = key.endsWith('!');
+                const fieldName = isNegative ? key.slice(0, -1) : key;
+                const expectedValues = Array.isArray(parsedParams[key]) ? parsedParams[key] : [parsedParams[key]];
+                const rowValue = row?.[fieldName];
+                const rowValues = Array.isArray(rowValue)
+                    ? rowValue.map((value) => String(value))
+                    : [String(rowValue)];
+
+                if (isNegative) {
+                    return rowValues.every((value) => !expectedValues.map(String).includes(value));
+                }
+
+                return rowValues.some((value) => expectedValues.map(String).includes(value));
+            });
+        };
+
+        const currentRowGroupCustomUrlParams = props.rowGroups?.[props.rowGroupKey]?.customUrlParams || null;
+
         const getColumnSummaryData = (columnKey) => {
-            const result = [];
             const values = props.groupedDataIndices[columnKey] || [];
-            values.forEach((val) => result.push(val));
-            return result;
+            return values.filter((row) => rowMatchesCustomUrlParams(row, currentRowGroupCustomUrlParams));
         };
 
         const getAllSectionRows = () => {
             const rowsById = {};
             Object.keys(props.groupedDataIndices || {}).forEach((ck) => {
                 (props.groupedDataIndices[ck] || []).forEach((row, idx) => {
+                    if (!rowMatchesCustomUrlParams(row, currentRowGroupCustomUrlParams)) return;
                     const rowKey = row && typeof row.index !== 'undefined' ? `idx-${row.index}` : `fallback-${ck}-${idx}`;
                     rowsById[rowKey] = row;
                 });
@@ -2540,7 +2581,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         };
 
         const getPrimaryGroupCountFromGroupedRows = (columnKey) => {
-            const rows = props.groupedDataIndices[columnKey] || [];
+            const rows = getColumnSummaryData(columnKey);
             const primaryGroupField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
             const primaryGroupSet = new Set();
             rows.forEach((row) => {
@@ -2555,7 +2596,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         };
 
         const getDonorCountFromGroupedRows = (columnKey) => {
-            const rows = props.groupedDataIndices[columnKey] || [];
+            const rows = getColumnSummaryData(columnKey);
             const donorSet = new Set();
             let maxRowDonorCount = 0;
 
@@ -2580,6 +2621,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             const primaryGroupSet = new Set();
             Object.keys(props.groupedDataIndices || {}).forEach((ck) => {
                 (props.groupedDataIndices[ck] || []).forEach((row) => {
+                    if (!rowMatchesCustomUrlParams(row, currentRowGroupCustomUrlParams)) return;
                     const primaryGroupValue = row && row[primaryGroupField];
                     if (Array.isArray(primaryGroupValue)) {
                         primaryGroupValue.forEach((d) => { if (d != null) primaryGroupSet.add(String(d)); });
@@ -2620,14 +2662,16 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             <div className="blocks-container d-flex header-summary">
                 {columnKeys.map(function (columnKey, colIndex) {
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
-                    const totalsCounts = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, props)?.counts;
-                    const rawColumnTotalEntry = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, props);
+                    const sectionColumnRows = getColumnSummaryData(columnKey);
                     const sectionRows = getAllSectionRows();
                     const derivedCoverageTotal = summaryCountFor === 'total_coverage'
-                        ? _.reduce(props.groupedDataIndices[columnKey] || [], function(sum, item) {
+                        ? _.reduce(sectionColumnRows, function(sum, item) {
                             return sum + getCountValueFromItem(item, 'total_coverage');
                         }, 0)
                         : null;
+                    const sectionFilesTotal = _.reduce(sectionColumnRows, function(sum, item) {
+                        return sum + getCountValueFromItem(item, 'files');
+                    }, 0);
                     // Apply derived fallback only for DSA column summary files.
                     // Other columns continue using backend/standard summary paths.
                     const shouldDeriveDsaFiles = summaryCountFor === 'files'
@@ -2638,20 +2682,24 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         ? StackedBlockGroupedRow.getDerivedColumnFilesFromRowSummary(sectionRows, columnKey, props)
                         : null;
                     const groupedRowsDonorCount = getDonorCountFromGroupedRows(columnKey);
-                    const shouldPreferGroupedRowDonorCount = summaryCountFor === 'donors'
-                        && Array.isArray(props.groupingProperties)
-                        && props.groupingProperties[0] !== 'donor';
                     const donorsCount = isPrimarySummaryBand
                         ? getPrimaryGroupCountFromGroupedRows(columnKey)
-                        : (shouldPreferGroupedRowDonorCount
-                            ? (groupedRowsDonorCount
-                                ?? totalsCounts?.donors
-                                ?? totalsCounts?.donor_count
-                                ?? getPrimaryGroupCountFromGroupedRows(columnKey))
-                            : (totalsCounts?.donors
-                                ?? totalsCounts?.donor_count
-                                ?? groupedRowsDonorCount
-                                ?? getPrimaryGroupCountFromGroupedRows(columnKey)));
+                        : (groupedRowsDonorCount || getPrimaryGroupCountFromGroupedRows(columnKey));
+                    const totalsCounts = {
+                        files: sectionFilesTotal,
+                        total_coverage: derivedCoverageTotal ?? 0,
+                        donors: donorsCount,
+                        donor_count: donorsCount
+                    };
+                    const rawColumnTotalEntry = sectionColumnRows.length > 0
+                        ? {
+                            ...sectionColumnRows[0],
+                            counts: {
+                                ...(sectionColumnRows[0]?.counts || {}),
+                                ...totalsCounts
+                            }
+                        }
+                        : null;
                     const summaryCounts = {
                         ...(totalsCounts || {}),
                         donors: donorsCount,
@@ -2669,8 +2717,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 ? rawColumnTotalEntry
                                 : (typeof derivedDsaFiles === 'number'
                                     ? [{ counts: { files: derivedDsaFiles } }]
-                                    : getColumnSummaryData(columnKey)));
-                    const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
+                                    : sectionColumnRows));
+                    const columnTotal = sectionColumnRows.length || 0;
                     const hasOpenBlock = props.openBlock?.columnIdx === colIndex && props.openBlock?.summaryRowType === summaryBlockType;
                     const hasActiveBlock = props.activeBlock?.columnIdx === colIndex && props.activeBlock?.summaryRowType === summaryBlockType;
                     const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
