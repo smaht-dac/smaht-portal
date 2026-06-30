@@ -793,9 +793,29 @@ function getFirstPositiveRegularBlockInfo(matrixId) {
 }
 
 function formatCoverageBoxValue(rawValue) {
-    if (rawValue <= 0) return '0';
-    const rounded = rawValue < 100 ? Math.round(rawValue * 10) / 10 : Math.round(rawValue);
-    return `${rounded.toLocaleString()}X`;
+    const normalizedValue = Number(rawValue) || 0;
+    if (normalizedValue <= 0) {
+        return '0X';
+    }
+
+    const units = [
+        { threshold: 1e9, suffix: 'B' },
+        { threshold: 1e6, suffix: 'M' },
+        { threshold: 1e3, suffix: 'K' },
+    ];
+
+    const matchingUnit = units.find(({ threshold }) => Math.abs(normalizedValue) >= threshold) || null;
+    if (!matchingUnit) {
+        const rounded = normalizedValue < 100
+            ? Math.round(normalizedValue * 10) / 10
+            : Math.round(normalizedValue);
+        return `${rounded.toLocaleString()}X`;
+    }
+
+    const scaledValue = normalizedValue / matchingUnit.threshold;
+    const decimals = scaledValue >= 100 ? 0 : 1;
+    const formattedScaledValue = Number.parseFloat(scaledValue.toFixed(decimals)).toLocaleString();
+    return `${formattedScaledValue}${matchingUnit.suffix}X`;
 }
 
 function parseCoverageValue(text) {
