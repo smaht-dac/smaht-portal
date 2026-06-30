@@ -375,10 +375,13 @@ function assertMatrixTotalFileCount(sum, expectedFilesCount, label, matrixId, al
     const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
 
     if (hasVariantCallSets) {
+        // Variant Call Sets can overlap with CODEC / NanoSeq / VistaSeq counts,
+        // so the summed col-summary total can legitimately exceed the donor
+        // summary file count.
         expect(
-            sum,
-            `${label} with Variant Call Sets present should be at most donor summary file count`
-        ).to.be.at.most(expectedFilesCount);
+            expectedFilesCount,
+            `${label} with Variant Call Sets present should be at most summed col-summary file count`
+        ).to.be.at.most(sum);
     } else {
         if (allowDSARowSummaryOvercount && label.includes('row-summary') && hasNonZeroDSASummary(matrixId)) {
             expect(
