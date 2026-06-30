@@ -6,6 +6,8 @@ const ROLE_MATRIX = {
         isAuthenticated: false,
         canAccessHub: false,
         canLoadDonorData: false,
+        canLoadDonorCohort: false,
+        canViewCohortDetails: false,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 0,
             "Transcript Quantification Data (tsv, txt, gff)": 0,
@@ -19,6 +21,8 @@ const ROLE_MATRIX = {
         isAuthenticated: true,
         canAccessHub: true,
         canLoadDonorData: true,
+        canLoadDonorCohort: true,
+        canViewCohortDetails: true,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 3000,
             "Transcript Quantification Data (tsv, txt, gff)": 800,
@@ -32,6 +36,8 @@ const ROLE_MATRIX = {
         isAuthenticated: true,
         canAccessHub: true,
         canLoadDonorData: false,
+        canLoadDonorCohort: true,
+        canViewCohortDetails: false,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 0,
             "Transcript Quantification Data (tsv, txt, gff)": 0,
@@ -45,6 +51,8 @@ const ROLE_MATRIX = {
         isAuthenticated: true,
         canAccessHub: false,
         canLoadDonorData: false,
+        canLoadDonorCohort: false,
+        canViewCohortDetails: false,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 0,
             "Transcript Quantification Data (tsv, txt, gff)": 0,
@@ -58,6 +66,8 @@ const ROLE_MATRIX = {
         isAuthenticated: true,
         canAccessHub: false,
         canLoadDonorData: false,
+        canLoadDonorCohort: false,
+        canViewCohortDetails: false,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 0,
             "Transcript Quantification Data (tsv, txt, gff)": 0,
@@ -403,7 +413,7 @@ function clickQuickLinkAndAssertDefaults(index, quickLinkTest, caps) {
         });
 }
 
-function assertAccordionBehavior(hasDonorData) {
+function assertAccordionBehavior(hasDonorCohort, canViewCohortDetails) {
     const toggleSelector =
         ".quick-links-container > .nav-group:nth-of-type(2) .toggle[role='button']";
     const accessMessage = "You need dbGaP access to protected donor metadata to view.";
@@ -412,7 +422,7 @@ function assertAccordionBehavior(hasDonorData) {
         .should("contain", "Cancer & Tobacco Status - List View")
         .and("have.attr", "aria-expanded", "false");
 
-    if (hasDonorData) {
+    if (hasDonorCohort) {
         cy.get(".cohort-thumbnails-container .donor-group-container").should(
             "have.length",
             4
@@ -427,10 +437,12 @@ function assertAccordionBehavior(hasDonorData) {
         cy.get(".quick-links-container > .nav-group:nth-of-type(2)").then(($cohortDetails) => {
             const hasDetailsList = $cohortDetails.find(".cohort-details-list").length > 0;
 
-            if (!hasDetailsList) {
+            if (!canViewCohortDetails) {
                 cy.wrap($cohortDetails).should("contain.text", accessMessage);
                 return;
             }
+
+            expect(hasDetailsList, "cohort details list should be rendered").to.equal(true);
 
             cy.get(".cohort-details-list").should("be.visible");
             cy.get(".cohort-details-list li").should("have.length", 25);
@@ -545,15 +557,18 @@ describe("Consortium Hub by role", () => {
                 assertHubShell();
                 assertQuickLinks();
 
-                if (caps.canLoadDonorData) {
+                if (caps.canLoadDonorCohort) {
                     // The data query is role-sensitive; some authenticated roles can
-                    // access the hub shell and the ProtectedDonor-backed cohort data.
+                    // access the hub shell and the donor cohort thumbnails.
                     assertLoadedDonorData();
                 } else {
                     assertFailedToLoadDonorData();
                 }
 
-                assertAccordionBehavior(caps.canLoadDonorData);
+                assertAccordionBehavior(
+                    caps.canLoadDonorCohort,
+                    caps.canViewCohortDetails
+                );
 
                 QUICK_LINK_TESTS.forEach((quickLinkTest, index) => {
                     if (index > 0) {
