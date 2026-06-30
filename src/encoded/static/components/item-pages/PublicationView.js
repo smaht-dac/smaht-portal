@@ -140,7 +140,7 @@ const PublicationStatViewer = ({ doi, session }) => {
             <BrowseSummaryStatController type="Donor" {...statsProps} />
             <BrowseSummaryStatController
                 type="Tissue"
-                subtitle="Cell Lines"
+                subtitle="Cell Lines/Tissues"
                 {...statsProps}
             />
             <BrowseSummaryStatController type="Assay" {...statsProps} />
@@ -343,14 +343,12 @@ const PublicationView = React.memo(function PublicationView(props) {
                                         context.authors[0]}
                                 </span>
                             )}
-                            {context?.publication_groups?.length > 0 && (
-                                <>
+                            {/* {context?.scope && (
+                                <div className="scope">
                                     <span>|</span>
-                                    <span>
-                                        {context.publication_groups.join(' · ')}
-                                    </span>
-                                </>
-                            )}
+                                    <span>{context.scope}</span>
+                                </div>
+                            )} */}
                         </div>
                     </div>
                 </div>
@@ -487,7 +485,9 @@ const PublicationView = React.memo(function PublicationView(props) {
                 </div>
 
                 {/* Data Analyzed Section */}
-                <h2 className="section-header fw-semibold">Data Analyzed</h2>
+                <h2 className="section-header fw-semibold">
+                    SMaHT Data Analyzed
+                </h2>
                 <PublicationStatViewer doi={context?.doi} session={session} />
                 <PublicationViewTabs {...props} />
             </div>

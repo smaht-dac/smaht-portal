@@ -1723,10 +1723,10 @@ File, Donor, and Publication Overview Styles
             display: flex;
             flex-direction: row;
             width: 100%;
-            padding: 15px 0px 0px 0px;
+            padding: 30px 0px 0px 0px;
             flex-wrap: wrap;
             justify-content: space-between;
-            gap: 20px;
+            gap: 30px;
 
             .data-card {
                 display: flex;
@@ -2695,7 +2695,7 @@ File, Donor, and Publication Overview Styles
             background-color: #f5f9fb;
             border: 1px solid #e0e9ee;
             border-radius: 9px;
-            margin-top: 20px;
+            margin-top: 30px;
             position: relative;
 
             .icon-quote-left {
@@ -2704,7 +2704,7 @@ File, Donor, and Publication Overview Styles
                 left: 0;
                 color: #7085a2;
                 font-size: 1.4rem;
-                top: 12px;
+                top: 18px;
                 left: 6px;
             }
 
@@ -2724,7 +2724,7 @@ File, Donor, and Publication Overview Styles
 
             .citation-body {
                 display: flex;
-                padding: 15px 20px 15px 40px;
+                padding: 20px 20px 15px 40px;
 
                 .citation-text {
                     display: flex;
@@ -2733,8 +2733,8 @@ File, Donor, and Publication Overview Styles
                     padding-right: 50px;
 
                     .citation {
-                        font-size: 0.75rem;
-                        line-height: 1.25rem;
+                        font-size: 0.85rem;
+                        line-height: 1.5rem;
                         margin-top: 10px;
                     }
                 }
@@ -2742,7 +2742,6 @@ File, Donor, and Publication Overview Styles
                 .citation-links {
                     display: flex;
                     flex-direction: column;
-                    gap: 15px;
 
                     h5 {
                         font-size: 0.75rem;
@@ -2757,6 +2756,7 @@ File, Donor, and Publication Overview Styles
                         font-size: 0.875rem;
                         padding: 4px 15px;
                         border: 1px solid #0b62ba;
+                        margin-bottom: 10px;
 
                         i {
                             margin-left: 12px;
@@ -2774,7 +2774,7 @@ File, Donor, and Publication Overview Styles
                 border: none;
                 background-color: transparent;
                 margin-top: 10px;
-                font-size: 0.75rem;
+                font-size: 0.85rem;
             }
             .citation-details {
                 display: flex;
@@ -2791,7 +2791,7 @@ File, Donor, and Publication Overview Styles
                         flex: 1;
                         flex-direction: column;
                         gap: 15px;
-                        font-size: 0.8125rem;
+                        font-size: 0.85rem;
 
                         .author-list {
                             line-height: 1.5rem;
@@ -2802,7 +2802,7 @@ File, Donor, and Publication Overview Styles
                         flex: 1;
                         flex-direction: column;
                         gap: 15px;
-                        font-size: 0.8125rem;
+                        font-size: 0.85rem;
                     }
                 }
             }
@@ -2828,7 +2828,7 @@ File, Donor, and Publication Overview Styles
                             border: 1px solid #d5e4f3;
                             color: #212529;
                             border-radius: 10px 10px 0 0;
-                            font-size: 0.875rem;
+                            font-size: 0.9rem;
                             font-weight: 500;
                             padding: 10px;
                             margin: 0;
@@ -2838,9 +2838,9 @@ File, Donor, and Publication Overview Styles
                             color: #212529;
                             border-top: none;
                             border-radius: 0 0 10px 10px;
-                            font-size: 0.75rem;
-                            line-height: 1.125rem;
-                            padding: 5px 10px;
+                            font-size: 0.825rem;
+                            line-height: 1.5rem;
+                            padding: 8px 10px;
                             margin: 0;
                             margin-bottom: 20px;
                         }
@@ -2858,6 +2858,14 @@ File, Donor, and Publication Overview Styles
                 background-color: #e0efff;
                 border-radius: 100%;
                 padding: 19px 16px;
+
+                &:hover {
+                    background-color: #98c3ef;
+
+                    svg {
+                        fill: white;
+                    }
+                }
             }
         }
         .tabs-container .tab-router-contents {
@@ -2872,6 +2880,7 @@ File, Donor, and Publication Overview Styles
                 .description {
                     position: relative;
                     padding-right: 550px;
+                    padding-top: 0px;
                     min-height: 300px;
                     p {
                         font-size: 0.9375rem;
@@ -2887,6 +2896,23 @@ File, Donor, and Publication Overview Styles
                         height: auto;
                         border-radius: 5px;
                         border: 1px solid #e5e5e5;
+                    }
+
+                    @include media-breakpoint-down(lg) {
+                        padding-right: 0px;
+                        padding-top: 300px;
+
+                        img {
+                            right: auto;
+                            top: 0px;
+                            max-height: 250px;
+                            width: auto;
+                            max-width: 100%;
+                        }
+                    }
+                    @include media-breakpoint-down(sm) {
+                        padding-right: 0px;
+                        padding-top: 250px;
                     }
                 }
             }
