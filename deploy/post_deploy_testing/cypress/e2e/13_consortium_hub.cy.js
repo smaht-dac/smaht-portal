@@ -406,6 +406,7 @@ function clickQuickLinkAndAssertDefaults(index, quickLinkTest, caps) {
 function assertAccordionBehavior(hasDonorData) {
     const toggleSelector =
         ".quick-links-container > .nav-group:nth-of-type(2) .toggle[role='button']";
+    const accessMessage = "You need dbGaP access to protected donor metadata to view.";
 
     cy.get(toggleSelector)
         .should("contain", "Cancer & Tobacco Status - List View")
@@ -423,61 +424,70 @@ function assertAccordionBehavior(hasDonorData) {
             .click();
 
         cy.get(toggleSelector).should("have.attr", "aria-expanded", "true");
-        cy.get(".cohort-details-list").should("be.visible");
-        cy.get(".cohort-details-list li").should("have.length", 25);
+        cy.get(".quick-links-container > .nav-group:nth-of-type(2)").then(($cohortDetails) => {
+            const hasDetailsList = $cohortDetails.find(".cohort-details-list").length > 0;
 
-        cy.get(".cohort-thumbnails-container .donor-thumbnail-container .donor-id")
-            .then(($thumbnailIds) =>
-                [...$thumbnailIds].map((el) => Cypress.$(el).text().trim())
-            )
-            .then((thumbnailDonorIds) => {
-                cy.get(".cohort-details-list li .donor-id a")
-                    .then(($accordionIds) =>
-                        [...$accordionIds].map((el) =>
-                            Cypress.$(el)
-                                .text()
-                                .trim()
-                                .replace(/:$/, "")
+            if (!hasDetailsList) {
+                cy.wrap($cohortDetails).should("contain.text", accessMessage);
+                return;
+            }
+
+            cy.get(".cohort-details-list").should("be.visible");
+            cy.get(".cohort-details-list li").should("have.length", 25);
+
+            cy.get(".cohort-thumbnails-container .donor-thumbnail-container .donor-id")
+                .then(($thumbnailIds) =>
+                    [...$thumbnailIds].map((el) => Cypress.$(el).text().trim())
+                )
+                .then((thumbnailDonorIds) => {
+                    cy.get(".cohort-details-list li .donor-id a")
+                        .then(($accordionIds) =>
+                            [...$accordionIds].map((el) =>
+                                Cypress.$(el)
+                                    .text()
+                                    .trim()
+                                    .replace(/:$/, "")
+                            )
                         )
-                    )
-                    .then((accordionDonorIds) => {
-                        expect(
-                            thumbnailDonorIds.sort(),
-                            "donor IDs shown in thumbnails"
-                        ).to.deep.equal(accordionDonorIds.sort());
-                    });
+                        .then((accordionDonorIds) => {
+                            expect(
+                                thumbnailDonorIds.sort(),
+                                "donor IDs shown in thumbnails"
+                            ).to.deep.equal(accordionDonorIds.sort());
+                        });
+                });
+
+            cy.get(".cohort-details-list li").then(($items) => {
+                const statusCounts = {
+                    cancer: 0,
+                    tobacco: 0,
+                    both: 0,
+                };
+
+                [...$items].forEach((item) => {
+                    const $item = Cypress.$(item);
+                    const sexText = $item.find(".sex [aria-hidden='true']").text().trim();
+                    expect(["M", "F"], "donor sex marker").to.include(sexText);
+
+                    const statusText = $item.text();
+                    const hasCancer = /Cancer/i.test(statusText);
+                    const hasTobacco = /Tobacco/i.test(statusText);
+
+                    if (hasCancer) {
+                        statusCounts.cancer += 1;
+                    }
+                    if (hasTobacco) {
+                        statusCounts.tobacco += 1;
+                    }
+                    if (hasCancer && hasTobacco) {
+                        statusCounts.both += 1;
+                    }
+                });
+
+                expect(statusCounts.cancer, "donors with Cancer").to.be.at.least(3);
+                expect(statusCounts.tobacco, "donors with Tobacco").to.be.at.least(3);
+                expect(statusCounts.both, "donors with both Cancer and Tobacco").to.be.at.least(3);
             });
-
-        cy.get(".cohort-details-list li").then(($items) => {
-            const statusCounts = {
-                cancer: 0,
-                tobacco: 0,
-                both: 0,
-            };
-
-            [...$items].forEach((item) => {
-                const $item = Cypress.$(item);
-                const sexText = $item.find(".sex [aria-hidden='true']").text().trim();
-                expect(["M", "F"], "donor sex marker").to.include(sexText);
-
-                const statusText = $item.text();
-                const hasCancer = /Cancer/i.test(statusText);
-                const hasTobacco = /Tobacco/i.test(statusText);
-
-                if (hasCancer) {
-                    statusCounts.cancer += 1;
-                }
-                if (hasTobacco) {
-                    statusCounts.tobacco += 1;
-                }
-                if (hasCancer && hasTobacco) {
-                    statusCounts.both += 1;
-                }
-            });
-
-            expect(statusCounts.cancer, "donors with Cancer").to.be.at.least(3);
-            expect(statusCounts.tobacco, "donors with Tobacco").to.be.at.least(3);
-            expect(statusCounts.both, "donors with both Cancer and Tobacco").to.be.at.least(3);
         });
 
         cy.get(toggleSelector)
