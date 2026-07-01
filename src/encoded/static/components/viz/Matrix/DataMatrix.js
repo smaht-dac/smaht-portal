@@ -1008,7 +1008,7 @@ export default class DataMatrix extends React.PureComponent {
                 transformed.push(cloned);
             };
 
-            // result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : PRODUCTION_TEST_DATA_DA);
+            // result = resultItemPostProcessFuncKey ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? PRODUCTION_TEST_DATA_DA : PRODUCTION_TEST_DATA_TA));
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
@@ -1810,10 +1810,11 @@ export default class DataMatrix extends React.PureComponent {
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
-            // Raw regular-cell overrides are only intended for Donor x Assay.
-            // Donor x Tissue derives its own filtered donor/tissue aggregates and
-            // should not reuse assay-oriented raw override maps.
-            rawRegularCountOverrides: matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY
+            // Donor x Assay and Tissue x Assay both benefit from raw per-row
+            // file overrides to keep summary columns aligned with visible cells.
+            // Donor x Tissue derives its own filtered donor/tissue aggregates
+            // and should not reuse assay-oriented raw override maps.
+            rawRegularCountOverrides: matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
                 ? (this.state.rawRegularCountOverrides || null)
                 : null,
             ...(countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY

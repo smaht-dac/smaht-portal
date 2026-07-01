@@ -2046,6 +2046,33 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return typeof overrideValue === 'number' ? overrideValue : null;
     }
 
+    static getRawRegularOverrideTotalForColumn(rows, columnKey, props) {
+        const primaryGroupingField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : null;
+        if (!primaryGroupingField || !props.rawRegularCountOverrides || columnKey == null) return null;
+
+        const primaryGroups = _.chain(rows || [])
+            .map((row) => row?.[primaryGroupingField])
+            .flatten()
+            .compact()
+            .map((value) => String(value))
+            .uniq()
+            .value();
+
+        if (primaryGroups.length === 0) return null;
+
+        let foundOverride = false;
+        const total = _.reduce(primaryGroups, (memo, groupValue) => {
+            const overrideValue = props.rawRegularCountOverrides?.[0]?.[groupValue]?.[String(columnKey)];
+            if (typeof overrideValue === 'number') {
+                foundOverride = true;
+                return memo + overrideValue;
+            }
+            return memo;
+        }, 0);
+
+        return foundOverride ? total : null;
+    }
+
     /** @todo Convert to functional memoized React component */
     static collapsedChildBlocks = memoize(function(data, rowTotals, props){
 
@@ -2669,9 +2696,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             return sum + getCountValueFromItem(item, 'total_coverage');
                         }, 0)
                         : null;
-                    const sectionFilesTotal = _.reduce(sectionColumnRows, function(sum, item) {
+                    const summedSectionFilesTotal = _.reduce(sectionColumnRows, function(sum, item) {
                         return sum + getCountValueFromItem(item, 'files');
                     }, 0);
+                    const rawOverrideSectionFilesTotal = (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
+                        ? StackedBlockGroupedRow.getRawRegularOverrideTotalForColumn(sectionRows, columnKey, props)
+                        : null;
+                    const sectionFilesTotal = typeof rawOverrideSectionFilesTotal === 'number'
+                        ? rawOverrideSectionFilesTotal
+                        : summedSectionFilesTotal;
                     // Apply derived fallback only for DSA column summary files.
                     // Other columns continue using backend/standard summary paths.
                     const shouldDeriveDsaFiles = summaryCountFor === 'files'
