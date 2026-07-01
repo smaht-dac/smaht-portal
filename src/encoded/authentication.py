@@ -231,6 +231,12 @@ def smaht_create_unauthorized_user(context, request):
 
     # set user insert props
     del user_props['g-recaptcha-response']
+    # Self-registration must never let the caller grant themselves elevated access or
+    # false affiliations. request.remote_user is set to 'EMBED' below, which (intentionally,
+    # for other internal purposes) carries the 'restricted_fields' permission - so without this,
+    # a caller could pass e.g. "groups": ["admin"] in this request body and have it applied as-is.
+    for privileged_field in ('groups', 'submission_centers', 'consortia', 'submits_for', 'status', 'uuid'):
+        user_props.pop(privileged_field, None)
     user_props['was_unauthorized'] = True
     user_props['email'] = user_props_email  # lower-cased
     user_coll = request.registry[COLLECTIONS]['User']

@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+2.0.0
+=====
+
+* Fix privilege escalation in self-registration endpoint
+* Fix CSV/formula injection in metadata export
+
+
 1.33.3
 ======
 
