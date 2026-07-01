@@ -5,7 +5,6 @@ from typing import Callable, List, Optional
 from dcicutils.misc_utils import normalize_spaces
 from encoded.endpoints.elasticsearch_utils import (
         add_additional_field_to_retrieve_to_elasticsearch_aggregation_query,
-        add_debugging_to_elasticsearch_aggregation_query,
         create_elasticsearch_aggregation_query,
         merge_elasticsearch_aggregation_results,
         normalize_elasticsearch_aggregation_results,
@@ -48,6 +47,16 @@ QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
 BASE_SEARCH_QUERY = "/browse/"
 LEGACY_DEFAULT = False
+
+# Default embedded field summarized alongside each release bucket ("tissue info").
+TISSUE_INFO_DEFAULT = "sample_summary.tissues"
+# SECURITY allowlist: the ONLY embedded field names a caller may request as the additional
+# per-bucket field. This value flows into an Elasticsearch top_hits _source.includes and is
+# returned to the caller; because the summary search runs globally (admin-scoped), an
+# arbitrary caller-supplied value here was an arbitrary-embedded-field read primitive over
+# protected documents. Anything not on this list is ignored (falls back to the default).
+# Extend deliberately if the UI genuinely needs another specific summary field.
+ALLOWED_ADDITIONAL_FIELDS = {TISSUE_INFO_DEFAULT}
 
 
 def recent_files_summary_endpoint(context, request):
@@ -107,20 +116,23 @@ def recent_files_summary(request: PyramidRequest,
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
     exclude_tissue_info = request_arg_bool(request, "exclude_tissue_info")
     exclude_submitted_file = request_arg_bool(request, "exclude_submitted_file")
-    tissue_info_property_name = request_arg(request, "tissue_info_property_name", "sample_summary.tissues")
+    tissue_info_property_name = request_arg(request, "tissue_info_property_name", TISSUE_INFO_DEFAULT)
+    # SECURITY: this value reaches an Elasticsearch top_hits _source.includes and is returned to
+    # the caller; constrain it to a server-side allowlist so it cannot be used to read an arbitrary
+    # embedded field from (admin-scoped, possibly protected) documents. Ignore off-allowlist values.
+    if tissue_info_property_name not in ALLOWED_ADDITIONAL_FIELDS:
+        tissue_info_property_name = TISSUE_INFO_DEFAULT
     multi = request_arg_bool(request, "multi")
     nosort = request_arg_bool(request, "nosort")
     debug = request_arg_bool(request, "debug")
     debug_query = request_arg_bool(request, "debug_query")
     troubleshoot = request_arg_bool(request, "troubleshoot")
-    troubleshoot_elasticsearch = request_arg_bool(request, "troubleshoot_elasticsearch")
     raw = request_arg_bool(request, "raw")
     legacy = request_arg_bool(request, "legacy", LEGACY_DEFAULT)
 
     if troubleshooting is True:
         debug = True
         troubleshoot = True
-        troubleshoot_elasticsearch = True
 
     def get_aggregation_field_grouping_cell_or_donor() -> List[str]:
         # This specializes the aggregation query to group first by the cell-line field,
@@ -194,7 +206,7 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
-        nonlocal date_property_name, max_buckets, include_missing, troubleshoot_elasticsearch, exclude_tissue_info
+        nonlocal date_property_name, max_buckets, include_missing, exclude_tissue_info
 
         aggregations = []
         if not isinstance(aggregation_fields, list):
@@ -294,8 +306,11 @@ def recent_files_summary(request: PyramidRequest,
             create_field_aggregation=create_field_aggregation,
             create_field_filter=create_field_filter)
 
-        if troubleshoot_elasticsearch:
-            add_debugging_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
+        # SECURITY: intentionally NOT adding the top_hits_debug sub-aggregation. It returned
+        # per-bucket document _ids (item uuids), which under the global/admin-scoped aggregation
+        # disclosed the identities of protected/embargoed documents to anonymous callers (via
+        # ?troubleshoot(_elasticsearch)=true, and via the raw/debug aggregation dumps). Aggregate
+        # counts do not need it.
         if not exclude_tissue_info:
             add_additional_field_to_retrieve_to_elasticsearch_aggregation_query(aggregation_query[date_property_name],
                                                                                 tissue_info_property_name)
@@ -309,6 +324,13 @@ def recent_files_summary(request: PyramidRequest,
             return custom_execute_aggregation_query(request, query, aggregation_query)
         query += "&from=0&limit=0"  # needed for aggregation query to not return the actual/individual item results.
 
+        # Global summary: run the aggregation as admin so the (non-sensitive) release-tracker
+        # bucket counts/keys are complete across all data, including restricted-status files.
+        # This is intentional (per product/security decision) and safe ONLY because this code
+        # path returns nothing but aggregation buckets: no per-document dump, no arbitrary
+        # caller-controlled document field read. Those leak vectors are closed elsewhere
+        # (troubleshooting document dump removed; additional-field name allowlisted;
+        # top_hits document-id debug aggregation removed).
         request.remote_user = "IMPORT"  # This allows anonymous (unauthorized) queries.
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
@@ -628,6 +650,8 @@ def recent_release_days(request: PyramidRequest,
         if callable(custom_execute_aggregation_query):
             return custom_execute_aggregation_query(request, query, aggregation_query)
         query += "&from=0&limit=0"
+        # Global summary (admin-scoped): returns only release month/day bucket counts, no
+        # document contents. See the matching comment in recent_files_summary().
         request.remote_user = "IMPORT"
         subreq = snovault_make_search_subreq(request, path=query, method="GET")
         return snovault_search(None, subreq, custom_aggregations=aggregation_query)
