@@ -416,6 +416,142 @@ function rowHasAnyAssayColumn($row, regularBlocksSelector, assayNames) {
     });
 }
 
+function extractColumnTotalsFromBlocks($blocks, { visibleOnly = false } = {}) {
+    const columnTotals = {};
+
+    [...$blocks].forEach((block) => {
+        const $block = Cypress.$(block);
+        if (visibleOnly && !$block.is(':visible')) return;
+
+        const groupKey = String($block.parent().attr('data-group-key') || '').trim();
+        if (!groupKey || groupKey === 'overall-summary') return;
+
+        const blockValue = parseFloat(String($block.attr('data-block-value') || $block.text() || '').replace(/,/g, '').trim());
+        if (Number.isNaN(blockValue)) return;
+
+        columnTotals[groupKey] = (columnTotals[groupKey] || 0) + blockValue;
+    });
+
+    return columnTotals;
+}
+
+function getMatrixSectionColumnTotals(matrixId, labelText = 'Total Files') {
+    return cy.document().then((doc) => {
+        const $matrix = Cypress.$(doc).find(matrixId).first();
+        expect($matrix.length, `expected to find matrix ${matrixId}`).to.be.greaterThan(0);
+
+        const $sectionHeaders = $matrix.find('.header-section-lower').filter((_, headerEl) => {
+            return Cypress.$(headerEl)
+                .find('.grouping-row .label-section span')
+                .filter((__, spanEl) => Cypress.$(spanEl).text().trim() === labelText)
+                .length > 0;
+        });
+
+        expect(
+            $sectionHeaders.length,
+            `expected to find at least one ${labelText} summary band inside ${matrixId}`
+        ).to.be.greaterThan(0);
+
+        return [...$sectionHeaders].map((headerEl, sectionIndex) => {
+            const $header = Cypress.$(headerEl);
+            const $summaryRow = $header.find('.grouping-row').filter((_, rowEl) => {
+                return Cypress.$(rowEl)
+                    .find('.label-section span')
+                    .filter((__, spanEl) => Cypress.$(spanEl).text().trim() === labelText)
+                    .length > 0;
+            }).first();
+
+            expect(
+                $summaryRow.length,
+                `expected to find summary band row ${labelText} inside ${matrixId} section ${sectionIndex + 1}`
+            ).to.be.greaterThan(0);
+
+            const summaryColumnTotals = extractColumnTotalsFromBlocks(
+                $summaryRow.find('[data-block-type="col-summary"]')
+            );
+
+            const sectionRegularBlocks = [];
+            let sectionNode = headerEl.nextElementSibling;
+            while (sectionNode) {
+                const $sectionNode = Cypress.$(sectionNode);
+                if ($sectionNode.hasClass('header-section-lower')) {
+                    break;
+                }
+                sectionRegularBlocks.push(...$sectionNode.find('[data-block-type="regular"]').toArray());
+                sectionNode = sectionNode.nextElementSibling;
+            }
+
+            const visibleColumnTotals = extractColumnTotalsFromBlocks(sectionRegularBlocks, { visibleOnly: true });
+            const $precedingPrimaryLabel = $summaryRow.prev('.total-donors-summary-row').find('.label-section span').first();
+            const sectionLabel = $precedingPrimaryLabel.text().trim() || `${labelText} section ${sectionIndex + 1}`;
+
+            return {
+                sectionIndex,
+                sectionLabel,
+                summaryColumnTotals,
+                visibleColumnTotals
+            };
+        });
+    });
+}
+
+function assertFileColumnSummaryMatchesVisibleCells(matrixId, labelText = 'Total Files') {
+    return getMatrixSectionColumnTotals(matrixId, labelText).then((sections) => {
+        expect(
+            sections.length,
+            `${labelText} section summaries should exist for ${matrixId}`
+        ).to.be.greaterThan(0);
+
+        sections.forEach(({ sectionLabel, summaryColumnTotals, visibleColumnTotals }) => {
+            const allColumnKeys = Cypress._.uniq([
+                ...Object.keys(visibleColumnTotals || {}),
+                ...Object.keys(summaryColumnTotals || {})
+            ]);
+
+            expect(
+                allColumnKeys.length,
+                `${sectionLabel} ${labelText} summary should include assay columns`
+            ).to.be.greaterThan(0);
+
+            allColumnKeys.forEach((columnKey) => {
+                const visibleCellSum = visibleColumnTotals?.[columnKey] || 0;
+                const summaryValue = summaryColumnTotals?.[columnKey];
+
+                expect(
+                    summaryValue,
+                    `${sectionLabel} ${labelText} summary should include a value for ${columnKey}`
+                ).to.not.equal(undefined);
+
+                expect(
+                    summaryValue,
+                    `${sectionLabel} ${labelText} summary for ${columnKey} should equal the sum of visible cells underneath`
+                ).to.equal(visibleCellSum);
+            });
+        });
+    });
+}
+
+function collapseTopLevelMatrixRows(matrixId) {
+    return cy.document().then((doc) => {
+        const $rows = Cypress.$(doc).find(`${matrixId} .grouping.depth-0`);
+        expect($rows.length, `expected to find top-level matrix rows for ${matrixId}`).to.be.greaterThan(0);
+        const openRows = $rows.filter('.may-collapse.open');
+
+        openRows.each((index, row) => {
+            const $icon = Cypress.$(row).find('i.icon-minus');
+            if ($icon.length) {
+                cy.wrap($icon).click();
+            }
+        });
+
+        if (openRows.length === 0) {
+            cy.log('No open rows found to collapse');
+        }
+
+        Cypress.log({ name: 'Collapse Rows', message: `${openRows.length} rows collapsed` });
+    });
+}
+
 /** * Validates the data matrix popover content for specified donors and labels.
  * * @param {string} matrixId - The CSS selector for the data matrix.
  * @param {string[]} donors - An array of donor IDs to validate.
@@ -465,31 +601,17 @@ export function testMatrixPopoverValidation(
         return;
     }
 
-    const columnTotals = {};
-
     cy.get(matrixId).within(() => {
         validateLowerHeaders(expectedLowerLabels);
 
         let anyCollapsibleRows = false;
         //collapse all to a fresh start
         cy.get('.grouping.depth-0').then(($rows) => {
-            // filter only open rows
-            const openRows = $rows.filter('.may-collapse.open');
-
-            openRows.each((index, row) => {
-                const $icon = Cypress.$(row).find('i.icon-minus');
-                if ($icon.length) {
-                    cy.wrap($icon).click();
-                }
-            });
-
-            if (openRows.length === 0) {
-                cy.log('No open rows found to collapse');
-            }
-
+            collapseTopLevelMatrixRows(matrixId);
             anyCollapsibleRows = $rows.filter('.may-collapse').length > 0;
-            Cypress.log({ name: 'Collapse Rows', message: `${openRows.length} rows collapsed` });
             Cypress.log({ name: 'Has Any Collapsible/Expandable Rows', message: `${anyCollapsibleRows}` });
+
+            assertFileColumnSummaryMatchesVisibleCells(matrixId, 'Total Files');
 
             // this code block makes all collapsed sections as expanded
             // TODO: implement test cases for all collapsed sections
@@ -546,16 +668,6 @@ export function testMatrixPopoverValidation(
                                 expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
                             } else {
                                 expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
-                            }
-                        });
-
-                    cy.get('@currentRow')
-                        .find('.child-blocks [data-block-type="regular"]')
-                        .each(($block) => {
-                            const value = parseInt($block.text().trim(), 10);
-                            const assay = $block.parent().attr('data-group-key');
-                            if (!isNaN(value)) {
-                                columnTotals[assay] = (columnTotals[assay] || 0) + value;
                             }
                         });
                 });
@@ -1008,6 +1120,9 @@ export function testTissueAssayFilesDonorsToggle(matrixId) {
         ).to.equal(displayedFileCount);
     });
 
+    collapseTopLevelMatrixRows(matrixId);
+    assertFileColumnSummaryMatchesVisibleCells(matrixId, 'Total Files');
+
     getFirstPositiveRegularBlockText(matrixId).then((text) => {
         expect(text, 'Tissue x Assay files view should show plain numeric block labels').to.not.match(/X$/);
     });
@@ -1082,6 +1197,9 @@ export function testTissueAssayFilesDonorsToggle(matrixId) {
             'Tissue x Assay overall Total Files summary should be restored after toggling back'
         ).to.equal(totalFilesSummaryValue);
     });
+
+    collapseTopLevelMatrixRows(matrixId);
+    assertFileColumnSummaryMatchesVisibleCells(matrixId, 'Total Files');
 }
 
 export function testDonorTissueMode(matrixId) {
