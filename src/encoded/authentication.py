@@ -126,8 +126,8 @@ def email_is_not_restricted(registry, jwt_info, email=None):
     if (email_matches_blocked_country(email) or
             email in restricted_emails or email_domain in restricted_emails or
             email_domain in restricted_domains):
-            raise HTTPForbidden(
-                title=f"Email address {email} restricted due to NIH CADR Security Guidelines",
+        raise HTTPForbidden(
+            title=f"Email address {email} restricted due to NIH CADR Security Guidelines",
         )
 
 
