@@ -170,7 +170,9 @@ def smaht_basic_auth_check(username, password, request):
              permission=NO_PERMISSION_REQUIRED)
 @debug_log
 def smaht_create_unauthorized_user(context, request):
-    """ Override for the registration route that includes restricted email checks """
+    """ Override for the registration route that includes restricted email checks and
+        strips privileged fields (e.g. groups, status) from the submitted user props
+    """
     ignored(context)
     # env check
     env_name = request.registry.settings.get('env.name')
