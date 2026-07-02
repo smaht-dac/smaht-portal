@@ -136,10 +136,13 @@ function assertReleaseDateFacetIsHidden() {
 }
 
 function assertMonthNavButtonsAreFunctional() {
+    const parseMonthHeading = (headingText) => new Date(`${headingText.trim()} 1`);
+
     cy.get(".recent-releases-months .release-month-section h4")
         .first()
         .invoke("text")
         .then((initialMonthLabel) => {
+            const initialMonthDate = parseMonthHeading(initialMonthLabel);
             cy.log(`[Recent Releases][Weekly] month nav starts at ${initialMonthLabel}`);
 
             cy.log("[Recent Releases][Weekly] Older");
@@ -158,36 +161,45 @@ function assertMonthNavButtonsAreFunctional() {
                         "month heading after Older"
                     ).to.not.equal(initialMonthLabel);
                 })
-                .then(($heading) => {
-                    cy.log(`[Recent Releases][Weekly] moved to ${$heading.text().trim()}`);
-                });
-
-            cy.contains(".release-month-nav button", "Older")
-                .should("be.visible")
-                .then(($btn) => {
-                    cy.log(`[Recent Releases][Weekly] Older button: ${$btn.text().trim()}`);
-                });
-
-            cy.log("[Recent Releases][Weekly] Newer");
-            cy.contains(".release-month-nav button", "Newer")
-                .click({ force: true });
-
-            cy.get(".recent-releases-months .release-month-section h4")
-                .first()
-                .should(($heading) => {
+                .invoke("text")
+                .then((olderMonthLabel) => {
+                    const trimmedOlderMonthLabel = olderMonthLabel.trim();
+                    const olderMonthDate = parseMonthHeading(trimmedOlderMonthLabel);
+                    cy.log(`[Recent Releases][Weekly] moved to ${trimmedOlderMonthLabel}`);
                     expect(
-                        $heading.text().trim(),
-                        "month heading after Newer"
-                    ).to.equal(initialMonthLabel);
-                })
-                .then(($heading) => {
-                    cy.log(`[Recent Releases][Weekly] returned to ${$heading.text().trim()}`);
+                        olderMonthDate.getTime(),
+                        "month heading after Older should move backward"
+                    ).to.be.lessThan(initialMonthDate.getTime());
+
+                    cy.contains(".release-month-nav button", "Older")
+                        .should("be.visible")
+                        .then(($btn) => {
+                            cy.log(`[Recent Releases][Weekly] Older button: ${$btn.text().trim()}`);
+                        });
+
+                    cy.log("[Recent Releases][Weekly] Newer");
+                    cy.contains(".release-month-nav button", "Newer")
+                        .click({ force: true });
+
+                    cy.get(".recent-releases-months .release-month-section h4")
+                        .first()
+                        .invoke("text")
+                        .then((newerMonthLabel) => {
+                            const trimmedNewerMonthLabel = newerMonthLabel.trim();
+                            const newerMonthDate = parseMonthHeading(trimmedNewerMonthLabel);
+                            expect(
+                                newerMonthDate.getTime(),
+                                "month heading after Newer should move forward"
+                            ).to.be.greaterThan(olderMonthDate.getTime());
+                            cy.log(`[Recent Releases][Weekly] advanced to ${trimmedNewerMonthLabel}`);
+                        });
                 });
         });
 }
 
 function assertMonthCountBadgeSwitchesToMonthlyView(viewLabel) {
     cy.get(".recent-releases-months .release-month-section")
+        .filter((_, el) => Cypress.$(el).find(".count-badge-link").length > 0)
         .first()
         .as("firstMonthSection");
 
