@@ -914,6 +914,7 @@ export default class DataMatrix extends React.PureComponent {
             fieldChangeMap,
             groupingProperties,
             columnGrouping,
+            rowGroups,
             autoPopulateRowGroupsProperty,
             rowGroupsExtended,
             columnGroups,
@@ -1007,7 +1008,7 @@ export default class DataMatrix extends React.PureComponent {
                 transformed.push(cloned);
             };
 
-            // result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : PRODUCTION_TEST_DATA_DA);
+            // result = resultItemPostProcessFuncKey ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? PRODUCTION_TEST_DATA_DA : PRODUCTION_TEST_DATA_TA));
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
@@ -1025,19 +1026,43 @@ export default class DataMatrix extends React.PureComponent {
             updatedState['overallCounts'] = result.counts || null;
             updatedState['facetsForPanel'] = result.facets || [];
             updatedState['facetFiltersForPanel'] = result.filters || [];
-            // Build generic row-summary overrides from backend facet counts.
-            // This keeps visual components dimension-agnostic (not donor-specific).
-            const donorFacet = _.findWhere(result.facets || [], { field: 'donors.display_title' });
-            const donorValueMap = valueChangeMap?.donor || {};
-            const donorSummaryCounts = donorFacet && Array.isArray(donorFacet.terms)
-                ? _.reduce(donorFacet.terms, (memo, term) => {
-                    const key = donorValueMap[term?.key] || term?.key;
-                    if (!key || key === 'No value') return memo;
-                    memo[key] = { files: Number(term?.doc_count) || 0 };
-                    return memo;
-                }, {})
-                : null;
-            updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
+            // Build row-summary overrides from backend facet counts.
+            // Benchmarking uses two different row-group sections:
+            // - cell lines should summarize by dataset
+            // - benchmarking donors should summarize by donor
+            // Keep the summary map section-aware so those rows can diverge.
+            const buildFacetSummaryCounts = (facetField, valueMap = null) => {
+                const facet = _.findWhere(result.facets || [], { field: facetField });
+                return facet && Array.isArray(facet.terms)
+                    ? _.reduce(facet.terms, (memo, term) => {
+                        const key = valueMap?.[term?.key] || term?.key;
+                        if (!key || key === 'No value') return memo;
+                        memo[key] = { files: Number(term?.doc_count) || 0 };
+                        return memo;
+                    }, {})
+                    : null;
+            };
+            const donorSummaryCounts = buildFacetSummaryCounts('donors.display_title', valueChangeMap?.donor || {});
+            const datasetSummaryCounts = buildFacetSummaryCounts('dataset', valueChangeMap?.donor || {});
+            const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0;
+            if (hasRowGroups) {
+                const rowGroupSummaryCounts = {};
+                _.forEach(rowGroups, (rowGroupConfig, rowGroupKey) => {
+                    const customUrlParams = rowGroupConfig?.customUrlParams || '';
+                    const usesDonorSummary = typeof customUrlParams === 'string' && customUrlParams.indexOf('dataset=tissue') >= 0;
+                    const summaryCounts = usesDonorSummary
+                        ? donorSummaryCounts
+                        : datasetSummaryCounts;
+                    if (summaryCounts) {
+                        rowGroupSummaryCounts[rowGroupKey] = usesDonorSummary
+                            ? { donor: summaryCounts }
+                            : { dataset: summaryCounts };
+                    }
+                });
+                updatedState['rowSummaryCountsByGroup'] = _.keys(rowGroupSummaryCounts).length > 0 ? rowGroupSummaryCounts : null;
+            } else {
+                updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
+            }
             updatedState['rawRegularCountOverrides'] = DataMatrix.buildRawRegularCountOverrides(
                 rawProcessedAllRows,
                 groupingProperties,
@@ -1785,10 +1810,11 @@ export default class DataMatrix extends React.PureComponent {
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
-            // Raw regular-cell overrides are only intended for Donor x Assay.
-            // Donor x Tissue derives its own filtered donor/tissue aggregates and
-            // should not reuse assay-oriented raw override maps.
-            rawRegularCountOverrides: matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY
+            // Donor x Assay and Tissue x Assay both benefit from raw per-row
+            // file overrides to keep summary columns aligned with visible cells.
+            // Donor x Tissue derives its own filtered donor/tissue aggregates
+            // and should not reuse assay-oriented raw override maps.
+            rawRegularCountOverrides: matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
                 ? (this.state.rawRegularCountOverrides || null)
                 : null,
             ...(countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY
