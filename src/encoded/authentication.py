@@ -126,8 +126,8 @@ def email_is_not_restricted(registry, jwt_info, email=None):
     if (email_matches_blocked_country(email) or
             email in restricted_emails or email_domain in restricted_emails or
             email_domain in restricted_domains):
-            raise HTTPForbidden(
-                title=f"Email address {email} restricted due to NIH CADR Security Guidelines",
+        raise HTTPForbidden(
+            title=f"Email address {email} restricted due to NIH CADR Security Guidelines",
         )
 
 
@@ -170,7 +170,9 @@ def smaht_basic_auth_check(username, password, request):
              permission=NO_PERMISSION_REQUIRED)
 @debug_log
 def smaht_create_unauthorized_user(context, request):
-    """ Override for the registration route that includes restricted email checks """
+    """ Override for the registration route that includes restricted email checks and
+        strips privileged fields (e.g. groups, status) from the submitted user props
+    """
     ignored(context)
     # env check
     env_name = request.registry.settings.get('env.name')
@@ -231,6 +233,12 @@ def smaht_create_unauthorized_user(context, request):
 
     # set user insert props
     del user_props['g-recaptcha-response']
+    # Self-registration must never let the caller grant themselves elevated access or
+    # false affiliations. request.remote_user is set to 'EMBED' below, which (intentionally,
+    # for other internal purposes) carries the 'restricted_fields' permission - so without this,
+    # a caller could pass e.g. "groups": ["admin"] in this request body and have it applied as-is.
+    for privileged_field in ('groups', 'submission_centers', 'consortia', 'submits_for', 'status', 'uuid'):
+        user_props.pop(privileged_field, None)
     user_props['was_unauthorized'] = True
     user_props['email'] = user_props_email  # lower-cased
     user_coll = request.registry[COLLECTIONS]['User']
