@@ -3,7 +3,7 @@ import pprint
 import re
 from dataclasses import dataclass
 from functools import cached_property, partial
-from typing import Callable, Dict, List, Any
+from typing import Callable, Dict, List, Any, Set
 
 from dcicutils import ff_utils  # noqa
 from dcicutils.creds_utils import SMaHTKeyManager  # noqa
@@ -1200,6 +1200,11 @@ class FileRelease:
     def validate_file(self) -> None:
         if self.release_type == ANALYSIS_RUN_FILE_RELEASE:
             self.validate_existing_analysis_run()
+            if self.has_similar_file_been_published():
+                self.add_warning(
+                    f"A similar analysis file appears to have already been published for"
+                    f" MetaWorkflowRun {item_utils.get_accession(self.output_meta_workflow_run)}."
+                )
         else:
             self.validate_required_qc_runs()
             self.validate_existing_file_sets()
@@ -1345,6 +1350,110 @@ class FileRelease:
             item_constants.STATUS_PROTECTED_NETWORK,
         ]:
             return True
+        return False
+
+
+    def has_similar_file_been_published(self) -> bool:
+        """Return whether an equivalent analysis output appears to already be published.
+
+        This check is only relevant for AnalysisRunFileRelease files.
+
+        Similarity criteria:
+        1. Candidate MetaWorkflowRuns are from the same MetaWorkflow.
+        2. Candidate MetaWorkflowRuns are linked to AnalysisRuns with the same donor
+           and tissue context as the current AnalysisRun.
+        3. Candidate MetaWorkflowRuns have the exact same set of input file UUIDs.
+        4. At least one candidate final output file (same file format) is already
+           in a published status.
+
+        Notes:
+        - If the current AnalysisRun has multiple donors or tissues, the check is
+          skipped and a warning is recorded.
+        - The current MetaWorkflowRun itself is excluded from comparison.
+
+        Returns:
+            bool: True if a similar published file is found, otherwise False.
+        """
+        if self.release_type != ANALYSIS_RUN_FILE_RELEASE:
+            return False
+
+        mwfr = self.output_meta_workflow_run
+        if not mwfr:
+            return False
+
+        current_file_format = self.file.get('file_format', {}).get('uuid', '')
+        current_mwfr_uuid = item_utils.get_uuid(mwfr)
+        mwf_uuid = mwfr["meta_workflow"]["uuid"]
+        current_analysis_run_uuid = self.analysis_run.get("uuid")
+
+        # Get Tissues and Donors from analysis run
+        donor_uuids = [item_utils.get_uuid(d) for d in self.analysis_run.get("donors", [])]
+        tissue_uuids = [item_utils.get_uuid(t) for t in self.analysis_run.get("tissues", [])]
+
+        if len(donor_uuids) > 1 or len(tissue_uuids) > 1:
+            self.add_warning(
+                f"The analysis run of file {self.file_accession} is linked to multiple donors and/or tissues. "
+                f"The check for similar, already released files will not be performed."
+            )
+            return False
+
+        # Search for Analysis Runs with same donors/tissues (excluding current)
+        ar_search = f"/search/?type=AnalysisRun&uuid!={current_analysis_run_uuid}"
+        if donor_uuids:
+            ar_search += "&donors.uuid=" + "&donors.uuid=".join(donor_uuids)
+        if tissue_uuids:
+            ar_search += "&tissues.uuid=" + "&tissues.uuid=".join(tissue_uuids)
+
+        similar_ar_uuids = [
+            item_utils.get_uuid(ar)
+            for ar in ff_utils.search_metadata(ar_search, key=self.key)
+        ]
+        if not similar_ar_uuids:
+            return False
+
+        # Get all MWFRs of the same type linked to those Analysis Runs
+        ar_uuid_filter = "&analysis_runs.uuid=".join(similar_ar_uuids)
+        mwfr_search = (
+            f"/search/?type=MetaWorkflowRun"
+            f"&meta_workflow.uuid={mwf_uuid}"
+            f"&analysis_runs.uuid={ar_uuid_filter}"
+        )
+        similar_mwfrs = ff_utils.search_metadata(mwfr_search, key=self.key)
+        if not similar_mwfrs:
+            return False
+
+        def _extract_input_file_uuids(mwfr: dict) -> Set[str]:
+            """Extract all input file UUIDs from a MetaWorkflowRun."""
+            return {
+                file_uuid
+                for input_item in mwfr.get("input", [])
+                for input_file in input_item.get("files", [])
+                if (file_uuid := input_file.get("file", {}).get("uuid"))
+            }
+        
+        
+        current_input_uuids = _extract_input_file_uuids(mwfr)
+
+        for similar_mwfr in similar_mwfrs:
+            if item_utils.get_uuid(similar_mwfr) == current_mwfr_uuid: # Should not happen, as we exclude the current analysis run in the search
+                continue
+
+            input_files_similar_mwfr = _extract_input_file_uuids(similar_mwfr)
+
+            if current_input_uuids == input_files_similar_mwfr:
+                # Check if any of the output files of the similar MWFR have been published
+                search_filter = (
+                    f"/search/?type=OutputFile"
+                    f"&meta_workflow_run_outputs.uuid={item_utils.get_uuid(similar_mwfr)}"
+                    f"&output_status=Final Output"
+                    f"&file_format.uuid={current_file_format}"
+                )
+                similar_files = ff_utils.search_metadata(search_filter, key=self.key)
+            
+                for f in similar_files:
+                    if self.has_item_been_published(f):
+                        return True
+
         return False
 
     def print_error_and_exit(self, msg: str) -> None:
