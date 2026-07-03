@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.0.1
+=====
+
+`PR 701: test: add unit tests for core pure helper modules <https://github.com/smaht-dac/smaht-portal/pull/701>`_
+
+* Add direct unit tests for previously under-tested pure helpers: ``encoded/utils.py`` (collection pluralization, resource-path formatting, ``get_configuration_value``), ``item_utils/utils.py`` (``dedupe_identifiers`` and ``RequestHandler`` validation), ``item_utils/file.py`` file-classification predicates, and ``schema_formats.is_accession``
+
+
 2.0.0
 =====
 
