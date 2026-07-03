@@ -7,6 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+2.0.1
+=====
+
+`PR 700: Fix anonymous admin-scoped data exfiltration via /recent_files_summary <https://github.com/smaht-dac/smaht-portal/pull/700>`_
+
+* Fix anonymous ACL-bypass in ``/recent_files_summary`` and ``/recent_release_days`` that returned protected/embargoed document contents to unauthenticated callers (the aggregation runs as the ``IMPORT`` admin user)
+* Remove the troubleshooting document dump that embedded real documents (uuids, donor/cell-line identifiers) into ``debug.portal_hits``
+* Allowlist the ``tissue_info_property_name`` additional-field name to prevent reading an arbitrary embedded field from matching documents
+* Drop the ``top_hits_debug`` sub-aggregation that returned per-bucket document ids
+* Preserve the intended global aggregate counts (aggregation buckets only, no document contents)
+
+
 2.0.0
 =====
 
