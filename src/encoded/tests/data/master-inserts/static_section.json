@@ -618,6 +618,25 @@
         ]
     },
     {
+        "identifier": "renamed-files",
+        "title": "List of Renamed Files",
+        "file": "/docs/public/renamed_files.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "70f3ade6-2741-4e1d-b96e-d052b66f0981",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "data_matrix_comparison",
         "title": "SMaHT Data Matrix",
         "file": "/docs/public/data_matrix_comparison.jsx",
@@ -632,6 +651,25 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "uuid": "2851ec1b-ecdb-479a-b88e-deedaa1886ef",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "recent_releases",
+        "title": "Recent Releases",
+        "file": "/docs/public/recent_releases.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "8ad6252d-6c17-4a34-9259-82734ebcca1c",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
@@ -762,6 +800,40 @@
         "identifier": "long-read_rna-seq_pacbio_kinnex",
         "title": "PacBio Kinnex (long-read)",
         "uuid": "22b22be8-8380-4407-a952-c8106d70c4bc",
+        "section_type": "Page Section",
+        "status": "open",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "dnascope-hybrid",
+        "title": "Phased Germline: Sentieon DNAScope-Hybrid & Statistical and Long-Read Based Phasing",
+        "uuid": "572bc97f-3749-4d0b-850e-793e3d2b33ea",
+        "section_type": "Page Section",
+        "status": "open",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "smaht-snv-calling",
+        "title": "Somatic: SMaHT SNV Pipeline",
+        "uuid": "607beb40-d109-46c5-b38d-f4008c296a16",
         "section_type": "Page Section",
         "status": "open",
         "options": {
@@ -913,6 +985,25 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "uuid": "f8b1b363-5530-4109-83c2-7b94acbc0e18",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "consortium_hub",
+        "title": "SMaHT Consortium Member Hub",
+        "file": "/docs/public/consortium_hub.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "f3d05813-e6a9-413d-8218-8c52eb754882",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]

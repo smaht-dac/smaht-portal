@@ -30,10 +30,13 @@ import { DownloadAllFilesFromSearchHrefButton } from '../components/challenges/D
 import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables';
 import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
+import RenamedFilesTable from '../components/RenamedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
+import { RecentReleasesTimelineMatrix } from '../components/RecentReleasesTimelineMatrix';
+import { ConsortiumHub } from '../ConsortiumHub';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -60,11 +63,14 @@ const placeholders = {
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
     RetractedFilesTable,
+    RenamedFilesTable,
     DataMatrixComparisonTabs,
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
     PipelineDocsNavigation,
+    RecentReleasesTimelineMatrix,
+    ConsortiumHub,
 };
 
 export const replaceString = memoize(

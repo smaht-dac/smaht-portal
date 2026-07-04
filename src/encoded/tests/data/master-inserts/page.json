@@ -318,6 +318,8 @@
             "041ca9a2-2b67-409c-ac50-4705f995fb99",
             "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
             "3f503a50-8646-4b4d-b870-73eabc8106a2",
+            "601f73be-f782-4d28-b49a-fc8905d4161b",
+            "6d703cf9-9369-4efa-b754-c6097218ac3a",
             "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
             "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
             "f873a9df-a511-4e02-af8c-d6e050980b4e",
@@ -442,6 +444,44 @@
         ],
         "status": "open",
         "uuid": "3f503a50-8646-4b4d-b870-73eabc8106a2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/dnascope-hybrid",
+        "title": "Phased Germline: Sentieon DNAScope-Hybrid & Statistical and Long-Read Based Phasing",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "572bc97f-3749-4d0b-850e-793e3d2b33ea"
+        ],
+        "status": "open",
+        "uuid": "601f73be-f782-4d28-b49a-fc8905d4161b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/smaht-snv-calling",
+        "title": "Somatic: SMaHT SNV Pipeline",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "607beb40-d109-46c5-b38d-f4008c296a16"
+        ],
+        "status": "open",
+        "uuid": "6d703cf9-9369-4efa-b754-c6097218ac3a",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -1408,7 +1448,8 @@
         "uuid": "c39ea4df-22c5-4d81-a495-6694c3360447",
         "status": "protected-network",
         "content": [
-            "d523e166-89bf-439d-9770-ee92e4bcb72b"
+            "d523e166-89bf-439d-9770-ee92e4bcb72b",
+            "70f3ade6-2741-4e1d-b96e-d052b66f0981"
         ],
         "table-of-contents": {
             "enabled": false
@@ -1432,6 +1473,42 @@
             "enabled": false
         },
         "title": "Data Matrix",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "consortium-hub",
+        "uuid": "6f2eec8f-6a11-4baf-93ad-66942fd7c8c7",
+        "status": "protected-network",
+        "content": [
+            "f3d05813-e6a9-413d-8218-8c52eb754882"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Consortium Hub",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "recent-releases",
+        "uuid": "ec8d344b-9ca0-41a4-aa95-0c6acdcfe7b2",
+        "status": "protected-network",
+        "content": [
+            "8ad6252d-6c17-4a34-9259-82734ebcca1c"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Recent Releases",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

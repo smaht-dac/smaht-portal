@@ -34,6 +34,13 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Note that the ordering of these operations is intentional to minimize package footprint
 WORKDIR /home/nginx/.nvm
 ENV NVM_DIR=/home/nginx/.nvm
+
+# deb.debian.org is served via a Fastly CDN that intermittently resets pipelined
+# connections ("Connection reset by peer"); retry and disable pipelining so
+# transient network blips don't fail the build.
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
+    echo 'Acquire::http::Pipeline-Depth "0";' >> /etc/apt/apt.conf.d/80-retries
+
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends vim emacs net-tools ca-certificates build-essential \
     gcc zlib1g-dev postgresql-client libpq-dev git make curl libmagic-dev && \

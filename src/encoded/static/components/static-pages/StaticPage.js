@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
@@ -176,6 +176,24 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     return <div className={cls}>{renderedContent}</div>;
 });
 
+// Intercept clicks on top nav links and scroll to section
+export const scrollToAnchor = (e, props) => {
+    const linkEl = e.target.closest('a.nav-link');
+    if (!linkEl) return;
+
+    const href = linkEl.getAttribute('href');
+    if (!href) return;
+
+    // Only intercept in-page anchors
+    if (!href.startsWith('#')) return;
+
+    e.preventDefault();
+
+    const id = href.slice(1);
+
+    TableOfContents.scrollToLink(id, 75, props.navigate);
+};
+
 const CustomWrapper = React.memo(function CustomWrapper({
     tableOfContents = false,
     tocListStyles = ['decimal', 'lower-alpha', 'lower-roman'],
@@ -191,9 +209,27 @@ const CustomWrapper = React.memo(function CustomWrapper({
     const tocExists = toc && toc.enabled !== false;
     const parsedHrefPathname =
         typeof href === 'string' ? memoizedUrlParse(href).pathname : null;
-    // Keep `/data-matrix` on a wide layout without affecting other static pages.
-    const isDataMatrixPage = parsedHrefPathname === '/data-matrix';
-    const wrapperClassName = isDataMatrixPage ? 'container-wide' : 'container';
+    // Keep wide-layout pages without affecting other static pages.
+    const isWideLayoutPage = parsedHrefPathname === '/data-matrix'
+        || parsedHrefPathname === '/recent-releases';
+    const wrapperClassName = isWideLayoutPage ? 'container-wide' : 'container';
+
+    // Prepare event listeners for top nav links to scroll to section
+    useEffect(() => {
+        const container = document.querySelector(
+            '.static-page-top-navigation-container'
+        );
+        if (!container) return;
+
+        // Intercept clicks on top nav links and scroll to section
+        const handler = (e) => scrollToAnchor(e, props);
+
+        container.addEventListener('click', handler);
+
+        return () => {
+            container.removeEventListener('click', handler);
+        };
+    }, [props.navigate]);
 
     return (
         <div className={wrapperClassName} id="content">

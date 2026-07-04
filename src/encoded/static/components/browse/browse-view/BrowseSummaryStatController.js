@@ -8,6 +8,7 @@ import {
     layout,
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 
 import { BrowseLinkIcon } from './BrowseLinkIcon';
 import { ChartDataController } from '../../viz/chart-data-controller';
@@ -55,7 +56,9 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
                 : navigate.getBrowseBaseHref(null, mapping);
 
             const hrefParts = url.parse(searchUrl, true);
-            let hrefQuery = _.clone(hrefParts.query);
+            let hrefQuery = normalizeQueryValuesForStringify(
+                _.clone(hrefParts.query)
+            );
             // donor
             if (
                 hrefQuery.type === 'Donor' ||

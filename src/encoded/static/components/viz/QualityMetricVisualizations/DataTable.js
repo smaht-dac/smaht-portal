@@ -182,7 +182,12 @@ export const DataTable = ({
             );
         }
 
-        const headerClass = col.length > 20 ? 'width-100' : '';
+        const headerClass =
+            col === 'Platform'
+                ? 'width-150-nw'
+                : col.length > 20
+                ? 'width-120'
+                : '';
 
         return (
             <th key={col}>

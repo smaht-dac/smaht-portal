@@ -40,6 +40,31 @@ const germLayerTissueMapping = {
     },
 };
 
+const tissueCategoryOrder = [
+    'Ectoderm',
+    'Mesoderm',
+    'Endoderm',
+    'Germ cells',
+    'Clinically accessible',
+];
+
+const tissueCategoryOrderIndex = tissueCategoryOrder.reduce(
+    (acc, category, index) => {
+        acc[category] = index;
+        return acc;
+    },
+    {}
+);
+
+const getTissueCategoryOrderIndex = (category) => {
+    const normalizedCategory = String(category || '').trim().toLowerCase();
+    const canonicalCategory = tissueCategoryOrder.find(
+        (item) => item.toLowerCase() === normalizedCategory
+    );
+    if (!canonicalCategory) return Number.MAX_SAFE_INTEGER;
+    return tissueCategoryOrderIndex[canonicalCategory];
+};
+
 /**
  * Reverse look up map for tissue names to their respective categories.
  */
@@ -144,11 +169,22 @@ const parseTissueTermForSort = (termKey) => {
  * @returns {number} Comparison result for sorting.
  */
 const compareTissueFacetTerms = (a, b) => {
-    const aKey = a?.key || a?.props?.term?.key || '';
-    const bKey = b?.key || b?.props?.term?.key || '';
+    const aKey = a?.props?.term?.key || a?.key || '';
+    const bKey = b?.props?.term?.key || b?.key || '';
     if (!aKey && !bKey) return 0;
     if (!aKey) return 1;
     if (!bKey) return -1;
+
+    const aIsGroupingTerm = Array.isArray(a?.props?.term?.terms);
+    const bIsGroupingTerm = Array.isArray(b?.props?.term?.terms);
+    if (aIsGroupingTerm || bIsGroupingTerm) {
+        const aCategoryIndex = getTissueCategoryOrderIndex(aKey);
+        const bCategoryIndex = getTissueCategoryOrderIndex(bKey);
+        if (aCategoryIndex !== bCategoryIndex) {
+            return aCategoryIndex - bCategoryIndex;
+        }
+        return String(aKey).localeCompare(String(bKey));
+    }
 
     const aParsed = parseTissueTermForSort(aKey);
     const bParsed = parseTissueTermForSort(bKey);
@@ -195,6 +231,7 @@ const getTissueCategoryFromFacetTerm = (termKey) => {
 
 export {
     germLayerTissueMapping,
+    tissueCategoryOrder,
     tissueToCategory,
     compareTissueFacetTerms,
     getTissueInternalCodeFromFacetTerm,

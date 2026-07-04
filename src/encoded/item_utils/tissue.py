@@ -75,6 +75,8 @@ TPC_ALT_TISSUE_REGEX = re.compile(
     rf"{TPC_ALT_ID_REGEX}$"
 )
 
+PROTOCOL_ID_REGEX = re.compile(r"-([0-9][A-Z]{1,2})$")
+
  
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
     """Check if tissue is from benchmarking study."""
@@ -88,9 +90,19 @@ def is_production(properties: Dict[str, Any]) -> bool:
     return PRODUCTION_TISSUE_REGEX.match(external_id) is not None
 
 
+def is_tpc_alt(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is from TPC alternative study (SN-prefixed donors)."""
+    external_id = item.get_external_id(properties)
+    return TPC_ALT_TISSUE_REGEX.match(external_id) is not None
+
+
 def is_valid_external_id(external_id: str) -> bool:
-    """Check if tissue external_id matches Benchmarking or Production."""
-    return PRODUCTION_TISSUE_REGEX.match(external_id) is not None or BENCHMARKING_TISSUE_REGEX.match(external_id) is not None
+    """Check if tissue external_id matches Benchmarking, Production, or TPC alt."""
+    return (
+        PRODUCTION_TISSUE_REGEX.match(external_id) is not None
+        or BENCHMARKING_TISSUE_REGEX.match(external_id) is not None
+        or TPC_ALT_TISSUE_REGEX.match(external_id) is not None
+    )
 
 
 def get_project_id(properties: Dict[str, Any]) -> str:
@@ -123,16 +135,20 @@ def get_donor_id_from_external_id(external_id: str) -> str:
 
 
 def get_protocol_id(properties: Dict[str, Any]) -> str:
-    """Get protocol ID associated with tissue."""
-    if is_benchmarking(properties) or is_production(properties):
-        external_id = item.get_external_id(properties)
-        return get_protocol_id_from_external_id(external_id)
-    return ""
+    """Get protocol ID associated with tissue.
+
+    Extracts the protocol code (e.g. '3A', '3B', '3AC') from the tissue
+    external_id by matching the trailing '-[digit][letters]' pattern.
+    Works for any donor naming convention (ST, SMHT, SN, CB, etc.).
+    """
+    external_id = item.get_external_id(properties)
+    return get_protocol_id_from_external_id(external_id)
 
 
 def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""
-    return external_id.split("-")[1]
+    match = PROTOCOL_ID_REGEX.search(external_id)
+    return match.group(1) if match else ""
 
 
 def is_fibroblast(properties: Dict[str, Any]) -> bool:
@@ -177,8 +193,10 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
 def get_category(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
     """
     Get category associated with tissue.
-    
+
     Special handling of fibroblast, ovary, testis, blood, and buccal swab.
+    For tissues whose external_id doesn't encode the protocol code (e.g. non-TPC
+    donors), falls back to the ontology tissue_type tag (e.g. "3A - Whole Blood").
     """
     if is_germ_cell(properties):
         return "Germ Cells"
@@ -187,7 +205,20 @@ def get_category(properties: Dict[str, Any], request_handler: RequestHandler) ->
     elif is_fibroblast(properties):
         return "Mesoderm"
     else:
-        germ_layer = get_grouping_term_from_tag(properties, request_handler=request_handler, tag="germ_layer")
+        tissue_type = get_grouping_term_from_tag(
+            properties, request_handler=request_handler, tag="tissue_type"
+        )
+        if tissue_type and " - " in tissue_type:
+            protocol_id = tissue_type.split(" - ")[0].strip()
+            if protocol_id in ["3A", "3B"]:
+                return "Clinically Accessible"
+            if protocol_id in ["3U", "3V", "3W", "3X", "3Y", "3Z", "3AA", "3AB"]:
+                return "Germ Cells"
+            if protocol_id == "3AC":
+                return "Mesoderm"
+        germ_layer = get_grouping_term_from_tag(
+            properties, request_handler=request_handler, tag="germ_layer"
+        )
         return germ_layer or None
 
 

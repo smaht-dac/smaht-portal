@@ -99,6 +99,10 @@ from encoded import OPEN_DATA_S3_CLIENT
 
 log = structlog.getLogger(__name__)
 
+# Item types (snake_case) that explicitly embed file_status_tracking and must
+# always compute it even when the File appears as a sub-embedded item.
+FILE_STATUS_TRACKING_REQUIRED_TYPES = frozenset(['file_set'])
+
 
 class CalcPropConstants:
 
@@ -120,6 +124,16 @@ class CalcPropConstants:
         "items": {
             "type": "string",
             "linkTo": "Sequencing",
+        },
+    }
+    SEQUENCERS_SCHEMA = {
+        "title": "Sequencers",
+        "description": "Sequencers associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Sequencer",
         },
     }
     ASSAYS_SCHEMA = {
@@ -420,6 +434,9 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.sequencing.sequencer",
         "file_sets.sequencing.target_coverage",
         "file_sets.sequencing.target_read_count",
+
+        "assays.category",
+        "sequencers.platform",
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
@@ -771,6 +788,22 @@ class File(Item, CoreFile):
                 }
             }
 
+        # During indexing, skip the @@revision-history fetch when this File is
+        # sub-embedded inside an item that doesn't use file_status_tracking.
+        # _aggregate_for['uuid'] is the primary indexed item's UUID (set before
+        # both @@object and @@embedded in indexing_views.py). If it differs from
+        # self.uuid, we're a sub-embed. Only file_set explicitly embeds this field.
+        # Return None (not {}) to match other early-return paths in this function
+        # — calc props returning None are excluded from the properties dict,
+        # whereas {} would persist as an empty dict and could pollute cached
+        # @@object views consumed by FileSet indexing later in the same /index
+        # batch (the embed_cache is shared across items in a single transaction).
+        if request._indexing_view:
+            primary_uuid = request._aggregate_for.get('uuid')
+            if primary_uuid and primary_uuid != str(self.uuid):
+                if request._aggregate_for.get('item_type') not in FILE_STATUS_TRACKING_REQUIRED_TYPES:
+                    return None
+
         # we need the revision history
         status_tracking = {}
         release_dates = {}
@@ -894,11 +927,14 @@ class File(Item, CoreFile):
         return self._get_sequencing(request, file_sets=file_sets)
 
     @calculated_property(schema=CalcPropConstants.ASSAYS_SCHEMA)
-    def assays(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
+    def assays(self, request: Request) -> Union[List[str], None]:
         """Get Assays associated with the file."""
-        return self._get_assays(request, file_sets=file_sets)
+        return self._get_assays(request)
+
+    @calculated_property(schema=CalcPropConstants.SEQUENCERS_SCHEMA)
+    def sequencers(self, request: Request) -> Union[List[str], None]:
+        """Get Sequencers associated with the file."""
+        return self._get_sequencers(request)
 
     @calculated_property(schema=CalcPropConstants.ANALYTES_SCHEMA)
     def analytes(
@@ -937,10 +973,10 @@ class File(Item, CoreFile):
 
     @calculated_property(schema=CalcPropConstants.DATA_GENERATION_SCHEMA)
     def data_generation_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
+        self, request: Request
     ) -> Union[Dict[str, Any], None]:
         """Get data generation summary for display on file overview page."""
-        return self._get_data_generation_summary(request, file_sets=file_sets)
+        return self._get_data_generation_summary(request)
 
     @calculated_property(schema=CalcPropConstants.SAMPLE_SUMMARY_SCHEMA)
     def sample_summary(
@@ -1011,14 +1047,16 @@ class File(Item, CoreFile):
             result = file_utils.get_sequencings(self.properties, request_handler)
         return result or None
 
-    def _get_assays(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> List[str]:
+    def _get_assays(self, request: Request) -> List[str]:
         """Get the assays associated with the file."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = file_utils.get_assays(self.properties, request_handler)
+        request_handler = RequestHandler(request=request)
+        result = file_utils.get_assays(self.properties, request_handler)
+        return result or None
+    
+    def _get_sequencers(self, request: Request) -> List[str]:
+        """Get the sequencers associated with the file."""
+        request_handler = RequestHandler(request=request)
+        result = file_utils.get_sequencers(self.properties, request_handler)
         return result or None
 
     def _get_analytes(
@@ -1105,7 +1143,7 @@ class File(Item, CoreFile):
         }
 
     def _get_data_generation_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
+        self, request: Request
     ) -> Union[Dict[str, Any], None]:
         """Get data generation summary for display on file overview page."""
         request_handler = RequestHandler(request=request)

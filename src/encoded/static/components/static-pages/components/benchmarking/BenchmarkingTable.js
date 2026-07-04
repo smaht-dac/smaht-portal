@@ -159,7 +159,7 @@ export const BenchmarkingTable = (props) => {
             widthMap: { lg: 130, md: 130, sm: 130 },
         },
         // Platform
-        'file_sets.sequencing.sequencer.display_title': {
+        'sequencers.display_title': {
             colTitle: 'Platform',
             widthMap: { lg: 170, md: 160, sm: 150 },
         },

@@ -213,10 +213,11 @@ QC_THRESHOLDS = {
 
 
 class FileStats:
-    def __init__(self, output):
+    def __init__(self, output, somalier_output):
         self.errors = []
         self.warnings = []
         self.output_path = output
+        self.somalier_output_path = somalier_output
         self.all_tissues = self.get_all_tissues()
         # self.all_donors = self.get_all_donors()
         self.stats = []
@@ -611,19 +612,17 @@ class FileStats:
             return
 
         print(f"Writing results to {self.output_path}")
-
-        # pprint.pprint(self.stats)
-        # pprint.pprint(self.qc_info)
-
         data = {
             "viz_info": self.viz_info,
             "qc_info": self.qc_info,
             "qc_results": self.stats,
-            "somalier_results": self.somalier_results,
         }
-
         with open(self.output_path, "w") as file:
             json.dump(data, file, indent=4)
+
+        print(f"Writing somalier results to {self.somalier_output_path}")
+        with open(self.somalier_output_path, "w") as file:
+            json.dump(self.somalier_results, file, indent=4)
 
     def get_alignment_mwfr(self, fileset):
         mwfrs = fileset.get("meta_workflow_runs", [])
@@ -857,17 +856,18 @@ def progressbar(it, prefix="", size=60, out=sys.stdout):
 
 
 @click.command()
-@click.option("--output", help="Output path (optional)")
-def main(output):
-    """Create a JSON that is input to the QC overview page
+@click.option("--output", help="Output path for the main QC JSON (optional)")
+@click.option("--somalier-output", help="Output path for the somalier results JSON (optional)")
+def main(output, somalier_output):
+    """Create JSON files that are input to the QC overview page.
 
-    Args:
-        output (str): Path to output JSON
+    Produces two files: the main QC JSON and a separate somalier results JSON.
     """
     dt = datetime.datetime.now()
     output_path = output or f"./file_statistics_{dt.year}_{dt.month}_{dt.day}.json"
+    somalier_output_path = somalier_output or output_path.replace(".json", "_somalier.json")
 
-    FS = FileStats(output_path)
+    FS = FileStats(output_path, somalier_output_path)
     FS.get_stats()
     FS.write_json()
     print("Done!")

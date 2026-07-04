@@ -219,8 +219,8 @@ export class FacetCharts extends React.PureComponent {
                     const keysToClear = [
                         'donor.tissues.tissue_type',
                         'tissues.tissue_type',
-                        'file_sets.libraries.assay.display_title',
-                        'sequencing.sequencer.display_title',
+                        'assays.display_title',
+                        'sequencers.display_title',
                     ];
 
                     if (mapping !== 'all' && keysToClear.some((k) => newDonorFilters[k])) {

@@ -92,43 +92,6 @@ export const BenchmarkingDataMap = {
                     BENCHMARKING_STATUS_FILTERS +
                     '&dataset=colo829blt_in_silico&sort=-file_status_tracking.release_dates.initial_release',
             },
-            {
-                eventKey: '#truthset',
-                title: 'Truth Set',
-                searchHref:
-                    '/search/?type=File&' +
-                    BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=colo829_snv_indel_challenge_data&tags=truth_set&sort=-file_status_tracking.release_dates.initial_release',
-                facetsToHide: [
-                    'dataset',
-                    'file_sets.libraries.analytes.samples.sample_sources.code',
-                    'status',
-                    'validation_errors.name',
-                    'file_sets.libraries.assay.display_title',
-                    'file_sets.sequencing.sequencer.display_title',
-                    'sequencing_center.display_title',
-                    'software.display_title',
-                    'tags',
-                    // File facets used in production browse ui
-                    'access_status',
-                    'donors.display_title',
-                    'donors.age',
-                    'donors.sex',
-                    'sample_summary.tissues',
-                    'date_created',
-                ],
-                columns: {
-                    '@type': {},
-                    access_status: {},
-                    annotated_filename: {},
-                    data_type: {},
-                    'file_format.display_title': {},
-                    data_category: {},
-                    'submission_centers.display_title': {},
-                    date_created: {},
-                    file_size: {},
-                },
-            },
         ],
     },
     HapMap: {
@@ -188,12 +151,6 @@ export const BenchmarkingDataMap = {
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
                     '&dataset=mei_detection_challenge_data&sort=-file_status_tracking.release_dates.initial_release',
-            },
-            {
-                eventKey: '#hapmap-truthset',
-                title: 'Truth Set',
-                // searchHref:
-                //     '/search/?type=File&' + BENCHMARKING_STATUS_FILTERS + '&dataset=hapmap_snv_indel_challenge_data',
             },
         ],
     },
@@ -267,12 +224,6 @@ export const BenchmarkingDataMap = {
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
                     '&dataset=lb_ipsc_60&sort=-file_status_tracking.release_dates.initial_release',
-            },
-            {
-                eventKey: '#lb_ipsc_truthset',
-                title: 'Truth Set',
-                // searchHref:
-                //     '/search/?type=File&'+BENCHMARKING_STATUS_FILTERS + '&dataset=ipsc_snv_indel_challenge_data',
             },
         ],
     },

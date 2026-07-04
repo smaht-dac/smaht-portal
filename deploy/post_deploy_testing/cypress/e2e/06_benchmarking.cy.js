@@ -463,14 +463,14 @@ function stepFacetSuite(caps) {
         .should("have.text", "Excluded Properties")
         .end()
         .get(
-            '.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5'
+            '.facet.closed[data-field="assays.display_title"] > h5'
         )
         .scrollIntoView()
         .should("be.visible")
         .click()
         .end()
         .get(
-            '.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:not([data-is-grouping="true"]) a'
+            '.facet[data-field="assays.display_title"] .facet-list-element:not([data-is-grouping="true"]) a'
         )
         .first()
         .within(($term) => {
@@ -503,7 +503,7 @@ function stepFacetSuite(caps) {
 
     // Re-include the first term
     cy.get(
-        '.facet[data-field="file_sets.libraries.assay.display_title"] .persistent .facet-list-element:not([data-is-grouping="true"]) a'
+        '.facet[data-field="assays.display_title"] .persistent .facet-list-element:not([data-is-grouping="true"]) a'
     )
         .first()
         .within(($term) => {
@@ -524,7 +524,7 @@ function stepFacetSuite(caps) {
 
     // Exclude again and verify includeDataCount
     cy.get(
-        '.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:not([data-is-grouping="true"]) a'
+        '.facet[data-field="assays.display_title"] .facet-list-element:not([data-is-grouping="true"]) a'
     )
         .first()
         .within(($term) => {

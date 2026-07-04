@@ -1,3 +1,4 @@
+import re
 import pytest
 from ..homepage import extract_desired_facet_from_search
 
@@ -18,14 +19,15 @@ def test_home_page_workbook(es_testapp, workbook):
     home = es_testapp.get('/home').json
     # Validate some basic structure
     assert home['@context'] == '/home'
-    assert 'EST' in home['date']
+    assert home['date'] is None or re.match(r'^\d{4}-\d{2}-\d{2}( \w+)?$', home['date'])
     assert '@graph' in home
     assert 'categories' in home['@graph'][0]
     assert 'figures' in home['@graph'][0]['categories'][0]
     # check file generated counts
-    # from workbook inserts, not including 1 output files and 1 reference file
-    assert home['@graph'][0]['categories'][0]['figures'][-1]['value'] == 3
+    # from workbook inserts with open/open-early/protected-early status and colo829t dataset,
+    # not including 1 released output file (status excluded) and 1 reference file (no dataset)
+    assert home['@graph'][0]['categories'][0]['figures'][-1]['value'] == 5
     assert home['@graph'][0]['categories'][0]['figures'][-1]['unit'] == 'Files Generated'
-    # check assay count (should be 4 as of right now)
-    assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 2
+    # check assay count for colo829 (bulk_wgs, bulk_mas_iso_seq, bulk_rna_seq)
+    assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 3
     assert home['@graph'][0]['categories'][0]['figures'][1]['unit'] == 'Assays'

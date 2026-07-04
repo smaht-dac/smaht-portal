@@ -133,7 +133,7 @@ function goto(url = '/', headers = cypressVisitHeaders) {
 const SEARCH_PARAM_KEY_ALIASES = {
     'sequencing.sequencer.display_title': [
         'sequencing.sequencer.display_title',
-        'file_sets.sequencing.sequencer.display_title',
+        'sequencers.display_title',
     ],
 };
 
@@ -209,11 +209,29 @@ function getTissueCategoryFromAxisTerm(term) {
 }
 
 function getVisibleTissueAxisTerms() {
-    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible').then(($labels) => {
+    return cy.get('.bar-plot-chart .rotated-label[data-term]:visible', { timeout: 30000 }).then(($labels) => {
         return Array.from($labels)
             .map((labelNode) => (labelNode.getAttribute('data-term') || '').trim())
             .filter(Boolean);
     });
+}
+
+function waitForFileFacetBarPlotReady() {
+    return cy
+        .get('#slow-load-container', { timeout: 30000 })
+        .should('not.have.class', 'visible')
+        .get('.facet-charts.loading', { timeout: 30000 })
+        .should('not.exist')
+        .get('#facet-charts-container', { timeout: 30000 })
+        .should('exist')
+        .get('#facet-charts-container button', { timeout: 30000 })
+        .should('have.length.greaterThan', 0)
+        .get('.bar-plot-chart', { timeout: 30000 })
+        .should('exist')
+        .get('.bar-plot-chart .chart-bar[data-term]', { timeout: 30000 })
+        .should('have.length.greaterThan', 0)
+        .get('.bar-plot-chart .rotated-label[data-term]:visible', { timeout: 30000 })
+        .should('have.length.greaterThan', 0);
 }
 
 function visitBrowseByFile(){
@@ -383,13 +401,13 @@ function stepFacetIncludeGrouping(caps) {
     visitBrowseByFile()
         .get('.facets-header .facets-title')
         .should('have.text', 'Included Properties').end()
-        .get('.facet[data-field="file_sets.libraries.assay.display_title"]')
+        .get('.facet[data-field="assays.display_title"]')
         .then(($facet) => {
             if ($facet.hasClass('closed')) {
                 cy.wrap($facet).find('h5').click();
             }
         })
-        .get('.facet.open[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-is-grouping="true"] a')
+        .get('.facet.open[data-field="assays.display_title"] .facet-list-element[data-is-grouping="true"] a')
         .should('have.attr', 'data-selected', 'false')
         .first()
         .within(($term) => {
@@ -404,7 +422,7 @@ function stepFacetIncludeGrouping(caps) {
                     expect(groupingTermKey).to.not.be.empty;
 
                     cy.root()
-                        .closest('.facet[data-field="file_sets.libraries.assay.display_title"]')
+                        .closest('.facet[data-field="assays.display_title"]')
                         .find(`.facet-list-element[data-grouping-key="${groupingTermKey}"] a`)
                         .each(($el) => {
                             cy.wrap($el).find('span.facet-item').then((t) => {
@@ -423,7 +441,7 @@ function stepFacetIncludeGrouping(caps) {
             cy.wrap($term).click().end().then(() => {
                 cy.document()
                     .its('body')
-                    .find(`.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-grouping-key="${groupingTermKey}"].selected a`)
+                    .find(`.facet[data-field="assays.display_title"] .facet-list-element[data-grouping-key="${groupingTermKey}"].selected a`)
                     .each(($el) => {
                         cy.wrap($el).find('span.facet-item').then((t) => {
                             const subTermKey = t.text();
@@ -461,14 +479,14 @@ function stepFacetExcludeGrouping(caps) {
         .get('.facets-header .facets-title')
         .should('have.text', 'Excluded Properties')
         .end()
-        .get('.facet[data-field="file_sets.libraries.assay.display_title"]')
+        .get('.facet[data-field="assays.display_title"]')
         .then(($facet) => {
             if ($facet.hasClass('closed')) {
                 cy.wrap($facet).find('h5').click();
             }
         })
         .end()
-        .get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-is-grouping="true"] a')
+        .get('.facet[data-field="assays.display_title"] .facet-list-element[data-is-grouping="true"] a')
         .eq(0)
         .within(($term) => {
             const subTerms = [];
@@ -482,7 +500,7 @@ function stepFacetExcludeGrouping(caps) {
                     expect(groupingTermKey).to.not.be.empty;
 
                     cy.root()
-                        .closest('.facet[data-field="file_sets.libraries.assay.display_title"]')
+                        .closest('.facet[data-field="assays.display_title"]')
                         .find(`.facet-list-element[data-grouping-key="${groupingTermKey}"] a`)
                         .each(($el) => {
                             cy.wrap($el).find('span.facet-item').then((t) => {
@@ -501,7 +519,7 @@ function stepFacetExcludeGrouping(caps) {
             cy.wrap($term).click().end().then(() => {
                 cy.document()
                     .its('body')
-                    .find(`.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-grouping-key="${groupingTermKey}"].omitted a`)
+                    .find(`.facet[data-field="assays.display_title"] .facet-list-element[data-grouping-key="${groupingTermKey}"].omitted a`)
                     .each(($el) => {
                         cy.wrap($el).find('span.facet-item').then((t) => {
                             const subTermKey = t.text();
@@ -527,11 +545,13 @@ function stepTissueTypeFilterTests(caps) {
     }
 
     visitBrowseByFile().then(() => {
+        waitForFileFacetBarPlotReady();
         tissueTypeFilterOptions.forEach(({ buttonText, expectedCategory }) => {
             cy.contains('#facet-charts-container button', buttonText)
                 .should('be.visible')
                 .click({ force: true });
 
+            waitForFileFacetBarPlotReady();
             getVisibleTissueAxisTerms().then((axisTerms) => {
                 expect(axisTerms.length, `${buttonText} should leave visible tissue axis labels`).to.be.greaterThan(0);
 
@@ -554,6 +574,7 @@ function stepTissueTypeFilterTests(caps) {
 function stepFacetChartBarPlotTests(caps) {
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
         visitBrowseByFile().then(() => {
+            waitForFileFacetBarPlotReady();
             cy.get('#select-barplot-field-1')
                 .should('contain', 'Sequencer')
                 .end()
