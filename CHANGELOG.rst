@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.0.1
+2.1.0
 =====
 
 `PR 700: Fix anonymous admin-scoped data exfiltration via /recent_files_summary <https://github.com/smaht-dac/smaht-portal/pull/700>`_
