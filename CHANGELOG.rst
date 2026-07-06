@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.0.1
+=====
+
+`PR 691: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/691>`_
+
+* Updates to homepage timeline and figure
+
+
 2.0.0
 =====
 
