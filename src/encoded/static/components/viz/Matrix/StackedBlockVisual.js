@@ -296,7 +296,9 @@ export class VisualBody extends React.PureComponent {
         const countFor = blockProps && blockProps.countFor ? blockProps.countFor : 'files';
         const blockType = blockProps && blockProps.blockType ? blockProps.blockType : 'regular';
         const countField = countFor === 'tissue_files' ? 'files' : countFor;
-        const blockSum = Array.isArray(data)
+        const blockSum = typeof blockProps?.computedBlockValue === 'number'
+            ? blockProps.computedBlockValue
+            : (Array.isArray(data)
             ? (countField === 'donors'
                 ? (() => {
                     const uniqueDonorCount = getUniqueDonorCountFromItems(data);
@@ -306,7 +308,7 @@ export class VisualBody extends React.PureComponent {
                     }, 0);
                 })()
                 : _.reduce(data, function (sum, item) { return sum + getCountValueFromItem(item, countField); }, 0))
-            : (data ? getCountValueFromItem(data, countField) : 0);
+            : (data ? getCountValueFromItem(data, countField) : 0));
 
         // For total_coverage, we want to display the value with "X" and
         // use a different formatting logic. For other count types, we display the raw count with standard formatting.
@@ -2176,11 +2178,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 const rowSummaryFiles = (props.countFor === 'files' || props.countFor === 'tissue_files')
                     ? props.rowSummaryCountsByGroup?.[currentGroupingField]?.[props.group]?.files
                     : null;
+                const shouldUseBenchmarkingDsaCollapsedSummaryOverride = !!props.dedupeBenchmarkingDsaAcrossTissues && columnKeys.indexOf('DSA') > -1;
+                const sumFilesForColumn = (columnKey) => _.reduce(blocksByColumnGroup[columnKey] || [], (sum, row) => sum + (Number(row?.counts?.files) || 0), 0);
                 const derivedCollapsedCellOverrides = {};
-                if (typeof rowSummaryFiles === 'number' && columnKeys.indexOf('DSA') > -1) {
+                if (shouldUseBenchmarkingDsaCollapsedSummaryOverride && typeof rowSummaryFiles === 'number') {
                     // For collapsed rows, derive DSA as:
                     // row summary files - sum(non-DSA column files).
-                    const sumFilesForColumn = (columnKey) => _.reduce(blocksByColumnGroup[columnKey] || [], (sum, row) => sum + (Number(row?.counts?.files) || 0), 0);
                     const sumNonDsaFiles = _.reduce(columnKeys, (sum, columnKey) => {
                         if (columnKey === 'DSA') return sum;
                         return sum + sumFilesForColumn(columnKey);
@@ -2236,6 +2239,17 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     );
                 });
+                const effectiveCollapsedRowSummaryFiles = shouldUseBenchmarkingDsaCollapsedSummaryOverride && (props.countFor === 'files' || props.countFor === 'tissue_files')
+                    ? _.reduce(columnKeys, (sum, columnKey) => {
+                        const rawOverrideFiles = StackedBlockGroupedRow.getRawRegularOverrideForColumn(columnKey, props);
+                        const explicitOverrideFiles = typeof rawOverrideFiles === 'number'
+                            ? rawOverrideFiles
+                            : derivedCollapsedCellOverrides[columnKey];
+                        return sum + (typeof explicitOverrideFiles === 'number'
+                            ? explicitOverrideFiles
+                            : sumFilesForColumn(columnKey));
+                    }, 0)
+                    : null;
                 // add summary column block
                 let rowSummaryBlock = null;
                 const totalRowCount = _.reduce(_.map(blocksByColumnGroup, function(b){ return b.length; }), function(m, n){ return m + n; }, 0);
@@ -2256,9 +2270,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             counts: { ...(filteredRowTotalChildBlocks[0]?.counts || {}), ...overrideCounts }
                         }]
                         : filteredRowTotalChildBlocks;
-                    const summaryCounts = (typeof overrideFiles === 'number')
+                    const summaryCountsBase = (typeof overrideFiles === 'number')
                         ? { ...(filteredRowTotalChildBlocks[0]?.counts || {}), ...overrideCounts }
                         : (filteredRowTotalChildBlocks[0]?.counts || null);
+                    const summaryCounts = typeof effectiveCollapsedRowSummaryFiles === 'number'
+                        ? { ...(summaryCountsBase || {}), files: effectiveCollapsedRowSummaryFiles }
+                        : summaryCountsBase;
                     rowSummaryBlock = (
                         <div className="block-container-group" style={getContainerGroupStyle('overall-summary')}
                             key={'total'} data-block-count={totalRowCount} data-group-key={'row-summary'}>
@@ -2269,6 +2286,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 rowTotals={rowTotalsForBlock}
                                 rowIndex={props.index}
                                 blockType="row-summary"
+                                computedBlockValue={effectiveCollapsedRowSummaryFiles}
                                 summaryCounts={summaryCounts}
                             />
                         </div>
@@ -3069,7 +3087,10 @@ const Block = React.memo(function Block(props){
     // use the exact rendered count instead of re-deriving from grouped rows.
     let popover = null;
     if (typeof blockPopover === 'function'){
-        popover = blockPopover.apply(blockPopover, [argData, { ...props, computedBlockValue: blockValue }, parentGrouping]);
+        popover = blockPopover.apply(blockPopover, [argData, {
+            ...props,
+            computedBlockValue: typeof props?.computedBlockValue === 'number' ? props.computedBlockValue : blockValue
+        }, parentGrouping]);
     }
 
     if (hideCoverageBlock) {
