@@ -1220,6 +1220,20 @@ def handle_sample_source_type(field: dict) -> str:
     return ''
 
 
+FORMULA_INJECTION_LEAD_CHARS = ('=', '+', '-', '@')
+
+
+def _neutralize_formula_injection(value):
+    """ Prefixes values that would be interpreted as spreadsheet formulas (by Excel,
+        Google Sheets, LibreOffice, etc.) with a single quote so that opening an exported
+        manifest cannot trigger formula/macro execution using submitter-controlled data
+        (CSV/TSV formula injection - CWE-1236).
+    """
+    if isinstance(value, str) and value and value[0] in FORMULA_INJECTION_LEAD_CHARS:
+        return "'" + value
+    return value
+
+
 def generate_tsv(header: Tuple, data_lines: list):
     """ Helper function that actually generates the TSV """
     line = DummyFileInterfaceImplementation()
@@ -1233,7 +1247,7 @@ def generate_tsv(header: Tuple, data_lines: list):
 
     # write the data
     for entry in data_lines:
-        writer.writerow(entry)
+        writer.writerow([_neutralize_formula_injection(value) for value in entry])
         yield line.read().encode('utf-8')
 
 

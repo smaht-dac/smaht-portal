@@ -365,7 +365,8 @@
         color: #325180;
         font-size: 0.84rem;
         min-height: 2.45rem;
-        transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
+        transition: border-color 120ms ease, background-color 120ms ease,
+            box-shadow 120ms ease, color 120ms ease;
 
         .bucket-label {
             font-weight: 600;
@@ -416,7 +417,8 @@
         display: flex;
         align-items: flex-start;
         justify-content: flex-start;
-        transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+        transition: border-color 120ms ease, background-color 120ms ease,
+            color 120ms ease;
         color: #9eb0cc;
         position: relative;
         overflow: hidden;
@@ -535,8 +537,8 @@
             }
 
             .search-headers-row {
-                .search-headers-column-block[data-field="@type"],
-                .search-headers-column-block[data-field="access_status"] {
+                .search-headers-column-block[data-field='@type'],
+                .search-headers-column-block[data-field='access_status'] {
                     width: 56px;
                     min-width: 56px;
                     max-width: 56px;
@@ -553,8 +555,8 @@
             }
 
             .search-result-row {
-                .search-result-column-block[data-field="@type"],
-                .search-result-column-block[data-field="access_status"] {
+                .search-result-column-block[data-field='@type'],
+                .search-result-column-block[data-field='access_status'] {
                     width: 56px;
                     min-width: 56px;
                     max-width: 56px;
@@ -572,14 +574,16 @@
                 }
             }
 
-            .search-headers-column-block[data-field="@type"] input[type="checkbox"],
-            .search-result-column-block[data-field="@type"] input[type="checkbox"] {
+            .search-headers-column-block[data-field='@type']
+                input[type='checkbox'],
+            .search-result-column-block[data-field='@type']
+                input[type='checkbox'] {
                 margin: 0 !important;
                 display: block;
             }
 
-            .search-headers-column-block[data-field="access_status"] .icon-lock,
-            .search-result-column-block[data-field="access_status"] .icon-lock {
+            .search-headers-column-block[data-field='access_status'] .icon-lock,
+            .search-result-column-block[data-field='access_status'] .icon-lock {
                 margin: 0 auto;
                 display: inline-block;
             }
@@ -1569,6 +1573,11 @@ body[data-path='/'] > #application > #layout {
                                                 background-color: #e8f3ff;
                                                 font-weight: 700;
                                                 font-size: 0.625rem;
+                                            }
+
+                                            &:hover {
+                                                background-color: #e6f5ff;
+                                                border-color: #b4c5d9;
                                             }
                                         }
                                     }
@@ -4169,8 +4178,10 @@ FAQ page styles
                         padding: 15px;
 
                         .parent-link {
+                            display: block;
                             font-weight: 600;
                             color: $homepage-card-text-color;
+                            padding-right: 40px;
 
                             &:hover {
                                 color: #173b5d;
@@ -4320,6 +4331,35 @@ FAQ page styles
 
                 .nav-group {
                     margin-bottom: 0px;
+
+                    a.header:hover {
+                        text-decoration: none;
+                    }
+
+                    .quick-link-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        vertical-align: 0.15em;
+                        padding: 4px 8px;
+                        border-radius: 20px;
+                        font-size: 0.75rem;
+                        font-weight: 600;
+                        letter-spacing: 0.03em;
+                        text-transform: uppercase;
+                        white-space: nowrap;
+                        margin-left: 8px;
+                        line-height: 1;
+
+                        &.quick-link-badge-open {
+                            background-color: #d4edda;
+                            color: #1a6630;
+                            border: 1px solid #b8dfc2;
+                        }
+
+                        &.quick-link-badge-protected {
+                            color: #3a5070;
+                        }
+                    }
                 }
             }
         }

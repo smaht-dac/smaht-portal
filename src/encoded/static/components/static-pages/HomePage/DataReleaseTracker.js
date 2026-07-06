@@ -10,7 +10,7 @@ import { useUserDownloadAccess } from '../../util/hooks';
  * @param {number} count - Total file count for the week
  * @returns {JSX.Element}
  */
-const WeekGroup = ({ weekStart, weekEnd, count }) => {
+const WeekGroup = ({ weekStart, weekEnd, count, parentMonthKey = null }) => {
     const formatWeekDate = (date) =>
         date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -23,7 +23,7 @@ const WeekGroup = ({ weekStart, weekEnd, count }) => {
         `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     const weekHref =
         count > 0
-            ? `/recent-releases?view=weekly&date=${toDateKey(weekStart)}`
+            ? `/recent-releases?view=weekly&date=${toDateKey(weekStart)}${parentMonthKey ? `&month=${parentMonthKey}` : ''}`
             : null;
 
     return (
@@ -106,6 +106,7 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                                     weekStart={weekStart}
                                     weekEnd={weekEnd}
                                     count={weekCount}
+                                    parentMonthKey={value}
                                 />
                             );
                         })}

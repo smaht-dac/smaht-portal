@@ -7,6 +7,58 @@ smaht-portal
 Change Log
 ----------
 
+2.0.0
+=====
+
+* Fix privilege escalation in self-registration endpoint
+* Fix CSV/formula injection in metadata export
+
+
+1.33.3
+======
+
+`PR 690: test: update cypress tests for retracted and renamed files table <https://github.com/smaht-dac/smaht-portal/pull/690>`_
+
+* Fix click when shadow layer rendered above table
+* Add tests for Renamed files table
+
+
+1.33.2
+======
+
+`PR 695: Fix Recent Releases weekly navigation and September 2025 cutoff <https://github.com/smaht-dac/smaht-portal/pull/695>`_
+
+* Recover the missing Sep 2025 files - Include exclude_from_release_tracker-tagged files by default in /recent_release_days
+* Change the oldest navigable month from January 2025 to September 2025
+* Add explicit month context to home page weekly links
+* Preserve selected month context in Recent Releases URL state
+* Keep month focus stable when switching between Daily / Weekly / Monthly timeline modes
+
+
+1.33.1
+======
+
+`PR 694: Fix donor x assay matrix count inconsistencies <https://github.com/smaht-dac/smaht-portal/pull/694>`_
+
+* Resolve count mismatches for CODEC, NanoSeq, and VISTA-Seq assay types between the data matrix and browse view
+
+
+1.33.0
+======
+
+`PR 608: add publication <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* Add publication item - schema, types, calcprops and dummy inserts for tests
+
+
+1.32.3
+======
+
+`PR 692: fix: update vcf link <https://github.com/smaht-dac/smaht-portal/pull/692>`_
+
+* Split VCF link into somatic and germline callsets
+
+
 1.32.2
 ======
 

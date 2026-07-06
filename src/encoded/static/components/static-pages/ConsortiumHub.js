@@ -1,39 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { RightArrowIcon } from '../util/icon';
+import { useUserDownloadAccess } from '../util/hooks';
 
 // Quick links to the data portal
 const quickLinks = [
     {
         title: 'Sequencing Data (BAMs & CRAMs)',
         href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=cram&file_format.display_title=bam&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+        badge: 'protected',
     },
     {
         title: 'Transcript Quantification Data (tsv, txt, gff)',
         href: '/browse/?data_category=RNA+Quantification&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+        badge: 'protected',
     },
     {
-        title: 'Filtered Variant Callsets (VCFs)',
-        href: '/browse/?dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&file_format.display_title=vcf&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+        title: 'Filtered Somatic Variant Callsets',
+        href: '/browse/?analysis_details=Filtered&data_category=Somatic+Variant+Calls&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&release_tracker_description%21=No+value&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+        badge: 'open',
+    },
+    {
+        title: 'Germline Variant Callsets',
+        href: '/browse/?data_category=Germline+Variant+Calls&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&release_tracker_description%21=No+value&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+        badge: 'protected',
     },
     {
         title: 'DSA (FASTA, BED, Chain)',
         href: '/browse/?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
+        badge: 'protected',
     },
 ];
 
 // Search query for P25 donor data, limited to only the fields needed for display
-const searchQuery = [
-    '/search/?type=ProtectedDonor',
-    'donor_groups=First+25+Donors+%5BP25%5D',
-    'limit=all',
-    'field=external_id',
-    'field=age',
-    'field=sex',
-    'field=@id',
-    'field=medical_history.cancer_history',
-    'field=medical_history.tobacco_use',
-].join('&');
+const buildSearchQuery = (hasProtectedAccess) =>
+    [
+        `/search/?type=${hasProtectedAccess ? 'ProtectedDonor' : 'Donor'}`,
+        'donor_groups=First+25+Donors+%5BP25%5D',
+        'limit=all',
+        'field=external_id',
+        'field=age',
+        'field=sex',
+        'field=@id',
+        ...(hasProtectedAccess
+            ? [
+                  'field=medical_history.cancer_history',
+                  'field=medical_history.tobacco_use',
+              ]
+            : []),
+    ].join('&');
 
 // Age groups for donors
 const AGE_GROUP_DEFINITIONS = [
@@ -86,15 +101,19 @@ const groupDonorsByAge = (donors) => {
 };
 
 // Function for loading donor data from the P25 search endpoint
-const useP25Donors = () => {
+const useP25Donors = ({ hasProtectedAccess = false, ready = false }) => {
     const [donors, setDonors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
     useEffect(() => {
+        if (!ready) return;
         let cancelled = false;
+        setDonors([]);
+        setLoading(true);
+        setError(false);
         ajax.load(
-            searchQuery,
+            buildSearchQuery(hasProtectedAccess),
             (resp) => {
                 if (cancelled) return;
                 setDonors((resp['@graph'] || []).map(transformDonor));
@@ -110,7 +129,7 @@ const useP25Donors = () => {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [hasProtectedAccess, ready]);
 
     return { donors, loading, error };
 };
@@ -270,8 +289,15 @@ const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
  * Main component for the Consortium Hub page
  * @returns {JSX.Element} The rendered ConsortiumHub component
  */
-export const ConsortiumHub = () => {
-    const { donors, loading, error } = useP25Donors();
+export const ConsortiumHub = ({ session }) => {
+    // Load user access to determine ProtectedDonor access
+    const { userDownloadAccess, isAccessResolved } =
+        useUserDownloadAccess(session);
+    const hasProtectedAccess = !!userDownloadAccess['protected-network'];
+    const { donors, loading, error } = useP25Donors({
+        hasProtectedAccess,
+        ready: isAccessResolved,
+    });
     const donorGroups = groupDonorsByAge(donors);
     const donorList = [...donors].sort((a, b) =>
         a.donorId.localeCompare(b.donorId)
@@ -310,23 +336,33 @@ export const ConsortiumHub = () => {
                     <div className="nav-group">
                         <h6>Quick Links to the P25 Dataset</h6>
                         {quickLinks.map((link) => (
-                            <div key={link.title} className="dropdown">
-                                <div className="header">
+                            <div className="dropdown">
+                                <a
+                                    className="header"
+                                    key={link.title}
+                                    href={link.href}>
                                     <div className="toggle d-flex align-items-center">
-                                        <a
-                                            className="parent-link"
-                                            href={link.href}>
+                                        <span className="parent-link">
                                             {link.title}
-                                        </a>
+                                            {link.badge && (
+                                                <span
+                                                    className={`quick-link-badge quick-link-badge-${link.badge}`}>
+                                                    {link.badge === 'open' ? (
+                                                        'Open'
+                                                    ) : (
+                                                        <i className="icon icon-lock"></i>
+                                                    )}
+                                                </span>
+                                            )}
+                                        </span>
                                     </div>
-                                    <a
+                                    <span
                                         className="header-link"
-                                        href={link.href}
                                         aria-hidden="true"
                                         tabIndex={-1}>
                                         <RightArrowIcon />
-                                    </a>
-                                </div>
+                                    </span>
+                                </a>
                             </div>
                         ))}
                     </div>
@@ -341,46 +377,57 @@ export const ConsortiumHub = () => {
                                     Failed to load donor data.
                                 </span>
                             )}
-                            <ol className="cohort-details-list">
-                                {donorList.map((donor) => (
-                                    <li key={donor.donorId}>
-                                        <div className="donor-id">
-                                            <a href={donor.href}>
-                                                {donor.donorId}:
-                                            </a>{' '}
-                                            <span className="age-sex">
-                                                <span className="age">
-                                                    <span className="visually-hidden">
-                                                        Age{' '}
+                            {isAccessResolved && !hasProtectedAccess ? (
+                                <p>
+                                    You need dbGaP access to protected donor
+                                    metadata to view.
+                                </p>
+                            ) : (
+                                <ol className="cohort-details-list">
+                                    {donorList.map((donor) => (
+                                        <li key={donor.donorId}>
+                                            <div className="donor-id">
+                                                <a href={donor.href}>
+                                                    {donor.donorId}:
+                                                </a>{' '}
+                                                <span className="age-sex">
+                                                    <span className="age">
+                                                        <span className="visually-hidden">
+                                                            Age{' '}
+                                                        </span>
+                                                        {donor.age}
                                                     </span>
-                                                    {donor.age}
+                                                    <span className="sex">
+                                                        <span className="visually-hidden">
+                                                            {donor.sex === 'F'
+                                                                ? 'Female'
+                                                                : 'Male'}
+                                                        </span>
+                                                        <span aria-hidden="true">
+                                                            {donor.sex}
+                                                        </span>
+                                                    </span>
                                                 </span>
-                                                <span className="sex">
-                                                    <span className="visually-hidden">
-                                                        {donor.sex === 'F'
-                                                            ? 'Female'
-                                                            : 'Male'}
-                                                    </span>
-                                                    <span aria-hidden="true">
-                                                        {donor.sex}
-                                                    </span>
-                                                </span>
+                                            </div>
+                                            <span aria-hidden="true">
+                                                {' - '}
                                             </span>
-                                        </div>
-                                        <span aria-hidden="true">{' - '}</span>
-                                        <span
-                                            className={
-                                                donor.conditions.length
-                                                    ? ''
-                                                    : 'no-conditions'
-                                            }>
-                                            {donor.conditions.length
-                                                ? donor.conditions.join(', ')
-                                                : 'None'}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ol>
+                                            <span
+                                                className={
+                                                    donor.conditions.length
+                                                        ? ''
+                                                        : 'no-conditions'
+                                                }>
+                                                {donor.conditions.length
+                                                    ? donor.conditions.join(
+                                                          ', '
+                                                      )
+                                                    : 'None'}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ol>
+                            )}
                         </CohortDetailsDropdown>
                     </div>
                 </div>
