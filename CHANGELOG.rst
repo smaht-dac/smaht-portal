@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.2.2
+2.2.3
 =====
 
 `PR 701: test: add unit tests for core pure helper modules <https://github.com/smaht-dac/smaht-portal/pull/701>`_
