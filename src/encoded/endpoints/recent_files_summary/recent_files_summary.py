@@ -602,7 +602,7 @@ def recent_release_days(request: PyramidRequest,
         )
         query_arguments = {
             f"{date_property_name}.from": from_date if from_date else None,
-            f"{date_property_name}.to": thru_date if from_date else None,
+            f"{date_property_name}.to": thru_date if thru_date else None,
             AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE: f"!{AGGREGATION_NO_VALUE}",
             AGGREGATION_FIELD_FILE_DESCRIPTOR: f"!{AGGREGATION_NO_VALUE}"
         }

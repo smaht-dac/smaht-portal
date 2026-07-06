@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.1.0
+2.2.2
 =====
 
 `PR 700: Fix anonymous admin-scoped data exfiltration via /recent_files_summary <https://github.com/smaht-dac/smaht-portal/pull/700>`_
@@ -17,6 +17,32 @@ Change Log
 * Allowlist the ``tissue_info_property_name`` additional-field name to prevent reading an arbitrary embedded field from matching documents
 * Drop the ``top_hits_debug`` sub-aggregation that returned per-bucket document ids
 * Preserve the intended global aggregate counts (aggregation buckets only, no document contents)
+
+
+2.2.1
+=====
+
+* Update OIDC workflow and hook in assume_role usage for file upload/download
+
+2.2.0
+=====
+
+`PR 693: Add Cypress coverage for Recent Releases and Consortium Hub pages <https://github.com/smaht-dac/smaht-portal/pull/693>`_
+
+* Add Cypress spec for the Recent Releases page.
+* Add Cypress spec for the Consortium Hub page.
+* Add coverage for CODEC, NanoSeq, and VISTA-Seq assay types in the Donor x Assay data matrix view.
+
+
+2.1.0
+=====
+
+`PR 698: Fix data matrix popover totals and donor counts in tissue/assay summaries <https://github.com/smaht-dac/smaht-portal/pull/698>`_
+
+* added a shared helper to compute unique donor counts from grouped items
+* improved Tissue x Assay popover details:
+* updated column total aggregation so donor counts, file totals, and coverage totals are merged correctly across matching column entries
+* preserved grouped row metadata when overriding collapsed DSA file totals, so popovers still have the right contextual information
 
 
 2.0.0
