@@ -1167,15 +1167,19 @@ body[data-current-action="multiselect"] {
                     }
                 }
 
-                @media screen and (min-width: 1600px) {
+                @include media-breakpoint-up(md) {
+                    margin: auto 50px;
+                }
+                @media screen and (min-width: 1800px) {
                     padding-left: 85px;
-                    transition: padding-left $navbar-transition-length $navbar-transition-easing;
+                    transition: padding-left $navbar-transition-length
+                        $navbar-transition-easing;
                     .intro-section,
                     .big-link {
                         .icon-beside-column {
                             width: 75px;
                             opacity: 1;
-                            transition: opacity .5s ease-out;
+                            transition: opacity 0.5s ease-out;
                         }
                     }
                 }
