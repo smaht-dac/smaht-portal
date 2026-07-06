@@ -308,6 +308,7 @@ export default class DataMatrix extends React.PureComponent {
         "showCountFor": false,
         "showMatrixModeTabs": true,
         "showUniqueDonorsAssayBand": true,
+        "dedupeBenchmarkingDsaAcrossTissues": false,
         "showFacetTermsPanel": false,
         "facetTermsPanelFields": null,
         "excludePrimaryColumnNoValue": true,
@@ -373,6 +374,7 @@ export default class DataMatrix extends React.PureComponent {
         'showCountFor': PropTypes.bool,
         'showMatrixModeTabs': PropTypes.bool,
         'showUniqueDonorsAssayBand': PropTypes.bool,
+        'dedupeBenchmarkingDsaAcrossTissues': PropTypes.bool,
         'showFacetTermsPanel': PropTypes.bool,
         'facetTermsPanelFields': PropTypes.arrayOf(PropTypes.string),
         'excludePrimaryColumnNoValue': PropTypes.bool,
@@ -856,7 +858,7 @@ export default class DataMatrix extends React.PureComponent {
         return typeof assayValue === 'string' ? assayValue : null;
     }
 
-    static buildRawRegularCountOverrides(rows = [], groupingProperties = [], columnGrouping = null) {
+    static buildRawRegularCountOverrides(rows = [], groupingProperties = [], columnGrouping = null, { dedupeBenchmarkingDsaAcrossTissues = false } = {}) {
         if (!Array.isArray(rows) || rows.length === 0 || !Array.isArray(groupingProperties) || !columnGrouping) {
             return {};
         }
@@ -891,7 +893,15 @@ export default class DataMatrix extends React.PureComponent {
                 if (!memo[depth][pathKey]) {
                     memo[depth][pathKey] = {};
                 }
-                memo[depth][pathKey][String(columnValue)] = (memo[depth][pathKey][String(columnValue)] || 0) + files;
+                const currentValue = memo[depth][pathKey][String(columnValue)] || 0;
+                // Benchmarking DSA-like files can be linked to multiple tissues for the
+                // same donor. Keep the donor-level override de-duplicated by taking the
+                // largest per-child bucket instead of summing repeated references.
+                if (dedupeBenchmarkingDsaAcrossTissues && isDsaLikeRow && depth === 0) {
+                    memo[depth][pathKey][String(columnValue)] = Math.max(currentValue, files);
+                } else {
+                    memo[depth][pathKey][String(columnValue)] = currentValue + files;
+                }
             }
 
             return memo;
@@ -907,7 +917,8 @@ export default class DataMatrix extends React.PureComponent {
             onDataLoaded,
             debugLoadingDelayMs = 0,
             autoPopulateRowGroupsExtendedMapFields,
-            autoPopulateColumnGroupsMapFields
+            autoPopulateColumnGroupsMapFields,
+            dedupeBenchmarkingDsaAcrossTissues = false
         } = this.props;
         const {
             query: { url: requestUrl, columnAggFields: propColumnAggFields, rowAggFields: propRowAggFields },
@@ -1066,7 +1077,8 @@ export default class DataMatrix extends React.PureComponent {
             updatedState['rawRegularCountOverrides'] = DataMatrix.buildRawRegularCountOverrides(
                 rawProcessedAllRows,
                 groupingProperties,
-                columnGrouping
+                columnGrouping,
+                { dedupeBenchmarkingDsaAcrossTissues }
             );
             const availableDonorTissueAssays = _.uniq(_.compact(_.map(transformedData.all, (r) => r.assay)));
             updatedState['availableDonorTissueAssays'] = availableDonorTissueAssays;

@@ -2710,6 +2710,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     const shouldDeriveDsaFiles = summaryCountFor === 'files'
                         && summaryBlockType === 'col-summary'
                         && columnKey === 'DSA'
+                        && (!props.dedupeBenchmarkingDsaAcrossTissues || typeof rawOverrideSectionFilesTotal !== 'number')
                         && !!props.rowSummaryCountsByGroup;
                     const derivedDsaFiles = shouldDeriveDsaFiles
                         ? StackedBlockGroupedRow.getDerivedColumnFilesFromRowSummary(sectionRows, columnKey, props)
