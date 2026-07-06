@@ -8,6 +8,11 @@ Change Log
 ----------
 
 
+2.2.1
+=====
+
+* Update OIDC workflow and hook in assume_role usage for file upload/download
+
 2.2.0
 =====
 
