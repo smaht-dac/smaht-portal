@@ -244,7 +244,9 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                 const $col = Cypress.$(col);
                                 const label = $col.find('.label').text().trim();
                                 const rawText = $col.find('.value').text().trim();
-                                const numericValue = parseInt(rawText, 10);
+                                const numericValue = parseIntSafe(
+                                    rawText.replace(/,/g, '')
+                                );
                                 if (!Number.isNaN(numericValue)) {
                                     numericValues.push(numericValue);
                                     if (label === 'Total Files') {
