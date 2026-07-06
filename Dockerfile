@@ -69,6 +69,18 @@ RUN npm run build && \
 RUN curl -o aws-ip-ranges.json https://ip-ranges.amazonaws.com/ip-ranges.json && \
     curl https://gist.githubusercontent.com/ammarshah/f5c2624d767f91a7cbdc4e54db8dd0bf/raw > restricted_domains.txt
 
+# Splunk Universal Forwarder (HMS/FISMA compliance agent). Installed here via the
+# Debian package per the HMS instructions; the extracted /opt/splunkforwarder tree
+# is copied into the runtime image below, so no download/dpkg runs in runtime.
+# No first-run state is generated at build time - that happens per-container at
+# startup (see deploy/docker/production/splunk/run_splunk_forwarder.sh).
+ARG SPLUNK_UF_VERSION=9.4.12
+ARG SPLUNK_UF_BUILD=9dfc486f3d48
+RUN curl -fsSL -o /tmp/splunkforwarder.deb \
+      "https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_UF_VERSION}/linux/splunkforwarder-${SPLUNK_UF_VERSION}-${SPLUNK_UF_BUILD}-linux-amd64.deb" && \
+    dpkg -i /tmp/splunkforwarder.deb && \
+    rm -f /tmp/splunkforwarder.deb
+
 # ---------------------------------------------------------------------------
 # Runtime stage: slim image with only what's needed to serve the app - no
 # compilers, no Node, no editors. Same hardened base, runtime libs only.
@@ -119,14 +131,20 @@ RUN rm -f /etc/nginx/nginx.conf \
           /etc/nginx/sites-available/default
 COPY deploy/docker/production/nginx.conf /etc/nginx/nginx.conf
 
-# nginx runtime filesystem. nginx runs as the non-root nginx user under supervisord,
-# so the paths it writes (error_log, state/temp dir, pid) must be nginx-owned. The
-# custom nginx.conf has access_log off and no proxy_cache_path, so nothing else is needed.
-RUN mkdir -p /var/log/nginx /var/lib/nginx && \
-    chown -R nginx:nginx /var/log/nginx /var/lib/nginx && \
+# nginx + app runtime log filesystem. Everything runs as the non-root nginx user
+# under supervisord, so the paths written (nginx error/access logs, state/temp dir,
+# pid, and the app worker logs) must be nginx-owned. /var/log/smaht holds the app
+# worker output that the Splunk forwarder tails; the log files are pre-created so
+# the forwarder and the tail-to-stdout shipper find them immediately at startup.
+RUN mkdir -p /var/log/nginx /var/lib/nginx /var/log/smaht && \
+    chown -R nginx:nginx /var/log/nginx /var/lib/nginx /var/log/smaht && \
     rm -f /var/log/nginx/* && \
-    touch /var/log/nginx/error.log /var/run/nginx.pid && \
-    chown nginx:nginx /var/log/nginx/error.log /var/run/nginx.pid
+    touch /var/log/nginx/error.log /var/log/nginx/access.log /var/run/nginx.pid \
+          /var/log/smaht/smaht1.log /var/log/smaht/smaht2.log /var/log/smaht/smaht3.log \
+          /var/log/smaht/smaht4.log /var/log/smaht/smaht5.log && \
+    chown nginx:nginx /var/log/nginx/error.log /var/log/nginx/access.log /var/run/nginx.pid \
+          /var/log/smaht/smaht1.log /var/log/smaht/smaht2.log /var/log/smaht/smaht3.log \
+          /var/log/smaht/smaht4.log /var/log/smaht/smaht5.log
 
 WORKDIR /home/nginx/smaht-portal
 
@@ -136,6 +154,17 @@ COPY --chown=nginx:nginx --from=builder /opt/venv /opt/venv
 COPY --chown=nginx:nginx --from=builder /home/nginx/smaht-portal /home/nginx/smaht-portal
 # Node runtime (for server-side rendering) - just the prebuilt interpreter, no toolchain.
 COPY --chown=nginx:nginx --from=builder ${NODE_DIR} ${NODE_DIR}
+
+# Splunk Universal Forwarder: copy the installed tree from the builder (no download
+# or dpkg in the runtime image) and drop in our static config. It runs as the
+# non-root nginx user under supervisord; deploy-poll (deploymentclient.conf) points
+# it at the HMS deployment server, which pushes the outputs/index config after it
+# phones home. inputs.conf monitors the app + nginx log files on disk.
+ENV SPLUNK_HOME=/opt/splunkforwarder
+COPY --chown=nginx:nginx --from=builder /opt/splunkforwarder /opt/splunkforwarder
+COPY --chown=nginx:nginx deploy/docker/production/splunk/deploymentclient.conf /opt/splunkforwarder/etc/system/local/deploymentclient.conf
+COPY --chown=nginx:nginx deploy/docker/production/splunk/inputs.conf /opt/splunkforwarder/etc/system/local/inputs.conf
+COPY --chown=nginx:nginx deploy/docker/production/splunk/run_splunk_forwarder.sh run_splunk_forwarder.sh
 
 # App config + entrypoints. entrypoint.sh dispatches by $application_type; *.ini must
 # match the env name in Secrets Manager.
@@ -156,7 +185,8 @@ COPY --chown=nginx:nginx deploy/docker/production/assume_identity.py .
 RUN touch production.ini session-secret.b64 supervisord.log supervisord.sock supervisord.pid && \
     chown nginx:nginx production.ini session-secret.b64 supervisord.log supervisord.sock supervisord.pid && \
     chmod +x entrypoint.sh entrypoint_local.sh entrypoint_portal.sh \
-             entrypoint_deployment.sh entrypoint_indexer.sh entrypoint_ingester.sh assume_identity.py
+             entrypoint_deployment.sh entrypoint_indexer.sh entrypoint_ingester.sh \
+             assume_identity.py run_splunk_forwarder.sh
 
 EXPOSE 8000
 
