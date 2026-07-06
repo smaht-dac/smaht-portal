@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+
+2.0.1
+=====
+
+* Update OIDC workflow and hook in assume_role usage for file upload/download
+
+
 2.0.0
 =====
 
