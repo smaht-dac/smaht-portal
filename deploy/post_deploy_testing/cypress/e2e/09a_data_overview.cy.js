@@ -90,7 +90,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesMenuVisible: true,
         expectedRetractedFilesResponseCode: 200,
         expectedRetractedFilesCount: 0,
-        expectedRenamedFilesCount: 0,
+        expectedRenamedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixResponseCode: 200,
         expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,

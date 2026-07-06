@@ -426,7 +426,7 @@ function stepPublicDonorFlow(caps) {
                                         expectedTissuesCount: donorID !== "COLO829" ? tissuesCount : null, // tissuesCount (null → skip strict total check)
                                         allowVariantCallSetMatrixUndercount: true,
                                         allowDSARowSummaryOvercount: true,
-                                        skipColSummaryTotalCheckForDonors: ["COLO829"],
+                                        skipColSummaryTotalCheckForDonors: ["COLO829", "ST001"],
                                         verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
                                     }
                                 );

@@ -8,6 +8,16 @@ Change Log
 ----------
 
 
+2.2.0
+=====
+
+`PR 693: Add Cypress coverage for Recent Releases and Consortium Hub pages <https://github.com/smaht-dac/smaht-portal/pull/693>`_
+
+* Add Cypress spec for the Recent Releases page.
+* Add Cypress spec for the Consortium Hub page.
+* Add coverage for CODEC, NanoSeq, and VISTA-Seq assay types in the Donor x Assay data matrix view.
+
+
 2.1.0
 =====
 
