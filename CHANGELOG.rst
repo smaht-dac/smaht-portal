@@ -8,10 +8,21 @@ Change Log
 ----------
 
 
-2.0.1
+2.1.1
 =====
 
 * Update OIDC workflow and hook in assume_role usage for file upload/download
+
+
+2.1.0
+=====
+
+`PR 698: Fix data matrix popover totals and donor counts in tissue/assay summaries <https://github.com/smaht-dac/smaht-portal/pull/698>`_
+
+* added a shared helper to compute unique donor counts from grouped items
+* improved Tissue x Assay popover details:
+* updated column total aggregation so donor counts, file totals, and coverage totals are merged correctly across matching column entries
+* preserved grouped row metadata when overriding collapsed DSA file totals, so popovers still have the right contextual information
 
 
 2.0.0
