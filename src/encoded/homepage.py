@@ -269,7 +269,6 @@ def home(context, request):
                             { "value": 2, "unit": "Cell Lines" },
                             { "value": search_results[1],
                               "unit": "Assays" },
-                            { "value": 0, "unit": "Mutations" },
                             { "value": search_results[2],
                               "unit": "Files Generated" }
                         ]
@@ -280,7 +279,6 @@ def home(context, request):
                         "figures": [
                             { "value": 6, "unit": "Cell Lines" },
                             { "value": search_results[3], "unit": "Assays" },
-                            { "value": 0, "unit": "Mutations" },
                             { "value": search_results[4], "unit": "Files Generated" }
                         ]
                     },
@@ -290,7 +288,6 @@ def home(context, request):
                         "figures": [
                             { "value": 5, "unit": "Cell Lines" },
                             { "value": search_results[5], "unit": "Assays" },
-                            { "value": 0, "unit": "Mutations" },
                             { "value": search_results[6], "unit": "Files Generated" }
                         ]
                     },

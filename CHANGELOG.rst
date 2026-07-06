@@ -7,12 +7,12 @@ smaht-portal
 Change Log
 ----------
 
-1.34.0
-======
+2.2.2
+=====
 
-`PR 637: feat: publication view <https://github.com/smaht-dac/smaht-portal/pull/637>`_
+`PR 691: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/691>`_
 
-* Implement page for publication items
+* Updates to homepage timeline and figure
 
 
 2.2.1
