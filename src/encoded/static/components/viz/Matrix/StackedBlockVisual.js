@@ -992,7 +992,7 @@ export class VisualBody extends React.PureComponent {
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
                     'countFor', 'overallCounts', 'showUniqueDonorsAssayBand', 'shrinkEmptyColumns',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing', 'rowSummaryCountsByGroup',
-                    'rawRegularCountOverrides', 'compactCoverageText', 'showCoverageSummaries', 'disableRowExpand', 'disableBlockOpen',
+                    'rawRegularCountOverrides', 'dedupeBenchmarkingDsaAcrossTissues', 'compactCoverageText', 'showCoverageSummaries', 'disableRowExpand', 'disableBlockOpen',
                     'headerLeftControls', 'hideFallbackColumnGroupHeader', 'hideFallbackRowGroupHeader', 'isGridRefreshing')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -2092,7 +2092,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle',
             // Generic summary overrides keyed by grouping field and row value.
-            'countFor', 'rowSummaryCountsByGroup', 'compactCoverageText', 'showCoverageSummaries');
+            'countFor', 'rowSummaryCountsByGroup', 'rawRegularCountOverrides', 'dedupeBenchmarkingDsaAcrossTissues',
+            'compactCoverageText', 'showCoverageSummaries');
         const getContainerGroupStyle = function(columnKey = 'overall-summary') {
             const width = StackedBlockGroupedRow.getColumnWidthForKey(columnKey, props);
             return {

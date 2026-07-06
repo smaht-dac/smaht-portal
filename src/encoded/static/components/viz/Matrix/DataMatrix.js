@@ -866,8 +866,14 @@ export default class DataMatrix extends React.PureComponent {
         return _.reduce(rows, (memo, row) => {
             const columnValue = row?.[columnGrouping];
             const files = Number(row?.counts?.files) || 0;
-            const dataType = String(row?.data_type || '');
-            const isDsaLikeRow = dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval';
+            const dataTypes = _.chain([row?.data_type])
+                .flatten()
+                .compact()
+                .map((value) => String(value))
+                .value();
+            const isDsaLikeRow = _.some(dataTypes, (dataType) =>
+                dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval'
+            );
             if (!columnValue || files <= 0) {
                 return memo;
             }
@@ -1075,7 +1081,7 @@ export default class DataMatrix extends React.PureComponent {
                 updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
             }
             updatedState['rawRegularCountOverrides'] = DataMatrix.buildRawRegularCountOverrides(
-                rawProcessedAllRows,
+                dedupeBenchmarkingDsaAcrossTissues ? transformedData.all : rawProcessedAllRows,
                 groupingProperties,
                 columnGrouping,
                 { dedupeBenchmarkingDsaAcrossTissues }
@@ -1749,6 +1755,7 @@ export default class DataMatrix extends React.PureComponent {
             baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor, showMatrixModeTabs,
             showFacetTermsPanel, facetTermsPanelFields, donorTissueShrinkEmptyColumns,
             headerPadding, showUniqueDonorsAssayBand, schemas,
+            dedupeBenchmarkingDsaAcrossTissues = false,
             titleMap, statePrioritizationForGroups, fallbackNameForBlankField
         } = this.props;
         const {
@@ -1822,6 +1829,7 @@ export default class DataMatrix extends React.PureComponent {
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
+            dedupeBenchmarkingDsaAcrossTissues,
             // Donor x Assay and Tissue x Assay both benefit from raw per-row
             // file overrides to keep summary columns aligned with visible cells.
             // Donor x Tissue derives its own filtered donor/tissue aggregates
