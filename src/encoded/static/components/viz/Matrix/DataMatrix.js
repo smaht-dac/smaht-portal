@@ -308,6 +308,7 @@ export default class DataMatrix extends React.PureComponent {
         "showCountFor": false,
         "showMatrixModeTabs": true,
         "showUniqueDonorsAssayBand": true,
+        "dedupeBenchmarkingDsaAcrossTissues": false,
         "showFacetTermsPanel": false,
         "facetTermsPanelFields": null,
         "excludePrimaryColumnNoValue": true,
@@ -373,6 +374,7 @@ export default class DataMatrix extends React.PureComponent {
         'showCountFor': PropTypes.bool,
         'showMatrixModeTabs': PropTypes.bool,
         'showUniqueDonorsAssayBand': PropTypes.bool,
+        'dedupeBenchmarkingDsaAcrossTissues': PropTypes.bool,
         'showFacetTermsPanel': PropTypes.bool,
         'facetTermsPanelFields': PropTypes.arrayOf(PropTypes.string),
         'excludePrimaryColumnNoValue': PropTypes.bool,
@@ -856,7 +858,7 @@ export default class DataMatrix extends React.PureComponent {
         return typeof assayValue === 'string' ? assayValue : null;
     }
 
-    static buildRawRegularCountOverrides(rows = [], groupingProperties = [], columnGrouping = null) {
+    static buildRawRegularCountOverrides(rows = [], groupingProperties = [], columnGrouping = null, { dedupeBenchmarkingDsaAcrossTissues = false } = {}) {
         if (!Array.isArray(rows) || rows.length === 0 || !Array.isArray(groupingProperties) || !columnGrouping) {
             return {};
         }
@@ -864,8 +866,14 @@ export default class DataMatrix extends React.PureComponent {
         return _.reduce(rows, (memo, row) => {
             const columnValue = row?.[columnGrouping];
             const files = Number(row?.counts?.files) || 0;
-            const dataType = String(row?.data_type || '');
-            const isDsaLikeRow = dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval';
+            const dataTypes = _.chain([row?.data_type])
+                .flatten()
+                .compact()
+                .map((value) => String(value))
+                .value();
+            const isDsaLikeRow = _.some(dataTypes, (dataType) =>
+                dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval'
+            );
             if (!columnValue || files <= 0) {
                 return memo;
             }
@@ -891,7 +899,15 @@ export default class DataMatrix extends React.PureComponent {
                 if (!memo[depth][pathKey]) {
                     memo[depth][pathKey] = {};
                 }
-                memo[depth][pathKey][String(columnValue)] = (memo[depth][pathKey][String(columnValue)] || 0) + files;
+                const currentValue = memo[depth][pathKey][String(columnValue)] || 0;
+                // Benchmarking DSA-like files can be linked to multiple tissues for the
+                // same donor. Keep the donor-level override de-duplicated by taking the
+                // largest per-child bucket instead of summing repeated references.
+                if (dedupeBenchmarkingDsaAcrossTissues && isDsaLikeRow && depth === 0) {
+                    memo[depth][pathKey][String(columnValue)] = Math.max(currentValue, files);
+                } else {
+                    memo[depth][pathKey][String(columnValue)] = currentValue + files;
+                }
             }
 
             return memo;
@@ -907,13 +923,15 @@ export default class DataMatrix extends React.PureComponent {
             onDataLoaded,
             debugLoadingDelayMs = 0,
             autoPopulateRowGroupsExtendedMapFields,
-            autoPopulateColumnGroupsMapFields
+            autoPopulateColumnGroupsMapFields,
+            dedupeBenchmarkingDsaAcrossTissues = false
         } = this.props;
         const {
             query: { url: requestUrl, columnAggFields: propColumnAggFields, rowAggFields: propRowAggFields },
             fieldChangeMap,
             groupingProperties,
             columnGrouping,
+            rowGroups,
             autoPopulateRowGroupsProperty,
             rowGroupsExtended,
             columnGroups,
@@ -1007,7 +1025,7 @@ export default class DataMatrix extends React.PureComponent {
                 transformed.push(cloned);
             };
 
-            // result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : PRODUCTION_TEST_DATA_DA);
+            // result = resultItemPostProcessFuncKey ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? PRODUCTION_TEST_DATA_DA : PRODUCTION_TEST_DATA_TA));
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
@@ -1025,23 +1043,48 @@ export default class DataMatrix extends React.PureComponent {
             updatedState['overallCounts'] = result.counts || null;
             updatedState['facetsForPanel'] = result.facets || [];
             updatedState['facetFiltersForPanel'] = result.filters || [];
-            // Build generic row-summary overrides from backend facet counts.
-            // This keeps visual components dimension-agnostic (not donor-specific).
-            const donorFacet = _.findWhere(result.facets || [], { field: 'donors.display_title' });
-            const donorValueMap = valueChangeMap?.donor || {};
-            const donorSummaryCounts = donorFacet && Array.isArray(donorFacet.terms)
-                ? _.reduce(donorFacet.terms, (memo, term) => {
-                    const key = donorValueMap[term?.key] || term?.key;
-                    if (!key || key === 'No value') return memo;
-                    memo[key] = { files: Number(term?.doc_count) || 0 };
-                    return memo;
-                }, {})
-                : null;
-            updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
+            // Build row-summary overrides from backend facet counts.
+            // Benchmarking uses two different row-group sections:
+            // - cell lines should summarize by dataset
+            // - benchmarking donors should summarize by donor
+            // Keep the summary map section-aware so those rows can diverge.
+            const buildFacetSummaryCounts = (facetField, valueMap = null) => {
+                const facet = _.findWhere(result.facets || [], { field: facetField });
+                return facet && Array.isArray(facet.terms)
+                    ? _.reduce(facet.terms, (memo, term) => {
+                        const key = valueMap?.[term?.key] || term?.key;
+                        if (!key || key === 'No value') return memo;
+                        memo[key] = { files: Number(term?.doc_count) || 0 };
+                        return memo;
+                    }, {})
+                    : null;
+            };
+            const donorSummaryCounts = buildFacetSummaryCounts('donors.display_title', valueChangeMap?.donor || {});
+            const datasetSummaryCounts = buildFacetSummaryCounts('dataset', valueChangeMap?.donor || {});
+            const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0;
+            if (hasRowGroups) {
+                const rowGroupSummaryCounts = {};
+                _.forEach(rowGroups, (rowGroupConfig, rowGroupKey) => {
+                    const customUrlParams = rowGroupConfig?.customUrlParams || '';
+                    const usesDonorSummary = typeof customUrlParams === 'string' && customUrlParams.indexOf('dataset=tissue') >= 0;
+                    const summaryCounts = usesDonorSummary
+                        ? donorSummaryCounts
+                        : datasetSummaryCounts;
+                    if (summaryCounts) {
+                        rowGroupSummaryCounts[rowGroupKey] = usesDonorSummary
+                            ? { donor: summaryCounts }
+                            : { dataset: summaryCounts };
+                    }
+                });
+                updatedState['rowSummaryCountsByGroup'] = _.keys(rowGroupSummaryCounts).length > 0 ? rowGroupSummaryCounts : null;
+            } else {
+                updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
+            }
             updatedState['rawRegularCountOverrides'] = DataMatrix.buildRawRegularCountOverrides(
-                rawProcessedAllRows,
+                dedupeBenchmarkingDsaAcrossTissues ? transformedData.all : rawProcessedAllRows,
                 groupingProperties,
-                columnGrouping
+                columnGrouping,
+                { dedupeBenchmarkingDsaAcrossTissues }
             );
             const availableDonorTissueAssays = _.uniq(_.compact(_.map(transformedData.all, (r) => r.assay)));
             updatedState['availableDonorTissueAssays'] = availableDonorTissueAssays;
@@ -1712,6 +1755,7 @@ export default class DataMatrix extends React.PureComponent {
             baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor, showMatrixModeTabs,
             showFacetTermsPanel, facetTermsPanelFields, donorTissueShrinkEmptyColumns,
             headerPadding, showUniqueDonorsAssayBand, schemas,
+            dedupeBenchmarkingDsaAcrossTissues = false,
             titleMap, statePrioritizationForGroups, fallbackNameForBlankField
         } = this.props;
         const {
@@ -1785,10 +1829,12 @@ export default class DataMatrix extends React.PureComponent {
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
-            // Raw regular-cell overrides are only intended for Donor x Assay.
-            // Donor x Tissue derives its own filtered donor/tissue aggregates and
-            // should not reuse assay-oriented raw override maps.
-            rawRegularCountOverrides: matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY
+            dedupeBenchmarkingDsaAcrossTissues,
+            // Donor x Assay and Tissue x Assay both benefit from raw per-row
+            // file overrides to keep summary columns aligned with visible cells.
+            // Donor x Tissue derives its own filtered donor/tissue aggregates
+            // and should not reuse assay-oriented raw override maps.
+            rawRegularCountOverrides: matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
                 ? (this.state.rawRegularCountOverrides || null)
                 : null,
             ...(countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY
