@@ -67,6 +67,7 @@ jobs:
           # # The need for this old environment variable name will go away soon.
           # TRAVIS_JOB_ID: sno-x-test-${{ github.run_number }}-
           # This will be the new environment variable name.
+          S3_UPLOAD_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           TEST_JOB_ID: smaht-test-indexing-${{ github.run_number }}-${{ matrix.python_version }}-
         run: |
           make remote-test
