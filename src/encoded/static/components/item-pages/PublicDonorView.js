@@ -328,6 +328,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
                                     showUniqueDonorsAssayBand={false}
+                                    dedupeBenchmarkingDsaAcrossTissues={study !== 'Production'}
                                     baseBrowseFilesPath={
                                         study === 'Production'
                                             ? '/browse/'
