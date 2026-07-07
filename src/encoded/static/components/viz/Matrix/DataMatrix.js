@@ -1639,19 +1639,24 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     /**
-     * Signature over the fetch inputs that are NOT determined by the active tab
-     * (matrix mode). Two tabs loaded under the same signature share the same
-     * underlying filter/session context, so a cached tab is safe to restore only
-     * when its stored signature still matches. countFor is intentionally omitted:
-     * it is a client-side display toggle and does not change the fetched response.
+     * Signature over the fetch inputs for the active tab. The cache itself is
+     * keyed by matrix mode, but sub-views within a mode can change aggregation
+     * and grouping fields without changing query.url. A cached tab is safe to
+     * restore only when its stored signature still matches the exact request
+     * shape. countFor is intentionally omitted: when it changes the fetched
+     * response, the aggregation/grouping fields below change with it.
      */
     getTabCacheSignature() {
         const { session } = this.props;
-        const { query, facetNavigationHref, fieldChangeMap, showColumnSummary } = this.state;
+        const { query, facetNavigationHref, fieldChangeMap, showColumnSummary, groupingProperties, columnGrouping } = this.state;
         return JSON.stringify({
             session: session || null,
             baseUrl: (query && query.url) || null,
             facetHref: facetNavigationHref || null,
+            columnAggFields: (query && query.columnAggFields) || null,
+            rowAggFields: (query && query.rowAggFields) || null,
+            columnGrouping: columnGrouping || null,
+            groupingProperties: groupingProperties || null,
             fieldChangeMap: fieldChangeMap || null,
             showColumnSummary: showColumnSummary || null
         });
