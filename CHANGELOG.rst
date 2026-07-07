@@ -7,6 +7,97 @@ smaht-portal
 Change Log
 ----------
 
+2.2.3
+=====
+
+`PR 701: test: add unit tests for core pure helper modules <https://github.com/smaht-dac/smaht-portal/pull/701>`_
+
+* Add direct unit tests for previously under-tested pure helpers: ``encoded/utils.py`` (collection pluralization, resource-path formatting, ``get_configuration_value``), ``item_utils/utils.py`` (``dedupe_identifiers`` and ``RequestHandler`` validation), ``item_utils/file.py`` file-classification predicates, and ``schema_formats.is_accession``
+* Extend coverage to more correctness-sensitive pure helpers: ``metadata.py`` (``_neutralize_formula_injection`` CSV/TSV formula-injection guard, ``handle_file_group``, ``handle_sample_type``/``handle_sample_source_type`` precedence), ``submission_status.py`` (``rgb_to_hex``, ``generate_html_colors``, ``get_qc_result``, ``get_output_files_info``/``get_submitted_files_info`` aggregation, ``get_latest_alignment_mwfr_for_fileset``), ``visualization.py`` (``convert_date_range``), and ``item_utils/tissue.py`` classification predicates
+* Harden ``test_indexing.py::test_real_validation_error`` against eventual-consistency flakiness: replace the fixed ``time.sleep(2)`` + single ES read with an ``Eventually.consistent`` retry that tolerates the propagation window (matching the pattern used elsewhere in that module)
+
+2.2.2
+=====
+
+`PR 700: Fix anonymous admin-scoped data exfiltration via /recent_files_summary <https://github.com/smaht-dac/smaht-portal/pull/700>`_
+
+* Fix anonymous ACL-bypass in ``/recent_files_summary`` and ``/recent_release_days`` that returned protected/embargoed document contents to unauthenticated callers (the aggregation runs as the ``IMPORT`` admin user)
+* Remove the troubleshooting document dump that embedded real documents (uuids, donor/cell-line identifiers) into ``debug.portal_hits``
+* Allowlist the ``tissue_info_property_name`` additional-field name to prevent reading an arbitrary embedded field from matching documents
+* Drop the ``top_hits_debug`` sub-aggregation that returned per-bucket document ids
+* Preserve the intended global aggregate counts (aggregation buckets only, no document contents)
+
+
+2.2.1
+=====
+
+* Update OIDC workflow and hook in assume_role usage for file upload/download
+
+2.2.0
+=====
+
+`PR 693: Add Cypress coverage for Recent Releases and Consortium Hub pages <https://github.com/smaht-dac/smaht-portal/pull/693>`_
+
+* Add Cypress spec for the Recent Releases page.
+* Add Cypress spec for the Consortium Hub page.
+* Add coverage for CODEC, NanoSeq, and VISTA-Seq assay types in the Donor x Assay data matrix view.
+
+
+2.1.0
+=====
+
+`PR 698: Fix data matrix popover totals and donor counts in tissue/assay summaries <https://github.com/smaht-dac/smaht-portal/pull/698>`_
+
+* added a shared helper to compute unique donor counts from grouped items
+* improved Tissue x Assay popover details:
+* updated column total aggregation so donor counts, file totals, and coverage totals are merged correctly across matching column entries
+* preserved grouped row metadata when overriding collapsed DSA file totals, so popovers still have the right contextual information
+
+
+2.0.0
+=====
+
+* Fix privilege escalation in self-registration endpoint
+* Fix CSV/formula injection in metadata export
+
+
+1.33.3
+======
+
+`PR 690: test: update cypress tests for retracted and renamed files table <https://github.com/smaht-dac/smaht-portal/pull/690>`_
+
+* Fix click when shadow layer rendered above table
+* Add tests for Renamed files table
+
+
+1.33.2
+======
+
+`PR 695: Fix Recent Releases weekly navigation and September 2025 cutoff <https://github.com/smaht-dac/smaht-portal/pull/695>`_
+
+* Recover the missing Sep 2025 files - Include exclude_from_release_tracker-tagged files by default in /recent_release_days
+* Change the oldest navigable month from January 2025 to September 2025
+* Add explicit month context to home page weekly links
+* Preserve selected month context in Recent Releases URL state
+* Keep month focus stable when switching between Daily / Weekly / Monthly timeline modes
+
+
+1.33.1
+======
+
+`PR 694: Fix donor x assay matrix count inconsistencies <https://github.com/smaht-dac/smaht-portal/pull/694>`_
+
+* Resolve count mismatches for CODEC, NanoSeq, and VISTA-Seq assay types between the data matrix and browse view
+
+
+1.33.0
+======
+
+`PR 608: add publication <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* Add publication item - schema, types, calcprops and dummy inserts for tests
+
+
 1.32.3
 ======
 
