@@ -2243,7 +2243,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 disabled={isLoading || isScreenshotting}
                                                 onClick={this.onExportScreenshot}
                                                 data-tip="Download a PNG screenshot of the currently displayed matrix">
-                                                <i className={`icon fas me-03 ${isScreenshotting ? 'icon-spin icon-circle-notch' : 'icon-camera'}`} /> {isScreenshotting ? 'Capturing…' : 'Screenshot'}
+                                                <i className={`icon fas me-03 ${isScreenshotting ? 'icon-spin icon-circle-notch' : 'icon-camera'}`} /><span className="btn-label">{isScreenshotting ? 'Capturing…' : 'Screenshot'}</span>
                                             </button>
                                             <button
                                                 type="button"
@@ -2251,7 +2251,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 disabled={isLoading || !effectiveResults}
                                                 onClick={this.onExportJson}
                                                 data-tip="Export the currently displayed matrix as JSON">
-                                                <i className="icon icon-download fas me-03" /> Export JSON
+                                                <i className="icon icon-download fas me-03" /><span className="btn-label">Export JSON</span>
                                             </button>
                                         </div>
                                     </div>
