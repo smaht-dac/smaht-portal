@@ -1610,6 +1610,18 @@ body[data-path="/statistics"] {
         top: 48px;
         z-index: 8;
         background-color: #ffffff;
+
+        // Tabs sit flush against the row's border-bottom by design (their own border-bottom is
+        // "none" so they visually merge with the panel body below). Only pad the row when there
+        // are no tabs to butt up against (e.g. benchmarking's export-only row), otherwise padding
+        // pushes that border down and detaches the tabs from the body below them.
+        &.no-tabs {
+            padding: 0.5rem 0.25rem;
+        }
+    }
+
+    .matrix-export-json-btn {
+        white-space: nowrap;
     }
 
     .matrix-counts-panel {

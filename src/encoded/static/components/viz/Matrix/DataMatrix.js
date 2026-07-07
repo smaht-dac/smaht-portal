@@ -1645,7 +1645,7 @@ export default class DataMatrix extends React.PureComponent {
      * `/data_matrix_aggregations` response which isn't structured for consumption.
      */
     onExportJson() {
-        const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel } = this.state;
+        const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel, rowGroups, showRowGroups } = this.state;
         const { idLabel = '' } = this.props;
         const effectiveResults = this.getDerivedDonorTissueResults(this.state._results) || {};
         const exportData = buildMatrixExportData({
@@ -1658,7 +1658,9 @@ export default class DataMatrix extends React.PureComponent {
             overallCounts: effectiveResults.overallCounts || this.state.overallCounts || null,
             matrixMode,
             rowAxisLabel: yAxisLabel,
-            columnAxisLabel: xAxisLabel
+            columnAxisLabel: xAxisLabel,
+            rowGroups,
+            showRowGroups
         });
 
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -1666,7 +1668,7 @@ export default class DataMatrix extends React.PureComponent {
         const anchor = document.createElement('a');
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         anchor.href = downloadUrl;
-        anchor.download = `data-matrix_${matrixMode}_${countFor}_${idLabel || 'export'}_${timestamp}.json`;
+        anchor.download = `SMaHT_data-matrix_${matrixMode}_${countFor}_${idLabel || 'export'}_${timestamp}.json`;
         document.body.appendChild(anchor);
         anchor.click();
         document.body.removeChild(anchor);
@@ -2087,7 +2089,7 @@ export default class DataMatrix extends React.PureComponent {
                                     </div>
                                 ) : null}
                                 <div className="matrix-visual-panel flex-grow-1">
-                                    <div className="matrix-mode-tabs-row d-flex align-items-center justify-content-between">
+                                    <div className={`matrix-mode-tabs-row d-flex align-items-center justify-content-between${shouldShowMatrixModeTabs ? '' : ' no-tabs'}`}>
                                         {shouldShowMatrixModeTabs ? (
                                             <div className="matrix-mode-tabs">
                                                 <button
