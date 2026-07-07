@@ -4,6 +4,21 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Add durable project-specific notes here as they are discovered through real work.
 
+## Building the production Docker image locally
+
+- `Dockerfile` is a BuildKit multi-stage build (`builder` -> `runtime`); it needs
+  BuildKit (`DOCKER_BUILDKIT=1`, or Docker >= 23 default) because of the `# syntax=`
+  directive and the `RUN --mount=type=cache` mounts. `buildspec.yml` sets
+  `DOCKER_BUILDKIT: "1"` for CodeBuild.
+- `docker build .` will fail at `COPY deploy/docker/local/docker_development.ini` with
+  `"... not found"` unless that file exists in the build context. It is `.gitignore`d;
+  CI creates it in `buildspec.yml` pre_build (`touch deploy/docker/local/docker_development.ini`).
+  To build locally, `touch deploy/docker/local/docker_development.ini` first.
+- nginx is NOT Debian's stock package: `deploy/docker/production/install_nginx_bullseye.sh`
+  installs a pinned nginx.org build (1.21.6) and creates the non-root `nginx` user at
+  uid/gid 121. The container runs everything as `nginx` under `supervisord` (which now also
+  runs nginx via `[program:nginx]`; the entrypoints no longer `service nginx start`).
+
 ## Running the Python test suite
 
 - The project uses a `src/` layout package named `encoded` (see `pyproject.toml`,
