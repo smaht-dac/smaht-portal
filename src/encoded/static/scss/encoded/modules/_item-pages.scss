@@ -2915,6 +2915,11 @@ File, Donor, and Publication Overview Styles
                         padding-top: 250px;
                     }
                 }
+                .no-results .header {
+                    font-size: 1rem;
+                    margin: 0px;
+                    padding: 0px;
+                }
             }
         }
     }
