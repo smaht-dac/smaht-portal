@@ -417,8 +417,7 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         )
         submission_center_user_app.post_json(
             "/AccessKey",
-            {  # can still create an access key
-                "user": smaht_gcc_user["@id"],
+            {  # can still create an access key (user field omitted; server defaults it to self)
                 "description": "test key",
             },
             status=201,
