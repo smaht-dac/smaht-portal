@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+2.3.0
+=====
+
+* Convert Docker built to multi-stage to reduce image overhead
+
+
 2.2.3
 =====
 
