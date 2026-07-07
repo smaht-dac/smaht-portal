@@ -286,7 +286,7 @@ export function buildMatrixExportData({
     const columnTotalsByKey = _.groupBy(Array.isArray(columnTotals) ? columnTotals : [], columnGrouping);
 
     const rows = [];
-    (function walk(node, pathValues, depth) {
+    (function collectLeafRows(node, pathValues, depth) {
         if (depth >= groupingProperties.length) {
             const items = Array.isArray(node) ? node : [];
             const rowKeyFields = _.object(groupingProperties, pathValues);
@@ -296,14 +296,19 @@ export function buildMatrixExportData({
                 counts[col] = computeCellValue(byColumn[col] || []);
             });
             const matchingRowTotals = rowTotalsByPath[JSON.stringify(pathValues)];
+            // germLayer (e.g. Ectoderm/Mesoderm/Endoderm/Germline) is not a grouping property but a
+            // per-tissue-row attribute shown on-screen as the colored vertical row-group label;
+            // surface it on each row when present so the grouping isn't lost on export.
+            const germLayerValue = items.length > 0 ? (items[0]?.germLayer ?? null) : null;
             rows.push({
                 ...rowKeyFields,
+                ...(germLayerValue != null ? { germLayer: germLayerValue } : {}),
                 counts,
                 rowTotal: computeCellValue(matchingRowTotals && matchingRowTotals.length ? matchingRowTotals : items)
             });
             return;
         }
-        _.each(node, (childNode, key) => walk(childNode, [...pathValues, key], depth + 1));
+        _.each(node, (childNode, key) => collectLeafRows(childNode, [...pathValues, key], depth + 1));
     })(nestedData, [], 0);
 
     const columnTotalsMap = {};
