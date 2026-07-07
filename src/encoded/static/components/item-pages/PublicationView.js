@@ -272,6 +272,7 @@ const PublicationViewTabs = (props) => {
                                         }
                                     />
                                 </div>
+                                <FileOverviewTableController {...tableProps} />
                             </>
                         ) : (
                             <div className="no-results">
@@ -288,7 +289,6 @@ const PublicationViewTabs = (props) => {
                                 </div>
                             </div>
                         )}
-                        <FileOverviewTableController {...tableProps} />
                     </div>
                 </div>
             </div>
