@@ -44,3 +44,27 @@ unit-test buckets (e.g. `smaht-unit-testing-wfout`), and (b) trust whatever iden
 authenticates as (the role behind `AWS_OIDC_ROLE_ARN`) for `sts:AssumeRole`. This is an AWS IAM
 change plus a new GitHub Actions secret — not fixable from application code alone. See PR #646 for
 the full investigation.
+
+## `dcicsnovault` version pin lags upstream ES-efficiency fixes; regenerating poetry.lock is risky in a sandbox
+
+`pyproject.toml` pins `dcicsnovault` to an exact version (currently `11.30.2.0b1`, no caret). As of
+2026-07-07, snovault PR https://github.com/4dn-dcic/snovault/pull/318 (ES query engine efficiency
+fixes: `compound_search` `_source` scope, skipping default facets on non-embedded frames,
+`frame=object`/`raw` `_source` scope, `limit=all` pagination no longer resending aggs) merged and
+shipped in snovault `11.30.5` per its `CHANGELOG.rst`. That's newer than the pinned version, so
+routes that delegate to snovault's shared `search()`/`compound_search` (e.g. `/browse`, see
+`src/encoded/browse.py`) do not yet get those fixes. The next PyPI-published release is `11.32.1`
+(intermediate `11.30.3`–`11.32.0` versions exist in the changelog but were never published to
+PyPI), which also bundles unrelated changes (a `create_unauthorized_user` privilege-escalation fix,
+SQS test-queue namespacing) — so this needs a deliberate, reviewed dependency-bump PR, not a
+drive-by change.
+
+Do not attempt to regenerate `poetry.lock` for a scoped version bump without the *exact* Poetry
+version originally used (check the lock file's header comment, e.g. `Poetry 1.4.2`, vs. the
+`Makefile`'s `pip install poetry==1.8.5` — these can disagree, as they did here). Even
+`poetry lock --no-update` with a different Poetry version re-resolved dozens of unrelated
+transitive packages (boto3, cryptography, coverage, etc.) into a large, unreviewable diff when
+tried in a network-connected sandbox with no working local `poetry` (homebrew's `poetry` here was
+broken: `dyld: Library not loaded: .../libintl.8.dylib`; a scratch venv with `pip install
+poetry==<version>` works around that without touching system state, but doesn't fix the
+version-mismatch resolution risk).
