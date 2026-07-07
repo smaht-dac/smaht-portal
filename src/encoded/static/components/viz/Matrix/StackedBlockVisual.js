@@ -243,6 +243,96 @@ export function extendListObjectsWithIndex(objList){
     });
 }
 
+// Reduces the currently-visible matrix (same data/countFor state the grid renders from) into a
+// flat, JSON-serializable table: one row per leaf row-group (donor, donor+tissue, or tissue),
+// one field per visible column, plus row/column/grand totals sourced the same way the on-screen
+// summary cells are (from rowTotals/columnTotals, not by re-summing `data`).
+// Example: buildMatrixExportData({ data, rowTotals, columnTotals, groupingProperties: ['donor','tissue'], columnGrouping: 'assay', countFor: 'files' })
+export function buildMatrixExportData({
+    data = [],
+    rowTotals = [],
+    columnTotals = [],
+    groupingProperties = [],
+    columnGrouping = null,
+    countFor = 'files',
+    overallCounts = null,
+    matrixMode = null,
+    rowAxisLabel = null,
+    columnAxisLabel = null
+} = {}) {
+    const countField = countFor === 'tissue_files' ? 'files' : countFor;
+
+    const computeCellValue = (items) => {
+        if (!Array.isArray(items) || items.length === 0) return 0;
+        if (countField === 'donors') {
+            const uniqueDonorCount = getUniqueDonorCountFromItems(items);
+            if (uniqueDonorCount !== null) return uniqueDonorCount;
+            return _.reduce(items, (max, item) => Math.max(max, getCountValueFromItem(item, countField)), 0);
+        }
+        return _.reduce(items, (sum, item) => sum + getCountValueFromItem(item, countField), 0);
+    };
+
+    const safeData = Array.isArray(data) ? data : [];
+    const nestedData = groupByMultiple(safeData, groupingProperties);
+    const groupedByColumn = typeof columnGrouping === 'string' ? _.groupBy(safeData, columnGrouping) : {};
+    const columns = _.chain(groupedByColumn).keys().sort().value();
+
+    // Row/column totals come from the backend-aggregated totals arrays (same source the
+    // row-summary/col-summary blocks use), keyed by the same grouping-property values.
+    const rowTotalsByPath = _.groupBy(
+        Array.isArray(rowTotals) ? rowTotals : [],
+        (row) => JSON.stringify(groupingProperties.map((prop) => row?.[prop]))
+    );
+    const columnTotalsByKey = _.groupBy(Array.isArray(columnTotals) ? columnTotals : [], columnGrouping);
+
+    const rows = [];
+    (function walk(node, pathValues, depth) {
+        if (depth >= groupingProperties.length) {
+            const items = Array.isArray(node) ? node : [];
+            const rowKeyFields = _.object(groupingProperties, pathValues);
+            const byColumn = _.groupBy(items, columnGrouping);
+            const counts = {};
+            columns.forEach((col) => {
+                counts[col] = computeCellValue(byColumn[col] || []);
+            });
+            const matchingRowTotals = rowTotalsByPath[JSON.stringify(pathValues)];
+            rows.push({
+                ...rowKeyFields,
+                counts,
+                rowTotal: computeCellValue(matchingRowTotals && matchingRowTotals.length ? matchingRowTotals : items)
+            });
+            return;
+        }
+        _.each(node, (childNode, key) => walk(childNode, [...pathValues, key], depth + 1));
+    })(nestedData, [], 0);
+
+    const columnTotalsMap = {};
+    columns.forEach((col) => {
+        const matchingColumnTotals = columnTotalsByKey[col];
+        columnTotalsMap[col] = computeCellValue(
+            matchingColumnTotals && matchingColumnTotals.length ? matchingColumnTotals : (groupedByColumn[col] || [])
+        );
+    });
+
+    const grandTotal = overallCounts && Number.isFinite(Number(overallCounts?.[countField]))
+        ? Number(overallCounts[countField])
+        : computeCellValue(Array.isArray(columnTotals) && columnTotals.length ? columnTotals : safeData);
+
+    return {
+        matrixMode,
+        countFor,
+        rowFields: groupingProperties,
+        columnField: columnGrouping,
+        rowAxisLabel,
+        columnAxisLabel,
+        columns,
+        rows,
+        columnTotals: columnTotalsMap,
+        grandTotal,
+        generatedAt: new Date().toISOString()
+    };
+}
+
 // VisualBody renders the matrix wrapper with popovers and count formatting.
 // Example: <VisualBody results={{ all: data, row_totals: totals }} groupingProperties={['donor','tissue']} columnGrouping="assay" />
 export class VisualBody extends React.PureComponent {

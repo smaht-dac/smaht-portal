@@ -7,7 +7,7 @@ import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { FacetList, generateNextHref } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/FacetList';
-import { VisualBody } from './StackedBlockVisual';
+import { VisualBody, buildMatrixExportData } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
 import { Term } from './../../util/Schemas';
 import { compareTissueFacetTerms } from '../../util/data';
@@ -485,6 +485,7 @@ export default class DataMatrix extends React.PureComponent {
         this.onCountForChange = this.onCountForChange.bind(this);
         this.onMatrixModeChange = this.onMatrixModeChange.bind(this);
         this.onDonorTissueAssayChange = this.onDonorTissueAssayChange.bind(this);
+        this.onExportJson = this.onExportJson.bind(this);
         this.onFacetFilter = this.onFacetFilter.bind(this);
         this.onFacetFilterMultiple = this.onFacetFilterMultiple.bind(this);
         this.onFacetClearFilters = this.onFacetClearFilters.bind(this);
@@ -1638,6 +1639,40 @@ export default class DataMatrix extends React.PureComponent {
         });
     }
 
+    /**
+     * Exports the currently visualized matrix state (respects matrix mode, files/coverage/donors
+     * toggle, and any donor-tissue assay filter) as a downloadable JSON file, rather than the raw
+     * `/data_matrix_aggregations` response which isn't structured for consumption.
+     */
+    onExportJson() {
+        const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel } = this.state;
+        const { idLabel = '' } = this.props;
+        const effectiveResults = this.getDerivedDonorTissueResults(this.state._results) || {};
+        const exportData = buildMatrixExportData({
+            data: effectiveResults.all || [],
+            rowTotals: effectiveResults.row_totals || [],
+            columnTotals: effectiveResults.column_totals || [],
+            groupingProperties,
+            columnGrouping,
+            countFor,
+            overallCounts: effectiveResults.overallCounts || this.state.overallCounts || null,
+            matrixMode,
+            rowAxisLabel: yAxisLabel,
+            columnAxisLabel: xAxisLabel
+        });
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        anchor.href = downloadUrl;
+        anchor.download = `data-matrix_${matrixMode}_${countFor}_${idLabel || 'export'}_${timestamp}.json`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(downloadUrl);
+    }
+
     onCountForChange(e) {
         const nextValue = e && e.target ? e.target.value : 'files';
         this.setState((prevState) => {
@@ -2052,8 +2087,8 @@ export default class DataMatrix extends React.PureComponent {
                                     </div>
                                 ) : null}
                                 <div className="matrix-visual-panel flex-grow-1">
-                                    {shouldShowMatrixModeTabs ? (
-                                        <div className="matrix-mode-tabs-row">
+                                    <div className="matrix-mode-tabs-row d-flex align-items-center justify-content-between">
+                                        {shouldShowMatrixModeTabs ? (
                                             <div className="matrix-mode-tabs">
                                                 <button
                                                     type="button"
@@ -2074,8 +2109,16 @@ export default class DataMatrix extends React.PureComponent {
                                                     <i className="icon fas icon-dna me-05" /> Donor x Tissue
                                                 </button>
                                             </div>
-                                        </div>
-                                    ) : null}
+                                        ) : <div />}
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-secondary matrix-export-json-btn"
+                                            disabled={isLoading || !effectiveResults}
+                                            onClick={this.onExportJson}
+                                            data-tip="Export the currently displayed matrix as JSON">
+                                            <i className="icon icon-download fas me-03" /> Export JSON
+                                        </button>
+                                    </div>
                                     <div className="matrix-visual-scroll-region">
                                         <div className="matrix-visual-scroll-content">
                                             <VisualBody
