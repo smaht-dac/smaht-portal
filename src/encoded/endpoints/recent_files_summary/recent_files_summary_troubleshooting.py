@@ -4,7 +4,6 @@ from pyramid.request import Request as PyramidRequest
 from termcolor import colored
 from typing import Any, Callable, List, Optional, Tuple, Union
 from unittest.mock import patch as patch
-from encoded.endpoints.endpoint_utils import parse_datetime_string
 from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
     AGGREGATION_FIELD_RELEASE_DATE,
     AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
@@ -20,125 +19,30 @@ from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
 
 def add_info_for_troubleshooting(normalized_results: dict, request: PyramidRequest) -> None:
 
-    def get_files(files, property_name, property_value, map_property_value = None):
-        found = []
-        for file in files:
-            if properties := _get_properties(file, property_name):
-                if callable(map_property_value):
-                    mapped_properties = []
-                    for value in properties:
-                        mapped_properties.append(map_property_value(value))
-                    properties = mapped_properties
-                if property_value in properties:
-                    found.append(file)
-        return found
-
-    def map_date_property_value(value):
-        if date_value := parse_datetime_string(value):
-            return f"{date_value.year}-{date_value.month:02}"
-        return value
-
-    def count_uuid(uuid_records: List[dict], uuid: str) -> int:
-        count = 0
-        for uuid_record in uuid_records:
-            if uuid_record.get("uuid") == uuid:
-                count += 1
-        return count
-
     def dedup_list(data: list) -> list:  # noqa
         return list(dict.fromkeys(data)) if isinstance(data, list) else []
 
+    # SECURITY: this troubleshooting hook previously embedded up to 1000 real documents
+    # (request.embed(..., as_user="IMPORT")["@graph"]) and copied their uuids / donor /
+    # cell-line identifiers into debug.portal_hits, and surfaced per-bucket document _ids
+    # via debug.elasticsearch_hits. Because the summary search intentionally runs globally
+    # (admin-scoped) so aggregate counts stay complete, returning ANY real document contents
+    # here disclosed protected/embargoed data to anonymous callers. The document dump has
+    # been removed entirely; only the (non-document) list of aggregation field names used for
+    # troubleshooting is surfaced.
     aggregation_fields_for_troubleshooting = dedup_list([
         AGGREGATION_FIELD_RELEASE_DATE,
         AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
         AGGREGATION_FIELD_CELL_MIXTURE,
         AGGREGATION_FIELD_DONOR,
         AGGREGATION_FIELD_DSA_DONOR,
-        # Store some extra properties for troublehooting (as this whole thing is).
         "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
         "file_sets.libraries.analytes.samples.sample_sources.display_title",
         AGGREGATION_FIELD_FILE_DESCRIPTOR
     ])
-
-    def annotate_with_uuids(normalized_results: dict):
-
-        def get_unique_release_tracker_description_values(normalized_results: dict) -> List[str]:
-            return _get_properties(normalized_results, "items.items.items.value")
-
-        nonlocal aggregation_fields_for_troubleshooting
-        unique_release_tracker_description_values = get_unique_release_tracker_description_values(normalized_results)
-        uuid_records = []
-        query = normalized_results.get("query")
-        if isinstance(normalized_results.get("debug"), dict):
-            normalized_results["debug"]["aggregation_fields_for_troubleshooting"] = (
-                aggregation_fields_for_troubleshooting)
-        files = request.embed(f"{query}&limit=1000", as_user="IMPORT")["@graph"]
-        for first_item in normalized_results["items"]:
-            first_property_name = first_item["name"]
-            first_property_value = first_item["value"]
-            for second_item in first_item["items"]:
-                second_property_name = second_item["name"]
-                second_property_value = second_item["value"]
-                second_item_items = second_item["items"]
-                # Put dummy elements in for AGGREGATION_FIELD_FILE_DESCRIPTOR items values which do not exist.
-                third_item_values = [third_item["value"] for third_item in second_item_items]
-                for unique_release_tracker_description_value in unique_release_tracker_description_values:
-                    if unique_release_tracker_description_value not in third_item_values:
-                        second_item["items"].append({
-                            "name": AGGREGATION_FIELD_FILE_DESCRIPTOR,
-                            "value": unique_release_tracker_description_value,
-                            "count": 0,
-                            "elasticsearch_counted": False,
-                            "debug_placeholder": True
-                        })
-                third_items_to_delete = []
-                for third_item in second_item_items:
-                    third_property_name = third_item["name"]
-                    third_property_value = third_item["value"]
-                    if debug_elasticsearch_hits := third_item.get("debug_elasticsearch_hits"):
-                        if not third_item.get("debug"):
-                            third_item["debug"] = {}
-                        third_item["debug"]["elasticsearch_hits"] = debug_elasticsearch_hits
-                        third_item["debug"]["elasticsearch_hits"].sort()
-                        del third_item["debug_elasticsearch_hits"]
-                    if first_files := get_files(files, first_property_name, first_property_value,
-                                                map_property_value=map_date_property_value):
-                        if second_files := get_files(first_files, second_property_name, second_property_value):
-                            if third_files := get_files(second_files, third_property_name, third_property_value):
-                                for file in third_files:
-                                    if isinstance(uuid := file.get("uuid"), str):
-                                        if not third_item.get("debug"):
-                                            third_item["debug"] = {}
-                                        if not third_item["debug"].get("portal_hits"):
-                                            third_item["debug"]["portal_hits"] = []
-                                        uuid_record = {"uuid": uuid}
-                                        for aggregation_field in aggregation_fields_for_troubleshooting:
-                                            aggregation_values = ", ".join(_get_properties(file, aggregation_field))
-                                            uuid_record[aggregation_field] = aggregation_values or None
-                                        if third_item["debug"].get("elasticsearch_hits"):
-                                            uuid_record["elasticsearch_counted"] = \
-                                                uuid in third_item["debug"]["elasticsearch_hits"]
-                                        third_item["debug"]["portal_hits"].append(uuid_record)
-                                        uuid_records.append(uuid_record)
-                                if third_item.get("debug", {}).get("portal_hits"):
-                                    third_item["debug"]["portal_hits"].sort(key=lambda item: item.get("uuid"))
-                    if ((third_item.get("count") == 0) and
-                        (third_item.get("debug_placeholder") is True) and
-                        (not third_item.get("debug", {}).get("elasticsearch_hits")) and
-                        (not third_item.get("debug", {}).get("portal_hits"))):  # noqa
-                        third_items_to_delete.append(third_item)
-                if third_items_to_delete:
-                    for third_item in third_items_to_delete:
-                        second_item_items.remove(third_item)
-
-        for uuid_record in uuid_records:
-            if (count := count_uuid(uuid_records, uuid_record["uuid"])) > 1:
-                uuid_record["duplicative"] = count
-
-    try:
-        annotate_with_uuids(normalized_results)
-    except Exception:
-        pass
+    if isinstance(normalized_results.get("debug"), dict):
+        normalized_results["debug"]["aggregation_fields_for_troubleshooting"] = (
+            aggregation_fields_for_troubleshooting)
 
 
 def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict,
