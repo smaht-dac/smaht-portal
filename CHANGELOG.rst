@@ -13,6 +13,8 @@ Change Log
 `PR 701: test: add unit tests for core pure helper modules <https://github.com/smaht-dac/smaht-portal/pull/701>`_
 
 * Add direct unit tests for previously under-tested pure helpers: ``encoded/utils.py`` (collection pluralization, resource-path formatting, ``get_configuration_value``), ``item_utils/utils.py`` (``dedupe_identifiers`` and ``RequestHandler`` validation), ``item_utils/file.py`` file-classification predicates, and ``schema_formats.is_accession``
+* Extend coverage to more correctness-sensitive pure helpers: ``metadata.py`` (``_neutralize_formula_injection`` CSV/TSV formula-injection guard, ``handle_file_group``, ``handle_sample_type``/``handle_sample_source_type`` precedence), ``submission_status.py`` (``rgb_to_hex``, ``generate_html_colors``, ``get_qc_result``, ``get_output_files_info``/``get_submitted_files_info`` aggregation, ``get_latest_alignment_mwfr_for_fileset``), ``visualization.py`` (``convert_date_range``), and ``item_utils/tissue.py`` classification predicates
+* Harden ``test_indexing.py::test_real_validation_error`` against eventual-consistency flakiness: replace the fixed ``time.sleep(2)`` + single ES read with an ``Eventually.consistent`` retry that tolerates the propagation window (matching the pattern used elsewhere in that module)
 
 2.2.2
 =====
