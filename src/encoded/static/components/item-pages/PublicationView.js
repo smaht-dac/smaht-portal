@@ -255,7 +255,7 @@ const PublicationViewTabs = (props) => {
                 </nav>
                 <div className="tab-router-contents">
                     <div className="content">
-                        {refSetGenSection && (
+                        {refSetGenSection ? (
                             <>
                                 <h2 className="header">
                                     {refSetGenSection?.title ??
@@ -273,6 +273,20 @@ const PublicationViewTabs = (props) => {
                                     />
                                 </div>
                             </>
+                        ) : (
+                            <div className="no-results">
+                                <div className="no-results-content">
+                                    <i className="icon icon-file fas"></i>
+                                    <h3 className="header">
+                                        No Supplementary Data Provided
+                                    </h3>
+                                    <span className="subheader">
+                                        This type of paper does not provide
+                                        supplementary data to the SMaHT Data
+                                        Portal
+                                    </span>
+                                </div>
+                            </div>
                         )}
                         <FileOverviewTableController {...tableProps} />
                     </div>
