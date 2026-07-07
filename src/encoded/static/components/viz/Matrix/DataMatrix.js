@@ -7,6 +7,7 @@ import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { FacetList, generateNextHref } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/FacetList';
+import { toPng } from 'html-to-image';
 import { VisualBody, buildMatrixExportData } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
 import { Term } from './../../util/Schemas';
@@ -486,6 +487,8 @@ export default class DataMatrix extends React.PureComponent {
         this.onMatrixModeChange = this.onMatrixModeChange.bind(this);
         this.onDonorTissueAssayChange = this.onDonorTissueAssayChange.bind(this);
         this.onExportJson = this.onExportJson.bind(this);
+        this.onExportScreenshot = this.onExportScreenshot.bind(this);
+        this.matrixCaptureEl = null;
         this.onFacetFilter = this.onFacetFilter.bind(this);
         this.onFacetFilterMultiple = this.onFacetFilterMultiple.bind(this);
         this.onFacetClearFilters = this.onFacetClearFilters.bind(this);
@@ -497,6 +500,7 @@ export default class DataMatrix extends React.PureComponent {
         const initialState = {
             "mounted": false,
             "isFetching": false,
+            "isScreenshotting": false,
             "_results": null,
             "query": props.query,
             "baseRowAggFields": props.query && props.query.rowAggFields ? props.query.rowAggFields : null,
@@ -1675,6 +1679,126 @@ export default class DataMatrix extends React.PureComponent {
         URL.revokeObjectURL(downloadUrl);
     }
 
+    /**
+     * Downloads a PNG screenshot of the currently displayed matrix grid (headers, row labels,
+     * cells and their totals), excluding the facet/counts side panel entirely since it's captured
+     * from `.matrix-visual-scroll-content` alone, a sibling of `.matrix-counts-panel`.
+     *
+     * Targeting the scroll *content* node rather than its `overflow-x:auto` scroll-region
+     * ancestor means html-to-image lays it out (and captures it) at its full natural
+     * width/height, so the whole matrix is captured even if it currently overflows the
+     * viewport/scroll container horizontally.
+     */
+    async onExportScreenshot() {
+        const node = this.matrixCaptureEl;
+        const { matrixMode, countFor, isScreenshotting } = this.state;
+        if (!node || isScreenshotting) return;
+
+        // The sticky column-header row is pinned via inline styles applied imperatively on
+        // scroll (see StackedBlockVisual.syncStickyHeaderOnScroll), not CSS `position: sticky`.
+        // Left as-is, the captured image would bake in whatever fixed on-screen coordinates
+        // were last computed for the viewport. Clear it so the header renders inline at its
+        // natural position for the full-content capture, then restore it afterwards.
+        const headerUpperEl = node.querySelector('.grouping.header-section-upper');
+        const originalHeaderStyle = headerUpperEl ? headerUpperEl.getAttribute('style') : null;
+        if (headerUpperEl) {
+            headerUpperEl.removeAttribute('style');
+        }
+        // The horizontal scroll-sync also applies a separate `translateX(...)` directly on the
+        // nested `.row.grouping-row` (to keep header/summary-band columns aligned under the
+        // pinned header while scrolling), which lives outside `headerUpperEl`'s own `style`
+        // attribute and so survives the reset above. Left in place, the "Total X"/"Total Files"
+        // summary rows render visibly shifted relative to the row data beneath them.
+        const headerUpperRowEl = headerUpperEl ? headerUpperEl.querySelector('.row.grouping-row') : null;
+        const originalHeaderRowTransform = headerUpperRowEl ? headerUpperRowEl.style.transform : null;
+        if (headerUpperRowEl) {
+            headerUpperRowEl.style.transform = '';
+        }
+
+        // `.stacked-block-viz-container` normally carries a `border-left` used to visually
+        // separate the grid from the facet/counts panel to its left. Since the screenshot
+        // deliberately excludes that panel, the divider has nothing to separate from and would
+        // otherwise show up as a stray line down the left edge of the image.
+        const vizContainerEl = node.querySelector('.stacked-block-viz-container');
+        const originalVizContainerBorder = vizContainerEl ? vizContainerEl.style.borderLeft : null;
+        if (vizContainerEl) {
+            vizContainerEl.style.borderLeft = 'none';
+        }
+
+        // The "Total X" / "Total Files" summary-band labels rely on a `float-start` span inside
+        // a `text-end` (right-aligned) container to sit flush-left despite the container's own
+        // right alignment - unlike regular row labels, which are plain right-aligned `<h4>`s with
+        // no float. This renders correctly on-screen, but html-to-image's cloned render doesn't
+        // reliably reproduce float positioning for these bands in benchmarking's row-group-
+        // sectioned view (each section gets its own band, several stacked among many sibling
+        // rows) - CSS-level overrides (text-align, flex) proved unreliable across cases, so
+        // instead pin each span to its own *measured, currently-correct* on-screen position in
+        // absolute pixels before capture. This can't be wrong because it's not re-deriving the
+        // position from CSS at all - it's copying the position the browser already rendered.
+        const summaryLabelContainers = Array.from(node.querySelectorAll('.grouping.header-section-lower .label-container.text-end'));
+        const originalSummaryLabelStyles = summaryLabelContainers.map((el) => el.getAttribute('style'));
+        const summaryLabelSpans = summaryLabelContainers.map((el) => el.querySelector(':scope > .float-start'));
+        const originalSummaryLabelSpanStyles = summaryLabelSpans.map((el) => (el ? el.getAttribute('style') : null));
+        summaryLabelContainers.forEach((el, i) => {
+            const span = summaryLabelSpans[i];
+            if (!span) return;
+            const containerRect = el.getBoundingClientRect();
+            const spanRect = span.getBoundingClientRect();
+            const offsetLeft = spanRect.left - containerRect.left;
+            const offsetTop = spanRect.top - containerRect.top;
+            el.style.position = 'relative';
+            span.style.float = 'none';
+            span.style.position = 'absolute';
+            span.style.left = `${offsetLeft}px`;
+            span.style.top = `${offsetTop}px`;
+            span.style.margin = '0';
+        });
+
+        this.setState({ isScreenshotting: true });
+        try {
+            const dataUrl = await toPng(node, { backgroundColor: '#ffffff', pixelRatio: 2 });
+            const anchor = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            anchor.href = dataUrl;
+            anchor.download = `data-matrix_${matrixMode}_${countFor}_${timestamp}.png`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+        } catch (e) {
+            console.error('Failed to capture matrix screenshot', e);
+        } finally {
+            if (headerUpperEl) {
+                if (originalHeaderStyle) {
+                    headerUpperEl.setAttribute('style', originalHeaderStyle);
+                } else {
+                    headerUpperEl.removeAttribute('style');
+                }
+            }
+            if (headerUpperRowEl) {
+                headerUpperRowEl.style.transform = originalHeaderRowTransform || '';
+            }
+            if (vizContainerEl) {
+                vizContainerEl.style.borderLeft = originalVizContainerBorder || '';
+            }
+            summaryLabelContainers.forEach((el, i) => {
+                if (originalSummaryLabelStyles[i]) {
+                    el.setAttribute('style', originalSummaryLabelStyles[i]);
+                } else {
+                    el.removeAttribute('style');
+                }
+            });
+            summaryLabelSpans.forEach((el, i) => {
+                if (!el) return;
+                if (originalSummaryLabelSpanStyles[i]) {
+                    el.setAttribute('style', originalSummaryLabelSpanStyles[i]);
+                } else {
+                    el.removeAttribute('style');
+                }
+            });
+            this.setState({ isScreenshotting: false });
+        }
+    }
+
     onCountForChange(e) {
         const nextValue = e && e.target ? e.target.value : 'files';
         this.setState((prevState) => {
@@ -1803,7 +1927,7 @@ export default class DataMatrix extends React.PureComponent {
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
             defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel, isFetching,
             matrixMode, donorTissueAssay, availableDonorTissueAssays, rowSummaryCountsByGroup, loadingContext,
-            _results: rawResults
+            isScreenshotting, _results: rawResults
         } = this.state;
 
         const effectiveFacetHref = this.getEffectiveFacetHref(query?.url);
@@ -2112,17 +2236,27 @@ export default class DataMatrix extends React.PureComponent {
                                                 </button>
                                             </div>
                                         ) : <div />}
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-outline-secondary matrix-export-json-btn"
-                                            disabled={isLoading || !effectiveResults}
-                                            onClick={this.onExportJson}
-                                            data-tip="Export the currently displayed matrix as JSON">
-                                            <i className="icon icon-download fas me-03" /> Export JSON
-                                        </button>
+                                        <div className="matrix-export-controls d-flex align-items-center gap-2">
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-outline-secondary matrix-screenshot-btn"
+                                                disabled={isLoading || isScreenshotting}
+                                                onClick={this.onExportScreenshot}
+                                                data-tip="Download a PNG screenshot of the currently displayed matrix">
+                                                <i className={`icon fas me-03 ${isScreenshotting ? 'icon-spin icon-circle-notch' : 'icon-camera'}`} /> {isScreenshotting ? 'Capturing…' : 'Screenshot'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-outline-secondary matrix-export-json-btn"
+                                                disabled={isLoading || !effectiveResults}
+                                                onClick={this.onExportJson}
+                                                data-tip="Export the currently displayed matrix as JSON">
+                                                <i className="icon icon-download fas me-03" /> Export JSON
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="matrix-visual-scroll-region">
-                                        <div className="matrix-visual-scroll-content">
+                                        <div className="matrix-visual-scroll-content" ref={(el) => { this.matrixCaptureEl = el; }}>
                                             <VisualBody
                                                 {...{ titleMap, statePrioritizationForGroups, fallbackNameForBlankField }}
                                                 {...bodyProps}
@@ -2144,7 +2278,7 @@ export default class DataMatrix extends React.PureComponent {
                     );
                 })() : (
                     <div className="matrix-visual-scroll-region">
-                        <div className="matrix-visual-scroll-content">
+                        <div className="matrix-visual-scroll-content" ref={(el) => { this.matrixCaptureEl = el; }}>
                             <VisualBody
                                 {...{ titleMap, statePrioritizationForGroups, fallbackNameForBlankField }}
                                 {...bodyProps}
