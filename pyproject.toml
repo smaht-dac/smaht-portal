@@ -179,6 +179,7 @@ wipe-test-indices = "snovault.commands.wipe_test_indices:main"
 # encoded commands
 create-annotated-filenames = "encoded.commands.create_annotated_filenames:main"
 create-bulk-donor-manifest = "encoded.commands.create_bulk_donor_manifest:main"
+delete-revision-history = "encoded.commands.delete_revision_history:main"
 flatten-structured-data = "encoded.commands.flatten_structured_data:main"  # For dev/testing only
 load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only

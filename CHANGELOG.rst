@@ -10,7 +10,7 @@ Change Log
 2.4.0
 =====
 
-* Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items to avoid unnecessary DB storage growth for workflow-definition and workflow-execution records.
+* Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items, and add a deployment command that purges already-stored historical propsheet rows while preserving each item's current version.
 
 
 2.3.8

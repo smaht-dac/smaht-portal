@@ -6,6 +6,8 @@ echo "Running a SMAHT deployment on the given environment"
 # secrets manager - this builds production.ini
 poetry run python -m assume_identity
 
+poetry run delete-revision-history production.ini --app-name app --prod
+
 # Clear db/es on smaht-devtest eventually if we run an "initial" deploy
 # Do nothing on other environments
 # TEMP: add --allow-prod
