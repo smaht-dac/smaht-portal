@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+2.4.0
+=====
+
+* Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items to avoid unnecessary DB storage growth for workflow-definition and workflow-execution records.
+
 
 2.3.8
 =====
@@ -102,8 +107,6 @@ Fix /ingestion_status route collision with SMaHT's ingestion-status endpoints
     ``total_tissues``/``total_assays``/``total_file_size`` sub-aggregations that are only
     read at the top-level total; per-bucket aggregations are trimmed to the fields
     actually consumed. Response shape is unchanged.
-
-
 2.3.1
 =====
 
