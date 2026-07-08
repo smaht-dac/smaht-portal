@@ -1,16 +1,14 @@
 import argparse
 import logging
 import sys
-from collections import defaultdict
-from typing import Dict, Iterable, Optional
+from typing import Dict, Optional
 
 import structlog
 import transaction
 from dcicutils.env_utils import is_stg_or_prd_env
 from pyramid.paster import get_app
 from snovault import DBSESSION, configure_dbsession
-from snovault.elasticsearch.indexer_utils import get_uuids_for_types
-from snovault.storage import CurrentPropertySheet, PropertySheet
+from snovault.storage import CurrentPropertySheet, PropertySheet, Resource
 
 
 logger = structlog.getLogger(__name__)
@@ -18,38 +16,39 @@ logger = structlog.getLogger(__name__)
 ITEM_TYPES_TO_PURGE = ("workflow", "meta_workflow_run")
 
 
-def _old_revision_sids_for_rid(session, rid: str) -> Iterable[int]:
-    """Return propsheet sids for non-current revisions of a single resource."""
-    current_sids_by_name = {
-        name: sid
-        for name, sid in (
-            session.query(CurrentPropertySheet.name, CurrentPropertySheet.sid)
-            .filter(CurrentPropertySheet.rid == rid)
-            .all()
+def old_revision_history_for_item_type(session, item_type: str):
+    """Query non-current propsheet rows belonging to one item type."""
+    resource_of_type_exists = (
+        session.query(Resource.rid)
+        .filter(
+            Resource.rid == PropertySheet.rid,
+            Resource.item_type == item_type,
         )
-    }
-    propsheets = (
-        session.query(PropertySheet.sid, PropertySheet.name)
-        .filter(PropertySheet.rid == rid)
-        .all()
+        .exists()
     )
-    return [
-        sid
-        for sid, name in propsheets
-        if current_sids_by_name.get(name) != sid
-    ]
-
-
-def delete_old_revision_history_for_rid(session, rid: str, dry_run: bool = False) -> int:
-    """Delete non-current propsheet rows for a resource and return the row count."""
-    old_sids = list(_old_revision_sids_for_rid(session, rid))
-    if old_sids and not dry_run:
-        (
-            session.query(PropertySheet)
-            .filter(PropertySheet.sid.in_(old_sids))
-            .delete(synchronize_session=False)
+    current_propsheet_exists = (
+        session.query(CurrentPropertySheet.sid)
+        .filter(
+            CurrentPropertySheet.rid == PropertySheet.rid,
+            CurrentPropertySheet.name == PropertySheet.name,
+            CurrentPropertySheet.sid == PropertySheet.sid,
         )
-    return len(old_sids)
+        .exists()
+    )
+    return session.query(PropertySheet).filter(
+        resource_of_type_exists,
+        ~current_propsheet_exists,
+    )
+
+
+def delete_old_revision_history_for_item_type(
+    session, item_type: str, dry_run: bool = False
+) -> int:
+    """Delete all non-current propsheet rows for an item type."""
+    old_revisions = old_revision_history_for_item_type(session, item_type)
+    if dry_run:
+        return old_revisions.count()
+    return old_revisions.delete(synchronize_session=False)
 
 
 def delete_revision_history(
@@ -77,27 +76,21 @@ def delete_revision_history(
 
     configure_dbsession(app)
     session = app.registry[DBSESSION]
-    deleted_by_type = defaultdict(int)
+    deleted_by_type = {}
 
-    for item_type in ITEM_TYPES_TO_PURGE:
-        for rid in get_uuids_for_types(app.registry, [item_type]):
-            try:
-                deleted_by_type[item_type] += delete_old_revision_history_for_rid(
-                    session, rid, dry_run=dry_run
-                )
-                if not dry_run:
-                    transaction.commit()
-            except Exception as e:
-                logger.error(
-                    "Encountered exception deleting revision history for %s %s: %s",
-                    item_type,
-                    rid,
-                    e,
-                )
-                transaction.abort()
-                raise
+    try:
+        for item_type in ITEM_TYPES_TO_PURGE:
+            deleted_by_type[item_type] = delete_old_revision_history_for_item_type(
+                session, item_type, dry_run=dry_run
+            )
+        if not dry_run:
+            transaction.commit()
+    except Exception as e:
+        logger.error("Encountered exception deleting revision history: %s", e)
+        transaction.abort()
+        raise
 
-    return {item_type: deleted_by_type[item_type] for item_type in ITEM_TYPES_TO_PURGE}
+    return deleted_by_type
 
 
 def main() -> None:
