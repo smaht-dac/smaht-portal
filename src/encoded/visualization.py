@@ -43,6 +43,28 @@ SUM_FILES_AGGREGATION_DEFINITION = {
 
 FIELDS_TO_DELETE = ['@context', '@id', '@type', '@graph', 'title', 'filters', 'facets', 'sort', 'clear_filters', 'actions', 'columns']
 
+# Coverage sum aggregation for data_matrix_aggregations. The Painless script
+# source is request-invariant, so define it once at module scope rather than
+# rebuilding the dict on every request. (Elasticsearch itself caches compiled
+# scripts keyed by their source string, so identical sources reuse the same
+# compiled script across requests.) The definition is deep-copied per request
+# before being mutated/nested.
+SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION = {
+    "total_coverage": {
+        "sum": {
+            "script": {
+                "source": """
+                    if (doc['embedded.data_generation_summary.average_coverage.raw'].size() == 0) {
+                        return 0;
+                    } else {
+                        return Double.parseDouble(doc['embedded.data_generation_summary.average_coverage.raw'].value);
+                    }
+                """
+            }
+        }
+    }
+}
+
 
 def includeme(config):
     config.add_route('date_histogram_aggregations', '/date_histogram_aggregations/')
@@ -362,9 +384,13 @@ def bar_plot_chart(context, request):
 
     def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
 
+        # Each bucket carries its own nested `all_donors_ids` sub-aggregation, so
+        # the list is extracted once per bucket here (it is not shared across
+        # recursion levels and cannot be cached/reused between buckets).
+        doc_count = int(bucket_result['doc_count'])
         curr_bucket_totals = {
-            'doc_count': int(bucket_result['doc_count']),
-            "files": int(bucket_result['doc_count']) if isFileTypeSearch else 0,
+            'doc_count': doc_count,
+            "files": doc_count if isFileTypeSearch else 0,
             'donors': int(bucket_result['total_donors']['value']),
             'all_donors_ids': [b['key'] for b in bucket_result['all_donors_ids']['buckets']]
         }
@@ -408,8 +434,39 @@ def bar_plot_chart(context, request):
             # Terminal field aggregation -- return just totals, nothing else.
             returned_buckets[bucket_result['key']] = curr_bucket_totals
 
+    # Single pass over the top-level buckets: format each bucket and, when
+    # requested, extract tissue -> category mappings in the same traversal
+    # instead of iterating the bucket list a second time.
+    collect_tissue_categories = (
+        include_meta_tissue_categories and fields_to_aggregate_for[0] == TISSUE_FIELD
+    )
+    tissue_category_by_term = {}
+    tissue_category_counts_by_term = {}
+
     for bucket in search_result['aggregations']['field_0']['buckets']:
         format_bucket_result(bucket, ret_result['terms'], 0)
+
+        if not collect_tissue_categories:
+            continue
+        category_buckets = bucket.get(TISSUE_CATEGORY_AGG_NAME, {}).get('buckets', [])
+        if len(category_buckets) == 0:
+            continue
+        counts_by_category = {}
+        best_category = None
+        best_count = -1
+        for category_bucket in category_buckets:
+            category = category_bucket.get('key')
+            count = int(category_bucket.get('doc_count', 0))
+            if category is None:
+                continue
+            counts_by_category[category] = count
+            if count > best_count:
+                best_count = count
+                best_category = category
+        if len(counts_by_category) > 0:
+            tissue_category_counts_by_term[bucket['key']] = counts_by_category
+        if best_category is not None:
+            tissue_category_by_term[bucket['key']] = best_category
 
     if collect_tissue_categories:
         ret_result["meta"]["tissue_category_by_term"] = tissue_category_by_term
@@ -429,21 +486,6 @@ def data_matrix_aggregations(context, request):
     # Used to determine which fields require special handling for array concatenation in Elasticsearch aggregations.
     ARRAY_FIELDS_TO_JOIN = {
         'data_type'
-    }
-    SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION = {
-        "total_coverage": {
-            "sum": {
-                "script": {
-                    "source": """
-                        if (doc['embedded.data_generation_summary.average_coverage.raw'].size() == 0) {
-                            return 0;
-                        } else {
-                            return Double.parseDouble(doc['embedded.data_generation_summary.average_coverage.raw'].value);
-                        }
-                    """
-                }
-            }
-        }
     }
     EXTRA_TOTAL_AGGREGATIONS = [
         { 'aggregation_field': 'donors.external_id', 'result_field': 'donors' }
@@ -678,15 +720,21 @@ def data_matrix_aggregations(context, request):
         if extra_total and 'value' in extra_total:
             ret_result["counts"][result_field] = int(extra_total['value'])
 
+    # Derive the extra-total result field names once, rather than re-scanning
+    # EXTRA_TOTAL_AGGREGATIONS (and re-checking each entry) for every bucket.
+    extra_result_fields = [
+        extra_agg['result_field']
+        for extra_agg in EXTRA_TOTAL_AGGREGATIONS
+        if extra_agg.get('result_field')
+    ]
+
     def extract_bucket_counts(bucket_result):
+        total_coverage = bucket_result.get('total_coverage')
         counts = {
             'files': int(bucket_result['doc_count']),
-            'total_coverage': bucket_result['total_coverage']['value'] if 'total_coverage' in bucket_result and bucket_result['total_coverage'] else 0
+            'total_coverage': total_coverage['value'] if total_coverage else 0
         }
-        for extra_agg in EXTRA_TOTAL_AGGREGATIONS:
-            result_field = extra_agg.get('result_field')
-            if not result_field:
-                continue
+        for result_field in extra_result_fields:
             extra_total = bucket_result.get(result_field)
             if extra_total and 'value' in extra_total:
                 counts[result_field] = int(extra_total['value'])
@@ -701,23 +749,26 @@ def data_matrix_aggregations(context, request):
         """
 
         curr_bucket_counts = extract_bucket_counts(bucket_result)
+        key = bucket_result['key']
 
-        next_field_name = None
         if len(agg_fields) > curr_field_depth:  # More fields agg results to add
             next_field_name = agg_fields[curr_field_depth]
-            returned_buckets[bucket_result['key']] = {
-                "term": bucket_result['key'],
+            nested = bucket_result[field_prefix + str(curr_field_depth + 1)]
+            entry = {
+                "term": key,
                 field_key: next_field_name[0] if isinstance(next_field_name, list) else next_field_name,
                 "counts": curr_bucket_counts,
                 terms_key: {},
-                "other_doc_count": bucket_result[field_prefix + str(curr_field_depth + 1)].get('sum_other_doc_count', 0),
+                "other_doc_count": nested.get('sum_other_doc_count', 0),
             }
-            for bucket in bucket_result[field_prefix + str(curr_field_depth + 1)]['buckets']:
-                format_bucket_result(bucket, returned_buckets[bucket_result['key']][terms_key], curr_field_depth + 1, field_key, terms_key, field_prefix, agg_fields)
+            returned_buckets[key] = entry
+            nested_terms = entry[terms_key]
+            for bucket in nested['buckets']:
+                format_bucket_result(bucket, nested_terms, curr_field_depth + 1, field_key, terms_key, field_prefix, agg_fields)
 
         else:
             # Terminal field aggregation -- return just totals, nothing else.
-            returned_buckets[bucket_result['key']] = {
+            returned_buckets[key] = {
                 "counts": curr_bucket_counts
             }
 
@@ -768,24 +819,29 @@ def data_matrix_aggregations(context, request):
         data = flatten_es_terms_aggregation(ret_result)
         row_totals = flatten_es_terms_aggregation(ret_result, "row_total_field", "row_total_terms")
         
+        # Precompute which row fields are composite (list) keys once, rather than
+        # re-testing isinstance() for every field of every item.
+        composite_row_fields = [field for field in row_agg_fields_orig if isinstance(field, list)]
+        column_is_composite = len(column_agg_fields_orig) > 1
+
         def make_composite(data_array, skip_column_agg=False):
             """
             Aggregates specified fields in each item of data_array by joining their
             values with a delimiter, optionally skipping column-based aggregation if
             skip_column_agg is True. Modifies data_array in place.
             """
-            if len(column_agg_fields_orig) > 1 and not skip_column_agg:
+            if column_is_composite and not skip_column_agg:
                 for item in data_array:
                     if all(field in item for field in column_agg_fields_orig):
                         item[column_agg_fields_orig[0]] = value_delimiter.join(
-                            [item[field] for field in column_agg_fields_orig]
-                    )
-            for item in data_array:
-                for agg_field in row_agg_fields_orig:
-                    if isinstance(agg_field, list):
+                            item[field] for field in column_agg_fields_orig
+                        )
+            if composite_row_fields:
+                for item in data_array:
+                    for agg_field in composite_row_fields:
                         if all(field in item for field in agg_field):
                             item[agg_field[0]] = value_delimiter.join(
-                            [item[field] for field in agg_field]
+                                item[field] for field in agg_field
                             )
         
         make_composite(data)
