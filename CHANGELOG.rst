@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+2.3.1
+=====
+
+* Add some more tests for encoded/visualization.py
+
+
 2.3.0
 =====
 
