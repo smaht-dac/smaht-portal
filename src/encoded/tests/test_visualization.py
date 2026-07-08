@@ -7,22 +7,14 @@ results so we can assert on the exact shape/values the views return. They exist
 to demonstrate that the performance refactors preserve output.
 """
 
-from .. import visualization
-from ..visualization import convert_date_range, DATE_RANGE_PRESETS
 import json
 from unittest.mock import patch
+
+import pytest
 from webob.multidict import MultiDict
-from encoded import visualization
 
-
-class _FakeParams:
-    """Minimal stand-in for request.params, only supports .getall()."""
-
-    def __init__(self, mapping=None):
-        self._mapping = mapping or {}
-
-    def getall(self, key):
-        return self._mapping.get(key, [])
+from .. import visualization
+from ..visualization import convert_date_range
 
 
 class _FakeGET:
@@ -119,7 +111,7 @@ def test_bar_plot_chart_formats_nested_buckets_in_a_single_pass(monkeypatch) -> 
     }
     _stub_search(monkeypatch, search_result)
 
-    request = _FakeRequest(
+    request = FakeRequest(
         json_body={
             "search_query_params": {"type": ["File"]},
             "fields_to_aggregate_for": ["assays.display_title", "sample_summary.tissues"],
@@ -200,7 +192,7 @@ def test_bar_plot_chart_tissue_category_meta_matches_pre_merge_behavior(monkeypa
     }
     _stub_search(monkeypatch, search_result)
 
-    request = _FakeRequest(
+    request = FakeRequest(
         json_body={
             "search_query_params": {"type": ["File"], "sample_summary.tissues": ["Liver", "Blood"]},
             "fields_to_aggregate_for": ["sample_summary.tissues"],
@@ -222,7 +214,6 @@ def test_bar_plot_chart_tissue_category_meta_matches_pre_merge_behavior(monkeypa
 def test_convert_date_range_invalid_preset_raises() -> None:
     with pytest.raises(IndexError):
         convert_date_range("not-a-preset")
-
 
 
 def _run_view(view, search_result, request):

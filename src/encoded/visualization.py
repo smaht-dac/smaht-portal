@@ -376,12 +376,6 @@ def bar_plot_chart(context, request):
         "meta": {}
     }
 
-    collect_tissue_categories = (
-        include_meta_tissue_categories and fields_to_aggregate_for[0] == TISSUE_FIELD
-    )
-    tissue_category_by_term = {}
-    tissue_category_counts_by_term = {}
-
     def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
 
         # Each bucket carries its own nested `all_donors_ids` sub-aggregation, so
@@ -394,28 +388,6 @@ def bar_plot_chart(context, request):
             'donors': int(bucket_result['total_donors']['value']),
             'all_donors_ids': [b['key'] for b in bucket_result['all_donors_ids']['buckets']]
         }
-
-        # Merged in from what used to be a separate pass over field_0's buckets (see PR
-        # description): avoids re-walking the same top-level bucket list a second time.
-        if collect_tissue_categories and curr_field_depth == 0:
-            category_buckets = bucket_result.get(TISSUE_CATEGORY_AGG_NAME, {}).get('buckets', [])
-            if len(category_buckets) > 0:
-                counts_by_category = {}
-                best_category = None
-                best_count = -1
-                for category_bucket in category_buckets:
-                    category = category_bucket.get('key')
-                    count = int(category_bucket.get('doc_count', 0))
-                    if category is None:
-                        continue
-                    counts_by_category[category] = count
-                    if count > best_count:
-                        best_count = count
-                        best_category = category
-                if len(counts_by_category) > 0:
-                    tissue_category_counts_by_term[bucket_result['key']] = counts_by_category
-                if best_category is not None:
-                    tissue_category_by_term[bucket_result['key']] = best_category
 
         next_field_name = None
         if len(fields_to_aggregate_for) > curr_field_depth + 1:  # More fields agg results to add
