@@ -4,6 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
+import { Dropdown } from 'react-bootstrap';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { FacetList, generateNextHref } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/FacetList';
@@ -2325,25 +2326,30 @@ export default class DataMatrix extends React.PureComponent {
                                             </div>
                                         ) : <div />}
                                         <div className="matrix-export-controls d-flex align-items-center gap-2">
+                                            <Dropdown align="end" className="matrix-export-dropdown">
+                                                <Dropdown.Toggle
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    id={`matrix-export-dropdown-${idLabel || 'default'}`}
+                                                    disabled={isLoading}>
+                                                    <i className="icon icon-download fas me-03" />Export
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu>
+                                                    <Dropdown.Item
+                                                        disabled={isScreenshotting}
+                                                        onClick={this.onExportScreenshot}>
+                                                        <i className={`icon fas me-05 ${isScreenshotting ? 'icon-spin icon-circle-notch' : 'icon-camera'}`} /> {isScreenshotting ? 'Capturing…' : 'Screenshot (PNG)'}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        disabled={!effectiveResults}
+                                                        onClick={this.onExportJson}>
+                                                        <i className="icon icon-file fas me-05" /> Export JSON
+                                                    </Dropdown.Item>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
                                             <button
                                                 type="button"
-                                                className="btn btn-sm btn-outline-secondary matrix-screenshot-btn"
-                                                disabled={isLoading || isScreenshotting}
-                                                onClick={this.onExportScreenshot}
-                                                data-tip="Download a PNG screenshot of the currently displayed matrix">
-                                                <i className={`icon fas me-03 ${isScreenshotting ? 'icon-spin icon-circle-notch' : 'icon-camera'}`} /><span className="btn-label">{isScreenshotting ? 'Capturing…' : 'Screenshot'}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm btn-outline-secondary matrix-export-json-btn"
-                                                disabled={isLoading || !effectiveResults}
-                                                onClick={this.onExportJson}
-                                                data-tip="Export the currently displayed matrix as JSON">
-                                                <i className="icon icon-download fas me-03" /><span className="btn-label">Export JSON</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="matrix-mode-refresh-btn"
+                                                className="btn btn-sm btn-outline-secondary matrix-mode-refresh-btn"
                                                 title="Refresh this tab's data"
                                                 aria-label="Refresh this tab's data"
                                                 disabled={isFetching}

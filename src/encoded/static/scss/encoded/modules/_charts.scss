@@ -1610,12 +1610,10 @@ body[data-path="/statistics"] {
         top: 48px;
         z-index: 8;
         background-color: #ffffff;
-        // Query-container for .matrix-export-controls below: lets the export buttons collapse
-        // to icon-only once this row runs out of room, without ever wrapping to a second line
-        // (wrapping changes this row's height, which shifts the sticky tabs' position/the
-        // content below them).
-        container-type: inline-size;
-        container-name: matrix-mode-tabs-row;
+        // Fall back to wrapping onto a second line if the tabs + export/refresh controls still
+        // don't fit on very narrow containers (e.g. a lot of mode tabs at their 270px min-width).
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
 
         // Tabs sit flush against the row's border-bottom by design (their own border-bottom is
         // "none" so they visually merge with the panel body below). Only pad the row when there
@@ -1631,29 +1629,9 @@ body[data-path="/statistics"] {
         margin-left: auto;
     }
 
-    .matrix-export-json-btn,
-    .matrix-screenshot-btn {
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-
-    // Below this width the tabs + full-text buttons no longer fit on one line - collapse the
-    // export buttons to icon-only squares rather than letting them wrap or overlap the tabs.
-    // The 3 mode tabs alone need ~830px (270px min-width each + gaps), so this has to clear that
-    // by a comfortable margin before the full-text buttons themselves stop fitting.
-    @container matrix-mode-tabs-row (max-width: 1300px) {
-        .matrix-export-json-btn,
-        .matrix-screenshot-btn {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-
-            .btn-label {
-                display: none;
-            }
-
-            .icon {
-                margin-right: 0 !important;
-            }
+    .matrix-export-dropdown {
+        .dropdown-toggle {
+            white-space: nowrap;
         }
     }
 
