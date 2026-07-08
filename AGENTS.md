@@ -4,6 +4,38 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Add durable project-specific notes here as they are discovered through real work.
 
+## Building the production Docker image locally
+
+- `Dockerfile` is a BuildKit multi-stage build (`builder` -> `runtime`); it needs
+  BuildKit (`DOCKER_BUILDKIT=1`, or Docker >= 23 default) because of the `# syntax=`
+  directive and the `RUN --mount=type=cache` mounts. `buildspec.yml` sets
+  `DOCKER_BUILDKIT: "1"` for CodeBuild.
+- `docker build .` will fail at `COPY deploy/docker/local/docker_development.ini` with
+  `"... not found"` unless that file exists in the build context. It is `.gitignore`d;
+  CI creates it in `buildspec.yml` pre_build (`touch deploy/docker/local/docker_development.ini`).
+  To build locally, `touch deploy/docker/local/docker_development.ini` first.
+- nginx is NOT Debian's stock package: `deploy/docker/production/install_nginx_bullseye.sh`
+  installs a pinned nginx.org build (1.21.6) and creates the non-root `nginx` user at
+  uid/gid 121. The container runs everything as `nginx` under `supervisord` (which now also
+  runs nginx via `[program:nginx]`; the entrypoints no longer `service nginx start`).
+
+## Running the Python test suite
+
+- The project uses a `src/` layout package named `encoded` (see `pyproject.toml`,
+  `packages = [{ include="encoded", from="src" }]`). Tests live under
+  `src/encoded/tests/` and use relative imports (e.g. `from ..item_utils.utils import ...`).
+- `pytest.ini` sets `testpaths = src/encoded deploy` and pulls in datafixtures/serverfixtures
+  plugins, so most tests are integration-style and require Postgres + Elasticsearch (and some
+  require AWS/moto). Pure unit tests that only import functions can be run standalone, e.g.:
+  `pytest src/encoded/tests/test_item_utils.py`.
+- Test markers of note (`pytest.ini`): `-m "not workbook"` selects the non-workbook set,
+  `-m unit` the proper unit tests, `-m static` the static-analysis tests. The Makefile
+  `test-unit` / `test-npm` targets wrap these.
+- Coverage tooling is available (`pytest-cov`, `coverage` are dev deps); add `--cov=encoded.<module>
+  --cov-report=term-missing`. Note: modules imported before coverage starts (via conftest) can
+  show import-time lines as "missed" — judge coverage by whether the function bodies are exercised,
+  not the raw percentage.
+
 ## S3 upload/download credentials need `S3_UPLOAD_ROLE_ARN` once `encoded-core` >= 1.0.0
 
 `encoded_core.types.file.external_creds()` generates the temporary S3 credentials returned by
