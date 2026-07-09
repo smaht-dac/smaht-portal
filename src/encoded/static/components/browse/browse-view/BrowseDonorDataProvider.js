@@ -23,9 +23,11 @@ const ADDITIONAL_FACET_PARAMS = DONOR_PEEK_METADATA_ADDITIONAL_FACETS.map(
 ).join('&');
 
 const buildDonorPeekMetadataUrl = (displayTitle) =>
-    `/peek-metadata/?skip_default_facets=true&${ADDITIONAL_FACET_PARAMS}&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=${encodeURIComponent(displayTitle)}`;
+    `/peek-metadata/?skip_default_facets=true&${ADDITIONAL_FACET_PARAMS}&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=${encodeURIComponent(
+        displayTitle
+    )}`;
 
-// Set a limit on the number of concurrent requests to avoid overloading the server
+// Limits simultaneous requests to avoid flooding the server while rows fill in quickly
 const CONCURRENCY_LIMIT = 4;
 
 // Context for holding per-donor facet data fetched in display order
