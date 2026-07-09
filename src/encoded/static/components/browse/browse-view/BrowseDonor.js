@@ -6,7 +6,6 @@ import { BrowseViewControllerWithSelections } from '../../static-pages/component
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
 import {
-    BROWSE_STATUS_FILTERS,
     BROWSE_LINKS,
     NoResultsBrowseModal,
 } from '../BrowseView';
@@ -17,6 +16,7 @@ import {
     customRenderDetailPane,
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
+import { DonorDataProvider } from './BrowseDonorDataProvider';
 
 export function createBrowseDonorColumnExtensionMap(props) {
     const { columnExtensionMap, columns, hideFacets } =
@@ -57,9 +57,6 @@ const BrowseDonorSearchTable = (props) => {
             ...context,
             clear_filters: BROWSE_LINKS.donor,
         },
-        customColumnSearchHref: (result) =>
-            `/peek-metadata/?additional_facet=file_size&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=` +
-            result?.display_title,
     };
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
@@ -138,22 +135,24 @@ export const BrowseDonorBody = (props) => {
     }, [session, userDownloadAccess]);
 
     return (
-        <>
-            {showRedirectBanner && <RedirectBanner href={props?.href} />}
-            <BrowseDonorVizWrapper {...props} mapping="donor" />
-            <hr />
-            <BrowseViewControllerWithSelections {...props}>
-                <BrowseDonorSearchTable />
-            </BrowseViewControllerWithSelections>
-            {context?.total === 0 && (
-                <NoResultsBrowseModal
-                    type="donor"
-                    context={context}
-                    href={href}
-                    userDownloadAccess={userDownloadAccess}
-                    isAccessResolved={isAccessResolved}
-                />
-            )}
-        </>
+        <DonorDataProvider>
+            <>
+                {showRedirectBanner && <RedirectBanner href={props?.href} />}
+                <BrowseDonorVizWrapper {...props} mapping="donor" />
+                <hr />
+                <BrowseViewControllerWithSelections {...props}>
+                    <BrowseDonorSearchTable />
+                </BrowseViewControllerWithSelections>
+                {context?.total === 0 && (
+                    <NoResultsBrowseModal
+                        type="donor"
+                        context={context}
+                        href={href}
+                        userDownloadAccess={userDownloadAccess}
+                        isAccessResolved={isAccessResolved}
+                    />
+                )}
+            </>
+        </DonorDataProvider>
     );
 };
