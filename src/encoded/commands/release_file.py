@@ -999,11 +999,13 @@ class FileRelease:
             Files with somatic variants = Open
             Files with germline variants = Open
             Files with expression or epigenetic data = Open
+            Genome annotation files = Open
         HapMap and “HG***”
             CRAM, BAM, FASTQ = Open
             Files with somatic variants = Open
             Files with germline variants = Open
             Files with expression or epigenetic data = Open
+            Genome annotation files = Open
         iPSC / Fibroblast (i.e. LB-LA)
             CRAM, BAM, FASTQ = Protected
             Files with somatic variants = Protected
@@ -1049,6 +1051,9 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_OPEN
                 ),
                 file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
+                file_constants.DATA_CATEGORY_GENOME_ANNOTATION: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
