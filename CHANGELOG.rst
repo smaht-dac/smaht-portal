@@ -27,6 +27,17 @@ Change Log
   * Guard the release-date parse against the ``-1`` sentinel / non-ISO input so a single
     failed sub-search degrades ``date`` to ``None`` instead of 500ing the homepage.
 
+* Chart-endpoint (``visualization.py``) efficiency fixes:
+
+  * ``date_histogram_aggregations`` and ``bar_plot_chart`` now pass
+    ``skip_default_facets`` so Elasticsearch no longer computes the full File default
+    facet set that both endpoints immediately discard (custom aggregations are
+    unaffected; ``data_matrix_aggregations`` still computes facets because it uses them).
+  * ``bar_plot_chart`` no longer computes the per-bucket
+    ``total_tissues``/``total_assays``/``total_file_size`` sub-aggregations that are only
+    read at the top-level total; per-bucket aggregations are trimmed to the fields
+    actually consumed. Response shape is unchanged.
+
 
 2.3.1
 =====
