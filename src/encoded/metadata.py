@@ -1360,9 +1360,8 @@ def peek_metadata(context, request):
 
     # GET path — forward URL params verbatim to /search. Type-agnostic; the
     # caller gets the same facets `/search?<their-params>` would return,
-    # which is what the legacy fallback did. This preserves callers like
-    # ProtectedDonorViewDataCards.js that read default facets (e.g. `type`)
-    # from the response.
+    # which is what the legacy fallback did. Callers that use
+    # `skip_default_facets=true` must explicitly request every facet they read.
     if isinstance(args, Response):
         return _facets_via_search(request, request.params)
 

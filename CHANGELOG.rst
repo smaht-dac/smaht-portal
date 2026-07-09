@@ -8,6 +8,12 @@ Change Log
 ----------
 
 
+2.3.4
+=====
+
+* Reduce Donor and Protected Donor browse ``/peek-metadata/`` GET facet work by passing ``skip_default_facets=true`` and explicitly requesting only the four facets those row-summary columns render: ``sample_summary.tissues``, ``assays.display_title``, ``type``, and ``file_size``.
+
+
 2.3.3
 =====
 
@@ -226,7 +232,7 @@ Change Log
 * ``/metadata``: restrict ES ``_source`` to only the columns the TSV reads, dropping per-hit payload by ~10×
 * ``/metadata``: pre-compile per-row field-path splits so each hit pays one dict lookup per column instead of repeated ``str.split`` calls
 * ``/peek-metadata``: compute the file_size summary by streaming the matched docs (same path as ``/metadata``) and summing in Python, instead of issuing an ES ``stats`` aggregation that was blocking on slow-shard coordination
-* ``/peek-metadata``: GET-style requests (search-filter URL params) now forward through snovault ``search()`` with the new ``skip_default_facets=true`` flag, preserving nested-field correctness while skipping the dozens of schema-default facet aggregations
+* ``/peek-metadata``: GET-style requests (search-filter URL params) continue to forward caller-supplied search params through snovault ``search()``; callers can opt into ``skip_default_facets=true`` when they explicitly declare every facet they read
 * Fix ``TypeError: unhashable type: 'dict'`` raised from ``file.py:get_donors`` (and the parallel paths in ``get_cell_cultures``, ``get_cell_lines``, ``analysis_run.get_donors``, ``external_output_file.get_donors``) when an upstream ``@@object`` view carries an embedded sub-object where a bare linkTo path was expected
 * Adds ``dedupe_identifiers`` in ``item_utils/utils.py`` that dedupes by string/uuid/@id instead of relying on ``set()``, preserving first-occurrence order
 * Defensive only — the upstream cause was fixed in snovault 11.30.1; this prevents already-corrupted documents in ES from breaking rendering until a full reindex
