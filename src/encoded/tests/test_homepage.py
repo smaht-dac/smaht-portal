@@ -131,6 +131,65 @@ def test_home_dedupes_searches_and_never_returns_sentinel(monkeypatch):
     assert_no_sentinel(response)
 
 
+def test_home_stats_resolve_from_declared_additional_facets_only(monkeypatch):
+    """ Finding 1 (skip_default_facets) reconciliation guard: under skip_default_facets
+        ONLY the facets a search declares in `additional_facet` are computed. This mocks
+        each search to return a response containing ONLY that dict's declared facets (no
+        default facet set), and asserts every stat still resolves - in particular the
+        PRODUCTION donor / tissue-type counts, which previously leaned on default facets.
+        Term counts are chosen distinct so a facet resolving to the wrong/absent one is
+        detectable. """
+    # unique term counts per facet so each figure is individually verifiable
+    facet_terms = {
+        'assays.display_title': [{'key': 'a1'}, {'key': 'a2'}, {'key': 'a3'}],          # 3
+        'donors.display_title': [{'key': 'd1'}, {'key': 'd2'}],                          # 2
+        'sample_summary.tissues': [{'key': 't1'}, {'key': 't2'}, {'key': 't3'}, {'key': 't4'}],  # 4
+    }
+
+    def fake_search(context, request, search_param):
+        # Every homepage search must opt out of the default facet set.
+        assert search_param.get('skip_default_facets') == ['true'], search_param
+        if search_param.get('limit') == 1:  # release-date search: no facets needed
+            return {'@graph': [
+                {'file_status_tracking': {'release_dates': {'initial_release_date': '2024-03-28'}}}
+            ]}
+        # Simulate skip_default_facets: return ONLY the declared additional_facet facets.
+        declared = search_param.get('additional_facet', [])
+        for field in declared:
+            assert field in facet_terms, f'test needs term data for declared facet {field}'
+        return {
+            'total': 7,
+            'facets': [{'field': field, 'terms': facet_terms[field]} for field in declared],
+        }
+
+    monkeypatch.setattr(homepage, 'generate_admin_search_given_params', fake_search)
+    response = home(None, testing.DummyRequest())
+
+    benchmarking, production = response['@graph']
+    colo829, hapmap, ipsc, tissues = benchmarking['categories']
+
+    def figures(category):
+        return {f['unit']: f['value'] for f in category['figures']}
+
+    # cell-line blocks read only the assays facet + total
+    for block in (colo829, hapmap, ipsc):
+        assert figures(block)['Assays'] == 3
+        assert figures(block)['Files Generated'] == 7
+
+    # tissues reads donors + assays + total
+    assert figures(tissues)['Donors'] == 2
+    assert figures(tissues)['Assays'] == 3
+    assert figures(tissues)['Files Generated'] == 7
+
+    # PRODUCTION is the reconciliation-critical one: donor + tissue-type + assay must all
+    # resolve from the declared additional_facet (they'd be 0 if the facet weren't declared)
+    prod = figures(production['categories'][0])
+    assert prod['Donors'] == 2
+    assert prod['Tissue Types'] == 4
+    assert prod['Assays'] == 3
+    assert prod['Files Generated'] == 7
+
+
 @pytest.mark.workbook
 def test_home_page_workbook(es_testapp, workbook):
     """ Tests that we get appropriate counts based on workbook inserts """

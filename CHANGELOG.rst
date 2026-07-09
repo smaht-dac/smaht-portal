@@ -26,6 +26,13 @@ Change Log
     from the ``date`` field (now a plain ``YYYY-MM-DD`` string).
   * Guard the release-date parse against the ``-1`` sentinel / non-ISO input so a single
     failed sub-search degrades ``date`` to ``None`` instead of 500ing the homepage.
+  * Skip the full File default facet set on the homepage sub-searches: each search now
+    passes ``skip_default_facets`` and requests (via ``additional_facet``) only the
+    specific facets its stats read, instead of computing all ~21 File facets per search
+    and discarding all but one. The ``PRODUCTION`` search's ``additional_facet`` was
+    reconciled to declare ``donors.display_title`` and ``sample_summary.tissues`` (which
+    its donor / tissue-type counts read but previously got only as default facets) and to
+    drop the never-read ``...uberon_id`` facet. Stat values are unchanged.
 
 * Chart-endpoint (``visualization.py``) efficiency fixes:
 

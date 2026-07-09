@@ -22,12 +22,20 @@ def includeme(config):
 
 
 class SearchBase:
-    """ Contains search params for getting various bits of information from the ES """
+    """ Contains search params for getting various bits of information from the ES
+
+        Each dict passes ``skip_default_facets=true`` so ES does not compute the full
+        File default facet set (~21 aggregations) that the homepage never reads. Under
+        ``skip_default_facets`` ONLY the facets named in ``additional_facet`` are computed,
+        so every facet a search's stats read MUST be declared there (see the extractors in
+        ``home``). Keep ``additional_facet`` in sync with the facets each search reads.
+    """
     LATEST_RELEASE_DATE_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'sort': '-file_status_tracking.release_dates.initial_release_date',
         'limit': 1,
+        'skip_default_facets': ['true'],  # reads @graph only, no facets needed
     }
     ALL_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
@@ -41,24 +49,27 @@ class SearchBase:
         'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl'],
         'additional_facet': [
-            'assays.display_title'
-        ]
+            'assays.display_title'  # assay count
+        ],
+        'skip_default_facets': ['true'],
     }
     HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['hapmap'],
         'additional_facet': [
-            'assays.display_title'
-        ]
+            'assays.display_title'  # assay count
+        ],
+        'skip_default_facets': ['true'],
     }
     IPSC_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60'],
         'additional_facet': [
-            'assays.display_title'
-        ]
+            'assays.display_title'  # assay count
+        ],
+        'skip_default_facets': ['true'],
     }
     TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
@@ -73,8 +84,10 @@ class SearchBase:
             'ST004-1Q'
         ],
         'additional_facet': [
-            'donors.display_title', 'assays.display_title'
-        ]  # required since this is default_hidden for now
+            'donors.display_title',  # donor count
+            'assays.display_title'   # assay count
+        ],
+        'skip_default_facets': ['true'],
     }
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
         'type': 'File',
@@ -82,9 +95,11 @@ class SearchBase:
         'sample_summary.studies': ['Production'],
         'dataset!': ['No value'],
         'additional_facet': [
-            'assays.display_title',
-            'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
-        ]
+            'assays.display_title',      # assay count
+            'donors.display_title',      # donor count
+            'sample_summary.tissues'     # tissue-type count
+        ],
+        'skip_default_facets': ['true'],
     }
 
 
