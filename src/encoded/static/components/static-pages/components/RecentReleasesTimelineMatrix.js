@@ -412,6 +412,27 @@ const matrixQueryTemplate = {
     ]
 };
 
+// Rendered as `colTitle` for the `@type` column. Must be a function component (not
+// wrapped in a plain DOM element) so HeadersRow detects it and clones in its own
+// live `context` prop (with the real search total) -- otherwise SelectAllFilesButton
+// only sees whatever `context` we pass manually and its "select all" fetch has no
+// total to page through, silently capping the selection at a single page.
+const SelectAllHeaderCheckbox = (props) => {
+    const { context, searchHref, selectedItems, onSelectItem, onResetSelectedItems } = props;
+    return (
+        <div className="d-flex align-items-center justify-content-center w-100">
+            <SelectAllFilesButton
+                context={context}
+                searchHref={searchHref}
+                selectedItems={selectedItems}
+                onSelectItem={onSelectItem}
+                onResetSelectedItems={onResetSelectedItems}
+                type="checkbox"
+            />
+        </div>
+    );
+};
+
 const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(props) {
     const {
         session,
@@ -449,11 +470,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
                 ...(columnExtensionMap?.['@type'] || {}),
                 noSort: true,
                 widthMap: { lg: 60, md: 60, sm: 60 },
-                colTitle: (
-                    <div className="d-flex align-items-center justify-content-center w-100">
-                        <SelectAllFilesButton {...selectedFileProps} searchHref={searchHref} type="checkbox" />
-                    </div>
-                ),
+                colTitle: <SelectAllHeaderCheckbox {...selectedFileProps} searchHref={searchHref} />,
                 render: (result) => (
                     <div className="d-flex align-items-center justify-content-center w-100">
                         <SelectionItemCheckbox
