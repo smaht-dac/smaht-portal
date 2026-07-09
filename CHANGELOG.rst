@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+2.3.3
+=====
+
+`PR 703: Fix column-header select-all checkbox to select all matching files in Recent Releases page <https://github.com/smaht-dac/smaht-portal/pull/703>`_
+
+* Fix the column-header select-all checkbox on file tables (e.g. Recent Releases) so it selects every matching file across all pages instead of silently capping at ``defaultPageSize``
+
+
 2.3.2
 =====
 
