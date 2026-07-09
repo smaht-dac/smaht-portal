@@ -123,9 +123,7 @@ const BrowseProtectedDonorSearchTable = (props) => {
         createBrowseProtectedDonorColumnExtensionMap(selectedFileProps);
 
     const facetListSortFxns = {
-        hardy_scale: (a, b) => {
-            return a.key - b.key;
-        },
+        hardy_scale: (a, b) => a.key - b.key,
     };
 
     return (
