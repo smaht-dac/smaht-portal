@@ -32,6 +32,24 @@ export default class DataMatrix extends React.PureComponent {
         DONOR_TISSUE: 'donor_tissue'
     };
 
+    // State keys that make up a loaded tab's rendered result, snapshotted into
+    // (and restored from) the per-tab cache. Deliberately excludes mode-derived
+    // display config (query, grouping, countFor, colorRanges, axis labels), which
+    // getNextStateForMatrixMode re-derives on every tab switch.
+    static TAB_CACHE_STATE_KEYS = [
+        '_results',
+        'availableDonorTissueAssays',
+        'columnGroups',
+        'donorTissueAssay',
+        'overallCounts',
+        'rawRegularCountOverrides',
+        'rowGroupsExtended',
+        'rowSummaryCountsByGroup',
+        'totalFiles',
+        'facetsForPanel',
+        'facetFiltersForPanel'
+    ];
+
     static isPlainObject = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
 
     // Simple recursive deep clone that works with objects and arrays
@@ -484,6 +502,8 @@ export default class DataMatrix extends React.PureComponent {
         this.isProductionEnv = this.isProductionEnv.bind(this);
         this.onCountForChange = this.onCountForChange.bind(this);
         this.onMatrixModeChange = this.onMatrixModeChange.bind(this);
+        this.onRefreshActiveTab = this.onRefreshActiveTab.bind(this);
+        this.getTabCacheSignature = this.getTabCacheSignature.bind(this);
         this.onDonorTissueAssayChange = this.onDonorTissueAssayChange.bind(this);
         this.onFacetFilter = this.onFacetFilter.bind(this);
         this.onFacetFilterMultiple = this.onFacetFilterMultiple.bind(this);
@@ -549,6 +569,12 @@ export default class DataMatrix extends React.PureComponent {
         }
         this.latestLoadRequestId = 0;
         this.loadingDelayTimeout = null;
+        // Per-tab (matrix-mode) response cache: switching back to an already
+        // loaded tab restores instantly instead of re-fetching. One entry per
+        // mode, guarded by a signature over the non-tab fetch inputs (filters /
+        // session / base query), so a filter change invalidates it. The Refresh
+        // control bypasses it via loadSearchQueryResults({ forceRefresh: true }).
+        this.tabCache = {};
         this.state = initialState;
     }
 
@@ -914,8 +940,24 @@ export default class DataMatrix extends React.PureComponent {
         }, {});
     }
 
-    loadSearchQueryResults() {
+    loadSearchQueryResults(options = {}) {
+        const { forceRefresh = false } = options;
         const requestId = ++this.latestLoadRequestId;
+        // Serve from the per-tab cache when this tab was already loaded under the
+        // same filter/session context. Runs before any fetch; bumping requestId
+        // above also cancels the commit of any in-flight request for the old tab.
+        // React flushes this setState before paint (it happens within
+        // componentDidUpdate), so a cached tab switch shows no loading flash.
+        if (!forceRefresh) {
+            const cached = this.tabCache[this.state.matrixMode];
+            if (cached && cached.signature === this.getTabCacheSignature()) {
+                this.setState(
+                    { ...cached.state, isFetching: false, loadingContext: null },
+                    () => ReactTooltip.rebuild()
+                );
+                return;
+            }
+        }
         const {
             valueChangeMap,
             resultItemPostProcessFuncKey,
@@ -1155,7 +1197,15 @@ export default class DataMatrix extends React.PureComponent {
                 if (requestId !== this.latestLoadRequestId) {
                     return;
                 }
-                this.setState(updatedState, () => ReactTooltip.rebuild());
+                this.setState(updatedState, () => {
+                    ReactTooltip.rebuild();
+                    // Cache this tab's loaded result under the current signature so
+                    // switching back to it (same filters/session) restores without a refetch.
+                    this.tabCache[matrixMode] = {
+                        signature: this.getTabCacheSignature(),
+                        state: _.pick(this.state, DataMatrix.TAB_CACHE_STATE_KEYS)
+                    };
+                });
                 if (typeof onDataLoaded === 'function') {
                     onDataLoaded({
                         hasData: totalFiles > 0,
@@ -1580,10 +1630,48 @@ export default class DataMatrix extends React.PureComponent {
                 ...this.getNextStateForMatrixMode(nextMatrixMode, prevState),
                 // Clear stale cells immediately on matrix-mode switches so the loading shell
                 // reflects the next mode instead of briefly showing the previous view's columns.
+                // (When the target tab is cached, loadSearchQueryResults restores it before
+                // paint, so this null state is not actually shown.)
                 _results: null,
                 loadingContext: 'matrix-mode'
             };
         });
+    }
+
+    /**
+     * Signature over the fetch inputs for the active tab. The cache itself is
+     * keyed by matrix mode, but sub-views within a mode can change aggregation
+     * and grouping fields without changing query.url. A cached tab is safe to
+     * restore only when its stored signature still matches the exact request
+     * shape. countFor is intentionally omitted: when it changes the fetched
+     * response, the aggregation/grouping fields below change with it.
+     */
+    getTabCacheSignature() {
+        const { session } = this.props;
+        const { query, facetNavigationHref, fieldChangeMap, showColumnSummary, groupingProperties, columnGrouping } = this.state;
+        return JSON.stringify({
+            session: session || null,
+            baseUrl: (query && query.url) || null,
+            facetHref: facetNavigationHref || null,
+            columnAggFields: (query && query.columnAggFields) || null,
+            rowAggFields: (query && query.rowAggFields) || null,
+            columnGrouping: columnGrouping || null,
+            groupingProperties: groupingProperties || null,
+            fieldChangeMap: fieldChangeMap || null,
+            showColumnSummary: showColumnSummary || null
+        });
+    }
+
+    /**
+     * Explicit refresh for the active tab: drop its cache entry and force a fresh
+     * fetch (bypassing the cache), showing the full loading shell while it reloads.
+     */
+    onRefreshActiveTab() {
+        delete this.tabCache[this.state.matrixMode];
+        this.setState(
+            { _results: null, loadingContext: 'matrix-mode' },
+            () => this.loadSearchQueryResults({ forceRefresh: true })
+        );
     }
 
     onApplyConfiguration({
@@ -2074,6 +2162,15 @@ export default class DataMatrix extends React.PureComponent {
                                                     <i className="icon fas icon-dna me-05" /> Donor x Tissue
                                                 </button>
                                             </div>
+                                            <button
+                                                type="button"
+                                                className="matrix-mode-refresh-btn"
+                                                title="Refresh this tab's data"
+                                                aria-label="Refresh this tab's data"
+                                                disabled={isFetching}
+                                                onClick={this.onRefreshActiveTab}>
+                                                <i className={`icon fas icon-sync-alt${isFetching ? ' icon-spin' : ''}`} /> Refresh
+                                            </button>
                                         </div>
                                     ) : null}
                                     <div className="matrix-visual-scroll-region">
