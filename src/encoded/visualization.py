@@ -198,6 +198,10 @@ def date_histogram_aggregations(context, request):
                 outer_date_histogram_agg[interval + '_interval_' + dh_field]['aggs'] = histogram_sub_aggs
 
     search_param_lists['limit'] = search_param_lists['from'] = [0]
+    # We discard the default File facets from this response (see FIELDS_TO_DELETE), so skip
+    # computing them entirely. The custom date-histogram aggregations still run because
+    # snovault gates them on size==0 (which limit=0 gives us), not on facets being present.
+    search_param_lists['skip_default_facets'] = ['true']
     subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
     search_result = perform_search_request(None, subreq, custom_aggregations=outer_date_histogram_agg)
 
@@ -292,6 +296,14 @@ def bar_plot_chart(context, request):
             }
         }
     }
+    # Per-bucket aggregations only ever read `total_donors` and `all_donors_ids`
+    # (see format_bucket_result); `total_tissues`/`total_assays`/`total_file_size`
+    # are consumed only at the top-level total. Computing the full definition at
+    # every bucket at every nesting depth wastes ES work, so nest this slim subset.
+    PER_BUCKET_AGGREGATION_DEFINITION = {
+        "total_donors": SUM_AGGREGATION_DEFINITION["total_donors"],
+        "all_donors_ids": SUM_AGGREGATION_DEFINITION["all_donors_ids"],
+    }
 
     isFileTypeSearch = False
     try:
@@ -319,7 +331,7 @@ def bar_plot_chart(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": deepcopy(SUM_AGGREGATION_DEFINITION)
+            "aggs": deepcopy(PER_BUCKET_AGGREGATION_DEFINITION)
         }
     }
 
@@ -346,11 +358,15 @@ def bar_plot_chart(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": deepcopy(SUM_AGGREGATION_DEFINITION)
+            "aggs": deepcopy(PER_BUCKET_AGGREGATION_DEFINITION)
         }
         curr_field_aggs = curr_field_aggs['field_' + str(field_index)]['aggs']
 
     search_param_lists['limit'] = search_param_lists['from'] = [0]
+    # We discard the default File facets from this response (see FIELDS_TO_DELETE), so skip
+    # computing them entirely. The custom bar-plot aggregations still run because snovault
+    # gates them on size==0 (which limit=0 gives us), not on facets being present.
+    search_param_lists['skip_default_facets'] = ['true']
     subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
     search_result = perform_search_request(None, subreq, custom_aggregations=primary_agg)
 
