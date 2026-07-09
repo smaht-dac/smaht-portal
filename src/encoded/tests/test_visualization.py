@@ -738,3 +738,130 @@ def test_data_matrix_aggregations_flatten_composite_keys():
         "donor": "D1",
         "counts": {"files": 6, "total_coverage": 1.0, "donors": 1},
     }]
+
+
+# ---------------------------------------------------------------------------
+# Efficiency-fix guardrails (chart endpoints)
+# ---------------------------------------------------------------------------
+
+def _run_view_capturing(view, search_result, request):
+    """Invoke a view, capturing the subreq path and custom_aggregations passed to ES."""
+    captured = {}
+
+    def fake_make_subreq(req, path):
+        captured["path"] = path
+        return None
+
+    def fake_search(context, subreq, custom_aggregations=None):
+        captured["custom_aggregations"] = custom_aggregations
+        return search_result
+
+    with patch.object(visualization, "make_search_subreq", fake_make_subreq), \
+            patch.object(visualization, "perform_search_request", fake_search):
+        result = view(None, request)
+    return result, captured
+
+
+def test_date_histogram_skips_default_facets():
+    """Fix A: date_histogram_aggregations tells ES to skip the (discarded) default facets."""
+    search_result = {
+        "aggregations": {
+            "weekly_interval_file_status_tracking.status_tracking.uploading": {"buckets": []}
+        },
+        "total": 0,
+    }
+    request = FakeRequest(json_body={"search_query_params": {"type": ["File"]}})
+    result, captured = _run_view_capturing(
+        visualization.date_histogram_aggregations, search_result, request
+    )
+    assert "skip_default_facets=true" in captured["path"]
+    # custom aggregations still flow through and the response keeps its aggregations
+    assert captured["custom_aggregations"]  # non-empty date-histogram agg
+    assert "aggregations" in result
+
+
+def test_bar_plot_skips_default_facets():
+    """Fix A: bar_plot_chart tells ES to skip the (discarded) default facets."""
+    request = FakeRequest(json_body={
+        "search_query_params": {"type": ["File"]},
+        "fields_to_aggregate_for": ["data_type", "file_format"],
+    })
+    result, captured = _run_view_capturing(
+        visualization.bar_plot_chart, _bar_plot_search_result(), request
+    )
+    assert "skip_default_facets=true" in captured["path"]
+    assert "terms" in result and "total" in result
+
+
+def test_bar_plot_per_bucket_aggs_are_slim():
+    """Fix B: per-bucket aggs request only total_donors + all_donors_ids; the top-level
+    total keeps the full sum definition (total_tissues/assays/file_size)."""
+    request = FakeRequest(json_body={
+        "search_query_params": {"type": ["File"]},
+        "fields_to_aggregate_for": ["data_type", "file_format"],
+    })
+    _, captured = _run_view_capturing(
+        visualization.bar_plot_chart, _bar_plot_search_result(), request
+    )
+    aggs = captured["custom_aggregations"]
+
+    # Top-level total keeps every sub-aggregation (read at the top level only).
+    for key in ("total_donors", "total_tissues", "total_assays", "total_file_size", "all_donors_ids"):
+        assert key in aggs
+
+    trimmed = {"total_tissues", "total_assays", "total_file_size"}
+    # Per-bucket (field_0) aggs carry the two consumed fields plus the nested field_1,
+    # but NOT the trimmed sub-aggregations.
+    field_0_aggs = aggs["field_0"]["aggs"]
+    assert {"total_donors", "all_donors_ids"} <= set(field_0_aggs)
+    assert trimmed.isdisjoint(field_0_aggs)
+    # The terminal (deepest) level carries ONLY the two consumed fields.
+    field_1_aggs = field_0_aggs["field_1"]["aggs"]
+    assert set(field_1_aggs) == {"total_donors", "all_donors_ids"}
+
+
+def test_bar_plot_response_unchanged_after_slim_aggs():
+    """Fix B snapshot: the multi-field response is identical to the pre-refactor shape
+    (the trimmed per-bucket fields never entered the response)."""
+    request = FakeRequest(json_body={
+        "search_query_params": {"type": ["File"]},
+        "fields_to_aggregate_for": ["data_type", "file_format"],
+    })
+    result = _run_view(visualization.bar_plot_chart, _bar_plot_search_result(), request)
+    _strip_volatile(result)
+
+    assert result == {
+        "field": "data_type",
+        "terms": {
+            "Aligned Reads": {
+                "term": "Aligned Reads",
+                "field": "file_format",
+                "total": {"doc_count": 60, "files": 60, "donors": 7, "all_donors_ids": ["D1", "D2"]},
+                "terms": {
+                    "bam": {"doc_count": 40, "files": 40, "donors": 5, "all_donors_ids": ["D1"]},
+                    "cram": {"doc_count": 20, "files": 20, "donors": 3, "all_donors_ids": ["D2"]},
+                },
+                "other_doc_count": 1,
+            },
+            "Unaligned Reads": {
+                "term": "Unaligned Reads",
+                "field": "file_format",
+                "total": {"doc_count": 40, "files": 40, "donors": 4, "all_donors_ids": ["D3"]},
+                "terms": {
+                    "fastq": {"doc_count": 40, "files": 40, "donors": 4, "all_donors_ids": ["D3"]},
+                },
+                "other_doc_count": 0,
+            },
+        },
+        "total": {
+            "doc_count": 100,
+            "files": 100,
+            "donors": 10,
+            "assays": 4,
+            "tissues": 3,
+            "file_size": 5000,
+            "all_donors_ids": ["D1", "D2", "D3"],
+        },
+        "other_doc_count": 2,
+        "meta": {},
+    }
