@@ -248,7 +248,7 @@ def home(context, request):
                             { "value": 2, "unit": "Cell Lines" },
                             { "value": extract_unique_facet_count_from_search(colo829, 'assays.display_title'),
                               "unit": "Assays" },
-                            { "value": search_results[2],
+                            { "value": extract_total_from_search(colo829),
                               "unit": "Files Generated" }
                         ]
                     },
@@ -257,8 +257,8 @@ def home(context, request):
                         "link": "/data/benchmarking/HapMap",
                         "figures": [
                             { "value": 6, "unit": "Cell Lines" },
-                            { "value": search_results[3], "unit": "Assays" },
-                            { "value": search_results[4], "unit": "Files Generated" }
+                            { "value": extract_unique_facet_count_from_search(hapmap, 'assays.display_title'), "unit": "Assays" },
+                            { "value": extract_total_from_search(hapmap), "unit": "Files Generated" }
                         ]
                     },
                     {
@@ -266,8 +266,8 @@ def home(context, request):
                         "link": "/data/benchmarking/iPSC-fibroblasts",
                         "figures": [
                             { "value": 5, "unit": "Cell Lines" },
-                            { "value": search_results[5], "unit": "Assays" },
-                            { "value": search_results[6], "unit": "Files Generated" }
+                            { "value": extract_unique_facet_count_from_search(ipsc, 'assays.display_title'), "unit": "Assays" },
+                            { "value": extract_total_from_search(ipsc), "unit": "Files Generated" }
                         ]
                     },
                     {
