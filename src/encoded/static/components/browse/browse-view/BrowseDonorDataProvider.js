@@ -12,13 +12,21 @@ import React, {
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BROWSE_STATUS_FILTERS } from '../BrowseView';
 
+const DONOR_PEEK_METADATA_ADDITIONAL_FACETS = [
+    'sample_summary.tissues',
+    'assays.display_title',
+    'file_size',
+];
+
+const buildDonorPeekMetadataUrl = (displayTitle) => {
+    const additionalFacetParams = DONOR_PEEK_METADATA_ADDITIONAL_FACETS.map(
+        (facet) => `additional_facet=${facet}`
+    ).join('&');
+    return `/peek-metadata/?skip_default_facets=true&${additionalFacetParams}&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=${encodeURIComponent(displayTitle)}`;
+};
+
 // Set a limit on the number of concurrent requests to avoid overloading the server
 const CONCURRENCY_LIMIT = 4;
-
-const buildPeekMetadataUrl = (displayTitle) =>
-    `/peek-metadata/?skip_default_facets=true&additional_facet=sample_summary.tissues&additional_facet=assays.display_title&additional_facet=file_size&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=${encodeURIComponent(
-        displayTitle
-    )}`;
 
 // Context for holding per-donor facet data fetched in display order
 export const DonorDataContext = createContext({
@@ -77,7 +85,7 @@ export const DonorDataProvider = ({ children }) => {
                 pendingRef.current.add(displayTitle);
                 queueRef.current.push({
                     displayTitle,
-                    url: buildPeekMetadataUrl(displayTitle),
+                    url: buildDonorPeekMetadataUrl(displayTitle),
                 });
                 dispatch();
             }
