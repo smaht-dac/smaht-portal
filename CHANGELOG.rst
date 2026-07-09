@@ -11,7 +11,7 @@ Change Log
 2.3.4
 =====
 
-`PR 714: Decrease select-all file limit to 3000 <https://github.com/smaht-dac/smaht-portal/pull/714>`_
+`PR 714: fix: decrease select-all file limit to 3000 <https://github.com/smaht-dac/smaht-portal/pull/714>`_
 
 * Decrease the "Select All" upper limit from 8000 to 3000 files
 * Update the disabled-state tooltip to reflect the new limit
