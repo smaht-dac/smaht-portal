@@ -1011,16 +1011,19 @@ class FileRelease:
             Files with somatic variants = Protected
             Files with germline variants = Protected
             Files with expression or epigenetic data = Protected
+            Genome annotation files = Protected????
         Tissues (Benchmarking)
             CRAM, BAM, FASTQ = Protected
             Files with somatic variants = Protected
             Files with germline variants = Protected
             Files with expression or epigenetic data = Protected
+            Genome annotation files = Protected????
         Tissues (Production)
             CRAM, BAM, FASTQ = Protected
             Files with somatic variants = Open
             Files with germline variants = Protected
-            Files with expression or epigenetic data = Open
+            Files with expression or epigenetic data = Open????
+            Genome annotation files = Protected?????
 
         Args:
             file (dict): File item from portal
@@ -1071,6 +1074,9 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_GENOME_ANNOTATION: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
