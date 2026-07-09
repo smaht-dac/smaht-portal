@@ -97,7 +97,7 @@ export const SelectAllAboveTableComponent = (props) => {
     );
 };
 
-const SELECT_ALL_LIMIT = 8000;
+const SELECT_ALL_LIMIT = 3000;
 
 const manifest_enum_map = [
     'file',
