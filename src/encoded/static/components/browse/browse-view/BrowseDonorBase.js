@@ -584,7 +584,7 @@ export function createBaseDonorColumnExtensionMap({
                             return (
                                 <a
                                     className="value text-center"
-                                    href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${result?.display_title}`}>
+                                    href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${encodeURIComponent(result?.display_title)}`}>
                                     {fileCount} File{fileCount > 1 ? 's' : ''}
                                 </a>
                             );
