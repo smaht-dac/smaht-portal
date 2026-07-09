@@ -5,13 +5,13 @@ elasticsearch running as subprocesses.
 """
 import pytest
 import re
-import time
 import transaction
 import uuid
 from typing import Any, Dict
 
 from dcicutils.misc_utils import PRINT
 from dcicutils.qa_utils import notice_pytest_fixtures, Eventually
+from elasticsearch.exceptions import NotFoundError
 from snovault.tools import index_n_items_for_testing, make_es_count_checker
 from snovault import DBSESSION, TYPES
 from snovault.elasticsearch import create_mapping, ELASTIC_SEARCH
@@ -223,10 +223,24 @@ def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_t
     # since associated file_format are not indexed.
     # That's okay if we don't detect that it succeeded, keep trying until it does
     index_n_items_for_testing(indexer_testapp, 1)
-    time.sleep(2)
     namespaced_fp = get_namespaced_index(es_app, 'output_file')
-    es_res = es.get(index=namespaced_fp, id=res['@graph'][0]['uuid'])
-    assert len(es_res['_source'].get('validation_errors', [])) == 2
+
+    # The indexed document (and its computed validation_errors) is only
+    # eventually consistent: after /index returns, the ES write may not have
+    # propagated yet, so a single get-and-assert can flake with either a
+    # NotFoundError (doc not visible) or a validation_errors list that has not
+    # been populated. Retry with backoff until consistent, matching the
+    # Eventually.consistent pattern used elsewhere in this module, rather than
+    # a fixed sleep.
+    @Eventually.consistent(
+        tries=25, wait_seconds=1, error_class=(AssertionError, NotFoundError)
+    )
+    def check_indexed_validation_errors():
+        es_res = es.get(index=namespaced_fp, id=res['@graph'][0]['uuid'])
+        assert len(es_res['_source'].get('validation_errors', [])) == 2
+        return es_res
+
+    es_res = check_indexed_validation_errors()
     # check that validation-errors view works
     val_err_view = es_testapp.get(fp_id + '@@validation-errors', status=200).json
     assert val_err_view['@id'] == fp_id
