@@ -157,23 +157,21 @@ export const BrowseProtectedDonorBody = (props) => {
         props;
     return (
         <DonorDataProvider>
-            <>
-                <Alerts alerts={alerts} className="mt-2" />
-                <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
-                <hr />
-                <BrowseViewControllerWithSelections {...props}>
-                    <BrowseProtectedDonorSearchTable />
-                </BrowseViewControllerWithSelections>
-                {context?.total === 0 && (
-                    <NoResultsBrowseModal
-                        type="protected_donor"
-                        context={context}
-                        href={href}
-                        userDownloadAccess={userDownloadAccess}
-                        isAccessResolved={isAccessResolved}
-                    />
-                )}
-            </>
+            <Alerts alerts={alerts} className="mt-2" />
+            <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
+            <hr />
+            <BrowseViewControllerWithSelections {...props}>
+                <BrowseProtectedDonorSearchTable />
+            </BrowseViewControllerWithSelections>
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    type="protected_donor"
+                    context={context}
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </DonorDataProvider>
     );
 };

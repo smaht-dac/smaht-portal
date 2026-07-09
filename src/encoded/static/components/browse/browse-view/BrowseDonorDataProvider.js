@@ -18,12 +18,12 @@ const DONOR_PEEK_METADATA_ADDITIONAL_FACETS = [
     'file_size',
 ];
 
-const buildDonorPeekMetadataUrl = (displayTitle) => {
-    const additionalFacetParams = DONOR_PEEK_METADATA_ADDITIONAL_FACETS.map(
-        (facet) => `additional_facet=${facet}`
-    ).join('&');
-    return `/peek-metadata/?skip_default_facets=true&${additionalFacetParams}&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=${encodeURIComponent(displayTitle)}`;
-};
+const ADDITIONAL_FACET_PARAMS = DONOR_PEEK_METADATA_ADDITIONAL_FACETS.map(
+    (f) => `additional_facet=${f}`
+).join('&');
+
+const buildDonorPeekMetadataUrl = (displayTitle) =>
+    `/peek-metadata/?skip_default_facets=true&${ADDITIONAL_FACET_PARAMS}&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=${encodeURIComponent(displayTitle)}`;
 
 // Set a limit on the number of concurrent requests to avoid overloading the server
 const CONCURRENCY_LIMIT = 4;
