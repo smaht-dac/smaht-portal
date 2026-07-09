@@ -1610,6 +1610,40 @@ body[data-path="/statistics"] {
         top: 48px;
         z-index: 8;
         background-color: #ffffff;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 0.55rem;
+
+        .matrix-mode-refresh-btn {
+            flex: 0 0 auto;
+            align-self: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid #b7c9dc;
+            background: #ffffff;
+            color: #4e6781;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            transition: background-color 160ms ease, color 160ms ease;
+
+            .icon {
+                font-size: 0.85rem;
+            }
+
+            &:hover:not(:disabled) {
+                background: #e9f2fb;
+            }
+
+            &:disabled {
+                opacity: 0.55;
+                cursor: default;
+            }
+        }
     }
 
     .matrix-counts-panel {

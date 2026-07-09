@@ -7,6 +7,57 @@ smaht-portal
 Change Log
 ----------
 
+2.3.2
+=====
+
+* Homepage (``/home``) efficiency and correctness fixes:
+
+  * Dedupe redundant ES searches: run one ``limit=0`` search per distinct param dict
+    (6 instead of 14) and derive every stat (total + facet counts) from that single
+    captured response.
+  * Stop mutating shared state from concurrent worker threads: build each search's
+    param dict as a copy, and set the admin ``remote_user`` / strip the auth header on
+    the subrequest rather than the shared parent request.
+  * Never render the internal ``-1`` error sentinel to clients: failed sub-searches now
+    coerce to ``0``.
+  * ``generate_unique_facet_count`` no longer raises ``KeyError`` when a facet is absent
+    from the response; a missing facet degrades to a count of ``0``.
+  * Remove the unused ``pytz`` import and drop the always-hardcoded ``" EST"`` suffix
+    from the ``date`` field (now a plain ``YYYY-MM-DD`` string).
+  * Guard the release-date parse against the ``-1`` sentinel / non-ISO input so a single
+    failed sub-search degrades ``date`` to ``None`` instead of 500ing the homepage.
+  * Skip the full File default facet set on the homepage sub-searches: each search now
+    passes ``skip_default_facets`` and requests (via ``additional_facet``) only the
+    specific facets its stats read, instead of computing all ~21 File facets per search
+    and discarding all but one. The ``PRODUCTION`` search's ``additional_facet`` was
+    reconciled to declare ``donors.display_title`` and ``sample_summary.tissues`` (which
+    its donor / tissue-type counts read but previously got only as default facets) and to
+    drop the never-read ``...uberon_id`` facet. Stat values are unchanged.
+
+* Chart-endpoint (``visualization.py``) efficiency fixes:
+
+  * ``date_histogram_aggregations`` and ``bar_plot_chart`` now pass
+    ``skip_default_facets`` so Elasticsearch no longer computes the full File default
+    facet set that both endpoints immediately discard (custom aggregations are
+    unaffected; ``data_matrix_aggregations`` still computes facets because it uses them).
+  * ``bar_plot_chart`` no longer computes the per-bucket
+    ``total_tissues``/``total_assays``/``total_file_size`` sub-aggregations that are only
+    read at the top-level total; per-bucket aggregations are trimmed to the fields
+    actually consumed. Response shape is unchanged.
+
+
+2.3.1
+=====
+
+* Add some more tests for encoded/visualization.py
+
+
+2.3.0
+=====
+
+* Convert Docker built to multi-stage to reduce image overhead
+
+
 2.2.3
 =====
 
