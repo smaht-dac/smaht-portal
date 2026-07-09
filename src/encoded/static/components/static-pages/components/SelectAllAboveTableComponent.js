@@ -465,17 +465,15 @@ export class SelectAllFilesButton extends React.PureComponent {
                         />
                     )}
                     <div
-                        className="progress mt-03"
+                        className={
+                            'progress mt-03 select-all-progress select-all-progress-checkbox' +
+                            (selecting ? ' is-selecting' : '')
+                        }
                         style={{
-                            height: '3px',
                             width:
                                 progressTrackWidth && Number.isFinite(progressTrackWidth)
                                     ? `${progressTrackWidth}px`
                                     : '100%',
-                            minWidth: '20px',
-                            overflow: 'hidden',
-                            boxSizing: 'border-box',
-                            visibility: selecting ? 'visible' : 'hidden',
                         }}>
                         <div
                             className="progress-bar"
@@ -513,16 +511,12 @@ export class SelectAllFilesButton extends React.PureComponent {
                 </span>
                 {selecting ? (
                     <div
-                        className="progress mt-03"
+                        className="progress mt-03 select-all-progress select-all-progress-button"
                         style={{
-                            height: '3px',
                             width:
                                 progressTrackWidth && Number.isFinite(progressTrackWidth)
                                     ? `${progressTrackWidth}px`
                                     : '100%',
-                            minWidth: '120px',
-                            overflow: 'hidden',
-                            boxSizing: 'border-box',
                         }}>
                         <div
                             className="progress-bar"
