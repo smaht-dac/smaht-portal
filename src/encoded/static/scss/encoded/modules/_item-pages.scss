@@ -2640,13 +2640,233 @@ File and Donor Overview Styles
 }
 
 .item-page-container.type-Tissue {
+	.tabs-bar-outer .tabs-bar .tab-item.active {
+		border-top-color: #1F9F55;
+	}
+
 	.view-title {
 		background: url('/static/img/polygon-bg-header.svg'),
-			linear-gradient(165deg, rgba(233, 245, 255, 0.92), rgba(216, 236, 255, 0.72));
+			linear-gradient(165deg, rgba(233, 250, 240, 0.92), rgba(212, 238, 222, 0.72));
 		background-size: cover;
 	}
 
 	.view-content {
+		.tissue-summary-header {
+			display: flex;
+			align-items: center;
+			gap: 20px;
+			padding: 20px 0;
+			margin-bottom: 24px;
+			border-bottom: 1px solid #E7F0F3;
+
+			&-icon {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 88px;
+				height: 88px;
+				min-width: 88px;
+				border-radius: 50%;
+				background-color: #EAF7F0;
+				border: 3px solid #A9DFBC;
+
+				i {
+					font-size: 2.25rem;
+					color: #1F9F55;
+				}
+			}
+
+			&-content {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+
+				h1 {
+					margin: 0;
+					font-size: 1.75rem;
+				}
+			}
+
+			&-notes {
+				display: flex;
+				align-items: baseline;
+				gap: 10px;
+				font-size: 0.875rem;
+
+				.notes-label {
+					font-weight: 600;
+					color: #4E6884;
+				}
+
+				.notes-value {
+					color: #5B7595;
+				}
+			}
+		}
+
+		.tissue-summary-row {
+			display: flex;
+			align-items: stretch;
+			gap: 24px;
+			margin-bottom: 24px;
+
+			.tissue-summary-card,
+			.tissue-aliquot-card {
+				background-color: #FFFFFF;
+				border: 1px solid #E7F0F3;
+				border-radius: 8px;
+				overflow: hidden;
+			}
+
+			.tissue-summary-card {
+				flex: 3 1 420px;
+				max-width: 680px;
+				display: flex;
+				flex-direction: column;
+
+				.header {
+					background-color: #F4F3FD;
+					padding: 12px 20px;
+					border-bottom: 1px solid #E7F0F3;
+
+					.header-text {
+						font-size: 1.0625rem;
+						font-weight: 600;
+					}
+				}
+
+				.body {
+					flex: 1;
+					padding: 20px;
+				}
+
+				.tissue-summary-subheader {
+					font-size: 0.75rem;
+					font-weight: 600;
+					letter-spacing: 0.03em;
+					text-transform: uppercase;
+					color: #98A2B3;
+					margin-bottom: 10px;
+				}
+
+				.tissue-summary-fields {
+					border: 1px solid #E7F0F3;
+					border-radius: 6px;
+					padding: 4px 16px;
+					margin-bottom: 24px;
+				}
+
+				.tissue-summary-grid {
+					display: grid;
+					grid-template-columns: repeat(2, 1fr);
+					column-gap: 24px;
+
+					.datum {
+						display: flex;
+						flex-direction: row;
+						align-items: baseline;
+						gap: 8px;
+						padding: 10px 0;
+						border-bottom: 1px solid #EEF1F4;
+
+						&-title {
+							flex: 0 0 auto;
+							font-size: 0.8125rem;
+							font-weight: 600;
+							color: #212529;
+							white-space: nowrap;
+						}
+
+						&-value {
+							flex: 1;
+							font-size: 0.8125rem;
+							font-weight: 400;
+							color: #212529;
+
+							&.coming-soon {
+								color: #D8D8D8;
+							}
+						}
+					}
+
+					.datum:nth-last-child(-n+2) {
+						border-bottom: none;
+					}
+				}
+			}
+
+			.tissue-aliquot-card {
+				flex: 2 1 420px;
+				max-width: 600px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 24px;
+
+				.aliquot-visualization {
+					width: 100%;
+					max-width: 620px;
+					margin: 0 auto;
+				}
+			}
+		}
+
+		.tissue-donor-table-card {
+			background-color: #FFFFFF;
+			border: 1px solid #E7F0F3;
+			border-radius: 8px;
+			overflow: hidden;
+			margin-bottom: 24px;
+
+			.header {
+				background-color: #F4F3FD;
+				padding: 12px 20px;
+				border-bottom: 1px solid #E7F0F3;
+
+				.header-text {
+					font-size: 1.0625rem;
+					font-weight: 600;
+				}
+			}
+
+			.body {
+				padding: 0;
+				overflow-x: auto;
+			}
+
+			.tissue-donor-table {
+				width: 100%;
+				margin-bottom: 0;
+
+				th, td {
+					padding: 12px 20px;
+					vertical-align: middle;
+					white-space: nowrap;
+				}
+
+				thead th {
+					background-color: #FAFAFD;
+					font-weight: 600;
+					color: #343741;
+					border-bottom: 1px solid #E7F0F3;
+				}
+
+				tbody td {
+					border-bottom: 1px solid #EEF1F4;
+					color: #212529;
+
+					a {
+						color: #428bca;
+					}
+				}
+
+				tbody tr:last-of-type td {
+					border-bottom: none;
+				}
+			}
+		}
+
+		.tissue-summary-stats,
 		.tissue-statistics {
 			.donor-statistic {
 				flex: 1;
@@ -2678,6 +2898,14 @@ File and Donor Overview Styles
 					border-color: #CDEBD8;
 					.donor-statistic-label {
 						color: #1F9F55;
+					}
+				}
+
+				&.donors {
+					background-color: #F5F1FE;
+					border-color: #E1D5F8;
+					.donor-statistic-label {
+						color: #7C4DE0;
 					}
 				}
 
@@ -2794,6 +3022,22 @@ File and Donor Overview Styles
 
 	@include media-breakpoint-down(md) {
 		.view-content {
+			.tissue-summary-header {
+				flex-direction: column;
+				text-align: center;
+			}
+
+			.tissue-summary-row {
+				flex-direction: column;
+
+				.tissue-summary-card,
+				.tissue-aliquot-card {
+					min-width: 100%;
+					max-width: 100%;
+				}
+			}
+
+			.tissue-summary-stats,
 			.tissue-statistics {
 				flex-direction: column;
 			}

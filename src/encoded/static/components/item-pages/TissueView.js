@@ -1,9 +1,7 @@
 'use strict';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import _ from 'underscore';
 import DefaultItemView from './DefaultItemView';
-import DataMatrix from '../viz/Matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
 import AliquotVisualization from './components/tissue-overview/AliquotVisualization';
@@ -38,25 +36,17 @@ const getDisplayText = (value) => {
 const TissueDatum = ({ title, value, unit = null, href = null }) => {
     const text = getDisplayText(value);
     const textToRender = unit && text !== '-' ? `${text} ${unit}` : text;
+    const isComingSoon = text === 'Protected';
 
     return (
         <div className="datum">
             <span className="datum-title">{title}</span>
-            <span className="datum-value">
+            <span className={'datum-value' + (isComingSoon ? ' coming-soon' : '')}>
                 {href && text !== '-' ? <a href={href}>{textToRender}</a> : textToRender}
             </span>
         </div>
     );
 };
-
-const TissueSection = ({ title, children }) => (
-    <div className="data-card">
-        <div className="header">
-            <span className="header-text">{title}</span>
-        </div>
-        <div className="body data-group">{children}</div>
-    </div>
-);
 
 const sampleAliquotSlices = [
     { id: 'fixed-1', type: 'pink', widthCm: 0.5, description: 'Fixed edge aliquot for preservation workflow.' },
@@ -102,45 +92,19 @@ const TissueViewTitle = ({ context }) => {
     );
 };
 
-const TissueView = React.memo(function TissueView({ context = {}, session }) {
-    const {
-        display_title,
-        accession,
-        submitted_id,
-        external_id,
-        submission_centers,
-        donor,
-        uberon_id,
-        anatomical_location,
-        preservation_type,
-        preservation_medium,
-        sample_count,
-        ischemic_time,
-        ph,
-        size,
-        size_unit,
-        volume,
-        weight,
-        pathology_notes,
-        prosector_notes,
-        tissue_type,
-        study,
-    } = context;
+const TissueView = React.memo(function TissueView({ context = {} }) {
+    const { display_title, donor, uberon_id, tissue_type, study } = context;
 
     const donorHref = donor && donor['@id'] ? donor['@id'] : null;
     const uberonHref = uberon_id && uberon_id['@id'] ? uberon_id['@id'] : null;
+    const targetTissueValue = uberon_id || tissue_type || null;
+    const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueMatrixFilterValue = useMemo(
         () => tissue_type || uberon_id?.display_title || null,
         [tissue_type, uberon_id]
     );
-    const encodedDonorDisplayTitle = encodeURIComponent(
-        donor?.display_title || ''
-    );
-    const encodedTissueFilter = tissueMatrixFilterValue
-        ? `&sample_summary.tissues=${encodeURIComponent(tissueMatrixFilterValue)}`
-        : '';
     const [isLoading, setIsLoading] = useState(true);
-    const [matrixStats, setMatrixStats] = useState({ assays: 0, files: 0 });
+    const [fileCount, setFileCount] = useState(0);
 
     useEffect(() => {
         const queryParts = [
@@ -159,174 +123,145 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         ajax.load(
             `/search/?${queryParts.join('&')}`,
             (resp) => {
-                setMatrixStats({
-                    assays:
-                        resp?.facets?.find(
-                            (facet) => facet.field === 'assays.display_title'
-                        )?.original_terms?.length || 0,
-                    files: resp?.total || 0,
-                });
+                setFileCount(resp?.total || 0);
                 setIsLoading(false);
             },
             'GET',
             () => {
-                setMatrixStats({ assays: 0, files: 0 });
+                setFileCount(0);
                 setIsLoading(false);
             }
         );
     }, [donor?.display_title, tissueMatrixFilterValue]);
 
+    const donorCount = donor ? 1 : 0;
+
     return (
         <div className="tissue-view">
             <TissueViewTitle context={context} />
             <div className="view-content">
-                <div className="view-header">
-                    <div className="data-group data-row header">
+                <div className="tissue-summary-header">
+                    <div className="tissue-summary-header-icon">
+                        <i className="icon icon-lungs fas"></i>
+                    </div>
+                    <div className="tissue-summary-header-content">
                         <h1 className="header-text fw-semibold">
-                            {display_title || 'Tissue'}
+                            {study ? `${study} Tissue: ` : 'Tissue: '}
+                            {getDisplayText(targetTissueValue) !== '-'
+                                ? getDisplayText(targetTissueValue)
+                                : display_title}
                         </h1>
+                        <div className="tissue-summary-header-notes">
+                            <span className="notes-label">Notes</span>
+                            <span className="notes-value">
+                                Extended Clinical Data about this donor is available through the donor manifest
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="data-cards-container">
-                    <TissueSection title="Identifiers">
-                        <TissueDatum title="Accession" value={accession} />
-                        <TissueDatum title="Submitted ID" value={submitted_id} />
-                        <TissueDatum title="External ID" value={external_id} />
-                        <TissueDatum title="Status" value={context.status} />
-                        <TissueDatum
-                            title="Submitted By"
-                            value={_.pluck(submission_centers || [], 'display_title')}
-                        />
-                    </TissueSection>
-
-                    <TissueSection title="Biology">
-                        <TissueDatum title="Donor" value={donor} href={donorHref} />
-                        <TissueDatum title="Uberon ID" value={uberon_id} href={uberonHref} />
-                        <TissueDatum title="Anatomical Location" value={anatomical_location} />
-                        <TissueDatum title="Preservation Type" value={preservation_type} />
-                        <TissueDatum title="Preservation Medium" value={preservation_medium} />
-                    </TissueSection>
-
-                    <TissueSection title="Measurements">
-                        <TissueDatum title="Sample Count" value={sample_count} />
-                        <TissueDatum title="Ischemic Time" value={ischemic_time} unit="hours" />
-                        <TissueDatum title="pH" value={ph} />
-                        <TissueDatum title="Size" value={size} unit={size_unit} />
-                        <TissueDatum title="Volume" value={volume} unit="mL" />
-                        <TissueDatum title="Weight" value={weight} unit="g" />
-                    </TissueSection>
-
-                    <TissueSection title="Notes">
-                        <TissueDatum title="Pathology Notes" value={pathology_notes} />
-                        <TissueDatum title="Prosector Notes" value={prosector_notes} />
-                    </TissueSection>
-                </div>
-
-                <div className="tabs-container d-flex gap-4 flex-wrap">
-                    <div className="tissue-statistics w-100 d-flex gap-3 mb-2">
-                        <div className="donor-statistic tissues d-flex flex-column p-2 gap-2">
-                            <div className="donor-statistic-label text-center">
-                                <i className="icon icon-lungs fas"></i>Samples
-                            </div>
-                            <div className="donor-statistic-value text-center">
-                                {!isLoading ? (
-                                    <span>{getDisplayText(sample_count)}</span>
-                                ) : (
-                                    <i className="icon icon-circle-notch icon-spin fas" />
-                                )}
-                            </div>
-                        </div>
-                        <div className="donor-statistic assays d-flex flex-column p-2 gap-2">
-                            <div className="donor-statistic-label text-center">
-                                <i className="icon icon-dna fas"></i>Assays
-                            </div>
-                            <div className="donor-statistic-value text-center">
-                                {!isLoading ? (
-                                    <span>{matrixStats.assays}</span>
-                                ) : (
-                                    <i className="icon icon-circle-notch icon-spin fas" />
-                                )}
-                            </div>
-                        </div>
-                        <div className="donor-statistic files d-flex flex-column p-2 gap-2">
-                            <div className="donor-statistic-label text-center">
-                                <i className="icon icon-file fas"></i>Files
-                            </div>
-                            <div className="donor-statistic-value text-center">
-                                {!isLoading ? (
-                                    <span>{matrixStats.files}</span>
-                                ) : (
-                                    <i className="icon icon-circle-notch icon-spin fas" />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="matrix-tab tab-card">
+                <div className="tissue-summary-row">
+                    <div className="tissue-summary-card">
                         <div className="header">
-                            <span className="title">Donor x Assay Type Data Matrix</span>
+                            <span className="header-text">Tissue Summary</span>
                         </div>
-                        {!isLoading && matrixStats.assays > 0 && matrixStats.files > 0 ? (
-                            <div className="body d-flex justify-content-center overflow-scroll">
-                                <DataMatrix
-                                    key="data-matrix-tissue"
-                                    query={{
-                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${encodedDonorDisplayTitle}${encodedTissueFilter}&analysis_details=No+value&analysis_details=Filtered&analysis_details=Phased&limit=all`,
-                                        columnAggFields: [
-                                            'assays.display_title',
-                                            'sequencers.platform',
-                                        ],
-                                        rowAggFields: [
-                                            'donors.display_title',
-                                            'data_type',
-                                            'analysis_details',
-                                            'sample_summary.category',
-                                        ],
-                                    }}
-                                    resultTransformedPostProcessFuncKey="analysisDerivedColumns"
-                                    browseFilteringTransformFuncKey="analysisDerivedColumns"
-                                    excludePrimaryColumnNoValue={false}
-                                    headerFor={null}
-                                    defaultOpen={true}
-                                    idLabel="tissue"
-                                    session={session}
-                                    yAxisLabel="Donor"
-                                    showUniqueDonorsAssayBand={false}
-                                    baseBrowseFilesPath={study === 'Production' ? '/browse/' : '/search/'}
-                                />
-                            </div>
-                        ) : (
-                            <div className="body">
-                                <div className="callout-card">
-                                    <i className="icon icon-fw icon-2x icon-table-cells fas"></i>
-                                    <h4>Donor x Assay Type Data Matrix</h4>
-                                    <span>
-                                        {isLoading
-                                            ? 'Loading matrix data...'
-                                            : 'No matrix data available for this tissue yet.'}
-                                    </span>
+                        <div className="body">
+                            <div className="tissue-summary-subheader">Tissue Overview</div>
+                            <div className="tissue-summary-fields">
+                                <div className="tissue-summary-grid">
+                                    <TissueDatum
+                                        title="Target Tissue"
+                                        value={targetTissueValue}
+                                        href={targetTissueHref}
+                                    />
+                                    <TissueDatum title="Non-Tissue Presence" value="Protected" />
+                                    <TissueDatum title="Sex" value={donor?.sex} />
+                                    <TissueDatum title="Total Coverage" value="Protected" />
                                 </div>
                             </div>
-                        )}
+                            <div className="tissue-summary-stats d-flex gap-3">
+                                <div className="donor-statistic donors d-flex flex-column p-2 gap-2">
+                                    <div className="donor-statistic-label text-center">
+                                        <i className="icon icon-lungs fas"></i>Donors
+                                    </div>
+                                    <div className="donor-statistic-value text-center">
+                                        {!isLoading ? (
+                                            <span>{donorCount}</span>
+                                        ) : (
+                                            <i className="icon icon-circle-notch icon-spin fas" />
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="donor-statistic files d-flex flex-column p-2 gap-2">
+                                    <div className="donor-statistic-label text-center">
+                                        <i className="icon icon-file fas"></i>Files
+                                    </div>
+                                    <div className="donor-statistic-value text-center">
+                                        {!isLoading ? (
+                                            <span>{fileCount}</span>
+                                        ) : (
+                                            <i className="icon icon-circle-notch icon-spin fas" />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="aliquot-tab tab-card">
-                        <div className="header">
-                            <span className="title">Aliquot Visualization</span>
-                        </div>
-                        <div className="body aliquot-tab-body">
-                            <AliquotVisualization
-                                title="Sample solid-organ aliquot layout"
-                                slices={sampleAliquotSlices}
-                                dimensions={{
-                                    heightCm: 1,
-                                    depthCm: 1.5,
-                                    widthLabel: '5.5 cm',
-                                    heightLabel: '1 cm',
-                                    depthLabel: '1.5 cm',
-                                }}
-                                showSliceLabels={false}
-                            />
-                        </div>
+
+                    <div className="tissue-aliquot-card">
+                        <AliquotVisualization
+                            title="Sample solid-organ aliquot layout"
+                            slices={sampleAliquotSlices}
+                            dimensions={{
+                                heightCm: 1,
+                                depthCm: 1.5,
+                                widthLabel: '5.5 cm',
+                                heightLabel: '1 cm',
+                                depthLabel: '1.5 cm',
+                            }}
+                            showSliceLabels={false}
+                        />
+                    </div>
+                </div>
+
+                <div className="tissue-donor-table-card">
+                    <div className="header">
+                        <span className="header-text">Donor Details</span>
+                    </div>
+                    {/* Donor table is currently a placeholder. In a real implementation, this would be replaced with embedded search table. */}
+                    <div className="body">
+                        <table className="tissue-donor-table table">
+                            <thead>
+                                <tr>
+                                    <th>Donor ID</th>
+                                    <th>Autolysis Score</th>
+                                    <th>Non-Target Tissue Presence</th>
+                                    <th>Unexpected/Pathologic Finding</th>
+                                    <th>Histology Viewer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {donor ? (
+                                    <tr>
+                                        <td>
+                                            {donorHref ? (
+                                                <a href={donorHref}>{getDisplayText(donor)}</a>
+                                            ) : (
+                                                getDisplayText(donor)
+                                            )}
+                                        </td>
+                                        <td>n/a</td>
+                                        <td>n/a</td>
+                                        <td>n/a</td>
+                                        <td>n/a</td>
+                                    </tr>
+                                ) : (
+                                    <tr>
+                                        <td colSpan={5}>No donor data available for this tissue.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
