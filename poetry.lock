@@ -1146,13 +1146,13 @@ files = [
 
 [[package]]
 name = "dcicsnovault"
-version = "11.30.2.0b1"
+version = "11.32.1"
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = "<3.13,>=3.9"
 files = [
-    {file = "dcicsnovault-11.30.2.0b1-py3-none-any.whl", hash = "sha256:bc584e814e956ee378a6265249ae0aa7e74c95306a90827a6ff82f00f6732f87"},
-    {file = "dcicsnovault-11.30.2.0b1.tar.gz", hash = "sha256:cb6b04a901f1144c18d85c30d51dd9445871d7a382b1fc9090cbcc2d05ee0606"},
+    {file = "dcicsnovault-11.32.1-py3-none-any.whl", hash = "sha256:4d0509fbb642f30fa8cf005393b3ef914dca73569f7e51ffeed7ff669f919ca6"},
+    {file = "dcicsnovault-11.32.1.tar.gz", hash = "sha256:008f9021200bce6e712081472dd8a1602083cececcad1270ebec7e827282a680"},
 ]
 
 [package.dependencies]
@@ -1319,13 +1319,13 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.9.6"
+version = "1.0.0"
 description = "Core data models for Park Lab ENCODE based projects"
 optional = false
 python-versions = "<3.13,>=3.9.0"
 files = [
-    {file = "encoded_core-0.9.6-py3-none-any.whl", hash = "sha256:3ed737940ad3f8ecf78a3fdc71f0632e1e5ff16b93d495bdcd2e008558c39138"},
-    {file = "encoded_core-0.9.6.tar.gz", hash = "sha256:7f3c56f25164cdc1f612a0bdf702c3d19083cfde485b9a4cf801c2ef9a73917f"},
+    {file = "encoded_core-1.0.0-py3-none-any.whl", hash = "sha256:7c7b3471519168b31cbc3eb7efc3ff13a93c3aa439a350de52664019e58f69c8"},
+    {file = "encoded_core-1.0.0.tar.gz", hash = "sha256:b13fb1a089b926b5b2c167a01f2b519079dd23e94accd0e124a7c12bb4dc293d"},
 ]
 
 [package.dependencies]
@@ -4675,4 +4675,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "c7290c048f06ca7aa7892ed339bd47868bf45afde77a951c5032b3779a731290"
+content-hash = "03527035fd7a2c8c88c943f49d8ea1ae9b4ac7ee4d96eec046ac87e44ec177da"

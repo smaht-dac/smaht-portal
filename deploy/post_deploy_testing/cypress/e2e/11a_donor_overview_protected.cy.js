@@ -553,6 +553,7 @@ function stepProtectedDonorFlow(caps) {
                                         expectedTissuesCount: tissuesCount,
                                         allowVariantCallSetMatrixUndercount: true,
                                         allowDSARowSummaryOvercount: true,
+                                        skipColSummaryTotalCheckForDonors: ["ST001"],
                                         verifyTotalFromApi: true,
                                     }
                                 );

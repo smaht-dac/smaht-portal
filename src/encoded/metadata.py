@@ -1060,6 +1060,41 @@ def _facets_via_search(request, params):
     return search(None, subreq).get('facets', []) or []
 
 
+def _count_via_search(request, search_query_params):
+    """Return just the matched-document count for a search query, computing NO facets.
+
+    Used by peek-metadata POST callers that only need "how many items match
+    this query" (e.g. a per-donor existence check) and would otherwise pay for
+    the full default facet set the GET path computes. `skip_default_facets`
+    tells snovault to build its (correct) filter — nested fields, type-subtype
+    expansion, principal filtering, negation params like `dataset!=No value` —
+    but skip every facet aggregation, so this is strictly cheaper than the
+    faceted GET while returning the same `total`.
+
+    `search_query_params` is a dict of {param_name: value | [values]} mirroring
+    the search query string the caller would otherwise GET.
+    """
+    forwarded = MultiDict()
+    for key, values in (search_query_params or {}).items():
+        # `skip_default_facets`/`limit`/`from` are controlled here, not by the caller.
+        if key in ('limit', 'from', 'skip_default_facets'):
+            continue
+        if isinstance(values, (list, tuple)):
+            for value in values:
+                forwarded.add(key, str(value))
+        else:
+            forwarded.add(key, str(values))
+    forwarded.add('skip_default_facets', 'true')
+    forwarded.add('limit', '0')
+
+    subreq = make_search_subreq(
+        request,
+        '/search?{}'.format(urlencode(list(forwarded.items()), True)),
+        inherit_user=True,
+    )
+    return {'total': search(None, subreq).get('total', 0)}
+
+
 def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
                                   status=None, include_extra_files=False):
     """Compute the peek-metadata file_size summary by streaming matching docs.
@@ -1220,6 +1255,20 @@ def handle_sample_source_type(field: dict) -> str:
     return ''
 
 
+FORMULA_INJECTION_LEAD_CHARS = ('=', '+', '-', '@')
+
+
+def _neutralize_formula_injection(value):
+    """ Prefixes values that would be interpreted as spreadsheet formulas (by Excel,
+        Google Sheets, LibreOffice, etc.) with a single quote so that opening an exported
+        manifest cannot trigger formula/macro execution using submitter-controlled data
+        (CSV/TSV formula injection - CWE-1236).
+    """
+    if isinstance(value, str) and value and value[0] in FORMULA_INJECTION_LEAD_CHARS:
+        return "'" + value
+    return value
+
+
 def generate_tsv(header: Tuple, data_lines: list):
     """ Helper function that actually generates the TSV """
     line = DummyFileInterfaceImplementation()
@@ -1233,7 +1282,7 @@ def generate_tsv(header: Tuple, data_lines: list):
 
     # write the data
     for entry in data_lines:
-        writer.writerow(entry)
+        writer.writerow([_neutralize_formula_injection(value) for value in entry])
         yield line.read().encode('utf-8')
 
 
@@ -1293,6 +1342,20 @@ def peek_metadata(context, request):
         each scanning every document matching the (often thousands of)
         accessions — that was the source of upstream 504s.
     """
+    # Lightweight count/existence mode: a POST carrying `search_query_params`
+    # only wants the matched-document count for an arbitrary search query
+    # (e.g. "does this donor have any DSA files?"). Serve it with a facet-free
+    # search so it doesn't pay for the full default facet computation the GET
+    # path performs. Keyed on `search_query_params` so it cannot collide with
+    # the manifest / file-size POST bodies (which carry `accessions` / `type`).
+    if request.method == 'POST':
+        try:
+            body = request.json_body
+        except (json.JSONDecodeError, ValueError):
+            body = None
+        if isinstance(body, dict) and 'search_query_params' in body:
+            return _count_via_search(request, body.get('search_query_params'))
+
     args = handle_metadata_arguments(context, request)
 
     # GET path — forward URL params verbatim to /search. Type-agnostic; the

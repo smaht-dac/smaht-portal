@@ -32,6 +32,24 @@ export default class DataMatrix extends React.PureComponent {
         DONOR_TISSUE: 'donor_tissue'
     };
 
+    // State keys that make up a loaded tab's rendered result, snapshotted into
+    // (and restored from) the per-tab cache. Deliberately excludes mode-derived
+    // display config (query, grouping, countFor, colorRanges, axis labels), which
+    // getNextStateForMatrixMode re-derives on every tab switch.
+    static TAB_CACHE_STATE_KEYS = [
+        '_results',
+        'availableDonorTissueAssays',
+        'columnGroups',
+        'donorTissueAssay',
+        'overallCounts',
+        'rawRegularCountOverrides',
+        'rowGroupsExtended',
+        'rowSummaryCountsByGroup',
+        'totalFiles',
+        'facetsForPanel',
+        'facetFiltersForPanel'
+    ];
+
     static isPlainObject = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
 
     // Simple recursive deep clone that works with objects and arrays
@@ -308,6 +326,7 @@ export default class DataMatrix extends React.PureComponent {
         "showCountFor": false,
         "showMatrixModeTabs": true,
         "showUniqueDonorsAssayBand": true,
+        "dedupeBenchmarkingDsaAcrossTissues": false,
         "showFacetTermsPanel": false,
         "facetTermsPanelFields": null,
         "excludePrimaryColumnNoValue": true,
@@ -373,6 +392,7 @@ export default class DataMatrix extends React.PureComponent {
         'showCountFor': PropTypes.bool,
         'showMatrixModeTabs': PropTypes.bool,
         'showUniqueDonorsAssayBand': PropTypes.bool,
+        'dedupeBenchmarkingDsaAcrossTissues': PropTypes.bool,
         'showFacetTermsPanel': PropTypes.bool,
         'facetTermsPanelFields': PropTypes.arrayOf(PropTypes.string),
         'excludePrimaryColumnNoValue': PropTypes.bool,
@@ -482,6 +502,8 @@ export default class DataMatrix extends React.PureComponent {
         this.isProductionEnv = this.isProductionEnv.bind(this);
         this.onCountForChange = this.onCountForChange.bind(this);
         this.onMatrixModeChange = this.onMatrixModeChange.bind(this);
+        this.onRefreshActiveTab = this.onRefreshActiveTab.bind(this);
+        this.getTabCacheSignature = this.getTabCacheSignature.bind(this);
         this.onDonorTissueAssayChange = this.onDonorTissueAssayChange.bind(this);
         this.onFacetFilter = this.onFacetFilter.bind(this);
         this.onFacetFilterMultiple = this.onFacetFilterMultiple.bind(this);
@@ -547,6 +569,12 @@ export default class DataMatrix extends React.PureComponent {
         }
         this.latestLoadRequestId = 0;
         this.loadingDelayTimeout = null;
+        // Per-tab (matrix-mode) response cache: switching back to an already
+        // loaded tab restores instantly instead of re-fetching. One entry per
+        // mode, guarded by a signature over the non-tab fetch inputs (filters /
+        // session / base query), so a filter change invalidates it. The Refresh
+        // control bypasses it via loadSearchQueryResults({ forceRefresh: true }).
+        this.tabCache = {};
         this.state = initialState;
     }
 
@@ -856,8 +884,80 @@ export default class DataMatrix extends React.PureComponent {
         return typeof assayValue === 'string' ? assayValue : null;
     }
 
-    loadSearchQueryResults() {
+    static buildRawRegularCountOverrides(rows = [], groupingProperties = [], columnGrouping = null, { dedupeBenchmarkingDsaAcrossTissues = false } = {}) {
+        if (!Array.isArray(rows) || rows.length === 0 || !Array.isArray(groupingProperties) || !columnGrouping) {
+            return {};
+        }
+
+        return _.reduce(rows, (memo, row) => {
+            const columnValue = row?.[columnGrouping];
+            const files = Number(row?.counts?.files) || 0;
+            const dataTypes = _.chain([row?.data_type])
+                .flatten()
+                .compact()
+                .map((value) => String(value))
+                .value();
+            const isDsaLikeRow = _.some(dataTypes, (dataType) =>
+                dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval'
+            );
+            if (!columnValue || files <= 0) {
+                return memo;
+            }
+
+            // Keep raw assay totals for normal columns, but do not leak DSA-like rows
+            // back into their parent assay cells. DSA continues to use its own derived path.
+            if (isDsaLikeRow && columnValue !== 'DSA') {
+                return memo;
+            }
+
+            const pathValues = [];
+            for (let depth = 0; depth < groupingProperties.length; depth++) {
+                const groupingField = groupingProperties[depth];
+                const groupingValue = row?.[groupingField];
+                if (groupingValue == null || groupingValue === '') {
+                    break;
+                }
+                pathValues.push(String(groupingValue));
+                const pathKey = pathValues.join('||');
+                if (!memo[depth]) {
+                    memo[depth] = {};
+                }
+                if (!memo[depth][pathKey]) {
+                    memo[depth][pathKey] = {};
+                }
+                const currentValue = memo[depth][pathKey][String(columnValue)] || 0;
+                // Benchmarking DSA-like files can be linked to multiple tissues for the
+                // same donor. Keep the donor-level override de-duplicated by taking the
+                // largest per-child bucket instead of summing repeated references.
+                if (dedupeBenchmarkingDsaAcrossTissues && isDsaLikeRow && depth === 0) {
+                    memo[depth][pathKey][String(columnValue)] = Math.max(currentValue, files);
+                } else {
+                    memo[depth][pathKey][String(columnValue)] = currentValue + files;
+                }
+            }
+
+            return memo;
+        }, {});
+    }
+
+    loadSearchQueryResults(options = {}) {
+        const { forceRefresh = false } = options;
         const requestId = ++this.latestLoadRequestId;
+        // Serve from the per-tab cache when this tab was already loaded under the
+        // same filter/session context. Runs before any fetch; bumping requestId
+        // above also cancels the commit of any in-flight request for the old tab.
+        // React flushes this setState before paint (it happens within
+        // componentDidUpdate), so a cached tab switch shows no loading flash.
+        if (!forceRefresh) {
+            const cached = this.tabCache[this.state.matrixMode];
+            if (cached && cached.signature === this.getTabCacheSignature()) {
+                this.setState(
+                    { ...cached.state, isFetching: false, loadingContext: null },
+                    () => ReactTooltip.rebuild()
+                );
+                return;
+            }
+        }
         const {
             valueChangeMap,
             resultItemPostProcessFuncKey,
@@ -865,13 +965,15 @@ export default class DataMatrix extends React.PureComponent {
             onDataLoaded,
             debugLoadingDelayMs = 0,
             autoPopulateRowGroupsExtendedMapFields,
-            autoPopulateColumnGroupsMapFields
+            autoPopulateColumnGroupsMapFields,
+            dedupeBenchmarkingDsaAcrossTissues = false
         } = this.props;
         const {
             query: { url: requestUrl, columnAggFields: propColumnAggFields, rowAggFields: propRowAggFields },
             fieldChangeMap,
             groupingProperties,
             columnGrouping,
+            rowGroups,
             autoPopulateRowGroupsProperty,
             rowGroupsExtended,
             columnGroups,
@@ -885,6 +987,7 @@ export default class DataMatrix extends React.PureComponent {
             const updatedState = {};
 
             let transformedData = { all: [], row_totals: [], column_totals: [] };
+            const rawProcessedAllRows = [];
             const populatedRowGroups = {}; // not implemented yet
             // Helper to process each result row
             const processResultRow = (r, transformed) => {
@@ -931,6 +1034,9 @@ export default class DataMatrix extends React.PureComponent {
                         });
                     }
                     transformed.push(cloned);
+                    if (transformed === transformedData.all) {
+                        rawProcessedAllRows.push(_.clone(cloned));
+                    }
                 }
                 if (autoPopulateRowGroupsProperty && cloned[autoPopulateRowGroupsProperty]) {
                     const rowGroupKey = cloned[autoPopulateRowGroupsProperty];
@@ -961,7 +1067,7 @@ export default class DataMatrix extends React.PureComponent {
                 transformed.push(cloned);
             };
 
-            // result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : PRODUCTION_TEST_DATA_DA);
+            // result = resultItemPostProcessFuncKey ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? PRODUCTION_TEST_DATA_DA : PRODUCTION_TEST_DATA_TA));
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
@@ -979,19 +1085,49 @@ export default class DataMatrix extends React.PureComponent {
             updatedState['overallCounts'] = result.counts || null;
             updatedState['facetsForPanel'] = result.facets || [];
             updatedState['facetFiltersForPanel'] = result.filters || [];
-            // Build generic row-summary overrides from backend facet counts.
-            // This keeps visual components dimension-agnostic (not donor-specific).
-            const donorFacet = _.findWhere(result.facets || [], { field: 'donors.display_title' });
-            const donorValueMap = valueChangeMap?.donor || {};
-            const donorSummaryCounts = donorFacet && Array.isArray(donorFacet.terms)
-                ? _.reduce(donorFacet.terms, (memo, term) => {
-                    const key = donorValueMap[term?.key] || term?.key;
-                    if (!key || key === 'No value') return memo;
-                    memo[key] = { files: Number(term?.doc_count) || 0 };
-                    return memo;
-                }, {})
-                : null;
-            updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
+            // Build row-summary overrides from backend facet counts.
+            // Benchmarking uses two different row-group sections:
+            // - cell lines should summarize by dataset
+            // - benchmarking donors should summarize by donor
+            // Keep the summary map section-aware so those rows can diverge.
+            const buildFacetSummaryCounts = (facetField, valueMap = null) => {
+                const facet = _.findWhere(result.facets || [], { field: facetField });
+                return facet && Array.isArray(facet.terms)
+                    ? _.reduce(facet.terms, (memo, term) => {
+                        const key = valueMap?.[term?.key] || term?.key;
+                        if (!key || key === 'No value') return memo;
+                        memo[key] = { files: Number(term?.doc_count) || 0 };
+                        return memo;
+                    }, {})
+                    : null;
+            };
+            const donorSummaryCounts = buildFacetSummaryCounts('donors.display_title', valueChangeMap?.donor || {});
+            const datasetSummaryCounts = buildFacetSummaryCounts('dataset', valueChangeMap?.donor || {});
+            const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0;
+            if (hasRowGroups) {
+                const rowGroupSummaryCounts = {};
+                _.forEach(rowGroups, (rowGroupConfig, rowGroupKey) => {
+                    const customUrlParams = rowGroupConfig?.customUrlParams || '';
+                    const usesDonorSummary = typeof customUrlParams === 'string' && customUrlParams.indexOf('dataset=tissue') >= 0;
+                    const summaryCounts = usesDonorSummary
+                        ? donorSummaryCounts
+                        : datasetSummaryCounts;
+                    if (summaryCounts) {
+                        rowGroupSummaryCounts[rowGroupKey] = usesDonorSummary
+                            ? { donor: summaryCounts }
+                            : { dataset: summaryCounts };
+                    }
+                });
+                updatedState['rowSummaryCountsByGroup'] = _.keys(rowGroupSummaryCounts).length > 0 ? rowGroupSummaryCounts : null;
+            } else {
+                updatedState['rowSummaryCountsByGroup'] = donorSummaryCounts ? { donor: donorSummaryCounts } : null;
+            }
+            updatedState['rawRegularCountOverrides'] = DataMatrix.buildRawRegularCountOverrides(
+                dedupeBenchmarkingDsaAcrossTissues ? transformedData.all : rawProcessedAllRows,
+                groupingProperties,
+                columnGrouping,
+                { dedupeBenchmarkingDsaAcrossTissues }
+            );
             const availableDonorTissueAssays = _.uniq(_.compact(_.map(transformedData.all, (r) => r.assay)));
             updatedState['availableDonorTissueAssays'] = availableDonorTissueAssays;
             // Keep top-level included-properties count aligned with backend search context.
@@ -1061,7 +1197,15 @@ export default class DataMatrix extends React.PureComponent {
                 if (requestId !== this.latestLoadRequestId) {
                     return;
                 }
-                this.setState(updatedState, () => ReactTooltip.rebuild());
+                this.setState(updatedState, () => {
+                    ReactTooltip.rebuild();
+                    // Cache this tab's loaded result under the current signature so
+                    // switching back to it (same filters/session) restores without a refetch.
+                    this.tabCache[matrixMode] = {
+                        signature: this.getTabCacheSignature(),
+                        state: _.pick(this.state, DataMatrix.TAB_CACHE_STATE_KEYS)
+                    };
+                });
                 if (typeof onDataLoaded === 'function') {
                     onDataLoaded({
                         hasData: totalFiles > 0,
@@ -1486,10 +1630,48 @@ export default class DataMatrix extends React.PureComponent {
                 ...this.getNextStateForMatrixMode(nextMatrixMode, prevState),
                 // Clear stale cells immediately on matrix-mode switches so the loading shell
                 // reflects the next mode instead of briefly showing the previous view's columns.
+                // (When the target tab is cached, loadSearchQueryResults restores it before
+                // paint, so this null state is not actually shown.)
                 _results: null,
                 loadingContext: 'matrix-mode'
             };
         });
+    }
+
+    /**
+     * Signature over the fetch inputs for the active tab. The cache itself is
+     * keyed by matrix mode, but sub-views within a mode can change aggregation
+     * and grouping fields without changing query.url. A cached tab is safe to
+     * restore only when its stored signature still matches the exact request
+     * shape. countFor is intentionally omitted: when it changes the fetched
+     * response, the aggregation/grouping fields below change with it.
+     */
+    getTabCacheSignature() {
+        const { session } = this.props;
+        const { query, facetNavigationHref, fieldChangeMap, showColumnSummary, groupingProperties, columnGrouping } = this.state;
+        return JSON.stringify({
+            session: session || null,
+            baseUrl: (query && query.url) || null,
+            facetHref: facetNavigationHref || null,
+            columnAggFields: (query && query.columnAggFields) || null,
+            rowAggFields: (query && query.rowAggFields) || null,
+            columnGrouping: columnGrouping || null,
+            groupingProperties: groupingProperties || null,
+            fieldChangeMap: fieldChangeMap || null,
+            showColumnSummary: showColumnSummary || null
+        });
+    }
+
+    /**
+     * Explicit refresh for the active tab: drop its cache entry and force a fresh
+     * fetch (bypassing the cache), showing the full loading shell while it reloads.
+     */
+    onRefreshActiveTab() {
+        delete this.tabCache[this.state.matrixMode];
+        this.setState(
+            { _results: null, loadingContext: 'matrix-mode' },
+            () => this.loadSearchQueryResults({ forceRefresh: true })
+        );
     }
 
     onApplyConfiguration({
@@ -1661,6 +1843,7 @@ export default class DataMatrix extends React.PureComponent {
             baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor, showMatrixModeTabs,
             showFacetTermsPanel, facetTermsPanelFields, donorTissueShrinkEmptyColumns,
             headerPadding, showUniqueDonorsAssayBand, schemas,
+            dedupeBenchmarkingDsaAcrossTissues = false,
             titleMap, statePrioritizationForGroups, fallbackNameForBlankField
         } = this.props;
         const {
@@ -1734,6 +1917,14 @@ export default class DataMatrix extends React.PureComponent {
             // Use mode-appropriate summary overrides: donor/tissue mode may null these out
             // under assay filter to avoid inconsistencies with facet-driven contexts.
             rowSummaryCountsByGroup: effectiveRowSummaryCountsByGroup,
+            dedupeBenchmarkingDsaAcrossTissues,
+            // Donor x Assay and Tissue x Assay both benefit from raw per-row
+            // file overrides to keep summary columns aligned with visible cells.
+            // Donor x Tissue derives its own filtered donor/tissue aggregates
+            // and should not reuse assay-oriented raw override maps.
+            rawRegularCountOverrides: matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
+                ? (this.state.rawRegularCountOverrides || null)
+                : null,
             ...(countFor === 'total_coverage' && matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY
                 ? { blockWidth: 60, blockHorizontalExtend: 10 }
                 : {}),
@@ -1971,6 +2162,15 @@ export default class DataMatrix extends React.PureComponent {
                                                     <i className="icon fas icon-dna me-05" /> Donor x Tissue
                                                 </button>
                                             </div>
+                                            <button
+                                                type="button"
+                                                className="matrix-mode-refresh-btn"
+                                                title="Refresh this tab's data"
+                                                aria-label="Refresh this tab's data"
+                                                disabled={isFetching}
+                                                onClick={this.onRefreshActiveTab}>
+                                                <i className={`icon fas icon-sync-alt${isFetching ? ' icon-spin' : ''}`} /> Refresh
+                                            </button>
                                         </div>
                                     ) : null}
                                     <div className="matrix-visual-scroll-region">
@@ -2126,9 +2326,6 @@ DataMatrix.browseFilteringTransformFuncs = {
         const hasAssayFilter = assayFilterList.length > 0;
         const hasDSAAssayFilter = assayFilterList.includes('DSA');
         const hasVariantCallSetsAssayFilter = assayFilterList.includes('Variant Call Sets');
-        const studies = filteringProperties['sample_summary.studies'];
-        const studiesList = Array.isArray(studies) ? studies : (typeof studies === 'string' ? [studies] : []);
-        const isProductionStudy = studiesList.includes('Production');
 
         if (hasDSAAssayFilter) {
             // extend data_type filter to include Chain File along with DSA
@@ -2148,10 +2345,9 @@ DataMatrix.browseFilteringTransformFuncs = {
         ) {
             // for non-DSA columns we exclude DSA-related data types;
             // for overall summary (no assay filter) keep all data types.
+            // Keep filtered/phased rows in their parent assay browse links so
+            // regular blocks and summary columns match raw backend assay totals.
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
-            if (isProductionStudy) {
-                filteringProperties['analysis_details!'] = [...(filteringProperties['analysis_details!'] || []), 'Filtered', 'Phased'];
-            }
         }
         return filteringProperties;
     }
