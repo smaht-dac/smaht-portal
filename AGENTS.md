@@ -78,3 +78,23 @@ Because `/browse` delegates directly to snovault's shared `search()` in `src/enc
 `/browse` already gets those upstream search-efficiency fixes through the current caret-resolved
 lockfile. Do not leave stale "waiting on a dependency bump" language for these fixes unless
 `pyproject.toml` or `poetry.lock` changes again and you have rechecked the resolved package code.
+
+## `skip_default_facets=true` + `additional_facet=type` is an HTTP 400 in snovault
+
+Requesting the `type` field as an `additional_facet` while also passing `skip_default_facets=true`
+makes snovault infer a `stats` aggregation on `embedded.@type.raw`, which Elasticsearch rejects
+(`@type.raw` is a `keyword` field, not aggregatable as `stats`). Any `/search` or `/peek-metadata`
+GET combining those two params 400s. If you need a File-type count alongside a
+`skip_default_facets=true` query, read the search response's top-level `total` instead of
+requesting `additional_facet=type` (valid only when the query already filters to the type you're
+counting, e.g. `type=File`). See `src/encoded/metadata.py`'s `_facets_via_search` (returns
+`{'facets': ..., 'total': ...}`) and its consumer in
+`src/encoded/static/components/browse/browse-view/BrowseDonorPeekMetadata.js` /
+`BrowseDonorBase.js`'s `files` column render.
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones.
+When updating this file, preserve this bar for all agents and keep entries concise.
