@@ -7,6 +7,7 @@ import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-comp
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { getTissueCategoryFromFacetTerm } from '../../util/data';
+import { DonorDataCell } from './BrowseDonorDataProvider';
 
 export const formatTissueData = (data) => {
     const defaultTissueCategories = {
@@ -414,71 +415,73 @@ export function createBaseDonorColumnExtensionMap({
                     handleCellClick,
                 } = parentProps;
 
-                const { data, loading } = parentProps?.fetchedProps;
+                return (
+                    <DonorDataCell displayTitle={result.display_title}>
+                        {({ data, loading }) => {
+                            const tissueFacet = data?.find(
+                                (f) => f.field === 'sample_summary.tissues'
+                            );
+                            const tissueTerms = tissueFacet?.has_group_by
+                                ? tissueFacet?.original_terms || tissueFacet?.terms
+                                : tissueFacet?.terms;
+                            const tissueCount = tissueTerms?.length;
 
-                const tissueFacet = data?.find(
-                    (f) => f.field === 'sample_summary.tissues'
+                            if (loading) {
+                                return <span className="value text-center loading"></span>;
+                            }
+                            if (!tissueCount) {
+                                return <small className="value">-</small>;
+                            }
+                            return (
+                                <div
+                                    className={
+                                        'inner-value-container' +
+                                        (detailOpen ? ' detail-open' : ' detail-closed')
+                                    }>
+                                    <CustomTableRowToggleOpenButton
+                                        {...{
+                                            result,
+                                            href,
+                                            context,
+                                            rowNumber,
+                                            detailOpen,
+                                            toggleDetailOpen,
+                                            isActive: detailPaneType === 'tissue',
+                                            customToggleDetailClose: () => {
+                                                if (detailPaneType === 'assay') {
+                                                    handleCellClick('tissue');
+                                                } else {
+                                                    handleCellClick(null);
+                                                    toggleDetailOpen();
+                                                }
+                                            },
+                                            customToggleDetailOpen: () => {
+                                                handleCellClick('tissue');
+                                                toggleDetailOpen();
+                                            },
+                                            toggleOpenIcon: (
+                                                <>
+                                                    {tissueCount} Tissue
+                                                    {tissueCount > 1 ? 's' : ''}
+                                                    <i className="icon icon-circle-plus"></i>
+                                                </>
+                                            ),
+                                            toggleCloseIcon: (
+                                                <>
+                                                    {tissueCount} Tissue
+                                                    {tissueCount > 1 ? 's' : ''}
+                                                    <i className="icon icon-circle-minus"></i>
+                                                </>
+                                            ),
+                                        }}>
+                                        {tissueCount} Tissue
+                                        {tissueCount > 1 ? 's' : ''}
+                                    </CustomTableRowToggleOpenButton>
+                                </div>
+                            );
+                        }}
+                    </DonorDataCell>
                 );
-                const tissueTerms = tissueFacet?.has_group_by
-                    ? tissueFacet?.original_terms || tissueFacet?.terms
-                    : tissueFacet?.terms;
-                const tissueCount = tissueTerms?.length;
-
-                if (loading) {
-                    return (
-                        <span className="value text-center loading">
-                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
-                        </span>
-                    );
-                } else {
-                    return tissueCount ? (
-                        <div
-                            className={
-                                'inner-value-container' +
-                                (detailOpen ? ' detail-open' : ' detail-closed')
-                            }>
-                            <CustomTableRowToggleOpenButton
-                                {...{
-                                    result,
-                                    href,
-                                    context,
-                                    rowNumber,
-                                    detailOpen,
-                                    toggleDetailOpen,
-                                    isActive: detailPaneType === 'tissue',
-                                    customToggleDetailClose: (props) => {
-                                        if (detailPaneType === 'assay') {
-                                            handleCellClick('tissue');
-                                        } else {
-                                            handleCellClick(null);
-                                            toggleDetailOpen();
-                                        }
-                                    },
-                                    customToggleDetailOpen: (props) => {
-                                        handleCellClick('tissue');
-                                        toggleDetailOpen();
-                                    },
-                                    toggleOpenIcon: (
-                                        <>
-                                            {tissueCount} Tissue
-                                            {tissueCount > 1 ? 's' : ''}
-                                            <i className="icon icon-circle-plus"></i>
-                                        </>
-                                    ),
-                                    toggleCloseIcon: (
-                                        <>
-                                            {tissueCount} Tissue
-                                            {tissueCount > 1 ? 's' : ''}
-                                            <i className="icon icon-circle-minus"></i>
-                                        </>
-                                    ),
-                                }}>
-                                {tissueCount} Tissue
-                                {tissueCount > 1 ? 's' : ''}
-                            </CustomTableRowToggleOpenButton>
-                        </div>
-                    ) : null;
-                }
             },
         },
         assays: {
@@ -496,128 +499,127 @@ export function createBaseDonorColumnExtensionMap({
                     handleCellClick,
                 } = parentProps;
 
-                const { data, loading } = parentProps?.fetchedProps;
+                return (
+                    <DonorDataCell displayTitle={result.display_title}>
+                        {({ data, loading }) => {
+                            const assayCount = data
+                                ?.find((f) => f.field === 'assays.display_title')
+                                ?.terms?.reduce(
+                                    (acc, curr) => acc + (curr?.terms?.length ?? 1),
+                                    0
+                                );
 
-                const assayCount = data
-                    ?.find((f) => f.field === 'assays.display_title')
-                    ?.terms?.reduce(
-                        (acc, curr) => acc + (curr?.terms?.length ?? 1),
-                        0
-                    );
-
-                if (loading) {
-                    return (
-                        <span className="value text-center loading">
-                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
-                        </span>
-                    );
-                } else {
-                    return assayCount ? (
-                        <div
-                            className={
-                                'inner-value-container' +
-                                (detailOpen ? ' detail-open' : ' detail-closed')
-                            }>
-                            <CustomTableRowToggleOpenButton
-                                {...{
-                                    result,
-                                    href,
-                                    context,
-                                    rowNumber,
-                                    detailOpen,
-                                    toggleDetailOpen,
-                                    isActive: detailPaneType === 'assay',
-                                    customToggleDetailClose: (props) => {
-                                        if (detailPaneType === 'tissue') {
-                                            handleCellClick('assay');
-                                        } else {
-                                            handleCellClick(null);
-                                            toggleDetailOpen();
-                                        }
-                                    },
-                                    customToggleDetailOpen: (props) => {
-                                        handleCellClick('assay');
-                                        toggleDetailOpen();
-                                    },
-                                    toggleOpenIcon: (
-                                        <>
-                                            {assayCount} Assay
-                                            {assayCount > 1 ? 's' : ''}
-                                            <i className="icon icon-circle-plus"></i>
-                                        </>
-                                    ),
-                                    toggleCloseIcon: (
-                                        <>
-                                            {assayCount} Assay
-                                            {assayCount > 1 ? 's' : ''}
-                                            <i className="icon icon-circle-minus"></i>
-                                        </>
-                                    ),
-                                }}></CustomTableRowToggleOpenButton>
-                        </div>
-                    ) : null;
-                }
+                            if (loading) {
+                                return <span className="value text-center loading"></span>;
+                            }
+                            if (!assayCount) {
+                                return <small className="value">-</small>;
+                            }
+                            return (
+                                <div
+                                    className={
+                                        'inner-value-container' +
+                                        (detailOpen ? ' detail-open' : ' detail-closed')
+                                    }>
+                                    <CustomTableRowToggleOpenButton
+                                        {...{
+                                            result,
+                                            href,
+                                            context,
+                                            rowNumber,
+                                            detailOpen,
+                                            toggleDetailOpen,
+                                            isActive: detailPaneType === 'assay',
+                                            customToggleDetailClose: () => {
+                                                if (detailPaneType === 'tissue') {
+                                                    handleCellClick('assay');
+                                                } else {
+                                                    handleCellClick(null);
+                                                    toggleDetailOpen();
+                                                }
+                                            },
+                                            customToggleDetailOpen: () => {
+                                                handleCellClick('assay');
+                                                toggleDetailOpen();
+                                            },
+                                            toggleOpenIcon: (
+                                                <>
+                                                    {assayCount} Assay
+                                                    {assayCount > 1 ? 's' : ''}
+                                                    <i className="icon icon-circle-plus"></i>
+                                                </>
+                                            ),
+                                            toggleCloseIcon: (
+                                                <>
+                                                    {assayCount} Assay
+                                                    {assayCount > 1 ? 's' : ''}
+                                                    <i className="icon icon-circle-minus"></i>
+                                                </>
+                                            ),
+                                        }}
+                                    />
+                                </div>
+                            );
+                        }}
+                    </DonorDataCell>
+                );
             },
         },
         files: {
             noSort: true,
             colAlignment: 'text-end',
             widthMap: { lg: 90, md: 90, sm: 90 },
-            render: function (result, parentProps) {
-                const { data, loading } = parentProps?.fetchedProps;
+            render: function (result) {
+                return (
+                    <DonorDataCell displayTitle={result.display_title}>
+                        {({ data, loading }) => {
+                            const fileCount = data?.find((f) => f.field === 'file_size')?.count;
 
-                const fileCount = data
-                    ?.find((f) => f.field === 'type')
-                    ?.terms?.find((term) => term.key === 'File')?.doc_count;
-
-                if (loading) {
-                    return <span className="value text-center loading"></span>;
-                } else {
-                    return fileCount ? (
-                        <a
-                            className="value text-center"
-                            href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${result?.display_title}`}>
-                            {fileCount} File{fileCount > 1 ? 's' : ''}
-                        </a>
-                    ) : null;
-                }
+                            if (loading) {
+                                return <span className="value text-center loading"></span>;
+                            }
+                            if (!fileCount) {
+                                return <small className="value">-</small>;
+                            }
+                            return (
+                                <a
+                                    className="value text-center"
+                                    href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${encodeURIComponent(result?.display_title)}`}>
+                                    {fileCount} File{fileCount > 1 ? 's' : ''}
+                                </a>
+                            );
+                        }}
+                    </DonorDataCell>
+                );
             },
         },
         file_size: {
             noSort: true,
             colAlignment: 'text-end',
             widthMap: { lg: 90, md: 90, sm: 90 },
-            render: function (result, parentProps) {
-                const { data, loading } = parentProps?.fetchedProps;
+            render: function (result) {
+                return (
+                    <DonorDataCell displayTitle={result.display_title}>
+                        {({ data, loading }) => {
+                            const fileSize = data?.find(
+                                (f) => f.field === 'file_size'
+                            )?.sum;
 
-                const fileSize = data?.find(
-                    (f) => f.field === 'file_size'
-                )?.sum;
-
-                if (loading) {
-                    return (
-                        <span className="value text-center loading">
-                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
-                        </span>
-                    );
-                } else {
-                    return fileSize ? (
-                        <span className="value text-center">
-                            {valueTransforms.bytesToLargerUnit(
-                                fileSize,
-                                0,
-                                false,
-                                true
-                            )}{' '}
-                            {valueTransforms.bytesToLargerUnit(
-                                fileSize,
-                                0,
-                                true,
-                                false
-                            )}
-                        </span>
-                    ) : null;
-                }
+                            if (loading) {
+                                return <span className="value text-center loading"></span>;
+                            }
+                            if (!fileSize) {
+                                return <small className="value">-</small>;
+                            }
+                            return (
+                                <span className="value text-center">
+                                    {valueTransforms.bytesToLargerUnit(fileSize, 0, false, true)}{' '}
+                                    {valueTransforms.bytesToLargerUnit(fileSize, 0, true, false)}
+                                </span>
+                            );
+                        }}
+                    </DonorDataCell>
+                );
             },
         },
         hardy_scale: {
