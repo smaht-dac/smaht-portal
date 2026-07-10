@@ -6,10 +6,7 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import {
-    BROWSE_LINKS,
-    NoResultsBrowseModal,
-} from '../BrowseView';
+import { BROWSE_LINKS, NoResultsBrowseModal } from '../BrowseView';
 import { transformedFacets } from '../SearchView';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
@@ -156,7 +153,7 @@ export const BrowseProtectedDonorBody = (props) => {
     const { context, alerts, href, userDownloadAccess, isAccessResolved } =
         props;
     return (
-        <DonorDataProvider>
+        <DonorDataProvider key={href}>
             <Alerts alerts={alerts} className="mt-2" />
             <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
             <hr />

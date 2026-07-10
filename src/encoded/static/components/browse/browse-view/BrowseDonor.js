@@ -130,7 +130,7 @@ export const BrowseDonorBody = (props) => {
     );
 
     return (
-        <DonorDataProvider>
+        <DonorDataProvider key={href}>
             {showRedirectBanner && <RedirectBanner href={props.href} />}
             <BrowseDonorVizWrapper {...props} mapping="donor" />
             <hr />
