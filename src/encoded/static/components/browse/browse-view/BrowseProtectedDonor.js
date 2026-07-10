@@ -156,7 +156,7 @@ export const BrowseProtectedDonorBody = (props) => {
     const { context, alerts, href, userDownloadAccess, isAccessResolved } =
         props;
     return (
-        <DonorDataProvider>
+        <DonorDataProvider key={href}>
             <Alerts alerts={alerts} className="mt-2" />
             <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
             <hr />
