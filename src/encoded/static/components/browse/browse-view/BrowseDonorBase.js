@@ -416,7 +416,7 @@ export function createBaseDonorColumnExtensionMap({
 
                 const { data, loading } = parentProps?.fetchedProps;
 
-                const tissueFacet = data?.find(
+                const tissueFacet = data?.facets?.find(
                     (f) => f.field === 'sample_summary.tissues'
                 );
                 const tissueTerms = tissueFacet?.has_group_by
@@ -498,7 +498,7 @@ export function createBaseDonorColumnExtensionMap({
 
                 const { data, loading } = parentProps?.fetchedProps;
 
-                const assayCount = data
+                const assayCount = data?.facets
                     ?.find((f) => f.field === 'assays.display_title')
                     ?.terms?.reduce(
                         (acc, curr) => acc + (curr?.terms?.length ?? 1),
@@ -566,9 +566,13 @@ export function createBaseDonorColumnExtensionMap({
             render: function (result, parentProps) {
                 const { data, loading } = parentProps?.fetchedProps;
 
-                const fileCount = data
-                    ?.find((f) => f.field === 'type')
-                    ?.terms?.find((term) => term.key === 'File')?.doc_count;
+                // File count comes from the search response's `total` rather
+                // than a `type` facet: `additional_facet=type` combined with
+                // `skip_default_facets=true` makes snovault infer an invalid
+                // `stats` aggregation on the `type` keyword field (HTTP 400).
+                // The query already filters `type=File`, so `total` here is
+                // exactly the File count.
+                const fileCount = data?.total;
 
                 if (loading) {
                     return <span className="value text-center loading"></span>;
@@ -590,7 +594,7 @@ export function createBaseDonorColumnExtensionMap({
             render: function (result, parentProps) {
                 const { data, loading } = parentProps?.fetchedProps;
 
-                const fileSize = data?.find(
+                const fileSize = data?.facets?.find(
                     (f) => f.field === 'file_size'
                 )?.sum;
 

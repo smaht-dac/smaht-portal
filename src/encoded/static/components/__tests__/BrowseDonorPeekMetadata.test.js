@@ -58,7 +58,6 @@ jest.mock('../util/data', () => ({
 const REQUIRED_ADDITIONAL_FACETS = [
     'sample_summary.tissues',
     'assays.display_title',
-    'type',
     'file_size',
 ];
 
@@ -78,6 +77,20 @@ describe('donor browse peek-metadata URLs', () => {
         expectPeekMetadataHref(
             buildDonorPeekMetadataHref({ display_title: 'Donor ABC' })
         );
+    });
+
+    it('never combines skip_default_facets=true with additional_facet=type (regression for HTTP 400)', () => {
+        // additional_facet=type + skip_default_facets=true makes snovault
+        // infer an invalid `stats` aggregation on the `embedded.@type.raw`
+        // keyword field, which Elasticsearch rejects with HTTP 400. The File
+        // count must come from the response's `total` instead (see
+        // BrowseDonorBase.js `files` column render).
+        const { buildDonorPeekMetadataHref } = require('../browse/browse-view/BrowseDonorPeekMetadata');
+
+        const href = buildDonorPeekMetadataHref({ display_title: 'Donor ABC' });
+
+        expect(href).toContain('skip_default_facets=true');
+        expect(href).not.toContain('additional_facet=type');
     });
 
     it('is used by both donor browse callers', () => {
@@ -114,30 +127,33 @@ describe('donor browse row-summary rendering', () => {
         const parentProps = {
             fetchedProps: {
                 loading: false,
-                data: [
-                    {
-                        field: 'sample_summary.tissues',
-                        terms: [{ key: 'Blood' }, { key: 'Skin' }],
-                    },
-                    {
-                        field: 'assays.display_title',
-                        terms: [
-                            {
-                                key: 'Bulk WGS',
-                                terms: [{ key: 'WGS' }, { key: 'Hi-C' }],
-                            },
-                            { key: 'Bulk RNA-seq' },
-                        ],
-                    },
-                    {
-                        field: 'type',
-                        terms: [{ key: 'File', doc_count: 7 }],
-                    },
-                    {
-                        field: 'file_size',
-                        sum: 2048,
-                    },
-                ],
+                // Matches the GET /peek-metadata response shape post-fix:
+                // `{ facets, total }` rather than a bare facets array, since
+                // the File count now comes from `total` (see
+                // BrowseDonorPeekMetadata.js / metadata.py `_facets_via_search`).
+                data: {
+                    total: 7,
+                    facets: [
+                        {
+                            field: 'sample_summary.tissues',
+                            terms: [{ key: 'Blood' }, { key: 'Skin' }],
+                        },
+                        {
+                            field: 'assays.display_title',
+                            terms: [
+                                {
+                                    key: 'Bulk WGS',
+                                    terms: [{ key: 'WGS' }, { key: 'Hi-C' }],
+                                },
+                                { key: 'Bulk RNA-seq' },
+                            ],
+                        },
+                        {
+                            field: 'file_size',
+                            sum: 2048,
+                        },
+                    ],
+                },
             },
             href: '/browse/?type=Donor',
             context: {},

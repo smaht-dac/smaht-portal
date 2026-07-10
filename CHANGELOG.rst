@@ -8,10 +8,16 @@ Change Log
 ----------
 
 
+2.3.5
+=====
+
+* Fix an HTTP 400 regression in the 2.3.4 Donor/Protected Donor browse ``/peek-metadata/`` facet optimization: combining ``skip_default_facets=true`` with ``additional_facet=type`` made snovault infer an invalid ``stats`` aggregation on the ``type`` field, breaking the Tissues/Assays/Files/File Size row-summary columns. ``additional_facet=type`` is no longer requested; the File count is instead read from the search response's ``total``, which the GET ``/peek-metadata/`` endpoint now returns alongside ``facets``.
+
+
 2.3.4
 =====
 
-* Reduce Donor and Protected Donor browse ``/peek-metadata/`` GET facet work by passing ``skip_default_facets=true`` and explicitly requesting only the four facets those row-summary columns render: ``sample_summary.tissues``, ``assays.display_title``, ``type``, and ``file_size``.
+* Reduce Donor and Protected Donor browse ``/peek-metadata/`` GET facet work by passing ``skip_default_facets=true`` and explicitly requesting only the three remaining facets those row-summary columns render besides the File count: ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
 
 
 2.3.3
