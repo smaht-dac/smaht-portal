@@ -2330,10 +2330,11 @@ export default class DataMatrix extends React.PureComponent {
                                                 <Dropdown.Toggle
                                                     variant="outline-secondary"
                                                     size="sm"
+                                                    className="matrix-toolbar-btn"
                                                     id={`matrix-export-dropdown-${idLabel || 'default'}`}
                                                     title="Export"
                                                     disabled={isLoading}>
-                                                    <i className="icon icon-download fas me-03" /><span className="btn-label">Export</span>
+                                                    <i className="icon icon-download fas me-03" /><span className="btn-label">Export</span><i className="icon icon-chevron-down fas matrix-toolbar-caret" />
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu>
                                                     <Dropdown.Item
@@ -2350,7 +2351,7 @@ export default class DataMatrix extends React.PureComponent {
                                             </Dropdown>
                                             <button
                                                 type="button"
-                                                className="btn btn-sm btn-outline-secondary matrix-mode-refresh-btn"
+                                                className="matrix-toolbar-btn matrix-mode-refresh-btn"
                                                 title="Refresh this tab's data"
                                                 aria-label="Refresh this tab's data"
                                                 disabled={isFetching}
