@@ -5,11 +5,7 @@ import { Schemas } from '../../util';
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import {
-    BROWSE_STATUS_FILTERS,
-    BROWSE_LINKS,
-    NoResultsBrowseModal,
-} from '../BrowseView';
+import { BROWSE_LINKS, NoResultsBrowseModal } from '../BrowseView';
 import { transformedFacets } from '../SearchView';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
@@ -17,6 +13,7 @@ import {
     customRenderDetailPane,
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
+import { DonorDataProvider } from './BrowseDonorDataProvider';
 
 export function createBrowseDonorColumnExtensionMap(props) {
     const { columnExtensionMap, columns, hideFacets } =
@@ -38,7 +35,6 @@ const BrowseDonorSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
-        userDownloadAccess,
     } = props;
 
     const facets = transformedFacets(context, currentAction, schemas);
@@ -57,9 +53,6 @@ const BrowseDonorSearchTable = (props) => {
             ...context,
             clear_filters: BROWSE_LINKS.donor,
         },
-        customColumnSearchHref: (result) =>
-            `/peek-metadata/?additional_facet=file_size&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=` +
-            result?.display_title,
     };
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
@@ -78,9 +71,7 @@ const BrowseDonorSearchTable = (props) => {
         createBrowseDonorColumnExtensionMap(selectedFileProps);
 
     const facetListSortFxns = {
-        hardy_scale: (a, b) => {
-            return a.key - b.key;
-        },
+        hardy_scale: (a, b) => a.key - b.key,
     };
 
     return (
@@ -109,8 +100,8 @@ const BrowseDonorSearchTable = (props) => {
 };
 
 // Banner Component to allow redirect to ProtectedDonor view after login
-const RedirectBanner = ({ href }) => {
-    return href ? (
+const RedirectBanner = ({ href }) =>
+    href ? (
         <div className="callout data-available">
             <span className="callout-text">
                 <i className="icon icon-users fas"></i> You are currently
@@ -123,7 +114,6 @@ const RedirectBanner = ({ href }) => {
             </span>
         </div>
     ) : null;
-};
 
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
@@ -131,15 +121,17 @@ export const BrowseDonorBody = (props) => {
     const { context, session, href, userDownloadAccess, isAccessResolved } =
         props;
 
-    useEffect(() => {
-        if (session && userDownloadAccess?.['protected']) {
-            setShowRedirectBanner(true);
-        }
-    }, [session, userDownloadAccess]);
+    useEffect(
+        () =>
+            session && userDownloadAccess?.['protected']
+                ? setShowRedirectBanner(true)
+                : undefined,
+        [session, userDownloadAccess]
+    );
 
     return (
-        <>
-            {showRedirectBanner && <RedirectBanner href={props?.href} />}
+        <DonorDataProvider key={href}>
+            {showRedirectBanner && <RedirectBanner href={props.href} />}
             <BrowseDonorVizWrapper {...props} mapping="donor" />
             <hr />
             <BrowseViewControllerWithSelections {...props}>
@@ -154,6 +146,6 @@ export const BrowseDonorBody = (props) => {
                     isAccessResolved={isAccessResolved}
                 />
             )}
-        </>
+        </DonorDataProvider>
     );
 };
