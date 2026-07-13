@@ -40,6 +40,7 @@ import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAbov
 import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
+import { BrowseTissueBody } from './browse-view/BrowseTissue';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
@@ -57,6 +58,7 @@ export const BROWSE_LINKS = {
     protected_donor:
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
         BROWSE_STATUS_FILTERS,
+    tissue: '/browse/?type=Tissue&study=Production&' + BROWSE_STATUS_FILTERS,
 };
 
 export const FILE_BROWSE_HIDE_FACETS = [
@@ -253,8 +255,8 @@ const renderBrowseBody = (props) => {
             return <BrowseDonorBody {...props} />;
         case 'ProtectedDonorSearchResults':
             return <BrowseProtectedDonorBody {...props} />;
-        // case 'TissueSearchResults':
-        //     return <BrowseTissueBody {...props} />;
+        case 'TissueSearchResults':
+            return <BrowseTissueBody {...props} />;
         // case 'AssaySearchResults':
         //     return <BrowseAssayBody {...props} />;
         default:
@@ -297,7 +299,7 @@ const BrowseViewContent = (props) => {
                         userDownloadAccess={userDownloadAccess}
                         session={session}
                     />
-                    <BrowseLink type="Tissue" disabled />
+                    <BrowseLink type="Tissue" />
                     <BrowseLink type="Assay" disabled />
                 </div>
             </div>
@@ -447,6 +449,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
             break;
         case 'DonorSearchResults':
             BrowseType = 'Donor';
+            break;
+        case 'TissueSearchResults':
+            BrowseType = 'Tissue';
             break;
         default:
             break;

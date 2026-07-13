@@ -1489,6 +1489,166 @@ div.browse-link-icon {
 	}
 }
 
+.tissue-germ-layer-panel {
+	background-color: #FFFFFF;
+	border: 1px solid #E7F0F3;
+	border-radius: 15px;
+	padding: 1.5rem 2rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.75rem;
+	height: 100%;
+
+	.tissue-germ-layer-row {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.tissue-germ-layer-label {
+		flex: 0 0 60px;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: #4E6884;
+		line-height: 1.2;
+	}
+
+	.tissue-germ-layer-bubbles {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 14px;
+	}
+
+	.tissue-germ-layer-bubble {
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		border: 1.5px dashed #D7E1EA;
+		background-color: #FBFCFE;
+	}
+
+	@include media-breakpoint-down(md) {
+		.tissue-germ-layer-bubble {
+			width: 42px;
+			height: 42px;
+		}
+	}
+}
+
+.tissue-heatmap-card {
+	background-color: #FFFFFF;
+	border: 1px solid #E7F0F3;
+	border-radius: 8px;
+	overflow: hidden;
+
+	.tissue-heatmap-tabs {
+		display: flex;
+		border-bottom: 1px solid #E7F0F3;
+
+		.tissue-heatmap-tab {
+			appearance: none;
+			background: none;
+			border: none;
+			border-bottom: 3px solid transparent;
+			padding: 14px 20px;
+			font-size: 0.9375rem;
+			font-weight: 600;
+			color: #657B95;
+			cursor: pointer;
+
+			&:hover {
+				color: #343741;
+			}
+
+			&.active {
+				color: #212529;
+				border-bottom-color: #1F9F55;
+			}
+		}
+	}
+
+	.tissue-heatmap-table-wrap {
+		overflow-x: auto;
+	}
+
+	table.tissue-heatmap-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.8125rem;
+
+		th, td {
+			white-space: nowrap;
+			text-align: center;
+			padding: 8px 14px;
+		}
+
+		thead th {
+			font-weight: 600;
+			color: #343741;
+			border-bottom: 1px solid #E7F0F3;
+		}
+
+		.tissue-heatmap-order-header,
+		.tissue-heatmap-donor-header {
+			min-width: 40px;
+		}
+
+		.tissue-heatmap-order-label {
+			border-right: 1px solid #E7F0F3;
+			vertical-align: middle;
+			padding: 8px 4px;
+
+			span {
+				display: inline-block;
+				writing-mode: vertical-rl;
+				transform: rotate(180deg);
+				font-weight: 600;
+				font-size: 0.75rem;
+				color: #343741;
+				white-space: nowrap;
+			}
+		}
+
+		.tissue-heatmap-donor-id {
+			text-align: left;
+			font-weight: 600;
+			color: #428bca;
+			border-right: 1px solid #E7F0F3;
+		}
+
+		tbody tr:not(:last-of-type) .tissue-heatmap-donor-id,
+		tbody tr:not(:last-of-type) .tissue-heatmap-cell {
+			border-bottom: 1px solid #FFFFFF;
+		}
+
+		.tissue-heatmap-cell {
+			color: #212529;
+			font-weight: 500;
+
+			&.score-0 {
+				background-color: #4CAF6D;
+				color: #FFFFFF;
+			}
+			&.score-1 {
+				background-color: #F2D94E;
+				color: #4E4419;
+			}
+			&.score-2 {
+				background-color: #F0923B;
+				color: #FFFFFF;
+			}
+			&.score-3 {
+				background-color: #E0503C;
+				color: #FFFFFF;
+			}
+			&.na {
+				background-color: #FFFFFF;
+				color: #A8AEB5;
+			}
+		}
+	}
+}
+
 /** FIX FOR BROWSE VIEW SEARCH TABLE WEIRDNESS **/
 // Overriding SPC _search.scss here because our browse view has more content before the table
 // this override prevents the arrows from behaving super strangely and appearing higher up on the page
