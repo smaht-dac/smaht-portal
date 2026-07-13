@@ -12,6 +12,8 @@ const SLICE_TYPE_STYLES = {
         top: '#F8D9C6',
         side: '#E6B18C',
         border: '#9D6A45',
+        idPrefix: '3J',
+        caption: 'Tissue metadata from pathology reports.',
     },
     yellow: {
         label: 'Frozen',
@@ -19,8 +21,14 @@ const SLICE_TYPE_STYLES = {
         top: '#E3F3BE',
         side: '#B6D978',
         border: '#6C8A42',
+        idPrefix: '3I',
+        caption: 'Core and DNA/RNA metadata from sequencing.',
     },
 };
+
+const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const FROZEN_GRID_COLS = [1, 2, 3, 4, 5, 6];
+const DEFAULT_FROZEN_CORE_WELLS = ['A1', 'C2'];
 
 function buildSliceGeometry({
     widthPx,
@@ -122,6 +130,7 @@ export default function AliquotVisualization({
     dimensions,
     showSliceLabels,
     className,
+    idPrefix,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -179,6 +188,12 @@ export default function AliquotVisualization({
 
     const selectedSlice =
         selectedSliceIndex === null ? null : normalizedSlices[selectedSliceIndex];
+    const selectedStyles = SLICE_TYPE_STYLES[selectedSlice?.type || 'yellow'];
+    const selectedAliquotId = selectedSlice
+        ? `${idPrefix || selectedStyles.idPrefix}-${selectedSlice.sequenceLabel}`
+        : null;
+    const selectedFrozenWells =
+        selectedSlice?.frozenCoreWells || DEFAULT_FROZEN_CORE_WELLS;
     const topDepthOffset = 12;
     const rightOffset = -12;
     const topDimensionLine = offsetLine(
@@ -353,21 +368,67 @@ export default function AliquotVisualization({
                             id={`${popoverId}-slice-popover`}
                             className="aliquot-popover">
                             <PopoverHeader as="h3">
-                                {selectedSlice?.label ||
-                                    SLICE_TYPE_STYLES[selectedSlice?.type || 'yellow']
-                                        .label}{' '}
+                                {selectedAliquotId} &middot; {selectedStyles.label}{' '}
                                 Slice
                             </PopoverHeader>
                             <PopoverBody>
+                                <div className="aliquot-popover-visual">
+                                    {selectedSlice?.type === 'pink' ? (
+                                        <span
+                                            className="aliquot-visual-swatch"
+                                            style={{
+                                                backgroundColor: selectedStyles.front,
+                                                borderColor: selectedStyles.border,
+                                            }}
+                                        />
+                                    ) : (
+                                        <span className="aliquot-visual-grid">
+                                            {FROZEN_GRID_ROWS.map((row) => (
+                                                <span
+                                                    className="aliquot-grid-row"
+                                                    key={row}>
+                                                    {FROZEN_GRID_COLS.map((col) => {
+                                                        const wellId = `${row}${col}`;
+                                                        return (
+                                                            <span
+                                                                key={wellId}
+                                                                className={
+                                                                    'aliquot-grid-well' +
+                                                                    (selectedFrozenWells.includes(
+                                                                        wellId
+                                                                    )
+                                                                        ? ' is-highlighted'
+                                                                        : '')
+                                                                }
+                                                            />
+                                                        );
+                                                    })}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="aliquot-popover-caption">
+                                    {selectedStyles.caption}
+                                </p>
+                                {selectedSlice?.type === 'yellow' ? (
+                                    <div className="aliquot-popover-cores">
+                                        {selectedFrozenWells.map((wellId, wellIndex) => (
+                                            <div
+                                                className="aliquot-popover-row"
+                                                key={wellId}>
+                                                <span>GCC{wellIndex + 1}</span>
+                                                <strong>
+                                                    {selectedAliquotId}
+                                                    {wellId}
+                                                </strong>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : null}
                                 <div className="aliquot-popover-row">
                                     <span>Type</span>
-                                    <strong>
-                                        {
-                                            SLICE_TYPE_STYLES[
-                                                selectedSlice?.type || 'yellow'
-                                            ].label
-                                        }
-                                    </strong>
+                                    <strong>{selectedStyles.label}</strong>
                                 </div>
                                 <div className="aliquot-popover-row">
                                     <span>Order</span>
@@ -377,14 +438,7 @@ export default function AliquotVisualization({
                                     </strong>
                                 </div>
                                 <div className="aliquot-popover-row">
-                                    <span>
-                                        {
-                                            SLICE_TYPE_STYLES[
-                                                selectedSlice?.type || 'yellow'
-                                            ].label
-                                        }{' '}
-                                        #
-                                    </span>
+                                    <span>{selectedStyles.label} #</span>
                                     <strong>{selectedSlice?.sequenceLabel}</strong>
                                 </div>
                                 <div className="aliquot-popover-row">
@@ -431,6 +485,7 @@ AliquotVisualization.propTypes = {
     title: PropTypes.string,
     showSliceLabels: PropTypes.bool,
     className: PropTypes.string,
+    idPrefix: PropTypes.string,
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,
@@ -445,6 +500,7 @@ AliquotVisualization.propTypes = {
             label: PropTypes.string,
             description: PropTypes.string,
             widthCm: PropTypes.number,
+            frozenCoreWells: PropTypes.arrayOf(PropTypes.string),
         })
     ).isRequired,
 };
@@ -453,5 +509,6 @@ AliquotVisualization.defaultProps = {
     title: null,
     showSliceLabels: false,
     className: null,
+    idPrefix: null,
     dimensions: null,
 };

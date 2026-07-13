@@ -3180,7 +3180,7 @@ File and Donor Overview Styles
 }
 
 .popover.aliquot-popover {
-	max-width: 290px;
+	max-width: 320px;
 
 	.popover-header {
 		font-weight: 600;
@@ -3191,6 +3191,66 @@ File and Donor Overview Styles
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
+	}
+
+	.aliquot-popover-visual {
+		display: flex;
+		justify-content: center;
+		padding: 6px 0 4px;
+	}
+
+	.aliquot-visual-swatch {
+		display: block;
+		width: 88px;
+		height: 88px;
+		border-radius: 6px;
+		border: 1px solid;
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+	}
+
+	.aliquot-visual-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 8px;
+		background-color: #E3F3BE;
+		border: 1px solid #B6D978;
+		border-radius: 6px;
+	}
+
+	.aliquot-grid-row {
+		display: flex;
+		gap: 4px;
+	}
+
+	.aliquot-grid-well {
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background-color: #FFFFFF;
+		border: 1px solid #8FA96B;
+
+		&.is-highlighted {
+			background-color: #1E5B4F;
+			border-color: #1E5B4F;
+		}
+	}
+
+	.aliquot-popover-caption {
+		margin: 0;
+		text-align: center;
+		color: #5D7288;
+		font-size: 0.8125rem;
+		font-style: italic;
+	}
+
+	.aliquot-popover-cores {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 8px 0;
+		border-top: 1px solid #E4EDF5;
+		border-bottom: 1px solid #E4EDF5;
 	}
 
 	.aliquot-popover-row {

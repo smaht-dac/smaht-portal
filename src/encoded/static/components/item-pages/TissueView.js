@@ -101,6 +101,7 @@ const TissueView = React.memo(function TissueView({ context = {} }) {
     const uberonHref = uberon_id && uberon_id['@id'] ? uberon_id['@id'] : null;
     const targetTissueValue = uberon_id || tissue_type || null;
     const targetTissueHref = uberon_id ? uberonHref : null;
+    const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
     const tissueMatrixFilterValue = useMemo(
         () => tissue_type || uberon_id?.display_title || null,
         [tissue_type, uberon_id]
@@ -221,6 +222,7 @@ const TissueView = React.memo(function TissueView({ context = {} }) {
                                 heightLabel: '1 cm',
                                 depthLabel: '1.5 cm',
                             }}
+                            idPrefix={tissueProtocolCode}
                             showSliceLabels={false}
                         />
                     </div>
