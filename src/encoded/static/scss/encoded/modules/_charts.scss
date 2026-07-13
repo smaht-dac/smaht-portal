@@ -1685,14 +1685,90 @@ body[data-path="/statistics"] {
         margin-left: auto;
     }
 
-    .matrix-export-dropdown {
-        .dropdown-toggle {
-            white-space: nowrap;
+    // Shared look for the toolbar buttons (Export dropdown toggle, Refresh) - matches the mode
+    // tabs' own color/font language (border #b7c9dc, text #4e6781, hover #e9f2fb) instead of
+    // generic Bootstrap btn-outline-secondary gray, so the toolbar reads as one cohesive unit
+    // with the tabs next to it.
+    .matrix-toolbar-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid #b7c9dc;
+        background: #ffffff;
+        color: #4e6781;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        transition: background-color 160ms ease, color 160ms ease;
+
+        .icon {
+            font-size: 0.85rem;
+        }
+
+        &:hover:not(:disabled) {
+            background: #e9f2fb;
+            color: #4e6781;
+            border-color: #b7c9dc;
+        }
+
+        &:disabled {
+            opacity: 0.55;
+            cursor: default;
+        }
+
+        // Bootstrap's borders-only-triangle `::after` caret assumes normal inline flow
+        // (positioned via `vertical-align`), which has no effect once this button is
+        // `inline-flex` - it end up sized/positioned unpredictably. Suppress it and use a real
+        // icon (`.matrix-toolbar-caret` below) instead, which behaves like any other flex item.
+        &::after {
+            display: none !important;
         }
     }
 
-    .matrix-mode-refresh-btn {
-        white-space: nowrap;
+    .matrix-toolbar-caret {
+        font-size: 0.7rem;
+    }
+
+    // Match the dropdown menu itself to the toolbar buttons' palette instead of leaving it in
+    // Bootstrap's generic default styling, which reads as visually disconnected from the button
+    // that opens it.
+    .matrix-export-dropdown {
+        .dropdown-menu {
+            border: 1px solid #b7c9dc;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(23, 43, 66, 0.12);
+            padding: 0.35rem;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            color: #4e6781;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none !important;
+            border-radius: 4px;
+            padding: 0.45rem 0.75rem;
+
+            .icon {
+                width: 1.1rem;
+                text-align: center;
+                font-size: 0.85rem;
+            }
+
+            &:hover:not(.disabled):not(:disabled),
+            &:focus:not(.disabled):not(:disabled) {
+                background-color: #e9f2fb;
+                color: #4e6781;
+            }
+
+            &.disabled,
+            &:disabled {
+                color: #a9b6c4;
+            }
+        }
     }
 
     // Same breakpoint as the mode-tab compacting above: once the panel is this narrow, drop the
@@ -1711,6 +1787,10 @@ body[data-path="/statistics"] {
             .icon {
                 margin-right: 0 !important;
             }
+        }
+
+        .matrix-toolbar-caret {
+            display: none;
         }
     }
 
