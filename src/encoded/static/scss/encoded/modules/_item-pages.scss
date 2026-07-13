@@ -2719,7 +2719,7 @@ File and Donor Overview Styles
 			}
 
 			.tissue-summary-card {
-				flex: 3 1 420px;
+				flex: 2 1 420px;
 				max-width: 680px;
 				display: flex;
 				flex-direction: column;
@@ -2796,8 +2796,8 @@ File and Donor Overview Styles
 			}
 
 			.tissue-aliquot-card {
-				flex: 2 1 420px;
-				max-width: 600px;
+				flex: 3 1 520px;
+				max-width: 900px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
@@ -2805,7 +2805,7 @@ File and Donor Overview Styles
 
 				.aliquot-visualization {
 					width: 100%;
-					max-width: 620px;
+					max-width: 900px;
 					margin: 0 auto;
 				}
 			}

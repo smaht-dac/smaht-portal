@@ -135,10 +135,15 @@ export default function AliquotVisualization({
     const depthX = 72;
     const depthY = 58;
     const sliceBase = 86;
+    const typeCounters = { pink: 0, yellow: 0 };
     const normalizedSlices = slices.map((slice) => {
+        const type = slice.type === 'pink' ? 'pink' : 'yellow';
+        const typeIndex = typeCounters[type]++;
         return {
             ...slice,
-            type: slice.type === 'pink' ? 'pink' : 'yellow',
+            type,
+            typeIndex,
+            sequenceLabel: String(typeIndex + 1).padStart(3, '0'),
             widthCm: typeof slice.widthCm === 'number' ? slice.widthCm : 1,
             widthPx:
                 (typeof slice.widthCm === 'number' ? slice.widthCm : 1) *
@@ -301,11 +306,21 @@ export default function AliquotVisualization({
                                         </span>
                                     </button>
                                 </foreignObject>
+                                <text
+                                    className="slice-inline-label slice-sequence-label"
+                                    x={slice.frontLabelX}
+                                    y={
+                                        showSliceLabels
+                                            ? slice.frontLabelY - 10
+                                            : slice.frontLabelY
+                                    }>
+                                    {slice.sequenceLabel}
+                                </text>
                                 {showSliceLabels ? (
                                     <text
                                         className="slice-inline-label"
                                         x={slice.frontLabelX}
-                                        y={slice.frontLabelY}>
+                                        y={slice.frontLabelY + 10}>
                                         {slice.widthCm} cm
                                     </text>
                                 ) : null}
@@ -360,6 +375,17 @@ export default function AliquotVisualization({
                                         {(selectedSlice?.index || 0) + 1} /{' '}
                                         {normalizedSlices.length}
                                     </strong>
+                                </div>
+                                <div className="aliquot-popover-row">
+                                    <span>
+                                        {
+                                            SLICE_TYPE_STYLES[
+                                                selectedSlice?.type || 'yellow'
+                                            ].label
+                                        }{' '}
+                                        #
+                                    </span>
+                                    <strong>{selectedSlice?.sequenceLabel}</strong>
                                 </div>
                                 <div className="aliquot-popover-row">
                                     <span>Width</span>
