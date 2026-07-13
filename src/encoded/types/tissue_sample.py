@@ -1,10 +1,11 @@
 from typing import List, Dict, Any
 
 import re
-from snovault import collection, load_schema
+from snovault import collection, load_schema, calculated_property
 from snovault.util import debug_log, get_item_or_none
 from snovault.elasticsearch import ELASTIC_SEARCH
 from snovault.search.search_utils import make_search_subreq
+from pyramid.request import Request
 from pyramid.view import view_config
 from encoded.validator_decorators import link_related_validator
 
@@ -27,6 +28,8 @@ from ..item_utils import (
     item as item_utils,
 )
 
+from ..item_utils.utils import RequestHandler
+
 NDRI_TPC_ID = "ndri_tpc"
 NDRI_TPC_DT = "NDRI TPC"
 
@@ -44,8 +47,50 @@ class TissueSample(Sample):
     schema = load_schema("encoded:schemas/tissue_sample.json")
     embedded_list = Sample.embedded_list
 
+    rev = {"pathology_reports": ("PathologyReport", "tissue_samples")}
+
+    @calculated_property(
+        schema={
+            "title": "Pathology Reports",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "PathologyReport",
+            }
+        }
+    )
+    def pathology_reports(self, request):
+        return self.rev_link_atids(request, "pathology_reports") or None
+
     class Collection(Item.Collection):
         pass
+
+    @calculated_property(
+        schema={
+            "title": "Associated Pathology Reports",
+            "description": (
+                "Pathology reports for fixed samples from the same tissue "
+                "block as this fresh/frozen sample."
+            ),
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "fixed_sample_external_id": {"type": "string"},
+                    "pathology_reports": {
+                        "type": "array",
+                        "items": {"type": "string", "linkTo": "PathologyReport"},
+                    },
+                },
+            },
+        }
+    )
+    def associated_pathology_reports(self, request: Request):
+        request_handler = RequestHandler(request=request)
+        result = tissue_sample_utils.get_associated_pathology_reports(
+            self.properties, request_handler=request_handler
+        )
+        return result or None
 
 
 def get_request_data_for_edit(context, request):
