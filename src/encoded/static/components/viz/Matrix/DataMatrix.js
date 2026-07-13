@@ -2331,8 +2331,9 @@ export default class DataMatrix extends React.PureComponent {
                                                     variant="outline-secondary"
                                                     size="sm"
                                                     id={`matrix-export-dropdown-${idLabel || 'default'}`}
+                                                    title="Export"
                                                     disabled={isLoading}>
-                                                    <i className="icon icon-download fas me-03" />Export
+                                                    <i className="icon icon-download fas me-03" /><span className="btn-label">Export</span>
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu>
                                                     <Dropdown.Item
@@ -2354,7 +2355,7 @@ export default class DataMatrix extends React.PureComponent {
                                                 aria-label="Refresh this tab's data"
                                                 disabled={isFetching}
                                                 onClick={this.onRefreshActiveTab}>
-                                                <i className={`icon fas icon-sync-alt${isFetching ? ' icon-spin' : ''}`} /> Refresh
+                                                <i className={`icon fas icon-sync-alt${isFetching ? ' icon-spin' : ''}`} /><span className="btn-label"> Refresh</span>
                                             </button>
                                         </div>
                                     </div>

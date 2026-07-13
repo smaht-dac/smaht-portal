@@ -1533,6 +1533,8 @@ body[data-path="/statistics"] {
         gap: 0.55rem;
         width: auto;
         max-width: 100%;
+        flex: 1 1 auto;
+        min-width: 0;
         padding: 0;
         background: transparent;
         border: none;
@@ -1567,6 +1569,24 @@ body[data-path="/statistics"] {
                 border-color: #3d6a8f;
                 box-shadow: none;
             }
+
+            // The 3 mode tabs' 270px min-width (~830px+ combined) plus the full-size Export/
+            // Refresh controls (~250px) plus gaps need roughly 1090px of one-line room - shrink
+            // the tabs themselves here (rather than letting the row wrap the export controls
+            // above/below them) comfortably before that point, so everything stays on one line.
+            // A container query (not a viewport media query) because the sidebar's width doesn't
+            // scale with viewport width, so "is there enough room for this row" can't be inferred
+            // from viewport size alone. Nested at the same `.matrix-mode-tabs .matrix-mode-tab`
+            // depth as the min-width:270px rule above so this actually out-specifies it instead
+            // of losing to it regardless of query match.
+            @container matrix-mode-tabs-row (max-width: 1200px) {
+                min-width: 0;
+                flex: 1 1 0;
+                padding: 0.5rem 0.5rem;
+                font-size: 0.85rem;
+                white-space: normal;
+                line-height: 1.2;
+            }
         }
     }
 
@@ -1600,6 +1620,32 @@ body[data-path="/statistics"] {
         align-items: flex-start;
         width: 100%;
         overflow: visible;
+
+        // Side-by-side facets + matrix stops being workable once the facets column (190-320px)
+        // plus the matrix's own minimum content (3 tabs at 270px min-width alone need ~830px)
+        // no longer both fit - stack them instead of continuing to squeeze the matrix panel.
+        @media (max-width: 991px) {
+            flex-direction: column;
+            // `align-items: flex-start` (above) is a cross-axis rule; once the axis flips to
+            // column, "cross axis" becomes horizontal, so left unset it'd shrink both panels to
+            // their content width instead of letting them fill the row.
+            align-items: stretch;
+
+            .matrix-counts-panel {
+                width: 100%;
+                min-width: 0;
+                max-width: none;
+                // Breathing room between the stacked facets panel and the matrix's tabs row
+                // below it - otherwise they sit flush against each other.
+                margin-bottom: 1.25rem;
+
+                &.has-facets-panel {
+                    width: 100%;
+                    min-width: 0;
+                    max-width: none;
+                }
+            }
+        }
     }
 
 
@@ -1610,10 +1656,19 @@ body[data-path="/statistics"] {
         top: 48px;
         z-index: 8;
         background-color: #ffffff;
-        // Fall back to wrapping onto a second line if the tabs + export/refresh controls still
-        // don't fit on very narrow containers (e.g. a lot of mode tabs at their 270px min-width).
+        // Fall back to wrapping onto a second line only as a last resort (e.g. extremely narrow
+        // phone widths where even the compacted tabs below don't fit) - the container query
+        // below handles the more common narrow-panel case by shrinking the tabs instead, so the
+        // export/refresh controls don't end up wrapping above/below them.
         flex-wrap: wrap;
         row-gap: 0.5rem;
+        // `.matrix-mode-tabs` grows to fill all leftover row width (so its own tabs can flex to
+        // fill it when compacted), which otherwise leaves zero space between it and the controls
+        // - a fixed gap guarantees breathing room between the two regardless of how much the
+        // tabs group ends up growing.
+        column-gap: 0.75rem;
+        container-type: inline-size;
+        container-name: matrix-mode-tabs-row;
 
         // Tabs sit flush against the row's border-bottom by design (their own border-bottom is
         // "none" so they visually merge with the panel body below). Only pad the row when there
@@ -1624,6 +1679,7 @@ body[data-path="/statistics"] {
         }
     }
 
+
     .matrix-export-controls {
         flex-shrink: 0;
         margin-left: auto;
@@ -1632,6 +1688,29 @@ body[data-path="/statistics"] {
     .matrix-export-dropdown {
         .dropdown-toggle {
             white-space: nowrap;
+        }
+    }
+
+    .matrix-mode-refresh-btn {
+        white-space: nowrap;
+    }
+
+    // Same breakpoint as the mode-tab compacting above: once the panel is this narrow, drop the
+    // Export/Refresh button labels too and keep only their icons, so the controls take up as
+    // little width as possible alongside the (now-compacted) tabs.
+    @container matrix-mode-tabs-row (max-width: 1200px) {
+        .matrix-export-dropdown .dropdown-toggle,
+        .matrix-mode-refresh-btn {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+
+            .btn-label {
+                display: none;
+            }
+
+            .icon {
+                margin-right: 0 !important;
+            }
         }
     }
 
