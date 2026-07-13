@@ -243,6 +243,160 @@ export function extendListObjectsWithIndex(objList){
     });
 }
 
+// Reduces the currently-visible matrix (same data/countFor state the grid renders from) into a
+// flat, JSON-serializable table: one row per leaf row-group (donor, donor+tissue, or tissue),
+// one field per visible column, plus row/column/grand totals sourced the same way the on-screen
+// summary cells are (from rowTotals/columnTotals, not by re-summing `data`).
+// Example: buildMatrixExportData({ data, rowTotals, columnTotals, groupingProperties: ['donor','tissue'], columnGrouping: 'assay', countFor: 'files' })
+const EXPORT_FALLBACK_GROUP_KEY = 'N/A';
+
+export function buildMatrixExportData({
+    data = [],
+    rowTotals = [],
+    columnTotals = [],
+    groupingProperties = [],
+    columnGrouping = null,
+    countFor = 'files',
+    overallCounts = null,
+    matrixMode = null,
+    rowAxisLabel = null,
+    columnAxisLabel = null,
+    rowGroups = null,
+    showRowGroups = false
+} = {}) {
+    const countField = countFor === 'tissue_files' ? 'files' : countFor;
+
+    const computeCellValue = (items) => {
+        if (!Array.isArray(items) || items.length === 0) return 0;
+        if (countField === 'donors') {
+            const uniqueDonorCount = getUniqueDonorCountFromItems(items);
+            if (uniqueDonorCount !== null) return uniqueDonorCount;
+            return _.reduce(items, (max, item) => Math.max(max, getCountValueFromItem(item, countField)), 0);
+        }
+        return _.reduce(items, (sum, item) => sum + getCountValueFromItem(item, countField), 0);
+    };
+
+    const safeData = Array.isArray(data) ? data : [];
+    const nestedData = groupByMultiple(safeData, groupingProperties);
+    const groupedByColumn = typeof columnGrouping === 'string' ? _.groupBy(safeData, columnGrouping) : {};
+    const columns = _.chain(groupedByColumn).keys().sort().value();
+
+    // Row/column totals come from the backend-aggregated totals arrays (same source the
+    // row-summary/col-summary blocks use), keyed by the same grouping-property values.
+    const rowTotalsByPath = _.groupBy(
+        Array.isArray(rowTotals) ? rowTotals : [],
+        (row) => JSON.stringify(groupingProperties.map((prop) => row?.[prop]))
+    );
+    const columnTotalsByKey = _.groupBy(Array.isArray(columnTotals) ? columnTotals : [], columnGrouping);
+
+    const buildLeafRow = (items, pathValues) => {
+        const rowKeyFields = _.object(groupingProperties, pathValues);
+        const byColumn = _.groupBy(items, columnGrouping);
+        const counts = {};
+        columns.forEach((col) => {
+            counts[col] = computeCellValue(byColumn[col] || []);
+        });
+        const matchingRowTotals = rowTotalsByPath[JSON.stringify(pathValues)];
+        // germLayer (e.g. Ectoderm/Mesoderm/Endoderm/Germline) is not a grouping property but a
+        // per-tissue-row attribute shown on-screen as the colored vertical row-group label;
+        // surface it on each row when present so the grouping isn't lost on export.
+        const germLayerValue = items.length > 0 ? (items[0]?.germLayer ?? null) : null;
+        return {
+            ...rowKeyFields,
+            ...(germLayerValue != null ? { germLayer: germLayerValue } : {}),
+            counts,
+            rowTotal: computeCellValue(matchingRowTotals && matchingRowTotals.length ? matchingRowTotals : items)
+        };
+    };
+
+    const collectLeafRowsInto = (node, pathValues, depth, out) => {
+        if (depth >= groupingProperties.length) {
+            out.push(buildLeafRow(Array.isArray(node) ? node : [], pathValues));
+            return;
+        }
+        _.each(node, (childNode, key) => collectLeafRowsInto(childNode, [...pathValues, key], depth + 1, out));
+    };
+
+    const flattenGroupItems = (node) => {
+        if (Array.isArray(node)) return node;
+        return _.reduce(_.values(node || {}), (memo, child) => memo.concat(flattenGroupItems(child)), []);
+    };
+
+    const columnTotalsMap = {};
+    columns.forEach((col) => {
+        const matchingColumnTotals = columnTotalsByKey[col];
+        columnTotalsMap[col] = computeCellValue(
+            matchingColumnTotals && matchingColumnTotals.length ? matchingColumnTotals : (groupedByColumn[col] || [])
+        );
+    });
+
+    const grandTotal = overallCounts && Number.isFinite(Number(overallCounts?.[countField]))
+        ? Number(overallCounts[countField])
+        : computeCellValue(Array.isArray(columnTotals) && columnTotals.length ? columnTotals : safeData);
+
+    const baseExport = {
+        matrixMode,
+        countFor,
+        rowFields: groupingProperties,
+        columnField: columnGrouping,
+        rowAxisLabel,
+        columnAxisLabel,
+        columns,
+        columnTotals: columnTotalsMap,
+        grandTotal,
+        generatedAt: new Date().toISOString()
+    };
+
+    const hasRowGroups = !!(showRowGroups && rowGroups && Object.keys(rowGroups).length > 0);
+    if (!hasRowGroups) {
+        const rows = [];
+        collectLeafRowsInto(nestedData, [], 0, rows);
+        return { ...baseExport, rows };
+    }
+
+    // Some views (e.g. benchmarking) split the top-level row axis into named sections
+    // (e.g. "Cell Lines" vs "Benchmarking Donors"), each with its own subtotal row on-screen.
+    // Reproduce that same section split/order/subtotals here instead of flattening rows,
+    // reusing the exact ordering/matching helpers the grid itself renders with.
+    const topLevelKeys = _.keys(nestedData);
+    const orderedTopLevelKeys = StackedBlockGroupedRow.sortByArray(topLevelKeys, StackedBlockGroupedRow.mergeValues(rowGroups));
+    const allGroupedValues = StackedBlockGroupedRow.mergeValues(rowGroups);
+    const rowGroupKeysInOrder = [..._.keys(rowGroups), EXPORT_FALLBACK_GROUP_KEY];
+
+    const rowGroupSections = _.compact(_.map(rowGroupKeysInOrder, (groupKey) => {
+        const matchedTopLevelKeys = groupKey === EXPORT_FALLBACK_GROUP_KEY
+            ? StackedBlockGroupedRow.difference(orderedTopLevelKeys, allGroupedValues)
+            : StackedBlockGroupedRow.intersection(orderedTopLevelKeys, (rowGroups[groupKey] || {}).values || []);
+        if (!matchedTopLevelKeys.length) return null;
+
+        const sectionRows = [];
+        matchedTopLevelKeys.forEach((topKey) => {
+            collectLeafRowsInto(nestedData[topKey], [topKey], 1, sectionRows);
+        });
+
+        const sectionItems = _.chain(matchedTopLevelKeys)
+            .map((topKey) => flattenGroupItems(nestedData[topKey]))
+            .flatten()
+            .value();
+        const sectionByColumn = _.groupBy(sectionItems, columnGrouping);
+        const sectionColumnTotals = {};
+        columns.forEach((col) => {
+            sectionColumnTotals[col] = computeCellValue(sectionByColumn[col] || []);
+        });
+
+        return {
+            key: groupKey,
+            label: groupKey === EXPORT_FALLBACK_GROUP_KEY ? EXPORT_FALLBACK_GROUP_KEY : `Total ${StackedBlockVisual.pluralize(groupKey)}`,
+            entityCount: matchedTopLevelKeys.length,
+            rows: sectionRows,
+            columnTotals: sectionColumnTotals,
+            sectionTotal: computeCellValue(sectionItems)
+        };
+    }));
+
+    return { ...baseExport, rowGroups: rowGroupSections };
+}
+
 // VisualBody renders the matrix wrapper with popovers and count formatting.
 // Example: <VisualBody results={{ all: data, row_totals: totals }} groupingProperties={['donor','tissue']} columnGrouping="assay" />
 export class VisualBody extends React.PureComponent {
