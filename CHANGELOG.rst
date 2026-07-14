@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+2.3.5
+=====
+
+'PR 710: update annotated filename for SupplementaryFiles with category Annotation <https://github.com/smaht-dac/smaht-portal/pull/710>'_
+
+* added genome annotation data class for benchmarking cell lines - for supplementary files to annotated_file_name script
+
+
 2.3.4
 =====
 
