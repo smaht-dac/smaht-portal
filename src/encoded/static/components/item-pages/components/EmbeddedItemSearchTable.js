@@ -53,6 +53,12 @@ export function EmbeddedItemSearchTable({
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
+        hideHeaderRow,
+        hideFacetHeader,
+        defaultClosedFacets,
+        toggleIcons,
+        renderResultRow,
+        isOwnPage = false,
     } = props;
 
     const schemas = propSchemas || getSchemas() || null; // We might not have this e.g. in placeholders in StaticSections
@@ -111,6 +117,12 @@ export function EmbeddedItemSearchTable({
         onResetSelectedItems,
         // Should only be used if wrapped in SelectedItemsController
         clearSelectedItemsOnFilter,
+        hideHeaderRow,
+        hideFacetHeader,
+        defaultClosedFacets,
+        toggleIcons,
+        renderResultRow,
+        isOwnPage,
     };
 
     return (

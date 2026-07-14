@@ -1,2 +1,7 @@
 [virtualenvs]
 create = false
+
+[installer]
+# Poetry 1.8.5 probes the bootstrap environment while building legacy sdists.
+# Serial installs prevent a packaging downgrade from racing that probe.
+parallel = false

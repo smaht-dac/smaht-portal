@@ -15,8 +15,8 @@ if [  -z ${TEST+x} ]; then
 
     fi
 
-    # Start nginx proxy
-    service nginx start
+    # Start nginx proxy (daemonizes to the background; make deploy2 holds the foreground)
+    /usr/sbin/nginx
 
     # Start application
     make deploy2

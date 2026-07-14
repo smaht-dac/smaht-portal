@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional
 
 from ..item_utils.utils import (
     RequestHandler,
-    get_property_values_from_identifiers
+    dedupe_identifiers,
+    get_property_values_from_identifiers,
 )
 
 from ..item_utils import tissue as tissue_utils
@@ -23,7 +24,10 @@ def get_donors(
         return properties.get("donors", [])
     elif "tissues" in properties:
         if request_handler:
-            return list(set(get_property_values_from_identifiers(
+            # dedupe_identifiers (not list(set(...))) so a tissue whose @@object
+            # returned donor as an embedded dict (instead of a bare linkTo path)
+            # doesn't crash this with `unhashable type: 'dict'`.
+            return dedupe_identifiers(get_property_values_from_identifiers(
                 request_handler, get_tissues(properties), tissue_utils.get_donor
-            )))
+            ))
     return []

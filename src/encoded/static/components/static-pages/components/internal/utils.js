@@ -4,7 +4,12 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 import React from 'react';
 import * as d3 from 'd3';
 
-import { EXTERNAL_RELEASE_STATUSES, INTERNAL_RELEASE_STATUSES, PAGE_SIZE } from './config';
+import {
+    COVERAGE_QC_METRIC,
+    EXTERNAL_RELEASE_STATUSES,
+    INTERNAL_RELEASE_STATUSES,
+    PAGE_SIZE,
+} from './config';
 
 export const formatDate = (date_str) => {
     if (!date_str) {
@@ -304,6 +309,150 @@ export const getQcResultsSummary = (qc_results) => {
         } else {
             return <span>{badge} / </span>;
         }
+    });
+};
+
+// QC flag values that are considered problematic (matches FLAG_STATES in
+// src/encoded/types/quality_metric.py)
+const QC_FLAG_STATES = ['Warn', 'Fail'];
+
+/**
+ * Whether a file/QC-info is still relevant for review. Retracted and deleted
+ * files are ignored when deciding QC pass/fail and when building comments.
+ */
+export const isActiveFileStatus = (status) => {
+    return status !== 'retracted' && status !== 'deleted';
+};
+
+/**
+ * Index a QualityMetric's qc_values array by their derived_from id for fast lookup.
+ */
+export const reformatQcValues = (qcValues) => {
+    const result = {};
+    (qcValues ?? []).forEach((qcValue) => {
+        result[qcValue.derived_from] = qcValue;
+    });
+    return result;
+};
+
+/**
+ * Sum the group coverage (mosdepth:total) across the given processed files,
+ * deduping by accession so a file with multiple QualityMetric items is not
+ * counted more than once. Accepts files that already carry a `qc_values_dict`
+ * or raw files with `quality_metric.qc_values`.
+ *
+ * Returns { coverage, metricPresent }:
+ *   - coverage: the summed Number, or null when no usable numeric value was
+ *     found (distinct from a real 0).
+ *   - metricPresent: whether the coverage metric appeared on any file at all,
+ *     regardless of whether its value was numeric. This lets callers tell
+ *     "no coverage data to check" apart from "coverage present but unusable".
+ */
+export const computeGroupCoverage = (processedFiles) => {
+    const filesSeen = [];
+    let coverage = 0;
+    let numericFound = false;
+    let metricPresent = false;
+    for (const pf of processedFiles ?? []) {
+        const qcValues =
+            pf['qc_values_dict'] ?? reformatQcValues(pf.quality_metric?.qc_values);
+        if (COVERAGE_QC_METRIC in qcValues) {
+            metricPresent = true;
+            // If there are multiple QM items for the same file we don't want to
+            // count the coverage more than once
+            if (filesSeen.includes(pf.accession)) {
+                continue;
+            }
+            const cov = Number(qcValues[COVERAGE_QC_METRIC]['value']);
+            if (Number.isNaN(cov)) {
+                continue;
+            }
+            coverage += cov;
+            filesSeen.push(pf.accession);
+            numericFound = true;
+        }
+    }
+    return { coverage: numericFound ? coverage : null, metricPresent };
+};
+
+/**
+ * Numeric-only accessor for the group coverage sum. Returns a Number, or null
+ * when no usable numeric coverage value is present. Used for display where the
+ * "metric present but unusable" distinction does not matter.
+ */
+export const computeGroupCoverageNumeric = (processedFiles) =>
+    computeGroupCoverage(processedFiles).coverage;
+
+/**
+ * Collect the problematic (Warn/Fail) qc_values from the given files (already
+ * filtered to the relevant fileset and active statuses). Returns a flat list of
+ * { accession, key, value, flag }.
+ */
+export const collectProblematicQcValues = (files) => {
+    const problems = [];
+    (files ?? []).forEach((file) => {
+        (file.quality_metric?.qc_values ?? []).forEach((qv) => {
+            if (QC_FLAG_STATES.includes(qv.flag)) {
+                problems.push({
+                    accession: file.accession,
+                    key: qv.key,
+                    value: qv.value,
+                    flag: qv.flag,
+                });
+            }
+        });
+    });
+    return problems;
+};
+
+/**
+ * Coerce a qc_value value to a number, or return null when it is not numeric
+ * (e.g. empty string, null, boolean, non-numeric text).
+ */
+const toNumberOrNull = (v) => {
+    if (typeof v === 'number') {
+        return Number.isNaN(v) ? null : v;
+    }
+    if (typeof v === 'string' && v.trim() !== '' && !Number.isNaN(Number(v))) {
+        return Number(v);
+    }
+    return null;
+};
+
+/**
+ * Group problematic qc_values (from collectProblematicQcValues) by metric and
+ * flag, counting the number of distinct files affected. Used to collapse dozens
+ * of submitted files into one line per metric. When every value in a group is
+ * numeric, also returns the value range (min/max).
+ * Returns { key, flag, count, numeric, min, max }[].
+ */
+export const groupProblematicQcByMetric = (problems) => {
+    const groups = {};
+    (problems ?? []).forEach((p) => {
+        const groupKey = `${p.key}||${p.flag}`;
+        if (!groups[groupKey]) {
+            groups[groupKey] = {
+                key: p.key,
+                flag: p.flag,
+                accessions: new Set(),
+                values: [],
+            };
+        }
+        groups[groupKey].accessions.add(p.accession);
+        groups[groupKey].values.push(p.value);
+    });
+    return Object.values(groups).map((g) => {
+        const numericValues = g.values.map(toNumberOrNull);
+        const numeric =
+            numericValues.length > 0 && numericValues.every((v) => v !== null);
+        return {
+            key: g.key,
+            flag: g.flag,
+            count: g.accessions.size,
+            numeric,
+            min: numeric ? Math.min(...numericValues) : null,
+            max: numeric ? Math.max(...numericValues) : null,
+        };
     });
 };
 

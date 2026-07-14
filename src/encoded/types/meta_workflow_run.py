@@ -28,4 +28,7 @@ def _build_meta_workflow_run_embedded_list():
 class MetaWorkflowRun(Item, CoreMetaWorkflowRun):
     item_type = 'meta_workflow_run'
     schema = load_schema("encoded:schemas/meta_workflow_run.json")
+    # Workflow execution records churn frequently; preserving every prior
+    # version adds DB storage without useful audit value.
+    track_revisions = False
     embedded_list = _build_meta_workflow_run_embedded_list()

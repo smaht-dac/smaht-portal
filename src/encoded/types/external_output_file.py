@@ -131,10 +131,10 @@ class ExternalOutputFile(SubmittedFile):
         return result
 
     def _get_release_tracker_title(
-            self,
-            request_handler: RequestHandler,
-            file_properties: Dict[str, Any],
-        ) -> Union[str, None]:
+                self,
+                request_handler: RequestHandler,
+                file_properties: Dict[str, Any],
+            ) -> Union[str, None]:
         """Get release tracker title for display on the home page."""
         to_include = None
         if "tissues" in file_properties:
@@ -147,10 +147,10 @@ class ExternalOutputFile(SubmittedFile):
         return to_include
 
     def _get_release_tracker_description(
-            self,
-            request_handler: RequestHandler,
-            file_properties: Dict[str, Any],
-        ) -> Union[str, None]:
+                self,
+                request_handler: RequestHandler,
+                file_properties: Dict[str, Any],
+            ) -> Union[str, None]:
         """Get release tracker description for display on the home page."""
         to_include = None
         file_format_title = get_property_value_from_identifier(

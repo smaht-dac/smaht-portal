@@ -28,8 +28,8 @@ def test_library_preparation(
         ({"fragmentation_method": ["Sonication"]}, 200),
         ({"fragmentation_method": ["Restriction Enzyme"]}, 422),
         ({"fragmentation_method": ["Restriction Enzyme"], "enzymes": ["AluI"]}, 200),
-       ({"fragmentation_method": ["Transposase"]}, 422),
-       ({"fragmentation_method": ["Sonication"], "enzymes": ["AluI"]}, 200),
+        ({"fragmentation_method": ["Transposase"]}, 422),
+        ({"fragmentation_method": ["Sonication"], "enzymes": ["AluI"]}, 200),
     ],
 )
 def test_enzyme_conditional(

@@ -8,7 +8,7 @@ from ..item_utils.item import get_tags
 
 
 @pytest.mark.parametrize(
-   "tag",
+    "tag",
     [
         ("germ_layer"),
         ("tissue_type"),

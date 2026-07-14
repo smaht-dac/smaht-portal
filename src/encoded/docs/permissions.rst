@@ -8,8 +8,10 @@ Permissions in the smaht-portal rely on 3 mechanisms:
     * The admin group
 
 For the most part, those internal to the DAC are admins and can/view edit
-all data. We maintain a comprehensive revision history in the case of
-accidental edits to data by internal members.
+all data. For item types that track revisions, we maintain a comprehensive
+revision history in the case of accidental edits to data by internal members.
+``Workflow`` and ``MetaWorkflowRun`` are exceptions and do not retain
+Postgres revision history.
 
 Consortia Tagging
 -----------------

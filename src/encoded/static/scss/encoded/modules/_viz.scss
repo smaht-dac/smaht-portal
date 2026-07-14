@@ -951,9 +951,13 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         cursor: pointer;
         color: #343741;
     }
-    .width-100{
-        width: 100px;
-        $pure-white-space: wrap;
+    .width-120{
+        width: 120px;
+        white-space: normal;
+    }
+    .width-150-nw{
+        width: 150px;
+        white-space: nowrap;
     }
 }
 

@@ -7,6 +7,38 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 import { BROWSE_STATUS_FILTERS } from '../../../browse/BrowseView';
 
 /**
+ * Formats a donor's age for display. Ages of 89 and above are stored as 89 to
+ * remove identifiable information, so a value of 89 is rendered as "89+".
+ * @param {number} age - The donor's age.
+ * @returns {(string|number|undefined)} "89+" when age is 89, otherwise the age as-is.
+ */
+export const formatDonorAge = (age) => (age === 89 ? '89+' : age);
+
+/**
+ * Bootstrap Popover explaining the "89+" age display convention.
+ * @param {function} handleShowPopover - function to handle popover visibility
+ * @param {string} customId - custom id for popover
+ * @returns {JSX.Element} Popover component describing the age convention
+ *
+ * Note: Use regular function here, as Bootstrap relies on `this`.
+ */
+export function renderAgeDescriptionPopover(handleShowPopover, customId) {
+    return (
+        <Popover
+            id={customId ?? 'description-definitions-popover-age'}
+            className="w-auto description-definitions-popover"
+            onMouseEnter={() =>
+                handleShowPopover ? handleShowPopover(true) : null
+            }
+            onMouseLeave={() =>
+                handleShowPopover ? handleShowPopover(false) : null
+            }>
+            <PopoverBody>Ages 89 and above are denoted as 89+</PopoverBody>
+        </Popover>
+    );
+}
+
+/**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
  * description field.
@@ -252,7 +284,9 @@ const default_donor_information = [
     },
     {
         title: 'Age',
-        getProp: (context = {}) => context?.age,
+        getProp: (context = {}) => formatDonorAge(context?.age),
+        titlePopover: (handleShowPopover) =>
+            renderAgeDescriptionPopover(handleShowPopover),
     },
     {
         title: 'Sex',
@@ -426,18 +460,22 @@ const DonorDSAValue = ({ donorId }) => {
         setIsLoading(true);
 
         if (!link) {
-            // peek metadata to see if there are any DSA fields
+            // peek metadata to see if there are any DSA fields.
+            // POST with search_query_params so the endpoint runs a facet-free
+            // count query instead of computing the full default facet set — this
+            // check only needs "are there any matching Files?" (i.e. total > 0).
             const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${donorId}&sample_summary.studies=Production&${BROWSE_STATUS_FILTERS}&type=File`;
+            const parsedParams = new URLSearchParams(searchQuery);
+            const searchQueryParams = {};
+            for (const key of new Set(parsedParams.keys())) {
+                searchQueryParams[key] = parsedParams.getAll(key);
+            }
             ajax.load(
-                '/peek-metadata/' + searchQuery,
+                '/peek-metadata/',
                 (resp) => {
                     if (cancelled) return;
                     // Check that some files are present in the metadata
-                    if (
-                        resp
-                            ?.find((f) => f.field === 'type')
-                            ?.terms.find((t) => t.key === 'File')?.doc_count > 0
-                    ) {
+                    if (resp?.total > 0) {
                         setIsLoading(false);
                         setLink('/browse/' + searchQuery);
                     } else {
@@ -445,11 +483,12 @@ const DonorDSAValue = ({ donorId }) => {
                         setIsLoading(false);
                     }
                 },
-                'GET',
+                'POST',
                 (err) => {
                     setIsLoading(false);
-                    console.error(resp.error);
-                }
+                    console.error(err);
+                },
+                JSON.stringify({ search_query_params: searchQueryParams })
             );
         }
 

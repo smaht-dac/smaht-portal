@@ -1,3 +1,13 @@
+# fakeredis 2.36+ touches `redis.asyncio.Redis` at module-import time
+# (see fakeredis/_typing.py:29) but never explicitly imports the
+# `redis.asyncio` submodule. With `redis` 4.6.x, the submodule is NOT
+# auto-imported by `import redis` — so we have to load it ourselves before
+# fakeredis is imported, otherwise:
+#     AttributeError: module 'redis' has no attribute 'asyncio'
+# This can be removed once pyproject.toml pins a fakeredis/redis pair that
+# loads the submodule eagerly (redis 5.x, or older fakeredis).
+import redis.asyncio  # noqa: F401
+
 import fakeredis
 import json
 from typing import Optional

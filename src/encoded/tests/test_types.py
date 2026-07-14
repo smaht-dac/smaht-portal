@@ -30,6 +30,7 @@ def test_expected_unique_keys(testapp: TestApp) -> None:
     special_item_types_to_unique_keys = {
         "access_key": "access_key_id",
         "document": None,
+        "email_notification": None,
         "filter_set": None,
         "image": None,
         "ingestion_submission": None,
@@ -38,6 +39,7 @@ def test_expected_unique_keys(testapp: TestApp) -> None:
         "meta_workflow_run": None,
         "output_file": None,
         "quality_metric": None,
+        "publication": "accession",
         "reference_file": None,
         "tracking_item": None,
         "user": "email",

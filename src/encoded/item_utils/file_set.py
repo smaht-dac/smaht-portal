@@ -2,12 +2,10 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
 from . import (
-    item as item_utils,
     library as library_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
     tissue as tissue_utils,
-    file as file_utils,
 )
 from .utils import (
     RequestHandler,

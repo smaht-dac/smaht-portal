@@ -352,7 +352,16 @@ def add_submission_status_search_filters(
         if filter_value in CELL_CULTURE_MIXTURES:
             search_params["libraries.analytes.samples.sample_sources.code"] = filter_value
         else:
-            search_params["tissue_types"] = filter_value
+            # Benchmarking tissues index tissue_type without the leading code
+            # prefix (see item_utils.tissue.get_tissue_type), while production
+            # and fibroblast tissues keep it. Match both forms so benchmarking
+            # filesets are not dropped.
+            tissue_filter_values = [filter_value]
+            if " - " in filter_value:
+                tissue_filter_values.append(filter_value.split(" - ")[1])
+            search_params[
+                "libraries.analytes.samples.sample_sources.tissue_type"
+            ] = tissue_filter_values
     if filter.get("include_tags"):
         search_params["tags"] = filter["include_tags"]
     if filter.get("exclude_tags"):

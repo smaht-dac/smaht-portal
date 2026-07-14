@@ -87,3 +87,10 @@ def test_instance_type_regex(
     updated_tibanna_config = {**tibanna_config, "instance_type": [instance_type]}
     patch_body = {"tibanna_config": updated_tibanna_config}
     patch_item(testapp, patch_body, workflow["uuid"], status=expected_status)
+
+
+def test_workflow_revision_history_not_tracked(
+    testapp: TestApp, workflow: Dict[str, Any]
+) -> None:
+    """Workflow opts out of Postgres revision-history tracking."""
+    testapp.get(f'/{workflow["uuid"]}/@@revision-history', status=404)

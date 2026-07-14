@@ -21,11 +21,13 @@ beanstalk.cfg
 /.eggs/
 /extends/
 /jsconfig.json
-/node_modules/
+/node_modules
 /cypress/screenshots/
 /cypress/videos/
+/cypress/downloads/
 /deploy/post_deploy_testing/cypress/videos/
 /deploy/post_deploy_testing/cypress/screenshots/
+/deploy/post_deploy_testing/cypress/downloads/
 /documentation/
 /ontology.json
 /session-secret.b64

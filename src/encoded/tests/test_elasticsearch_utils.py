@@ -1,10 +1,9 @@
-import pytest
 from typing import Optional
 from encoded.endpoints.elasticsearch_utils import (
         create_elasticsearch_aggregation_query,
         merge_elasticsearch_aggregation_results,
         normalize_elasticsearch_aggregation_results)
-from encoded.endpoints.recent_files_summary.recent_files_summary import (
+from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
         AGGREGATION_FIELD_RELEASE_DATE,
         AGGREGATION_FIELD_CELL_LINE,
         AGGREGATION_FIELD_FILE_DESCRIPTOR)

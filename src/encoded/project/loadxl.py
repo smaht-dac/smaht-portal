@@ -6,6 +6,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
     order = [
         "access_key",
         "user",
+        "email_notification",
         "consortium",
         "submission_center",
         "file_format",
@@ -68,7 +69,8 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "meta_workflow_run",
         "donor_specific_assembly",
         "supplementary_file",
-        "external_output_file"
+        "external_output_file",
+        "publication",
     ]
 
     def loadxl_order(self):

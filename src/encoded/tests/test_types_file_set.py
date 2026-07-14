@@ -1,5 +1,5 @@
 import pytest
-from typing import List, Dict, Any
+from typing import List
 from webtest.app import TestApp
 
 from .utils import (
@@ -83,12 +83,12 @@ def test_file_set_tissue_types(
     workbook: None
 ) -> None:
     """Ensure the tissue_types calcprop works."""
-    fileset=get_item(
+    fileset = get_item(
         es_testapp,
         submitted_id,
         collection='FileSet',
     )
-    assert fileset.get("tissue_types",[]) == expected
+    assert fileset.get("tissue_types", []) == expected
 
 
 @pytest.mark.workbook
@@ -96,8 +96,8 @@ def test_file_set_tissue_types(
     "library,sequencing,expected_status",
     [
         ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_PACBIO_30X-30H-DNA", 200), # FiberSeq and PacBio
-        ("","TEST_SEQUENCING_ONT-90X-DNA", 422), # FiberSeq and ONT
-        ("TEST_LIBRARY_HELA-HEK293-DNA","", 422), # Cas9 Nanopore and PacBio
+        ("", "TEST_SEQUENCING_ONT-90X-DNA", 422),  # FiberSeq and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","", 422),  # Cas9 Nanopore and PacBio
         ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_ONT-90X-DNA", 422), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422), # bulk_wgs and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_ONT-90X-DNA", 200), #Cas9 Nanopore and ONT
@@ -121,7 +121,7 @@ def test_validate_compatible_library_and_sequencer_on_patch(
     """
     patch_body = {}
     if library:
-        library_uuid=item_utils.get_uuid(
+        library_uuid = item_utils.get_uuid(
             get_item(
                 es_testapp,
                 library,
@@ -130,7 +130,7 @@ def test_validate_compatible_library_and_sequencer_on_patch(
         )
         patch_body['libraries'] = [library_uuid]
     if sequencing:
-        sequencing_uuid=item_utils.get_uuid(
+        sequencing_uuid = item_utils.get_uuid(
             get_item(
                 es_testapp,
                 sequencing,
@@ -170,14 +170,14 @@ def test_validate_compatible_library_and_sequencer_on_post(
    Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property` and based off of molecule-specific properties of sequencing.
     """
     submission_center = get_insert_identifier_for_item_type(es_testapp,'submission_center')
-    library_uuid=item_utils.get_uuid(
+    library_uuid = item_utils.get_uuid(
         get_item(
             es_testapp,
             library,
             'Library'
         )
     )
-    sequencing_uuid=item_utils.get_uuid(
+    sequencing_uuid = item_utils.get_uuid(
         get_item(
             es_testapp,
             sequencing,

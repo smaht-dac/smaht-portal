@@ -3,8 +3,10 @@ from pyramid.request import Request as PyramidRequest
 from typing import Optional
 from unittest.mock import patch
 from webob.multidict import MultiDict
-from encoded.endpoints.recent_files_summary.recent_files_summary import recent_files_summary
-import encoded.endpoints.endpoint_utils
+from encoded.endpoints.recent_files_summary.recent_files_summary import (
+    recent_files_summary,
+    recent_release_days
+)
 
 _TYPE = "type=OutputFile&type=SubmittedFile"
 _EXPECTED_TYPE = "type=File"
@@ -1082,7 +1084,6 @@ class TestPyramidRequest(PyramidRequest):
 
 def test_recent_files_summary():
 
-    global recent_files_summary_raw_results
 
     request = TestPyramidRequest({
         "date_property_name": "date_created",
@@ -1095,3 +1096,92 @@ def test_recent_files_summary():
         mocked_execute_aggregation_query = lambda *args, **kwargs: recent_files_summary_raw_results  # noqa
         response = recent_files_summary(request, custom_execute_aggregation_query=mocked_execute_aggregation_query)
         assert response == recent_files_summary_expected_results
+
+
+def test_recent_release_days_lightweight():
+    request = TestPyramidRequest({
+        "date_property_name": "date_created",
+        "nmonths": 6
+    })
+
+    mock_raw_results = {
+        "aggregations": {
+            "release_days": {
+                "meta": {"field_name": "date_created"},
+                "doc_count": 32,
+                "dummy_date_histogram": {
+                    "buckets": [
+                        {
+                            "key_as_string": "2026-04",
+                            "doc_count": 32,
+                            "date_created_date": {
+                                "meta": {"field_name": "date_created_date"},
+                                "buckets": [
+                                    {
+                                        "key_as_string": "2026-04-24",
+                                        "doc_count": 32
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+
+    fixed_datetime = datetime(2026, 4, 25)
+    with patch("encoded.endpoints.endpoint_utils._get_today", return_value=fixed_datetime):
+        mocked_execute_aggregation_query = lambda *args, **kwargs: mock_raw_results  # noqa
+        response = recent_release_days(request, custom_execute_aggregation_query=mocked_execute_aggregation_query)
+
+    assert response.get("count") == 32
+    assert len(response.get("items", [])) == 1
+    month_item = response["items"][0]
+    assert month_item.get("value") == "2026-04"
+    assert month_item.get("count") == 32
+    assert len(month_item.get("items", [])) == 1
+    day_item = month_item["items"][0]
+    assert day_item.get("value") == "2026-04-24"
+    assert day_item.get("count") == 32
+    assert "date_created_date.from=2026-04-24" in day_item.get("query", "")
+
+
+def test_recent_release_days_excludes_zero_count_days():
+    request = TestPyramidRequest({
+        "date_property_name": "date_created",
+        "nmonths": 6
+    })
+
+    mock_raw_results = {
+        "aggregations": {
+            "release_days": {
+                "meta": {"field_name": "date_created"},
+                "doc_count": 32,
+                "dummy_date_histogram": {
+                    "buckets": [
+                        {
+                            "key_as_string": "2026-04",
+                            "doc_count": 32,
+                            "date_created_date": {
+                                "meta": {"field_name": "date_created_date"},
+                                "buckets": [
+                                    {"key_as_string": "2026-04-10", "doc_count": 0},
+                                    {"key_as_string": "2026-04-24", "doc_count": 32}
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+
+    fixed_datetime = datetime(2026, 4, 25)
+    with patch("encoded.endpoints.endpoint_utils._get_today", return_value=fixed_datetime):
+        mocked_execute_aggregation_query = lambda *args, **kwargs: mock_raw_results  # noqa
+        response = recent_release_days(request, custom_execute_aggregation_query=mocked_execute_aggregation_query)
+
+    month_item = response["items"][0]
+    assert len(month_item.get("items", [])) == 1
+    assert month_item["items"][0].get("value") == "2026-04-24"

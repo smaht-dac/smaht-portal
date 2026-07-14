@@ -9,6 +9,7 @@ import {
 import {
     fallbackCallback,
     formatDate,
+    formatQcValue,
     getLink,
     createBadge,
     createWarningIcon,
@@ -20,12 +21,21 @@ import {
     isReleasedInternally,
     getCommentInputField,
     getPagination,
+    isActiveFileStatus,
+    computeGroupCoverage,
+    collectProblematicQcValues,
+    groupProblematicQcByMetric,
 } from './utils';
 
 import {
     PAGE_SIZE,
     SUBMISSION_STATUS_TAGS,
     SUBMISSION_STATUS_DEFAULT_FILTER,
+    AUTO_REVIEW_COMMENT_PREFIX,
+    AUTO_REVIEW_COVERAGE_THRESHOLD,
+    COVERAGE_QC_METRIC,
+    TAG_REVIEWED,
+    TAG_READY_TO_RELEASE,
 } from './config';
 
 import { SubmissionStatusFilter } from './SubmissionStatusFilter';
@@ -51,6 +61,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             submittedFilesVisibility: [],
             comments: {},
             newComments: {},
+            reviewingFilesets: [],
             isUserAdmin: userDetails.details.groups?.includes('admin'),
             modal: null,
         };
@@ -220,27 +231,45 @@ class SubmissionStatusComponent extends React.PureComponent {
         });
     };
 
-    patchFileset = (fs_uuid, filesets, payload) => {
+    patchFileset = (fs_uuid, filesets, payload, onDone = null) => {
         ajax.load(
             fs_uuid,
             (resp) => {
                 if (resp.status !== 'success') {
                     console.error(resp);
+                    if (onDone) {
+                        onDone();
+                    }
                     return;
                 } else {
                     this.setState(
-                        (prevState) => ({
-                            fileSets: filesets,
-                            loading: false,
-                        }),
+                        (prevState) => {
+                            const updated = filesets.find(
+                                (f) => f.uuid === fs_uuid
+                            );
+                            const merged = updated
+                                ? prevState.fileSets.map((f) =>
+                                    f.uuid === fs_uuid ? updated : f
+                                )
+                                : filesets;
+                            return { fileSets: merged, loading: false };
+                        },
                         function () {
+                            if (onDone) {
+                                onDone();
+                            }
                             this.forceUpdate();
                         }
                     );
                 }
             },
             'PATCH',
-            fallbackCallback,
+            (errResp, xhr) => {
+                fallbackCallback(errResp, xhr);
+                if (onDone) {
+                    onDone();
+                }
+            },
             JSON.stringify(payload)
         );
     };
@@ -296,6 +325,264 @@ class SubmissionStatusComponent extends React.PureComponent {
                     isUserAdmin={this.state.isUserAdmin}></FileGroupQCModal>
             ),
         });
+    };
+
+    clearReviewing = (fsUuid) => {
+        this.setState((prevState) => ({
+            reviewingFilesets: prevState.reviewingFilesets.filter(
+                (uuid) => uuid !== fsUuid
+            ),
+        }));
+    };
+
+    // Whether any (active) submitted or output file has a Warn/Fail QC flag. Uses
+    // the row payload (overall_quality_status), which is authoritative and not
+    // subject to the /get_file_group_qc/ per-value cap. NA/missing does not block.
+    rowHasBlockingQc = (fs) => {
+        const qcInfos = [
+            ...(fs.submitted_files?.qc_infos ?? []),
+            ...(fs.output_files?.qc_infos ?? []),
+        ];
+        return qcInfos.some((info) => {
+            if (!isActiveFileStatus(info.status)) {
+                return false;
+            }
+            return (info.quality_metrics ?? []).some(
+                (qm) =>
+                    qm.overall_quality_status === 'Warn' ||
+                    qm.overall_quality_status === 'Fail'
+            );
+        });
+    };
+
+    // Coverage is only checked when target_coverage is set. When no coverage
+    // metric is present at all there is nothing to verify and the check is
+    // skipped. When the metric is present but has no usable numeric value,
+    // coverage cannot be verified, so we fail the check rather than let the
+    // fileset pass silently.
+    evaluateCoverage = (fs, processedFiles) => {
+        const target = fs.sequencing?.target_coverage;
+        if (!target) {
+            return { checked: false };
+        }
+        const { coverage, metricPresent } = computeGroupCoverage(processedFiles);
+        if (coverage === null) {
+            if (metricPresent) {
+                return { checked: true, ok: false, unavailable: true, target };
+            }
+            return { checked: false };
+        }
+        return {
+            checked: true,
+            ok: coverage >= AUTO_REVIEW_COVERAGE_THRESHOLD * target,
+            calculated: coverage,
+            target,
+        };
+    };
+
+    round1 = (num) => Math.round(num * 10) / 10;
+
+    // One comment per problematic submitted-file metric (group).
+    buildSubmittedQcComment = (g) => {
+        let part = `'${g.key}' (${g.flag}) in ${g.count} file(s)`;
+        if (g.numeric) {
+            const min = formatQcValue(g.min);
+            const max = formatQcValue(g.max);
+            part +=
+                g.min === g.max
+                    ? ` with value ${min}`
+                    : ` with values between ${min} and ${max}`;
+        }
+        return `${AUTO_REVIEW_COMMENT_PREFIX} Submitted file QC issue: ${part}`;
+    };
+
+    // One comment per problematic output-file QC value.
+    buildOutputQcComment = (p) => {
+        return (
+            `${AUTO_REVIEW_COMMENT_PREFIX} Output file QC issue: ` +
+            `${p.key}=${formatQcValue(p.value)} (${p.flag})`
+        );
+    };
+
+    buildQcFallbackComment = () => {
+        return (
+            `${AUTO_REVIEW_COMMENT_PREFIX} QC issues blocking release: one or more ` +
+            `quality metrics have a Warn/Fail overall status; detailed values were ` +
+            `not available from the QC endpoint. Review manually.`
+        );
+    };
+
+    buildCoverageComment = (coverage) => {
+        const pct = this.round1((coverage.calculated / coverage.target) * 100);
+        return (
+            `${AUTO_REVIEW_COMMENT_PREFIX} Coverage below threshold: calculated ` +
+            `group coverage ${this.round1(coverage.calculated)}x is ${pct}% of ` +
+            `target ${coverage.target}x.`
+        );
+    };
+
+    buildCoverageUnavailableComment = (coverage) => {
+        return (
+            `${AUTO_REVIEW_COMMENT_PREFIX} Coverage could not be verified: the ` +
+            `coverage metric (${COVERAGE_QC_METRIC}) is present but has no numeric ` +
+            `value, while a target coverage of ${coverage.target}x is set. ` +
+            `Review manually.`
+        );
+    };
+
+    // Fetches detailed QC for a single file group, applies the review rules, and
+    // patches tags + comments in a single request. Called per fileset by the
+    // "Auto-review QC" header action (autoReviewAllFilesets).
+    autoReviewFileset = (fs) => {
+        if (this.state.reviewingFilesets.includes(fs.uuid)) {
+            return;
+        }
+        this.setState((prevState) => ({
+            reviewingFilesets: [...prevState.reviewingFilesets, fs.uuid],
+        }));
+
+        const payload = {
+            fileSetUuid: fs.uuid,
+            fileGroup: fs.file_group,
+        };
+
+        ajax.load(
+            '/get_file_group_qc/',
+            (resp) => {
+                if (resp.error) {
+                    console.error(resp.error);
+                    this.clearReviewing(fs.uuid);
+                    return;
+                }
+
+                const files = resp.files_with_qcs ?? [];
+                const submittedFiles = files.filter(
+                    (f) =>
+                        f.fileset_uuid === fs.uuid &&
+                        !f.is_output_file &&
+                        isActiveFileStatus(f.status)
+                );
+                const outputFiles = files.filter(
+                    (f) =>
+                        f.fileset_uuid === fs.uuid &&
+                        f.is_output_file &&
+                        isActiveFileStatus(f.status)
+                );
+                // Coverage is a group-level metric (across all filesets in the group)
+                const processedGroupFiles = files.filter(
+                    (f) => f.is_output_file && isActiveFileStatus(f.status)
+                );
+
+                const qcBlocks = this.rowHasBlockingQc(fs);
+                const submittedProblems = groupProblematicQcByMetric(
+                    collectProblematicQcValues(submittedFiles)
+                );
+                const outputProblems = collectProblematicQcValues(outputFiles);
+                const coverage = this.evaluateCoverage(fs, processedGroupFiles);
+
+                this.applyReviewResult(
+                    fs,
+                    qcBlocks,
+                    submittedProblems,
+                    outputProblems,
+                    coverage
+                );
+            },
+            'POST',
+            (errResp, xhr) => {
+                fallbackCallback(errResp, xhr);
+                this.clearReviewing(fs.uuid);
+            },
+            JSON.stringify(payload)
+        );
+    };
+
+    // Review every fileset currently shown in the table. Reuses the per-fileset
+    // worker, firing all reviews concurrently. Each review patches tags/comments
+    // into local state as it completes (see patchFileset), so no reload is
+    // needed; the spinner clears once every fileset has finished.
+    autoReviewAllFilesets = () => {
+        if (this.state.reviewingFilesets.length > 0) {
+            return;
+        }
+        const filesets = [...this.state.fileSets];
+        if (filesets.length === 0) {
+            return;
+        }
+        if (
+            !window.confirm(
+                `Auto-review QC for ${filesets.length} file set(s) in the current view?`
+            )
+        ) {
+            return;
+        }
+
+        filesets.forEach((fs) => this.autoReviewFileset(fs));
+    };
+
+    applyReviewResult = (
+        fs,
+        qcBlocks,
+        submittedProblems,
+        outputProblems,
+        coverage
+    ) => {
+        const filesets = JSON.parse(JSON.stringify(this.state.fileSets));
+        const target = filesets.find((x) => x.uuid === fs.uuid);
+        if (!target) {
+            this.clearReviewing(fs.uuid);
+            return;
+        }
+
+        const coverageFails = coverage.checked && !coverage.ok;
+        const passes = !qcBlocks && !coverageFails;
+
+        // Tags: only ever add tags, never remove. Always add "reviewed"; add
+        // "ready_to_release" when passing.
+        const tags = Array.isArray(target.tags) ? [...target.tags] : [];
+        if (!tags.includes(TAG_REVIEWED)) {
+            tags.push(TAG_REVIEWED);
+        }
+        if (passes && !tags.includes(TAG_READY_TO_RELEASE)) {
+            tags.push(TAG_READY_TO_RELEASE);
+        }
+
+        // Comments: strip previous auto-review comments, regenerate, keep manual ones
+        const manual = (target.comments ?? []).filter(
+            (c) => !c.startsWith(AUTO_REVIEW_COMMENT_PREFIX)
+        );
+        const auto = [];
+        submittedProblems.forEach((g) => {
+            auto.push(this.buildSubmittedQcComment(g));
+        });
+        outputProblems.forEach((p) => {
+            auto.push(this.buildOutputQcComment(p));
+        });
+        if (
+            qcBlocks &&
+            submittedProblems.length === 0 &&
+            outputProblems.length === 0
+        ) {
+            auto.push(this.buildQcFallbackComment());
+        }
+        if (coverageFails) {
+            auto.push(
+                coverage.unavailable
+                    ? this.buildCoverageUnavailableComment(coverage)
+                    : this.buildCoverageComment(coverage)
+            );
+        }
+
+        const comments = [...auto, ...manual];
+        target.tags = tags.length ? tags : null;
+        target.comments = comments;
+
+        this.patchFileset(
+            fs.uuid,
+            filesets,
+            { tags: target.tags, comments },
+            () => this.clearReviewing(fs.uuid)
+        );
     };
 
     getSubmissionTableBody = () => {
@@ -552,6 +839,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                             <div
                                 className="ss-link"
                                 onClick={() => this.toggleFileGroupQc(fs)}>
+                                <i className="icon icon-fw fas icon-search"></i>
                                 Review File Group QC
                             </div>
                         </small>
@@ -559,7 +847,9 @@ class SubmissionStatusComponent extends React.PureComponent {
                     <td>
                         <div className="p-1">{mwfrs}</div>
                     </td>
-                    <td>{filesetStatusTags}</td>
+                    <td>
+                        {filesetStatusTags}
+                    </td>
                 </tr>
             );
         });
@@ -584,6 +874,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                 </div>
             );
         }
+
+        const reviewingAll = this.state.reviewingFilesets.length > 0;
 
         return (
             <React.Fragment>
@@ -672,6 +964,25 @@ class SubmissionStatusComponent extends React.PureComponent {
                                             marginLeft: 3,
                                         },
                                     }}></object.CopyWrapper>
+                                {this.state.isUserAdmin && (
+                                    <i
+                                        className={
+                                            'icon icon-fw fas ss-link ' +
+                                            (reviewingAll
+                                                ? 'icon-spinner icon-spin'
+                                                : 'icon-clipboard-check')
+                                        }
+                                        data-tip="Auto-review QC for all file sets in the current view"
+                                        onClick={() =>
+                                            reviewingAll
+                                                ? null
+                                                : this.autoReviewAllFilesets()
+                                        }
+                                        style={{
+                                            fontSize: '0.875rem',
+                                            marginLeft: 3,
+                                        }}></i>
+                                )}
                             </th>
                             <th className="text-start">MetaWorkflowRuns</th>
                             <th className="text-start">

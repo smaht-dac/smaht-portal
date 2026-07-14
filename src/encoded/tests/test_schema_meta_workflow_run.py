@@ -1,5 +1,8 @@
 from typing import Any, Dict
 from snovault import load_schema
+from webtest.app import TestApp
+
+from .utils import post_item
 
 
 def get_schema(type) -> Dict[str, Any]:
@@ -27,4 +30,19 @@ def test_common_fields():
         for common_field in common_fields_list:
             assert common_field in item_props_list
 
+
+def test_meta_workflow_run_revision_history_not_tracked(
+    testapp: TestApp, meta_workflow: Dict[str, Any], test_consortium: Dict[str, Any]
+) -> None:
+    """MetaWorkflowRun opts out of Postgres revision-history tracking."""
+    meta_workflow_run = post_item(
+        testapp,
+        {
+            "meta_workflow": meta_workflow["uuid"],
+            "consortia": [test_consortium["uuid"]],
+        },
+        "MetaWorkflowRun",
+    )
+
+    testapp.get(f'/{meta_workflow_run["uuid"]}/@@revision-history', status=404)
 

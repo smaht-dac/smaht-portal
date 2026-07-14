@@ -1,9 +1,31 @@
 import React from 'react';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { RightArrowIcon } from '../../util/icon';
+import { JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 // Default announcement data
 const announcements = [
+    {
+        type: 'feature',
+        title: 'Data Release Mailing List',
+        date: '2026-08-27',
+        body: (session, userId) => (
+            <span>
+                The SMaHT Data Portal now supports{' '}
+                <b>monthly email notifications</b> for new data releases. To
+                subscribe, visit your{' '}
+                {userId ? (
+                    <>
+                        {' '}
+                        <a href={`/users/${userId}/`}>Profile page</a>
+                    </>
+                ) : (
+                    <>Profile page</>
+                )}{' '}
+                after logging in.
+            </span>
+        ),
+    },
     {
         type: 'warning',
         title: 'New Access Regulation',
@@ -17,98 +39,6 @@ const announcements = [
                 Gmail, yahoo, hotmail, and other free email accounts will be
                 prohibited from accessing the Data Portal effective 4/1/26.
             </span>
-        ),
-    },
-    {
-        type: 'warning',
-        title: 'Data Retraction',
-        date: '2025-12-11',
-        body: (
-            <span>
-                Illumina bulk WGS data were retracted for production donor
-                samples; SMHT001-3A, SMHT005-3AF, SMHT007-3A, and SMHT022-3A,
-                due to data duplication.
-            </span>
-        ),
-        footer: (
-            <span>
-                <a href="/retracted-files">
-                    See Full List
-                    <RightArrowIcon />
-                </a>
-            </span>
-        ),
-    },
-    {
-        type: 'info',
-        title: 'Attention: BAM change',
-        date: '2025-07-23',
-        body: (
-            <span>
-                As of July 8, 2025, DAC will release BAM files without the BI
-                and BD tags, which were originally added after base quality
-                recalibration (BQSR).
-            </span>
-        ),
-    },
-    {
-        type: 'warning',
-        title: 'Data Retraction',
-        date: '2025-03-10',
-        body: (
-            <span>
-                One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
-                <a href="/output-files/beca52fb-ad5b-4eaa-832a-2929c7bf7577/">
-                    SMAFIPHR8QOG
-                </a>
-                , has been retracted due to sample swap.
-            </span>
-        ),
-        footer: (
-            <span>
-                <a href="/retracted-files">
-                    See Full List
-                    <RightArrowIcon />
-                </a>
-            </span>
-        ),
-    },
-    {
-        type: 'info',
-        title: 'New Features',
-        date: '2025-01-25',
-        body: (
-            <span>
-                Explore the <a href="/qc-metrics">Interactive QC Assessment</a>{' '}
-                page for data on the portal.
-            </span>
-        ),
-    },
-    {
-        type: 'warning',
-        title: 'Attention Users',
-        body: 'The V1 Benchmarking data portal will be open to SMaHT consortium members only at this time.',
-    },
-    {
-        type: 'info',
-        title: 'Data-related news',
-        body: (
-            <>
-                <ul>
-                    <li>
-                        The raw sequence files, i.e. unaligned BAM and FASTQ,
-                        and the data from the benchmarking tissue samples that
-                        were not distributed by TPC will be available upon
-                        request at this time (through Globus).
-                    </li>
-                    <li>
-                        The SMaHT Data Portal, V1 Benchmarking release, now
-                        makes benchmarking data available for download for
-                        authenticated consortium members. Users can continue to
-                        obtain the access keys for metadata submission.
-                    </li>
-                </ul>
-            </>
         ),
     },
 ];
@@ -128,6 +58,8 @@ const AnnouncementCard = ({
     body = '',
     footer = null,
     date = null,
+    session = false,
+    userId = null,
 }) => {
     return (
         <div className={`announcement-container ${type}`}>
@@ -140,7 +72,9 @@ const AnnouncementCard = ({
                     />
                 ) : null}
             </h5>
-            <div className="body">{body}</div>
+            <div className="body">
+                {typeof body === 'function' ? body(session, userId) : body}
+            </div>
             {footer ? <div className="footer">{footer}</div> : null}
         </div>
     );
@@ -150,7 +84,7 @@ const AnnouncementCard = ({
  * AnnouncementsSection component displays the announcements section.
  * @returns { JSX.Element } - The rendered AnnouncementsSection component.
  */
-export const AnnouncementsSection = () => {
+export const AnnouncementsSection = ({ session }) => {
     return (
         <div className="announcements section">
             <h3 className="section-header">Announcements</h3>
@@ -165,6 +99,8 @@ export const AnnouncementsSection = () => {
                                 footer={announcement.footer}
                                 type={announcement.type}
                                 date={announcement.date}
+                                session={session}
+                                userId={JWT?.getUserInfo()?.details?.uuid}
                             />
                         );
                     })}

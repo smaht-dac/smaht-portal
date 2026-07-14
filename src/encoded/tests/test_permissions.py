@@ -287,15 +287,22 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
     def test_submission_center_user_create_access_key(
         test_submission_center, submission_center_user_app, smaht_gcc_user, testapp
     ):
-        """Tests that submission center users can create access keys"""
-        submission_center_user_app.post_json(
+        """Tests that submission center users can create access keys for themselves.
+
+        The ``user`` field is restricted (admin-only) since it can otherwise be
+        used to mint an access key on behalf of another user, so non-admin
+        callers must omit it and rely on the server defaulting it to the
+        requesting user (see snovault's access_key_add view).
+        """
+        res = submission_center_user_app.post_json(
             "/AccessKey",
             {
-                "user": smaht_gcc_user["@id"],
                 "description": "test key",
             },
             status=201,
         )
+        access_key = res.json["@graph"][0]
+        assert access_key["user"].strip("/").split("/")[-1] == smaht_gcc_user["uuid"]
 
     @staticmethod
     def test_submission_center_user_cannot_create_other(
@@ -410,8 +417,7 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         )
         submission_center_user_app.post_json(
             "/AccessKey",
-            {  # can still create an access key
-                "user": smaht_gcc_user["@id"],
+            {  # can still create an access key (user field omitted; server defaults it to self)
                 "description": "test key",
             },
             status=201,
@@ -631,15 +637,22 @@ class TestConsortiumPermissions(TestPermissionsHelper):
     def test_consortium_user_create_access_key(
         consortium_user_app, smaht_consortium_user, testapp
     ):
-        """Tests that consortium users can create access keys"""
-        consortium_user_app.post_json(
+        """Tests that consortium users can create access keys for themselves.
+
+        The ``user`` field is restricted (admin-only) since it can otherwise be
+        used to mint an access key on behalf of another user, so non-admin
+        callers must omit it and rely on the server defaulting it to the
+        requesting user (see snovault's access_key_add view).
+        """
+        res = consortium_user_app.post_json(
             "/AccessKey",
             {
-                "user": smaht_consortium_user["@id"],
                 "description": "test key",
             },
             status=201,
         )
+        access_key = res.json["@graph"][0]
+        assert access_key["user"].strip("/").split("/")[-1] == smaht_consortium_user["uuid"]
 
     @staticmethod
     def test_consortium_user_cannot_create_other(

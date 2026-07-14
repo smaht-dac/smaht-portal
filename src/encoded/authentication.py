@@ -122,12 +122,18 @@ def email_is_not_restricted(registry, jwt_info, email=None):
             email = jwt_info['email'].lower()
         else:
             raise HTTPForbidden(title="Cannot determine email address - jwt_info is None and no email arg")
-    email_domain = email.split('@')[1]
+    # An address we cannot split into exactly one local part and one domain cannot be evaluated
+    # against the restricted domain/email lists, so it is refused rather than allowed through.
+    # Previously this raised IndexError (surfacing as an HTTP 500) for any value lacking an '@'.
+    email_parts = email.split('@')
+    if len(email_parts) != 2 or not all(email_parts):
+        raise HTTPForbidden(title=f"Cannot determine email domain from {email}")
+    email_domain = email_parts[1]
     if (email_matches_blocked_country(email) or
             email in restricted_emails or email_domain in restricted_emails or
             email_domain in restricted_domains):
-            raise HTTPForbidden(
-                title=f"Email address {email} restricted due to NIH CADR Security Guidelines",
+        raise HTTPForbidden(
+            title=f"Email address {email} restricted due to NIH CADR Security Guidelines",
         )
 
 
@@ -170,7 +176,9 @@ def smaht_basic_auth_check(username, password, request):
              permission=NO_PERMISSION_REQUIRED)
 @debug_log
 def smaht_create_unauthorized_user(context, request):
-    """ Override for the registration route that includes restricted email checks """
+    """ Override for the registration route that includes restricted email checks and
+        strips privileged fields (e.g. groups, status) from the submitted user props
+    """
     ignored(context)
     # env check
     env_name = request.registry.settings.get('env.name')
@@ -221,16 +229,27 @@ def smaht_create_unauthorized_user(context, request):
 
     user_props = request.json
     user_props_email = user_props.get("email", "<no e-mail supplied>").lower()
-    email_is_not_restricted(request.registry, None, email)
+    # This check must come first: when no Auth0 email could be established above, `email` is a
+    # placeholder string (e.g. "<no auth0 authenticated e-mail supplied>") that this comparison
+    # is designed to reject with a 401. Running the restriction check ahead of it fed that
+    # placeholder to email_is_not_restricted instead. Once this passes, email == user_props_email,
+    # so the restriction check below evaluates exactly the same address either way.
     if user_props_email != email:
         raise HTTPUnauthorized(
             title="Provided email {} not validated with Auth0. Try logging in again.".format(user_props_email),
             headers={
                 'WWW-Authenticate': "Bearer realm=\"{}\"; Basic realm=\"{}\"".format(request.domain, request.domain)}
         )
+    email_is_not_restricted(request.registry, None, email)
 
     # set user insert props
     del user_props['g-recaptcha-response']
+    # Self-registration must never let the caller grant themselves elevated access or
+    # false affiliations. request.remote_user is set to 'EMBED' below, which (intentionally,
+    # for other internal purposes) carries the 'restricted_fields' permission - so without this,
+    # a caller could pass e.g. "groups": ["admin"] in this request body and have it applied as-is.
+    for privileged_field in ('groups', 'submission_centers', 'consortia', 'submits_for', 'status', 'uuid'):
+        user_props.pop(privileged_field, None)
     user_props['was_unauthorized'] = True
     user_props['email'] = user_props_email  # lower-cased
     user_coll = request.registry[COLLECTIONS]['User']

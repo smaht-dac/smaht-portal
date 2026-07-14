@@ -38,7 +38,6 @@ def test_upload_file_size(testapp, submission_center_user_app, anontestapp, regi
     # Mock boto3 s3 client which is used by this endpoint (see types/file.py/upload_file_size).
     def boto_client(service):
         def head_object(Bucket, Key):
-            nonlocal file_size
             return {"ContentLength": file_size}
         assert service == "s3"
         return namedtuple("boto_client", ["head_object"])(head_object)

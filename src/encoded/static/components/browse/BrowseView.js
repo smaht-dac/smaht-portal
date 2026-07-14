@@ -34,12 +34,16 @@ import { BrowseLink } from './browse-view/BrowseLink';
 import { BrowseSummaryStatsViewer } from './browse-view/BrowseSummaryStatController';
 import { FacetCharts } from './components/FacetCharts';
 import { navigate } from '../util/navigate';
-import { compareTissueFacetTerms } from '../util/data';
+import {
+    compareTissueFacetTerms,
+    compareCallSetFacetTerms,
+} from '../util/data';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
+import { BrowsePublicationBody } from './browse-view/BrowsePublication';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
@@ -57,6 +61,7 @@ export const BROWSE_LINKS = {
     protected_donor:
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
         BROWSE_STATUS_FILTERS,
+    publication: '/browse/?type=Publication&status=open',
 };
 
 export const FILE_BROWSE_HIDE_FACETS = [
@@ -253,6 +258,8 @@ const renderBrowseBody = (props) => {
             return <BrowseDonorBody {...props} />;
         case 'ProtectedDonorSearchResults':
             return <BrowseProtectedDonorBody {...props} />;
+        case 'PublicationSearchResults':
+            return <BrowsePublicationBody {...props} />;
         // case 'TissueSearchResults':
         //     return <BrowseTissueBody {...props} />;
         // case 'AssaySearchResults':
@@ -283,6 +290,11 @@ const BrowseViewContent = (props) => {
         userDownloadAccess,
         isAccessResolved,
     };
+
+    // Don't render sidebar for Publication Browse
+    if (context?.['@type'][0] === 'PublicationSearchResults') {
+        return <div className="browse-body">{renderBrowseBody(passProps)}</div>;
+    }
 
     return (
         <SlidingSidebarLayout openByDefault={false}>
@@ -385,6 +397,7 @@ export const BrowseFileSearchTable = (props) => {
         createBrowseFileColumnExtensionMap(selectedFileProps);
     const facetListSortFxns = {
         'sample_summary.tissues': compareTissueFacetTerms,
+        'call_set.name': compareCallSetFacetTerms,
     };
 
     return (
@@ -448,6 +461,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
         case 'DonorSearchResults':
             BrowseType = 'Donor';
             break;
+        case 'PublicationSearchResults':
+            BrowseType = 'Publication';
+            break;
         default:
             break;
     }
@@ -483,7 +499,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                     </div>
                 </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
-                    SMaHT Production Data
+                    {BrowseType === 'Publication'
+                        ? 'Browse by Publication'
+                        : 'SMaHT Production Data'}
                 </OnlyTitle>
             </div>
         </PageTitleContainer>
