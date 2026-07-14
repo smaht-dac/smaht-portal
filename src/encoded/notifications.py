@@ -119,6 +119,9 @@ def get_user_email_or_raise(user) -> str:
 
 
 def update_enrollment_state(user, request, enrolled: bool) -> None:
+    # Deliberately calls snovault's update_item directly: owners lack 'edit'
+    # on their own User item (ONLY_OWNER_VIEW_PROFILE_ACL), and the write is
+    # limited to existing properties plus one server-set boolean.
     properties = user.upgrade_properties().copy()
     properties[DATA_RELEASE_NOTIFICATION_ENROLLED] = enrolled
     update_item(user, request, properties)

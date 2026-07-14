@@ -2,7 +2,9 @@ from types import SimpleNamespace
 from unittest.mock import Mock, call
 
 import pytest
+import webtest
 from botocore.exceptions import ClientError
+from pyramid.config import Configurator
 from pyramid.httpexceptions import (
     HTTPBadGateway,
     HTTPServiceUnavailable,
@@ -387,3 +389,165 @@ def test_find_subscription_arn_follows_pagination():
         call(TopicArn=TOPIC_ARN),
         call(TopicArn=TOPIC_ARN, NextToken="page-two"),
     ]
+
+
+# Router-level tests: requests pass through a real Pyramid router so that
+# route registration, the ``effective_principals`` view predicates, and the
+# default snovault JSON renderer are exercised rather than mocked. AWS (SNS)
+# and the snovault ``update_item`` write path stay mocked, as in the unit
+# tests above, so no database or AWS access is required.
+
+
+def notification_router_app(monkeypatch, *, topic=TOPIC_ARN, userid=None, user=None):
+    monkeypatch.delenv("IDENTITY", raising=False)
+    settings = {}
+    if topic:
+        settings[notifications.SNS_TOPIC_REGISTRY_KEY] = topic
+    config = Configurator(settings=settings)
+    config.include("snovault.json_renderer")
+    config.include("encoded.notifications")
+    config.testing_securitypolicy(userid=userid)
+    config.registry[COLLECTIONS] = {
+        "user": {USER_UUID: user} if user is not None else {}
+    }
+    return webtest.TestApp(config.make_wsgi_app())
+
+
+def authenticated_router_app(monkeypatch, *, topic=TOPIC_ARN, enrolled=False):
+    user = FakeUser(enrolled=enrolled)
+    testapp = notification_router_app(
+        monkeypatch, topic=topic, userid=f"userid.{USER_UUID}", user=user
+    )
+    return testapp, user
+
+
+@pytest.mark.parametrize(
+    "route", ["/register_notification", "/deregister_notification"]
+)
+def test_router_notification_routes_not_found_without_authentication(
+    route, monkeypatch
+):
+    # The Authenticated requirement is an ``effective_principals`` view
+    # predicate rather than a permission, so an unauthenticated request does
+    # not match any view and yields 404 Not Found instead of 401.
+    testapp = notification_router_app(monkeypatch)
+
+    testapp.post_json(route, {}, status=404)
+
+
+@pytest.mark.parametrize(
+    "route", ["/register_notification", "/deregister_notification"]
+)
+def test_router_notification_routes_are_post_only(route, monkeypatch):
+    testapp, _ = authenticated_router_app(monkeypatch)
+
+    testapp.get(route, status=404)
+
+
+@pytest.mark.parametrize(
+    "route", ["/register_notification", "/deregister_notification"]
+)
+def test_router_notification_routes_reject_non_user_principal(route, monkeypatch):
+    testapp = notification_router_app(
+        monkeypatch, userid="mailto.someone@example.org"
+    )
+
+    testapp.post_json(route, {}, status=401)
+
+
+@pytest.mark.parametrize(
+    "route", ["/register_notification", "/deregister_notification"]
+)
+def test_router_notification_routes_reject_missing_topic(route, monkeypatch):
+    testapp, _ = authenticated_router_app(monkeypatch, topic=None)
+    boto_client = Mock()
+    monkeypatch.setattr(notifications, "boto_client", boto_client)
+
+    testapp.post_json(route, {}, status=503)
+
+    boto_client.assert_not_called()
+
+
+@pytest.mark.parametrize("topic,expected", [(None, False), (TOPIC_ARN, True)])
+def test_router_notification_availability(topic, expected, monkeypatch):
+    testapp = notification_router_app(monkeypatch, topic=topic)
+
+    response = testapp.get("/health/data-release-notifications", status=200)
+
+    assert response.content_type == "application/json"
+    assert response.json == {notifications.NOTIFICATION_AVAILABLE: expected}
+    assert "max-age=300" in response.headers["Cache-Control"]
+    assert "public" in response.headers["Cache-Control"]
+
+
+def test_router_register_notification_subscribes_and_updates_profile(monkeypatch):
+    testapp, user = authenticated_router_app(monkeypatch)
+    update_item = mock_profile_update(monkeypatch)
+    _, sns_client = mock_sns(monkeypatch)
+
+    response = testapp.post_json("/register_notification", {}, status=200)
+
+    assert response.content_type == "application/json"
+    assert response.json == {
+        "status": "success",
+        notifications.DATA_RELEASE_NOTIFICATION_ENROLLED: True,
+        "changed": True,
+    }
+    sns_client.subscribe.assert_called_once_with(
+        TopicArn=TOPIC_ARN,
+        Protocol="email",
+        Endpoint="user@example.org",
+        ReturnSubscriptionArn=True,
+    )
+    assert user.properties[notifications.DATA_RELEASE_NOTIFICATION_ENROLLED] is True
+    update_item.assert_called_once()
+
+    idempotent = testapp.post_json("/register_notification", {}, status=200)
+    assert idempotent.json["changed"] is False
+    sns_client.subscribe.assert_called_once()
+
+
+def test_router_deregister_notification_unsubscribes_and_updates_profile(
+    monkeypatch,
+):
+    testapp, user = authenticated_router_app(monkeypatch, enrolled=True)
+    update_item = mock_profile_update(monkeypatch)
+    _, sns_client = mock_sns(monkeypatch)
+    sns_client.list_subscriptions_by_topic.return_value = {
+        "Subscriptions": [
+            {
+                "Protocol": "email",
+                "Endpoint": "USER@EXAMPLE.ORG",
+                "SubscriptionArn": SUBSCRIPTION_ARN,
+            }
+        ]
+    }
+
+    response = testapp.post_json("/deregister_notification", {}, status=200)
+
+    assert response.content_type == "application/json"
+    assert response.json == {
+        "status": "success",
+        notifications.DATA_RELEASE_NOTIFICATION_ENROLLED: False,
+        "changed": True,
+    }
+    sns_client.unsubscribe.assert_called_once_with(
+        SubscriptionArn=SUBSCRIPTION_ARN
+    )
+    assert user.properties[notifications.DATA_RELEASE_NOTIFICATION_ENROLLED] is False
+    update_item.assert_called_once()
+
+
+def test_router_register_notification_aws_error_yields_bad_gateway(monkeypatch):
+    testapp, user = authenticated_router_app(monkeypatch)
+    update_item = mock_profile_update(monkeypatch)
+    _, sns_client = mock_sns(monkeypatch)
+    sns_client.subscribe.side_effect = ClientError(
+        {"Error": {"Code": "InternalError", "Message": "AWS failure"}},
+        "Subscribe",
+    )
+
+    testapp.post_json("/register_notification", {}, status=502)
+
+    assert user.properties[notifications.DATA_RELEASE_NOTIFICATION_ENROLLED] is False
+    update_item.assert_not_called()
