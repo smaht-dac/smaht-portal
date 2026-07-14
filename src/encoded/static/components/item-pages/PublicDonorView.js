@@ -15,6 +15,7 @@ import {
 } from 'react-bootstrap';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
 import { useUserDownloadAccess } from '../util/hooks';
+import { TissueHistologyBrowser } from './components/TissueHistologyBrowser';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -240,9 +241,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                         (facet) => facet.field === 'sample_summary.tissues'
                     )?.original_terms?.length,
                     assays: resp?.facets?.find(
-                        (facet) =>
-                            facet.field ===
-                            'assays.display_title'
+                        (facet) => facet.field === 'assays.display_title'
                     )?.original_terms?.length,
                     files: resp?.total,
                 });
@@ -356,18 +355,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                             </span>
                         </div>
                         <div className="body">
-                            <img
-                                className="placeholder"
-                                src="/static/img/Tissue Histology Blur.png"></img>
-                            <div className="callout-card">
-                                <i className="icon icon-lungs fas"></i>
-                                <h4>Tissue Histology Browser</h4>
-                                <span>
-                                    Check back for updates on Tissue Histology
-                                    Browser development with future portal
-                                    releases
-                                </span>
-                            </div>
+                            <TissueHistologyBrowser tileSource="/static/img/slides/GTEX-1117F-0526.dzi" />
                         </div>
                     </div>
                 </div>
