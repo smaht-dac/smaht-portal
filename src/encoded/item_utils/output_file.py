@@ -81,7 +81,7 @@ def get_tissue_category(
     categories = set()
     for tissue in tissues:
         tissue_item = request_handler.get_item(tissue)
-        category = tissue_item.get("category")
+        category = tissue_utils.get_category(tissue_item, request_handler)
         if category:
             categories.add(category)
     return list(categories)

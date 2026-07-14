@@ -370,6 +370,27 @@ $facetlist-excluding: #450000;
 	}
 }
 
+// Shared progress-track styles for SelectAllFilesButton (button + column-header
+// checkbox variants). Only the measured pixel `width` stays inline.
+.select-all-progress {
+	height: 3px;
+	overflow: hidden;
+	box-sizing: border-box;
+
+	&.select-all-progress-button {
+		min-width: 120px;
+	}
+
+	&.select-all-progress-checkbox {
+		min-width: 20px;
+		visibility: hidden;
+
+		&.is-selecting {
+			visibility: visible;
+		}
+	}
+}
+
 /************************************************
 ******** SMaHT-Related SearchView Theming ********
 *************************************************/

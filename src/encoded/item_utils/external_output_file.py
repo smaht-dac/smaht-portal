@@ -2,7 +2,8 @@ from typing import List, Dict, Any, Union
 
 from ..item_utils.utils import (
     RequestHandler,
-    get_property_values_from_identifiers
+    dedupe_identifiers,
+    get_property_values_from_identifiers,
 )
 from ..item_utils import (
     item as item_utils,
@@ -46,9 +47,12 @@ def get_donors(
     """Get donors associated with external output file."""
     if (donors := get_source_donors(properties)):
         return donors
-    return list(set(get_property_values_from_identifiers(
+    # dedupe_identifiers (not list(set(...))) so a tissue whose @@object
+    # returned donor as an embedded dict (instead of a bare linkTo path)
+    # doesn't crash this with `unhashable type: 'dict'`.
+    return dedupe_identifiers(get_property_values_from_identifiers(
         request_handler, get_tissues(properties), tissue_utils.get_donor
-    )))
+    ))
 
 
 def get_tissue_category(

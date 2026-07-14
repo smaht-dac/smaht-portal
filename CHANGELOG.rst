@@ -8,6 +8,406 @@ Change Log
 ----------
 
 
+2.3.5
+=====
+
+'PR 710: update annotated filename for SupplementaryFiles with category Annotation <https://github.com/smaht-dac/smaht-portal/pull/710>'_
+
+* added genome annotation data class for benchmarking cell lines - for supplementary files to annotated_file_name script
+
+
+2.3.4
+=====
+
+`PR #713: refactor: load donor browse row data progressively with a concurrency-limited queue <https://github.com/smaht-dac/smaht-portal/pull/713>`_
+
+* Donor browse: load per-donor file data (tissues, assays, file count, file size) via a
+  concurrency-limited queue (``DonorDataProvider``) so rows populate in display order
+* Each donor issues one ``/peek-metadata/`` request with ``skip_default_facets=true``, cutting
+  Elasticsearch aggregation work from 21 default File facets to 3
+
+
+2.3.3
+=====
+
+`PR 703: Fix column-header select-all checkbox to select all matching files in Recent Releases page <https://github.com/smaht-dac/smaht-portal/pull/703>`_
+
+* Fix the column-header select-all checkbox on file tables (e.g. Recent Releases) so it selects every matching file across all pages instead of silently capping at ``defaultPageSize``
+
+
+2.3.2
+=====
+
+* Homepage (``/home``) efficiency and correctness fixes:
+
+  * Dedupe redundant ES searches: run one ``limit=0`` search per distinct param dict
+    (6 instead of 14) and derive every stat (total + facet counts) from that single
+    captured response.
+  * Stop mutating shared state from concurrent worker threads: build each search's
+    param dict as a copy, and set the admin ``remote_user`` / strip the auth header on
+    the subrequest rather than the shared parent request.
+  * Never render the internal ``-1`` error sentinel to clients: failed sub-searches now
+    coerce to ``0``.
+  * ``generate_unique_facet_count`` no longer raises ``KeyError`` when a facet is absent
+    from the response; a missing facet degrades to a count of ``0``.
+  * Remove the unused ``pytz`` import and drop the always-hardcoded ``" EST"`` suffix
+    from the ``date`` field (now a plain ``YYYY-MM-DD`` string).
+  * Guard the release-date parse against the ``-1`` sentinel / non-ISO input so a single
+    failed sub-search degrades ``date`` to ``None`` instead of 500ing the homepage.
+  * Skip the full File default facet set on the homepage sub-searches: each search now
+    passes ``skip_default_facets`` and requests (via ``additional_facet``) only the
+    specific facets its stats read, instead of computing all ~21 File facets per search
+    and discarding all but one. The ``PRODUCTION`` search's ``additional_facet`` was
+    reconciled to declare ``donors.display_title`` and ``sample_summary.tissues`` (which
+    its donor / tissue-type counts read but previously got only as default facets) and to
+    drop the never-read ``...uberon_id`` facet. Stat values are unchanged.
+
+* Chart-endpoint (``visualization.py``) efficiency fixes:
+
+  * ``date_histogram_aggregations`` and ``bar_plot_chart`` now pass
+    ``skip_default_facets`` so Elasticsearch no longer computes the full File default
+    facet set that both endpoints immediately discard (custom aggregations are
+    unaffected; ``data_matrix_aggregations`` still computes facets because it uses them).
+  * ``bar_plot_chart`` no longer computes the per-bucket
+    ``total_tissues``/``total_assays``/``total_file_size`` sub-aggregations that are only
+    read at the top-level total; per-bucket aggregations are trimmed to the fields
+    actually consumed. Response shape is unchanged.
+
+
+2.3.1
+=====
+
+* Add some more tests for encoded/visualization.py
+
+
+2.3.0
+=====
+
+* Convert Docker built to multi-stage to reduce image overhead
+
+
+2.2.3
+=====
+
+`PR 701: test: add unit tests for core pure helper modules <https://github.com/smaht-dac/smaht-portal/pull/701>`_
+
+* Add direct unit tests for previously under-tested pure helpers: ``encoded/utils.py`` (collection pluralization, resource-path formatting, ``get_configuration_value``), ``item_utils/utils.py`` (``dedupe_identifiers`` and ``RequestHandler`` validation), ``item_utils/file.py`` file-classification predicates, and ``schema_formats.is_accession``
+* Extend coverage to more correctness-sensitive pure helpers: ``metadata.py`` (``_neutralize_formula_injection`` CSV/TSV formula-injection guard, ``handle_file_group``, ``handle_sample_type``/``handle_sample_source_type`` precedence), ``submission_status.py`` (``rgb_to_hex``, ``generate_html_colors``, ``get_qc_result``, ``get_output_files_info``/``get_submitted_files_info`` aggregation, ``get_latest_alignment_mwfr_for_fileset``), ``visualization.py`` (``convert_date_range``), and ``item_utils/tissue.py`` classification predicates
+* Harden ``test_indexing.py::test_real_validation_error`` against eventual-consistency flakiness: replace the fixed ``time.sleep(2)`` + single ES read with an ``Eventually.consistent`` retry that tolerates the propagation window (matching the pattern used elsewhere in that module)
+
+2.2.2
+=====
+
+`PR 700: Fix anonymous admin-scoped data exfiltration via /recent_files_summary <https://github.com/smaht-dac/smaht-portal/pull/700>`_
+
+* Fix anonymous ACL-bypass in ``/recent_files_summary`` and ``/recent_release_days`` that returned protected/embargoed document contents to unauthenticated callers (the aggregation runs as the ``IMPORT`` admin user)
+* Remove the troubleshooting document dump that embedded real documents (uuids, donor/cell-line identifiers) into ``debug.portal_hits``
+* Allowlist the ``tissue_info_property_name`` additional-field name to prevent reading an arbitrary embedded field from matching documents
+* Drop the ``top_hits_debug`` sub-aggregation that returned per-bucket document ids
+* Preserve the intended global aggregate counts (aggregation buckets only, no document contents)
+
+
+2.2.1
+=====
+
+* Update OIDC workflow and hook in assume_role usage for file upload/download
+
+2.2.0
+=====
+
+`PR 693: Add Cypress coverage for Recent Releases and Consortium Hub pages <https://github.com/smaht-dac/smaht-portal/pull/693>`_
+
+* Add Cypress spec for the Recent Releases page.
+* Add Cypress spec for the Consortium Hub page.
+* Add coverage for CODEC, NanoSeq, and VISTA-Seq assay types in the Donor x Assay data matrix view.
+
+
+2.1.0
+=====
+
+`PR 698: Fix data matrix popover totals and donor counts in tissue/assay summaries <https://github.com/smaht-dac/smaht-portal/pull/698>`_
+
+* added a shared helper to compute unique donor counts from grouped items
+* improved Tissue x Assay popover details:
+* updated column total aggregation so donor counts, file totals, and coverage totals are merged correctly across matching column entries
+* preserved grouped row metadata when overriding collapsed DSA file totals, so popovers still have the right contextual information
+
+
+2.0.0
+=====
+
+* Fix privilege escalation in self-registration endpoint
+* Fix CSV/formula injection in metadata export
+
+
+1.33.3
+======
+
+`PR 690: test: update cypress tests for retracted and renamed files table <https://github.com/smaht-dac/smaht-portal/pull/690>`_
+
+* Fix click when shadow layer rendered above table
+* Add tests for Renamed files table
+
+
+1.33.2
+======
+
+`PR 695: Fix Recent Releases weekly navigation and September 2025 cutoff <https://github.com/smaht-dac/smaht-portal/pull/695>`_
+
+* Recover the missing Sep 2025 files - Include exclude_from_release_tracker-tagged files by default in /recent_release_days
+* Change the oldest navigable month from January 2025 to September 2025
+* Add explicit month context to home page weekly links
+* Preserve selected month context in Recent Releases URL state
+* Keep month focus stable when switching between Daily / Weekly / Monthly timeline modes
+
+
+1.33.1
+======
+
+`PR 694: Fix donor x assay matrix count inconsistencies <https://github.com/smaht-dac/smaht-portal/pull/694>`_
+
+* Resolve count mismatches for CODEC, NanoSeq, and VISTA-Seq assay types between the data matrix and browse view
+
+
+1.33.0
+======
+
+`PR 608: add publication <https://github.com/smaht-dac/smaht-portal/pull/608>`_
+
+* Add publication item - schema, types, calcprops and dummy inserts for tests
+
+
+1.32.3
+======
+
+`PR 692: fix: update vcf link <https://github.com/smaht-dac/smaht-portal/pull/692>`_
+
+* Split VCF link into somatic and germline callsets
+
+
+1.32.2
+======
+
+`PR 672: feat: release tracker restructure <https://github.com/smaht-dac/smaht-portal/pull/672>`_
+
+* Update release tracker UI to group releases by week
+
+
+1.32.1
+======
+
+* Small fixes to peek-metadata to route non-file requests back to search
+
+
+1.32.0
+======
+
+`PR 686: feat: add Recent Releases timeline page with dynamic timeline navigation <https://github.com/smaht-dac/smaht-portal/pull/686>`_
+
+* Add a new Recent Releases page with timeline views for recently released files
+
+
+1.31.0
+======
+
+`PR 688: feat: consortium hub page <https://github.com/smaht-dac/smaht-portal/pull/688>`_
+
+* Add a new ConsortiumHub static page
+
+
+1.30.2
+======
+
+`PR 687: Improve Data Matrix coverage summaries and loading behavior <https://github.com/smaht-dac/smaht-portal/pull/687>`_
+
+* added total coverage support to matrix summary rows and popovers
+* improved compact coverage value formatting and tooltip behavior
+* introduced a separate color range segment step for coverage values
+* reset incompatible count toggles when switching between matrix modes
+* refined loading-state rendering to avoid confusing stale data during tab/view transitions
+* adjusted matrix loading layout and spinner positioning for a more stable UX
+
+
+1.30.1
+======
+
+`PR 682: add new fields to file manifest <https://github.com/smaht-dac/smaht-portal/pull/682>`_
+
+* Add new/missing fields to file manifest - 8 fields added including DataCategory and FileNotes and others that only apply to a subset of file types
+
+
+1.30.0
+======
+
+* Optimize ``/metadata`` and ``/peek-metadata`` to handle thousands of files without upstream timeouts
+* ``/metadata``: yield TSV rows from a generator instead of buffering the full manifest in memory; ES batch size is now constant regardless of file count
+* ``/metadata``: top-level and sub-entity (sample/analyte/file_set) searches now bypass snovault's default-facet machinery and paginate via ES ``search_after`` (O(N) instead of O(N²) from/size), using a new ``execute_streaming_search`` primitive
+* ``/metadata``: restrict ES ``_source`` to only the columns the TSV reads, dropping per-hit payload by ~10×
+* ``/metadata``: pre-compile per-row field-path splits so each hit pays one dict lookup per column instead of repeated ``str.split`` calls
+* ``/peek-metadata``: compute the file_size summary by streaming the matched docs (same path as ``/metadata``) and summing in Python, instead of issuing an ES ``stats`` aggregation that was blocking on slow-shard coordination
+* ``/peek-metadata``: GET-style requests (search-filter URL params) now forward through snovault ``search()`` with the new ``skip_default_facets=true`` flag, preserving nested-field correctness while skipping the dozens of schema-default facet aggregations
+* Fix ``TypeError: unhashable type: 'dict'`` raised from ``file.py:get_donors`` (and the parallel paths in ``get_cell_cultures``, ``get_cell_lines``, ``analysis_run.get_donors``, ``external_output_file.get_donors``) when an upstream ``@@object`` view carries an embedded sub-object where a bare linkTo path was expected
+* Adds ``dedupe_identifiers`` in ``item_utils/utils.py`` that dedupes by string/uuid/@id instead of relying on ``set()``, preserving first-occurrence order
+* Defensive only — the upstream cause was fixed in snovault 11.30.1; this prevents already-corrupted documents in ES from breaking rendering until a full reindex
+
+
+1.29.4
+======
+
+`PR 683: feat: renamed files table <https://github.com/smaht-dac/smaht-portal/pull/683>`_
+
+* Update retracted files table to include renamed files table
+
+
+1.29.3
+======
+
+`PR 681: feat: update retracted files table <https://github.com/smaht-dac/smaht-portal/pull/681>`_
+
+* Fix retraction table sorting param
+* Update columns to access fallback fields for new SNV vcfs
+
+
+1.29.2
+======
+
+`PR 678: feat: fix donor display_title column <https://github.com/smaht-dac/smaht-portal/pull/678>` 
+
+* Update the donor display_title column to use correct field
+* Refactor Donor Browse code
+
+
+1.29.1
+======
+
+`PR 676: Improve donor x tissue controls and coverage rendering behavior <https://github.com/smaht-dac/smaht-portal/pull/676>`_
+
+* Refines the Donor x Tissue matrix UI/behavior so assay filtering and coverage view are both usable and visually consistent
+
+
+1.29.0
+======
+
+* Hook in snovault version solving memory management problems
+
+
+1.28.1
+======
+
+`PR 675: chore: remove old announcements <https://github.com/smaht-dac/smaht-portal/pull/675>`_
+
+* Remove old announcements from the notification panel
+
+
+1.28.0
+=======
+
+`PR 677: Improve Select All scalability with paginated fetch + progress UI; remove Bluebird Babel coupling <https://github.com/smaht-dac/smaht-portal/pull/677>`_
+
+* Improves the Select All workflow for large file result sets by replacing limit=all with paginated requests and adding user-visible progress feedback
+* Removes a fragile Babel Bluebird coupling that caused CI/CodeBuild failures
+
+
+1.27.10
+=======
+
+`PR 679: Enhance QC overview and search functionality with validation updates <https://github.com/smaht-dac/smaht-portal/pull/679>`_
+
+* Better alignment with real role permissions and current QC lifecycle.
+* Fewer flaky failures from loading/timing and tab order assumptions.
+* Stronger, more semantically correct validations for QC visibility and content.
+
+
+1.27.9
+======
+
+`PR 670: fix: prevent 0 value type cast <https://github.com/smaht-dac/smaht-portal/pull/670>` 
+
+* Align Protected with Public donor browse pages
+* Prevent "-" appearing for 0 value hardy_scale
+
+
+1.27.8
+======
+
+`PR 688: feat: update latest release date on timeline <https://github.com/smaht-dac/smaht-portal/pull/688>`_
+
+* Add parameters for latest file search for release date
+* Update homepage tests
+
+
+1.27.7
+======
+
+`PR 671: style: increase width of notifications panel <https://github.com/smaht-dac/smaht-portal/pull/671>`_
+
+* Increase width of notifications panel on larger screens
+
+
+1.27.6
+======
+
+`PR 673: feat: add p25 data freeze button on homepage <https://github.com/smaht-dac/smaht-portal/pull/673>`_
+
+* Add p25 button for data freeze
+
+
+1.27.5
+======
+
+`PR 674: fix: remove unecessary fields from selection query <https://github.com/smaht-dac/smaht-portal/pull/674>`_
+
+* Remove unused fields from selectAll query
+
+
+1.27.4
+======
+
+`PR 669: Stabilize Cypress docs navigation checks and allow donor-specific matrix total-check skip <https://github.com/smaht-dac/smaht-portal/pull/669>`_
+
+* made pipeline docs dropdown expansion assertions resilient to re-render/navigation behavior
+* normalized section-link text comparisons (e.g. donor-level vs donor level)
+* added a donor-specific escape hatch for strict matrix column-summary total validation
+
+
+1.27.3
+======
+
+* Bugfix - compute category for output files
+
+
+1.27.2
+======
+
+`PR 663: fix: update status param for homepage endpoint <https://github.com/smaht-dac/smaht-portal/pull/663>`_
+
+* Update statuses in homepage counts parameters
+
+
+1.27.1
+======
+
+`PR 665: fix: update pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/665>`_
+
+* Update pipeline docs styles
+* Update title of new pipeline docs page
+
+
+1.27.0
+======
+
+`PR 666: QC metrics improvements <https://github.com/smaht-dac/smaht-portal/pull/666>`_
+
+*Improve QC metrics visualizations: rotate x-axis labels when more than 5 groups are present, fix column header wrapping, and add minimal-width styling for the Platform column
+
+
+1.26.2
+======
+
+`PR 661: feat: remove homepage top banner <https://github.com/smaht-dac/smaht-portal/pull/661>`_
+
+* Remove restricted access top banner alert in homepage
+
 1.26.1
 ======
 

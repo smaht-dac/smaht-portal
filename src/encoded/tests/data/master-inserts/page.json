@@ -453,7 +453,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/dnascope-hybrid",
-        "title": "Phased Germline: Sentieon DNAScope-Hybrid & Statistical and long-read-based phasing",
+        "title": "Phased Germline: Sentieon DNAScope-Hybrid & Statistical and Long-Read Based Phasing",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -1448,7 +1448,8 @@
         "uuid": "c39ea4df-22c5-4d81-a495-6694c3360447",
         "status": "protected-network",
         "content": [
-            "d523e166-89bf-439d-9770-ee92e4bcb72b"
+            "d523e166-89bf-439d-9770-ee92e4bcb72b",
+            "70f3ade6-2741-4e1d-b96e-d052b66f0981"
         ],
         "table-of-contents": {
             "enabled": false
@@ -1472,6 +1473,42 @@
             "enabled": false
         },
         "title": "Data Matrix",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "consortium-hub",
+        "uuid": "6f2eec8f-6a11-4baf-93ad-66942fd7c8c7",
+        "status": "protected-network",
+        "content": [
+            "f3d05813-e6a9-413d-8218-8c52eb754882"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Consortium Hub",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "recent-releases",
+        "uuid": "ec8d344b-9ca0-41a4-aa95-0c6acdcfe7b2",
+        "status": "protected-network",
+        "content": [
+            "8ad6252d-6c17-4a34-9259-82734ebcca1c"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Recent Releases",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

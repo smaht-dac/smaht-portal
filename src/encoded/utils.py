@@ -34,19 +34,23 @@ def generate_admin_search_given_params(context, request, search_param):
     """ Helper function for below that generates/executes a search given params AS ADMIN
         BE EXTREMELY CAREFUL WITH THIS - do NOT use to return results directly
     """
+    subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}')
     # VERY IMPORTANT - the below lines eliminate database calls, which is necessary
     # as making calls (as explained above) leaks connections - Will March 29 2024
-    request.remote_user = 'IMPORT'
-    if 'HTTP_AUTHORIZATION' in request.environ:
-        del request.environ['HTTP_AUTHORIZATION']
-    subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}')
+    # These are set on the *subrequest* (not the shared parent request) so that
+    # concurrent worker threads never mutate/copy the parent request.environ at the
+    # same time - see homepage.make_concurrent_search_requests - Will 8 July 2026
+    subreq.remote_user = 'IMPORT'
+    if 'HTTP_AUTHORIZATION' in subreq.environ:
+        del subreq.environ['HTTP_AUTHORIZATION']
     subreq.cookies = {}
     return search(context, subreq)
 
 
 def generate_search_total(context, request, search_param):
     """ Helper function that executes a search and extracts the total """
-    search_param['limit'] = 0  # we do not care about search results, just total
+    # Build a copy with limit=0 rather than mutating the (possibly shared) param dict
+    search_param = {**search_param, 'limit': 0}  # we do not care about search results, just total
     return generate_admin_search_given_params(context, request, search_param)['total']
 
 

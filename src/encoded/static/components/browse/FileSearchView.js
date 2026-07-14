@@ -23,13 +23,20 @@ import {
 } from '../PageTitleSection';
 import { useUserDownloadAccess } from '../util/hooks';
 import { compareTissueFacetTerms } from '../util/data';
+import { getSelectionQueryKey } from '../static-pages/components/TableControllerWithSelections';
 
 export default function FileSearchView(props) {
     const { schemas, session, facets, href, context } = props;
+    const selectionQueryKey = useMemo(
+        () => getSelectionQueryKey(href, 'file-search-selection-controller'),
+        [href]
+    );
     if (!context.facets) return null;
     return (
         <div className="search-page-container container-wide" id="content">
             <SelectedItemsController
+                // Reset selections when the search query changes, but not on sort-only updates.
+                key={selectionQueryKey}
                 {...{ context, href }}
                 currentAction={'multiselect'}>
                 <FileTableWithSelectedFilesCheckboxes

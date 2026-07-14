@@ -18,32 +18,21 @@ import {
     logger,
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { display as dateTimeDisplay } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 export const SelectAllAboveTableComponent = (props) => {
     const {
-        href,
-        searchHref,
         context,
-        onFilter,
-        schemas,
-        isContextLoading = false, // Present only on embedded search views,
-        navigate,
-        sortBy,
-        sortColumns,
-        hiddenColumns,
-        addHiddenColumn,
-        removeHiddenColumn,
-        columnDefinitions,
+        searchHref,
         session,
-        selectedItems, // From SelectedItemsController
+        selectedItems = new Set(), // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         deniedAccessPopoverType = 'login', // default to login popover
     } = props;
-    const { filters: ctxFilters = null, total: totalResultCount = 0 } =
-        context || {};
+    const { total: totalResultCount = 0 } = context || {};
 
     // Get user download access
     const { userDownloadAccess } = useUserDownloadAccess(session);
@@ -69,17 +58,17 @@ export const SelectAllAboveTableComponent = (props) => {
                 Results
             </div>
             <div className="ms-auto col-auto me-0 d-flex pe-0">
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+                <SelectAllFilesButton {...selectedFileProps} {...{ context, searchHref }} />
                 {/* Show popover if user has the access needed for this table */}
                 {canDownloadFiles ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
-                        disabled={selectedItems.size === 0}
+                        disabled={(selectedItems?.size || 0) === 0}
                         className="download-button has-access btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
-                        Download {selectedItems.size} Selected Files
+                        Download {selectedItems?.size || 0} Selected Files
                     </SelectedItemsDownloadButton>
                 ) : (
                     <OverlayTrigger
@@ -95,10 +84,11 @@ export const SelectAllAboveTableComponent = (props) => {
                             )
                         }>
                         <button
+                            type="button"
                             className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
-                            Download {selectedItems.size} Selected Files
+                            Download {selectedItems?.size || 0} Selected Files
                         </button>
                     </OverlayTrigger>
                 )}
@@ -125,19 +115,197 @@ export class SelectAllFilesButton extends React.PureComponent {
         'display_title',
         '@id',
         '@type',
-        'status',
-        'data_type',
-        'file_format.*',
-        'submission_centers.display_title',
-        'consortia.display_title',
-        'file_sets',
+        'file_sets.@id'
     ];
+    static isLocalhost =
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1');
+    // Keep local batches intentionally small for easier debugging and request tracing.
+    // Production/staging continue to use a larger default for fewer round trips.
+    static defaultPageSize = SelectAllFilesButton.isLocalhost ? 25 : 500;
+    static defaultConcurrentRequests = 4;
+    static localhostBatchDelayMs = 1500;
+    static propTypes = {
+        context: PropTypes.object,
+        searchHref: PropTypes.string,
+        selectedItems: PropTypes.object,
+        onSelectItem: PropTypes.func,
+        onResetSelectedItems: PropTypes.func,
+        type: PropTypes.string,
+        selectAllPageSize: PropTypes.number,
+        selectAllConcurrentRequests: PropTypes.number,
+    };
 
     constructor(props) {
         super(props);
         this.isAllSelected = this.isAllSelected.bind(this);
         this.handleSelectAll = this.handleSelectAll.bind(this);
-        this.state = { selecting: false };
+        this.fetchAllPagesForSelection = this.fetchAllPagesForSelection.bind(
+            this
+        );
+        this.updateProgressTrackWidth = this.updateProgressTrackWidth.bind(this);
+        this.selectAllButtonRef = React.createRef();
+        this.selectAllButtonResizeObserver = null;
+        this.state = { selecting: false, selectingProgress: 0, progressTrackWidth: null };
+    }
+
+    componentDidMount() {
+        this.updateProgressTrackWidth();
+        if (
+            typeof window !== 'undefined' &&
+            typeof window.ResizeObserver === 'function' &&
+            this.selectAllButtonRef.current
+        ) {
+            this.selectAllButtonResizeObserver = new window.ResizeObserver(() => {
+                this.updateProgressTrackWidth();
+            });
+            this.selectAllButtonResizeObserver.observe(this.selectAllButtonRef.current);
+        } else if (typeof window !== 'undefined') {
+            // Fallback for environments lacking ResizeObserver support.
+            window.addEventListener('resize', this.updateProgressTrackWidth);
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        const prevSearchHref =
+            prevProps?.context?.['@id'] || prevProps?.searchHref || null;
+        const nextSearchHref =
+            this.props?.context?.['@id'] || this.props?.searchHref || null;
+        if (prevSearchHref !== nextSearchHref) {
+            this.setState(
+                {
+                    selecting: false,
+                    selectingProgress: 0,
+                    progressTrackWidth: null,
+                },
+                this.updateProgressTrackWidth
+            );
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.selectAllButtonResizeObserver) {
+            this.selectAllButtonResizeObserver.disconnect();
+            this.selectAllButtonResizeObserver = null;
+        } else if (typeof window !== 'undefined') {
+            window.removeEventListener('resize', this.updateProgressTrackWidth);
+        }
+    }
+
+    updateProgressTrackWidth() {
+        if (!this.selectAllButtonRef.current) return;
+        const nextWidth = Math.ceil(
+            this.selectAllButtonRef.current.getBoundingClientRect().width
+        );
+        const { progressTrackWidth } = this.state;
+        if (nextWidth > 0 && progressTrackWidth !== nextWidth) {
+            this.setState({ progressTrackWidth: nextWidth });
+        }
+    }
+
+    getSelectAllConfig() {
+        const {
+            context = {},
+            selectAllPageSize = SelectAllFilesButton.defaultPageSize,
+            selectAllConcurrentRequests = SelectAllFilesButton.defaultConcurrentRequests,
+        } = this.props;
+        const { total = 0 } = context;
+        const safeTotal = Number.isFinite(total) ? total : 0;
+        const safePageSize = Math.max(1, Number(selectAllPageSize) || 1);
+        const safeConcurrentRequests = Math.max(
+            1,
+            Number(selectAllConcurrentRequests) || 1
+        );
+        return {
+            total: safeTotal,
+            pageSize: safePageSize,
+            concurrentRequests: safeConcurrentRequests,
+        };
+    }
+
+    async fetchAllPagesForSelection(searchHref) {
+        const currentHrefParts = memoizedUrlParse(searchHref);
+        const currentHrefQuery = _.extend({}, currentHrefParts.query);
+        const { total, pageSize, concurrentRequests } = this.getSelectAllConfig();
+        const requestPathname = (() => {
+            const parsedPathname =
+                currentHrefParts?.pathname || String(searchHref || '').split('?')[0] || '/search/';
+            if (parsedPathname === '/browse/' || parsedPathname === '/browse') {
+                return '/search/';
+            }
+            return parsedPathname;
+        })();
+
+        currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
+        currentHrefQuery.limit = pageSize;
+        currentHrefQuery.format = 'json';
+
+        delete currentHrefQuery.sort;
+
+        // Build pagination offsets (`from`) and request each page with `limit=pageSize`.
+        const pageStarts = [];
+        for (let from = 0; from < total; from += pageSize) {
+            pageStarts.push(from);
+        }
+        if (pageStarts.length === 0) {
+            pageStarts.push(0);
+        }
+
+        const fetchedResults = [];
+
+        // Fetch in bounded concurrent batches to avoid overwhelming the API.
+        // Intentional await-in-loop: each chunk waits for the previous chunk so we enforce a
+        // fixed concurrency cap across the full request set.
+        /* eslint-disable no-await-in-loop */
+        for (
+            let batchStart = 0;
+            batchStart < pageStarts.length;
+            batchStart += concurrentRequests
+        ) {
+            const batchStarts = pageStarts.slice(
+                batchStart,
+                batchStart + concurrentRequests
+            );
+            const batchResponses = await Promise.all(
+                batchStarts.map((from) => {
+                    const query = { ...currentHrefQuery, from };
+                    const reqHref = requestPathname + '?' + queryString.stringify(query);
+                    return ajax.promise(reqHref);
+                })
+            );
+            const completedPages = Math.min(
+                pageStarts.length,
+                batchStart + batchStarts.length
+            );
+            const selectingProgress = Math.round(
+                (completedPages / pageStarts.length) * 100
+            );
+            this.setState({ selectingProgress });
+
+            batchResponses.forEach((resp) => {
+                const pageItems = (resp && resp['@graph']) || [];
+                if (Array.isArray(pageItems) && pageItems.length > 0) {
+                    fetchedResults.push(...pageItems);
+                }
+            });
+
+            // Dev-only pacing so progress UI can be observed with small local datasets.
+            if (
+                SelectAllFilesButton.isLocalhost &&
+                batchStart + batchStarts.length < pageStarts.length
+            ) {
+                await new Promise((resolve) => {
+                    window.setTimeout(
+                        resolve,
+                        SelectAllFilesButton.localhostBatchDelayMs
+                    );
+                });
+            }
+        }
+        /* eslint-enable no-await-in-loop */
+
+        return fetchedResults;
     }
 
     isEnabled() {
@@ -162,10 +330,12 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     handleSelectAll(evt) {
         const {
-            context: { '@id': searchHref } = {},
+            context: { '@id': contextSearchHref } = {},
+            searchHref: propSearchHref = null,
             onSelectItem,
             onResetSelectedItems,
         } = this.props;
+        const searchHref = contextSearchHref || propSearchHref;
 
         if (
             typeof onSelectItem !== 'function' ||
@@ -178,64 +348,84 @@ export class SelectAllFilesButton extends React.PureComponent {
                 "No 'onSelectItems' or 'onResetSelectedItems' function prop passed from SelectedItemsController."
             );
         }
+        if (!searchHref) {
+            logger.error("No search href available for Select All.");
+            Alerts.queue({
+                title: 'Select All Failed',
+                message:
+                    'Unable to determine which files to fetch for selection. Please try again.',
+            });
+            return;
+        }
 
-        this.setState({ selecting: true }, () => {
+        this.setState({ selecting: true, selectingProgress: 0 }, () => {
             if (!this.isAllSelected()) {
-                const currentHrefParts = memoizedUrlParse(searchHref);
-                const currentHrefQuery = _.extend({}, currentHrefParts.query);
-                currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
-                currentHrefQuery.limit = 'all';
-                const reqHref =
-                    currentHrefParts.pathname +
-                    '?' +
-                    queryString.stringify(currentHrefQuery);
+                this.fetchAllPagesForSelection(searchHref)
+                    .then((filesToSelect) => {
+                        onSelectItem(filesToSelect, true);
+                        this.setState({
+                            selecting: false,
+                            selectingProgress: 0,
+                        });
 
-                ajax.load(reqHref, (resp) => {
-                    const filesToSelect = resp['@graph'] || [];
-                    onSelectItem(filesToSelect, true);
-                    this.setState({ selecting: false });
-
-                    //analytics
-                    const extData = {
-                        item_list_name: analytics.hrefToListName(
-                            window && window.location.href
-                        ),
-                    };
-                    const products = analytics.transformItemsToProducts(
-                        filesToSelect,
-                        extData
-                    );
-                    const productsLength = Array.isArray(products)
-                        ? products.length
-                        : filesToSelect.length;
-                    analytics.event(
-                        'add_to_cart',
-                        'SelectAllFilesButton',
-                        'Select All',
-                        function () {
-                            console.info(
-                                `Adding ${productsLength} items from cart.`
-                            );
-                        },
-                        {
-                            items: Array.isArray(products) ? products : null,
-                            list_name: extData.item_list_name,
-                            value: productsLength,
-                            // filters: analytics.getStringifiedCurrentFilters(
-                            //     (context && context.filters) || null
-                            // ),
-                        }
-                    );
-                });
+                        //analytics
+                        const extData = {
+                            item_list_name: analytics.hrefToListName(
+                                window && window.location.href
+                            ),
+                        };
+                        const products = analytics.transformItemsToProducts(
+                            filesToSelect,
+                            extData
+                        );
+                        const productsLength = Array.isArray(products)
+                            ? products.length
+                            : filesToSelect.length;
+                        analytics.event(
+                            'add_to_cart',
+                            'SelectAllFilesButton',
+                            'Select All',
+                            function () {
+                                console.info(
+                                    `Adding ${productsLength} items from cart.`
+                                );
+                            },
+                            {
+                                items: Array.isArray(products)
+                                    ? products
+                                    : null,
+                                list_name: extData.item_list_name,
+                                value: productsLength,
+                                // filters: analytics.getStringifiedCurrentFilters(
+                                //     (context && context.filters) || null
+                                // ),
+                            }
+                        );
+                    })
+                    .catch((err) => {
+                        console.error(
+                            'Failed to fetch all pages for Select All',
+                            err
+                        );
+                        Alerts.queue({
+                            title: 'Select All Failed',
+                            message:
+                                'Unable to fetch all pages of files for selection. Please try again.',
+                        });
+                        this.setState({
+                            selecting: false,
+                            selectingProgress: 0,
+                        });
+                    });
             } else {
                 onResetSelectedItems();
-                this.setState({ selecting: false });
+                this.setState({ selecting: false, selectingProgress: 0 });
             }
         });
     }
 
     render() {
-        const { selecting } = this.state;
+        const { selecting, selectingProgress, progressTrackWidth } = this.state;
         const { type } = this.props;
 
         const isAllSelected = this.isAllSelected();
@@ -245,8 +435,8 @@ export class SelectAllFilesButton extends React.PureComponent {
             (selecting
                 ? 'circle-notch icon-spin fas'
                 : isAllSelected
-                ? 'square far'
-                : 'check-square far');
+                    ? 'square far'
+                    : 'check-square far');
         const cls =
             'btn btn-sm me-05 align-items-center ' +
             (isAllSelected ? 'btn-secondary' : 'btn-outline-secondary');
@@ -256,30 +446,89 @@ export class SelectAllFilesButton extends React.PureComponent {
                 : null;
 
         if (type === 'checkbox') {
+            const checkboxTooltip = selecting
+                ? `Selecting ${selectingProgress}%`
+                : tooltip;
             return (
-                <input
-                    type="checkbox"
-                    disabled={selecting || (!isAllSelected && !isEnabled)}
-                    checked={isAllSelected}
-                    onChange={this.handleSelectAll}
-                />
+                <span
+                    ref={this.selectAllButtonRef}
+                    className="d-inline-flex flex-column align-items-center"
+                    data-tip={checkboxTooltip}>
+                    {selecting ? (
+                        <i className="icon icon-fw icon-circle-notch icon-spin fas" />
+                    ) : (
+                        <input
+                            type="checkbox"
+                            disabled={!isAllSelected && !isEnabled}
+                            checked={isAllSelected}
+                            onChange={this.handleSelectAll}
+                        />
+                    )}
+                    <div
+                        className={
+                            'progress mt-03 select-all-progress select-all-progress-checkbox' +
+                            (selecting ? ' is-selecting' : '')
+                        }
+                        style={{
+                            width:
+                                progressTrackWidth && Number.isFinite(progressTrackWidth)
+                                    ? `${progressTrackWidth}px`
+                                    : '100%',
+                        }}>
+                        <div
+                            className="progress-bar"
+                            role="progressbar"
+                            style={{ width: `${selectingProgress}%` }}
+                            aria-valuenow={selectingProgress}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        />
+                    </div>
+                </span>
             );
         }
 
         return (
-            <button
-                type="button"
-                id="select-all-files-button"
-                disabled={selecting || (!isAllSelected && !isEnabled)}
-                className={cls}
-                onClick={this.handleSelectAll}
-                data-tip={tooltip}>
-                <i className={iconClassName} />
-                <span className="d-none d-md-inline text-400">
-                    {isAllSelected ? 'Deselect' : 'Select'}{' '}
+            <div className="d-inline-flex flex-column">
+                <span className="d-inline-block" data-tip={tooltip}>
+                    <button
+                        ref={this.selectAllButtonRef}
+                        type="button"
+                        id="select-all-files-button"
+                        disabled={selecting || (!isAllSelected && !isEnabled)}
+                        className={cls}
+                        onClick={this.handleSelectAll}>
+                        <i className={iconClassName} />
+                        <span className="d-none d-md-inline text-400">
+                            {selecting
+                                ? `Selecting ${selectingProgress}%`
+                                : isAllSelected
+                                    ? 'Deselect'
+                                    : 'Select'}{' '}
+                        </span>
+                        <span className="text-600">All</span>
+                    </button>
                 </span>
-                <span className="text-600">All</span>
-            </button>
+                {selecting ? (
+                    <div
+                        className="progress mt-03 select-all-progress select-all-progress-button"
+                        style={{
+                            width:
+                                progressTrackWidth && Number.isFinite(progressTrackWidth)
+                                    ? `${progressTrackWidth}px`
+                                    : '100%',
+                        }}>
+                        <div
+                            className="progress-bar"
+                            role="progressbar"
+                            style={{ width: `${selectingProgress}%` }}
+                            aria-valuenow={selectingProgress}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        />
+                    </div>
+                ) : null}
+            </div>
         );
     }
 }
@@ -336,7 +585,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         } = this.props;
         const { modalOpen } = this.state;
         const isDisabled =
-            typeof disabled === 'boolean' ? disabled : fileCountWithDupes === 0;
+            typeof disabled === 'boolean' ? disabled : selectedItems.size === 0;
         btnProps.className =
             'btn ' + (modalOpen ? 'active ' : '') + btnProps.className;
         return (
@@ -929,6 +1178,12 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
 
 const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
     const { filename, session, setIsAWSDownload, isAWSDownload } = props;
+    const onTabSelect = useCallback(
+        (k) => {
+            setIsAWSDownload(k === 'aws');
+        },
+        [setIsAWSDownload]
+    );
 
     // Assign html and plain values for each command
     const aws_cli = {
@@ -1000,9 +1255,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
             <Tabs
                 defaultActiveKey="curl"
                 variant="pills"
-                onSelect={(k) => {
-                    setIsAWSDownload(k === 'aws');
-                }}>
+                onSelect={onTabSelect}>
                 <Tab
                     eventKey="curl"
                     title={
@@ -1069,7 +1322,6 @@ const SelectedItemsDownloadStartButton = React.memo(
     function SelectedItemsDownloadStartButton(props) {
         const {
             suggestedFilename,
-            selectedItems,
             accessionArray = [],
             action,
             isAWSDownload,
@@ -1107,10 +1359,7 @@ const SelectedItemsDownloadStartButton = React.memo(
                         className="btn btn-primary mt-0 me-1 btn-block-xs-only"
                         data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                         <i className="icon icon-fw icon-download fas me-1" />
-                        Download <b>
-                            {isAWSDownload ? 'AWS CLI ' : 'cURL'}
-                        </b>{' '}
-                        File Manifest
+                        Download <b>{isAWSDownload ? 'AWS CLI ' : 'cURL'}</b> File Manifest
                     </button>
                 </form>
             </>

@@ -139,6 +139,550 @@
     }
 }
 
+.recent-releases-page {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    min-width: 0;
+
+    .card {
+        border: 1px solid #d6deef;
+        border-radius: 0.65rem;
+        box-shadow: 0 1px 3px rgba(30, 54, 90, 0.08);
+        min-width: 0;
+    }
+
+    .recent-releases-title {
+        color: #2e4769;
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.35;
+        margin-top: 20px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .recent-releases-subtitle {
+        color: #5d7192;
+        font-size: 0.8rem;
+        line-height: 1.7;
+        margin-top: 0 !important;
+    }
+
+    .recent-releases-divider {
+        height: 1px;
+        background: #d7e3f5;
+        margin: 1rem 0 1.15rem;
+    }
+
+    .recent-releases-timeline-column .card-body,
+    .recent-releases-matrix-column .card-body {
+        padding: 1.65rem 1.25rem 1.25rem;
+    }
+
+    .recent-releases-months {
+        max-height: 72vh;
+        overflow-y: auto;
+        padding-right: 0.35rem;
+    }
+
+    .release-month-nav {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 1rem 0 1.2rem;
+
+        .btn {
+            min-width: 4.6rem;
+            font-size: 0.72rem;
+            font-weight: 500;
+            line-height: 1.15;
+            padding: 0.32rem 0.62rem;
+            border-radius: 999px;
+            border-width: 1.5px;
+            border-color: #d3dbe8;
+            color: #334;
+            background: #ffffff;
+            box-shadow: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+
+            &:hover,
+            &:focus {
+                border-color: #b8c8e3;
+                background: #f8fbff;
+                color: #35527a;
+            }
+
+            &:disabled {
+                color: #a0aec7;
+                background: #fbfcfe;
+                border-color: #d7e1f0;
+                opacity: 1;
+                cursor: default;
+            }
+
+            .icon {
+                font-size: 0.66rem;
+            }
+        }
+    }
+
+    .release-view-mode-toggle {
+        display: flex;
+        width: 100%;
+        gap: 0.2rem;
+        margin: 0 0 0.65rem;
+        padding: 0.15rem;
+        border: 1px solid #d4dff0;
+        border-radius: 999px;
+        background: #ffffff;
+
+        .btn {
+            flex: 1 1 0;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1.2;
+            min-width: 0;
+            padding: 0.56rem 0.6rem;
+            border-width: 0;
+            border-radius: 999px;
+            box-shadow: none;
+            letter-spacing: 0.01em;
+            transition: background-color 120ms ease, color 120ms ease;
+
+            &.btn-outline-primary {
+                color: #5b82bb;
+                border-color: transparent;
+                background: transparent;
+
+                &:hover,
+                &:focus {
+                    color: #355f99;
+                    border-color: transparent;
+                    background: #f5f9ff;
+                }
+            }
+
+            &.btn-primary,
+            &.active {
+                background: #114a82;
+                border-color: transparent;
+                color: #ffffff;
+
+                &:hover,
+                &:focus {
+                    background: #114a82;
+                    border-color: transparent;
+                    color: #ffffff;
+                }
+            }
+        }
+    }
+
+    .release-month-section + .release-month-section {
+        margin-top: 1.25rem;
+    }
+
+    .release-month-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.45rem;
+
+        h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #35527a;
+        }
+
+        .count-badge {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #5f82b7;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .count-badge-link {
+            text-decoration: none;
+            cursor: pointer;
+
+            &:hover,
+            &:focus {
+                text-decoration: none;
+                color: #35527a;
+                background: transparent;
+            }
+        }
+    }
+
+    .release-weekdays-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.2rem;
+        margin-bottom: 0.2rem;
+
+        .release-weekday-label {
+            text-align: center;
+            font-size: 0.62rem;
+            color: #7a8ca8;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+    }
+
+    .release-calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.25rem;
+    }
+
+    .release-bucket-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.46rem;
+    }
+
+    .release-bucket-btn {
+        border: 1px solid #d7e3f7;
+        background: #f7fbff;
+        border-radius: 0.56rem;
+        padding: 0.26rem 0.34rem 0.26rem 0.42rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left;
+        color: #325180;
+        font-size: 0.84rem;
+        min-height: 2.45rem;
+        transition: border-color 120ms ease, background-color 120ms ease,
+            box-shadow 120ms ease, color 120ms ease;
+
+        .bucket-label {
+            font-weight: 600;
+        }
+
+        .bucket-count {
+            color: #3567b6;
+            font-weight: 700;
+            border-radius: 999px;
+            background: #d9e9ff;
+            border: 1px solid #b6d1fb;
+            padding: 0.36rem 0.55rem;
+            min-width: 2.35rem;
+            text-align: center;
+            line-height: 1;
+            margin-left: 0.75rem;
+        }
+
+        &:hover,
+        &:focus {
+            border-color: #9cbbef;
+            background: #edf5ff;
+            outline: none;
+        }
+
+        &.selected {
+            border-color: #2f67cc;
+            background: #e7f0ff;
+            box-shadow: inset 0 0 0 1px rgba(47, 103, 204, 0.18);
+            color: #1c3f79;
+        }
+    }
+
+    .release-day-pad {
+        display: block;
+        min-height: 0;
+        aspect-ratio: 1 / 1;
+        border-radius: 0.4rem;
+    }
+
+    .release-day-btn {
+        border: 1px solid #d9e2f2;
+        background: #f8fbff;
+        border-radius: 0.42rem;
+        padding: 0.24rem 0.2rem 0.3rem;
+        min-height: 0;
+        aspect-ratio: 1 / 1;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        transition: border-color 120ms ease, background-color 120ms ease,
+            color 120ms ease;
+        color: #9eb0cc;
+        position: relative;
+        overflow: hidden;
+
+        .day-num {
+            font-size: 0.82rem;
+            line-height: 1.1;
+            font-weight: 600;
+            padding-left: 0.04rem;
+        }
+
+        .day-count {
+            position: absolute;
+            right: 0.16rem;
+            bottom: 0.14rem;
+            font-size: 0.52rem;
+            color: #1f4b90;
+            font-weight: 700;
+            line-height: 1.05;
+            white-space: nowrap;
+            max-width: calc(100% - 0.4rem);
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(66, 130, 224, 0.2);
+            border: 1px solid rgba(66, 130, 224, 0.22);
+            padding: 0.07rem 0.22rem;
+            min-width: 1.28rem;
+            text-align: center;
+        }
+
+        &.has-data {
+            border-color: #9fc0f3;
+            background: #eef5ff;
+            color: #2e4f80;
+            cursor: pointer;
+
+            &:hover,
+            &:focus {
+                border-color: #6f9be0;
+                background: #e2edff;
+                outline: none;
+            }
+        }
+
+        &.no-data {
+            opacity: 0.65;
+            cursor: default;
+
+            &:disabled {
+                pointer-events: none;
+            }
+        }
+
+        &.selected {
+            border-color: #2f67cc;
+            background: #dce9ff;
+            box-shadow: inset 0 0 0 1px rgba(47, 103, 204, 0.22);
+            color: #1c3f79;
+        }
+    }
+
+    .recent-releases-matrix-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0;
+    }
+
+    .recent-releases-results-mode-toggle {
+        display: inline-flex;
+        gap: 0.35rem;
+
+        .btn {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+        }
+    }
+
+    .recent-releases-matrix-column,
+    .recent-releases-matrix-column .card-body {
+        min-width: 0;
+    }
+
+    .recent-releases-matrix-column .card-body {
+        overflow: hidden;
+    }
+
+    .recent-releases-matrix-scroll {
+        border: 1px solid #e1e8f5;
+        border-radius: 0.5rem;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.35rem;
+    }
+
+    .recent-releases-table-scroll {
+        // border: 1px solid #e1e8f5;
+        // border-radius: 0.5rem;
+        // padding: 0.35rem;
+        // overflow: hidden;
+    }
+
+    .recent-releases-table-scroll .embedded-search-view-outer-container {
+        min-width: 0;
+    }
+
+    // Keep selection checkbox and lock columns aligned in embedded table mode.
+    .recent-releases-table-scroll {
+        .search-results-container {
+            .search-headers-column-block[data-first-visible-column],
+            .search-result-column-block[data-first-visible-column] {
+                padding-left: 0 !important;
+            }
+
+            .search-headers-row {
+                .search-headers-column-block[data-field='@type'],
+                .search-headers-column-block[data-field='access_status'] {
+                    width: 56px;
+                    min-width: 56px;
+                    max-width: 56px;
+
+                    .inner {
+                        padding-left: 0;
+                        padding-right: 0;
+                        justify-content: center;
+                        text-align: center;
+                        display: flex;
+                        align-items: center;
+                    }
+                }
+            }
+
+            .search-result-row {
+                .search-result-column-block[data-field='@type'],
+                .search-result-column-block[data-field='access_status'] {
+                    width: 56px;
+                    min-width: 56px;
+                    max-width: 56px;
+                    padding-left: 0;
+                    padding-right: 0;
+
+                    .inner {
+                        padding-left: 0;
+                        padding-right: 0;
+                        justify-content: center;
+                        text-align: center;
+                        display: flex;
+                        align-items: center;
+                    }
+                }
+            }
+
+            .search-headers-column-block[data-field='@type']
+                input[type='checkbox'],
+            .search-result-column-block[data-field='@type']
+                input[type='checkbox'] {
+                margin: 0 !important;
+                display: block;
+            }
+
+            .search-headers-column-block[data-field='access_status'] .icon-lock,
+            .search-result-column-block[data-field='access_status'] .icon-lock {
+                margin: 0 auto;
+                display: inline-block;
+            }
+        }
+    }
+
+    .data-matrix {
+        min-width: 0;
+    }
+
+    // DataMatrix uses bootstrap `.row` internally; neutralize gutter overflow in this page.
+    .data-matrix > .row.matrix-render-surface {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .data-matrix > .row.matrix-render-surface > .w-100 {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .data-matrix .matrix-visual-scroll-region {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .data-matrix .matrix-visual-scroll-content {
+        min-width: 0;
+        width: max-content;
+    }
+
+    .data-matrix .matrix-mode-layout {
+        padding: 0.35rem 0.2rem 0.2rem;
+    }
+
+    .data-matrix .matrix-mode-body,
+    .data-matrix .matrix-visual-panel {
+        overflow: hidden;
+    }
+
+    .data-matrix .stacked-block-viz-container {
+        padding-left: 0;
+        padding-right: 0.5rem;
+    }
+
+    .recent-releases-empty {
+        margin-top: 1rem;
+    }
+
+    .recent-releases-loading-card {
+        .card-body {
+            min-height: 42rem;
+        }
+    }
+
+    .recent-releases-loading-nav {
+        margin-bottom: 1.2rem;
+    }
+
+    .recent-releases-loading-spinner-wrap {
+        min-height: 16rem;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 2rem;
+        color: #57719e;
+        font-size: 1.5rem;
+    }
+
+    .recent-releases-loading-spinner-wrap-right {
+        min-height: 18rem;
+    }
+}
+
+@media (max-width: 1199px) {
+    .recent-releases-page {
+        grid-template-columns: 1fr;
+
+        .recent-releases-months {
+            max-height: 40vh;
+        }
+
+        .release-day-btn {
+            padding: 0.2rem 0.16rem 0.24rem;
+
+            .day-num {
+                font-size: 0.8rem;
+            }
+
+            .day-count {
+                font-size: 0.5rem;
+                min-width: 1.16rem;
+                right: 0.14rem;
+                bottom: 0.12rem;
+            }
+        }
+    }
+}
+
 .static-section-entry {
     &:not([id]) .section-title > i.icon-link {
         display: none;
@@ -448,6 +992,9 @@
                 margin-bottom: 0;
                 margin-top: 0;
                 margin-left: -20px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
                 &:focus {
                     text-decoration: none;
                     color: $link-color;
@@ -840,6 +1387,39 @@ body[data-path='/'] > #application > #layout {
                         }
                     }
 
+                    &.data-freeze {
+                        flex: none;
+
+                        .section-header span:hover {
+                            cursor: default;
+                        }
+
+                        .consortium-hub-link {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            background-color: #fcfdfe;
+                            border: 1px solid $cobalt-20;
+                            border-radius: 8px;
+                            color: #356588;
+                            font-size: 1rem;
+                            font-weight: 500;
+                            padding: 10px;
+                            transition: background-color 15ms ease-in;
+
+                            i {
+                                color: $cobalt-20;
+                                margin: auto;
+                            }
+
+                            &:hover {
+                                background-color: #f6f7f8;
+                            }
+                            &:hover {
+                                background-color: #f5f7f8;
+                            }
+                        }
+                    }
                     &.data-release-tracker {
                         display: flex;
 
@@ -904,6 +1484,7 @@ body[data-path='/'] > #application > #layout {
                                         font-weight: 700;
                                         border-radius: 7px;
                                         font-size: 0.625rem;
+                                        margin-bottom: 5px;
 
                                         .count {
                                             color: hsla(241, 84%, 40%, 0.6);
@@ -966,238 +1547,37 @@ body[data-path='/'] > #application > #layout {
                                     .body {
                                         color: #485983;
                                         font-size: 0.75rem;
+                                        display: flex;
+                                        flex-direction: column;
+                                        gap: 5px;
 
-                                        .release-item {
-                                            padding: 5px 0px;
+                                        .week-link {
+                                            display: flex;
+                                            flex: 1;
+                                            justify-content: space-between;
+                                            border: 1px solid #deedff;
+                                            border-radius: 7px;
+                                            padding: 6px 8px;
+                                            color: #345b8c;
+                                            background-color: #f6fbfe;
 
-                                            .day-group-header {
-                                                display: flex;
-                                                padding: 2px 0px;
-                                                margin: 0px;
-                                                padding: 0px 0px 0px 10px;
-                                                background-color: transparent;
-
-                                                .toggle-button {
-                                                    display: flex;
-                                                    margin: auto;
-                                                    border: 1px solid
-                                                        transparent;
-                                                    border-radius: 100%;
-                                                    padding: 2px;
-                                                    color: #485983;
-                                                    background-color: transparent;
-                                                }
-
-                                                .title {
-                                                    display: flex;
-                                                    justify-content: space-between;
-                                                    flex: 1;
-                                                    padding: 4px 8px;
-                                                    border-radius: 7px;
-                                                    font-weight: 700;
-                                                    font-size: 0.875rem;
-                                                    color: #485983;
-
-                                                    .count {
-                                                        display: flex;
-                                                        gap: 4px;
-                                                        align-items: center;
-                                                        font-size: 0.6875rem;
-                                                        color: #65759f;
-
-                                                        &:hover {
-                                                            color: #3c71f9;
-                                                        }
-                                                    }
-
-                                                    &:hover {
-                                                        cursor: pointer;
-                                                        background-color: #e7f1fb;
-                                                        transition: background-color
-                                                            100ms;
-                                                    }
-                                                }
+                                            .range {
+                                                font-weight: 600;
                                             }
-
-                                            .donor-list {
+                                            .count {
                                                 display: flex;
-                                                flex-direction: column;
-                                                gap: 4px;
-                                                padding: 8px 10px;
-                                                background-color: #f3f9fe;
-
-                                                .release-item {
-                                                    padding: 0px;
-
-                                                    &[aria-expanded='true'] {
-                                                        padding-bottom: 8px;
-                                                    }
-                                                }
-                                            }
-                                            .donor-group-header {
-                                                display: flex;
+                                                justify-content: center;
+                                                border: 1px solid #deedff;
                                                 border-radius: 4px;
-                                                gap: 4px;
-                                                padding-bottom: 0px;
-
-                                                .toggle-button {
-                                                    display: flex;
-                                                    border-radius: 100%;
-                                                    padding: 2px;
-                                                    color: #485983;
-                                                    margin: auto;
-                                                    width: 16px;
-                                                }
-
-                                                .title {
-                                                    display: flex;
-                                                    flex: 1;
-                                                    justify-content: space-between;
-                                                    font-weight: 500;
-                                                    font-size: 0.875rem;
-                                                    width: max-content;
-                                                    padding: 4px 8px;
-                                                    color: #485983;
-                                                    border: 1px solid
-                                                        transparent;
-                                                    border-radius: 7px;
-                                                    align-items: baseline;
-                                                    transition: background-color
-                                                        100ms;
-                                                    margin-bottom: 0px;
-
-                                                    .count {
-                                                        display: flex;
-                                                        gap: 4px;
-                                                        align-items: center;
-                                                        font-size: 0.6875rem;
-                                                        color: #65759f;
-
-                                                        &:hover {
-                                                            color: #3c71f9;
-                                                        }
-                                                    }
-
-                                                    &:hover {
-                                                        cursor: pointer;
-                                                        background-color: #ddeaf7;
-                                                        transition: background-color
-                                                            100ms;
-
-                                                        i {
-                                                            fill: #3c71f9;
-                                                        }
-                                                    }
-                                                }
-
-                                                &.expanded {
-                                                    .title {
-                                                        background-color: #e7f1fb;
-                                                        border-radius: 7px 7px
-                                                            0px 0px;
-                                                        border-color: #b8d3ef;
-
-                                                        &:hover {
-                                                            background-color: #e0ecf8;
-                                                        }
-                                                    }
-                                                }
+                                                padding: 0px 6px;
+                                                background-color: #e8f3ff;
+                                                font-weight: 700;
+                                                font-size: 0.625rem;
                                             }
 
-                                            .tissue-group-header
-                                                .toggle-button {
-                                                display: flex;
-                                                gap: 6px;
-                                                align-items: center;
-                                            }
-
-                                            .tissue-list {
-                                                margin-top: 0px;
-                                                list-style-type: none;
-                                                background: #fbfdff;
-                                                padding: 5px;
-                                                padding-left: 0px;
-                                                margin-left: 20px;
-                                                border-radius: 0px 0px 7px 7px;
-                                                border: 1px solid #b8d3ef;
-                                                border-top: none;
-
-                                                svg {
-                                                    display: none;
-                                                }
-
-                                                &:hover {
-                                                    svg {
-                                                        display: inline-flex;
-                                                        vertical-align: text-top;
-                                                        fill: #3c71f9;
-                                                        width: 12px;
-                                                        margin-left: 4px;
-                                                    }
-                                                }
-                                            }
-
-                                            ul {
-                                                margin-top: 0px;
-                                                padding-left: 1rem;
-
-                                                li {
-                                                    font-weight: 300;
-                                                    line-height: 1rem;
-                                                    margin-top: 0.25rem;
-                                                    border-radius: 0px 0px 7px
-                                                        7px;
-                                                    margin-top: 0px;
-                                                    padding: 4px;
-
-                                                    a {
-                                                        color: #485983;
-
-                                                        &:hover {
-                                                            text-decoration: underline;
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            .file-group-list {
-                                                padding-left: 37px;
-                                            }
-
-                                            &[aria-expanded='true'] {
-                                                .day-group-header {
-                                                    background-color: #e7f1fb;
-                                                    border: 1px solid #d3dbe6;
-                                                    border-bottom: none;
-                                                    border-radius: 8px 8px 0px
-                                                        0px;
-                                                }
-                                                .donor-list {
-                                                    border: 1px solid #d3dbe6;
-                                                    border-radius: 0px 0px 8px
-                                                        8px;
-                                                }
-                                            }
-                                        }
-
-                                        .toggle-button {
-                                            &.donor {
-                                                background-color: transparent;
-                                                border: none;
-                                                color: #485983;
-                                            }
-                                            &.tissue {
-                                                background-color: transparent;
-                                                border: none;
-                                                color: #485983;
-
-                                                span {
-                                                    max-width: 160px;
-                                                    text-align: left;
-                                                    text-overflow: ellipsis;
-                                                    white-space: nowrap;
-                                                    overflow: hidden;
-                                                }
+                                            &:hover {
+                                                background-color: #e6f5ff;
+                                                border-color: #b4c5d9;
                                             }
                                         }
                                     }
@@ -1633,6 +2013,9 @@ body[data-path='/'] > #application > #layout {
                 .homepage-figure-container {
                     justify-content: center;
                 }
+                .notifications-panel {
+                    width: 23vw;
+                }
             }
         }
     }
@@ -1652,7 +2035,7 @@ body[data-path='/'] > #application > #layout {
                 }
 
                 .notifications-panel {
-                    width: 400px;
+                    width: 450px;
                     padding: 38px 27px;
                 }
             }
@@ -3265,7 +3648,14 @@ body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
 }
 
 /** Retracted Files Table styles **/
-.retracted-files-table {
+.retracted-files-table,
+.renamed-files-table {
+    .tab-section-title {
+        font-size: 1rem;
+        min-height: auto;
+        margin-top: 40px;
+        margin-bottom: 10px;
+    }
     .search-headers-row {
         background-color: #fff1f1 !important;
     }
@@ -3636,7 +4026,8 @@ FAQ page styles
 }
 
 // Pages under Pipeline Documentation
-[data-at-type^='DocsAdditional-resourcesPipeline-docs'] {
+[data-at-type^='DocsAdditional-resourcesPipeline-docs'],
+[data-at-type='Consortium-hubPage'] {
     // Custom header sizing
     h2 {
         font-size: 24px;
@@ -3646,16 +4037,13 @@ FAQ page styles
         }
     }
     h3 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
     h4 {
         font-size: 20px;
     }
     h5 {
         font-size: 16px;
-        color: #2e385a;
-        margin-bottom: 20px;
-        margin-top: 40px;
     }
     h6 {
         font-size: 0.95rem;
@@ -3790,8 +4178,10 @@ FAQ page styles
                         padding: 15px;
 
                         .parent-link {
+                            display: block;
                             font-weight: 600;
                             color: $homepage-card-text-color;
+                            padding-right: 40px;
 
                             &:hover {
                                 color: #173b5d;
@@ -3894,5 +4284,285 @@ FAQ page styles
         &.help-entry#pipeline_docs {
             margin-top: 50px;
         }
+    }
+
+    &[data-path='/docs/additional-resources/pipeline-docs'] {
+        h3 {
+            font-size: 1.5rem;
+        }
+        h5 {
+            font-size: 16px;
+            color: #2e385a;
+            margin-bottom: 20px;
+            margin-top: 40px;
+        }
+    }
+}
+
+[data-at-type='Consortium-hubPage'] {
+    .static-section-entry .section-content .consortium-hub-container {
+        display: flex;
+        flex-direction: column;
+
+        h3 {
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .consortium-hub-content {
+            display: flex;
+            flex: 1;
+            gap: 50px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+
+            .cohort-thumbnails-container {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .quick-links-container {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-width: 350px;
+
+                .nav-group {
+                    margin-bottom: 0px;
+
+                    a.header:hover {
+                        text-decoration: none;
+                    }
+
+                    .quick-link-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        vertical-align: 0.15em;
+                        padding: 4px 8px;
+                        border-radius: 20px;
+                        font-size: 0.75rem;
+                        font-weight: 600;
+                        letter-spacing: 0.03em;
+                        text-transform: uppercase;
+                        white-space: nowrap;
+                        margin-left: 8px;
+                        line-height: 1;
+
+                        &.quick-link-badge-open {
+                            background-color: #d4edda;
+                            color: #1a6630;
+                            border: 1px solid #b8dfc2;
+                        }
+
+                        &.quick-link-badge-protected {
+                            color: #3a5070;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .donor-groups {
+        display: flex;
+        gap: 0.75rem;
+
+        @include media-breakpoint-down(md) {
+            flex-wrap: wrap;
+        }
+    }
+
+    .donor-group-container {
+        flex: 1;
+        border: 1px solid #bacfeb;
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 190px;
+
+        .donor-group-header {
+            color: #0e3669;
+            background-color: #edf5fb;
+            font-size: 0.9rem;
+            text-align: center;
+            border-bottom: 1px solid #bacfeb;
+        }
+
+        .donor-group-body {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 30px 8px;
+            padding: 20px 8px;
+            background-color: #fcfdfe;
+
+            .donor-thumbnail-container {
+                width: 80px;
+                border-radius: 5px;
+            }
+        }
+
+        &:first-of-type {
+            min-width: 90px;
+
+            .donor-thumbnail-container {
+                display: flex;
+                flex: 1;
+            }
+        }
+    }
+
+    .donor-thumbnail-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2px;
+        min-height: 90px;
+
+        .donor-id {
+            color: #416485;
+            font-size: 0.8rem;
+            line-height: 1rem;
+            margin-bottom: -5px;
+        }
+
+        .donor-thumbnail-image {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            width: min-content;
+
+            img {
+                max-width: none;
+                width: 76px;
+                aspect-ratio: 372 / 364;
+                opacity: 0.25;
+                transition: opacity 100ms ease-out;
+
+                &.loaded {
+                    opacity: 1;
+                }
+            }
+
+            .details {
+                position: absolute;
+                bottom: 0px;
+                left: 50%;
+                transform: translateX(-50%);
+                white-space: nowrap;
+
+                .age {
+                    font-size: 0.8rem;
+                }
+                .sex {
+                    font-size: 0.6rem;
+                }
+            }
+        }
+
+        &.male .details {
+            color: #7d96b6;
+        }
+        &.female .details {
+            color: #b57db6;
+        }
+
+        &:hover {
+            background-color: #edf5fb;
+            text-decoration: none;
+
+            .donor-id {
+                text-decoration: none;
+            }
+        }
+    }
+
+    .static-section-entry .section-content .dropdown .body {
+        padding: 15px 35px 25px;
+
+        .cohort-details-list {
+            flex: 1;
+            list-style: decimal;
+            padding-left: 1.5rem;
+            margin: 0;
+
+            li {
+                margin-bottom: 0.25rem;
+                font-size: 0.9rem;
+                color: $homepage-card-text-color;
+                line-height: 1.25rem;
+
+                .donor-id {
+                    display: inline-flex;
+                    justify-content: flex-end;
+                    text-align: end;
+                }
+
+                .age-sex {
+                    margin-left: 5px;
+
+                    .age {
+                        display: inline-flex;
+                        width: 35px;
+                    }
+                    .sex {
+                        display: inline-flex;
+                        justify-content: center;
+                        width: 10px;
+                        margin-right: 5px;
+                    }
+                }
+
+                a {
+                    color: #428cca;
+                    font-weight: 500;
+                    width: 80px;
+                    text-align: left;
+                }
+            }
+
+            .no-conditions {
+                color: #ccd3d9;
+            }
+        }
+    }
+
+    .donor-group-header-skeleton,
+    .donor-thumbnail-skeleton-id,
+    .donor-thumbnail-skeleton-image {
+        background: linear-gradient(
+            90deg,
+            #edf5fb 25%,
+            #f0f8ff 50%,
+            #edf5fb 75%
+        );
+        background-size: 600px 100%;
+        animation: skeleton-shimmer 1.5s ease-in-out infinite;
+        border-radius: 3px;
+    }
+
+    .donor-group-header-skeleton {
+        height: 1.75rem;
+        border-radius: 0;
+    }
+
+    .donor-thumbnail-container-skeleton {
+        pointer-events: none;
+
+        .donor-thumbnail-skeleton-image {
+            width: 80px;
+            height: 90px;
+            border-radius: 4px;
+        }
+    }
+}
+
+@keyframes skeleton-shimmer {
+    from {
+        background-position: -300px 0;
+    }
+    to {
+        background-position: calc(300px + 100%) 0;
     }
 }

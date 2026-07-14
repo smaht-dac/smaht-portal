@@ -1,10 +1,10 @@
 from copy import deepcopy
+from datetime import datetime, timezone
 from pyramid.request import Request as PyramidRequest, Response as PyramidResponse
 from typing import Callable, List, Optional
 from dcicutils.misc_utils import normalize_spaces
 from encoded.endpoints.elasticsearch_utils import (
         add_additional_field_to_retrieve_to_elasticsearch_aggregation_query,
-        add_debugging_to_elasticsearch_aggregation_query,
         create_elasticsearch_aggregation_query,
         merge_elasticsearch_aggregation_results,
         normalize_elasticsearch_aggregation_results,
@@ -47,6 +47,16 @@ QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
 BASE_SEARCH_QUERY = "/browse/"
 LEGACY_DEFAULT = False
+
+# Default embedded field summarized alongside each release bucket ("tissue info").
+TISSUE_INFO_DEFAULT = "sample_summary.tissues"
+# SECURITY allowlist: the ONLY embedded field names a caller may request as the additional
+# per-bucket field. This value flows into an Elasticsearch top_hits _source.includes and is
+# returned to the caller; because the summary search runs globally (admin-scoped), an
+# arbitrary caller-supplied value here was an arbitrary-embedded-field read primitive over
+# protected documents. Anything not on this list is ignored (falls back to the default).
+# Extend deliberately if the UI genuinely needs another specific summary field.
+ALLOWED_ADDITIONAL_FIELDS = {TISSUE_INFO_DEFAULT}
 
 
 def recent_files_summary_endpoint(context, request):
@@ -106,20 +116,23 @@ def recent_files_summary(request: PyramidRequest,
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
     exclude_tissue_info = request_arg_bool(request, "exclude_tissue_info")
     exclude_submitted_file = request_arg_bool(request, "exclude_submitted_file")
-    tissue_info_property_name = request_arg(request, "tissue_info_property_name", "sample_summary.tissues")
+    tissue_info_property_name = request_arg(request, "tissue_info_property_name", TISSUE_INFO_DEFAULT)
+    # SECURITY: this value reaches an Elasticsearch top_hits _source.includes and is returned to
+    # the caller; constrain it to a server-side allowlist so it cannot be used to read an arbitrary
+    # embedded field from (admin-scoped, possibly protected) documents. Ignore off-allowlist values.
+    if tissue_info_property_name not in ALLOWED_ADDITIONAL_FIELDS:
+        tissue_info_property_name = TISSUE_INFO_DEFAULT
     multi = request_arg_bool(request, "multi")
     nosort = request_arg_bool(request, "nosort")
     debug = request_arg_bool(request, "debug")
     debug_query = request_arg_bool(request, "debug_query")
     troubleshoot = request_arg_bool(request, "troubleshoot")
-    troubleshoot_elasticsearch = request_arg_bool(request, "troubleshoot_elasticsearch")
     raw = request_arg_bool(request, "raw")
     legacy = request_arg_bool(request, "legacy", LEGACY_DEFAULT)
 
     if troubleshooting is True:
         debug = True
         troubleshoot = True
-        troubleshoot_elasticsearch = True
 
     def get_aggregation_field_grouping_cell_or_donor() -> List[str]:
         # This specializes the aggregation query to group first by the cell-line field,
@@ -193,7 +206,7 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
-        nonlocal date_property_name, max_buckets, include_missing, troubleshoot_elasticsearch, exclude_tissue_info
+        nonlocal date_property_name, max_buckets, include_missing, exclude_tissue_info
 
         aggregations = []
         if not isinstance(aggregation_fields, list):
@@ -293,8 +306,11 @@ def recent_files_summary(request: PyramidRequest,
             create_field_aggregation=create_field_aggregation,
             create_field_filter=create_field_filter)
 
-        if troubleshoot_elasticsearch:
-            add_debugging_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
+        # SECURITY: intentionally NOT adding the top_hits_debug sub-aggregation. It returned
+        # per-bucket document _ids (item uuids), which under the global/admin-scoped aggregation
+        # disclosed the identities of protected/embargoed documents to anonymous callers (via
+        # ?troubleshoot(_elasticsearch)=true, and via the raw/debug aggregation dumps). Aggregate
+        # counts do not need it.
         if not exclude_tissue_info:
             add_additional_field_to_retrieve_to_elasticsearch_aggregation_query(aggregation_query[date_property_name],
                                                                                 tissue_info_property_name)
@@ -308,6 +324,13 @@ def recent_files_summary(request: PyramidRequest,
             return custom_execute_aggregation_query(request, query, aggregation_query)
         query += "&from=0&limit=0"  # needed for aggregation query to not return the actual/individual item results.
 
+        # Global summary: run the aggregation as admin so the (non-sensitive) release-tracker
+        # bucket counts/keys are complete across all data, including restricted-status files.
+        # This is intentional (per product/security decision) and safe ONLY because this code
+        # path returns nothing but aggregation buckets: no per-document dump, no arbitrary
+        # caller-controlled document field read. Those leak vectors are closed elsewhere
+        # (troubleshooting document dump removed; additional-field name allowlisted;
+        # top_hits document-id debug aggregation removed).
         request.remote_user = "IMPORT"  # This allows anonymous (unauthorized) queries.
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
@@ -527,3 +550,236 @@ def recent_files_summary(request: PyramidRequest,
         add_info_for_troubleshooting(normalized_results, request)
 
     return normalized_results
+
+
+def recent_release_days_endpoint(context, request):
+    """Lightweight endpoint for calendar views; returns only month/day buckets and counts."""
+    return recent_release_days(request)
+
+
+def recent_release_days(request: PyramidRequest,
+                        custom_execute_aggregation_query: Optional[Callable] = None) -> dict:
+    """
+    Lightweight variant of /recent_files_summary intended for calendar rendering.
+    Returns only release month/day counts (no donor/tissue/file-descriptor grouping).
+    """
+    global BASE_SEARCH_QUERY, QUERY_FILE_CATEGORIES, QUERY_FILE_DATASET, QUERY_FILE_STATUSES, QUERY_FILE_TAGS
+    global QUERY_FILE_TYPES, QUERY_RECENT_MONTHS, QUERY_INCLUDE_CURRENT_MONTH
+
+    date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
+    max_buckets = request_arg_int(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
+    include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
+    debug = request_arg_bool(request, "debug")
+    raw = request_arg_bool(request, "raw")
+    nosort = request_arg_bool(request, "nosort")
+
+    def create_base_query_arguments() -> dict:
+        types = request_args(request, "type", QUERY_FILE_TYPES)
+        statuses = request_args(request, "status", QUERY_FILE_STATUSES)
+        categories = request_args(request, "category", QUERY_FILE_CATEGORIES)
+        dataset = request_args(request, "dataset", QUERY_FILE_DATASET)
+        # For the calendar endpoint, include tagged files by default unless a caller
+        # explicitly provides tag filters. Some production release items are tagged
+        # exclude_from_release_tracker but should still appear in the timeline.
+        tags = request_args(request, "tag")
+        base_query_arguments = {
+            "type": types if types else None,
+            "status": statuses if statuses else None,
+            "data_category": categories if categories else None,
+            "sample_summary.studies": ["Production"],
+            "dataset": dataset if dataset else None,
+            "tags": tags if tags else None
+        }
+        return {key: value for key, value in base_query_arguments.items() if value is not None}
+
+    def create_query_arguments(base_query_arguments: Optional[dict] = None) -> dict:
+        recent_months = request_arg_int(request, "nmonths", request_arg_int(request, "months", QUERY_RECENT_MONTHS))
+        from_date = request_arg(request, "from_date")
+        thru_date = request_arg(request, "thru_date")
+        include_current_month = request_arg_bool(request, "include_current_month", QUERY_INCLUDE_CURRENT_MONTH)
+        from_date, thru_date = parse_date_range_related_arguments(
+            from_date, thru_date, nmonths=recent_months, include_current_month=include_current_month, strings=True
+        )
+        query_arguments = {
+            f"{date_property_name}.from": from_date if from_date else None,
+            f"{date_property_name}.to": thru_date if thru_date else None,
+            AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE: f"!{AGGREGATION_NO_VALUE}",
+            AGGREGATION_FIELD_FILE_DESCRIPTOR: f"!{AGGREGATION_NO_VALUE}"
+        }
+        if isinstance(base_query_arguments, dict):
+            query_arguments = {**base_query_arguments, **query_arguments}
+        return {key: value for key, value in query_arguments.items() if value is not None}
+
+    def create_aggregation_query() -> dict:
+        def create_field_aggregation(field: str) -> Optional[dict]:
+            if field == date_property_name:
+                return {
+                    "date_histogram": {
+                        "field": f"embedded.{field}",
+                        "calendar_interval": "month",
+                        "format": "yyyy-MM",
+                        "missing": "1970-01",
+                        "order": {"_key": "desc"}
+                    }
+                }
+            elif field == date_property_name + "_date":
+                return {
+                    "date_histogram": {
+                        "field": f"embedded.{field}",
+                        "calendar_interval": "day",
+                        "min_doc_count": 1,
+                        "format": "yyyy-MM-dd",
+                        "missing": "1970-01-01",
+                        "order": {"_key": "desc"}
+                    }
+                }
+            return None
+
+        aggregation_fields = [date_property_name, date_property_name + "_date"]
+        aggregation_query = create_elasticsearch_aggregation_query(
+            aggregation_fields,
+            max_buckets=max_buckets,
+            missing_value=AGGREGATION_NO_VALUE,
+            include_missing=include_missing,
+            create_field_aggregation=create_field_aggregation
+        )
+        return aggregation_query[date_property_name]
+
+    def execute_aggregation_query(query: str, aggregation_query: dict) -> str:
+        nonlocal custom_execute_aggregation_query
+        if callable(custom_execute_aggregation_query):
+            return custom_execute_aggregation_query(request, query, aggregation_query)
+        query += "&from=0&limit=0"
+        # Global summary (admin-scoped): returns only release month/day bucket counts, no
+        # document contents. See the matching comment in recent_files_summary().
+        request.remote_user = "IMPORT"
+        subreq = snovault_make_search_subreq(request, path=query, method="GET")
+        return snovault_search(None, subreq, custom_aggregations=aggregation_query)
+
+    def normalize_key_as_date_string(bucket: dict, month_precision: bool = False) -> Optional[str]:
+        if not isinstance(bucket, dict):
+            return None
+        if isinstance(value := bucket.get("key_as_string"), str) and value:
+            return value
+        key_value = bucket.get("key")
+        if isinstance(key_value, (int, float)):
+            try:
+                as_utc = datetime.fromtimestamp(float(key_value) / 1000.0, tz=timezone.utc)
+                return as_utc.strftime("%Y-%m" if month_precision else "%Y-%m-%d")
+            except Exception:
+                return None
+        return None
+
+    def get_month_buckets(aggregation_results: dict) -> list:
+        if not isinstance(aggregation_results, dict):
+            return []
+        if isinstance(buckets := aggregation_results.get("buckets"), list):
+            return buckets
+        if isinstance(dummy := aggregation_results.get("dummy_date_histogram"), dict):
+            if isinstance(buckets := dummy.get("buckets"), list):
+                return buckets
+        return []
+
+    def get_nested_day_buckets(month_bucket: dict) -> list:
+        """Extract day buckets from either direct day key or dummy_date_histogram wrapper."""
+        if not isinstance(month_bucket, dict):
+            return []
+        day_field_name = date_property_name + "_date"
+        if isinstance(day_agg := month_bucket.get(day_field_name), dict):
+            if isinstance(buckets := day_agg.get("buckets"), list):
+                return buckets
+        if isinstance(dummy := month_bucket.get("dummy_date_histogram"), dict):
+            if isinstance(inner := dummy.get(day_field_name), dict):
+                if isinstance(buckets := inner.get("buckets"), list):
+                    return buckets
+        return []
+
+    def build_response_from_aggregation(aggregation_results: dict) -> dict:
+        if not isinstance(aggregation_results, dict):
+            return {}
+
+        month_buckets = get_month_buckets(aggregation_results)
+        if not month_buckets:
+            return {"count": 0, "items": [], "query": query}
+
+        response_items = []
+        total_count = 0
+        base_query_args = deepcopy(base_query_arguments)
+
+        for month_bucket in month_buckets:
+            month_value = normalize_key_as_date_string(month_bucket, month_precision=True)
+            month_count = month_bucket.get("doc_count", 0) or 0
+            if not month_value:
+                continue
+
+            day_items = []
+            day_buckets = get_nested_day_buckets(month_bucket)
+            for day_bucket in day_buckets:
+                day_value = normalize_key_as_date_string(day_bucket, month_precision=False)
+                day_count = day_bucket.get("doc_count", 0) or 0
+                if (not day_value) or (day_count <= 0):
+                    continue
+                day_query_args = deepcopy(base_query_args)
+                day_query_args[f"{date_property_name}_date.from"] = day_value
+                day_query_args[f"{date_property_name}_date.to"] = day_value
+                day_items.append({
+                    "name": f"{date_property_name}_date",
+                    "value": day_value,
+                    "count": day_count,
+                    "query": create_query_string(day_query_args, BASE_SEARCH_QUERY)
+                })
+
+            day_items.sort(key=lambda item: item.get("value", ""), reverse=True)
+
+            month_query_args = deepcopy(base_query_args)
+            from_date, thru_date = get_date_range_for_month(month_value, strings=True)
+            if from_date and thru_date:
+                month_query_args[f"{date_property_name}.from"] = from_date
+                month_query_args[f"{date_property_name}.to"] = thru_date
+
+            response_items.append({
+                "name": date_property_name,
+                "value": month_value,
+                "count": month_count,
+                "items": day_items,
+                "query": create_query_string(month_query_args, BASE_SEARCH_QUERY)
+            })
+            total_count += month_count
+
+        response_items.sort(key=lambda item: item.get("value", ""), reverse=True)
+        return {
+            "count": total_count,
+            "items": response_items,
+            "query": query
+        }
+
+    base_query_arguments = create_base_query_arguments()
+    query_arguments = create_query_arguments(base_query_arguments)
+    query = create_query_string(query_arguments, BASE_SEARCH_QUERY)
+    aggregation_query = {"release_days": create_aggregation_query()}
+
+    raw_results = execute_aggregation_query(query, aggregation_query)
+    if raw:
+        if "@id" in raw_results:
+            del raw_results["@id"]
+        return raw_results
+
+    if not (raw_results := raw_results.get("aggregations")):
+        return {}
+    aggregation_results = raw_results.get("release_days")
+    response = build_response_from_aggregation(aggregation_results)
+
+    if debug:
+        response["debug"] = {
+            "query": query,
+            "aggregation_query": aggregation_query,
+            "raw_results": raw_results
+        }
+
+    if not nosort and isinstance(response.get("items"), list):
+        response["items"].sort(key=lambda item: item.get("value", ""), reverse=True)
+        for month_item in response["items"]:
+            if isinstance(month_item.get("items"), list):
+                month_item["items"].sort(key=lambda item: item.get("value", ""), reverse=True)
+
+    return response

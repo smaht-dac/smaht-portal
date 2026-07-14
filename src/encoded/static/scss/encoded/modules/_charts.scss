@@ -1579,8 +1579,21 @@ body[data-path="/statistics"] {
     }
 
     .matrix-visual-metric-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
         margin-left: 0;
         margin-bottom: 0.5rem;
+    }
+
+    .matrix-inline-refresh-indicator {
+        color: #6f8093;
+        font-size: 1.15rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.15rem;
     }
 
     .matrix-mode-body {
@@ -1589,6 +1602,7 @@ body[data-path="/statistics"] {
         overflow: visible;
     }
 
+
     .matrix-mode-tabs-row {
         border-bottom: 1px solid #c7d5e4;
         width: 100%;
@@ -1596,6 +1610,40 @@ body[data-path="/statistics"] {
         top: 48px;
         z-index: 8;
         background-color: #ffffff;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 0.55rem;
+
+        .matrix-mode-refresh-btn {
+            flex: 0 0 auto;
+            align-self: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid #b7c9dc;
+            background: #ffffff;
+            color: #4e6781;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            transition: background-color 160ms ease, color 160ms ease;
+
+            .icon {
+                font-size: 0.85rem;
+            }
+
+            &:hover:not(:disabled) {
+                background: #e9f2fb;
+            }
+
+            &:disabled {
+                opacity: 0.55;
+                cursor: default;
+            }
+        }
     }
 
     .matrix-counts-panel {
@@ -1804,6 +1852,54 @@ body[data-path="/statistics"] {
         padding-left: 10px;
         border-left: 1px solid #e2e8ef;
 
+        &.is-loading {
+            display: block;
+            width: 100%;
+            min-height: 420px;
+            position: relative;
+        }
+
+        &.is-refreshing-grid {
+            // Leave headers/toggles readable, but visibly mute stale cells until the refreshed counts arrive.
+            .grouping.header-section-upper .header-summary,
+            .grouping.header-section-upper .column-group-header .stacked-block,
+            > .grouping.depth-0.open,
+            .vertical-container-label {
+                opacity: 0.28;
+                filter: saturate(0.55);
+                transition: opacity 140ms ease, filter 140ms ease;
+            }
+
+            .stacked-block {
+                pointer-events: none;
+            }
+        }
+
+        .matrix-loading-indicator {
+            width: 100%;
+            min-height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .matrix-loading-header-controls {
+            position: relative;
+            z-index: 2;
+            width: 240px;
+            margin-left: 12px;
+            margin-top: 16px;
+            margin-bottom: -10px;
+
+            .matrix-top-controls,
+            .matrix-visual-metric-controls {
+                margin-left: 0 !important;
+                margin-bottom: 0 !important;
+                justify-content: flex-start;
+                width: 100%;
+            }
+        }
+
         .grouping.header-section-upper {
             position: relative;
             z-index: 7;
@@ -1888,6 +1984,7 @@ body[data-path="/statistics"] {
                         width: 320px;
                         max-width: 320px;
                     }
+
                 }
             }
 
@@ -2412,8 +2509,9 @@ body[data-path="/statistics"] {
             }
 
             .stacked-block.is-open-block {
+                // Keep semantic fill color from JS (do not force white), otherwise
+                // valid coverage cells can look empty when selected/open.
                 opacity: 1 !important;
-                background-color: #fff !important;
                 font-weight: 600 !important;
                 border-width: 2px !important;
                 border-style: solid !important;
@@ -2656,6 +2754,63 @@ body[data-path="/statistics"] {
     }
 
     &.matrix-mode-donor-tissue {
+        .stacked-block-viz-container {
+            .header-for-viz {
+                .header-group-text {
+                    .header-group-controls-inline {
+                        width: 300px;
+                        max-width: 300px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.35rem;
+                        justify-content: center;
+                        align-items: center;
+                        transform: translateY(-70%);
+
+                        .matrix-donor-tissue-controls-stack {
+                            width: 300px;
+                            max-width: 300px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.55rem;
+                            margin-bottom: 0.65rem;
+
+                            .matrix-assay-select-control,
+                            .matrix-visual-metric-controls { margin: 0 !important; }
+
+                            .matrix-assay-select-control {
+                                width: 300px;
+                                max-width: 300px;
+                            }
+
+                            .matrix-assay-select-inline {
+                                min-width: 280px;
+                                max-width: 280px;
+                            }
+
+                            .matrix-visual-metric-controls {
+                                .matrix-counts-toggle-inline {
+                                    .view-toggle {
+                                        width: auto;
+                                        display: inline-flex;
+                                        column-gap: 0.25rem;
+                                        justify-content: initial;
+
+                                        .btn {
+                                            width: auto;
+                                            min-width: 0;
+                                            justify-content: center;
+                                            text-align: center;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         .matrix-counts-panel {
             .matrix-facet-terms-panel.search-view-controls-and-results {
                 .facets-container .facets-header.row {
@@ -2749,8 +2904,8 @@ body[data-path="/statistics"] {
     }
 }
 
-// hide page title for /data-matrix
-body[data-path="/data-matrix"] {
+// hide page title for /data-matrix and /recent-releases
+body[data-path="/data-matrix"], body[data-path="/recent-releases"] {
     .static-page {
         margin-top: 0px !important;
         

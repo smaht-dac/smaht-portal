@@ -1,14 +1,19 @@
 import traceback
 from datetime import datetime
-from pytz import timezone
 from pyramid.view import view_config
 from snovault.util import debug_log
 from concurrent.futures import ThreadPoolExecutor
 from structlog import getLogger
-from .utils import generate_admin_search_given_params, generate_search_total
+from .utils import generate_admin_search_given_params
 
 
 log = getLogger(__name__)
+
+# Sentinel value used to seed concurrent search results; any slot still holding this
+# after execution indicates the corresponding search raised (see
+# make_concurrent_search_requests). It must never be rendered to a client - the
+# response-assembly extractors below coerce it to 0 / None.
+SEARCH_ERROR_SENTINEL = -1
 
 
 def includeme(config):
@@ -17,41 +22,58 @@ def includeme(config):
 
 
 class SearchBase:
-    """ Contains search params for getting various bits of information from the ES """
+    """ Contains search params for getting various bits of information from the ES
+
+        Each dict passes ``skip_default_facets=true`` so ES does not compute the full
+        File default facet set (~21 aggregations) that the homepage never reads. Under
+        ``skip_default_facets`` ONLY the facets named in ``additional_facet`` are computed,
+        so every facet a search's stats read MUST be declared there (see the extractors in
+        ``home``). Keep ``additional_facet`` in sync with the facets each search reads.
+    """
+    LATEST_RELEASE_DATE_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
+        'sort': '-file_status_tracking.release_dates.initial_release_date',
+        'limit': 1,
+        'skip_default_facets': ['true'],  # reads @graph only, no facets needed
+    }
     ALL_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'additional_facet': [
             'assays.display_title'
         ]
     }
     COLO829_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl'],
         'additional_facet': [
-            'assays.display_title'
-        ]
+            'assays.display_title'  # assay count
+        ],
+        'skip_default_facets': ['true'],
     }
     HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['hapmap'],
         'additional_facet': [
-            'assays.display_title'
-        ]
+            'assays.display_title'  # assay count
+        ],
+        'skip_default_facets': ['true'],
     }
     IPSC_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60'],
         'additional_facet': [
-            'assays.display_title'
-        ]
+            'assays.display_title'  # assay count
+        ],
+        'skip_default_facets': ['true'],
     }
     TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected-network', 'protected', 'protected-early',],
         'dataset': ['tissue'],
         'file_sets.libraries.analytes.samples.sample_sources.code': [
             'ST001-1A',
@@ -62,17 +84,22 @@ class SearchBase:
             'ST004-1Q'
         ],
         'additional_facet': [
-            'donors.display_title', 'assays.display_title'
-        ]  # required since this is default_hidden for now
+            'donors.display_title',  # donor count
+            'assays.display_title'   # assay count
+        ],
+        'skip_default_facets': ['true'],
     }
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'protected-network', 'open', 'protected', 'protected-early', 'public'],  # TODO remove released
+        'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
         'sample_summary.studies': ['Production'],
+        'dataset!': ['No value'],
         'additional_facet': [
-            'assays.display_title',
-            'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
-        ]
+            'assays.display_title',      # assay count
+            'donors.display_title',      # donor count
+            'sample_summary.tissues'     # tissue-type count
+        ],
+        'skip_default_facets': ['true'],
     }
 
 
@@ -86,7 +113,7 @@ def make_concurrent_search_requests(search_helpers):
         If you use this to make database requests, you will leak connections and start generating server
         side errors!
     """
-    results = [-1] * len(search_helpers)  # watch out for -1 counts as indicative of an error
+    results = [SEARCH_ERROR_SENTINEL] * len(search_helpers)  # watch out for -1 counts as indicative of an error
     with ThreadPoolExecutor() as executor:
         futures = []
         for i, (func, kwargs) in enumerate(search_helpers):
@@ -114,95 +141,64 @@ def extract_desired_facet_from_search(facets, desired_facet_name):
     return {}
 
 
-def generate_unique_facet_count(context, request, search_param, desired_facet):
-    """ Helper function that extracts the number of unique facet terms """
-    search_param['limit'] = 0  # we do not care about search results, just facet counts
-    result = generate_admin_search_given_params(context, request, search_param)
-    facet = extract_desired_facet_from_search(result['facets'], desired_facet)
+def generate_search_result(context, request, search_param):
+    """ Runs a single admin ``limit=0`` search for the given params and returns the whole
+        result. A ``limit=0`` response already contains BOTH the ``total`` and the full
+        ``facets`` block, so one search per distinct param dict is enough to derive every
+        stat (total + each facet count) - see the extractors below. This avoids firing a
+        separate ES round-trip per stat.
+
+        Builds a copy of ``search_param`` with ``limit`` set rather than mutating the
+        (shared, class-level) param dict.
+    """
+    search_param = {**search_param, 'limit': 0}  # we only care about total + facet counts
+    return generate_admin_search_given_params(context, request, search_param)
+
+
+def extract_total_from_search(result):
+    """ Pure extractor: total hit count from a search result. Coerces the error sentinel
+        (or any non-dict result) to 0 so a failed sub-search never renders as -1. """
+    if not isinstance(result, dict):
+        return 0
+    return result.get('total', 0)
+
+
+def extract_unique_facet_count_from_search(result, desired_facet):
+    """ Pure extractor: number of unique terms for ``desired_facet`` in a search result.
+        Degrades gracefully to 0 when the search failed (sentinel/non-dict) or the facet
+        is absent from the response, rather than crashing. """
+    if not isinstance(result, dict):
+        return 0
+    facet = extract_desired_facet_from_search(result.get('facets', []), desired_facet)
     # correct for no value, worst case we check the whole list of facet terms
     # but this is usually a manageable sized list - Will 28 March 2024
-    for term in facet['terms']:
+    terms = facet.get('terms', [])  # missing facet -> 0 rather than KeyError
+    for term in terms:
         if term['key'] == 'No value':
-            return len(facet['terms']) - 1
-    return len(facet['terms'])
+            return len(terms) - 1
+    return len(terms)
 
 
-def generate_colo829_cell_line_file_count(context, request):
-    """ Makes a search subrequest for released + public + restricted files for colo829 """
-    search_param = SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS
-    return generate_search_total(context, request, search_param)
+def generate_latest_release_date(context, request):
+    """ Makes a search subrequest for the latest release date """
+    search_param = SearchBase.LATEST_RELEASE_DATE_SEARCH_PARAMS
+    result = generate_admin_search_given_params(context, request, search_param)
+    graph = result.get('@graph', [])
+    if not graph:
+        return None
+    return graph[0].get('file_status_tracking', {}).get('release_dates', {}).get('initial_release_date')
 
 
-def generate_colo829_assay_count(context, request):
-    """ Makes a search subrequest the same as the above to extract the assay counts for colo829 """
-    search_param = SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
-
-
-def generate_hapmap_cell_line_file_count(context, request):
-    """ Makes a search subrequest for released + public + restricted files for hapmap """
-    search_param = SearchBase.HAPMAP_RELEASED_FILES_SEARCH_PARAMS
-    return generate_search_total(context, request, search_param)
-
-
-def generate_hapmap_assay_count(context, request):
-    """ Makes a search subrequest the same as the above to extract the assay counts for hapmap """
-    search_param = SearchBase.HAPMAP_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
-
-
-def generate_ipsc_cell_line_file_count(context, request):
-    """ Makes a search subrequest for released + public + restricted files for ipsc """
-    search_param = SearchBase.IPSC_RELEASED_FILES_SEARCH_PARAMS
-    return generate_search_total(context, request, search_param)
-
-
-def generate_ipsc_assay_count(context, request):
-    """ Makes a search subrequest the same as the above to extract the assay counts for ipsc """
-    search_param = SearchBase.IPSC_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
-
-
-def generate_tissue_file_count(context, request):
-    """ Get total file count for benchmarking tissues """
-    search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_search_total(context, request, search_param)
-
-
-def generate_tissue_donor_count(context, request):
-    """ Get benchmarking tissue donor count by aggregating on donor """
-    search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'donors.display_title')
-
-
-def generate_tissue_assay_count(context, request):
-    """ Get total assay count for benchmarking tissues """
-    search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
-
-
-def generate_production_file_count(context, request):
-    """ Get total file count for production tissues """
-    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
-    return generate_search_total(context, request, search_param)
-
-
-def generate_production_tissue_donor_count(context, request):
-    """ Get production tissue donor count """
-    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'donors.display_title')
-
-
-def generate_production_tissue_assay_count(context, request):
-    """ Get production tissue assay counts """
-    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'assays.display_title')
-
-
-def generate_production_tissue_type_count(context, request):
-    """ Get production tissue type counts """
-    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'sample_summary.tissues')
+def format_release_date(release_date):
+    """ Formats the stored ISO release date as YYYY-MM-DD, or None when it is missing,
+        the error sentinel, or otherwise unparseable (guards against a single failed
+        release-date sub-search 500ing the whole homepage). """
+    if not isinstance(release_date, str):
+        return None
+    try:
+        return datetime.fromisoformat(release_date).strftime("%Y-%m-%d")
+    except ValueError:
+        return None
 
 
 @view_config(route_name='home', request_method=['GET'])
@@ -212,35 +208,34 @@ def home(context, request):
         Uses a threadpool to make several async requests to the ES to extract data for
         homepage statistics
     """
+    # One search per distinct param dict. A single limit=0 response carries both the
+    # 'total' and the full 'facets' block, so every stat below is derived from these six
+    # results via pure extractors rather than a fresh ES round-trip per stat.
     search_results = make_concurrent_search_requests([
-        # colo829 stats
-        (generate_colo829_assay_count, {'context': context, 'request': request}),  # 0
-        (generate_colo829_cell_line_file_count, {'context': context, 'request': request}),  # 1
-
-        # HapMap stats
-        (generate_hapmap_assay_count, {'context': context, 'request': request}),  # 2
-        (generate_hapmap_cell_line_file_count, {'context': context, 'request': request}),  # 3
-
-        # iPSC & Fibroblast stats
-        (generate_ipsc_assay_count, {'context': context, 'request': request}),  # 4
-        (generate_ipsc_cell_line_file_count, {'context': context, 'request': request}),  # 5
-
-        # Tissue stats
-        (generate_tissue_file_count, {'context': context, 'request': request}),  # 6
-        (generate_tissue_donor_count, {'context': context, 'request': request}),  # 7
-        (generate_tissue_assay_count, {'context': context, 'request': request}),  # 8
-
-        # Production stats
-        (generate_production_file_count, {'context': context, 'request': request}),  # 9
-        (generate_production_tissue_donor_count, {'context': context, 'request': request}),  # 10
-        (generate_production_tissue_assay_count, {'context': context, 'request': request}),  # 11
-        (generate_production_tissue_type_count, {'context': context, 'request': request}),  # 12
+        # latest release date
+        (generate_latest_release_date, {'context': context, 'request': request}),  # 0
+        # per cell-line / tissue-set searches (each yields total + facets)
+        (generate_search_result,
+         {'context': context, 'request': request,
+          'search_param': SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS}),  # 1
+        (generate_search_result,
+         {'context': context, 'request': request,
+          'search_param': SearchBase.HAPMAP_RELEASED_FILES_SEARCH_PARAMS}),  # 2
+        (generate_search_result,
+         {'context': context, 'request': request,
+          'search_param': SearchBase.IPSC_RELEASED_FILES_SEARCH_PARAMS}),  # 3
+        (generate_search_result,
+         {'context': context, 'request': request,
+          'search_param': SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS}),  # 4
+        (generate_search_result,
+         {'context': context, 'request': request,
+          'search_param': SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS}),  # 5
     ])
-    time = datetime.now(timezone('EST'))
+    release_date, colo829, hapmap, ipsc, tissues, production = search_results
     response = {
         '@context': '/home',
         '@id': '/home',
-        'date': f'{time.strftime("%Y-%m-%d %H:%M")} EST',
+        'date': format_release_date(release_date),
         '@graph': [
             {
                 "title": "Benchmarking",
@@ -251,10 +246,10 @@ def home(context, request):
                         "link": "/data/benchmarking/COLO829",
                         "figures": [
                             { "value": 2, "unit": "Cell Lines" },
-                            { "value": search_results[0],
+                            { "value": extract_unique_facet_count_from_search(colo829, 'assays.display_title'),
                               "unit": "Assays" },
                             { "value": 0, "unit": "Mutations" },
-                            { "value": search_results[1],
+                            { "value": extract_total_from_search(colo829),
                               "unit": "Files Generated" }
                         ]
                     },
@@ -263,9 +258,9 @@ def home(context, request):
                         "link": "/data/benchmarking/HapMap",
                         "figures": [
                             { "value": 6, "unit": "Cell Lines" },
-                            { "value": search_results[2], "unit": "Assays" },
+                            { "value": extract_unique_facet_count_from_search(hapmap, 'assays.display_title'), "unit": "Assays" },
                             { "value": 0, "unit": "Mutations" },
-                            { "value": search_results[3], "unit": "Files Generated" }
+                            { "value": extract_total_from_search(hapmap), "unit": "Files Generated" }
                         ]
                     },
                     {
@@ -273,19 +268,19 @@ def home(context, request):
                         "link": "/data/benchmarking/iPSC-fibroblasts",
                         "figures": [
                             { "value": 5, "unit": "Cell Lines" },
-                            { "value": search_results[4], "unit": "Assays" },
+                            { "value": extract_unique_facet_count_from_search(ipsc, 'assays.display_title'), "unit": "Assays" },
                             { "value": 0, "unit": "Mutations" },
-                            { "value": search_results[5], "unit": "Files Generated" }
+                            { "value": extract_total_from_search(ipsc), "unit": "Files Generated" }
                         ]
                     },
                     {
                         "title": "Benchmarking Tissues",
                         "link": "/data/benchmarking/donor-st001",
                         "figures": [
-                            { "value": search_results[7], "unit": "Donors" },
+                            { "value": extract_unique_facet_count_from_search(tissues, 'donors.display_title'), "unit": "Donors" },
                             { "value": 4, "unit": "Tissue Types" },
-                            { "value": search_results[8], "unit": "Assays" },
-                            { "value": search_results[6], "unit": "Files Generated" }
+                            { "value": extract_unique_facet_count_from_search(tissues, 'assays.display_title'), "unit": "Assays" },
+                            { "value": extract_total_from_search(tissues), "unit": "Files Generated" }
                         ]
                     }
                 ]
@@ -298,10 +293,10 @@ def home(context, request):
                         "title": "Primary Tissues",
                         "link": "/browse",
                         "figures": [
-                            { "value": search_results[10], "unit": "Donors" },
-                            { "value": search_results[12], "unit": "Tissue Types" },
-                            { "value": search_results[11], "unit": "Assays" },
-                            { "value": search_results[9], "unit": "Files Generated" }
+                            { "value": extract_unique_facet_count_from_search(production, 'donors.display_title'), "unit": "Donors" },
+                            { "value": extract_unique_facet_count_from_search(production, 'sample_summary.tissues'), "unit": "Tissue Types" },
+                            { "value": extract_unique_facet_count_from_search(production, 'assays.display_title'), "unit": "Assays" },
+                            { "value": extract_total_from_search(production), "unit": "Files Generated" }
                         ]
                     }
                 ]
