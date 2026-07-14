@@ -1,16 +1,24 @@
 """
-Populate (or remove) `linked_fixed_samples` on fresh/frozen TissueSamples.
+Populate (or remove) `linked_fixed_samples` on GCC-submitted fresh/frozen
+TissueSamples, pointing to TPC-submitted fixed TissueSamples from the same
+tissue block.
 
-Every fixed TissueSample from a tissue block is linked to every fresh/frozen
-TissueSample from that same block (donor + protocol-pair match via
-FRESH_TO_FIXED_PROTOCOL_MAP) -- not just spatially "adjacent" aliquots. See
+Every TPC-submitted fixed TissueSample from a tissue block is linked to every
+GCC-submitted fresh/frozen TissueSample from that same block (donor +
+protocol-pair match via FRESH_TO_FIXED_PROTOCOL_MAP) -- not just spatially
+"adjacent" aliquots, and not TPC-submitted fresh samples (those don't need
+the link; a GCC sample and its matching TPC sample already share the same
+external_id and sample_sources per the validation in
+types/tissue_sample.py:run_sample_metadata_validation, so donor/protocol
+identity can be read directly off the GCC sample without looking up a TPC
+counterpart). See
 c4-scripts/ajs/NOTES/adjacent_fixed_sample_linking_session_2026-07-10.md for
 the design history.
 
 Core behavior:
-- Selects a set of fresh/frozen TissueSamples to operate on, via one of three
-  mutually exclusive scopes: --all, --search-query, or --identifiers /
-  --identifiers-file.
+- Selects a set of GCC-submitted fresh/frozen TissueSamples to operate on,
+  via one of three mutually exclusive scopes: --all, --search-query, or
+  --identifiers / --identifiers-file.
 - By default (populate mode), computes each fresh sample's fixed siblings
   and PATCHes `linked_fixed_samples`, skipping samples that are already
   up to date.
@@ -31,15 +39,16 @@ Options:
         Name of the environment as defined in the local keys file. Required.
 
     --all
-        Process every TPC-submitted fresh/frozen TissueSample.
+        Process every GCC-submitted fresh/frozen TissueSample.
 
     --search-query QUERY
-        Additional search filter appended to the base TPC fresh/frozen
+        Additional search filter appended to the base GCC fresh/frozen
         search, e.g. "linked_fixed_samples=No value" to target only samples
         that don't have the field populated yet.
 
     --identifiers ID [ID ...]
         One or a few TissueSample accessions, uuids, or submitted_ids.
+        Must resolve to GCC-submitted fresh/frozen samples.
 
     --identifiers-file PATH
         Path to a file with one identifier per line, for bulk targeted runs.
@@ -81,10 +90,18 @@ from encoded.item_utils.utils import RequestHandler
 pp = pprint.PrettyPrinter(indent=2)
 
 
-TPC_SEARCH_FILTER = (
-    "/search/?type=TissueSample&status!=deleted"
-    "&submission_centers.display_title=NDRI+TPC"
-)
+BASE_SEARCH_FILTER = "/search/?type=TissueSample&status!=deleted"
+
+# Fixed samples (pathology's domain) are always TPC-submitted, so the fixed
+# side keeps this restriction. The fresh side deliberately does NOT use this
+# filter -- see _is_tpc_submitted() and _search_fresh_samples().
+TPC_SEARCH_FILTER = f"{BASE_SEARCH_FILTER}&submission_centers.display_title=NDRI+TPC"
+
+# Matches the identifier/display_title pair used in types/tissue_sample.py's
+# NDRI_TPC_ID/NDRI_TPC_DT and run_sample_metadata_validation's tpc/non_tpc split.
+NDRI_TPC_ID = "ndri_tpc"
+NDRI_TPC_DT = "NDRI TPC"
+
 FRESH_PRESERVATION_TYPES = ["Fresh", "Frozen", "Snap Frozen"]
 FIXED_PRESERVATION_TYPE = "Fixed"
 LINKED_FIXED_SAMPLES_FIELD = "linked_fixed_samples"
@@ -159,14 +176,21 @@ class FixedSampleAssociator:
     def _search_fresh_samples(
         self, extra_query: Optional[str] = None
     ) -> List[Dict[str, Any]]:
+        """Deliberately does not filter by submission center in the search
+        itself -- submission_centers is multi-valued and `!=` negation
+        semantics against it aren't something we've verified, so instead we
+        fetch broadly and filter to non-TPC (i.e. GCC) in Python via
+        _is_tpc_submitted(), mirroring run_sample_metadata_validation's
+        proven tpc/non_tpc split."""
         preservation_filter = "".join(
             f"&preservation_type={ptype.replace(' ', '+')}"
             for ptype in FRESH_PRESERVATION_TYPES
         )
-        search_filter = f"{TPC_SEARCH_FILTER}{preservation_filter}"
+        search_filter = f"{BASE_SEARCH_FILTER}{preservation_filter}"
         if extra_query:
             search_filter += f"&{extra_query}"
-        return ff_utils.search_metadata(search_filter, key=self.key)
+        samples = ff_utils.search_metadata(search_filter, key=self.key)
+        return [sample for sample in samples if not self._is_tpc_submitted(sample)]
 
     def _get_fresh_samples_by_identifier(
         self, identifiers: List[str]
@@ -189,8 +213,29 @@ class FixedSampleAssociator:
                     f"{sample.get('preservation_type')!r}, not fresh/frozen - skipping."
                 )
                 continue
+            if self._is_tpc_submitted(sample):
+                self.add_warning(
+                    f"{identifier} is TPC-submitted, not GCC - skipping (only "
+                    f"GCC-submitted fresh/frozen samples are valid targets)."
+                )
+                continue
             valid_samples.append(sample)
         return valid_samples
+
+    def _is_tpc_submitted(self, item: Dict[str, Any]) -> bool:
+        """Works against either frame this script encounters: search results
+        (submission_centers entries embedded as dicts with display_title) or
+        RequestHandler frame="object" results (entries as bare identifiers,
+        resolved here the same way types/tissue_sample.py:is_tpc_submission does)."""
+        for center in item_utils.get_submission_centers(item):
+            if isinstance(center, dict):
+                if center.get("display_title") == NDRI_TPC_DT:
+                    return True
+            else:
+                center_item = self.request_handler.get_item(center)
+                if item_utils.get_identifier(center_item) == NDRI_TPC_ID:
+                    return True
+        return False
 
     # ---- populate action ----
 
@@ -210,9 +255,10 @@ class FixedSampleAssociator:
             fixed_group = fixed_index.get((donor_uuid, fixed_protocol), [])
             if not fixed_group:
                 self.add_warning(
-                    f"No fixed counterpart (protocol {fixed_protocol}) for donor "
-                    f"{donor_uuid}, fresh protocol {fresh_protocol} "
-                    f"({len(fresh_group)} fresh sample(s))."
+                    f"No TPC fixed counterpart (protocol {fixed_protocol}) for donor "
+                    f"{donor_uuid}, GCC fresh protocol {fresh_protocol} "
+                    f"({len(fresh_group)} fresh sample(s)). This can be expected if "
+                    f"TPC hasn't submitted/processed this block's fixed samples yet."
                 )
                 continue
             fixed_uuids = sorted({item_utils.get_uuid(f) for f in fixed_group})
@@ -266,10 +312,12 @@ class FixedSampleAssociator:
                 continue
             if (donor_uuid, fresh_protocol) not in fresh_by_donor_protocol:
                 self.add_warning(
-                    f"Orphaned fixed sample(s) for donor {donor_uuid}, protocol "
-                    f"{fixed_protocol}: no fresh/frozen counterpart (protocol "
-                    f"{fresh_protocol}) found. Any PathologyReport on these "
-                    f"sample(s) will not surface via associated_pathology_reports."
+                    f"Orphaned TPC fixed sample(s) for donor {donor_uuid}, protocol "
+                    f"{fixed_protocol}: no GCC fresh/frozen counterpart (protocol "
+                    f"{fresh_protocol}) found. This can be expected if GCC hasn't "
+                    f"submitted sequencing samples for this block yet -- but until "
+                    f"they do, any PathologyReport on these sample(s) will not "
+                    f"surface via associated_pathology_reports."
                 )
 
     # ---- delete action ----
@@ -455,12 +503,12 @@ def main() -> None:
 
     scope_group = parser.add_mutually_exclusive_group(required=True)
     scope_group.add_argument(
-        "--all", action="store_true", help="Process every TPC fresh/frozen TissueSample"
+        "--all", action="store_true", help="Process every GCC-submitted fresh/frozen TissueSample"
     )
     scope_group.add_argument(
         "--search-query",
         help=(
-            "Additional search filter appended to the base TPC fresh/frozen search, "
+            "Additional search filter appended to the base GCC fresh/frozen search, "
             "e.g. 'linked_fixed_samples=No value'"
         ),
     )
