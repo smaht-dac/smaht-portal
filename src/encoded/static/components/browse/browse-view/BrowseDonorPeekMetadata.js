@@ -19,6 +19,6 @@ export function buildDonorPeekMetadataHref(result) {
 
     return (
         `/peek-metadata/?skip_default_facets=true&${additionalFacetParams}&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=` +
-        result?.display_title
+        encodeURIComponent(result?.display_title)
     );
 }

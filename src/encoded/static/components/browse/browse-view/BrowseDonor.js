@@ -5,10 +5,7 @@ import { Schemas } from '../../util';
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import {
-    BROWSE_LINKS,
-    NoResultsBrowseModal,
-} from '../BrowseView';
+import { BROWSE_LINKS, NoResultsBrowseModal } from '../BrowseView';
 import { transformedFacets } from '../SearchView';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
@@ -16,6 +13,7 @@ import {
     customRenderDetailPane,
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
+import { DonorDataProvider } from './BrowseDonorDataProvider';
 import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';
 
 export function createBrowseDonorColumnExtensionMap(props) {
@@ -56,7 +54,6 @@ const BrowseDonorSearchTable = (props) => {
             ...context,
             clear_filters: BROWSE_LINKS.donor,
         },
-        customColumnSearchHref: buildDonorPeekMetadataHref,
     };
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
@@ -126,15 +123,18 @@ export const BrowseDonorBody = (props) => {
         props;
 
     useEffect(
-        () => session && userDownloadAccess?.['protected']
-            ? setShowRedirectBanner(true)
-            : undefined,
+        () =>
+            session && userDownloadAccess?.['protected']
+                ? setShowRedirectBanner(true)
+                : undefined,
         [session, userDownloadAccess]
     );
 
     return (
-        <>
-            {showRedirectBanner && <RedirectBanner href={props?.href} />}
+        <DonorDataProvider
+            key={href}
+            buildHref={buildDonorPeekMetadataHref}>
+            {showRedirectBanner && <RedirectBanner href={href} />}
             <BrowseDonorVizWrapper {...props} mapping="donor" />
             <hr />
             <BrowseViewControllerWithSelections {...props}>
@@ -149,6 +149,6 @@ export const BrowseDonorBody = (props) => {
                     isAccessResolved={isAccessResolved}
                 />
             )}
-        </>
+        </DonorDataProvider>
     );
 };

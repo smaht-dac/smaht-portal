@@ -8,16 +8,30 @@ Change Log
 ----------
 
 
+2.3.6
+=====
+
+* Preserve the Donor and Protected Donor browse ``/peek-metadata/`` optimization while using the progressive, concurrency-limited row-data queue: both callers share an explicit URL contract with ``skip_default_facets=true`` and request only ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
+* Avoid the HTTP 400 caused by combining ``skip_default_facets=true`` with ``additional_facet=type``. The File count now comes from the GET ``/peek-metadata/`` response's ``total`` alongside its ``facets``.
+
+
 2.3.5
 =====
 
-* Fix an HTTP 400 regression in the 2.3.4 Donor/Protected Donor browse ``/peek-metadata/`` facet optimization: combining ``skip_default_facets=true`` with ``additional_facet=type`` made snovault infer an invalid ``stats`` aggregation on the ``type`` field, breaking the Tissues/Assays/Files/File Size row-summary columns. ``additional_facet=type`` is no longer requested; the File count is instead read from the search response's ``total``, which the GET ``/peek-metadata/`` endpoint now returns alongside ``facets``.
+'PR 710: update annotated filename for SupplementaryFiles with category Annotation <https://github.com/smaht-dac/smaht-portal/pull/710>'_
+
+* added genome annotation data class for benchmarking cell lines - for supplementary files to annotated_file_name script
 
 
 2.3.4
 =====
 
-* Reduce Donor and Protected Donor browse ``/peek-metadata/`` GET facet work by passing ``skip_default_facets=true`` and explicitly requesting only the three remaining facets those row-summary columns render besides the File count: ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
+`PR #713: refactor: load donor browse row data progressively with a concurrency-limited queue <https://github.com/smaht-dac/smaht-portal/pull/713>`_
+
+* Donor browse: load per-donor file data (tissues, assays, file count, file size) via a
+  concurrency-limited queue (``DonorDataProvider``) so rows populate in display order
+* Each donor issues one ``/peek-metadata/`` request with ``skip_default_facets=true``, cutting
+  Elasticsearch aggregation work from 21 default File facets to 3
 
 
 2.3.3
@@ -238,7 +252,7 @@ Change Log
 * ``/metadata``: restrict ES ``_source`` to only the columns the TSV reads, dropping per-hit payload by ~10×
 * ``/metadata``: pre-compile per-row field-path splits so each hit pays one dict lookup per column instead of repeated ``str.split`` calls
 * ``/peek-metadata``: compute the file_size summary by streaming the matched docs (same path as ``/metadata``) and summing in Python, instead of issuing an ES ``stats`` aggregation that was blocking on slow-shard coordination
-* ``/peek-metadata``: GET-style requests (search-filter URL params) continue to forward caller-supplied search params through snovault ``search()``; callers can opt into ``skip_default_facets=true`` when they explicitly declare every facet they read
+* ``/peek-metadata``: GET-style requests (search-filter URL params) now forward through snovault ``search()`` with the new ``skip_default_facets=true`` flag, preserving nested-field correctness while skipping the dozens of schema-default facet aggregations
 * Fix ``TypeError: unhashable type: 'dict'`` raised from ``file.py:get_donors`` (and the parallel paths in ``get_cell_cultures``, ``get_cell_lines``, ``analysis_run.get_donors``, ``external_output_file.get_donors``) when an upstream ``@@object`` view carries an embedded sub-object where a bare linkTo path was expected
 * Adds ``dedupe_identifiers`` in ``item_utils/utils.py`` that dedupes by string/uuid/@id instead of relying on ``set()``, preserving first-occurrence order
 * Defensive only — the upstream cause was fixed in snovault 11.30.1; this prevents already-corrupted documents in ES from breaking rendering until a full reindex

@@ -17,6 +17,7 @@ import {
     customRenderDetailPane,
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
+import { DonorDataProvider } from './BrowseDonorDataProvider';
 import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';
 
 export { formatTissueData, formatAssayData } from './BrowseDonorBase';
@@ -104,7 +105,6 @@ const BrowseProtectedDonorSearchTable = (props) => {
             ...context,
             clear_filters: BROWSE_LINKS.protected_donor,
         },
-        customColumnSearchHref: buildDonorPeekMetadataHref,
         defaultColAlignment: 'text-left',
     };
 
@@ -157,7 +157,9 @@ export const BrowseProtectedDonorBody = (props) => {
     const { context, alerts, href, userDownloadAccess, isAccessResolved } =
         props;
     return (
-        <>
+        <DonorDataProvider
+            key={href}
+            buildHref={buildDonorPeekMetadataHref}>
             <Alerts alerts={alerts} className="mt-2" />
             <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
             <hr />
@@ -173,6 +175,6 @@ export const BrowseProtectedDonorBody = (props) => {
                     isAccessResolved={isAccessResolved}
                 />
             )}
-        </>
+        </DonorDataProvider>
     );
 };

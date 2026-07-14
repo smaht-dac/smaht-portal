@@ -1053,7 +1053,7 @@ def _facets_via_search(request, params):
     aggregation coordination timeout). Everything else goes through here.
     """
     forwarded = MultiDict()
-    for key in params.keys():
+    for key in dict.fromkeys(params.keys()):
         if key in ('limit', 'from'):
             continue
         for value in params.getall(key):

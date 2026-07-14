@@ -44,6 +44,7 @@ jest.mock(
 jest.mock(
     '@hms-dbmi-bgm/shared-portal-components/es/components/util',
     () => ({
+        ajax: { load: jest.fn() },
         valueTransforms: {
             bytesToLargerUnit: (value, _decimals, returnUnit) =>
                 returnUnit ? 'KB' : String(value / 1024),
@@ -67,7 +68,7 @@ function expectPeekMetadataHref(href) {
         expect(href).toContain(`additional_facet=${facet}`);
     });
     expect(href).toContain('&dataset!=No+value&type=File&');
-    expect(href).toContain('&donors.display_title=Donor ABC');
+    expect(href).toContain('&donors.display_title=Donor%20ABC');
 }
 
 describe('donor browse peek-metadata URLs', () => {
@@ -108,13 +109,13 @@ describe('donor browse peek-metadata URLs', () => {
             "import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';"
         );
         expect(donorSource).toContain(
-            'customColumnSearchHref: buildDonorPeekMetadataHref'
+            'buildHref={buildDonorPeekMetadataHref}'
         );
         expect(protectedDonorSource).toContain(
             "import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';"
         );
         expect(protectedDonorSource).toContain(
-            'customColumnSearchHref: buildDonorPeekMetadataHref'
+            'buildHref={buildDonorPeekMetadataHref}'
         );
     });
 });
@@ -122,39 +123,33 @@ describe('donor browse peek-metadata URLs', () => {
 describe('donor browse row-summary rendering', () => {
     it('renders all fetched columns when only explicit skip-default facets are present', () => {
         const { createBaseDonorColumnExtensionMap } = require('../browse/browse-view/BrowseDonorBase');
+        const { DonorDataContext } = require('../browse/browse-view/BrowseDonorDataProvider');
         const { columnExtensionMap } = createBaseDonorColumnExtensionMap({});
         const result = { display_title: 'Donor ABC' };
-        const parentProps = {
-            fetchedProps: {
-                loading: false,
-                // Matches the GET /peek-metadata response shape post-fix:
-                // `{ facets, total }` rather than a bare facets array, since
-                // the File count now comes from `total` (see
-                // BrowseDonorPeekMetadata.js / metadata.py `_facets_via_search`).
-                data: {
-                    total: 7,
-                    facets: [
+        const data = {
+            total: 7,
+            facets: [
+                {
+                    field: 'sample_summary.tissues',
+                    terms: [{ key: 'Blood' }, { key: 'Skin' }],
+                },
+                {
+                    field: 'assays.display_title',
+                    terms: [
                         {
-                            field: 'sample_summary.tissues',
-                            terms: [{ key: 'Blood' }, { key: 'Skin' }],
+                            key: 'Bulk WGS',
+                            terms: [{ key: 'WGS' }, { key: 'Hi-C' }],
                         },
-                        {
-                            field: 'assays.display_title',
-                            terms: [
-                                {
-                                    key: 'Bulk WGS',
-                                    terms: [{ key: 'WGS' }, { key: 'Hi-C' }],
-                                },
-                                { key: 'Bulk RNA-seq' },
-                            ],
-                        },
-                        {
-                            field: 'file_size',
-                            sum: 2048,
-                        },
+                        { key: 'Bulk RNA-seq' },
                     ],
                 },
-            },
+                {
+                    field: 'file_size',
+                    sum: 2048,
+                },
+            ],
+        };
+        const parentProps = {
             href: '/browse/?type=Donor',
             context: {},
             rowNumber: 0,
@@ -163,19 +158,22 @@ describe('donor browse row-summary rendering', () => {
             detailPaneType: null,
             handleCellClick: jest.fn(),
         };
+        const donorDataContext = {
+            getDonorData: () => ({ data, loading: false }),
+            enqueueDonor: jest.fn(),
+            version: 0,
+        };
+        const renderColumn = (column) =>
+            renderToStaticMarkup(
+                <DonorDataContext.Provider value={donorDataContext}>
+                    {column.render(result, parentProps)}
+                </DonorDataContext.Provider>
+            );
 
-        const tissues = renderToStaticMarkup(
-            columnExtensionMap.tissues.render(result, parentProps)
-        );
-        const assays = renderToStaticMarkup(
-            columnExtensionMap.assays.render(result, parentProps)
-        );
-        const files = renderToStaticMarkup(
-            columnExtensionMap.files.render(result, parentProps)
-        );
-        const fileSize = renderToStaticMarkup(
-            columnExtensionMap.file_size.render(result, parentProps)
-        );
+        const tissues = renderColumn(columnExtensionMap.tissues);
+        const assays = renderColumn(columnExtensionMap.assays);
+        const files = renderColumn(columnExtensionMap.files);
+        const fileSize = renderColumn(columnExtensionMap.file_size);
 
         expect(tissues).toContain('2 Tissues');
         expect(assays).toContain('3 Assays');
