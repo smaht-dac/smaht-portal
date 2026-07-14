@@ -78,7 +78,7 @@ class User(Item, SnovaultUser):
 
 
 USER_PAGE_VIEW_ATTRIBUTES = ['@id', '@type', 'uuid', 'title', 'display_title', 'email', 'consortia',
-                             'submission_centers']
+                             'submission_centers', 'data_release_notification_enrolled']
 
 
 @view_config(context=User, permission='view', request_method='GET', name='page')
