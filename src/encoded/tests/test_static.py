@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import pytest
 
 from dcicutils.qa_checkers import ChangeLogChecker, DebuggingArtifactChecker
@@ -180,3 +181,88 @@ def test_data_matrix_tab_cache_signature_includes_request_shape():
     )
     assert "this.tabCache[this.state.matrixMode]" in data_matrix_source
     assert "this.tabCache[matrixMode]" in data_matrix_source
+
+
+STATIC_SOURCE_DIR = os.path.join(REPOSITORY_ROOT_DIR, "src/encoded/static")
+# Generated bundle/CSS output directories; only hand-written sources dispatch
+# store actions directly.
+STATIC_GENERATED_DIRS = {"build", "css"}
+STORE_DISPATCH_TYPE_PATTERN = re.compile(r"\.dispatch\(\s*\{\s*type:\s*'(\w+)'")
+
+
+def _store_handled_action_types(store_source):
+    return set(re.findall(r"case '(\w+)':", store_source))
+
+
+def _dispatched_action_types():
+    dispatched = []
+    for root, dirs, files in os.walk(STATIC_SOURCE_DIR):
+        dirs[:] = [
+            directory for directory in dirs
+            if directory not in STATIC_GENERATED_DIRS
+        ]
+        for file_name in files:
+            if not file_name.endswith((".js", ".jsx")):
+                continue
+            file_path = os.path.join(root, file_name)
+            with open(file_path) as source_file:
+                source = source_file.read()
+            for action_type in STORE_DISPATCH_TYPE_PATTERN.findall(source):
+                dispatched.append(
+                    (os.path.relpath(file_path, REPOSITORY_ROOT_DIR), action_type)
+                )
+    return dispatched
+
+
+@pytest.mark.static
+def test_store_dispatch_action_types_are_handled_by_reducers():
+    """Every action type literal dispatched to the Redux store must be handled
+    by a reducer in store.js. An unhandled type falls through to each reducer's
+    `default` case and is a silent no-op (regression: UserView dispatched
+    'CONTEXT' while the context reducer only handles 'SET_CONTEXT', so profile
+    edits and notification-enrollment changes never re-rendered).
+    """
+    with open(os.path.join(STATIC_SOURCE_DIR, "store.js")) as store_file:
+        store_source = store_file.read()
+    handled_action_types = _store_handled_action_types(store_source)
+    assert "SET_CONTEXT" in handled_action_types
+    assert "BATCH_ACTIONS" in handled_action_types
+
+    dispatched_action_types = _dispatched_action_types()
+    assert dispatched_action_types, (
+        "Expected store.dispatch() call sites in the frontend sources; the"
+        " dispatch pattern in this test is likely stale."
+    )
+    unhandled = [
+        (file_path, action_type)
+        for file_path, action_type in dispatched_action_types
+        if action_type not in handled_action_types
+    ]
+    assert unhandled == [], (
+        "Dispatched Redux action types not handled by any store.js reducer"
+        f" (silent no-ops): {unhandled}"
+    )
+
+
+@pytest.mark.static
+def test_user_view_notification_enrollment_updates_store_context():
+    """The enrollment success callback must dispatch SET_CONTEXT with the user
+    context and updated enrollment flag so the profile page re-renders without
+    a reload.
+    """
+    user_view_path = os.path.join(
+        STATIC_SOURCE_DIR, "components/item-pages/UserView.js"
+    )
+    with open(user_view_path) as user_view_file:
+        user_view_source = user_view_file.read()
+
+    handler_start = user_view_source.index(
+        "handleNotificationEnrollmentChange(enrolled) {"
+    )
+    handler_end = user_view_source.index("mayEdit() {", handler_start)
+    handler_source = user_view_source[handler_start:handler_end]
+
+    dispatched_types = STORE_DISPATCH_TYPE_PATTERN.findall(handler_source)
+    assert dispatched_types == ["SET_CONTEXT"]
+    assert "...user" in handler_source
+    assert "[DATA_RELEASE_NOTIFICATION_ENROLLED]: enrolled" in handler_source

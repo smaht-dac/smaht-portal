@@ -737,7 +737,7 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
 
 export default class UserView extends React.Component {
     static onEditableFieldSave(nextContext) {
-        store.dispatch({ type: 'CONTEXT', payload: nextContext });
+        store.dispatch({ type: 'SET_CONTEXT', payload: nextContext });
     }
 
     static propTypes = {
@@ -779,7 +779,7 @@ export default class UserView extends React.Component {
     handleNotificationEnrollmentChange(enrolled) {
         const { context: user } = this.props;
         store.dispatch({
-            type: 'CONTEXT',
+            type: 'SET_CONTEXT',
             payload: {
                 ...user,
                 [DATA_RELEASE_NOTIFICATION_ENROLLED]: enrolled,

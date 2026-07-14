@@ -8,6 +8,23 @@ Change Log
 ----------
 
 
+2.4.5
+=====
+
+`PR #716: Add data-release email notification enrollment <https://github.com/smaht-dac/smaht-portal/pull/716>`_
+
+* Users can enroll their profile email in data-release email notifications from their
+  profile page; enrollment subscribes the email to an SNS topic and records the state
+  on the ``User`` item (``data_release_notification_enrolled``)
+* New endpoints: ``POST /register_notification``, ``POST /deregister_notification``
+  (authenticated users only), and ``GET /health/data-release-notifications``
+  (topic availability)
+* Deployment prerequisite: the feature stays hidden unless an SNS topic ARN is
+  configured (``sns_topic`` in settings or the ``SNS_TOPIC`` GAC key), and the portal
+  task role needs ``sns:Subscribe``, ``sns:Unsubscribe``, and
+  ``sns:ListSubscriptionsByTopic`` on that topic
+
+
 2.4.4
 =====
 
