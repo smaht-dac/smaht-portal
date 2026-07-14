@@ -3208,6 +3208,36 @@ File and Donor Overview Styles
 		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 	}
 
+	.aliquot-visual-grid-wrap {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+	}
+
+	.aliquot-grid-row-with-labels {
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+	}
+
+	.aliquot-grid-row-labels {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding-top: 8px;
+	}
+
+	.aliquot-grid-row-label {
+		width: 12px;
+		height: 16px;
+		line-height: 16px;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: #4E6379;
+		text-align: right;
+	}
+
 	.aliquot-visual-grid {
 		display: flex;
 		flex-direction: column;
@@ -3234,6 +3264,22 @@ File and Donor Overview Styles
 			background-color: #1E5B4F;
 			border-color: #1E5B4F;
 		}
+	}
+
+	.aliquot-grid-col-labels {
+		display: flex;
+		gap: 4px;
+		margin-top: 2px;
+		margin-left: 26px;
+	}
+
+	.aliquot-grid-col-label {
+		width: 16px;
+		line-height: 1;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: #4E6379;
+		text-align: center;
 	}
 
 	.aliquot-popover-caption {

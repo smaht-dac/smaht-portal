@@ -382,29 +382,51 @@ export default function AliquotVisualization({
                                             }}
                                         />
                                     ) : (
-                                        <span className="aliquot-visual-grid">
-                                            {FROZEN_GRID_ROWS.map((row) => (
-                                                <span
-                                                    className="aliquot-grid-row"
-                                                    key={row}>
-                                                    {FROZEN_GRID_COLS.map((col) => {
-                                                        const wellId = `${row}${col}`;
-                                                        return (
-                                                            <span
-                                                                key={wellId}
-                                                                className={
-                                                                    'aliquot-grid-well' +
-                                                                    (selectedFrozenWells.includes(
-                                                                        wellId
-                                                                    )
-                                                                        ? ' is-highlighted'
-                                                                        : '')
-                                                                }
-                                                            />
-                                                        );
-                                                    })}
+                                        <span className="aliquot-visual-grid-wrap">
+                                            <span className="aliquot-grid-row-with-labels">
+                                                <span className="aliquot-grid-row-labels">
+                                                    {FROZEN_GRID_ROWS.map((row) => (
+                                                        <span
+                                                            className="aliquot-grid-row-label"
+                                                            key={row}>
+                                                            {row}
+                                                        </span>
+                                                    ))}
                                                 </span>
-                                            ))}
+                                                <span className="aliquot-visual-grid">
+                                                    {FROZEN_GRID_ROWS.map((row) => (
+                                                        <span
+                                                            className="aliquot-grid-row"
+                                                            key={row}>
+                                                            {FROZEN_GRID_COLS.map((col) => {
+                                                                const wellId = `${row}${col}`;
+                                                                return (
+                                                                    <span
+                                                                        key={wellId}
+                                                                        className={
+                                                                            'aliquot-grid-well' +
+                                                                            (selectedFrozenWells.includes(
+                                                                                wellId
+                                                                            )
+                                                                                ? ' is-highlighted'
+                                                                                : '')
+                                                                        }
+                                                                    />
+                                                                );
+                                                            })}
+                                                        </span>
+                                                    ))}
+                                                </span>
+                                            </span>
+                                            <span className="aliquot-grid-col-labels">
+                                                {FROZEN_GRID_COLS.map((col) => (
+                                                    <span
+                                                        className="aliquot-grid-col-label"
+                                                        key={col}>
+                                                        {col}
+                                                    </span>
+                                                ))}
+                                            </span>
                                         </span>
                                     )}
                                 </div>
