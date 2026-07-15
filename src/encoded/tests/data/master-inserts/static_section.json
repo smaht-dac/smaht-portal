@@ -1007,5 +1007,24 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "tissue-histology.viewer",
+        "title": "Tissue Histology Viewer",
+        "file": "/docs/public/tissue_histology.jsx",
+        "status": "open",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "5930fb2c-ce9e-47cb-86bb-06d13af8c308",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]

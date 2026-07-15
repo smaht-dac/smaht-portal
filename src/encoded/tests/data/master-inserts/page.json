@@ -1515,5 +1515,23 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "tissue-histology",
+        "title": "Tissue Histology Viewer",
+        "status": "open",
+        "content": [
+            "5930fb2c-ce9e-47cb-86bb-06d13af8c308"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "uuid": "dc330bcf-6d6b-4f5b-a835-5432523d9bd7",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
