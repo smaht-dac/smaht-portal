@@ -15,7 +15,6 @@ import {
 } from 'react-bootstrap';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
 import { useUserDownloadAccess } from '../util/hooks';
-import { TissueHistologyBrowser } from './components/TissueHistologyBrowser';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -348,16 +347,6 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                 </div>
                             </div>
                         )}
-                    </div>
-                    <div className="histology-tab tab-card">
-                        <div className="header">
-                            <span className="title">
-                                Tissue Histology Viewer
-                            </span>
-                        </div>
-                        <div className="body">
-                            <TissueHistologyBrowser tileSource="/static/img/slides/GTEX-1117F-0526.dzi" />
-                        </div>
                     </div>
                 </div>
             </div>
