@@ -12,11 +12,11 @@ from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 # See loadxl_extensions.define_progress_tracker for details.
 
 def includeme(config):
-    config.add_route("ingestion_status", "/ingestion-status/{submission_uuid}")
+    config.add_route("submission_ingestion_status", "/ingestion-status/{submission_uuid}")
     config.scan(__name__)
 
 
-@view_config(route_name="ingestion_status", request_method=["GET"], effective_principals=Authenticated)
+@view_config(route_name="submission_ingestion_status", request_method=["GET"], effective_principals=Authenticated)
 @debug_log
 def ingestion_status(context, request):
     if value := request.matchdict.get("submission_uuid"):
