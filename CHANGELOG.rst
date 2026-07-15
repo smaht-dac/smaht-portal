@@ -8,13 +8,29 @@ Change Log
 ----------
 
 
-2.3.7
+2.3.8
 =====
 
 * Preserve the Donor and Protected Donor browse ``/peek-metadata/`` optimization while using the progressive, concurrency-limited row-data queue: both callers share an explicit URL contract with ``skip_default_facets=true`` and request only ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
 * Avoid the HTTP 400 caused by combining ``skip_default_facets=true`` with ``additional_facet=type``. The File count now comes from the GET ``/peek-metadata/`` response's ``total`` alongside its ``facets``.
 
-2.3.6  
+2.3.7  
+=====
+Fix /ingestion_status route collision with SMaHT's ingestion-status endpoints
+
+* Fixes a bug where SMaHT's per-submission ingestion status endpoint reused Snovault's
+  ``ingestion_status`` Pyramid route name, silently displacing Snovault's ``/ingestion_status``
+  queue-health route. SMaHT's routes are renamed to ``submission_ingestion_status`` (current
+  ``/ingestion-status/{submission_uuid}`` path) and ``legacy_submission_ingestion_status``
+  (legacy ``/ingestion_status/{submission_uuid}`` path used by older smaht-submitr clients,
+  preserved for compatibility); their URLs and behavior are unchanged. Snovault's
+  ``/ingestion_status`` queue-health route now coexists with both.
+* Updates ``dcicsnovault`` to ``11.33.0`` (from ``11.32.1``); the pinned range in
+  ``pyproject.toml`` (``^11.30.0``) is unchanged. Confirmed Snovault's ``ingestion_status``
+  route registration is unchanged in this version.
+
+
+2.3.6
 =====
 
 `PR 711: Fix label_overrides not applying to FacetCharts on Donor/Protected Donor browse pages <https://github.com/smaht-dac/smaht-portal/pull/711>`_
