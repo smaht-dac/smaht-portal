@@ -11,12 +11,15 @@ Change Log
 2.3.7
 =====
 
-Fix /ingestion_status route collision with SMaHT's ingestion-status endpoint
+Fix /ingestion_status route collision with SMaHT's ingestion-status endpoints
 
 * Fixes a bug where SMaHT's per-submission ingestion status endpoint reused Snovault's
   ``ingestion_status`` Pyramid route name, silently displacing Snovault's ``/ingestion_status``
-  queue-health route. SMaHT's route name is renamed to ``submission_ingestion_status``; its URL
-  and behavior at ``/ingestion-status/{submission_uuid}`` are unchanged.
+  queue-health route. SMaHT's routes are renamed to ``submission_ingestion_status`` (current
+  ``/ingestion-status/{submission_uuid}`` path) and ``legacy_submission_ingestion_status``
+  (legacy ``/ingestion_status/{submission_uuid}`` path used by older smaht-submitr clients,
+  preserved for compatibility); their URLs and behavior are unchanged. Snovault's
+  ``/ingestion_status`` queue-health route now coexists with both.
 
 
 2.3.6
