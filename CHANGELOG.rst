@@ -8,17 +8,24 @@ Change Log
 ----------
 
 
-2.3.6
+2.3.7
 =====
 
 * Preserve the Donor and Protected Donor browse ``/peek-metadata/`` optimization while using the progressive, concurrency-limited row-data queue: both callers share an explicit URL contract with ``skip_default_facets=true`` and request only ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
 * Avoid the HTTP 400 caused by combining ``skip_default_facets=true`` with ``additional_facet=type``. The File count now comes from the GET ``/peek-metadata/`` response's ``total`` alongside its ``facets``.
 
+2.3.6  
+=====
+
+`PR 711: Fix label_overrides not applying to FacetCharts on Donor/Protected Donor browse pages <https://github.com/smaht-dac/smaht-portal/pull/711>`_
+
+* Fixes a bug where label_overrides were not being applied to FacetCharts on Donor and Protected Donor browse pages
+
 
 2.3.5
 =====
 
-'PR 710: update annotated filename for SupplementaryFiles with category Annotation <https://github.com/smaht-dac/smaht-portal/pull/710>'_
+`PR 710: update annotated filename for SupplementaryFiles with category Annotation <https://github.com/smaht-dac/smaht-portal/pull/710>`_
 
 * added genome annotation data class for benchmarking cell lines - for supplementary files to annotated_file_name script
 
@@ -26,7 +33,7 @@ Change Log
 2.3.4
 =====
 
-`PR #713: refactor: load donor browse row data progressively with a concurrency-limited queue <https://github.com/smaht-dac/smaht-portal/pull/713>`_
+`PR 713: refactor: load donor browse row data progressively with a concurrency-limited queue <https://github.com/smaht-dac/smaht-portal/pull/713>`_
 
 * Donor browse: load per-donor file data (tissues, assays, file count, file size) via a
   concurrency-limited queue (``DonorDataProvider``) so rows populate in display order
