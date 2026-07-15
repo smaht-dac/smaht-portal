@@ -121,6 +121,15 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   stored data must transform, bump schema versions according to neighboring types, and cover both
   schema validation and upgrader behavior.
 
+## `skip_default_facets=true` + `additional_facet=type` is an HTTP 400 in Snovault
+
+Requesting `type` as an `additional_facet` while also passing `skip_default_facets=true` makes
+Snovault infer a `stats` aggregation on the `embedded.@type.raw` keyword field, which OpenSearch
+rejects. For queries already filtered to `type=File`, read the response's top-level `total` instead.
+The authoritative implementation and regression coverage are in `src/encoded/metadata.py`,
+`src/encoded/static/components/browse/browse-view/BrowseDonorPeekMetadata.js`, and
+`src/encoded/static/components/__tests__/BrowseDonorPeekMetadata.test.js`.
+
 ## Maintaining this file
 
 Keep this file for knowledge useful to almost every future agent session in this project.

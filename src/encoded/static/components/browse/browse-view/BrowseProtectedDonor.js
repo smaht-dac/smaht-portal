@@ -18,6 +18,7 @@ import {
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
 import { DonorDataProvider } from './BrowseDonorDataProvider';
+import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';
 
 export { formatTissueData, formatAssayData } from './BrowseDonorBase';
 
@@ -156,7 +157,9 @@ export const BrowseProtectedDonorBody = (props) => {
     const { context, alerts, href, userDownloadAccess, isAccessResolved } =
         props;
     return (
-        <DonorDataProvider key={href}>
+        <DonorDataProvider
+            key={href}
+            buildHref={buildDonorPeekMetadataHref}>
             <Alerts alerts={alerts} className="mt-2" />
             <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
             <hr />

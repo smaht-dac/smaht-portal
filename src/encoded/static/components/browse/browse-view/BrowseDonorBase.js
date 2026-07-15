@@ -226,9 +226,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
             <div className="detail-header">
                 <i className="icon icon-dna fas"></i>
                 <b>
-                    {Object.keys(assayData).reduce((acc, key) => {
-                        return acc + assayData[key].values.length;
-                    }, 0)}{' '}
+                    {Object.keys(assayData).reduce((acc, key) => acc + assayData[key].values.length, 0)}{' '}
                 </b>
                 Assays across all tissues
             </div>
@@ -340,14 +338,12 @@ export function createBaseDonorColumnExtensionMap({
             hideTooltip: true,
             noSort: true,
             widthMap: { lg: 60, md: 60, sm: 60 },
-            render: (result, parentProps) => {
-                return (
-                    <SelectionItemCheckbox
-                        {...{ selectedItems, onSelectItem, result }}
-                        isMultiSelect={true}
-                    />
-                );
-            },
+            render: (result, parentProps) => (
+                <SelectionItemCheckbox
+                    {...{ selectedItems, onSelectItem, result }}
+                    isMultiSelect={true}
+                />
+            ),
         },
         external_id: {
             widthMap: { lg: 120, md: 120, sm: 120 },
@@ -418,7 +414,7 @@ export function createBaseDonorColumnExtensionMap({
                 return (
                     <DonorDataCell displayTitle={result.display_title}>
                         {({ data, loading }) => {
-                            const tissueFacet = data?.find(
+                            const tissueFacet = data?.facets?.find(
                                 (f) => f.field === 'sample_summary.tissues'
                             );
                             const tissueTerms = tissueFacet?.has_group_by
@@ -502,7 +498,7 @@ export function createBaseDonorColumnExtensionMap({
                 return (
                     <DonorDataCell displayTitle={result.display_title}>
                         {({ data, loading }) => {
-                            const assayCount = data
+                            const assayCount = data?.facets
                                 ?.find((f) => f.field === 'assays.display_title')
                                 ?.terms?.reduce(
                                     (acc, curr) => acc + (curr?.terms?.length ?? 1),
@@ -573,7 +569,10 @@ export function createBaseDonorColumnExtensionMap({
                 return (
                     <DonorDataCell displayTitle={result.display_title}>
                         {({ data, loading }) => {
-                            const fileCount = data?.find((f) => f.field === 'file_size')?.count;
+                            // The query already filters to type=File. Use the
+                            // response total because additional_facet=type with
+                            // skip_default_facets=true produces an HTTP 400.
+                            const fileCount = data?.total;
 
                             if (loading) {
                                 return <span className="value text-center loading"></span>;
@@ -601,7 +600,7 @@ export function createBaseDonorColumnExtensionMap({
                 return (
                     <DonorDataCell displayTitle={result.display_title}>
                         {({ data, loading }) => {
-                            const fileSize = data?.find(
+                            const fileSize = data?.facets?.find(
                                 (f) => f.field === 'file_size'
                             )?.sum;
 

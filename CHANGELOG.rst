@@ -8,9 +8,14 @@ Change Log
 ----------
 
 
-2.3.7
+2.3.8
 =====
 
+* Preserve the Donor and Protected Donor browse ``/peek-metadata/`` optimization while using the progressive, concurrency-limited row-data queue: both callers share an explicit URL contract with ``skip_default_facets=true`` and request only ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
+* Avoid the HTTP 400 caused by combining ``skip_default_facets=true`` with ``additional_facet=type``. The File count now comes from the GET ``/peek-metadata/`` response's ``total`` alongside its ``facets``.
+
+2.3.7  
+=====
 Fix /ingestion_status route collision with SMaHT's ingestion-status endpoints
 
 * Fixes a bug where SMaHT's per-submission ingestion status endpoint reused Snovault's
