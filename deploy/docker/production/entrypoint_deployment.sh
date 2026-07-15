@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "Running a SMAHT deployment on the given environment"
 
 # Run assume_identity.py to access the desired deployment configuration from
