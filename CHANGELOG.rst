@@ -8,6 +8,25 @@ Change Log
 ----------
 
 
+2.3.5
+=====
+
+'PR 710: update annotated filename for SupplementaryFiles with category Annotation <https://github.com/smaht-dac/smaht-portal/pull/710>'_
+
+* added genome annotation data class for benchmarking cell lines - for supplementary files to annotated_file_name script
+
+
+2.3.4
+=====
+
+`PR #713: refactor: load donor browse row data progressively with a concurrency-limited queue <https://github.com/smaht-dac/smaht-portal/pull/713>`_
+
+* Donor browse: load per-donor file data (tissues, assays, file count, file size) via a
+  concurrency-limited queue (``DonorDataProvider``) so rows populate in display order
+* Each donor issues one ``/peek-metadata/`` request with ``skip_default_facets=true``, cutting
+  Elasticsearch aggregation work from 21 default File facets to 3
+
+
 2.3.3
 =====
 
