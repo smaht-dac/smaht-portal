@@ -10,29 +10,15 @@ import React, {
     useState,
 } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { BROWSE_STATUS_FILTERS } from '../BrowseView';
-
-const DONOR_PEEK_METADATA_ADDITIONAL_FACETS = [
-    'sample_summary.tissues',
-    'assays.display_title',
-    'file_size',
-];
-
-const ADDITIONAL_FACET_PARAMS = DONOR_PEEK_METADATA_ADDITIONAL_FACETS.map(
-    (f) => `additional_facet=${f}`
-).join('&');
-
-const buildDonorPeekMetadataUrl = (displayTitle) =>
-    `/peek-metadata/?skip_default_facets=true&${ADDITIONAL_FACET_PARAMS}&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=${encodeURIComponent(
-        displayTitle
-    )}`;
 
 // Limits simultaneous requests to avoid flooding the server while rows fill in quickly
 const CONCURRENCY_LIMIT = 4;
 
 // Context for holding per-donor facet data fetched in display order
 export const DonorDataContext = createContext({
-    getDonorData: () => ({ data: null, loading: true }),
+    getDonorData: () => {
+        return { data: null, loading: true };
+    },
     enqueueDonor: () => {},
     version: 0,
 });
@@ -42,7 +28,7 @@ export const DonorDataContext = createContext({
  * concurrency queue. Each cell registers itself via `enqueueDonor()` when
  * it mounts. Rows loaded by infinite scroll are handled automatically.
  */
-export const DonorDataProvider = ({ children }) => {
+export const DonorDataProvider = ({ buildHref, children }) => {
     const cacheRef = useRef(new Map());
     const pendingRef = useRef(new Set());
     const queueRef = useRef([]);
@@ -87,12 +73,12 @@ export const DonorDataProvider = ({ children }) => {
                 pendingRef.current.add(displayTitle);
                 queueRef.current.push({
                     displayTitle,
-                    url: buildDonorPeekMetadataUrl(displayTitle),
+                    url: buildHref({ display_title: displayTitle }),
                 });
                 dispatch();
             }
         },
-        [dispatch]
+        [buildHref, dispatch]
     );
 
     const getDonorData = useCallback(
@@ -102,7 +88,9 @@ export const DonorDataProvider = ({ children }) => {
     );
 
     const contextValue = useMemo(
-        () => ({ getDonorData, enqueueDonor, version }),
+        () => {
+            return { getDonorData, enqueueDonor, version };
+        },
         [getDonorData, enqueueDonor, version]
     );
 
