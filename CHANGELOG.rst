@@ -11,6 +11,15 @@ Change Log
 2.3.4
 =====
 
+`PR 714: fix: decrease select-all file limit to 3000 <https://github.com/smaht-dac/smaht-portal/pull/714>`_
+
+* Decrease the "Select All" upper limit from 8000 to 3000 files
+* Update the disabled-state tooltip to reflect the new limit
+
+
+2.3.4
+=====
+
 `PR #713: refactor: load donor browse row data progressively with a concurrency-limited queue <https://github.com/smaht-dac/smaht-portal/pull/713>`_
 
 * Donor browse: load per-donor file data (tissues, assays, file count, file size) via a
