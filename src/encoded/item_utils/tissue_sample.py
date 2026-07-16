@@ -135,3 +135,8 @@ def get_tissue_kit_id_from_external_id(external_id: str) -> str:
 def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""
     return external_id.split("-")[1]
+
+
+def get_pathology_reports(properties: Dict[str, Any]) -> List[str]:
+    """Get pathology_reports (rev link) from properties."""
+    return properties.get("pathology_reports", []) or []

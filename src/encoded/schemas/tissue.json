@@ -166,6 +166,9 @@
         "donor.display_title": {
             "title": "Donor"
         },
+        "tissue_type": {
+            "title": "Tissue Type"
+        },
         "status": {
             "title": "Status"
         }

@@ -1,10 +1,11 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 import re
-from snovault import collection, load_schema
+from snovault import collection, load_schema, calculated_property
 from snovault.util import debug_log, get_item_or_none
 from snovault.elasticsearch import ELASTIC_SEARCH
 from snovault.search.search_utils import make_search_subreq
+from pyramid.request import Request
 from pyramid.view import view_config
 from encoded.validator_decorators import link_related_validator
 
@@ -44,8 +45,29 @@ class TissueSample(Sample):
     schema = load_schema("encoded:schemas/tissue_sample.json")
     embedded_list = Sample.embedded_list
 
+    rev = {
+        "pathology_reports": ("PathologyReport", "tissue_samples")
+    }
+
     class Collection(Item.Collection):
         pass
+
+    @calculated_property(
+        schema={
+            "title": "Pathology Reports",
+            "description": "Pathology reports referencing this tissue sample",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "PathologyReport",
+            },
+        },
+    )
+    def pathology_reports(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "pathology_reports")
+        if result:
+            return result
+        return
 
 
 def get_request_data_for_edit(context, request):
@@ -302,8 +324,8 @@ def validate_tissue_sample_metadata_on_edit(context, request):
 
 
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_external_id_on_add,
-    validate_tissue_sample_metadata_on_add,
+    # validate_external_id_on_add,
+    # validate_tissue_sample_metadata_on_add,
 ]
 
 
@@ -319,13 +341,13 @@ def tissue_sample_add(context, request, render=None):
 
 
 TISSUE_SAMPLE_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_external_id_on_edit,
-    validate_tissue_sample_metadata_on_edit,
+    # validate_external_id_on_edit,
+    # validate_tissue_sample_metadata_on_edit,
 ]
 
 TISSUE_SAMPLE_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_external_id_on_edit,
-    validate_tissue_sample_metadata_on_edit,
+    # validate_external_id_on_edit,
+    # validate_tissue_sample_metadata_on_edit,
 ]
 
 
