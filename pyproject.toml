@@ -186,6 +186,7 @@ prepare-docker = "encoded.commands.prepare_template:prepare_docker_main"
 prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
 prune-restricted-users = "encoded.commands.prune_restricted_users:main"
 release-file = "encoded.commands.release_file:main"
+restore-devtest-db = "encoded.commands.restore_devtest_db:main"
 release-donor-metadata = "encoded.commands.release_donor_metadata:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
