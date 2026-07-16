@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
-import { Modal, Tabs, Tab, OverlayTrigger } from 'react-bootstrap';
+import { Modal, Tabs, Tab, OverlayTrigger, Popover } from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
 
 import {
@@ -455,16 +455,29 @@ export class SelectAllFilesButton extends React.PureComponent {
         const cls =
             'btn btn-sm me-05 align-items-center ' +
             (isAllSelected ? 'btn-secondary' : 'btn-outline-secondary');
-        const tooltip =
-            !isAllSelected && !isEnabled
-                ? `The maximum number of files that can be downloaded at a time is 3,000 for an optimal download speed and portal performance. If >3,000 files need to be downloaded, please download them in multiple smaller batches of files.: ${SELECT_ALL_LIMIT}`
-                : null;
+        const showMaxDownloadLimitPopover =
+            !selecting && !isAllSelected && !isEnabled;
+        const maxDownloadLimitPopover = (
+            <Popover className="download-popover protected selection-limit">
+                <Popover.Header as="h3">
+                    Maximum Download Limit: {SELECT_ALL_LIMIT}
+                </Popover.Header>
+                <Popover.Body>
+                    For optimal download speed and portal performance, files can
+                    only be downloaded {SELECT_ALL_LIMIT.toLocaleString()} at a
+                    time. <br />
+                    <br />
+                    If more files need to be downloaded, please download them in
+                    multiple smaller batches.
+                </Popover.Body>
+            </Popover>
+        );
 
         if (type === 'checkbox') {
             const checkboxTooltip = selecting
                 ? `Selecting ${selectingProgress}%`
-                : tooltip;
-            return (
+                : null;
+            const checkboxContent = (
                 <span
                     ref={this.selectAllButtonRef}
                     className="d-inline-flex flex-column align-items-center"
@@ -502,29 +515,59 @@ export class SelectAllFilesButton extends React.PureComponent {
                     </div>
                 </span>
             );
+            if (showMaxDownloadLimitPopover) {
+                return (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={maxDownloadLimitPopover}>
+                        {checkboxContent}
+                    </OverlayTrigger>
+                );
+            }
+            return checkboxContent;
         }
+
+        const selectAllButton = (
+            <button
+                ref={this.selectAllButtonRef}
+                type="button"
+                id="select-all-files-button"
+                disabled={selecting || (!isAllSelected && !isEnabled)}
+                className={cls}
+                onClick={this.handleSelectAll}>
+                <i className={iconClassName} />
+                <span className="d-none d-md-inline text-400">
+                    {selecting
+                        ? `Selecting ${selectingProgress}%`
+                        : isAllSelected
+                        ? 'Deselect'
+                        : 'Select'}{' '}
+                </span>
+                <span className="text-600">All</span>
+            </button>
+        );
+
+        const selectAllButtonWrapper = (
+            <span
+                className="d-inline-block"
+                data-tip={selecting ? `Selecting ${selectingProgress}%` : null}>
+                {selectAllButton}
+            </span>
+        );
 
         return (
             <div className="d-inline-flex flex-column">
-                <span className="d-inline-block" data-tip={tooltip}>
-                    <button
-                        ref={this.selectAllButtonRef}
-                        type="button"
-                        id="select-all-files-button"
-                        disabled={selecting || (!isAllSelected && !isEnabled)}
-                        className={cls}
-                        onClick={this.handleSelectAll}>
-                        <i className={iconClassName} />
-                        <span className="d-none d-md-inline text-400">
-                            {selecting
-                                ? `Selecting ${selectingProgress}%`
-                                : isAllSelected
-                                ? 'Deselect'
-                                : 'Select'}{' '}
-                        </span>
-                        <span className="text-600">All</span>
-                    </button>
-                </span>
+                {showMaxDownloadLimitPopover ? (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={maxDownloadLimitPopover}>
+                        {selectAllButtonWrapper}
+                    </OverlayTrigger>
+                ) : (
+                    selectAllButtonWrapper
+                )}
                 {selecting ? (
                     <div
                         className="progress mt-03 select-all-progress select-all-progress-button"
