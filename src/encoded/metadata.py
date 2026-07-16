@@ -1030,7 +1030,7 @@ def _stream_metadata_items(request, *, type_param, accessions=None, status=None,
 
 
 def _facets_via_search(request, params):
-    """Forward to snovault `/search` and return its `facets` array as-is.
+    """Forward to snovault `/search` and return its `facets` array plus `total`.
 
     Plain pass-through — snovault knows how to build the filter (nested-field
     handling, type-subtype expansion, default `status!=deleted/replaced`
@@ -1038,14 +1038,22 @@ def _facets_via_search(request, params):
     peek-metadata UI consumer already reads. Reusing it avoids re-implementing
     those details in Python.
 
-    `limit=0` suppresses hit fetching since callers only read `result['facets']`.
+    `limit=0` suppresses hit fetching since callers only read `result['facets']`
+    and `result['total']`.
+
+    `total` is surfaced alongside `facets` (rather than just the facets array)
+    so callers using `skip_default_facets=true` can read the matched-document
+    count directly instead of requesting `additional_facet=type` — snovault
+    cannot build a `type` facet under `skip_default_facets` (it infers an
+    unsupported `stats` aggregation on the `embedded.@type.raw` keyword field
+    and the search 400s).
 
     For the File-with-thousands-of-accessions case the POST path uses the
     streaming aggregator instead — that's a different problem (URL bloat +
     aggregation coordination timeout). Everything else goes through here.
     """
     forwarded = MultiDict()
-    for key in params.keys():
+    for key in dict.fromkeys(params.keys()):
         if key in ('limit', 'from'):
             continue
         for value in params.getall(key):
@@ -1057,7 +1065,11 @@ def _facets_via_search(request, params):
         '/search?{}'.format(urlencode(list(forwarded.items()), True)),
         inherit_user=True,
     )
-    return search(None, subreq).get('facets', []) or []
+    result = search(None, subreq)
+    return {
+        'facets': result.get('facets', []) or [],
+        'total': result.get('total', 0) or 0,
+    }
 
 
 def _count_via_search(request, search_query_params):
@@ -1360,9 +1372,8 @@ def peek_metadata(context, request):
 
     # GET path — forward URL params verbatim to /search. Type-agnostic; the
     # caller gets the same facets `/search?<their-params>` would return,
-    # which is what the legacy fallback did. This preserves callers like
-    # ProtectedDonorViewDataCards.js that read default facets (e.g. `type`)
-    # from the response.
+    # which is what the legacy fallback did. Callers that use
+    # `skip_default_facets=true` must explicitly request every facet they read.
     if isinstance(args, Response):
         return _facets_via_search(request, request.params)
 
