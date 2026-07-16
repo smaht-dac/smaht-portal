@@ -1,141 +1,193 @@
 # Restoring the devtest database from a production snapshot
 
-`restore-devtest-db` (see `src/encoded/commands/restore_devtest_db.py`, registered in
-`pyproject.toml`) rebuilds the `smaht-devtest` RDS database from a fresh snapshot of
-`rds-smaht-production`. It is an operator-facing, production-adjacent workflow, so the
-command is deliberately conservative: every run is checkpointed and resumable, every
-dangerous action needs an interactive confirmation, and several actions additionally
-need an explicit opt-in flag. There is **no** `--yes` bypass.
+`restore-devtest-db` is a checkpointed operator workflow that restores a new
+`smaht-devtest` RDS instance from a fresh `rds-smaht-production` snapshot. It is
+production-adjacent: use a reviewed plan, explicit named profiles, and one shared
+state directory. There is no `--yes` bypass, no database or snapshot deletion path,
+and no path that stops the protected original devtest database.
 
-## What it does
+## Verified workflow
 
-One operation walks these steps in order (run `restore-devtest-db plan ...` to see the
-live version of this list, including which confirmations apply — plan mode makes no
-AWS calls at all):
+Run `restore-devtest-db plan ...` to print the authoritative ordered steps without
+constructing an AWS client. A run performs these gates:
 
-1. **Verify the production caller identity.** STS account id, client region, and
-   (optionally) role name must match the values you passed. The same check runs
-   before *every* subsequent step in that account; nothing is inferred from ambient
-   AWS defaults.
-2. **Create a production snapshot** of `rds-smaht-production` (confirmation).
-3. **Copy the snapshot with re-encryption** from the default `aws/rds` key to your
-   customer-managed KMS key (confirmation). The default key cannot be shared across
-   accounts; the CMK copy can.
-4. **Ensure a KMS grant** lets the devtest restore role (`--devtest-restore-role-arn`)
-   use the CMK. On first use no grant exists: creating one is a security-policy change
-   and requires both `--allow-kms-grant` **and** a confirmation. On subsequent runs the
-   existing grant is detected and reused with no policy change. The grant is auditable
-   (`aws kms list-grants`) and revocable (`aws kms revoke-grant`). The command never
-   reads or writes the key *policy* itself, and never prints policy contents.
-5. **Share the encrypted copy** with the devtest account. Confirmation requires typing
-   the devtest account id.
-6. **Verify the devtest caller identity** (same checks as step 1, devtest values).
-7. **Copy the shared snapshot** into the devtest account under the devtest KMS key
-   (`--devtest-kms-key-id`, default `alias/aws/rds`).
-8. **Restore a new database instance** from that copy. Default instance class is
-   `db.t4g.medium`, a reasonable starting size for roughly 16 indexer workers. The new
-   identifier (`--new-db-identifier`) must not collide with the production or protected
-   databases.
-9. **Update the devtest IDENTITY secret** with the new endpoint/port and the
-   production `RDS_USERNAME`/`RDS_PASSWORD`/`RDS_DB_NAME` (read from the production
-   identity secret — the restored database keeps production's credentials).
-   Confirmation requires typing `replace-devtest-credentials`. Only the *names* of
-   changed keys are shown; secret values are never printed, logged, or persisted.
-10. **Redeploy and reindex.** Forces a new deployment of every ECS service in
-    `--devtest-ecs-cluster` (the deployment entrypoint recreates mappings and
-    reindexes against the restored database) and scales the indexer service to
-    `--indexer-count` (1–64; default 16, the documented starting point for a small
-    `db.t4g.medium` database — scale up cautiously and watch DB CPU). Confirmation
-    required.
-11. **Optionally stop a previous replaceable database.** Skipped unless you pass
-    `--old-db-identifier`. Requires `--allow-stop-old-db` plus typing the identifier.
-    The instance is **stopped, never deleted**, so it can be started again for
-    rollback.
+1. Verify the production STS account, configured region, and optional exact assumed
+   role before every production-scoped step.
+2. Read and pin the nonsecret `VersionId` of the production IDENTITY secret. The
+   required database fields are checked in memory; values are never persisted.
+3. Confirm and create a tagged manual production snapshot, then wait with a bounded
+   poll until it is available. If the production secret's current version changed
+   during snapshot creation, start a new operation.
+4. Confirm and copy the snapshot under the resolved production customer-managed KMS
+   key. The key must be enabled, symmetric, customer-managed, and owned by the
+   configured production account in the configured region.
+5. Find or confirm creation of a KMS grant for the exact devtest role ARN. A new
+   grant allows only `DescribeKey` and `CreateGrant`; its encryption-context
+   constraint requires child grants to be equally or more tightly restricted to the
+   production RDS `DbiResourceId`. It gives the role no direct Encrypt/Decrypt grant.
+6. Confirm the cross-account share by typing the devtest account ID, verify the
+   devtest STS context, and make a tagged devtest-local snapshot copy under the
+   resolved devtest key. The copy retries only known KMS propagation failures and
+   every retry/poll is bounded.
+7. After the devtest-local copy is available and its provenance is verified, remove
+   the production snapshot share and revoke only a temporary grant created by this
+   operation. A pre-existing exact constrained grant is not revoked.
+8. Describe the protected devtest database and require the operator-supplied DB
+   subnet group and complete security-group set to match it exactly. Restore a new,
+   private, tagged instance using those explicit values and wait until available.
+9. Confirm IDENTITY replacement by typing `replace-devtest-credentials`. The new
+   secret version points to the restored endpoint and uses the exact production
+   credential version pinned at the snapshot boundary. A deterministic Secrets
+   Manager request token makes an accepted-but-uncheckpointed write safely adoptable
+   on resume. Concurrent changes to the devtest secret fail closed.
+10. Confirm an ordered ECS cutover: quiesce the configured indexer service; run one
+    deployment task from the configured deployment service's task definition and
+    network settings; require successful container exits and index queue work above
+    the recorded predeployment baseline; force new portal and ingester deployments
+    and wait for ECS stability;
+    restart the configured indexer count and wait for ECS stability; then require all
+    configured SQS index queues to report empty repeatedly within
+    `--reindex-timeout`.
+11. Optionally stop a previous replaceable restored database. This requires
+    `--old-db-identifier`, the nonpersistent `--allow-stop-old-db` opt-in, typing the
+    identifier, ownership tags from a prior `restore-devtest-db` operation, and
+    successful deployment/service/reindex gates. The operation never deletes it.
 
-## Credential warning
+The deployment service is used as a source for a one-shot `RunTask`; it is not
+force-redeployed as a long-running service. Confirm with the infrastructure owner
+that its task definition is the SMaHT `deployment` entrypoint and that the configured
+portal, ingester, indexer, and queue names are the complete devtest topology. The
+repository provides the role entrypoints but not the deployed ECS definitions.
 
-After step 9 the devtest database password **is the production password**. Treat the
-devtest environment as containing production secrets until you rotate the restored
-database's master password (e.g. `aws rds modify-db-instance --master-user-password`
-followed by another identity-secret update). The command warns about this and requires
-the typed phrase before touching the secret.
+## Credential and rollback warning
 
-## Protected vs. old databases
+After the IDENTITY step, the restored devtest database uses production database
+credentials. Treat devtest as containing production secrets until the restored DB
+password and IDENTITY are deliberately rotated. No secret value is written to the
+manifest, terminal, status output, or exception checkpoint.
 
-- The **protected original** devtest database (`--protected-db-identifier`, default
-  `rds-smaht-devtest`) is the rollback safety net. The tool refuses to stop it, ever —
-  at config validation *and* again inside the stop step. Keep it alive; resize it to
-  something small by hand if cost matters.
-- An **old replaceable** database (`--old-db-identifier`) is a previous restore you are
-  replacing. It may be stopped (opt-in + typed confirmation) but never deleted.
-- On a first-time run, leave `--old-db-identifier` unset: there is nothing to stop.
+The manifest records the previous and new devtest Secrets Manager version IDs. It
+does not perform automatic rollback. If rollback is required:
 
-## What the command deliberately refuses to do
+1. Inspect `status` and identify `devtest_identity_previous_version_id` and
+   `devtest_identity_new_version_id` in the manifest. KMS identifiers are redacted
+   in terminal status but remain in the mode-0600 manifest for recovery.
+2. Move `AWSCURRENT` back to the recorded previous secret version, explicitly moving
+   it away from the new version. This restores the old endpoint and credentials as
+   one versioned value; do not edit only the hostname.
+3. Start the old instance if it was stopped.
+4. Redeploy the application roles and verify their health against that database.
 
-- Delete any database or snapshot, under any flag combination.
-- Stop the protected original devtest database.
-- Continue past any STS account/region/role mismatch (it fails closed before the
-  affected step, leaving the checkpoint intact).
-- Create a KMS grant, or stop an old database, without both a dedicated CLI opt-in
-  flag and an interactive confirmation. Opt-in flags are never persisted; a resume
-  must supply them again.
-- Print or persist secret values, or accept a blanket `--yes`.
-- Modify the production database itself (only a snapshot is taken).
+The protected original devtest database is always left intact as the primary rollback
+safety net. A manually stopped RDS instance automatically restarts after seven days;
+stopping is not a durable cost-control mechanism.
 
-## Operation lifecycle: plan / run / resume / status / cancel
+## Resource ownership and idempotency
 
-Each `run` gets a stable operation id and a JSON manifest (no secrets) under
-`~/.smaht/restore-devtest-db/` (`--state-dir` to override). The manifest records step
-status and AWS resource identifiers, so:
+Created snapshots and DB instances are tagged with the operation ID and a fingerprint
+of the complete persisted configuration. On a fresh step, any name collision fails.
+On resume, an existing resource is adopted only when both ownership tags and its
+source/KMS/class/network attributes match. An `AlreadyExists` response from a
+concurrent creator is never accepted as success.
 
-- `restore-devtest-db plan ...` — print the step plan; makes no AWS calls.
-  `run --dry-run` is an alias.
-- `restore-devtest-db run ...` — start a new operation. Long waits poll with a bounded
-  timeout (`--poll-interval`/`--poll-timeout`); a timeout fails the step but keeps the
-  checkpoint.
-- `restore-devtest-db status [--operation-id ID]` — show per-step progress, or list
-  all operations.
-- `restore-devtest-db cancel --operation-id ID` — from any terminal; the run stops at
-  the next step or polling boundary. Nothing is rolled back.
-- `restore-devtest-db resume --operation-id ID [--allow-kms-grant]
-  [--allow-stop-old-db]` — continue: completed steps are skipped, snapshot/instance
-  names are deterministic per operation, and "already exists" responses are adopted,
-  so retries are idempotent. Resuming a cancelled operation asks before clearing the
-  cancellation request; a manifest whose config was edited fails a fingerprint check.
+The configuration fingerprint detects accidental manifest edits; it is not a
+cryptographic authentication mechanism because it is stored beside the configuration.
+Protect the state directory as operator data.
 
-A declined confirmation exits code 3 with the step marked `declined`; a safety refusal
-exits 2; other failures exit 1 with the error checkpointed. In every case the recovery
-path is `status` to inspect, then `resume` to continue (or `cancel` to abandon — any
-resources already created remain and are listed by `status`).
+## Operation lifecycle
 
-## Required configuration and permissions
+Manifests live under `~/.smaht/restore-devtest-db/` by default and are mode 0600 in a
+mode-0700 directory. Use the same `--state-dir` for every operation targeting one
+devtest environment. Run/resume takes an exclusive state-directory lock, so a second
+operation or resume fails before any AWS call. A different state directory cannot
+participate in that lock and must not be used to bypass it.
 
-Everything is explicit; there are no environment-derived defaults for accounts:
+- `plan` validates the same pure configuration as `run`, accepts an operation ID,
+  prints computed targets and confirmation gates, and makes no AWS calls.
+- `run` exclusively creates a stable operation manifest. Use the same operation ID
+  shown by plan if deterministic resource names were reviewed.
+- `status` shows checkpointed step/resource state or lists operations.
+- `cancel` writes an independent marker from another terminal. The active runner
+  observes it at the next step or poll boundary; normal manifest saves cannot erase
+  it. Cancellation does not roll back completed mutations.
+- `resume` revalidates the complete configuration fingerprint, asks before clearing
+  a cancellation marker, skips completed steps, and verifies provenance before
+  adopting retry resources.
 
-| Flag | Meaning |
+Exit codes are 0 for success, 1 for an operational failure, 2 for a safety refusal,
+3 for a declined confirmation, 4 for cancellation, and 130 for a checkpointed local
+keyboard interrupt. A failure message contains a safe error type/code and a resume
+command, not the raw SDK exception text.
+
+Partial failures are intentionally visible rather than automatically destructive:
+
+- Before the devtest-local snapshot is available, a temporary share/grant can remain;
+  resume completes the copy and cleanup. The manifest identifies the exact grant.
+- After IDENTITY replacement, use the recorded version IDs for rollback. The command
+  never guesses that restoring only an endpoint is sufficient.
+- A deployment failure can leave the indexer quiesced. Resume adopts the operation's
+  deployment task and continues the ordered gates. The old database remains running
+  because `reindex_completed` is absent.
+- Snapshot and database deletion remain manual and outside this command.
+
+## Required configuration
+
+No account, profile, region, network, deployment role, or queue is inferred from an
+ambient AWS default.
+
+| Flags | Requirement |
 | --- | --- |
-| `--production-account-id` / `--devtest-account-id` | 12-digit account ids (must differ) |
-| `--region` | region for both accounts |
-| `--production-profile` / `--devtest-profile` | named AWS profiles (must differ) |
-| `--production-role-name` / `--devtest-role-name` | optional: require this role name in the caller ARN |
-| `--production-kms-key-id` | customer-managed key used for the shareable copy |
-| `--devtest-restore-role-arn` | devtest IAM role that must be able to use that key |
-| `--production-identity-secret` / `--devtest-identity-secret` | IDENTITY secret names |
-| `--devtest-ecs-cluster` | cluster redeployed to reindex |
-| `--new-db-identifier` | identifier for the restored instance |
+| `--production-account-id`, `--devtest-account-id` | Distinct 12-digit accounts |
+| `--region` | Region used for both explicitly scoped sessions |
+| `--production-profile`, `--devtest-profile` | Distinct named profiles |
+| `--production-role-name`, `--devtest-role-name` | Optional exact assumed-role names |
+| `--production-kms-key-id` | Production customer-managed KMS key ID/ARN/alias |
+| `--devtest-restore-role-arn` | Exact IAM role ARN in the configured devtest account |
+| `--production-identity-secret`, `--devtest-identity-secret` | Secret names, or ARNs account/region-bound to their scopes |
+| `--new-db-identifier` | Brand-new valid RDS identifier |
+| `--db-subnet-group`, `--vpc-security-group-id` | Required; must exactly match the protected devtest DB |
+| `--devtest-ecs-cluster` | Exact devtest cluster |
+| `--deployment-service-name` | Service whose task definition/network runs the one-shot deployment |
+| `--portal-service-name`, `--ingester-service-name`, `--indexer-service-name` | Distinct exact service names |
+| `--indexer-queue-url` | Repeat for every index queue; each URL must match devtest account/region |
+| `--indexer-count` | 1–64; default 16 |
+| `--poll-interval`, `--poll-timeout`, `--reindex-timeout` | Positive bounded waits; timeout must be at least interval |
 
-The production principal needs `rds:CreateDBSnapshot`, `rds:CopyDBSnapshot`,
-`rds:Describe*`, `rds:ModifyDBSnapshotAttribute`, `kms:ListGrants`, `kms:CreateGrant`
-(first use only), `secretsmanager:GetSecretValue` (production identity), and
-`sts:GetCallerIdentity`. The devtest principal needs `rds:CopyDBSnapshot`,
-`rds:RestoreDBInstanceFromDBSnapshot`, `rds:Describe*`, `rds:StopDBInstance` (only if
-stopping an old database), `secretsmanager:GetSecretValue`/`PutSecretValue` (devtest
-identity), `ecs:ListServices`/`ecs:UpdateService`, and `sts:GetCallerIdentity`.
+## IAM permissions
 
-## Example: first-time run
+Scope policies to the exact database, snapshots, key, secrets, cluster, services,
+task definition/roles, and queues wherever the AWS action supports resource scoping.
+
+The production principal needs:
+
+- `sts:GetCallerIdentity`
+- `rds:DescribeDBInstances`, `rds:DescribeDBSnapshots`,
+  `rds:DescribeDBSnapshotAttributes`, `rds:CreateDBSnapshot`,
+  `rds:CopyDBSnapshot`, `rds:ModifyDBSnapshotAttribute`, and
+  `rds:AddTagsToResource`
+- `kms:DescribeKey`, `kms:ListGrants`, and, only for a new temporary grant,
+  `kms:CreateGrant`/`kms:RevokeGrant`
+- `secretsmanager:GetSecretValue` for the production IDENTITY
+
+The devtest principal needs:
+
+- `sts:GetCallerIdentity`
+- `rds:DescribeDBInstances`, `rds:DescribeDBSnapshots`, `rds:CopyDBSnapshot`,
+  `rds:RestoreDBInstanceFromDBSnapshot`, `rds:AddTagsToResource`, and optionally
+  `rds:StopDBInstance`
+- `kms:DescribeKey` for the devtest snapshot key; the exact restore role receives the
+  temporary constrained production-key grant described above
+- `secretsmanager:GetSecretValue` and `secretsmanager:PutSecretValue` for devtest
+  IDENTITY
+- `ecs:DescribeServices`, `ecs:UpdateService`, `ecs:ListTasks`, `ecs:RunTask`, and
+  `ecs:DescribeTasks`, plus narrowly scoped `iam:PassRole` for the deployment task's
+  execution/task roles when required
+- `sqs:GetQueueAttributes` for every configured index queue
+
+## Example
 
 ```bash
-restore-devtest-db run \
+restore-devtest-db plan --operation-id restore-20260716 \
   --production-account-id 111111111111 --devtest-account-id 222222222222 \
   --region us-east-1 \
   --production-profile smaht-prod --devtest-profile smaht-devtest \
@@ -143,27 +195,35 @@ restore-devtest-db run \
   --devtest-restore-role-arn arn:aws:iam::222222222222:role/... \
   --production-identity-secret SmahtProductionIdentity \
   --devtest-identity-secret SmahtDevtestIdentity \
-  --devtest-ecs-cluster smaht-devtest \
   --new-db-identifier rds-smaht-devtest-restored-20260716 \
-  --allow-kms-grant
+  --db-subnet-group smaht-devtest-db \
+  --vpc-security-group-id sg-0123456789abcdef0 \
+  --devtest-ecs-cluster smaht-devtest \
+  --deployment-service-name smaht-devtest-deployment \
+  --portal-service-name smaht-devtest-portal \
+  --ingester-service-name smaht-devtest-ingester \
+  --indexer-service-name smaht-devtest-indexer \
+  --indexer-queue-url https://sqs.us-east-1.amazonaws.com/222222222222/index-primary \
+  --indexer-queue-url https://sqs.us-east-1.amazonaws.com/222222222222/index-secondary
 ```
 
-Run `plan` with the same arguments first to review what will happen. On later runs,
-pass the previous restored instance as `--old-db-identifier` (with
-`--allow-stop-old-db`) to stop it after the new one is serving.
+After reviewing the plan, replace `plan` with `run`, retain the exact operation ID,
+and add `--allow-kms-grant` only if the confirmed temporary grant may be created.
 
-## Rollback
+## Residual operational risks
 
-The previous database is never deleted. To roll back: point the devtest IDENTITY
-secret back at the old endpoint (and its credentials, if you had rotated them), start
-the old instance if it was stopped (`aws rds start-db-instance`), and force a new ECS
-deployment. The new instance can then be stopped (again: not deleted) once you are
-sure.
+Manual snapshots can add production I/O and snapshot copies incur RDS/KMS/storage
+cost. Restored RDS data is lazy-loaded, so performance can remain cold after the
+instance first reports `available`. ECS stability and queue drain verify the deployed
+orchestration available to this command, but they do not replace an operator's portal
+smoke test. Do not stop an old database until application-level behavior has also been
+checked when the environment requires a stronger acceptance gate.
 
 ## Tests
 
-`src/encoded/tests/test_restore_devtest_db.py` covers the whole flow with **all
-external boundaries mocked** — the AWS clients are in-memory fakes injected through
-the command's client-factory seam, prompts are scripted, and sleeps are no-ops. One
-test booby-traps `boto3` to prove a full run never touches it. No test contacts AWS
-or any deployed environment.
+`src/encoded/tests/test_restore_devtest_db.py` injects in-memory fakes for STS, RDS,
+KMS, Secrets Manager, ECS, and SQS; prompts and sleeps are scripted. Tests cover
+resource collisions/provenance, cross-account key/role/queue validation, pagination,
+grant cleanup, concurrent locking/cancellation, secret write ambiguity/redaction,
+deployment failure, queue observation/drain timeouts, and the no-delete invariant.
+A full-run test booby-traps `boto3`. No test contacts AWS or a deployed environment.
