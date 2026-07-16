@@ -338,18 +338,26 @@ export const reformatQcValues = (qcValues) => {
 /**
  * Sum the group coverage (mosdepth:total) across the given processed files,
  * deduping by accession so a file with multiple QualityMetric items is not
- * counted more than once. Returns a Number, or null when no coverage metric is
- * present (distinct from a real 0). Accepts files that already carry a
- * `qc_values_dict` or raw files with `quality_metric.qc_values`.
+ * counted more than once. Accepts files that already carry a `qc_values_dict`
+ * or raw files with `quality_metric.qc_values`.
+ *
+ * Returns { coverage, metricPresent }:
+ *   - coverage: the summed Number, or null when no usable numeric value was
+ *     found (distinct from a real 0).
+ *   - metricPresent: whether the coverage metric appeared on any file at all,
+ *     regardless of whether its value was numeric. This lets callers tell
+ *     "no coverage data to check" apart from "coverage present but unusable".
  */
-export const computeGroupCoverageNumeric = (processedFiles) => {
+export const computeGroupCoverage = (processedFiles) => {
     const filesSeen = [];
     let coverage = 0;
-    let found = false;
+    let numericFound = false;
+    let metricPresent = false;
     for (const pf of processedFiles ?? []) {
         const qcValues =
             pf['qc_values_dict'] ?? reformatQcValues(pf.quality_metric?.qc_values);
         if (COVERAGE_QC_METRIC in qcValues) {
+            metricPresent = true;
             // If there are multiple QM items for the same file we don't want to
             // count the coverage more than once
             if (filesSeen.includes(pf.accession)) {
@@ -361,11 +369,19 @@ export const computeGroupCoverageNumeric = (processedFiles) => {
             }
             coverage += cov;
             filesSeen.push(pf.accession);
-            found = true;
+            numericFound = true;
         }
     }
-    return found ? coverage : null;
+    return { coverage: numericFound ? coverage : null, metricPresent };
 };
+
+/**
+ * Numeric-only accessor for the group coverage sum. Returns a Number, or null
+ * when no usable numeric coverage value is present. Used for display where the
+ * "metric present but unusable" distinction does not matter.
+ */
+export const computeGroupCoverageNumeric = (processedFiles) =>
+    computeGroupCoverage(processedFiles).coverage;
 
 /**
  * Collect the problematic (Warn/Fail) qc_values from the given files (already

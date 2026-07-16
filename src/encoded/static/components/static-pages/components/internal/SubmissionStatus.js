@@ -22,7 +22,7 @@ import {
     getCommentInputField,
     getPagination,
     isActiveFileStatus,
-    computeGroupCoverageNumeric,
+    computeGroupCoverage,
     collectProblematicQcValues,
     groupProblematicQcByMetric,
 } from './utils';
@@ -33,6 +33,7 @@ import {
     SUBMISSION_STATUS_DEFAULT_FILTER,
     AUTO_REVIEW_COMMENT_PREFIX,
     AUTO_REVIEW_COVERAGE_THRESHOLD,
+    COVERAGE_QC_METRIC,
     TAG_REVIEWED,
     TAG_READY_TO_RELEASE,
 } from './config';
@@ -347,21 +348,27 @@ class SubmissionStatusComponent extends React.PureComponent {
         });
     };
 
-    // Coverage is only checked when target_coverage is set and a calculated group
-    // coverage is available. Otherwise the check is skipped.
+    // Coverage is only checked when target_coverage is set. When no coverage
+    // metric is present at all there is nothing to verify and the check is
+    // skipped. When the metric is present but has no usable numeric value,
+    // coverage cannot be verified, so we fail the check rather than let the
+    // fileset pass silently.
     evaluateCoverage = (fs, processedFiles) => {
         const target = fs.sequencing?.target_coverage;
         if (!target) {
             return { checked: false };
         }
-        const calculated = computeGroupCoverageNumeric(processedFiles);
-        if (calculated === null) {
+        const { coverage, metricPresent } = computeGroupCoverage(processedFiles);
+        if (coverage === null) {
+            if (metricPresent) {
+                return { checked: true, ok: false, unavailable: true, target };
+            }
             return { checked: false };
         }
         return {
             checked: true,
-            ok: calculated >= AUTO_REVIEW_COVERAGE_THRESHOLD * target,
-            calculated,
+            ok: coverage >= AUTO_REVIEW_COVERAGE_THRESHOLD * target,
+            calculated: coverage,
             target,
         };
     };
@@ -409,6 +416,15 @@ class SubmissionStatusComponent extends React.PureComponent {
             `${AUTO_REVIEW_COMMENT_PREFIX} Coverage below threshold: calculated ` +
             `group coverage ${this.round1(coverage.calculated)}x is ${pct}% of ` +
             `target ${coverage.target}x.`
+        );
+    };
+
+    buildCoverageUnavailableComment = (coverage) => {
+        return (
+            `${AUTO_REVIEW_COMMENT_PREFIX} Coverage could not be verified: the ` +
+            `coverage metric (${COVERAGE_QC_METRIC}) is present but has no numeric ` +
+            `value, while a target coverage of ${coverage.target}x is set. ` +
+            `Review manually.`
         );
     };
 
@@ -524,7 +540,11 @@ class SubmissionStatusComponent extends React.PureComponent {
             auto.push(this.buildQcFallbackComment());
         }
         if (coverageFails) {
-            auto.push(this.buildCoverageComment(coverage));
+            auto.push(
+                coverage.unavailable
+                    ? this.buildCoverageUnavailableComment(coverage)
+                    : this.buildCoverageComment(coverage)
+            );
         }
 
         const comments = [...auto, ...manual];
