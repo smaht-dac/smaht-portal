@@ -141,6 +141,71 @@ def test_peek_metadata_count_mode_ignores_caller_supplied_limit_and_skip():
     assert 'from=10' not in path
 
 
+# The donor browse row-summary GET query, mirroring what
+# BrowseDonorPeekMetadata.js's buildDonorPeekMetadataHref actually sends
+# (`additional_facet=type` intentionally excluded — see that file for why).
+_DONOR_BROWSE_GET_PARAMS = MultiDict([
+    ('skip_default_facets', 'true'),
+    ('additional_facet', 'sample_summary.tissues'),
+    ('additional_facet', 'assays.display_title'),
+    ('additional_facet', 'file_size'),
+    ('status', 'open'),
+    ('dataset!', 'No value'),
+    ('type', 'File'),
+    ('donors.display_title', 'SMHT001'),
+])
+
+
+def test_facets_via_search_returns_facets_and_total():
+    """`_facets_via_search` (the donor-browse GET path) must surface `total`
+    alongside `facets` so callers can read the File count from `total`
+    instead of requesting `additional_facet=type` under
+    `skip_default_facets=true` — that combination makes snovault infer an
+    invalid `stats` aggregation on the `embedded.@type.raw` keyword field and
+    the search 400s (the confirmed PR #712 regression)."""
+    captured = {}
+
+    def fake_make_subreq(request, path, inherit_user=False):
+        captured['path'] = path
+        captured['inherit_user'] = inherit_user
+        return 'SUBREQ'
+
+    fake_facets = [{'field': 'file_size', 'sum': 2048}]
+
+    def fake_search(context, subreq):
+        assert subreq == 'SUBREQ'
+        return {'total': 7, 'facets': fake_facets}
+
+    with patch.object(metadata, 'make_search_subreq', side_effect=fake_make_subreq), \
+            patch.object(metadata, 'search', side_effect=fake_search):
+        result = metadata._facets_via_search(FakeRequest(), _DONOR_BROWSE_GET_PARAMS)
+
+    assert result == {'facets': fake_facets, 'total': 7}
+
+    # Regression guard: the request built for the donor-browse GET must never
+    # combine skip_default_facets=true with additional_facet=type.
+    path = captured['path']
+    assert 'skip_default_facets=true' in path
+    assert 'additional_facet=type' not in path
+    assert 'limit=0' in path
+
+
+def test_peek_metadata_get_dispatches_to_facets_via_search():
+    """The GET branch of peek_metadata (donor-browse row-summary path) must
+    return the {facets, total} dict as-is, not a bare facets array."""
+    request = FakeRequest(method='GET', params=dict(_DONOR_BROWSE_GET_PARAMS))
+    fake_result = {'facets': [{'field': 'file_size', 'sum': 15}], 'total': 3}
+
+    with patch.object(metadata, 'handle_metadata_arguments',
+                       return_value=Response('x', status=415)), \
+            patch.object(metadata, '_facets_via_search',
+                         return_value=fake_result) as facets_mock:
+        result = metadata.peek_metadata(None, request)
+
+    assert facets_mock.called
+    assert result == fake_result
+
+
 def test_peek_metadata_post_without_search_query_params_uses_filesize_path():
     """A POST body without search_query_params must NOT enter count mode; it
     falls through to the existing file-size/manifest handling."""
@@ -159,9 +224,10 @@ def test_peek_metadata_post_without_search_query_params_uses_filesize_path():
             patch.object(metadata, 'handle_metadata_arguments',
                          return_value=Response('x', status=415)), \
             patch.object(metadata, '_facets_via_search',
-                         return_value=[{'field': 'file_size', 'sum': 15}]) as facets_mock:
+                         return_value={'facets': [{'field': 'file_size', 'sum': 15}],
+                                       'total': 3}) as facets_mock:
         result = metadata.peek_metadata(None, request)
 
     assert count_called == []                      # count mode NOT taken
     assert facets_mock.called
-    assert result == [{'field': 'file_size', 'sum': 15}]
+    assert result == {'facets': [{'field': 'file_size', 'sum': 15}], 'total': 3}
