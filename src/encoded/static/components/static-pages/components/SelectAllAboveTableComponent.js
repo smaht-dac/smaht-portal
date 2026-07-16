@@ -458,15 +458,17 @@ export class SelectAllFilesButton extends React.PureComponent {
         const showMaxDownloadLimitPopover =
             !selecting && !isAllSelected && !isEnabled;
         const maxDownloadLimitPopover = (
-            <Popover className="download-popover">
+            <Popover className="download-popover protected selection-limit">
                 <Popover.Header as="h3">
                     Maximum Download Limit: {SELECT_ALL_LIMIT}
                 </Popover.Header>
                 <Popover.Body>
                     For optimal download speed and portal performance, files can
                     only be downloaded {SELECT_ALL_LIMIT.toLocaleString()} at a
-                    time. If more files need to be downloaded, please download
-                    them in multiple smaller batches.
+                    time. <br />
+                    <br />
+                    If more files need to be downloaded, please download them in
+                    multiple smaller batches.
                 </Popover.Body>
             </Popover>
         );
