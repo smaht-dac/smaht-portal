@@ -8,9 +8,10 @@ resumable sequence of steps:
     2. Create a snapshot of the production database (confirmation required).
     3. Copy the snapshot, re-encrypting from the default aws/rds key to a
        customer-managed KMS key (confirmation required).
-    4. Ensure a temporary, account-bound, encryption-context-constrained KMS grant
-       lets the exact devtest restore role ask RDS to use that key. Creating the grant
-       requires both --allow-kms-grant and an interactive confirmation.
+    4. Ensure a temporary, role-bound KMS grant (DescribeKey/CreateGrant only) lets
+       the exact devtest restore role ask RDS to use that key. Creating the grant
+       requires both --allow-kms-grant and an interactive confirmation; the grant is
+       revoked once the devtest-local copy is safe.
     5. Share the encrypted snapshot copy with the devtest account (confirmation
        requires typing the devtest account id).
 
@@ -23,9 +24,12 @@ resumable sequence of steps:
     9. Update the devtest IDENTITY secret with the new endpoint and the production
        database credentials (confirmation requires typing a fixed phrase; secret
        values are never printed or persisted).
-   10. Quiesce indexers; run and verify a one-shot deployment task; wait for portal,
-       ingester, and indexer stability; and prove configured queues observed and then
-       drained the reindex work.
+   10. Trigger the environment's existing one-shot deployment task: resolve the ECS
+       cluster ARN and deployment task definition family from the environment name
+       (DCIC convention), run the task, require a successful exit, then wait for the
+       environment's indexing queues (also resolved from the environment name) to
+       drain. This is an in-place database swap: no ECS service is created, mutated,
+       scaled, or force-redeployed.
    11. Optionally stop -- never delete -- a previous replaceable restored database.
        Requires both --allow-stop-old-db and typing the database identifier. The
        original protected devtest database is never stopped by this tool; it stays
@@ -33,10 +37,11 @@ resumable sequence of steps:
 
 Every run has a stable operation id and a mode-0600 JSON manifest checkpoint (no
 secrets) so `resume`, `status`, and `cancel` work across invocations. Run/resume holds
-an exclusive state-directory lock; cancel writes an independent atomic marker. A
-resource is adopted only on a retry and only after ownership tags and immutable
-configuration prove provenance. The tool deliberately refuses to delete any database,
-stop the protected database, or proceed on account/region/role/resource mismatch.
+an exclusive state-directory lock; cancel writes an independent atomic marker. An
+already-existing resource is adopted only after ownership tags and immutable
+configuration prove this operation created it. The tool deliberately refuses to delete
+any database, stop the protected database, or proceed on account/region/role/resource
+mismatch.
 
 See docs/operations/restore_devtest_db.md for the full operator guide.
 """
@@ -61,8 +66,6 @@ DEFAULT_STATE_DIR = "~/.smaht/restore-devtest-db"
 DEFAULT_SOURCE_DB = "rds-smaht-production"
 DEFAULT_PROTECTED_DB = "rds-smaht-devtest"
 DEFAULT_INSTANCE_CLASS = "db.t4g.medium"
-DEFAULT_INDEXER_COUNT = 16
-MAX_INDEXER_COUNT = 64
 DEFAULT_DEVTEST_KMS_KEY = "alias/aws/rds"
 
 # RDS requires callers creating a CMK-backed resource to DescribeKey and CreateGrant.
@@ -82,8 +85,15 @@ CREDENTIAL_CONFIRMATION_PHRASE = "replace-devtest-credentials"
 POLL_INTERVAL_SECONDS = 30
 POLL_TIMEOUT_SECONDS = 2 * 60 * 60  # snapshots/restores of a large database are slow
 REINDEX_TIMEOUT_SECONDS = 12 * 60 * 60
+# Cross-account share/grant propagation settles in seconds-to-minutes. Retrying KMS
+# access errors any longer than this masks a genuine misconfiguration.
+PROPAGATION_TIMEOUT_SECONDS = 15 * 60
 MAX_API_PAGES = 100
 EMPTY_QUEUE_CONFIRMATIONS = 3
+
+# Snovault names an environment's indexing queues from the environment name
+# (see snovault.elasticsearch.indexer_queue.QueueManager).
+INDEXER_QUEUE_SUFFIXES = ("-indexer-queue", "-secondary-indexer-queue")
 
 ACCOUNT_ID_PATTERN = re.compile(r"^[0-9]{12}$")
 IAM_ROLE_ARN_PATTERN = re.compile(
@@ -91,6 +101,9 @@ IAM_ROLE_ARN_PATTERN = re.compile(
 )
 OPERATION_ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]{0,39}$")
 DB_IDENTIFIER_PATTERN = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
+ENV_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
+SUBNET_ID_PATTERN = re.compile(r"^subnet-[0-9a-f]{8,17}$")
+SECURITY_GROUP_ID_PATTERN = re.compile(r"^sg-[0-9a-f]{8,17}$")
 SQS_QUEUE_URL_PATTERN = re.compile(
     r"^https://sqs\.(?P<region>[a-z0-9-]+)\.amazonaws\.com/"
     r"(?P<account>[0-9]{12})/(?P<name>[A-Za-z0-9_-]{1,80}(?:\.fifo)?)$"
@@ -163,19 +176,15 @@ class RestoreConfig:
     devtest_restore_role_arn: str = ""
     production_identity_secret: str = ""
     devtest_identity_secret: str = ""
-    devtest_ecs_cluster: str = ""
-    deployment_service_name: str = ""
-    portal_service_name: str = ""
-    ingester_service_name: str = ""
-    indexer_service_name: str = ""
-    indexer_queue_urls: List[str] = field(default_factory=list)
+    devtest_env_name: str = ""
+    deployment_subnet: str = ""
+    deployment_security_group: str = ""
     source_db_identifier: str = DEFAULT_SOURCE_DB
     protected_db_identifier: str = DEFAULT_PROTECTED_DB
     new_db_identifier: str = ""
     old_db_identifier: str = ""
     devtest_kms_key_id: str = DEFAULT_DEVTEST_KMS_KEY
     instance_class: str = DEFAULT_INSTANCE_CLASS
-    indexer_count: int = DEFAULT_INDEXER_COUNT
     db_subnet_group: str = ""
     vpc_security_group_ids: List[str] = field(default_factory=list)
     production_role_name: str = ""
@@ -192,16 +201,24 @@ class RestoreConfig:
         "production_account_id", "devtest_account_id", "region",
         "production_profile", "devtest_profile", "production_kms_key_id",
         "devtest_restore_role_arn", "production_identity_secret",
-        "devtest_identity_secret", "devtest_ecs_cluster",
-        "deployment_service_name", "portal_service_name", "ingester_service_name",
-        "indexer_service_name", "indexer_queue_urls",
+        "devtest_identity_secret", "devtest_env_name",
+        "deployment_subnet", "deployment_security_group",
         "source_db_identifier", "protected_db_identifier", "new_db_identifier",
         "old_db_identifier", "devtest_kms_key_id", "instance_class",
-        "indexer_count", "db_subnet_group", "vpc_security_group_ids",
+        "db_subnet_group", "vpc_security_group_ids",
         "production_role_name", "devtest_role_name", "poll_interval", "poll_timeout",
         "reindex_timeout",
     )
-    FINGERPRINT_FIELDS = PERSISTED_FIELDS
+    # Polling knobs are deliberately excluded so an operator can legitimately extend
+    # a too-small timeout in the manifest without bricking resume; everything
+    # identity- or resource-shaped stays fingerprinted.
+    POLLING_FIELDS = ("poll_interval", "poll_timeout", "reindex_timeout")
+    # NOTE: the exclusion list is repeated literally because a class-body genexp
+    # cannot reference other class attributes.
+    FINGERPRINT_FIELDS = tuple(
+        name for name in PERSISTED_FIELDS
+        if name not in ("poll_interval", "poll_timeout", "reindex_timeout")
+    )
 
     def validate(self) -> None:
         required = {
@@ -214,12 +231,9 @@ class RestoreConfig:
             "devtest_restore_role_arn": self.devtest_restore_role_arn,
             "production_identity_secret": self.production_identity_secret,
             "devtest_identity_secret": self.devtest_identity_secret,
-            "devtest_ecs_cluster": self.devtest_ecs_cluster,
-            "deployment_service_name": self.deployment_service_name,
-            "portal_service_name": self.portal_service_name,
-            "ingester_service_name": self.ingester_service_name,
-            "indexer_service_name": self.indexer_service_name,
-            "indexer_queue_urls": self.indexer_queue_urls,
+            "devtest_env_name": self.devtest_env_name,
+            "deployment_subnet": self.deployment_subnet,
+            "deployment_security_group": self.deployment_security_group,
             "new_db_identifier": self.new_db_identifier,
             "db_subnet_group": self.db_subnet_group,
             "vpc_security_group_ids": self.vpc_security_group_ids,
@@ -279,10 +293,20 @@ class RestoreConfig:
                     f"old_db_identifier {self.old_db_identifier!r} collides with the production"
                     f" source or the new database identifier."
                 )
-        if not (1 <= self.indexer_count <= MAX_INDEXER_COUNT):
+        if not ENV_NAME_PATTERN.fullmatch(self.devtest_env_name):
             raise SafetyViolation(
-                f"indexer_count must be between 1 and {MAX_INDEXER_COUNT} (16 is the"
-                f" documented starting point for a small database), got {self.indexer_count}."
+                f"devtest_env_name must be a lowercase environment name (letters,"
+                f" digits, hyphens), got {self.devtest_env_name!r}."
+            )
+        if not SUBNET_ID_PATTERN.fullmatch(self.deployment_subnet):
+            raise SafetyViolation(
+                f"deployment_subnet must be a subnet id (subnet-...), got"
+                f" {self.deployment_subnet!r}."
+            )
+        if not SECURITY_GROUP_ID_PATTERN.fullmatch(self.deployment_security_group):
+            raise SafetyViolation(
+                f"deployment_security_group must be a security group id (sg-...), got"
+                f" {self.deployment_security_group!r}."
             )
         if self.poll_interval <= 0:
             raise SafetyViolation("poll_interval must be greater than zero.")
@@ -292,17 +316,6 @@ class RestoreConfig:
             raise SafetyViolation("reindex_timeout must be at least poll_interval.")
         if len(set(self.vpc_security_group_ids)) != len(self.vpc_security_group_ids):
             raise SafetyViolation("vpc_security_group_ids contains duplicates.")
-        if len(set(self.indexer_queue_urls)) != len(self.indexer_queue_urls):
-            raise SafetyViolation("indexer_queue_urls contains duplicates.")
-        for queue_url in self.indexer_queue_urls:
-            match = SQS_QUEUE_URL_PATTERN.fullmatch(queue_url)
-            if (not match or match.group("region") != self.region
-                    or match.group("account") != self.devtest_account_id
-                    or len(match.group("name")) > 80):
-                raise SafetyViolation(
-                    "Every indexer_queue_url must be an SQS URL in the configured"
-                    f" devtest account {self.devtest_account_id} and region {self.region}."
-                )
         for name, value, account in (
                 ("production_identity_secret", self.production_identity_secret,
                  self.production_account_id),
@@ -315,12 +328,6 @@ class RestoreConfig:
                     raise SafetyViolation(
                         f"{name} ARN must belong to account {account} in region {self.region}."
                     )
-        service_names = (
-            self.deployment_service_name, self.portal_service_name,
-            self.ingester_service_name, self.indexer_service_name,
-        )
-        if len(set(service_names)) != len(service_names):
-            raise SafetyViolation("deployment, portal, ingester, and indexer service names must differ.")
 
     def to_persisted_dict(self) -> Dict[str, Any]:
         return {name: getattr(self, name) for name in self.PERSISTED_FIELDS}
@@ -632,8 +639,10 @@ STEP_DEFINITIONS: List[StepDefinition] = [
     ),
     StepDefinition(
         "ensure_kms_grant", PRODUCTION,
-        "Ensure the devtest restore role holds a KMS grant on the customer-managed key."
-        " Reuses an existing grant; creating one is a security-policy change.",
+        "Ensure the devtest restore role holds a temporary KMS grant"
+        " (DescribeKey/CreateGrant) on the customer-managed key. The grant is revoked"
+        " after the devtest-local copy is safe, so most runs create one; creating it"
+        " is a security-policy change.",
         confirmation="yes/no confirmation before creating a new KMS grant",
         opt_in_flag="--allow-kms-grant",
     ),
@@ -662,7 +671,7 @@ STEP_DEFINITIONS: List[StepDefinition] = [
     StepDefinition(
         "restore_database", DEVTEST,
         f"Restore a new database instance from the devtest snapshot"
-        f" (default {DEFAULT_INSTANCE_CLASS}, sized for ~{DEFAULT_INDEXER_COUNT} indexers).",
+        f" (default {DEFAULT_INSTANCE_CLASS}, sized for roughly 16 indexers).",
     ),
     StepDefinition(
         "wait_database_available", DEVTEST,
@@ -677,10 +686,12 @@ STEP_DEFINITIONS: List[StepDefinition] = [
         confirmation=f"typed confirmation: '{CREDENTIAL_CONFIRMATION_PHRASE}'",
     ),
     StepDefinition(
-        "update_application_and_reindex", DEVTEST,
-        "Quiesce indexers, run and verify the deployment task, deploy application"
-        " services, restart indexers, and wait for indexing queues to drain.",
-        confirmation="yes/no confirmation before ordered deploy/reindex gates",
+        "run_deployment_and_reindex", DEVTEST,
+        "Run the environment's existing one-shot deployment task (cluster and task"
+        " definition resolved from the environment name), require a successful exit,"
+        " then wait for the environment's indexing queues to drain. No ECS service is"
+        " mutated, scaled, or force-redeployed.",
+        confirmation="yes/no confirmation before running the deployment task",
     ),
     StepDefinition(
         "stop_old_database", DEVTEST,
@@ -715,7 +726,6 @@ class RestoreOrchestrator:
         self.prompter = prompter
         self.emit = emit
         self.sleep_fn = sleep_fn
-        self.retrying_step = False
 
     # -- helpers ---------------------------------------------------------------------
 
@@ -796,15 +806,16 @@ class RestoreOrchestrator:
             waited += self.config.poll_interval
 
     def _retry(self, action: Callable[[], Any], *, retry_codes: set,
-               waiting_on: str) -> Any:
+               waiting_on: str, timeout: Optional[int] = None) -> Any:
         waited = 0
+        timeout = self.config.poll_timeout if timeout is None else timeout
         while True:
             self._check_cancelled()
             try:
                 return action()
             except Exception as e:
                 code = _error_code(e)
-                if code not in retry_codes or waited >= self.config.poll_timeout:
+                if code not in retry_codes or waited >= timeout:
                     raise
                 self.emit(f"... {waiting_on}: {code} (waited {waited}s; retrying)")
                 self.sleep_fn(self.config.poll_interval)
@@ -851,6 +862,34 @@ class RestoreOrchestrator:
                 f"{label} already exists but does not carry this operation's ownership"
                 " tags; refusing to adopt an unrelated resource."
             )
+
+    def _create_or_adopt(self, *, describe: Callable[[], Optional[Dict[str, Any]]],
+                         verify: Callable[[Dict[str, Any]], None],
+                         create: Callable[[], None], label: str) -> None:
+        """Create a tagged resource idempotently.
+
+        If the resource already exists -- from an earlier attempt of this operation
+        that mutated AWS before the checkpoint was written -- it is adopted only
+        after its ownership tags and provenance checks prove this operation created
+        it; anything unowned is refused. An already-exists race on create is resolved
+        the same way: re-describe and require proven ownership."""
+        existing = describe()
+        if existing is None:
+            try:
+                create()
+                return
+            except Exception as e:
+                if not _is_already_exists(e):
+                    raise
+                existing = describe()
+                if existing is None:
+                    raise RestoreError(
+                        f"{label} reported already-exists but cannot be described yet;"
+                        f" resume once it is visible."
+                    ) from e
+        self._assert_owned(existing, label)
+        verify(existing)
+        self.emit(f"{label} already exists with verified provenance; adopting it.")
 
     def _validated_kms_key(self, scope: str, configured_key: str) -> Dict[str, Any]:
         kms = self._client("kms", scope)
@@ -924,17 +963,12 @@ class RestoreOrchestrator:
     def step_create_production_snapshot(self) -> None:
         rds = self._client("rds", PRODUCTION)
         snapshot_id = self.production_snapshot_id
-        existing = self._snapshot(rds, snapshot_id)
-        if existing is not None:
-            if not self.retrying_step:
-                raise SafetyViolation(
-                    f"Snapshot {snapshot_id} already exists on a fresh step; refusing adoption."
-                )
-            self._assert_owned(existing, f"Snapshot {snapshot_id}")
-            if existing.get("DBInstanceIdentifier") != self.config.source_db_identifier:
+
+        def verify(snapshot: Dict[str, Any]) -> None:
+            if snapshot.get("DBInstanceIdentifier") != self.config.source_db_identifier:
                 raise SafetyViolation(f"Snapshot {snapshot_id} belongs to a different source DB.")
-            self.emit(f"Snapshot {snapshot_id} already exists with verified provenance; adopting it.")
-        else:
+
+        def create() -> None:
             self._require_confirmation(
                 self.prompter.confirm(
                     f"About to create snapshot {snapshot_id} of the PRODUCTION database"
@@ -944,18 +978,15 @@ class RestoreOrchestrator:
                 ),
                 "create production snapshot",
             )
-            try:
-                rds.create_db_snapshot(
-                    DBSnapshotIdentifier=snapshot_id,
-                    DBInstanceIdentifier=self.config.source_db_identifier,
-                    Tags=self.ownership_tags,
-                )
-            except Exception as e:
-                if _is_already_exists(e):
-                    raise SafetyViolation(
-                        f"Snapshot {snapshot_id} appeared concurrently; refusing unverified adoption."
-                    ) from e
-                raise
+            rds.create_db_snapshot(
+                DBSnapshotIdentifier=snapshot_id,
+                DBInstanceIdentifier=self.config.source_db_identifier,
+                Tags=self.ownership_tags,
+            )
+
+        self._create_or_adopt(describe=lambda: self._snapshot(rds, snapshot_id),
+                              verify=verify, create=create,
+                              label=f"Snapshot {snapshot_id}")
         self.manifest.set_resource("production_snapshot_id", snapshot_id)
 
     def step_wait_production_snapshot(self) -> None:
@@ -987,20 +1018,15 @@ class RestoreOrchestrator:
         key = self._validated_kms_key(PRODUCTION, self.config.production_kms_key_id)
         key_arn = key["Arn"]
         self.manifest.set_resource("production_kms_key_arn", key_arn)
-        existing = self._snapshot(rds, target_id)
-        if existing is not None:
-            if not self.retrying_step:
-                raise SafetyViolation(
-                    f"Encrypted copy {target_id} already exists on a fresh step; refusing adoption."
-                )
-            self._assert_owned(existing, f"Encrypted copy {target_id}")
-            if not existing.get("Encrypted") or existing.get("KmsKeyId") != key_arn:
+
+        def verify(snapshot: Dict[str, Any]) -> None:
+            if not snapshot.get("Encrypted") or snapshot.get("KmsKeyId") != key_arn:
                 raise SafetyViolation(f"Encrypted copy {target_id} has the wrong KMS provenance.")
-            source_id = existing.get("SourceDBSnapshotIdentifier")
+            source_id = snapshot.get("SourceDBSnapshotIdentifier")
             if source_id and source_id != self.production_snapshot_id:
                 raise SafetyViolation(f"Encrypted copy {target_id} has the wrong snapshot source.")
-            self.emit(f"Encrypted copy {target_id} already exists with verified provenance; adopting it.")
-        else:
+
+        def create() -> None:
             self._require_confirmation(
                 self.prompter.confirm(
                     f"About to copy snapshot {self.production_snapshot_id} to {target_id},"
@@ -1010,19 +1036,16 @@ class RestoreOrchestrator:
                 ),
                 "copy snapshot with re-encryption",
             )
-            try:
-                rds.copy_db_snapshot(
-                    SourceDBSnapshotIdentifier=self.production_snapshot_id,
-                    TargetDBSnapshotIdentifier=target_id,
-                    KmsKeyId=key_arn,
-                    Tags=self.ownership_tags,
-                )
-            except Exception as e:
-                if _is_already_exists(e):
-                    raise SafetyViolation(
-                        f"Encrypted copy {target_id} appeared concurrently; refusing adoption."
-                    ) from e
-                raise
+            rds.copy_db_snapshot(
+                SourceDBSnapshotIdentifier=self.production_snapshot_id,
+                TargetDBSnapshotIdentifier=target_id,
+                KmsKeyId=key_arn,
+                Tags=self.ownership_tags,
+            )
+
+        self._create_or_adopt(describe=lambda: self._snapshot(rds, target_id),
+                              verify=verify, create=create,
+                              label=f"Encrypted copy {target_id}")
         self.manifest.set_resource("encrypted_snapshot_id", target_id)
         self.manifest.set_resource("encrypted_snapshot_arn", self.encrypted_snapshot_arn)
 
@@ -1051,14 +1074,8 @@ class RestoreOrchestrator:
         if not key_arn:
             key_arn = self._validated_kms_key(
                 PRODUCTION, self.config.production_kms_key_id)["Arn"]
-        source = self._instance(self._client("rds", PRODUCTION), self.config.source_db_identifier)
-        resource_id = (source or {}).get("DbiResourceId")
-        if not resource_id:
-            raise RestoreError("Production database reports no DbiResourceId for KMS constraints.")
-        constraints = {"EncryptionContextSubset": {"aws:rds:db-id": resource_id}}
         grants: List[Dict[str, Any]] = []
         marker = None
-        seen_markers = set()
         for _page_number in range(MAX_API_PAGES):
             kwargs = {"KeyId": key_arn, "GranteePrincipal": grantee}
             if marker:
@@ -1067,18 +1084,18 @@ class RestoreOrchestrator:
             grants.extend(page.get("Grants", []))
             if not page.get("Truncated"):
                 break
-            next_marker = page.get("NextMarker")
-            if not next_marker or next_marker in seen_markers:
+            marker = page.get("NextMarker")
+            if not marker:
                 raise RestoreError("KMS grant listing was truncated without a continuation marker.")
-            seen_markers.add(next_marker)
-            marker = next_marker
         else:
             raise RestoreError(f"KMS grant listing exceeded {MAX_API_PAGES} pages.")
+        # A constrained grant cannot be evaluated from here and might still block the
+        # copy, so only an unconstrained grant with the required operations counts.
         existing = [
             g for g in grants
             if g.get("GranteePrincipal") == grantee
-            and set(g.get("Operations", [])) == set(KMS_GRANT_OPERATIONS)
-            and g.get("Constraints", {}) == constraints
+            and set(KMS_GRANT_OPERATIONS) <= set(g.get("Operations", []))
+            and not g.get("Constraints")
         ]
         grant_name = f"smaht-devtest-restore-{self.operation_id}"
         if existing:
@@ -1088,26 +1105,27 @@ class RestoreOrchestrator:
                 raise RestoreError("A matching KMS grant returned no GrantId.")
             owned_grant = grant.get("Name") == grant_name
             self.emit(f"KMS grant already in place for {grantee} (grant id {grant_id});"
-                      f" no security-policy change needed (subsequent use).")
+                      f" no security-policy change needed.")
             self.manifest.set_resource("kms_grant_id", grant_id)
             self.manifest.set_resource("kms_grant_created_by_this_tool", owned_grant)
             return
         if not self.config.allow_kms_grant:
             raise SafetyViolation(
-                f"No account-bound constrained grant exists on KMS key {key_arn} for devtest"
-                f" restores: no grant exists for {grantee}. Creating one is a"
-                f" security-policy change and requires the explicit --allow-kms-grant"
-                f" flag. Re-run resume with --allow-kms-grant to permit it."
+                f"No usable grant exists on KMS key {key_arn} for {grantee}."
+                f" Creating one is a security-policy change and requires the explicit"
+                f" --allow-kms-grant flag (needed on most runs, because this tool"
+                f" revokes its temporary grant after the devtest copy completes)."
+                f" Re-run resume with --allow-kms-grant to permit it."
             )
         self._require_confirmation(
             self.prompter.confirm(
                 f"SECURITY-POLICY CHANGE: about to create a KMS grant on key"
                 f" {key_arn} allowing role {grantee}"
-                f" the operations {', '.join(KMS_GRANT_OPERATIONS)}. This permits the"
-                f" devtest role to let RDS create only equally constrained child grants"
-                f" for encryption context production DB resource {resource_id}. The grant"
-                f" gives no direct Encrypt/Decrypt permission and will be revoked"
-                f" automatically after the devtest-local snapshot copy is available."
+                f" the operations {', '.join(KMS_GRANT_OPERATIONS)}. These let the"
+                f" devtest role ask RDS to use the key for the shared snapshot copy;"
+                f" they give the role no direct Encrypt/Decrypt permission. The grant"
+                f" will be revoked automatically after the devtest-local snapshot copy"
+                f" is available."
             ),
             "create KMS grant",
         )
@@ -1116,7 +1134,6 @@ class RestoreOrchestrator:
             GranteePrincipal=grantee,
             Operations=KMS_GRANT_OPERATIONS,
             Name=grant_name,
-            Constraints=constraints,
             RetiringPrincipal=grantee,
         )
         grant_id = response.get("GrantId")
@@ -1170,37 +1187,32 @@ class RestoreOrchestrator:
         source_arn = self.manifest.get_resource("encrypted_snapshot_arn", self.encrypted_snapshot_arn)
         key_arn = self._validated_kms_key(DEVTEST, self.config.devtest_kms_key_id)["Arn"]
         self.manifest.set_resource("devtest_kms_key_arn", key_arn)
-        existing = self._snapshot(rds, target_id)
-        if existing is not None:
-            if not self.retrying_step:
-                raise SafetyViolation(
-                    f"Devtest snapshot copy {target_id} exists on a fresh step; refusing adoption."
-                )
-            self._assert_owned(existing, f"Devtest snapshot copy {target_id}")
-            if not existing.get("Encrypted") or existing.get("KmsKeyId") != key_arn:
+
+        def verify(snapshot: Dict[str, Any]) -> None:
+            if not snapshot.get("Encrypted") or snapshot.get("KmsKeyId") != key_arn:
                 raise SafetyViolation(f"Devtest snapshot copy {target_id} has wrong KMS provenance.")
-            source_id = existing.get("SourceDBSnapshotIdentifier")
+            source_id = snapshot.get("SourceDBSnapshotIdentifier")
             if source_id and source_id != source_arn:
                 raise SafetyViolation(f"Devtest snapshot copy {target_id} has the wrong source.")
-            self.emit(f"Devtest snapshot copy {target_id} has verified provenance; adopting it.")
-        else:
-            try:
-                self._retry(
-                    lambda: rds.copy_db_snapshot(
-                        SourceDBSnapshotIdentifier=source_arn,
-                        TargetDBSnapshotIdentifier=target_id,
-                        KmsKeyId=key_arn,
-                        Tags=self.ownership_tags,
-                    ),
-                    retry_codes={"KMSKeyNotAccessibleFault", "DBSnapshotNotFound"},
-                    waiting_on="cross-account snapshot/grant propagation",
-                )
-            except Exception as e:
-                if _is_already_exists(e):
-                    raise SafetyViolation(
-                        f"Devtest snapshot copy {target_id} appeared concurrently; refusing adoption."
-                    ) from e
-                raise
+
+        def create() -> None:
+            # Share/grant propagation settles quickly; a longer retry would only
+            # disguise a genuinely broken grant or share as slowness.
+            self._retry(
+                lambda: rds.copy_db_snapshot(
+                    SourceDBSnapshotIdentifier=source_arn,
+                    TargetDBSnapshotIdentifier=target_id,
+                    KmsKeyId=key_arn,
+                    Tags=self.ownership_tags,
+                ),
+                retry_codes={"KMSKeyNotAccessibleFault", "DBSnapshotNotFound"},
+                waiting_on="cross-account snapshot/grant propagation",
+                timeout=min(PROPAGATION_TIMEOUT_SECONDS, self.config.poll_timeout),
+            )
+
+        self._create_or_adopt(describe=lambda: self._snapshot(rds, target_id),
+                              verify=verify, create=create,
+                              label=f"Devtest snapshot copy {target_id}")
         self.manifest.set_resource("devtest_snapshot_id", target_id)
 
     def step_wait_devtest_snapshot(self) -> None:
@@ -1275,34 +1287,22 @@ class RestoreOrchestrator:
                 f" devtest database (subnet {protected_subnet!r}, groups"
                 f" {sorted(protected_groups)}); refusing unsafe network placement."
             )
-        existing = self._instance(rds, db_id)
-        if existing is not None:
-            if not self.retrying_step:
-                raise SafetyViolation(
-                    f"Database instance {db_id} already exists on a fresh step; refusing adoption."
-                )
-            self._assert_owned(existing, f"Database instance {db_id}")
-            self._assert_database_configuration(existing)
-            self.emit(f"Database instance {db_id} has verified provenance; adopting it.")
-        else:
-            kwargs: Dict[str, Any] = {
-                "DBInstanceIdentifier": db_id,
-                "DBSnapshotIdentifier": self.manifest.get_resource(
+
+        def create() -> None:
+            rds.restore_db_instance_from_db_snapshot(
+                DBInstanceIdentifier=db_id,
+                DBSnapshotIdentifier=self.manifest.get_resource(
                     "devtest_snapshot_id", self.devtest_snapshot_id),
-                "DBInstanceClass": self.config.instance_class,
-                "PubliclyAccessible": False,
-                "DBSubnetGroupName": self.config.db_subnet_group,
-                "VpcSecurityGroupIds": self.config.vpc_security_group_ids,
-                "Tags": self.ownership_tags,
-            }
-            try:
-                rds.restore_db_instance_from_db_snapshot(**kwargs)
-            except Exception as e:
-                if _is_already_exists(e):
-                    raise SafetyViolation(
-                        f"Database instance {db_id} appeared concurrently; refusing adoption."
-                    ) from e
-                raise
+                DBInstanceClass=self.config.instance_class,
+                PubliclyAccessible=False,
+                DBSubnetGroupName=self.config.db_subnet_group,
+                VpcSecurityGroupIds=self.config.vpc_security_group_ids,
+                Tags=self.ownership_tags,
+            )
+
+        self._create_or_adopt(describe=lambda: self._instance(rds, db_id),
+                              verify=self._assert_database_configuration, create=create,
+                              label=f"Database instance {db_id}")
         self.manifest.set_resource("new_db_identifier", db_id)
 
     def _assert_database_configuration(self, instance: Dict[str, Any]) -> None:
@@ -1440,120 +1440,108 @@ class RestoreOrchestrator:
         self.emit(f"Devtest identity secret updated ({len(changed_keys)} keys changed;"
                   f" values not shown).")
 
-    def _ecs_services(self, ecs: Any) -> Dict[str, Dict[str, Any]]:
-        names = [
-            self.config.deployment_service_name,
-            self.config.portal_service_name,
-            self.config.ingester_service_name,
-            self.config.indexer_service_name,
+    # -- deployment / reindex (in-place database swap) ---------------------------------
+    #
+    # The environment's ECS cluster, one-shot deployment task definition family, and
+    # indexing queues are all resolved from the environment name, following the DCIC
+    # convention (dcicutils.ecs_utils / snovault queue naming). No ECS service is
+    # described, mutated, scaled, or force-redeployed.
+
+    @staticmethod
+    def _normalized(value: str) -> str:
+        return re.sub(r"[^a-z0-9]", "", value.lower())
+
+    def _paginate(self, fetch: Callable[[Optional[str]], Dict[str, Any]],
+                  result_key: str, what: str) -> List[Any]:
+        items: List[Any] = []
+        token: Optional[str] = None
+        for _page_number in range(MAX_API_PAGES):
+            page = fetch(token)
+            items.extend(page.get(result_key, []))
+            token = page.get("nextToken")
+            if not token:
+                return items
+        raise RestoreError(f"{what} listing exceeded {MAX_API_PAGES} pages.")
+
+    def _resolve_unique(self, candidates: List[str], what: str) -> str:
+        env = self.config.devtest_env_name
+        matches = sorted(
+            candidate for candidate in candidates
+            if self._normalized(env) in self._normalized(candidate.rsplit("/", 1)[-1])
+        )
+        if len(matches) != 1:
+            raise RestoreError(
+                f"Expected exactly one {what} matching environment {env!r}, found"
+                f" {len(matches)}: {matches or sorted(candidates)}. Refusing to guess."
+            )
+        return matches[0]
+
+    def _resolve_durable(self, resource_key: str, resolved: str, what: str) -> str:
+        """Persist a resolved identifier and refuse a mid-operation change."""
+        stored = self.manifest.get_resource(resource_key)
+        if stored and stored != resolved:
+            raise SafetyViolation(
+                f"The resolved {what} changed from {stored!r} to {resolved!r} during"
+                f" this operation; refusing to continue against a moved environment."
+            )
+        self.manifest.set_resource(resource_key, resolved)
+        return resolved
+
+    def _resolve_cluster_arn(self, ecs: Any) -> str:
+        arns = self._paginate(
+            lambda token: ecs.list_clusters(**({"nextToken": token} if token else {})),
+            "clusterArns", "ECS cluster")
+        cluster_arn = self._resolve_unique(arns, "ECS cluster")
+        return self._resolve_durable("devtest_cluster_arn", cluster_arn, "ECS cluster")
+
+    def _resolve_deployment_task_family(self, ecs: Any) -> str:
+        families = self._paginate(
+            lambda token: ecs.list_task_definition_families(
+                status="ACTIVE", **({"nextToken": token} if token else {})),
+            "families", "ECS task definition family")
+        # The initial-deployment task definition wipes the database and search
+        # contents; it must never be matched here.
+        candidates = [
+            family for family in families
+            if "deployment" in family.lower() and "initial" not in family.lower()
         ]
-        response = ecs.describe_services(cluster=self.config.devtest_ecs_cluster, services=names)
-        if response.get("failures"):
-            raise RestoreError("ECS could not describe every configured devtest service.")
-        services = {service.get("serviceName"): service for service in response.get("services", [])}
-        missing = [name for name in names if name not in services]
-        if missing:
-            raise RestoreError(f"Configured ECS services not found: {', '.join(missing)}.")
-        return services
+        family = self._resolve_unique(candidates, "deployment task definition family")
+        return self._resolve_durable("deployment_task_family", family,
+                                     "deployment task definition family")
 
-    def _wait_services_stable(self, ecs: Any, names: List[str]) -> None:
-        def status() -> str:
-            services = self._ecs_services(ecs)
-            for name in names:
-                service = services[name]
-                deployments = service.get("deployments", [])
-                primary = next((item for item in deployments if item.get("status") == "PRIMARY"), {})
-                if primary.get("rolloutState") == "FAILED":
-                    raise RestoreError(f"ECS service {name} deployment failed.")
-                desired = service.get("desiredCount", 0)
-                if (service.get("runningCount") != desired or service.get("pendingCount") != 0
-                        or len(deployments) != 1
-                        or primary.get("rolloutState") not in (None, "COMPLETED")):
-                    return "deploying"
-            return "stable"
-
-        self._wait_for(status, ready="stable", waiting_on=f"ECS services {', '.join(names)}")
-
-    def _deployment_tasks(self, ecs: Any, started_by: str) -> List[str]:
-        tasks: List[str] = []
-        for desired_status in ("RUNNING", "STOPPED"):
-            token = None
-            seen_tokens = set()
-            for _page_number in range(MAX_API_PAGES):
-                kwargs = {
-                    "cluster": self.config.devtest_ecs_cluster,
-                    "startedBy": started_by,
-                    "desiredStatus": desired_status,
-                }
-                if token:
-                    kwargs["nextToken"] = token
-                page = ecs.list_tasks(**kwargs)
-                tasks.extend(page.get("taskArns", []))
-                next_token = page.get("nextToken")
-                if not next_token:
-                    break
-                if next_token in seen_tokens:
-                    raise RestoreError("ECS task listing returned a repeated continuation token.")
-                seen_tokens.add(next_token)
-                token = next_token
-            else:
-                raise RestoreError(f"ECS task listing exceeded {MAX_API_PAGES} pages.")
-        return sorted(set(tasks))
-
-    def _deployment_started_by(self) -> str:
-        digest = hashlib.sha256(self.operation_id.encode()).hexdigest()[:20]
-        return f"smaht-restore-{digest}"
-
-    def _run_or_adopt_deployment_task(self, ecs: Any, service: Dict[str, Any]) -> str:
-        task_arn = self.manifest.get_resource("deployment_task_arn")
-        started_by = self._deployment_started_by()
-        if not task_arn:
-            tasks = self._deployment_tasks(ecs, started_by)
-            if len(tasks) > 1:
+    def _resolve_indexer_queue_urls(self, sqs: Any) -> List[str]:
+        urls: List[str] = []
+        for suffix in INDEXER_QUEUE_SUFFIXES:
+            name = f"{self.config.devtest_env_name}{suffix}"
+            try:
+                url = sqs.get_queue_url(QueueName=name)["QueueUrl"]
+            except Exception as e:
+                if "NonExistentQueue" in _error_code(e) or _is_not_found(e):
+                    raise RestoreError(
+                        f"Indexing queue {name} was not found in the devtest account;"
+                        f" check --devtest-env-name against the environment's queues."
+                    ) from e
+                raise
+            match = SQS_QUEUE_URL_PATTERN.fullmatch(url)
+            if (not match or match.group("region") != self.config.region
+                    or match.group("account") != self.config.devtest_account_id):
                 raise SafetyViolation(
-                    f"Found multiple deployment tasks for operation {self.operation_id}; refusing to guess."
+                    f"Resolved queue URL for {name} is not in the configured devtest"
+                    f" account and region; refusing to poll it."
                 )
-            if tasks:
-                task_arn = tasks[0]
-            else:
-                kwargs: Dict[str, Any] = {
-                    "cluster": self.config.devtest_ecs_cluster,
-                    "taskDefinition": service["taskDefinition"],
-                    "count": 1,
-                    "startedBy": started_by,
-                }
-                if service.get("networkConfiguration"):
-                    kwargs["networkConfiguration"] = service["networkConfiguration"]
-                if service.get("capacityProviderStrategy"):
-                    kwargs["capacityProviderStrategy"] = service["capacityProviderStrategy"]
-                elif service.get("launchType"):
-                    kwargs["launchType"] = service["launchType"]
-                if service.get("platformVersion"):
-                    kwargs["platformVersion"] = service["platformVersion"]
-                response = ecs.run_task(**kwargs)
-                if response.get("failures") or len(response.get("tasks", [])) != 1:
-                    raise RestoreError("ECS failed to start exactly one deployment task.")
-                task_arn = response["tasks"][0]["taskArn"]
-            self.manifest.set_resource("deployment_task_arn", task_arn)
+            urls.append(url)
+        stored = self.manifest.get_resource("indexer_queue_urls")
+        if stored and stored != urls:
+            raise SafetyViolation(
+                "The resolved indexing queue URLs changed during this operation;"
+                " refusing to continue."
+            )
+        self.manifest.set_resource("indexer_queue_urls", urls)
+        return urls
 
-        def status() -> str:
-            response = ecs.describe_tasks(
-                cluster=self.config.devtest_ecs_cluster, tasks=[task_arn])
-            if response.get("failures") or len(response.get("tasks", [])) != 1:
-                raise RestoreError("ECS deployment task could not be described.")
-            return response["tasks"][0].get("lastStatus", "UNKNOWN")
-
-        self._wait_for(status, ready="STOPPED", waiting_on=f"deployment task {task_arn}")
-        task = ecs.describe_tasks(
-            cluster=self.config.devtest_ecs_cluster, tasks=[task_arn])["tasks"][0]
-        containers = task.get("containers", [])
-        if not containers or any(container.get("exitCode") != 0 for container in containers):
-            raise RestoreError("The deployment task stopped without successful container exit codes.")
-        return task_arn
-
-    def _index_queue_counts(self, sqs: Any) -> Dict[str, int]:
+    def _index_queue_counts(self, sqs: Any, queue_urls: List[str]) -> Dict[str, int]:
         totals = {"waiting": 0, "inflight": 0}
-        for queue_url in self.config.indexer_queue_urls:
+        for queue_url in queue_urls:
             attrs = sqs.get_queue_attributes(
                 QueueUrl=queue_url,
                 AttributeNames=[
@@ -1565,78 +1553,91 @@ class RestoreOrchestrator:
             totals["inflight"] += int(attrs.get("ApproximateNumberOfMessagesNotVisible", 0))
         return totals
 
-    def step_update_application_and_reindex(self) -> None:
+    def _describe_deployment_task(self, ecs: Any, cluster_arn: str,
+                                  task_arn: str) -> Optional[Dict[str, Any]]:
+        response = ecs.describe_tasks(cluster=cluster_arn, tasks=[task_arn])
+        tasks = response.get("tasks", [])
+        if response.get("failures") or not tasks:
+            return None
+        return tasks[0]
+
+    def step_run_deployment_and_reindex(self) -> None:
         ecs = self._client("ecs", DEVTEST)
         sqs = self._client("sqs", DEVTEST)
-        cluster = self.config.devtest_ecs_cluster
-        services = self._ecs_services(ecs)
-        self._require_confirmation(
-            self.prompter.confirm(
-                f"ORDERED CUTOVER: in ECS cluster {cluster}, quiesce indexer service"
-                f" {self.config.indexer_service_name}; run deployment task from"
-                f" {self.config.deployment_service_name}; wait for success; redeploy"
-                f" {self.config.portal_service_name} and {self.config.ingester_service_name};"
-                f" restart {self.config.indexer_count} indexers; then wait up to"
-                f" {self.config.reindex_timeout}s for all configured indexing queues to drain."
-            ),
-            "ordered devtest deployment and verified reindex",
-        )
+        cluster_arn = self._resolve_cluster_arn(ecs)
+        family = self._resolve_deployment_task_family(ecs)
+        queue_urls = self._resolve_indexer_queue_urls(sqs)
 
-        indexer = services[self.config.indexer_service_name]
-        if self.manifest.get_resource("previous_indexer_count") is None:
-            self.manifest.set_resource("previous_indexer_count", indexer.get("desiredCount", 0))
-        if not self.manifest.get_resource("indexer_quiesced"):
-            ecs.update_service(
-                cluster=cluster, service=self.config.indexer_service_name, desiredCount=0)
-            self._wait_services_stable(ecs, [self.config.indexer_service_name])
-            self.manifest.set_resource("indexer_quiesced", True)
+        if not self.manifest.get_resource("deployment_succeeded"):
+            task_arn = self.manifest.get_resource("deployment_task_arn")
+            if task_arn and self._describe_deployment_task(ecs, cluster_arn, task_arn) is None:
+                # ECS retains stopped tasks only briefly; a task that can no longer be
+                # described cannot be verified, so re-run it (with confirmation again)
+                # rather than assume it succeeded.
+                self.emit(f"Previously started deployment task {task_arn} can no longer"
+                          f" be described; a new deployment task is required.")
+                task_arn = ""
+            if not task_arn:
+                self._require_confirmation(
+                    self.prompter.confirm(
+                        f"IN-PLACE DEPLOYMENT: about to run one {family} task in ECS"
+                        f" cluster {cluster_arn} (subnet {self.config.deployment_subnet},"
+                        f" security group {self.config.deployment_security_group}). The"
+                        f" task recreates search mappings and enqueues a full reindex"
+                        f" against the restored database. No ECS service is mutated,"
+                        f" scaled, or force-redeployed."
+                    ),
+                    "run the environment deployment task",
+                )
+                response = ecs.run_task(
+                    cluster=cluster_arn,
+                    taskDefinition=family,
+                    count=1,
+                    startedBy=f"restore-{self.operation_id}"[:36],
+                    networkConfiguration={"awsvpcConfiguration": {
+                        "subnets": [self.config.deployment_subnet],
+                        "securityGroups": [self.config.deployment_security_group],
+                    }},
+                )
+                if response.get("failures") or len(response.get("tasks", [])) != 1:
+                    raise RestoreError("ECS failed to start exactly one deployment task.")
+                task_arn = response["tasks"][0]["taskArn"]
+                self.manifest.set_resource("deployment_task_arn", task_arn)
 
-        if not self.manifest.get_resource("deployment_completed"):
-            baseline = self.manifest.get_resource("predeployment_queue_count")
-            if baseline is None:
-                baseline_counts = self._index_queue_counts(sqs)
-                baseline = baseline_counts["waiting"] + baseline_counts["inflight"]
-                self.manifest.set_resource("predeployment_queue_count", baseline)
-            task_arn = self._run_or_adopt_deployment_task(
-                ecs, services[self.config.deployment_service_name])
+            def task_status() -> str:
+                task = self._describe_deployment_task(ecs, cluster_arn, task_arn)
+                if task is None:
+                    raise RestoreError(
+                        f"Deployment task {task_arn} disappeared before it could be"
+                        f" verified; resume to run a new deployment task."
+                    )
+                return task.get("lastStatus", "UNKNOWN")
 
-            def reindex_observed() -> str:
-                counts = self._index_queue_counts(sqs)
-                return ("observed" if counts["waiting"] + counts["inflight"] > baseline
-                        else "not-yet-visible")
+            self._wait_for(task_status, ready="STOPPED",
+                           waiting_on=f"deployment task {task_arn}")
+            task = self._describe_deployment_task(ecs, cluster_arn, task_arn)
+            containers = (task or {}).get("containers", [])
+            if not containers or any(container.get("exitCode") != 0 for container in containers):
+                # Clear the durable task pointer so resume runs a fresh task (with
+                # confirmation) instead of re-verifying the same failed task forever.
+                self.manifest.set_resource("deployment_task_arn", "")
+                raise RestoreError(
+                    "The deployment task stopped without successful container exit"
+                    " codes; investigate its logs, then resume to run it again."
+                )
+            self.manifest.set_resource("deployment_succeeded", True)
+            self.emit(f"Deployment task {task_arn} succeeded: search mappings recreated"
+                      f" and reindex enqueued.")
 
-            self._wait_for(
-                reindex_observed,
-                ready="observed",
-                waiting_on="deployment-generated indexing work",
-            )
-            self.manifest.set_resource("deployment_task_arn", task_arn)
-            self.manifest.set_resource("deployment_completed", True)
-            self.manifest.set_resource("reindex_observed", True)
-
-        application_names = [self.config.portal_service_name, self.config.ingester_service_name]
-        if not self.manifest.get_resource("application_services_stable"):
-            for name in application_names:
-                ecs.update_service(cluster=cluster, service=name, forceNewDeployment=True)
-            self._wait_services_stable(ecs, application_names)
-            self.manifest.set_resource("application_services_stable", True)
-
-        if not self.manifest.get_resource("indexer_services_stable"):
-            ecs.update_service(
-                cluster=cluster,
-                service=self.config.indexer_service_name,
-                desiredCount=self.config.indexer_count,
-                forceNewDeployment=True,
-            )
-            self._wait_services_stable(ecs, [self.config.indexer_service_name])
-            self.manifest.set_resource("indexer_services_stable", True)
-            self.manifest.set_resource("indexer_count", self.config.indexer_count)
-
+        # Reindex health: wait until the environment's indexing queues fully drain.
+        # This is an absolute check with no enqueue-observation baseline, so a resume
+        # after the queues already drained passes immediately instead of waiting for
+        # a spike that will never reappear.
         consecutive_empty = 0
 
         def queue_status() -> str:
             nonlocal consecutive_empty
-            counts = self._index_queue_counts(sqs)
+            counts = self._index_queue_counts(sqs, queue_urls)
             if counts["waiting"] == 0 and counts["inflight"] == 0:
                 consecutive_empty += 1
                 if consecutive_empty >= EMPTY_QUEUE_CONFIRMATIONS:
@@ -1652,10 +1653,8 @@ class RestoreOrchestrator:
             timeout=self.config.reindex_timeout,
         )
         self.manifest.set_resource("reindex_completed", True)
-        self.emit(
-            f"Deployment task succeeded, application services are stable, and all indexing"
-            f" queues drained with {self.config.indexer_count} indexers."
-        )
+        self.emit("Deployment task succeeded and all indexing queues drained; the"
+                  " restored database is serving the reindexed environment.")
 
     def step_stop_old_database(self) -> None:
         old_db = self.config.old_db_identifier
@@ -1721,7 +1720,11 @@ class RestoreOrchestrator:
     def run(self) -> None:
         self.manifest.set_status("in_progress")
         for definition in STEP_DEFINITIONS:
-            self._check_cancelled()
+            try:
+                self._check_cancelled()
+            except OperationCancelled:
+                self.manifest.set_status("cancelled")
+                raise
             if self.manifest.step_status(definition.name) in ("completed", "skipped"):
                 self.emit(f"[{definition.name}] already done; skipping.")
                 continue
@@ -1729,8 +1732,6 @@ class RestoreOrchestrator:
             try:
                 if definition.scope:
                     self.verify_account(definition.scope)
-                previous_status = self.manifest.step_status(definition.name)
-                self.retrying_step = previous_status != "pending"
                 self.manifest.mark_step(definition.name, "in_progress")
                 getattr(self, f"step_{definition.name}")()
                 if self.manifest.step_status(definition.name) == "in_progress":
@@ -1823,7 +1824,6 @@ def print_plan(config: RestoreConfig, operation_id: str,
     emit(f"  new db: {config.new_db_identifier or '<required for run>'} "
          f"({config.instance_class})   old db to stop:"
          f" {config.old_db_identifier or '<none: nothing will be stopped>'}")
-    emit(f"  indexers after restore: {config.indexer_count}")
     emit(f"  operation id: {operation_id} (pass this exact id to run for the planned names)")
     emit(f"  profiles: production={config.production_profile} devtest={config.devtest_profile}")
     emit(f"  KMS: production={config.production_kms_key_id} devtest={config.devtest_kms_key_id}")
@@ -1832,10 +1832,12 @@ def print_plan(config: RestoreConfig, operation_id: str,
          f" devtest={config.devtest_identity_secret}")
     emit(f"  DB network: subnet={config.db_subnet_group}"
          f" security-groups={','.join(config.vpc_security_group_ids)}")
-    emit(f"  ECS cluster/services: {config.devtest_ecs_cluster} /"
-         f" {config.deployment_service_name},{config.portal_service_name},"
-         f"{config.ingester_service_name},{config.indexer_service_name}")
-    emit(f"  indexing queues configured: {len(config.indexer_queue_urls)}")
+    emit(f"  environment name: {config.devtest_env_name} (resolves the ECS cluster,"
+         f" the deployment task definition, and the"
+         f" {'/'.join(INDEXER_QUEUE_SUFFIXES)} indexing queues)")
+    emit(f"  deployment task network: subnet={config.deployment_subnet}"
+         f" security-group={config.deployment_security_group}")
+    emit("  ECS services: none are described, mutated, scaled, or force-redeployed")
     for number, definition in enumerate(STEP_DEFINITIONS, start=1):
         scope = f"[{definition.scope}]" if definition.scope else "[local]"
         emit(f"  {number:2d}. {scope:12s} {definition.name}")
@@ -1902,26 +1904,17 @@ def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
                            help="production IDENTITY secret name (read-only source of RDS credentials)")
     resources.add_argument("--devtest-identity-secret", default="",
                            help="devtest IDENTITY secret name to update with the new endpoint")
-    resources.add_argument("--devtest-ecs-cluster", default="",
-                           help="devtest ECS cluster whose services are redeployed to reindex")
-    resources.add_argument("--deployment-service-name", default="",
-                           help="ECS service whose task definition runs the one-shot deployment")
-    resources.add_argument("--portal-service-name", default="",
-                           help="portal ECS service name")
-    resources.add_argument("--ingester-service-name", default="",
-                           help="ingester ECS service name")
-    resources.add_argument("--indexer-service-name", default="",
-                           help="indexer ECS service name")
-    resources.add_argument("--indexer-queue-url", action="append", default=[],
-                           dest="indexer_queue_urls",
-                           help="SQS indexer queue URL to gate until empty (repeatable)")
+    resources.add_argument("--devtest-env-name", default="",
+                           help="devtest environment name (e.g. smaht-devtest); resolves the"
+                                " ECS cluster, deployment task definition, and indexing queues")
+    resources.add_argument("--deployment-subnet", default="",
+                           help="subnet id (subnet-...) the one-shot deployment task runs in")
+    resources.add_argument("--deployment-security-group", default="",
+                           help="security group id (sg-...) for the one-shot deployment task")
     sizing = parser.add_argument_group("sizing")
     sizing.add_argument("--instance-class", default=DEFAULT_INSTANCE_CLASS,
                         help=f"instance class for the restored database"
                              f" (default {DEFAULT_INSTANCE_CLASS}, sized for ~16 indexers)")
-    sizing.add_argument("--indexer-count", type=int, default=DEFAULT_INDEXER_COUNT,
-                        help=f"indexer tasks after restore (1..{MAX_INDEXER_COUNT},"
-                             f" default {DEFAULT_INDEXER_COUNT})")
     sizing.add_argument("--db-subnet-group", default="",
                         help="required DB subnet group; must match the protected devtest database")
     sizing.add_argument("--vpc-security-group-id", action="append", default=[],
@@ -2005,19 +1998,15 @@ def config_from_args(args: argparse.Namespace) -> RestoreConfig:
         devtest_restore_role_arn=args.devtest_restore_role_arn,
         production_identity_secret=args.production_identity_secret,
         devtest_identity_secret=args.devtest_identity_secret,
-        devtest_ecs_cluster=args.devtest_ecs_cluster,
-        deployment_service_name=args.deployment_service_name,
-        portal_service_name=args.portal_service_name,
-        ingester_service_name=args.ingester_service_name,
-        indexer_service_name=args.indexer_service_name,
-        indexer_queue_urls=list(args.indexer_queue_urls),
+        devtest_env_name=args.devtest_env_name,
+        deployment_subnet=args.deployment_subnet,
+        deployment_security_group=args.deployment_security_group,
         source_db_identifier=args.source_db_identifier,
         protected_db_identifier=args.protected_db_identifier,
         new_db_identifier=args.new_db_identifier,
         old_db_identifier=args.old_db_identifier,
         devtest_kms_key_id=args.devtest_kms_key_id,
         instance_class=args.instance_class,
-        indexer_count=args.indexer_count,
         db_subnet_group=args.db_subnet_group,
         vpc_security_group_ids=list(args.vpc_security_group_ids),
         production_role_name=args.production_role_name,

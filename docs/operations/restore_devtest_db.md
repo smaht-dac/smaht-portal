@@ -22,16 +22,18 @@ constructing an AWS client. A run performs these gates:
    key. The key must be enabled, symmetric, customer-managed, and owned by the
    configured production account in the configured region.
 5. Find or confirm creation of a KMS grant for the exact devtest role ARN. A new
-   grant allows only `DescribeKey` and `CreateGrant`; its encryption-context
-   constraint requires child grants to be equally or more tightly restricted to the
-   production RDS `DbiResourceId`. It gives the role no direct Encrypt/Decrypt grant.
+   grant allows only `DescribeKey` and `CreateGrant` -- what RDS needs to use the key
+   for the cross-account copy -- and gives the role no direct Encrypt/Decrypt
+   permission. Because the grant is revoked at step 7, most runs create one and
+   therefore need `--allow-kms-grant` plus the interactive confirmation.
 6. Confirm the cross-account share by typing the devtest account ID, verify the
    devtest STS context, and make a tagged devtest-local snapshot copy under the
-   resolved devtest key. The copy retries only known KMS propagation failures and
-   every retry/poll is bounded.
+   resolved devtest key. The copy retries only known KMS propagation failures, and
+   those retries are bounded to fifteen minutes so a broken share or grant surfaces
+   quickly instead of masquerading as slow propagation.
 7. After the devtest-local copy is available and its provenance is verified, remove
    the production snapshot share and revoke only a temporary grant created by this
-   operation. A pre-existing exact constrained grant is not revoked.
+   operation. A pre-existing matching grant found at step 5 is not revoked.
 8. Describe the protected devtest database and require the operator-supplied DB
    subnet group and complete security-group set to match it exactly. Restore a new,
    private, tagged instance using those explicit values and wait until available.
@@ -40,24 +42,31 @@ constructing an AWS client. A run performs these gates:
    credential version pinned at the snapshot boundary. A deterministic Secrets
    Manager request token makes an accepted-but-uncheckpointed write safely adoptable
    on resume. Concurrent changes to the devtest secret fail closed.
-10. Confirm an ordered ECS cutover: quiesce the configured indexer service; run one
-    deployment task from the configured deployment service's task definition and
-    network settings; require successful container exits and index queue work above
-    the recorded predeployment baseline; force new portal and ingester deployments
-    and wait for ECS stability;
-    restart the configured indexer count and wait for ECS stability; then require all
-    configured SQS index queues to report empty repeatedly within
-    `--reindex-timeout`.
+10. Confirm and run the environment's existing one-shot deployment task. The ECS
+    cluster ARN and the deployment task definition family are resolved from
+    `--devtest-env-name` (exactly one match each, or the step fails and lists the
+    candidates; the destructive initial-deployment task definition is always
+    excluded). The task runs in the explicit `--deployment-subnet` /
+    `--deployment-security-group`, its ARN is checkpointed in the manifest, and it
+    must stop with successful container exit codes -- that is the proof mappings were
+    recreated and the reindex was enqueued (`entrypoint_deployment.sh` runs
+    `create-mapping-on-deploy --wipe-es`). Then the environment's indexing queues
+    (`<env>-indexer-queue` and `<env>-secondary-indexer-queue`, resolved by name and
+    verified to live in the devtest account/region) must report empty on several
+    consecutive polls within `--reindex-timeout`. The drain check is absolute -- it
+    never waits to *observe* enqueued work -- so a resume after the queues already
+    drained passes immediately. **This is an in-place database swap: no ECS service
+    is created, described, mutated, scaled, quiesced, or force-redeployed.** Running
+    portal/ingester/indexer tasks pick up the new IDENTITY endpoint as their tasks
+    naturally recycle or through normal operations tooling; indexer worker counts
+    (16 is a reasonable starting point against a `db.t4g.medium`) are likewise
+    managed by the infrastructure, not by this command.
 11. Optionally stop a previous replaceable restored database. This requires
     `--old-db-identifier`, the nonpersistent `--allow-stop-old-db` opt-in, typing the
-    identifier, ownership tags from a prior `restore-devtest-db` operation, and
-    successful deployment/service/reindex gates. The operation never deletes it.
-
-The deployment service is used as a source for a one-shot `RunTask`; it is not
-force-redeployed as a long-running service. Confirm with the infrastructure owner
-that its task definition is the SMaHT `deployment` entrypoint and that the configured
-portal, ingester, indexer, and queue names are the complete devtest topology. The
-repository provides the role entrypoints but not the deployed ECS definitions.
+    identifier, ownership tags from a prior `restore-devtest-db` operation, and the
+    completed deployment/reindex gates above. The operation never deletes it. An old
+    database that predates this tooling carries no ownership tags and must be stopped
+    manually; the command refuses it.
 
 ## Credential and rollback warning
 
@@ -85,14 +94,19 @@ stopping is not a durable cost-control mechanism.
 ## Resource ownership and idempotency
 
 Created snapshots and DB instances are tagged with the operation ID and a fingerprint
-of the complete persisted configuration. On a fresh step, any name collision fails.
-On resume, an existing resource is adopted only when both ownership tags and its
-source/KMS/class/network attributes match. An `AlreadyExists` response from a
-concurrent creator is never accepted as success.
+of the persisted configuration. An existing resource -- found by describe or surfaced
+by an `AlreadyExists` response -- is adopted only when both its ownership tags and its
+source/KMS/class/network attributes prove this operation created it; anything unowned
+is refused. That makes retries and resumes idempotent even when the process died
+between the AWS call and the checkpoint write, without ever accepting a stranger's
+resource. A failed deployment task clears its checkpointed ARN so resume runs a fresh
+task (with a fresh confirmation) rather than re-verifying a known-failed one.
 
 The configuration fingerprint detects accidental manifest edits; it is not a
 cryptographic authentication mechanism because it is stored beside the configuration.
-Protect the state directory as operator data.
+The polling knobs (`poll_interval`, `poll_timeout`, `reindex_timeout`) are excluded
+from the fingerprint so an operator can deliberately extend a too-small timeout in
+the manifest before resuming. Protect the state directory as operator data.
 
 ## Operation lifecycle
 
@@ -125,9 +139,9 @@ Partial failures are intentionally visible rather than automatically destructive
   resume completes the copy and cleanup. The manifest identifies the exact grant.
 - After IDENTITY replacement, use the recorded version IDs for rollback. The command
   never guesses that restoring only an endpoint is sufficient.
-- A deployment failure can leave the indexer quiesced. Resume adopts the operation's
-  deployment task and continues the ordered gates. The old database remains running
-  because `reindex_completed` is absent.
+- A failed deployment task leaves nothing mutated in ECS; resume runs a fresh task
+  after confirmation. The old database remains running because `reindex_completed`
+  is absent.
 - Snapshot and database deletion remain manual and outside this command.
 
 ## Required configuration
@@ -146,16 +160,17 @@ ambient AWS default.
 | `--production-identity-secret`, `--devtest-identity-secret` | Secret names, or ARNs account/region-bound to their scopes |
 | `--new-db-identifier` | Brand-new valid RDS identifier |
 | `--db-subnet-group`, `--vpc-security-group-id` | Required; must exactly match the protected devtest DB |
-| `--devtest-ecs-cluster` | Exact devtest cluster |
-| `--deployment-service-name` | Service whose task definition/network runs the one-shot deployment |
-| `--portal-service-name`, `--ingester-service-name`, `--indexer-service-name` | Distinct exact service names |
-| `--indexer-queue-url` | Repeat for every index queue; each URL must match devtest account/region |
-| `--indexer-count` | 1–64; default 16 |
+| `--devtest-env-name` | Environment name; resolves the ECS cluster ARN, deployment task definition family, and indexing queue names |
+| `--deployment-subnet`, `--deployment-security-group` | Explicit network placement (subnet-.../sg-...) for the one-shot deployment task |
 | `--poll-interval`, `--poll-timeout`, `--reindex-timeout` | Positive bounded waits; timeout must be at least interval |
+
+There are deliberately no ECS service-name or queue-URL flags: services are never
+touched, and queues are resolved from the environment name and then verified to live
+in the configured devtest account and region.
 
 ## IAM permissions
 
-Scope policies to the exact database, snapshots, key, secrets, cluster, services,
+Scope policies to the exact database, snapshots, key, secrets, cluster, deployment
 task definition/roles, and queues wherever the AWS action supports resource scoping.
 
 The production principal needs:
@@ -176,13 +191,14 @@ The devtest principal needs:
   `rds:RestoreDBInstanceFromDBSnapshot`, `rds:AddTagsToResource`, and optionally
   `rds:StopDBInstance`
 - `kms:DescribeKey` for the devtest snapshot key; the exact restore role receives the
-  temporary constrained production-key grant described above
+  temporary production-key grant described above
 - `secretsmanager:GetSecretValue` and `secretsmanager:PutSecretValue` for devtest
   IDENTITY
-- `ecs:DescribeServices`, `ecs:UpdateService`, `ecs:ListTasks`, `ecs:RunTask`, and
+- `ecs:ListClusters`, `ecs:ListTaskDefinitionFamilies`, `ecs:RunTask`, and
   `ecs:DescribeTasks`, plus narrowly scoped `iam:PassRole` for the deployment task's
-  execution/task roles when required
-- `sqs:GetQueueAttributes` for every configured index queue
+  execution/task roles when required -- no `ecs:UpdateService` or
+  `ecs:DescribeServices` is needed or used
+- `sqs:GetQueueUrl` and `sqs:GetQueueAttributes` for the environment's index queues
 
 ## Example
 
@@ -198,13 +214,9 @@ restore-devtest-db plan --operation-id restore-20260716 \
   --new-db-identifier rds-smaht-devtest-restored-20260716 \
   --db-subnet-group smaht-devtest-db \
   --vpc-security-group-id sg-0123456789abcdef0 \
-  --devtest-ecs-cluster smaht-devtest \
-  --deployment-service-name smaht-devtest-deployment \
-  --portal-service-name smaht-devtest-portal \
-  --ingester-service-name smaht-devtest-ingester \
-  --indexer-service-name smaht-devtest-indexer \
-  --indexer-queue-url https://sqs.us-east-1.amazonaws.com/222222222222/index-primary \
-  --indexer-queue-url https://sqs.us-east-1.amazonaws.com/222222222222/index-secondary
+  --devtest-env-name smaht-devtest \
+  --deployment-subnet subnet-0123456789abcdef0 \
+  --deployment-security-group sg-0fedcba9876543210
 ```
 
 After reviewing the plan, replace `plan` with `run`, retain the exact operation ID,
@@ -214,16 +226,23 @@ and add `--allow-kms-grant` only if the confirmed temporary grant may be created
 
 Manual snapshots can add production I/O and snapshot copies incur RDS/KMS/storage
 cost. Restored RDS data is lazy-loaded, so performance can remain cold after the
-instance first reports `available`. ECS stability and queue drain verify the deployed
-orchestration available to this command, but they do not replace an operator's portal
-smoke test. Do not stop an old database until application-level behavior has also been
-checked when the environment requires a stronger acceptance gate.
+instance first reports `available`. A successful deployment task plus drained index
+queues verify mapping creation and reindex completion, but they do not replace an
+operator's portal smoke test. Do not stop an old database until application-level
+behavior has also been checked when the environment requires a stronger acceptance
+gate.
 
 ## Tests
 
 `src/encoded/tests/test_restore_devtest_db.py` injects in-memory fakes for STS, RDS,
-KMS, Secrets Manager, ECS, and SQS; prompts and sleeps are scripted. Tests cover
-resource collisions/provenance, cross-account key/role/queue validation, pagination,
-grant cleanup, concurrent locking/cancellation, secret write ambiguity/redaction,
-deployment failure, queue observation/drain timeouts, and the no-delete invariant.
+KMS, Secrets Manager, ECS, and SQS; prompts and sleeps are scripted. The fake ECS
+client implements no service APIs at all, so any attempted service mutation fails the
+suite loudly. Tests cover resource collisions/provenance (including adoption of an
+operation-owned resource surfaced by an already-exists race), cluster/task-definition
+resolution from the environment name (ambiguous, missing, and initial-deployment
+cases), cross-account key/role/queue validation, bounded KMS propagation retries,
+grant cleanup, concurrent locking/cancellation (including cancellation at a step
+boundary), secret write ambiguity/redaction, deployment-task failure and re-run,
+resume-after-drain completion (the reindex gate is absolute, never
+observation-based), manifest timeout edits on resume, and the no-delete invariant.
 A full-run test booby-traps `boto3`. No test contacts AWS or a deployed environment.
