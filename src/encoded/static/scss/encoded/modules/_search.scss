@@ -1541,28 +1541,45 @@ div.browse-link-icon {
 	border-radius: 8px;
 	overflow: hidden;
 
-	.tissue-heatmap-tabs {
-		display: flex;
+	.tissue-heatmap-tabs.dot-tab-nav {
 		border-bottom: 1px solid #E7F0F3;
 
-		.tissue-heatmap-tab {
-			appearance: none;
-			background: none;
-			border: none;
-			border-bottom: 3px solid transparent;
-			padding: 14px 20px;
-			font-size: 0.9375rem;
-			font-weight: 600;
-			color: #657B95;
-			cursor: pointer;
+		.dot-tab-nav-list {
+			display: flex;
+			height: 39px;
+			margin-bottom: -1px;
 
-			&:hover {
-				color: #343741;
-			}
+			button {
+				appearance: none;
+				height: 100%;
+				background-color: transparent;
+				border: 1px solid transparent;
+				border-top: 4px solid transparent;
+				border-radius: 4px 4px 0px 0px;
+				padding: 0px 20px;
+				font-size: 0.9375rem;
+				font-weight: 400;
+				color: #657B95;
+				cursor: pointer;
 
-			&.active {
-				color: #212529;
-				border-bottom-color: #1F9F55;
+				&:hover {
+					color: #343741;
+				}
+
+				&.active {
+					background-color: #FFFFFF;
+					border-top-color: #1F9F55;
+					border-right-color: #E7F0F3;
+					border-left-color: #E7F0F3;
+					border-bottom: none;
+					color: #212529;
+					font-weight: 600;
+				}
+
+				&.disabled {
+					color: #B7C3D0;
+					cursor: not-allowed;
+				}
 			}
 		}
 	}

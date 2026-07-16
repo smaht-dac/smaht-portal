@@ -2,15 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    DotRouter,
+    DotRouterTab,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 
-// Autolysis Score and Target Tissue % are omitted until a PathologyReport ->
-// TissueSample -> Tissue reverse link exists to source them from real data;
-// see the "Coming soon" tabs below.
-const HEATMAP_TABS = [
-    { key: 'ischemic', label: 'Ischemic Time', comingSoon: false },
-    { key: 'autolysis', label: 'Autolysis Score', comingSoon: true },
-    { key: 'target', label: 'Target Tissue %', comingSoon: true },
-];
+const ComingSoonTabContent = () => (
+    <div className="tissue-heatmap-coming-soon">This view is not yet available.</div>
+);
 
 // Exported for unit testing. Pivots raw Tissue search results into a
 // donor (external_id) x tissue_type matrix of ischemic_time values, plus a
@@ -60,8 +59,8 @@ function getScoreClass(value) {
     return 'score-3';
 }
 
-export const BrowseTissueHeatmapTable = () => {
-    const [activeTab, setActiveTab] = useState(HEATMAP_TABS[0].key);
+export const BrowseTissueHeatmapTable = (props) => {
+    const { href } = props;
     const [loading, setLoading] = useState(true);
     const [tissueResults, setTissueResults] = useState([]);
 
@@ -86,85 +85,89 @@ export const BrowseTissueHeatmapTable = () => {
         [tissueResults]
     );
 
-    const activeTabConfig = HEATMAP_TABS.find(({ key }) => key === activeTab);
-
     return (
         <div className="tissue-heatmap-card">
-            <div className="tissue-heatmap-tabs">
-                {HEATMAP_TABS.map(({ key, label, comingSoon }) => (
-                    <button
-                        key={key}
-                        type="button"
-                        disabled={comingSoon}
-                        title={comingSoon ? 'Coming soon' : undefined}
-                        className={
-                            'tissue-heatmap-tab' +
-                            (activeTab === key ? ' active' : '') +
-                            (comingSoon ? ' coming-soon' : '')
-                        }
-                        onClick={() => !comingSoon && setActiveTab(key)}>
-                        {label}
-                        {comingSoon ? ' (Coming soon)' : ''}
-                    </button>
-                ))}
-            </div>
-            {activeTabConfig?.comingSoon ? (
-                <div className="tissue-heatmap-coming-soon">
-                    This view is not yet available.
-                </div>
-            ) : loading ? (
-                <div className="tissue-heatmap-loading">
-                    <i className="icon icon-circle-notch icon-spin fas" />
-                </div>
-            ) : (
-                <div className="tissue-heatmap-table-wrap">
-                    <table className="tissue-heatmap-table">
-                        <thead>
-                            <tr>
-                                <th className="tissue-heatmap-order-header" />
-                                <th className="tissue-heatmap-donor-header" />
-                                {tissueTypes.map((tissueType) => (
-                                    <th key={tissueType}>
-                                        {tissueTypeHrefs[tissueType] ? (
-                                            <a href={tissueTypeHrefs[tissueType]}>
-                                                {tissueType}
-                                            </a>
-                                        ) : (
-                                            tissueType
-                                        )}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {matrix.map(({ donor, cells }, rowIndex) => (
-                                <tr key={donor}>
-                                    {rowIndex === 0 ? (
-                                        <td
-                                            className="tissue-heatmap-order-label"
-                                            rowSpan={matrix.length}>
-                                            <span>Donor Distribution Order</span>
-                                        </td>
-                                    ) : null}
-                                    <td className="tissue-heatmap-donor-id">
-                                        {donor}
-                                    </td>
-                                    {cells.map((value, i) => (
-                                        <td
-                                            key={tissueTypes[i]}
-                                            className={
-                                                'tissue-heatmap-cell ' +
-                                                getScoreClass(value)
-                                            }>
-                                            {formatCellValue(value)}
-                                        </td>
+            <DotRouter
+                href={href}
+                navClassName="tissue-heatmap-tabs"
+                contentsClassName=""
+                isActive={true}
+                prependDotPath="tissue-heatmap">
+                <DotRouterTab
+                    dotPath=".ischemic-time"
+                    tabTitle="Ischemic Time"
+                    arrowTabs={false}
+                    cache={true}
+                    default>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <div className="tissue-heatmap-table-wrap">
+                            <table className="tissue-heatmap-table">
+                                <thead>
+                                    <tr>
+                                        <th className="tissue-heatmap-order-header" />
+                                        <th className="tissue-heatmap-donor-header" />
+                                        {tissueTypes.map((tissueType) => (
+                                            <th key={tissueType}>
+                                                {tissueTypeHrefs[tissueType] ? (
+                                                    <a href={tissueTypeHrefs[tissueType]}>
+                                                        {tissueType}
+                                                    </a>
+                                                ) : (
+                                                    tissueType
+                                                )}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {matrix.map(({ donor, cells }, rowIndex) => (
+                                        <tr key={donor}>
+                                            {rowIndex === 0 ? (
+                                                <td
+                                                    className="tissue-heatmap-order-label"
+                                                    rowSpan={matrix.length}>
+                                                    <span>Donor Distribution Order</span>
+                                                </td>
+                                            ) : null}
+                                            <td className="tissue-heatmap-donor-id">
+                                                {donor}
+                                            </td>
+                                            {cells.map((value, i) => (
+                                                <td
+                                                    key={tissueTypes[i]}
+                                                    className={
+                                                        'tissue-heatmap-cell ' +
+                                                        getScoreClass(value)
+                                                    }>
+                                                    {formatCellValue(value)}
+                                                </td>
+                                            ))}
+                                        </tr>
                                     ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".autolysis-score"
+                    tabTitle="Autolysis Score (Coming soon)"
+                    arrowTabs={false}
+                    disabled={true}>
+                    <ComingSoonTabContent />
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".target-tissue"
+                    tabTitle="Target Tissue % (Coming soon)"
+                    arrowTabs={false}
+                    disabled={true}>
+                    <ComingSoonTabContent />
+                </DotRouterTab>
+            </DotRouter>
         </div>
     );
 };
