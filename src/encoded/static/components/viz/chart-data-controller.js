@@ -209,7 +209,7 @@ export const ChartDataController = {
 
     /**
      * Transforms donor filters to file filters. Changes are made in place.
-     * If mapping is not 'donor' or 'protected-donor', returns filters unchanged.
+     * If mapping is not 'donor', 'protected-donor', or 'tissue', returns filters unchanged.
      *
      * @public
      * @static
@@ -217,6 +217,18 @@ export const ChartDataController = {
      * @returns {*} The transformed file filters.
      */
     transformFilterDonorToFile(fileFilters, mapping = 'all') {
+        if (mapping === 'tissue') {
+            // Tissue's own resolved tissue_type maps onto File's sample_summary.tissues.
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'tissue_type') && fileFilters.tissue_type !== undefined) {
+                fileFilters['sample_summary.tissues'] = fileFilters.tissue_type;
+                delete fileFilters.tissue_type;
+            }
+            fileFilters.type = ['File'];
+            fileFilters.status = ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
+            fileFilters['dataset!'] = ['No value'];
+            return fileFilters;
+        }
+
         if (mapping !== 'donor' && mapping !== 'protected-donor') return fileFilters;
 
         // order is important here, as some fields may get renamed to the same destination

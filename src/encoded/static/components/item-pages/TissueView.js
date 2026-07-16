@@ -5,6 +5,7 @@ import DefaultItemView from './DefaultItemView';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
 import AliquotVisualization from './components/tissue-overview/AliquotVisualization';
+import { useUserDownloadAccess } from '../util/hooks';
 
 export default class TissueOverview extends DefaultItemView {
     getTabViewContents() {
@@ -13,6 +14,16 @@ export default class TissueOverview extends DefaultItemView {
         return initTabs.concat(this.getCommonTabs());
     }
 }
+
+// Links to the ProtectedDonor page when the viewing user has protected/dbGaP
+// access and the donor's protected_donor is visible to them (embedded
+// server-side, permission-filtered); otherwise falls back to the public
+// Donor page. Mirrors BrowseView.js's donors column render logic.
+const getDonorHref = (donor, userDownloadAccess) => {
+    const protectedHref = donor?.protected_donor?.['@id'];
+    if (userDownloadAccess?.['protected'] && protectedHref) return protectedHref;
+    return donor?.['@id'] || null;
+};
 
 const getDisplayText = (value) => {
     if (value === null || typeof value === 'undefined' || value === '') {
@@ -31,6 +42,23 @@ const getDisplayText = (value) => {
         if (value['@id']) return value['@id'];
     }
     return String(value);
+};
+
+const formatYesNo = (value) => {
+    if (value === null || typeof value === 'undefined') return '-';
+    return value ? 'Yes' : 'No';
+};
+
+// Exported for unit testing.
+export const dedupeTissuesByDonor = (tissueResults = []) => {
+    const byDonorUuid = new Map();
+    tissueResults.forEach((tissueItem) => {
+        const d = tissueItem?.donor;
+        if (d?.uuid && !byDonorUuid.has(d.uuid)) {
+            byDonorUuid.set(d.uuid, { donor: d, tissue: tissueItem });
+        }
+    });
+    return Array.from(byDonorUuid.values());
 };
 
 const TissueDatum = ({ title, value, unit = null, href = null }) => {
@@ -94,10 +122,10 @@ const TissueViewTitle = ({ context }) => {
     );
 };
 
-const TissueView = React.memo(function TissueView({ context = {} }) {
+const TissueView = React.memo(function TissueView({ context = {}, session }) {
     const { display_title, donor, uberon_id, tissue_type, study } = context;
+    const { userDownloadAccess } = useUserDownloadAccess(session);
 
-    const donorHref = donor && donor['@id'] ? donor['@id'] : null;
     const uberonHref = uberon_id && uberon_id['@id'] ? uberon_id['@id'] : null;
     const targetTissueValue = uberon_id || tissue_type || null;
     const targetTissueHref = uberon_id ? uberonHref : null;
@@ -108,6 +136,8 @@ const TissueView = React.memo(function TissueView({ context = {} }) {
     );
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
+    const [donors, setDonors] = useState([]);
+    const [donorsLoading, setDonorsLoading] = useState(true);
 
     useEffect(() => {
         const queryParts = [
@@ -137,7 +167,29 @@ const TissueView = React.memo(function TissueView({ context = {} }) {
         );
     }, [donor?.display_title, tissueMatrixFilterValue]);
 
-    const donorCount = donor ? 1 : 0;
+    // All donors that share this Tissue's resolved tissue_type, not just this Tissue's own donor.
+    useEffect(() => {
+        if (!tissueMatrixFilterValue) {
+            setDonors([]);
+            setDonorsLoading(false);
+            return;
+        }
+        setDonorsLoading(true);
+        ajax.load(
+            `/search/?type=Tissue&tissue_type=${encodeURIComponent(tissueMatrixFilterValue)}&limit=all`,
+            (resp) => {
+                setDonors(dedupeTissuesByDonor(resp?.['@graph']));
+                setDonorsLoading(false);
+            },
+            'GET',
+            () => {
+                setDonors([]);
+                setDonorsLoading(false);
+            }
+        );
+    }, [tissueMatrixFilterValue]);
+
+    const donorCount = donors.length;
 
     return (
         <div className="tissue-view">
@@ -188,7 +240,7 @@ const TissueView = React.memo(function TissueView({ context = {} }) {
                                         <i className="icon icon-lungs fas"></i>Donors
                                     </div>
                                     <div className="donor-statistic-value text-center">
-                                        {!isLoading ? (
+                                        {!donorsLoading ? (
                                             <span>{donorCount}</span>
                                         ) : (
                                             <i className="icon icon-circle-notch icon-spin fas" />
@@ -232,12 +284,21 @@ const TissueView = React.memo(function TissueView({ context = {} }) {
                     <div className="header">
                         <span className="header-text">Donor Details</span>
                     </div>
-                    {/* Donor table is currently a placeholder. In a real implementation, this would be replaced with embedded search table. */}
+                    {/*
+                        Lists every donor whose Tissue shares this Tissue's resolved tissue_type
+                        (not just this Tissue's own donor). Autolysis Score, Non-Target Tissue
+                        Presence, and Unexpected/Pathologic Finding come from each donor's own
+                        Tissue.pathology_summary (Tissue -> TissueSample -> PathologyReport
+                        rev-link chain); "-" means no pathology report covers that tissue sample.
+                    */}
                     <div className="body">
                         <table className="tissue-donor-table table">
                             <thead>
                                 <tr>
                                     <th>Donor ID</th>
+                                    <th>Sex</th>
+                                    <th>Age</th>
+                                    <th>Status</th>
                                     <th>Autolysis Score</th>
                                     <th>Non-Target Tissue Presence</th>
                                     <th>Unexpected/Pathologic Finding</th>
@@ -245,23 +306,47 @@ const TissueView = React.memo(function TissueView({ context = {} }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {donor ? (
+                                {donorsLoading ? (
                                     <tr>
-                                        <td>
-                                            {donorHref ? (
-                                                <a href={donorHref}>{getDisplayText(donor)}</a>
-                                            ) : (
-                                                getDisplayText(donor)
-                                            )}
+                                        <td colSpan={8}>
+                                            <i className="icon icon-circle-notch icon-spin fas" />
                                         </td>
-                                        <td>n/a</td>
-                                        <td>n/a</td>
-                                        <td>n/a</td>
-                                        <td>n/a</td>
                                     </tr>
+                                ) : donors.length > 0 ? (
+                                    donors.map(({ donor: d, tissue: t }) => {
+                                        const donorHref = getDonorHref(d, userDownloadAccess);
+                                        const pathologySummary = t?.pathology_summary || {};
+                                        const histologyImages = pathologySummary.histology_images || [];
+                                        return (
+                                            <tr key={d.uuid}>
+                                                <td>
+                                                    {donorHref ? (
+                                                        <a href={donorHref}>{getDisplayText(d)}</a>
+                                                    ) : (
+                                                        getDisplayText(d)
+                                                    )}
+                                                </td>
+                                                <td>{getDisplayText(d.sex)}</td>
+                                                <td>{getDisplayText(d.age)}</td>
+                                                <td>{getDisplayText(d.status)}</td>
+                                                <td>{getDisplayText(pathologySummary.autolysis_score)}</td>
+                                                <td>{formatYesNo(pathologySummary.non_target_tissue_present)}</td>
+                                                <td>{formatYesNo(pathologySummary.pathologic_finding_present)}</td>
+                                                <td>
+                                                    {histologyImages.length > 0 ? (
+                                                        <a href={histologyImages[0]}>
+                                                            View{histologyImages.length > 1 ? ` (${histologyImages.length})` : ''}
+                                                        </a>
+                                                    ) : (
+                                                        '-'
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 ) : (
                                     <tr>
-                                        <td colSpan={5}>No donor data available for this tissue.</td>
+                                        <td colSpan={8}>No donor data available for this tissue type.</td>
                                     </tr>
                                 )}
                             </tbody>

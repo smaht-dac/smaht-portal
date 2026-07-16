@@ -1,99 +1,109 @@
 'use strict';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import url from 'url';
+import _ from 'underscore';
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
-import { BrowseSummaryStat } from './BrowseSummaryStatController';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
+import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
+import { ChartDataController } from '../../viz/chart-data-controller';
 
-// TODO: replace with a real /bar_plot_aggregations/ (or similar) fetch once
-// Tissue-level summary + germ layer aggregations are available server-side.
-const TISSUE_SUMMARY_STATS_DUMMY = {
-    files: 151,
-    donors: 3,
-    tissues: 5,
-    assays: 10,
-    file_size: '2.5TB',
-};
-
-const GERM_LAYER_GROUPS = [
-    { key: 'ecto', label: 'ECTO', count: 7 },
-    { key: 'meso', label: 'MESO', count: 6 },
-    { key: 'endo', label: 'ENDO', count: 5 },
-    { key: 'germ-clin', label: 'GERM/CLIN', count: 4 },
+// Groups the categories returned by item_utils/tissue.py::get_category() into
+// the 4 display rows the germ-layer panel has always shown.
+const GERM_LAYER_LABELS = [
+    { key: 'ecto', label: 'ECTO', categories: ['Ectoderm'] },
+    { key: 'meso', label: 'MESO', categories: ['Mesoderm'] },
+    { key: 'endo', label: 'ENDO', categories: ['Endoderm'] },
+    { key: 'germ-clin', label: 'GERM/CLIN', categories: ['Germ Cells', 'Clinically Accessible'] },
 ];
 
-const TISSUE_STATS_CONTAINER_CLS = 'ms-15 pt-1 d-flex align-items-center';
+// Exported for unit testing.
+export const countTissueTypesByGermLayer = (tissueCategoryByTerm = {}) => {
+    const countsByCategory = _.countBy(Object.values(tissueCategoryByTerm), (c) => c);
+    return GERM_LAYER_LABELS.map(({ key, label, categories }) => {
+        const count = categories.reduce((sum, c) => sum + (countsByCategory[c] || 0), 0);
+        return { key, label, count };
+    });
+};
 
-const TissueGermLayerPanel = () => (
-    <div className="tissue-germ-layer-panel">
-        {GERM_LAYER_GROUPS.map(({ key, label, count }) => (
-            <div className="tissue-germ-layer-row" key={key}>
-                <div className="tissue-germ-layer-label">
-                    {label.split('/').map((part, i, arr) => (
-                        <React.Fragment key={part}>
-                            {part}
-                            {i < arr.length - 1 ? (
-                                <>
-                                    /<br />
-                                </>
-                            ) : null}
-                        </React.Fragment>
-                    ))}
-                </div>
-                <div className="tissue-germ-layer-bubbles">
-                    {Array.from({ length: count }).map((_, i) => (
-                        // eslint-disable-next-line react/no-array-index-key
-                        <div className="tissue-germ-layer-bubble" key={i} />
-                    ))}
-                </div>
-            </div>
-        ))}
-    </div>
-);
+const TissueGermLayerPanel = ({ href, session }) => {
+    const [loading, setLoading] = useState(true);
+    const [germLayerGroups, setGermLayerGroups] = useState(
+        GERM_LAYER_LABELS.map(({ key, label }) => {
+            return { key, label, count: 0 };
+        })
+    );
 
-export const BrowseTissueVizWrapper = () => {
+    useEffect(() => {
+        setLoading(true);
+        const hrefParts = url.parse(href, true);
+        const hrefQuery = normalizeQueryValuesForStringify(_.clone(hrefParts.query));
+        delete hrefQuery.limit;
+        delete hrefQuery.field;
+        ChartDataController.transformFilterDonorToFile(hrefQuery, 'tissue');
+
+        const requestBody = {
+            search_query_params: hrefQuery,
+            fields_to_aggregate_for: ['sample_summary.tissues'],
+            include_meta_tissue_categories: true,
+        };
+
+        ajax.load(
+            '/bar_plot_aggregations/',
+            (resp) => {
+                setGermLayerGroups(countTissueTypesByGermLayer(resp?.meta?.tissue_category_by_term));
+                setLoading(false);
+            },
+            'POST',
+            () => setLoading(false),
+            JSON.stringify(requestBody),
+            {},
+            null
+        );
+    }, [href, session]);
+
+    return (
+        <div className="tissue-germ-layer-panel">
+            {germLayerGroups.map(({ key, label, count }) => (
+                <div className="tissue-germ-layer-row" key={key}>
+                    <div className="tissue-germ-layer-label">
+                        {label.split('/').map((part, i, arr) => (
+                            <React.Fragment key={part}>
+                                {part}
+                                {i < arr.length - 1 ? (
+                                    <>
+                                        /<br />
+                                    </>
+                                ) : null}
+                            </React.Fragment>
+                        ))}
+                    </div>
+                    <div className="tissue-germ-layer-bubbles">
+                        {!loading &&
+                            Array.from({ length: count }).map((_unused, i) => (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <div className="tissue-germ-layer-bubble" key={i} />
+                            ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export const BrowseTissueVizWrapper = (props) => {
+    const { href, session, windowWidth } = props;
     const [toggleViewIndex, setToggleViewIndex] = useState(1);
+    const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
     return (
         <div className="row browse-viz-container tissue-viz-container">
             <div className="stats-column col-auto">
-                <div className="browse-summary stats-compact d-flex flex-column mt-2 mb-25 flex-wrap">
-                    <BrowseSummaryStat
-                        type="File"
-                        value={TISSUE_SUMMARY_STATS_DUMMY.files}
-                        loading={false}
-                        units=""
-                        containerCls={TISSUE_STATS_CONTAINER_CLS}
-                    />
-                    <BrowseSummaryStat
-                        type="Donor"
-                        value={TISSUE_SUMMARY_STATS_DUMMY.donors}
-                        loading={false}
-                        units=""
-                        containerCls={TISSUE_STATS_CONTAINER_CLS}
-                    />
-                    <BrowseSummaryStat
-                        type="Tissue"
-                        value={TISSUE_SUMMARY_STATS_DUMMY.tissues}
-                        loading={false}
-                        units=""
-                        containerCls={TISSUE_STATS_CONTAINER_CLS}
-                    />
-                    <BrowseSummaryStat
-                        type="Assay"
-                        value={TISSUE_SUMMARY_STATS_DUMMY.assays}
-                        loading={false}
-                        units=""
-                        containerCls={TISSUE_STATS_CONTAINER_CLS}
-                    />
-                    <hr />
-                    <BrowseSummaryStat
-                        type="File Size"
-                        value={TISSUE_SUMMARY_STATS_DUMMY.file_size}
-                        loading={false}
-                        units=""
-                        containerCls={TISSUE_STATS_CONTAINER_CLS}
-                    />
-                </div>
+                <BrowseSummaryStatsViewer
+                    {...{ session, href, windowWidth, useCompactFor }}
+                    mapping="tissue"
+                />
                 <IconToggle
                     options={[
                         {
@@ -124,7 +134,7 @@ export const BrowseTissueVizWrapper = () => {
                 />
             </div>
             <div className="col ps-0">
-                <TissueGermLayerPanel />
+                <TissueGermLayerPanel href={href} session={session} />
             </div>
         </div>
     );

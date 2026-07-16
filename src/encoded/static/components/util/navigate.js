@@ -73,6 +73,11 @@ navigate.getBrowseBaseParams.mappings = {
             // 'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
             'tags': ['has_released_files']
         }
+    },
+    'tissue' : {
+        'parameters': {
+            'type': ['Tissue'],
+        }
     }
 };
 
