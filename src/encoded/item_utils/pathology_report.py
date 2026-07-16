@@ -1,6 +1,11 @@
 from typing import Any, Dict, List, Optional
 
 
+# Ascending order of `target_tissue_percentage` bands, as defined in
+# schemas/non_brain_pathology_report.json. Used to pick the highest band
+# present across a report's target_tissues entries.
+TARGET_TISSUE_PERCENTAGE_ORDER = ["0", "[0-10]", "[11-25]", "[26-49]", "[50-100]"]
+
 # `finding_present`-style fields on BrainPathologyReport that don't share a
 # single array shape (unlike NonBrainPathologyReport.pathologic_findings),
 # so presence has to be checked field-by-field.
@@ -58,6 +63,26 @@ def has_non_target_tissue_presence(properties: Dict[str, Any]) -> Optional[bool]
         entry.get("non_target_tissue_present") == "Yes"
         for entry in properties.get("non_target_tissues") or []
     )
+
+
+def get_target_tissue_percentage(properties: Dict[str, Any]) -> Optional[str]:
+    """Get the highest target_tissue_percentage band across a report's target tissues.
+
+    Only NonBrainPathologyReport has this concept (`target_tissues` array);
+    BrainPathologyReport has no equivalent field, so this returns None (not
+    applicable) for it.
+    """
+    if "target_tissues" not in properties:
+        return None
+    bands = [
+        entry.get("target_tissue_percentage")
+        for entry in properties.get("target_tissues") or []
+        if entry.get("target_tissue_present") == "Yes"
+        and entry.get("target_tissue_percentage") in TARGET_TISSUE_PERCENTAGE_ORDER
+    ]
+    if not bands:
+        return None
+    return max(bands, key=TARGET_TISSUE_PERCENTAGE_ORDER.index)
 
 
 def has_pathologic_finding(properties: Dict[str, Any]) -> Optional[bool]:

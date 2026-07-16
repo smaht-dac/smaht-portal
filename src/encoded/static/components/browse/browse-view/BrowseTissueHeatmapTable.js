@@ -7,17 +7,17 @@ import {
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 
-const ComingSoonTabContent = () => (
-    <div className="tissue-heatmap-coming-soon">This view is not yet available.</div>
-);
+// Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
+// mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
+const TARGET_TISSUE_PERCENTAGE_ORDER = ['0', '[0-10]', '[11-25]', '[26-49]', '[50-100]'];
 
 // Exported for unit testing. Pivots raw Tissue search results into a
-// donor (external_id) x tissue_type matrix of ischemic_time values, plus a
-// tissue_type -> representative Tissue @id map (the first Tissue instance
-// encountered for that type) used to link column headers to a Tissue
-// Overview page, since /tissues/<uuid>/ is keyed on a single Tissue
-// instance, not on tissue_type directly.
-export const buildIschemicTimeMatrix = (tissueResults = []) => {
+// donor (external_id) x tissue_type matrix of values (as picked by
+// `getValue`), plus a tissue_type -> representative Tissue @id map (the
+// first Tissue instance encountered for that type) used to link column
+// headers to a Tissue Overview page, since /tissues/<uuid>/ is keyed on a
+// single Tissue instance, not on tissue_type directly.
+export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
     const tissueTypes = [];
     const donors = [];
     const cellsByDonorAndTissue = {};
@@ -30,7 +30,7 @@ export const buildIschemicTimeMatrix = (tissueResults = []) => {
         if (!donors.includes(donorId)) donors.push(donorId);
         if (!tissueTypes.includes(tissueType)) tissueTypes.push(tissueType);
         if (!tissueTypeHrefs[tissueType] && t['@id']) tissueTypeHrefs[tissueType] = t['@id'];
-        cellsByDonorAndTissue[`${donorId} ${tissueType}`] = t.ischemic_time ?? null;
+        cellsByDonorAndTissue[`${donorId} ${tissueType}`] = getValue(t) ?? null;
     });
 
     donors.sort();
@@ -46,18 +46,87 @@ export const buildIschemicTimeMatrix = (tissueResults = []) => {
     return { tissueTypes, tissueTypeHrefs, matrix };
 };
 
-function formatCellValue(value) {
+const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
+const getAutolysisScoreValue = (t) => t?.pathology_summary?.autolysis_score ?? null;
+const getTargetTissuePercentageValue = (t) => t?.pathology_summary?.target_tissue_percentage ?? null;
+
+function formatIschemicTime(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
     return `${value}h`;
 }
 
-function getScoreClass(value) {
+function getIschemicTimeScoreClass(value) {
     if (value === null || typeof value === 'undefined') return 'na';
     if (value <= 6) return 'score-0';
     if (value <= 12) return 'score-1';
     if (value <= 18) return 'score-2';
     return 'score-3';
 }
+
+function formatAutolysisScore(value) {
+    if (value === null || typeof value === 'undefined') return 'n/a';
+    return String(value);
+}
+
+function getAutolysisScoreClass(value) {
+    if (value === null || typeof value === 'undefined') return 'na';
+    return `score-${Math.min(value, 3)}`;
+}
+
+function formatTargetTissuePercentage(value) {
+    if (value === null || typeof value === 'undefined') return 'n/a';
+    return value === '0' ? '0%' : value;
+}
+
+function getTargetTissuePercentageScoreClass(value) {
+    if (value === null || typeof value === 'undefined') return 'na';
+    const index = TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
+    if (index === -1) return 'na';
+    // Higher target-tissue presence is "better", so invert the band index
+    // (highest band -> score-0) to match the Ischemic Time convention.
+    return `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
+}
+
+const MetricHeatmapTable = ({ tissueTypes, tissueTypeHrefs, matrix, formatValue, getScoreClass }) => (
+    <div className="tissue-heatmap-table-wrap">
+        <table className="tissue-heatmap-table">
+            <thead>
+                <tr>
+                    <th className="tissue-heatmap-order-header" />
+                    <th className="tissue-heatmap-donor-header" />
+                    {tissueTypes.map((tissueType) => (
+                        <th key={tissueType}>
+                            {tissueTypeHrefs[tissueType] ? (
+                                <a href={tissueTypeHrefs[tissueType]}>{tissueType}</a>
+                            ) : (
+                                tissueType
+                            )}
+                        </th>
+                    ))}
+                </tr>
+            </thead>
+            <tbody>
+                {matrix.map(({ donor, cells }, rowIndex) => (
+                    <tr key={donor}>
+                        {rowIndex === 0 ? (
+                            <td className="tissue-heatmap-order-label" rowSpan={matrix.length}>
+                                <span>Donor Distribution Order</span>
+                            </td>
+                        ) : null}
+                        <td className="tissue-heatmap-donor-id">{donor}</td>
+                        {cells.map((value, i) => (
+                            <td
+                                key={tissueTypes[i]}
+                                className={'tissue-heatmap-cell ' + getScoreClass(value)}>
+                                {formatValue(value)}
+                            </td>
+                        ))}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+);
 
 export const BrowseTissueHeatmapTable = (props) => {
     const { href } = props;
@@ -80,8 +149,16 @@ export const BrowseTissueHeatmapTable = (props) => {
         );
     }, []);
 
-    const { tissueTypes, tissueTypeHrefs, matrix } = useMemo(
-        () => buildIschemicTimeMatrix(tissueResults),
+    const ischemicTime = useMemo(
+        () => buildTissueMetricMatrix(tissueResults, getIschemicTimeValue),
+        [tissueResults]
+    );
+    const autolysisScore = useMemo(
+        () => buildTissueMetricMatrix(tissueResults, getAutolysisScoreValue),
+        [tissueResults]
+    );
+    const targetTissuePercentage = useMemo(
+        () => buildTissueMetricMatrix(tissueResults, getTargetTissuePercentageValue),
         [tissueResults]
     );
 
@@ -104,68 +181,46 @@ export const BrowseTissueHeatmapTable = (props) => {
                             <i className="icon icon-circle-notch icon-spin fas" />
                         </div>
                     ) : (
-                        <div className="tissue-heatmap-table-wrap">
-                            <table className="tissue-heatmap-table">
-                                <thead>
-                                    <tr>
-                                        <th className="tissue-heatmap-order-header" />
-                                        <th className="tissue-heatmap-donor-header" />
-                                        {tissueTypes.map((tissueType) => (
-                                            <th key={tissueType}>
-                                                {tissueTypeHrefs[tissueType] ? (
-                                                    <a href={tissueTypeHrefs[tissueType]}>
-                                                        {tissueType}
-                                                    </a>
-                                                ) : (
-                                                    tissueType
-                                                )}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {matrix.map(({ donor, cells }, rowIndex) => (
-                                        <tr key={donor}>
-                                            {rowIndex === 0 ? (
-                                                <td
-                                                    className="tissue-heatmap-order-label"
-                                                    rowSpan={matrix.length}>
-                                                    <span>Donor Distribution Order</span>
-                                                </td>
-                                            ) : null}
-                                            <td className="tissue-heatmap-donor-id">
-                                                {donor}
-                                            </td>
-                                            {cells.map((value, i) => (
-                                                <td
-                                                    key={tissueTypes[i]}
-                                                    className={
-                                                        'tissue-heatmap-cell ' +
-                                                        getScoreClass(value)
-                                                    }>
-                                                    {formatCellValue(value)}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <MetricHeatmapTable
+                            {...ischemicTime}
+                            formatValue={formatIschemicTime}
+                            getScoreClass={getIschemicTimeScoreClass}
+                        />
                     )}
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".autolysis-score"
-                    tabTitle="Autolysis Score (Coming soon)"
+                    tabTitle="Autolysis Score"
                     arrowTabs={false}
-                    disabled={true}>
-                    <ComingSoonTabContent />
+                    cache={true}>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...autolysisScore}
+                            formatValue={formatAutolysisScore}
+                            getScoreClass={getAutolysisScoreClass}
+                        />
+                    )}
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".target-tissue"
-                    tabTitle="Target Tissue % (Coming soon)"
+                    tabTitle="Target Tissue %"
                     arrowTabs={false}
-                    disabled={true}>
-                    <ComingSoonTabContent />
+                    cache={true}>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...targetTissuePercentage}
+                            formatValue={formatTargetTissuePercentage}
+                            getScoreClass={getTargetTissuePercentageScoreClass}
+                        />
+                    )}
                 </DotRouterTab>
             </DotRouter>
         </div>
