@@ -880,6 +880,177 @@ def test_default_factory_is_lazy_and_scoped(monkeypatch):
 
 
 # ---------------------------------------------------------------------------------
+# Interactive configuration (--interactive)
+# ---------------------------------------------------------------------------------
+
+# Credential values planted in the fake ~/.aws/credentials file: the interactive
+# resolver must never read, print, or persist them.
+CRED_SENTINEL_ID = "AKIASENTINELEXAMPLE1"
+CRED_SENTINEL_SECRET = "CredFileSecretSentinel+123"
+PROD_PROFILE_ROLE = f"arn:aws:iam::{PROD_ACCOUNT}:role/prod-admin"
+
+
+@pytest.fixture
+def aws_local_config(tmp_path, monkeypatch):
+    """Point the standard AWS config env vars at fake local files."""
+    aws_dir = tmp_path / "aws"
+    aws_dir.mkdir()
+    (aws_dir / "config").write_text(
+        "[profile smaht-prod]\n"
+        f"region = {REGION}\n"
+        f"role_arn = {PROD_PROFILE_ROLE}\n"
+        "\n"
+        "[profile smaht-devtest]\n"
+        f"region = {REGION}\n"
+        f"role_arn = {RESTORE_ROLE}\n")
+    (aws_dir / "credentials").write_text(
+        "[smaht-prod]\n"
+        f"aws_access_key_id = {CRED_SENTINEL_ID}\n"
+        f"aws_secret_access_key = {CRED_SENTINEL_SECRET}\n"
+        "\n"
+        "[smaht-devtest]\n"
+        f"aws_access_key_id = {CRED_SENTINEL_ID}\n"
+        f"aws_secret_access_key = {CRED_SENTINEL_SECRET}\n")
+    monkeypatch.setenv("AWS_CONFIG_FILE", str(aws_dir / "config"))
+    monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", str(aws_dir / "credentials"))
+    monkeypatch.delenv("AWS_REGION", raising=False)
+    monkeypatch.delenv("AWS_DEFAULT_REGION", raising=False)
+    return aws_dir
+
+
+def interactive_argv(tmp_path, command="run", *flags, operation_id="op-1"):
+    argv = [command, "--interactive", "--state-dir", str(tmp_path / "state")]
+    if command == "run":
+        argv += ["--operation-id", operation_id]
+    return argv + list(flags)
+
+
+# Empty answers accept the discovered defaults: production profile, devtest profile,
+# region, devtest account (from the profile role_arn), production account (from the
+# production profile role_arn); then the values with no local source are typed.
+INTERACTIVE_ANSWERS = ["", "", "", "", "", PROD_KMS_KEY,
+                       "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
+
+
+def test_interactive_run_discovers_defaults_and_completes(tmp_path, aws_local_config):
+    runner = Runner(tmp_path)
+    code, prompter = runner.main(
+        interactive_argv(tmp_path, "run", "--allow-kms-grant"),
+        answers=INTERACTIVE_ANSWERS + HAPPY_ANSWERS_FIRST_USE)
+    assert code == 0, runner.text()
+    saved = runner.manifest().data["config"]
+    assert saved["production_profile"] == "smaht-prod"
+    assert saved["devtest_profile"] == "smaht-devtest"
+    assert saved["region"] == REGION
+    assert saved["production_account_id"] == PROD_ACCOUNT
+    assert saved["devtest_account_id"] == DEVTEST_ACCOUNT
+    assert saved["devtest_restore_role_arn"] == RESTORE_ROLE
+    assert saved["new_db_identifier"] == NEW_DB
+    # The role principal was derived from the devtest profile, never prompted for.
+    assert "Using the devtest profile's role_arn" in runner.text()
+    assert not any("IAM role ARN" in p for p in prompter.prompts)
+    # Credential values from the local files never appear anywhere.
+    shown = runner.text() + "\n".join(prompter.prompts) + runner.manifest_text()
+    assert CRED_SENTINEL_ID not in shown
+    assert CRED_SENTINEL_SECRET not in shown
+
+
+def test_interactive_explicit_arguments_always_win(tmp_path, aws_local_config):
+    runner = Runner(tmp_path)
+    code, prompter = runner.main(
+        base_argv(tmp_path, allow_kms_grant=True, interactive=True),
+        answers=HAPPY_ANSWERS_FIRST_USE)
+    assert code == 0, runner.text()
+    # Everything was explicit, so no value prompt was ever shown.
+    assert not any(p.startswith("Value") for p in prompter.prompts)
+    assert runner.manifest().data["config"]["production_profile"] == "smaht-prod"
+
+
+def test_interactive_plan_mode_keeps_zero_aws_guarantee(tmp_path, aws_local_config):
+    output = []
+    prompter = ScriptedPrompter(list(INTERACTIVE_ANSWERS), emit=output.append)
+    code = main(interactive_argv(tmp_path, "plan"),
+                client_factory_builder=explosive_factory_builder,
+                prompter=prompter, emit=output.append)
+    assert code == 0, "\n".join(output)
+    text = "\n".join(output)
+    assert "no AWS calls were made" in text
+    assert "snapshot_production" in text
+
+
+def test_interactive_prompts_for_role_when_profile_has_none(tmp_path, aws_local_config):
+    (aws_local_config / "config").write_text(
+        f"[profile smaht-prod]\nregion = {REGION}\n\n"
+        f"[profile smaht-devtest]\nregion = {REGION}\n")
+    runner = Runner(tmp_path)
+    answers = ["", "", "", RESTORE_ROLE, DEVTEST_ACCOUNT, PROD_ACCOUNT, PROD_KMS_KEY,
+               "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
+    code, prompter = runner.main(
+        interactive_argv(tmp_path, "run", "--allow-kms-grant"),
+        answers=answers + HAPPY_ANSWERS_FIRST_USE)
+    assert code == 0, runner.text()
+    assert any("IAM role ARN" in p for p in runner.output)
+    assert runner.manifest().data["config"]["devtest_restore_role_arn"] == RESTORE_ROLE
+
+
+def test_interactive_never_silently_uses_a_malformed_profile_role(tmp_path, aws_local_config):
+    (aws_local_config / "config").write_text(
+        f"[profile smaht-prod]\nregion = {REGION}\nrole_arn = {PROD_PROFILE_ROLE}\n\n"
+        f"[profile smaht-devtest]\nregion = {REGION}\n"
+        f"role_arn = arn:aws:iam::999:role/short-account\n")
+    runner = Runner(tmp_path)
+    answers = ["", "", "", RESTORE_ROLE, "", "", PROD_KMS_KEY,
+               "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
+    code, _ = runner.main(
+        interactive_argv(tmp_path, "run", "--allow-kms-grant"),
+        answers=answers + HAPPY_ANSWERS_FIRST_USE)
+    assert code == 0, runner.text()
+    assert "Using the devtest profile's role_arn" not in runner.text()
+    assert runner.manifest().data["config"]["devtest_restore_role_arn"] == RESTORE_ROLE
+
+
+def test_interactive_invalid_input_reprompts_then_fails_closed(tmp_path, aws_local_config):
+    (aws_local_config / "config").write_text(
+        f"[profile smaht-prod]\nregion = {REGION}\n\n"
+        f"[profile smaht-devtest]\nregion = {REGION}\nrole_arn = {RESTORE_ROLE}\n")
+    runner = Runner(tmp_path)
+    # Production account id has no discovered default here and gets three bad answers.
+    answers = ["", "", "", "", "not-an-account", "12345", "also-bad"]
+    code, _ = runner.main(interactive_argv(tmp_path, "run"), answers=answers)
+    assert code == 1
+    assert "aborting interactive setup" in runner.text()
+    assert runner.aws.calls == []
+    assert not (tmp_path / "state").exists()  # nothing was created
+
+
+def test_interactive_region_falls_back_to_environment(tmp_path, aws_local_config, monkeypatch):
+    (aws_local_config / "config").write_text(
+        "[profile smaht-prod]\n"
+        f"role_arn = {PROD_PROFILE_ROLE}\n\n"
+        "[profile smaht-devtest]\n"
+        f"role_arn = {RESTORE_ROLE}\n")
+    monkeypatch.setenv("AWS_DEFAULT_REGION", REGION)
+    runner = Runner(tmp_path)
+    code, _ = runner.main(
+        interactive_argv(tmp_path, "run", "--allow-kms-grant"),
+        answers=INTERACTIVE_ANSWERS + HAPPY_ANSWERS_FIRST_USE)
+    assert code == 0, runner.text()
+    assert runner.manifest().data["config"]["region"] == REGION
+
+
+def test_interactive_on_resume_resolves_nothing(tmp_path):
+    runner = Runner(tmp_path)
+    runner.main(base_argv(tmp_path), answers=["n"])  # halt at the first confirmation
+    code, prompter = runner.main(
+        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state"),
+         "--interactive", "--allow-kms-grant"],
+        answers=HAPPY_ANSWERS_FIRST_USE)
+    assert code == 0, runner.text()
+    assert "nothing for --interactive to resolve" in runner.text()
+    assert not any(p.startswith("Value") for p in prompter.prompts)
+
+
+# ---------------------------------------------------------------------------------
 # Config validation
 # ---------------------------------------------------------------------------------
 

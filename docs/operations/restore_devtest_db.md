@@ -88,7 +88,9 @@ before a resume if it proves too small).
 
 ## Required configuration
 
-Nothing is inferred from ambient AWS defaults.
+Nothing is inferred from ambient AWS defaults during the operation itself; every
+value below is explicit (supplied as a flag, or confirmed interactively — see
+"Interactive mode").
 
 | Flags | Requirement |
 | --- | --- |
@@ -103,6 +105,37 @@ Nothing is inferred from ambient AWS defaults.
 
 DB network placement is copied from the protected devtest database, so there are no
 subnet/security-group flags.
+
+## Interactive mode
+
+`--interactive` (accepted by `plan` and `run`; `resume` accepts it but has nothing to
+resolve, since it uses the operation's saved configuration) fills in unset values so
+the operator does not have to type every flag:
+
+- **Explicit command-line values always win** and are never prompted for.
+- Named profiles are discovered from the standard local AWS configuration
+  (`~/.aws/config` and `~/.aws/credentials`, honoring `AWS_CONFIG_FILE`/
+  `AWS_SHARED_CREDENTIALS_FILE`). Only profile *names* and the non-secret `region`/
+  `role_arn` settings are read — credential values are never read, printed, or
+  persisted. An obviously named profile (`prod`/`production`, `devtest`/`dev`/`test`)
+  is offered as the default; the region defaults from the selected profiles or
+  `AWS_REGION`/`AWS_DEFAULT_REGION`.
+- If the devtest profile declares a `role_arn` that parses as an IAM role ARN, it is
+  used as the KMS grant principal (announced, not prompted). Anything ambiguous —
+  a missing or malformed `role_arn`, no obvious profile, an unresolved account id —
+  is prompted for, never silently invented. Account ids default from the discovered
+  role ARNs when available.
+- Remaining non-secret values (production KMS key, IDENTITY secret *names*, new DB
+  identifier) are prompted with safe defaults where one exists. All prompted values
+  still pass the same validation, STS/KMS verification, and confirmations as
+  explicit flags; invalid input re-prompts a few times and then fails closed.
+- Interactive `plan` keeps the zero-AWS guarantee: it inspects local files and
+  prompts, but constructs no AWS client and calls nothing.
+
+```bash
+restore-devtest-db plan --interactive
+restore-devtest-db run --interactive --allow-kms-grant
+```
 
 ## IAM permissions
 

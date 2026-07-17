@@ -36,6 +36,7 @@ bypass. See docs/operations/restore_devtest_db.md.
 """
 
 import argparse
+import configparser
 import json
 import os
 import re
@@ -291,6 +292,165 @@ class Prompter:
         self.emit(message)
         answer = self.input_fn(f"Type '{required}' to proceed (anything else aborts): ")
         return answer.strip() == required
+
+    def ask(self, message: str, default: str = "") -> str:
+        """Prompt for a non-secret value; an empty answer takes the default."""
+        self.emit(message)
+        suffix = f" [{default}]" if default else ""
+        return self.input_fn(f"Value{suffix}: ").strip() or default
+
+
+# ---------------------------------------------------------------------------------------
+# Interactive configuration (--interactive)
+# ---------------------------------------------------------------------------------------
+
+class AwsLocalConfig:
+    """Read-only view of the standard local AWS configuration files.
+
+    Exposes only profile *names* and the non-secret per-profile settings this
+    command needs (``region``, ``role_arn``). Credential values are never read,
+    printed, or persisted. No AWS client is constructed and nothing is contacted."""
+
+    def __init__(self, environ: Optional[Dict[str, str]] = None):
+        self.environ = os.environ if environ is None else environ
+        home = Path(os.path.expanduser("~"))
+        self.config = self._parse(Path(self.environ.get(
+            "AWS_CONFIG_FILE", home / ".aws" / "config")))
+        credentials = self._parse(Path(self.environ.get(
+            "AWS_SHARED_CREDENTIALS_FILE", home / ".aws" / "credentials")))
+        # Only the section names of the credentials file are used, ever.
+        self.credential_profile_names = list(credentials.sections())
+
+    @staticmethod
+    def _parse(path: Path) -> configparser.ConfigParser:
+        parser = configparser.ConfigParser()
+        try:
+            parser.read(path)
+        except (OSError, configparser.Error):
+            pass  # unreadable local config just means nothing to discover
+        return parser
+
+    def profile_names(self) -> List[str]:
+        names = set(self.credential_profile_names)
+        for section in self.config.sections():
+            names.add(section[len("profile "):] if section.startswith("profile ") else section)
+        return sorted(names)
+
+    def _profile_setting(self, profile: str, key: str) -> str:
+        for section in (f"profile {profile}", profile):
+            if self.config.has_option(section, key):
+                return self.config.get(section, key).strip()
+        return ""
+
+    def profile_region(self, profile: str) -> str:
+        return self._profile_setting(profile, "region")
+
+    def profile_role_arn(self, profile: str) -> str:
+        return self._profile_setting(profile, "role_arn")
+
+    def env_region(self) -> str:
+        return self.environ.get("AWS_REGION", "") or self.environ.get("AWS_DEFAULT_REGION", "")
+
+
+def _ask_resolved(prompter: Prompter, what: str, message: str, default: str = "",
+                  validator: Optional[Callable[[str], bool]] = None) -> str:
+    """Ask for one non-secret value, re-prompting on empty/invalid input a few
+    times before failing closed."""
+    for _attempt in range(3):
+        answer = prompter.ask(message, default)
+        if answer and (validator is None or validator(answer)):
+            return answer
+        prompter.emit(f"A valid value for {what} is required (or Ctrl-C to abort).")
+    raise RestoreError(f"No valid value was provided for {what}; aborting interactive setup.")
+
+
+def _default_profile(names: List[str], markers: tuple) -> str:
+    matches = [name for name in names
+               if any(marker in name.lower() for marker in markers)]
+    return matches[0] if len(matches) == 1 else ""
+
+
+def resolve_interactive(config: RestoreConfig, prompter: Prompter,
+                        local: Optional[AwsLocalConfig] = None,
+                        emit: Callable[[str], None] = print) -> RestoreConfig:
+    """Fill unset configuration from local AWS config discovery plus prompts.
+
+    Explicit command-line values always win and are never prompted for. Only
+    non-secret values are involved; nothing here constructs an AWS client, so
+    interactive plan mode keeps its zero-AWS guarantee. Ambiguous discovery is
+    never silently resolved -- the operator is asked."""
+    local = local or AwsLocalConfig()
+    profiles = local.profile_names()
+    if profiles:
+        emit(f"Discovered AWS profiles: {', '.join(profiles)}")
+    else:
+        emit("No AWS profiles discovered in the local AWS configuration.")
+    profile_list = f" (discovered: {', '.join(profiles) or 'none'})"
+    if not config.production_profile:
+        config.production_profile = _ask_resolved(
+            prompter, "the production AWS profile",
+            f"AWS profile for the PRODUCTION account{profile_list}:",
+            default=_default_profile(profiles, ("production", "prod")))
+    if not config.devtest_profile:
+        config.devtest_profile = _ask_resolved(
+            prompter, "the devtest AWS profile",
+            f"AWS profile for the DEVTEST account{profile_list}:",
+            default=_default_profile(profiles, ("devtest", "dev", "test")))
+    if not config.region:
+        config.region = _ask_resolved(
+            prompter, "the AWS region", "AWS region for both accounts:",
+            default=(local.profile_region(config.devtest_profile)
+                     or local.profile_region(config.production_profile)
+                     or local.env_region()))
+    if not config.devtest_restore_role_arn:
+        # A role_arn declared on the devtest profile is the KMS grant principal;
+        # anything that does not parse as an IAM role ARN is ambiguous and prompts.
+        declared = local.profile_role_arn(config.devtest_profile)
+        if declared and IAM_ROLE_ARN_PATTERN.match(declared):
+            config.devtest_restore_role_arn = declared
+            emit(f"Using the devtest profile's role_arn as the KMS grant principal:"
+                 f" {declared}")
+        else:
+            config.devtest_restore_role_arn = _ask_resolved(
+                prompter, "the devtest restore role ARN",
+                "IAM role ARN in the devtest account that copies the shared snapshot:",
+                default=declared,
+                validator=lambda value: bool(IAM_ROLE_ARN_PATTERN.match(value)))
+
+    def arn_account(arn: str) -> str:
+        match = IAM_ROLE_ARN_PATTERN.match(arn)
+        return match.group("account") if match else ""
+
+    is_account = ACCOUNT_ID_PATTERN.match
+    if not config.devtest_account_id:
+        config.devtest_account_id = _ask_resolved(
+            prompter, "the devtest account id", "12-digit DEVTEST AWS account id:",
+            default=arn_account(config.devtest_restore_role_arn),
+            validator=lambda value: bool(is_account(value)))
+    if not config.production_account_id:
+        config.production_account_id = _ask_resolved(
+            prompter, "the production account id", "12-digit PRODUCTION AWS account id:",
+            default=arn_account(local.profile_role_arn(config.production_profile)),
+            validator=lambda value: bool(is_account(value)))
+    if not config.production_kms_key_id:
+        config.production_kms_key_id = _ask_resolved(
+            prompter, "the production KMS key",
+            "Customer-managed production KMS key (id/ARN/alias) for the shareable copy:")
+    if not config.production_identity_secret:
+        config.production_identity_secret = _ask_resolved(
+            prompter, "the production identity secret name",
+            "Production IDENTITY secret name (its values are never shown):")
+    if not config.devtest_identity_secret:
+        config.devtest_identity_secret = _ask_resolved(
+            prompter, "the devtest identity secret name",
+            "Devtest IDENTITY secret name to update (its values are never shown):")
+    if not config.new_db_identifier:
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+        config.new_db_identifier = _ask_resolved(
+            prompter, "the new database identifier",
+            "Identifier for the newly restored devtest database:",
+            default=f"{config.protected_db_identifier}-restored-{stamp}")
+    return config
 
 
 # Ordered workflow. Before the first step in each account scope, the STS caller
@@ -896,6 +1056,11 @@ def build_parser() -> argparse.ArgumentParser:
         sub = subparsers.add_parser(name, help=help_text)
         sub.add_argument("--state-dir", default=DEFAULT_STATE_DIR,
                          help=f"directory for operation manifests (default {DEFAULT_STATE_DIR})")
+        sub.add_argument("--interactive", action="store_true",
+                         help="discover AWS profiles/region/role from the local AWS"
+                              " configuration and prompt for any remaining non-secret"
+                              " values; explicit arguments always win (resume already"
+                              " has its saved configuration and resolves nothing)")
         return sub
 
     plan = subparser("plan", "print the step plan; makes no AWS calls")
@@ -968,6 +1133,10 @@ def main(argv: Optional[List[str]] = None,
 
         if args.command in ("plan", "run"):
             config = config_from_args(args)
+            if args.interactive:
+                # Local-file discovery and prompts only: no AWS client is built, so
+                # interactive plan mode keeps the zero-AWS guarantee.
+                config = resolve_interactive(config, prompter, emit=emit)
             config.validate()
             operation_id = args.operation_id or generate_operation_id()
             if args.command == "plan" or args.dry_run:
@@ -983,6 +1152,9 @@ def main(argv: Optional[List[str]] = None,
             config = RestoreConfig.from_persisted_dict(
                 manifest.data["config"], allow_kms_grant=args.allow_kms_grant)
             config.validate()
+            if args.interactive:
+                emit("resume uses the operation's saved configuration; there is"
+                     " nothing for --interactive to resolve.")
             emit(f"Resuming operation {args.operation_id}; completed steps will be skipped.")
 
         orchestrator = RestoreOrchestrator(
