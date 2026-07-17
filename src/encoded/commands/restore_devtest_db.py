@@ -56,6 +56,7 @@ DEFAULT_INSTANCE_CLASS = "db.t4g.medium"  # a reasonable size for ~16 indexers
 PRODUCTION_HEALTH_URL = "https://data.smaht.org/health?format=json"
 DEVTEST_HEALTH_URL = "https://devtest.smaht.org/health?format=json"
 HEALTH_KMS_KEY_FIELD = "s3_encrypt_key_id"
+HEALTH_IDENTITY_FIELD = "identity"
 
 # Identity-secret keys copied from the production identity into the devtest identity,
 # because the restored database keeps production's users and passwords.
@@ -315,26 +316,57 @@ def _account_from_arn(value: str) -> str:
     return match.group("account") if match else ""
 
 
-def _resolve_health_kms_key(prompter: Prompter, *, label: str, url: str,
-                            health_discoverer: Callable[[str], Dict[str, Any]],
-                            emit: Callable[[str], None]) -> str:
-    """Resolve a KMS key from health, falling back to an explicit prompt."""
+def _health_value(health: Optional[Dict[str, Any]], field: str) -> tuple:
+    """Return a usable string health field or a concrete discovery problem."""
+    if health is None:
+        return "", "health response was unavailable"
+    value = health.get(field)
+    if isinstance(value, str) and value.strip():
+        return value.strip(), ""
+    return "", f"JSON response lacks a non-empty {field!r} field"
+
+
+def _resolve_health_configuration(config: RestoreConfig, prompter: Prompter, *,
+                                  label: str, url: str,
+                                  kms_field: str, kms_attr: str,
+                                  identity_field: str, identity_attr: str,
+                                  health_discoverer: Callable[[str], Dict[str, Any]],
+                                  emit: Callable[[str], None]) -> None:
+    """Resolve missing KMS and IDENTITY values from one health response."""
+    missing = [attr for attr in (kms_attr, identity_attr) if not getattr(config, attr)]
+    if not missing:
+        return
     try:
         health = health_discoverer(url)
         if not isinstance(health, dict):
-            problem = "response was not a JSON object"
+            health = None
+            response_problem = "response was not a JSON object"
         else:
-            key_id = health.get(HEALTH_KMS_KEY_FIELD)
-            if isinstance(key_id, str) and key_id.strip():
-                return key_id.strip()
-            problem = f"JSON response lacks a non-empty {HEALTH_KMS_KEY_FIELD!r} field"
+            response_problem = ""
     except Exception as e:
-        problem = str(e) if isinstance(e, RestoreError) else f"{type(e).__name__}: {e}"
-    emit(f"Could not discover the {label} KMS key from {url}: {problem}")
-    return _ask_resolved(
-        prompter, f"the {label} KMS key",
-        f"Explicit {label} KMS key override (id/ARN/alias); health discovery failed:",
-        validator=lambda value: bool(value.strip()))
+        health = None
+        response_problem = (str(e) if isinstance(e, RestoreError)
+                            else f"{type(e).__name__}: {e}")
+
+    for attr, field, what, prompt_label in (
+            (kms_attr, kms_field, f"the {label} KMS key", "KMS key"),
+            (identity_attr, identity_field, f"the {label} IDENTITY secret name",
+             "IDENTITY secret name")):
+        if getattr(config, attr):
+            continue
+        value, problem = _health_value(health, field)
+        problem = response_problem or problem
+        if value:
+            setattr(config, attr, value)
+            if attr == identity_attr:
+                emit(f"Discovered {label} IDENTITY secret name from health: {value}")
+            continue
+        emit(f"Could not discover the {label} {prompt_label} from {url}: {problem}")
+        setattr(config, attr, _ask_resolved(
+            prompter, what,
+            f"Explicit {label} {prompt_label} override; health discovery failed: {problem}",
+            validator=lambda answer: bool(answer.strip())))
+
 
 class AwsLocalConfig:
     """Read-only view of the standard local AWS configuration files.
@@ -446,22 +478,16 @@ def resolve_interactive(config: RestoreConfig, prompter: Prompter,
             prompter, "the production account id", "12-digit PRODUCTION AWS account id:",
             default=_account_from_arn(local.profile_role_arn(config.production_profile)),
             validator=lambda value: bool(is_account(value)))
-    if not config.production_kms_key_id:
-        config.production_kms_key_id = _resolve_health_kms_key(
-            prompter, label="production", url=PRODUCTION_HEALTH_URL,
-            health_discoverer=health_discoverer, emit=emit)
-    if not config.devtest_kms_key_id:
-        config.devtest_kms_key_id = _resolve_health_kms_key(
-            prompter, label="devtest", url=DEVTEST_HEALTH_URL,
-            health_discoverer=health_discoverer, emit=emit)
-    if not config.production_identity_secret:
-        config.production_identity_secret = _ask_resolved(
-            prompter, "the production identity secret name",
-            "Production IDENTITY secret name (its values are never shown):")
-    if not config.devtest_identity_secret:
-        config.devtest_identity_secret = _ask_resolved(
-            prompter, "the devtest identity secret name",
-            "Devtest IDENTITY secret name to update (its values are never shown):")
+    _resolve_health_configuration(
+        config, prompter, label="production", url=PRODUCTION_HEALTH_URL,
+        kms_field=HEALTH_KMS_KEY_FIELD, kms_attr="production_kms_key_id",
+        identity_field=HEALTH_IDENTITY_FIELD, identity_attr="production_identity_secret",
+        health_discoverer=health_discoverer, emit=emit)
+    _resolve_health_configuration(
+        config, prompter, label="devtest", url=DEVTEST_HEALTH_URL,
+        kms_field=HEALTH_KMS_KEY_FIELD, kms_attr="devtest_kms_key_id",
+        identity_field=HEALTH_IDENTITY_FIELD, identity_attr="devtest_identity_secret",
+        health_discoverer=health_discoverer, emit=emit)
     if not config.new_db_identifier:
         stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
         config.new_db_identifier = _ask_resolved(
@@ -929,6 +955,8 @@ def print_plan(config: RestoreConfig, operation_id: str,
          f" {config.devtest_kms_key_id}")
     emit(f"  identity secrets: production={config.production_identity_secret}"
          f" devtest={config.devtest_identity_secret}")
+    emit("  interactive health discovery: KMS keys use 's3_encrypt_key_id';"
+         " IDENTITY names use 'identity' (explicit values win)")
     emit(PLAN_TEXT.format(instance_class=config.instance_class,
                           credential_phrase=CREDENTIAL_CONFIRMATION_PHRASE,
                           protected_db=config.protected_db_identifier))
@@ -1004,8 +1032,8 @@ def build_parser() -> argparse.ArgumentParser:
         sub.add_argument("--state-dir", default=DEFAULT_STATE_DIR,
                          help=f"directory for operation manifests (default {DEFAULT_STATE_DIR})")
         sub.add_argument("--interactive", action="store_true",
-                         help="discover AWS profiles/region and KMS key IDs from the"
-                              " public health endpoints, then prompt for remaining non-secret"
+                         help="discover AWS profiles/region, KMS key IDs, and IDENTITY"
+                              " secret names from public health endpoints, then prompt for remaining non-secret"
                               " values; explicit arguments always win (resume already"
                               " has its saved configuration and resolves nothing)")
         return sub

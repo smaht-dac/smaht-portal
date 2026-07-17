@@ -42,6 +42,8 @@ PROTECTED_DB = "rds-smaht-devtest"
 NEW_DB = "rds-smaht-devtest-restored-1"
 PROD_KMS_KEY = f"arn:aws:kms:{REGION}:{PROD_ACCOUNT}:key/1234"
 DEVTEST_KMS_KEY = f"arn:aws:kms:{REGION}:{DEVTEST_ACCOUNT}:key/5678"
+PROD_IDENTITY_NAME = "SmahtProductionIdentity"
+DEVTEST_IDENTITY_NAME = "SmahtDevtestIdentity"
 DB_SUBNET_GROUP = "smaht-devtest-db-subnet"
 DB_SECURITY_GROUPS = ["sg-devtest-db"]
 SENTINEL_PASSWORD = "Sentinel-ProdPassword-9x7!"  # must never appear in output/manifest
@@ -346,8 +348,11 @@ class Runner:
 
         def health_discoverer(url):
             self.health_calls.append(url)
-            return {"s3_encrypt_key_id":
-                    PROD_KMS_KEY if "data.smaht.org" in url else DEVTEST_KMS_KEY}
+            production = "data.smaht.org" in url
+            return {
+                "s3_encrypt_key_id": PROD_KMS_KEY if production else DEVTEST_KMS_KEY,
+                "identity": PROD_IDENTITY_NAME if production else DEVTEST_IDENTITY_NAME,
+            }
 
         self.health_discoverer = health_discoverer
 
@@ -383,8 +388,8 @@ def make_config(**overrides):
         devtest_profile="smaht-devtest",
         production_kms_key_id=PROD_KMS_KEY,
         devtest_kms_key_id=DEVTEST_KMS_KEY,
-        production_identity_secret="SmahtProductionIdentity",
-        devtest_identity_secret="SmahtDevtestIdentity",
+        production_identity_secret=PROD_IDENTITY_NAME,
+        devtest_identity_secret=DEVTEST_IDENTITY_NAME,
         new_db_identifier=NEW_DB,
         poll_interval=1,
         poll_timeout=10,
@@ -411,6 +416,8 @@ def test_plan_mode_makes_no_aws_calls(tmp_path):
     assert "no AWS calls were made" in text
     for step in rdd.STEP_NAMES:
         assert step in text
+    assert "s3_encrypt_key_id" in text
+    assert "IDENTITY names use 'identity'" in text
     assert "never deletes or" in text and "stops any database" in text
     assert "performed" in text and "manually" in text
 
@@ -848,9 +855,8 @@ def interactive_argv(tmp_path, command="run", *flags, operation_id="op-1"):
 
 
 # Empty answers accept the discovered defaults: profiles, region, and account ids;
-# health supplies both KMS key IDs, then the remaining values are typed.
-INTERACTIVE_ANSWERS = ["", "", "", "", "",
-                       "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
+# health supplies both KMS key IDs and IDENTITY names, then the remaining value is typed.
+INTERACTIVE_ANSWERS = ["", "", "", "", "", NEW_DB]
 
 
 def test_interactive_run_discovers_defaults_and_completes(tmp_path, aws_local_config):
@@ -866,9 +872,14 @@ def test_interactive_run_discovers_defaults_and_completes(tmp_path, aws_local_co
     assert saved["devtest_account_id"] == DEVTEST_ACCOUNT
     assert saved["production_kms_key_id"] == PROD_KMS_KEY
     assert saved["devtest_kms_key_id"] == DEVTEST_KMS_KEY
+    assert saved["production_identity_secret"] == PROD_IDENTITY_NAME
+    assert saved["devtest_identity_secret"] == DEVTEST_IDENTITY_NAME
     assert saved["new_db_identifier"] == NEW_DB
     assert runner.health_calls == [rdd.PRODUCTION_HEALTH_URL, rdd.DEVTEST_HEALTH_URL]
-    assert not any("KMS key" in p for p in prompter.prompts)
+    assert "Discovered production IDENTITY secret name from health" in runner.text()
+    assert "Discovered devtest IDENTITY secret name from health" in runner.text()
+    assert "Explicit production IDENTITY secret name override" not in runner.text()
+    assert "Explicit devtest IDENTITY secret name override" not in runner.text()
     # Credential values from the local files never appear anywhere.
     shown = runner.text() + "\n".join(prompter.prompts) + runner.manifest_text()
     assert CRED_SENTINEL_ID not in shown
@@ -893,7 +904,9 @@ def test_interactive_plan_mode_keeps_zero_aws_guarantee(tmp_path, aws_local_conf
 
     def health_discoverer(url):
         health_calls.append(url)
-        return {"s3_encrypt_key_id": PROD_KMS_KEY if "data.smaht.org" in url else DEVTEST_KMS_KEY}
+        production = "data.smaht.org" in url
+        return {"s3_encrypt_key_id": PROD_KMS_KEY if production else DEVTEST_KMS_KEY,
+                "identity": PROD_IDENTITY_NAME if production else DEVTEST_IDENTITY_NAME}
 
     code = main(interactive_argv(tmp_path, "plan"),
                 client_factory_builder=explosive_factory_builder,
@@ -913,11 +926,10 @@ def test_interactive_health_failure_prompts_for_explicit_override(tmp_path, aws_
         runner.health_calls.append(url)
         if url == rdd.PRODUCTION_HEALTH_URL:
             raise OSError("temporary DNS failure")
-        return {"s3_encrypt_key_id": DEVTEST_KMS_KEY}
+        return {"s3_encrypt_key_id": DEVTEST_KMS_KEY, "identity": DEVTEST_IDENTITY_NAME}
 
     runner.health_discoverer = health_discoverer
-    answers = ["", "", "", "", "", PROD_KMS_KEY,
-               "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
+    answers = ["", "", "", "", "", PROD_KMS_KEY, PROD_IDENTITY_NAME, NEW_DB]
     code, _ = runner.main(interactive_argv(tmp_path, "run"), answers=answers + HAPPY_ANSWERS)
     assert code == 0, runner.text()
     assert "temporary DNS failure" in runner.text()
@@ -933,16 +945,37 @@ def test_interactive_health_missing_field_prompts_for_explicit_override(tmp_path
         runner.health_calls.append(url)
         return {} if url == rdd.PRODUCTION_HEALTH_URL else {
             "s3_encrypt_key_id": DEVTEST_KMS_KEY,
+            "identity": DEVTEST_IDENTITY_NAME,
             "RDS_HOSTNAME": "must-not-be-used-as-a-key",
         }
 
     runner.health_discoverer = health_discoverer
-    answers = ["", "", "", "", "", PROD_KMS_KEY,
-               "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
+    answers = ["", "", "", "", "", PROD_KMS_KEY, PROD_IDENTITY_NAME, NEW_DB]
     code, _ = runner.main(interactive_argv(tmp_path, "run"), answers=answers + HAPPY_ANSWERS)
     assert code == 0, runner.text()
     assert f"lacks a non-empty '{rdd.HEALTH_KMS_KEY_FIELD}' field" in runner.text()
+    assert f"lacks a non-empty '{rdd.HEALTH_IDENTITY_FIELD}' field" in runner.text()
+    assert runner.manifest().data["config"]["production_identity_secret"] == PROD_IDENTITY_NAME
     assert runner.manifest().data["config"]["devtest_kms_key_id"] == DEVTEST_KMS_KEY
+
+
+def test_interactive_health_invalid_identity_prompts_for_override(tmp_path, aws_local_config):
+    runner = Runner(tmp_path)
+
+    def health_discoverer(url):
+        runner.health_calls.append(url)
+        if url == rdd.DEVTEST_HEALTH_URL:
+            return {"s3_encrypt_key_id": DEVTEST_KMS_KEY, "identity": 123}
+        return {"s3_encrypt_key_id": PROD_KMS_KEY, "identity": PROD_IDENTITY_NAME}
+
+    runner.health_discoverer = health_discoverer
+    answers = ["", "", "", "", "", DEVTEST_IDENTITY_NAME, NEW_DB]
+    code, _ = runner.main(interactive_argv(tmp_path, "run"), answers=answers + HAPPY_ANSWERS)
+    assert code == 0, runner.text()
+    assert f"lacks a non-empty '{rdd.HEALTH_IDENTITY_FIELD}' field" in runner.text()
+    assert "Discovered production IDENTITY secret name from health" in runner.text()
+    assert "Discovered devtest IDENTITY secret name from health" not in runner.text()
+    assert runner.manifest().data["config"]["devtest_identity_secret"] == DEVTEST_IDENTITY_NAME
 
 
 def test_interactive_invalid_input_reprompts_then_fails_closed(tmp_path, aws_local_config):

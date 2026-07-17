@@ -46,7 +46,7 @@ those.
 
 ## Credential warning
 
-After step 8 the devtest database password **is the production password**. Treat
+After step 7 the devtest database password **is the production password**. Treat
 devtest as containing production secrets until you rotate the restored database's
 master password (`aws rds modify-db-instance --master-user-password ...`) and update
 the IDENTITY secret again. No secret value is ever written to the terminal, manifest,
@@ -118,19 +118,21 @@ the operator does not have to type every flag:
 - If a profile declares a non-secret `role_arn`, its account id is used as a safe
   default. No separate IAM role ARN is prompted for or required; an unresolved
   account id is prompted for, never silently invented.
-- The production and devtest KMS key IDs are discovered from the public JSON health
-  endpoints `https://data.smaht.org/health?format=json` and
-  `https://devtest.smaht.org/health?format=json`, respectively, using the
-  `s3_encrypt_key_id` field. The database hostname is never treated as a KMS key.
-- Health discovery is HTTP JSON only. If a request fails or the field is missing,
-  the concrete problem is reported and an explicit KMS key override is prompted for.
-  Non-interactive mode does no health discovery and requires both KMS key flags.
-- Remaining non-secret values (IDENTITY secret *names*, new DB identifier) are
-  prompted with safe defaults where one exists. All prompted values still pass the
-  same validation, STS/KMS verification, and confirmations as explicit flags; invalid
-  input re-prompts a few times and then fails closed.
+- The production and devtest KMS key IDs and IDENTITY secret names are discovered
+  from the same public JSON health responses at `https://data.smaht.org/health?format=json`
+  and `https://devtest.smaht.org/health?format=json`. KMS uses `s3_encrypt_key_id`;
+  IDENTITY uses `identity`. Health-derived IDENTITY names are announced and are not
+  prompted for. The database hostname is never treated as a KMS key.
+- Health discovery is HTTP JSON only. If a request fails or either field is absent or
+  invalid, the concrete problem is reported and an explicit override for that value
+  is prompted for. Non-interactive mode does no health discovery and remains explicit.
+- Remaining non-secret values, including the new DB identifier, are prompted with safe
+  defaults where one exists. All prompted values still pass the same validation,
+  STS/KMS verification, and confirmations as explicit flags; invalid input re-prompts
+  a few times and then fails closed.
 - Interactive `plan` keeps the zero-AWS guarantee: it inspects local files and the
-  public health JSON, but constructs no AWS client and calls no AWS API.
+  public health JSON, but constructs no AWS client and calls no AWS API. Its plan
+  output identifies both health fields used for discovery.
 
 ```bash
 restore-devtest-db plan --interactive
@@ -181,8 +183,9 @@ before decommissioning anything by hand.
 
 `src/encoded/tests/test_restore_devtest_db.py` covers the whole flow with **every
 external boundary mocked**: STS/RDS/KMS/Secrets Manager are in-memory fakes injected
-through the command's client-factory seam; prompts and sleeps are scripted; one test
-booby-traps `boto3` to prove a full run never touches it. The fake factory provides
+through the command's client-factory seam, and both health JSON responses are supplied
+through the injectable health-discovery seam; prompts and sleeps are scripted; one
+test booby-traps `boto3` to prove a full run never touches it. The fake factory provides
 no ECS or SQS clients and the fake RDS client implements no delete or stop APIs, so
 any regression toward deployment orchestration, service mutation, stopping, or
 deletion fails loudly. No test contacts AWS or a deployed environment.
