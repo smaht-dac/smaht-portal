@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+2.3.9
+=====
+
+* Add command to allow devtest db restore programmatical
+
 
 2.3.8
 =====
