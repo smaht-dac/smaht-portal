@@ -12,17 +12,14 @@ Steps (see also `restore-devtest-db plan`):
        confirmation covers the re-encrypted copy in step 2) and wait for it.
     2. Copy the snapshot, re-encrypting with a customer-managed KMS key (verified to
        be customer-managed and owned by the production account), and wait for it.
-    3. Ensure a temporary, role-bound KMS grant (DescribeKey/CreateGrant only) lets
-       the devtest restore role ask RDS to use that key. Creating one requires both
-       --allow-kms-grant and a confirmation; it is revoked in step 6.
-    4. Share the encrypted copy with the devtest account (typed confirmation).
+    3. Share the encrypted copy with the devtest account (typed confirmation).
 
   Devtest account:
-    5. Copy the shared snapshot under the devtest KMS key and wait for it.
-    6. (production) Remove the share and revoke a grant this operation created.
-    7. Restore the new instance from the copy, with network placement copied from
+    4. Copy the shared snapshot under the devtest KMS key and wait for it.
+    5. (production) Remove the share from the encrypted snapshot.
+    6. Restore the new instance from the copy, with network placement copied from
        the protected devtest database, and wait for its endpoint.
-    8. Update the devtest IDENTITY secret with the new endpoint and the production
+    7. Update the devtest IDENTITY secret with the new endpoint and the production
        database credentials (typed confirmation; values are never printed or
        persisted -- after this step devtest holds production credentials).
 
@@ -41,6 +38,8 @@ import json
 import os
 import re
 import time
+import urllib.error
+import urllib.request
 import uuid
 from dataclasses import dataclass, fields
 from datetime import datetime, timezone
@@ -54,11 +53,9 @@ DEFAULT_STATE_DIR = "~/.smaht/restore-devtest-db"
 DEFAULT_SOURCE_DB = "rds-smaht-production"
 DEFAULT_PROTECTED_DB = "rds-smaht-devtest"
 DEFAULT_INSTANCE_CLASS = "db.t4g.medium"  # a reasonable size for ~16 indexers
-DEFAULT_DEVTEST_KMS_KEY = "alias/aws/rds"
-
-# What RDS needs the cross-account caller to hold on the source key; gives the role
-# no direct Encrypt/Decrypt permission.
-KMS_GRANT_OPERATIONS = ["DescribeKey", "CreateGrant"]
+PRODUCTION_HEALTH_URL = "https://data.smaht.org/health?format=json"
+DEVTEST_HEALTH_URL = "https://devtest.smaht.org/health?format=json"
+HEALTH_KMS_KEY_FIELD = "s3_encrypt_key_id"
 
 # Identity-secret keys copied from the production identity into the devtest identity,
 # because the restored database keeps production's users and passwords.
@@ -73,7 +70,7 @@ POLL_INTERVAL_SECONDS = 30
 POLL_TIMEOUT_SECONDS = 2 * 60 * 60  # snapshots/restores of a large database are slow
 
 ACCOUNT_ID_PATTERN = re.compile(r"^[0-9]{12}$")
-IAM_ROLE_ARN_PATTERN = re.compile(r"^arn:aws[a-z0-9-]*:iam::(?P<account>[0-9]{12}):role/\S+$")
+ACCOUNT_ARN_PATTERN = re.compile(r"::(?P<account>[0-9]{12}):")
 OPERATION_ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]{0,39}$")
 
 OPERATION_TAG_KEY = "smaht:restore-operation"  # audit tag on created resources
@@ -125,28 +122,24 @@ class RestoreConfig:
     production_profile: str = ""
     devtest_profile: str = ""
     production_kms_key_id: str = ""
-    devtest_restore_role_arn: str = ""
     production_identity_secret: str = ""
     devtest_identity_secret: str = ""
     source_db_identifier: str = DEFAULT_SOURCE_DB
     protected_db_identifier: str = DEFAULT_PROTECTED_DB
     new_db_identifier: str = ""
-    devtest_kms_key_id: str = DEFAULT_DEVTEST_KMS_KEY
+    devtest_kms_key_id: str = ""
     instance_class: str = DEFAULT_INSTANCE_CLASS
     production_role_name: str = ""
     devtest_role_name: str = ""
     poll_interval: int = POLL_INTERVAL_SECONDS
     poll_timeout: int = POLL_TIMEOUT_SECONDS
-    # Opt-ins are never persisted; they must be re-supplied on every invocation.
-    allow_kms_grant: bool = False
-
-    OPT_IN_FIELDS = ("allow_kms_grant",)
+    OPT_IN_FIELDS = ()
 
     def validate(self) -> None:
         required = (
             "production_account_id", "devtest_account_id", "region",
             "production_profile", "devtest_profile", "production_kms_key_id",
-            "devtest_restore_role_arn", "production_identity_secret",
+            "devtest_kms_key_id", "production_identity_secret",
             "devtest_identity_secret", "new_db_identifier",
         )
         missing = [name for name in required if not getattr(self, name)]
@@ -165,12 +158,6 @@ class RestoreConfig:
                 "production and devtest AWS profiles are identical; refusing to run"
                 " with one credential context for both accounts."
             )
-        role = IAM_ROLE_ARN_PATTERN.match(self.devtest_restore_role_arn)
-        if not role or role.group("account") != self.devtest_account_id:
-            raise SafetyViolation(
-                f"devtest_restore_role_arn must be an IAM role ARN in the devtest"
-                f" account {self.devtest_account_id}."
-            )
         if self.new_db_identifier in (self.protected_db_identifier, self.source_db_identifier):
             raise SafetyViolation(
                 f"new_db_identifier {self.new_db_identifier!r} collides with the"
@@ -182,11 +169,10 @@ class RestoreConfig:
                 if f.name not in self.OPT_IN_FIELDS}
 
     @classmethod
-    def from_persisted_dict(cls, data: Dict[str, Any], *,
-                            allow_kms_grant: bool = False) -> "RestoreConfig":
+    def from_persisted_dict(cls, data: Dict[str, Any]) -> "RestoreConfig":
         known = {f.name for f in fields(cls)} - set(cls.OPT_IN_FIELDS)
         kwargs = {k: v for k, v in data.items() if k in known}
-        return cls(**kwargs, allow_kms_grant=allow_kms_grant)
+        return cls(**kwargs)
 
 
 class Manifest:
@@ -304,6 +290,52 @@ class Prompter:
 # Interactive configuration (--interactive)
 # ---------------------------------------------------------------------------------------
 
+def discover_health_json(url: str, timeout: int = 10) -> Dict[str, Any]:
+    """Fetch one public portal health response without constructing an AWS client."""
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:
+            payload = response.read()
+    except urllib.error.HTTPError as e:
+        raise RestoreError(f"HTTP {e.code} from {url}.") from e
+    except urllib.error.URLError as e:
+        raise RestoreError(f"request to {url} failed: {e.reason}.") from e
+    except (OSError, TimeoutError) as e:
+        raise RestoreError(f"request to {url} failed: {type(e).__name__}: {e}.") from e
+    try:
+        data = json.loads(payload)
+    except (TypeError, json.JSONDecodeError) as e:
+        raise RestoreError(f"response from {url} was not valid JSON.") from e
+    if not isinstance(data, dict):
+        raise RestoreError(f"response from {url} was not a JSON object.")
+    return data
+
+
+def _account_from_arn(value: str) -> str:
+    match = ACCOUNT_ARN_PATTERN.search(value or "")
+    return match.group("account") if match else ""
+
+
+def _resolve_health_kms_key(prompter: Prompter, *, label: str, url: str,
+                            health_discoverer: Callable[[str], Dict[str, Any]],
+                            emit: Callable[[str], None]) -> str:
+    """Resolve a KMS key from health, falling back to an explicit prompt."""
+    try:
+        health = health_discoverer(url)
+        if not isinstance(health, dict):
+            problem = "response was not a JSON object"
+        else:
+            key_id = health.get(HEALTH_KMS_KEY_FIELD)
+            if isinstance(key_id, str) and key_id.strip():
+                return key_id.strip()
+            problem = f"JSON response lacks a non-empty {HEALTH_KMS_KEY_FIELD!r} field"
+    except Exception as e:
+        problem = str(e) if isinstance(e, RestoreError) else f"{type(e).__name__}: {e}"
+    emit(f"Could not discover the {label} KMS key from {url}: {problem}")
+    return _ask_resolved(
+        prompter, f"the {label} KMS key",
+        f"Explicit {label} KMS key override (id/ARN/alias); health discovery failed:",
+        validator=lambda value: bool(value.strip()))
+
 class AwsLocalConfig:
     """Read-only view of the standard local AWS configuration files.
 
@@ -372,6 +404,7 @@ def _default_profile(names: List[str], markers: tuple) -> str:
 
 def resolve_interactive(config: RestoreConfig, prompter: Prompter,
                         local: Optional[AwsLocalConfig] = None,
+                        health_discoverer: Callable[[str], Dict[str, Any]] = discover_health_json,
                         emit: Callable[[str], None] = print) -> RestoreConfig:
     """Fill unset configuration from local AWS config discovery plus prompts.
 
@@ -402,40 +435,25 @@ def resolve_interactive(config: RestoreConfig, prompter: Prompter,
             default=(local.profile_region(config.devtest_profile)
                      or local.profile_region(config.production_profile)
                      or local.env_region()))
-    if not config.devtest_restore_role_arn:
-        # A role_arn declared on the devtest profile is the KMS grant principal;
-        # anything that does not parse as an IAM role ARN is ambiguous and prompts.
-        declared = local.profile_role_arn(config.devtest_profile)
-        if declared and IAM_ROLE_ARN_PATTERN.match(declared):
-            config.devtest_restore_role_arn = declared
-            emit(f"Using the devtest profile's role_arn as the KMS grant principal:"
-                 f" {declared}")
-        else:
-            config.devtest_restore_role_arn = _ask_resolved(
-                prompter, "the devtest restore role ARN",
-                "IAM role ARN in the devtest account that copies the shared snapshot:",
-                default=declared,
-                validator=lambda value: bool(IAM_ROLE_ARN_PATTERN.match(value)))
-
-    def arn_account(arn: str) -> str:
-        match = IAM_ROLE_ARN_PATTERN.match(arn)
-        return match.group("account") if match else ""
-
     is_account = ACCOUNT_ID_PATTERN.match
     if not config.devtest_account_id:
         config.devtest_account_id = _ask_resolved(
             prompter, "the devtest account id", "12-digit DEVTEST AWS account id:",
-            default=arn_account(config.devtest_restore_role_arn),
+            default=_account_from_arn(local.profile_role_arn(config.devtest_profile)),
             validator=lambda value: bool(is_account(value)))
     if not config.production_account_id:
         config.production_account_id = _ask_resolved(
             prompter, "the production account id", "12-digit PRODUCTION AWS account id:",
-            default=arn_account(local.profile_role_arn(config.production_profile)),
+            default=_account_from_arn(local.profile_role_arn(config.production_profile)),
             validator=lambda value: bool(is_account(value)))
     if not config.production_kms_key_id:
-        config.production_kms_key_id = _ask_resolved(
-            prompter, "the production KMS key",
-            "Customer-managed production KMS key (id/ARN/alias) for the shareable copy:")
+        config.production_kms_key_id = _resolve_health_kms_key(
+            prompter, label="production", url=PRODUCTION_HEALTH_URL,
+            health_discoverer=health_discoverer, emit=emit)
+    if not config.devtest_kms_key_id:
+        config.devtest_kms_key_id = _resolve_health_kms_key(
+            prompter, label="devtest", url=DEVTEST_HEALTH_URL,
+            health_discoverer=health_discoverer, emit=emit)
     if not config.production_identity_secret:
         config.production_identity_secret = _ask_resolved(
             prompter, "the production identity secret name",
@@ -458,7 +476,6 @@ def resolve_interactive(config: RestoreConfig, prompter: Prompter,
 STEPS = [
     ("snapshot_production", PRODUCTION),
     ("encrypt_snapshot_copy", PRODUCTION),
-    ("ensure_kms_grant", PRODUCTION),
     ("share_snapshot_with_devtest", PRODUCTION),
     ("copy_shared_snapshot", DEVTEST),
     ("remove_temporary_source_access", PRODUCTION),
@@ -469,23 +486,19 @@ STEPS = [
 STEP_NAMES = [name for name, _scope in STEPS]
 
 PLAN_TEXT = """\
-Steps (confirmations in brackets; opt-in flags are never persisted):
+Steps (confirmations in brackets):
    1. [production] snapshot_production -- create a snapshot of the production
       database and wait for it. [y/n confirmation, covering step 2's copy as well]
    2. [production] encrypt_snapshot_copy -- copy it under the customer-managed KMS
       key (verified customer-managed, owned by the production account) and wait.
-   3. [production] ensure_kms_grant -- reuse or create a temporary DescribeKey/
-      CreateGrant grant for the devtest restore role. [y/n confirmation AND
-      --allow-kms-grant to create one; the grant is revoked at step 6]
-   4. [production] share_snapshot_with_devtest -- share the encrypted copy.
+   3. [production] share_snapshot_with_devtest -- share the encrypted copy.
       [typed confirmation: the devtest account id]
-   5. [devtest]    copy_shared_snapshot -- copy it under the devtest KMS key; wait.
-   6. [production] remove_temporary_source_access -- unshare the snapshot and revoke
-      a grant created by this operation.
-   7. [devtest]    restore_database -- restore the new instance ({instance_class},
+   4. [devtest]    copy_shared_snapshot -- copy it under the devtest KMS key; wait.
+   5. [production] remove_temporary_source_access -- unshare the snapshot.
+   6. [devtest]    restore_database -- restore the new instance ({instance_class},
       not public, network placement copied from the protected database) and wait
       for its endpoint.
-   8. [devtest]    update_identity_secret -- point the devtest IDENTITY at the new
+   7. [devtest]    update_identity_secret -- point the devtest IDENTITY at the new
       endpoint with production credentials. [typed confirmation:
       '{credential_phrase}'; values are never shown or persisted]
 The workflow ends here: reindexing and all other environment setup are performed
@@ -692,47 +705,6 @@ class RestoreOrchestrator:
         self._wait_for(lambda: self._snapshot_status(rds, target_id) or "not-found",
                        ready="available", waiting_on=f"encrypted snapshot copy {target_id}")
 
-    def step_ensure_kms_grant(self) -> None:
-        kms = self._client("kms", PRODUCTION)
-        grantee = self.config.devtest_restore_role_arn
-        key_arn = self.manifest.get_resource("production_kms_key_arn",
-                                             self.config.production_kms_key_id)
-        grants = kms.list_grants(KeyId=key_arn, GranteePrincipal=grantee).get("Grants", [])
-        # A constrained grant cannot be evaluated from here and might still block the
-        # copy, so only an unconstrained grant with the required operations counts.
-        usable = [g for g in grants
-                  if g.get("GranteePrincipal") == grantee
-                  and set(KMS_GRANT_OPERATIONS) <= set(g.get("Operations", []))
-                  and not g.get("Constraints")]
-        if usable:
-            self.emit(f"KMS grant already in place for {grantee}"
-                      f" (grant id {usable[0].get('GrantId')}); no security-policy"
-                      f" change needed.")
-            self.manifest.set_resource("kms_grant_id", usable[0].get("GrantId", ""))
-            self.manifest.set_resource("kms_grant_created_by_this_tool", False)
-            return
-        if not self.config.allow_kms_grant:
-            raise SafetyViolation(
-                f"No usable grant exists on KMS key {key_arn} for {grantee}. Creating"
-                f" one is a security-policy change and requires --allow-kms-grant"
-                f" (needed on most runs: this tool revokes its temporary grant after"
-                f" the devtest copy). Re-run resume with --allow-kms-grant.")
-        self._require_confirmation(
-            self.prompter.confirm(
-                f"SECURITY-POLICY CHANGE: about to create a KMS grant on {key_arn}"
-                f" allowing role {grantee} the operations"
-                f" {', '.join(KMS_GRANT_OPERATIONS)}. These let the devtest role ask"
-                f" RDS to use the key for the shared snapshot copy; they give no direct"
-                f" Encrypt/Decrypt permission. The grant is revoked automatically after"
-                f" the devtest-local copy is available."),
-            "create KMS grant")
-        response = kms.create_grant(
-            KeyId=key_arn, GranteePrincipal=grantee, Operations=KMS_GRANT_OPERATIONS,
-            Name=f"smaht-devtest-restore-{self.operation_id}", RetiringPrincipal=grantee)
-        self.manifest.set_resource("kms_grant_id", response.get("GrantId", ""))
-        self.manifest.set_resource("kms_grant_created_by_this_tool", True)
-        self.emit("KMS grant created. Record the grant id above for audit.")
-
     def _shared_accounts(self, rds: Any, snapshot_id: str) -> List[str]:
         attributes = rds.describe_db_snapshot_attributes(
             DBSnapshotIdentifier=snapshot_id,
@@ -781,17 +753,6 @@ class RestoreOrchestrator:
                 DBSnapshotIdentifier=snapshot_id, AttributeName="restore",
                 ValuesToRemove=[self.config.devtest_account_id])
             self.emit(f"Removed the devtest share from production snapshot {snapshot_id}.")
-        if self.manifest.get_resource("kms_grant_created_by_this_tool"):
-            grant_id = self.manifest.get_resource("kms_grant_id")
-            if grant_id:
-                try:
-                    self._client("kms", PRODUCTION).revoke_grant(
-                        KeyId=self.manifest.get_resource("production_kms_key_arn"),
-                        GrantId=grant_id)
-                except Exception as e:
-                    if not _is_not_found(e):
-                        raise
-                self.emit(f"Revoked temporary KMS grant {grant_id}.")
 
     def step_restore_database(self) -> None:
         rds = self._client("rds", DEVTEST)
@@ -965,11 +926,9 @@ def print_plan(config: RestoreConfig, operation_id: str,
          f" {config.protected_db_identifier}")
     emit(f"  new db: {config.new_db_identifier} ({config.instance_class})")
     emit(f"  production KMS key: {config.production_kms_key_id}   devtest KMS key:"
-         f" {config.devtest_kms_key_id}   grantee: {config.devtest_restore_role_arn}")
+         f" {config.devtest_kms_key_id}")
     emit(f"  identity secrets: production={config.production_identity_secret}"
          f" devtest={config.devtest_identity_secret}")
-    emit(f"  opt-in --allow-kms-grant:"
-         f" {'supplied' if config.allow_kms_grant else 'NOT supplied; the gated step will refuse to mutate'}")
     emit(PLAN_TEXT.format(instance_class=config.instance_class,
                           credential_phrase=CREDENTIAL_CONFIRMATION_PHRASE,
                           protected_db=config.protected_db_identifier))
@@ -1013,11 +972,8 @@ def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
     resources.add_argument("--production-kms-key-id", default="",
                            help="customer-managed KMS key (id/arn/alias) in production used to"
                                 " re-encrypt the snapshot for sharing")
-    resources.add_argument("--devtest-kms-key-id", default=DEFAULT_DEVTEST_KMS_KEY,
-                           help=f"KMS key in devtest for the local snapshot copy"
-                                f" (default {DEFAULT_DEVTEST_KMS_KEY})")
-    resources.add_argument("--devtest-restore-role-arn", default="",
-                           help="devtest IAM role ARN that must be able to use the production KMS key")
+    resources.add_argument("--devtest-kms-key-id", default="",
+                           help="KMS key (id/arn/alias) in devtest for the local snapshot copy")
     resources.add_argument("--production-identity-secret", default="",
                            help="production IDENTITY secret name (read-only source of RDS credentials)")
     resources.add_argument("--devtest-identity-secret", default="",
@@ -1030,15 +986,6 @@ def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
                          help="seconds between status polls")
     polling.add_argument("--poll-timeout", type=int, default=POLL_TIMEOUT_SECONDS,
                          help="maximum seconds to wait for any one resource")
-    _add_opt_in_arguments(parser)
-
-
-def _add_opt_in_arguments(parser: argparse.ArgumentParser) -> None:
-    opt_in = parser.add_argument_group(
-        "explicit opt-ins (never persisted; must be re-supplied on resume)")
-    opt_in.add_argument("--allow-kms-grant", action="store_true",
-                        help="permit creating the temporary KMS grant for the devtest"
-                             " restore role (a security-policy change)")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1057,8 +1004,8 @@ def build_parser() -> argparse.ArgumentParser:
         sub.add_argument("--state-dir", default=DEFAULT_STATE_DIR,
                          help=f"directory for operation manifests (default {DEFAULT_STATE_DIR})")
         sub.add_argument("--interactive", action="store_true",
-                         help="discover AWS profiles/region/role from the local AWS"
-                              " configuration and prompt for any remaining non-secret"
+                         help="discover AWS profiles/region and KMS key IDs from the"
+                              " public health endpoints, then prompt for remaining non-secret"
                               " values; explicit arguments always win (resume already"
                               " has its saved configuration and resolves nothing)")
         return sub
@@ -1077,7 +1024,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     resume = subparser("resume", "resume an operation from its checkpoint")
     resume.add_argument("--operation-id", required=True)
-    _add_opt_in_arguments(resume)
 
     status = subparser("status", "show an operation's checkpointed progress")
     status.add_argument("--operation-id", default="",
@@ -1114,6 +1060,7 @@ def _run_operation(orchestrator: RestoreOrchestrator, emit: Callable[[str], None
 def main(argv: Optional[List[str]] = None,
          client_factory_builder: Callable[[RestoreConfig], Callable[[str, str], Any]] = build_client_factory,
          prompter: Optional[Prompter] = None,
+         health_discoverer: Callable[[str], Dict[str, Any]] = discover_health_json,
          emit: Callable[[str], None] = print,
          sleep_fn: Callable[[float], None] = time.sleep) -> int:
     args = build_parser().parse_args(argv)
@@ -1136,7 +1083,8 @@ def main(argv: Optional[List[str]] = None,
             if args.interactive:
                 # Local-file discovery and prompts only: no AWS client is built, so
                 # interactive plan mode keeps the zero-AWS guarantee.
-                config = resolve_interactive(config, prompter, emit=emit)
+                config = resolve_interactive(config, prompter,
+                                             health_discoverer=health_discoverer, emit=emit)
             config.validate()
             operation_id = args.operation_id or generate_operation_id()
             if args.command == "plan" or args.dry_run:
@@ -1149,8 +1097,7 @@ def main(argv: Optional[List[str]] = None,
             if manifest.data["status"] == "completed":
                 emit(f"Operation {args.operation_id} is already completed.")
                 return 0
-            config = RestoreConfig.from_persisted_dict(
-                manifest.data["config"], allow_kms_grant=args.allow_kms_grant)
+            config = RestoreConfig.from_persisted_dict(manifest.data["config"])
             config.validate()
             if args.interactive:
                 emit("resume uses the operation's saved configuration; there is"

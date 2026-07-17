@@ -41,7 +41,7 @@ SOURCE_DB = "rds-smaht-production"
 PROTECTED_DB = "rds-smaht-devtest"
 NEW_DB = "rds-smaht-devtest-restored-1"
 PROD_KMS_KEY = f"arn:aws:kms:{REGION}:{PROD_ACCOUNT}:key/1234"
-RESTORE_ROLE = f"arn:aws:iam::{DEVTEST_ACCOUNT}:role/devtest-restore"
+DEVTEST_KMS_KEY = f"arn:aws:kms:{REGION}:{DEVTEST_ACCOUNT}:key/5678"
 DB_SUBNET_GROUP = "smaht-devtest-db-subnet"
 DB_SECURITY_GROUPS = ["sg-devtest-db"]
 SENTINEL_PASSWORD = "Sentinel-ProdPassword-9x7!"  # must never appear in output/manifest
@@ -64,7 +64,8 @@ class FakeAWS:
     """Shared in-memory AWS state. Fake clients record every call they receive.
 
     The fakes enforce real cross-account ordering: a devtest snapshot copy fails
-    unless the snapshot was shared AND a KMS grant exists for the restore role.
+    unless the snapshot was shared. The existing devtest role is assumed to have
+    the required database and KMS access.
     """
 
     def __init__(self, polls_until_available=1):
@@ -83,7 +84,6 @@ class FakeAWS:
             PRODUCTION: {SOURCE_DB: self._instance("available", db_id=SOURCE_DB)},
             DEVTEST: {PROTECTED_DB: self._instance("available", db_id=PROTECTED_DB)},
         }
-        self.grants = []
         self.kms_account_override = {}
         self.secrets = {
             PRODUCTION: {
@@ -117,16 +117,6 @@ class FakeAWS:
                 {"VpcSecurityGroupId": group} for group in DB_SECURITY_GROUPS
             ],
         }
-
-    def add_grant(self, operations=None, constraints=None):
-        grant = {
-            "GrantId": f"grant-{len(self.grants) + 1}",
-            "GranteePrincipal": RESTORE_ROLE,
-            "Operations": operations or list(rdd.KMS_GRANT_OPERATIONS),
-        }
-        if constraints:
-            grant["Constraints"] = constraints
-        self.grants.append(grant)
 
     def factory(self, service, scope):
         # Deliberately no "ecs" or "sqs" here: the command must never ask for them.
@@ -210,8 +200,6 @@ class FakeRDS(FakeService):
             assert source is not None, f"source snapshot {source_id} does not exist"
             if DEVTEST_ACCOUNT not in source["shared"]:
                 raise AwsStubError("DBSnapshotNotFound")  # unshared snapshots are invisible
-            if not any(g["GranteePrincipal"] == RESTORE_ROLE for g in self.aws.grants):
-                raise AwsStubError("KMSKeyNotAccessibleFault")
         else:
             assert SourceDBSnapshotIdentifier in self._snapshots()
         self._snapshots()[TargetDBSnapshotIdentifier] = {
@@ -269,22 +257,6 @@ class FakeKMS(FakeService):
             "KeyManager": "CUSTOMER",
         }}
 
-    def list_grants(self, KeyId, GranteePrincipal=None):
-        self._record("list_grants", KeyId=KeyId, GranteePrincipal=GranteePrincipal)
-        grants = [dict(g) for g in self.aws.grants
-                  if GranteePrincipal is None or g["GranteePrincipal"] == GranteePrincipal]
-        return {"Grants": grants}
-
-    def create_grant(self, KeyId, GranteePrincipal, Operations, Name, RetiringPrincipal):
-        self._record("create_grant", KeyId=KeyId, GranteePrincipal=GranteePrincipal,
-                     Operations=Operations, Name=Name, RetiringPrincipal=RetiringPrincipal)
-        self.aws.add_grant(operations=list(Operations))
-        return {"GrantId": self.aws.grants[-1]["GrantId"]}
-
-    def revoke_grant(self, KeyId, GrantId):
-        self._record("revoke_grant", KeyId=KeyId, GrantId=GrantId)
-        self.aws.grants = [g for g in self.aws.grants if g.get("GrantId") != GrantId]
-
 
 class FakeSecrets(FakeService):
     def get_secret_value(self, SecretId):
@@ -319,11 +291,9 @@ class ScriptedPrompter(Prompter):
 # Helpers
 # ---------------------------------------------------------------------------------
 
-# Confirmation order on a first-use run: production snapshot (also covers the
-# encrypted copy), KMS grant, share (typed account id), credentials (typed phrase).
-HAPPY_ANSWERS_FIRST_USE = ["y", "y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE]
-# With a pre-existing grant there is no grant prompt.
-HAPPY_ANSWERS_WITH_GRANT = ["y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE]
+# Confirmation order: production snapshot (also covers the encrypted copy), share
+# (typed account id), credentials (typed phrase).
+HAPPY_ANSWERS = ["y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE]
 
 
 def base_argv(tmp_path, command="run", operation_id="op-1", **overrides):
@@ -335,7 +305,7 @@ def base_argv(tmp_path, command="run", operation_id="op-1", **overrides):
         "--production-profile": "smaht-prod",
         "--devtest-profile": "smaht-devtest",
         "--production-kms-key-id": PROD_KMS_KEY,
-        "--devtest-restore-role-arn": RESTORE_ROLE,
+        "--devtest-kms-key-id": DEVTEST_KMS_KEY,
         "--production-identity-secret": "SmahtProductionIdentity",
         "--devtest-identity-secret": "SmahtDevtestIdentity",
         "--new-db-identifier": NEW_DB,
@@ -372,6 +342,14 @@ class Runner:
         self.aws = aws or FakeAWS()
         self.output = []
         self.sleeps = []
+        self.health_calls = []
+
+        def health_discoverer(url):
+            self.health_calls.append(url)
+            return {"s3_encrypt_key_id":
+                    PROD_KMS_KEY if "data.smaht.org" in url else DEVTEST_KMS_KEY}
+
+        self.health_discoverer = health_discoverer
 
     def emit(self, message):
         self.output.append(str(message))
@@ -382,7 +360,8 @@ class Runner:
     def main(self, argv, answers=()):
         prompter = ScriptedPrompter(list(answers), emit=self.emit)
         code = main(argv, client_factory_builder=self.aws.factory_builder,
-                    prompter=prompter, emit=self.emit, sleep_fn=self.sleep)
+                    prompter=prompter, emit=self.emit, sleep_fn=self.sleep,
+                    health_discoverer=self.health_discoverer)
         return code, prompter
 
     def text(self):
@@ -403,7 +382,7 @@ def make_config(**overrides):
         production_profile="smaht-prod",
         devtest_profile="smaht-devtest",
         production_kms_key_id=PROD_KMS_KEY,
-        devtest_restore_role_arn=RESTORE_ROLE,
+        devtest_kms_key_id=DEVTEST_KMS_KEY,
         production_identity_secret="SmahtProductionIdentity",
         devtest_identity_secret="SmahtDevtestIdentity",
         new_db_identifier=NEW_DB,
@@ -434,7 +413,6 @@ def test_plan_mode_makes_no_aws_calls(tmp_path):
         assert step in text
     assert "never deletes or" in text and "stops any database" in text
     assert "performed" in text and "manually" in text
-    assert "--allow-kms-grant" in text and "NOT supplied" in text
 
 
 def test_run_dry_run_is_plan(tmp_path):
@@ -452,8 +430,7 @@ def test_run_dry_run_is_plan(tmp_path):
 
 def test_happy_path_first_use(tmp_path):
     runner = Runner(tmp_path)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 0, runner.text()
     manifest = runner.manifest()
     assert manifest.data["status"] == "completed"
@@ -466,18 +443,15 @@ def test_happy_path_first_use(tmp_path):
     assert create[3]["Tags"] == [{"Key": rdd.OPERATION_TAG_KEY, "Value": "op-1"}]
 
     # Two copies: prod re-encryption with the resolved CMK ARN, devtest copy under
-    # the devtest default key.
+    # the existing devtest role's KMS key.
     copies = runner.aws.calls_named("copy_db_snapshot")
     assert [c[0] for c in copies] == [PRODUCTION, DEVTEST]
     assert copies[0][3]["KmsKeyId"] == PROD_KMS_KEY
-    assert copies[1][3]["KmsKeyId"] == rdd.DEFAULT_DEVTEST_KMS_KEY
+    assert copies[1][3]["KmsKeyId"] == DEVTEST_KMS_KEY
 
-    # First use: one narrow, unconstrained grant created, later revoked.
-    (grant,) = runner.aws.calls_named("create_grant")
-    assert grant[3]["GranteePrincipal"] == RESTORE_ROLE
-    assert sorted(grant[3]["Operations"]) == sorted(rdd.KMS_GRANT_OPERATIONS)
-    assert "Constraints" not in grant[3]
-    assert len(runner.aws.calls_named("revoke_grant")) == 1
+    # KMS is read-only: key ownership is described and no other KMS API is used.
+    assert len(runner.aws.calls_named("describe_key")) == 1
+    assert [c[2] for c in runner.aws.calls if c[1] == "kms"] == ["describe_key"]
     (unshare,) = [c for c in runner.aws.calls_named("modify_db_snapshot_attribute")
                   if c[3]["ValuesToRemove"]]
     assert unshare[3]["ValuesToRemove"] == [DEVTEST_ACCOUNT]
@@ -515,61 +489,20 @@ def test_happy_path_first_use(tmp_path):
     assert len(runner.aws.calls_named("get_caller_identity")) == 2
 
 
-def test_existing_grant_is_reused_without_opt_in(tmp_path):
-    aws = FakeAWS()
-    aws.add_grant()  # pre-existing unconstrained grant (e.g. permanent, or unrevoked)
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS_WITH_GRANT)
-    assert code == 0, runner.text()
-    assert aws.calls_named("create_grant") == []
-    assert aws.calls_named("revoke_grant") == []  # not created by this tool: not revoked
-    assert "no security-policy change needed" in runner.text()
-
-
-def test_constrained_grant_is_not_treated_as_reusable(tmp_path):
-    aws = FakeAWS()
-    aws.add_grant(constraints={"EncryptionContextSubset": {"aws:rds:db-id": "db-x"}})
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path), answers=["y"])
-    assert code == 2
-    assert "--allow-kms-grant" in runner.text()
-    assert aws.calls_named("create_grant") == []
-
-
-def test_kms_first_use_without_opt_in_fails_closed_then_resumes(tmp_path):
-    runner = Runner(tmp_path)
-    code, _ = runner.main(base_argv(tmp_path), answers=["y"])
-    assert code == 2
-    assert "--allow-kms-grant" in runner.text()
-    manifest = runner.manifest()
-    assert manifest.data["status"] == "failed"
-    assert "ensure_kms_grant" not in manifest.data["done"]
-    assert "encrypt_snapshot_copy" in manifest.data["done"]
-
-    code, _ = runner.main(
-        resume_argv(tmp_path, "--allow-kms-grant"),
-        answers=["y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE])
-    assert code == 0, runner.text()
-    assert len(runner.aws.calls_named("create_db_snapshot")) == 1  # not re-created
-    assert len(runner.aws.calls_named("create_grant")) == 1
-    assert runner.manifest().data["status"] == "completed"
-
-
 # ---------------------------------------------------------------------------------
 # Confirmation boundaries: declining any of them halts without the mutation
 # ---------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("answers,step,missing_call", [
     (["n"], "snapshot_production", "create_db_snapshot"),
-    (["y", "n"], "ensure_kms_grant", "create_grant"),
-    (["y", "y", "999999999999"], "share_snapshot_with_devtest",
+    (["y", "999999999999"], "share_snapshot_with_devtest",
      "modify_db_snapshot_attribute"),
-    (["y", "y", DEVTEST_ACCOUNT, "wrong-phrase"], "update_identity_secret",
+    (["y", DEVTEST_ACCOUNT, "wrong-phrase"], "update_identity_secret",
      "put_secret_value"),
 ])
 def test_declining_a_confirmation_halts_without_mutating(tmp_path, answers, step, missing_call):
     runner = Runner(tmp_path)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True), answers=answers)
+    code, _ = runner.main(base_argv(tmp_path), answers=answers)
     assert code == 3, runner.text()
     assert runner.aws.calls_named(missing_call) == []
     manifest = runner.manifest()
@@ -585,8 +518,7 @@ def test_declining_a_confirmation_halts_without_mutating(tmp_path, answers, step
 def test_production_account_mismatch_fails_before_any_rds_call(tmp_path):
     runner = Runner(tmp_path)
     runner.aws.identities[PRODUCTION]["Account"] = "333333333333"
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 2
     assert "expected 111111111111" in runner.text()
     assert not [c for c in runner.aws.calls if c[1] == "rds"]
@@ -596,8 +528,7 @@ def test_production_account_mismatch_fails_before_any_rds_call(tmp_path):
 def test_devtest_account_mismatch_fails_before_devtest_mutations(tmp_path):
     runner = Runner(tmp_path)
     runner.aws.identities[DEVTEST]["Account"] = "444444444444"
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 2
     assert not [c for c in runner.aws.calls if c[0] == DEVTEST and c[1] != "sts"]
     # Production-side work is checkpointed and reusable after the operator fixes creds.
@@ -607,7 +538,7 @@ def test_devtest_account_mismatch_fails_before_devtest_mutations(tmp_path):
 def test_region_mismatch_fails_closed(tmp_path):
     runner = Runner(tmp_path)
     runner.aws.regions[PRODUCTION] = "us-west-2"
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True), answers=[])
+    code, _ = runner.main(base_argv(tmp_path), answers=[])
     assert code == 2
     assert "us-west-2" in runner.text()
     assert not [c for c in runner.aws.calls if c[1] == "rds"]
@@ -616,7 +547,7 @@ def test_region_mismatch_fails_closed(tmp_path):
 def test_role_mismatch_fails_closed(tmp_path):
     runner = Runner(tmp_path)
     code, _ = runner.main(
-        base_argv(tmp_path, allow_kms_grant=True, production_role_name="expected-role"),
+        base_argv(tmp_path, production_role_name="expected-role"),
         answers=[])
     assert code == 2
     assert "expected 'expected-role'" in runner.text()
@@ -627,7 +558,7 @@ def test_kms_key_must_be_customer_managed_in_production_account(tmp_path):
     aws = FakeAWS()
     aws.kms_account_override[PRODUCTION] = DEVTEST_ACCOUNT
     runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True), answers=["y"])
+    code, _ = runner.main(base_argv(tmp_path), answers=["y"])
     assert code == 2
     assert "customer-managed" in runner.text()
     assert aws.calls_named("copy_db_snapshot") == []
@@ -639,8 +570,7 @@ def test_kms_key_must_be_customer_managed_in_production_account(tmp_path):
 
 def test_snapshot_polling_progresses_through_creating(tmp_path):
     runner = Runner(tmp_path, FakeAWS(polls_until_available=3))
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 0, runner.text()
     assert len(runner.sleeps) > 0  # sleeps happened only through the injected fake
     assert "creating" in runner.text()
@@ -648,8 +578,7 @@ def test_snapshot_polling_progresses_through_creating(tmp_path):
 
 def test_polling_timeout_is_bounded_and_resumable(tmp_path):
     runner = Runner(tmp_path, FakeAWS(polls_until_available=10_000))
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True, poll_timeout=3),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path, poll_timeout=3), answers=HAPPY_ANSWERS)
     assert code == 1
     assert "Timed out" in runner.text() and "resume" in runner.text()
     manifest = runner.manifest()
@@ -666,8 +595,7 @@ def test_partial_failure_then_resume_skips_completed_steps(tmp_path):
     runner = Runner(tmp_path)
     runner.aws.fail_next[(PRODUCTION, "rds", "modify_db_snapshot_attribute")] = (
         AwsStubError("InternalFailure"))
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 1
     manifest = runner.manifest()
     assert manifest.data["status"] == "failed"
@@ -697,8 +625,7 @@ def test_already_exists_race_continues_instead_of_failing(tmp_path):
     }
     runner.aws.fail_next[(PRODUCTION, "rds", "describe_db_snapshots")] = (
         AwsStubError("DBSnapshotNotFound"))
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 0, runner.text()
     assert "already exists; continuing" in runner.text()
     assert len(runner.aws.calls_named("create_db_snapshot")) == 1
@@ -706,8 +633,7 @@ def test_already_exists_race_continues_instead_of_failing(tmp_path):
 
 def test_resume_of_completed_operation_is_a_noop(tmp_path):
     runner = Runner(tmp_path)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 0
     calls_before = len(runner.aws.calls)
     code, _ = runner.main(resume_argv(tmp_path), answers=[])
@@ -719,7 +645,7 @@ def test_resume_of_completed_operation_is_a_noop(tmp_path):
 def test_keyboard_interrupt_leaves_checkpoint_and_resume_hint(tmp_path):
     runner = Runner(tmp_path)
     runner.aws.fail_next[(PRODUCTION, "rds", "create_db_snapshot")] = KeyboardInterrupt()
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True), answers=["y"])
+    code, _ = runner.main(base_argv(tmp_path), answers=["y"])
     assert code == 130
     assert "resume" in runner.text()
     assert runner.manifest().data["done"] == []  # nothing falsely marked done
@@ -742,8 +668,7 @@ def test_corrupt_manifest_fails_cleanly(tmp_path):
 
 def test_secret_values_never_in_output_or_manifest(tmp_path):
     runner = Runner(tmp_path)
-    code, prompter = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                                 answers=HAPPY_ANSWERS_FIRST_USE)
+    code, prompter = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 0
     everything_shown = runner.text() + "\n".join(prompter.prompts)
     assert SENTINEL_PASSWORD not in everything_shown
@@ -763,8 +688,7 @@ def test_secret_values_never_in_output_or_manifest(tmp_path):
 def test_secret_bearing_exception_text_is_never_exposed(tmp_path):
     runner = Runner(tmp_path)
     runner.aws.fail_after_secret_put = RuntimeError(f"transport echoed {SENTINEL_PASSWORD}")
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 1
     assert SENTINEL_PASSWORD not in runner.text()
     assert SENTINEL_PASSWORD not in runner.manifest_text()
@@ -773,8 +697,7 @@ def test_secret_bearing_exception_text_is_never_exposed(tmp_path):
 def test_missing_production_credential_key_fails_without_partial_write(tmp_path):
     runner = Runner(tmp_path)
     del runner.aws.secrets[PRODUCTION]["SmahtProductionIdentity"]["RDS_PASSWORD"]
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 1
     assert runner.aws.calls_named("put_secret_value") == []
     assert runner.aws.secrets[DEVTEST]["SmahtDevtestIdentity"]["RDS_PASSWORD"] == (
@@ -795,8 +718,7 @@ def test_missing_protected_db_refuses_placement_inference(tmp_path):
     aws = FakeAWS()
     del aws.instances[DEVTEST][PROTECTED_DB]
     runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 2
     assert "refusing to infer network placement" in runner.text()
     assert aws.calls_named("restore_db_instance_from_db_snapshot") == []
@@ -848,8 +770,7 @@ def booby_trapped_boto3(monkeypatch):
 
 def test_full_run_never_touches_boto3(tmp_path, booby_trapped_boto3):
     runner = Runner(tmp_path)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS)
     assert code == 0, runner.text()
 
 
@@ -888,6 +809,7 @@ def test_default_factory_is_lazy_and_scoped(monkeypatch):
 CRED_SENTINEL_ID = "AKIASENTINELEXAMPLE1"
 CRED_SENTINEL_SECRET = "CredFileSecretSentinel+123"
 PROD_PROFILE_ROLE = f"arn:aws:iam::{PROD_ACCOUNT}:role/prod-admin"
+DEVTEST_PROFILE_ROLE = f"arn:aws:iam::{DEVTEST_ACCOUNT}:role/devtest-admin"
 
 
 @pytest.fixture
@@ -902,7 +824,7 @@ def aws_local_config(tmp_path, monkeypatch):
         "\n"
         "[profile smaht-devtest]\n"
         f"region = {REGION}\n"
-        f"role_arn = {RESTORE_ROLE}\n")
+        f"role_arn = {DEVTEST_PROFILE_ROLE}\n")
     (aws_dir / "credentials").write_text(
         "[smaht-prod]\n"
         f"aws_access_key_id = {CRED_SENTINEL_ID}\n"
@@ -925,18 +847,16 @@ def interactive_argv(tmp_path, command="run", *flags, operation_id="op-1"):
     return argv + list(flags)
 
 
-# Empty answers accept the discovered defaults: production profile, devtest profile,
-# region, devtest account (from the profile role_arn), production account (from the
-# production profile role_arn); then the values with no local source are typed.
-INTERACTIVE_ANSWERS = ["", "", "", "", "", PROD_KMS_KEY,
+# Empty answers accept the discovered defaults: profiles, region, and account ids;
+# health supplies both KMS key IDs, then the remaining values are typed.
+INTERACTIVE_ANSWERS = ["", "", "", "", "",
                        "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
 
 
 def test_interactive_run_discovers_defaults_and_completes(tmp_path, aws_local_config):
     runner = Runner(tmp_path)
     code, prompter = runner.main(
-        interactive_argv(tmp_path, "run", "--allow-kms-grant"),
-        answers=INTERACTIVE_ANSWERS + HAPPY_ANSWERS_FIRST_USE)
+        interactive_argv(tmp_path, "run"), answers=INTERACTIVE_ANSWERS + HAPPY_ANSWERS)
     assert code == 0, runner.text()
     saved = runner.manifest().data["config"]
     assert saved["production_profile"] == "smaht-prod"
@@ -944,11 +864,11 @@ def test_interactive_run_discovers_defaults_and_completes(tmp_path, aws_local_co
     assert saved["region"] == REGION
     assert saved["production_account_id"] == PROD_ACCOUNT
     assert saved["devtest_account_id"] == DEVTEST_ACCOUNT
-    assert saved["devtest_restore_role_arn"] == RESTORE_ROLE
+    assert saved["production_kms_key_id"] == PROD_KMS_KEY
+    assert saved["devtest_kms_key_id"] == DEVTEST_KMS_KEY
     assert saved["new_db_identifier"] == NEW_DB
-    # The role principal was derived from the devtest profile, never prompted for.
-    assert "Using the devtest profile's role_arn" in runner.text()
-    assert not any("IAM role ARN" in p for p in prompter.prompts)
+    assert runner.health_calls == [rdd.PRODUCTION_HEALTH_URL, rdd.DEVTEST_HEALTH_URL]
+    assert not any("KMS key" in p for p in prompter.prompts)
     # Credential values from the local files never appear anywhere.
     shown = runner.text() + "\n".join(prompter.prompts) + runner.manifest_text()
     assert CRED_SENTINEL_ID not in shown
@@ -958,61 +878,77 @@ def test_interactive_run_discovers_defaults_and_completes(tmp_path, aws_local_co
 def test_interactive_explicit_arguments_always_win(tmp_path, aws_local_config):
     runner = Runner(tmp_path)
     code, prompter = runner.main(
-        base_argv(tmp_path, allow_kms_grant=True, interactive=True),
-        answers=HAPPY_ANSWERS_FIRST_USE)
+        base_argv(tmp_path, interactive=True), answers=HAPPY_ANSWERS)
     assert code == 0, runner.text()
     # Everything was explicit, so no value prompt was ever shown.
     assert not any(p.startswith("Value") for p in prompter.prompts)
+    assert runner.health_calls == []
     assert runner.manifest().data["config"]["production_profile"] == "smaht-prod"
 
 
 def test_interactive_plan_mode_keeps_zero_aws_guarantee(tmp_path, aws_local_config):
     output = []
     prompter = ScriptedPrompter(list(INTERACTIVE_ANSWERS), emit=output.append)
+    health_calls = []
+
+    def health_discoverer(url):
+        health_calls.append(url)
+        return {"s3_encrypt_key_id": PROD_KMS_KEY if "data.smaht.org" in url else DEVTEST_KMS_KEY}
+
     code = main(interactive_argv(tmp_path, "plan"),
                 client_factory_builder=explosive_factory_builder,
-                prompter=prompter, emit=output.append)
+                prompter=prompter, emit=output.append,
+                health_discoverer=health_discoverer)
     assert code == 0, "\n".join(output)
     text = "\n".join(output)
     assert "no AWS calls were made" in text
     assert "snapshot_production" in text
+    assert health_calls == [rdd.PRODUCTION_HEALTH_URL, rdd.DEVTEST_HEALTH_URL]
 
 
-def test_interactive_prompts_for_role_when_profile_has_none(tmp_path, aws_local_config):
-    (aws_local_config / "config").write_text(
-        f"[profile smaht-prod]\nregion = {REGION}\n\n"
-        f"[profile smaht-devtest]\nregion = {REGION}\n")
+def test_interactive_health_failure_prompts_for_explicit_override(tmp_path, aws_local_config):
     runner = Runner(tmp_path)
-    answers = ["", "", "", RESTORE_ROLE, DEVTEST_ACCOUNT, PROD_ACCOUNT, PROD_KMS_KEY,
+
+    def health_discoverer(url):
+        runner.health_calls.append(url)
+        if url == rdd.PRODUCTION_HEALTH_URL:
+            raise OSError("temporary DNS failure")
+        return {"s3_encrypt_key_id": DEVTEST_KMS_KEY}
+
+    runner.health_discoverer = health_discoverer
+    answers = ["", "", "", "", "", PROD_KMS_KEY,
                "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
-    code, prompter = runner.main(
-        interactive_argv(tmp_path, "run", "--allow-kms-grant"),
-        answers=answers + HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(interactive_argv(tmp_path, "run"), answers=answers + HAPPY_ANSWERS)
     assert code == 0, runner.text()
-    assert any("IAM role ARN" in p for p in runner.output)
-    assert runner.manifest().data["config"]["devtest_restore_role_arn"] == RESTORE_ROLE
+    assert "temporary DNS failure" in runner.text()
+    assert runner.manifest().data["config"]["production_kms_key_id"] == PROD_KMS_KEY
+    assert runner.manifest().data["config"]["devtest_kms_key_id"] == DEVTEST_KMS_KEY
 
 
-def test_interactive_never_silently_uses_a_malformed_profile_role(tmp_path, aws_local_config):
-    (aws_local_config / "config").write_text(
-        f"[profile smaht-prod]\nregion = {REGION}\nrole_arn = {PROD_PROFILE_ROLE}\n\n"
-        f"[profile smaht-devtest]\nregion = {REGION}\n"
-        f"role_arn = arn:aws:iam::999:role/short-account\n")
+def test_interactive_health_missing_field_prompts_for_explicit_override(tmp_path,
+                                                                         aws_local_config):
     runner = Runner(tmp_path)
-    answers = ["", "", "", RESTORE_ROLE, "", "", PROD_KMS_KEY,
+
+    def health_discoverer(url):
+        runner.health_calls.append(url)
+        return {} if url == rdd.PRODUCTION_HEALTH_URL else {
+            "s3_encrypt_key_id": DEVTEST_KMS_KEY,
+            "RDS_HOSTNAME": "must-not-be-used-as-a-key",
+        }
+
+    runner.health_discoverer = health_discoverer
+    answers = ["", "", "", "", "", PROD_KMS_KEY,
                "SmahtProductionIdentity", "SmahtDevtestIdentity", NEW_DB]
-    code, _ = runner.main(
-        interactive_argv(tmp_path, "run", "--allow-kms-grant"),
-        answers=answers + HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(interactive_argv(tmp_path, "run"), answers=answers + HAPPY_ANSWERS)
     assert code == 0, runner.text()
-    assert "Using the devtest profile's role_arn" not in runner.text()
-    assert runner.manifest().data["config"]["devtest_restore_role_arn"] == RESTORE_ROLE
+    assert f"lacks a non-empty '{rdd.HEALTH_KMS_KEY_FIELD}' field" in runner.text()
+    assert runner.manifest().data["config"]["devtest_kms_key_id"] == DEVTEST_KMS_KEY
 
 
 def test_interactive_invalid_input_reprompts_then_fails_closed(tmp_path, aws_local_config):
     (aws_local_config / "config").write_text(
         f"[profile smaht-prod]\nregion = {REGION}\n\n"
-        f"[profile smaht-devtest]\nregion = {REGION}\nrole_arn = {RESTORE_ROLE}\n")
+        f"[profile smaht-devtest]\nregion = {REGION}\nrole_arn = {DEVTEST_PROFILE_ROLE}\n")
     runner = Runner(tmp_path)
     # Production account id has no discovered default here and gets three bad answers.
     answers = ["", "", "", "", "not-an-account", "12345", "also-bad"]
@@ -1028,12 +964,12 @@ def test_interactive_region_falls_back_to_environment(tmp_path, aws_local_config
         "[profile smaht-prod]\n"
         f"role_arn = {PROD_PROFILE_ROLE}\n\n"
         "[profile smaht-devtest]\n"
-        f"role_arn = {RESTORE_ROLE}\n")
+        f"role_arn = {DEVTEST_PROFILE_ROLE}\n")
     monkeypatch.setenv("AWS_DEFAULT_REGION", REGION)
     runner = Runner(tmp_path)
     code, _ = runner.main(
-        interactive_argv(tmp_path, "run", "--allow-kms-grant"),
-        answers=INTERACTIVE_ANSWERS + HAPPY_ANSWERS_FIRST_USE)
+        interactive_argv(tmp_path, "run"),
+        answers=INTERACTIVE_ANSWERS + HAPPY_ANSWERS)
     assert code == 0, runner.text()
     assert runner.manifest().data["config"]["region"] == REGION
 
@@ -1043,8 +979,7 @@ def test_interactive_on_resume_resolves_nothing(tmp_path):
     runner.main(base_argv(tmp_path), answers=["n"])  # halt at the first confirmation
     code, prompter = runner.main(
         ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state"),
-         "--interactive", "--allow-kms-grant"],
-        answers=HAPPY_ANSWERS_FIRST_USE)
+         "--interactive"], answers=HAPPY_ANSWERS)
     assert code == 0, runner.text()
     assert "nothing for --interactive to resolve" in runner.text()
     assert not any(p.startswith("Value") for p in prompter.prompts)
@@ -1073,10 +1008,11 @@ def test_missing_required_config_is_listed():
         make_config(devtest_identity_secret="").validate()
 
 
-def test_restore_role_must_be_in_devtest_account():
-    with pytest.raises(SafetyViolation, match="devtest_restore_role_arn"):
-        make_config(devtest_restore_role_arn=(
-            f"arn:aws:iam::{PROD_ACCOUNT}:role/wrong-account")).validate()
+def test_both_kms_keys_are_required_without_interactive_discovery():
+    with pytest.raises(SafetyViolation, match="devtest_kms_key_id"):
+        make_config(devtest_kms_key_id="").validate()
+    with pytest.raises(SafetyViolation, match="production_kms_key_id"):
+        make_config(production_kms_key_id="").validate()
 
 
 def test_run_requires_all_config_before_creating_anything(tmp_path):
@@ -1086,6 +1022,23 @@ def test_run_requires_all_config_before_creating_anything(tmp_path):
     assert "new_db_identifier" in runner.text()
     assert runner.aws.calls == []
     assert not (tmp_path / "state").exists()  # no manifest for an invalid run
+
+
+def test_noninteractive_requires_explicit_kms_keys_without_health_calls(tmp_path):
+    output = []
+    health_calls = []
+
+    def health_discoverer(url):
+        health_calls.append(url)
+        raise AssertionError("non-interactive mode must not discover health")
+
+    code = main(base_argv(tmp_path, production_kms_key_id=None, devtest_kms_key_id=None),
+                client_factory_builder=explosive_factory_builder,
+                health_discoverer=health_discoverer, emit=output.append)
+    assert code == 2
+    assert "production_kms_key_id" in output[0]
+    assert "devtest_kms_key_id" in output[0]
+    assert health_calls == []
 
 
 def test_invalid_operation_id_fails_without_manifest(tmp_path):

@@ -19,24 +19,20 @@ single AWS call (`run --dry-run` is an alias). A `run` then walks these steps:
    optional exact assumed-role name), then create a tagged manual snapshot and wait
    for it. One y/n confirmation here also covers step 2's copy.
 2. **encrypt_snapshot_copy** — copy the snapshot re-encrypted with the configured KMS
-   key, which must be an enabled customer-managed key owned by the production account
-   (the default `aws/rds` key cannot be shared cross-account); wait for it.
-3. **ensure_kms_grant** — reuse an existing unconstrained grant for the exact devtest
-   restore role, or create a temporary one (`DescribeKey`/`CreateGrant` only — no
-   direct Encrypt/Decrypt). Creating a grant is a security-policy change: it requires
-   both `--allow-kms-grant` and a confirmation. Because step 6 revokes it, most runs
-   need the flag.
-4. **share_snapshot_with_devtest** — share the encrypted copy with the devtest
+  key, which must be an enabled customer-managed key owned by the production account;
+  wait for it. The command only describes the production key and never changes KMS
+  policy or key state.
+3. **share_snapshot_with_devtest** — share the encrypted copy with the devtest
    account. Confirmation requires typing the devtest account id.
-5. **copy_shared_snapshot** — verify the devtest STS caller, then copy the shared
-   snapshot under the devtest KMS key (default `alias/aws/rds`); wait for it.
-6. **remove_temporary_source_access** — unshare the production snapshot and revoke a
-   grant this operation created (a pre-existing grant found at step 3 is left alone).
-7. **restore_database** — restore the new instance (default `db.t4g.medium`; not
+4. **copy_shared_snapshot** — verify the devtest STS caller, then copy the shared
+   snapshot under the devtest KMS key; wait for it. The existing devtest role is
+   expected to already have the required database and KMS access.
+5. **remove_temporary_source_access** — unshare the production snapshot.
+6. **restore_database** — restore the new instance (default `db.t4g.medium`; not
    publicly accessible) with **network placement copied from the protected devtest
    database**, and wait for its endpoint. If the protected database cannot be
    described, the step refuses to guess placement.
-8. **update_identity_secret** — point the devtest IDENTITY (`RDS_HOSTNAME`/`RDS_PORT`)
+7. **update_identity_secret** — point the devtest IDENTITY (`RDS_HOSTNAME`/`RDS_PORT`)
    at the new endpoint and copy `RDS_USERNAME`/`RDS_PASSWORD`/`RDS_DB_NAME` from the
    production IDENTITY (the restored database keeps production's credentials).
    Confirmation requires typing `replace-devtest-credentials`. Only changed key
@@ -66,10 +62,9 @@ configuration, completed steps, and created resource identifiers — never secre
 - `plan` — validate and preview; zero AWS calls.
 - `run [--operation-id ID]` — start; resource names derive from the operation id.
 - `status [--operation-id ID]` — show step progress and resources, or list operations.
-- `resume --operation-id ID [--allow-kms-grant]` — continue after a failure, a
-  declined confirmation, or Ctrl-C. Completed steps are skipped; resource names are
-  deterministic and every step describes before it creates, so retries are
-  idempotent. The opt-in flag is never persisted and must be re-supplied.
+- `resume --operation-id ID` — continue after a failure, a declined confirmation, or
+  Ctrl-C. Completed steps are skipped; resource names are deterministic and every
+  step describes before it creates, so retries are idempotent.
 
 Exit codes: 0 success, 1 failure, 2 safety refusal, 3 declined confirmation,
 130 interrupted. Failures record the failing step in the manifest and print the
@@ -83,7 +78,7 @@ before a resume if it proves too small).
   queue polling. Reindexing is a manual step.
 - Proceed on an STS account/region/role mismatch or a non-customer-managed
   production KMS key — it fails closed with the checkpoint intact.
-- Create a KMS grant without `--allow-kms-grant` plus an interactive confirmation.
+- Mutate KMS policy or key state; KMS is read-only for key ownership validation.
 - Print or persist secret values, or accept a blanket `--yes`.
 
 ## Required configuration
@@ -99,7 +94,7 @@ value below is explicit (supplied as a flag, or confirmed interactively — see
 | `--production-profile`, `--devtest-profile` | Distinct named AWS profiles |
 | `--production-role-name`, `--devtest-role-name` | Optional exact assumed-role names |
 | `--production-kms-key-id` | Customer-managed production key (id/ARN/alias) |
-| `--devtest-restore-role-arn` | IAM role ARN in the devtest account |
+| `--devtest-kms-key-id` | Devtest KMS key (id/ARN/alias) for the local snapshot copy |
 | `--production-identity-secret`, `--devtest-identity-secret` | IDENTITY secret names |
 | `--new-db-identifier` | Brand-new identifier (must not collide with source/protected) |
 
@@ -120,21 +115,26 @@ the operator does not have to type every flag:
   persisted. An obviously named profile (`prod`/`production`, `devtest`/`dev`/`test`)
   is offered as the default; the region defaults from the selected profiles or
   `AWS_REGION`/`AWS_DEFAULT_REGION`.
-- If the devtest profile declares a `role_arn` that parses as an IAM role ARN, it is
-  used as the KMS grant principal (announced, not prompted). Anything ambiguous —
-  a missing or malformed `role_arn`, no obvious profile, an unresolved account id —
-  is prompted for, never silently invented. Account ids default from the discovered
-  role ARNs when available.
-- Remaining non-secret values (production KMS key, IDENTITY secret *names*, new DB
-  identifier) are prompted with safe defaults where one exists. All prompted values
-  still pass the same validation, STS/KMS verification, and confirmations as
-  explicit flags; invalid input re-prompts a few times and then fails closed.
-- Interactive `plan` keeps the zero-AWS guarantee: it inspects local files and
-  prompts, but constructs no AWS client and calls nothing.
+- If a profile declares a non-secret `role_arn`, its account id is used as a safe
+  default. No separate IAM role ARN is prompted for or required; an unresolved
+  account id is prompted for, never silently invented.
+- The production and devtest KMS key IDs are discovered from the public JSON health
+  endpoints `https://data.smaht.org/health?format=json` and
+  `https://devtest.smaht.org/health?format=json`, respectively, using the
+  `s3_encrypt_key_id` field. The database hostname is never treated as a KMS key.
+- Health discovery is HTTP JSON only. If a request fails or the field is missing,
+  the concrete problem is reported and an explicit KMS key override is prompted for.
+  Non-interactive mode does no health discovery and requires both KMS key flags.
+- Remaining non-secret values (IDENTITY secret *names*, new DB identifier) are
+  prompted with safe defaults where one exists. All prompted values still pass the
+  same validation, STS/KMS verification, and confirmations as explicit flags; invalid
+  input re-prompts a few times and then fails closed.
+- Interactive `plan` keeps the zero-AWS guarantee: it inspects local files and the
+  public health JSON, but constructs no AWS client and calls no AWS API.
 
 ```bash
 restore-devtest-db plan --interactive
-restore-devtest-db run --interactive --allow-kms-grant
+restore-devtest-db run --interactive
 ```
 
 ## IAM permissions
@@ -142,8 +142,7 @@ restore-devtest-db run --interactive --allow-kms-grant
 Production principal: `sts:GetCallerIdentity`; `rds:DescribeDBInstances`,
 `rds:DescribeDBSnapshots`, `rds:DescribeDBSnapshotAttributes`,
 `rds:CreateDBSnapshot`, `rds:CopyDBSnapshot`, `rds:ModifyDBSnapshotAttribute`,
-`rds:AddTagsToResource`; `kms:DescribeKey`, `kms:ListGrants`, and
-`kms:CreateGrant`/`kms:RevokeGrant` for the temporary grant;
+`rds:AddTagsToResource`; `kms:DescribeKey` for production key ownership validation;
 `secretsmanager:GetSecretValue` for the production IDENTITY.
 
 Devtest principal: `sts:GetCallerIdentity`; `rds:DescribeDBInstances`,
@@ -161,14 +160,13 @@ restore-devtest-db plan --operation-id restore-20260717 \
   --region us-east-1 \
   --production-profile smaht-prod --devtest-profile smaht-devtest \
   --production-kms-key-id arn:aws:kms:us-east-1:111111111111:key/... \
-  --devtest-restore-role-arn arn:aws:iam::222222222222:role/... \
+  --devtest-kms-key-id arn:aws:kms:us-east-1:222222222222:key/... \
   --production-identity-secret SmahtProductionIdentity \
   --devtest-identity-secret SmahtDevtestIdentity \
   --new-db-identifier rds-smaht-devtest-restored-20260717
 ```
 
-After reviewing the plan, replace `plan` with `run`, keep the same operation id, and
-add `--allow-kms-grant` if the temporary grant may be created.
+After reviewing the plan, replace `plan` with `run` and keep the same operation id.
 
 ## Rollback
 
