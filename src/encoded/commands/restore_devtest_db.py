@@ -1,10 +1,9 @@
 """restore-devtest-db: restore the smaht-devtest RDS database from a snapshot of smaht-production.
 
-An operator-facing workflow for a single trusted operator. It performs an in-place
-database swap: a new devtest instance is restored from a fresh production snapshot,
-the devtest IDENTITY secret is pointed at it, and the environment's existing one-shot
-deployment task recreates search mappings and reindexes. No ECS service is created,
-described, mutated, scaled, or force-redeployed.
+An operator-facing workflow for a single trusted operator. It restores a new devtest
+instance from a fresh production snapshot and points the devtest IDENTITY secret at
+it. That is the whole job: reindexing and all other environment setup are performed
+manually afterwards, and the command makes no ECS or SQS calls of any kind.
 
 Steps (see also `restore-devtest-db plan`):
 
@@ -26,20 +25,14 @@ Steps (see also `restore-devtest-db plan`):
     8. Update the devtest IDENTITY secret with the new endpoint and the production
        database credentials (typed confirmation; values are never printed or
        persisted -- after this step devtest holds production credentials).
-    9. Run the environment's deployment task (cluster ARN, task definition family,
-       and indexing queues all resolved from the environment name; the destructive
-       initial-deployment task definition is always excluded), require a successful
-       exit, then wait for the indexing queues to fully drain.
-   10. Optionally stop -- never delete -- a previous replaceable restored database
-       (--allow-stop-old-db plus typing its identifier). The protected original
-       devtest database is never stopped: it is the rollback safety net.
 
 Each run has a stable operation id and a JSON checkpoint (never containing secrets),
 so a failed or interrupted run resumes with `resume`, skipping completed steps.
 Resource names are deterministic per operation and every step describes before it
-creates, so retries are idempotent. The tool refuses to delete anything, to stop the
-protected database, or to proceed on an account/region/role mismatch, and there is
-no --yes bypass. See docs/operations/restore_devtest_db.md.
+creates, so retries are idempotent. The tool never deletes or stops any database --
+the protected original devtest database in particular stays untouched as the rollback
+safety net -- refuses to proceed on an account/region/role mismatch, and has no --yes
+bypass. See docs/operations/restore_devtest_db.md.
 """
 
 import argparse
@@ -77,18 +70,10 @@ CREDENTIAL_CONFIRMATION_PHRASE = "replace-devtest-credentials"
 
 POLL_INTERVAL_SECONDS = 30
 POLL_TIMEOUT_SECONDS = 2 * 60 * 60  # snapshots/restores of a large database are slow
-REINDEX_TIMEOUT_SECONDS = 12 * 60 * 60
-EMPTY_QUEUE_CONFIRMATIONS = 2  # SQS counts are approximate; require consecutive empties
-
-# Snovault names an environment's indexing queues from the environment name.
-INDEXER_QUEUE_SUFFIXES = ("-indexer-queue", "-secondary-indexer-queue")
 
 ACCOUNT_ID_PATTERN = re.compile(r"^[0-9]{12}$")
 IAM_ROLE_ARN_PATTERN = re.compile(r"^arn:aws[a-z0-9-]*:iam::(?P<account>[0-9]{12}):role/\S+$")
 OPERATION_ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]{0,39}$")
-SQS_QUEUE_URL_PATTERN = re.compile(
-    r"^https://sqs\.(?P<region>[a-z0-9-]+)\.amazonaws\.com/(?P<account>[0-9]{12})/\S+$"
-)
 
 OPERATION_TAG_KEY = "smaht:restore-operation"  # audit tag on created resources
 
@@ -142,33 +127,26 @@ class RestoreConfig:
     devtest_restore_role_arn: str = ""
     production_identity_secret: str = ""
     devtest_identity_secret: str = ""
-    devtest_env_name: str = ""
-    deployment_subnet: str = ""
-    deployment_security_group: str = ""
     source_db_identifier: str = DEFAULT_SOURCE_DB
     protected_db_identifier: str = DEFAULT_PROTECTED_DB
     new_db_identifier: str = ""
-    old_db_identifier: str = ""
     devtest_kms_key_id: str = DEFAULT_DEVTEST_KMS_KEY
     instance_class: str = DEFAULT_INSTANCE_CLASS
     production_role_name: str = ""
     devtest_role_name: str = ""
     poll_interval: int = POLL_INTERVAL_SECONDS
     poll_timeout: int = POLL_TIMEOUT_SECONDS
-    reindex_timeout: int = REINDEX_TIMEOUT_SECONDS
     # Opt-ins are never persisted; they must be re-supplied on every invocation.
     allow_kms_grant: bool = False
-    allow_stop_old_db: bool = False
 
-    OPT_IN_FIELDS = ("allow_kms_grant", "allow_stop_old_db")
+    OPT_IN_FIELDS = ("allow_kms_grant",)
 
     def validate(self) -> None:
         required = (
             "production_account_id", "devtest_account_id", "region",
             "production_profile", "devtest_profile", "production_kms_key_id",
             "devtest_restore_role_arn", "production_identity_secret",
-            "devtest_identity_secret", "devtest_env_name", "deployment_subnet",
-            "deployment_security_group", "new_db_identifier",
+            "devtest_identity_secret", "new_db_identifier",
         )
         missing = [name for name in required if not getattr(self, name)]
         if missing:
@@ -197,29 +175,17 @@ class RestoreConfig:
                 f"new_db_identifier {self.new_db_identifier!r} collides with the"
                 f" protected or production database; it must name a brand-new instance."
             )
-        if self.old_db_identifier:
-            if self.old_db_identifier == self.protected_db_identifier:
-                raise SafetyViolation(
-                    f"old_db_identifier {self.old_db_identifier!r} is the protected"
-                    f" original devtest database; this tool never stops it."
-                )
-            if self.old_db_identifier in (self.source_db_identifier, self.new_db_identifier):
-                raise SafetyViolation(
-                    f"old_db_identifier {self.old_db_identifier!r} collides with the"
-                    f" production source or the new database identifier."
-                )
 
     def to_persisted_dict(self) -> Dict[str, Any]:
         return {f.name: getattr(self, f.name) for f in fields(self)
                 if f.name not in self.OPT_IN_FIELDS}
 
     @classmethod
-    def from_persisted_dict(cls, data: Dict[str, Any], *, allow_kms_grant: bool = False,
-                            allow_stop_old_db: bool = False) -> "RestoreConfig":
+    def from_persisted_dict(cls, data: Dict[str, Any], *,
+                            allow_kms_grant: bool = False) -> "RestoreConfig":
         known = {f.name for f in fields(cls)} - set(cls.OPT_IN_FIELDS)
         kwargs = {k: v for k, v in data.items() if k in known}
-        return cls(**kwargs, allow_kms_grant=allow_kms_grant,
-                   allow_stop_old_db=allow_stop_old_db)
+        return cls(**kwargs, allow_kms_grant=allow_kms_grant)
 
 
 class Manifest:
@@ -338,8 +304,6 @@ STEPS = [
     ("remove_temporary_source_access", PRODUCTION),
     ("restore_database", DEVTEST),
     ("update_identity_secret", DEVTEST),
-    ("run_deployment_and_reindex", DEVTEST),
-    ("stop_old_database", DEVTEST),
 ]
 
 STEP_NAMES = [name for name, _scope in STEPS]
@@ -364,16 +328,9 @@ Steps (confirmations in brackets; opt-in flags are never persisted):
    8. [devtest]    update_identity_secret -- point the devtest IDENTITY at the new
       endpoint with production credentials. [typed confirmation:
       '{credential_phrase}'; values are never shown or persisted]
-   9. [devtest]    run_deployment_and_reindex -- run the environment's one-shot
-      deployment task (cluster/task definition/queues resolved from the environment
-      name; initial-deployment excluded), require exit 0, wait for the indexing
-      queues to drain. No ECS service is mutated, scaled, or redeployed.
-      [y/n confirmation]
-  10. [devtest]    stop_old_database -- optionally STOP (never delete) the old
-      replaceable database. [typed confirmation AND --allow-stop-old-db; skipped
-      when no --old-db-identifier is given]
-This tool never deletes a database or snapshot and never stops the protected
-database {protected_db}."""
+The workflow ends here: reindexing and all other environment setup are performed
+manually afterwards, and this command makes no ECS or SQS calls. It never deletes or
+stops any database; the protected database {protected_db} stays untouched."""
 
 
 class RestoreOrchestrator:
@@ -463,16 +420,6 @@ class RestoreOrchestrator:
             raise ConfirmationDeclined(
                 f"Operator declined: {action}. Nothing was changed by this step. Resume"
                 f" later with: restore-devtest-db resume --operation-id {self.operation_id}")
-
-    def _list_all(self, fetch: Callable[[Optional[str]], Dict[str, Any]], result_key: str) -> List[Any]:
-        items: List[Any] = []
-        token = None
-        while True:
-            page = fetch(token)
-            items.extend(page.get(result_key, []))
-            token = page.get("nextToken")
-            if not token:
-                return items
 
     def _snapshot_status(self, rds: Any, snapshot_id: str) -> Optional[str]:
         try:
@@ -776,201 +723,6 @@ class RestoreOrchestrator:
         self.emit(f"Devtest identity secret updated ({len(changed_keys)} keys changed;"
                   f" values not shown).")
 
-    # -- deployment / reindex: cluster, task definition, and queues are resolved from
-    # the environment name (DCIC convention). This is an in-place database swap: no
-    # ECS service is described, mutated, scaled, or force-redeployed.
-
-    @staticmethod
-    def _normalized(value: str) -> str:
-        return re.sub(r"[^a-z0-9]", "", value.lower())
-
-    def _resolve_unique(self, candidates: List[str], what: str) -> str:
-        env = self.config.devtest_env_name
-        matches = sorted(c for c in candidates
-                         if self._normalized(env) in self._normalized(c.rsplit("/", 1)[-1]))
-        if len(matches) != 1:
-            raise RestoreError(
-                f"Expected exactly one {what} matching environment {env!r}, found"
-                f" {len(matches)}: {matches or sorted(candidates)}. Refusing to guess.")
-        return matches[0]
-
-    def _resolve_indexer_queue_urls(self, sqs: Any) -> List[str]:
-        urls = []
-        for suffix in INDEXER_QUEUE_SUFFIXES:
-            name = f"{self.config.devtest_env_name}{suffix}"
-            try:
-                url = sqs.get_queue_url(QueueName=name)["QueueUrl"]
-            except Exception as e:
-                if "NonExistentQueue" in _error_code(e) or _is_not_found(e):
-                    raise RestoreError(
-                        f"Indexing queue {name} was not found in the devtest account;"
-                        f" check --devtest-env-name.") from e
-                raise
-            match = SQS_QUEUE_URL_PATTERN.fullmatch(url)
-            if (not match or match.group("region") != self.config.region
-                    or match.group("account") != self.config.devtest_account_id):
-                raise SafetyViolation(
-                    f"Resolved queue URL for {name} is not in the configured devtest"
-                    f" account and region; refusing to poll it.")
-            urls.append(url)
-        self.manifest.set_resource("indexer_queue_urls", urls)
-        return urls
-
-    def _queue_totals(self, sqs: Any, queue_urls: List[str]) -> int:
-        total = 0
-        for queue_url in queue_urls:
-            attrs = sqs.get_queue_attributes(
-                QueueUrl=queue_url,
-                AttributeNames=["ApproximateNumberOfMessages",
-                                "ApproximateNumberOfMessagesNotVisible"],
-            ).get("Attributes", {})
-            total += int(attrs.get("ApproximateNumberOfMessages", 0))
-            total += int(attrs.get("ApproximateNumberOfMessagesNotVisible", 0))
-        return total
-
-    def _describe_task(self, ecs: Any, cluster_arn: str, task_arn: str) -> Optional[Dict[str, Any]]:
-        response = ecs.describe_tasks(cluster=cluster_arn, tasks=[task_arn])
-        tasks = response.get("tasks", [])
-        return tasks[0] if tasks and not response.get("failures") else None
-
-    def step_run_deployment_and_reindex(self) -> None:
-        ecs = self._client("ecs", DEVTEST)
-        sqs = self._client("sqs", DEVTEST)
-        clusters = self._list_all(
-            lambda token: ecs.list_clusters(**({"nextToken": token} if token else {})),
-            "clusterArns")
-        cluster_arn = self._resolve_unique(clusters, "ECS cluster")
-        families = self._list_all(
-            lambda token: ecs.list_task_definition_families(
-                status="ACTIVE", **({"nextToken": token} if token else {})),
-            "families")
-        # The initial-deployment task definition wipes database and search contents;
-        # it must never be matched here.
-        family = self._resolve_unique(
-            [f for f in families if "deployment" in f.lower() and "initial" not in f.lower()],
-            "deployment task definition family")
-        queue_urls = self._resolve_indexer_queue_urls(sqs)
-        self.manifest.set_resource("devtest_cluster_arn", cluster_arn)
-        self.manifest.set_resource("deployment_task_family", family)
-
-        if not self.manifest.get_resource("deployment_succeeded"):
-            task_arn = self.manifest.get_resource("deployment_task_arn")
-            if task_arn and self._describe_task(ecs, cluster_arn, task_arn) is None:
-                # ECS retains stopped tasks only briefly; an undescribable task cannot
-                # be verified, so run a new one rather than assume it succeeded.
-                self.emit(f"Previously started deployment task {task_arn} can no longer"
-                          f" be described; a new deployment task is required.")
-                task_arn = ""
-            if not task_arn:
-                self._require_confirmation(
-                    self.prompter.confirm(
-                        f"IN-PLACE DEPLOYMENT: about to run one {family} task in ECS"
-                        f" cluster {cluster_arn} (subnet {self.config.deployment_subnet},"
-                        f" security group {self.config.deployment_security_group}). The"
-                        f" task recreates search mappings and enqueues a full reindex"
-                        f" against the restored database. No ECS service is mutated,"
-                        f" scaled, or force-redeployed."),
-                    "run the environment deployment task")
-                response = ecs.run_task(
-                    cluster=cluster_arn,
-                    taskDefinition=family,
-                    count=1,
-                    startedBy=f"restore-{self.operation_id}"[:36],
-                    networkConfiguration={"awsvpcConfiguration": {
-                        "subnets": [self.config.deployment_subnet],
-                        "securityGroups": [self.config.deployment_security_group],
-                    }})
-                if response.get("failures") or len(response.get("tasks", [])) != 1:
-                    raise RestoreError("ECS failed to start exactly one deployment task.")
-                task_arn = response["tasks"][0]["taskArn"]
-                self.manifest.set_resource("deployment_task_arn", task_arn)
-
-            def task_status() -> str:
-                task = self._describe_task(ecs, cluster_arn, task_arn)
-                if task is None:
-                    raise RestoreError(
-                        f"Deployment task {task_arn} disappeared before it could be"
-                        f" verified; resume to run a new deployment task.")
-                return task.get("lastStatus", "UNKNOWN")
-
-            self._wait_for(task_status, ready="STOPPED",
-                           waiting_on=f"deployment task {task_arn}")
-            task = self._describe_task(ecs, cluster_arn, task_arn)
-            containers = (task or {}).get("containers", [])
-            if not containers or any(c.get("exitCode") != 0 for c in containers):
-                # Clear the checkpointed pointer so resume runs a fresh task (with a
-                # fresh confirmation) instead of re-verifying a failed one forever.
-                self.manifest.set_resource("deployment_task_arn", "")
-                raise RestoreError(
-                    "The deployment task stopped without successful container exit"
-                    " codes; investigate its logs, then resume to run it again.")
-            self.manifest.set_resource("deployment_succeeded", True)
-            self.emit(f"Deployment task {task_arn} succeeded: search mappings recreated"
-                      f" and reindex enqueued.")
-
-        # Reindex health: wait for the indexing queues to fully drain. The check is
-        # absolute -- never "did we observe the enqueue spike" -- so a resume after
-        # the queues already drained passes immediately.
-        consecutive_empty = 0
-
-        def queue_status() -> str:
-            nonlocal consecutive_empty
-            total = self._queue_totals(sqs, queue_urls)
-            if total == 0:
-                consecutive_empty += 1
-                return ("empty" if consecutive_empty >= EMPTY_QUEUE_CONFIRMATIONS
-                        else f"empty confirmation {consecutive_empty}/{EMPTY_QUEUE_CONFIRMATIONS}")
-            consecutive_empty = 0
-            return f"{total} messages"
-
-        self._wait_for(queue_status, ready="empty", waiting_on="devtest indexing queues",
-                       timeout=self.config.reindex_timeout)
-        self.manifest.set_resource("reindex_completed", True)
-        self.emit("Deployment task succeeded and all indexing queues drained; the"
-                  " restored database is serving the reindexed environment.")
-
-    def step_stop_old_database(self) -> None:
-        old_db = self.config.old_db_identifier
-        if not old_db:
-            self.emit(
-                "No --old-db-identifier supplied: nothing to stop. The original devtest"
-                f" database {self.config.protected_db_identifier} is protected and stays"
-                " alive as the rollback safety net.")
-            return
-        # Config validation already refuses these; this step is the last line of
-        # defense before a stop call.
-        if old_db == self.config.protected_db_identifier:
-            raise SafetyViolation(
-                f"Refusing to stop {old_db}: it is the protected original devtest"
-                f" database (rollback safety net). This tool never stops it.")
-        if not self.manifest.get_resource("reindex_completed"):
-            raise SafetyViolation(
-                "Refusing to stop an old database before the deployment and reindex"
-                " gates have passed.")
-        if not self.config.allow_stop_old_db:
-            raise SafetyViolation(
-                f"Stopping old database {old_db} requires the explicit"
-                f" --allow-stop-old-db flag. The database is left running."
-                f" This tool never deletes databases.")
-        rds = self._client("rds", DEVTEST)
-        instance = self._instance(rds, old_db)
-        if instance is None:
-            raise RestoreError(f"Old database {old_db} not found in the devtest account;"
-                               f" not stopping anything.")
-        if instance.get("DBInstanceStatus") == "stopped":
-            self.emit(f"Old database {old_db} is already stopped.")
-            return
-        self._require_confirmation(
-            self.prompter.confirm_typed(
-                f"FINAL STEP: about to STOP (not delete) old devtest database {old_db}."
-                f" It remains restorable by starting it again. This tool never deletes"
-                f" databases.",
-                required=old_db),
-            "stop old devtest database")
-        rds.stop_db_instance(DBInstanceIdentifier=old_db)
-        self.manifest.set_resource("stopped_old_db_identifier", old_db)
-        self.emit(f"Old database {old_db} stopping. Start it again if rollback is needed.")
-
     # -- runner ------------------------------------------------------------------------
 
     def run(self) -> None:
@@ -997,7 +749,8 @@ class RestoreOrchestrator:
             self.manifest.mark_done(name)
         self.manifest.record_outcome("completed")
         self.emit(f"Operation {self.operation_id} completed. The protected database"
-                  f" {self.config.protected_db_identifier} was not modified.")
+                  f" {self.config.protected_db_identifier} was not modified. Reindexing"
+                  f" and any further environment setup are performed manually.")
 
 
 def _error_code(exception: Exception) -> str:
@@ -1050,19 +803,13 @@ def print_plan(config: RestoreConfig, operation_id: str,
          f"   region: {config.region}")
     emit(f"  source db: {config.source_db_identifier}   protected db (never stopped):"
          f" {config.protected_db_identifier}")
-    emit(f"  new db: {config.new_db_identifier}   old db to stop:"
-         f" {config.old_db_identifier or '<none: nothing will be stopped>'}")
+    emit(f"  new db: {config.new_db_identifier} ({config.instance_class})")
     emit(f"  production KMS key: {config.production_kms_key_id}   devtest KMS key:"
          f" {config.devtest_kms_key_id}   grantee: {config.devtest_restore_role_arn}")
     emit(f"  identity secrets: production={config.production_identity_secret}"
          f" devtest={config.devtest_identity_secret}")
-    emit(f"  environment name: {config.devtest_env_name} (resolves the ECS cluster, the"
-         f" deployment task definition, and the indexing queues)")
-    emit(f"  deployment task network: subnet={config.deployment_subnet}"
-         f" security-group={config.deployment_security_group}")
-    for flag, enabled in (("--allow-kms-grant", config.allow_kms_grant),
-                          ("--allow-stop-old-db", config.allow_stop_old_db)):
-        emit(f"  opt-in {flag}: {'supplied' if enabled else 'NOT supplied; the gated step will refuse to mutate'}")
+    emit(f"  opt-in --allow-kms-grant:"
+         f" {'supplied' if config.allow_kms_grant else 'NOT supplied; the gated step will refuse to mutate'}")
     emit(PLAN_TEXT.format(instance_class=config.instance_class,
                           credential_phrase=CREDENTIAL_CONFIRMATION_PHRASE,
                           protected_db=config.protected_db_identifier))
@@ -1103,9 +850,6 @@ def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
                                 f" (default {DEFAULT_PROTECTED_DB})")
     resources.add_argument("--new-db-identifier", default="",
                            help="identifier for the newly restored devtest database")
-    resources.add_argument("--old-db-identifier", default="",
-                           help="previous replaceable restored database that may be stopped"
-                                " (with --allow-stop-old-db); leave unset on first use")
     resources.add_argument("--production-kms-key-id", default="",
                            help="customer-managed KMS key (id/arn/alias) in production used to"
                                 " re-encrypt the snapshot for sharing")
@@ -1118,13 +862,6 @@ def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
                            help="production IDENTITY secret name (read-only source of RDS credentials)")
     resources.add_argument("--devtest-identity-secret", default="",
                            help="devtest IDENTITY secret name to update with the new endpoint")
-    resources.add_argument("--devtest-env-name", default="",
-                           help="devtest environment name (e.g. smaht-devtest); resolves the"
-                                " ECS cluster, deployment task definition, and indexing queues")
-    resources.add_argument("--deployment-subnet", default="",
-                           help="subnet id (subnet-...) the one-shot deployment task runs in")
-    resources.add_argument("--deployment-security-group", default="",
-                           help="security group id (sg-...) for the one-shot deployment task")
     resources.add_argument("--instance-class", default=DEFAULT_INSTANCE_CLASS,
                            help=f"instance class for the restored database"
                                 f" (default {DEFAULT_INSTANCE_CLASS}, sized for ~16 indexers)")
@@ -1133,8 +870,6 @@ def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
                          help="seconds between status polls")
     polling.add_argument("--poll-timeout", type=int, default=POLL_TIMEOUT_SECONDS,
                          help="maximum seconds to wait for any one resource")
-    polling.add_argument("--reindex-timeout", type=int, default=REINDEX_TIMEOUT_SECONDS,
-                         help="maximum seconds to wait for indexing queues to drain")
     _add_opt_in_arguments(parser)
 
 
@@ -1144,15 +879,14 @@ def _add_opt_in_arguments(parser: argparse.ArgumentParser) -> None:
     opt_in.add_argument("--allow-kms-grant", action="store_true",
                         help="permit creating the temporary KMS grant for the devtest"
                              " restore role (a security-policy change)")
-    opt_in.add_argument("--allow-stop-old-db", action="store_true",
-                        help="permit stopping (never deleting) the --old-db-identifier database")
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="restore-devtest-db",
         description="Restore the smaht-devtest RDS database from a snapshot of"
-                    " smaht-production (in-place swap). Checkpointed and resumable;"
+                    " smaht-production and point the devtest IDENTITY secret at it"
+                    " (reindexing is done manually afterwards). Checkpointed and resumable;"
                     " never deletes a database, never stops the protected devtest"
                     " database, and fails closed on account/region/role mismatch."
                     " There is no --yes bypass.")
@@ -1247,9 +981,7 @@ def main(argv: Optional[List[str]] = None,
                 emit(f"Operation {args.operation_id} is already completed.")
                 return 0
             config = RestoreConfig.from_persisted_dict(
-                manifest.data["config"],
-                allow_kms_grant=args.allow_kms_grant,
-                allow_stop_old_db=args.allow_stop_old_db)
+                manifest.data["config"], allow_kms_grant=args.allow_kms_grant)
             config.validate()
             emit(f"Resuming operation {args.operation_id}; completed steps will be skipped.")
 
