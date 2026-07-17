@@ -7,6 +7,41 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 import { BROWSE_STATUS_FILTERS } from '../../../browse/BrowseView';
 
 /**
+ * Formats a donor's age for display. Ages of 89 and above are stored as 89 to
+ * remove identifiable information, so a value of 89 is rendered as "89+".
+ * @param {number} age - The donor's age.
+ * @returns {(string|number|undefined)} "89+" when age is 89, otherwise the age as-is.
+ */
+export const formatDonorAge = (age) => (age === 89 ? '89+' : age);
+
+/**
+ * Bootstrap Popover explaining the "89+" age display convention.
+ * @param {function} handleShowPopover - function to handle popover visibility
+ * @param {string} customId - custom id for popover
+ * @returns {JSX.Element} Popover component describing the age convention
+ *
+ * Note: Use regular function here, as Bootstrap relies on `this`.
+ */
+export function renderAgeDescriptionPopover(handleShowPopover, customId) {
+    return (
+        <Popover
+            id={customId ?? 'description-definitions-popover-age'}
+            className="w-auto description-definitions-popover"
+            onMouseEnter={() =>
+                handleShowPopover ? handleShowPopover(true) : null
+            }
+            onMouseLeave={() =>
+                handleShowPopover ? handleShowPopover(false) : null
+            }>
+            <PopoverBody>
+                Ages 89 and above are denoted as 89+ to remove identifiable
+                information.
+            </PopoverBody>
+        </Popover>
+    );
+}
+
+/**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
  * description field.
@@ -252,7 +287,9 @@ const default_donor_information = [
     },
     {
         title: 'Age',
-        getProp: (context = {}) => context?.age,
+        getProp: (context = {}) => formatDonorAge(context?.age),
+        titlePopover: (handleShowPopover) =>
+            renderAgeDescriptionPopover(handleShowPopover),
     },
     {
         title: 'Sex',
