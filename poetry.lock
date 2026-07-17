@@ -1146,13 +1146,13 @@ files = [
 
 [[package]]
 name = "dcicsnovault"
-version = "11.32.1"
+version = "11.33.0"
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = "<3.13,>=3.9"
 files = [
-    {file = "dcicsnovault-11.32.1-py3-none-any.whl", hash = "sha256:4d0509fbb642f30fa8cf005393b3ef914dca73569f7e51ffeed7ff669f919ca6"},
-    {file = "dcicsnovault-11.32.1.tar.gz", hash = "sha256:008f9021200bce6e712081472dd8a1602083cececcad1270ebec7e827282a680"},
+    {file = "dcicsnovault-11.33.0-py3-none-any.whl", hash = "sha256:62456e8e2db5fc3df433cb26c35a50d4a27460cec5a5fde4bbad83267eab8a31"},
+    {file = "dcicsnovault-11.33.0.tar.gz", hash = "sha256:6ed26aee41359d340d31acd435cc68777ede08a1c112e06f67d862c47234f72c"},
 ]
 
 [package.dependencies]

@@ -14,6 +14,7 @@ import {
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
 import { DonorDataProvider } from './BrowseDonorDataProvider';
+import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';
 
 export function createBrowseDonorColumnExtensionMap(props) {
     const { columnExtensionMap, columns, hideFacets } =
@@ -130,8 +131,10 @@ export const BrowseDonorBody = (props) => {
     );
 
     return (
-        <DonorDataProvider key={href}>
-            {showRedirectBanner && <RedirectBanner href={props.href} />}
+        <DonorDataProvider
+            key={href}
+            buildHref={buildDonorPeekMetadataHref}>
+            {showRedirectBanner && <RedirectBanner href={href} />}
             <BrowseDonorVizWrapper {...props} mapping="donor" />
             <hr />
             <BrowseViewControllerWithSelections {...props}>
