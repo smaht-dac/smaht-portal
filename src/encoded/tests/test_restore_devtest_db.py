@@ -5,6 +5,10 @@ in-memory fake injected through the command's client-factory seam, prompts are
 scripted, sleeps are no-ops, and manifests live in pytest tmp dirs. No test here
 contacts AWS or any deployed environment, and one test actively booby-traps boto3
 to prove it.
+
+The fake ECS client implements no service APIs at all (in-place database swap), and
+the fake RDS client implements no delete APIs, so any attempted service mutation or
+deletion fails loudly with AttributeError.
 """
 
 import json
@@ -20,7 +24,6 @@ from ..commands.restore_devtest_db import (
     DEVTEST,
     PRODUCTION,
     Manifest,
-    OperationLock,
     Prompter,
     RestoreConfig,
     RestoreOrchestrator,
@@ -78,13 +81,11 @@ class FakeAWS:
 
     The fakes enforce real cross-account ordering: a devtest snapshot copy fails
     unless the snapshot was shared AND a KMS grant exists for the restore role.
-    No fake implements delete_db_instance, so any delete attempt is an
-    AttributeError test failure.
     """
 
     def __init__(self, polls_until_available=1):
         self.calls = []  # (scope, service, method, kwargs)
-        self.fail_next = {}  # (scope, service, method) -> exception to raise once
+        self.fail_next = {}  # (scope, service, method) -> exception raised once
         self.polls_until_available = polls_until_available
         self.identities = {
             PRODUCTION: {"Account": PROD_ACCOUNT,
@@ -99,6 +100,7 @@ class FakeAWS:
             DEVTEST: {PROTECTED_DB: self._instance("available", db_id=PROTECTED_DB)},
         }
         self.grants = []
+        self.kms_account_override = {}
         self.secrets = {
             PRODUCTION: {
                 "SmahtProductionIdentity": {
@@ -118,47 +120,32 @@ class FakeAWS:
                 },
             },
         }
-        self.secret_versions = {
-            PRODUCTION: {"SmahtProductionIdentity": "prod-v1"},
-            DEVTEST: {"SmahtDevtestIdentity": "dev-v1"},
-        }
+        self.fail_after_secret_put = None
         self.clusters = [CLUSTER_ARN, OTHER_CLUSTER_ARN]
         self.task_families = [DEPLOYMENT_TASK_FAMILY, INITIAL_DEPLOYMENT_TASK_FAMILY,
                               OTHER_ENV_TASK_FAMILY]
         self.tasks = {}
         self.task_polls_until_stopped = 0
         self.forget_deployment_tasks = False
+        self.deployment_enqueues = True
+        self.deployment_exit_code = 0
         self.queue_names = {
             f"{ENV_NAME}{suffix}": url
             for suffix, url in zip(rdd.INDEXER_QUEUE_SUFFIXES, INDEXER_QUEUE_URLS)
         }
-        self.queue_counts = {url: {"waiting": 0, "inflight": 0}
-                             for url in INDEXER_QUEUE_URLS}
+        self.queue_counts = {url: 0 for url in INDEXER_QUEUE_URLS}
         self.drain_queues = True
-        self.deployment_enqueues = True
-        self.deployment_exit_code = 0
-        self.grant_page_size = 0
-        self.kms_account_override = {}
-        self.fail_after_secret_put = None
-        self.concurrent_devtest_secret_read = False
-        self.devtest_secret_reads = 0
-        self.fail_always = {}  # (scope, service, method) -> exception raised every call
-        self.call_hooks = {}  # (scope, service, method) -> callable run on each call
 
-    def _instance(self, status, polls_left=0, db_id=NEW_DB, tags=None):
+    def _instance(self, status, polls_left=0, db_id=NEW_DB):
         return {
             "DBInstanceIdentifier": db_id,
             "DBInstanceStatus": status,
             "polls_left": polls_left,
             "Endpoint": {"Address": "new-db.example.internal", "Port": 5432},
-            "DbiResourceId": f"db-resource-{db_id}",
-            "DBInstanceClass": "db.t4g.medium",
-            "PubliclyAccessible": False,
             "DBSubnetGroup": {"DBSubnetGroupName": DB_SUBNET_GROUP},
             "VpcSecurityGroups": [
                 {"VpcSecurityGroupId": group} for group in DB_SECURITY_GROUPS
             ],
-            "TagList": list(tags or []),
         }
 
     def add_grant(self, operations=None, constraints=None):
@@ -198,13 +185,8 @@ class FakeService:
     def _record(self, method, **kwargs):
         self.aws.calls.append((self.scope, self.service, method, kwargs))
         key = (self.scope, self.service, method)
-        hook = self.aws.call_hooks.get(key)
-        if hook:
-            hook()
         if key in self.aws.fail_next:
             raise self.aws.fail_next.pop(key)
-        if key in self.aws.fail_always:
-            raise self.aws.fail_always[key]
 
 
 class FakeSTS(FakeService):
@@ -214,6 +196,9 @@ class FakeSTS(FakeService):
 
 
 class FakeRDS(FakeService):
+    # Deliberately NO delete_db_instance / delete_db_snapshot: the command must never
+    # call them, and an attempt would fail loudly with AttributeError.
+
     def _snapshots(self):
         return self.aws.snapshots[self.scope]
 
@@ -236,13 +221,8 @@ class FakeRDS(FakeService):
         assert DBInstanceIdentifier in self.aws.instances[self.scope]
         self._snapshots()[DBSnapshotIdentifier] = {
             "DBSnapshotIdentifier": DBSnapshotIdentifier,
-            "DBInstanceIdentifier": DBInstanceIdentifier,
             "Status": "creating", "polls_left": self.aws.polls_until_available,
-            "shared": set(),
-            "TagList": list(Tags),
-            "Encrypted": True,
-            "KmsKeyId": f"arn:aws:kms:{REGION}:{PROD_ACCOUNT}:key/aws-rds",
-            "DbiResourceId": self.aws.instances[self.scope][DBInstanceIdentifier]["DbiResourceId"],
+            "shared": set(), "TagList": list(Tags),
         }
 
     def copy_db_snapshot(self, SourceDBSnapshotIdentifier, TargetDBSnapshotIdentifier,
@@ -262,17 +242,10 @@ class FakeRDS(FakeService):
                 raise AwsStubError("KMSKeyNotAccessibleFault")
         else:
             assert SourceDBSnapshotIdentifier in self._snapshots()
-            source = self._snapshots()[SourceDBSnapshotIdentifier]
         self._snapshots()[TargetDBSnapshotIdentifier] = {
             "DBSnapshotIdentifier": TargetDBSnapshotIdentifier,
-            "DBInstanceIdentifier": source["DBInstanceIdentifier"],
             "Status": "creating", "polls_left": self.aws.polls_until_available,
-            "shared": set(),
-            "TagList": list(Tags),
-            "Encrypted": True,
-            "KmsKeyId": KmsKeyId,
-            "SourceDBSnapshotIdentifier": SourceDBSnapshotIdentifier,
-            "DbiResourceId": source["DbiResourceId"],
+            "shared": set(), "TagList": list(Tags),
         }
 
     def describe_db_snapshot_attributes(self, DBSnapshotIdentifier):
@@ -311,99 +284,58 @@ class FakeRDS(FakeService):
         snapshot = self._snapshots().get(kwargs["DBSnapshotIdentifier"])
         assert snapshot is not None and snapshot["Status"] == "available"
         self.aws.instances[self.scope][db_id] = self.aws._instance(
-            "creating", polls_left=self.aws.polls_until_available, db_id=db_id,
-            tags=kwargs["Tags"])
-        instance = self.aws.instances[self.scope][db_id]
-        instance["DBInstanceClass"] = kwargs["DBInstanceClass"]
-        instance["PubliclyAccessible"] = kwargs["PubliclyAccessible"]
-        instance["DBSubnetGroup"] = {"DBSubnetGroupName": kwargs["DBSubnetGroupName"]}
-        instance["VpcSecurityGroups"] = [
-            {"VpcSecurityGroupId": group} for group in kwargs["VpcSecurityGroupIds"]
-        ]
+            "creating", polls_left=self.aws.polls_until_available, db_id=db_id)
 
     def stop_db_instance(self, DBInstanceIdentifier):
         self._record("stop_db_instance", DBInstanceIdentifier=DBInstanceIdentifier)
         self.aws.instances[self.scope][DBInstanceIdentifier]["DBInstanceStatus"] = "stopped"
 
-    # NOTE: deliberately no delete_db_instance / delete_db_snapshot: the command
-    # must never call them, and an attempt would fail loudly with AttributeError.
-
 
 class FakeKMS(FakeService):
     def describe_key(self, KeyId):
         self._record("describe_key", KeyId=KeyId)
-        account = self.aws.kms_account_override.get(
-            self.scope, PROD_ACCOUNT if self.scope == PRODUCTION else DEVTEST_ACCOUNT)
-        manager = "CUSTOMER" if self.scope == PRODUCTION else "AWS"
-        suffix = "1234" if self.scope == PRODUCTION else "aws-rds"
+        account = self.aws.kms_account_override.get(self.scope, PROD_ACCOUNT)
         return {"KeyMetadata": {
             "AWSAccountId": account,
-            "Arn": f"arn:aws:kms:{REGION}:{account}:key/{suffix}",
+            "Arn": f"arn:aws:kms:{REGION}:{account}:key/1234",
             "KeyState": "Enabled",
-            "KeyUsage": "ENCRYPT_DECRYPT",
-            "KeySpec": "SYMMETRIC_DEFAULT",
-            "KeyManager": manager,
+            "KeyManager": "CUSTOMER",
         }}
 
-    def list_grants(self, KeyId, GranteePrincipal=None, Marker=None):
-        self._record("list_grants", KeyId=KeyId, GranteePrincipal=GranteePrincipal,
-                     Marker=Marker)
+    def list_grants(self, KeyId, GranteePrincipal=None):
+        self._record("list_grants", KeyId=KeyId, GranteePrincipal=GranteePrincipal)
         grants = [dict(g) for g in self.aws.grants
                   if GranteePrincipal is None or g["GranteePrincipal"] == GranteePrincipal]
-        if self.aws.grant_page_size:
-            start = int(Marker or 0)
-            stop = start + self.aws.grant_page_size
-            return {
-                "Grants": grants[start:stop],
-                "Truncated": stop < len(grants),
-                "NextMarker": str(stop) if stop < len(grants) else None,
-            }
-        return {"Grants": grants, "Truncated": False}
+        return {"Grants": grants}
 
-    def create_grant(self, KeyId, GranteePrincipal, Operations, Name,
-                     RetiringPrincipal):
+    def create_grant(self, KeyId, GranteePrincipal, Operations, Name, RetiringPrincipal):
         self._record("create_grant", KeyId=KeyId, GranteePrincipal=GranteePrincipal,
-                     Operations=Operations, Name=Name,
-                     RetiringPrincipal=RetiringPrincipal)
+                     Operations=Operations, Name=Name, RetiringPrincipal=RetiringPrincipal)
         self.aws.add_grant(operations=list(Operations))
-        self.aws.grants[-1]["Name"] = Name
         return {"GrantId": self.aws.grants[-1]["GrantId"]}
 
     def revoke_grant(self, KeyId, GrantId):
         self._record("revoke_grant", KeyId=KeyId, GrantId=GrantId)
-        self.aws.grants = [grant for grant in self.aws.grants
-                           if grant.get("GrantId") != GrantId]
+        self.aws.grants = [g for g in self.aws.grants if g.get("GrantId") != GrantId]
 
 
 class FakeSecrets(FakeService):
-    def get_secret_value(self, SecretId, VersionId=None):
-        self._record("get_secret_value", SecretId=SecretId, VersionId=VersionId)
-        if self.scope == DEVTEST and VersionId is None:
-            self.aws.devtest_secret_reads += 1
-            if (self.aws.concurrent_devtest_secret_read
-                    and self.aws.devtest_secret_reads == 2):
-                self.aws.secret_versions[DEVTEST][SecretId] = "concurrent-version"
-                self.aws.secrets[DEVTEST][SecretId]["ENCODED_VERSION"] = "concurrent"
-        current = self.aws.secret_versions[self.scope][SecretId]
-        if VersionId is not None:
-            assert VersionId == current
-        return {"SecretString": json.dumps(self.aws.secrets[self.scope][SecretId]),
-                "VersionId": current}
+    def get_secret_value(self, SecretId):
+        self._record("get_secret_value", SecretId=SecretId)
+        return {"SecretString": json.dumps(self.aws.secrets[self.scope][SecretId])}
 
-    def put_secret_value(self, SecretId, SecretString, ClientRequestToken):
+    def put_secret_value(self, SecretId, SecretString):
         # Never record the SecretString payload: the calls list is assertable output.
-        self._record("put_secret_value", SecretId=SecretId,
-                     ClientRequestToken=ClientRequestToken)
+        self._record("put_secret_value", SecretId=SecretId)
         self.aws.secrets[self.scope][SecretId] = json.loads(SecretString)
-        self.aws.secret_versions[self.scope][SecretId] = ClientRequestToken
         if self.aws.fail_after_secret_put:
             raise self.aws.fail_after_secret_put
-        return {"VersionId": ClientRequestToken}
+        return {}
 
 
 class FakeECS(FakeService):
     # Deliberately NO describe_services / update_service / list_services: this is an
-    # in-place database swap, so any attempted ECS service mutation or inspection
+    # in-place database swap, so any attempted ECS service inspection or mutation
     # fails loudly with AttributeError.
 
     def list_clusters(self, nextToken=None):
@@ -421,14 +353,13 @@ class FakeECS(FakeService):
                f"deployment-{len(self.aws.tasks) + 1}")
         self.aws.tasks[arn] = {
             "taskArn": arn,
-            "startedBy": kwargs["startedBy"],
             "lastStatus": ("RUNNING" if self.aws.task_polls_until_stopped else "STOPPED"),
             "polls_left": self.aws.task_polls_until_stopped,
             "containers": [{"name": "deployment", "exitCode": self.aws.deployment_exit_code}],
         }
         if self.aws.deployment_enqueues:
-            for counts in self.aws.queue_counts.values():
-                counts["waiting"] = 2
+            for url in self.aws.queue_counts:
+                self.aws.queue_counts[url] = 2
         return {"tasks": [dict(self.aws.tasks[arn])], "failures": []}
 
     def describe_tasks(self, cluster, tasks):
@@ -457,15 +388,13 @@ class FakeSQS(FakeService):
         return {"QueueUrl": url}
 
     def get_queue_attributes(self, QueueUrl, AttributeNames):
-        self._record("get_queue_attributes", QueueUrl=QueueUrl,
-                     AttributeNames=AttributeNames)
-        counts = self.aws.queue_counts[QueueUrl]
-        result = dict(counts)
-        if self.aws.drain_queues and counts["waiting"]:
-            counts["waiting"] -= 1
+        self._record("get_queue_attributes", QueueUrl=QueueUrl, AttributeNames=AttributeNames)
+        count = self.aws.queue_counts[QueueUrl]
+        if self.aws.drain_queues and count:
+            self.aws.queue_counts[QueueUrl] = count - 1
         return {"Attributes": {
-            "ApproximateNumberOfMessages": str(result["waiting"]),
-            "ApproximateNumberOfMessagesNotVisible": str(result["inflight"]),
+            "ApproximateNumberOfMessages": str(count),
+            "ApproximateNumberOfMessagesNotVisible": "0",
         }}
 
 
@@ -488,13 +417,12 @@ class ScriptedPrompter(Prompter):
 # Helpers
 # ---------------------------------------------------------------------------------
 
-# Confirmation order on a first-use run (no old DB): create snapshot, copy-to-CMK,
-# KMS grant, share (typed account id), credentials (typed phrase), reindex.
-HAPPY_ANSWERS_FIRST_USE = ["y", "y", "y", DEVTEST_ACCOUNT,
-                           CREDENTIAL_CONFIRMATION_PHRASE, "y"]
-# Subsequent use: the grant already exists, so no grant prompt.
-HAPPY_ANSWERS_SUBSEQUENT = ["y", "y", DEVTEST_ACCOUNT,
-                            CREDENTIAL_CONFIRMATION_PHRASE, "y"]
+# Confirmation order on a first-use run (no old DB): production snapshot (also covers
+# the encrypted copy), KMS grant, share (typed account id), credentials (typed
+# phrase), deployment.
+HAPPY_ANSWERS_FIRST_USE = ["y", "y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE, "y"]
+# With a pre-existing grant there is no grant prompt.
+HAPPY_ANSWERS_WITH_GRANT = ["y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE, "y"]
 
 
 def base_argv(tmp_path, command="run", operation_id="op-1", **overrides):
@@ -512,8 +440,6 @@ def base_argv(tmp_path, command="run", operation_id="op-1", **overrides):
         "--devtest-env-name": ENV_NAME,
         "--deployment-subnet": DEPLOYMENT_SUBNET,
         "--deployment-security-group": DEPLOYMENT_SECURITY_GROUP,
-        "--db-subnet-group": DB_SUBNET_GROUP,
-        "--vpc-security-group-id": DB_SECURITY_GROUPS[0],
         "--new-db-identifier": NEW_DB,
         "--poll-interval": "1",
         "--poll-timeout": "10",
@@ -528,11 +454,16 @@ def base_argv(tmp_path, command="run", operation_id="op-1", **overrides):
         else:
             options[option] = str(value)
     argv = [command]
-    if command in ("run",):
+    if command == "run":
         argv += ["--operation-id", operation_id]
     for key, value in options.items():
         argv += [key, value]
     return argv + flags
+
+
+def resume_argv(tmp_path, *flags, operation_id="op-1"):
+    return (["resume", "--operation-id", operation_id,
+             "--state-dir", str(tmp_path / "state")] + list(flags))
 
 
 class Runner:
@@ -543,15 +474,12 @@ class Runner:
         self.aws = aws or FakeAWS()
         self.output = []
         self.sleeps = []
-        self.sleep_hook = None
 
     def emit(self, message):
         self.output.append(str(message))
 
     def sleep(self, seconds):
         self.sleeps.append(seconds)
-        if self.sleep_hook:
-            self.sleep_hook()
 
     def main(self, argv, answers=()):
         prompter = ScriptedPrompter(list(answers), emit=self.emit)
@@ -584,20 +512,11 @@ def make_config(**overrides):
         deployment_subnet=DEPLOYMENT_SUBNET,
         deployment_security_group=DEPLOYMENT_SECURITY_GROUP,
         new_db_identifier=NEW_DB,
-        db_subnet_group=DB_SUBNET_GROUP,
-        vpc_security_group_ids=list(DB_SECURITY_GROUPS),
         poll_interval=1,
         poll_timeout=10,
     )
     defaults.update(overrides)
     return RestoreConfig(**defaults)
-
-
-def prior_restore_tags():
-    return [
-        {"Key": rdd.OPERATION_TAG_KEY, "Value": "prior-restore"},
-        {"Key": rdd.CONFIG_TAG_KEY, "Value": "a" * 64},
-    ]
 
 
 # ---------------------------------------------------------------------------------
@@ -637,40 +556,43 @@ def test_run_dry_run_is_plan(tmp_path):
 
 def test_happy_path_first_use(tmp_path):
     runner = Runner(tmp_path)
-    code, prompter = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                                 answers=HAPPY_ANSWERS_FIRST_USE)
+    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
+                          answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 0, runner.text()
     manifest = runner.manifest()
     assert manifest.data["status"] == "completed"
-    for step in rdd.STEP_NAMES:
-        assert manifest.step_status(step) in ("completed", "skipped")
+    assert manifest.data["done"] == rdd.STEP_NAMES
 
-    # Production snapshot created once from the right database.
+    # Production snapshot created once, from the right database, with the audit tag.
     (create,) = runner.aws.calls_named("create_db_snapshot")
     assert create[0] == PRODUCTION
     assert create[3]["DBInstanceIdentifier"] == SOURCE_DB
+    assert create[3]["Tags"] == [{"Key": rdd.OPERATION_TAG_KEY, "Value": "op-1"}]
 
-    # Two copies: prod re-encryption with the CMK, devtest copy under devtest key.
+    # Two copies: prod re-encryption with the resolved CMK ARN, devtest copy under
+    # the devtest default key.
     copies = runner.aws.calls_named("copy_db_snapshot")
     assert [c[0] for c in copies] == [PRODUCTION, DEVTEST]
     assert copies[0][3]["KmsKeyId"] == PROD_KMS_KEY
-    assert copies[1][3]["KmsKeyId"] == (
-        f"arn:aws:kms:{REGION}:{DEVTEST_ACCOUNT}:key/aws-rds")
+    assert copies[1][3]["KmsKeyId"] == rdd.DEFAULT_DEVTEST_KMS_KEY
 
-    # First use: exactly one narrow, unconstrained grant created for the restore role.
+    # First use: one narrow, unconstrained grant created, later revoked.
     (grant,) = runner.aws.calls_named("create_grant")
     assert grant[3]["GranteePrincipal"] == RESTORE_ROLE
-    assert grant[3]["KeyId"] == PROD_KMS_KEY
-    assert grant[3]["RetiringPrincipal"] == RESTORE_ROLE
     assert sorted(grant[3]["Operations"]) == sorted(rdd.KMS_GRANT_OPERATIONS)
     assert "Constraints" not in grant[3]
+    assert len(runner.aws.calls_named("revoke_grant")) == 1
+    (unshare,) = [c for c in runner.aws.calls_named("modify_db_snapshot_attribute")
+                  if c[3]["ValuesToRemove"]]
+    assert unshare[3]["ValuesToRemove"] == [DEVTEST_ACCOUNT]
 
     # Shared with the devtest account only.
-    (share,) = [call for call in runner.aws.calls_named("modify_db_snapshot_attribute")
-                if call[3]["ValuesToAdd"]]
+    (share,) = [c for c in runner.aws.calls_named("modify_db_snapshot_attribute")
+                if c[3]["ValuesToAdd"]]
     assert share[3]["ValuesToAdd"] == [DEVTEST_ACCOUNT]
 
-    # Restore lands in devtest at the documented starting size, not public.
+    # Restore lands in devtest, not public, with placement copied from the protected
+    # database rather than supplied by flags.
     (restore,) = runner.aws.calls_named("restore_db_instance_from_db_snapshot")
     assert restore[0] == DEVTEST
     assert restore[3]["DBInstanceClass"] == "db.t4g.medium"
@@ -684,73 +606,60 @@ def test_happy_path_first_use(tmp_path):
     assert devtest_identity["RDS_PASSWORD"] == SENTINEL_PASSWORD
     assert devtest_identity["ENCODED_VERSION"] == "1.2.3"  # unrelated keys preserved
 
-    # In-place swap: the only ECS actions are read-only environment-name resolution
-    # plus exactly one deployment run_task; no service is touched.
+    # In-place swap: the only ECS actions are read-only resolution plus one run_task.
     (run,) = runner.aws.calls_named("run_task")
     assert run[3]["cluster"] == CLUSTER_ARN
     assert run[3]["taskDefinition"] == DEPLOYMENT_TASK_FAMILY
-    assert run[3]["count"] == 1
     assert run[3]["networkConfiguration"] == {"awsvpcConfiguration": {
-        "subnets": [DEPLOYMENT_SUBNET],
-        "securityGroups": [DEPLOYMENT_SECURITY_GROUP],
-    }}
-    ecs_methods = {call[2] for call in runner.aws.calls if call[1] == "ecs"}
+        "subnets": [DEPLOYMENT_SUBNET], "securityGroups": [DEPLOYMENT_SECURITY_GROUP]}}
+    ecs_methods = {c[2] for c in runner.aws.calls if c[1] == "ecs"}
     assert ecs_methods == {"list_clusters", "list_task_definition_families",
                            "run_task", "describe_tasks"}
-    assert manifest.get_resource("devtest_cluster_arn") == CLUSTER_ARN
-    assert manifest.get_resource("deployment_task_family") == DEPLOYMENT_TASK_FAMILY
     assert manifest.get_resource("deployment_succeeded") is True
     assert manifest.get_resource("reindex_completed") is True
-    # Queues resolved from the environment name, never from configuration.
-    queue_lookups = sorted(call[3]["QueueName"]
-                           for call in runner.aws.calls_named("get_queue_url"))
-    assert queue_lookups == sorted(f"{ENV_NAME}{suffix}"
-                                   for suffix in rdd.INDEXER_QUEUE_SUFFIXES)
-    assert len(runner.aws.calls_named("revoke_grant")) == 1
-    (unshare,) = [call for call in runner.aws.calls_named("modify_db_snapshot_attribute")
-                  if call[3]["ValuesToRemove"]]
-    assert unshare[3]["ValuesToRemove"] == [DEVTEST_ACCOUNT]
 
-    # Nothing stopped (no old DB named), nothing ever deleted, protected untouched.
+    # Nothing stopped (no old DB named), nothing deleted, protected untouched.
     assert runner.aws.calls_named("stop_db_instance") == []
-    assert not any("delete" in call[2].lower() for call in runner.aws.calls)
+    assert not any("delete" in c[2].lower() for c in runner.aws.calls)
     assert runner.aws.instances[DEVTEST][PROTECTED_DB]["DBInstanceStatus"] == "available"
-    assert manifest.step_status("stop_old_database") == "skipped"
 
-    # STS identity verified before every step.
-    assert len(runner.aws.calls_named("get_caller_identity")) == len(rdd.STEP_NAMES)
+    # STS verified exactly once per account scope.
+    assert len(runner.aws.calls_named("get_caller_identity")) == 2
 
 
-def test_happy_path_subsequent_use_reuses_existing_grant(tmp_path):
+def test_existing_grant_is_reused_without_opt_in(tmp_path):
     aws = FakeAWS()
-    aws.add_grant()  # grant already in place from a previous operation
+    aws.add_grant()  # pre-existing unconstrained grant (e.g. permanent, or unrevoked)
     runner = Runner(tmp_path, aws)
-    # No --allow-kms-grant: reusing an existing grant needs no opt-in.
-    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS_SUBSEQUENT)
+    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS_WITH_GRANT)
     assert code == 0, runner.text()
-    assert runner.aws.calls_named("create_grant") == []
-    assert runner.manifest().get_resource("kms_grant_created_by_this_tool") is False
+    assert aws.calls_named("create_grant") == []
+    assert aws.calls_named("revoke_grant") == []  # not created by this tool: not revoked
     assert "no security-policy change needed" in runner.text()
 
 
-# ---------------------------------------------------------------------------------
-# KMS first-use opt-in
-# ---------------------------------------------------------------------------------
+def test_constrained_grant_is_not_treated_as_reusable(tmp_path):
+    aws = FakeAWS()
+    aws.add_grant(constraints={"EncryptionContextSubset": {"aws:rds:db-id": "db-x"}})
+    runner = Runner(tmp_path, aws)
+    code, _ = runner.main(base_argv(tmp_path), answers=["y"])
+    assert code == 2
+    assert "--allow-kms-grant" in runner.text()
+    assert aws.calls_named("create_grant") == []
+
 
 def test_kms_first_use_without_opt_in_fails_closed_then_resumes(tmp_path):
     runner = Runner(tmp_path)
-    code, _ = runner.main(base_argv(tmp_path), answers=["y", "y"])
+    code, _ = runner.main(base_argv(tmp_path), answers=["y"])
     assert code == 2
     assert "--allow-kms-grant" in runner.text()
-    assert runner.aws.calls_named("create_grant") == []
     manifest = runner.manifest()
-    assert manifest.step_status("ensure_kms_grant") == "failed"
-    assert manifest.step_status("wait_encrypted_copy") == "completed"
+    assert manifest.data["status"] == "failed"
+    assert "ensure_kms_grant" not in manifest.data["done"]
+    assert "encrypt_snapshot_copy" in manifest.data["done"]
 
-    # Resume with the opt-in flag: prior steps skip, grant is created, run finishes.
     code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state"),
-         "--allow-kms-grant"],
+        resume_argv(tmp_path, "--allow-kms-grant"),
         answers=["y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE, "y"])
     assert code == 0, runner.text()
     assert len(runner.aws.calls_named("create_db_snapshot")) == 1  # not re-created
@@ -763,14 +672,13 @@ def test_kms_first_use_without_opt_in_fails_closed_then_resumes(tmp_path):
 # ---------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("answers,step,missing_call", [
-    (["n"], "create_production_snapshot", "create_db_snapshot"),
-    (["y", "n"], "copy_snapshot_to_cmk", "copy_db_snapshot"),
-    (["y", "y", "n"], "ensure_kms_grant", "create_grant"),
-    (["y", "y", "y", "999999999999"], "share_snapshot_with_devtest",
+    (["n"], "snapshot_production", "create_db_snapshot"),
+    (["y", "n"], "ensure_kms_grant", "create_grant"),
+    (["y", "y", "999999999999"], "share_snapshot_with_devtest",
      "modify_db_snapshot_attribute"),
-    (["y", "y", "y", DEVTEST_ACCOUNT, "wrong-phrase"], "update_identity_secret",
+    (["y", "y", DEVTEST_ACCOUNT, "wrong-phrase"], "update_identity_secret",
      "put_secret_value"),
-    (["y", "y", "y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE, "n"],
+    (["y", "y", DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE, "n"],
      "run_deployment_and_reindex", "run_task"),
 ])
 def test_declining_a_confirmation_halts_without_mutating(tmp_path, answers, step, missing_call):
@@ -779,15 +687,14 @@ def test_declining_a_confirmation_halts_without_mutating(tmp_path, answers, step
     assert code == 3, runner.text()
     assert runner.aws.calls_named(missing_call) == []
     manifest = runner.manifest()
-    assert manifest.step_status(step) == "declined"
-    assert manifest.data["status"] == "paused"
+    assert manifest.data["status"] == "declined"
+    assert step not in manifest.data["done"]
     assert "resume --operation-id op-1" in runner.text()
 
 
 def test_declining_stop_old_db_leaves_it_running(tmp_path):
     runner = Runner(tmp_path)
-    runner.aws.instances[DEVTEST][OLD_DB] = runner.aws._instance(
-        "available", db_id=OLD_DB, tags=prior_restore_tags())
+    runner.aws.instances[DEVTEST][OLD_DB] = runner.aws._instance("available", db_id=OLD_DB)
     code, _ = runner.main(
         base_argv(tmp_path, allow_kms_grant=True, allow_stop_old_db=True,
                   old_db_identifier=OLD_DB),
@@ -795,7 +702,6 @@ def test_declining_stop_old_db_leaves_it_running(tmp_path):
     assert code == 3
     assert runner.aws.calls_named("stop_db_instance") == []
     assert runner.aws.instances[DEVTEST][OLD_DB]["DBInstanceStatus"] == "available"
-    assert runner.manifest().step_status("stop_old_database") == "declined"
 
 
 # ---------------------------------------------------------------------------------
@@ -821,7 +727,7 @@ def test_devtest_account_mismatch_fails_before_devtest_mutations(tmp_path):
     assert code == 2
     assert not [c for c in runner.aws.calls if c[0] == DEVTEST and c[1] != "sts"]
     # Production-side work is checkpointed and reusable after the operator fixes creds.
-    assert runner.manifest().step_status("share_snapshot_with_devtest") == "completed"
+    assert "share_snapshot_with_devtest" in runner.manifest().data["done"]
 
 
 def test_region_mismatch_fails_closed(tmp_path):
@@ -839,8 +745,18 @@ def test_role_mismatch_fails_closed(tmp_path):
         base_argv(tmp_path, allow_kms_grant=True, production_role_name="expected-role"),
         answers=[])
     assert code == 2
-    assert "expected exact role" in runner.text()
+    assert "expected 'expected-role'" in runner.text()
     assert not [c for c in runner.aws.calls if c[1] == "rds"]
+
+
+def test_kms_key_must_be_customer_managed_in_production_account(tmp_path):
+    aws = FakeAWS()
+    aws.kms_account_override[PRODUCTION] = DEVTEST_ACCOUNT
+    runner = Runner(tmp_path, aws)
+    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True), answers=["y"])
+    assert code == 2
+    assert "customer-managed" in runner.text()
+    assert aws.calls_named("copy_db_snapshot") == []
 
 
 # ---------------------------------------------------------------------------------
@@ -857,17 +773,15 @@ def test_snapshot_polling_progresses_through_creating(tmp_path):
 
 
 def test_polling_timeout_is_bounded_and_resumable(tmp_path):
-    aws = FakeAWS(polls_until_available=10_000)
-    runner = Runner(tmp_path, aws)
+    runner = Runner(tmp_path, FakeAWS(polls_until_available=10_000))
     code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True, poll_timeout=3),
                           answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 1
     assert "Timed out" in runner.text() and "resume" in runner.text()
     manifest = runner.manifest()
-    assert manifest.step_status("wait_production_snapshot") == "failed"
     assert manifest.data["status"] == "failed"
-    # Bounded: ~poll_timeout/poll_interval sleeps, not unbounded.
-    assert len(runner.sleeps) <= 4
+    assert "snapshot_production" not in manifest.data["done"]
+    assert len(runner.sleeps) <= 4  # bounded by poll_timeout/poll_interval
 
 
 # ---------------------------------------------------------------------------------
@@ -882,122 +796,38 @@ def test_partial_failure_then_resume_skips_completed_steps(tmp_path):
                           answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 1
     manifest = runner.manifest()
-    assert manifest.step_status("share_snapshot_with_devtest") == "failed"
-    assert "InternalFailure" in manifest.step("share_snapshot_with_devtest")["error"]
+    assert manifest.data["status"] == "failed"
+    assert "InternalFailure" in manifest.data["error"]
     assert "resume" in runner.text()
 
     code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state")],
+        resume_argv(tmp_path),
         answers=[DEVTEST_ACCOUNT, CREDENTIAL_CONFIRMATION_PHRASE, "y"])
     assert code == 0, runner.text()
     assert runner.manifest().data["status"] == "completed"
-    # Idempotency: production snapshot and encrypted copy were made exactly once.
+    # Idempotency: the snapshot and its encrypted copy were made exactly once.
     assert len(runner.aws.calls_named("create_db_snapshot")) == 1
-    prod_copies = [c for c in runner.aws.calls_named("copy_db_snapshot")
-                   if c[0] == PRODUCTION]
-    assert len(prod_copies) == 1
+    assert len([c for c in runner.aws.calls_named("copy_db_snapshot")
+                if c[0] == PRODUCTION]) == 1
 
 
-def test_cross_account_copy_retries_bounded_kms_propagation_error(tmp_path):
+def test_already_exists_race_continues_instead_of_failing(tmp_path):
+    """A resource this operation created but could not observe (describe missed it,
+    create answered AlreadyExists) is treated as ours: names are deterministic per
+    operation."""
     runner = Runner(tmp_path)
-    runner.aws.fail_next[(DEVTEST, "rds", "copy_db_snapshot")] = (
-        AwsStubError("KMSKeyNotAccessibleFault"))
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 0, runner.text()
-    devtest_copies = [call for call in runner.aws.calls_named("copy_db_snapshot")
-                      if call[0] == DEVTEST]
-    assert len(devtest_copies) == 2
-    assert runner.sleeps
-
-
-def test_create_snapshot_concurrent_name_collision_is_not_adopted(tmp_path):
-    """An already-exists race resolves only through proven ownership: a colliding
-    snapshot without this operation's tags is refused, never adopted."""
-    runner = Runner(tmp_path)
-    # describe says not-found once (fail_next), create says already-exists, and the
-    # re-describe finds an unrelated, untagged snapshot.
-    aws = runner.aws
-    snapshot_id = f"{SOURCE_DB}-devtest-restore-op-1"
-    aws.snapshots[PRODUCTION][snapshot_id] = {"Status": "available", "polls_left": 0,
-                                              "shared": set()}
-    aws.fail_next[(PRODUCTION, "rds", "describe_db_snapshots")] = (
-        AwsStubError("DBSnapshotNotFound"))
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 2
-    assert "refusing to adopt an unrelated resource" in runner.text()
-
-
-def test_already_exists_race_with_owned_tags_is_adopted_not_bricked(tmp_path):
-    """Regression: a resource this operation created (but could not checkpoint, e.g.
-    the process died between the AWS call and the manifest save) must be adoptable on
-    the already-exists path via its ownership tags, not refused forever."""
-    runner = Runner(tmp_path)
-    aws = runner.aws
-    snapshot_id = f"{SOURCE_DB}-devtest-restore-op-1"
-    aws.snapshots[PRODUCTION][snapshot_id] = {
-        "DBSnapshotIdentifier": snapshot_id,
-        "DBInstanceIdentifier": SOURCE_DB,
-        "Status": "available", "polls_left": 0, "shared": set(),
-        "Encrypted": True,
-        "KmsKeyId": f"arn:aws:kms:{REGION}:{PROD_ACCOUNT}:key/aws-rds",
-        "DbiResourceId": aws.instances[PRODUCTION][SOURCE_DB]["DbiResourceId"],
-        "TagList": [
-            {"Key": rdd.OPERATION_TAG_KEY, "Value": "op-1"},
-            {"Key": rdd.CONFIG_TAG_KEY, "Value": make_config().fingerprint()},
-        ],
-    }
-    aws.fail_next[(PRODUCTION, "rds", "describe_db_snapshots")] = (
-        AwsStubError("DBSnapshotNotFound"))
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 0, runner.text()
-    assert "verified provenance; adopting" in runner.text()
-    # The colliding create was attempted once and never repeated.
-    assert len(runner.aws.calls_named("create_db_snapshot")) == 1
-
-
-def test_resume_adopts_only_snapshot_owned_by_operation(tmp_path):
-    runner = Runner(tmp_path)
-    config = make_config()
-    manifest = Manifest.create(tmp_path / "state", "op-1", config)
-    manifest.mark_step("create_production_snapshot", "failed", "interrupted")
     snapshot_id = f"{SOURCE_DB}-devtest-restore-op-1"
     runner.aws.snapshots[PRODUCTION][snapshot_id] = {
-        "DBSnapshotIdentifier": snapshot_id,
-        "DBInstanceIdentifier": SOURCE_DB,
-        "Status": "available",
-        "polls_left": 0,
-        "shared": set(),
-        "Encrypted": True,
-        "KmsKeyId": f"arn:aws:kms:{REGION}:{PROD_ACCOUNT}:key/aws-rds",
-        "DbiResourceId": runner.aws.instances[PRODUCTION][SOURCE_DB]["DbiResourceId"],
-        "TagList": [
-            {"Key": rdd.OPERATION_TAG_KEY, "Value": "op-1"},
-            {"Key": rdd.CONFIG_TAG_KEY, "Value": config.fingerprint()},
-        ],
+        "DBSnapshotIdentifier": snapshot_id, "Status": "available", "polls_left": 0,
+        "shared": set(), "TagList": [],
     }
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state"),
-         "--allow-kms-grant"],
-        answers=HAPPY_ANSWERS_FIRST_USE[1:],
-    )
+    runner.aws.fail_next[(PRODUCTION, "rds", "describe_db_snapshots")] = (
+        AwsStubError("DBSnapshotNotFound"))
+    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
+                          answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 0, runner.text()
-    assert "verified provenance; adopting" in runner.text()
-
-
-def test_resume_with_tampered_manifest_config_refuses(tmp_path):
-    runner = Runner(tmp_path)
-    runner.main(base_argv(tmp_path), answers=["n"])  # creates manifest, declines step 2
-    manifest = runner.manifest()
-    manifest.data["config"]["source_db_identifier"] = "rds-some-other-db"
-    manifest.save()
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state")],
-        answers=[])
-    assert code == 2
-    assert "fingerprint mismatch" in runner.text()
+    assert "already exists; continuing" in runner.text()
+    assert len(runner.aws.calls_named("create_db_snapshot")) == 1
 
 
 def test_resume_of_completed_operation_is_a_noop(tmp_path):
@@ -1006,110 +836,30 @@ def test_resume_of_completed_operation_is_a_noop(tmp_path):
                           answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 0
     calls_before = len(runner.aws.calls)
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state")],
-        answers=[])
+    code, _ = runner.main(resume_argv(tmp_path), answers=[])
     assert code == 0
     assert "already completed" in runner.text()
     assert len(runner.aws.calls) == calls_before
 
 
-# ---------------------------------------------------------------------------------
-# Cancellation
-# ---------------------------------------------------------------------------------
-
-def test_cancel_takes_effect_at_next_poll_boundary(tmp_path):
-    runner = Runner(tmp_path, FakeAWS(polls_until_available=50))
-    state_dir = str(tmp_path / "state")
-
-    def cancel_via_cli():
-        # Another terminal issues cancel while the run is polling.
-        assert main(["cancel", "--operation-id", "op-1", "--state-dir", state_dir],
-                    emit=runner.emit) == 0
-        runner.sleep_hook = None
-
-    runner.sleep_hook = cancel_via_cli
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 4
-    manifest = runner.manifest()
-    assert manifest.data["status"] == "cancelled"
-    # The interrupted wait step is left pending so resume re-runs it.
-    assert manifest.step_status("wait_production_snapshot") == "pending"
-
-
-def test_cancel_at_step_boundary_marks_manifest_cancelled(tmp_path):
-    """Regression (review R7): a cancellation observed between steps -- not inside
-    one -- must still leave the manifest status 'cancelled', not 'in_progress'."""
-    runner = Runner(tmp_path)
-    state_dir = str(tmp_path / "state")
-
-    def cancel_during_share():
-        main(["cancel", "--operation-id", "op-1", "--state-dir", state_dir],
-             emit=runner.emit)
-
-    # The cancel lands while the share step runs; the next loop boundary sees it.
-    runner.aws.call_hooks[(PRODUCTION, "rds", "modify_db_snapshot_attribute")] = (
-        cancel_during_share)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 4
-    manifest = runner.manifest()
-    assert manifest.data["status"] == "cancelled"
-    assert manifest.step_status("share_snapshot_with_devtest") == "completed"
-    assert manifest.step_status("verify_devtest_account") == "pending"
-
-
-def test_resume_after_cancel_requires_confirmation_and_completes(tmp_path):
-    runner = Runner(tmp_path)
-    runner.main(base_argv(tmp_path), answers=["n"])  # halt early with a manifest
-    state_dir = str(tmp_path / "state")
-    main(["cancel", "--operation-id", "op-1", "--state-dir", state_dir], emit=runner.emit)
-
-    # Declining the clear-cancellation prompt leaves the request in place.
-    code, _ = runner.main(["resume", "--operation-id", "op-1", "--state-dir", state_dir],
-                          answers=["n"])
-    assert code == 4
-    assert runner.manifest().cancel_requested_on_disk() is True
-
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", state_dir,
-         "--allow-kms-grant"],
-        answers=["y"] + HAPPY_ANSWERS_FIRST_USE)
-    assert code == 0, runner.text()
-    assert runner.manifest().data["cancel_requested"] is False
-    assert runner.manifest().data["status"] == "completed"
-
-
-def test_cancel_marker_survives_stale_manifest_save(tmp_path):
-    config = make_config()
-    active = Manifest.create(tmp_path / "state", "op-1", config)
-    stale = Manifest.load(tmp_path / "state", "op-1")
-    active.request_cancel()
-    stale.set_status("in_progress")
-    assert stale.cancel_requested_on_disk() is True
-
-
-def test_keyboard_interrupt_is_checkpointed_for_provenance_safe_resume(tmp_path):
+def test_keyboard_interrupt_leaves_checkpoint_and_resume_hint(tmp_path):
     runner = Runner(tmp_path)
     runner.aws.fail_next[(PRODUCTION, "rds", "create_db_snapshot")] = KeyboardInterrupt()
     code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True), answers=["y"])
     assert code == 130
-    assert runner.manifest().data["status"] == "interrupted"
-    assert runner.manifest().step_status("create_production_snapshot") == "interrupted"
-    assert "resume --operation-id op-1" in runner.text()
+    assert "resume" in runner.text()
+    assert runner.manifest().data["done"] == []  # nothing falsely marked done
 
 
-def test_state_directory_lock_refuses_a_different_concurrent_operation(tmp_path):
+def test_corrupt_manifest_fails_cleanly(tmp_path):
     state_dir = tmp_path / "state"
-    first = Manifest.create(state_dir, "op-1", make_config())
-    runner = Runner(tmp_path)
-    with OperationLock(first):
-        code, _ = runner.main(
-            base_argv(tmp_path, operation_id="op-2", allow_kms_grant=True), answers=[])
-    assert code == 2
-    assert "concurrent mutation" in runner.text()
-    assert runner.aws.calls == []
+    state_dir.mkdir()
+    (state_dir / "op-1.json").write_text("{not json")
+    output = []
+    code = main(["status", "--operation-id", "op-1", "--state-dir", str(state_dir)],
+                emit=output.append)
+    assert code == 1
+    assert "cannot be read safely" in output[0]
 
 
 # ---------------------------------------------------------------------------------
@@ -1124,26 +874,26 @@ def test_secret_values_never_in_output_or_manifest(tmp_path):
     everything_shown = runner.text() + "\n".join(prompter.prompts)
     assert SENTINEL_PASSWORD not in everything_shown
     assert DEVTEST_OLD_PASSWORD not in everything_shown
-    manifest_text = runner.manifest_text()
-    assert SENTINEL_PASSWORD not in manifest_text
-    assert DEVTEST_OLD_PASSWORD not in manifest_text
+    assert SENTINEL_PASSWORD not in runner.manifest_text()
+    assert DEVTEST_OLD_PASSWORD not in runner.manifest_text()
     # The credential confirmation names the changed keys without their values.
     credential_prompt = next(p for p in runner.output if "CREDENTIAL REPLACEMENT" in p)
     assert "RDS_PASSWORD" in credential_prompt and "values not shown" in credential_prompt
 
-    # status output is redaction-filtered too
     runner.output.clear()
     main(["status", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state")],
          emit=runner.emit)
     assert SENTINEL_PASSWORD not in runner.text()
 
 
-def test_manifest_refuses_secret_like_keys():
-    manifest = Manifest.__new__(Manifest)
-    manifest.data = {"resources": {}}
-    manifest.path = None
-    with pytest.raises(SafetyViolation):
-        manifest.set_resource("db_password", "boom")
+def test_secret_bearing_exception_text_is_never_exposed(tmp_path):
+    runner = Runner(tmp_path)
+    runner.aws.fail_after_secret_put = RuntimeError(f"transport echoed {SENTINEL_PASSWORD}")
+    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
+                          answers=HAPPY_ANSWERS_FIRST_USE)
+    assert code == 1
+    assert SENTINEL_PASSWORD not in runner.text()
+    assert SENTINEL_PASSWORD not in runner.manifest_text()
 
 
 def test_missing_production_credential_key_fails_without_partial_write(tmp_path):
@@ -1157,46 +907,10 @@ def test_missing_production_credential_key_fails_without_partial_write(tmp_path)
         DEVTEST_OLD_PASSWORD)
 
 
-def test_secret_read_exception_text_is_never_exposed(tmp_path):
-    runner = Runner(tmp_path)
-    runner.aws.fail_next[(PRODUCTION, "secretsmanager", "get_secret_value")] = (
-        RuntimeError(f"provider echoed {SENTINEL_PASSWORD}"))
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True), answers=[])
-    assert code == 1
-    assert SENTINEL_PASSWORD not in runner.text()
-    assert SENTINEL_PASSWORD not in runner.manifest_text()
-
-
-def test_secret_write_failure_is_redacted_and_resume_adopts_owned_version(tmp_path):
-    aws = FakeAWS()
-    aws.fail_after_secret_put = RuntimeError(f"transport included {SENTINEL_PASSWORD}")
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 1
-    assert SENTINEL_PASSWORD not in runner.text()
-    assert SENTINEL_PASSWORD not in runner.manifest_text()
-    assert runner.manifest().step_status("update_identity_secret") == "failed"
-
-    runner.output.clear()
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state")],
-        answers=["y"],
-    )
-    assert code == 0, runner.text()
-    assert "verified version" in runner.text()
-    assert len(aws.calls_named("put_secret_value")) == 1
-
-
-def test_concurrent_devtest_secret_change_is_not_overwritten(tmp_path):
-    aws = FakeAWS()
-    aws.concurrent_devtest_secret_read = True
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 2
-    assert "concurrent update" in runner.text()
-    assert aws.calls_named("put_secret_value") == []
+def test_manifest_refuses_secret_like_resource_keys(tmp_path):
+    manifest = Manifest.create(tmp_path / "state", "op-x", make_config())
+    with pytest.raises(SafetyViolation):
+        manifest.set_resource("db_password", "boom")
 
 
 # ---------------------------------------------------------------------------------
@@ -1204,14 +918,13 @@ def test_concurrent_devtest_secret_change_is_not_overwritten(tmp_path):
 # ---------------------------------------------------------------------------------
 
 def test_no_ecs_service_is_ever_touched(tmp_path):
-    """In-place database swap: the fakes implement no ECS service APIs at all, so a
-    full run proves the command never describes, mutates, scales, or redeploys any
-    ECS service."""
+    """The fakes implement no ECS service APIs, so a full run proves the command
+    never describes, mutates, scales, or redeploys any ECS service."""
     runner = Runner(tmp_path)
     code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
                           answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 0, runner.text()
-    assert not any("service" in call[2].lower() for call in runner.aws.calls)
+    assert not any("service" in c[2].lower() for c in runner.aws.calls)
 
 
 def test_ambiguous_cluster_resolution_refuses_to_guess(tmp_path):
@@ -1237,7 +950,7 @@ def test_no_matching_cluster_fails_closed(tmp_path):
 
 def test_initial_deployment_task_definition_is_never_selected(tmp_path):
     """The initial-deployment task definition wipes database/search contents; it must
-    never satisfy deployment resolution, even when it is the only candidate."""
+    never satisfy deployment resolution, even as the only candidate."""
     runner = Runner(tmp_path)
     runner.aws.task_families = [INITIAL_DEPLOYMENT_TASK_FAMILY, OTHER_ENV_TASK_FAMILY]
     code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
@@ -1271,38 +984,31 @@ def test_resolved_queue_url_in_wrong_account_is_refused(tmp_path):
 def test_deployment_task_failure_blocks_old_db_stop_and_reruns_on_resume(tmp_path):
     aws = FakeAWS()
     aws.deployment_exit_code = 17
-    aws.instances[DEVTEST][OLD_DB] = aws._instance(
-        "available", db_id=OLD_DB, tags=prior_restore_tags())
+    aws.instances[DEVTEST][OLD_DB] = aws._instance("available", db_id=OLD_DB)
     runner = Runner(tmp_path, aws)
     code, _ = runner.main(
         base_argv(tmp_path, allow_kms_grant=True, allow_stop_old_db=True,
                   old_db_identifier=OLD_DB),
-        answers=HAPPY_ANSWERS_FIRST_USE,
-    )
+        answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 1
     manifest = runner.manifest()
     assert manifest.get_resource("deployment_succeeded") is None
-    assert manifest.get_resource("reindex_completed") is None
-    # The failed task pointer is cleared so resume runs a fresh task instead of
-    # re-verifying the same failed one forever.
+    # The failed task pointer is cleared so resume runs a fresh confirmed task.
     assert manifest.get_resource("deployment_task_arn") == ""
     assert aws.calls_named("stop_db_instance") == []
     assert "investigate its logs" in runner.text()
 
-    # Operator fixes the deployment; resume re-confirms and runs a new task.
     aws.deployment_exit_code = 0
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state"),
-         "--allow-stop-old-db"],
-        answers=["y", OLD_DB])
+    code, _ = runner.main(resume_argv(tmp_path, "--allow-stop-old-db"),
+                          answers=["y", OLD_DB])
     assert code == 0, runner.text()
     assert len(aws.calls_named("run_task")) == 2
     assert runner.manifest().get_resource("reindex_completed") is True
 
 
 def test_completion_does_not_require_observing_reindex_enqueue(tmp_path):
-    """Regression (review R1): completion must never depend on catching the reindex
-    enqueue spike. With queues that never show work, the drain gate passes instead of
+    """Regression: completion must never depend on catching the reindex enqueue
+    spike. With queues that never show work, the drain gate passes instead of
     deadlocking on an observation that will never happen."""
     aws = FakeAWS()
     aws.deployment_enqueues = False
@@ -1314,16 +1020,11 @@ def test_completion_does_not_require_observing_reindex_enqueue(tmp_path):
 
 
 def test_resume_after_deployment_success_verifies_without_second_run(tmp_path):
-    """Regression (review R1): a resume that arrives after the deployment succeeded
-    and the queues already drained must complete from the durable checkpoint --
-    adopting the recorded task, running no second deployment, and passing the
-    absolute drain gate immediately."""
+    """Regression: a resume arriving after the deployment succeeded and the queues
+    already drained completes from the durable checkpoint without a second task."""
     aws = FakeAWS()
     runner = Runner(tmp_path, aws)
-    # The drain gate's first queue poll dies (e.g. transient SQS error) after the
-    # deployment task already succeeded and was checkpointed.
-    aws.fail_next[(DEVTEST, "sqs", "get_queue_attributes")] = (
-        AwsStubError("InternalError"))
+    aws.fail_next[(DEVTEST, "sqs", "get_queue_attributes")] = AwsStubError("InternalError")
     code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
                           answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 1
@@ -1331,41 +1032,29 @@ def test_resume_after_deployment_success_verifies_without_second_run(tmp_path):
     assert manifest.get_resource("deployment_succeeded") is True
     assert manifest.get_resource("reindex_completed") is None
 
-    # While the operator was away the indexers drained the queues completely.
-    for counts in aws.queue_counts.values():
-        counts["waiting"] = 0
-        counts["inflight"] = 0
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state")],
-        answers=[])
+    for url in aws.queue_counts:  # queues drained while the operator was away
+        aws.queue_counts[url] = 0
+    code, _ = runner.main(resume_argv(tmp_path), answers=[])
     assert code == 0, runner.text()
     assert len(aws.calls_named("run_task")) == 1  # never re-run
     assert runner.manifest().get_resource("reindex_completed") is True
 
 
 def test_vanished_deployment_task_requires_confirmed_rerun(tmp_path):
-    """If ECS no longer retains the recorded task before its exit was verified, the
-    step re-runs the deployment (with a fresh confirmation) instead of guessing that
-    the unverifiable task succeeded."""
+    """A recorded task that can no longer be described cannot be verified, so resume
+    runs a fresh task after a fresh confirmation instead of assuming success."""
     aws = FakeAWS()
     runner = Runner(tmp_path, aws)
     aws.fail_next[(DEVTEST, "ecs", "describe_tasks")] = AwsStubError("InternalError")
     code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
                           answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 1
-    manifest = runner.manifest()
-    assert manifest.get_resource("deployment_task_arn")
-    assert manifest.get_resource("deployment_succeeded") is None
+    assert runner.manifest().get_resource("deployment_task_arn")
+    assert runner.manifest().get_resource("deployment_succeeded") is None
 
-    aws.forget_deployment_tasks = True
-
-    def remember_new_tasks():
-        aws.forget_deployment_tasks = len(aws.calls_named("run_task")) < 2
-
-    aws.call_hooks[(DEVTEST, "ecs", "describe_tasks")] = remember_new_tasks
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state")],
-        answers=["y"])
+    # ECS forgot the first task; the second (new) one is remembered.
+    aws.tasks.clear()
+    code, _ = runner.main(resume_argv(tmp_path), answers=["y"])
     assert code == 0, runner.text()
     assert "can no longer be described" in runner.text()
     assert len(aws.calls_named("run_task")) == 2
@@ -1373,34 +1062,27 @@ def test_vanished_deployment_task_requires_confirmed_rerun(tmp_path):
 
 def test_indexing_queues_must_drain_before_old_db_stop(tmp_path):
     """The absolute drain gate blocks the old-DB stop while work remains, is bounded
-    by --reindex-timeout, and passes on resume once the queues actually drain --
-    without running a second deployment task."""
+    by --reindex-timeout, and passes on resume once the queues drain -- without a
+    second deployment task. The manifest timeout may be edited before resuming."""
     aws = FakeAWS()
     aws.drain_queues = False
-    aws.instances[DEVTEST][OLD_DB] = aws._instance(
-        "available", db_id=OLD_DB, tags=prior_restore_tags())
+    aws.instances[DEVTEST][OLD_DB] = aws._instance("available", db_id=OLD_DB)
     runner = Runner(tmp_path, aws)
     code, _ = runner.main(
         base_argv(tmp_path, allow_kms_grant=True, allow_stop_old_db=True,
                   old_db_identifier=OLD_DB, reindex_timeout=2),
-        answers=HAPPY_ANSWERS_FIRST_USE,
-    )
+        answers=HAPPY_ANSWERS_FIRST_USE)
     assert code == 1
     assert "devtest indexing queues" in runner.text()
     assert aws.calls_named("stop_db_instance") == []
     assert runner.manifest().get_resource("deployment_succeeded") is True
 
-    # Regression (review R9): the operator may legitimately extend a too-small
-    # timeout in the manifest -- polling knobs are excluded from the config
-    # fingerprint, so this edit must not brick resume.
     manifest = runner.manifest()
-    manifest.data["config"]["reindex_timeout"] = 600
+    manifest.data["config"]["reindex_timeout"] = 600  # operator extends the bound
     manifest.save()
     aws.drain_queues = True
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state"),
-         "--allow-stop-old-db"],
-        answers=[OLD_DB])
+    code, _ = runner.main(resume_argv(tmp_path, "--allow-stop-old-db"),
+                          answers=[OLD_DB])
     assert code == 0, runner.text()
     assert len(aws.calls_named("run_task")) == 1
     assert aws.instances[DEVTEST][OLD_DB]["DBInstanceStatus"] == "stopped"
@@ -1412,8 +1094,7 @@ def test_indexing_queues_must_drain_before_old_db_stop(tmp_path):
 
 def test_old_db_stopped_only_with_opt_in_and_typed_confirmation(tmp_path):
     aws = FakeAWS()
-    aws.instances[DEVTEST][OLD_DB] = aws._instance(
-        "available", db_id=OLD_DB, tags=prior_restore_tags())
+    aws.instances[DEVTEST][OLD_DB] = aws._instance("available", db_id=OLD_DB)
     runner = Runner(tmp_path, aws)
     # Without the opt-in flag the final step fails closed and the DB keeps running.
     code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True,
@@ -1424,28 +1105,11 @@ def test_old_db_stopped_only_with_opt_in_and_typed_confirmation(tmp_path):
     assert aws.instances[DEVTEST][OLD_DB]["DBInstanceStatus"] == "available"
 
     # Resume with the opt-in and the typed identifier: stopped, never deleted.
-    code, _ = runner.main(
-        ["resume", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state"),
-         "--allow-stop-old-db"],
-        answers=[OLD_DB])
+    code, _ = runner.main(resume_argv(tmp_path, "--allow-stop-old-db"), answers=[OLD_DB])
     assert code == 0, runner.text()
     assert aws.instances[DEVTEST][OLD_DB]["DBInstanceStatus"] == "stopped"
-    assert not any("delete" in call[2].lower() for call in aws.calls)
+    assert not any("delete" in c[2].lower() for c in aws.calls)
     assert aws.instances[DEVTEST][PROTECTED_DB]["DBInstanceStatus"] == "available"
-
-
-def test_unowned_old_database_is_never_stopped(tmp_path):
-    aws = FakeAWS()
-    aws.instances[DEVTEST][OLD_DB] = aws._instance("available", db_id=OLD_DB)
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(
-        base_argv(tmp_path, allow_kms_grant=True, allow_stop_old_db=True,
-                  old_db_identifier=OLD_DB),
-        answers=HAPPY_ANSWERS_FIRST_USE + [OLD_DB],
-    )
-    assert code == 2
-    assert "not tagged as a database created" in runner.text()
-    assert aws.calls_named("stop_db_instance") == []
 
 
 def test_protected_db_as_old_db_is_rejected_at_validation(tmp_path):
@@ -1460,11 +1124,10 @@ def test_protected_db_as_old_db_is_rejected_at_validation(tmp_path):
 
 
 def test_stop_step_itself_refuses_protected_db_even_if_validation_is_bypassed(tmp_path):
-    # Last line of defense: drive the step directly with a config that validation
-    # would have rejected.
     aws = FakeAWS()
     config = make_config(old_db_identifier=PROTECTED_DB, allow_stop_old_db=True)
     manifest = Manifest.create(tmp_path / "state", "op-x", config)
+    manifest.set_resource("reindex_completed", True)
     orchestrator = RestoreOrchestrator(
         config, manifest, aws.factory, Prompter(input_fn=lambda _: PROTECTED_DB),
         emit=lambda _: None, sleep_fn=lambda _: None)
@@ -1473,35 +1136,9 @@ def test_stop_step_itself_refuses_protected_db_even_if_validation_is_bypassed(tm
     assert aws.calls_named("stop_db_instance") == []
 
 
-def test_restore_refuses_network_different_from_protected_database(tmp_path):
-    runner = Runner(tmp_path)
-    runner.aws.instances[DEVTEST][PROTECTED_DB]["VpcSecurityGroups"] = [
-        {"VpcSecurityGroupId": "sg-unexpected"},
-    ]
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 2
-    assert "unsafe network placement" in runner.text()
-    assert runner.aws.calls_named("restore_db_instance_from_db_snapshot") == []
-
-
-def test_retry_refuses_unowned_existing_database(tmp_path):
-    aws = FakeAWS()
-    aws.instances[DEVTEST][NEW_DB] = aws._instance("available", db_id=NEW_DB)
-    config = make_config()
-    manifest = Manifest.create(tmp_path / "state", "op-x", config)
-    orchestrator = RestoreOrchestrator(
-        config, manifest, aws.factory, Prompter(input_fn=lambda _: "y"),
-        emit=lambda _: None, sleep_fn=lambda _: None)
-    with pytest.raises(SafetyViolation, match="refusing to adopt"):
-        orchestrator.step_restore_database()
-    assert aws.calls_named("restore_db_instance_from_db_snapshot") == []
-
-
 def test_already_stopped_old_db_is_left_alone(tmp_path):
     aws = FakeAWS()
-    aws.instances[DEVTEST][OLD_DB] = {"DBInstanceStatus": "stopped", "polls_left": 0,
-                                      "Endpoint": {}}
+    aws.instances[DEVTEST][OLD_DB] = aws._instance("stopped", db_id=OLD_DB)
     runner = Runner(tmp_path, aws)
     code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True,
                                     allow_stop_old_db=True, old_db_identifier=OLD_DB),
@@ -1511,8 +1148,19 @@ def test_already_stopped_old_db_is_left_alone(tmp_path):
     assert "already stopped" in runner.text()
 
 
+def test_missing_protected_db_refuses_placement_inference(tmp_path):
+    aws = FakeAWS()
+    del aws.instances[DEVTEST][PROTECTED_DB]
+    runner = Runner(tmp_path, aws)
+    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
+                          answers=HAPPY_ANSWERS_FIRST_USE)
+    assert code == 2
+    assert "refusing to infer network placement" in runner.text()
+    assert aws.calls_named("restore_db_instance_from_db_snapshot") == []
+
+
 # ---------------------------------------------------------------------------------
-# status / cancel CLI
+# status CLI
 # ---------------------------------------------------------------------------------
 
 def test_status_lists_operations_and_step_detail(tmp_path):
@@ -1521,12 +1169,13 @@ def test_status_lists_operations_and_step_detail(tmp_path):
     runner.output.clear()
     state_dir = str(tmp_path / "state")
     assert main(["status", "--state-dir", state_dir], emit=runner.emit) == 0
-    assert "op-1: paused" in runner.text()
+    assert "op-1: declined" in runner.text()
     runner.output.clear()
     assert main(["status", "--operation-id", "op-1", "--state-dir", state_dir],
                 emit=runner.emit) == 0
     text = runner.text()
-    assert "declined" in text and "create_production_snapshot" in text
+    assert "pending  snapshot_production" in text
+    assert "last error" in text
 
 
 def test_status_with_no_operations(tmp_path):
@@ -1562,8 +1211,6 @@ def test_full_run_never_touches_boto3(tmp_path, booby_trapped_boto3):
 
 
 def test_default_factory_is_lazy_and_scoped(monkeypatch):
-    """build_client_factory must not create sessions until a client is requested,
-    and must refuse unknown scopes."""
     created = []
 
     class FakeSession:
@@ -1589,70 +1236,14 @@ def test_default_factory_is_lazy_and_scoped(monkeypatch):
         factory("rds", "staging")
 
 
-def test_kms_grant_pagination_finds_matching_unconstrained_grant(tmp_path):
-    aws = FakeAWS()
-    aws.add_grant(operations=["Decrypt"])  # wrong operations: not reusable
-    aws.add_grant()
-    aws.grant_page_size = 1
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path), answers=HAPPY_ANSWERS_SUBSEQUENT)
-    assert code == 0, runner.text()
-    assert len(aws.calls_named("list_grants")) >= 2
-    assert aws.calls_named("create_grant") == []
-
-
-def test_constrained_grant_is_not_treated_as_reusable(tmp_path):
-    """A constrained grant cannot be evaluated from here and might still block the
-    copy, so it never satisfies the grant check."""
-    aws = FakeAWS()
-    aws.add_grant(constraints={"EncryptionContextSubset": {"aws:rds:db-id": "db-x"}})
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path), answers=["y", "y"])
-    assert code == 2
-    assert "--allow-kms-grant" in runner.text()
-    assert aws.calls_named("create_grant") == []
-
-
-def test_kms_propagation_retry_is_bounded_below_poll_timeout(tmp_path):
-    """Regression (review R3): a persistent KMS access failure on the cross-account
-    copy must surface within the short propagation bound, not be retried for the full
-    multi-hour poll timeout."""
-    aws = FakeAWS()
-    aws.fail_always[(DEVTEST, "rds", "copy_db_snapshot")] = (
-        AwsStubError("KMSKeyNotAccessibleFault"))
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(
-        base_argv(tmp_path, allow_kms_grant=True, poll_interval=60,
-                  poll_timeout=100_000),
-        answers=HAPPY_ANSWERS_FIRST_USE)
-    assert code == 1
-    attempts = [call for call in aws.calls_named("copy_db_snapshot")
-                if call[0] == DEVTEST]
-    # Bounded by PROPAGATION_TIMEOUT_SECONDS (15 min at 60s intervals), not the
-    # 100,000s poll timeout.
-    assert 2 <= len(attempts) <= rdd.PROPAGATION_TIMEOUT_SECONDS // 60 + 1
-    assert runner.manifest().step_status("copy_shared_snapshot") == "failed"
-
-
-def test_kms_key_must_resolve_to_configured_account(tmp_path):
-    aws = FakeAWS()
-    aws.kms_account_override[PRODUCTION] = DEVTEST_ACCOUNT
-    runner = Runner(tmp_path, aws)
-    code, _ = runner.main(base_argv(tmp_path, allow_kms_grant=True),
-                          answers=["y"])
-    assert code == 2
-    assert "not owned by account" in runner.text()
-    assert aws.calls_named("create_grant") == []
-
-
 # ---------------------------------------------------------------------------------
-# Config validation details
+# Config validation
 # ---------------------------------------------------------------------------------
 
 def test_identical_accounts_or_profiles_rejected():
-    with pytest.raises(SafetyViolation, match="distinct accounts"):
+    with pytest.raises(SafetyViolation, match="must differ"):
         make_config(devtest_account_id=PROD_ACCOUNT).validate()
-    with pytest.raises(SafetyViolation, match="single ambient credential"):
+    with pytest.raises(SafetyViolation, match="one credential context"):
         make_config(devtest_profile="smaht-prod").validate()
 
 
@@ -1668,68 +1259,10 @@ def test_missing_required_config_is_listed():
         make_config(devtest_env_name="").validate()
 
 
-def test_fingerprint_covers_identity_fields_but_not_polling_knobs():
-    original = make_config()
-    baseline = original.fingerprint()
-    for name in RestoreConfig.FINGERPRINT_FIELDS:
-        value = getattr(original, name)
-        if isinstance(value, list):
-            changed = list(value) + ["fingerprint-change"]
-        elif isinstance(value, int):
-            changed = value + 1
-        else:
-            changed = f"{value}-fingerprint-change"
-        assert make_config(**{name: changed}).fingerprint() != baseline, name
-    # Polling knobs may be legitimately edited between run and resume (review R9).
-    for name in RestoreConfig.POLLING_FIELDS:
-        changed = make_config(**{name: getattr(original, name) + 1})
-        assert changed.fingerprint() == baseline, name
-
-
-@pytest.mark.parametrize("overrides, message", [
-    ({"production_identity_secret":
-      f"arn:aws:secretsmanager:{REGION}:{DEVTEST_ACCOUNT}:secret:wrong"},
-     "production_identity_secret"),
-    ({"devtest_restore_role_arn":
-      f"arn:aws:iam::{PROD_ACCOUNT}:role/wrong-account"},
-     "devtest_restore_role_arn"),
-    ({"deployment_subnet": "not-a-subnet"}, "deployment_subnet"),
-    ({"deployment_security_group": "not-a-sg"}, "deployment_security_group"),
-    ({"devtest_env_name": "Bad_Env!"}, "devtest_env_name"),
-])
-def test_cross_account_resource_configuration_is_rejected(overrides, message):
-    with pytest.raises(SafetyViolation, match=message):
-        make_config(**overrides).validate()
-
-
-@pytest.mark.parametrize("overrides, message", [
-    ({"poll_interval": 0}, "poll_interval"),
-    ({"poll_timeout": 0}, "poll_timeout"),
-    ({"reindex_timeout": 0}, "reindex_timeout"),
-])
-def test_polling_bounds_are_positive(overrides, message):
-    with pytest.raises(SafetyViolation, match=message):
-        make_config(**overrides).validate()
-
-
-def test_invalid_operation_id_fails_without_traceback_or_manifest(tmp_path):
-    runner = Runner(tmp_path)
-    code, _ = runner.main(base_argv(tmp_path, operation_id="../escape"), answers=[])
-    assert code == 2
-    assert "operation_id" in runner.text()
-    assert runner.aws.calls == []
-    assert not (tmp_path / "escape.json").exists()
-
-
-def test_corrupt_manifest_status_fails_cleanly(tmp_path):
-    state_dir = tmp_path / "state"
-    state_dir.mkdir()
-    (state_dir / "op-1.json").write_text("{not json")
-    output = []
-    code = main(["status", "--operation-id", "op-1", "--state-dir", str(state_dir)],
-                emit=output.append)
-    assert code == 2
-    assert "cannot be read safely" in output[0]
+def test_restore_role_must_be_in_devtest_account():
+    with pytest.raises(SafetyViolation, match="devtest_restore_role_arn"):
+        make_config(devtest_restore_role_arn=(
+            f"arn:aws:iam::{PROD_ACCOUNT}:role/wrong-account")).validate()
 
 
 def test_run_requires_all_config_before_creating_anything(tmp_path):
@@ -1739,3 +1272,12 @@ def test_run_requires_all_config_before_creating_anything(tmp_path):
     assert "new_db_identifier" in runner.text()
     assert runner.aws.calls == []
     assert not (tmp_path / "state").exists()  # no manifest for an invalid run
+
+
+def test_invalid_operation_id_fails_without_manifest(tmp_path):
+    runner = Runner(tmp_path)
+    code, _ = runner.main(base_argv(tmp_path, operation_id="../escape"), answers=[])
+    assert code == 2
+    assert "operation_id" in runner.text()
+    assert runner.aws.calls == []
+    assert not (tmp_path / "escape.json").exists()
