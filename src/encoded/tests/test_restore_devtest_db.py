@@ -552,7 +552,7 @@ def test_happy_path_first_use(tmp_path):
     # database rather than supplied by flags.
     (restore,) = runner.aws.calls_named("restore_db_instance_from_db_snapshot")
     assert restore[0] == DEVTEST
-    assert restore[3]["DBInstanceClass"] == "db.t4g.medium"
+    assert restore[3]["DBInstanceClass"] == "db.m7g.xlarge"
     assert restore[3]["PubliclyAccessible"] is False
     assert restore[3]["DBSubnetGroupName"] == DB_SUBNET_GROUP
     assert restore[3]["VpcSecurityGroupIds"] == DB_SECURITY_GROUPS
