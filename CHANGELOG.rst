@@ -7,12 +7,129 @@ smaht-portal
 Change Log
 ----------
 
-2.3.0
+2.4.0
 ======
 
 `PR 637: feat: publication view <https://github.com/smaht-dac/smaht-portal/pull/637>`_
 
 * Implement page for publication items
+
+
+2.3.9
+=====
+
+`PR 720: fix: preserve Donor/Cohort toggle state across href changes (facet selection, "Explore Donors", etc.) <https://github.com/smaht-dac/smaht-portal/pull/720>`_
+
+* Fixes a bug where the Donor/Cohort toggle state was lost when navigating to a new URL (e.g. selecting a facet, clicking "Explore Donors", etc.) by preserving the toggle state in the URL query string and restoring it on page load.
+
+
+2.3.8
+=====
+
+* Preserve the Donor and Protected Donor browse ``/peek-metadata/`` optimization while using the progressive, concurrency-limited row-data queue: both callers share an explicit URL contract with ``skip_default_facets=true`` and request only ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
+* Avoid the HTTP 400 caused by combining ``skip_default_facets=true`` with ``additional_facet=type``. The File count now comes from the GET ``/peek-metadata/`` response's ``total`` alongside its ``facets``.
+
+
+2.3.7  
+=====
+Fix /ingestion_status route collision with SMaHT's ingestion-status endpoints
+
+* Fixes a bug where SMaHT's per-submission ingestion status endpoint reused Snovault's
+  ``ingestion_status`` Pyramid route name, silently displacing Snovault's ``/ingestion_status``
+  queue-health route. SMaHT's routes are renamed to ``submission_ingestion_status`` (current
+  ``/ingestion-status/{submission_uuid}`` path) and ``legacy_submission_ingestion_status``
+  (legacy ``/ingestion_status/{submission_uuid}`` path used by older smaht-submitr clients,
+  preserved for compatibility); their URLs and behavior are unchanged. Snovault's
+  ``/ingestion_status`` queue-health route now coexists with both.
+* Updates ``dcicsnovault`` to ``11.33.0`` (from ``11.32.1``); the pinned range in
+  ``pyproject.toml`` (``^11.30.0``) is unchanged. Confirmed Snovault's ``ingestion_status``
+  route registration is unchanged in this version.
+
+
+2.3.6
+=====
+
+`PR 711: Fix label_overrides not applying to FacetCharts on Donor/Protected Donor browse pages <https://github.com/smaht-dac/smaht-portal/pull/711>`_
+
+* Fixes a bug where label_overrides were not being applied to FacetCharts on Donor and Protected Donor browse pages
+
+
+2.3.5
+=====
+
+`PR 710: update annotated filename for SupplementaryFiles with category Annotation <https://github.com/smaht-dac/smaht-portal/pull/710>`_
+
+* added genome annotation data class for benchmarking cell lines - for supplementary files to annotated_file_name script
+
+
+2.3.4
+=====
+
+`PR 713: refactor: load donor browse row data progressively with a concurrency-limited queue <https://github.com/smaht-dac/smaht-portal/pull/713>`_
+
+* Donor browse: load per-donor file data (tissues, assays, file count, file size) via a
+  concurrency-limited queue (``DonorDataProvider``) so rows populate in display order
+* Each donor issues one ``/peek-metadata/`` request with ``skip_default_facets=true``, cutting
+  Elasticsearch aggregation work from 21 default File facets to 3
+
+
+2.3.3
+=====
+
+`PR 703: Fix column-header select-all checkbox to select all matching files in Recent Releases page <https://github.com/smaht-dac/smaht-portal/pull/703>`_
+
+* Fix the column-header select-all checkbox on file tables (e.g. Recent Releases) so it selects every matching file across all pages instead of silently capping at ``defaultPageSize``
+
+
+2.3.2
+=====
+
+* Homepage (``/home``) efficiency and correctness fixes:
+
+  * Dedupe redundant ES searches: run one ``limit=0`` search per distinct param dict
+    (6 instead of 14) and derive every stat (total + facet counts) from that single
+    captured response.
+  * Stop mutating shared state from concurrent worker threads: build each search's
+    param dict as a copy, and set the admin ``remote_user`` / strip the auth header on
+    the subrequest rather than the shared parent request.
+  * Never render the internal ``-1`` error sentinel to clients: failed sub-searches now
+    coerce to ``0``.
+  * ``generate_unique_facet_count`` no longer raises ``KeyError`` when a facet is absent
+    from the response; a missing facet degrades to a count of ``0``.
+  * Remove the unused ``pytz`` import and drop the always-hardcoded ``" EST"`` suffix
+    from the ``date`` field (now a plain ``YYYY-MM-DD`` string).
+  * Guard the release-date parse against the ``-1`` sentinel / non-ISO input so a single
+    failed sub-search degrades ``date`` to ``None`` instead of 500ing the homepage.
+  * Skip the full File default facet set on the homepage sub-searches: each search now
+    passes ``skip_default_facets`` and requests (via ``additional_facet``) only the
+    specific facets its stats read, instead of computing all ~21 File facets per search
+    and discarding all but one. The ``PRODUCTION`` search's ``additional_facet`` was
+    reconciled to declare ``donors.display_title`` and ``sample_summary.tissues`` (which
+    its donor / tissue-type counts read but previously got only as default facets) and to
+    drop the never-read ``...uberon_id`` facet. Stat values are unchanged.
+
+* Chart-endpoint (``visualization.py``) efficiency fixes:
+
+  * ``date_histogram_aggregations`` and ``bar_plot_chart`` now pass
+    ``skip_default_facets`` so Elasticsearch no longer computes the full File default
+    facet set that both endpoints immediately discard (custom aggregations are
+    unaffected; ``data_matrix_aggregations`` still computes facets because it uses them).
+  * ``bar_plot_chart`` no longer computes the per-bucket
+    ``total_tissues``/``total_assays``/``total_file_size`` sub-aggregations that are only
+    read at the top-level total; per-bucket aggregations are trimmed to the fields
+    actually consumed. Response shape is unchanged.
+
+
+2.3.1
+=====
+
+* Add some more tests for encoded/visualization.py
+
+
+2.3.0
+=====
+
+* Convert Docker built to multi-stage to reduce image overhead
 
 
 2.2.3

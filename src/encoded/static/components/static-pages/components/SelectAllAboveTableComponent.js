@@ -446,13 +446,45 @@ export class SelectAllFilesButton extends React.PureComponent {
                 : null;
 
         if (type === 'checkbox') {
+            const checkboxTooltip = selecting
+                ? `Selecting ${selectingProgress}%`
+                : tooltip;
             return (
-                <input
-                    type="checkbox"
-                    disabled={selecting || (!isAllSelected && !isEnabled)}
-                    checked={isAllSelected}
-                    onChange={this.handleSelectAll}
-                />
+                <span
+                    ref={this.selectAllButtonRef}
+                    className="d-inline-flex flex-column align-items-center"
+                    data-tip={checkboxTooltip}>
+                    {selecting ? (
+                        <i className="icon icon-fw icon-circle-notch icon-spin fas" />
+                    ) : (
+                        <input
+                            type="checkbox"
+                            disabled={!isAllSelected && !isEnabled}
+                            checked={isAllSelected}
+                            onChange={this.handleSelectAll}
+                        />
+                    )}
+                    <div
+                        className={
+                            'progress mt-03 select-all-progress select-all-progress-checkbox' +
+                            (selecting ? ' is-selecting' : '')
+                        }
+                        style={{
+                            width:
+                                progressTrackWidth && Number.isFinite(progressTrackWidth)
+                                    ? `${progressTrackWidth}px`
+                                    : '100%',
+                        }}>
+                        <div
+                            className="progress-bar"
+                            role="progressbar"
+                            style={{ width: `${selectingProgress}%` }}
+                            aria-valuenow={selectingProgress}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        />
+                    </div>
+                </span>
             );
         }
 
@@ -479,16 +511,12 @@ export class SelectAllFilesButton extends React.PureComponent {
                 </span>
                 {selecting ? (
                     <div
-                        className="progress mt-03"
+                        className="progress mt-03 select-all-progress select-all-progress-button"
                         style={{
-                            height: '3px',
                             width:
                                 progressTrackWidth && Number.isFinite(progressTrackWidth)
                                     ? `${progressTrackWidth}px`
                                     : '100%',
-                            minWidth: '120px',
-                            overflow: 'hidden',
-                            boxSizing: 'border-box',
                         }}>
                         <div
                             className="progress-bar"

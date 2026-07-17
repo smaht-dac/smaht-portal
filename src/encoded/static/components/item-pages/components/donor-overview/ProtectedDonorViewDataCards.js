@@ -426,18 +426,22 @@ const DonorDSAValue = ({ donorId }) => {
         setIsLoading(true);
 
         if (!link) {
-            // peek metadata to see if there are any DSA fields
+            // peek metadata to see if there are any DSA fields.
+            // POST with search_query_params so the endpoint runs a facet-free
+            // count query instead of computing the full default facet set — this
+            // check only needs "are there any matching Files?" (i.e. total > 0).
             const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${donorId}&sample_summary.studies=Production&${BROWSE_STATUS_FILTERS}&type=File`;
+            const parsedParams = new URLSearchParams(searchQuery);
+            const searchQueryParams = {};
+            for (const key of new Set(parsedParams.keys())) {
+                searchQueryParams[key] = parsedParams.getAll(key);
+            }
             ajax.load(
-                '/peek-metadata/' + searchQuery,
+                '/peek-metadata/',
                 (resp) => {
                     if (cancelled) return;
                     // Check that some files are present in the metadata
-                    if (
-                        resp
-                            ?.find((f) => f.field === 'type')
-                            ?.terms.find((t) => t.key === 'File')?.doc_count > 0
-                    ) {
+                    if (resp?.total > 0) {
                         setIsLoading(false);
                         setLink('/browse/' + searchQuery);
                     } else {
@@ -445,11 +449,12 @@ const DonorDSAValue = ({ donorId }) => {
                         setIsLoading(false);
                     }
                 },
-                'GET',
+                'POST',
                 (err) => {
                     setIsLoading(false);
-                    console.error(resp.error);
-                }
+                    console.error(err);
+                },
+                JSON.stringify({ search_query_params: searchQueryParams })
             );
         }
 
