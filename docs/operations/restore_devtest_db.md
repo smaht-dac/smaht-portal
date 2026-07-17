@@ -11,9 +11,12 @@ safety net.
 
 ## Workflow
 
-Run `restore-devtest-db plan ...` first: it validates the configuration and prints the
-step list, computed resource names, and every confirmation gate — without making a
-single AWS call (`run --dry-run` is an alias). A `run` then walks these steps:
+Run `restore-devtest-db plan ...` first: it validates the configuration, saves a
+non-secret planned manifest, and prints the step list, computed resource names, and
+every confirmation gate — without making a single AWS call (`run --dry-run` does the
+same). The output gives the exact `run --operation-id ID` command. Running that
+command loads the saved configuration and transitions the manifest from planned to
+in progress before walking these steps:
 
 1. **snapshot_production** — verify the production STS caller (account, region,
    optional exact assumed-role name), then create a tagged manual snapshot and wait
@@ -59,9 +62,14 @@ Every run has a stable operation id and a JSON manifest under
 `~/.smaht/restore-devtest-db/` (`--state-dir` to override) recording the
 configuration, completed steps, and created resource identifiers — never secrets.
 
-- `plan` — validate and preview; zero AWS calls.
-- `run [--operation-id ID]` — start; resource names derive from the operation id.
+- `plan` — validate and save a not-started manifest; zero AWS calls. The operation id
+  is generated unless supplied explicitly, and an existing id is never overwritten.
+- `run --operation-id ID` — start a saved plan using its configuration; explicitly
+  supplied configuration flags may override saved values. A missing plan is an
+  error when only the operation id is supplied.
+- `run` — start directly from explicit configuration when no operation id is given.
 - `status [--operation-id ID]` — show step progress and resources, or list operations.
+  Saved plans are shown as `planned (not started)`.
 - `resume --operation-id ID` — continue after a failure, a declined confirmation, or
   Ctrl-C. Completed steps are skipped; resource names are deterministic and every
   step describes before it creates, so retries are idempotent.
@@ -168,7 +176,9 @@ restore-devtest-db plan --operation-id restore-20260717 \
   --new-db-identifier rds-smaht-devtest-restored-20260717
 ```
 
-After reviewing the plan, replace `plan` with `run` and keep the same operation id.
+After reviewing the plan, run the printed `run --operation-id restore-20260717`
+command. If the state directory is not the default, keep its printed `--state-dir`
+argument as well.
 
 ## Rollback
 

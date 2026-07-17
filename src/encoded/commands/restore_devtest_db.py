@@ -37,6 +37,8 @@ import configparser
 import json
 import os
 import re
+import shlex
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -191,6 +193,17 @@ class Manifest:
 
     @classmethod
     def create(cls, state_dir: Path, operation_id: str, config: RestoreConfig) -> "Manifest":
+        return cls._create(state_dir, operation_id, config, status="in_progress")
+
+    @classmethod
+    def create_plan(cls, state_dir: Path, operation_id: str,
+                    config: RestoreConfig) -> "Manifest":
+        """Persist a fully resolved, not-started plan without touching AWS."""
+        return cls._create(state_dir, operation_id, config, status="planned")
+
+    @classmethod
+    def _create(cls, state_dir: Path, operation_id: str, config: RestoreConfig, *,
+                status: str) -> "Manifest":
         if not OPERATION_ID_PATTERN.fullmatch(operation_id):
             raise SafetyViolation(
                 "operation_id must start with a lowercase letter and contain only"
@@ -204,13 +217,21 @@ class Manifest:
         manifest = cls(path, {
             "operation_id": operation_id,
             "created_at": utcnow_iso(),
-            "status": "in_progress",
+            "status": status,
             "config": config.to_persisted_dict(),
             "done": [],
             "resources": {},
         })
         manifest.save()
         return manifest
+
+    def start(self, config: RestoreConfig) -> None:
+        """Transition a saved plan into the normal resumable run lifecycle."""
+        self.data["config"] = config.to_persisted_dict()
+        self.data["status"] = "in_progress"
+        self.data.pop("planned", None)
+        self.data["started_at"] = utcnow_iso()
+        self.save()
 
     @classmethod
     def load(cls, state_dir: Path, operation_id: str) -> "Manifest":
@@ -964,7 +985,7 @@ def print_plan(config: RestoreConfig, operation_id: str,
 
 def print_status(manifest: Manifest, emit: Callable[[str], None] = print) -> None:
     data = manifest.data
-    emit(f"operation: {data['operation_id']}   status: {data['status']}")
+    emit(f"operation: {data['operation_id']}   status: {status_label(data['status'])}")
     emit(f"created: {data.get('created_at')}   updated: {data.get('updated_at')}")
     if data.get("error"):
         emit(f"last error: {data['error']}")
@@ -1038,17 +1059,17 @@ def build_parser() -> argparse.ArgumentParser:
                               " has its saved configuration and resolves nothing)")
         return sub
 
-    plan = subparser("plan", "print the step plan; makes no AWS calls")
+    plan = subparser("plan", "save and print the step plan; makes no AWS calls")
     _add_config_arguments(plan)
     plan.add_argument("--operation-id", default="",
                       help="stable operation id to preview (default: generated; reuse for run)")
 
-    run = subparser("run", "start a new restore operation")
+    run = subparser("run", "start a restore operation from a saved plan or explicit config")
     _add_config_arguments(run)
     run.add_argument("--operation-id", default="",
-                     help="optional explicit operation id (default: generated)")
+                     help="saved plan operation id, or explicit id for a new run (default: generated)")
     run.add_argument("--dry-run", action="store_true",
-                     help="alias for plan: print the step plan and exit")
+                     help="save and print a plan, then exit")
 
     resume = subparser("resume", "resume an operation from its checkpoint")
     resume.add_argument("--operation-id", required=True)
@@ -1063,6 +1084,32 @@ def config_from_args(args: argparse.Namespace) -> RestoreConfig:
     values = {f.name: getattr(args, f.name)
               for f in fields(RestoreConfig) if hasattr(args, f.name)}
     return RestoreConfig(**values)
+
+
+def status_label(status: str) -> str:
+    return "planned (not started)" if status == "planned" else status
+
+
+def provided_config_fields(raw_argv: List[str]) -> set:
+    """Return config flags explicitly present, excluding argparse defaults."""
+    fields_by_option = {
+        f"--{field.name.replace('_', '-')}": field.name
+        for field in fields(RestoreConfig)
+    }
+    provided = set()
+    for token in raw_argv:
+        option = token.split("=", 1)[0]
+        if option in fields_by_option:
+            provided.add(fields_by_option[option])
+    return provided
+
+
+def apply_config_overrides(config: RestoreConfig, args: argparse.Namespace,
+                           raw_argv: List[str]) -> RestoreConfig:
+    """Apply only explicitly supplied CLI config values to a saved plan."""
+    for field_name in provided_config_fields(raw_argv):
+        setattr(config, field_name, getattr(args, field_name))
+    return config
 
 
 def generate_operation_id() -> str:
@@ -1091,7 +1138,8 @@ def main(argv: Optional[List[str]] = None,
          health_discoverer: Callable[[str], Dict[str, Any]] = discover_health_json,
          emit: Callable[[str], None] = print,
          sleep_fn: Callable[[float], None] = time.sleep) -> int:
-    args = build_parser().parse_args(argv)
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
+    args = build_parser().parse_args(raw_argv)
     state_dir = Path(os.path.expanduser(args.state_dir))
     prompter = prompter or Prompter(emit=emit)
     try:
@@ -1103,23 +1151,53 @@ def main(argv: Optional[List[str]] = None,
                 if not operations:
                     emit(f"No operations found in {state_dir}.")
                 for operation_id in operations:
-                    emit(f"{operation_id}: {Manifest.load(state_dir, operation_id).data['status']}")
+                    status = Manifest.load(state_dir, operation_id).data["status"]
+                    emit(f"{operation_id}: {status_label(status)}")
             return 0
 
         if args.command in ("plan", "run"):
-            config = config_from_args(args)
-            if args.interactive:
-                # Local-file discovery and prompts only: no AWS client is built, so
-                # interactive plan mode keeps the zero-AWS guarantee.
-                config = resolve_interactive(config, prompter,
-                                             health_discoverer=health_discoverer, emit=emit)
-            config.validate()
             operation_id = args.operation_id or generate_operation_id()
             if args.command == "plan" or args.dry_run:
+                config = config_from_args(args)
+                if args.interactive:
+                    # Local-file discovery and prompts only: no AWS client is built, so
+                    # interactive plan mode keeps the zero-AWS guarantee.
+                    config = resolve_interactive(
+                        config, prompter, health_discoverer=health_discoverer, emit=emit)
+                config.validate()
+                manifest = Manifest.create_plan(state_dir, operation_id, config)
                 print_plan(config, operation_id, emit)
+                emit(f"Plan saved (not started): {manifest.path}")
+                emit("Run it with: restore-devtest-db"
+                     f" run --operation-id {operation_id}"
+                     f" --state-dir {shlex.quote(str(state_dir))}")
                 return 0
-            manifest = Manifest.create(state_dir, operation_id, config)
-            emit(f"Started operation {operation_id} (manifest: {manifest.path}).")
+            manifest_path = state_dir / f"{operation_id}.json"
+            if args.operation_id and manifest_path.exists():
+                manifest = Manifest.load(state_dir, operation_id)
+                if manifest.data["status"] != "planned":
+                    raise RestoreError(
+                        f"Operation {operation_id} already exists; use resume or status instead.")
+                config = RestoreConfig.from_persisted_dict(manifest.data["config"])
+                config = apply_config_overrides(config, args, raw_argv)
+                if args.interactive:
+                    config = resolve_interactive(
+                        config, prompter, health_discoverer=health_discoverer, emit=emit)
+                config.validate()
+                manifest.start(config)
+                emit(f"Started planned operation {operation_id} (manifest: {manifest.path}).")
+            else:
+                if (args.operation_id and not manifest_path.exists()
+                        and not provided_config_fields(raw_argv) and not args.interactive):
+                    raise RestoreError(
+                        f"No manifest found for operation {operation_id} in {state_dir}.")
+                config = config_from_args(args)
+                if args.interactive:
+                    config = resolve_interactive(
+                        config, prompter, health_discoverer=health_discoverer, emit=emit)
+                config.validate()
+                manifest = Manifest.create(state_dir, operation_id, config)
+                emit(f"Started operation {operation_id} (manifest: {manifest.path}).")
         else:  # resume
             manifest = Manifest.load(state_dir, args.operation_id)
             if manifest.data["status"] == "completed":
@@ -1130,6 +1208,9 @@ def main(argv: Optional[List[str]] = None,
             if args.interactive:
                 emit("resume uses the operation's saved configuration; there is"
                      " nothing for --interactive to resolve.")
+            if manifest.data["status"] == "planned":
+                manifest.start(config)
+                emit(f"Started planned operation {args.operation_id} (manifest: {manifest.path}).")
             emit(f"Resuming operation {args.operation_id}; completed steps will be skipped.")
 
         orchestrator = RestoreOrchestrator(

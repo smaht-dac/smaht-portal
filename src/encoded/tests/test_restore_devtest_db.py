@@ -324,7 +324,7 @@ def base_argv(tmp_path, command="run", operation_id="op-1", **overrides):
         else:
             options[option] = str(value)
     argv = [command]
-    if command == "run":
+    if command in ("run", "plan"):
         argv += ["--operation-id", operation_id]
     for key, value in options.items():
         argv += [key, value]
@@ -420,6 +420,14 @@ def test_plan_mode_makes_no_aws_calls(tmp_path):
     assert "IDENTITY names use 'identity'" in text
     assert "never deletes or" in text and "stops any database" in text
     assert "performed" in text and "manually" in text
+    manifest = Manifest.load(tmp_path / "state", "op-1")
+    assert manifest.data["status"] == "planned"
+    assert manifest.data["done"] == []
+    assert manifest.data["resources"] == {}
+    assert manifest.data["config"]["production_kms_key_id"] == PROD_KMS_KEY
+    assert manifest.data["config"]["production_identity_secret"] == PROD_IDENTITY_NAME
+    assert "Plan saved (not started)" in text
+    assert "run --operation-id op-1" in text
 
 
 def test_run_dry_run_is_plan(tmp_path):
@@ -428,7 +436,79 @@ def test_run_dry_run_is_plan(tmp_path):
                 client_factory_builder=explosive_factory_builder,
                 prompter=Prompter(input_fn=lambda _: "n"), emit=output.append)
     assert code == 0
-    assert not (tmp_path / "state").exists()  # plan creates no manifest
+    manifest = Manifest.load(tmp_path / "state", "op-1")
+    assert manifest.data["status"] == "planned"
+    assert manifest.data["done"] == []
+    assert manifest.data["resources"] == {}
+
+
+def test_plan_then_run_uses_only_the_saved_operation_id(tmp_path):
+    output = []
+    assert main(base_argv(tmp_path, command="plan"),
+                client_factory_builder=explosive_factory_builder,
+                emit=output.append) == 0
+
+    runner = Runner(tmp_path)
+    code, _ = runner.main(
+        ["run", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state")],
+        answers=HAPPY_ANSWERS)
+    assert code == 0, runner.text()
+    assert runner.manifest().data["status"] == "completed"
+    assert runner.aws.calls_named("create_db_snapshot")
+    assert runner.health_calls == []
+
+
+def test_run_only_operation_id_without_plan_reports_missing_manifest(tmp_path):
+    output = []
+    code = main(["run", "--operation-id", "op-missing", "--state-dir",
+                 str(tmp_path / "state")], emit=output.append)
+    assert code == 1
+    assert "No manifest found for operation op-missing" in output[0]
+
+
+def test_run_from_plan_applies_only_explicit_config_overrides(tmp_path):
+    output = []
+    assert main(base_argv(tmp_path, command="plan"), emit=output.append) == 0
+    override_db = "rds-smaht-devtest-restored-override"
+    runner = Runner(tmp_path)
+    code, _ = runner.main(
+        ["run", "--operation-id", "op-1", "--state-dir", str(tmp_path / "state"),
+         "--new-db-identifier", override_db],
+        answers=HAPPY_ANSWERS)
+    assert code == 0, runner.text()
+    config = runner.manifest().data["config"]
+    assert config["new_db_identifier"] == override_db
+    assert config["source_db_identifier"] == SOURCE_DB
+    assert config["production_profile"] == "smaht-prod"
+    restore = runner.aws.calls_named("restore_db_instance_from_db_snapshot")
+    assert restore[0][3]["DBInstanceIdentifier"] == override_db
+
+
+def test_plan_id_collision_does_not_overwrite_existing_manifest(tmp_path):
+    first_output = []
+    assert main(base_argv(tmp_path, command="plan"), emit=first_output.append) == 0
+    before = Manifest.load(tmp_path / "state", "op-1").data.copy()
+    second_output = []
+    code = main(base_argv(tmp_path, command="plan"), emit=second_output.append)
+    assert code == 1
+    assert "already exists" in second_output[0]
+    after = Manifest.load(tmp_path / "state", "op-1").data
+    assert after["created_at"] == before["created_at"]
+    assert after["config"] == before["config"]
+
+
+def test_status_and_resume_handle_saved_plan(tmp_path):
+    output = []
+    assert main(base_argv(tmp_path, command="plan"), emit=output.append) == 0
+    output.clear()
+    assert main(["status", "--operation-id", "op-1", "--state-dir",
+                 str(tmp_path / "state")], emit=output.append) == 0
+    assert "planned (not started)" in output[0]
+
+    runner = Runner(tmp_path)
+    code, _ = runner.main(resume_argv(tmp_path), answers=HAPPY_ANSWERS)
+    assert code == 0, runner.text()
+    assert runner.manifest().data["status"] == "completed"
 
 
 # ---------------------------------------------------------------------------------
