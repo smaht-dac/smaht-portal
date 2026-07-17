@@ -262,7 +262,9 @@ export function buildMatrixExportData({
     rowAxisLabel = null,
     columnAxisLabel = null,
     rowGroups = null,
-    showRowGroups = false
+    showRowGroups = false,
+    columnGroups = null,
+    showColumnGroups = false
 } = {}) {
     const countField = countFor === 'tissue_files' ? 'files' : countFor;
 
@@ -279,7 +281,51 @@ export function buildMatrixExportData({
     const safeData = Array.isArray(data) ? data : [];
     const nestedData = groupByMultiple(safeData, groupingProperties);
     const groupedByColumn = typeof columnGrouping === 'string' ? _.groupBy(safeData, columnGrouping) : {};
-    const columns = _.chain(groupedByColumn).keys().sort().value();
+    // `_.groupBy` preserves first-occurrence order, matching the grid's own `groupedDataIndices`.
+    // The grid then reorders these via `columnGroups` (assay-family bands for Donor/Tissue x
+    // Assay, auto-populated germLayer bands for Donor x Tissue - see
+    // DataMatrix.getNextStateForMatrixMode's `effectiveAutoPopulateColumnGroupsMapFields`) using
+    // the exact same sortByArray/mergeValues pair reused here, so this must NOT alphabetize
+    // independently - that would visibly scramble the on-screen grouped order.
+    const unorderedColumns = _.keys(groupedByColumn);
+    const hasColumnGroups = !!(showColumnGroups && columnGroups && _.keys(columnGroups).length > 0);
+    const columns = hasColumnGroups
+        ? StackedBlockGroupedRow.sortByArray(unorderedColumns, StackedBlockGroupedRow.mergeValues(columnGroups))
+        : unorderedColumns;
+
+    // germLayer (Ectoderm/Mesoderm/Endoderm/Germline) is intrinsic to a *tissue*, so when the
+    // columns are tissues (e.g. Donor x Tissue) it's the columns - not the rows - that map
+    // cleanly onto a single germLayer each; expose that mapping so it isn't lost on export just
+    // because it isn't one of the explicit row/column grouping fields.
+    const columnGermLayers = {};
+    columns.forEach((col) => {
+        const germLayerValues = _.chain(groupedByColumn[col] || [])
+            .map((item) => item?.germLayer)
+            .compact()
+            .uniq()
+            .value();
+        if (germLayerValues.length === 1) {
+            columnGermLayers[col] = germLayerValues[0];
+        }
+    });
+
+    // The same `columnGroups` band shown on-screen above the column headers (e.g. "Bulk WGS" /
+    // "RNA-seq" / "Duplex-seq" for Donor x Assay, Tissue x Assay, and Benchmarking) - expose which
+    // band each column belongs to, since that grouping is otherwise only implied by column order.
+    // Donor x Tissue's columns are tissues, already covered by `columnGermLayers` above (its
+    // `columnGroups` bands ARE germLayers) - only add this for the assay-family case so the two
+    // fields don't just duplicate each other.
+    const isTissueColumnGrouping = columnGrouping === 'tissue';
+    const columnAssayGroups = {};
+    if (hasColumnGroups && !isTissueColumnGrouping) {
+        _.each(columnGroups, (groupConfig, groupKey) => {
+            _.each(groupConfig?.values || [], (col) => {
+                if (unorderedColumns.includes(col)) {
+                    columnAssayGroups[col] = groupKey;
+                }
+            });
+        });
+    }
 
     // Row/column totals come from the backend-aggregated totals arrays (same source the
     // row-summary/col-summary blocks use), keyed by the same grouping-property values.
@@ -297,10 +343,13 @@ export function buildMatrixExportData({
             counts[col] = computeCellValue(byColumn[col] || []);
         });
         const matchingRowTotals = rowTotalsByPath[JSON.stringify(pathValues)];
-        // germLayer (e.g. Ectoderm/Mesoderm/Endoderm/Germline) is not a grouping property but a
-        // per-tissue-row attribute shown on-screen as the colored vertical row-group label;
-        // surface it on each row when present so the grouping isn't lost on export.
-        const germLayerValue = items.length > 0 ? (items[0]?.germLayer ?? null) : null;
+        // germLayer (e.g. Ectoderm/Mesoderm/Endoderm/Germline) is shown on-screen as a colored
+        // vertical row-group label when a row represents a single tissue (e.g. Donor x Assay's
+        // donor+tissue rows). Only surface it here when every underlying item actually shares one
+        // germLayer - for views where a row spans multiple tissues (e.g. Donor x Tissue's
+        // donor-only rows), picking one item's value would misrepresent the row as a whole.
+        const rowGermLayerValues = _.chain(items).map((item) => item?.germLayer).compact().uniq().value();
+        const germLayerValue = rowGermLayerValues.length === 1 ? rowGermLayerValues[0] : null;
         return {
             ...rowKeyFields,
             ...(germLayerValue != null ? { germLayer: germLayerValue } : {}),
@@ -308,6 +357,10 @@ export function buildMatrixExportData({
             rowTotal: computeCellValue(matchingRowTotals && matchingRowTotals.length ? matchingRowTotals : items)
         };
     };
+
+    // Columns are already sorted alphabetically (above); sort rows the same way so the export
+    // reads consistently rather than in whatever order rows first appeared in the raw data.
+    const sortRowsAlphabetically = (rows) => _.sortBy(rows, (row) => groupingProperties.map((prop) => String(row?.[prop] ?? '')).join(' '));
 
     const collectLeafRowsInto = (node, pathValues, depth, out) => {
         if (depth >= groupingProperties.length) {
@@ -342,6 +395,8 @@ export function buildMatrixExportData({
         rowAxisLabel,
         columnAxisLabel,
         columns,
+        ...(_.keys(columnGermLayers).length > 0 ? { columnGermLayers } : {}),
+        ...(_.keys(columnAssayGroups).length > 0 ? { columnAssayGroups } : {}),
         columnTotals: columnTotalsMap,
         grandTotal,
         generatedAt: new Date().toISOString()
@@ -351,7 +406,7 @@ export function buildMatrixExportData({
     if (!hasRowGroups) {
         const rows = [];
         collectLeafRowsInto(nestedData, [], 0, rows);
-        return { ...baseExport, rows };
+        return { ...baseExport, rows: sortRowsAlphabetically(rows) };
     }
 
     // Some views (e.g. benchmarking) split the top-level row axis into named sections

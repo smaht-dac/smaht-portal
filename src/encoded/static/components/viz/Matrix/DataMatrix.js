@@ -1738,7 +1738,7 @@ export default class DataMatrix extends React.PureComponent {
      * `/data_matrix_aggregations` response which isn't structured for consumption.
      */
     onExportJson() {
-        const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel, rowGroups, showRowGroups } = this.state;
+        const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel, rowGroups, showRowGroups, columnGroups, showColumnGroups } = this.state;
         const { idLabel = '' } = this.props;
         const effectiveResults = this.getDerivedDonorTissueResults(this.state._results) || {};
         const exportData = buildMatrixExportData({
@@ -1753,7 +1753,9 @@ export default class DataMatrix extends React.PureComponent {
             rowAxisLabel: yAxisLabel,
             columnAxisLabel: xAxisLabel,
             rowGroups,
-            showRowGroups
+            showRowGroups,
+            columnGroups,
+            showColumnGroups
         });
 
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -1849,7 +1851,7 @@ export default class DataMatrix extends React.PureComponent {
             const anchor = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             anchor.href = dataUrl;
-            anchor.download = `data-matrix_${matrixMode}_${countFor}_${timestamp}.png`;
+            anchor.download = `SMaHT_data-matrix_${matrixMode}_${countFor}_${timestamp}.png`;
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);
