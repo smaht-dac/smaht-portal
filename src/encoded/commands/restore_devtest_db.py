@@ -54,7 +54,7 @@ DEVTEST = "devtest"
 DEFAULT_STATE_DIR = "~/.smaht/restore-devtest-db"
 DEFAULT_SOURCE_DB = "rds-smaht-production"
 DEFAULT_PROTECTED_DB = "rds-smaht-devtest"
-DEFAULT_INSTANCE_CLASS = "db.t4g.medium"  # a reasonable size for ~16 indexers
+DEFAULT_INSTANCE_CLASS = "db.m7g.xlarge"  # a reasonable size for ~16 indexers
 PRODUCTION_HEALTH_URL = "https://data.smaht.org/health?format=json"
 DEVTEST_HEALTH_URL = "https://devtest.smaht.org/health?format=json"
 HEALTH_KMS_KEY_FIELD = "s3_encrypt_key_id"
