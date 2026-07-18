@@ -397,6 +397,23 @@ export function buildMatrixExportData({
         return typeof overrideValue === 'number' ? overrideValue : null;
     };
 
+    // Sum of the same per-row overrides above, one level up: the backend's `columnTotals`
+    // aggregation buckets purely by the raw assay/platform key, with no `data_type` awareness, so
+    // a DSA-like (DSA/Chain File/Sequence Interval) file tagged with e.g. "Fiber-Seq" is still
+    // counted in that bucket even though `getRawRegularOverride` above (and the on-screen grid)
+    // excludes that same row from ever appearing under "Fiber-Seq" - leaving the backend bucket's
+    // total higher than what the column's own exported rows actually sum to. Reuse the override
+    // map wholesale here so every column's total always equals the sum of its rows, instead of
+    // only patching the one column (Fiber-Seq) this happened to surface on.
+    const overrideColumnTotals = {};
+    if (rawRegularCountOverrides && countField === 'files' && overrideDepth >= 0) {
+        _.each(rawRegularCountOverrides[overrideDepth] || {}, (colValues) => {
+            _.each(colValues, (value, col) => {
+                overrideColumnTotals[col] = (overrideColumnTotals[col] || 0) + (Number(value) || 0);
+            });
+        });
+    }
+
     const buildLeafRow = (items, pathValues) => {
         const rowKeyFields = _.object(groupingProperties, pathValues);
         const byColumn = _.groupBy(items, columnGrouping);
@@ -443,7 +460,7 @@ export function buildMatrixExportData({
     columns.forEach((col) => {
         const matchingColumnTotals = columnTotalsByKey[col];
         const columnItems = matchingColumnTotals && matchingColumnTotals.length ? matchingColumnTotals : (groupedByColumn[col] || []);
-        columnTotalsMap[col] = computeCellValue(columnItems);
+        columnTotalsMap[col] = overrideColumnTotals[col] != null ? overrideColumnTotals[col] : computeCellValue(columnItems);
         // Mirrors the always-visible "Total Donors"/"Total Tissues" band shown above "Total
         // Files"/"Total Coverage" on screen - computed the same way regardless of `countFor` so
         // it doesn't just repeat columnTotals when the toggle happens to already match. Uses the
