@@ -11,28 +11,43 @@ Change Log
 2.3.10
 ======
 
-Production memory/reliability tuning for the per-worker RSS watchdog and nginx failover.
+nginx failover reliability and observability for worker SIGKILL/restart churn. The
+per-worker ``rss_limit`` increase originally proposed here is **deferred** pending
+capacity evidence (see below).
 
-* Raise the production per-worker ``rss_limit`` from ``450MB`` to ``600MB`` in ``base.ini``.
-  The in-process ``snovault.memlimit`` watchdog SIGKILLs a waitress worker when its RSS crosses
-  this cap; at 450MB workers were being killed at ~474 MiB while the 8 GiB ECS task ran only
-  ~60% typical / <90% peak, wasting most of the task budget. 5 workers x 600MB (~3 GiB) leaves
-  ample headroom. Byte-limit behavior is preserved; no percentage limit is added because
-  ``psutil.memory_percent`` reads the Fargate host, not the task. This is a conservative capacity
-  adjustment, not a memory-leak fix. Rollback: revert the value to ``450MB``.
-* ``deploy/docker/production/nginx.conf`` reliability/observability changes for worker
-  SIGKILL/restart churn:
+* **Deferred (no change in this release):** the per-worker ``rss_limit`` in ``base.ini``
+  stays at ``450MB``. An earlier revision raised it to ``600MB``; that was reverted after
+  independent review found the "ample task headroom" justification unsound -- the
+  ``snovault.memlimit`` watchdog is a delayed, parent-only RSS check and does not bound
+  task memory: it excludes the up-to-80 thread-local Node SSR child processes, nginx's own
+  per-connection buffers, and watchdog overshoot, and a task near its 8 GiB hard limit has
+  little margin (raising all five caps by 150MB permits +750MB of parent RSS). Any future
+  raise requires a same-window process-tree/cgroup budget and canary alarms with a defined
+  rollback threshold, and must be staged after the routing change below.
+* ``deploy/docker/production/nginx.conf`` changes:
 
-  * Make all 5 workers active in ``upstream app`` (port 6547 was ``backup``, concentrating normal
-    traffic on 4 workers); failover is preserved by ``proxy_next_upstream``.
-  * Reduce upstream ``fail_timeout`` from ``45`` to ``15s`` so a worker restarted by supervisord
-    (~6s) is not quarantined for 45s; ``max_fails`` left at its default.
-  * Bound retries with ``proxy_next_upstream_tries 2`` and ``proxy_next_upstream_timeout 30s`` to
-    prevent a correlated kill storm from stampeding all upstreams. Non-idempotent requests are
-    still not retried.
-  * Add a targeted ``upstream_debug`` access log (to ``/dev/stdout``) that fires only on failover
-    or upstream 5xx, exposing which internal worker failed/retried -- visibility the LB access log
-    cannot provide.
+  * Make all 5 workers active in ``upstream app`` (port 6547 was ``backup``). This is a
+    request-distribution change at the unchanged 450MB cap; failover is preserved by
+    ``proxy_next_upstream``. (Note: warming the formerly-cold worker's lazy Node SSR
+    children can slightly raise task RSS -- covered by the deferred cap raise's canary watch.)
+  * Reduce upstream ``fail_timeout`` from ``45s`` to ``15s`` so a recovered peer becomes
+    selectable again sooner; ``max_fails`` left at its default (1). (The real pserve
+    socket-ready time after SIGKILL is unmeasured; 15s is revisited once measured.)
+  * Bound retry fan-out with ``proxy_next_upstream_tries 2`` (at most **two total** upstream
+    attempts, not two retries) and ``proxy_next_upstream_timeout 30s`` (bounds only when a
+    handoff to another peer may be *initiated* -- **not** an end-to-end request deadline).
+    Deliberate availability trade: a request that hits two failed peers can error even if a
+    third is healthy, in exchange for bounded amplification. Retry method policy is nginx's
+    default: POST/LOCK/PATCH are not retried once sent to an upstream (after-send protection
+    against duplicate side effects), while a pre-send connection failure and non-protected
+    methods (GET/HEAD/PUT/DELETE/OPTIONS/...) may retry -- it is **not** "GET/HEAD only".
+  * Add a targeted ``upstream_debug`` access log (to ``/dev/stdout``) that fires only on
+    failover or upstream 5xx, exposing which internal worker failed/retried. Logs
+    ``$request_method`` and ``$uri`` (no query string) plus ``$request_id``; this is a
+    separate stream whose retention/access controls must match the LB log's.
+* Add ``RUN nginx -t`` to the production ``Dockerfile`` so the config is validated against the
+  pinned nginx 1.21.6 during the CI Docker build, and add an offline behavioral harness
+  (``deploy/docker/production/test_nginx_failover.py``) for the retry/method/logging cases.
 
 
 2.3.9
