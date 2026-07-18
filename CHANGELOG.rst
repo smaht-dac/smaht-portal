@@ -8,6 +8,33 @@ Change Log
 ----------
 
 
+2.3.10
+======
+
+Production memory/reliability tuning for the per-worker RSS watchdog and nginx failover.
+
+* Raise the production per-worker ``rss_limit`` from ``450MB`` to ``600MB`` in ``base.ini``.
+  The in-process ``snovault.memlimit`` watchdog SIGKILLs a waitress worker when its RSS crosses
+  this cap; at 450MB workers were being killed at ~474 MiB while the 8 GiB ECS task ran only
+  ~60% typical / <90% peak, wasting most of the task budget. 5 workers x 600MB (~3 GiB) leaves
+  ample headroom. Byte-limit behavior is preserved; no percentage limit is added because
+  ``psutil.memory_percent`` reads the Fargate host, not the task. This is a conservative capacity
+  adjustment, not a memory-leak fix. Rollback: revert the value to ``450MB``.
+* ``deploy/docker/production/nginx.conf`` reliability/observability changes for worker
+  SIGKILL/restart churn:
+
+  * Make all 5 workers active in ``upstream app`` (port 6547 was ``backup``, concentrating normal
+    traffic on 4 workers); failover is preserved by ``proxy_next_upstream``.
+  * Reduce upstream ``fail_timeout`` from ``45`` to ``15s`` so a worker restarted by supervisord
+    (~6s) is not quarantined for 45s; ``max_fails`` left at its default.
+  * Bound retries with ``proxy_next_upstream_tries 2`` and ``proxy_next_upstream_timeout 30s`` to
+    prevent a correlated kill storm from stampeding all upstreams. Non-idempotent requests are
+    still not retried.
+  * Add a targeted ``upstream_debug`` access log (to ``/dev/stdout``) that fires only on failover
+    or upstream 5xx, exposing which internal worker failed/retried -- visibility the LB access log
+    cannot provide.
+
+
 2.3.9
 =====
 
