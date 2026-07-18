@@ -1738,7 +1738,7 @@ export default class DataMatrix extends React.PureComponent {
      * `/data_matrix_aggregations` response which isn't structured for consumption.
      */
     onExportJson() {
-        const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel, rowGroups, showRowGroups, columnGroups, showColumnGroups } = this.state;
+        const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel, rowGroups, showRowGroups, columnGroups, showColumnGroups, rawRegularCountOverrides } = this.state;
         const { idLabel = '' } = this.props;
         const effectiveResults = this.getDerivedDonorTissueResults(this.state._results) || {};
         const exportData = buildMatrixExportData({
@@ -1755,7 +1755,13 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups,
             showRowGroups,
             columnGroups,
-            showColumnGroups
+            showColumnGroups,
+            // Some rows get relabeled onto a synthetic "Variant Call Sets"/"DSA" column after
+            // load (see resultTransformedPostProcessFuncs.analysisDerivedColumns), which would
+            // otherwise silently undercount their original assay column here exactly as it would
+            // for the on-screen grid - this override (built from the pre-relabel raw rows) is
+            // what the grid itself uses to show the true per-assay file count instead.
+            rawRegularCountOverrides
         });
 
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
