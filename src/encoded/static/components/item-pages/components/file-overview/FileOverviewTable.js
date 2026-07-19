@@ -29,6 +29,8 @@ export const FileOverviewTableController = (props) => {
         session,
         href,
         context,
+        customColumns = {},
+        customHideColumns = null,
     } = props;
 
     return (
@@ -44,6 +46,8 @@ export const FileOverviewTableController = (props) => {
                     href,
                     searchHref: associatedFilesSearchHref,
                     embeddedTableHeaderText,
+                    customColumns,
+                    customHideColumns,
                 }}
             />
         </SelectedItemsController>
@@ -65,6 +69,8 @@ export const FileOverviewTable = (props) => {
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         originalColExtMap,
+        customColumns = {},
+        customHideColumns = null,
     } = props;
 
     const selectedFileProps = {
@@ -75,6 +81,7 @@ export const FileOverviewTable = (props) => {
 
     const FileOverviewColExtMap = {
         ...originalColExtMap,
+        ...customColumns,
         // Select all button
         '@type': {
             colTitle: (
@@ -296,26 +303,32 @@ export const FileOverviewTable = (props) => {
                 }}
                 facets={null}
                 columnExtensionMap={FileOverviewColExtMap}
-                hideColumns={[
-                    'display_title',
-                    'data_type',
-                    'sequencers.display_title',
-                    'file_format.display_title',
-                    'submission_centers.display_title',
-                    'assays.display_title',
-                    'sequencing_center.display_title',
-                ]}
-                columns={{
-                    '@type': {},
-                    access_status: {},
-                    annotated_filename: {},
-                    'software.display_title': {},
-                    'software.version': {},
-                    status: {},
-                    tsv_notes: {},
-                    release_date: {},
-                    file_size: {},
-                }}
+                hideColumns={
+                    customHideColumns ?? [
+                        'display_title',
+                        'data_type',
+                        'sequencers.display_title',
+                        'file_format.display_title',
+                        'submission_centers.display_title',
+                        'assays.display_title',
+                        'sequencing_center.display_title',
+                    ]
+                }
+                columns={
+                    Object.keys(customColumns).length > 0
+                        ? customColumns
+                        : {
+                              '@type': {},
+                              access_status: {},
+                              annotated_filename: {},
+                              'software.display_title': {},
+                              'software.version': {},
+                              status: {},
+                              tsv_notes: {},
+                              release_date: {},
+                              file_size: {},
+                          }
+                }
             />
         </>
     );
