@@ -24,6 +24,18 @@ export function isLocalEnv() {
     return false;
 }
 
+/**
+ * Filename-safe timestamp in the browser's local time (not UTC), e.g. "2026-07-19T15-04-03-685".
+ * `toISOString()` always reports UTC, which reads as the wrong time-of-day to a user exporting
+ * a file in their own timezone.
+ */
+function getLocalTimestampForFilename() {
+    const pad = (n, len = 2) => String(n).padStart(len, '0');
+    const d = new Date();
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T` +
+        `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+}
+
 export default class DataMatrix extends React.PureComponent {
 
     static DONOR_TISSUE_ALL_ASSAYS = 'All';
@@ -1805,7 +1817,7 @@ export default class DataMatrix extends React.PureComponent {
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
         const downloadUrl = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const timestamp = getLocalTimestampForFilename();
         anchor.href = downloadUrl;
         anchor.download = `SMaHT_data-matrix_${matrixMode}_${countFor}_${idLabel || 'export'}_${timestamp}.json`;
         document.body.appendChild(anchor);
@@ -1893,7 +1905,7 @@ export default class DataMatrix extends React.PureComponent {
         try {
             const dataUrl = await toPng(node, { backgroundColor: '#ffffff', pixelRatio: 2 });
             const anchor = document.createElement('a');
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const timestamp = getLocalTimestampForFilename();
             anchor.href = dataUrl;
             anchor.download = `SMaHT_data-matrix_${matrixMode}_${countFor}_${timestamp}.png`;
             document.body.appendChild(anchor);
