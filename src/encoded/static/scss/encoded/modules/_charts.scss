@@ -1671,10 +1671,16 @@ body[data-path="/statistics"] {
         container-name: matrix-mode-tabs-row;
 
         // Tabs sit flush against the row's border-bottom by design (their own border-bottom is
-        // "none" so they visually merge with the panel body below). Only pad the row when there
-        // are no tabs to butt up against (e.g. benchmarking's export-only row), otherwise padding
-        // pushes that border down and detaches the tabs from the body below them.
+        // "none" so they visually merge with the panel body below) - that border is what gives
+        // the tab strip its baseline. With no tabs (e.g. benchmarking's export-only row) there's
+        // no tab strip for it to complete, and this row's box height (driven by the export/
+        // refresh buttons' own padding) doesn't match the adjacent counts panel's unrelated
+        // `.matrix-total-files-count` box height, so the border-bottom lands at a different y
+        // than that panel's own border-bottom - the two independent flex columns have no shared
+        // row to equalize against. Rather than chase pixel-exact alignment between two unrelated
+        // boxes, drop the border here; it isn't load-bearing without a tab strip above it.
         &.no-tabs {
+            border-bottom: none;
             padding: 0.5rem 0.25rem;
         }
     }
