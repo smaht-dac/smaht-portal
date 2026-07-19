@@ -906,23 +906,22 @@ export default class DataMatrix extends React.PureComponent {
             const isDsaLikeRow = _.some(dataTypes, (dataType) =>
                 dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval'
             );
-            // Mirrors resultTransformedPostProcessFuncs.analysisDerivedColumns's own
-            // variantCallAnalysisDetails filter - rows with analysis_details Filtered/Phased get
-            // pulled out of their raw assay bucket and merged into a synthetic "Variant Call Sets"
-            // column the same way DSA-like rows get merged into "DSA". Without this check these
-            // rows were only excluded from leaking back into their parent assay cell when they
-            // happened to also be DSA-like, so a normal assay's Filtered/Phased rows (e.g. "WGS -
-            // Illumina" SNV/Indel calls) were double-counted: once here under the original assay,
-            // once again under "Variant Call Sets".
-            const isVariantCallLikeRow = row?.analysis_details === 'Filtered' || row?.analysis_details === 'Phased';
             if (!columnValue || files <= 0) {
                 return memo;
             }
 
-            // Keep raw assay totals for normal columns, but do not leak DSA-like or
-            // variant-call-like rows back into their parent assay cells - each continues to use
-            // its own derived ("DSA" / "Variant Call Sets") path.
-            if ((isDsaLikeRow && columnValue !== 'DSA') || (isVariantCallLikeRow && columnValue !== 'Variant Call Sets')) {
+            // Keep raw assay totals for normal columns, but do not leak DSA-like rows
+            // back into their parent assay cells. DSA continues to use its own derived path.
+            //
+            // NOTE: a matching exclusion for analysis_details Filtered/Phased ("Variant Call
+            // Sets") rows was tried here and reverted - Duplex-seq assays (NanoSeq/CODEC/
+            // VISTA-Seq) also carry Filtered/Phased rows that are NOT variant calls, and
+            // excluding them dropped their real files from the override (confirmed via
+            // production export regression: NanoSeq -88, CODEC -100, VISTA-Seq -68 files).
+            // analysisDerivedColumns's variantCallAnalysisDetails filter is assay-agnostic and
+            // may itself be over-broad, but fixing that needs assay/data_type-aware filtering,
+            // not a blanket analysis_details check here.
+            if (isDsaLikeRow && columnValue !== 'DSA') {
                 return memo;
             }
 
