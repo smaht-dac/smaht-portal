@@ -265,7 +265,8 @@ export function buildMatrixExportData({
     showRowGroups = false,
     columnGroups = null,
     showColumnGroups = false,
-    rawRegularCountOverrides = null
+    rawRegularCountOverrides = null,
+    dedupeBenchmarkingDsaAcrossTissues = false
 } = {}) {
     const countField = countFor === 'tissue_files' ? 'files' : countFor;
 
@@ -304,6 +305,36 @@ export function buildMatrixExportData({
             }
         });
         return valueSet.size;
+    };
+
+    // A benchmarking DSA-like file can be linked to more than one tissue for the same donor
+    // (see DataMatrix.buildRawRegularCountOverrides's depth-0 case), so the backend reports the
+    // same file count on every one of that donor's tissue rows rather than splitting it - naively
+    // summing the "DSA" column across those rows (as computeCellValue does) counts that file once
+    // per linked tissue. The on-screen grid corrects for this in its collapsed per-donor summary
+    // band; this reproduces the same correction (max per donor, not sum) for the export's
+    // aggregate totals - `columnFiles`/`sectionFiles` here - which read straight off `data`/
+    // `sectionItems` and would otherwise silently over-count "DSA" the same way. Per-row leaf
+    // values (buildLeafRow) are unaffected: each tissue's own row is supposed to show that file's
+    // full count.
+    const dedupeDsaTotalByPrimaryEntity = (items) => {
+        if (!dedupeBenchmarkingDsaAcrossTissues || !primaryEntityField || countField !== 'files') return null;
+        const maxByEntity = {};
+        (items || []).forEach((item) => {
+            const entityValue = item?.[primaryEntityField];
+            if (entityValue == null) return;
+            const key = String(entityValue);
+            const value = Number(item?.counts?.files) || 0;
+            maxByEntity[key] = Math.max(maxByEntity[key] || 0, value);
+        });
+        return _.reduce(maxByEntity, (sum, value) => sum + value, 0);
+    };
+    const dsaColumnDedupExcess = (items) => {
+        const dsaItems = _.filter(items, (item) => item?.[columnGrouping] === 'DSA');
+        if (!dsaItems.length) return 0;
+        const dedupedTotal = dedupeDsaTotalByPrimaryEntity(dsaItems);
+        if (dedupedTotal == null) return 0;
+        return Math.max(0, computeCellValue(dsaItems) - dedupedTotal);
     };
 
     // Name the count fields after the metric they actually hold (columnFiles/columnCoverage/
@@ -423,6 +454,16 @@ export function buildMatrixExportData({
             counts[col] = overrideValue != null ? overrideValue : computeCellValue(byColumn[col] || []);
         });
         const matchingRowTotals = rowTotalsByPath[JSON.stringify(pathValues)];
+        // Prefer the backend-aggregated row-totals value, but backend `row_totals` rows aren't
+        // guaranteed to carry every metric - e.g. benchmarking's donor+tissue row_totals track
+        // `files`/`donors` but not `total_coverage`, so computeCellValue(matchingRowTotals) comes
+        // back 0 for every row under the Coverage toggle even though the row's own cells (summed
+        // from `items` below) are clearly non-zero. Falling back to `items` only when the
+        // row-totals figure is 0 keeps the backend total authoritative whenever it actually has
+        // this metric, without resurrecting a genuine 0 as if it were missing data.
+        const rowTotalsValue = matchingRowTotals && matchingRowTotals.length ? computeCellValue(matchingRowTotals) : null;
+        const itemsValue = computeCellValue(items);
+        const rowMetricValue = (rowTotalsValue != null && rowTotalsValue !== 0) ? rowTotalsValue : itemsValue;
         // germLayer (e.g. Ectoderm/Mesoderm/Endoderm/Germline) is shown on-screen as a colored
         // vertical row-group label when a row represents a single tissue (e.g. Donor x Assay's
         // donor+tissue rows). Only surface it here when every underlying item actually shares one
@@ -434,7 +475,7 @@ export function buildMatrixExportData({
             ...rowKeyFields,
             ...(germLayerValue != null ? { germLayer: germLayerValue } : {}),
             [rowCountsKey]: counts,
-            [rowMetricKey]: computeCellValue(matchingRowTotals && matchingRowTotals.length ? matchingRowTotals : items)
+            [rowMetricKey]: rowMetricValue
         };
     };
 
@@ -460,7 +501,14 @@ export function buildMatrixExportData({
     columns.forEach((col) => {
         const matchingColumnTotals = columnTotalsByKey[col];
         const columnItems = matchingColumnTotals && matchingColumnTotals.length ? matchingColumnTotals : (groupedByColumn[col] || []);
-        columnTotalsMap[col] = overrideColumnTotals[col] != null ? overrideColumnTotals[col] : computeCellValue(columnItems);
+        // DSA's cross-tissue duplication (see dedupeDsaTotalByPrimaryEntity above) affects the raw
+        // per-item rows regardless of which source `columnItems` came from, so recompute from
+        // `groupedByColumn` - the raw rows - rather than `matchingColumnTotals`, which may already
+        // be a backend pre-aggregate without a usable `primaryEntityField` to dedupe by.
+        const dedupedDsaTotal = col === 'DSA' ? dedupeDsaTotalByPrimaryEntity(groupedByColumn[col] || []) : null;
+        columnTotalsMap[col] = dedupedDsaTotal != null
+            ? dedupedDsaTotal
+            : (overrideColumnTotals[col] != null ? overrideColumnTotals[col] : computeCellValue(columnItems));
         // Mirrors the always-visible "Total Donors"/"Total Tissues" band shown above "Total
         // Files"/"Total Coverage" on screen - computed the same way regardless of `countFor` so
         // it doesn't just repeat columnTotals when the toggle happens to already match. Uses the
@@ -481,7 +529,12 @@ export function buildMatrixExportData({
     // raw `safeData` (not the aggregated `columnTotals`) for the same reason as columnEntityCounts
     // above.
     const overallEntityCount = primaryEntityField === 'donor' ? (overallCounts?.donors ?? overallCounts?.donor_count) : null;
-    const totalEntityCount = Number.isFinite(Number(overallEntityCount))
+    // `Number(null)` is `0`, and `Number.isFinite(0)` is `true` - so checking finiteness alone
+    // silently treats "no backend shortcut available" (null) as a real, valid count of zero
+    // instead of falling through to the raw-data derivation below. That's exactly what happened
+    // for Tissue x Assay: `overallEntityCount` is intentionally null there, `Number.isFinite(0)`
+    // still passed, and every export reported "totalTissues": 0 instead of the real count.
+    const totalEntityCount = overallEntityCount != null && Number.isFinite(Number(overallEntityCount))
         ? Number(overallEntityCount)
         : computePrimaryEntityCount(safeData);
 
@@ -538,9 +591,14 @@ export function buildMatrixExportData({
         const sectionColumnEntityCounts = {};
         columns.forEach((col) => {
             const sectionColumnItems = sectionByColumn[col] || [];
-            sectionColumnTotals[col] = computeCellValue(sectionColumnItems);
+            const dedupedDsaTotal = col === 'DSA' ? dedupeDsaTotalByPrimaryEntity(sectionColumnItems) : null;
+            sectionColumnTotals[col] = dedupedDsaTotal != null ? dedupedDsaTotal : computeCellValue(sectionColumnItems);
             sectionColumnEntityCounts[col] = computePrimaryEntityCount(sectionColumnItems);
         });
+        // computeCellValue(sectionItems) below sums every item including "DSA"'s raw
+        // (undeduped) rows - subtract exactly the excess those contributed so the section total
+        // still matches sum(sectionColumnTotals) instead of double-counting the same fix twice.
+        const sectionDsaDedupExcess = dsaColumnDedupExcess(sectionItems);
 
         return {
             key: groupKey,
@@ -549,7 +607,7 @@ export function buildMatrixExportData({
             rows: sectionRows,
             [columnMetricKey]: sectionColumnTotals,
             ...(includeEntityCountAlias ? { [columnEntityKey]: sectionColumnEntityCounts } : {}),
-            [sectionMetricKey]: computeCellValue(sectionItems),
+            [sectionMetricKey]: computeCellValue(sectionItems) - sectionDsaDedupExcess,
             ...(includeEntityCountAlias ? { [sectionEntityKey]: computePrimaryEntityCount(sectionItems) } : {})
         };
     }));

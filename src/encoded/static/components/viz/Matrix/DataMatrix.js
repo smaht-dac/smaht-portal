@@ -906,13 +906,23 @@ export default class DataMatrix extends React.PureComponent {
             const isDsaLikeRow = _.some(dataTypes, (dataType) =>
                 dataType === 'DSA' || dataType === 'Chain File' || dataType === 'Sequence Interval'
             );
+            // Mirrors resultTransformedPostProcessFuncs.analysisDerivedColumns's own
+            // variantCallAnalysisDetails filter - rows with analysis_details Filtered/Phased get
+            // pulled out of their raw assay bucket and merged into a synthetic "Variant Call Sets"
+            // column the same way DSA-like rows get merged into "DSA". Without this check these
+            // rows were only excluded from leaking back into their parent assay cell when they
+            // happened to also be DSA-like, so a normal assay's Filtered/Phased rows (e.g. "WGS -
+            // Illumina" SNV/Indel calls) were double-counted: once here under the original assay,
+            // once again under "Variant Call Sets".
+            const isVariantCallLikeRow = row?.analysis_details === 'Filtered' || row?.analysis_details === 'Phased';
             if (!columnValue || files <= 0) {
                 return memo;
             }
 
-            // Keep raw assay totals for normal columns, but do not leak DSA-like rows
-            // back into their parent assay cells. DSA continues to use its own derived path.
-            if (isDsaLikeRow && columnValue !== 'DSA') {
+            // Keep raw assay totals for normal columns, but do not leak DSA-like or
+            // variant-call-like rows back into their parent assay cells - each continues to use
+            // its own derived ("DSA" / "Variant Call Sets") path.
+            if ((isDsaLikeRow && columnValue !== 'DSA') || (isVariantCallLikeRow && columnValue !== 'Variant Call Sets')) {
                 return memo;
             }
 
@@ -1073,7 +1083,7 @@ export default class DataMatrix extends React.PureComponent {
                 transformed.push(cloned);
             };
 
-            // result = resultItemPostProcessFuncKey ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? PRODUCTION_TEST_DATA_DA : PRODUCTION_TEST_DATA_TA));
+            // result = resultItemPostProcessFuncKey ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? PRODUCTION_TEST_DATA_DA : (this.state.countFor === 'donors' ? PRODUCTION_TEST_DATA_TA_Donors: PRODUCTION_TEST_DATA_TA_Files)));
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
@@ -1583,7 +1593,22 @@ export default class DataMatrix extends React.PureComponent {
                 query: {
                     ...prevState.query,
                     columnAggFields: ['sample_summary.tissues'],
-                    rowAggFields: ['donors.display_title', 'sample_summary.category']
+                    // Keep data_type/analysis_details (and donors.display_title/
+                    // sample_summary.category) from the base row fields - only tissue moves to
+                    // columnAggFields. Without data_type/analysis_details here, backend rows
+                    // collapse to one per (donor, tissue) with no way to isolate DSA-like rows,
+                    // so normalizeMissingAssayBucket/analysisDerivedColumns's transformDSA (which
+                    // expects "donor+tissue exploded by assay/platform/data_type" - see its
+                    // 'max_dsa_row' comment below) silently drops those files: they're absent from
+                    // dsaData (data_type never populated), so no merged DSA row is added back in,
+                    // and the per-tissue cell/column breakdown undercounts vs. the donor's real
+                    // row total (which the backend still computes independent of these dims).
+                    rowAggFields: (baseRowAggFields || []).filter((f) => {
+                        if (Array.isArray(f)) {
+                            return !f.includes('sample_summary.tissues');
+                        }
+                        return f !== 'sample_summary.tissues';
+                    })
                 },
                 groupingProperties: ['donor'],
                 columnGrouping: 'tissue',
@@ -1739,7 +1764,7 @@ export default class DataMatrix extends React.PureComponent {
      */
     onExportJson() {
         const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel, rowGroups, showRowGroups, columnGroups, showColumnGroups, rawRegularCountOverrides } = this.state;
-        const { idLabel = '' } = this.props;
+        const { idLabel = '', dedupeBenchmarkingDsaAcrossTissues = false } = this.props;
         const effectiveResults = this.getDerivedDonorTissueResults(this.state._results) || {};
         const exportData = buildMatrixExportData({
             data: effectiveResults.all || [],
@@ -1761,7 +1786,21 @@ export default class DataMatrix extends React.PureComponent {
             // otherwise silently undercount their original assay column here exactly as it would
             // for the on-screen grid - this override (built from the pre-relabel raw rows) is
             // what the grid itself uses to show the true per-assay file count instead.
-            rawRegularCountOverrides
+            // Donor x Tissue mirrors the on-screen grid's bodyProps (see render()): this map is
+            // built by columnValue !== 'DSA' checks that assume an assay-grouped column, so under
+            // tissue grouping it keeps only the non-DSA portion of a cell (e.g. "3AC -
+            // Fibroblast") and clobbers the correctly-merged DSA total with that partial value
+            // instead of leaving it to computeCellValue. Excluding it here too, not just in the
+            // grid, keeps the export's per-tissue breakdown consistent with rowFiles/totalFiles.
+            rawRegularCountOverrides: matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
+                ? rawRegularCountOverrides
+                : null,
+            // A benchmarking DSA-like file linked to more than one of a donor's tissues gets that
+            // same file count reported on each linked tissue row - see
+            // StackedBlockVisual.dedupeDsaTotalByPrimaryEntity - so this must be threaded through
+            // for the export's columnFiles/sectionFiles totals to match rowFiles/the on-screen
+            // grid's collapsed per-donor summary instead of double-counting those files.
+            dedupeBenchmarkingDsaAcrossTissues
         });
 
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
