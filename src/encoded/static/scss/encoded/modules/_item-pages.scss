@@ -1289,6 +1289,35 @@ body[data-pathname^="/users/"] {
 
 			}
 
+			.data-release-notification-enrollment {
+				.card-header {
+					padding-left: 30px;
+					h3 {
+						font-size: 1.5rem;
+						font-weight: 400;
+					}
+				}
+				.card-body {
+					padding: 10px;
+					padding-left: 35px;
+
+					.alert-success {
+						padding-left: 10px;
+						background-color: #ECFFF2;
+						border: 1px solid #99E199;
+					}
+					
+					.subscribe-button {
+						font-weight: 600;
+						border: 1px solid #0963BA;
+
+						&.subscribed {
+							border-color: #DEE2E6;
+						}
+					}
+				}
+			}
+
 		}
 	}
 }
