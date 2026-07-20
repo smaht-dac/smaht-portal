@@ -5,6 +5,7 @@ import DefaultItemView from './DefaultItemView';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
 import AliquotVisualization from './components/tissue-overview/AliquotVisualization';
+import NonSolidAliquotVisualization from './components/tissue-overview/NonSolidAliquotVisualization';
 import { useUserDownloadAccess } from '../util/hooks';
 
 export default class TissueOverview extends DefaultItemView {
@@ -88,6 +89,11 @@ const sampleAliquotSlices = [
     { id: 'fixed-3', type: 'pink', widthCm: 0.5, description: 'Fixed edge aliquot for archive retention.' },
 ];
 
+const sampleNonSolidAliquots = [
+    { id: 'aliquot-1', description: 'Primary collection tube reserved for sequencing-ready extraction.' },
+    { id: 'aliquot-2', description: 'Secondary collection tube held as backup material.' },
+];
+
 const TissueViewTitle = ({ context }) => {
     const breadcrumbs = [
         { display_title: 'Home', href: '/' },
@@ -130,6 +136,12 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     const targetTissueValue = uberon_id || tissue_type || null;
     const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
+    const nonSolidSpecimenType =
+        tissueProtocolCode === '3B'
+            ? 'buccal'
+            : tissueProtocolCode === '3A'
+                ? 'blood'
+                : null;
     const tissueMatrixFilterValue = useMemo(
         () => tissue_type || uberon_id?.display_title || null,
         [tissue_type, uberon_id]
@@ -264,19 +276,28 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     </div>
 
                     <div className="tissue-aliquot-card">
-                        <AliquotVisualization
-                            title="Sample solid-organ aliquot layout"
-                            slices={sampleAliquotSlices}
-                            dimensions={{
-                                heightCm: 1,
-                                depthCm: 1.5,
-                                widthLabel: '7.5 cm',
-                                heightLabel: '1 cm',
-                                depthLabel: '1.5 cm',
-                            }}
-                            idPrefix={tissueProtocolCode}
-                            showSliceLabels={false}
-                        />
+                        {nonSolidSpecimenType ? (
+                            <NonSolidAliquotVisualization
+                                title="Sample non-solid aliquot layout"
+                                aliquots={sampleNonSolidAliquots}
+                                specimenType={nonSolidSpecimenType}
+                                idPrefix={tissueProtocolCode}
+                            />
+                        ) : (
+                            <AliquotVisualization
+                                title="Sample solid-organ aliquot layout"
+                                slices={sampleAliquotSlices}
+                                dimensions={{
+                                    heightCm: 1,
+                                    depthCm: 1.5,
+                                    widthLabel: '7.5 cm',
+                                    heightLabel: '1 cm',
+                                    depthLabel: '1.5 cm',
+                                }}
+                                idPrefix={tissueProtocolCode}
+                                showSliceLabels={false}
+                            />
+                        )}
                     </div>
                 </div>
 
@@ -298,7 +319,6 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                     <th>Donor ID</th>
                                     <th>Sex</th>
                                     <th>Age</th>
-                                    <th>Status</th>
                                     <th>Autolysis Score</th>
                                     <th>Non-Target Tissue Presence</th>
                                     <th>Unexpected/Pathologic Finding</th>
@@ -328,7 +348,6 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                                 </td>
                                                 <td>{getDisplayText(d.sex)}</td>
                                                 <td>{getDisplayText(d.age)}</td>
-                                                <td>{getDisplayText(d.status)}</td>
                                                 <td>{getDisplayText(pathologySummary.autolysis_score)}</td>
                                                 <td>{formatYesNo(pathologySummary.non_target_tissue_present)}</td>
                                                 <td>{formatYesNo(pathologySummary.pathologic_finding_present)}</td>
