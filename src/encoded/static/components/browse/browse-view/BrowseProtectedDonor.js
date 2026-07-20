@@ -18,6 +18,7 @@ import {
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
 import { DonorDataProvider } from './BrowseDonorDataProvider';
+import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';
 
 export { formatTissueData, formatAssayData } from './BrowseDonorBase';
 
@@ -156,22 +157,26 @@ export const BrowseProtectedDonorBody = (props) => {
     const { context, alerts, href, userDownloadAccess, isAccessResolved } =
         props;
     return (
-        <DonorDataProvider key={href}>
+        <React.Fragment>
             <Alerts alerts={alerts} className="mt-2" />
             <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
             <hr />
-            <BrowseViewControllerWithSelections {...props}>
-                <BrowseProtectedDonorSearchTable />
-            </BrowseViewControllerWithSelections>
-            {context?.total === 0 && (
-                <NoResultsBrowseModal
-                    type="protected_donor"
-                    context={context}
-                    href={href}
-                    userDownloadAccess={userDownloadAccess}
-                    isAccessResolved={isAccessResolved}
-                />
-            )}
-        </DonorDataProvider>
+            <DonorDataProvider
+                key={href}
+                buildHref={buildDonorPeekMetadataHref}>
+                <BrowseViewControllerWithSelections {...props}>
+                    <BrowseProtectedDonorSearchTable />
+                </BrowseViewControllerWithSelections>
+                {context?.total === 0 && (
+                    <NoResultsBrowseModal
+                        type="protected_donor"
+                        context={context}
+                        href={href}
+                        userDownloadAccess={userDownloadAccess}
+                        isAccessResolved={isAccessResolved}
+                    />
+                )}
+            </DonorDataProvider>
+        </React.Fragment>
     );
 };

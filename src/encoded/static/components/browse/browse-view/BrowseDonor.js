@@ -14,6 +14,7 @@ import {
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
 import { DonorDataProvider } from './BrowseDonorDataProvider';
+import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';
 
 export function createBrowseDonorColumnExtensionMap(props) {
     const { columnExtensionMap, columns, hideFacets } =
@@ -130,22 +131,26 @@ export const BrowseDonorBody = (props) => {
     );
 
     return (
-        <DonorDataProvider key={href}>
-            {showRedirectBanner && <RedirectBanner href={props.href} />}
+        <React.Fragment>
+            {showRedirectBanner && <RedirectBanner href={href} />}
             <BrowseDonorVizWrapper {...props} mapping="donor" />
             <hr />
-            <BrowseViewControllerWithSelections {...props}>
-                <BrowseDonorSearchTable />
-            </BrowseViewControllerWithSelections>
-            {context?.total === 0 && (
-                <NoResultsBrowseModal
-                    type="donor"
-                    context={context}
-                    href={href}
-                    userDownloadAccess={userDownloadAccess}
-                    isAccessResolved={isAccessResolved}
-                />
-            )}
-        </DonorDataProvider>
+            <DonorDataProvider
+                key={href}
+                buildHref={buildDonorPeekMetadataHref}>
+                <BrowseViewControllerWithSelections {...props}>
+                    <BrowseDonorSearchTable />
+                </BrowseViewControllerWithSelections>
+                {context?.total === 0 && (
+                    <NoResultsBrowseModal
+                        type="donor"
+                        context={context}
+                        href={href}
+                        userDownloadAccess={userDownloadAccess}
+                        isAccessResolved={isAccessResolved}
+                    />
+                )}
+            </DonorDataProvider>
+        </React.Fragment>
     );
 };
