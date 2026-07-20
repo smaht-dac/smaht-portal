@@ -7,10 +7,76 @@ smaht-portal
 Change Log
 ----------
 
+2.4.3
+=====
+
+`PR 719: Add restore-devtest-db command for snapshot-based devtest DB restore <https://github.com/smaht-dac/smaht-portal/pull/719>`_
+
+* Add the ``restore-devtest-db`` operator command, which rebuilds the ``smaht-devtest``
+  RDS database from a fresh snapshot of production and repoints the devtest IDENTITY
+  secret at the new instance. See ``docs/operations/restore_devtest_db.md``.
+* Update ``dcicsnovault`` to the newest compatible release ``11.34.0`` (within the
+  existing ``^11.30.0`` constraint).
+
+
+2.4.2
+=====
+
+`PR 721: Harden nginx failover and observability while deferring the RSS-limit increase <https://github.com/smaht-dac/smaht-portal/pull/721>`_
+
+nginx failover reliability and observability for worker SIGKILL/restart churn. The
+per-worker ``rss_limit`` remains at ``450MB`` pending task-wide capacity evidence.
+
+* ``deploy/docker/production/nginx.conf`` changes:
+
+  * Make all 5 workers active in ``upstream app`` (port 6547 was ``backup``). This is a
+    request-distribution change at the unchanged 450MB cap; failover is preserved by
+    ``proxy_next_upstream``. (Note: warming the formerly-cold worker's lazy Node SSR
+    children can raise task RSS even though the parent-process cap is unchanged.)
+  * Reduce upstream ``fail_timeout`` from ``45s`` to ``15s`` so a recovered peer becomes
+    selectable again sooner; ``max_fails`` left at its default (1). (The real pserve
+    socket-ready time after SIGKILL is unmeasured; 15s is revisited once measured.)
+  * Bound retry fan-out with ``proxy_next_upstream_tries 2`` (at most **two total** upstream
+    attempts, not two retries) and ``proxy_next_upstream_timeout 30s`` (bounds only when a
+    handoff to another peer may be *initiated* -- **not** an end-to-end request deadline).
+    Deliberate availability trade: a request that hits two failed peers can error even if a
+    third is healthy, in exchange for bounded amplification. Retry method policy is nginx's
+    default: POST/LOCK/PATCH are not retried once sent to an upstream (after-send protection
+    against duplicate side effects), while a pre-send connection failure and non-protected
+    methods (GET/HEAD/PUT/DELETE/OPTIONS/...) may retry -- it is **not** "GET/HEAD only".
+  * Add a targeted ``upstream_debug`` access log (to ``/dev/stdout``) for multiple-attempt
+    failover and upstream 502/504 gateway failures. It logs ``$request_method`` and ``$uri``
+    (no query string) plus ``$request_id``, but not the client address; ordinary application
+    5xx responses remain solely in the LB log. This separate stream's retention/access
+    controls must match the LB log's.
+* Add ``RUN nginx -t`` to the production ``Dockerfile`` so the config is validated against the
+  pinned nginx 1.21.6 during the CI Docker build, and add an offline behavioral harness
+  (``deploy/docker/production/test_nginx_failover.py``) for the retry/method/logging cases.
+
+
+2.4.1
+=====
+
+`PR 722: Down-sample Sentry performance transactions for the internal /index endpoint <https://github.com/smaht-dac/smaht-portal/pull/722>`_
+
+* Replaces the flat ``traces_sample_rate`` with a ``traces_sampler`` in ``init_sentry`` (``src/encoded/__init__.py``) that samples the continuously-polled indexer ``/index`` transaction at a very low nonzero rate (0.001), preserves inherited sampling decisions for other transactions, and keeps locally started user-facing transactions at the normal 0.1 rate. This contains Sentry transaction-quota burn driven by the indexer without changing error/exception capture, which remains governed by the separate ``sample_rate`` (kept at its default 1.0).
+
+
+2.4.0
+=====
+
+`PR 704: feat: add JSON and PNG screenshot export for Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/704>`_
+
+* Add JSON export of the current Data Matrix view, including all row/column data and summary counts, with a timestamped filename
+* Add PNG screenshot export of the current Data Matrix view, including the visible matrix and its surrounding UI, with a timestamped filename
+
+
 2.3.9
 =====
 
-* Add command to allow devtest db restore programmatical
+`PR 720: fix: preserve Donor/Cohort toggle state across href changes (facet selection, "Explore Donors", etc.) <https://github.com/smaht-dac/smaht-portal/pull/720>`_
+
+* Fixes a bug where the Donor/Cohort toggle state was lost when navigating to a new URL (e.g. selecting a facet, clicking "Explore Donors", etc.) by preserving the toggle state in the URL query string and restoring it on page load.
 
 
 2.3.8
@@ -18,6 +84,7 @@ Change Log
 
 * Preserve the Donor and Protected Donor browse ``/peek-metadata/`` optimization while using the progressive, concurrency-limited row-data queue: both callers share an explicit URL contract with ``skip_default_facets=true`` and request only ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
 * Avoid the HTTP 400 caused by combining ``skip_default_facets=true`` with ``additional_facet=type``. The File count now comes from the GET ``/peek-metadata/`` response's ``total`` alongside its ``facets``.
+
 
 2.3.7  
 =====
