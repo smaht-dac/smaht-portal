@@ -34,9 +34,19 @@ from .schema_formats import format_checker  # noqa
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
 CGAP_STATIC_MAX_AGE = 1800
-# default trace_rate for sentry
+# Default performance-transaction sample rate for sentry on normal (user-facing) routes.
 # tune this to get more data points when analyzing performance
 SENTRY_TRACE_RATE = .1
+# The ES indexer polls the internal /index endpoint continuously (see snovault's
+# es_index_data command, which POSTs /index in a tight loop), so /index dominates
+# performance-transaction volume without adding user-facing signal. Sample it at a very
+# low but nonzero rate so a little indexing visibility remains and can be tuned later.
+# NOTE: this governs PERFORMANCE TRANSACTION sampling ONLY; error/exception capture is
+# controlled by the separate `sample_rate` option (kept at its default 1.0) and is not
+# affected here - exceptions raised while serving /index are still reported to Sentry.
+SENTRY_INDEX_TRACE_RATE = .001
+# WSGI PATH_INFO of the internal indexer endpoint whose transactions we down-sample.
+SENTRY_INDEX_TRANSACTION_PATH = '/index'
 DEFAULT_AUTH0_DOMAIN = 'hms-dbmi.auth0.com'
 DEFAULT_AUTH0_ALLOWED_CONNECTIONS = 'github,google-oauth2,partners,hms-it'
 
@@ -202,11 +212,47 @@ def app_version(config):
             config.registry.settings["ga_config"] = json.load(json_file)
 
 
+def sentry_traces_sampler(sampling_context):
+    """ Per-transaction performance sample-rate decision for sentry.
+
+    Returns the fraction of performance transactions to record for the current
+    request. The internal indexer endpoint (/index) is polled continuously by the
+    ES indexer and would otherwise dominate the performance-transaction quota
+    without adding user-facing signal, so it is sampled at a very low but nonzero
+    rate. Every other transaction preserves an upstream sampling decision when
+    present, matching the SDK behavior of the previous traces_sample_rate config;
+    locally started transactions keep the normal SENTRY_TRACE_RATE.
+
+    IMPORTANT: this affects PERFORMANCE TRANSACTIONS ONLY. Error/exception events are
+    governed by the separate `sample_rate` sentry_sdk.init option (kept at its default
+    of 1.0 in init_sentry) and are never suppressed by this function.
+
+    The WSGI environ is matched robustly: any transaction whose PATH_INFO is not
+    exactly the /index endpoint (including a missing or non-HTTP sampling context)
+    falls through to the inherited decision or normal rate, so normal user routes
+    are never accidentally suppressed.
+    """
+    wsgi_environ = (sampling_context or {}).get('wsgi_environ') or {}
+    if wsgi_environ.get('PATH_INFO') == SENTRY_INDEX_TRANSACTION_PATH:
+        return SENTRY_INDEX_TRACE_RATE
+    parent_sampled = (sampling_context or {}).get('parent_sampled')
+    if parent_sampled is not None:
+        return parent_sampled
+    return SENTRY_TRACE_RATE
+
+
 def init_sentry(dsn):
     """ Helper function that initializes sentry SDK if a dsn is specified. """
     if dsn:
         sentry_sdk.init(dsn,
-                        traces_sample_rate=SENTRY_TRACE_RATE,
+                        # Performance-transaction sampling is decided per-transaction so the
+                        # continuously-polled /index endpoint can be down-sampled. A traces_sampler
+                        # supersedes traces_sample_rate, so the flat rate is intentionally omitted.
+                        traces_sampler=sentry_traces_sampler,
+                        # Error/exception events use this SEPARATE rate. Keep the SDK default (1.0 =
+                        # capture every error) explicit so it is clear the sampler above does not,
+                        # and cannot, hide exceptions.
+                        sample_rate=1.0,
                         integrations=[PyramidIntegration(), SqlalchemyIntegration()])
 
 
