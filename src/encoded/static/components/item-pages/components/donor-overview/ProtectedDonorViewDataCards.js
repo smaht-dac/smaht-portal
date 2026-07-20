@@ -33,7 +33,7 @@ export function renderAgeDescriptionPopover(handleShowPopover, customId) {
             onMouseLeave={() =>
                 handleShowPopover ? handleShowPopover(false) : null
             }>
-            <PopoverBody>Ages 89 and above are denoted as 89+.</PopoverBody>
+            <PopoverBody>Ages 89 and above are denoted as 89+</PopoverBody>
         </Popover>
     );
 }
