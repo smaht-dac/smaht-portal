@@ -17,6 +17,58 @@ Change Log
 * Add PNG screenshot export of the current Data Matrix view, including the visible matrix and its surrounding UI, with a timestamped filename
 
 
+2.4.3
+=====
+
+`PR 724: fix: donor age on donor view <https://github.com/smaht-dac/smaht-portal/pull/724>`_
+
+* Support "+" age in donor view
+* Add popover for age field
+
+
+2.4.2
+=====
+
+`PR 721: Harden nginx failover and observability while deferring the RSS-limit increase <https://github.com/smaht-dac/smaht-portal/pull/721>`_
+
+nginx failover reliability and observability for worker SIGKILL/restart churn. The
+per-worker ``rss_limit`` remains at ``450MB`` pending task-wide capacity evidence.
+
+* ``deploy/docker/production/nginx.conf`` changes:
+
+  * Make all 5 workers active in ``upstream app`` (port 6547 was ``backup``). This is a
+    request-distribution change at the unchanged 450MB cap; failover is preserved by
+    ``proxy_next_upstream``. (Note: warming the formerly-cold worker's lazy Node SSR
+    children can raise task RSS even though the parent-process cap is unchanged.)
+  * Reduce upstream ``fail_timeout`` from ``45s`` to ``15s`` so a recovered peer becomes
+    selectable again sooner; ``max_fails`` left at its default (1). (The real pserve
+    socket-ready time after SIGKILL is unmeasured; 15s is revisited once measured.)
+  * Bound retry fan-out with ``proxy_next_upstream_tries 2`` (at most **two total** upstream
+    attempts, not two retries) and ``proxy_next_upstream_timeout 30s`` (bounds only when a
+    handoff to another peer may be *initiated* -- **not** an end-to-end request deadline).
+    Deliberate availability trade: a request that hits two failed peers can error even if a
+    third is healthy, in exchange for bounded amplification. Retry method policy is nginx's
+    default: POST/LOCK/PATCH are not retried once sent to an upstream (after-send protection
+    against duplicate side effects), while a pre-send connection failure and non-protected
+    methods (GET/HEAD/PUT/DELETE/OPTIONS/...) may retry -- it is **not** "GET/HEAD only".
+  * Add a targeted ``upstream_debug`` access log (to ``/dev/stdout``) for multiple-attempt
+    failover and upstream 502/504 gateway failures. It logs ``$request_method`` and ``$uri``
+    (no query string) plus ``$request_id``, but not the client address; ordinary application
+    5xx responses remain solely in the LB log. This separate stream's retention/access
+    controls must match the LB log's.
+* Add ``RUN nginx -t`` to the production ``Dockerfile`` so the config is validated against the
+  pinned nginx 1.21.6 during the CI Docker build, and add an offline behavioral harness
+  (``deploy/docker/production/test_nginx_failover.py``) for the retry/method/logging cases.
+
+
+2.4.1
+=====
+
+`PR 722: Down-sample Sentry performance transactions for the internal /index endpoint <https://github.com/smaht-dac/smaht-portal/pull/722>`_
+
+* Replaces the flat ``traces_sample_rate`` with a ``traces_sampler`` in ``init_sentry`` (``src/encoded/__init__.py``) that samples the continuously-polled indexer ``/index`` transaction at a very low nonzero rate (0.001), preserves inherited sampling decisions for other transactions, and keeps locally started user-facing transactions at the normal 0.1 rate. This contains Sentry transaction-quota burn driven by the indexer without changing error/exception capture, which remains governed by the separate ``sample_rate`` (kept at its default 1.0).
+
+
 2.4.0
 =====
 
