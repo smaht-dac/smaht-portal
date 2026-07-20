@@ -29,25 +29,13 @@ import {
     pageTitleViews,
 } from './../PageTitleSection';
 import { Term } from './../util/Schemas';
+import {
+    DataReleaseNotificationEnrollment,
+    DATA_RELEASE_NOTIFICATION_ENROLLED,
+} from './components/DataReleaseNotificationEnrollment';
 
 // eslint-disable-next-line no-unused-vars
 import { Item } from './../util/typedefs';
-
-const DATA_RELEASE_NOTIFICATION_ENROLLED =
-    'data_release_notification_enrolled';
-let notificationAvailabilityPromise = null;
-
-function getNotificationAvailability() {
-    if (!notificationAvailabilityPromise) {
-        notificationAvailabilityPromise = ajax
-            .promise('/health/data-release-notifications')
-            .catch((error) => {
-                notificationAvailabilityPromise = null;
-                throw error;
-            });
-    }
-    return notificationAvailabilityPromise;
-}
 
 /**
  * Contains the User profile page view as well as Impersonate User form.
@@ -374,237 +362,6 @@ class SyncedAccessKeyTable extends React.PureComponent {
     }
 }
 
-class DataReleaseNotificationEnrollment extends React.PureComponent {
-    static propTypes = {
-        user: PropTypes.shape({
-            email: PropTypes.string.isRequired,
-            data_release_notification_enrolled: PropTypes.bool,
-        }).isRequired,
-        onChange: PropTypes.func.isRequired,
-    };
-
-    constructor(props) {
-        super(props);
-        _.bindAll(
-            this,
-            'enroll',
-            'showUnenrollConfirmation',
-            'unenroll',
-            'hideModal'
-        );
-        this.state = {
-            available: null,
-            submitting: false,
-            modal: null,
-        };
-    }
-
-    componentDidMount() {
-        this.mounted = true;
-        getNotificationAvailability().then(
-            (response) => {
-                if (this.mounted) {
-                    this.setState({
-                        available: Boolean(
-                            response.data_release_notifications_available
-                        ),
-                    });
-                }
-            },
-            () => {
-                if (this.mounted) {
-                    this.setState({ available: false });
-                }
-            }
-        );
-    }
-
-    componentWillUnmount() {
-        this.mounted = false;
-    }
-
-    enroll() {
-        const { onChange } = this.props;
-        this.setState({ submitting: true });
-        ajax.load(
-            '/register_notification',
-            () => {
-                onChange(true);
-                this.setState({
-                    submitting: false,
-                    modal: 'enrolled',
-                });
-            },
-            'POST',
-            () => {
-                this.setState({ submitting: false });
-                Alerts.queue({
-                    title: 'Enrollment failed',
-                    message:
-                        'Data-release email enrollment could not be completed. Please try again.',
-                    style: 'danger',
-                });
-            },
-            '{}'
-        );
-    }
-
-    showUnenrollConfirmation() {
-        this.setState({ modal: 'unenroll' });
-    }
-
-    unenroll() {
-        const { onChange } = this.props;
-        this.setState({ submitting: true });
-        ajax.load(
-            '/deregister_notification',
-            () => {
-                onChange(false);
-                this.setState({ submitting: false, modal: null });
-                Alerts.queue({
-                    title: 'Unenrolled from data-release announcements',
-                    message:
-                        'You can enroll again from your profile at any time.',
-                    style: 'success',
-                });
-            },
-            'POST',
-            () => {
-                this.setState({ submitting: false });
-                Alerts.queue({
-                    title: 'Unenrollment failed',
-                    message:
-                        'Your enrollment was not changed. Please try again.',
-                    style: 'danger',
-                });
-            },
-            '{}'
-        );
-    }
-
-    hideModal() {
-        const { submitting } = this.state;
-        if (!submitting) {
-            this.setState({ modal: null });
-        }
-    }
-
-    renderModal() {
-        const { user } = this.props;
-        const { modal, submitting } = this.state;
-        if (modal === 'enrolled') {
-            return (
-                <Modal show onHide={this.hideModal}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Confirm your email subscription</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <p>
-                            AWS will email <strong>{user.email}</strong>. You
-                            must acknowledge that email by following its
-                            confirmation link to complete your subscription.
-                        </p>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={this.hideModal}>
-                            Done
-                        </button>
-                    </Modal.Footer>
-                </Modal>
-            );
-        }
-        if (modal === 'unenroll') {
-            return (
-                <Modal show onHide={this.hideModal}>
-                    <Modal.Header closeButton={!submitting}>
-                        <Modal.Title>
-                            Unenroll from data-release announcements?
-                        </Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <div className="alert alert-warning mb-0" role="alert">
-                            You will stop receiving data-release announcements
-                            at <strong>{user.email}</strong>. You can enroll
-                            again from your profile at any time.
-                        </div>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            disabled={submitting}
-                            onClick={this.hideModal}>
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            className="btn btn-danger"
-                            disabled={submitting}
-                            onClick={this.unenroll}>
-                            {submitting ? 'Unenrolling…' : 'Unenroll'}
-                        </button>
-                    </Modal.Footer>
-                </Modal>
-            );
-        }
-        return null;
-    }
-
-    render() {
-        const { user } = this.props;
-        const { available, submitting } = this.state;
-        if (!available) {
-            return null;
-        }
-        const enrolled = Boolean(user[DATA_RELEASE_NOTIFICATION_ENROLLED]);
-        let actionLabel = enrolled ? 'Unenroll' : 'Enroll';
-        if (submitting) {
-            actionLabel = enrolled ? 'Unenrolling…' : 'Enrolling…';
-        }
-        return (
-            <div className="card mt-3 data-release-notification-enrollment">
-                <div className="card-header">
-                    <h3 className="block-title">
-                        <i className="icon icon-bell far icon-fw me-12" />
-                        Data Release Announcements
-                    </h3>
-                </div>
-                <div className="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                    <div>
-                        <p className="mb-0">
-                            Receive an email when new SMaHT data is released.
-                        </p>
-                        {enrolled ? (
-                            <small className="text-secondary">
-                                Enrolled as {user.email}
-                            </small>
-                        ) : null}
-                    </div>
-                    <button
-                        type="button"
-                        className={
-                            enrolled
-                                ? 'btn btn-outline-danger flex-shrink-0'
-                                : 'btn btn-primary flex-shrink-0'
-                        }
-                        disabled={submitting}
-                        onClick={
-                            enrolled
-                                ? this.showUnenrollConfirmation
-                                : this.enroll
-                        }>
-                        {actionLabel}
-                    </button>
-                </div>
-                {this.renderModal()}
-            </div>
-        );
-    }
-}
-
 function AccessKeyTableContainer({ children, bodyClassName = 'card-body' }) {
     return (
         <div className="access-keys-container card mt-36">
@@ -903,6 +660,8 @@ export default class UserView extends React.Component {
                             </div>
                         </div>
 
+                        <SyncedAccessKeyTable {...{ user }} />
+
                         {isOwnProfile ? (
                             <DataReleaseNotificationEnrollment
                                 user={user}
@@ -911,8 +670,6 @@ export default class UserView extends React.Component {
                                 }
                             />
                         ) : null}
-
-                        <SyncedAccessKeyTable {...{ user }} />
                     </div>
                 </div>
             </div>
