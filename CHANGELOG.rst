@@ -11,7 +11,7 @@ Change Log
 2.4.5
 =====
 
-`PR #716: Add data-release email notification enrollment <https://github.com/smaht-dac/smaht-portal/pull/716>`_
+`PR #725: Add data-release email notification enrollment <https://github.com/smaht-dac/smaht-portal/pull/725>`_
 
 * Users can enroll their profile email in data-release email notifications from their
   profile page; enrollment subscribes the email to an SNS topic and records the state
