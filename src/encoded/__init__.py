@@ -219,7 +219,9 @@ def sentry_traces_sampler(sampling_context):
     request. The internal indexer endpoint (/index) is polled continuously by the
     ES indexer and would otherwise dominate the performance-transaction quota
     without adding user-facing signal, so it is sampled at a very low but nonzero
-    rate; every other (user-facing) route keeps the normal SENTRY_TRACE_RATE.
+    rate. Every other transaction preserves an upstream sampling decision when
+    present, matching the SDK behavior of the previous traces_sample_rate config;
+    locally started transactions keep the normal SENTRY_TRACE_RATE.
 
     IMPORTANT: this affects PERFORMANCE TRANSACTIONS ONLY. Error/exception events are
     governed by the separate `sample_rate` sentry_sdk.init option (kept at its default
@@ -227,12 +229,15 @@ def sentry_traces_sampler(sampling_context):
 
     The WSGI environ is matched robustly: any transaction whose PATH_INFO is not
     exactly the /index endpoint (including a missing or non-HTTP sampling context)
-    falls through to the normal rate, so normal user routes are never accidentally
-    suppressed.
+    falls through to the inherited decision or normal rate, so normal user routes
+    are never accidentally suppressed.
     """
     wsgi_environ = (sampling_context or {}).get('wsgi_environ') or {}
     if wsgi_environ.get('PATH_INFO') == SENTRY_INDEX_TRANSACTION_PATH:
         return SENTRY_INDEX_TRACE_RATE
+    parent_sampled = (sampling_context or {}).get('parent_sampled')
+    if parent_sampled is not None:
+        return parent_sampled
     return SENTRY_TRACE_RATE
 
 

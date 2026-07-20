@@ -17,7 +17,10 @@ def _ctx(path):
 
 def test_index_transaction_is_downsampled():
     # The continuously-polled indexer endpoint is sampled at the very low nonzero rate.
-    assert sentry_traces_sampler(_ctx('/index')) == SENTRY_INDEX_TRACE_RATE
+    for parent_sampled in (None, True, False):
+        context = _ctx('/index')
+        context['parent_sampled'] = parent_sampled
+        assert sentry_traces_sampler(context) == SENTRY_INDEX_TRACE_RATE
     assert SENTRY_INDEX_TRACE_RATE == 0.001
     assert SENTRY_INDEX_TRANSACTION_PATH == '/index'
 
@@ -27,6 +30,15 @@ def test_normal_routes_keep_default_rate():
     assert SENTRY_TRACE_RATE == 0.1
     for path in ('/search/', '/browse/', '/', '/pages/some-page', '/a-file-uuid/@@download'):
         assert sentry_traces_sampler(_ctx(path)) == SENTRY_TRACE_RATE
+
+
+def test_non_index_transactions_preserve_parent_sampling_decision():
+    # A traces_sampler supersedes the SDK's automatic parent decision handling, so the callback
+    # must preserve it explicitly for both normal HTTP routes and non-HTTP transactions.
+    for base_context in (_ctx('/browse/'), {}):
+        for parent_sampled in (True, False):
+            context = dict(base_context, parent_sampled=parent_sampled)
+            assert sentry_traces_sampler(context) is parent_sampled
 
 
 def test_index_lookalike_paths_are_not_suppressed():
