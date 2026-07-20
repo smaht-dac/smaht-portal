@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+2.4.1
+=====
+
+`PR 722: Down-sample Sentry performance transactions for the internal /index endpoint <https://github.com/smaht-dac/smaht-portal/pull/722>`_
+
+* Replaces the flat ``traces_sample_rate`` with a ``traces_sampler`` in ``init_sentry`` (``src/encoded/__init__.py``) that samples the continuously-polled indexer ``/index`` transaction at a very low nonzero rate (0.001), preserves inherited sampling decisions for other transactions, and keeps locally started user-facing transactions at the normal 0.1 rate. This contains Sentry transaction-quota burn driven by the indexer without changing error/exception capture, which remains governed by the separate ``sample_rate`` (kept at its default 1.0).
+
+
 2.4.0
 =====
 
