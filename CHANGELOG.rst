@@ -8,8 +8,8 @@ Change Log
 ----------
 
 
-2.3.10
-======
+2.4.1
+=====
 
 nginx failover reliability and observability for worker SIGKILL/restart churn. The
 per-worker ``rss_limit`` increase originally proposed here is **deferred** pending
@@ -48,6 +48,15 @@ capacity evidence (see below).
 * Add ``RUN nginx -t`` to the production ``Dockerfile`` so the config is validated against the
   pinned nginx 1.21.6 during the CI Docker build, and add an offline behavioral harness
   (``deploy/docker/production/test_nginx_failover.py``) for the retry/method/logging cases.
+
+
+2.4.0
+=====
+
+`PR 704: feat: add JSON and PNG screenshot export for Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/704>`_
+
+* Add JSON export of the current Data Matrix view, including all row/column data and summary counts, with a timestamped filename
+* Add PNG screenshot export of the current Data Matrix view, including the visible matrix and its surrounding UI, with a timestamped filename
 
 
 2.3.9
