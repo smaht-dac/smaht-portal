@@ -8,7 +8,7 @@ Change Log
 ----------
 
 
-2.3.9
+2.4.1
 =====
 
 `PR 714: fix: decrease select-all file limit to 3000 <https://github.com/smaht-dac/smaht-portal/pull/714>`_
@@ -17,11 +17,29 @@ Change Log
 * Update the disabled-state tooltip to reflect the new limit
 
 
+2.4.0
+=====
+
+`PR 704: feat: add JSON and PNG screenshot export for Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/704>`_
+
+* Add JSON export of the current Data Matrix view, including all row/column data and summary counts, with a timestamped filename
+* Add PNG screenshot export of the current Data Matrix view, including the visible matrix and its surrounding UI, with a timestamped filename
+
+
+2.3.9
+=====
+
+`PR 720: fix: preserve Donor/Cohort toggle state across href changes (facet selection, "Explore Donors", etc.) <https://github.com/smaht-dac/smaht-portal/pull/720>`_
+
+* Fixes a bug where the Donor/Cohort toggle state was lost when navigating to a new URL (e.g. selecting a facet, clicking "Explore Donors", etc.) by preserving the toggle state in the URL query string and restoring it on page load.
+
+
 2.3.8
 =====
 
 * Preserve the Donor and Protected Donor browse ``/peek-metadata/`` optimization while using the progressive, concurrency-limited row-data queue: both callers share an explicit URL contract with ``skip_default_facets=true`` and request only ``sample_summary.tissues``, ``assays.display_title``, and ``file_size``.
 * Avoid the HTTP 400 caused by combining ``skip_default_facets=true`` with ``additional_facet=type``. The File count now comes from the GET ``/peek-metadata/`` response's ``total`` alongside its ``facets``.
+
 
 2.3.7  
 =====

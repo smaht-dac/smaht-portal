@@ -131,24 +131,26 @@ export const BrowseDonorBody = (props) => {
     );
 
     return (
-        <DonorDataProvider
-            key={href}
-            buildHref={buildDonorPeekMetadataHref}>
+        <React.Fragment>
             {showRedirectBanner && <RedirectBanner href={href} />}
             <BrowseDonorVizWrapper {...props} mapping="donor" />
             <hr />
-            <BrowseViewControllerWithSelections {...props}>
-                <BrowseDonorSearchTable />
-            </BrowseViewControllerWithSelections>
-            {context?.total === 0 && (
-                <NoResultsBrowseModal
-                    type="donor"
-                    context={context}
-                    href={href}
-                    userDownloadAccess={userDownloadAccess}
-                    isAccessResolved={isAccessResolved}
-                />
-            )}
-        </DonorDataProvider>
+            <DonorDataProvider
+                key={href}
+                buildHref={buildDonorPeekMetadataHref}>
+                <BrowseViewControllerWithSelections {...props}>
+                    <BrowseDonorSearchTable />
+                </BrowseViewControllerWithSelections>
+                {context?.total === 0 && (
+                    <NoResultsBrowseModal
+                        type="donor"
+                        context={context}
+                        href={href}
+                        userDownloadAccess={userDownloadAccess}
+                        isAccessResolved={isAccessResolved}
+                    />
+                )}
+            </DonorDataProvider>
+        </React.Fragment>
     );
 };
