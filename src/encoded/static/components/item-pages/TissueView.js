@@ -50,12 +50,19 @@ const formatYesNo = (value) => {
     return value ? 'Yes' : 'No';
 };
 
-// Exported for unit testing.
+// Exported for unit testing. When a donor has multiple Tissue records for
+// this tissue_type, prefers the one with a populated pathology_summary over
+// an arbitrary "first encountered" pick, so this matches the selection rule
+// used by BrowseTissueHeatmapTable.js's buildTissueMetricMatrix.
 export const dedupeTissuesByDonor = (tissueResults = []) => {
     const byDonorUuid = new Map();
     tissueResults.forEach((tissueItem) => {
         const d = tissueItem?.donor;
-        if (d?.uuid && !byDonorUuid.has(d.uuid)) {
+        if (!d?.uuid) return;
+        const existing = byDonorUuid.get(d.uuid);
+        if (!existing) {
+            byDonorUuid.set(d.uuid, { donor: d, tissue: tissueItem });
+        } else if (!existing.tissue?.pathology_summary && tissueItem?.pathology_summary) {
             byDonorUuid.set(d.uuid, { donor: d, tissue: tissueItem });
         }
     });

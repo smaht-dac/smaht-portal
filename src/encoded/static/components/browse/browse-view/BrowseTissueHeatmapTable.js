@@ -17,10 +17,16 @@ const TARGET_TISSUE_PERCENTAGE_ORDER = ['0', '[0-10]', '[11-25]', '[26-49]', '[5
 // first Tissue instance encountered for that type) used to link column
 // headers to a Tissue Overview page, since /tissues/<uuid>/ is keyed on a
 // single Tissue instance, not on tissue_type directly.
+//
+// When a donor has multiple Tissue records for the same tissue_type, the
+// one with a populated pathology_summary is preferred over an arbitrary
+// "last encountered" pick, matching the selection rule used by
+// TissueView.js's dedupeTissuesByDonor.
 export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
     const tissueTypes = [];
     const donors = [];
     const cellsByDonorAndTissue = {};
+    const tissueByDonorAndTissue = {};
     const tissueTypeHrefs = {};
 
     tissueResults.forEach((t) => {
@@ -30,7 +36,13 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
         if (!donors.includes(donorId)) donors.push(donorId);
         if (!tissueTypes.includes(tissueType)) tissueTypes.push(tissueType);
         if (!tissueTypeHrefs[tissueType] && t['@id']) tissueTypeHrefs[tissueType] = t['@id'];
-        cellsByDonorAndTissue[`${donorId} ${tissueType}`] = getValue(t) ?? null;
+
+        const key = `${donorId} ${tissueType}`;
+        const existing = tissueByDonorAndTissue[key];
+        if (!existing || (!existing.pathology_summary && t.pathology_summary)) {
+            tissueByDonorAndTissue[key] = t;
+            cellsByDonorAndTissue[key] = getValue(t) ?? null;
+        }
     });
 
     donors.sort();
