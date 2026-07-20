@@ -10,11 +10,27 @@ Change Log
 
 2.5.0
 =====
+`PR #716: Add data-release email notification enrollment <https://github.com/smaht-dac/smaht-portal/pull/716>`_
 
-`PR 704: feat: add JSON and PNG screenshot export for Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/704>`_
+* Users can enroll their profile email in data-release email notifications from their
+  profile page; enrollment subscribes the email to an SNS topic and records the state
+  on the ``User`` item (``data_release_notification_enrolled``)
+* New endpoints: ``POST /register_notification``, ``POST /deregister_notification``
+  (authenticated users only), and ``GET /health/data-release-notifications``
+  (topic availability)
+* Deployment prerequisite: the feature stays hidden unless an SNS topic ARN is
+  configured (``sns_topic`` in settings or the ``SNS_TOPIC`` GAC key), and the portal
+  task role needs ``sns:Subscribe``, ``sns:Unsubscribe``, and
+  ``sns:ListSubscriptionsByTopic`` on that topic
 
-* Add JSON export of the current Data Matrix view, including all row/column data and summary counts, with a timestamped filename
-* Add PNG screenshot export of the current Data Matrix view, including the visible matrix and its surrounding UI, with a timestamped filename
+
+2.4.4
+=====
+
+`PR 714: fix: decrease select-all file limit to 3000 <https://github.com/smaht-dac/smaht-portal/pull/714>`_
+
+* Decrease the "Select All" upper limit from 8000 to 3000 files
+* Update the disabled-state tooltip to reflect the new limit
 
 
 2.4.3
