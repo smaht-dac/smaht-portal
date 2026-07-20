@@ -8,6 +8,15 @@ Change Log
 ----------
 
 
+2.4.3
+=====
+
+`PR 724: fix: donor age on donor view <https://github.com/smaht-dac/smaht-portal/pull/724>`_
+
+* Support "+" age in donor view
+* Add popover for age field
+
+
 2.4.2
 =====
 
