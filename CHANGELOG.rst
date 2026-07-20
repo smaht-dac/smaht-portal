@@ -8,8 +8,10 @@ Change Log
 ----------
 
 
-2.4.1
+2.4.2
 =====
+
+`PR 721: Harden nginx failover and observability while deferring the RSS-limit increase <https://github.com/smaht-dac/smaht-portal/pull/721>`_
 
 nginx failover reliability and observability for worker SIGKILL/restart churn. The
 per-worker ``rss_limit`` remains at ``450MB`` pending task-wide capacity evidence.
@@ -39,6 +41,14 @@ per-worker ``rss_limit`` remains at ``450MB`` pending task-wide capacity evidenc
 * Add ``RUN nginx -t`` to the production ``Dockerfile`` so the config is validated against the
   pinned nginx 1.21.6 during the CI Docker build, and add an offline behavioral harness
   (``deploy/docker/production/test_nginx_failover.py``) for the retry/method/logging cases.
+
+
+2.4.1
+=====
+
+`PR 722: Down-sample Sentry performance transactions for the internal /index endpoint <https://github.com/smaht-dac/smaht-portal/pull/722>`_
+
+* Replaces the flat ``traces_sample_rate`` with a ``traces_sampler`` in ``init_sentry`` (``src/encoded/__init__.py``) that samples the continuously-polled indexer ``/index`` transaction at a very low nonzero rate (0.001), preserves inherited sampling decisions for other transactions, and keeps locally started user-facing transactions at the normal 0.1 rate. This contains Sentry transaction-quota burn driven by the indexer without changing error/exception capture, which remains governed by the separate ``sample_rate`` (kept at its default 1.0).
 
 
 2.4.0
