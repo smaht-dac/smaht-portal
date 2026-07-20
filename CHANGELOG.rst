@@ -11,7 +11,7 @@ Change Log
 2.4.5
 =====
 
-`PR 714: fix: decrease select-all file limit to 3000 <https://github.com/smaht-dac/smaht-portal/pull/714>`_
+`PR 727: add annotation mixin to supp file <https://github.com/smaht-dac/smaht-portal/pull/727>`_
 
 * Add annotation mixin to supplementary file schema to support the `annotated_file_name` script
   
