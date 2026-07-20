@@ -281,6 +281,11 @@ module.exports = [
                 'aws-sdk': 'var {}',
                 'package-lock.json': 'var {}',
                 "statistics-page-components" : 'var {}',
+                // Dynamically imported client-side only (browser DOM viewer), loaded
+                // inside a useEffect that never runs during SSR. Excluding it here
+                // stops the Node build from also emitting this async chunk and
+                // clobbering the browser build's copy of the same chunk filename.
+                openseadragon: 'var {}',
                 // Below - prevent some stuff in SPC from being bundled in.
                 // These keys are literally matched against the string values, not actual path contents, hence why is "../util/aws".. it exactly what within SPC/SubmissionView.js
                 // We can clean up and change to 'aws-utils' in here in future as well and alias it to spc/utils/aws. But this needs to be synchronized with SPC and 4DN.
