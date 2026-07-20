@@ -8,6 +8,15 @@ Change Log
 ----------
 
 
+2.5.0
+=====
+
+`PR 704: feat: add JSON and PNG screenshot export for Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/704>`_
+
+* Add JSON export of the current Data Matrix view, including all row/column data and summary counts, with a timestamped filename
+* Add PNG screenshot export of the current Data Matrix view, including the visible matrix and its surrounding UI, with a timestamped filename
+
+
 2.4.0
 =====
 
