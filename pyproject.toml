@@ -55,6 +55,10 @@ idna = "^3.10"
 jmespath = "0.9.0"
 netaddr = ">=0.8.0,<1"
 openpyxl = "^3.0.7,!=3.0.8"  # a version 3.0.8 appeared but then got withdrawn, for now just pin 3.0.7. try again later.
+# pandas is imported directly by encoded.commands.create_bulk_donor_manifest. It was
+# previously pulled in transitively via dcicsnovault's pmdarima dependency; snovault
+# 11.34.0 dropped pmdarima, so declare pandas directly to keep that command working.
+pandas = "^3.0.0"
 passlib = "^1.7.4"
 PasteDeploy = "^3.1.0"
 pbkdf2 = "1.3"
