@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from sqlalchemy import event, text
@@ -284,8 +285,8 @@ def test_revision_inventory_counts_all_item_types_and_totals(session):
 
 
 def test_revision_inventory_uses_bounded_scalar_queries(session):
-    extra_item_type = "inventory_preexisting_item_type"
-    zero_item_type = "inventory_zero_revision_item_type"
+    extra_item_type = f"inventory_preexisting_{uuid4().hex}"
+    zero_item_type = f"inventory_zero_revision_{uuid4().hex}"
     _resources_with_history(session, {extra_item_type: 2})
     _resources_with_history(session, {"workflow": 2, "unrelated_item_type": 1})
     session.add(Resource(zero_item_type))
