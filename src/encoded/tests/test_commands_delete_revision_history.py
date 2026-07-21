@@ -280,6 +280,9 @@ def test_interrupted_cleanup_resumes_idempotently(app, session, monkeypatch):
     resources = _resources_with_history(
         session, {"workflow": 3, "meta_workflow_run": 2}
     )
+    # Each cleanup batch commits, so SQLAlchemy expires the ORM instances.
+    # Retain the scalar identifiers needed for assertions before interruption.
+    resource_rids = tuple(resource.rid for resource in resources)
     real_commit = delete_revision_history_command.transaction.commit
     commit_count = 0
 
@@ -303,7 +306,7 @@ def test_interrupted_cleanup_resumes_idempotently(app, session, monkeypatch):
     assert resumed == {"workflow": 4, "meta_workflow_run": 4}
     assert completed == {"workflow": 0, "meta_workflow_run": 0}
     assert all(
-        len(_propsheet_rows(session, resource.rid)) == 2 for resource in resources
+        len(_propsheet_rows(session, rid)) == 2 for rid in resource_rids
     )
 
 
