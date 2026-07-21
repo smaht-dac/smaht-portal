@@ -141,7 +141,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                     role="alert">
                     <button
                         type="button"
-                        className="btn-close float-end"
+                        className="btn-close"
                         aria-label="Close"
                         onClick={() => setBanner(null)}
                     />
