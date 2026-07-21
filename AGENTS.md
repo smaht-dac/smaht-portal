@@ -78,3 +78,33 @@ Because `/browse` delegates directly to snovault's shared `search()` in `src/enc
 `/browse` already gets those upstream search-efficiency fixes through the current caret-resolved
 lockfile. Do not leave stale "waiting on a dependency bump" language for these fixes unless
 `pyproject.toml` or `poetry.lock` changes again and you have rechecked the resolved package code.
+
+## Splunk Universal Forwarder container startup
+
+The forwarder runs as `[program:splunkforwarder]` in
+`deploy/docker/production/supervisord.conf`, started by
+`deploy/docker/production/splunk/run_splunk_forwarder.sh`. The forwarder
+tree baked into the image (`/opt/splunkforwarder`) starts **un-licensed** (the
+Splunk first-time-run marker `$SPLUNK_HOME/ftr` is present), so every deploy
+requires non-interactive license acceptance before splunkd will start.
+
+Sharp edge: any `splunk` CLI command run on first boot **without**
+`--accept-license --answer-yes --no-prompt` blocks on the interactive license
+prompt. Under supervisord there is no TTY and stdin is `/dev/null`, so it hangs
+invisibly — the classic symptom is the wrapper emitting only its `starting:` and
+`first boot:` lines and then nothing. The wrapper now passes those flags (and
+reads from `/dev/null`) on every `splunk` invocation and accepts the license
+explicitly before any status probe. See `deploy/docker/production/splunk/README.md`
+for how to read the staged startup logs (`[splunk-forwarder]` / `[splunk-cli]` /
+`[splunkd.log]`, the `HEALTHY` success line, and the `FAILED:` diagnostics).
+
+Regression tests are self-contained (no real Splunk/network/AWS):
+`sh deploy/docker/production/splunk/tests/run_forwarder_tests.sh`, wrapped for
+`pytest`/`make test-unit` by `tests/test_run_splunk_forwarder.py`. Lint the
+shell with `shellcheck -s sh`.
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones. Keep entries concise.
