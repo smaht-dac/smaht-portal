@@ -4,10 +4,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
+import { Dropdown } from 'react-bootstrap';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { FacetList, generateNextHref } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/FacetList';
-import { VisualBody } from './StackedBlockVisual';
+import { toPng } from 'html-to-image';
+import { VisualBody, buildMatrixExportData } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
 import { Term } from './../../util/Schemas';
 import { compareTissueFacetTerms } from '../../util/data';
@@ -20,6 +22,18 @@ export function isLocalEnv() {
             window.location.href.indexOf('127.0.0.1') >= 0;
     }
     return false;
+}
+
+/**
+ * Filename-safe timestamp in the browser's local time (not UTC), e.g. "2026-07-19T15-04-03-685".
+ * `toISOString()` always reports UTC, which reads as the wrong time-of-day to a user exporting
+ * a file in their own timezone.
+ */
+function getLocalTimestampForFilename() {
+    const pad = (n, len = 2) => String(n).padStart(len, '0');
+    const d = new Date();
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T` +
+        `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
 
 export default class DataMatrix extends React.PureComponent {
@@ -505,6 +519,9 @@ export default class DataMatrix extends React.PureComponent {
         this.onRefreshActiveTab = this.onRefreshActiveTab.bind(this);
         this.getTabCacheSignature = this.getTabCacheSignature.bind(this);
         this.onDonorTissueAssayChange = this.onDonorTissueAssayChange.bind(this);
+        this.onExportJson = this.onExportJson.bind(this);
+        this.onExportScreenshot = this.onExportScreenshot.bind(this);
+        this.matrixCaptureEl = null;
         this.onFacetFilter = this.onFacetFilter.bind(this);
         this.onFacetFilterMultiple = this.onFacetFilterMultiple.bind(this);
         this.onFacetClearFilters = this.onFacetClearFilters.bind(this);
@@ -516,6 +533,7 @@ export default class DataMatrix extends React.PureComponent {
         const initialState = {
             "mounted": false,
             "isFetching": false,
+            "isScreenshotting": false,
             "_results": null,
             "query": props.query,
             "baseRowAggFields": props.query && props.query.rowAggFields ? props.query.rowAggFields : null,
@@ -906,6 +924,15 @@ export default class DataMatrix extends React.PureComponent {
 
             // Keep raw assay totals for normal columns, but do not leak DSA-like rows
             // back into their parent assay cells. DSA continues to use its own derived path.
+            //
+            // NOTE: a matching exclusion for analysis_details Filtered/Phased ("Variant Call
+            // Sets") rows was tried here and reverted - Duplex-seq assays (NanoSeq/CODEC/
+            // VISTA-Seq) also carry Filtered/Phased rows that are NOT variant calls, and
+            // excluding them dropped their real files from the override (confirmed via
+            // production export regression: NanoSeq -88, CODEC -100, VISTA-Seq -68 files).
+            // analysisDerivedColumns's variantCallAnalysisDetails filter is assay-agnostic and
+            // may itself be over-broad, but fixing that needs assay/data_type-aware filtering,
+            // not a blanket analysis_details check here.
             if (isDsaLikeRow && columnValue !== 'DSA') {
                 return memo;
             }
@@ -1067,7 +1094,7 @@ export default class DataMatrix extends React.PureComponent {
                 transformed.push(cloned);
             };
 
-            // result = resultItemPostProcessFuncKey ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? PRODUCTION_TEST_DATA_DA : PRODUCTION_TEST_DATA_TA));
+            // result = resultItemPostProcessFuncKey ? BENCHMARKING_TEST_DATA : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? PRODUCTION_TEST_DATA_DT : (matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? PRODUCTION_TEST_DATA_DA : (this.state.countFor === 'donors' ? PRODUCTION_TEST_DATA_TA_Donors: PRODUCTION_TEST_DATA_TA_Files)));
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
@@ -1577,7 +1604,22 @@ export default class DataMatrix extends React.PureComponent {
                 query: {
                     ...prevState.query,
                     columnAggFields: ['sample_summary.tissues'],
-                    rowAggFields: ['donors.display_title', 'sample_summary.category']
+                    // Keep data_type/analysis_details (and donors.display_title/
+                    // sample_summary.category) from the base row fields - only tissue moves to
+                    // columnAggFields. Without data_type/analysis_details here, backend rows
+                    // collapse to one per (donor, tissue) with no way to isolate DSA-like rows,
+                    // so normalizeMissingAssayBucket/analysisDerivedColumns's transformDSA (which
+                    // expects "donor+tissue exploded by assay/platform/data_type" - see its
+                    // 'max_dsa_row' comment below) silently drops those files: they're absent from
+                    // dsaData (data_type never populated), so no merged DSA row is added back in,
+                    // and the per-tissue cell/column breakdown undercounts vs. the donor's real
+                    // row total (which the backend still computes independent of these dims).
+                    rowAggFields: (baseRowAggFields || []).filter((f) => {
+                        if (Array.isArray(f)) {
+                            return !f.includes('sample_summary.tissues');
+                        }
+                        return f !== 'sample_summary.tissues';
+                    })
                 },
                 groupingProperties: ['donor'],
                 columnGrouping: 'tissue',
@@ -1726,6 +1768,184 @@ export default class DataMatrix extends React.PureComponent {
         });
     }
 
+    /**
+     * Exports the currently visualized matrix state (respects matrix mode, files/coverage/donors
+     * toggle, and any donor-tissue assay filter) as a downloadable JSON file, rather than the raw
+     * `/data_matrix_aggregations` response which isn't structured for consumption.
+     */
+    onExportJson() {
+        const { matrixMode, countFor, groupingProperties, columnGrouping, xAxisLabel, yAxisLabel, rowGroups, showRowGroups, columnGroups, showColumnGroups, rawRegularCountOverrides } = this.state;
+        const { idLabel = '', dedupeBenchmarkingDsaAcrossTissues = false } = this.props;
+        const effectiveResults = this.getDerivedDonorTissueResults(this.state._results) || {};
+        const exportData = buildMatrixExportData({
+            data: effectiveResults.all || [],
+            rowTotals: effectiveResults.row_totals || [],
+            columnTotals: effectiveResults.column_totals || [],
+            groupingProperties,
+            columnGrouping,
+            countFor,
+            overallCounts: effectiveResults.overallCounts || this.state.overallCounts || null,
+            matrixMode,
+            rowAxisLabel: yAxisLabel,
+            columnAxisLabel: xAxisLabel,
+            rowGroups,
+            showRowGroups,
+            columnGroups,
+            showColumnGroups,
+            // Some rows get relabeled onto a synthetic "Variant Call Sets"/"DSA" column after
+            // load (see resultTransformedPostProcessFuncs.analysisDerivedColumns), which would
+            // otherwise silently undercount their original assay column here exactly as it would
+            // for the on-screen grid - this override (built from the pre-relabel raw rows) is
+            // what the grid itself uses to show the true per-assay file count instead.
+            // Donor x Tissue mirrors the on-screen grid's bodyProps (see render()): this map is
+            // built by columnValue !== 'DSA' checks that assume an assay-grouped column, so under
+            // tissue grouping it keeps only the non-DSA portion of a cell (e.g. "3AC -
+            // Fibroblast") and clobbers the correctly-merged DSA total with that partial value
+            // instead of leaving it to computeCellValue. Excluding it here too, not just in the
+            // grid, keeps the export's per-tissue breakdown consistent with rowFiles/totalFiles.
+            rawRegularCountOverrides: matrixMode !== DataMatrix.MATRIX_MODES.DONOR_TISSUE
+                ? rawRegularCountOverrides
+                : null,
+            // A benchmarking DSA-like file linked to more than one of a donor's tissues gets that
+            // same file count reported on each linked tissue row - see
+            // StackedBlockVisual.dedupeDsaTotalByPrimaryEntity - so this must be threaded through
+            // for the export's columnFiles/sectionFiles totals to match rowFiles/the on-screen
+            // grid's collapsed per-donor summary instead of double-counting those files.
+            dedupeBenchmarkingDsaAcrossTissues
+        });
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        const timestamp = getLocalTimestampForFilename();
+        anchor.href = downloadUrl;
+        anchor.download = `SMaHT_data-matrix_${matrixMode}_${countFor}_${idLabel || 'export'}_${timestamp}.json`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(downloadUrl);
+    }
+
+    /**
+     * Downloads a PNG screenshot of the currently displayed matrix grid (headers, row labels,
+     * cells and their totals), excluding the facet/counts side panel entirely since it's captured
+     * from `.matrix-visual-scroll-content` alone, a sibling of `.matrix-counts-panel`.
+     *
+     * Targeting the scroll *content* node rather than its `overflow-x:auto` scroll-region
+     * ancestor means html-to-image lays it out (and captures it) at its full natural
+     * width/height, so the whole matrix is captured even if it currently overflows the
+     * viewport/scroll container horizontally.
+     */
+    async onExportScreenshot() {
+        const node = this.matrixCaptureEl;
+        const { matrixMode, countFor, isScreenshotting } = this.state;
+        if (!node || isScreenshotting) return;
+
+        // The sticky column-header row is pinned via inline styles applied imperatively on
+        // scroll (see StackedBlockVisual.syncStickyHeaderOnScroll), not CSS `position: sticky`.
+        // Left as-is, the captured image would bake in whatever fixed on-screen coordinates
+        // were last computed for the viewport. Clear it so the header renders inline at its
+        // natural position for the full-content capture, then restore it afterwards.
+        const headerUpperEl = node.querySelector('.grouping.header-section-upper');
+        const originalHeaderStyle = headerUpperEl ? headerUpperEl.getAttribute('style') : null;
+        if (headerUpperEl) {
+            headerUpperEl.removeAttribute('style');
+        }
+        // The horizontal scroll-sync also applies a separate `translateX(...)` directly on the
+        // nested `.row.grouping-row` (to keep header/summary-band columns aligned under the
+        // pinned header while scrolling), which lives outside `headerUpperEl`'s own `style`
+        // attribute and so survives the reset above. Left in place, the "Total X"/"Total Files"
+        // summary rows render visibly shifted relative to the row data beneath them.
+        const headerUpperRowEl = headerUpperEl ? headerUpperEl.querySelector('.row.grouping-row') : null;
+        const originalHeaderRowTransform = headerUpperRowEl ? headerUpperRowEl.style.transform : null;
+        if (headerUpperRowEl) {
+            headerUpperRowEl.style.transform = '';
+        }
+
+        // `.stacked-block-viz-container` normally carries a `border-left` used to visually
+        // separate the grid from the facet/counts panel to its left. Since the screenshot
+        // deliberately excludes that panel, the divider has nothing to separate from and would
+        // otherwise show up as a stray line down the left edge of the image.
+        const vizContainerEl = node.querySelector('.stacked-block-viz-container');
+        const originalVizContainerBorder = vizContainerEl ? vizContainerEl.style.borderLeft : null;
+        if (vizContainerEl) {
+            vizContainerEl.style.borderLeft = 'none';
+        }
+
+        // The "Total X" / "Total Files" summary-band labels rely on a `float-start` span inside
+        // a `text-end` (right-aligned) container to sit flush-left despite the container's own
+        // right alignment - unlike regular row labels, which are plain right-aligned `<h4>`s with
+        // no float. This renders correctly on-screen, but html-to-image's cloned render doesn't
+        // reliably reproduce float positioning for these bands in benchmarking's row-group-
+        // sectioned view (each section gets its own band, several stacked among many sibling
+        // rows) - CSS-level overrides (text-align, flex) proved unreliable across cases, so
+        // instead pin each span to its own *measured, currently-correct* on-screen position in
+        // absolute pixels before capture. This can't be wrong because it's not re-deriving the
+        // position from CSS at all - it's copying the position the browser already rendered.
+        const summaryLabelContainers = Array.from(node.querySelectorAll('.grouping.header-section-lower .label-container.text-end'));
+        const originalSummaryLabelStyles = summaryLabelContainers.map((el) => el.getAttribute('style'));
+        const summaryLabelSpans = summaryLabelContainers.map((el) => el.querySelector(':scope > .float-start'));
+        const originalSummaryLabelSpanStyles = summaryLabelSpans.map((el) => (el ? el.getAttribute('style') : null));
+        summaryLabelContainers.forEach((el, i) => {
+            const span = summaryLabelSpans[i];
+            if (!span) return;
+            const containerRect = el.getBoundingClientRect();
+            const spanRect = span.getBoundingClientRect();
+            const offsetLeft = spanRect.left - containerRect.left;
+            const offsetTop = spanRect.top - containerRect.top;
+            el.style.position = 'relative';
+            span.style.float = 'none';
+            span.style.position = 'absolute';
+            span.style.left = `${offsetLeft}px`;
+            span.style.top = `${offsetTop}px`;
+            span.style.margin = '0';
+        });
+
+        this.setState({ isScreenshotting: true });
+        try {
+            const dataUrl = await toPng(node, { backgroundColor: '#ffffff', pixelRatio: 2 });
+            const anchor = document.createElement('a');
+            const timestamp = getLocalTimestampForFilename();
+            anchor.href = dataUrl;
+            anchor.download = `SMaHT_data-matrix_${matrixMode}_${countFor}_${timestamp}.png`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+        } catch (e) {
+            console.error('Failed to capture matrix screenshot', e);
+        } finally {
+            if (headerUpperEl) {
+                if (originalHeaderStyle) {
+                    headerUpperEl.setAttribute('style', originalHeaderStyle);
+                } else {
+                    headerUpperEl.removeAttribute('style');
+                }
+            }
+            if (headerUpperRowEl) {
+                headerUpperRowEl.style.transform = originalHeaderRowTransform || '';
+            }
+            if (vizContainerEl) {
+                vizContainerEl.style.borderLeft = originalVizContainerBorder || '';
+            }
+            summaryLabelContainers.forEach((el, i) => {
+                if (originalSummaryLabelStyles[i]) {
+                    el.setAttribute('style', originalSummaryLabelStyles[i]);
+                } else {
+                    el.removeAttribute('style');
+                }
+            });
+            summaryLabelSpans.forEach((el, i) => {
+                if (!el) return;
+                if (originalSummaryLabelSpanStyles[i]) {
+                    el.setAttribute('style', originalSummaryLabelSpanStyles[i]);
+                } else {
+                    el.removeAttribute('style');
+                }
+            });
+            this.setState({ isScreenshotting: false });
+        }
+    }
+
     onCountForChange(e) {
         const nextValue = e && e.target ? e.target.value : 'files';
         this.setState((prevState) => {
@@ -1854,7 +2074,7 @@ export default class DataMatrix extends React.PureComponent {
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
             defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel, isFetching,
             matrixMode, donorTissueAssay, availableDonorTissueAssays, rowSummaryCountsByGroup, loadingContext,
-            _results: rawResults
+            isScreenshotting, _results: rawResults
         } = this.state;
 
         const effectiveFacetHref = this.getEffectiveFacetHref(query?.url);
@@ -2140,8 +2360,8 @@ export default class DataMatrix extends React.PureComponent {
                                     </div>
                                 ) : null}
                                 <div className="matrix-visual-panel flex-grow-1">
-                                    {shouldShowMatrixModeTabs ? (
-                                        <div className="matrix-mode-tabs-row">
+                                    <div className={`matrix-mode-tabs-row d-flex align-items-center justify-content-between${shouldShowMatrixModeTabs ? '' : ' no-tabs'}`}>
+                                        {shouldShowMatrixModeTabs ? (
                                             <div className="matrix-mode-tabs">
                                                 <button
                                                     type="button"
@@ -2162,19 +2382,44 @@ export default class DataMatrix extends React.PureComponent {
                                                     <i className="icon fas icon-dna me-05" /> Donor x Tissue
                                                 </button>
                                             </div>
+                                        ) : <div />}
+                                        <div className="matrix-export-controls d-flex align-items-center gap-2">
+                                            <Dropdown align="end" className="matrix-export-dropdown">
+                                                <Dropdown.Toggle
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="matrix-toolbar-btn"
+                                                    id={`matrix-export-dropdown-${idLabel || 'default'}`}
+                                                    title="Export"
+                                                    disabled={isLoading}>
+                                                    <i className="icon icon-download fas me-03" /><span className="btn-label">Export</span><i className="icon icon-chevron-down fas matrix-toolbar-caret" />
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu>
+                                                    <Dropdown.Item
+                                                        disabled={isScreenshotting}
+                                                        onClick={this.onExportScreenshot}>
+                                                        <i className={`icon fas me-05 ${isScreenshotting ? 'icon-spin icon-circle-notch' : 'icon-camera'}`} /> {isScreenshotting ? 'Capturing…' : 'Screenshot (PNG)'}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        disabled={!effectiveResults}
+                                                        onClick={this.onExportJson}>
+                                                        <i className="icon icon-file fas me-05" /> Export JSON
+                                                    </Dropdown.Item>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
                                             <button
                                                 type="button"
-                                                className="matrix-mode-refresh-btn"
+                                                className="matrix-toolbar-btn matrix-mode-refresh-btn"
                                                 title="Refresh this tab's data"
                                                 aria-label="Refresh this tab's data"
                                                 disabled={isFetching}
                                                 onClick={this.onRefreshActiveTab}>
-                                                <i className={`icon fas icon-sync-alt${isFetching ? ' icon-spin' : ''}`} /> Refresh
+                                                <i className={`icon fas icon-sync-alt${isFetching ? ' icon-spin' : ''}`} /><span className="btn-label"> Refresh</span>
                                             </button>
                                         </div>
-                                    ) : null}
+                                    </div>
                                     <div className="matrix-visual-scroll-region">
-                                        <div className="matrix-visual-scroll-content">
+                                        <div className="matrix-visual-scroll-content" ref={(el) => { this.matrixCaptureEl = el; }}>
                                             <VisualBody
                                                 {...{ titleMap, statePrioritizationForGroups, fallbackNameForBlankField }}
                                                 {...bodyProps}
@@ -2196,7 +2441,7 @@ export default class DataMatrix extends React.PureComponent {
                     );
                 })() : (
                     <div className="matrix-visual-scroll-region">
-                        <div className="matrix-visual-scroll-content">
+                        <div className="matrix-visual-scroll-content" ref={(el) => { this.matrixCaptureEl = el; }}>
                             <VisualBody
                                 {...{ titleMap, statePrioritizationForGroups, fallbackNameForBlankField }}
                                 {...bodyProps}
