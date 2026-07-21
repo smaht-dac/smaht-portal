@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import Modal from 'react-bootstrap/esm/Modal';
 
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
@@ -31,6 +32,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
     const [available, setAvailable] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [banner, setBanner] = useState(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -60,37 +62,25 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
             () => {
                 onChange(true);
                 setSubmitting(false);
-                setBanner({
-                    title: 'Confirm your subscription',
-                    message: (
-                        <>
-                            <b>
-                                Important - To complete your subscription to
-                                sign up for new data release notice
-                            </b>
-                            <br />
-                            AWS has emailed a confirmation link to {user.email}
-                            . Please follow the instructions from AWS to receive
-                            emails when new data are released from the SMaHT
-                            Data Portal.
-                        </>
-                    ),
-                    style: 'success',
-                });
+                setShowConfirmModal(true);
             },
             'POST',
             () => {
                 setSubmitting(false);
                 setBanner({
-                    title: 'Subscription failed',
-                    message:
-                        'We could not subscribe you to data-release emails. Please try again.',
+                    message: (
+                        <>
+                            <b>Subscription failed: </b>We could not
+                            subscribe you to data-release emails. Please try
+                            again.
+                        </>
+                    ),
                     style: 'danger',
                 });
             },
             '{}'
         );
-    }, [user.email, onChange]);
+    }, [onChange]);
 
     const unsubscribe = useCallback(() => {
         setSubmitting(true);
@@ -100,9 +90,13 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                 onChange(false);
                 setSubmitting(false);
                 setBanner({
-                    title: 'Unsubscribed',
-                    message:
-                        'You will no longer receive data-release emails. You can subscribe again at any time.',
+                    message: (
+                        <>
+                            <b>Unsubscribed: </b>You will no longer receive
+                            data-release emails. You can subscribe again at
+                            any time.
+                        </>
+                    ),
                     style: 'success',
                 });
             },
@@ -110,9 +104,12 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
             () => {
                 setSubmitting(false);
                 setBanner({
-                    title: 'Unsubscribe failed',
-                    message:
-                        'Your subscription was not changed. Please try again.',
+                    message: (
+                        <>
+                            <b>Unsubscribe failed: </b>Your subscription was
+                            not changed. Please try again.
+                        </>
+                    ),
                     style: 'danger',
                 });
             },
@@ -120,14 +117,16 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
         );
     }, [onChange]);
 
+    const closeConfirmModal = useCallback(() => {
+        setShowConfirmModal(false);
+    }, []);
+
     if (!available) {
         return null;
     }
 
     const subscribed = Boolean(user[DATA_RELEASE_NOTIFICATION_ENROLLED]);
-    const rowCls =
-        'd-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3' +
-        (subscribed ? ' alert alert-success mb-0' : '');
+    subscribed ? ' alert alert-success mb-0' : '';
     let buttonLabel = subscribed ? 'Unsubscribe' : 'Subscribe';
     if (submitting) {
         buttonLabel = subscribed ? 'Unsubscribing…' : 'Subscribing…';
@@ -135,22 +134,6 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
 
     return (
         <div className="mt-12 data-release-notification-enrollment">
-            {banner ? (
-                <div
-                    className={`alert alert-${banner.style} alert-dismissible mb-12`}
-                    role="alert">
-                    <button
-                        type="button"
-                        className="btn-close"
-                        aria-label="Close"
-                        onClick={() => setBanner(null)}
-                    />
-                    <h4 className="alert-heading mt-0 mb-05">
-                        {banner.title}
-                    </h4>
-                    <div className="mb-0">{banner.message}</div>
-                </div>
-            ) : null}
             <div className="card">
                 <div className="card-header">
                     <h3 className="">
@@ -160,7 +143,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                 </div>
                 <div className="card-body">
                     <div
-                        className={rowCls}
+                        className="subscription-text d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
                         role={subscribed ? 'alert' : undefined}>
                         <p className="mb-0">
                             {subscribed ? (
@@ -170,14 +153,20 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                                     released on the SMaHT Data Portal. If you
                                     have trouble signing up for subscription,
                                     contact the SMaHT Data Analysis Center
-                                    through HelpDesk.
+                                    through the{' '}
+                                    <a
+                                        role="button"
+                                        href="mailto:smhelp@hms-dbmi.atlassian.net?subject=Helpdesk%20Inquiry%20from%20data.smaht.org&body=Name%3A%0D%0AContact%20Information%20(so%20we%20can%20get%20back%20to%20you!)%3A%0D%0A%0D%0AQuestions%2FComments%3A%0D%0A%0D%0A">
+                                        <span>HelpDesk</span>
+                                    </a>
+                                    .
                                 </>
                             ) : (
                                 <>
                                     I would like to receive{' '}
-                                    <strong>monthly</strong> emails to notify
-                                    me about new data released on the SMaHT
-                                    Data Portal.
+                                    <strong>monthly</strong> emails to notify me
+                                    about new data released on the SMaHT Data
+                                    Portal.
                                 </>
                             )}
                         </p>
@@ -193,8 +182,55 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             {buttonLabel}
                         </button>
                     </div>
+                    {banner ? (
+                        <>
+                            <hr />
+                            <div
+                                className={`alert alert-${banner.style} alert-dismissible`}
+                                role="alert">
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    aria-label="Close"
+                                    onClick={() => setBanner(null)}
+                                />
+                                <h4 className="alert-heading mt-0 mb-05">
+                                    {banner.title}
+                                </h4>
+                                <div className="mb-0">{banner.message}</div>
+                            </div>
+                        </>
+                    ) : null}
                 </div>
             </div>
+            <Modal
+                id="subscription-confirm-modal"
+                show={showConfirmModal}
+                onHide={closeConfirmModal}
+                centered
+                className="subscription-confirm-modal"
+                backdropClassName="subscription-confirm-modal-backdrop">
+                <Modal.Header closeButton />
+                <Modal.Body>
+                    <div className="callout-card protected-data">
+                        <img
+                            src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                            alt="SMaHT Logo"
+                        />
+                        <h4>Confirm with AWS to Subscribe</h4>
+                        <span>
+                            You will receive an email from{' '}
+                            <b>AWS Notifications</b> to <i>{user.email}</i>{' '}
+                            shortly to confirm your subscription.
+                            <br />
+                            <br />
+                            Please follow the instructions from AWS to receive
+                            emails when new data are released from the SMaHT
+                            Data Portal.
+                        </span>
+                    </div>
+                </Modal.Body>
+            </Modal>
         </div>
     );
 }
