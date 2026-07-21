@@ -284,37 +284,93 @@ def test_revision_inventory_counts_all_item_types_and_totals(session):
 
 
 def test_revision_inventory_uses_bounded_scalar_queries(session):
+    extra_item_type = "inventory_preexisting_item_type"
+    zero_item_type = "inventory_zero_revision_item_type"
+    _resources_with_history(session, {extra_item_type: 2})
     _resources_with_history(session, {"workflow": 2, "unrelated_item_type": 1})
-    statements = []
-    engine = session.get_bind()
+    session.add(Resource(zero_item_type))
+    session.flush()
 
-    def capture_statement(
-        _conn, _cursor, statement, _parameters, _context, _executemany
-    ):
-        statements.append(statement)
+    class BufferedResult:
+        def __init__(self, rows):
+            self.rows = rows
 
-    event.listen(engine, "before_cursor_execute", capture_statement)
-    try:
-        collect_revision_inventory(session, batch_size=1)
-    finally:
-        event.remove(engine, "before_cursor_execute", capture_statement)
+        def fetchall(self):
+            return self.rows
+
+    class RecordingSession:
+        def __init__(self, wrapped_session):
+            self.wrapped_session = wrapped_session
+            self.calls = []
+
+        def execute(self, statement, parameters):
+            rows = self.wrapped_session.execute(statement, parameters).fetchall()
+            self.calls.append(
+                {"statement": statement, "parameters": parameters, "rows": rows}
+            )
+            return BufferedResult(rows)
+
+    recording_session = RecordingSession(session)
+    report = collect_revision_inventory(recording_session, batch_size=1)
 
     resource_batches = [
-        statement
-        for statement in statements
-        if "SELECT RID, ITEM_TYPE" in statement.upper()
+        call
+        for call in recording_session.calls
+        if "SELECT RID, ITEM_TYPE" in call["statement"].text.upper()
     ]
     revision_batches = [
-        statement
-        for statement in statements
-        if "SELECT P.SID" in statement.upper()
+        call
+        for call in recording_session.calls
+        if "SELECT P.SID" in call["statement"].text.upper()
     ]
-    assert len(resource_batches) == 4
-    assert all("LIMIT" in statement.upper() for statement in resource_batches)
-    assert len(revision_batches) == 5
-    assert all("LIMIT" in statement.upper() for statement in revision_batches)
-    assert all("JOIN RESOURCES" in statement.upper() for statement in revision_batches)
-    assert all("COUNT(" not in statement.upper() for statement in revision_batches)
+
+    def assert_bounded_keyset_pages(calls, key_parameter, order_clause, row_index):
+        assert calls
+        assert calls[-1]["rows"] == []
+        nonempty_calls = calls[:-1]
+        assert nonempty_calls
+        assert key_parameter not in nonempty_calls[0]["parameters"]
+        assert calls[-1]["parameters"][key_parameter] == nonempty_calls[-1]["rows"][-1][
+            row_index
+        ]
+
+        for index, call in enumerate(calls):
+            sql = call["statement"].text.upper()
+            assert "SELECT *" not in sql
+            assert "LIMIT" in sql
+            assert order_clause in sql
+            assert "COUNT(" not in sql
+            if index and index < len(nonempty_calls):
+                previous_call = nonempty_calls[index - 1]
+                assert call["parameters"][key_parameter] == previous_call["rows"][-1][
+                    row_index
+                ]
+                assert str(call["rows"][0][row_index]) > str(
+                    previous_call["rows"][-1][row_index]
+                )
+
+    assert_bounded_keyset_pages(
+        resource_batches, "after_rid", "ORDER BY RID", row_index=0
+    )
+    assert_bounded_keyset_pages(
+        revision_batches, "after_sid", "ORDER BY P.SID", row_index=0
+    )
+    assert all(
+        "JOIN RESOURCES" in call["statement"].text.upper()
+        for call in revision_batches
+    )
+    assert sum(len(call["rows"]) for call in resource_batches[:-1]) == report[
+        "totals"
+    ]["resource_count"]
+    assert sum(len(call["rows"]) for call in revision_batches[:-1]) == report[
+        "totals"
+    ]["total_revision_count"]
+    assert report["by_item_type"][extra_item_type]["resource_count"] == 2
+    assert report["by_item_type"][zero_item_type] == {
+        "resource_count": 1,
+        "total_revision_count": 0,
+        "excess_historical_revisions": 0,
+    }
 
 
 def test_revision_inventory_log_output_is_deterministic(monkeypatch):
