@@ -243,10 +243,17 @@ class SubmissionStatusComponent extends React.PureComponent {
                     return;
                 } else {
                     this.setState(
-                        (prevState) => ({
-                            fileSets: filesets,
-                            loading: false,
-                        }),
+                        (prevState) => {
+                            const updated = filesets.find(
+                                (f) => f.uuid === fs_uuid
+                            );
+                            const merged = updated
+                                ? prevState.fileSets.map((f) =>
+                                    f.uuid === fs_uuid ? updated : f
+                                )
+                                : filesets;
+                            return { fileSets: merged, loading: false };
+                        },
                         function () {
                             if (onDone) {
                                 onDone();
@@ -375,31 +382,26 @@ class SubmissionStatusComponent extends React.PureComponent {
 
     round1 = (num) => Math.round(num * 10) / 10;
 
-    buildSubmittedQcComment = (groups) => {
-        const parts = groups.map((g) => {
-            let part = `'${g.key}' (${g.flag}) in ${g.count} file(s)`;
-            if (g.numeric) {
-                part +=
-                    g.min === g.max
-                        ? ` with value ${formatQcValue(g.min)}`
-                        : ` with values between ${formatQcValue(
-                              g.min
-                          )} and ${formatQcValue(g.max)}`;
-            }
-            return part;
-        });
-        return `${AUTO_REVIEW_COMMENT_PREFIX} Submitted file QC issues: ${parts.join(
-            '; '
-        )}`;
+    // One comment per problematic submitted-file metric (group).
+    buildSubmittedQcComment = (g) => {
+        let part = `'${g.key}' (${g.flag}) in ${g.count} file(s)`;
+        if (g.numeric) {
+            const min = formatQcValue(g.min);
+            const max = formatQcValue(g.max);
+            part +=
+                g.min === g.max
+                    ? ` with value ${min}`
+                    : ` with values between ${min} and ${max}`;
+        }
+        return `${AUTO_REVIEW_COMMENT_PREFIX} Submitted file QC issue: ${part}`;
     };
 
-    buildOutputQcComment = (problems) => {
-        const parts = problems.map(
-            (p) => `${p.accession} ${p.key}=${formatQcValue(p.value)} (${p.flag})`
+    // One comment per problematic output-file QC value.
+    buildOutputQcComment = (p) => {
+        return (
+            `${AUTO_REVIEW_COMMENT_PREFIX} Output file QC issue: ` +
+            `${p.key}=${formatQcValue(p.value)} (${p.flag})`
         );
-        return `${AUTO_REVIEW_COMMENT_PREFIX} Output file QC issues: ${parts.join(
-            '; '
-        )}`;
     };
 
     buildQcFallbackComment = () => {
@@ -428,8 +430,9 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
-    // "Review" button handler. Fetches detailed QC for the file group, applies the
-    // review rules, and patches tags + comments in a single request.
+    // Fetches detailed QC for a single file group, applies the review rules, and
+    // patches tags + comments in a single request. Called per fileset by the
+    // "Auto-review QC" header action (autoReviewAllFilesets).
     autoReviewFileset = (fs) => {
         if (this.state.reviewingFilesets.includes(fs.uuid)) {
             return;
@@ -494,6 +497,29 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
+    // Review every fileset currently shown in the table. Reuses the per-fileset
+    // worker, firing all reviews concurrently. Each review patches tags/comments
+    // into local state as it completes (see patchFileset), so no reload is
+    // needed; the spinner clears once every fileset has finished.
+    autoReviewAllFilesets = () => {
+        if (this.state.reviewingFilesets.length > 0) {
+            return;
+        }
+        const filesets = [...this.state.fileSets];
+        if (filesets.length === 0) {
+            return;
+        }
+        if (
+            !window.confirm(
+                `Auto-review QC for ${filesets.length} file set(s) in the current view?`
+            )
+        ) {
+            return;
+        }
+
+        filesets.forEach((fs) => this.autoReviewFileset(fs));
+    };
+
     applyReviewResult = (
         fs,
         qcBlocks,
@@ -526,12 +552,12 @@ class SubmissionStatusComponent extends React.PureComponent {
             (c) => !c.startsWith(AUTO_REVIEW_COMMENT_PREFIX)
         );
         const auto = [];
-        if (submittedProblems.length > 0) {
-            auto.push(this.buildSubmittedQcComment(submittedProblems));
-        }
-        if (outputProblems.length > 0) {
-            auto.push(this.buildOutputQcComment(outputProblems));
-        }
+        submittedProblems.forEach((g) => {
+            auto.push(this.buildSubmittedQcComment(g));
+        });
+        outputProblems.forEach((p) => {
+            auto.push(this.buildOutputQcComment(p));
+        });
         if (
             qcBlocks &&
             submittedProblems.length === 0 &&
@@ -710,29 +736,6 @@ class SubmissionStatusComponent extends React.PureComponent {
                 }
             });
 
-            const isReviewing = this.state.reviewingFilesets.includes(fs.uuid);
-            const reviewButton = this.state.isUserAdmin ? (
-                <small className="d-block text-secondary ss-line-height-140 mt-1">
-                    <div
-                        className="ss-link"
-                        //data-tip="Automatically review QC and set tags/comments"
-                        onClick={() =>
-                            isReviewing ? null : this.autoReviewFileset(fs)
-                        }>
-                        <i
-                            className={
-                                'icon icon-fw fas ' +
-                                (isReviewing
-                                    ? 'icon-spinner icon-spin'
-                                    : 'icon-clipboard-check')
-                            }></i>
-                        Auto-review QC
-                    </div>
-                </small>
-            ) : (
-                ''
-            );
-
             const submittedFilesQc = getQcResults(fs.submitted_files.qc_infos);
             const submittedFilesQcSummary = getQcResultsSummary(
                 fs.submitted_files.qc_infos
@@ -840,7 +843,6 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 Review File Group QC
                             </div>
                         </small>
-                        {reviewButton}
                     </td>
                     <td>
                         <div className="p-1">{mwfrs}</div>
@@ -872,6 +874,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                 </div>
             );
         }
+
+        const reviewingAll = this.state.reviewingFilesets.length > 0;
 
         return (
             <React.Fragment>
@@ -960,6 +964,25 @@ class SubmissionStatusComponent extends React.PureComponent {
                                             marginLeft: 3,
                                         },
                                     }}></object.CopyWrapper>
+                                {this.state.isUserAdmin && (
+                                    <i
+                                        className={
+                                            'icon icon-fw fas ss-link ' +
+                                            (reviewingAll
+                                                ? 'icon-spinner icon-spin'
+                                                : 'icon-clipboard-check')
+                                        }
+                                        data-tip="Auto-review QC for all file sets in the current view"
+                                        onClick={() =>
+                                            reviewingAll
+                                                ? null
+                                                : this.autoReviewAllFilesets()
+                                        }
+                                        style={{
+                                            fontSize: '0.875rem',
+                                            marginLeft: 3,
+                                        }}></i>
+                                )}
                             </th>
                             <th className="text-start">MetaWorkflowRuns</th>
                             <th className="text-start">
