@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 from sqlalchemy import event, text
+from snovault import DBSESSION
 from snovault.storage import CurrentPropertySheet, PropertySheet, Resource
 
 import encoded.commands.delete_revision_history as delete_revision_history_command
@@ -238,6 +239,41 @@ def test_current_row_is_rechecked_before_bounded_delete(session):
 
     assert deleted == 0
     assert old_row.sid in {row.sid for row in _propsheet_rows(session, workflow.rid)}
+
+
+def test_cleanup_reuses_fixture_registered_db_session(monkeypatch):
+    registered_session = object()
+    registry = type("Registry", (dict,), {"settings": {}})(
+        {DBSESSION: registered_session}
+    )
+    app = type("App", (), {"registry": registry})()
+
+    def fail_if_reconfigured(_app):
+        raise AssertionError("fixture-registered DB session was reconfigured")
+
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "configure_dbsession",
+        fail_if_reconfigured,
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "_target_rids_by_type",
+        lambda session: {"workflow": [], "meta_workflow_run": []},
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "delete_old_revision_history_for_item_type",
+        lambda *args, **kwargs: 0,
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command.transaction, "commit", lambda: None
+    )
+
+    assert delete_revision_history(app, prod=True, batch_size=1) == {
+        "workflow": 0,
+        "meta_workflow_run": 0,
+    }
 
 
 def test_interrupted_cleanup_resumes_idempotently(app, session, monkeypatch):

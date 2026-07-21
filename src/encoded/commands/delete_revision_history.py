@@ -239,7 +239,11 @@ def delete_revision_history(
             )
             return None
 
-    configure_dbsession(app)
+    # Test applications already register their fixture-backed DB session while
+    # retaining the placeholder sqlalchemy.url setting. Reconfiguring such an
+    # app would try to parse that placeholder instead of reusing the session.
+    if DBSESSION not in app.registry or app.registry[DBSESSION] is None:
+        configure_dbsession(app)
     session = app.registry[DBSESSION]
     deleted_by_type = {}
 
