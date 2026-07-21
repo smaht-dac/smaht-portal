@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.4.0
+2.5.0
 =====
 
 * Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items, and add a deployment command that uses set-based deletion per item type to purge already-stored historical propsheet rows while preserving each item's current version.
