@@ -11,8 +11,11 @@ from encoded.commands.delete_revision_history import (
     DEFAULT_BATCH_SIZE,
     _positive_batch_size,
     _validate_batch_size,
+    collect_revision_inventory,
     delete_revision_history,
     delete_old_revision_history_for_item_type,
+    log_post_cleanup_revision_inventory,
+    log_revision_inventory,
 )
 
 
@@ -241,6 +244,170 @@ def test_current_row_is_rechecked_before_bounded_delete(session):
     assert old_row.sid in {row.sid for row in _propsheet_rows(session, workflow.rid)}
 
 
+def test_revision_inventory_counts_all_item_types_and_totals(session):
+    _resources_with_history(
+        session,
+        {"workflow": 1, "meta_workflow_run": 2, "unrelated_item_type": 1},
+    )
+    session.add(Resource("zero_revision_type"))
+    session.flush()
+
+    report = collect_revision_inventory(session, batch_size=1)
+
+    assert report["by_item_type"] == {
+        "meta_workflow_run": {
+            "resource_count": 2,
+            "total_revision_count": 8,
+            "excess_historical_revisions": 4,
+        },
+        "unrelated_item_type": {
+            "resource_count": 1,
+            "total_revision_count": 4,
+            "excess_historical_revisions": 2,
+        },
+        "workflow": {
+            "resource_count": 1,
+            "total_revision_count": 4,
+            "excess_historical_revisions": 2,
+        },
+        "zero_revision_type": {
+            "resource_count": 1,
+            "total_revision_count": 0,
+            "excess_historical_revisions": 0,
+        },
+    }
+    assert report["totals"] == {
+        "resource_count": 5,
+        "total_revision_count": 16,
+        "excess_historical_revisions": 8,
+    }
+
+
+def test_revision_inventory_uses_bounded_scalar_queries(session):
+    _resources_with_history(session, {"workflow": 2, "unrelated_item_type": 1})
+    statements = []
+    engine = session.get_bind()
+
+    def capture_statement(
+        _conn, _cursor, statement, _parameters, _context, _executemany
+    ):
+        statements.append(statement)
+
+    event.listen(engine, "before_cursor_execute", capture_statement)
+    try:
+        collect_revision_inventory(session, batch_size=1)
+    finally:
+        event.remove(engine, "before_cursor_execute", capture_statement)
+
+    resource_batches = [
+        statement
+        for statement in statements
+        if "SELECT RID, ITEM_TYPE" in statement.upper()
+    ]
+    revision_batches = [
+        statement
+        for statement in statements
+        if "SELECT P.SID" in statement.upper()
+    ]
+    assert len(resource_batches) == 4
+    assert all("LIMIT" in statement.upper() for statement in resource_batches)
+    assert len(revision_batches) == 5
+    assert all("LIMIT" in statement.upper() for statement in revision_batches)
+    assert all("JOIN RESOURCES" in statement.upper() for statement in revision_batches)
+    assert all("COUNT(" not in statement.upper() for statement in revision_batches)
+
+
+def test_revision_inventory_log_output_is_deterministic(monkeypatch):
+    report = {
+        "by_item_type": {
+            "clean_type": {
+                "resource_count": 2,
+                "total_revision_count": 2,
+                "excess_historical_revisions": 0,
+            },
+            "zero_type": {
+                "resource_count": 1,
+                "total_revision_count": 0,
+                "excess_historical_revisions": 0,
+            },
+        },
+        "totals": {
+            "resource_count": 3,
+            "total_revision_count": 2,
+            "excess_historical_revisions": 0,
+        },
+    }
+    messages = []
+    monkeypatch.setattr(
+        delete_revision_history_command.logger,
+        "info",
+        lambda message: messages.append(message),
+    )
+
+    log_revision_inventory(report)
+
+    assert messages == [
+        "revision_inventory phase=pre_cleanup item_type=clean_type "
+        "resource_count=2 total_revision_count=2 "
+        "excess_historical_revisions=0 state=clean",
+        "revision_inventory phase=pre_cleanup item_type=zero_type "
+        "resource_count=1 total_revision_count=0 "
+        "excess_historical_revisions=0 state=no_revisions",
+        "revision_inventory phase=pre_cleanup scope=database_total "
+        "resource_count=3 total_revision_count=2 "
+        "excess_historical_revisions=0 state=clean",
+    ]
+
+
+def test_revision_inventory_logs_post_cleanup_effect_without_rescan(monkeypatch):
+    report = {
+        "by_item_type": {
+            "workflow": {
+                "resource_count": 1,
+                "total_revision_count": 4,
+                "excess_historical_revisions": 2,
+            },
+            "meta_workflow_run": {
+                "resource_count": 1,
+                "total_revision_count": 2,
+                "excess_historical_revisions": 1,
+            },
+            "unrelated_item_type": {
+                "resource_count": 1,
+                "total_revision_count": 4,
+                "excess_historical_revisions": 2,
+            },
+        },
+        "totals": {
+            "resource_count": 3,
+            "total_revision_count": 10,
+            "excess_historical_revisions": 5,
+        },
+    }
+    messages = []
+    monkeypatch.setattr(
+        delete_revision_history_command.logger,
+        "info",
+        lambda message: messages.append(message),
+    )
+
+    log_post_cleanup_revision_inventory(
+        report, {"workflow": 2, "meta_workflow_run": 1}, dry_run=False
+    )
+
+    assert messages == [
+        "revision_inventory phase=post_cleanup item_type=workflow "
+        "resource_count=1 total_revision_count=2 "
+        "excess_historical_revisions=0 state=clean",
+        "revision_inventory phase=post_cleanup item_type=meta_workflow_run "
+        "resource_count=1 total_revision_count=1 "
+        "excess_historical_revisions=0 state=clean",
+        "revision_inventory phase=post_cleanup scope=database_total "
+        "resource_count=3 total_revision_count=7 "
+        "excess_historical_revisions=2 state=historical_buildup",
+    ]
+
+
 def test_cleanup_reuses_fixture_registered_db_session(monkeypatch):
     registered_session = object()
     registry = type("Registry", (dict,), {"settings": {}})(
@@ -341,3 +508,68 @@ def test_deployment_invokes_batched_cleanup_before_mapping():
         mapping_command
     )
     assert "exec sh entrypoint_deployment.sh" in entrypoint_contents
+
+
+def test_main_reports_inventory_before_dry_run_cleanup(monkeypatch):
+    calls = []
+    app = object()
+    report = {"by_item_type": {}, "totals": {}}
+
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "get_app",
+        lambda *args: app,
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "report_revision_inventory",
+        lambda received_app, batch_size: calls.append(
+            ("report", received_app, batch_size)
+        )
+        or report,
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "log_revision_inventory",
+        lambda received_report: calls.append(("pre_log", received_report)),
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "delete_revision_history",
+        lambda received_app, prod, dry_run, batch_size: calls.append(
+            ("cleanup", received_app, prod, dry_run, batch_size)
+        )
+        or {"workflow": 0, "meta_workflow_run": 0},
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "log_post_cleanup_revision_inventory",
+        lambda received_report, deleted_by_type, dry_run: calls.append(
+            ("post_log", received_report, deleted_by_type, dry_run)
+        ),
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command.sys,
+        "argv",
+        [
+            "delete-revision-history",
+            "production.ini",
+            "--app-name",
+            "app",
+            "--prod",
+            "--dry-run",
+            "--batch-size",
+            "2",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exit_info:
+        delete_revision_history_command.main()
+
+    assert exit_info.value.code == 0
+    assert calls == [
+        ("report", app, 2),
+        ("pre_log", report),
+        ("cleanup", app, True, True, 2),
+        ("post_log", report, {"workflow": 0, "meta_workflow_run": 0}, True),
+    ]
