@@ -66,6 +66,9 @@
         "schema_version": {
             "default": "2"
         },
+        "file_format": {
+            "$merge": "encoded_core:schemas/file_format.json#/properties/file_format"
+        },
         "extra_file_formats": {
             "$merge": "encoded_core:schemas/file_format.json#/properties/extrafile_formats"
         },
