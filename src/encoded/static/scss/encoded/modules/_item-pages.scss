@@ -1298,13 +1298,32 @@ body[data-pathname^="/users/"] {
 					}
 				}
 				.card-body {
-					padding: 10px;
-					padding-left: 35px;
+					padding: 1rem;
+					padding-left: 22px;
 
-					.alert-success {
+					.alert {
+						display: flex;
 						padding-left: 10px;
-						background-color: #ECFFF2;
-						border: 1px solid #99E199;
+						margin-top: 1.25rem;
+						margin-bottom: 0px;
+
+						&-success {
+							background-color: #ECFFF2;
+							border: 1px solid #99E199;
+						}
+					}
+
+					.subscription-text {
+						padding-left: 10px;
+
+						p {
+							margin-right: 20px;
+						}
+					}
+
+					hr {
+						color: black;
+						opacity: 0.08;
 					}
 
 					.subscribe-button {
@@ -1318,6 +1337,55 @@ body[data-pathname^="/users/"] {
 				}
 			}
 
+		}
+	}
+
+	// Modal is portal-rendered to <body>, so it isn't nested under .user-profile-page above.
+	.subscription-confirm-modal-backdrop.show {
+		opacity: 0.15;
+	}
+	div.subscription-confirm-modal {
+		backdrop-filter: blur(3px);
+
+		#subscription-confirm-modal {
+			max-width: 625px;
+
+			.modal-content {
+				border: none;
+				border-radius: 20px;
+				box-shadow: 0px 0px 10px #D3D9E7;
+
+				i {
+					color: #597598;
+					font-size: 0.875rem;
+				}
+			}
+
+			.modal-header {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+				z-index: 1;
+				border: none;
+				padding: 0;
+
+				.btn-close {
+					margin: 0px 2px;
+					padding: 0.5rem;
+				}
+			}
+
+			.callout-card.protected-data {
+				padding: 20px 0px;
+
+				img {
+					width: 50px;
+				}
+
+				h4 {
+					margin: 15px;
+				}
+			}
 		}
 	}
 }
