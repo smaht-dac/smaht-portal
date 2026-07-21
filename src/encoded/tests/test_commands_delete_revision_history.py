@@ -284,6 +284,49 @@ def test_revision_inventory_counts_all_item_types_and_totals(session):
     }
 
 
+def assert_keyset_pages_advance(calls, key_parameter, row_index):
+    """Assert a keyset-paginated statement stream is bounded and strictly advancing.
+
+    ``calls`` is the recorded list of executed pages, each a mapping with
+    ``parameters`` (the bound parameters) and ``rows`` (the fetched rows). The
+    final page must be empty, the keyset parameter must be absent on the first
+    page, and every subsequent page must resume exactly at the previous page's
+    final key while returning a strictly greater leading key.
+
+    Keys are compared using their native types (integers for ``sid``,
+    UUIDs/strings for ``rid``); the values on both sides come from the same
+    query column, so ``>`` is type-consistent. Stringifying first is a bug: for
+    integer ``sid`` keys ``str(1000) > str(999)`` is ``False`` (and
+    ``str(9) > str(10)`` is ``True``), so it would reject a valid 999 -> 1000
+    advance and accept an invalid 10 -> 9 one whenever the key crosses a
+    power-of-ten digit boundary.
+    """
+    assert calls
+    assert calls[-1]["rows"] == []
+    nonempty_calls = calls[:-1]
+    assert nonempty_calls
+    assert key_parameter not in nonempty_calls[0]["parameters"]
+    assert (
+        calls[-1]["parameters"][key_parameter]
+        == nonempty_calls[-1]["rows"][-1][row_index]
+    )
+    for index in range(1, len(nonempty_calls)):
+        current = nonempty_calls[index]
+        previous_last_key = nonempty_calls[index - 1]["rows"][-1][row_index]
+        assert current["parameters"][key_parameter] == previous_last_key
+        assert current["rows"][0][row_index] > previous_last_key
+
+
+def assert_pages_are_bounded_scalar_sql(calls, order_clause):
+    """Assert every page statement is a bounded, non-ORM scalar read."""
+    for call in calls:
+        sql = call["statement"].text.upper()
+        assert "SELECT *" not in sql
+        assert "LIMIT" in sql
+        assert order_clause in sql
+        assert "COUNT(" not in sql
+
+
 def test_revision_inventory_uses_bounded_scalar_queries(session):
     extra_item_type = f"inventory_preexisting_{uuid4().hex}"
     zero_item_type = f"inventory_zero_revision_{uuid4().hex}"
@@ -325,37 +368,10 @@ def test_revision_inventory_uses_bounded_scalar_queries(session):
         if "SELECT P.SID" in call["statement"].text.upper()
     ]
 
-    def assert_bounded_keyset_pages(calls, key_parameter, order_clause, row_index):
-        assert calls
-        assert calls[-1]["rows"] == []
-        nonempty_calls = calls[:-1]
-        assert nonempty_calls
-        assert key_parameter not in nonempty_calls[0]["parameters"]
-        assert calls[-1]["parameters"][key_parameter] == nonempty_calls[-1]["rows"][-1][
-            row_index
-        ]
-
-        for index, call in enumerate(calls):
-            sql = call["statement"].text.upper()
-            assert "SELECT *" not in sql
-            assert "LIMIT" in sql
-            assert order_clause in sql
-            assert "COUNT(" not in sql
-            if index and index < len(nonempty_calls):
-                previous_call = nonempty_calls[index - 1]
-                assert call["parameters"][key_parameter] == previous_call["rows"][-1][
-                    row_index
-                ]
-                assert str(call["rows"][0][row_index]) > str(
-                    previous_call["rows"][-1][row_index]
-                )
-
-    assert_bounded_keyset_pages(
-        resource_batches, "after_rid", "ORDER BY RID", row_index=0
-    )
-    assert_bounded_keyset_pages(
-        revision_batches, "after_sid", "ORDER BY P.SID", row_index=0
-    )
+    assert_pages_are_bounded_scalar_sql(resource_batches, "ORDER BY RID")
+    assert_keyset_pages_advance(resource_batches, "after_rid", row_index=0)
+    assert_pages_are_bounded_scalar_sql(revision_batches, "ORDER BY P.SID")
+    assert_keyset_pages_advance(revision_batches, "after_sid", row_index=0)
     assert all(
         "JOIN RESOURCES" in call["statement"].text.upper()
         for call in revision_batches
@@ -372,6 +388,71 @@ def test_revision_inventory_uses_bounded_scalar_queries(session):
         "total_revision_count": 0,
         "excess_historical_revisions": 0,
     }
+
+
+def _synthetic_keyset_pages(key_parameter, key_values):
+    """Build recorded keyset pages from a monotonic sequence of scalar keys.
+
+    Mirrors ``collect_revision_inventory``'s paging: the first page carries no
+    keyset parameter, each later page resumes at the previous page's final key,
+    and a trailing empty page terminates the stream.
+    """
+    pages = []
+    for index, key in enumerate(key_values):
+        parameters = {"batch_size": 1}
+        if index:
+            parameters[key_parameter] = key_values[index - 1]
+        pages.append({"parameters": parameters, "rows": [(key,)]})
+    pages.append(
+        {"parameters": {key_parameter: key_values[-1], "batch_size": 1}, "rows": []}
+    )
+    return pages
+
+
+@pytest.mark.parametrize(
+    "key_values",
+    [
+        [9, 10],
+        [99, 100, 101],
+        [8, 9, 10, 11],
+        [998, 999, 1000, 1001],
+        [1, 5, 9, 10, 42, 100, 1000],
+    ],
+)
+def test_keyset_advance_accepts_integer_keys_across_digit_boundaries(key_values):
+    """Integer sid keys crossing a power-of-ten boundary are strictly ordered.
+
+    A prior implementation compared stringified keys, so a valid ``999 -> 1000``
+    advance failed (``"1000" < "999"``). Native integer comparison accepts it.
+    """
+    pages = _synthetic_keyset_pages("after_sid", key_values)
+    assert_keyset_pages_advance(pages, "after_sid", row_index=0)
+
+
+@pytest.mark.parametrize(
+    "key_values",
+    [
+        [10, 9],
+        [1, 2, 2],
+        [100, 1000, 999],
+    ],
+)
+def test_keyset_advance_rejects_non_monotonic_integer_keys(key_values):
+    """Genuinely non-advancing integer keyset streams still fail the assertion.
+
+    Includes ``10 -> 9``, which the stringified comparison wrongly accepted
+    (``"9" > "10"``).
+    """
+    pages = _synthetic_keyset_pages("after_sid", key_values)
+    with pytest.raises(AssertionError):
+        assert_keyset_pages_advance(pages, "after_sid", row_index=0)
+
+
+def test_keyset_advance_orders_uuid_string_keys():
+    """UUID/string rid keys are compared consistently with SQL ``ORDER BY rid``."""
+    ordered_rids = [str(value) for value in sorted(uuid4() for _ in range(6))]
+    pages = _synthetic_keyset_pages("after_rid", ordered_rids)
+    assert_keyset_pages_advance(pages, "after_rid", row_index=0)
 
 
 def test_revision_inventory_log_output_is_deterministic(monkeypatch):
