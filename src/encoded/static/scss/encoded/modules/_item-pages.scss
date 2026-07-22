@@ -3246,48 +3246,6 @@ File and Donor Overview Styles
 			overflow: visible;
 		}
 
-		.tube-glass {
-			fill: #EEF6FC;
-		}
-
-		.tube-liquid {
-			pointer-events: none;
-		}
-
-		.tube-liquid-sheen {
-			fill: #FFFFFF;
-			opacity: 0.16;
-			pointer-events: none;
-		}
-
-		.tube-ticks line {
-			stroke: #FFFFFF;
-			stroke-width: 1.1;
-			opacity: 0.55;
-			vector-effect: non-scaling-stroke;
-		}
-
-		.tube-outline {
-			fill: none;
-			stroke: #7C97AC;
-			stroke-width: 1.4;
-			vector-effect: non-scaling-stroke;
-		}
-
-		.tube-cap {
-			fill: #CBE4F6;
-			stroke: #6B93B0;
-			stroke-width: 1.2;
-			vector-effect: non-scaling-stroke;
-		}
-
-		.tube-cap-sheen {
-			stroke: #FFFFFF;
-			stroke-width: 1.5;
-			opacity: 0.6;
-			vector-effect: non-scaling-stroke;
-		}
-
 		.nonsolid-branch-line {
 			stroke: #8FA3B3;
 			stroke-width: 1.3;
@@ -3326,12 +3284,56 @@ File and Donor Overview Styles
 			}
 		}
 
-		.nonsolid-popover-tube-canvas {
-			width: 44px;
-			height: auto;
-			overflow: visible;
-		}
 	}
+}
+
+// TubeIcon (NonSolidAliquotVisualization.js) renders both inside the main
+// canvas (wrapped in .nonsolid-aliquot-visualization) and inside the detail
+// Popover -- which react-bootstrap portals elsewhere in the DOM, outside
+// that wrapper. These have to stay unscoped so they apply in both places;
+// scoping them under .nonsolid-aliquot-visualization left the popover's tube
+// with no fill/stroke styling at all (an unstyled SVG shape defaults to a
+// solid black fill) and no size constraint on its viewBox.
+.tube-glass {
+	fill: #EEF6FC;
+}
+
+.tube-liquid {
+	pointer-events: none;
+}
+
+.tube-liquid-sheen {
+	fill: #FFFFFF;
+	opacity: 0.16;
+	pointer-events: none;
+}
+
+.tube-ticks line {
+	stroke: #FFFFFF;
+	stroke-width: 1.1;
+	opacity: 0.55;
+	vector-effect: non-scaling-stroke;
+}
+
+.tube-outline {
+	fill: none;
+	stroke: #7C97AC;
+	stroke-width: 1.4;
+	vector-effect: non-scaling-stroke;
+}
+
+.tube-cap {
+	fill: #CBE4F6;
+	stroke: #6B93B0;
+	stroke-width: 1.2;
+	vector-effect: non-scaling-stroke;
+}
+
+.tube-cap-sheen {
+	stroke: #FFFFFF;
+	stroke-width: 1.5;
+	opacity: 0.6;
+	vector-effect: non-scaling-stroke;
 }
 
 .popover.aliquot-popover {
@@ -3352,6 +3354,12 @@ File and Donor Overview Styles
 		display: flex;
 		justify-content: center;
 		padding: 6px 0 4px;
+	}
+
+	.nonsolid-popover-tube-canvas {
+		width: 26px;
+		height: auto;
+		overflow: visible;
 	}
 
 	.aliquot-visual-swatch {
@@ -3468,12 +3476,32 @@ File and Donor Overview Styles
 		}
 	}
 
+	.aliquot-popover-pathology .aliquot-popover-row {
+		flex-direction: column;
+		gap: 2px;
+
+		strong {
+			text-align: left;
+			word-break: break-word;
+		}
+	}
+
 	.aliquot-popover-description {
 		margin: 4px 0 0;
 		padding-top: 8px;
 		border-top: 1px solid #E4EDF5;
 		color: #5D7288;
 		font-size: 0.875rem;
+	}
+
+	.aliquot-popover-pathology-empty {
+		margin: 0;
+		padding: 8px 0;
+		border-top: 1px solid #E4EDF5;
+		border-bottom: 1px solid #E4EDF5;
+		color: #98A2B3;
+		font-size: 0.8125rem;
+		font-style: italic;
 	}
 }
 

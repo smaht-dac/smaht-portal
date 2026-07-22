@@ -162,10 +162,19 @@ export default function NonSolidAliquotVisualization({
     });
 
     const columnWidth = SUB_TUBE.width + COLUMN_GAP;
-    const totalWidth = Math.max(
-        normalizedAliquots.length * columnWidth,
-        MAIN_TUBE.width + COLUMN_GAP
-    );
+    // viewBox height is fixed regardless of aliquot count (tube/branch/label
+    // heights don't vary), so a real tissue with just 1-2 samples -- the
+    // common case for blood/buccal -- would otherwise get a much narrower
+    // canvas than the demo data while keeping the same height, distorting
+    // the aspect ratio and making the tube look oversized. Flooring at 2
+    // columns keeps proportions stable regardless of real aliquot count.
+    const totalWidth = Math.max(normalizedAliquots.length * columnWidth, 2 * columnWidth);
+    // Centers the actual column group when it's narrower than the width
+    // floor above (e.g. a single real aliquot in a 2-column-wide frame) --
+    // otherwise the lone tube would sit at the first column's slot instead
+    // of the canvas center.
+    const columnsGroupOffsetX =
+        (totalWidth - normalizedAliquots.length * columnWidth) / 2;
     const mainTubeX = totalWidth / 2 - MAIN_TUBE.width / 2;
     const mainTubeY = 0;
     const mainTubeBottomY = mainTubeY + MAIN_TUBE.capHeight + MAIN_TUBE.bodyHeight;
@@ -206,6 +215,7 @@ export default function NonSolidAliquotVisualization({
                     />
                     {normalizedAliquots.map((aliquot) => {
                         const subTubeX =
+                            columnsGroupOffsetX +
                             aliquot.index * columnWidth +
                             columnWidth / 2 -
                             SUB_TUBE.width / 2;
@@ -261,7 +271,7 @@ export default function NonSolidAliquotVisualization({
                                     className="nonsolid-gcc-label"
                                     x={subTubeCenterX}
                                     y={gccLabelY}>
-                                    {aliquot.gccLabel}
+                                    {aliquot.submissionCenter || aliquot.gccLabel}
                                 </text>
                             </g>
                         );
@@ -272,6 +282,7 @@ export default function NonSolidAliquotVisualization({
                     target={selectedTarget}
                     placement="right"
                     rootClose
+                    rootCloseEvent="mousedown"
                     // eslint-disable-next-line react/jsx-no-bind
                     onHide={handleHidePopover}>
                     {/* Overlay requires a render prop here. */}
