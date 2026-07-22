@@ -2,8 +2,8 @@ import _ from 'underscore';
 const jose = require('jose');
 
 import {
-    navUserAcctDropdownBtnSelector,
     navUserAcctLoginBtnSelector,
+    navUserAcctLoggedInMenuSelector,
 } from './selectorVars';
 
 /** Expected to throw error of some sort if not on search page, or no results. */
@@ -95,7 +95,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
     //ensure user is logged out first
     if (options.forceLogout) {
         cy.get('body').then(($body) => {
-            if ($body.find(navUserAcctDropdownBtnSelector + '#account-menu-item').length > 0) {
+            if ($body.find(navUserAcctLoggedInMenuSelector).length > 0) {
                 cy.logoutSMaHT().end();
             }
         });
@@ -141,6 +141,17 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                     })
                     .end();
             })
+            // Login mutates SPA state asynchronously (updateAppSessionState +
+            // an in-place navigate re-render the navbar); wait for the
+            // authenticated account menu to actually be present before
+            // treating login as complete. The generic `.user-account-item`
+            // selector also matches the logged-out login button, so a plain
+            // "not contain Login / Register" check here could pass on stale
+            // DOM - navUserAcctLoggedInMenuSelector can only match the menu.
+            .get('#slow-load-container', { timeout: 20000 })
+            .should('not.have.class', 'visible')
+            .get(navUserAcctLoggedInMenuSelector, { timeout: 20000 })
+            .should('be.visible')
             .validateUser(userDisplayName)
             .end();
     }
@@ -188,7 +199,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
 });
 
 Cypress.Commands.add('validateUser', function (userDisplayName = '') {
-    return cy.get(navUserAcctDropdownBtnSelector)
+    return cy.get(navUserAcctLoggedInMenuSelector, { timeout: 20000 })
         .should('not.contain.text', 'Login / Register')
         .then((accountListItem) => {
             Cypress.log({
@@ -200,7 +211,11 @@ Cypress.Commands.add('validateUser', function (userDisplayName = '') {
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
-    cy.getLoadedMenuItem(navUserAcctDropdownBtnSelector)
+    // Use the id-scoped selector (not the ambiguous navUserAcctDropdownBtnSelector,
+    // which also matches the logged-out login button) so a not-yet-applied login
+    // fails with a clear "element not found" instead of silently asserting
+    // dropdown-toggle against #loginbtn.
+    cy.getLoadedMenuItem(navUserAcctLoggedInMenuSelector)
         .click({ force: true })
         .should("have.class", "dropdown-open-for")
         .then(() => {

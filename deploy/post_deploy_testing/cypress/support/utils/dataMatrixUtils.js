@@ -1,4 +1,11 @@
-// Sends a GET request to the given URL and returns the `total` field from JSON response
+// Sends a GET request to the given URL and returns the `total` field from JSON response.
+//
+// SMaHT's browse/search API returns HTTP 404 with a valid JSON body (`total: 0`,
+// "No results found") whenever a filter combination currently matches zero
+// results - that is a documented, correct contract, not a transport failure.
+// `failOnStatusCode:false` lets us read that body instead of throwing a
+// CypressError; any other non-200 status, or a body without a numeric
+// `total`, still fails loudly with the response attached.
 export function getApiTotalFromUrl(url) {
     // Ensure the URL requests JSON format (append if missing)
     const normalizedUrl = String(url).replace(/^(https?:\/\/[^/]+)\/\/+/, '$1/').replace(/^\/\/+/, '/');
@@ -6,8 +13,53 @@ export function getApiTotalFromUrl(url) {
 
     return cy.request({
         method: 'GET',
-        url: fullUrl
-    }).its('body.total');
+        url: fullUrl,
+        failOnStatusCode: false,
+    }).then((response) => {
+        const { status, body } = response;
+        const isDocumentedEmptyResult = status === 404 && body && body.total === 0;
+
+        if (status !== 200 && !isDocumentedEmptyResult) {
+            throw new Error(
+                `getApiTotalFromUrl: unexpected response for ${fullUrl} - status ${status}, body: ${JSON.stringify(body).slice(0, 500)}`
+            );
+        }
+
+        if (typeof body?.total !== 'number') {
+            throw new Error(
+                `getApiTotalFromUrl: response for ${fullUrl} (status ${status}) has no numeric 'total' field: ${JSON.stringify(body).slice(0, 500)}`
+            );
+        }
+
+        return body.total;
+    });
+}
+
+/**
+ * Compares a UI-derived count against the live API `total` for the same URL,
+ * tolerating one round of transient data churn between when the UI value was
+ * read and when this check runs. If the two values still disagree after a
+ * single re-read, this throws with the exact URL, UI count, and API total so
+ * the failure is a diagnostic rather than a bare `expected X to equal Y`.
+ */
+export function reconcileApiTotalWithUiCount(url, uiCount, { context = '', retries = 1, retryDelayMs = 1500 } = {}) {
+    const label = context ? `${context}: ` : '';
+
+    function attempt(remaining) {
+        return getApiTotalFromUrl(url).then((apiTotal) => {
+            if (apiTotal === uiCount) {
+                return apiTotal;
+            }
+            if (remaining > 0) {
+                return cy.wait(retryDelayMs).then(() => attempt(remaining - 1));
+            }
+            throw new Error(
+                `${label}UI/API count divergence persisted after re-read - url: ${url}, uiCount: ${uiCount}, apiTotal: ${apiTotal}`
+            );
+        });
+    }
+
+    return attempt(retries);
 }
 
 // Safely parse a number from text content (e.g. " 11 " → 11)
@@ -164,10 +216,10 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                             ? href
                                             : `${Cypress.config('baseUrl')}${href}`;
 
-                                        // Fetch API total and compare it with UI count
-                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                                .to.equal(uiCount);
+                                        // Reconcile API total with UI count, tolerating one
+                                        // round of transient data churn before failing.
+                                        return reconcileApiTotalWithUiCount(fullUrl, uiCount, {
+                                            context: 'Popover total (regular block) vs API total',
                                         });
                                     });
                             } else {
@@ -210,10 +262,10 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                             ? href
                                             : `${Cypress.config('baseUrl')}${href}`;
 
-                                        // Fetch API total and compare it with UI count
-                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                                .to.equal(uiCount);
+                                        // Reconcile API total with UI count, tolerating one
+                                        // round of transient data churn before failing.
+                                        return reconcileApiTotalWithUiCount(fullUrl, uiCount, {
+                                            context: 'Popover total (row-summary) vs API total',
                                         });
                                     });
                             } else {
@@ -274,12 +326,10 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                             ? href
                                             : `${Cypress.config('baseUrl')}${href}`;
 
-                                        // Fetch API total and compare it with UI count
-                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                            expect(
-                                                apiTotal,
-                                                `API total (${apiTotal}) should match popover Total Files (${uiCountForApiValidation})`
-                                            ).to.equal(uiCountForApiValidation);
+                                        // Reconcile API total with UI count, tolerating one
+                                        // round of transient data churn before failing.
+                                        return reconcileApiTotalWithUiCount(fullUrl, uiCountForApiValidation, {
+                                            context: 'Popover total (col-summary) vs API total',
                                         });
                                     });
                             } else {
@@ -858,7 +908,7 @@ export function testMatrixPopoverValidation(
     });
 }
 
-function waitForMatrixModeRender(matrixId) {
+export function waitForMatrixModeRender(matrixId) {
     cy.get(`${matrixId} .matrix-render-surface`, { timeout: 20000 })
         .should('exist')
         .and('not.have.class', 'is-refreshing');

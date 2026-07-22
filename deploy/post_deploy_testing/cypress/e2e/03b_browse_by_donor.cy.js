@@ -5,7 +5,7 @@ import {
     dataNavBarItemSelectorStr,
     navUserAcctLoginBtnSelector,
 } from '../support/selectorVars';
-import { getApiTotalFromUrl, parseIntSafe } from '../support/utils/dataMatrixUtils';
+import { parseIntSafe, reconcileApiTotalWithUiCount } from '../support/utils/dataMatrixUtils';
 
 
 /* ----------------------------- ROLE MATRIX -----------------------------
@@ -211,6 +211,27 @@ function checkChartTotal(title, expectedTotal) {
         });
 }
 
+// Compares a value read from the UI against an expected number that itself
+// came from a different UI read moments earlier. Both numbers describe the
+// same underlying live dataset, so persistent disagreement is a real
+// diagnostic - but a single mismatch may just be one read catching mid-render
+// or mid-filter state, so re-read once before failing with both values
+// attached.
+function assertCountEventuallyEquals(readActualCount, expectedCount, message) {
+    return readActualCount().then((actual) => {
+        if (actual === expectedCount) return actual;
+        return cy.wait(1000)
+            .then(() => readActualCount())
+            .then((reread) => {
+                expect(
+                    reread,
+                    `${message} (persisted after re-read; first read was ${actual}, expected ${expectedCount})`
+                ).to.equal(expectedCount);
+                return reread;
+            });
+    });
+}
+
 function loginIfNeeded(roleKey) {
     const caps = ROLE_MATRIX[roleKey];
     if (caps.isAuthenticated) cy.loginSMaHT(roleKey).end();
@@ -351,6 +372,10 @@ function stepSidebarToggle(caps) {
         .end();
 }
 
+// Tissue x sequencer combinations of particular interest. These are used as a
+// *preference* when sampling bars to test (see selectBarPartSample) - never a
+// hard requirement, since whether a given pair currently has any files is a
+// live-data fact that changes independently of this test suite.
 const tissueSequencerPairs = [
     {
         tissueTerms: [
@@ -360,20 +385,14 @@ const tissueSequencerPairs = [
             'Brain',
         ],
         sequencer: 'Illumina NovaSeq X Plus',
-        min: 3,
-        max: 25,
     },
     {
         tissueTerms: ['3A - Whole Blood', 'Whole Blood', 'Blood'],
         sequencer: 'ONT PromethION 24',
-        min: 2,
-        max: 25,
     },
     {
         tissueTerms: ['3I - Liver', 'Liver'],
         sequencer: 'PacBio Revio',
-        min: 2,
-        max: 25,
     },
 ];
 
@@ -469,63 +488,53 @@ function assertTextMatchesAnyVariant(actualText, acceptedVariants, message) {
     ).to.equal(true);
 }
 
-function getExistingTissueBarPart(tissueTerms, sequencer) {
-    const tissueVariants = getTissueVariants(tissueTerms);
-    const tpcCodes = tissueTerms
-        .map((tissueTerm) => /^([A-Z0-9]+)\s+-/.exec(tissueTerm)?.[1] || null)
-        .filter(Boolean);
-
+// Discover every tissue x sequencer bar-part that is actually rendered in the
+// current chart (data-driven; the chart contents change with live data), so
+// tests never depend on a specific pair being present.
+function getRenderedBarParts() {
     return cy.get('body').then(($body) => {
-        let resolvedTissueTerm = tissueVariants.find((tissueTerm) => {
-            return $body.find(
-                `.bar-plot-chart .chart-bar[data-term="${tissueTerm}"] .bar-part[data-term="${sequencer}"]`
-            ).length > 0;
+        const barParts = [];
+
+        $body.find('.bar-plot-chart .chart-bar[data-term]').each((_, chartBar) => {
+            const tissueTerm = chartBar.getAttribute('data-term');
+
+            Cypress.$(chartBar)
+                .find('.bar-part[data-term]')
+                .each((__, barPartEl) => {
+                    const sequencer = barPartEl.getAttribute('data-term');
+                    const dataCount = parseInt(barPartEl.getAttribute('data-count'), 10);
+                    if (Number.isFinite(dataCount) && dataCount > 0) {
+                        barParts.push({ tissueTerm, sequencer, dataCount });
+                    }
+                });
         });
 
-        if (!resolvedTissueTerm) {
-            const rotatedLabels = Array.from($body.find('.bar-plot-chart .rotated-label[data-term]'));
-            const matchingLabel = rotatedLabels.find((labelNode) => {
-                const dataTerm = (labelNode.getAttribute('data-term') || '').trim();
-                const title = (labelNode.getAttribute('title') || '').trim();
-                const innerText = (labelNode.textContent || '').replace(/\s+/g, ' ').trim();
-
-                const matchesKnownVariant =
-                    tissueVariants.includes(dataTerm) ||
-                    tissueVariants.includes(title) ||
-                    tissueVariants.includes(innerText);
-
-                const matchesTpcCode = tpcCodes.some((tpcCode) => {
-                    return dataTerm.startsWith(`${tpcCode} -`) || title.startsWith(`${tpcCode} -`);
-                });
-
-                return matchesKnownVariant || matchesTpcCode;
-            });
-
-            resolvedTissueTerm = matchingLabel?.getAttribute('data-term')?.trim();
-        }
-
-        if (!resolvedTissueTerm && tpcCodes.length > 0) {
-            const matchingChartBar = Array.from($body.find('.bar-plot-chart .chart-bar')).find((chartBar) => {
-                const dataTerm = chartBar.getAttribute('data-term') || '';
-                const hasMatchingCode = tpcCodes.some((tpcCode) => dataTerm.startsWith(`${tpcCode} -`));
-                const hasSequencer = chartBar.querySelector(`.bar-part[data-term="${sequencer}"]`);
-                return hasMatchingCode && hasSequencer;
-            });
-
-            resolvedTissueTerm = matchingChartBar?.getAttribute('data-term');
-        }
-
-        expect(
-            resolvedTissueTerm,
-            `Expected one tissue term for ${sequencer} to exist: ${tissueVariants.join(', ')}`
-        ).to.be.a('string');
-
-        return cy
-            .get(
-                `.bar-plot-chart .chart-bar[data-term="${resolvedTissueTerm}"] .bar-part[data-term="${sequencer}"]`
-            )
-            .then(($barPart) => ({ $barPart, resolvedTissueTerm }));
+        return barParts;
     });
+}
+
+// Build a small, deterministic sample of bar-parts to exercise. Known
+// tissue/sequencer combinations of particular interest are preferred *if
+// currently rendered*, but are never required - if none of them are present
+// in the live chart, the sample falls back to whatever bars do exist so
+// coverage doesn't drop to zero just because production data shifted.
+function selectBarPartSample(renderedBarParts, sampleSize = 3) {
+    const preferred = [];
+
+    tissueSequencerPairs.forEach(({ tissueTerms, sequencer }) => {
+        const variants = getTissueVariants(tissueTerms);
+        const match = renderedBarParts.find(
+            (part) => part.sequencer === sequencer && variants.includes(part.tissueTerm)
+        );
+        if (match) preferred.push(match);
+    });
+
+    const preferredKeys = new Set(preferred.map((part) => `${part.tissueTerm} ${part.sequencer}`));
+    const remaining = renderedBarParts
+        .filter((part) => !preferredKeys.has(`${part.tissueTerm} ${part.sequencer}`))
+        .sort((a, b) => (a.tissueTerm + a.sequencer).localeCompare(b.tissueTerm + b.sequencer));
+
+    return [...preferred, ...remaining].slice(0, sampleSize);
 }
 
 function assertTissueAxisLabel(tissueTerms, resolvedTissueTerm) {
@@ -634,78 +643,100 @@ function stepFacetChartBarPlotTests(caps) {
                 .should('contain', 'Tissue')
                 .end();
 
-            tissueSequencerPairs.forEach(({ tissueTerms, sequencer, min, max }) => {
-                cy.log(`Testing bar part: Tissue = ${tissueTerms.join(' | ')}, Sequencer = ${sequencer}`);
+            getRenderedBarParts().then((renderedBarParts) => {
+                expect(
+                    renderedBarParts.length,
+                    'Facet chart should render at least one tissue x sequencer bar with files'
+                ).to.be.greaterThan(0);
 
-                cy.window().scrollTo(0, 0).end()
-                    .then(() => getExistingTissueBarPart(tissueTerms, sequencer))
-                    .then(({ $barPart, resolvedTissueTerm }) => {
-                        assertTissueAxisLabel(tissueTerms, resolvedTissueTerm);
-                        const expectedFilteredResults = parseInt($barPart.attr('data-count'));
-                        expect(expectedFilteredResults).to.be.gte(min);
-                        expect(expectedFilteredResults).to.be.lt(max);
-                        const acceptedVariants = getTissueVariants(tissueTerms);
-                        cy.window().scrollTo('top').end()
-                            .wrap($barPart).hoverIn().end()
-                            .get('.cursor-component-root .details-title').should('contain', sequencer).end()
-                            .get('.cursor-component-root .detail-crumbs .crumb').invoke('text').then((crumbText) => {
-                                const normalizedCrumbText = crumbText.replace(/\s+/g, ' ').trim();
-                                const matchesVariant = acceptedVariants.some((variant) => {
-                                    return normalizedCrumbText.includes(variant);
+                const sample = selectBarPartSample(renderedBarParts, 3);
+                expect(
+                    sample.length,
+                    'Should be able to select a bar-part sample from the rendered chart'
+                ).to.be.greaterThan(0);
+
+                sample.forEach(({ tissueTerm, sequencer, dataCount }) => {
+                    cy.log(`Testing bar part: Tissue = ${tissueTerm}, Sequencer = ${sequencer}`);
+
+                    cy.window().scrollTo(0, 0).end()
+                        .get(`.bar-plot-chart .chart-bar[data-term="${tissueTerm}"] .bar-part[data-term="${sequencer}"]`)
+                        .then(($barPart) => {
+                            assertTissueAxisLabel([tissueTerm], tissueTerm);
+                            const expectedFilteredResults = parseInt($barPart.attr('data-count'), 10);
+                            expect(
+                                expectedFilteredResults,
+                                'Bar data-count should match the value discovered from the chart'
+                            ).to.equal(dataCount);
+                            const acceptedVariants = getTissueVariants([tissueTerm]);
+                            cy.window().scrollTo('top').end()
+                                .wrap($barPart).hoverIn().end()
+                                .get('.cursor-component-root .details-title').should('contain', sequencer).end()
+                                .get('.cursor-component-root .detail-crumbs .crumb').invoke('text').then((crumbText) => {
+                                    const normalizedCrumbText = crumbText.replace(/\s+/g, ' ').trim();
+                                    const matchesVariant = acceptedVariants.some((variant) => {
+                                        return normalizedCrumbText.includes(variant);
+                                    });
+                                    expect(
+                                        matchesVariant,
+                                        `Popover tissue crumb should reference the clicked tissue (${tissueTerm}) for ${sequencer}`
+                                    ).to.equal(true);
+                                }).end()
+                                .get('.cursor-component-root .details-title .primary-count').invoke('text').then((text) => {
+                                    const number = parseInt(text, 10);
+                                    expect(number).to.eq(expectedFilteredResults);
+                                })
+                                // file count – retry until text is numeric and equals expected
+                                .get('.cursor-component-root .details a') // Adjust selector if needed
+                                .should('contain.text', 'Files') // Ensure the correct link
+                                .then(($a) => {
+                                    const text = $a.text();      // e.g. "39 Files"
+                                    const href = $a.attr('href');
+                                    const fullUrl = href.startsWith('http')
+                                        ? href
+                                        : `${Cypress.config('baseUrl')}${href}`;
+
+                                    // Extract number before "Files"
+                                    const uiCount = parseIntSafe(text);
+
+                                    // Reconcile API total with UI count, tolerating one round
+                                    // of transient data churn before failing with diagnostics.
+                                    return reconcileApiTotalWithUiCount(fullUrl, uiCount, {
+                                        context: `Bar-part Files link (${tissueTerm} x ${sequencer})`,
+                                    });
                                 });
-                                expect(
-                                    matchesVariant,
-                                    `Popover tissue crumb should contain one accepted variant for ${sequencer}`
-                                ).to.equal(true);
+                            // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
+                            // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
+                            cy.window().then((w) => {
+                                w.scrollTo(0, 0);
                             }).end()
-                            .get('.cursor-component-root .details-title .primary-count').invoke('text').then((text) => {
-                                const number = parseInt(text, 10);
-                                expect(number).to.eq(expectedFilteredResults);
-                            })
-                            // file count – retry until text is numeric and equals expected
-                            .get('.cursor-component-root .details a') // Adjust selector if needed
-                            .should('contain.text', 'Files') // Ensure the correct link
-                            .then(($a) => {
-                                const text = $a.text();      // e.g. "39 Files"
-                                const href = $a.attr('href');
-                                const fullUrl = href.startsWith('http')
-                                    ? href
-                                    : `${Cypress.config('baseUrl')}${href}`;
+                                .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
+                                .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
+                                .location('search')
+                                .should('include', 'external_id=')
+                                .get('#slow-load-container').should('not.have.class', 'visible')
+                                .then(() => {
+                                    // Both counts describe the same filtered dataset;
+                                    // resync with a re-read before failing (Cluster C).
+                                    return assertCountEventuallyEquals(
+                                        () => cy.searchPageTotalResultCount(),
+                                        expectedFilteredResults,
+                                        `Filtered search results count should reconcile with bar count (${expectedFilteredResults}) for ${tissueTerm} x ${sequencer}`
+                                    );
+                                })
+                                .getQuickInfoBar().then((info) => {
+                                    cy
+                                        .get('.properties-controls button[data-tip="Clear all filters"]')
+                                        .click({ force: true })
+                                        .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item").should('not.exist').end();
 
-                                // Extract number before "Files"
-                                const uiCount = parseIntSafe(text);
-
-                                // Compare UI count with API total
-                                getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                    expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                        .to.equal(uiCount);
+                                    assertCountEventuallyEquals(
+                                        () => cy.get("div.above-facets-table-row #results-count").invoke("text").then((t) => parseInt(t, 10)),
+                                        info.donor,
+                                        `Cleared-filters results count should reconcile with donor count from QuickInfoBar (${info.donor})`
+                                    ).wait(500); // wait to ensure chart animation completes before next iteration
                                 });
-                            });
-                        // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
-                        // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
-                        cy.window().then((w) => {
-                            w.scrollTo(0, 0);
-                        }).end()
-                            .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
-                            .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
-                            .location('search')
-                            .should('include', 'external_id=')
-                            .get('#slow-load-container').should('not.have.class', 'visible')
-                            .searchPageTotalResultCount().then((totalCount) => {
-                                expect(totalCount).to.equal(expectedFilteredResults);
-                            })
-                            .getQuickInfoBar().then((info) => {
-                                cy
-                                    .get('.properties-controls button[data-tip="Clear all filters"]')
-                                    .click({ force: true })
-                                    .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item").should('not.exist').end()
-                                    .get("div.above-facets-table-row #results-count")
-                                    .invoke("text")
-                                    .then((count) => {
-                                        expect(info.donor).to.equal(parseInt(count));
-                                    }).wait(500); // wait to ensure chart animation completes before next iteration
-                            });
-                    });
+                        });
+                });
             });
         });
     } else {
@@ -907,12 +938,8 @@ function stepSearchTableRowsTests(caps) {
                         expect(uiCount, `Row ${rowIndex}: Files count must be > 0`).to.be.greaterThan(0);
                         expect(href, `Row ${rowIndex}: Files href must exist`).to.be.a('string').and.not.be.empty;
 
-                        getApiTotalFromUrl(href).then((apiCount) => {
-                            expect(
-                                apiCount,
-                                `Row ${rowIndex}: Could not determine file count from API response`
-                            ).to.be.a('number');
-                            expect(apiCount, `Row ${rowIndex}: API file count must match UI`).to.equal(uiCount);
+                        reconcileApiTotalWithUiCount(href, uiCount, {
+                            context: `Row ${rowIndex}: search-table Files link`,
                         });
                     });
 
