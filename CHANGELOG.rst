@@ -8,6 +8,21 @@ Change Log
 ----------
 
 
+2.5.0
+=====
+
+`PR 718: Submission Status: Add Auto-review QC <https://github.com/smaht-dac/smaht-portal/pull/718>`_
+
+* Add automated file set QC review to the Submission Status page: evaluate Warn/Fail QC
+  metrics on submitted and processed files and group coverage against target, then tag
+  file sets ("reviewed", plus "ready_to_release" when they pass) and record an
+  auto-review comment for each QC problem. Existing manual tags and comments are kept.
+* Add an "Auto-review QC" action in the "QC status" column header (admin-only, with
+  confirmation) that reviews every file set in the current view at once.
+* Fix tissue filtering so benchmarking file sets (whose ``tissue_type`` omits the code
+  prefix) are no longer dropped, and add ``tissue_type`` to the file set embedded list.
+
+
 2.4.4
 =====
 
