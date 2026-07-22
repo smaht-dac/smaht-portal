@@ -1293,6 +1293,7 @@ body[data-pathname^="/users/"] {
 				.card-header {
 					padding-left: 30px;
 					h3 {
+						color: #343741;
 						font-size: 1.5rem;
 						font-weight: 400;
 					}
@@ -1300,6 +1301,7 @@ body[data-pathname^="/users/"] {
 				.card-body {
 					padding: 1rem;
 					padding-left: 22px;
+					color: #343741;
 
 					.alert {
 						display: flex;
@@ -1314,10 +1316,17 @@ body[data-pathname^="/users/"] {
 					}
 
 					.subscription-text {
-						padding-left: 10px;
+						padding: 12px;
 
 						p {
 							margin-right: 20px;
+						}
+
+						&.subscribed {
+							border-radius: 0.25rem;
+							padding: 10px;
+							background-color: #ECFFF2;
+							border: 1px solid #99E199;
 						}
 					}
 
@@ -1329,6 +1338,7 @@ body[data-pathname^="/users/"] {
 					.subscribe-button {
 						font-weight: 600;
 						border: 1px solid #0963BA;
+						padding: 6px 12px;
 
 						&.subscribed {
 							border-color: #DEE2E6;
@@ -1384,6 +1394,10 @@ body[data-pathname^="/users/"] {
 
 				h4 {
 					margin: 15px;
+				}
+
+				span i {
+					white-space: nowrap;
 				}
 			}
 		}
