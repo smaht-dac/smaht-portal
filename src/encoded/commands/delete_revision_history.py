@@ -16,7 +16,10 @@ from snovault.storage import CurrentPropertySheet, PropertySheet, Resource
 
 logger = structlog.getLogger(__name__)
 
-ITEM_TYPES_TO_PURGE = ("workflow", "meta_workflow_run")
+ITEM_TYPES_TO_PURGE = (
+    "access_key", "file_format", "workflow", "workflow_run", "meta_workflow", "meta_workflow_run"
+    "page", "tissue", "tissue_sample", "static_section",
+)
 # Deletion/would-be-deletion batch size: bounds candidate-selection pages,
 # rid chunks, and actual DELETE statements. Kept small relative to the scan
 # default because each non-dry-run page is a real write transaction.
