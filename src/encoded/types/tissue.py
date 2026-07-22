@@ -52,6 +52,12 @@ def _build_tissue_embedded_list() -> List[str]:
 class Tissue(SampleSource):
     item_type = "tissue"
     schema = load_schema("encoded:schemas/tissue.json")
+    # Set directly on Tissue, not on the shared abstract SampleSource base
+    # (which CellCulture also extends) - scoping the opt-out here only.
+    # Submitted tissue metadata is corrected in place rather than
+    # meaningfully revised; retaining every Postgres revision adds storage
+    # growth without useful audit value.
+    track_revisions = False
     embedded_list = _build_tissue_embedded_list()
 
     class Collection(Item.Collection):

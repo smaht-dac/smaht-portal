@@ -10,6 +10,13 @@ from .utils import (
 )
 
 
+def test_tissue_sample_revision_history_not_tracked(
+    testapp: TestApp, test_tissue_sample: Dict[str, Any]
+) -> None:
+    """TissueSample opts out of Postgres revision-history tracking."""
+    testapp.get(f'/{test_tissue_sample["uuid"]}/@@revision-history', status=404)
+
+
 @pytest.mark.workbook
 @pytest.mark.parametrize(
     "patch_body,delete_fields,expected_status",

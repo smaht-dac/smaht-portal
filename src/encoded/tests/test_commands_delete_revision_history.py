@@ -7,13 +7,14 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import event, text
-from snovault import DBSESSION
+from snovault import DBSESSION, TYPES
 from snovault.storage import CurrentPropertySheet, PropertySheet, Resource
 
 import encoded.commands.delete_revision_history as delete_revision_history_command
 from encoded.commands.delete_revision_history import (
     DEFAULT_BATCH_SIZE,
     DEFAULT_SCAN_BATCH_SIZE,
+    ITEM_TYPES_TO_PURGE,
     _positive_batch_size,
     _validate_batch_size,
     collect_revision_inventory,
@@ -569,7 +570,7 @@ def test_cleanup_reuses_fixture_registered_db_session(monkeypatch):
     monkeypatch.setattr(
         delete_revision_history_command,
         "_target_rids_by_type",
-        lambda session: {"workflow": [], "meta_workflow_run": []},
+        lambda session: {item_type: [] for item_type in ITEM_TYPES_TO_PURGE},
     )
     monkeypatch.setattr(
         delete_revision_history_command,
@@ -581,8 +582,7 @@ def test_cleanup_reuses_fixture_registered_db_session(monkeypatch):
     )
 
     assert delete_revision_history(app, prod=True, batch_size=1) == {
-        "workflow": 0,
-        "meta_workflow_run": 0,
+        item_type: 0 for item_type in ITEM_TYPES_TO_PURGE
     }
 
 
@@ -613,8 +613,15 @@ def test_interrupted_cleanup_resumes_idempotently(app, session, monkeypatch):
     resumed = delete_revision_history(app, prod=True, batch_size=1)
     completed = delete_revision_history(app, prod=True, batch_size=1)
 
-    assert resumed == {"workflow": 4, "meta_workflow_run": 4}
-    assert completed == {"workflow": 0, "meta_workflow_run": 0}
+    # Ten target types are now processed per run (not just the two this test
+    # creates fixtures for), and the shared fixture database may already hold
+    # baseline-deletable rows for the other eight - so which type's commit
+    # the interruption lands on is not predictable here. Assert the
+    # idempotency invariant instead of an exact intermediate per-type count:
+    # a full (uninterrupted) resume run drains every target type to zero,
+    # and a further run after that finds nothing left anywhere.
+    assert set(resumed) == set(ITEM_TYPES_TO_PURGE)
+    assert completed == {item_type: 0 for item_type in ITEM_TYPES_TO_PURGE}
     assert all(
         len(_propsheet_rows(session, rid)) == 2 for rid in resource_rids
     )
@@ -922,51 +929,111 @@ def test_delete_revision_history_emits_rid_discovery_and_cleanup_boundary_events
     expected_workflow_rid_count = baseline_workflow["resource_count"] + 2
     expected_meta_rid_count = baseline_meta["resource_count"] + 1
 
-    assert deleted == {
-        "workflow": expected_workflow_deleted,
-        "meta_workflow_run": expected_meta_deleted,
-    }
+    # The cleanup entry point now processes all ten authoritative target
+    # types per run, not just workflow/meta_workflow_run - so `deleted` and
+    # every boundary event's item collection have all ten keys/entries.
+    # Only workflow/meta_workflow_run have fixtures (and thus known expected
+    # deltas) in this test; assert those two precisely and assert the
+    # remaining eight are merely present and non-negative.
+    assert set(deleted) == set(ITEM_TYPES_TO_PURGE)
+    assert deleted["workflow"] == expected_workflow_deleted
+    assert deleted["meta_workflow_run"] == expected_meta_deleted
+    assert all(count >= 0 for count in deleted.values())
+
     event_names = [name for name, _ in events]
 
     assert event_names[0] == "delete_revision_history_rid_discovery_start"
-    assert events[0][1]["item_types"] == ["workflow", "meta_workflow_run"]
+    assert events[0][1]["item_types"] == list(ITEM_TYPES_TO_PURGE)
 
     assert event_names[1] == "delete_revision_history_rid_discovery_complete"
     discovery_fields = events[1][1]
-    assert discovery_fields["rid_counts"] == {
-        "workflow": expected_workflow_rid_count,
-        "meta_workflow_run": expected_meta_rid_count,
-    }
+    assert set(discovery_fields["rid_counts"]) == set(ITEM_TYPES_TO_PURGE)
+    assert discovery_fields["rid_counts"]["workflow"] == expected_workflow_rid_count
+    assert discovery_fields["rid_counts"]["meta_workflow_run"] == expected_meta_rid_count
     assert discovery_fields["elapsed_seconds"] >= 0
 
     assert event_names[2] == "delete_revision_history_cleanup_start"
-    assert events[2][1]["item_types"] == ["workflow", "meta_workflow_run"]
+    assert events[2][1]["item_types"] == list(ITEM_TYPES_TO_PURGE)
     assert events[2][1]["batch_size"] == 1
 
-    complete_indices = [
-        index
-        for index, name in enumerate(event_names)
+    complete_events_by_type = {
+        fields["item_type"]: fields
+        for name, fields in events
         if name == "delete_revision_history_cleanup_type_complete"
-    ]
-    assert len(complete_indices) == 2
+    }
+    # Exactly one completion event per target type - proves the loop covers
+    # every one of the ten types, not a stale count from when there were two.
+    assert set(complete_events_by_type) == set(ITEM_TYPES_TO_PURGE)
 
-    workflow_complete = events[complete_indices[0]][1]
-    assert workflow_complete["item_type"] == "workflow"
+    workflow_complete = complete_events_by_type["workflow"]
     assert workflow_complete["rid_count"] == expected_workflow_rid_count
     assert workflow_complete["affected_count"] == expected_workflow_deleted
 
-    meta_complete = events[complete_indices[1]][1]
-    assert meta_complete["item_type"] == "meta_workflow_run"
+    meta_complete = complete_events_by_type["meta_workflow_run"]
     assert meta_complete["rid_count"] == expected_meta_rid_count
     assert meta_complete["affected_count"] == expected_meta_deleted
 
     # Existing per-batch events are preserved and occur between the cleanup
-    # phase start and each type's completion event, not removed or replaced.
+    # phase start and workflow's own completion event, not removed or
+    # replaced. Locate workflow's completion event by its item_type field
+    # (not by position - it is the third type processed, not the first, now
+    # that access_key/file_format precede it in ITEM_TYPES_TO_PURGE) to find
+    # the slice boundary.
+    workflow_complete_index = next(
+        index
+        for index, (name, fields) in enumerate(events)
+        if name == "delete_revision_history_cleanup_type_complete"
+        and fields["item_type"] == "workflow"
+    )
     batch_events_before_workflow_complete = [
-        name for name in event_names[3:complete_indices[0]]
+        name for name in event_names[3:workflow_complete_index]
         if name == "delete_revision_history_batch"
     ]
     assert batch_events_before_workflow_complete
+
+
+def test_delete_revision_history_covers_all_ten_target_types_and_preserves_unrelated(
+    app, session
+):
+    """The real (non-dry-run) cleanup entry point exercises every one of the
+    ten authoritative target types added in this expansion - not just
+    workflow/meta_workflow_run - while leaving an unrelated type's history
+    and every target type's current propsheet rows untouched.
+    """
+    counts_by_type = {item_type: 2 for item_type in ITEM_TYPES_TO_PURGE}
+    counts_by_type["unrelated_item_type"] = 2
+    resources = _resources_with_history(session, counts_by_type)
+    target_resources = [
+        resource for resource in resources if resource.item_type in ITEM_TYPES_TO_PURGE
+    ]
+    unrelated_resources = [
+        resource for resource in resources if resource.item_type == "unrelated_item_type"
+    ]
+    current_sids = _current_sids(session, target_resources)
+
+    deleted = delete_revision_history(app, prod=True, batch_size=1)
+
+    # Exact type selection: every one of the ten target types is present and
+    # was acted on (baseline noise from other tests can only add to the two
+    # old rows this test's own fixtures contribute per type, never remove).
+    assert set(deleted) == set(ITEM_TYPES_TO_PURGE)
+    for item_type in ITEM_TYPES_TO_PURGE:
+        assert deleted[item_type] >= 2
+
+    # Current-propsheet preservation: every target resource's current rows
+    # are exactly the same set as before cleanup ran.
+    assert _current_sids(session, target_resources) == current_sids
+    assert all(
+        {row.sid for row in _propsheet_rows(session, resource.rid)} <= current_sids
+        for resource in target_resources
+    )
+
+    # Unrelated-type preservation: a type outside the purge list is never
+    # touched, keeping all four of its rows (two current, two historical).
+    assert all(
+        len(_propsheet_rows(session, resource.rid)) == 4
+        for resource in unrelated_resources
+    )
 
 
 def test_main_logs_initialization_event_before_inventory(monkeypatch):
@@ -1599,3 +1666,116 @@ def test_cleanup_start_and_batch_events_report_only_the_deletion_batch_size(
     ]
     assert batch_lines
     assert all("batch_size=13" in line for line in batch_lines)
+
+
+def test_item_types_to_purge_is_exactly_the_intended_ten_types():
+    """Guards against the specific defect this expansion round fixed: a
+    missing comma between two adjacent string literals in the tuple
+    definition, which Python silently concatenates into one bogus element
+    instead of raising an error - reducing the purge list from ten targets
+    to nine without any exception. Comparing both the exact tuple contents
+    and its length catches that failure mode directly, rather than relying
+    only on set equality (which alone would still pass if two literals
+    concatenated into a value that happened to collide with pure luck - it
+    can't here, but pinning length too keeps this test protective against
+    any future adjacent-literal edit in this tuple, not just this one).
+    """
+    intended_types = (
+        "access_key",
+        "file_format",
+        "workflow",
+        "workflow_run",
+        "meta_workflow",
+        "meta_workflow_run",
+        "page",
+        "tissue",
+        "tissue_sample",
+        "static_section",
+    )
+    assert ITEM_TYPES_TO_PURGE == intended_types
+    assert len(ITEM_TYPES_TO_PURGE) == 10
+    assert "meta_workflow_runpage" not in ITEM_TYPES_TO_PURGE
+
+
+def test_purge_tuple_exactly_matches_registered_untracked_item_types(registry):
+    """Ties ITEM_TYPES_TO_PURGE to the live type registry so the two cannot
+    silently drift apart: every item type registered with
+    ``track_revisions = False`` must be a purge target, and every purge
+    target must resolve to a registered type with ``track_revisions =
+    False``. Either direction of drift - a type left tracked but still
+    purged (a no-op that raises false confidence), or a type opted out of
+    tracking but never cleaned up (unbounded growth with no cleanup) - fails
+    this test.
+    """
+    untracked_registered_item_types = {
+        item_type
+        for item_type, type_info in registry[TYPES].by_item_type.items()
+        if getattr(type_info.factory, "track_revisions", True) is False
+    }
+    assert untracked_registered_item_types == set(ITEM_TYPES_TO_PURGE)
+
+
+@pytest.mark.parametrize(
+    "item_type",
+    [
+        "access_key",
+        "file_format",
+        "workflow",
+        "workflow_run",
+        "meta_workflow",
+        "meta_workflow_run",
+        "page",
+        "tissue",
+        "tissue_sample",
+        "static_section",
+    ],
+)
+def test_each_purge_target_is_a_registered_item_type_with_tracking_disabled(
+    registry, item_type
+):
+    """Each of the ten target type names must resolve to an actual
+    registered item type (not a typo/renamed type silently absent from the
+    registry) whose class has revision tracking explicitly disabled.
+    """
+    type_info = registry[TYPES].by_item_type[item_type]
+    assert getattr(type_info.factory, "track_revisions", True) is False
+
+
+def test_access_key_cleanup_preserves_current_secret_hash(session):
+    """AccessKey security boundary for the generic cleanup (see the
+    ``track_revisions`` comment on ``encoded.types.access_key.AccessKey``):
+    the plaintext secret is never persisted, but a bcrypt
+    ``secret_access_key_hash`` is part of the persisted properties, so a
+    superseded (rotated) hash can live in an old, non-current propsheet row.
+
+    This proves the cleanup's existing current-row exclusion - the same
+    invariant every other purge target relies on, not a special case for
+    AccessKey - holds for that specific field: an old row containing a
+    superseded hash is eligible for deletion, while the row containing the
+    live, currently-authenticating hash is always preserved.
+    """
+    resource = Resource("access_key", {"": {"secret_access_key_hash": "old-superseded-hash"}})
+    session.add(resource)
+    session.flush()
+
+    # Simulate a secret rotation/reset: a new propsheet row becomes current,
+    # demoting the previous row (still holding the superseded hash) to
+    # non-current history.
+    resource[""] = {"secret_access_key_hash": "current-hash"}
+    session.flush()
+
+    rows_before = _propsheet_rows(session, resource.rid)
+    assert len(rows_before) == 2
+    current_sids = _current_sids(session, [resource])
+    assert len(current_sids) == 1
+
+    old_row = next(row for row in rows_before if row.sid not in current_sids)
+    assert old_row.properties["secret_access_key_hash"] == "old-superseded-hash"
+
+    deleted = delete_old_revision_history_for_item_type(session, "access_key")
+
+    assert deleted == 1
+    remaining_rows = _propsheet_rows(session, resource.rid)
+    assert len(remaining_rows) == 1
+    assert remaining_rows[0].sid in current_sids
+    assert remaining_rows[0].properties["secret_access_key_hash"] == "current-hash"

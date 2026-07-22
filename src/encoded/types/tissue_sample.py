@@ -42,6 +42,12 @@ NDRI_TPC_DT = "NDRI TPC"
 class TissueSample(Sample):
     item_type = "tissue_sample"
     schema = load_schema("encoded:schemas/tissue_sample.json")
+    # Set directly on TissueSample, not on the shared abstract Sample base
+    # (which CellSample/CellCultureSample also extend) - scoping the opt-out
+    # here only. Submitted tissue sample metadata is corrected in place
+    # rather than meaningfully revised; retaining every Postgres revision
+    # adds storage growth without useful audit value.
+    track_revisions = False
     embedded_list = Sample.embedded_list
 
     class Collection(Item.Collection):
