@@ -6,33 +6,38 @@
 // `failOnStatusCode:false` lets us read that body instead of throwing a
 // CypressError; any other non-200 status, or a body without a numeric
 // `total`, still fails loudly with the response attached.
+export function getApiTotalFromResponse(response, url) {
+    const { status, body } = response;
+    const isDocumentedEmptyResult = status === 404 && body && body.total === 0;
+
+    if (status !== 200 && !isDocumentedEmptyResult) {
+        throw new Error(
+            `getApiTotalFromUrl: unexpected response for ${url} - status ${status}, body: ${JSON.stringify(body).slice(0, 500)}`
+        );
+    }
+
+    if (!Number.isFinite(body?.total) || body.total < 0) {
+        throw new Error(
+            `getApiTotalFromUrl: response for ${url} (status ${status}) has no valid numeric 'total' field: ${JSON.stringify(body).slice(0, 500)}`
+        );
+    }
+
+    return body.total;
+}
+
 export function getApiTotalFromUrl(url) {
-    // Ensure the URL requests JSON format (append if missing)
+    // Ensure the URL requests JSON format (append if missing).
     const normalizedUrl = String(url).replace(/^(https?:\/\/[^/]+)\/\/+/, '$1/').replace(/^\/\/+/, '/');
-    const fullUrl = normalizedUrl.includes('format=json') ? normalizedUrl : `${normalizedUrl}&format=json&frame=raw`;
+    const separator = normalizedUrl.includes('?') ? '&' : '?';
+    const fullUrl = normalizedUrl.includes('format=json')
+        ? normalizedUrl
+        : `${normalizedUrl}${separator}format=json&frame=raw`;
 
     return cy.request({
         method: 'GET',
         url: fullUrl,
         failOnStatusCode: false,
-    }).then((response) => {
-        const { status, body } = response;
-        const isDocumentedEmptyResult = status === 404 && body && body.total === 0;
-
-        if (status !== 200 && !isDocumentedEmptyResult) {
-            throw new Error(
-                `getApiTotalFromUrl: unexpected response for ${fullUrl} - status ${status}, body: ${JSON.stringify(body).slice(0, 500)}`
-            );
-        }
-
-        if (typeof body?.total !== 'number') {
-            throw new Error(
-                `getApiTotalFromUrl: response for ${fullUrl} (status ${status}) has no numeric 'total' field: ${JSON.stringify(body).slice(0, 500)}`
-            );
-        }
-
-        return body.total;
-    });
+    }).then((response) => getApiTotalFromResponse(response, fullUrl));
 }
 
 /**
@@ -42,20 +47,40 @@ export function getApiTotalFromUrl(url) {
  * single re-read, this throws with the exact URL, UI count, and API total so
  * the failure is a diagnostic rather than a bare `expected X to equal Y`.
  */
-export function reconcileApiTotalWithUiCount(url, uiCount, { context = '', retries = 1, retryDelayMs = 1500 } = {}) {
+export function reconcileApiTotalWithUiCount(url, readUiCount, { context = '', retries = 1, retryDelayMs = 1500 } = {}) {
     const label = context ? `${context}: ` : '';
+    if (typeof readUiCount !== 'function') {
+        throw new Error('reconcileApiTotalWithUiCount requires a UI count reader so retries cannot reuse a stale value');
+    }
+    let firstMismatch = null;
 
     function attempt(remaining) {
-        return getApiTotalFromUrl(url).then((apiTotal) => {
-            if (apiTotal === uiCount) {
-                return apiTotal;
+        // Re-read both sides on every attempt. Retrying only the API while
+        // retaining a stale DOM capture can manufacture either convergence or
+        // a misleading persistent-divergence failure during a live update.
+        return readUiCount().then((uiCount) => {
+            if (!Number.isFinite(uiCount) || uiCount < 0) {
+                throw new Error(`${label}invalid UI count ${uiCount} for ${url}`);
             }
-            if (remaining > 0) {
-                return cy.wait(retryDelayMs).then(() => attempt(remaining - 1));
-            }
-            throw new Error(
-                `${label}UI/API count divergence persisted after re-read - url: ${url}, uiCount: ${uiCount}, apiTotal: ${apiTotal}`
-            );
+
+            return getApiTotalFromUrl(url).then((apiTotal) => {
+                if (apiTotal === uiCount) {
+                    return apiTotal;
+                }
+
+                if (!firstMismatch) firstMismatch = { uiCount, apiTotal };
+                if (remaining > 0) {
+                    // This is a bounded polling interval, not a load-completion
+                    // sleep: the next attempt re-reads both authoritative values.
+                    return cy.wait(retryDelayMs).then(() => attempt(remaining - 1));
+                }
+
+                throw new Error(
+                    `${label}UI/API count divergence persisted after re-read - url: ${url}, ` +
+                    `first uiCount/apiTotal: ${firstMismatch.uiCount}/${firstMismatch.apiTotal}, ` +
+                    `final uiCount/apiTotal: ${uiCount}/${apiTotal}`
+                );
+            });
         });
     }
 
@@ -218,9 +243,15 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
 
                                         // Reconcile API total with UI count, tolerating one
                                         // round of transient data churn before failing.
-                                        return reconcileApiTotalWithUiCount(fullUrl, uiCount, {
-                                            context: 'Popover total (regular block) vs API total',
-                                        });
+                                        return reconcileApiTotalWithUiCount(
+                                            fullUrl,
+                                            () => cy.get('.secondary-row .col-4')
+                                                .eq(2)
+                                                .find('.value')
+                                                .invoke('text')
+                                                .then((text) => parseInt(String(text).trim(), 10)),
+                                            { context: 'Popover total (regular block) vs API total' }
+                                        );
                                     });
                             } else {
                                 Cypress.log({
@@ -264,9 +295,15 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
 
                                         // Reconcile API total with UI count, tolerating one
                                         // round of transient data churn before failing.
-                                        return reconcileApiTotalWithUiCount(fullUrl, uiCount, {
-                                            context: 'Popover total (row-summary) vs API total',
-                                        });
+                                        return reconcileApiTotalWithUiCount(
+                                            fullUrl,
+                                            () => cy.get('.secondary-row .col-4')
+                                                .eq(2)
+                                                .find('.value')
+                                                .invoke('text')
+                                                .then((text) => parseInt(String(text).trim(), 10)),
+                                            { context: 'Popover total (row-summary) vs API total' }
+                                        );
                                     });
                             } else {
                                 Cypress.log({
@@ -290,20 +327,15 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                     cy.get('.secondary-row .col-4', { timeout: 10000 })
                         .then(($cols) => {
                             const numericValues = [];
-                            let totalFilesValue = null;
 
                             [...$cols].forEach((col) => {
                                 const $col = Cypress.$(col);
-                                const label = $col.find('.label').text().trim();
                                 const rawText = $col.find('.value').text().trim();
                                 const numericValue = parseIntSafe(
                                     rawText.replace(/,/g, '')
                                 );
                                 if (!Number.isNaN(numericValue)) {
                                     numericValues.push(numericValue);
-                                    if (label === 'Total Files') {
-                                        totalFilesValue = numericValue;
-                                    }
                                 }
                             });
 
@@ -311,10 +343,6 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                 numericValues,
                                 `Popover numeric metrics should include expected value ${value}`
                             ).to.include(value);
-
-                            const uiCountForApiValidation = totalFilesValue !== null
-                                ? totalFilesValue
-                                : (numericValues.length > 0 ? Math.max(...numericValues) : value);
 
                             if (verifyTotalFromApi) {
                                 // Get the URL from the "Browse Files" button in footer
@@ -328,9 +356,20 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
 
                                         // Reconcile API total with UI count, tolerating one
                                         // round of transient data churn before failing.
-                                        return reconcileApiTotalWithUiCount(fullUrl, uiCountForApiValidation, {
-                                            context: 'Popover total (col-summary) vs API total',
-                                        });
+                                        return reconcileApiTotalWithUiCount(
+                                            fullUrl,
+                                            () => cy.get('.secondary-row .col-4').then(($currentCols) => {
+                                                const totalFilesColumn = [...$currentCols].find((col) =>
+                                                    Cypress.$(col).find('.label').text().trim() === 'Total Files'
+                                                );
+                                                const fallbackValues = [...$currentCols]
+                                                    .map((col) => parseIntSafe(Cypress.$(col).find('.value').text().replace(/,/g, '')));
+                                                return totalFilesColumn
+                                                    ? parseIntSafe(Cypress.$(totalFilesColumn).find('.value').text().replace(/,/g, ''))
+                                                    : Math.max(...fallbackValues, value);
+                                            }),
+                                            { context: 'Popover total (col-summary) vs API total' }
+                                        );
                                     });
                             } else {
                                 Cypress.log({
@@ -909,11 +948,17 @@ export function testMatrixPopoverValidation(
 }
 
 export function waitForMatrixModeRender(matrixId) {
-    cy.get(`${matrixId} .matrix-render-surface`, { timeout: 20000 })
-        .should('exist')
-        .and('not.have.class', 'is-refreshing');
-
-    cy.get(`${matrixId} .matrix-refresh-overlay`).should('not.exist');
+    return cy.get(`${matrixId} .matrix-render-surface`, { timeout: 20000 })
+        .should('be.visible')
+        .and('not.have.class', 'is-refreshing')
+        // The surface exists before matrix hydration begins. A rendered label
+        // is the stable signal needed by the assertions that follow.
+        .find('.grouping-row .label-section span')
+        .should('have.length.greaterThan', 0)
+        .then(() => cy.get(`${matrixId} .matrix-refresh-overlay`).should('not.exist'))
+        .then(() => cy.get(`${matrixId} .matrix-render-surface`)
+            .should('be.visible')
+            .and('not.have.class', 'is-refreshing'));
 }
 
 function getDisplayedMatrixFileCount(matrixId) {

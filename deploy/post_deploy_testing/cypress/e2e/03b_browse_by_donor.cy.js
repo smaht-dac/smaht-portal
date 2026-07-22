@@ -217,19 +217,27 @@ function checkChartTotal(title, expectedTotal) {
 // diagnostic - but a single mismatch may just be one read catching mid-render
 // or mid-filter state, so re-read once before failing with both values
 // attached.
-function assertCountEventuallyEquals(readActualCount, expectedCount, message) {
-    return readActualCount().then((actual) => {
-        if (actual === expectedCount) return actual;
-        return cy.wait(1000)
-            .then(() => readActualCount())
-            .then((reread) => {
-                expect(
-                    reread,
-                    `${message} (persisted after re-read; first read was ${actual}, expected ${expectedCount})`
-                ).to.equal(expectedCount);
-                return reread;
-            });
-    });
+function assertCountsEventuallyEqual(readActualCount, readExpectedCount, message, retries = 1) {
+    let firstMismatch = null;
+
+    function attempt(remaining) {
+        return readActualCount().then((actual) =>
+            readExpectedCount().then((expected) => {
+                if (actual === expected) return actual;
+                if (!firstMismatch) firstMismatch = { actual, expected };
+                if (remaining > 0) {
+                    return cy.wait(1000).then(() => attempt(remaining - 1));
+                }
+                throw new Error(
+                    `${message} persisted after re-read; ` +
+                    `first actual/expected: ${firstMismatch.actual}/${firstMismatch.expected}, ` +
+                    `final actual/expected: ${actual}/${expected}`
+                );
+            })
+        );
+    }
+
+    return attempt(retries);
 }
 
 function loginIfNeeded(roleKey) {
@@ -493,7 +501,7 @@ function assertTextMatchesAnyVariant(actualText, acceptedVariants, message) {
 // tests never depend on a specific pair being present.
 function getRenderedBarParts() {
     return cy.get('body').then(($body) => {
-        const barParts = [];
+        const barPartsByKey = new Map();
 
         $body.find('.bar-plot-chart .chart-bar[data-term]').each((_, chartBar) => {
             const tissueTerm = chartBar.getAttribute('data-term');
@@ -504,12 +512,15 @@ function getRenderedBarParts() {
                     const sequencer = barPartEl.getAttribute('data-term');
                     const dataCount = parseInt(barPartEl.getAttribute('data-count'), 10);
                     if (Number.isFinite(dataCount) && dataCount > 0) {
-                        barParts.push({ tissueTerm, sequencer, dataCount });
+                        const key = JSON.stringify([tissueTerm, sequencer]);
+                        if (!barPartsByKey.has(key)) {
+                            barPartsByKey.set(key, { tissueTerm, sequencer, dataCount });
+                        }
                     }
                 });
         });
 
-        return barParts;
+        return [...barPartsByKey.values()];
     });
 }
 
@@ -529,20 +540,47 @@ function selectBarPartSample(renderedBarParts, sampleSize = 3) {
         if (match) preferred.push(match);
     });
 
-    const preferredKeys = new Set(preferred.map((part) => `${part.tissueTerm} ${part.sequencer}`));
+    const uniquePreferred = [...new Map(
+        preferred.map((part) => [JSON.stringify([part.tissueTerm, part.sequencer]), part])
+    ).values()];
+    const preferredKeys = new Set(
+        uniquePreferred.map((part) => JSON.stringify([part.tissueTerm, part.sequencer]))
+    );
     const remaining = renderedBarParts
-        .filter((part) => !preferredKeys.has(`${part.tissueTerm} ${part.sequencer}`))
+        .filter((part) => !preferredKeys.has(JSON.stringify([part.tissueTerm, part.sequencer])))
         .sort((a, b) => (a.tissueTerm + a.sequencer).localeCompare(b.tissueTerm + b.sequencer));
 
-    return [...preferred, ...remaining].slice(0, sampleSize);
+    return [...uniquePreferred, ...remaining].slice(0, sampleSize);
+}
+
+// Filter by attribute values in JavaScript rather than interpolating live data
+// into a CSS selector; tissue/sequencer labels may legally contain quotes or
+// other selector-significant characters.
+function getRenderedBarPart(tissueTerm, sequencer) {
+    let barPart;
+    return cy.get('.bar-plot-chart .chart-bar[data-term]')
+        .should(($chartBars) => {
+            const chartBar = [...$chartBars].find(
+                (candidate) => candidate.getAttribute('data-term') === tissueTerm
+            );
+            barPart = chartBar && [...Cypress.$(chartBar).find('.bar-part[data-term]')].find(
+                (candidate) => candidate.getAttribute('data-term') === sequencer
+            );
+            expect(barPart, `Rendered bar-part for ${tissueTerm} x ${sequencer}`).to.exist;
+        })
+        .then(() => cy.wrap(barPart));
 }
 
 function assertTissueAxisLabel(tissueTerms, resolvedTissueTerm) {
     const acceptedVariants = [...new Set([...getTissueVariants(tissueTerms), resolvedTissueTerm])];
 
-    cy.get(`.bar-plot-chart .rotated-label[data-term="${resolvedTissueTerm}"]`)
-        .should('exist')
-        .then(($label) => {
+    cy.get('.bar-plot-chart .rotated-label[data-term]')
+        .should(($labels) => {
+            const label = [...$labels].find(
+                (candidate) => candidate.getAttribute('data-term') === resolvedTissueTerm
+            );
+            expect(label, `Axis label for ${resolvedTissueTerm}`).to.exist;
+            const $label = Cypress.$(label);
             const labelText = $label.text().replace(/\s+/g, ' ').trim();
             const labelTitle = ($label.attr('title') || '').trim();
 
@@ -659,7 +697,7 @@ function stepFacetChartBarPlotTests(caps) {
                     cy.log(`Testing bar part: Tissue = ${tissueTerm}, Sequencer = ${sequencer}`);
 
                     cy.window().scrollTo(0, 0).end()
-                        .get(`.bar-plot-chart .chart-bar[data-term="${tissueTerm}"] .bar-part[data-term="${sequencer}"]`)
+                        .then(() => getRenderedBarPart(tissueTerm, sequencer))
                         .then(($barPart) => {
                             assertTissueAxisLabel([tissueTerm], tissueTerm);
                             const expectedFilteredResults = parseInt($barPart.attr('data-count'), 10);
@@ -700,9 +738,14 @@ function stepFacetChartBarPlotTests(caps) {
 
                                     // Reconcile API total with UI count, tolerating one round
                                     // of transient data churn before failing with diagnostics.
-                                    return reconcileApiTotalWithUiCount(fullUrl, uiCount, {
-                                        context: `Bar-part Files link (${tissueTerm} x ${sequencer})`,
-                                    });
+                                    return reconcileApiTotalWithUiCount(
+                                        fullUrl,
+                                        () => cy.get('.cursor-component-root .details a')
+                                            .should('contain.text', 'Files')
+                                            .invoke('text')
+                                            .then(parseIntSafe),
+                                        { context: `Bar-part Files link (${tissueTerm} x ${sequencer})` }
+                                    );
                                 });
                             // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
                             // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
@@ -714,27 +757,23 @@ function stepFacetChartBarPlotTests(caps) {
                                 .location('search')
                                 .should('include', 'external_id=')
                                 .get('#slow-load-container').should('not.have.class', 'visible')
-                                .then(() => {
-                                    // Both counts describe the same filtered dataset;
-                                    // resync with a re-read before failing (Cluster C).
-                                    return assertCountEventuallyEquals(
-                                        () => cy.searchPageTotalResultCount(),
-                                        expectedFilteredResults,
-                                        `Filtered search results count should reconcile with bar count (${expectedFilteredResults}) for ${tissueTerm} x ${sequencer}`
-                                    );
-                                })
-                                .getQuickInfoBar().then((info) => {
-                                    cy
-                                        .get('.properties-controls button[data-tip="Clear all filters"]')
-                                        .click({ force: true })
-                                        .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item").should('not.exist').end();
-
-                                    assertCountEventuallyEquals(
+                                .url()
+                                .then((filteredResultsUrl) => reconcileApiTotalWithUiCount(
+                                    filteredResultsUrl,
+                                    () => cy.searchPageTotalResultCount(),
+                                    { context: `Filtered search results for ${tissueTerm} x ${sequencer}` }
+                                ))
+                                .then(() => cy
+                                    .get('.properties-controls button[data-tip="Clear all filters"]')
+                                    .click({ force: true })
+                                    .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item")
+                                    .should('not.exist')
+                                    .then(() => assertCountsEventuallyEqual(
                                         () => cy.get("div.above-facets-table-row #results-count").invoke("text").then((t) => parseInt(t, 10)),
-                                        info.donor,
-                                        `Cleared-filters results count should reconcile with donor count from QuickInfoBar (${info.donor})`
-                                    ).wait(500); // wait to ensure chart animation completes before next iteration
-                                });
+                                        () => cy.getQuickInfoBar().then((currentInfo) => currentInfo.donor),
+                                        'Cleared-filters results count should reconcile with the current donor count from QuickInfoBar'
+                                    ))
+                                );
                         });
                 });
             });
@@ -938,9 +977,15 @@ function stepSearchTableRowsTests(caps) {
                         expect(uiCount, `Row ${rowIndex}: Files count must be > 0`).to.be.greaterThan(0);
                         expect(href, `Row ${rowIndex}: Files href must exist`).to.be.a('string').and.not.be.empty;
 
-                        reconcileApiTotalWithUiCount(href, uiCount, {
-                            context: `Row ${rowIndex}: search-table Files link`,
-                        });
+                        return reconcileApiTotalWithUiCount(
+                            href,
+                            () => cy.get(dataRowSelector)
+                                .eq(rowIndex)
+                                .find('.search-result-column-block[data-field="files"] a')
+                                .invoke('text')
+                                .then(parseCountFromLabel),
+                            { context: `Row ${rowIndex}: search-table Files link` }
+                        );
                     });
 
                 // --- Tissues detail: open panel and verify header + list count ---
