@@ -24,8 +24,6 @@ ITEM_TYPES_TO_PURGE = (
     "meta_workflow",
     "meta_workflow_run",
     "page",
-    "tissue",
-    "tissue_sample",
     "static_section",
 )
 # Deletion/would-be-deletion batch size: bounds candidate-selection pages,

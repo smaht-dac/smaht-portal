@@ -10,11 +10,25 @@ from .utils import (
 )
 
 
-def test_tissue_sample_revision_history_not_tracked(
+def test_tissue_sample_revision_history_is_tracked(
     testapp: TestApp, test_tissue_sample: Dict[str, Any]
 ) -> None:
-    """TissueSample opts out of Postgres revision-history tracking."""
-    testapp.get(f'/{test_tissue_sample["uuid"]}/@@revision-history', status=404)
+    """TissueSample retains Postgres revision-history tracking (the captain
+    decided Tissue/TissueSample history may be needed in the future, so -
+    unlike the other eight types this PR opts out of tracking -
+    TissueSample does not set track_revisions = False). Proves this against
+    actual edit behavior, not just the absence of a class attribute: each
+    edit produces one more accessible revision, and none of them ever 404.
+    """
+    uuid = test_tissue_sample["uuid"]
+    testapp.patch_json(f"/{uuid}", {"processing_notes": "first note"}, status=200)
+    revisions = testapp.get(f"/{uuid}/@@revision-history", status=200).json["revisions"]
+    revision_count_after_first_edit = len(revisions)
+    assert revision_count_after_first_edit >= 1
+
+    testapp.patch_json(f"/{uuid}", {"processing_notes": "second note"}, status=200)
+    revisions = testapp.get(f"/{uuid}/@@revision-history", status=200).json["revisions"]
+    assert len(revisions) == revision_count_after_first_edit + 1
 
 
 @pytest.mark.workbook
