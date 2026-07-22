@@ -2842,6 +2842,31 @@ File and Donor Overview Styles
 					display: flex;
 					align-items: center;
 					justify-content: center;
+					// Stable regardless of loading/loaded state or slice
+					// count, so switching donors (spinner <-> diagram, or
+					// diagram <-> differently-sized diagram) doesn't reflow
+					// the page and visibly shift the cards below it.
+					min-height: 320px;
+
+					// Re-fetching for an already-shown donor: dim the
+					// still-mounted previous diagram in place instead of
+					// swapping to a spinner (which would unmount/remount it).
+					> * {
+						transition: opacity 120ms ease;
+					}
+
+					&.is-updating > * {
+						opacity: 0.45;
+					}
+				}
+
+				.tissue-aliquot-loading {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					width: 100%;
+					color: #97A6B8;
+					font-size: 1.5rem;
 				}
 
 				.aliquot-visualization {

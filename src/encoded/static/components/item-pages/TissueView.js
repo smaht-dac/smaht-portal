@@ -209,6 +209,11 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     const [allTissuesForType, setAllTissuesForType] = useState([]);
     const [donorsLoading, setDonorsLoading] = useState(true);
     const [tissueSamples, setTissueSamples] = useState(null);
+    // True only while re-fetching for an already-rendered donor switch (not
+    // the initial load, which uses aliquotSamplesLoading/the spinner
+    // instead) -- lets the panel hint "updating" without unmounting the
+    // still-valid previous diagram.
+    const [samplesUpdating, setSamplesUpdating] = useState(false);
     // Which donor's aliquot layout the visualization panel reflects.
     // Defaults to this page's own donor; the panel offers a picker (only
     // shown once >1 donor shares this tissue_type) so the other donors' real
@@ -249,11 +254,23 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // block, so it has to come from a live count of TissueSamples across
     // every sibling Tissue (Fixed + Frozen) sharing this tissue_type.
     useEffect(() => {
-        if (tissueUuidsForSelectedDonor.length === 0) {
+        // Wait for the sibling-Tissue search (donorsLoading) to finish before
+        // fetching -- otherwise this fires once with just this page's own
+        // Tissue uuid, renders that partial result, then fires again once
+        // the sibling Fixed/Frozen Tissue is found, replacing it a moment
+        // later. Both fetches were real, but the visible flash between them
+        // reads as a bug, so wait for the complete uuid set instead.
+        if (donorsLoading || tissueUuidsForSelectedDonor.length === 0) {
             setTissueSamples(null);
             return;
         }
-        setTissueSamples(null);
+        // Deliberately not resetting to null here: on the very first load
+        // that's already the initial state, but on a later donor switch it
+        // would blank out an already-rendered diagram (swap to spinner, then
+        // swap again to the new donor's data) for no reason -- keep showing
+        // the previous donor's slices until the new ones are ready, then
+        // swap directly, once.
+        setSamplesUpdating(true);
         const sampleSourceParams = tissueUuidsForSelectedDonor
             .map((uuid) => `sample_sources.uuid=${encodeURIComponent(uuid)}`)
             .join('&');
@@ -261,13 +278,15 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
             `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}`,
             (resp) => {
                 setTissueSamples(resp?.['@graph'] || []);
+                setSamplesUpdating(false);
             },
             'GET',
             () => {
                 setTissueSamples([]);
+                setSamplesUpdating(false);
             }
         );
-    }, [tissueUuidsForSelectedDonor]);
+    }, [tissueUuidsForSelectedDonor, donorsLoading]);
 
     // Real samples win once loaded; while loading (tissueSamples === null) or
     // if none exist yet, fall back to the illustrative demo set so the panel
@@ -322,6 +341,13 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         });
         return realAliquots.length > 0 ? realAliquots : sampleNonSolidAliquots;
     }, [tissueSamples]);
+
+    // Real data replacing the illustrative fallback mid-render is a visible
+    // jump no matter how few steps it takes to get there (different slice
+    // counts/colors/arrangement) -- show a spinner instead of the fallback
+    // while genuinely loading, and reserve the fallback for a tissue that
+    // has finished loading and truly has no TissueSamples yet.
+    const aliquotSamplesLoading = donorsLoading || tissueSamples === null;
 
     useEffect(() => {
         const queryParts = [
@@ -476,8 +502,16 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                 </div>
                             ) : null}
                         </div>
-                        <div className="tissue-aliquot-body">
-                            {nonSolidSpecimenType ? (
+                        <div
+                            className={
+                                'tissue-aliquot-body' +
+                                (samplesUpdating && !aliquotSamplesLoading ? ' is-updating' : '')
+                            }>
+                            {aliquotSamplesLoading ? (
+                                <div className="tissue-aliquot-loading">
+                                    <i className="icon icon-circle-notch icon-spin fas" />
+                                </div>
+                            ) : nonSolidSpecimenType ? (
                                 <NonSolidAliquotVisualization
                                     aliquots={nonSolidAliquots}
                                     specimenType={nonSolidSpecimenType}
