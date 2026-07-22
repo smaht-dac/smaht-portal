@@ -278,6 +278,12 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     // Only Frozen/Fresh samples have this; Fixed samples
                     // never will, so this is naturally empty for pink slices.
                     associatedPathologyReports: sample.associated_pathology_reports || [],
+                    // A Fixed sample's *own* pathology_reports (direct
+                    // rev-link) -- this is the actual, most direct
+                    // relationship; associatedPathologyReports above only
+                    // exists to give Frozen/Fresh samples a path to this same
+                    // data through their linked Fixed sample(s).
+                    pathologyReports: sample.pathology_reports || [],
                     // The real submitting institution (e.g. "BROAD GCC",
                     // "UWSC GCC") -- shown instead of a made-up "GCC1"/"GCC2"
                     // sequence number.

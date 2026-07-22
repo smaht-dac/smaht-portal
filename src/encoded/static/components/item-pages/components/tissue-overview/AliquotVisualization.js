@@ -30,6 +30,31 @@ const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const FROZEN_GRID_COLS = [1, 2, 3, 4, 5, 6];
 const DEFAULT_FROZEN_CORE_WELLS = ['A1', 'C2'];
 
+const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.shape({
+        '@id': PropTypes.string,
+        display_title: PropTypes.string,
+    }),
+]);
+
+// `reports` entries come back as a bare @id string in the @@object frame, or
+// a full embedded object (with display_title) in /search/'s embedded frame
+// -- render whichever shape shows up as a comma-separated list of links.
+function PathologyReportLinks({ reports }) {
+    return reports.map((report, reportIndex) => {
+        const reportHref = typeof report === 'string' ? report : report?.['@id'];
+        const reportLabel =
+            typeof report === 'object' ? report?.display_title || 'View' : 'View';
+        return (
+            <React.Fragment key={reportHref || reportIndex}>
+                {reportIndex > 0 ? ', ' : ''}
+                <a href={reportHref}>{reportLabel}</a>
+            </React.Fragment>
+        );
+    });
+}
+
 function buildSliceGeometry({
     widthPx,
     heightPx,
@@ -501,6 +526,27 @@ export default function AliquotVisualization({
                                         {selectedSlice.description}
                                     </p>
                                 ) : null}
+                                {selectedSlice?.type === 'pink' &&
+                                selectedSlice?.pathologyReports ? (
+                                        selectedSlice.pathologyReports.length > 0 ? (
+                                            <div className="aliquot-popover-pathology">
+                                                <div className="aliquot-popover-row">
+                                                    <span>Pathology</span>
+                                                    <strong>
+                                                        <PathologyReportLinks
+                                                            reports={
+                                                                selectedSlice.pathologyReports
+                                                            }
+                                                        />
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="aliquot-popover-pathology-empty">
+                                                Pathology: no report yet.
+                                            </p>
+                                        )
+                                    ) : null}
                                 {selectedSlice?.type === 'yellow' &&
                                 selectedSlice?.associatedPathologyReports &&
                                 selectedSlice.associatedPathologyReports.length ===
@@ -530,39 +576,11 @@ export default function AliquotVisualization({
                                                     </span>
                                                     <strong>
                                                         {entry.pathology_reports?.length > 0 ? (
-                                                            entry.pathology_reports.map(
-                                                                (report, reportIndex) => {
-                                                                    // `/search/`'s embedded
-                                                                    // frame resolves this to
-                                                                    // a full object; the plain
-                                                                    // @@object frame gives a
-                                                                    // bare @id string -- handle
-                                                                    // both.
-                                                                    const reportHref =
-                                                                        typeof report === 'string'
-                                                                            ? report
-                                                                            : report?.['@id'];
-                                                                    const reportLabel =
-                                                                        typeof report === 'object'
-                                                                            ? report?.display_title ||
-                                                                              'View'
-                                                                            : 'View';
-                                                                    return (
-                                                                        <React.Fragment
-                                                                            key={
-                                                                                reportHref ||
-                                                                                reportIndex
-                                                                            }>
-                                                                            {reportIndex > 0
-                                                                                ? ', '
-                                                                                : ''}
-                                                                            <a href={reportHref}>
-                                                                                {reportLabel}
-                                                                            </a>
-                                                                        </React.Fragment>
-                                                                    );
+                                                            <PathologyReportLinks
+                                                                reports={
+                                                                    entry.pathology_reports
                                                                 }
-                                                            )
+                                                            />
                                                         ) : (
                                                             'No report yet'
                                                         )}
@@ -618,17 +636,10 @@ AliquotVisualization.propTypes = {
             associatedPathologyReports: PropTypes.arrayOf(
                 PropTypes.shape({
                     fixed_sample_external_id: PropTypes.string,
-                    pathology_reports: PropTypes.arrayOf(
-                        PropTypes.oneOfType([
-                            PropTypes.string,
-                            PropTypes.shape({
-                                '@id': PropTypes.string,
-                                display_title: PropTypes.string,
-                            }),
-                        ])
-                    ),
+                    pathology_reports: PropTypes.arrayOf(PATHOLOGY_REPORT_PROPTYPE),
                 })
             ),
+            pathologyReports: PropTypes.arrayOf(PATHOLOGY_REPORT_PROPTYPE),
             submissionCenter: PropTypes.string,
         })
     ).isRequired,
