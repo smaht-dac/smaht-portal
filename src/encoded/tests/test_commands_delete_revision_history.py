@@ -1010,6 +1010,12 @@ def test_delete_revision_history_covers_all_ten_target_types_and_preserves_unrel
         resource for resource in resources if resource.item_type == "unrelated_item_type"
     ]
     current_sids = _current_sids(session, target_resources)
+    # Each cleanup batch commits, so SQLAlchemy expires the ORM instances -
+    # capture the scalar rids needed for post-cleanup assertions up front
+    # (same fix already applied to test_interrupted_cleanup_resumes_idempotently
+    # for the same reason).
+    target_rids = tuple(resource.rid for resource in target_resources)
+    unrelated_rids = tuple(resource.rid for resource in unrelated_resources)
 
     deleted = delete_revision_history(app, prod=True, batch_size=1)
 
@@ -1022,17 +1028,24 @@ def test_delete_revision_history_covers_all_ten_target_types_and_preserves_unrel
 
     # Current-propsheet preservation: every target resource's current rows
     # are exactly the same set as before cleanup ran.
-    assert _current_sids(session, target_resources) == current_sids
+    post_cleanup_current_sids = {
+        row.sid
+        for rid in target_rids
+        for row in session.query(CurrentPropertySheet)
+        .filter(CurrentPropertySheet.rid == rid)
+        .all()
+    }
+    assert post_cleanup_current_sids == current_sids
     assert all(
-        {row.sid for row in _propsheet_rows(session, resource.rid)} <= current_sids
-        for resource in target_resources
+        {row.sid for row in _propsheet_rows(session, rid)} <= current_sids
+        for rid in target_rids
     )
 
     # Unrelated-type preservation: a type outside the purge list is never
     # touched, keeping all four of its rows (two current, two historical).
     assert all(
-        len(_propsheet_rows(session, resource.rid)) == 4
-        for resource in unrelated_resources
+        len(_propsheet_rows(session, rid)) == 4
+        for rid in unrelated_rids
     )
 
 
