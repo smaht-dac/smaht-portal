@@ -1587,7 +1587,11 @@ div.browse-link-icon {
 
 	table.tissue-heatmap-table {
 		width: 100%;
-		border-collapse: collapse;
+		// `border-collapse: collapse` breaks `position: sticky` on td/th in
+		// WebKit/Safari (a long-standing browser bug) -- `separate` with no
+		// spacing renders the same single-sided cell borders used below.
+		border-collapse: separate;
+		border-spacing: 0;
 		font-size: 0.8125rem;
 
 		th, td {
@@ -1605,6 +1609,34 @@ div.browse-link-icon {
 		.tissue-heatmap-order-header,
 		.tissue-heatmap-donor-header {
 			min-width: 40px;
+		}
+
+		// Column count is data-driven and unbounded (one per distinct
+		// tissue_type string, see BrowseTissueHeatmapTable.js's
+		// buildTissueMetricMatrix) -- the table already scrolls
+		// horizontally, so pin the row-identifying columns in place or
+		// scrolling loses track of which donor a row belongs to.
+		.tissue-heatmap-order-header,
+		.tissue-heatmap-order-label {
+			position: sticky;
+			left: 0;
+			z-index: 2;
+			width: 32px;
+			background-color: #FFFFFF;
+		}
+
+		.tissue-heatmap-donor-header,
+		.tissue-heatmap-donor-id {
+			position: sticky;
+			left: 32px;
+			z-index: 2;
+			background-color: #FFFFFF;
+			box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.12);
+		}
+
+		thead th.tissue-heatmap-order-header,
+		thead th.tissue-heatmap-donor-header {
+			z-index: 3;
 		}
 
 		.tissue-heatmap-order-label {

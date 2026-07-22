@@ -84,27 +84,33 @@ const TissueDatum = ({ title, value, unit = null, href = null }) => {
     );
 };
 
-// A real Tissue record only ever has one preservation_type (Fixed, or
-// Frozen/Snap Frozen) -- the combined pink+green box is a training-schema
-// illustration, not something a single Tissue's own aliquots look like.
-// These two single-type sets are used once preservation_type is known;
-// sampleAliquotSlicesFallback stays for the illustrative mixed case.
-const sampleFixedSlices = [
+// A donor's Fixed and Frozen Tissue records for the same organ share one
+// `tissue_type` string (a backend ontology grouping term -- confirmed
+// against real data: e.g. SMHT004-3G [Frozen] and SMHT004-3H [Fixed] both
+// compute tissue_type "3G - Colon, Desc"), i.e. the backend already treats
+// them as one tissue block. The aliquot panel follows that: it combines
+// TissueSamples from both sibling Tissue records into one box, same as this
+// illustrative fallback shows before any real data has loaded.
+const sampleAliquotSlicesFallback = [
     { id: 'fixed-1', type: 'pink', widthCm: 0.5, description: 'Fixed edge aliquot for preservation workflow.' },
-    { id: 'fixed-2', type: 'pink', widthCm: 0.5, description: 'Fixed center aliquot for morphology review.' },
-    { id: 'fixed-3', type: 'pink', widthCm: 0.5, description: 'Fixed edge aliquot for archive retention.' },
-];
-
-const sampleFrozenSlices = [
     { id: 'frozen-1', type: 'yellow', widthCm: 1, description: 'Frozen aliquot reserved for sequencing-ready extraction.' },
     { id: 'frozen-2', type: 'yellow', widthCm: 1, description: 'Frozen aliquot reserved for replicate processing.' },
     { id: 'frozen-3', type: 'yellow', widthCm: 1, description: 'Frozen aliquot for downstream QC and validation.' },
+    { id: 'fixed-2', type: 'pink', widthCm: 0.5, description: 'Fixed center aliquot for morphology review.' },
     { id: 'frozen-4', type: 'yellow', widthCm: 1, description: 'Frozen aliquot held as backup material.' },
     { id: 'frozen-5', type: 'yellow', widthCm: 1, description: 'Frozen aliquot reserved for replicate processing.' },
     { id: 'frozen-6', type: 'yellow', widthCm: 1, description: 'Frozen aliquot for downstream QC and validation.' },
+    { id: 'fixed-3', type: 'pink', widthCm: 0.5, description: 'Fixed edge aliquot for archive retention.' },
 ];
 
-const sampleAliquotSlicesFallback = [...sampleFixedSlices, ...sampleFrozenSlices];
+// "{donor}-{protocol}" from a real sample's own external_id (mirrors
+// item_utils/tissue_sample.py's get_tissue_kit_id_from_external_id) -- used
+// as that slice's own id prefix, since combining Fixed+Frozen means the two
+// halves of one box no longer share a single protocol code.
+function getTissueKitIdFromExternalId(externalId) {
+    if (!externalId) return null;
+    return externalId.split('-').slice(0, 2).join('-');
+}
 
 const sampleNonSolidAliquots = [
     { id: 'aliquot-1', description: 'Primary collection tube reserved for sequencing-ready extraction.' },
@@ -171,7 +177,6 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         tissue_type,
         study,
         category,
-        preservation_type,
         uuid: tissueUuid,
     } = context;
     const { userDownloadAccess } = useUserDownloadAccess(session);
@@ -197,34 +202,41 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
     const [donors, setDonors] = useState([]);
+    // Every Tissue record sharing this tissue_type, undeduped -- unlike
+    // `donors` (one representative Tissue per donor, for the summary table),
+    // this keeps sibling Fixed/Frozen Tissue records together so the aliquot
+    // panel can combine both into one box for a given donor.
+    const [allTissuesForType, setAllTissuesForType] = useState([]);
     const [donorsLoading, setDonorsLoading] = useState(true);
     const [tissueSamples, setTissueSamples] = useState(null);
-    // Which donor's own Tissue instance the aliquot visualization panel
-    // reflects. Defaults to this page's own Tissue/donor; the panel offers a
-    // picker (only shown once >1 donor shares this tissue_type) so the other
-    // donors' real aliquot layouts are reachable too, instead of only ever
-    // showing the donor this page happened to be loaded for.
+    // Which donor's aliquot layout the visualization panel reflects.
+    // Defaults to this page's own donor; the panel offers a picker (only
+    // shown once >1 donor shares this tissue_type) so the other donors' real
+    // aliquot layouts are reachable too.
     const [selectedDonorUuid, setSelectedDonorUuid] = useState(donor?.uuid || null);
 
     const selectedDonorEntry = useMemo(
         () => donors.find((entry) => entry.donor?.uuid === selectedDonorUuid) || null,
         [donors, selectedDonorUuid]
     );
-    // For this page's own donor, always use this page's own Tissue instance
-    // (`context`) rather than whatever dedupeTissuesByDonor picked for the
-    // "Donor Details" table: a donor can have more than one Tissue record for
-    // this tissue_type (e.g. a Fixed block with a pathology report alongside
-    // the Frozen block this page actually represents), and the table
-    // deliberately prefers the one with a populated pathology_summary, which
-    // is not necessarily the real aliquot layout this page should visualize.
-    const selectedTissue =
-        selectedDonorUuid === donor?.uuid ? context : selectedDonorEntry?.tissue || context;
-    const selectedTissueUuid = selectedTissue?.uuid || tissueUuid;
-    const selectedPreservationType = selectedTissue?.preservation_type || preservation_type;
+    // A donor's Fixed and Frozen Tissue records for this tissue_type are two
+    // separate items sharing one tissue_type string (confirmed against real
+    // data -- see note above sampleAliquotSlicesFallback), so the aliquot
+    // panel needs every sibling Tissue's uuid, not just one. Falls back to
+    // this page's own Tissue while the sibling search hasn't loaded yet.
+    const tissueUuidsForSelectedDonor = useMemo(() => {
+        const targetDonorUuid = selectedDonorUuid || donor?.uuid;
+        const matches = targetDonorUuid
+            ? allTissuesForType.filter((t) => t?.donor?.uuid === targetDonorUuid)
+            : [];
+        if (matches.length > 0) return matches.map((t) => t.uuid);
+        return tissueUuid ? [tissueUuid] : [];
+    }, [allTissuesForType, selectedDonorUuid, donor, tissueUuid]);
     const selectedDonorDisplayTitle = selectedDonorEntry?.donor?.display_title || donor?.display_title;
     // Real sample IDs are "{donor}-{protocol}-{aliquot}{suffix}" (e.g.
     // "SMHT001-3I-001A1", see item_utils/tissue_sample.py's *_REGEX
-    // constants) -- the donor prefix belongs in front of the protocol code.
+    // constants) -- used only as a fallback when a slice has no real
+    // external_id of its own (the illustrative demo set).
     const aliquotIdPrefix =
         selectedDonorDisplayTitle && tissueProtocolCode
             ? `${selectedDonorDisplayTitle}-${tissueProtocolCode}`
@@ -234,16 +246,19 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // against real TissueSample fixture data and PR smaht-dac/smaht-portal#728's
     // associate_fixed_samples.py, which counts real linked samples rather than
     // assuming one) -- it's whatever was actually submitted for this tissue
-    // block, so it has to come from a live count of this Tissue's own
-    // TissueSamples rather than a hardcoded slice array.
+    // block, so it has to come from a live count of TissueSamples across
+    // every sibling Tissue (Fixed + Frozen) sharing this tissue_type.
     useEffect(() => {
-        if (!selectedTissueUuid) {
+        if (tissueUuidsForSelectedDonor.length === 0) {
             setTissueSamples(null);
             return;
         }
         setTissueSamples(null);
+        const sampleSourceParams = tissueUuidsForSelectedDonor
+            .map((uuid) => `sample_sources.uuid=${encodeURIComponent(uuid)}`)
+            .join('&');
         ajax.load(
-            `/search/?type=TissueSample&status!=deleted&sample_sources.uuid=${encodeURIComponent(selectedTissueUuid)}`,
+            `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}`,
             (resp) => {
                 setTissueSamples(resp?.['@graph'] || []);
             },
@@ -252,11 +267,11 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 setTissueSamples([]);
             }
         );
-    }, [selectedTissueUuid]);
+    }, [tissueUuidsForSelectedDonor]);
 
     // Real samples win once loaded; while loading (tissueSamples === null) or
-    // if none exist yet, fall back to the illustrative demo sets so the
-    // panel isn't empty.
+    // if none exist yet, fall back to the illustrative demo set so the panel
+    // isn't empty.
     const solidAliquotSlices = useMemo(() => {
         const realSlices = (tissueSamples || [])
             .filter((sample) => sample.preservation_type !== 'Fresh')
@@ -267,6 +282,10 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     type: sample.preservation_type === 'Fixed' ? 'pink' : 'yellow',
                     widthCm: sample.preservation_type === 'Fixed' ? 0.5 : 1,
                     description: sample.external_id || sample.accession || undefined,
+                    // This slice's own real "{donor}-{protocol}" -- Fixed and
+                    // Frozen siblings have different protocol codes despite
+                    // sharing one tissue_type, so each slice needs its own.
+                    idPrefix: getTissueKitIdFromExternalId(sample.external_id),
                     // Explicit [] (not undefined) for a real Frozen sample with
                     // no Core suffix -- so AliquotVisualization's `|| DEFAULT`
                     // fallback (meant only for illustrative demo slices) does
@@ -290,19 +309,8 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     submissionCenter: sample.submission_centers?.[0]?.display_title || null,
                 };
             });
-        if (realSlices.length > 0) return realSlices;
-        if (tissueSamples !== null) {
-            // Loaded, but this tissue has no TissueSamples yet -- still show
-            // the illustrative set for the known preservation_type so the
-            // panel demonstrates the expected layout.
-            return selectedPreservationType === 'Fixed' ? sampleFixedSlices : sampleFrozenSlices;
-        }
-        return selectedPreservationType
-            ? selectedPreservationType === 'Fixed'
-                ? sampleFixedSlices
-                : sampleFrozenSlices
-            : sampleAliquotSlicesFallback;
-    }, [tissueSamples, selectedPreservationType]);
+        return realSlices.length > 0 ? realSlices : sampleAliquotSlicesFallback;
+    }, [tissueSamples]);
 
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
@@ -354,11 +362,14 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         ajax.load(
             `/search/?type=Tissue&tissue_type=${encodeURIComponent(tissueMatrixFilterValue)}&limit=all`,
             (resp) => {
-                setDonors(dedupeTissuesByDonor(resp?.['@graph']));
+                const results = resp?.['@graph'] || [];
+                setAllTissuesForType(results);
+                setDonors(dedupeTissuesByDonor(results));
                 setDonorsLoading(false);
             },
             'GET',
             () => {
+                setAllTissuesForType([]);
                 setDonors([]);
                 setDonorsLoading(false);
             }

@@ -232,7 +232,7 @@ export default function AliquotVisualization({
         selectedSliceIndex === null ? null : normalizedSlices[selectedSliceIndex];
     const selectedStyles = SLICE_TYPE_STYLES[selectedSlice?.type || 'yellow'];
     const selectedAliquotId = selectedSlice
-        ? `${idPrefix || selectedStyles.idPrefix}-${selectedSlice.sequenceLabel}`
+        ? `${selectedSlice.idPrefix || idPrefix || selectedStyles.idPrefix}-${selectedSlice.sequenceLabel}`
         : null;
     const selectedFrozenWells =
         selectedSlice?.frozenCoreWells || DEFAULT_FROZEN_CORE_WELLS;
@@ -641,6 +641,7 @@ AliquotVisualization.propTypes = {
             ),
             pathologyReports: PropTypes.arrayOf(PATHOLOGY_REPORT_PROPTYPE),
             submissionCenter: PropTypes.string,
+            idPrefix: PropTypes.string,
         })
     ).isRequired,
 };

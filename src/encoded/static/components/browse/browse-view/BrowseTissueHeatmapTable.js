@@ -90,6 +90,15 @@ function formatTargetTissuePercentage(value) {
     return value === '0' ? '0%' : value;
 }
 
+// `tissue_type` is stored/sorted as "<protocol code> - <name>" (e.g.
+// "3AK - Brain, Frontal Lobe") so the code stays part of the value used for
+// column identity/lookup, but showing that code in the header is meaningless
+// to someone browsing by tissue -- strip it for display only.
+function formatTissueTypeLabel(tissueType) {
+    if (!tissueType) return tissueType;
+    return tissueType.replace(/^\S+\s-\s*/, '');
+}
+
 function getTargetTissuePercentageScoreClass(value) {
     if (value === null || typeof value === 'undefined') return 'na';
     const index = TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
@@ -107,11 +116,13 @@ const MetricHeatmapTable = ({ tissueTypes, tissueTypeHrefs, matrix, formatValue,
                     <th className="tissue-heatmap-order-header" />
                     <th className="tissue-heatmap-donor-header" />
                     {tissueTypes.map((tissueType) => (
-                        <th key={tissueType}>
+                        <th key={tissueType} title={tissueType}>
                             {tissueTypeHrefs[tissueType] ? (
-                                <a href={tissueTypeHrefs[tissueType]}>{tissueType}</a>
+                                <a href={tissueTypeHrefs[tissueType]}>
+                                    {formatTissueTypeLabel(tissueType)}
+                                </a>
                             ) : (
-                                tissueType
+                                formatTissueTypeLabel(tissueType)
                             )}
                         </th>
                     ))}
