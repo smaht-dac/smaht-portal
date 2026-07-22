@@ -57,25 +57,22 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             (items) => {
                 const primaryTissues = [];
                 items.forEach((item) => {
-                    const tissue_type = item.display_title;
-
-                    const tissue_type_formatted = tissue_type.split(' - ')[1] || tissue_type;
-                    primaryTissues.push(tissue_type_formatted);
+                    primaryTissues.push(item.display_title);
                 });
+                primaryTissues.push("3AC - Fibroblast");
                 const tissuesAndMixtures = [
                     ...primaryTissues.sort((a, b) => a.localeCompare(b)),
                     ...CELL_CULTURE_MIXTURES,
                 ];
                 const selectItems = tissuesAndMixtures.map((tissue) => ({
                     title: tissue,
-                    code: tissue,
+                    code: tissue, // this is used in the search query. Here we need, e.g. "3AK - Brain, Frontal Lobe"
                 }));
                 this.setState({
                     cell_culture_mixtures_and_tissues: selectItems,
                 });
             }
         );
-        
     };
 
     componentDidMount() {
@@ -145,7 +142,9 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             <option value="in review">In Review</option>,
             <option value="open">Released to public</option>,
             <option value="released-network">Released to network</option>,
-            <option value="released-public-network">Released to public or network</option>,
+            <option value="released-public-network">
+                Released to public or network
+            </option>,
         ];
         const defaultValue = 'in review';
         const filterName = 'fileset_status';
@@ -159,7 +158,12 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
 
         const options = [<option value="all">All</option>];
         this.state.assays.forEach((sc) => {
-            options.push(<option value={sc.title}>{sc.title}</option>);
+            // Escape special characters (e.g. "&" in "varCUT&Tag") so the value
+            // survives the backend's urlencode/unquote round-trip when building
+            // the search subrequest.
+            options.push(
+                <option value={encodeURIComponent(sc.title)}>{sc.title}</option>
+            );
         });
         const defaultValue = 'all';
         const filterName = 'assay';
@@ -173,7 +177,11 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
 
         const options = [<option value="all">All</option>];
         this.state.sequencers.forEach((sc) => {
-            options.push(<option value={sc.title}>{sc.title}</option>);
+            // Escape special characters so the value survives the backend's
+            // urlencode/unquote round-trip when building the search subrequest.
+            options.push(
+                <option value={encodeURIComponent(sc.title)}>{sc.title}</option>
+            );
         });
         const defaultValue = 'all';
         const filterName = 'sequencer';
@@ -201,7 +209,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
 
         const options = [<option value="all">All</option>];
         this.state.cell_culture_mixtures_and_tissues.forEach((sc) => {
-            options.push(<option value={sc.code}>{sc.code}</option>);
+            options.push(<option value={sc.code}>{sc.title}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'cell_culture_mixtures_and_tissues';
