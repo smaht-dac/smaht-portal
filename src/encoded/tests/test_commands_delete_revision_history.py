@@ -1,4 +1,6 @@
 import argparse
+import itertools
+import logging
 from pathlib import Path
 from uuid import uuid4
 
@@ -711,3 +713,329 @@ def test_main_reports_inventory_before_dry_run_cleanup(monkeypatch):
         ("cleanup", app, True, True, 2),
         ("post_log", report, {"workflow": 0, "meta_workflow_run": 0}, True),
     ]
+
+
+def _make_clock(step=1.0, start=0.0):
+    """A deterministic monotonic-style clock: start, start+step, start+2*step, ..."""
+    counter = itertools.count(start, step)
+    return lambda: next(counter)
+
+
+class _FetchAllResult:
+    def __init__(self, rows):
+        self._rows = rows
+
+    def fetchall(self):
+        return self._rows
+
+
+class _CannedPagedSession:
+    """Feeds pre-built resource/revision pages to ``collect_revision_inventory``.
+
+    Each list is consumed one page per matching ``execute`` call; once
+    exhausted, further calls return an empty page so the scan's keyset loop
+    terminates exactly like it would against a real, now-empty result set.
+    """
+
+    def __init__(self, resource_pages=(), revision_pages=()):
+        self._resource_pages = list(resource_pages)
+        self._revision_pages = list(revision_pages)
+
+    def execute(self, statement, parameters):
+        sql = statement.text.upper()
+        if "SELECT RID, ITEM_TYPE" in sql:
+            rows = self._resource_pages.pop(0) if self._resource_pages else []
+        elif "SELECT P.SID" in sql:
+            rows = self._revision_pages.pop(0) if self._revision_pages else []
+        else:
+            raise AssertionError(f"unexpected statement: {sql}")
+        return _FetchAllResult(rows)
+
+
+def _capture_log_events(monkeypatch):
+    events = []
+    monkeypatch.setattr(
+        delete_revision_history_command.logger,
+        "info",
+        lambda event, **fields: events.append((event, fields)),
+    )
+    return events
+
+
+def test_collect_revision_inventory_progress_cadence_and_ordering(monkeypatch):
+    resource_pages = [[(index, "workflow")] for index in range(10)]
+    revision_pages = [[(index, "workflow", None)] for index in range(6)]
+    fake_session = _CannedPagedSession(resource_pages, revision_pages)
+    events = _capture_log_events(monkeypatch)
+
+    report = collect_revision_inventory(
+        fake_session,
+        batch_size=1,
+        progress_page_interval=3,
+        progress_time_interval=1_000_000.0,
+        clock=_make_clock(step=1.0),
+    )
+
+    assert report["totals"]["resource_count"] == 10
+    assert report["totals"]["total_revision_count"] == 6
+
+    resource_events = [(name, fields) for name, fields in events if fields.get("scan") == "resource_inventory"]
+    revision_events = [(name, fields) for name, fields in events if fields.get("scan") == "revision_inventory"]
+
+    assert [name for name, _ in resource_events] == [
+        "revision_inventory_scan_start",
+        "revision_inventory_scan_progress",
+        "revision_inventory_scan_progress",
+        "revision_inventory_scan_progress",
+        "revision_inventory_scan_progress",
+        "revision_inventory_scan_complete",
+    ]
+    assert [fields.get("pages") for _, fields in resource_events[1:]] == [1, 4, 7, 10, 10]
+    assert [fields.get("elapsed_seconds") for _, fields in resource_events[1:]] == [1.0, 4.0, 7.0, 10.0, 11.0]
+    assert all(fields["batch_size"] == 1 for _, fields in resource_events)
+    assert all(fields["rows"] == fields["pages"] for _, fields in resource_events[1:])
+
+    assert [name for name, _ in revision_events] == [
+        "revision_inventory_scan_start",
+        "revision_inventory_scan_progress",
+        "revision_inventory_scan_progress",
+        "revision_inventory_scan_complete",
+    ]
+    assert [fields.get("pages") for _, fields in revision_events[1:]] == [1, 4, 6]
+    assert [fields.get("elapsed_seconds") for _, fields in revision_events[1:]] == [1.0, 4.0, 7.0]
+
+    # The resource scan fully completes (start...complete) before the
+    # revision scan starts - the two scans never interleave.
+    assert events.index(resource_events[-1]) < events.index(revision_events[0])
+
+
+def test_collect_revision_inventory_progress_cadence_bounded_at_scale(monkeypatch):
+    """A tens-of-thousands-of-pages scan must not emit one line per page."""
+    page_count = 1200
+    resource_pages = [[(index, "workflow")] for index in range(page_count)]
+    fake_session = _CannedPagedSession(resource_pages, revision_pages=())
+    events = _capture_log_events(monkeypatch)
+
+    collect_revision_inventory(
+        fake_session,
+        batch_size=1,
+        progress_page_interval=500,
+        progress_time_interval=1_000_000.0,
+        clock=_make_clock(step=0.0),
+    )
+
+    resource_progress_events = [
+        fields
+        for name, fields in events
+        if name == "revision_inventory_scan_progress" and fields.get("scan") == "resource_inventory"
+    ]
+    # Page-interval cadence: pages 1, 501, 1001 - not one event per page.
+    assert [fields["pages"] for fields in resource_progress_events] == [1, 501, 1001]
+    assert len(resource_progress_events) < page_count / 100
+
+
+def test_collect_revision_inventory_time_based_progress_fallback(monkeypatch):
+    """A slow scan reports even when far fewer than page_interval pages have elapsed."""
+    resource_pages = [[(index, "workflow")] for index in range(5)]
+    fake_session = _CannedPagedSession(resource_pages, revision_pages=())
+    events = _capture_log_events(monkeypatch)
+
+    collect_revision_inventory(
+        fake_session,
+        batch_size=1,
+        progress_page_interval=100_000,
+        progress_time_interval=5.0,
+        clock=_make_clock(step=3.0),
+    )
+
+    resource_progress_events = [
+        fields
+        for name, fields in events
+        if name == "revision_inventory_scan_progress" and fields.get("scan") == "resource_inventory"
+    ]
+    assert [fields["pages"] for fields in resource_progress_events] == [1, 3, 5]
+    assert [fields["elapsed_seconds"] for fields in resource_progress_events] == [3.0, 9.0, 15.0]
+
+
+def test_collect_revision_inventory_zero_row_scans_still_complete(monkeypatch):
+    fake_session = _CannedPagedSession(resource_pages=(), revision_pages=())
+    events = _capture_log_events(monkeypatch)
+
+    report = collect_revision_inventory(
+        fake_session, batch_size=1, clock=_make_clock(step=1.0)
+    )
+
+    assert report["totals"] == {
+        "resource_count": 0,
+        "total_revision_count": 0,
+        "excess_historical_revisions": 0,
+    }
+    assert [name for name, _ in events] == [
+        "revision_inventory_scan_start",
+        "revision_inventory_scan_complete",
+        "revision_inventory_scan_start",
+        "revision_inventory_scan_complete",
+    ]
+    resource_complete = events[1][1]
+    revision_complete = events[3][1]
+    assert resource_complete["scan"] == "resource_inventory"
+    assert resource_complete["pages"] == 0
+    assert resource_complete["rows"] == 0
+    assert revision_complete["scan"] == "revision_inventory"
+    assert revision_complete["pages"] == 0
+    assert revision_complete["rows"] == 0
+
+
+def test_delete_revision_history_emits_rid_discovery_and_cleanup_boundary_events(
+    app, session, monkeypatch
+):
+    _resources_with_history(session, {"workflow": 2, "meta_workflow_run": 1})
+    events = _capture_log_events(monkeypatch)
+
+    deleted = delete_revision_history(app, prod=True, batch_size=1)
+
+    assert deleted == {"workflow": 4, "meta_workflow_run": 2}
+    event_names = [name for name, _ in events]
+
+    assert event_names[0] == "delete_revision_history_rid_discovery_start"
+    assert events[0][1]["item_types"] == ["workflow", "meta_workflow_run"]
+
+    assert event_names[1] == "delete_revision_history_rid_discovery_complete"
+    discovery_fields = events[1][1]
+    assert discovery_fields["rid_counts"] == {"workflow": 2, "meta_workflow_run": 1}
+    assert discovery_fields["elapsed_seconds"] >= 0
+
+    assert event_names[2] == "delete_revision_history_cleanup_start"
+    assert events[2][1]["item_types"] == ["workflow", "meta_workflow_run"]
+    assert events[2][1]["batch_size"] == 1
+
+    complete_indices = [
+        index
+        for index, name in enumerate(event_names)
+        if name == "delete_revision_history_cleanup_type_complete"
+    ]
+    assert len(complete_indices) == 2
+
+    workflow_complete = events[complete_indices[0]][1]
+    assert workflow_complete["item_type"] == "workflow"
+    assert workflow_complete["rid_count"] == 2
+    assert workflow_complete["affected_count"] == 4
+
+    meta_complete = events[complete_indices[1]][1]
+    assert meta_complete["item_type"] == "meta_workflow_run"
+    assert meta_complete["rid_count"] == 1
+    assert meta_complete["affected_count"] == 2
+
+    # Existing per-batch events are preserved and occur between the cleanup
+    # phase start and each type's completion event, not removed or replaced.
+    batch_events_before_workflow_complete = [
+        name for name in event_names[3:complete_indices[0]]
+        if name == "delete_revision_history_batch"
+    ]
+    assert batch_events_before_workflow_complete
+
+
+def test_main_logs_initialization_event_before_inventory(monkeypatch):
+    calls = []
+    app = object()
+    report = {"by_item_type": {}, "totals": {}}
+
+    monkeypatch.setattr(
+        delete_revision_history_command, "get_app", lambda *args: app
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command.logger,
+        "info",
+        lambda event, **fields: calls.append(("log", event, fields)),
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "report_revision_inventory",
+        lambda received_app, batch_size: calls.append(
+            ("report", received_app, batch_size)
+        )
+        or report,
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "log_revision_inventory",
+        lambda received_report: calls.append(("pre_log", received_report)),
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "delete_revision_history",
+        lambda received_app, prod, dry_run, batch_size: calls.append(
+            ("cleanup", received_app, prod, dry_run, batch_size)
+        )
+        or {"workflow": 0, "meta_workflow_run": 0},
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "log_post_cleanup_revision_inventory",
+        lambda received_report, deleted_by_type, dry_run: calls.append(
+            ("post_log", received_report, deleted_by_type, dry_run)
+        ),
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command.sys,
+        "argv",
+        [
+            "delete-revision-history",
+            "production.ini",
+            "--app-name",
+            "app",
+            "--prod",
+            "--batch-size",
+            "2",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exit_info:
+        delete_revision_history_command.main()
+
+    assert exit_info.value.code == 0
+    assert calls[0] == (
+        "log",
+        "delete_revision_history_initialized",
+        {
+            "config_uri": "production.ini",
+            "app_name": "app",
+            "batch_size": 2,
+            "dry_run": False,
+            "prod": True,
+        },
+    )
+    assert [entry[0] for entry in calls[1:]] == ["report", "pre_log", "cleanup", "post_log"]
+
+
+def test_progress_events_are_visible_at_info_under_production_logging_config(caplog):
+    """Under the command's real (in_prod=True) logging setup, INFO events reach
+    a handler with every field intact - just not as the pretty dev console
+    renderer. dcicutils's production JSON formatter wiring is present but
+    commented out (see dcicutils/log_utils.py), so the record renders as a
+    Python dict repr rather than JSON; it is still fully visible and
+    greppable in stdout/CloudWatch, which is what this test proves.
+    """
+    from dcicutils.log_utils import set_logging
+
+    set_logging(in_prod=True)
+    try:
+        caplog.set_level(logging.INFO)
+        delete_revision_history_command.logger.info(
+            "revision_inventory_scan_progress",
+            scan="resource_inventory",
+            pages=3,
+            rows=1500,
+            batch_size=500,
+            elapsed_seconds=12.5,
+        )
+
+        assert caplog.records
+        record = caplog.records[-1]
+        assert record.levelno == logging.INFO
+        rendered = record.getMessage()
+        assert "revision_inventory_scan_progress" in rendered
+        assert "resource_inventory" in rendered
+        assert "elapsed_seconds" in rendered
+    finally:
+        set_logging(in_prod=False)

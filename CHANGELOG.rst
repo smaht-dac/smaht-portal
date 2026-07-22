@@ -11,6 +11,7 @@ Change Log
 =====
 
 * Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items, and add a deployment command that uses set-based deletion per item type to purge already-stored historical propsheet rows while preserving each item's current version.
+* Emit bounded, structured INFO progress events (initialization, resource/revision inventory scan start/periodic/complete, target-RID discovery, and cleanup phase/per-type boundaries) so a long-running ``delete-revision-history`` invocation stays visible in CloudWatch instead of appearing silent, without changing its SQL, transaction, or batching behavior.
 
 
 2.4.4

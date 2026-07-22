@@ -2,7 +2,8 @@ import argparse
 from collections import Counter
 import logging
 import sys
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+import time
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from sqlalchemy import text
 import structlog
@@ -17,6 +18,15 @@ logger = structlog.getLogger(__name__)
 
 ITEM_TYPES_TO_PURGE = ("workflow", "meta_workflow_run")
 DEFAULT_BATCH_SIZE = 500
+
+# Bounded cadence for the read-only inventory scans below: a periodic progress
+# event fires after whichever threshold is reached first, so a fast scan does
+# not wait out the time budget and a slow scan does not go quiet for pages.
+# At the default batch size, 500 pages is ~250k rows - enough headroom that a
+# tens-of-millions-row table produces tens, not tens of thousands, of log
+# lines.
+PROGRESS_PAGE_INTERVAL = 500
+PROGRESS_TIME_INTERVAL_SECONDS = 20.0
 
 _RESOURCE_BATCH_FIRST = text(
     """
@@ -92,8 +102,87 @@ def _inventory_state(row: Dict[str, int]) -> str:
     return "historical_buildup"
 
 
+class _ScanProgress:
+    """Emit bounded start/progress/complete events for one keyset-paged scan.
+
+    A periodic event fires on the first non-empty page (so a slow first page
+    is still visible promptly), then again whenever either the page or
+    elapsed-time interval is exceeded - never once per page. The completion
+    event always fires, including for a scan that never sees a row, and its
+    cumulative counters cover any final partial interval that a periodic
+    event never separately reported.
+    """
+
+    def __init__(
+        self,
+        scan: str,
+        batch_size: int,
+        page_interval: int = PROGRESS_PAGE_INTERVAL,
+        time_interval: float = PROGRESS_TIME_INTERVAL_SECONDS,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self.scan = scan
+        self.batch_size = batch_size
+        self.page_interval = page_interval
+        self.time_interval = time_interval
+        self.clock = clock
+        self.pages = 0
+        self.rows = 0
+        self.start_time = clock()
+        self.last_log_time = self.start_time
+        self.last_log_page = 0
+
+    def _elapsed(self, now: float) -> float:
+        return round(now - self.start_time, 3)
+
+    def start(self) -> None:
+        logger.info(
+            "revision_inventory_scan_start",
+            scan=self.scan,
+            batch_size=self.batch_size,
+        )
+
+    def record_page(self, row_count: int) -> None:
+        self.pages += 1
+        self.rows += row_count
+        now = self.clock()
+        first_page = self.pages == 1
+        pages_since_log = self.pages - self.last_log_page
+        time_since_log = now - self.last_log_time
+        if (
+            first_page
+            or pages_since_log >= self.page_interval
+            or time_since_log >= self.time_interval
+        ):
+            logger.info(
+                "revision_inventory_scan_progress",
+                scan=self.scan,
+                pages=self.pages,
+                rows=self.rows,
+                batch_size=self.batch_size,
+                elapsed_seconds=self._elapsed(now),
+            )
+            self.last_log_time = now
+            self.last_log_page = self.pages
+
+    def complete(self) -> None:
+        now = self.clock()
+        logger.info(
+            "revision_inventory_scan_complete",
+            scan=self.scan,
+            pages=self.pages,
+            rows=self.rows,
+            batch_size=self.batch_size,
+            elapsed_seconds=self._elapsed(now),
+        )
+
+
 def collect_revision_inventory(
-    session, batch_size: int = DEFAULT_BATCH_SIZE
+    session,
+    batch_size: int = DEFAULT_BATCH_SIZE,
+    progress_page_interval: int = PROGRESS_PAGE_INTERVAL,
+    progress_time_interval: float = PROGRESS_TIME_INTERVAL_SECONDS,
+    clock: Callable[[], float] = time.monotonic,
 ) -> Dict[str, Dict]:
     """Collect a bounded, read-only revision inventory for every item type.
 
@@ -106,6 +195,15 @@ def collect_revision_inventory(
     batch_size = _validate_batch_size(batch_size)
     by_item_type: Dict[str, Dict[str, int]] = {}
     totals = _empty_inventory_row()
+
+    resource_progress = _ScanProgress(
+        "resource_inventory",
+        batch_size,
+        page_interval=progress_page_interval,
+        time_interval=progress_time_interval,
+        clock=clock,
+    )
+    resource_progress.start()
     after_rid = None
     while True:
         if after_rid is None:
@@ -118,6 +216,7 @@ def collect_revision_inventory(
         resource_rows = session.execute(resource_batch, parameters).fetchall()
         if not resource_rows:
             break
+        resource_progress.record_page(len(resource_rows))
 
         resource_counts = Counter(item_type for _rid, item_type in resource_rows)
         for item_type, resource_count in resource_counts.items():
@@ -126,7 +225,16 @@ def collect_revision_inventory(
 
         totals["resource_count"] += len(resource_rows)
         after_rid = resource_rows[-1][0]
+    resource_progress.complete()
 
+    revision_progress = _ScanProgress(
+        "revision_inventory",
+        batch_size,
+        page_interval=progress_page_interval,
+        time_interval=progress_time_interval,
+        clock=clock,
+    )
+    revision_progress.start()
     after_sid = None
     while True:
         if after_sid is None:
@@ -139,6 +247,7 @@ def collect_revision_inventory(
         revision_rows = session.execute(revision_batch, parameters).fetchall()
         if not revision_rows:
             break
+        revision_progress.record_page(len(revision_rows))
 
         for sid, item_type, current_sid in revision_rows:
             row = by_item_type.setdefault(item_type, _empty_inventory_row())
@@ -150,6 +259,7 @@ def collect_revision_inventory(
                 totals["excess_historical_revisions"] += 1
 
         after_sid = revision_rows[-1][0]
+    revision_progress.complete()
 
     return {
         "by_item_type": dict(sorted(by_item_type.items())),
@@ -419,6 +529,7 @@ def delete_revision_history(
     prod: bool = False,
     dry_run: bool = False,
     batch_size: int = DEFAULT_BATCH_SIZE,
+    clock: Callable[[], float] = time.monotonic,
 ) -> Optional[Dict[str, int]]:
     """
     Remove already-stored Postgres revision history for Workflow and MetaWorkflowRun.
@@ -442,7 +553,27 @@ def delete_revision_history(
     deleted_by_type = {}
 
     try:
+        logger.info(
+            "delete_revision_history_rid_discovery_start",
+            item_types=list(ITEM_TYPES_TO_PURGE),
+        )
+        discovery_start = clock()
         rids_by_type = _target_rids_by_type(session)
+        logger.info(
+            "delete_revision_history_rid_discovery_complete",
+            rid_counts={
+                item_type: len(rids) for item_type, rids in rids_by_type.items()
+            },
+            elapsed_seconds=round(clock() - discovery_start, 3),
+        )
+
+        logger.info(
+            "delete_revision_history_cleanup_start",
+            item_types=list(ITEM_TYPES_TO_PURGE),
+            batch_size=batch_size,
+            dry_run=dry_run,
+        )
+        cleanup_start = clock()
         for item_type in ITEM_TYPES_TO_PURGE:
             deleted_by_type[item_type] = delete_old_revision_history_for_item_type(
                 session,
@@ -451,6 +582,14 @@ def delete_revision_history(
                 batch_size=batch_size,
                 rids=rids_by_type[item_type],
                 commit_each_batch=True,
+            )
+            logger.info(
+                "delete_revision_history_cleanup_type_complete",
+                item_type=item_type,
+                dry_run=dry_run,
+                rid_count=len(rids_by_type[item_type]),
+                affected_count=deleted_by_type[item_type],
+                elapsed_seconds=round(clock() - cleanup_start, 3),
             )
         transaction.commit()
     except Exception as e:
@@ -490,6 +629,14 @@ def main() -> None:
     args = parser.parse_args()
 
     app = get_app(args.config_uri, args.app_name)
+    logger.info(
+        "delete_revision_history_initialized",
+        config_uri=args.config_uri,
+        app_name=args.app_name,
+        batch_size=args.batch_size,
+        dry_run=args.dry_run,
+        prod=args.prod,
+    )
     inventory = report_revision_inventory(app, batch_size=args.batch_size)
     log_revision_inventory(inventory)
     deleted_by_type = delete_revision_history(
