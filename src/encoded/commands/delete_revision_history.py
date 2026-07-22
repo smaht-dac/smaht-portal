@@ -70,6 +70,40 @@ _REVISION_BATCH_AFTER = text(
 )
 
 
+def _emit_operator_line(line: str) -> None:
+    """Emit one already-formatted operator-critical line reliably.
+
+    Production evidence showed this module's structlog `logger.info(...)`
+    records were absent from CloudWatch during an ~85-minute inventory scan,
+    even though this command's final stdout `print(...)` summary lines were
+    present in the same stream - despite `main()` setting the root logger to
+    INFO before the app (and this logger) is constructed. The exact
+    handler/level/stream-capture behavior of the real deployment path cannot
+    be fully audited without live production access, so operator-critical
+    output does not rely on it: it is always also written directly to
+    stdout and flushed immediately, matching the one channel this evidence
+    confirms reaches CloudWatch. `logger.info` is still called for
+    internal/test compatibility and for any environment where structlog
+    output is in fact visible (e.g. local dev's console renderer).
+    """
+    logger.info(line)
+    print(line, flush=True)
+
+
+def _operator_event(event: str, **fields) -> None:
+    """Emit a structured operator-critical event reliably (see `_emit_operator_line`).
+
+    Renders as a single greppable/CloudWatch-Insights-parseable line:
+    ``<event> key1=value1 key2=value2 ...`` - the same key=value convention
+    already used by the pre-existing inventory summary lines.
+    """
+    logger.info(event, **fields)
+    rendered = " ".join(
+        [event] + [f"{key}={value}" for key, value in fields.items()]
+    )
+    print(rendered, flush=True)
+
+
 def _positive_batch_size(value: str) -> int:
     try:
         batch_size = int(value)
@@ -136,7 +170,7 @@ class _ScanProgress:
         return round(now - self.start_time, 3)
 
     def start(self) -> None:
-        logger.info(
+        _operator_event(
             "revision_inventory_scan_start",
             scan=self.scan,
             batch_size=self.batch_size,
@@ -154,7 +188,7 @@ class _ScanProgress:
             or pages_since_log >= self.page_interval
             or time_since_log >= self.time_interval
         ):
-            logger.info(
+            _operator_event(
                 "revision_inventory_scan_progress",
                 scan=self.scan,
                 pages=self.pages,
@@ -167,7 +201,7 @@ class _ScanProgress:
 
     def complete(self) -> None:
         now = self.clock()
-        logger.info(
+        _operator_event(
             "revision_inventory_scan_complete",
             scan=self.scan,
             pages=self.pages,
@@ -293,7 +327,7 @@ def format_revision_inventory_report(
 
 def log_revision_inventory(report: Dict[str, Dict], phase: str = "pre_cleanup") -> None:
     for line in format_revision_inventory_report(report, phase=phase):
-        logger.info(line)
+        _emit_operator_line(line)
 
 
 def log_post_cleanup_revision_inventory(
@@ -311,14 +345,14 @@ def log_post_cleanup_revision_inventory(
         post_row = dict(row)
         post_row["total_revision_count"] -= removed
         post_row["excess_historical_revisions"] -= removed
-        logger.info(
+        _emit_operator_line(
             _format_inventory_line(phase, f"item_type={item_type}", post_row)
         )
 
     post_totals = dict(report["totals"])
     post_totals["total_revision_count"] -= removed_total
     post_totals["excess_historical_revisions"] -= removed_total
-    logger.info(_format_inventory_line(phase, "scope=database_total", post_totals))
+    _emit_operator_line(_format_inventory_line(phase, "scope=database_total", post_totals))
 
 
 def _chunks(values: Sequence, chunk_size: int) -> Iterable[Sequence]:
@@ -448,7 +482,7 @@ def _process_rid_chunk(
 
             total += affected_count
             processed_count += affected_count
-            logger.info(
+            _operator_event(
                 "delete_revision_history_batch",
                 item_type=item_type,
                 dry_run=dry_run,
@@ -553,13 +587,13 @@ def delete_revision_history(
     deleted_by_type = {}
 
     try:
-        logger.info(
+        _operator_event(
             "delete_revision_history_rid_discovery_start",
             item_types=list(ITEM_TYPES_TO_PURGE),
         )
         discovery_start = clock()
         rids_by_type = _target_rids_by_type(session)
-        logger.info(
+        _operator_event(
             "delete_revision_history_rid_discovery_complete",
             rid_counts={
                 item_type: len(rids) for item_type, rids in rids_by_type.items()
@@ -567,7 +601,7 @@ def delete_revision_history(
             elapsed_seconds=round(clock() - discovery_start, 3),
         )
 
-        logger.info(
+        _operator_event(
             "delete_revision_history_cleanup_start",
             item_types=list(ITEM_TYPES_TO_PURGE),
             batch_size=batch_size,
@@ -583,7 +617,7 @@ def delete_revision_history(
                 rids=rids_by_type[item_type],
                 commit_each_batch=True,
             )
-            logger.info(
+            _operator_event(
                 "delete_revision_history_cleanup_type_complete",
                 item_type=item_type,
                 dry_run=dry_run,
@@ -629,7 +663,7 @@ def main() -> None:
     args = parser.parse_args()
 
     app = get_app(args.config_uri, args.app_name)
-    logger.info(
+    _operator_event(
         "delete_revision_history_initialized",
         config_uri=args.config_uri,
         app_name=args.app_name,
@@ -652,7 +686,7 @@ def main() -> None:
     for item_type in ITEM_TYPES_TO_PURGE:
         action = "would delete" if args.dry_run else "deleted"
         count = 0 if deleted_by_type is None else deleted_by_type.get(item_type, 0)
-        print(f"{item_type}: {action} {count} old revision rows")
+        print(f"{item_type}: {action} {count} old revision rows", flush=True)
     sys.exit(1 if deleted_by_type is None else 0)
 
 

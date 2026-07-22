@@ -1034,12 +1034,22 @@ def test_main_logs_initialization_event_before_inventory(monkeypatch):
 
 
 def test_progress_events_are_visible_at_info_under_production_logging_config(caplog):
-    """Under the command's real (in_prod=True) logging setup, INFO events reach
-    a handler with every field intact - just not as the pretty dev console
-    renderer. dcicutils's production JSON formatter wiring is present but
-    commented out (see dcicutils/log_utils.py), so the record renders as a
-    Python dict repr rather than JSON; it is still fully visible and
-    greppable in stdout/CloudWatch, which is what this test proves.
+    """Under the command's real (in_prod=True) logging setup, INFO events can
+    reach a `logging` handler with every field intact when nothing upstream
+    filters them - just not as the pretty dev console renderer, since
+    dcicutils's production JSON formatter wiring is present but commented out
+    (see dcicutils/log_utils.py).
+
+    This is necessary but not sufficient for CloudWatch visibility: real
+    production evidence showed these `logger.info(...)` records absent from
+    CloudWatch during a live deploy even though the command's final stdout
+    `print(...)` summary lines were present in the same stream. Whatever
+    handler/level/stream-capture behavior caused that in the real deployment
+    path is not fully reproducible here without live production access, and
+    this test does not claim to rule it out - see
+    `test_operator_event_reaches_stdout_even_when_logger_is_filtered` below
+    for the actual reliability guarantee: operator-critical output no longer
+    depends on this logger path at all.
     """
     from dcicutils.log_utils import set_logging
 
@@ -1064,3 +1074,187 @@ def test_progress_events_are_visible_at_info_under_production_logging_config(cap
         assert "elapsed_seconds" in rendered
     finally:
         set_logging(in_prod=False)
+
+
+def _drop_log_record(*_args, **_kwargs):
+    """Simulate a logger that is effectively WARN-filtered (or otherwise
+    drops INFO records) - the exact production condition this reproduces:
+    `logger.info(...)` calls that never surface anywhere.
+    """
+    return None
+
+
+def test_operator_event_reaches_stdout_even_when_logger_is_filtered(
+    monkeypatch, capsys
+):
+    monkeypatch.setattr(
+        delete_revision_history_command.logger, "info", _drop_log_record
+    )
+
+    delete_revision_history_command._operator_event(
+        "revision_inventory_scan_progress",
+        scan="resource_inventory",
+        pages=3,
+        rows=1500,
+        batch_size=500,
+        elapsed_seconds=12.5,
+    )
+
+    captured = capsys.readouterr()
+    assert captured.out == (
+        "revision_inventory_scan_progress scan=resource_inventory pages=3 "
+        "rows=1500 batch_size=500 elapsed_seconds=12.5\n"
+    )
+
+
+def test_emit_operator_line_reaches_stdout_even_when_logger_is_filtered(
+    monkeypatch, capsys
+):
+    monkeypatch.setattr(
+        delete_revision_history_command.logger, "info", _drop_log_record
+    )
+    line = (
+        "revision_inventory phase=pre_cleanup item_type=workflow "
+        "resource_count=1 total_revision_count=1 "
+        "excess_historical_revisions=0 state=clean"
+    )
+
+    delete_revision_history_command._emit_operator_line(line)
+
+    captured = capsys.readouterr()
+    assert captured.out == line + "\n"
+
+
+def test_collect_revision_inventory_progress_reaches_stdout_when_logger_filtered(
+    monkeypatch, capsys
+):
+    """Reproduces the production condition for the inventory scans specifically:
+    even with `logger.info` dropped, start/progress/complete events for both
+    scans still appear on stdout, in order, with bounded cadence (not one
+    line per page) - matching the ~85-minute silent-inventory evidence this
+    follow-up addresses.
+    """
+    monkeypatch.setattr(
+        delete_revision_history_command.logger, "info", _drop_log_record
+    )
+    page_count = 1200
+    resource_pages = [[(index, "workflow")] for index in range(page_count)]
+    fake_session = _CannedPagedSession(resource_pages, revision_pages=())
+
+    collect_revision_inventory(
+        fake_session,
+        batch_size=1,
+        progress_page_interval=500,
+        progress_time_interval=1_000_000.0,
+        clock=_make_clock(step=0.0),
+    )
+
+    lines = capsys.readouterr().out.splitlines()
+    resource_lines = [line for line in lines if "scan=resource_inventory" in line]
+    assert resource_lines[0].startswith("revision_inventory_scan_start")
+    assert resource_lines[-1].startswith("revision_inventory_scan_complete")
+    progress_lines = [
+        line for line in resource_lines if line.startswith("revision_inventory_scan_progress")
+    ]
+    # Page-interval cadence: pages 1, 501, 1001 - not one stdout line per page.
+    assert [line.split("pages=")[1].split(" ")[0] for line in progress_lines] == [
+        "1",
+        "501",
+        "1001",
+    ]
+    assert len(progress_lines) < page_count / 100
+
+    revision_lines = [line for line in lines if "scan=revision_inventory" in line]
+    assert revision_lines[0].startswith("revision_inventory_scan_start")
+    assert revision_lines[-1].startswith("revision_inventory_scan_complete")
+    assert "pages=0" in revision_lines[-1]
+    assert "rows=0" in revision_lines[-1]
+
+
+def test_inventory_summaries_reach_stdout_when_logger_filtered(monkeypatch, capsys):
+    """Reproduces the production condition for the per-type/database-total
+    inventory summary lines specifically (not just periodic page counts) -
+    the information the captain needs to identify other hot item types.
+    """
+    monkeypatch.setattr(
+        delete_revision_history_command.logger, "info", _drop_log_record
+    )
+    report = {
+        "by_item_type": {
+            "workflow": {
+                "resource_count": 1,
+                "total_revision_count": 4,
+                "excess_historical_revisions": 2,
+            },
+        },
+        "totals": {
+            "resource_count": 1,
+            "total_revision_count": 4,
+            "excess_historical_revisions": 2,
+        },
+    }
+
+    log_revision_inventory(report)
+    log_post_cleanup_revision_inventory(report, {"workflow": 2}, dry_run=False)
+
+    lines = capsys.readouterr().out.splitlines()
+    assert any(
+        "phase=pre_cleanup item_type=workflow" in line
+        and "excess_historical_revisions=2" in line
+        for line in lines
+    )
+    assert any(
+        "phase=pre_cleanup scope=database_total" in line
+        and "excess_historical_revisions=2" in line
+        for line in lines
+    )
+    assert any(
+        "phase=post_cleanup item_type=workflow" in line
+        and "excess_historical_revisions=0" in line
+        for line in lines
+    )
+    assert any(
+        "phase=post_cleanup scope=database_total" in line
+        and "excess_historical_revisions=0" in line
+        for line in lines
+    )
+
+
+def test_dry_run_boundary_and_batch_events_reach_stdout_without_mutating(
+    app, session, monkeypatch, capsys
+):
+    """End-to-end: with the logger filtered, --dry-run's target-discovery and
+    cleanup boundary events (plus the existing per-batch events) still reach
+    stdout, and no propsheet row is deleted - a dry-run can therefore be used
+    to collect inventory/progress visibility without destructive cleanup.
+    """
+    monkeypatch.setattr(
+        delete_revision_history_command.logger, "info", _drop_log_record
+    )
+    resources = _resources_with_history(session, {"workflow": 2})
+    before = {
+        resource.rid: len(_propsheet_rows(session, resource.rid))
+        for resource in resources
+    }
+
+    counted = delete_revision_history(app, prod=True, dry_run=True, batch_size=1)
+
+    assert counted["workflow"] >= 4
+    assert all(
+        len(_propsheet_rows(session, resource.rid)) == before[resource.rid]
+        for resource in resources
+    )
+
+    lines = capsys.readouterr().out.splitlines()
+    assert any(line.startswith("delete_revision_history_rid_discovery_start") for line in lines)
+    assert any(line.startswith("delete_revision_history_rid_discovery_complete") for line in lines)
+    assert any(line.startswith("delete_revision_history_cleanup_start") for line in lines)
+    assert any(
+        line.startswith("delete_revision_history_batch") and "dry_run=True" in line
+        for line in lines
+    )
+    assert any(
+        line.startswith("delete_revision_history_cleanup_type_complete")
+        and "item_type=workflow" in line
+        for line in lines
+    )
