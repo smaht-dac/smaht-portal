@@ -1314,9 +1314,20 @@ def test_scan_and_delete_batch_size_defaults():
 def test_scan_and_delete_batch_sizes_independently_bound_their_own_pages(session):
     """Setting scan_batch_size and batch_size to different values in the same
     run proves each bounds only its own path: the inventory scan's resource
-    page sizes match scan_batch_size, and the deletion path's per-DELETE row
-    counts match batch_size, with neither picking up the other's value.
+    pages are all capped at scan_batch_size, and the deletion path's
+    per-DELETE row counts match batch_size, with neither picking up the
+    other's value.
+
+    The shared fixture database's total resource/deletable-row counts at
+    this point depend on other tests' state (collect_revision_inventory and
+    _target_rids_by_type are both deliberately database-wide - see this PR's
+    "Observed anomaly" note), so this asserts bounds and deltas rather than
+    absolute page/row counts, the same pattern already established
+    elsewhere in this file for that reason.
     """
+    baseline_deletable = delete_old_revision_history_for_item_type(
+        session, "workflow", batch_size=10_000, dry_run=True
+    )
     _resources_with_history(session, {"workflow": 4})
 
     class RecordingSession:
@@ -1340,10 +1351,12 @@ def test_scan_and_delete_batch_sizes_independently_bound_their_own_pages(session
         if "SELECT RID, ITEM_TYPE" in call["statement"].text.upper()
     ]
     assert resource_pages
+    # Every resource page - regardless of how many other resources the
+    # shared fixture database also contains - is bounded by scan_batch_size,
+    # never by the unrelated deletion batch_size used moments later.
     assert all(call["parameters"]["batch_size"] == 3 for call in resource_pages)
-    # 4 workflow resources at scan_batch_size=3: a page of 3, a page of 1,
-    # and the terminating empty page.
-    assert [len(call["rows"]) for call in resource_pages] == [3, 1, 0]
+    assert all(len(call["rows"]) <= 3 for call in resource_pages)
+    assert resource_pages[-1]["rows"] == []
 
     engine = session.get_bind()
     delete_rowcounts = []
@@ -1362,11 +1375,13 @@ def test_scan_and_delete_batch_sizes_independently_bound_their_own_pages(session
     finally:
         event.remove(engine, "after_cursor_execute", capture_delete_rowcount)
 
-    # 4 workflow resources contribute 2 old rows each = 8; one row per
-    # DELETE at batch_size=1 - matches the deletion setting, not the
-    # unrelated scan_batch_size=3 used moments earlier on the same session.
-    assert deleted == 8
-    assert len(delete_rowcounts) == 8
+    # 4 fresh workflow resources contribute 2 old rows each = 8, on top of
+    # whatever the baseline already had; one row per DELETE at batch_size=1
+    # - matches the deletion setting, not the unrelated scan_batch_size=3
+    # used moments earlier on the same session.
+    expected_deleted = baseline_deletable + 8
+    assert deleted == expected_deleted
+    assert len(delete_rowcounts) == expected_deleted
     assert all(0 <= rowcount <= 1 for rowcount in delete_rowcounts)
 
 
