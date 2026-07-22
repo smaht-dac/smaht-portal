@@ -143,7 +143,9 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                 </div>
                 <div className="card-body">
                     <div
-                        className="subscription-text d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
+                        className={`subscription-text ${
+                            subscribed ? 'subscribed' : ''
+                        } d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3`}
                         role={subscribed ? 'alert' : undefined}>
                         <p className="mb-0">
                             {subscribed ? (
@@ -225,8 +227,9 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             <br />
                             <br />
                             Please follow the instructions from AWS to receive
-                            emails when new data are released from the SMaHT
-                            Data Portal.
+                            emails <br />
+                            when new data are released from the SMaHT Data
+                            Portal.
                         </span>
                     </div>
                 </Modal.Body>
