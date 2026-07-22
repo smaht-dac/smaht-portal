@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "2.4.3"
+version = "2.6.0"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -42,7 +42,7 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "^11.30.0"
+dcicsnovault = "^11.35.0"
 dcicutils = "^8.18.3"
 docutils = ">=0.16,<1"
 encoded-core = "^1.0.0"
@@ -183,6 +183,8 @@ wipe-test-indices = "snovault.commands.wipe_test_indices:main"
 # encoded commands
 create-annotated-filenames = "encoded.commands.create_annotated_filenames:main"
 create-bulk-donor-manifest = "encoded.commands.create_bulk_donor_manifest:main"
+create-mapping-on-deploy-verbose = "encoded.commands.create_mapping_on_deploy_verbose:main"
+delete-revision-history = "encoded.commands.delete_revision_history:main"
 flatten-structured-data = "encoded.commands.flatten_structured_data:main"  # For dev/testing only
 load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only

@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.4.3
+2.6.0
 =====
 
 `PR 719: Add restore-devtest-db command for snapshot-based devtest DB restore <https://github.com/smaht-dac/smaht-portal/pull/719>`_
@@ -20,6 +20,50 @@ Change Log
   which had been transitively supplying ``pandas``; ``pandas`` is now declared
   directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
   ``create-bulk-donor-manifest`` command keeps working.
+
+2.5.0
+=====
+
+* Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items, and add a deployment command that uses set-based deletion per item type to purge already-stored historical propsheet rows while preserving each item's current version.
+* Emit bounded, structured progress events (initialization, resource/revision inventory scan start/periodic/complete, target-RID discovery, and cleanup phase/per-type boundaries) so a long-running ``delete-revision-history`` invocation stays visible instead of appearing silent, without changing its SQL, transaction, or batching behavior. Production evidence then showed the ``logger.info``-only path was not reliably reaching CloudWatch, so every operator-critical event and inventory summary line (per-type and database-total) is now also written directly and flushed to stdout, the one channel confirmed to reach CloudWatch, independent of logger level/handler configuration.
+* Add ``create-mapping-on-deploy-verbose`` and use it in the deployment path in place of ``create-mapping-on-deploy``: it raises only the two logger namespaces that own this infrequent command's own mapping/reindex decision narration (previously silently dropped by a ``dcicsnovault`` logger-scoping gap the same package's source has acknowledged since January 2022) to INFO, and adds one narrow log line distinguishing an existing index being rebuilt due to a mapping/signature mismatch from a first-time index creation, without altering mapping comparison, signature generation, index deletion/recreation, reindex selection, or queueing behavior.
+* Split ``delete-revision-history``'s single ``--batch-size`` into two independently configurable settings: a new ``--scan-batch-size`` (default 2000) bounding the read-only resource/revision inventory scans, and the existing ``--batch-size`` (default 500, unchanged) bounding deletion/would-be-deletion candidate pages and write transactions. Progress/boundary output now reports each phase's own batch size unambiguously; SQL predicates, ordering, transaction/commit boundaries, keyset advancement, interruption/resume, idempotency, and dry-run non-mutation are unchanged - this is page sizing only.
+* Expand the ``delete-revision-history`` purge list from ``Workflow``/``MetaWorkflowRun`` to eight item types (``AccessKey``, ``FileFormat``, ``Workflow``, ``WorkflowRun``, ``MetaWorkflow``, ``MetaWorkflowRun``, ``Page``, ``StaticSection``), setting ``track_revisions = False`` on each type's own leaf class (never on a shared abstract base also extended by unrelated types like ``CellCulture``/``CellSample``/``CellCultureSample``), fixing a missing-comma adjacent-string-literal bug that had silently merged two of the intended targets into one bogus tuple element, and adding a registry-wide invariant test plus per-type revision-history-disabled coverage for every newly-added type.
+* ``Tissue`` and ``TissueSample`` were briefly added to the purge list above and then removed on the same (still unreleased) branch: the captain decided both may need revision history in the future, so their Postgres revision tracking remains enabled (the ordinary Snovault default) and neither is ever selected for cleanup. Added a registry-level test proving both stay tracked and unpurged, and positive coverage proving representative edits continue to produce accessible ``@@revision-history`` entries.
+
+
+2.5.0
+=====
+
+`PR 718: Submission Status: Add Auto-review QC <https://github.com/smaht-dac/smaht-portal/pull/718>`_
+
+* Add automated file set QC review to the Submission Status page: evaluate Warn/Fail QC
+  metrics on submitted and processed files and group coverage against target, then tag
+  file sets ("reviewed", plus "ready_to_release" when they pass) and record an
+  auto-review comment for each QC problem. Existing manual tags and comments are kept.
+* Add an "Auto-review QC" action in the "QC status" column header (admin-only, with
+  confirmation) that reviews every file set in the current view at once.
+* Fix tissue filtering so benchmarking file sets (whose ``tissue_type`` omits the code
+  prefix) are no longer dropped, and add ``tissue_type`` to the file set embedded list.
+
+
+2.4.4
+=====
+
+`PR 714: fix: decrease select-all file limit to 3000 <https://github.com/smaht-dac/smaht-portal/pull/714>`_
+
+* Decrease the "Select All" upper limit from 8000 to 3000 files
+* Update the disabled-state tooltip to reflect the new limit
+
+
+2.4.3
+=====
+
+`PR 724: fix: donor age on donor view <https://github.com/smaht-dac/smaht-portal/pull/724>`_
+
+* Support "+" age in donor view
+* Add popover for age field
+>>>>>>> main
 
 
 2.4.2

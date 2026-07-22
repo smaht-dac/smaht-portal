@@ -17,6 +17,8 @@ import {
     shortenStringKeepBothEnds,
     getCommentsList,
     getTargetCoverage,
+    reformatQcValues,
+    computeGroupCoverageNumeric,
 } from './utils';
 
 class FileGroupQCModalComponent extends React.PureComponent {
@@ -62,7 +64,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                 // We need to reformat the QC values so that we have fast access to
                 // individual values
                 files.forEach((file) => {
-                    file['qc_values_dict'] = this.reformatQcValues(
+                    file['qc_values_dict'] = reformatQcValues(
                         file.quality_metric?.qc_values
                     );
                 });
@@ -90,35 +92,12 @@ class FileGroupQCModalComponent extends React.PureComponent {
         );
     };
 
-    // We need to index the qc values from the portal by derived_from for efficient access
-    reformatQcValues = (qcValues) => {
-        const result = {};
-        qcValues.forEach((qcValue) => {
-            result[qcValue.derived_from] = qcValue;
-        });
-        return result;
-    };
-
     getEstimatedCoverage = (processedFiles) => {
-        const coverage_metric = 'mosdepth:total';
-        const filesSeen = [];
-        let estimated_coverage = 0;
         if (processedFiles.length === 0) {
             return 'NA';
         }
-        for (const pf of processedFiles) {
-            const qcValues = pf['qc_values_dict'];
-            if (coverage_metric in qcValues) {
-                // If there are multiple QM items for the same file we don't want to count the coverage more than once
-                if (filesSeen.includes(pf.accession)) {
-                    continue;
-                }
-                const cov = qcValues[coverage_metric]['value'];
-                estimated_coverage += cov;
-                filesSeen.push(pf.accession);
-            }
-        }
-        return estimated_coverage > 0.0
+        const estimated_coverage = computeGroupCoverageNumeric(processedFiles);
+        return estimated_coverage && estimated_coverage > 0.0
             ? formatQcValue(estimated_coverage)
             : 'NA';
     };

@@ -26,7 +26,7 @@ echo "Resolving which entrypoint is desired"
 
 # shellcheck disable=SC2154
 if [ "$application_type" = $deployment ]; then
-  sh entrypoint_deployment.sh
+  exec sh entrypoint_deployment.sh
 elif [ "$application_type" = $ingester ]; then
   sh entrypoint_ingester.sh
 elif [ "$application_type" = $indexer ]; then
@@ -41,5 +41,4 @@ else
 fi
 
 exit 0
-
 
