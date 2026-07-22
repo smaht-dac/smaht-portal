@@ -375,6 +375,7 @@ export default function AliquotVisualization({
                     target={selectedTarget}
                     placement="right"
                     rootClose
+                    rootCloseEvent="mousedown"
                     // eslint-disable-next-line react/jsx-no-bind
                     onHide={handleHidePopover}>
                     {/* Overlay requires a render prop here. */}
@@ -500,6 +501,19 @@ export default function AliquotVisualization({
                                         {selectedSlice.description}
                                     </p>
                                 ) : null}
+                                {selectedSlice?.type === 'yellow' &&
+                                selectedSlice?.associatedPathologyReports &&
+                                selectedSlice.associatedPathologyReports.length ===
+                                    0 ? (
+                                    // Field is present (real sample) but empty --
+                                    // no Fixed counterpart has been linked for
+                                    // this tissue block yet. Distinct from demo/
+                                    // illustrative slices, where the field is
+                                    // absent entirely and nothing is shown.
+                                        <p className="aliquot-popover-pathology-empty">
+                                            Pathology: no linked Fixed sample yet.
+                                        </p>
+                                    ) : null}
                                 {selectedSlice?.associatedPathologyReports?.length > 0 ? (
                                     <div className="aliquot-popover-pathology">
                                         {selectedSlice.associatedPathologyReports.map(
