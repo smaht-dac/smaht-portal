@@ -889,12 +889,34 @@ def test_collect_revision_inventory_zero_row_scans_still_complete(monkeypatch):
 def test_delete_revision_history_emits_rid_discovery_and_cleanup_boundary_events(
     app, session, monkeypatch
 ):
+    # The shared fixture database may already contain workflow/meta_workflow_run
+    # resources (e.g. baseline inserts) beyond the ones this test creates, and
+    # _target_rids_by_type/collect_revision_inventory are deliberately
+    # database-wide. Snapshot that baseline first and assert deltas on top of
+    # it, rather than hardcoding an absolute count that assumes an empty DB.
+    empty_row = {
+        "resource_count": 0,
+        "total_revision_count": 0,
+        "excess_historical_revisions": 0,
+    }
+    baseline = collect_revision_inventory(session)["by_item_type"]
+    baseline_workflow = baseline.get("workflow", empty_row)
+    baseline_meta = baseline.get("meta_workflow_run", empty_row)
+
     _resources_with_history(session, {"workflow": 2, "meta_workflow_run": 1})
     events = _capture_log_events(monkeypatch)
 
     deleted = delete_revision_history(app, prod=True, batch_size=1)
 
-    assert deleted == {"workflow": 4, "meta_workflow_run": 2}
+    expected_workflow_deleted = baseline_workflow["excess_historical_revisions"] + 4
+    expected_meta_deleted = baseline_meta["excess_historical_revisions"] + 2
+    expected_workflow_rid_count = baseline_workflow["resource_count"] + 2
+    expected_meta_rid_count = baseline_meta["resource_count"] + 1
+
+    assert deleted == {
+        "workflow": expected_workflow_deleted,
+        "meta_workflow_run": expected_meta_deleted,
+    }
     event_names = [name for name, _ in events]
 
     assert event_names[0] == "delete_revision_history_rid_discovery_start"
@@ -902,7 +924,10 @@ def test_delete_revision_history_emits_rid_discovery_and_cleanup_boundary_events
 
     assert event_names[1] == "delete_revision_history_rid_discovery_complete"
     discovery_fields = events[1][1]
-    assert discovery_fields["rid_counts"] == {"workflow": 2, "meta_workflow_run": 1}
+    assert discovery_fields["rid_counts"] == {
+        "workflow": expected_workflow_rid_count,
+        "meta_workflow_run": expected_meta_rid_count,
+    }
     assert discovery_fields["elapsed_seconds"] >= 0
 
     assert event_names[2] == "delete_revision_history_cleanup_start"
@@ -918,13 +943,13 @@ def test_delete_revision_history_emits_rid_discovery_and_cleanup_boundary_events
 
     workflow_complete = events[complete_indices[0]][1]
     assert workflow_complete["item_type"] == "workflow"
-    assert workflow_complete["rid_count"] == 2
-    assert workflow_complete["affected_count"] == 4
+    assert workflow_complete["rid_count"] == expected_workflow_rid_count
+    assert workflow_complete["affected_count"] == expected_workflow_deleted
 
     meta_complete = events[complete_indices[1]][1]
     assert meta_complete["item_type"] == "meta_workflow_run"
-    assert meta_complete["rid_count"] == 1
-    assert meta_complete["affected_count"] == 2
+    assert meta_complete["rid_count"] == expected_meta_rid_count
+    assert meta_complete["affected_count"] == expected_meta_deleted
 
     # Existing per-batch events are preserved and occur between the cleanup
     # phase start and each type's completion event, not removed or replaced.
