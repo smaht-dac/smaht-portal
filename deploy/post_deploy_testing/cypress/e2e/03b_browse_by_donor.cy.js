@@ -5,7 +5,12 @@ import {
     dataNavBarItemSelectorStr,
     navUserAcctLoginBtnSelector,
 } from '../support/selectorVars';
-import { parseIntSafe, reconcileApiTotalWithUiCount } from '../support/utils/dataMatrixUtils';
+import {
+    parseIntSafe,
+    parsePositiveIntegerCount,
+    reconcileApiTotalWithUiCount,
+    toBarIdentity,
+} from '../support/utils/dataMatrixUtils';
 
 
 /* ----------------------------- ROLE MATRIX -----------------------------
@@ -510,11 +515,13 @@ function getRenderedBarParts() {
                 .find('.bar-part[data-term]')
                 .each((__, barPartEl) => {
                     const sequencer = barPartEl.getAttribute('data-term');
-                    const dataCount = parseInt(barPartEl.getAttribute('data-count'), 10);
-                    if (Number.isFinite(dataCount) && dataCount > 0) {
+                    const dataCount = Number(barPartEl.getAttribute('data-count'));
+                    if (Number.isInteger(dataCount) && dataCount > 0) {
                         const key = JSON.stringify([tissueTerm, sequencer]);
                         if (!barPartsByKey.has(key)) {
-                            barPartsByKey.set(key, { tissueTerm, sequencer, dataCount });
+                            // Sampling retains identity only. The count is live
+                            // render state and must be re-read at execution.
+                            barPartsByKey.set(key, toBarIdentity({ tissueTerm, sequencer }));
                         }
                     }
                 });
@@ -693,18 +700,17 @@ function stepFacetChartBarPlotTests(caps) {
                     'Should be able to select a bar-part sample from the rendered chart'
                 ).to.be.greaterThan(0);
 
-                sample.forEach(({ tissueTerm, sequencer, dataCount }) => {
+                sample.forEach(({ tissueTerm, sequencer }) => {
                     cy.log(`Testing bar part: Tissue = ${tissueTerm}, Sequencer = ${sequencer}`);
 
                     cy.window().scrollTo(0, 0).end()
                         .then(() => getRenderedBarPart(tissueTerm, sequencer))
                         .then(($barPart) => {
                             assertTissueAxisLabel([tissueTerm], tissueTerm);
-                            const expectedFilteredResults = parseInt($barPart.attr('data-count'), 10);
-                            expect(
-                                expectedFilteredResults,
-                                'Bar data-count should match the value discovered from the chart'
-                            ).to.equal(dataCount);
+                            const expectedFilteredResults = parsePositiveIntegerCount(
+                                $barPart.attr('data-count'),
+                                `Current bar data-count for ${tissueTerm} x ${sequencer}`
+                            );
                             const acceptedVariants = getTissueVariants([tissueTerm]);
                             cy.window().scrollTo('top').end()
                                 .wrap($barPart).hoverIn().end()

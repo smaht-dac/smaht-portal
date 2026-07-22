@@ -47,6 +47,29 @@ export function getApiTotalFromUrl(url) {
  * single re-read, this throws with the exact URL, UI count, and API total so
  * the failure is a diagnostic rather than a bare `expected X to equal Y`.
  */
+export function countsMatch(currentUiCount, currentApiTotal) {
+    return currentUiCount === currentApiTotal;
+}
+
+export function requireMatchingCounts(currentUiCount, currentApiTotal, message) {
+    if (!countsMatch(currentUiCount, currentApiTotal)) {
+        throw new Error(message);
+    }
+    return currentApiTotal;
+}
+
+export function toBarIdentity({ tissueTerm, sequencer }) {
+    return { tissueTerm, sequencer };
+}
+
+export function parsePositiveIntegerCount(rawCount, context = 'count') {
+    const count = Number(rawCount);
+    if (!Number.isInteger(count) || count <= 0) {
+        throw new Error(`${context} must be a positive integer; received ${rawCount}`);
+    }
+    return count;
+}
+
 export function reconcileApiTotalWithUiCount(url, readUiCount, { context = '', retries = 1, retryDelayMs = 1500 } = {}) {
     const label = context ? `${context}: ` : '';
     if (typeof readUiCount !== 'function') {
@@ -64,7 +87,7 @@ export function reconcileApiTotalWithUiCount(url, readUiCount, { context = '', r
             }
 
             return getApiTotalFromUrl(url).then((apiTotal) => {
-                if (apiTotal === uiCount) {
+                if (countsMatch(uiCount, apiTotal)) {
                     return apiTotal;
                 }
 
@@ -75,7 +98,9 @@ export function reconcileApiTotalWithUiCount(url, readUiCount, { context = '', r
                     return cy.wait(retryDelayMs).then(() => attempt(remaining - 1));
                 }
 
-                throw new Error(
+                return requireMatchingCounts(
+                    uiCount,
+                    apiTotal,
                     `${label}UI/API count divergence persisted after re-read - url: ${url}, ` +
                     `first uiCount/apiTotal: ${firstMismatch.uiCount}/${firstMismatch.apiTotal}, ` +
                     `final uiCount/apiTotal: ${uiCount}/${apiTotal}`
@@ -947,18 +972,48 @@ export function testMatrixPopoverValidation(
     });
 }
 
+export function matrixRenderStateIsReady({
+    surfaceExists,
+    surfaceVisible,
+    surfaceRefreshing,
+    overlayExists,
+    visualExists,
+    visualVisible,
+    visualLoading,
+}) {
+    return surfaceExists && surfaceVisible && !surfaceRefreshing && !overlayExists &&
+        visualExists && visualVisible && !visualLoading;
+}
+
 export function waitForMatrixModeRender(matrixId) {
+    // `StackedBlockVisual` renders `.stacked-block-viz-container.is-loading`
+    // for the pre-hydration shell and removes `is-loading` for every hydrated
+    // matrix mode. Unlike a grouping-label descendant, this contract is owned
+    // by the shared render component and also applies to Donor x Tissue.
     return cy.get(`${matrixId} .matrix-render-surface`, { timeout: 20000 })
         .should('be.visible')
         .and('not.have.class', 'is-refreshing')
-        // The surface exists before matrix hydration begins. A rendered label
-        // is the stable signal needed by the assertions that follow.
-        .find('.grouping-row .label-section span')
-        .should('have.length.greaterThan', 0)
+        .find('.stacked-block-viz-container')
+        .should('be.visible')
+        .and('not.have.class', 'is-loading')
         .then(() => cy.get(`${matrixId} .matrix-refresh-overlay`).should('not.exist'))
-        .then(() => cy.get(`${matrixId} .matrix-render-surface`)
-            .should('be.visible')
-            .and('not.have.class', 'is-refreshing'));
+        .then(() => cy.get(matrixId).should(($matrix) => {
+            const $surface = $matrix.find('.matrix-render-surface');
+            const $visual = $surface.find('.stacked-block-viz-container');
+            const renderState = {
+                surfaceExists: $surface.length > 0,
+                surfaceVisible: $surface.is(':visible'),
+                surfaceRefreshing: $surface.hasClass('is-refreshing'),
+                overlayExists: $surface.find('.matrix-refresh-overlay').length > 0,
+                visualExists: $visual.length > 0,
+                visualVisible: $visual.is(':visible'),
+                visualLoading: $visual.hasClass('is-loading'),
+            };
+            expect(
+                matrixRenderStateIsReady(renderState),
+                `${matrixId} should have a hydrated, visible, non-refreshing render state`
+            ).to.equal(true);
+        }));
 }
 
 function getDisplayedMatrixFileCount(matrixId) {
