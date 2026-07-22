@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
@@ -134,6 +134,20 @@ export default function NonSolidAliquotVisualization({
         setSelectedAliquotIndex(null);
         setSelectedTarget(null);
     }
+
+    // See AliquotVisualization.js's equivalent effect: `aliquots` can swap
+    // from the illustrative fallback to real data mid-session, and a held
+    // index would then point at an unrelated entry in the new array. Skips
+    // the initial mount firing so a fast first click isn't clobbered by this
+    // effect running (deferred, after commit) right afterward.
+    const isFirstAliquotsRender = useRef(true);
+    useEffect(() => {
+        if (isFirstAliquotsRender.current) {
+            isFirstAliquotsRender.current = false;
+            return;
+        }
+        handleHidePopover();
+    }, [aliquots]);
 
     const styles = SPECIMEN_TYPE_STYLES[specimenType] || SPECIMEN_TYPE_STYLES.blood;
     const resolvedIdPrefix = idPrefix || styles.idPrefix;
@@ -290,7 +304,10 @@ export default function NonSolidAliquotVisualization({
                                 <p className="aliquot-popover-caption">{styles.caption}</p>
                                 <div className="aliquot-popover-cores">
                                     <div className="aliquot-popover-row">
-                                        <span>{selectedAliquot?.gccLabel}</span>
+                                        <span>
+                                            {selectedAliquot?.submissionCenter ||
+                                                selectedAliquot?.gccLabel}
+                                        </span>
                                         <strong>{selectedAliquotId}</strong>
                                     </div>
                                 </div>
@@ -338,6 +355,7 @@ NonSolidAliquotVisualization.propTypes = {
             id: PropTypes.string,
             label: PropTypes.string,
             description: PropTypes.string,
+            submissionCenter: PropTypes.string,
         })
     ).isRequired,
 };

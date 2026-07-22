@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
@@ -139,6 +139,23 @@ export default function AliquotVisualization({
         setSelectedSliceIndex(null);
         setSelectedTarget(null);
     }
+
+    // `slices` can swap out from under an open popover -- e.g. the
+    // illustrative fallback set while real TissueSamples are still loading,
+    // then the real (differently-ordered/sized) set once they arrive. A
+    // held-over index would then point at an unrelated slice in the new
+    // array, so close the popover whenever the array changes -- but not on
+    // the initial mount (the effect still fires once then, after commit,
+    // and would otherwise clobber a popover opened by a very fast first
+    // click before this effect gets to run).
+    const isFirstSlicesRender = useRef(true);
+    useEffect(() => {
+        if (isFirstSlicesRender.current) {
+            isFirstSlicesRender.current = false;
+            return;
+        }
+        handleHidePopover();
+    }, [slices]);
 
     const heightPx = 172;
     const depthX = 72;
@@ -433,13 +450,16 @@ export default function AliquotVisualization({
                                 <p className="aliquot-popover-caption">
                                     {selectedStyles.caption}
                                 </p>
-                                {selectedSlice?.type === 'yellow' ? (
+                                {selectedSlice?.type === 'yellow' && selectedFrozenWells.length > 0 ? (
                                     <div className="aliquot-popover-cores">
                                         {selectedFrozenWells.map((wellId, wellIndex) => (
                                             <div
                                                 className="aliquot-popover-row"
                                                 key={wellId}>
-                                                <span>GCC{wellIndex + 1}</span>
+                                                <span>
+                                                    {selectedSlice?.submissionCenter ||
+                                                        `GCC${wellIndex + 1}`}
+                                                </span>
                                                 <strong>
                                                     {selectedAliquotId}
                                                     {wellId}
@@ -479,6 +499,64 @@ export default function AliquotVisualization({
                                     <p className="aliquot-popover-description">
                                         {selectedSlice.description}
                                     </p>
+                                ) : null}
+                                {selectedSlice?.associatedPathologyReports?.length > 0 ? (
+                                    <div className="aliquot-popover-pathology">
+                                        {selectedSlice.associatedPathologyReports.map(
+                                            (entry, entryIndex) => (
+                                                <div
+                                                    className="aliquot-popover-row"
+                                                    key={
+                                                        entry.fixed_sample_external_id ||
+                                                        entryIndex
+                                                    }>
+                                                    <span>
+                                                        Pathology (
+                                                        {entry.fixed_sample_external_id})
+                                                    </span>
+                                                    <strong>
+                                                        {entry.pathology_reports?.length > 0 ? (
+                                                            entry.pathology_reports.map(
+                                                                (report, reportIndex) => {
+                                                                    // `/search/`'s embedded
+                                                                    // frame resolves this to
+                                                                    // a full object; the plain
+                                                                    // @@object frame gives a
+                                                                    // bare @id string -- handle
+                                                                    // both.
+                                                                    const reportHref =
+                                                                        typeof report === 'string'
+                                                                            ? report
+                                                                            : report?.['@id'];
+                                                                    const reportLabel =
+                                                                        typeof report === 'object'
+                                                                            ? report?.display_title ||
+                                                                              'View'
+                                                                            : 'View';
+                                                                    return (
+                                                                        <React.Fragment
+                                                                            key={
+                                                                                reportHref ||
+                                                                                reportIndex
+                                                                            }>
+                                                                            {reportIndex > 0
+                                                                                ? ', '
+                                                                                : ''}
+                                                                            <a href={reportHref}>
+                                                                                {reportLabel}
+                                                                            </a>
+                                                                        </React.Fragment>
+                                                                    );
+                                                                }
+                                                            )
+                                                        ) : (
+                                                            'No report yet'
+                                                        )}
+                                                    </strong>
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
                                 ) : null}
                             </PopoverBody>
                         </Popover>
@@ -523,6 +601,21 @@ AliquotVisualization.propTypes = {
             description: PropTypes.string,
             widthCm: PropTypes.number,
             frozenCoreWells: PropTypes.arrayOf(PropTypes.string),
+            associatedPathologyReports: PropTypes.arrayOf(
+                PropTypes.shape({
+                    fixed_sample_external_id: PropTypes.string,
+                    pathology_reports: PropTypes.arrayOf(
+                        PropTypes.oneOfType([
+                            PropTypes.string,
+                            PropTypes.shape({
+                                '@id': PropTypes.string,
+                                display_title: PropTypes.string,
+                            }),
+                        ])
+                    ),
+                })
+            ),
+            submissionCenter: PropTypes.string,
         })
     ).isRequired,
 };

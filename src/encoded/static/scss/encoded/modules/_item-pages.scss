@@ -3389,7 +3389,8 @@ File and Donor Overview Styles
 		font-style: italic;
 	}
 
-	.aliquot-popover-cores {
+	.aliquot-popover-cores,
+	.aliquot-popover-pathology {
 		display: flex;
 		flex-direction: column;
 		gap: 4px;

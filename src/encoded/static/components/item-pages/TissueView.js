@@ -84,22 +84,42 @@ const TissueDatum = ({ title, value, unit = null, href = null }) => {
     );
 };
 
-const sampleAliquotSlices = [
+// A real Tissue record only ever has one preservation_type (Fixed, or
+// Frozen/Snap Frozen) -- the combined pink+green box is a training-schema
+// illustration, not something a single Tissue's own aliquots look like.
+// These two single-type sets are used once preservation_type is known;
+// sampleAliquotSlicesFallback stays for the illustrative mixed case.
+const sampleFixedSlices = [
     { id: 'fixed-1', type: 'pink', widthCm: 0.5, description: 'Fixed edge aliquot for preservation workflow.' },
+    { id: 'fixed-2', type: 'pink', widthCm: 0.5, description: 'Fixed center aliquot for morphology review.' },
+    { id: 'fixed-3', type: 'pink', widthCm: 0.5, description: 'Fixed edge aliquot for archive retention.' },
+];
+
+const sampleFrozenSlices = [
     { id: 'frozen-1', type: 'yellow', widthCm: 1, description: 'Frozen aliquot reserved for sequencing-ready extraction.' },
     { id: 'frozen-2', type: 'yellow', widthCm: 1, description: 'Frozen aliquot reserved for replicate processing.' },
     { id: 'frozen-3', type: 'yellow', widthCm: 1, description: 'Frozen aliquot for downstream QC and validation.' },
-    { id: 'fixed-2', type: 'pink', widthCm: 0.5, description: 'Fixed center aliquot for morphology review.' },
     { id: 'frozen-4', type: 'yellow', widthCm: 1, description: 'Frozen aliquot held as backup material.' },
     { id: 'frozen-5', type: 'yellow', widthCm: 1, description: 'Frozen aliquot reserved for replicate processing.' },
     { id: 'frozen-6', type: 'yellow', widthCm: 1, description: 'Frozen aliquot for downstream QC and validation.' },
-    { id: 'fixed-3', type: 'pink', widthCm: 0.5, description: 'Fixed edge aliquot for archive retention.' },
 ];
+
+const sampleAliquotSlicesFallback = [...sampleFixedSlices, ...sampleFrozenSlices];
 
 const sampleNonSolidAliquots = [
     { id: 'aliquot-1', description: 'Primary collection tube reserved for sequencing-ready extraction.' },
     { id: 'aliquot-2', description: 'Secondary collection tube held as backup material.' },
 ];
+
+// A Core TissueSample's own external_id ends in "<3-digit aliquot>[A-F][1-6]"
+// (item_utils/tissue_sample.py's CORE_REGEX) -- e.g. "SMHT001-3AL-001B2" is
+// specifically well B2. Extracting it here means the popover's well-plate
+// highlight reflects this sample's real position instead of a fixed default.
+const CORE_WELL_SUFFIX_REGEX = /-[0-9]{3}([A-F][1-6])$/;
+function getCoreWellFromExternalId(externalId) {
+    const match = externalId ? externalId.match(CORE_WELL_SUFFIX_REGEX) : null;
+    return match ? match[1] : null;
+}
 
 const TissueViewTitle = ({ context }) => {
     const breadcrumbs = [
@@ -136,19 +156,39 @@ const TissueViewTitle = ({ context }) => {
 };
 
 const TissueView = React.memo(function TissueView({ context = {}, session }) {
-    const { display_title, donor, uberon_id, tissue_type, study } = context;
+    const {
+        display_title,
+        donor,
+        uberon_id,
+        tissue_type,
+        study,
+        category,
+        preservation_type,
+        uuid: tissueUuid,
+    } = context;
     const { userDownloadAccess } = useUserDownloadAccess(session);
 
     const uberonHref = uberon_id && uberon_id['@id'] ? uberon_id['@id'] : null;
     const targetTissueValue = uberon_id || tissue_type || null;
     const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
+    // Real sample IDs are "{donor}-{protocol}-{aliquot}{suffix}" (e.g.
+    // "SMHT001-3I-001A1", see item_utils/tissue_sample.py's *_REGEX
+    // constants) -- the donor prefix belongs in front of the protocol code.
+    const aliquotIdPrefix =
+        donor?.display_title && tissueProtocolCode
+            ? `${donor.display_title}-${tissueProtocolCode}`
+            : tissueProtocolCode;
+    // `category` is a real backend-calculated field (item_utils/tissue.py) --
+    // "Clinically Accessible" covers exactly blood and buccal swab tissues.
+    // Which of the two it is isn't itself a stored field, so that part still
+    // falls back to matching the tissue_type label.
     const nonSolidSpecimenType =
-        tissueProtocolCode === '3B'
-            ? 'buccal'
-            : tissueProtocolCode === '3A'
-                ? 'blood'
-                : null;
+        category === 'Clinically Accessible'
+            ? tissue_type?.toLowerCase().includes('buccal')
+                ? 'buccal'
+                : 'blood'
+            : null;
     const tissueMatrixFilterValue = useMemo(
         () => tissue_type || uberon_id?.display_title || null,
         [tissue_type, uberon_id]
@@ -157,6 +197,85 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     const [fileCount, setFileCount] = useState(0);
     const [donors, setDonors] = useState([]);
     const [donorsLoading, setDonorsLoading] = useState(true);
+    const [tissueSamples, setTissueSamples] = useState(null);
+
+    // The number of aliquots isn't a fixed/derivable constant (confirmed
+    // against real TissueSample fixture data and PR smaht-dac/smaht-portal#728's
+    // associate_fixed_samples.py, which counts real linked samples rather than
+    // assuming one) -- it's whatever was actually submitted for this tissue
+    // block, so it has to come from a live count of this Tissue's own
+    // TissueSamples rather than a hardcoded slice array.
+    useEffect(() => {
+        if (!tissueUuid) {
+            setTissueSamples(null);
+            return;
+        }
+        ajax.load(
+            `/search/?type=TissueSample&status!=deleted&sample_sources.uuid=${encodeURIComponent(tissueUuid)}`,
+            (resp) => {
+                setTissueSamples(resp?.['@graph'] || []);
+            },
+            'GET',
+            () => {
+                setTissueSamples([]);
+            }
+        );
+    }, [tissueUuid]);
+
+    // Real samples win once loaded; while loading (tissueSamples === null) or
+    // if none exist yet, fall back to the illustrative demo sets so the
+    // panel isn't empty.
+    const solidAliquotSlices = useMemo(() => {
+        const realSlices = (tissueSamples || [])
+            .filter((sample) => sample.preservation_type !== 'Fresh')
+            .map((sample) => {
+                const coreWell = getCoreWellFromExternalId(sample.external_id);
+                return {
+                    id: sample.uuid,
+                    type: sample.preservation_type === 'Fixed' ? 'pink' : 'yellow',
+                    widthCm: sample.preservation_type === 'Fixed' ? 0.5 : 1,
+                    description: sample.external_id || sample.accession || undefined,
+                    // Explicit [] (not undefined) for a real Frozen sample with
+                    // no Core suffix -- so AliquotVisualization's `|| DEFAULT`
+                    // fallback (meant only for illustrative demo slices) does
+                    // not kick in and invent a well this real sample doesn't have.
+                    frozenCoreWells: coreWell ? [coreWell] : [],
+                    // Backend-computed (types/tissue_sample.py): chains this
+                    // Frozen/Fresh sample's `linked_fixed_samples` through
+                    // each linked Fixed sample's own `pathology_reports`.
+                    // Only Frozen/Fresh samples have this; Fixed samples
+                    // never will, so this is naturally empty for pink slices.
+                    associatedPathologyReports: sample.associated_pathology_reports || [],
+                    // The real submitting institution (e.g. "BROAD GCC",
+                    // "UWSC GCC") -- shown instead of a made-up "GCC1"/"GCC2"
+                    // sequence number.
+                    submissionCenter: sample.submission_centers?.[0]?.display_title || null,
+                };
+            });
+        if (realSlices.length > 0) return realSlices;
+        if (tissueSamples !== null) {
+            // Loaded, but this tissue has no TissueSamples yet -- still show
+            // the illustrative set for the known preservation_type so the
+            // panel demonstrates the expected layout.
+            return preservation_type === 'Fixed' ? sampleFixedSlices : sampleFrozenSlices;
+        }
+        return preservation_type
+            ? preservation_type === 'Fixed'
+                ? sampleFixedSlices
+                : sampleFrozenSlices
+            : sampleAliquotSlicesFallback;
+    }, [tissueSamples, preservation_type]);
+
+    const nonSolidAliquots = useMemo(() => {
+        const realAliquots = (tissueSamples || []).map((sample) => {
+            return {
+                id: sample.uuid,
+                description: sample.external_id || sample.accession || undefined,
+                submissionCenter: sample.submission_centers?.[0]?.display_title || null,
+            };
+        });
+        return realAliquots.length > 0 ? realAliquots : sampleNonSolidAliquots;
+    }, [tissueSamples]);
 
     useEffect(() => {
         const queryParts = [
@@ -286,22 +405,21 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                         {nonSolidSpecimenType ? (
                             <NonSolidAliquotVisualization
                                 title="Sample non-solid aliquot layout"
-                                aliquots={sampleNonSolidAliquots}
+                                aliquots={nonSolidAliquots}
                                 specimenType={nonSolidSpecimenType}
-                                idPrefix={tissueProtocolCode}
+                                idPrefix={aliquotIdPrefix}
                             />
                         ) : (
                             <AliquotVisualization
                                 title="Sample solid-organ aliquot layout"
-                                slices={sampleAliquotSlices}
+                                slices={solidAliquotSlices}
                                 dimensions={{
                                     heightCm: 1,
                                     depthCm: 1.5,
-                                    widthLabel: '7.5 cm',
                                     heightLabel: '1 cm',
                                     depthLabel: '1.5 cm',
                                 }}
-                                idPrefix={tissueProtocolCode}
+                                idPrefix={aliquotIdPrefix}
                                 showSliceLabels={false}
                             />
                         )}

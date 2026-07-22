@@ -28,6 +28,8 @@ from ..item_utils import (
     item as item_utils,
 )
 
+from ..item_utils.utils import RequestHandler
+
 NDRI_TPC_ID = "ndri_tpc"
 NDRI_TPC_DT = "NDRI TPC"
 
@@ -68,6 +70,33 @@ class TissueSample(Sample):
         if result:
             return result
         return
+
+    @calculated_property(
+        schema={
+            "title": "Associated Pathology Reports",
+            "description": (
+                "Pathology reports for fixed samples from the same tissue "
+                "block as this fresh/frozen sample."
+            ),
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "fixed_sample_external_id": {"type": "string"},
+                    "pathology_reports": {
+                        "type": "array",
+                        "items": {"type": "string", "linkTo": "PathologyReport"},
+                    },
+                },
+            },
+        },
+    )
+    def associated_pathology_reports(self, request: Request) -> Union[List[Dict[str, Any]], None]:
+        request_handler = RequestHandler(request=request)
+        result = tissue_sample_utils.get_associated_pathology_reports(
+            self.properties, request_handler=request_handler
+        )
+        return result or None
 
 
 def get_request_data_for_edit(context, request):

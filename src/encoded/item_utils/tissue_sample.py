@@ -140,3 +140,24 @@ def get_protocol_id_from_external_id(external_id: str) -> str:
 def get_pathology_reports(properties: Dict[str, Any]) -> List[str]:
     """Get pathology_reports (rev link) from properties."""
     return properties.get("pathology_reports", []) or []
+
+
+def get_associated_pathology_reports(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get pathology reports for fixed samples from the same tissue block.
+
+    Chains this sample's `linked_fixed_samples` (forward link) through each
+    fixed sample's own `pathology_reports` (rev_link_atids, present in the
+    default @@object frame), preserving the fixed-sample pairing so callers
+    can trace which fixed sample produced which report.
+    """
+    linked_fixed_samples = properties.get("linked_fixed_samples", [])
+    fixed_samples = request_handler.get_items(linked_fixed_samples)
+    return [
+        {
+            "fixed_sample_external_id": item_utils.get_external_id(fixed_sample),
+            "pathology_reports": fixed_sample.get("pathology_reports", []),
+        }
+        for fixed_sample in fixed_samples
+    ]
