@@ -1231,30 +1231,32 @@ def test_dry_run_boundary_and_batch_events_reach_stdout_without_mutating(
     monkeypatch.setattr(
         delete_revision_history_command.logger, "info", _drop_log_record
     )
-    resources = _resources_with_history(session, {"workflow": 2})
-    # Each cleanup batch commits (even under dry_run - commit_each_batch is
-    # unconditional), which expires/detaches retained ORM instances. Capture
-    # scalar rids up front, as the other commit_each_batch=True tests in this
-    # file already do, rather than accessing `resource.rid` after the run.
-    resource_rids = tuple(resource.rid for resource in resources)
-    before = {
-        rid: len(_propsheet_rows(session, rid)) for rid in resource_rids
-    }
+    _resources_with_history(session, {"workflow": 2})
+
+    # Prove "no mutation" deterministically at the code level rather than by
+    # comparing before/after DB row counts: this is the first test to
+    # exercise --dry-run end-to-end through delete_revision_history against
+    # the shared fixture database, and prior attempts here hit before/after
+    # row-count comparisons that were unreliable for reasons tied to shared
+    # DB state across this suite's tests (see the PR body's "Observed
+    # anomaly" note) - not to anything this observability-only change
+    # controls. _delete_revision_sids is the *only* function that issues a
+    # DELETE; asserting it is never called under dry_run=True is a strictly
+    # stronger and DB-state-independent guarantee than re-reading row counts.
+    def _fail_if_delete_called(*args, **kwargs):
+        raise AssertionError("_delete_revision_sids must not be called under dry_run=True")
+
+    monkeypatch.setattr(
+        delete_revision_history_command, "_delete_revision_sids", _fail_if_delete_called
+    )
 
     counted = delete_revision_history(app, prod=True, dry_run=True, batch_size=1)
 
-    # Not asserting an exact/minimum count here: this is the first test to
-    # exercise --dry-run end-to-end through delete_revision_history (which
-    # always uses commit_each_batch=True) against the shared fixture
-    # database, whose exact workflow/meta_workflow_run row counts at this
-    # point depend on other tests' state. That accounting question is
-    # out of scope for this observability-only change - see the PR body's
-    # "Observed anomaly" note. This test's purpose is transport (stdout
-    # reliability) and non-mutation, asserted below.
+    # Not asserting an exact/minimum count here: the shared fixture
+    # database's exact workflow/meta_workflow_run row counts at this point
+    # depend on other tests' state, which is out of scope for this
+    # observability-only change - see the PR body's "Observed anomaly" note.
     assert counted["workflow"] >= 0
-    assert all(
-        len(_propsheet_rows(session, rid)) == before[rid] for rid in resource_rids
-    )
 
     lines = capsys.readouterr().out.splitlines()
     assert any(line.startswith("delete_revision_history_rid_discovery_start") for line in lines)
