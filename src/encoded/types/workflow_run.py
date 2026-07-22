@@ -15,4 +15,7 @@ from .base import Item
 class WorkflowRun(Item, CoreWorkflowRun):
     item_type = 'workflow_run'
     schema = load_schema("encoded:schemas/workflow_run.json")
+    # Workflow execution records churn frequently; preserving every prior
+    # version adds DB storage without useful audit value.
+    track_revisions = False
     embedded_list = []
