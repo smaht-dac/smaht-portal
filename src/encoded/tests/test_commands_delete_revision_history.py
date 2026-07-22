@@ -1232,9 +1232,13 @@ def test_dry_run_boundary_and_batch_events_reach_stdout_without_mutating(
         delete_revision_history_command.logger, "info", _drop_log_record
     )
     resources = _resources_with_history(session, {"workflow": 2})
+    # Each cleanup batch commits (even under dry_run - commit_each_batch is
+    # unconditional), which expires/detaches retained ORM instances. Capture
+    # scalar rids up front, as the other commit_each_batch=True tests in this
+    # file already do, rather than accessing `resource.rid` after the run.
+    resource_rids = tuple(resource.rid for resource in resources)
     before = {
-        resource.rid: len(_propsheet_rows(session, resource.rid))
-        for resource in resources
+        rid: len(_propsheet_rows(session, rid)) for rid in resource_rids
     }
 
     counted = delete_revision_history(app, prod=True, dry_run=True, batch_size=1)
@@ -1249,8 +1253,7 @@ def test_dry_run_boundary_and_batch_events_reach_stdout_without_mutating(
     # reliability) and non-mutation, asserted below.
     assert counted["workflow"] >= 0
     assert all(
-        len(_propsheet_rows(session, resource.rid)) == before[resource.rid]
-        for resource in resources
+        len(_propsheet_rows(session, rid)) == before[rid] for rid in resource_rids
     )
 
     lines = capsys.readouterr().out.splitlines()
