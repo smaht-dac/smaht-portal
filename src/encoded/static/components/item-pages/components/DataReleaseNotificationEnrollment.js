@@ -70,12 +70,11 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                 setBanner({
                     message: (
                         <>
-                            <b>Subscription failed: </b>We could not
-                            subscribe you to data-release emails. Please try
-                            again.
+                            <b>Subscription failed: </b>We could not subscribe
+                            you to data-release emails. Please try again.
                         </>
                     ),
-                    style: 'danger',
+                    className: 'alert-danger',
                 });
             },
             '{}'
@@ -93,11 +92,11 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                     message: (
                         <>
                             <b>Unsubscribed: </b>You will no longer receive
-                            data-release emails. You can subscribe again at
-                            any time.
+                            data-release emails. You can subscribe again at any
+                            time.
                         </>
                     ),
-                    style: 'success',
+                    className: 'alert-unsubscribed',
                 });
             },
             'POST',
@@ -106,11 +105,11 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                 setBanner({
                     message: (
                         <>
-                            <b>Unsubscribe failed: </b>Your subscription was
-                            not changed. Please try again.
+                            <b>Unsubscribe failed: </b>Your subscription was not
+                            changed. Please try again.
                         </>
                     ),
-                    style: 'danger',
+                    className: 'alert-danger',
                 });
             },
             '{}'
@@ -152,10 +151,11 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                                 <>
                                     You have subscribed to receive{' '}
                                     <b>monthly</b> emails when new data are
-                                    released on the SMaHT Data Portal. If you
-                                    have trouble signing up for subscription,
-                                    contact the SMaHT Data Analysis Center
-                                    through the{' '}
+                                    released on the SMaHT Data Portal.
+                                    <br />
+                                    If you are not receiving emails after
+                                    subscribing, please contact the SMaHT Data
+                                    Analysis Center through the{' '}
                                     <a
                                         role="button"
                                         href="mailto:smhelp@hms-dbmi.atlassian.net?subject=Helpdesk%20Inquiry%20from%20data.smaht.org&body=Name%3A%0D%0AContact%20Information%20(so%20we%20can%20get%20back%20to%20you!)%3A%0D%0A%0D%0AQuestions%2FComments%3A%0D%0A%0D%0A">
@@ -188,7 +188,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                         <>
                             <hr />
                             <div
-                                className={`alert alert-${banner.style} alert-dismissible`}
+                                className={`alert ${banner.className} alert-dismissible`}
                                 role="alert">
                                 <button
                                     type="button"
@@ -212,7 +212,6 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                 centered
                 className="subscription-confirm-modal"
                 backdropClassName="subscription-confirm-modal-backdrop">
-                <Modal.Header closeButton />
                 <Modal.Body>
                     <div className="callout-card protected-data">
                         <img
@@ -226,13 +225,22 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             shortly to confirm your subscription.
                             <br />
                             <br />
-                            Please follow the instructions from AWS to receive
-                            emails <br />
-                            when new data are released from the SMaHT Data
-                            Portal.
+                            Once you have received this email from AWS,
+                            <br />
+                            click the "confirm subscription" link to begin
+                            receiving data updates.
                         </span>
                     </div>
                 </Modal.Body>
+                <Modal.Footer>
+                    <button
+                        type="button"
+                        className="btn btn-primary d-inline-flex align-items-center justify-content-center"
+                        onClick={closeConfirmModal}>
+                        <i className="icon icon-check fas icon-fw me-08 text-white" />
+                        I understand
+                    </button>
+                </Modal.Footer>
             </Modal>
         </div>
     );

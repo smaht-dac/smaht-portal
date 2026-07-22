@@ -1313,6 +1313,12 @@ body[data-pathname^="/users/"] {
 							background-color: #ECFFF2;
 							border: 1px solid #99E199;
 						}
+						
+						&-unsubscribed {
+							background-color: #F0F2FF;
+							border-color: #C1BBF7;
+							color: #12052A;
+						}
 					}
 
 					.subscription-text {
@@ -1386,7 +1392,8 @@ body[data-pathname^="/users/"] {
 			}
 
 			.callout-card.protected-data {
-				padding: 20px 0px;
+				padding: 20px 0px 10px;
+				color: #343741;
 
 				img {
 					width: 50px;
@@ -1394,11 +1401,24 @@ body[data-pathname^="/users/"] {
 
 				h4 {
 					margin: 15px;
+					color: #0E3669;
 				}
 
-				span i {
-					white-space: nowrap;
+				span {
+					color: #343741;
+					
+					i {
+						white-space: nowrap;
+						color: #798FAB;
+					}
 				}
+			}
+
+			.modal-footer {
+				justify-content: center;
+				border: none;
+				padding-top: 0;
+				padding-bottom: 20px;
 			}
 		}
 	}
