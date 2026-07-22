@@ -17,7 +17,15 @@ from snovault.storage import CurrentPropertySheet, PropertySheet, Resource
 logger = structlog.getLogger(__name__)
 
 ITEM_TYPES_TO_PURGE = ("workflow", "meta_workflow_run")
+# Deletion/would-be-deletion batch size: bounds candidate-selection pages,
+# rid chunks, and actual DELETE statements. Kept small relative to the scan
+# default because each non-dry-run page is a real write transaction.
 DEFAULT_BATCH_SIZE = 500
+# Read-only resource/revision inventory scan page size. Larger than the
+# deletion default because these pages are pure indexed SELECTs with no
+# write-transaction cost, so a bigger page trades a little more per-query
+# memory for far fewer round trips over a database-wide scan.
+DEFAULT_SCAN_BATCH_SIZE = 2000
 
 # Bounded cadence for the read-only inventory scans below: a periodic progress
 # event fires after whichever threshold is reached first, so a fast scan does
@@ -150,13 +158,13 @@ class _ScanProgress:
     def __init__(
         self,
         scan: str,
-        batch_size: int,
+        scan_batch_size: int,
         page_interval: int = PROGRESS_PAGE_INTERVAL,
         time_interval: float = PROGRESS_TIME_INTERVAL_SECONDS,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.scan = scan
-        self.batch_size = batch_size
+        self.scan_batch_size = scan_batch_size
         self.page_interval = page_interval
         self.time_interval = time_interval
         self.clock = clock
@@ -173,7 +181,7 @@ class _ScanProgress:
         _operator_event(
             "revision_inventory_scan_start",
             scan=self.scan,
-            batch_size=self.batch_size,
+            scan_batch_size=self.scan_batch_size,
         )
 
     def record_page(self, row_count: int) -> None:
@@ -193,7 +201,7 @@ class _ScanProgress:
                 scan=self.scan,
                 pages=self.pages,
                 rows=self.rows,
-                batch_size=self.batch_size,
+                scan_batch_size=self.scan_batch_size,
                 elapsed_seconds=self._elapsed(now),
             )
             self.last_log_time = now
@@ -206,14 +214,14 @@ class _ScanProgress:
             scan=self.scan,
             pages=self.pages,
             rows=self.rows,
-            batch_size=self.batch_size,
+            scan_batch_size=self.scan_batch_size,
             elapsed_seconds=self._elapsed(now),
         )
 
 
 def collect_revision_inventory(
     session,
-    batch_size: int = DEFAULT_BATCH_SIZE,
+    scan_batch_size: int = DEFAULT_SCAN_BATCH_SIZE,
     progress_page_interval: int = PROGRESS_PAGE_INTERVAL,
     progress_time_interval: float = PROGRESS_TIME_INTERVAL_SECONDS,
     clock: Callable[[], float] = time.monotonic,
@@ -221,18 +229,19 @@ def collect_revision_inventory(
     """Collect a bounded, read-only revision inventory for every item type.
 
     Resource identifiers and propsheet rows are each read in independent,
-    keyset-ordered pages. The resource pages use the resources primary key;
-    revision pages use the propsheets primary key and indexed joins on rid and
-    (rid, name). No ORM objects or unbounded result sets are created, and
-    totals are accumulated in Python across the bounded pages.
+    keyset-ordered pages, sized by ``scan_batch_size`` (independent of the
+    deletion path's ``batch_size``). The resource pages use the resources
+    primary key; revision pages use the propsheets primary key and indexed
+    joins on rid and (rid, name). No ORM objects or unbounded result sets are
+    created, and totals are accumulated in Python across the bounded pages.
     """
-    batch_size = _validate_batch_size(batch_size)
+    scan_batch_size = _validate_batch_size(scan_batch_size)
     by_item_type: Dict[str, Dict[str, int]] = {}
     totals = _empty_inventory_row()
 
     resource_progress = _ScanProgress(
         "resource_inventory",
-        batch_size,
+        scan_batch_size,
         page_interval=progress_page_interval,
         time_interval=progress_time_interval,
         clock=clock,
@@ -242,10 +251,10 @@ def collect_revision_inventory(
     while True:
         if after_rid is None:
             resource_batch = _RESOURCE_BATCH_FIRST
-            parameters = {"batch_size": batch_size}
+            parameters = {"batch_size": scan_batch_size}
         else:
             resource_batch = _RESOURCE_BATCH_AFTER
-            parameters = {"after_rid": after_rid, "batch_size": batch_size}
+            parameters = {"after_rid": after_rid, "batch_size": scan_batch_size}
 
         resource_rows = session.execute(resource_batch, parameters).fetchall()
         if not resource_rows:
@@ -263,7 +272,7 @@ def collect_revision_inventory(
 
     revision_progress = _ScanProgress(
         "revision_inventory",
-        batch_size,
+        scan_batch_size,
         page_interval=progress_page_interval,
         time_interval=progress_time_interval,
         clock=clock,
@@ -273,10 +282,10 @@ def collect_revision_inventory(
     while True:
         if after_sid is None:
             revision_batch = _REVISION_BATCH_FIRST
-            parameters = {"batch_size": batch_size}
+            parameters = {"batch_size": scan_batch_size}
         else:
             revision_batch = _REVISION_BATCH_AFTER
-            parameters = {"after_sid": after_sid, "batch_size": batch_size}
+            parameters = {"after_sid": after_sid, "batch_size": scan_batch_size}
 
         revision_rows = session.execute(revision_batch, parameters).fetchall()
         if not revision_rows:
@@ -492,6 +501,7 @@ def _process_rid_chunk(
                 selected_count=len(sids),
                 affected_count=affected_count,
                 processed_count=processed_count,
+                batch_size=batch_size,
             )
             if commit_each_batch:
                 transaction.commit()
@@ -552,10 +562,12 @@ def _get_app_and_session(app):
     return app, app.registry[DBSESSION]
 
 
-def report_revision_inventory(app, batch_size: int = DEFAULT_BATCH_SIZE) -> Dict[str, Dict]:
+def report_revision_inventory(
+    app, scan_batch_size: int = DEFAULT_SCAN_BATCH_SIZE
+) -> Dict[str, Dict]:
     """Collect the deployment-wide inventory using the application's DB session."""
     _app, session = _get_app_and_session(app)
-    return collect_revision_inventory(session, batch_size=batch_size)
+    return collect_revision_inventory(session, scan_batch_size=scan_batch_size)
 
 
 def delete_revision_history(
@@ -656,22 +668,47 @@ def main() -> None:
     )
     parser.add_argument(
         "--batch-size",
-        help="Maximum number of old revision rows selected per batch",
+        help=(
+            "Maximum number of old revision rows selected per deletion (or "
+            "would-be-deletion, under --dry-run) batch; bounds candidate "
+            "selection pages and actual DELETE statements (default: %(default)s)"
+        ),
         type=_positive_batch_size,
         default=DEFAULT_BATCH_SIZE,
     )
+    parser.add_argument(
+        "--scan-batch-size",
+        help=(
+            "Maximum number of rows read per page during the read-only "
+            "resource/revision inventory scans; independent of --batch-size "
+            "since these pages are pure reads with no write-transaction cost "
+            "(default: %(default)s)"
+        ),
+        type=_positive_batch_size,
+        default=DEFAULT_SCAN_BATCH_SIZE,
+    )
     args = parser.parse_args()
+
+    # Validate both explicitly before any database work. argparse's own
+    # _positive_batch_size type already rejects malformed/non-positive CLI
+    # strings at parse time, before main() reaches this point; this also
+    # covers any future non-CLI caller of this same validation path and
+    # keeps the "validate before touching the database" guarantee explicit
+    # rather than incidental.
+    _validate_batch_size(args.batch_size)
+    _validate_batch_size(args.scan_batch_size)
 
     app = get_app(args.config_uri, args.app_name)
     _operator_event(
         "delete_revision_history_initialized",
         config_uri=args.config_uri,
         app_name=args.app_name,
+        scan_batch_size=args.scan_batch_size,
         batch_size=args.batch_size,
         dry_run=args.dry_run,
         prod=args.prod,
     )
-    inventory = report_revision_inventory(app, batch_size=args.batch_size)
+    inventory = report_revision_inventory(app, scan_batch_size=args.scan_batch_size)
     log_revision_inventory(inventory)
     deleted_by_type = delete_revision_history(
         app,

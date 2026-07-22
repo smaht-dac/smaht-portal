@@ -1,4 +1,5 @@
 import argparse
+import inspect
 import itertools
 import logging
 from pathlib import Path
@@ -12,6 +13,7 @@ from snovault.storage import CurrentPropertySheet, PropertySheet, Resource
 import encoded.commands.delete_revision_history as delete_revision_history_command
 from encoded.commands.delete_revision_history import (
     DEFAULT_BATCH_SIZE,
+    DEFAULT_SCAN_BATCH_SIZE,
     _positive_batch_size,
     _validate_batch_size,
     collect_revision_inventory,
@@ -19,6 +21,7 @@ from encoded.commands.delete_revision_history import (
     delete_old_revision_history_for_item_type,
     log_post_cleanup_revision_inventory,
     log_revision_inventory,
+    report_revision_inventory,
 )
 
 
@@ -255,7 +258,7 @@ def test_revision_inventory_counts_all_item_types_and_totals(session):
     session.add(Resource("zero_revision_type"))
     session.flush()
 
-    report = collect_revision_inventory(session, batch_size=1)
+    report = collect_revision_inventory(session, scan_batch_size=1)
 
     assert report["by_item_type"] == {
         "meta_workflow_run": {
@@ -357,7 +360,7 @@ def test_revision_inventory_uses_bounded_scalar_queries(session):
             return BufferedResult(rows)
 
     recording_session = RecordingSession(session)
-    report = collect_revision_inventory(recording_session, batch_size=1)
+    report = collect_revision_inventory(recording_session, scan_batch_size=1)
 
     resource_batches = [
         call
@@ -663,8 +666,8 @@ def test_main_reports_inventory_before_dry_run_cleanup(monkeypatch):
     monkeypatch.setattr(
         delete_revision_history_command,
         "report_revision_inventory",
-        lambda received_app, batch_size: calls.append(
-            ("report", received_app, batch_size)
+        lambda received_app, scan_batch_size: calls.append(
+            ("report", received_app, scan_batch_size)
         )
         or report,
     )
@@ -700,6 +703,8 @@ def test_main_reports_inventory_before_dry_run_cleanup(monkeypatch):
             "--dry-run",
             "--batch-size",
             "2",
+            "--scan-batch-size",
+            "3",
         ],
     )
 
@@ -707,8 +712,11 @@ def test_main_reports_inventory_before_dry_run_cleanup(monkeypatch):
         delete_revision_history_command.main()
 
     assert exit_info.value.code == 0
+    # scan_batch_size (3) reaches only report_revision_inventory; batch_size
+    # (2) reaches only delete_revision_history - proving the two settings
+    # are routed to their intended paths independently.
     assert calls == [
-        ("report", app, 2),
+        ("report", app, 3),
         ("pre_log", report),
         ("cleanup", app, True, True, 2),
         ("post_log", report, {"workflow": 0, "meta_workflow_run": 0}, True),
@@ -770,7 +778,7 @@ def test_collect_revision_inventory_progress_cadence_and_ordering(monkeypatch):
 
     report = collect_revision_inventory(
         fake_session,
-        batch_size=1,
+        scan_batch_size=1,
         progress_page_interval=3,
         progress_time_interval=1_000_000.0,
         clock=_make_clock(step=1.0),
@@ -792,7 +800,7 @@ def test_collect_revision_inventory_progress_cadence_and_ordering(monkeypatch):
     ]
     assert [fields.get("pages") for _, fields in resource_events[1:]] == [1, 4, 7, 10, 10]
     assert [fields.get("elapsed_seconds") for _, fields in resource_events[1:]] == [1.0, 4.0, 7.0, 10.0, 11.0]
-    assert all(fields["batch_size"] == 1 for _, fields in resource_events)
+    assert all(fields["scan_batch_size"] == 1 for _, fields in resource_events)
     assert all(fields["rows"] == fields["pages"] for _, fields in resource_events[1:])
 
     assert [name for name, _ in revision_events] == [
@@ -801,6 +809,7 @@ def test_collect_revision_inventory_progress_cadence_and_ordering(monkeypatch):
         "revision_inventory_scan_progress",
         "revision_inventory_scan_complete",
     ]
+    assert all(fields["scan_batch_size"] == 1 for _, fields in revision_events)
     assert [fields.get("pages") for _, fields in revision_events[1:]] == [1, 4, 6]
     assert [fields.get("elapsed_seconds") for _, fields in revision_events[1:]] == [1.0, 4.0, 7.0]
 
@@ -818,7 +827,7 @@ def test_collect_revision_inventory_progress_cadence_bounded_at_scale(monkeypatc
 
     collect_revision_inventory(
         fake_session,
-        batch_size=1,
+        scan_batch_size=1,
         progress_page_interval=500,
         progress_time_interval=1_000_000.0,
         clock=_make_clock(step=0.0),
@@ -842,7 +851,7 @@ def test_collect_revision_inventory_time_based_progress_fallback(monkeypatch):
 
     collect_revision_inventory(
         fake_session,
-        batch_size=1,
+        scan_batch_size=1,
         progress_page_interval=100_000,
         progress_time_interval=5.0,
         clock=_make_clock(step=3.0),
@@ -862,7 +871,7 @@ def test_collect_revision_inventory_zero_row_scans_still_complete(monkeypatch):
     events = _capture_log_events(monkeypatch)
 
     report = collect_revision_inventory(
-        fake_session, batch_size=1, clock=_make_clock(step=1.0)
+        fake_session, scan_batch_size=1, clock=_make_clock(step=1.0)
     )
 
     assert report["totals"] == {
@@ -976,8 +985,8 @@ def test_main_logs_initialization_event_before_inventory(monkeypatch):
     monkeypatch.setattr(
         delete_revision_history_command,
         "report_revision_inventory",
-        lambda received_app, batch_size: calls.append(
-            ("report", received_app, batch_size)
+        lambda received_app, scan_batch_size: calls.append(
+            ("report", received_app, scan_batch_size)
         )
         or report,
     )
@@ -1012,6 +1021,8 @@ def test_main_logs_initialization_event_before_inventory(monkeypatch):
             "--prod",
             "--batch-size",
             "2",
+            "--scan-batch-size",
+            "3",
         ],
     )
 
@@ -1025,6 +1036,7 @@ def test_main_logs_initialization_event_before_inventory(monkeypatch):
         {
             "config_uri": "production.ini",
             "app_name": "app",
+            "scan_batch_size": 3,
             "batch_size": 2,
             "dry_run": False,
             "prod": True,
@@ -1143,7 +1155,7 @@ def test_collect_revision_inventory_progress_reaches_stdout_when_logger_filtered
 
     collect_revision_inventory(
         fake_session,
-        batch_size=1,
+        scan_batch_size=1,
         progress_page_interval=500,
         progress_time_interval=1_000_000.0,
         clock=_make_clock(step=0.0),
@@ -1274,3 +1286,301 @@ def test_dry_run_boundary_and_batch_events_reach_stdout_without_mutating(
     ]
     assert workflow_complete_lines
     assert f"affected_count={counted['workflow']}" in workflow_complete_lines[0]
+
+
+def test_scan_and_delete_batch_size_defaults():
+    assert DEFAULT_SCAN_BATCH_SIZE == 2000
+    assert DEFAULT_BATCH_SIZE == 500
+
+    scan_default = inspect.signature(collect_revision_inventory).parameters[
+        "scan_batch_size"
+    ].default
+    report_default = inspect.signature(report_revision_inventory).parameters[
+        "scan_batch_size"
+    ].default
+    delete_default = inspect.signature(
+        delete_old_revision_history_for_item_type
+    ).parameters["batch_size"].default
+    cleanup_default = inspect.signature(delete_revision_history).parameters[
+        "batch_size"
+    ].default
+
+    assert scan_default == DEFAULT_SCAN_BATCH_SIZE == 2000
+    assert report_default == DEFAULT_SCAN_BATCH_SIZE == 2000
+    assert delete_default == DEFAULT_BATCH_SIZE == 500
+    assert cleanup_default == DEFAULT_BATCH_SIZE == 500
+
+
+def test_scan_and_delete_batch_sizes_independently_bound_their_own_pages(session):
+    """Setting scan_batch_size and batch_size to different values in the same
+    run proves each bounds only its own path: the inventory scan's resource
+    page sizes match scan_batch_size, and the deletion path's per-DELETE row
+    counts match batch_size, with neither picking up the other's value.
+    """
+    _resources_with_history(session, {"workflow": 4})
+
+    class RecordingSession:
+        def __init__(self, wrapped_session):
+            self.wrapped_session = wrapped_session
+            self.calls = []
+
+        def execute(self, statement, parameters):
+            rows = self.wrapped_session.execute(statement, parameters).fetchall()
+            self.calls.append(
+                {"statement": statement, "parameters": parameters, "rows": rows}
+            )
+            return _FetchAllResult(rows)
+
+    recording_session = RecordingSession(session)
+    collect_revision_inventory(recording_session, scan_batch_size=3)
+
+    resource_pages = [
+        call
+        for call in recording_session.calls
+        if "SELECT RID, ITEM_TYPE" in call["statement"].text.upper()
+    ]
+    assert resource_pages
+    assert all(call["parameters"]["batch_size"] == 3 for call in resource_pages)
+    # 4 workflow resources at scan_batch_size=3: a page of 3, a page of 1,
+    # and the terminating empty page.
+    assert [len(call["rows"]) for call in resource_pages] == [3, 1, 0]
+
+    engine = session.get_bind()
+    delete_rowcounts = []
+
+    def capture_delete_rowcount(
+        _conn, _cursor, statement, _parameters, _context, _executemany
+    ):
+        if statement.lstrip().upper().startswith("DELETE FROM PROPSHEETS"):
+            delete_rowcounts.append(_cursor.rowcount)
+
+    event.listen(engine, "after_cursor_execute", capture_delete_rowcount)
+    try:
+        deleted = delete_old_revision_history_for_item_type(
+            session, "workflow", batch_size=1
+        )
+    finally:
+        event.remove(engine, "after_cursor_execute", capture_delete_rowcount)
+
+    # 4 workflow resources contribute 2 old rows each = 8; one row per
+    # DELETE at batch_size=1 - matches the deletion setting, not the
+    # unrelated scan_batch_size=3 used moments earlier on the same session.
+    assert deleted == 8
+    assert len(delete_rowcounts) == 8
+    assert all(0 <= rowcount <= 1 for rowcount in delete_rowcounts)
+
+
+class _FixedRowCountSession:
+    """Serves a fixed synthetic resource row set, paginated by whatever
+    ``batch_size`` a caller passes per page - unlike ``_CannedPagedSession``,
+    which serves pre-chunked pages regardless of the requested batch size,
+    this lets the same underlying row set be re-paginated at different scan
+    sizes to compare page counts directly.
+    """
+
+    def __init__(self, total_resource_rows):
+        self._rows = [(index, "workflow") for index in range(total_resource_rows)]
+
+    def execute(self, statement, parameters):
+        sql = statement.text.upper()
+        if "SELECT RID, ITEM_TYPE" in sql:
+            batch_size = parameters["batch_size"]
+            after_rid = parameters.get("after_rid")
+            start = 0 if after_rid is None else after_rid + 1
+            return _FetchAllResult(self._rows[start:start + batch_size])
+        if "SELECT P.SID" in sql:
+            return _FetchAllResult([])
+        raise AssertionError(f"unexpected statement: {sql}")
+
+
+def test_scan_batch_size_quarters_nonempty_resource_pages_at_2000_vs_500():
+    """A fixed synthetic row set needs exactly one quarter as many nonempty
+    resource-scan pages at scan_batch_size=2000 as at scan_batch_size=500,
+    plus the same single terminating empty page each time - a page-count
+    assertion only, no timing involved.
+    """
+    total_rows = 2000
+
+    def resource_page_row_counts(scan_batch_size):
+        session = _FixedRowCountSession(total_rows)
+        pages = []
+        real_execute = session.execute
+
+        def recording_execute(statement, parameters):
+            result = real_execute(statement, parameters)
+            if "SELECT RID, ITEM_TYPE" in statement.text.upper():
+                pages.append(len(result._rows))
+            return result
+
+        session.execute = recording_execute
+        collect_revision_inventory(session, scan_batch_size=scan_batch_size)
+        return pages
+
+    pages_at_500 = resource_page_row_counts(500)
+    pages_at_2000 = resource_page_row_counts(2000)
+
+    assert pages_at_500 == [500, 500, 500, 500, 0]
+    assert pages_at_2000 == [2000, 0]
+
+    nonempty_at_500 = [count for count in pages_at_500 if count]
+    nonempty_at_2000 = [count for count in pages_at_2000 if count]
+    assert len(nonempty_at_500) == 4
+    assert len(nonempty_at_2000) == 1
+    assert len(nonempty_at_2000) == len(nonempty_at_500) / 4
+    # Both runs terminate with exactly one empty page, regardless of size.
+    assert pages_at_500[-1] == 0
+    assert pages_at_2000[-1] == 0
+
+
+def test_invalid_scan_batch_size_fails_before_any_database_statement():
+    class ExplodingSession:
+        def execute(self, *args, **kwargs):
+            raise AssertionError(
+                "no database statement should execute for an invalid scan_batch_size"
+            )
+
+    for invalid in (0, -1, True, 1.5, "500"):
+        with pytest.raises(ValueError):
+            collect_revision_inventory(ExplodingSession(), scan_batch_size=invalid)
+
+
+def test_invalid_delete_batch_size_fails_before_any_database_statement():
+    class ExplodingSession:
+        def execute(self, *args, **kwargs):
+            raise AssertionError(
+                "no database statement should execute for an invalid batch_size"
+            )
+
+        def query(self, *args, **kwargs):
+            raise AssertionError(
+                "no database statement should execute for an invalid batch_size"
+            )
+
+    for invalid in (0, -1, True, 1.5, "500"):
+        with pytest.raises(ValueError):
+            delete_old_revision_history_for_item_type(
+                ExplodingSession(), "workflow", batch_size=invalid
+            )
+
+
+def test_main_validates_both_batch_sizes_before_get_app(monkeypatch):
+    """An invalid --batch-size or --scan-batch-size must fail before
+    get_app() - and therefore before any database work - runs. argparse's
+    own _positive_batch_size type already rejects these at parse time, so
+    this also proves main() never reaches get_app() in that case.
+    """
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("get_app must not run when a batch size is invalid")
+
+    monkeypatch.setattr(delete_revision_history_command, "get_app", fail_if_called)
+
+    monkeypatch.setattr(
+        delete_revision_history_command.sys,
+        "argv",
+        [
+            "delete-revision-history",
+            "production.ini",
+            "--app-name",
+            "app",
+            "--batch-size",
+            "0",
+        ],
+    )
+    with pytest.raises(SystemExit):
+        delete_revision_history_command.main()
+
+    monkeypatch.setattr(
+        delete_revision_history_command.sys,
+        "argv",
+        [
+            "delete-revision-history",
+            "production.ini",
+            "--app-name",
+            "app",
+            "--scan-batch-size",
+            "-1",
+        ],
+    )
+    with pytest.raises(SystemExit):
+        delete_revision_history_command.main()
+
+
+def test_main_reports_distinct_batch_sizes_per_phase(monkeypatch, capsys):
+    """Initialization reports both sizes distinctly; the deletion-phase
+    cleanup_start event reports only the deletion size.
+    """
+    app = object()
+    report = {"by_item_type": {}, "totals": {}}
+    monkeypatch.setattr(delete_revision_history_command, "get_app", lambda *args: app)
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "report_revision_inventory",
+        lambda received_app, scan_batch_size: report,
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command, "log_revision_inventory", lambda received_report: None
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "delete_revision_history",
+        lambda received_app, prod, dry_run, batch_size: {
+            "workflow": 0, "meta_workflow_run": 0
+        },
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command,
+        "log_post_cleanup_revision_inventory",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        delete_revision_history_command.sys,
+        "argv",
+        [
+            "delete-revision-history",
+            "production.ini",
+            "--app-name",
+            "app",
+            "--batch-size",
+            "77",
+            "--scan-batch-size",
+            "999",
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        delete_revision_history_command.main()
+
+    out = capsys.readouterr().out
+    assert "delete_revision_history_initialized" in out
+    assert "scan_batch_size=999" in out
+    assert "batch_size=77" in out
+
+
+def test_cleanup_start_and_batch_events_report_only_the_deletion_batch_size(
+    app, session, monkeypatch, capsys
+):
+    """The cleanup phase's own boundary and per-batch events report the
+    deletion batch size, never the (unrelated, independently configurable)
+    scan batch size.
+    """
+    monkeypatch.setattr(
+        delete_revision_history_command.logger, "info", _drop_log_record
+    )
+    _resources_with_history(session, {"workflow": 2})
+
+    delete_revision_history(app, prod=True, batch_size=13)
+
+    lines = capsys.readouterr().out.splitlines()
+    cleanup_start_lines = [
+        line for line in lines if line.startswith("delete_revision_history_cleanup_start")
+    ]
+    assert cleanup_start_lines
+    assert all("batch_size=13" in line for line in cleanup_start_lines)
+    assert all("scan_batch_size" not in line for line in cleanup_start_lines)
+
+    batch_lines = [
+        line for line in lines if line.startswith("delete_revision_history_batch")
+    ]
+    assert batch_lines
+    assert all("batch_size=13" in line for line in batch_lines)
