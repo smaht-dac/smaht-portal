@@ -172,13 +172,6 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     const targetTissueValue = uberon_id || tissue_type || null;
     const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
-    // Real sample IDs are "{donor}-{protocol}-{aliquot}{suffix}" (e.g.
-    // "SMHT001-3I-001A1", see item_utils/tissue_sample.py's *_REGEX
-    // constants) -- the donor prefix belongs in front of the protocol code.
-    const aliquotIdPrefix =
-        donor?.display_title && tissueProtocolCode
-            ? `${donor.display_title}-${tissueProtocolCode}`
-            : tissueProtocolCode;
     // `category` is a real backend-calculated field (item_utils/tissue.py) --
     // "Clinically Accessible" covers exactly blood and buccal swab tissues.
     // Which of the two it is isn't itself a stored field, so that part still
@@ -198,6 +191,36 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     const [donors, setDonors] = useState([]);
     const [donorsLoading, setDonorsLoading] = useState(true);
     const [tissueSamples, setTissueSamples] = useState(null);
+    // Which donor's own Tissue instance the aliquot visualization panel
+    // reflects. Defaults to this page's own Tissue/donor; the panel offers a
+    // picker (only shown once >1 donor shares this tissue_type) so the other
+    // donors' real aliquot layouts are reachable too, instead of only ever
+    // showing the donor this page happened to be loaded for.
+    const [selectedDonorUuid, setSelectedDonorUuid] = useState(donor?.uuid || null);
+
+    const selectedDonorEntry = useMemo(
+        () => donors.find((entry) => entry.donor?.uuid === selectedDonorUuid) || null,
+        [donors, selectedDonorUuid]
+    );
+    // For this page's own donor, always use this page's own Tissue instance
+    // (`context`) rather than whatever dedupeTissuesByDonor picked for the
+    // "Donor Details" table: a donor can have more than one Tissue record for
+    // this tissue_type (e.g. a Fixed block with a pathology report alongside
+    // the Frozen block this page actually represents), and the table
+    // deliberately prefers the one with a populated pathology_summary, which
+    // is not necessarily the real aliquot layout this page should visualize.
+    const selectedTissue =
+        selectedDonorUuid === donor?.uuid ? context : selectedDonorEntry?.tissue || context;
+    const selectedTissueUuid = selectedTissue?.uuid || tissueUuid;
+    const selectedPreservationType = selectedTissue?.preservation_type || preservation_type;
+    const selectedDonorDisplayTitle = selectedDonorEntry?.donor?.display_title || donor?.display_title;
+    // Real sample IDs are "{donor}-{protocol}-{aliquot}{suffix}" (e.g.
+    // "SMHT001-3I-001A1", see item_utils/tissue_sample.py's *_REGEX
+    // constants) -- the donor prefix belongs in front of the protocol code.
+    const aliquotIdPrefix =
+        selectedDonorDisplayTitle && tissueProtocolCode
+            ? `${selectedDonorDisplayTitle}-${tissueProtocolCode}`
+            : tissueProtocolCode;
 
     // The number of aliquots isn't a fixed/derivable constant (confirmed
     // against real TissueSample fixture data and PR smaht-dac/smaht-portal#728's
@@ -206,12 +229,13 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // block, so it has to come from a live count of this Tissue's own
     // TissueSamples rather than a hardcoded slice array.
     useEffect(() => {
-        if (!tissueUuid) {
+        if (!selectedTissueUuid) {
             setTissueSamples(null);
             return;
         }
+        setTissueSamples(null);
         ajax.load(
-            `/search/?type=TissueSample&status!=deleted&sample_sources.uuid=${encodeURIComponent(tissueUuid)}`,
+            `/search/?type=TissueSample&status!=deleted&sample_sources.uuid=${encodeURIComponent(selectedTissueUuid)}`,
             (resp) => {
                 setTissueSamples(resp?.['@graph'] || []);
             },
@@ -220,7 +244,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 setTissueSamples([]);
             }
         );
-    }, [tissueUuid]);
+    }, [selectedTissueUuid]);
 
     // Real samples win once loaded; while loading (tissueSamples === null) or
     // if none exist yet, fall back to the illustrative demo sets so the
@@ -257,14 +281,14 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
             // Loaded, but this tissue has no TissueSamples yet -- still show
             // the illustrative set for the known preservation_type so the
             // panel demonstrates the expected layout.
-            return preservation_type === 'Fixed' ? sampleFixedSlices : sampleFrozenSlices;
+            return selectedPreservationType === 'Fixed' ? sampleFixedSlices : sampleFrozenSlices;
         }
-        return preservation_type
-            ? preservation_type === 'Fixed'
+        return selectedPreservationType
+            ? selectedPreservationType === 'Fixed'
                 ? sampleFixedSlices
                 : sampleFrozenSlices
             : sampleAliquotSlicesFallback;
-    }, [tissueSamples, preservation_type]);
+    }, [tissueSamples, selectedPreservationType]);
 
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
@@ -402,27 +426,52 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     </div>
 
                     <div className="tissue-aliquot-card">
-                        {nonSolidSpecimenType ? (
-                            <NonSolidAliquotVisualization
-                                title="Sample non-solid aliquot layout"
-                                aliquots={nonSolidAliquots}
-                                specimenType={nonSolidSpecimenType}
-                                idPrefix={aliquotIdPrefix}
-                            />
-                        ) : (
-                            <AliquotVisualization
-                                title="Sample solid-organ aliquot layout"
-                                slices={solidAliquotSlices}
-                                dimensions={{
-                                    heightCm: 1,
-                                    depthCm: 1.5,
-                                    heightLabel: '1 cm',
-                                    depthLabel: '1.5 cm',
-                                }}
-                                idPrefix={aliquotIdPrefix}
-                                showSliceLabels={false}
-                            />
-                        )}
+                        <div className="tissue-aliquot-header">
+                            <span className="aliquot-title">
+                                {nonSolidSpecimenType
+                                    ? 'Sample non-solid aliquot layout'
+                                    : 'Sample solid-organ aliquot layout'}
+                            </span>
+                            {donors.length > 1 ? (
+                                <div className="tissue-aliquot-donor-select">
+                                    <label htmlFor="tissue-aliquot-donor-select">
+                                        Donor
+                                    </label>
+                                    <select
+                                        id="tissue-aliquot-donor-select"
+                                        className="form-select form-select-sm"
+                                        value={selectedDonorUuid || ''}
+                                        onChange={(e) => setSelectedDonorUuid(e.target.value)}>
+                                        {donors.map(({ donor: d }) => (
+                                            <option key={d.uuid} value={d.uuid}>
+                                                {getDisplayText(d)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ) : null}
+                        </div>
+                        <div className="tissue-aliquot-body">
+                            {nonSolidSpecimenType ? (
+                                <NonSolidAliquotVisualization
+                                    aliquots={nonSolidAliquots}
+                                    specimenType={nonSolidSpecimenType}
+                                    idPrefix={aliquotIdPrefix}
+                                />
+                            ) : (
+                                <AliquotVisualization
+                                    slices={solidAliquotSlices}
+                                    dimensions={{
+                                        heightCm: 1,
+                                        depthCm: 1.5,
+                                        heightLabel: '1 cm',
+                                        depthLabel: '1.5 cm',
+                                    }}
+                                    idPrefix={aliquotIdPrefix}
+                                    showSliceLabels={false}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
 
