@@ -122,11 +122,19 @@ function getCoreWellFromExternalId(externalId) {
 }
 
 const TissueViewTitle = ({ context }) => {
+    // A user reaches this page from a Browse-by-Tissue table header, i.e. by
+    // tissue *type*, not by picking this one specific Tissue record -- and
+    // which record actually renders here is itself a best-effort pick among
+    // possibly several sharing that type (see dedupeTissuesByDonor). Showing
+    // its specific instance ID (e.g. "SMHT001-3AL") in the breadcrumb would
+    // overstate that certainty, so use the same descriptive tissue name the
+    // page heading uses instead.
+    const targetTissueValue = context?.uberon_id || context?.tissue_type || null;
     const breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
         { display_title: 'Tissues' },
-        { display_title: context?.display_title || '' },
+        { display_title: getDisplayText(targetTissueValue) },
     ];
 
     return (
