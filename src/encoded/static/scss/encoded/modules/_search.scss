@@ -1606,6 +1606,24 @@ div.browse-link-icon {
 			border-bottom: 1px solid #E7F0F3;
 		}
 
+		// Background/text color come from each group's inline style (shared
+		// with viz/Matrix/DataMatrix.js's DEFAULT_ROW_GROUPS_EXTENDED
+		// palette, set in BrowseTissueHeatmapTable.js) -- this just covers
+		// typography and the divider between adjacent groups.
+		.tissue-heatmap-group-label {
+			font-size: 0.6875rem;
+			font-weight: 700;
+			letter-spacing: 0.03em;
+			text-transform: uppercase;
+			border-left: 1px solid #FFFFFF;
+			padding-top: 6px;
+			padding-bottom: 6px;
+
+			&:first-child {
+				border-left: none;
+			}
+		}
+
 		.tissue-heatmap-order-header,
 		.tissue-heatmap-donor-header {
 			min-width: 40px;

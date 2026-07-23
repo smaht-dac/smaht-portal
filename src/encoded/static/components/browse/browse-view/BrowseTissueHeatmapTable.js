@@ -6,10 +6,39 @@ import {
     DotRouter,
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
+import { GERM_LAYER_COLORS } from '../../util/germ-layer-colors';
 
 // Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
 // mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
 const TARGET_TISSUE_PERCENTAGE_ORDER = ['0', '[0-10]', '[11-25]', '[26-49]', '[50-100]'];
+
+// Column group order, by the same `category` values item_utils/tissue.py's
+// get_category() computes on each Tissue. Colors come from the shared
+// GERM_LAYER_COLORS palette (also used by viz/Matrix/DataMatrix.js) so this
+// table's germ-layer grouping reads as the same palette as that matrix.
+const GERM_LAYER_GROUP_ORDER = ['Ectoderm', 'Mesoderm', 'Endoderm', 'Germ Cells', 'Clinically Accessible'];
+const GERM_LAYER_GROUP_STYLES = GERM_LAYER_GROUP_ORDER.reduce((acc, category, order) => {
+    acc[category] = { order, label: category, ...GERM_LAYER_COLORS[category] };
+    return acc;
+}, {});
+const OTHER_GROUP_STYLE = { order: 99, label: 'Other', backgroundColor: '#E7EDF3', textColor: '#343741' };
+
+// tissueTypes is already sorted into contiguous germ-layer runs by
+// buildTissueMetricMatrix, so a single pass collapsing consecutive same-group
+// columns is enough to get each group's span.
+function buildColumnGroups(tissueTypes, tissueTypeCategories) {
+    const groups = [];
+    tissueTypes.forEach((tissueType) => {
+        const style = GERM_LAYER_GROUP_STYLES[tissueTypeCategories[tissueType]] || OTHER_GROUP_STYLE;
+        const lastGroup = groups[groups.length - 1];
+        if (lastGroup && lastGroup.style === style) {
+            lastGroup.span += 1;
+        } else {
+            groups.push({ style, span: 1 });
+        }
+    });
+    return groups;
+}
 
 // Exported for unit testing. Pivots raw Tissue search results into a
 // donor (external_id) x tissue_type matrix of values (as picked by
@@ -28,6 +57,7 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
     const cellsByDonorAndTissue = {};
     const tissueByDonorAndTissue = {};
     const tissueTypeHrefs = {};
+    const tissueTypeCategories = {};
 
     tissueResults.forEach((t) => {
         const donorId = t?.donor?.external_id;
@@ -36,6 +66,7 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
         if (!donors.includes(donorId)) donors.push(donorId);
         if (!tissueTypes.includes(tissueType)) tissueTypes.push(tissueType);
         if (!tissueTypeHrefs[tissueType] && t['@id']) tissueTypeHrefs[tissueType] = t['@id'];
+        if (!tissueTypeCategories[tissueType] && t.category) tissueTypeCategories[tissueType] = t.category;
 
         const key = `${donorId} ${tissueType}`;
         const existing = tissueByDonorAndTissue[key];
@@ -46,7 +77,15 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
     });
 
     donors.sort();
-    tissueTypes.sort();
+    // Group by germ layer/category first (Ectoderm, Mesoderm, Endoderm, Germ
+    // Cells, Clinically Accessible), alphabetical by display label within
+    // each group -- matches DataMatrix.js's DEFAULT_ROW_GROUPS_EXTENDED order.
+    tissueTypes.sort((a, b) => {
+        const orderA = (GERM_LAYER_GROUP_STYLES[tissueTypeCategories[a]] || OTHER_GROUP_STYLE).order;
+        const orderB = (GERM_LAYER_GROUP_STYLES[tissueTypeCategories[b]] || OTHER_GROUP_STYLE).order;
+        if (orderA !== orderB) return orderA - orderB;
+        return formatTissueTypeLabel(a).localeCompare(formatTissueTypeLabel(b));
+    });
 
     const matrix = donors.map((donor) => {
         return {
@@ -55,7 +94,7 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
         };
     });
 
-    return { tissueTypes, tissueTypeHrefs, matrix };
+    return { tissueTypes, tissueTypeHrefs, tissueTypeCategories, matrix };
 };
 
 const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
@@ -108,48 +147,66 @@ function getTargetTissuePercentageScoreClass(value) {
     return `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
 }
 
-const MetricHeatmapTable = ({ tissueTypes, tissueTypeHrefs, matrix, formatValue, getScoreClass }) => (
-    <div className="tissue-heatmap-table-wrap">
-        <table className="tissue-heatmap-table">
-            <thead>
-                <tr>
-                    <th className="tissue-heatmap-order-header" />
-                    <th className="tissue-heatmap-donor-header" />
-                    {tissueTypes.map((tissueType) => (
-                        <th key={tissueType} title={tissueType}>
-                            {tissueTypeHrefs[tissueType] ? (
-                                <a href={tissueTypeHrefs[tissueType]}>
-                                    {formatTissueTypeLabel(tissueType)}
-                                </a>
-                            ) : (
-                                formatTissueTypeLabel(tissueType)
-                            )}
-                        </th>
-                    ))}
-                </tr>
-            </thead>
-            <tbody>
-                {matrix.map(({ donor, cells }, rowIndex) => (
-                    <tr key={donor}>
-                        {rowIndex === 0 ? (
-                            <td className="tissue-heatmap-order-label" rowSpan={matrix.length}>
-                                <span>Donor Distribution Order</span>
-                            </td>
-                        ) : null}
-                        <td className="tissue-heatmap-donor-id">{donor}</td>
-                        {cells.map((value, i) => (
-                            <td
-                                key={tissueTypes[i]}
-                                className={'tissue-heatmap-cell ' + getScoreClass(value)}>
-                                {formatValue(value)}
-                            </td>
+const MetricHeatmapTable = ({ tissueTypes, tissueTypeHrefs, tissueTypeCategories, matrix, formatValue, getScoreClass }) => {
+    const columnGroups = buildColumnGroups(tissueTypes, tissueTypeCategories);
+    return (
+        <div className="tissue-heatmap-table-wrap">
+            <table className="tissue-heatmap-table">
+                <thead>
+                    <tr className="tissue-heatmap-group-row">
+                        <th className="tissue-heatmap-order-header" rowSpan={2} />
+                        <th className="tissue-heatmap-donor-header" rowSpan={2} />
+                        {columnGroups.map((group, i) => (
+                            <th
+                                key={i}
+                                colSpan={group.span}
+                                className="tissue-heatmap-group-label"
+                                title={group.style.label}
+                                style={{
+                                    backgroundColor: group.style.backgroundColor,
+                                    color: group.style.textColor,
+                                }}>
+                                {group.style.label}
+                            </th>
                         ))}
                     </tr>
-                ))}
-            </tbody>
-        </table>
-    </div>
-);
+                    <tr>
+                        {tissueTypes.map((tissueType) => (
+                            <th key={tissueType} title={tissueType}>
+                                {tissueTypeHrefs[tissueType] ? (
+                                    <a href={tissueTypeHrefs[tissueType]}>
+                                        {formatTissueTypeLabel(tissueType)}
+                                    </a>
+                                ) : (
+                                    formatTissueTypeLabel(tissueType)
+                                )}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {matrix.map(({ donor, cells }, rowIndex) => (
+                        <tr key={donor}>
+                            {rowIndex === 0 ? (
+                                <td className="tissue-heatmap-order-label" rowSpan={matrix.length}>
+                                    <span>Donor Distribution Order</span>
+                                </td>
+                            ) : null}
+                            <td className="tissue-heatmap-donor-id">{donor}</td>
+                            {cells.map((value, i) => (
+                                <td
+                                    key={tissueTypes[i]}
+                                    className={'tissue-heatmap-cell ' + getScoreClass(value)}>
+                                    {formatValue(value)}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
 
 export const BrowseTissueHeatmapTable = (props) => {
     const { href } = props;

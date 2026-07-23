@@ -15,6 +15,7 @@ import { Term } from './../../util/Schemas';
 import { compareTissueFacetTerms } from '../../util/data';
 import { FILE_BROWSE_HIDE_FACETS } from '../../browse/BrowseView';
 import { termTransformFxnWithOverrides } from '../../browse/SearchView';
+import { GERM_LAYER_COLORS } from '../../util/germ-layer-colors';
 
 export function isLocalEnv() {
     if (typeof window !== 'undefined' && window.location && window.location.href) {
@@ -123,11 +124,11 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     static DEFAULT_ROW_GROUPS_EXTENDED = {
-        Ectoderm: { backgroundColor: '#367151', textColor: '#ffffff', shortName: 'Ecto' },
-        Mesoderm: { backgroundColor: '#30975e', textColor: '#ffffff', shortName: 'Meso' },
-        Endoderm: { backgroundColor: '#53b27e', textColor: '#ffffff', shortName: 'Endo' },
-        'Germ cells': { backgroundColor: '#80c4a0', textColor: '#ffffff', shortName: 'Germ' },
-        'Clinically accessible': { backgroundColor: '#70a588', textColor: '#ffffff', shortName: 'Clin' },
+        Ectoderm: { ...GERM_LAYER_COLORS.Ectoderm, shortName: 'Ecto' },
+        Mesoderm: { ...GERM_LAYER_COLORS.Mesoderm, shortName: 'Meso' },
+        Endoderm: { ...GERM_LAYER_COLORS.Endoderm, shortName: 'Endo' },
+        'Germ cells': { ...GERM_LAYER_COLORS['Germ Cells'], shortName: 'Germ' },
+        'Clinically accessible': { ...GERM_LAYER_COLORS['Clinically Accessible'], shortName: 'Clin' },
     };
     static DEFAULT_COLUMN_GROUPS = {
         "Bulk WGS": {
