@@ -102,8 +102,10 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   `-m "not workbook"` and `make test-npm` means `-m workbook`; trust the recipes in `Makefile`.
   `make test-static` runs static pytest checks plus frontend lint. `make remote-test` uses the shared
   AWS-authenticated OpenSearch test service and is the CI path, not a credential-free local check.
-- React/Jest tests live in `src/encoded/static/components/__tests__/`; Cypress specifications and
-  configuration live under `deploy/post_deploy_testing/`. Use the `cypress:*` scripts in
+- There is no Jest/UI unit-test harness (`src/encoded/static/components/__tests__/` holds only a
+  `.jshintrc`; no jest dependency, config, or npm test script). Frontend invariants are covered by
+  static source-contract pytest checks in `src/encoded/tests/test_static.py`. Cypress specifications
+  and configuration live under `deploy/post_deploy_testing/`. Use the `cypress:*` scripts in
   `package.json`; they require Auth0 credentials and an explicit/local or deployed target.
 
 ## Integration and operational sharp edges

@@ -29,6 +29,10 @@ import {
     pageTitleViews,
 } from './../PageTitleSection';
 import { Term } from './../util/Schemas';
+import {
+    DataReleaseNotificationEnrollment,
+    DATA_RELEASE_NOTIFICATION_ENROLLED,
+} from './components/DataReleaseNotificationEnrollment';
 
 // eslint-disable-next-line no-unused-vars
 import { Item } from './../util/typedefs';
@@ -490,7 +494,7 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
 
 export default class UserView extends React.Component {
     static onEditableFieldSave(nextContext) {
-        store.dispatch({ type: 'CONTEXT', payload: nextContext });
+        store.dispatch({ type: 'SET_CONTEXT', payload: nextContext });
     }
 
     static propTypes = {
@@ -505,6 +509,7 @@ export default class UserView extends React.Component {
             status: PropTypes.string,
             timezone: PropTypes.string,
             role: PropTypes.string,
+            data_release_notification_enrolled: PropTypes.bool,
         }),
         href: PropTypes.string.isRequired,
         schemas: PropTypes.shape({
@@ -523,6 +528,22 @@ export default class UserView extends React.Component {
         }),
     };
 
+    constructor(props) {
+        super(props);
+        _.bindAll(this, 'handleNotificationEnrollmentChange');
+    }
+
+    handleNotificationEnrollmentChange(enrolled) {
+        const { context: user } = this.props;
+        store.dispatch({
+            type: 'SET_CONTEXT',
+            payload: {
+                ...user,
+                [DATA_RELEASE_NOTIFICATION_ENROLLED]: enrolled,
+            },
+        });
+    }
+
     mayEdit() {
         const { context } = this.props;
         return _.any((context && context.actions) || [], function (action) {
@@ -540,6 +561,13 @@ export default class UserView extends React.Component {
         } = this.props;
         const { email, project } = user;
         const mayEdit = this.mayEdit();
+        const currentUser = JWT.getUserDetails();
+        const isOwnProfile = Boolean(
+            currentUser &&
+                currentUser.email &&
+                email &&
+                currentUser.email.toLowerCase() === email.toLowerCase()
+        );
         // Todo: remove
         const ifCurrentlyEditingClass =
             this.state && this.state.currentlyEditing
@@ -633,6 +661,15 @@ export default class UserView extends React.Component {
                         </div>
 
                         <SyncedAccessKeyTable {...{ user }} />
+
+                        {isOwnProfile ? (
+                            <DataReleaseNotificationEnrollment
+                                user={user}
+                                onChange={
+                                    this.handleNotificationEnrollmentChange
+                                }
+                            />
+                        ) : null}
                     </div>
                 </div>
             </div>
@@ -811,7 +848,7 @@ export function ImpersonateUserForm({ updateAppSessionState }) {
     );
 
     return (
-        <div className='user-profile-page bg-light'>
+        <div className="user-profile-page bg-light">
             <div id="content" className="container card mt-36 col-12 col-lg-6">
                 <div className="card-body mt-3">
                     {/* <h2 className="text-400 mt-5">Impersonate a User</h2> */}
