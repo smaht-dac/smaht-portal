@@ -29,7 +29,7 @@ Change Log
   directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
   ``create-bulk-donor-manifest`` command keeps working.
 
-2.5.0
+2.5.1
 =====
 
 * Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items, and add a deployment command that uses set-based deletion per item type to purge already-stored historical propsheet rows while preserving each item's current version.
