@@ -62,6 +62,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
             () => {
                 onChange(true);
                 setSubmitting(false);
+                setBanner(null);
                 setShowConfirmModal(true);
             },
             'POST',
@@ -125,7 +126,6 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
     }
 
     const subscribed = Boolean(user[DATA_RELEASE_NOTIFICATION_ENROLLED]);
-    subscribed ? ' alert alert-success mb-0' : '';
     let buttonLabel = subscribed ? 'Unsubscribe' : 'Subscribe';
     if (submitting) {
         buttonLabel = subscribed ? 'Unsubscribing…' : 'Subscribing…';
@@ -196,9 +196,6 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                                     aria-label="Close"
                                     onClick={() => setBanner(null)}
                                 />
-                                <h4 className="alert-heading mt-0 mb-05">
-                                    {banner.title}
-                                </h4>
                                 <div className="mb-0">{banner.message}</div>
                             </div>
                         </>
