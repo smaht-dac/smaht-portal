@@ -454,7 +454,7 @@ def create_fixed_lung_sample_for_testing(es_testapp: TestApp) -> Dict[str, Any]:
     TEST_TISSUE_LUNG (protocol 1D, donor TEST_DONOR_MALE) -- the valid fixed
     counterpart for testing linked_fixed_samples.
     """
-    submitted_id = "TEST_TISSUE-SAMPLE_LUNG-FIXED_LINK_TEST"
+    submitted_id = "NDRITEST_TISSUE-SAMPLE_LUNG-FIXED_LINK_TEST"
     try:
         return get_item(es_testapp, submitted_id, collection="TissueSample")
     except Exception:
@@ -572,14 +572,14 @@ def test_associated_pathology_reports_calculated_property(
     try:
         report = get_item(
             es_testapp,
-            "TEST_NON-BRAIN-PATHOLOGY-REPORT_LUNG_LINK_TEST",
+            "NDRITEST_NON-BRAIN-PATHOLOGY-REPORT_LUNG_LINK_TEST",
             collection="PathologyReport",
         )
     except Exception:
         report = post_item(
             es_testapp,
             {
-                "submitted_id": "TEST_NON-BRAIN-PATHOLOGY-REPORT_LUNG_LINK_TEST",
+                "submitted_id": "NDRITEST_NON-BRAIN-PATHOLOGY-REPORT_LUNG_LINK_TEST",
                 "submission_centers": ["ndri_tpc"],
                 "tissue_name": "Lung",
                 "outcome": "Acceptable",
