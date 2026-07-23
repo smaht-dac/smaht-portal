@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+2.6.0
+=====
+
+`PR 719: Add restore-devtest-db command for snapshot-based devtest DB restore <https://github.com/smaht-dac/smaht-portal/pull/719>`_
+
+* Add the ``restore-devtest-db`` operator command, which rebuilds the ``smaht-devtest``
+  RDS database from a fresh snapshot of production and repoints the devtest IDENTITY
+  secret at the new instance. See ``docs/operations/restore_devtest_db.md``.
+* Update ``dcicsnovault`` to the newest compatible release ``11.34.0`` (within the
+  existing ``^11.30.0`` constraint). ``11.34.0`` drops its ``pmdarima`` dependency,
+  which had been transitively supplying ``pandas``; ``pandas`` is now declared
+  directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
+  ``create-bulk-donor-manifest`` command keeps working.
+
 2.5.0
 =====
 
@@ -49,6 +63,7 @@ Change Log
 
 * Support "+" age in donor view
 * Add popover for age field
+>>>>>>> main
 
 
 2.4.2
