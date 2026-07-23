@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.6.1
+=====
+
+`PR 727: add annotation mixin to supp file <https://github.com/smaht-dac/smaht-portal/pull/727>`_
+
+* Add annotation mixin to supplementary file schema to support the `annotated_file_name` script
+
+
 2.6.0
 =====
 
@@ -21,7 +29,7 @@ Change Log
   directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
   ``create-bulk-donor-manifest`` command keeps working.
 
-2.5.0
+2.5.1
 =====
 
 * Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items, and add a deployment command that uses set-based deletion per item type to purge already-stored historical propsheet rows while preserving each item's current version.
@@ -31,7 +39,7 @@ Change Log
 * Expand the ``delete-revision-history`` purge list from ``Workflow``/``MetaWorkflowRun`` to eight item types (``AccessKey``, ``FileFormat``, ``Workflow``, ``WorkflowRun``, ``MetaWorkflow``, ``MetaWorkflowRun``, ``Page``, ``StaticSection``), setting ``track_revisions = False`` on each type's own leaf class (never on a shared abstract base also extended by unrelated types like ``CellCulture``/``CellSample``/``CellCultureSample``), fixing a missing-comma adjacent-string-literal bug that had silently merged two of the intended targets into one bogus tuple element, and adding a registry-wide invariant test plus per-type revision-history-disabled coverage for every newly-added type.
 * ``Tissue`` and ``TissueSample`` were briefly added to the purge list above and then removed on the same (still unreleased) branch: the captain decided both may need revision history in the future, so their Postgres revision tracking remains enabled (the ordinary Snovault default) and neither is ever selected for cleanup. Added a registry-level test proving both stay tracked and unpurged, and positive coverage proving representative edits continue to produce accessible ``@@revision-history`` entries.
 
-
+  
 2.5.0
 =====
 
