@@ -1295,6 +1295,68 @@ export function testDonorTissueMode(matrixId) {
     });
 }
 
+/**
+ * Opens the matrix's Export dropdown and confirms both items ("Screenshot (PNG)"
+ * and "Export JSON") are present and enabled, then closes it without exporting.
+ */
+function assertExportDropdownItemsReady(exportToggleSelector) {
+    cy.get(exportToggleSelector).should('be.visible').and('not.be.disabled').click();
+
+    cy.get('.matrix-export-dropdown .dropdown-menu.show').should('be.visible').within(() => {
+        cy.contains('.dropdown-item', 'Screenshot (PNG)')
+            .should('exist')
+            .and('not.have.attr', 'aria-disabled', 'true');
+        cy.contains('.dropdown-item', 'Export JSON')
+            .should('exist')
+            .and('not.have.attr', 'aria-disabled', 'true');
+    });
+
+    // close without triggering an export
+    cy.get('body').click(0, 0, { force: true });
+    cy.get('.matrix-export-dropdown .dropdown-menu.show').should('not.exist');
+}
+
+/**
+ * Validates the matrix's "Export" toolbar dropdown (Screenshot (PNG) / Export JSON).
+ * This is a UI-level check only: it confirms the dropdown items are enabled and
+ * that triggering each export completes without a console error and without
+ * leaving the matrix or the toolbar in a stuck/errored state. It does not read
+ * back the downloaded file contents.
+ * @param {string} matrixId - The CSS selector for the data matrix (e.g. '#data-matrix-for_production').
+ */
+export function testMatrixExportControls(matrixId) {
+    const idLabel = matrixId.replace('#data-matrix-for_', '');
+    const exportToggleSelector = `#matrix-export-dropdown-${idLabel}`;
+
+    assertExportDropdownItemsReady(exportToggleSelector);
+
+    cy.window().then((win) => cy.spy(win.console, 'error').as('consoleError'));
+
+    // Export JSON — triggers a same-tab Blob download; assert it doesn't error and the dropdown closes
+    cy.get(exportToggleSelector).click();
+    cy.contains('.matrix-export-dropdown .dropdown-item', 'Export JSON').click({ force: true });
+    cy.get('.matrix-export-dropdown .dropdown-menu.show').should('not.exist');
+    cy.get(matrixId).should('exist');
+    cy.get('@consoleError').should('not.have.been.called');
+
+    // Screenshot (PNG) — triggers an async html-to-image capture; assert it completes
+    // without error and the toolbar item returns to its idle (enabled, non-spinner) state.
+    cy.get(exportToggleSelector).click();
+    cy.contains('.matrix-export-dropdown .dropdown-item', 'Screenshot (PNG)').click({ force: true });
+    cy.get('.matrix-export-dropdown .dropdown-menu.show').should('not.exist');
+    cy.get(matrixId).should('exist');
+
+    cy.get(exportToggleSelector, { timeout: 20000 }).click();
+    cy.contains('.matrix-export-dropdown .dropdown-item', 'Screenshot (PNG)', { timeout: 20000 })
+        .should('exist')
+        .and('not.have.attr', 'aria-disabled', 'true')
+        .and('not.contain.text', 'Capturing');
+    cy.get('@consoleError').should('not.have.been.called');
+
+    // close the dropdown left open by the assertion above
+    cy.get('body').click(0, 0, { force: true });
+}
+
 export function testProductionMatrixModeTabs(matrixId = '#data-matrix-for_production') {
     const tabLabels = ['Donor x Assay', 'Tissue x Assay', 'Donor x Tissue'];
     const fileCountsByMode = {};

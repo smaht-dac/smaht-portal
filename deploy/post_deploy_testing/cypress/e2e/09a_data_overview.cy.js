@@ -3,6 +3,7 @@ import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 import {
     testDonorAssayFilesCoverageToggle,
     testDonorTissueMode,
+    testMatrixExportControls,
     testMatrixPopoverValidation,
     testTissueAssayFilesDonorsToggle
 } from "../support/utils/dataMatrixUtils";
@@ -414,6 +415,30 @@ function stepDataMatrixBenchmarkingCoverageToggle() {
     testDonorAssayFilesCoverageToggle("#data-matrix-for_benchmarking");
 }
 
+/** Data Matrix (Production) — Export dropdown (Screenshot (PNG) / Export JSON) */
+function stepDataMatrixProductionExportControls(caps) {
+    activateProductionDataMatrix(caps);
+
+    cy.get("body").then(($body) => {
+        const $titleEl = Cypress.$($body)
+            .find(".tab-header .title")
+            .filter((_, el) => Cypress.$(el).text().trim() === "Production Data");
+
+        if ($titleEl.length === 0) {
+            return;
+        }
+
+        testMatrixExportControls("#data-matrix-for_production");
+    });
+}
+
+/** Data Matrix (Benchmarking) — Export dropdown (Screenshot (PNG) / Export JSON) */
+function stepDataMatrixBenchmarkingExportControls() {
+    activateBenchmarkingDataMatrix();
+
+    testMatrixExportControls("#data-matrix-for_benchmarking");
+}
+
 function assertCanSeeRetractedFilesMenu(caps) {
     cy.get(dataNavBarItemSelectorStr)
         .should("have.class", "dropdown-toggle")
@@ -566,6 +591,14 @@ describe("Data Overview by role", () => {
                     }
                     stepDataMatrixProductionDonorTissueMode(caps);
                 });
+
+                it("Production Data tab — Export dropdown (Screenshot (PNG) / Export JSON)", () => {
+                    if (!caps.runDataMatrixProduction) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepDataMatrixProductionExportControls(caps);
+                });
             });
 
             context(`Data Matrix — Benchmarking (enabled: ${caps.runDataMatrixBenchmarking})`, () => {
@@ -583,6 +616,14 @@ describe("Data Overview by role", () => {
                         return;
                     }
                     stepDataMatrixBenchmarkingCoverageToggle();
+                });
+
+                it("Benchmarking Data tab — Export dropdown (Screenshot (PNG) / Export JSON)", () => {
+                    if (!caps.runDataMatrixBenchmarking) {
+                        assertCannotAccessDataMatrixPage(caps);
+                        return;
+                    }
+                    stepDataMatrixBenchmarkingExportControls();
                 });
             });
         });
