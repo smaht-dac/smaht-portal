@@ -159,7 +159,12 @@ export const BrowseTissueHeatmapTable = (props) => {
     useEffect(() => {
         setLoading(true);
         ajax.load(
-            '/search/?type=Tissue&limit=all',
+            // Matches Browse by Donor/Browse by File's donor population
+            // (Production study, has_released_files tag) so this table
+            // doesn't list donors that don't have released files yet (e.g.
+            // benchmarking-only donors) -- see donor.study/donor.tags in
+            // types/tissue.py's embedded_list.
+            '/search/?type=Tissue&donor.study=Production&donor.tags=has_released_files&limit=all',
             (resp) => {
                 setTissueResults(resp?.['@graph'] || []);
                 setLoading(false);

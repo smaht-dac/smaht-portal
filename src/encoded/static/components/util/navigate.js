@@ -77,6 +77,8 @@ navigate.getBrowseBaseParams.mappings = {
     'tissue' : {
         'parameters': {
             'type': ['Tissue'],
+            'study': ['Production'],
+            'tags': ['has_released_files']
         }
     }
 };

@@ -223,6 +223,18 @@ export const ChartDataController = {
                 fileFilters['sample_summary.tissues'] = fileFilters.tissue_type;
                 delete fileFilters.tissue_type;
             }
+            // Same donor-population restriction the 'donor'/'protected-donor'
+            // mappings apply, so this stat box's donor count matches Browse
+            // by Donor/Browse by File instead of counting every donor with a
+            // Tissue record regardless of study or release status.
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'study') && fileFilters.study !== undefined) {
+                fileFilters['sample_summary.studies'] = fileFilters.study;
+                delete fileFilters.study;
+            }
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'tags') && fileFilters.tags !== undefined) {
+                fileFilters['donors.tags'] = fileFilters.tags;
+                delete fileFilters.tags;
+            }
             fileFilters.type = ['File'];
             fileFilters.status = ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
             fileFilters['dataset!'] = ['No value'];
