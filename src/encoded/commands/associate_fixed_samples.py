@@ -16,15 +16,26 @@ c4-scripts/ajs/NOTES/adjacent_fixed_sample_linking_session_2026-07-10.md for
 the design history.
 
 Core behavior:
-- Selects a set of GCC-submitted fresh/frozen TissueSamples to operate on,
-  via one of three mutually exclusive scopes: --all, --search-query, or
-  --identifiers / --identifiers-file.
+- Selects a set of TissueSamples to operate on, via one of three mutually
+  exclusive scopes: --all, --search-query, or --identifiers /
+  --identifiers-file. Populate mode only ever selects samples still eligible
+  as a GCC fresh/frozen source today; --delete deliberately reaches further
+  (see Reconciliation below), since a stale link needs to be reachable for
+  cleanup even after its source is no longer eligible.
 - By default (populate mode), computes each fresh sample's fixed siblings
   and PATCHes `linked_fixed_samples`, skipping samples that are already
   up to date.
 - With --delete, instead removes `linked_fixed_samples` (via `delete_fields`,
   a true removal of the key -- not an empty-array patch) from every sample
   in scope that currently has it set. This makes the operation reversible.
+- Reconciliation contract: `linked_fixed_samples` is meant to always reflect
+  current reality, not a point-in-time snapshot. So populate mode also
+  clears stale links -- both when a donor/protocol group's fixed
+  counterpart has disappeared, and (in --all scope only, since it's the
+  only scope with full visibility) via a sweep that finds every TissueSample
+  currently holding the field and clears it on any that this run didn't
+  otherwise handle (e.g. a source that's since changed submission center or
+  preservation_type).
 - Warns when a donor/protocol group has fresh samples but no fixed
   counterpart, or (in --all scope only) fixed samples with no fresh
   counterpart ("orphaned" fixed samples, whose PathologyReport would never
@@ -47,15 +58,19 @@ Options:
         that don't have the field populated yet.
 
     --identifiers ID [ID ...]
-        One or a few TissueSample accessions, uuids, or submitted_ids.
-        Must resolve to GCC-submitted fresh/frozen samples.
+        One or a few TissueSample accessions, uuids, or submitted_ids. For
+        populate, must resolve to GCC-submitted fresh/frozen samples; for
+        --delete, any TissueSample identifier is accepted (so a now-ineligible
+        record can still be targeted directly for cleanup).
 
     --identifiers-file PATH
         Path to a file with one identifier per line, for bulk targeted runs.
 
     --delete
         Remove `linked_fixed_samples` instead of populating it, for every
-        sample in scope that currently has it set.
+        sample in scope that currently has it set. Unlike populate, --delete's
+        scopes are not restricted to today's GCC-fresh/frozen eligibility, so
+        it can reach and clean up records that have since become ineligible.
 
     --dry-run
         Show planned operations but do not execute them.
@@ -76,7 +91,7 @@ Examples:
 
 import argparse
 import pprint
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from dcicutils import ff_utils  # noqa
 
@@ -84,6 +99,11 @@ from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
     item as item_utils,
     tissue_sample as tissue_sample_utils,
+)
+from encoded.item_utils.constants.tissue_sample import (
+    FRESH_PRESERVATION_TYPES,
+    FIXED_PRESERVATION_TYPE,
+    FRESH_TO_FIXED_PROTOCOL_MAP,
 )
 from encoded.item_utils.utils import RequestHandler
 
@@ -102,45 +122,12 @@ TPC_SEARCH_FILTER = f"{BASE_SEARCH_FILTER}&submission_centers.display_title=NDRI
 NDRI_TPC_ID = "ndri_tpc"
 NDRI_TPC_DT = "NDRI TPC"
 
-FRESH_PRESERVATION_TYPES = ["Fresh", "Frozen", "Snap Frozen"]
-FIXED_PRESERVATION_TYPE = "Fixed"
 LINKED_FIXED_SAMPLES_FIELD = "linked_fixed_samples"
 
-# Because linking is now "all fixed <-> all fresh in the same block" rather than
-# spatially adjacent aliquots, brain and non-brain tissue collapse into one flat
-# map -- each hippocampus hemisphere already has its own protocol code, so
-# laterality is enforced by the map itself with no special-case code needed.
-FRESH_TO_FIXED_PROTOCOL_MAP = {
-    # Non-brain solid tissues
-    "3C": "3D",    # Esophagus
-    "3E": "3F",    # Colon, Ascending
-    "3G": "3H",    # Colon, Descending
-    "3I": "3J",    # Liver
-    "3K": "3L",    # Adrenal Gland, Left
-    "3M": "3N",    # Adrenal Gland, Right
-    "3O": "3P",    # Aorta, Abdominal
-    "3Q": "3R",    # Lung
-    "3S": "3T",    # Heart, LV
-    "3U": "3V",    # Testis, Left
-    "3W": "3X",    # Testis, Right
-    "3Y": "3Z",    # Ovary, Left
-    "3AA": "3AB",  # Ovary, Right
-    "3AD": "3AE",  # Skin, Calf
-    "3AF": "3AG",  # Skin, Abdomen
-    "3AH": "3AI",  # Muscle
-    # Benchmarking
-    "1A": "1C",    # Liver
-    "1D": "1F",    # Lung
-    "1G": "1I",    # Colon
-    "1J": "1L",    # Skin (specimen)
-    "1K": "1L",    # Skin (core)
-    # Brain subregions (laterality enforced by distinct protocol codes)
-    "3AK": "3AP",  # Frontal Lobe
-    "3AL": "3AQ",  # Temporal Lobe
-    "3AM": "3AR",  # Cerebellum
-    "3AN": "3AS",  # Hippocampus, Left hemisphere
-    "3AO": "3AT",  # Hippocampus, Right hemisphere
-}
+# FRESH_PRESERVATION_TYPES, FIXED_PRESERVATION_TYPE, and FRESH_TO_FIXED_PROTOCOL_MAP
+# live in encoded.item_utils.constants.tissue_sample (imported above) rather than here,
+# since the linked_fixed_samples validator in types/tissue_sample.py needs the same
+# data and types/ must not import from commands/.
 
 
 class FixedSampleAssociator:
@@ -159,18 +146,29 @@ class FixedSampleAssociator:
 
     # ---- selection ----
 
-    def get_target_fresh_samples(
+    def get_target_samples(
         self,
         scope: str,
+        action: str,
         search_query: Optional[str] = None,
         identifiers: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
+        """action is "populate" or "delete". Populate only ever targets samples
+        still eligible as a GCC fresh/frozen source today. Delete deliberately
+        reaches further: a record that's become ineligible since it was last
+        populated (its fixed counterpart deleted, or its own preservation_type
+        /submission_center changed) must still be reachable for cleanup, or a
+        stale link could survive indefinitely for anything other than a full
+        --all reconciliation sweep."""
+        require_eligible = action != "delete"
         if scope == "all":
-            return self._search_fresh_samples()
+            return self._search_all_current_holders() if action == "delete" else self._search_fresh_samples()
         if scope == "query":
+            if action == "delete":
+                return self._search_by_query(search_query)
             return self._search_fresh_samples(extra_query=search_query)
         if scope == "identifiers":
-            return self._get_fresh_samples_by_identifier(identifiers or [])
+            return self._get_samples_by_identifier(identifiers or [], require_eligible=require_eligible)
         raise ValueError(f"Unknown scope: {scope}")
 
     def _search_fresh_samples(
@@ -192,12 +190,33 @@ class FixedSampleAssociator:
         samples = ff_utils.search_metadata(search_filter, key=self.key)
         return [sample for sample in samples if not self._is_tpc_submitted(sample)]
 
-    def _get_fresh_samples_by_identifier(
-        self, identifiers: List[str]
+    def _search_all_current_holders(self) -> List[Dict[str, Any]]:
+        """Every TissueSample that currently has linked_fixed_samples populated,
+        regardless of current preservation_type/submission_center/status. This
+        is the reconciliation sweep's source of truth for "everything that
+        currently claims a link" -- used by --all's stale-holder cleanup pass
+        (see _clear_stale_holders) and by --all --delete."""
+        search_filter = f"/search/?type=TissueSample&{LINKED_FIXED_SAMPLES_FIELD}!=No value"
+        return ff_utils.search_metadata(search_filter, key=self.key)
+
+    def _search_by_query(self, query: Optional[str]) -> List[Dict[str, Any]]:
+        """Used for --search-query --delete: a raw search with no
+        preservation_type/submission_center restriction, so delete isn't
+        accidentally confined to today's still-eligible GCC samples."""
+        search_filter = BASE_SEARCH_FILTER
+        if query:
+            search_filter += f"&{query}"
+        return ff_utils.search_metadata(search_filter, key=self.key)
+
+    def _get_samples_by_identifier(
+        self, identifiers: List[str], require_eligible: bool
     ) -> List[Dict[str, Any]]:
         """Resolve identifiers one at a time (not via RequestHandler.get_items,
         which dedupes/drops missing items) so each bad identifier gets its own
-        warning rather than silently disappearing."""
+        warning rather than silently disappearing. When require_eligible is
+        False (delete scope), the fresh/frozen + non-TPC eligibility checks are
+        skipped entirely, so an operator can target and clear any record by
+        identifier even if it's no longer a valid populate source."""
         valid_samples = []
         for identifier in identifiers:
             sample = self.request_handler.get_item(identifier)
@@ -207,18 +226,19 @@ class FixedSampleAssociator:
             if item_utils.get_type(sample) != "TissueSample":
                 self.add_warning(f"{identifier} is not a TissueSample - skipping.")
                 continue
-            if sample.get("preservation_type") not in FRESH_PRESERVATION_TYPES:
-                self.add_warning(
-                    f"{identifier} has preservation_type "
-                    f"{sample.get('preservation_type')!r}, not fresh/frozen - skipping."
-                )
-                continue
-            if self._is_tpc_submitted(sample):
-                self.add_warning(
-                    f"{identifier} is TPC-submitted, not GCC - skipping (only "
-                    f"GCC-submitted fresh/frozen samples are valid targets)."
-                )
-                continue
+            if require_eligible:
+                if sample.get("preservation_type") not in FRESH_PRESERVATION_TYPES:
+                    self.add_warning(
+                        f"{identifier} has preservation_type "
+                        f"{sample.get('preservation_type')!r}, not fresh/frozen - skipping."
+                    )
+                    continue
+                if self._is_tpc_submitted(sample):
+                    self.add_warning(
+                        f"{identifier} is TPC-submitted, not GCC - skipping (only "
+                        f"GCC-submitted fresh/frozen samples are valid targets)."
+                    )
+                    continue
             valid_samples.append(sample)
         return valid_samples
 
@@ -241,42 +261,70 @@ class FixedSampleAssociator:
 
     def compute_and_patch(self, fresh_samples: List[Dict[str, Any]], scope: str) -> None:
         fresh_by_donor_protocol = self._group_by_donor_and_protocol(fresh_samples)
-        if not fresh_by_donor_protocol:
-            return
         donor_uuids = sorted({donor_uuid for donor_uuid, _ in fresh_by_donor_protocol})
 
-        if scope == "all":
-            fixed_index = self._build_fixed_sample_index_global()
-        else:
-            fixed_index = self._build_fixed_sample_index_for_donors(donor_uuids)
+        if donor_uuids:
+            if scope == "all":
+                fixed_index = self._build_fixed_sample_index_global()
+            else:
+                fixed_index = self._build_fixed_sample_index_for_donors(donor_uuids)
 
-        for (donor_uuid, fresh_protocol), fresh_group in fresh_by_donor_protocol.items():
-            fixed_protocol = FRESH_TO_FIXED_PROTOCOL_MAP.get(fresh_protocol)
-            fixed_group = fixed_index.get((donor_uuid, fixed_protocol), [])
-            if not fixed_group:
-                self.add_warning(
-                    f"No TPC fixed counterpart (protocol {fixed_protocol}) for donor "
-                    f"{donor_uuid}, GCC fresh protocol {fresh_protocol} "
-                    f"({len(fresh_group)} fresh sample(s)). This can be expected if "
-                    f"TPC hasn't submitted/processed this block's fixed samples yet."
-                )
-                continue
-            fixed_uuids = sorted({item_utils.get_uuid(f) for f in fixed_group})
-            for fresh_sample in fresh_group:
-                self._add_populate_operation(fresh_sample, fixed_uuids)
+            for (donor_uuid, fresh_protocol), fresh_group in fresh_by_donor_protocol.items():
+                fixed_protocol = FRESH_TO_FIXED_PROTOCOL_MAP.get(fresh_protocol)
+                fixed_group = fixed_index.get((donor_uuid, fixed_protocol), [])
+                if not fixed_group:
+                    self.add_warning(
+                        f"No TPC fixed counterpart (protocol {fixed_protocol}) for donor "
+                        f"{donor_uuid}, GCC fresh protocol {fresh_protocol} "
+                        f"({len(fresh_group)} fresh sample(s)). This can be expected if "
+                        f"TPC hasn't submitted/processed this block's fixed samples yet."
+                    )
+                    # Reconciliation: if any of these fresh samples still carry a
+                    # link from before the fixed counterpart disappeared, clear
+                    # it rather than leaving stale data behind.
+                    for fresh_sample in fresh_group:
+                        self._add_clear_if_stale(fresh_sample)
+                    continue
+                fixed_uuids = sorted({item_utils.get_uuid(f) for f in fixed_group})
+                for fresh_sample in fresh_group:
+                    self._add_populate_operation(fresh_sample, fixed_uuids)
+
+            if scope == "all":
+                # Only meaningful for a full run: a scoped fixed-sample index only
+                # contains the donors already touched by the fresh side, so every
+                # group would trivially look "covered" regardless of whether the
+                # specific fresh protocol was actually in scope.
+                self._check_for_orphaned_fixed_samples(fresh_by_donor_protocol, fixed_index)
 
         if scope == "all":
-            # Only meaningful for a full run: a scoped fixed-sample index only
-            # contains the donors already touched by the fresh side, so every
-            # group would trivially look "covered" regardless of whether the
-            # specific fresh protocol was actually in scope.
-            self._check_for_orphaned_fixed_samples(fresh_by_donor_protocol, fixed_index)
+            handled_uuids = {
+                item_utils.get_uuid(sample)
+                for group in fresh_by_donor_protocol.values()
+                for sample in group
+            }
+            self._clear_stale_holders(handled_uuids)
+
+    def _normalize_link_identifier(self, value: Union[str, Dict[str, Any]]) -> str:
+        """linked_fixed_samples entries can appear as: a dict with 'uuid' (search
+        results / embedded frame), a bare uuid string, or a resource-path/@id
+        string like '/tissue-samples/<uuid>/' (frame="object" -- used by the
+        RequestHandler in --identifiers scope -- canonicalizes stored linkTo
+        values this way). Normalize all three to a bare uuid so idempotency
+        comparisons are frame-independent; without this, an --identifiers run
+        against an already-correct record would compare resource paths against
+        bare uuids, never match, and needlessly re-PATCH/reindex every time."""
+        if isinstance(value, dict):
+            return value.get("uuid", "")
+        if isinstance(value, str) and value.startswith("/"):
+            segments = [segment for segment in value.strip("/").split("/") if segment]
+            return segments[-1] if segments else value
+        return value
 
     def _add_populate_operation(
         self, fresh_sample: Dict[str, Any], fixed_uuids: List[str]
     ) -> None:
         current = sorted(
-            item.get("uuid", "") if isinstance(item, dict) else item
+            self._normalize_link_identifier(item)
             for item in (fresh_sample.get(LINKED_FIXED_SAMPLES_FIELD) or [])
         )
         identifier = self._get_identifier_to_report(fresh_sample)
@@ -296,27 +344,62 @@ class FixedSampleAssociator:
             }
         )
 
+    def _add_clear_if_stale(self, sample: Dict[str, Any]) -> None:
+        """If `sample` currently has linked_fixed_samples populated but is no
+        longer part of a valid donor/protocol group (its fixed counterpart is
+        gone, or the sample itself is no longer eligible), clear the field.
+        Leaving stale data in place would actively mislead
+        associated_pathology_reports -- worse than having no data at all."""
+        if not sample.get(LINKED_FIXED_SAMPLES_FIELD):
+            return
+        identifier = self._get_identifier_to_report(sample)
+        self.patch_infos.append(
+            f"  - {identifier}: clearing stale {LINKED_FIXED_SAMPLES_FIELD} (no longer valid)."
+        )
+        self.operations.append(
+            {
+                "uuid": item_utils.get_uuid(sample),
+                "patch_body": {},
+                "delete_fields": LINKED_FIXED_SAMPLES_FIELD,
+            }
+        )
+
+    def _clear_stale_holders(self, handled_uuids: Set[str]) -> None:
+        """Full-sweep reconciliation (--all only): find every TissueSample that
+        currently has linked_fixed_samples populated, and clear it on any that
+        weren't handled by this run's donor/protocol grouping above. These are
+        records that are no longer valid sources (fixed counterpart deleted,
+        preservation_type/submission_center changed since last populated), or
+        that never should have had the field at all (e.g. an unmapped
+        protocol like Blood/Buccal Swab/Fibroblast)."""
+        for holder in self._search_all_current_holders():
+            if item_utils.get_uuid(holder) not in handled_uuids:
+                self._add_clear_if_stale(holder)
+
     def _check_for_orphaned_fixed_samples(
         self,
         fresh_by_donor_protocol: Dict[Tuple[str, str], List[Dict[str, Any]]],
         fixed_index: Dict[Tuple[str, str], List[Dict[str, Any]]],
     ) -> None:
-        # NB: 1J and 1K both map to fixed protocol 1L, so this reverse map
-        # collapses that pair -- purely cosmetic (it only affects which fresh
-        # protocol code gets named in the warning text below), not a
-        # correctness issue for the forward matching above.
-        fixed_to_fresh_protocol = {v: k for k, v in FRESH_TO_FIXED_PROTOCOL_MAP.items()}
+        # 1J and 1K both map to fixed protocol 1L (benchmarking skin specimen/core),
+        # so a naive {v: k for k, v in ...} reverse map drops one of them and
+        # false-positives an "orphaned" warning on a fixed group that's actually
+        # correctly linked via the other fresh protocol. get_fixed_to_fresh_protocols()
+        # returns the full fixed_protocol -> {fresh_protocols} mapping instead.
+        fixed_to_fresh_protocols = tissue_sample_utils.get_fixed_to_fresh_protocols()
         for (donor_uuid, fixed_protocol), fixed_group in fixed_index.items():
-            fresh_protocol = fixed_to_fresh_protocol.get(fixed_protocol)
-            if fresh_protocol is None:
-                continue
-            if (donor_uuid, fresh_protocol) not in fresh_by_donor_protocol:
+            fresh_protocols = fixed_to_fresh_protocols.get(fixed_protocol, set())
+            covered = any(
+                (donor_uuid, fresh_protocol) in fresh_by_donor_protocol
+                for fresh_protocol in fresh_protocols
+            )
+            if not covered:
                 self.add_warning(
                     f"Orphaned TPC fixed sample(s) for donor {donor_uuid}, protocol "
-                    f"{fixed_protocol}: no GCC fresh/frozen counterpart (protocol "
-                    f"{fresh_protocol}) found. This can be expected if GCC hasn't "
-                    f"submitted sequencing samples for this block yet -- but until "
-                    f"they do, any PathologyReport on these sample(s) will not "
+                    f"{fixed_protocol}: no GCC fresh/frozen counterpart (protocol(s) "
+                    f"{sorted(fresh_protocols)}) found. This can be expected if GCC "
+                    f"hasn't submitted sequencing samples for this block yet -- but "
+                    f"until they do, any PathologyReport on these sample(s) will not "
                     f"surface via associated_pathology_reports."
                 )
 
@@ -536,19 +619,20 @@ def main() -> None:
         scope, search_query, identifiers = "identifiers", None, args.identifiers
 
     associator = FixedSampleAssociator(auth_key=auth_key, dry_run=args.dry_run)
-    fresh_samples = associator.get_target_fresh_samples(
-        scope, search_query=search_query, identifiers=identifiers
+    action = "delete" if args.delete else "populate"
+    target_samples = associator.get_target_samples(
+        scope, action, search_query=search_query, identifiers=identifiers
     )
 
-    if not fresh_samples:
+    if not target_samples:
         associator.print_error_and_exit(
-            "No matching fresh/frozen TissueSamples found for the given scope."
+            "No matching TissueSamples found for the given scope."
         )
 
     if args.delete:
-        associator.compute_and_delete(fresh_samples)
+        associator.compute_and_delete(target_samples)
     else:
-        associator.compute_and_patch(fresh_samples, scope)
+        associator.compute_and_patch(target_samples, scope)
 
     print(f"\nThe following operations were computed for {warning_text(server)}:")
     for info in associator.patch_infos:

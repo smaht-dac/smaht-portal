@@ -27,6 +27,7 @@ from ..item_utils import (
     tissue_sample as tissue_sample_utils,
     item as item_utils,
 )
+from ..item_utils.constants import tissue_sample as tissue_sample_constants
 
 from ..item_utils.utils import RequestHandler
 
@@ -308,6 +309,114 @@ def run_sample_metadata_validation(context, request, data, mode):
     return request.validated.update({})
 
 
+def run_linked_fixed_samples_validation(context, request, data, mode):
+    """Validate `linked_fixed_samples` on a fresh/frozen TissueSample.
+
+    `linked_fixed_samples` is a `restricted_fields`-permission field meant to
+    be maintained only by commands/associate_fixed_samples.py, not
+    hand-edited. This validator doubles as a safety net on that script's own
+    computed output, since it already calls validate_patch(check_only=true)
+    before every real patch -- a bug in the script's computation would get
+    caught here too, not just a malicious/mistaken manual edit.
+    """
+    linked_fixed_samples = get_property_value(
+        "linked_fixed_samples", context, request, mode, data
+    )
+    if not linked_fixed_samples:
+        return request.validated.update({})
+
+    preservation_type = get_property_value(
+        "preservation_type", context, request, mode, data
+    )
+    submission_centers = get_property_value(
+        "submission_centers", context, request, mode, data
+    )
+    external_id = get_property_value("external_id", context, request, mode, data)
+
+    if preservation_type not in tissue_sample_constants.FRESH_PRESERVATION_TYPES:
+        return request.errors.add(
+            "body",
+            "TissueSample: invalid link",
+            f"linked_fixed_samples can only be set on a fresh/frozen sample; "
+            f"this sample's preservation_type is {preservation_type!r}.",
+        )
+    if is_tpc_submission(request, submission_centers):
+        return request.errors.add(
+            "body",
+            "TissueSample: invalid link",
+            "linked_fixed_samples can only be set on a GCC-submitted sample, "
+            "not a TPC-submitted one.",
+        )
+
+    source_protocol = tissue_sample_utils.get_protocol_id_from_external_id(external_id)
+    valid_fixed_protocols = {
+        fixed_protocol
+        for fixed_protocol, fresh_protocols in tissue_sample_utils.get_fixed_to_fresh_protocols().items()
+        if source_protocol in fresh_protocols
+    }
+    if not valid_fixed_protocols:
+        return request.errors.add(
+            "body",
+            "TissueSample: invalid link",
+            f"linked_fixed_samples cannot be set: protocol {source_protocol!r} has "
+            f"no mapped fixed counterpart.",
+        )
+
+    request_handler = RequestHandler(request=request)
+    source_donors = tissue_sample_utils.get_donor(request_handler, data)
+    source_donor = source_donors[0] if source_donors else None
+
+    for target_identifier in linked_fixed_samples:
+        target = get_item_or_none(request, target_identifier, "tissue-samples")
+        if not target:
+            return request.errors.add(
+                "body",
+                "TissueSample: invalid link",
+                f"linked_fixed_samples target {target_identifier} does not exist.",
+            )
+        if item_utils.get_status(target) == "deleted":
+            return request.errors.add(
+                "body",
+                "TissueSample: invalid link",
+                f"linked_fixed_samples target {target_identifier} is deleted.",
+            )
+        if not is_tpc_submission(request, item_utils.get_submission_centers(target)):
+            return request.errors.add(
+                "body",
+                "TissueSample: invalid link",
+                f"linked_fixed_samples target {target_identifier} must be TPC-submitted.",
+            )
+        if target.get("preservation_type") != tissue_sample_constants.FIXED_PRESERVATION_TYPE:
+            return request.errors.add(
+                "body",
+                "TissueSample: invalid link",
+                f"linked_fixed_samples target {target_identifier} must have "
+                f"preservation_type {tissue_sample_constants.FIXED_PRESERVATION_TYPE!r}.",
+            )
+        target_protocol = tissue_sample_utils.get_protocol_id_from_external_id(
+            item_utils.get_external_id(target)
+        )
+        if target_protocol not in valid_fixed_protocols:
+            return request.errors.add(
+                "body",
+                "TissueSample: invalid link",
+                f"linked_fixed_samples target {target_identifier} has protocol "
+                f"{target_protocol!r}, not a valid fixed counterpart of source "
+                f"protocol {source_protocol!r}.",
+            )
+        target_donors = tissue_sample_utils.get_donor(request_handler, target)
+        target_donor = target_donors[0] if target_donors else None
+        if not source_donor or not target_donor or source_donor != target_donor:
+            return request.errors.add(
+                "body",
+                "TissueSample: invalid link",
+                f"linked_fixed_samples target {target_identifier} does not belong "
+                f"to the same donor as this sample.",
+            )
+
+    return request.validated.update({})
+
+
 @link_related_validator
 def validate_external_id_on_add(context, request):
     if "force_pass" in request.query_string:
@@ -346,9 +455,22 @@ def validate_tissue_sample_metadata_on_edit(context, request):
     return run_sample_metadata_validation(context, request, data, "edit")
 
 
+@link_related_validator
+def validate_linked_fixed_samples_on_add(context, request):
+    data = request.json
+    return run_linked_fixed_samples_validation(context, request, data, "add")
+
+
+@link_related_validator
+def validate_linked_fixed_samples_on_edit(context, request):
+    data = get_request_data_for_edit(context, request)
+    return run_linked_fixed_samples_validation(context, request, data, "edit")
+
+
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
     validate_external_id_on_add,
     validate_tissue_sample_metadata_on_add,
+    validate_linked_fixed_samples_on_add,
 ]
 
 
@@ -366,11 +488,13 @@ def tissue_sample_add(context, request, render=None):
 TISSUE_SAMPLE_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
     validate_external_id_on_edit,
     validate_tissue_sample_metadata_on_edit,
+    validate_linked_fixed_samples_on_edit,
 ]
 
 TISSUE_SAMPLE_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
     validate_external_id_on_edit,
     validate_tissue_sample_metadata_on_edit,
+    validate_linked_fixed_samples_on_edit,
 ]
 
 
