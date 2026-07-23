@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "2.4.4"
+version = "2.6.0"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -42,7 +42,7 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "^11.30.0"
+dcicsnovault = "^11.35.0"
 dcicutils = "^8.18.3"
 docutils = ">=0.16,<1"
 encoded-core = "^1.0.0"
@@ -55,6 +55,10 @@ idna = "^3.10"
 jmespath = "0.9.0"
 netaddr = ">=0.8.0,<1"
 openpyxl = "^3.0.7,!=3.0.8"  # a version 3.0.8 appeared but then got withdrawn, for now just pin 3.0.7. try again later.
+# pandas is imported directly by encoded.commands.create_bulk_donor_manifest. It was
+# previously pulled in transitively via dcicsnovault's pmdarima dependency; snovault
+# 11.34.0 dropped pmdarima, so declare pandas directly to keep that command working.
+pandas = "^3.0.0"
 passlib = "^1.7.4"
 PasteDeploy = "^3.1.0"
 pbkdf2 = "1.3"
@@ -180,6 +184,8 @@ wipe-test-indices = "snovault.commands.wipe_test_indices:main"
 associate-fixed-samples = "encoded.commands.associate_fixed_samples:main"
 create-annotated-filenames = "encoded.commands.create_annotated_filenames:main"
 create-bulk-donor-manifest = "encoded.commands.create_bulk_donor_manifest:main"
+create-mapping-on-deploy-verbose = "encoded.commands.create_mapping_on_deploy_verbose:main"
+delete-revision-history = "encoded.commands.delete_revision_history:main"
 flatten-structured-data = "encoded.commands.flatten_structured_data:main"  # For dev/testing only
 load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
@@ -187,6 +193,7 @@ prepare-docker = "encoded.commands.prepare_template:prepare_docker_main"
 prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
 prune-restricted-users = "encoded.commands.prune_restricted_users:main"
 release-file = "encoded.commands.release_file:main"
+restore-devtest-db = "encoded.commands.restore_devtest_db:main"
 release-donor-metadata = "encoded.commands.release_donor_metadata:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"

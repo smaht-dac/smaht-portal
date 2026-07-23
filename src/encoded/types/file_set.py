@@ -115,6 +115,7 @@ def _build_file_set_embedded_list():
         "libraries.analytes.samples.sample_sources.uberon_id",
         "libraries.analytes.samples.sample_sources.cell_line.code",
         "libraries.analytes.samples.sample_sources.uberon_id",
+        "libraries.analytes.samples.sample_sources.tissue_type",
         "libraries.analytes.samples.sample_sources.donor.display_title",
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group

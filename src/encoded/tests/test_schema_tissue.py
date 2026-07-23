@@ -9,6 +9,27 @@ from .utils import (
 )
 
 
+def test_tissue_revision_history_is_tracked(
+    testapp: TestApp, test_tissue: Dict[str, Any]
+) -> None:
+    """Tissue retains Postgres revision-history tracking (the captain decided
+    Tissue/TissueSample history may be needed in the future, so - unlike the
+    other eight types this PR opts out of tracking - Tissue does not set
+    track_revisions = False). Proves this against actual edit behavior, not
+    just the absence of a class attribute: each edit produces one more
+    accessible revision, and none of them ever 404.
+    """
+    uuid = test_tissue["uuid"]
+    testapp.patch_json(f"/{uuid}", {"pathology_notes": "first note"}, status=200)
+    revisions = testapp.get(f"/{uuid}/@@revision-history", status=200).json["revisions"]
+    revision_count_after_first_edit = len(revisions)
+    assert revision_count_after_first_edit >= 1
+
+    testapp.patch_json(f"/{uuid}", {"pathology_notes": "second note"}, status=200)
+    revisions = testapp.get(f"/{uuid}/@@revision-history", status=200).json["revisions"]
+    assert len(revisions) == revision_count_after_first_edit + 1
+
+
 @pytest.mark.workbook
 @pytest.mark.parametrize(
     "patch_body,expected_status",
