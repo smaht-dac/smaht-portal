@@ -93,7 +93,9 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   and start PostgreSQL/OpenSearch; fixtures and shared settings are in `src/encoded/tests/conftest.py`
   and `conftest_settings.py`.
 - Focus first: `pytest -vv src/encoded/tests/test_<area>.py` or add `-k <name>`. Pure utility tests can
-  run alone, but schema/type/view tests usually need the fixture stack. Add
+  run alone, but schema/type/view tests usually need the fixture stack. For fully mocked/unit tests,
+  `NO_SERVER_FIXTURES=true` makes the session-scoped PostgreSQL/ES fixtures no-ops so they run without
+  local database binaries (the gate lives in `dcicutils.ff_mocks` and `snovault.tests.serverfixtures`). Add
   `--cov=encoded.<module> --cov-report=term-missing` for focused coverage; conftest imports before
   coverage starts can make import-time lines appear missed.
 - `make test` runs both marker groups. Despite legacy target names, `make test-unit` means
