@@ -2,8 +2,8 @@ import _ from 'underscore';
 const jose = require('jose');
 
 import {
-    navUserAcctDropdownBtnSelector,
     navUserAcctLoginBtnSelector,
+    navUserAcctLoggedInMenuSelector,
 } from './selectorVars';
 
 /** Expected to throw error of some sort if not on search page, or no results. */
@@ -95,7 +95,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
     //ensure user is logged out first
     if (options.forceLogout) {
         cy.get('body').then(($body) => {
-            if ($body.find(navUserAcctDropdownBtnSelector + '#account-menu-item').length > 0) {
+            if ($body.find(navUserAcctLoggedInMenuSelector).length > 0) {
                 cy.logoutSMaHT().end();
             }
         });
@@ -105,7 +105,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
         return cy
             .window()
             .then((w) => {
-                cy.request({
+                return cy.request({
                     url: '/login',
                     method: 'POST',
                     body: JSON.stringify({ id_token: token }),
@@ -115,32 +115,37 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                         'Content-Type': 'application/json; charset=UTF-8',
                     },
                     followRedirect: true,
-                })
-                    .then(function (resp) {
-                        if (resp.status && resp.status === 200) {
-                            cy.request({
-                                url: '/session-properties',
-                                method: 'GET',
-                                headers: {
-                                    Accept: 'application/json',
-                                    'Content-Type':
-                                        'application/json; charset=UTF-8',
-                                },
-                            })
-                                .then(function (userInfoResponse) {
-                                    w.SMaHT.JWT.saveUserInfoLocalStorage(
-                                        userInfoResponse.body
-                                    );
-                                    // Triggers app.state.session change (req'd to update UI)
-                                    w.SMaHT.app.updateAppSessionState();
-                                    // Refresh curr page/context
-                                    w.SMaHT.navigate('', { inPlace: true });
-                                })
-                                .end();
-                        }
-                    })
-                    .end();
+                }).then(function (resp) {
+                    expect(resp.status, 'login response status').to.equal(200);
+                    return cy.request({
+                        url: '/session-properties',
+                        method: 'GET',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json; charset=UTF-8',
+                        },
+                    }).then(function (userInfoResponse) {
+                        expect(userInfoResponse.status, 'session-properties response status').to.equal(200);
+                        expect(userInfoResponse.body, 'authenticated session properties').to.be.an('object');
+                        w.SMaHT.JWT.saveUserInfoLocalStorage(userInfoResponse.body);
+                        // Triggers app.state.session change (req'd to update UI)
+                        w.SMaHT.app.updateAppSessionState();
+                        // Refresh curr page/context
+                        w.SMaHT.navigate('', { inPlace: true });
+                    });
+                });
             })
+            // Login mutates SPA state asynchronously (updateAppSessionState +
+            // an in-place navigate re-render the navbar); wait for the
+            // authenticated account menu to actually be present before
+            // treating login as complete. The generic `.user-account-item`
+            // selector also matches the logged-out login button, so a plain
+            // "not contain Login / Register" check here could pass on stale
+            // DOM - navUserAcctLoggedInMenuSelector can only match the menu.
+            .get('#slow-load-container', { timeout: 20000 })
+            .should('not.have.class', 'visible')
+            .get(navUserAcctLoggedInMenuSelector, { timeout: 20000 })
+            .should('be.visible')
             .validateUser(userDisplayName)
             .end();
     }
@@ -154,7 +159,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
         }
     }
 
-    cy.fixture('roles.json').then((roles) => {
+    return cy.fixture('roles.json').then((roles) => {
         let email, auth0UserId, shortname;
         if (roles && roles[role] && roles[role].email && roles[role].auth0UserId) {
             ({ email, auth0UserId, shortname } = roles[role]);
@@ -188,19 +193,26 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
 });
 
 Cypress.Commands.add('validateUser', function (userDisplayName = '') {
-    return cy.get(navUserAcctDropdownBtnSelector)
+    Cypress.log({
+        name: 'Validate User',
+        message: 'Validating user is ' + userDisplayName,
+    });
+    return cy.get(navUserAcctLoggedInMenuSelector, { timeout: 20000 })
         .should('not.contain.text', 'Login / Register')
-        .then((accountListItem) => {
-            Cypress.log({
-                name: 'Validate User',
-                message: 'Validating user is ' + userDisplayName,
-            });
-            expect(accountListItem.text()).to.contain(userDisplayName);
-        }).end();
+        .and(($accountListItem) => {
+            if (userDisplayName) {
+                expect($accountListItem.text(), 'authenticated user display name')
+                    .to.contain(userDisplayName);
+            }
+        });
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
-    cy.getLoadedMenuItem(navUserAcctDropdownBtnSelector)
+    // Use the id-scoped selector (not the ambiguous navUserAcctDropdownBtnSelector,
+    // which also matches the logged-out login button) so a not-yet-applied login
+    // fails with a clear "element not found" instead of silently asserting
+    // dropdown-toggle against #loginbtn.
+    return cy.getLoadedMenuItem(navUserAcctLoggedInMenuSelector)
         .click({ force: true })
         .should("have.class", "dropdown-open-for")
         .then(() => {

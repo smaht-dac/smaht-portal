@@ -4,7 +4,8 @@ import {
     testDonorAssayFilesCoverageToggle,
     testDonorTissueMode,
     testMatrixPopoverValidation,
-    testTissueAssayFilesDonorsToggle
+    testTissueAssayFilesDonorsToggle,
+    waitForMatrixModeRender
 } from "../support/utils/dataMatrixUtils";
 
 const EMPTY_DM_PROD_OPTS = {
@@ -308,6 +309,12 @@ function activateProductionDataMatrix(caps) {
             .parents(".tab-card")
             .should("have.class", "is-active")
             .and("have.attr", "aria-hidden", "false");
+
+        // The tab becoming active only means the panel is displayed; the
+        // matrix contents inside it can still be mid-render/refresh for a
+        // moment after that, which is what produced the intermittent
+        // "grouping-row label-section span never found" failures.
+        waitForMatrixModeRender("#data-matrix-for_production");
     });
 }
 
@@ -323,6 +330,10 @@ function activateBenchmarkingDataMatrix() {
         .parents(".tab-card")
         .should("have.class", "is-active")
         .and("have.attr", "aria-hidden", "false");
+
+    // See activateProductionDataMatrix - the panel becoming active doesn't
+    // guarantee the matrix contents inside it have finished rendering.
+    waitForMatrixModeRender("#data-matrix-for_benchmarking");
 }
 
 /** Data Matrix (Production) — expand donors and validate popovers */
