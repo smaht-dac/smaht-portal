@@ -386,7 +386,12 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         }
         setDonorsLoading(true);
         ajax.load(
-            `/search/?type=Tissue&tissue_type=${encodeURIComponent(tissueMatrixFilterValue)}&limit=all`,
+            // donor.study/donor.tags restrict this to the same donor
+            // population Browse by Donor/Browse by File use (Production
+            // study, has_released_files tag) -- see types/tissue.py's
+            // embedded_list -- so this list doesn't include donors who don't
+            // have released files yet (e.g. benchmarking-only donors).
+            `/search/?type=Tissue&tissue_type=${encodeURIComponent(tissueMatrixFilterValue)}&donor.study=Production&donor.tags=has_released_files&limit=all`,
             (resp) => {
                 const results = resp?.['@graph'] || [];
                 setAllTissuesForType(results);
