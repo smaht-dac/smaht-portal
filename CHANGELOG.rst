@@ -8,15 +8,14 @@ Change Log
 ----------
 
 
-<<<<<<< HEAD
-2.4.5
+2.5.1
 =====
 
 `PR 727: add annotation mixin to supp file <https://github.com/smaht-dac/smaht-portal/pull/727>`_
 
 * Add annotation mixin to supplementary file schema to support the `annotated_file_name` script
+
   
-=======
 2.5.0
 =====
 
@@ -31,7 +30,6 @@ Change Log
 * Fix tissue filtering so benchmarking file sets (whose ``tissue_type`` omits the code
   prefix) are no longer dropped, and add ``tissue_type`` to the file set embedded list.
 
->>>>>>> main
 
 2.4.4
 =====
