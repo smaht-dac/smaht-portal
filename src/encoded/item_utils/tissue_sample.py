@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Set, Union
 
 from .utils import (
     RequestHandler,
@@ -11,6 +11,8 @@ from . import (
     sample as sample_utils,
     tissue as tissue_utils
 )
+
+from .constants import tissue_sample as tissue_sample_constants
 
 from ..item_utils.tissue import (
     BENCHMARKING_ID_REGEX,
@@ -135,3 +137,38 @@ def get_tissue_kit_id_from_external_id(external_id: str) -> str:
 def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""
     return external_id.split("-")[1]
+
+def get_fixed_to_fresh_protocols() -> Dict[str, Set[str]]:
+    """Reverse FRESH_TO_FIXED_PROTOCOL_MAP as fixed_protocol -> {fresh_protocols}.
+
+    More than one fresh protocol can map to the same fixed protocol (e.g. the
+    benchmarking skin specimen/core protocols 1J and 1K both -> 1L), so a plain
+    `{v: k for k, v in ...}` comprehension silently drops all but one fresh
+    protocol per fixed protocol. Centralized here so the association script and
+    the linked_fixed_samples validator share one (correct) reverse mapping.
+    """
+    reverse_map: Dict[str, Set[str]] = {}
+    for fresh_protocol, fixed_protocol in tissue_sample_constants.FRESH_TO_FIXED_PROTOCOL_MAP.items():
+        reverse_map.setdefault(fixed_protocol, set()).add(fresh_protocol)
+    return reverse_map
+
+
+def get_associated_pathology_reports(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get pathology reports for fixed samples from the same tissue block.
+
+    Chains this sample's `linked_fixed_samples` (forward link) through each
+    fixed sample's own `pathology_reports` (rev_link_atids, present in the
+    default @@object frame), preserving the fixed-sample pairing so callers
+    can trace which fixed sample produced which report.
+    """
+    linked_fixed_samples = properties.get("linked_fixed_samples", [])
+    fixed_samples = request_handler.get_items(linked_fixed_samples)
+    return [
+        {
+            "fixed_sample_external_id": item_utils.get_external_id(fixed_sample),
+            "pathology_reports": fixed_sample.get("pathology_reports", []),
+        }
+        for fixed_sample in fixed_samples
+    ]

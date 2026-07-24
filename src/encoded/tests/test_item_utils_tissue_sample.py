@@ -80,3 +80,35 @@ def test_homogenate_external_id_regex(external_id: Dict[str, Any], expected_matc
 def test_get_tissue_kit_id(properties: Dict[str, Any], expected: str) -> None:
     """Test tissue kit ID retrieval for annotated filenames."""
     assert tissue_sample_utils.get_tissue_kit_id(properties) == expected
+
+
+def test_get_fixed_to_fresh_protocols_maps_1j_and_1k_to_1l() -> None:
+    """Both benchmarking skin protocols (1J specimen, 1K core) map to the same
+    fixed protocol 1L. A naive {v: k for k, v in ...} reverse map silently
+    drops one of them; get_fixed_to_fresh_protocols() must keep both, or a
+    donor with only a 1J (or only a 1K) fresh group would incorrectly be
+    reported as missing a fresh counterpart for its 1L fixed samples.
+    """
+    reverse_map = tissue_sample_utils.get_fixed_to_fresh_protocols()
+    assert reverse_map["1L"] == {"1J", "1K"}
+
+
+@pytest.mark.parametrize(
+    "fixed_protocol,expected_fresh_protocols",
+    [
+        ("3J", {"3I"}),
+        ("3D", {"3C"}),
+        ("1L", {"1J", "1K"}),
+        ("3AP", {"3AK"}),
+        ("3AS", {"3AN"}),
+        ("3AT", {"3AO"}),
+    ],
+)
+def test_get_fixed_to_fresh_protocols_pairings(
+    fixed_protocol: str, expected_fresh_protocols: Dict[str, Any]
+) -> None:
+    """Spot-check a handful of protocol pairings, including brain hemisphere
+    codes (3AS/3AT), which must stay distinct rather than collapsing left and
+    right hippocampus together."""
+    reverse_map = tissue_sample_utils.get_fixed_to_fresh_protocols()
+    assert reverse_map[fixed_protocol] == expected_fresh_protocols
