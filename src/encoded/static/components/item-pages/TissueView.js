@@ -50,6 +50,16 @@ const formatYesNo = (value) => {
     return value ? 'Yes' : 'No';
 };
 
+// tissue_autolysis_score is an integer 0-3 (mixins.json's
+// tissue_autolysis_score: 0=None, 1=mild, 2=moderate, 3=severe) -- the whole
+// cell is tinted by severity, same direction as BrowseTissueHeatmapTable.js's
+// heatmap cells but a soft pastel fill instead of a solid one, matching this
+// table's plainer style. Exported for the <td>'s own className.
+const getAutolysisScoreCellClass = (value) => {
+    if (typeof value !== 'number') return '';
+    return `autolysis-score-cell score-${Math.min(value, 3)}`;
+};
+
 // Exported for unit testing. When a donor has multiple Tissue records for
 // this tissue_type, prefers the one with a populated pathology_summary over
 // an arbitrary "first encountered" pick, so this matches the selection rule
@@ -589,7 +599,9 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                                 </td>
                                                 <td>{getDisplayText(d.sex)}</td>
                                                 <td>{getDisplayText(d.age)}</td>
-                                                <td>{getDisplayText(pathologySummary.autolysis_score)}</td>
+                                                <td className={getAutolysisScoreCellClass(pathologySummary.autolysis_score)}>
+                                                    {getDisplayText(pathologySummary.autolysis_score)}
+                                                </td>
                                                 <td>{formatYesNo(pathologySummary.non_target_tissue_present)}</td>
                                                 <td>{formatYesNo(pathologySummary.pathologic_finding_present)}</td>
                                                 <td>

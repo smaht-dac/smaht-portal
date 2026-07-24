@@ -2730,9 +2730,9 @@ File and Donor Overview Styles
 				flex-direction: column;
 
 				.header {
-					background-color: #F4F3FD;
+					background-color: #EAF6ED;
 					padding: 12px 20px;
-					border-bottom: 1px solid #E7F0F3;
+					border-bottom: 1px solid #CDEBD8;
 
 					.header-text {
 						font-size: 1.0625rem;
@@ -2890,9 +2890,9 @@ File and Donor Overview Styles
 			margin-bottom: 24px;
 
 			.header {
-				background-color: #F4F3FD;
+				background-color: #EAF6ED;
 				padding: 12px 20px;
-				border-bottom: 1px solid #E7F0F3;
+				border-bottom: 1px solid #CDEBD8;
 
 				.header-text {
 					font-size: 1.0625rem;
@@ -2910,7 +2910,7 @@ File and Donor Overview Styles
 				margin-bottom: 0;
 
 				th, td {
-					padding: 12px 20px;
+					padding: 8px 20px;
 					vertical-align: middle;
 					white-space: nowrap;
 				}
@@ -2923,7 +2923,6 @@ File and Donor Overview Styles
 				}
 
 				tbody td {
-					border-bottom: 1px solid #EEF1F4;
 					color: #212529;
 
 					a {
@@ -2931,8 +2930,38 @@ File and Donor Overview Styles
 					}
 				}
 
-				tbody tr:last-of-type td {
-					border-bottom: none;
+				// Zebra striping instead of a border between every row --
+				// matches the reference design and reads as more compact
+				// at the tighter row height above.
+				tbody tr:nth-child(even) td {
+					background-color: #F6FAF7;
+				}
+
+				// Soft severity-tinted fill for the whole Autolysis Score
+				// cell (0=None through 3=severe) -- same direction as the
+				// Browse-by-Tissue heatmap's solid-filled score cells, but a
+				// pastel tint instead, matching this table's plainer style.
+				// `td.score-N` beats the zebra-row rule above since it's
+				// more specific (a class selector vs. `:nth-child`).
+				td.autolysis-score-cell {
+					font-weight: 600;
+
+					&.score-0 {
+						background-color: #E6F6EA;
+						color: #1F9F55;
+					}
+					&.score-1 {
+						background-color: #FDF3D8;
+						color: #8A6D1D;
+					}
+					&.score-2 {
+						background-color: #FCE8D7;
+						color: #B15C00;
+					}
+					&.score-3 {
+						background-color: #FBE4E1;
+						color: #C0392B;
+					}
 				}
 			}
 		}
