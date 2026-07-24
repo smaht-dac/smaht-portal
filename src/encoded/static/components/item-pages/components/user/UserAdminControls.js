@@ -63,6 +63,8 @@ const reactSelectStyles = {
 };
 
 const LOAD = { loading: 1, loaded: 2, failed: 3 };
+const noSubmissionCenters = () => 'No submission centers found';
+const submissionCentersFailed = () => 'Failed to load submission centers';
 
 /**
  * Admin-only right-side control panel on the User profile page. Renders three
@@ -196,32 +198,24 @@ export default class UserAdminControls extends React.Component {
         // `embedded.@id` and `embedded.@type` to the requested fields
         // (snovault/search/search.py `list_source_fields`), so each result
         // still carries the `@id` that computeSubmitsForOptions needs.
-        this.setState({ scStatus: LOAD.loading });
+        const { scStatus } = this.state;
+        if (scStatus !== LOAD.loading) {
+            this.setState({ scStatus: LOAD.loading });
+        }
         ajax.load(
             '/search/?type=SubmissionCenter&limit=all&field=display_title&field=identifier',
             (resp) => {
                 const { options, labelMap } = computeSubmitsForOptions(
                     (resp && resp['@graph']) || []
                 );
-                // Ensure any @ids already on the user (but absent from search,
-                // e.g. a deleted center) still have a chip label from the
-                // embedded context.
-                const { user } = this.props;
-                (user && Array.isArray(user.submits_for)
-                    ? user.submits_for
-                    : []
-                ).forEach((sc) => {
-                    if (sc && typeof sc === 'object' && sc['@id']) {
-                        if (!labelMap[sc['@id']]) {
-                            labelMap[sc['@id']] =
-                                sc.display_title || sc.identifier || sc['@id'];
-                        }
-                    }
-                });
-                this.setState({
-                    scOptions: options,
-                    scLabelMap: labelMap,
-                    scStatus: LOAD.loaded,
+                this.setState(({ scLabelMap }) => {
+                    return {
+                        scOptions: options,
+                        // Retain embedded labels for centers absent from search;
+                        // prefer fresh labels for centers that were returned.
+                        scLabelMap: { ...scLabelMap, ...labelMap },
+                        scStatus: LOAD.loaded,
+                    };
                 });
             },
             'GET',
@@ -378,11 +372,18 @@ export default class UserAdminControls extends React.Component {
         const changedFields = getChangedFields(original, draft);
         const hasChanges = changedFields.length > 0;
 
-        const myDetails = JWT.getUserDetails() || {};
-        const isSelf =
-            !!myDetails.email && !!user.email && myDetails.email === user.email;
-        const diffRows = diffUserFields(original, draft, scLabelMap);
-        const warnings = computeChangeWarnings(original, draft, isSelf);
+        // Defer modal-only work and JWT access during ordinary panel renders.
+        let diffRows;
+        let warnings;
+        if (showConfirm) {
+            const myDetails = JWT.getUserDetails() || {};
+            const isSelf =
+                !!myDetails.email &&
+                !!user.email &&
+                myDetails.email === user.email;
+            diffRows = diffUserFields(original, draft, scLabelMap);
+            warnings = computeChangeWarnings(original, draft, isSelf);
+        }
 
         return (
             <div
@@ -469,10 +470,10 @@ export default class UserAdminControls extends React.Component {
                                     ? 'Failed to load submission centers'
                                     : 'Select submission center(s)'
                             }
-                            noOptionsMessage={() =>
+                            noOptionsMessage={
                                 scStatus === LOAD.failed
-                                    ? 'Failed to load submission centers'
-                                    : 'No submission centers found'
+                                    ? submissionCentersFailed
+                                    : noSubmissionCenters
                             }
                             isDisabled={saving}
                         />
