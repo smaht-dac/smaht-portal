@@ -538,14 +538,23 @@ def test_associated_pathology_reports_calculated_property(
     )
 
     # pathology_reports is a rev_link_atids property, so it holds resource-path
-    # atids (e.g. /non-brain-pathology-reports/<uuid>/), not bare uuids.
+    # atids (e.g. /non-brain-pathology-reports/<uuid>/), not bare uuids -- but
+    # only under frame="object". Without it, the default/page view embeds
+    # every linkTo-typed field (including this one, since its own calculated
+    # property schema declares linkTo) into full nested objects instead.
     target_view = get_item(
-        testapp, test_tpc_fixed_tissue_sample["uuid"], collection="TissueSample"
+        testapp,
+        test_tpc_fixed_tissue_sample["uuid"],
+        collection="TissueSample",
+        frame="object",
     )
     assert test_non_brain_pathology_report["@id"] in (target_view.get("pathology_reports") or [])
 
     source_view = get_item(
-        testapp, test_gcc_fresh_tissue_sample["uuid"], collection="TissueSample"
+        testapp,
+        test_gcc_fresh_tissue_sample["uuid"],
+        collection="TissueSample",
+        frame="object",
     )
     associated = source_view.get("associated_pathology_reports") or []
     assert len(associated) == 1
