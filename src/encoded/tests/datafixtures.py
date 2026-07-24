@@ -544,7 +544,8 @@ def test_tissue_sample(
 # submission center with identifier "ndri_tpc" -- none of the existing
 # fixtures above use that identifier, so a dedicated one is needed here.
 
-TEST_NDRI_TPC_SUBMITTED_ID_CODE = "NDRITEST"
+TEST_NDRI_TPC_SUBMISSION_CENTER_CODE = "ndritest"
+TEST_NDRI_TPC_SUBMITTED_ID_CODE = TEST_NDRI_TPC_SUBMISSION_CENTER_CODE.upper()
 
 
 @pytest.fixture
@@ -553,7 +554,7 @@ def test_ndri_tpc_submission_center(testapp: TestApp) -> Dict[str, Any]:
     item = {
         "identifier": "ndri_tpc",
         "title": "NDRI TPC Test",
-        "code": TEST_NDRI_TPC_SUBMITTED_ID_CODE,
+        "code": TEST_NDRI_TPC_SUBMISSION_CENTER_CODE,
     }
     return post_item_and_return_location(testapp, item, "submission_center")
 
