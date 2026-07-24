@@ -76,7 +76,15 @@ export const dedupeTissuesByDonor = (tissueResults = []) => {
             byDonorUuid.set(d.uuid, { donor: d, tissue: tissueItem });
         }
     });
-    return Array.from(byDonorUuid.values());
+    // Sort by donor display_title (e.g. "SMHT001", "SMHT004", ...) so the
+    // Donor Details table and the aliquot donor picker both show a stable,
+    // predictable order instead of whatever order the search results happen
+    // to arrive in.
+    return Array.from(byDonorUuid.values()).sort((a, b) => {
+        const aLabel = a.donor?.display_title || '';
+        const bLabel = b.donor?.display_title || '';
+        return aLabel.localeCompare(bLabel, undefined, { numeric: true });
+    });
 };
 
 const TissueDatum = ({ title, value, unit = null, href = null }) => {
