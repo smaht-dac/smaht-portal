@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Set, Union
 
 from .utils import (
     RequestHandler,
@@ -11,6 +11,8 @@ from . import (
     sample as sample_utils,
     tissue as tissue_utils
 )
+
+from .constants import tissue_sample as tissue_sample_constants
 
 from ..item_utils.tissue import (
     BENCHMARKING_ID_REGEX,
@@ -140,6 +142,21 @@ def get_protocol_id_from_external_id(external_id: str) -> str:
 def get_pathology_reports(properties: Dict[str, Any]) -> List[str]:
     """Get pathology_reports (rev link) from properties."""
     return properties.get("pathology_reports", []) or []
+
+
+def get_fixed_to_fresh_protocols() -> Dict[str, Set[str]]:
+    """Reverse FRESH_TO_FIXED_PROTOCOL_MAP as fixed_protocol -> {fresh_protocols}.
+
+    More than one fresh protocol can map to the same fixed protocol (e.g. the
+    benchmarking skin specimen/core protocols 1J and 1K both -> 1L), so a plain
+    `{v: k for k, v in ...}` comprehension silently drops all but one fresh
+    protocol per fixed protocol. Centralized here so the association script and
+    the linked_fixed_samples validator share one (correct) reverse mapping.
+    """
+    reverse_map: Dict[str, Set[str]] = {}
+    for fresh_protocol, fixed_protocol in tissue_sample_constants.FRESH_TO_FIXED_PROTOCOL_MAP.items():
+        reverse_map.setdefault(fixed_protocol, set()).add(fresh_protocol)
+    return reverse_map
 
 
 def get_associated_pathology_reports(

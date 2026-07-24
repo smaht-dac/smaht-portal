@@ -105,6 +105,7 @@
             "description": "Fixed TissueSamples from the same tissue block as this fresh/frozen sample.",
             "type": "array",
             "uniqueItems": true,
+            "permission": "restricted_fields",
             "items": {
                 "type": "string",
                 "linkTo": "TissueSample"
