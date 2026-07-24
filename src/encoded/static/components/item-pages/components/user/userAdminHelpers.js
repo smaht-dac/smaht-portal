@@ -174,8 +174,8 @@ export function diffUserFields(original, draft, labelMap = {}) {
         if (field === 'status') {
             return {
                 field,
-                from: (original.status || '(none)'),
-                to: (draft.status || '(none)'),
+                from: original.status || '(none)',
+                to: draft.status || '(none)',
             };
         }
         const toLabel = (id) => labelMap[id] || id;
@@ -221,7 +221,11 @@ export function formatPatchError(errorResp) {
             .map((e) => e.description || e.name || String(e))
             .join('; ');
     }
-    return errorResp.detail || errorResp.description || 'An unknown error occurred.';
+    return (
+        errorResp.detail ||
+        errorResp.description ||
+        'An unknown error occurred.'
+    );
 }
 
 /**
@@ -246,7 +250,9 @@ export function computeChangeWarnings(original, draft, isSelf) {
     const origGroups = new Set(original.groups || []);
     const nextGroups = new Set(draft.groups || []);
     if (!origGroups.has('admin') && nextGroups.has('admin')) {
-        warnings.push('Adding the "admin" group grants full administrative privileges.');
+        warnings.push(
+            'Adding the "admin" group grants full administrative privileges.'
+        );
     }
     if (
         !origGroups.has('read-only-admin') &&

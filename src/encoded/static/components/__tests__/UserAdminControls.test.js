@@ -102,7 +102,10 @@ describe('userAdminHelpers - change detection', () => {
 
     it('detects a changed status', () => {
         expect(
-            isFieldChanged('status', original, { ...original, status: 'deleted' })
+            isFieldChanged('status', original, {
+                ...original,
+                status: 'deleted',
+            })
         ).toBe(true);
     });
 
@@ -186,7 +189,11 @@ describe('userAdminHelpers - buildUserPatchPayload', () => {
 
 describe('userAdminHelpers - diffUserFields', () => {
     it('produces from→to rows and maps submits_for @ids to labels', () => {
-        const original = { status: 'current', groups: [], submits_for: ['/a/'] };
+        const original = {
+            status: 'current',
+            groups: [],
+            submits_for: ['/a/'],
+        };
         const draft = {
             status: 'deleted',
             groups: ['admin'],
@@ -313,9 +320,12 @@ jest.mock('@hms-dbmi-bgm/shared-portal-components/es/components/util', () => ({
     JWT: { getUserDetails: () => ({ email: 'admin@example.com' }) },
 }));
 
-jest.mock('@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts', () => ({
-    Alerts: { queue: jest.fn() },
-}));
+jest.mock(
+    '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts',
+    () => ({
+        Alerts: { queue: jest.fn() },
+    })
+);
 
 // react-bootstrap ships untranspiled ESM under node_modules (ignored by the
 // Babel transform); stub the Modal to a passthrough so the component imports.
@@ -346,7 +356,12 @@ describe('UserAdminControls - render', () => {
                 status: { enum: ['current', 'deleted', 'inactive', 'revoked'] },
                 groups: {
                     items: {
-                        enum: ['admin', 'read-only-admin', 'dbgap', 'public-dbgap'],
+                        enum: [
+                            'admin',
+                            'read-only-admin',
+                            'dbgap',
+                            'public-dbgap',
+                        ],
                     },
                 },
             },

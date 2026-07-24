@@ -1,5 +1,11 @@
 'use strict';
 
+/**
+ * Admin-only control panel for the User profile page.
+ *
+ * @module item-pages/components/user/UserAdminControls
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -70,7 +76,7 @@ const LOAD = { loading: 1, loaded: 2, failed: 3 };
  * validator on all three fields — a non-admin who forges this panel still
  * cannot PATCH them.
  *
- * @memberof module:item-pages/components/user
+ * @memberof module:item-pages/components/user/UserAdminControls
  */
 export default class UserAdminControls extends React.Component {
     static propTypes = {
@@ -123,7 +129,11 @@ export default class UserAdminControls extends React.Component {
         this.state = {
             baselineStatus: LOAD.loading,
             original: baseline,
-            draft: { ...baseline, groups: baseline.groups.slice(), submits_for: baseline.submits_for.slice() },
+            draft: {
+                ...baseline,
+                groups: baseline.groups.slice(),
+                submits_for: baseline.submits_for.slice(),
+            },
             scOptions: [],
             scLabelMap: initialLabelMap,
             scStatus: LOAD.loading,
@@ -375,7 +385,9 @@ export default class UserAdminControls extends React.Component {
         const warnings = computeChangeWarnings(original, draft, isSelf);
 
         return (
-            <div className="user-admin-controls card h-100" data-testid="user-admin-controls">
+            <div
+                className="user-admin-controls card h-100"
+                data-testid="user-admin-controls">
                 <div className="card-header">
                     <h3 className="block-title">
                         <i className="icon icon-user-shield fas icon-fw me-12" />
