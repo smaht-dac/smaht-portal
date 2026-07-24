@@ -548,7 +548,7 @@ def test_validate_linked_fixed_samples_target_must_be_tpc(
 
 @pytest.mark.workbook
 def test_associated_pathology_reports_calculated_property(
-    es_testapp: TestApp, workbook: None
+    testapp: TestApp, es_testapp: TestApp, workbook: None
 ) -> None:
     """Once linked_fixed_samples is set, associated_pathology_reports on the
     fresh sample surfaces the fixed sample's PathologyReport(s) paired with
@@ -591,10 +591,18 @@ def test_associated_pathology_reports_calculated_property(
 
     # pathology_reports is a rev_link_atids property, so it holds resource-path
     # atids (e.g. /pathology-reports/<uuid>/), not bare uuids.
-    target_view = get_item(es_testapp, target["uuid"], collection="TissueSample")
+    #
+    # Verification reads use the plain `testapp`, not `es_testapp`: a rev-link
+    # created moments ago in this same test may not be reflected in the ES
+    # index yet, and plain testapp's GETs are always computed fresh from
+    # Postgres (collection_datastore stays "database"), matching the
+    # established pattern in test_types_donor_specific_assembly.py's
+    # test_sequence_files_rev_link. es_testapp is still needed for every
+    # write above, since run_sample_metadata_validation requires ES.
+    target_view = get_item(testapp, target["uuid"], collection="TissueSample")
     assert report["@id"] in (target_view.get("pathology_reports") or [])
 
-    source_view = get_item(es_testapp, source["uuid"], collection="TissueSample")
+    source_view = get_item(testapp, source["uuid"], collection="TissueSample")
     associated = source_view.get("associated_pathology_reports") or []
     assert len(associated) == 1
     assert associated[0]["fixed_sample_external_id"] == target["external_id"]
