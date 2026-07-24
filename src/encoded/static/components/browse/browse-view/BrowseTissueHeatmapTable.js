@@ -147,8 +147,27 @@ function getTargetTissuePercentageScoreClass(value) {
     return `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
 }
 
-const MetricHeatmapTable = ({ tissueTypes, tissueTypeHrefs, tissueTypeCategories, matrix, formatValue, getScoreClass }) => {
-    const columnGroups = buildColumnGroups(tissueTypes, tissueTypeCategories);
+// Memoized so that clicking between tabs -- which re-renders the whole
+// BrowseTissueHeatmapTable (DotRouterTab's onClick updates the page href,
+// which flows back down as a new `href` prop) -- doesn't also re-render
+// and repaint the two other, currently-hidden tables (all three stay
+// mounted simultaneously via DotRouterTab's `cache` prop, only toggled via a
+// `d-none` class). Each of these tables' props are individually stable
+// (memoized upstream in BrowseTissueHeatmapTable), so shallow prop equality
+// correctly bails out here instead of redoing this work for tables whose
+// tab isn't even visible.
+const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
+    tissueTypes,
+    tissueTypeHrefs,
+    tissueTypeCategories,
+    matrix,
+    formatValue,
+    getScoreClass,
+}) {
+    const columnGroups = useMemo(
+        () => buildColumnGroups(tissueTypes, tissueTypeCategories),
+        [tissueTypes, tissueTypeCategories]
+    );
     return (
         <div className="tissue-heatmap-table-wrap">
             <table className="tissue-heatmap-table">
@@ -206,13 +225,17 @@ const MetricHeatmapTable = ({ tissueTypes, tissueTypeHrefs, tissueTypeCategories
             </table>
         </div>
     );
-};
+});
 
 export const BrowseTissueHeatmapTable = (props) => {
-    const { href } = props;
+    const { href, session } = props;
     const [loading, setLoading] = useState(true);
     const [tissueResults, setTissueResults] = useState([]);
 
+    // `session` in the dependency array so logging in/out re-fetches --
+    // permission-filtered fields (e.g. protected donor data) can change
+    // without `href` itself changing, and this component previously had no
+    // way to notice that short of a full page reload.
     useEffect(() => {
         setLoading(true);
         ajax.load(
@@ -232,7 +255,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                 setLoading(false);
             }
         );
-    }, []);
+    }, [session]);
 
     const ischemicTime = useMemo(
         () => buildTissueMetricMatrix(tissueResults, getIschemicTimeValue),

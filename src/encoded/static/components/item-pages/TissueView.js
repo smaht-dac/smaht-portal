@@ -286,7 +286,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 setSamplesUpdating(false);
             }
         );
-    }, [tissueUuidsForSelectedDonor, donorsLoading]);
+    }, [tissueUuidsForSelectedDonor, donorsLoading, session]);
 
     // Real samples win once loaded; while loading (tissueSamples === null) or
     // if none exist yet, fall back to the illustrative demo set so the panel
@@ -349,6 +349,9 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // has finished loading and truly has no TissueSamples yet.
     const aliquotSamplesLoading = donorsLoading || tissueSamples === null;
 
+    // `session` in the dependency array (here and below) so logging in/out
+    // re-fetches -- permission-filtered results can change without `href`
+    // or any of this component's other inputs changing.
     useEffect(() => {
         const queryParts = [
             'type=File',
@@ -375,7 +378,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 setIsLoading(false);
             }
         );
-    }, [donor?.display_title, tissueMatrixFilterValue]);
+    }, [donor?.display_title, tissueMatrixFilterValue, session]);
 
     // All donors that share this Tissue's resolved tissue_type, not just this Tissue's own donor.
     useEffect(() => {
@@ -405,7 +408,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 setDonorsLoading(false);
             }
         );
-    }, [tissueMatrixFilterValue]);
+    }, [tissueMatrixFilterValue, session]);
 
     const donorCount = donors.length;
 

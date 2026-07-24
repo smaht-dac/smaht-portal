@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import url from 'url';
 import _ from 'underscore';
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
@@ -35,6 +35,17 @@ const TissueGermLayerPanel = ({ href, session }) => {
         })
     );
 
+    // The Ischemic Time/Autolysis Score/Target Tissue % tabs below this
+    // panel live in their own DotRouter and only change `href`'s hash
+    // fragment (e.g. "#tissue-heatmap.autolysis-score") when clicked --
+    // `url.parse(href, true).query` (what this aggregation request is
+    // actually built from) never includes the hash, so that click doesn't
+    // change the query this panel needs. Depending on the raw `href` string
+    // anyway re-ran this effect on every such click, flashing back to the
+    // loading placeholders and re-fetching identical data. Depending on just
+    // the query-string portion (search) skips that.
+    const hrefSearch = useMemo(() => url.parse(href).search || '', [href]);
+
     useEffect(() => {
         setLoading(true);
         const hrefParts = url.parse(href, true);
@@ -61,7 +72,7 @@ const TissueGermLayerPanel = ({ href, session }) => {
             {},
             null
         );
-    }, [href, session]);
+    }, [hrefSearch, session]);
 
     return (
         <div className="tissue-germ-layer-panel">
