@@ -186,6 +186,7 @@ export default class UserAdminControls extends React.Component {
         // `embedded.@id` and `embedded.@type` to the requested fields
         // (snovault/search/search.py `list_source_fields`), so each result
         // still carries the `@id` that computeSubmitsForOptions needs.
+        this.setState({ scStatus: LOAD.loading });
         ajax.load(
             '/search/?type=SubmissionCenter&limit=all&field=display_title&field=identifier',
             (resp) => {
