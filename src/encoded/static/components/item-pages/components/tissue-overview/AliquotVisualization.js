@@ -219,7 +219,14 @@ export default function AliquotVisualization({
     const viewBoxMinX = -76;
     const viewBoxMinY = -42;
     const viewBoxWidth = widthPx + depthX + 180;
-    const viewBoxHeight = heightPx + depthY + 168;
+    // Nothing is ever drawn below y = depthY + heightPx (the box's own
+    // bottom edge) -- the height dimension arrow runs alongside the box,
+    // not beneath it. This is just a bottom margin, so it should be modest
+    // like viewBoxMinY's top margin, not the ~168px of pure dead space it
+    // was before (nearly as tall as the box itself, and the main source of
+    // the empty space below the diagram once the SVG renders at native size
+    // instead of being stretched to fill a container).
+    const viewBoxHeight = heightPx + depthY + 32;
     const {
         heightCm = 1,
         depthCm = 1.5,
@@ -284,6 +291,19 @@ export default function AliquotVisualization({
             <div className="aliquot-canvas-wrap">
                 <svg
                     className="aliquot-canvas"
+                    // Rendered at native size (1 viewBox unit = 1px, matching
+                    // sliceBase's fixed px-per-cm scale) instead of stretched
+                    // to fill the container width. viewBoxHeight is constant
+                    // regardless of slice count, so this keeps the diagram's
+                    // height stable without a fixed-height wrapper -- that
+                    // approach previously letterboxed a lot of dead space
+                    // above/below the box whenever it wasn't wide enough to
+                    // be width-constrained. More slices now make the diagram
+                    // wider (scrolling horizontally if needed), same as a
+                    // physical block actually would be, rather than being
+                    // squeezed to fit.
+                    width={viewBoxWidth}
+                    height={viewBoxHeight}
                     viewBox={`${viewBoxMinX} ${viewBoxMinY} ${viewBoxWidth} ${viewBoxHeight}`}
                     role="img"
                     aria-label="Aliquot slice visualization">
@@ -501,7 +521,12 @@ export default function AliquotVisualization({
                                 <div className="aliquot-popover-row">
                                     <span>Order</span>
                                     <strong>
-                                        {(selectedSlice?.index || 0) + 1} /{' '}
+                                        {/* `normalizedSlices` items don't carry an `index` field
+                                            (only `geometry`, a separate derived array, does) --
+                                            `selectedSlice?.index` was always undefined here, so
+                                            this read `selectedSliceIndex` (the actual array
+                                            position) directly instead. */}
+                                        {(selectedSliceIndex ?? 0) + 1} /{' '}
                                         {normalizedSlices.length}
                                     </strong>
                                 </div>

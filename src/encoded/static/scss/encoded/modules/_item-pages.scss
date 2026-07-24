@@ -2706,7 +2706,12 @@ File and Donor Overview Styles
 
 		.tissue-summary-row {
 			display: flex;
-			align-items: stretch;
+			// `stretch` (the flex default) forced both cards to match
+			// whichever was taller, leaving large blank space at the
+			// bottom of the shorter one -- these two cards' content
+			// heights are unrelated (one's a compact stat list, the other
+			// a fixed-height diagram), so let each size to its own content.
+			align-items: flex-start;
 			gap: 24px;
 			margin-bottom: 24px;
 
@@ -3132,24 +3137,25 @@ File and Donor Overview Styles
 
 	.aliquot-canvas-wrap {
 		position: relative;
-		border: 1px solid #E4EDF5;
-		border-radius: 8px;
-		padding: 16px 18px 10px;
-		background-color: #FFFFFF;
-		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-		// Fixed so the diagram's rendered size stays stable regardless of
-		// slice count -- the SVG's own viewBox aspect ratio changes with the
-		// number of slices (fewer slices = narrower viewBox at the same
-		// height), which previously stretched height:auto content much
-		// taller as slice count dropped. `preserveAspectRatio="xMidYMid
-		// meet"` (SVG default) then letterboxes smaller layouts within this
-		// fixed frame instead of growing it.
-		height: 420px;
+		// No border/background of its own -- the .tissue-aliquot-card
+		// already has a border, and nesting a second bordered box directly
+		// inside it (now that the diagram hugs this wrapper closely at its
+		// native size) just reads as a box-in-a-box.
+		padding: 16px 18px 24px;
+		// The canvas now renders at its native pixel size (see
+		// AliquotVisualization.js's explicit svg width/height) instead of
+		// being stretched to fill this wrapper, so its height is naturally
+		// stable across slice counts -- no fixed height needed here, which
+		// previously left a lot of dead letterboxed space for diagrams that
+		// weren't wide enough to be width-constrained. `text-align: center`
+		// centers a diagram narrower than the wrapper; wider ones (many
+		// slices) scroll horizontally instead of being squeezed to fit.
+		text-align: center;
+		overflow-x: auto;
 	}
 
 	.aliquot-canvas {
-		width: 100%;
-		height: 100%;
+		display: inline-block;
 		overflow: visible;
 	}
 
@@ -3262,6 +3268,13 @@ File and Donor Overview Styles
 			// its natural (auto) height instead of the fixed frame used for
 			// that canvas.
 			height: auto;
+			// Unlike the solid-organ canvas, this one doesn't hug a card
+			// border that's already right behind it (the tube sits alone in
+			// open space), so it keeps its own bordered/background frame.
+			border: 1px solid #E4EDF5;
+			border-radius: 8px;
+			background-color: #FFFFFF;
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 		}
 
 		.nonsolid-canvas {
