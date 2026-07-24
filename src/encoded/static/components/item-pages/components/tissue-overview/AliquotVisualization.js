@@ -291,17 +291,19 @@ export default function AliquotVisualization({
             <div className="aliquot-canvas-wrap">
                 <svg
                     className="aliquot-canvas"
-                    // Rendered at native size (1 viewBox unit = 1px, matching
-                    // sliceBase's fixed px-per-cm scale) instead of stretched
-                    // to fill the container width. viewBoxHeight is constant
-                    // regardless of slice count, so this keeps the diagram's
-                    // height stable without a fixed-height wrapper -- that
-                    // approach previously letterboxed a lot of dead space
-                    // above/below the box whenever it wasn't wide enough to
-                    // be width-constrained. More slices now make the diagram
-                    // wider (scrolling horizontally if needed), same as a
-                    // physical block actually would be, rather than being
-                    // squeezed to fit.
+                    // These attributes give the svg an intrinsic size/aspect
+                    // ratio (1 viewBox unit = 1px, matching sliceBase's fixed
+                    // px-per-cm scale); CSS then only shrinks it to fit a
+                    // narrower wrapper (see .aliquot-canvas's `max-width:
+                    // 100%; height: auto`), never stretches it to fill one.
+                    // Forcing `width: 100%` here previously inflated a
+                    // diagram's height whenever it had too few slices to be
+                    // width-constrained (viewBoxHeight is constant, so a
+                    // narrower viewBox stretched to full width meant a taller
+                    // one); letting it scroll instead of stretch, tried
+                    // after that, meant a diagram with lots of slices didn't
+                    // fit in view at all. Shrinking both dimensions together
+                    // avoids either problem.
                     width={viewBoxWidth}
                     height={viewBoxHeight}
                     viewBox={`${viewBoxMinX} ${viewBoxMinY} ${viewBoxWidth} ${viewBoxHeight}`}

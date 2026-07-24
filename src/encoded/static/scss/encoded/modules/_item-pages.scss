@@ -3142,20 +3142,24 @@ File and Donor Overview Styles
 		// inside it (now that the diagram hugs this wrapper closely at its
 		// native size) just reads as a box-in-a-box.
 		padding: 16px 18px 24px;
-		// The canvas now renders at its native pixel size (see
-		// AliquotVisualization.js's explicit svg width/height) instead of
-		// being stretched to fill this wrapper, so its height is naturally
-		// stable across slice counts -- no fixed height needed here, which
-		// previously left a lot of dead letterboxed space for diagrams that
-		// weren't wide enough to be width-constrained. `text-align: center`
-		// centers a diagram narrower than the wrapper; wider ones (many
-		// slices) scroll horizontally instead of being squeezed to fit.
+		// `text-align: center` centers the canvas when it renders (or
+		// shrinks to) narrower than the wrapper.
 		text-align: center;
-		overflow-x: auto;
 	}
 
 	.aliquot-canvas {
 		display: inline-block;
+		// The svg's `width`/`height` attributes (AliquotVisualization.js)
+		// give it an intrinsic size/aspect-ratio -- `max-width: 100%` with
+		// `height: auto` only ever shrinks it (both dimensions together,
+		// preserving that aspect ratio) when there isn't room, the same way
+		// a responsive `<img>` behaves. A diagram with few slices renders at
+		// native size instead of being stretched to fill the wrapper (which
+		// previously inflated its height for no reason); a diagram with
+		// many slices scales down to fit instead of forcing a horizontal
+		// scrollbar.
+		max-width: 100%;
+		height: auto;
 		overflow: visible;
 	}
 
