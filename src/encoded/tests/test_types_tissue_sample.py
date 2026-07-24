@@ -448,162 +448,106 @@ def test_tissue_sample_without_tpc_sample(es_testapp: TestApp, workbook: None) -
     )
 
 
-def create_fixed_lung_sample_for_testing(es_testapp: TestApp) -> Dict[str, Any]:
-    """Get or create a TPC-submitted Fixed TissueSample (protocol 1F) sourced
-    from TEST_TISSUE_LUNG_2, whose donor (TEST_DONOR_MALE) matches
-    TEST_TISSUE_LUNG (protocol 1D, donor TEST_DONOR_MALE) -- the valid fixed
-    counterpart for testing linked_fixed_samples.
-    """
-    submitted_id = "NDRITEST_TISSUE-SAMPLE_LUNG-FIXED_LINK_TEST"
-    try:
-        return get_item(es_testapp, submitted_id, collection="TissueSample")
-    except Exception:
-        pass
-    return post_item(
-        es_testapp,
-        {
-            "submitted_id": submitted_id,
-            "submission_centers": ["ndri_tpc"],
-            "sample_sources": ["TEST_TISSUE_LUNG_2"],
-            "external_id": "ST001-1F-021X",
-            "category": "Homogenate",
-            "preservation_type": "Fixed",
-        },
-        "tissue_sample",
-        status=201,
-    )
-
-
-@pytest.mark.workbook
 def test_validate_linked_fixed_samples_valid_pairing(
-    es_testapp: TestApp, workbook: None
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+    test_tpc_fixed_tissue_sample: Dict[str, Any],
 ) -> None:
     """A GCC fresh/frozen sample can link to its correct TPC Fixed counterpart
-    (same donor via a shared Tissue lineage, valid 1D -> 1F protocol pair)."""
-    source = create_tissue_sample_for_testing(
-        es_testapp,
-        "TEST_TISSUE-SAMPLE_LUNG-GCC_LINK_TEST",
-        "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC",
-        "TissueSample",
-    )
-    target = create_fixed_lung_sample_for_testing(es_testapp)
+    (same donor, valid 3Q -> 3R protocol pair). Plain testapp throughout (no
+    es_testapp/workbook): run_sample_metadata_validation is the only
+    ES-dependent validator, and it no-ops when ELASTIC_SEARCH isn't in the
+    registry, which is the case for plain testapp -- every other check these
+    tests exercise is pure DB/Python logic."""
     patch_item(
-        es_testapp,
-        {"linked_fixed_samples": [target["uuid"]]},
-        source["uuid"],
+        testapp,
+        {"linked_fixed_samples": [test_tpc_fixed_tissue_sample["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
         status=200,
     )
 
 
-@pytest.mark.workbook
-@pytest.mark.parametrize(
-    "invalid_target_submitted_id",
-    [
-        # Wrong protocol: Liver (1A), not a valid fixed counterpart of Lung's 1D.
-        "NDRITEST_TISSUE-SAMPLE_LIVER_TPC",
-        # Wrong preservation_type: TPC-submitted, but Snap Frozen, not Fixed.
-        "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC",
-    ],
-)
-def test_validate_linked_fixed_samples_invalid_target(
-    es_testapp: TestApp, workbook: None, invalid_target_submitted_id: str
+def test_validate_linked_fixed_samples_wrong_protocol(
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+    test_tpc_fixed_liver_tissue_sample: Dict[str, Any],
 ) -> None:
-    """linked_fixed_samples targets must be a TPC-submitted, Fixed-preservation
-    TissueSample with a protocol that's a valid fixed counterpart of the
-    source's own protocol -- otherwise the patch is rejected."""
-    source = create_tissue_sample_for_testing(
-        es_testapp,
-        "TEST_TISSUE-SAMPLE_LUNG-GCC_LINK_TEST",
-        "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC",
-        "TissueSample",
-    )
-    target = get_item(es_testapp, invalid_target_submitted_id, collection="TissueSample")
+    """linked_fixed_samples target must have a protocol that's a valid fixed
+    counterpart of the source's protocol (3Q -> 3R here) -- a Fixed,
+    TPC-submitted, same-donor target with an unrelated protocol (3J) is
+    still rejected."""
     patch_item(
-        es_testapp,
-        {"linked_fixed_samples": [target["uuid"]]},
-        source["uuid"],
+        testapp,
+        {"linked_fixed_samples": [test_tpc_fixed_liver_tissue_sample["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
         status=422,
     )
 
 
-@pytest.mark.workbook
+def test_validate_linked_fixed_samples_wrong_donor(
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+    test_tpc_fixed_tissue_sample_other_donor: Dict[str, Any],
+) -> None:
+    """linked_fixed_samples target must belong to the same donor as the
+    source -- a Fixed, TPC-submitted, correct-protocol target from a
+    different donor is still rejected."""
+    patch_item(
+        testapp,
+        {"linked_fixed_samples": [test_tpc_fixed_tissue_sample_other_donor["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
+        status=422,
+    )
+
+
 def test_validate_linked_fixed_samples_target_must_be_tpc(
-    es_testapp: TestApp, workbook: None
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
 ) -> None:
     """linked_fixed_samples cannot point at a GCC-submitted sample -- the
     target must be TPC-submitted."""
-    source = create_tissue_sample_for_testing(
-        es_testapp,
-        "TEST_TISSUE-SAMPLE_LUNG-GCC_LINK_TEST",
-        "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC",
-        "TissueSample",
-    )
     patch_item(
-        es_testapp,
-        {"linked_fixed_samples": [source["uuid"]]},
-        source["uuid"],
+        testapp,
+        {"linked_fixed_samples": [test_gcc_fresh_tissue_sample["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
         status=422,
     )
 
 
-@pytest.mark.workbook
 def test_associated_pathology_reports_calculated_property(
-    testapp: TestApp, es_testapp: TestApp, workbook: None
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+    test_tpc_fixed_tissue_sample: Dict[str, Any],
+    test_non_brain_pathology_report: Dict[str, Any],
 ) -> None:
     """Once linked_fixed_samples is set, associated_pathology_reports on the
     fresh sample surfaces the fixed sample's PathologyReport(s) paired with
     the fixed sample's external_id, and pathology_reports on the fixed sample
     itself (a plain reverse of the existing PathologyReport.tissue_samples
-    field) resolves independently.
+    field) resolves independently. Plain testapp throughout -- see
+    test_validate_linked_fixed_samples_valid_pairing for why that's safe, and
+    it also sidesteps any ES-indexing timing concern for the rev-link reads
+    below, since plain testapp always computes calculated properties fresh
+    from Postgres.
     """
-    source = create_tissue_sample_for_testing(
-        es_testapp,
-        "TEST_TISSUE-SAMPLE_LUNG-GCC_LINK_TEST",
-        "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC",
-        "TissueSample",
-    )
-    target = create_fixed_lung_sample_for_testing(es_testapp)
     patch_item(
-        es_testapp,
-        {"linked_fixed_samples": [target["uuid"]]},
-        source["uuid"],
+        testapp,
+        {"linked_fixed_samples": [test_tpc_fixed_tissue_sample["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
         status=200,
     )
-    try:
-        report = get_item(
-            es_testapp,
-            "NDRITEST_NON-BRAIN-PATHOLOGY-REPORT_LUNG_LINK_TEST",
-            collection="PathologyReport",
-        )
-    except Exception:
-        report = post_item(
-            es_testapp,
-            {
-                "submitted_id": "NDRITEST_NON-BRAIN-PATHOLOGY-REPORT_LUNG_LINK_TEST",
-                "submission_centers": ["ndri_tpc"],
-                "tissue_name": "Lung",
-                "outcome": "Acceptable",
-                "tissue_samples": [target["uuid"]],
-            },
-            "non_brain_pathology_report",
-            status=201,
-        )
 
     # pathology_reports is a rev_link_atids property, so it holds resource-path
-    # atids (e.g. /pathology-reports/<uuid>/), not bare uuids.
-    #
-    # Verification reads use the plain `testapp`, not `es_testapp`: a rev-link
-    # created moments ago in this same test may not be reflected in the ES
-    # index yet, and plain testapp's GETs are always computed fresh from
-    # Postgres (collection_datastore stays "database"), matching the
-    # established pattern in test_types_donor_specific_assembly.py's
-    # test_sequence_files_rev_link. es_testapp is still needed for every
-    # write above, since run_sample_metadata_validation requires ES.
-    target_view = get_item(testapp, target["uuid"], collection="TissueSample")
-    assert report["@id"] in (target_view.get("pathology_reports") or [])
+    # atids (e.g. /non-brain-pathology-reports/<uuid>/), not bare uuids.
+    target_view = get_item(
+        testapp, test_tpc_fixed_tissue_sample["uuid"], collection="TissueSample"
+    )
+    assert test_non_brain_pathology_report["@id"] in (target_view.get("pathology_reports") or [])
 
-    source_view = get_item(testapp, source["uuid"], collection="TissueSample")
+    source_view = get_item(
+        testapp, test_gcc_fresh_tissue_sample["uuid"], collection="TissueSample"
+    )
     associated = source_view.get("associated_pathology_reports") or []
     assert len(associated) == 1
-    assert associated[0]["fixed_sample_external_id"] == target["external_id"]
-    assert report["@id"] in associated[0]["pathology_reports"]
+    assert associated[0]["fixed_sample_external_id"] == test_tpc_fixed_tissue_sample["external_id"]
+    assert test_non_brain_pathology_report["@id"] in associated[0]["pathology_reports"]
