@@ -589,11 +589,13 @@ def test_associated_pathology_reports_calculated_property(
             status=201,
         )
 
+    # pathology_reports is a rev_link_atids property, so it holds resource-path
+    # atids (e.g. /pathology-reports/<uuid>/), not bare uuids.
     target_view = get_item(es_testapp, target["uuid"], collection="TissueSample")
-    assert report["uuid"] in (target_view.get("pathology_reports") or [])
+    assert report["@id"] in (target_view.get("pathology_reports") or [])
 
     source_view = get_item(es_testapp, source["uuid"], collection="TissueSample")
     associated = source_view.get("associated_pathology_reports") or []
     assert len(associated) == 1
     assert associated[0]["fixed_sample_external_id"] == target["external_id"]
-    assert report["uuid"] in associated[0]["pathology_reports"]
+    assert report["@id"] in associated[0]["pathology_reports"]

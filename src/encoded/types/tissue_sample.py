@@ -313,11 +313,11 @@ def run_linked_fixed_samples_validation(context, request, data, mode):
     """Validate `linked_fixed_samples` on a fresh/frozen TissueSample.
 
     `linked_fixed_samples` is a `restricted_fields`-permission field meant to
-    be maintained only by commands/associate_fixed_samples.py, not
-    hand-edited. This validator doubles as a safety net on that script's own
-    computed output, since it already calls validate_patch(check_only=true)
-    before every real patch -- a bug in the script's computation would get
-    caught here too, not just a malicious/mistaken manual edit.
+    be maintained only by commands/associate_fixed_samples.py (or in the future
+    a foursight-check/action), not hand-edited. This validator doubles as a safety
+    net on that script's own computed output, since it already calls
+    validate_patch(check_only=true) before every real patch -- a bug in the script's
+    computation would get caught here too, not just a malicious/mistaken manual edit.
     """
     linked_fixed_samples = get_property_value(
         "linked_fixed_samples", context, request, mode, data
