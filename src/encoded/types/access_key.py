@@ -31,6 +31,16 @@ class AccessKey(Item, SnovaultAccessKey):
     ACCESS_KEY_EXPIRATION_TIME = 30  # days
     item_type = "access_key"
     schema = load_schema("encoded:schemas/access_key.json")
+    # Access keys are rotated/reset rather than meaningfully revised;
+    # retaining every Postgres revision adds storage growth without useful
+    # audit value. The plaintext secret is never persisted (only returned
+    # once, transiently, at creation/reset time); secret_access_key_hash IS
+    # part of the persisted properties, so a superseded (rotated) hash can
+    # appear in an old, non-current propsheet row. The cleanup's existing
+    # current-row exclusion guarantees only already-superseded hashes -
+    # never the live one needed for authentication - are ever eligible for
+    # deletion; see test_access_key_cleanup_preserves_current_secret_hash.
+    track_revisions = False
     embedded_list = []
 
     STATUS_ACL = {
