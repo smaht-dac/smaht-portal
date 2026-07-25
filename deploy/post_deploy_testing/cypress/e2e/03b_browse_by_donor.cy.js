@@ -574,6 +574,10 @@ function getVisibleTissueAxisTerms() {
     });
 }
 
+function decodeSearchString(search) {
+    return decodeURIComponent(String(search || '').replace(/\+/g, ' '));
+}
+
 function waitForDonorFacetBarPlotReady() {
     return cy
         .get('#slow-load-container', { timeout: 30000 })
@@ -683,28 +687,34 @@ function stepFacetChartBarPlotTests(caps) {
                             });
                         // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
                         // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
-                        cy.window().then((w) => {
-                            w.scrollTo(0, 0);
-                        }).end()
-                            .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
-                            .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
-                            .location('search')
-                            .should('include', 'external_id=')
-                            .get('#slow-load-container').should('not.have.class', 'visible')
-                            .searchPageTotalResultCount().then((totalCount) => {
-                                expect(totalCount).to.equal(expectedFilteredResults);
-                            })
-                            .getQuickInfoBar().then((info) => {
-                                cy
-                                    .get('.properties-controls button[data-tip="Clear all filters"]')
-                                    .click({ force: true })
-                                    .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item").should('not.exist').end()
-                                    .get("div.above-facets-table-row #results-count")
-                                    .invoke("text")
-                                    .then((count) => {
-                                        expect(info.donor).to.equal(parseInt(count));
-                                    }).wait(500); // wait to ensure chart animation completes before next iteration
-                            });
+                        cy.location('search').then((previousSearch) => {
+                            cy.window().then((w) => {
+                                w.scrollTo(0, 0);
+                            }).end()
+                                .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
+                                .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
+                                .location('search', { timeout: 20000 })
+                                .should((currentSearch) => {
+                                    expect(currentSearch).to.not.equal(previousSearch);
+                                    expect(currentSearch).to.include('external_id=');
+                                    expect(decodeSearchString(currentSearch)).to.include(`external_id=${resolvedTissueTerm}`);
+                                }).end()
+                                .get('#slow-load-container', { timeout: 30000 }).should('not.have.class', 'visible')
+                                .searchPageTotalResultCount().then((totalCount) => {
+                                    expect(totalCount).to.equal(expectedFilteredResults);
+                                })
+                                .getQuickInfoBar().then((info) => {
+                                    cy
+                                        .get('.properties-controls button[data-tip="Clear all filters"]')
+                                        .click({ force: true })
+                                        .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item").should('not.exist').end()
+                                        .get("div.above-facets-table-row #results-count")
+                                        .invoke("text")
+                                        .then((count) => {
+                                            expect(info.donor).to.equal(parseInt(count));
+                                        }).wait(500); // wait to ensure chart animation completes before next iteration
+                                });
+                        });
                     });
             });
         });
