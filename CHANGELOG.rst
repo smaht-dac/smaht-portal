@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+2.6.2
+=====
+
+`PR 723: test: add Cypress coverage for Data Matrix Export dropdown (Screenshot PNG / Export JSON) <https://github.com/smaht-dac/smaht-portal/pull/723>`_
+
+* Add Cypress spec for the Data Matrix Export dropdown, covering both Screenshot PNG and Export JSON functionality
+
+
 2.6.1
 =====
 
