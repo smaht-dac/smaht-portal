@@ -578,6 +578,11 @@ function decodeSearchString(search) {
     return decodeURIComponent(String(search || '').replace(/\+/g, ' '));
 }
 
+function countQueryParamValues(search, key) {
+    const params = new URLSearchParams(String(search || '').replace(/^\?/, ''));
+    return params.getAll(key).length;
+}
+
 function waitForDonorFacetBarPlotReady() {
     return cy
         .get('#slow-load-container', { timeout: 30000 })
@@ -701,8 +706,16 @@ function stepFacetChartBarPlotTests(caps) {
                                     expect((decodedSearch.match(/external_id=/g) || []).length).to.be.greaterThan(0);
                                 }).end()
                                 .get('#slow-load-container', { timeout: 30000 }).should('not.have.class', 'visible')
-                                .searchPageTotalResultCount().then((totalCount) => {
-                                    expect(totalCount).to.equal(expectedFilteredResults);
+                                .get('.results-column', { timeout: 30000 }).should('not.contain.text', 'Loading...')
+                                .location('search')
+                                .then((currentSearch) => {
+                                    const externalIdCount = countQueryParamValues(currentSearch, 'external_id');
+                                    expect(externalIdCount).to.be.greaterThan(0);
+
+                                    cy.get('div.above-results-table-row #results-count, div.above-facets-table-row #results-count', { timeout: 30000 })
+                                        .should(($count) => {
+                                            expect(parseInt($count.text(), 10)).to.equal(externalIdCount);
+                                        });
                                 })
                                 .getQuickInfoBar().then((info) => {
                                     cy
