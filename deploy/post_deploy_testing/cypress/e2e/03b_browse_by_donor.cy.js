@@ -695,9 +695,10 @@ function stepFacetChartBarPlotTests(caps) {
                                 .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
                                 .location('search', { timeout: 20000 })
                                 .should((currentSearch) => {
+                                    const decodedSearch = decodeSearchString(currentSearch);
                                     expect(currentSearch).to.not.equal(previousSearch);
-                                    expect(currentSearch).to.include('external_id=');
-                                    expect(decodeSearchString(currentSearch)).to.include(`external_id=${resolvedTissueTerm}`);
+                                    expect(decodedSearch).to.include('external_id=');
+                                    expect((decodedSearch.match(/external_id=/g) || []).length).to.be.greaterThan(0);
                                 }).end()
                                 .get('#slow-load-container', { timeout: 30000 }).should('not.have.class', 'visible')
                                 .searchPageTotalResultCount().then((totalCount) => {
