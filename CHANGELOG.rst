@@ -8,6 +8,15 @@ Change Log
 ----------
 
 
+2.6.3
+=====
+
+`PR 732: add SMAHT tissue color scheme data and fix donor x tissue column ordering <https://github.com/smaht-dac/smaht-portal/pull/732>`_
+
+* Add the SMAHT tissue color scheme JSON data file
+* Sort Donor x Tissue matrix columns by TPC tissue code within each germ layer
+
+
 2.6.2
 =====
 
