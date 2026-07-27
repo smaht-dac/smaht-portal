@@ -1205,8 +1205,12 @@ export default class DataMatrix extends React.PureComponent {
                     }
                 });
                 _.forEach(_.keys(autoPopulateMap), (k) => {
+                    const values = Array.from(autoPopulateMap[k]);
+                    if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
+                        values.sort((a, b) => compareTissueFacetTerms({ key: a }, { key: b }));
+                    }
                     autoPopulateMap[k] = {
-                        values: Array.from(autoPopulateMap[k])
+                        values
                     };
                 });
 
