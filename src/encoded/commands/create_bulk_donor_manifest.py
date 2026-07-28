@@ -179,6 +179,13 @@ VALUE_TRANSFORMS = {
 }
 
 
+def _sanitize_text_value(value: Any) -> Any:
+    """Collapse embedded newlines so each manifest record stays on one line."""
+    if isinstance(value, str):
+        return value.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+    return value
+
+
 def create_bulk_donor_manifest(
     output: str,
     auth_key: Dict[str, str],
@@ -463,6 +470,7 @@ def format_value_from_properties(
                     value = hit[sub]
                     if type(value) is list:
                         value = ";".join(value)
+                    value = _sanitize_text_value(value)
                     if orig_col in VALUE_TRANSFORMS:
                         value = VALUE_TRANSFORMS[orig_col](value)
                     if value or value == 0:
@@ -482,6 +490,7 @@ def format_value_from_properties(
                 value = results[0][sub]
                 if type(value) is list:
                     value = ";".join(value)
+                value = _sanitize_text_value(value)
                 if orig_col in VALUE_TRANSFORMS:
                     value = VALUE_TRANSFORMS[orig_col](value)
                 if value or value == 0:
