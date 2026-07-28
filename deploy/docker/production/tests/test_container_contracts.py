@@ -29,11 +29,14 @@ def test_b2_app_image_declares_shared_log_volume():
     nginx ownership/mode instead of masking it root:root 0755."""
     dockerfile = _read("Dockerfile")
     assert 'VOLUME ["/var/log/smaht"]' in dockerfile
-    # The directory must be created + chowned nginx BEFORE the VOLUME declaration,
-    # else the preserved content would not be nginx-owned.
+    # /var/log/smaht must be created + chowned nginx BEFORE the VOLUME declaration,
+    # else the preserved content would not be nginx-owned. Match a `chown -R
+    # nginx:nginx ... /var/log/smaht` line (robust to other paths on that line)
+    # occurring before the VOLUME.
     vol_idx = dockerfile.index('VOLUME ["/var/log/smaht"]')
-    chown_idx = dockerfile.index("chown -R nginx:nginx /var/lib/nginx /var/log/smaht")
-    assert chown_idx < vol_idx, "VOLUME must come after the /var/log/smaht chown"
+    before_volume = dockerfile[:vol_idx]
+    assert re.search(r"chown -R nginx:nginx[^\n]*/var/log/smaht", before_volume), \
+        "VOLUME must come after a chown -R nginx:nginx of /var/log/smaht"
 
 
 @pytest.mark.unit

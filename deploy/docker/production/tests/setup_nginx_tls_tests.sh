@@ -61,11 +61,18 @@ setup_work() {
     cp "$SERVER_COMMON_SRC" "$WORK/conf.d/smaht_server_common.conf"
     : > "$WORK/conf.d/smaht_http.conf"
     : > "$WORK/conf.d/smaht_tls.conf"
+    # error_log -> stderr and access_log off so this wrapper never falls back to
+    # nginx's compiled-in default log paths (/var/log/nginx/*.log). On a CI runner
+    # the tests run as a non-root uid and /var/log/nginx is root-owned, so touching
+    # those defaults makes `nginx -t` fail on a Permission-denied unrelated to the
+    # config under test. (The real production nginx.conf writes to the nginx-owned
+    # /var/log/smaht/nginx and is validated by the Docker build's own nginx -t.)
     cat > "$WORK/nginx.conf" <<EOF
 error_log stderr crit;
 pid $WORK/nginx.pid;
 events { worker_connections 64; }
 http {
+    access_log off;
     upstream app { server 127.0.0.1:6543; }
     include $WORK/conf.d/smaht_http.conf;
     include $WORK/conf.d/smaht_tls.conf;
@@ -90,7 +97,10 @@ run_case() {
         # EXCEPT openssl, so `command -v openssl` fails and the nginx -t gate is the
         # only validator (proves B3: invalid material is caught even without openssl).
         CBIN="$WORK/curated-bin"; mkdir -p "$CBIN"
-        for t in date id wc tr grep mkdir chmod ls awk sed cat rm mktemp dirname nginx sh; do
+        # Every external command setup_nginx_tls.sh may invoke, EXCEPT openssl. Keep
+        # this in sync with the script (notably `tail`, used by run_conftest's
+        # bounded, redacted nginx -t output on the rejection path).
+        for t in date id wc tr grep mkdir chmod ls awk sed cat rm mktemp dirname tail nginx sh; do
             _p="$(command -v "$t" 2>/dev/null)" && ln -sf "$_p" "$CBIN/$t"
         done
         PATH="$CBIN" sh "$SCRIPT" >"$RUN_OUT" 2>&1
