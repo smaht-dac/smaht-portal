@@ -1,8 +1,8 @@
-"""CI wrapper for the Splunk forwarder startup regression tests.
+"""CI wrapper for the Splunk sidecar startup regression tests.
 
 The substantive assertions live in ``run_forwarder_tests.sh`` (a self-contained
-POSIX-sh harness that installs a fake ``splunk`` CLI and drives the real
-``run_splunk_forwarder.sh`` the way supervisord does). This wrapper lets the
+POSIX-sh harness that installs a fake ``splunk`` CLI and drives the real Splunk
+sidecar ``entrypoint.sh`` the way the ECS sidecar runs it). This wrapper lets the
 shell suite run inside the project's normal ``pytest`` / ``make test-unit`` path
 without requiring Postgres, Elasticsearch, AWS, or a real Splunk install.
 """

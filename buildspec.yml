@@ -62,6 +62,15 @@ phases:
       #     docker tag $FALCON_ECR/$SENSOR_IMAGE_NAME:$SENSOR_TAG $FALCON_ECR/$SENSOR_IMAGE_NAME:latest;
       #     docker push $FALCON_ECR/$SENSOR_IMAGE_NAME:latest;
       #   fi
+      # Splunk Universal Forwarder SIDECAR image (deploy/docker/splunk/). The
+      # forwarder runs as its own ECS sidecar (mirroring CrowdStrike), NOT inside
+      # the app image. Uncomment once the sidecar ECR repo ($SPLUNK_REPO_NAME)
+      # exists and the ECS task definition references it (see
+      # deploy/docker/splunk/README.md, "ECS task-definition handoff").
+      # - echo Building the Splunk forwarder sidecar image...
+      # - docker build -t $SPLUNK_REPO_NAME:$IMAGE_TAG -f deploy/docker/splunk/Dockerfile deploy/docker/splunk
+      # - docker tag $SPLUNK_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$SPLUNK_REPO_NAME:$IMAGE_TAG
+      # - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$SPLUNK_REPO_NAME:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`

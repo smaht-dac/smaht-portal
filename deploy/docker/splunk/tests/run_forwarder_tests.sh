@@ -1,17 +1,17 @@
 #!/bin/sh
-# Regression tests for run_splunk_forwarder.sh.
+# Regression tests for the Splunk sidecar entrypoint (entrypoint.sh).
 #
 # Self-contained: no real Splunk, no network, no AWS. Each case installs the
-# fake_splunk.sh double into a throwaway SPLUNK_HOME, then runs the real wrapper
-# the way supervisord does (stdin from /dev/null, stdout+stderr merged) and
-# asserts on the captured output and exit code.
+# fake_splunk.sh double into a throwaway SPLUNK_HOME, then runs the real sidecar
+# entrypoint the way the ECS sidecar does (stdin from /dev/null, stdout+stderr
+# merged) and asserts on the captured output and exit code.
 #
-# Run directly:  sh deploy/docker/production/splunk/tests/run_forwarder_tests.sh
+# Run directly:  sh deploy/docker/splunk/tests/run_forwarder_tests.sh
 # Exit 0 = all cases passed.
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-SCRIPT="$(cd "$HERE/.." && pwd)/run_splunk_forwarder.sh"
+SCRIPT="$(cd "$HERE/.." && pwd)/entrypoint.sh"
 FAKE="$HERE/fake_splunk.sh"
 
 PASS=0

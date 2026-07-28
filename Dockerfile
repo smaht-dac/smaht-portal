@@ -76,17 +76,10 @@ RUN npm run build && \
 RUN curl -o aws-ip-ranges.json https://ip-ranges.amazonaws.com/ip-ranges.json && \
     curl https://gist.githubusercontent.com/ammarshah/f5c2624d767f91a7cbdc4e54db8dd0bf/raw > restricted_domains.txt
 
-# Splunk Universal Forwarder (HMS/FISMA compliance agent). Installed here via the
-# Debian package per the HMS instructions; the extracted /opt/splunkforwarder tree
-# is copied into the runtime image below, so no download/dpkg runs in runtime.
-# No first-run state is generated at build time - that happens per-container at
-# startup (see deploy/docker/production/splunk/run_splunk_forwarder.sh).
-ARG SPLUNK_UF_VERSION=9.4.12
-ARG SPLUNK_UF_BUILD=9dfc486f3d48
-RUN curl -fsSL -o /tmp/splunkforwarder.deb \
-      "https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_UF_VERSION}/linux/splunkforwarder-${SPLUNK_UF_VERSION}-${SPLUNK_UF_BUILD}-linux-amd64.deb" && \
-    dpkg -i /tmp/splunkforwarder.deb && \
-    rm -f /tmp/splunkforwarder.deb
+# NOTE: the Splunk Universal Forwarder is NOT installed in this image. It runs as
+# its own ECS sidecar (see deploy/docker/splunk/), mirroring the CrowdStrike
+# Falcon sensor sidecar. The application container only WRITES its logs to a
+# shared volume (/var/log/smaht) that the Splunk sidecar mounts and tails.
 
 # ---------------------------------------------------------------------------
 # Runtime stage: slim image with only what's needed to serve the app - no
@@ -137,12 +130,29 @@ RUN rm -f /etc/nginx/nginx.conf \
           /etc/nginx/sites-enabled/default \
           /etc/nginx/sites-available/default
 COPY deploy/docker/production/nginx.conf /etc/nginx/nginx.conf
+# Shared server body (locations + security headers), included by both the plain
+# :8000 server and the generated TLS server. Copied read-only.
+COPY deploy/docker/production/nginx/smaht_server_common.conf /etc/nginx/conf.d/smaht_server_common.conf
+
+# LB->ECS TLS scaffolding. nginx.conf `include`s conf.d/smaht_tls.conf; ship it
+# EMPTY so the plain :8000 server works with TLS disabled. When TLS is enabled,
+# setup_nginx_tls.sh (run by the portal entrypoint) materializes the cert/key
+# from the ECS-injected secret into /etc/nginx/ssl (owner-only) and writes the
+# TLS server block into smaht_tls.conf. Both the ssl dir and the include file
+# must be nginx-writable at runtime (the container runs as nginx).
+RUN mkdir -p /etc/nginx/ssl /etc/nginx/conf.d && \
+    chmod 700 /etc/nginx/ssl && \
+    : > /etc/nginx/conf.d/smaht_tls.conf && \
+    chown -R nginx:nginx /etc/nginx/ssl /etc/nginx/conf.d/smaht_tls.conf
 
 # nginx + app runtime log filesystem. Everything runs as the non-root nginx user
 # under supervisord, so the paths written (nginx error/access logs, state/temp dir,
 # pid, and the app worker logs) must be nginx-owned. /var/log/smaht holds the app
-# worker output that the Splunk forwarder tails; the log files are pre-created so
-# the forwarder and the tail-to-stdout shipper find them immediately at startup.
+# worker output written for the Splunk SIDECAR: the app container writes here and
+# the Splunk sidecar mounts this path as a shared volume and tails it (the
+# forwarder no longer runs in this image). The log-shipper program re-emits these
+# files to container stdout so CloudWatch still sees them. Files are pre-created
+# so both the shipper and the sidecar find them immediately at startup.
 RUN mkdir -p /var/log/nginx /var/lib/nginx /var/log/smaht && \
     chown -R nginx:nginx /var/log/nginx /var/lib/nginx /var/log/smaht && \
     rm -f /var/log/nginx/* && \
@@ -162,17 +172,6 @@ COPY --chown=nginx:nginx --from=builder /home/nginx/smaht-portal /home/nginx/sma
 # Node runtime (for server-side rendering) - just the prebuilt interpreter, no toolchain.
 COPY --chown=nginx:nginx --from=builder ${NODE_DIR} ${NODE_DIR}
 
-# Splunk Universal Forwarder: copy the installed tree from the builder (no download
-# or dpkg in the runtime image) and drop in our static config. It runs as the
-# non-root nginx user under supervisord; deploy-poll (deploymentclient.conf) points
-# it at the HMS deployment server, which pushes the outputs/index config after it
-# phones home. inputs.conf monitors the app + nginx log files on disk.
-ENV SPLUNK_HOME=/opt/splunkforwarder
-COPY --chown=nginx:nginx --from=builder /opt/splunkforwarder /opt/splunkforwarder
-COPY --chown=nginx:nginx deploy/docker/production/splunk/deploymentclient.conf /opt/splunkforwarder/etc/system/local/deploymentclient.conf
-COPY --chown=nginx:nginx deploy/docker/production/splunk/inputs.conf /opt/splunkforwarder/etc/system/local/inputs.conf
-COPY --chown=nginx:nginx deploy/docker/production/splunk/run_splunk_forwarder.sh run_splunk_forwarder.sh
-
 # App config + entrypoints. entrypoint.sh dispatches by $application_type; *.ini must
 # match the env name in Secrets Manager.
 COPY --chown=nginx:nginx deploy/docker/local/docker_development.ini development.ini
@@ -186,6 +185,7 @@ COPY --chown=nginx:nginx deploy/docker/production/entrypoint_indexer.sh .
 COPY --chown=nginx:nginx deploy/docker/production/entrypoint_ingester.sh .
 COPY --chown=nginx:nginx deploy/docker/production/supervisord.conf .
 COPY --chown=nginx:nginx deploy/docker/production/assume_identity.py .
+COPY --chown=nginx:nginx deploy/docker/production/setup_nginx_tls.sh .
 
 # Create the runtime-writable files (populated at startup) and make entrypoints
 # executable - all in one layer.
@@ -193,9 +193,12 @@ RUN touch production.ini session-secret.b64 supervisord.log supervisord.sock sup
     chown nginx:nginx production.ini session-secret.b64 supervisord.log supervisord.sock supervisord.pid && \
     chmod +x entrypoint.sh entrypoint_local.sh entrypoint_portal.sh \
              entrypoint_deployment.sh entrypoint_indexer.sh entrypoint_ingester.sh \
-             assume_identity.py run_splunk_forwarder.sh
+             assume_identity.py setup_nginx_tls.sh
 
-EXPOSE 8000
+# 8000 = plain HTTP (TLS disabled); 8443 = HTTPS for the LB->ECS TLS path when
+# NGINX_TLS_ENABLED=true. The ECS task definition / LB target group selects which
+# port the load balancer forwards to (see deploy/docker/production/nginx/README.md).
+EXPOSE 8000 8443
 
 # Container does not run as root
 USER nginx

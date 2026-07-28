@@ -79,29 +79,54 @@ Because `/browse` delegates directly to snovault's shared `search()` in `src/enc
 lockfile. Do not leave stale "waiting on a dependency bump" language for these fixes unless
 `pyproject.toml` or `poetry.lock` changes again and you have rechecked the resolved package code.
 
-## Splunk Universal Forwarder container startup
+## Splunk Universal Forwarder — ECS sidecar (NOT in the app image)
 
-The forwarder runs as `[program:splunkforwarder]` in
-`deploy/docker/production/supervisord.conf`, started by
-`deploy/docker/production/splunk/run_splunk_forwarder.sh`. The forwarder
-tree baked into the image (`/opt/splunkforwarder`) starts **un-licensed** (the
-Splunk first-time-run marker `$SPLUNK_HOME/ftr` is present), so every deploy
-requires non-interactive license acceptance before splunkd will start.
+The forwarder runs as **its own ECS sidecar**, built from `deploy/docker/splunk/`
+(`Dockerfile` + `entrypoint.sh`), mirroring the CrowdStrike Falcon sensor
+sidecar. It is intentionally NOT in the application image and NOT a supervisord
+program — the earlier in-app-container design (PR #729) was rolled back on the
+`crowdstrike` branch because running the agent inside the app Fargate container
+was unworkable. The app container only writes its logs to `/var/log/smaht` (a
+shared volume the sidecar mounts read-only and tails; see `inputs.conf`).
 
-Sharp edge: any `splunk` CLI command run on first boot **without**
-`--accept-license --answer-yes --no-prompt` blocks on the interactive license
-prompt. Under supervisord there is no TTY and stdin is `/dev/null`, so it hangs
-invisibly — the classic symptom is the wrapper emitting only its `starting:` and
-`first boot:` lines and then nothing. The wrapper now passes those flags (and
-reads from `/dev/null`) on every `splunk` invocation and accepts the license
-explicitly before any status probe. See `deploy/docker/production/splunk/README.md`
-for how to read the staged startup logs (`[splunk-forwarder]` / `[splunk-cli]` /
-`[splunkd.log]`, the `HEALTHY` success line, and the `FAILED:` diagnostics).
+The forwarder tree baked into the sidecar (`/opt/splunkforwarder`) starts
+**un-licensed** (the first-time-run marker `$SPLUNK_HOME/ftr` is present) and the
+sidecar has no persistent Splunk volume, so every boot is a first-time run
+requiring non-interactive license acceptance before splunkd will start.
+
+Sharp edge (preserved from PR #729, a Splunk property independent of the sidecar
+move): any `splunk` CLI command run on first boot **without** `--accept-license
+--answer-yes --no-prompt` blocks on the interactive license prompt. With no TTY
+and stdin `/dev/null`, it hangs invisibly — the classic symptom is only the
+`starting:` and `first boot:` lines and then nothing. `entrypoint.sh` passes
+those flags (and reads from `/dev/null`) on every `splunk` invocation and accepts
+the license explicitly before any status probe. See
+`deploy/docker/splunk/README.md` for reading the staged startup logs
+(`[splunk-forwarder]` / `[splunk-cli]` / `[splunkd.log]`, the `HEALTHY` success
+line, the `FAILED:` diagnostics) and the **ECS task-definition handoff** (shared
+volume, `dependsOn`, `essential:false`) that lives outside this repo.
 
 Regression tests are self-contained (no real Splunk/network/AWS):
-`sh deploy/docker/production/splunk/tests/run_forwarder_tests.sh`, wrapped for
-`pytest`/`make test-unit` by `tests/test_run_splunk_forwarder.py`. Lint the
-shell with `shellcheck -s sh`.
+`sh deploy/docker/splunk/tests/run_forwarder_tests.sh`, wrapped for
+`pytest`/`make test-unit` by `tests/test_run_splunk_forwarder.py`. Lint with
+`shellcheck -s sh`.
+
+## nginx LB→ECS TLS (encryption in transit)
+
+`deploy/docker/production/setup_nginx_tls.sh` (run by `entrypoint_portal.sh`
+before supervisord) materializes the nginx cert/key from the ECS-injected
+`NGINX_SSL_CERTIFICATE[_KEY]` env vars (Secrets Manager via the ECS `secrets:`
+path) into owner-only files and writes a `listen 8443 ssl` server block into
+`/etc/nginx/conf.d/smaht_tls.conf`. `nginx.conf`'s server body lives in the
+shared `nginx/smaht_server_common.conf` snippet, included by both the plain
+`:8000` server and the generated TLS server. TLS is opt-in via
+`NGINX_TLS_ENABLED=true`; disabled → plain `:8000` only (no behavior change).
+Missing/malformed/mismatched material fails the container loudly; the secret is
+never logged and is unset before supervisord starts. Secret shape, rotation, and
+the LB-listener/ECS-`secrets:` **infrastructure handoff** (not in this repo) are
+documented in `deploy/docker/production/nginx/README.md`. Tests:
+`sh deploy/docker/production/tests/setup_nginx_tls_tests.sh` (needs `openssl`;
+validates the generated block with `nginx -t`).
 
 ## Maintaining this file
 

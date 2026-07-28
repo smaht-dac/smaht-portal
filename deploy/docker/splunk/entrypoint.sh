@@ -1,15 +1,20 @@
 #!/bin/sh
-# Run the Splunk Universal Forwarder under supervisord.
+# Entry point (PID 1) of the Splunk Universal Forwarder ECS sidecar container.
 #
-# This image has no systemd, so the HMS doc's boot-start step
-# (`splunk enable boot-start -systemd-managed 1 -user splunkfwd ...`) is replaced
-# by running the forwarder as a supervisord program. It runs as the container's
-# non-root `nginx` user - which already satisfies the doc's "do NOT run as root"
-# requirement - so no dedicated splunkfwd user is created.
+# ARCHITECTURE: the forwarder runs in its OWN sidecar container (mirroring the
+# CrowdStrike Falcon sensor sidecar), NOT inside the application container. It
+# reads the application/web logs off a read-only SHARED VOLUME that the app
+# container writes (see inputs.conf) and phones home to the HMS deployment
+# server (deploymentclient.conf). It runs as the container's non-root
+# `splunkfwd` user - satisfying the HMS doc's "do NOT run as root" requirement -
+# and replaces the doc's systemd boot-start with plain container lifecycle: this
+# script is the container's foreground process, so when splunkd goes away we
+# exit non-zero and ECS restarts the sidecar (essential=false so it never takes
+# the task down; see README.md).
 #
-# Everything this script prints goes to supervisord's stdout_logfile=/dev/stdout,
-# i.e. container stdout -> CloudWatch. splunkd itself logs connection activity
-# (deployment-server phone-home, indexer TCP output) only to its own file at
+# Everything this script prints goes to container stdout, i.e. -> CloudWatch via
+# the ECS log driver. splunkd itself logs connection activity (deployment-server
+# phone-home, indexer TCP output) only to its own file at
 # $SPLUNK_HOME/var/log/splunk/splunkd.log, so we tail that file's
 # connection-relevant lines to stdout too - otherwise "why isn't it connecting"
 # is invisible outside the container.
@@ -17,22 +22,29 @@
 # ---------------------------------------------------------------------------
 # Why the extra logging / the license handling below matters (root cause)
 # ---------------------------------------------------------------------------
-# The image has NO persistent Splunk volume, so /opt/splunkforwarder resets to
+# The sidecar has NO persistent Splunk volume, so /opt/splunkforwarder resets to
 # its baked-in state on every container start - i.e. EVERY boot is a Splunk
 # "first-time run" (FTR): the $SPLUNK_HOME/ftr marker is present and Splunk
 # requires the license be accepted before it will do anything.
 #
 # The FTR license agreement is triggered by the *first* `splunk` CLI invocation.
 # If that invocation does not carry `--accept-license --answer-yes --no-prompt`,
-# Splunk prints the agreement and blocks reading a `y/n` answer from stdin. Under
-# supervisord there is no TTY and stdin is /dev/null, so the read never returns
-# and the wrapper hangs silently. A previous version probed `splunk status`
-# (a *bare* invocation, output sent to /dev/null) as its first Splunk command,
-# so on every real deploy it hung right there - emitting only the "starting" and
-# "first boot" lines and nothing else. See run_splunk() below: every Splunk CLI
-# call now carries the non-interactive license flags AND reads from /dev/null,
-# and we accept the license explicitly (the version stage) before any probe.
+# Splunk prints the agreement and blocks reading a `y/n` answer from stdin. With
+# no TTY and stdin /dev/null (the container has neither), the read never returns
+# and the process hangs silently. The original in-app-container version probed
+# `splunk status` (a *bare* invocation, output sent to /dev/null) as its first
+# Splunk command, so on every real deploy it hung right there - emitting only the
+# "starting" and "first boot" lines and nothing else. See run_splunk() below:
+# every Splunk CLI call now carries the non-interactive license flags AND reads
+# from /dev/null, and we accept the license explicitly (the version stage)
+# before any probe. This diagnosis/fix is preserved from PR #729; it is a Splunk
+# property, independent of whether the forwarder runs in-app or as a sidecar.
 set -eu
+
+# Read stdin from /dev/null unconditionally so an interactive-looking `splunk`
+# call can never block on a terminal read even if this sidecar is (mis)launched
+# with a TTY attached. run_splunk() also redirects </dev/null per call.
+exec </dev/null
 
 SPLUNK_HOME="${SPLUNK_HOME:-/opt/splunkforwarder}"
 SPLUNK="$SPLUNK_HOME/bin/splunk"
@@ -134,7 +146,7 @@ dump_splunkd_log() {
 }
 
 # Fail loudly: emit enough path/process metadata + a bounded log tail to diagnose,
-# then exit non-zero so supervisord restarts us.
+# then exit non-zero so the container exits and ECS restarts the sidecar.
 fail() {
     _rc="${2:-1}"
     log "FAILED: $1 (exit $_rc)"
@@ -199,10 +211,10 @@ fi
 # Stage 4: start splunkd if not already running
 # ---------------------------------------------------------------------------
 # The status probe is now safe (license already accepted in stage 2, flags +
-# </dev/null on every call). Guarded so a supervisord restart of this wrapper
-# while splunkd is still up does not error out on "already running".
+# </dev/null on every call). Guarded so a re-exec of this entrypoint while
+# splunkd is still up does not error out on "already running".
 if run_splunk "status-probe" status; then
-    log "stage 'start': splunkd already running (supervisord restarted this wrapper)"
+    log "stage 'start': splunkd already running (entrypoint re-exec while splunkd up)"
 else
     log "stage 'start': splunkd not running - starting it"
     if run_splunk "start" start; then
@@ -244,7 +256,7 @@ log "stage 'readiness': splunkd is running (pid=$SPLUNKD_PID) after ${waited}s"
 # (TcpOutputProc/AutoLoadBalanced*), the deployment server's push channel
 # (HttpPubSubConnection), and any WARN/ERROR. tail -F tolerates the file not
 # existing yet and follows across rotation. -n 200 replays recent history on
-# wrapper restarts without re-emitting the whole (up to 25MB) file; on first
+# sidecar restarts without re-emitting the whole (up to 25MB) file; on first
 # boot the file is new so nothing is lost. Output is redacted defensively.
 tail -n 200 -F "$SPLUNKD_LOG" 2>/dev/null \
     | grep --line-buffered -E 'ERROR|WARN|DeployClient|DC:|TcpOutputProc|AutoLoadBalanced|HttpPubSubConnection|Connected to idx|connectionType' \
@@ -255,9 +267,10 @@ TAIL_PID=$!
 # ---------------------------------------------------------------------------
 # Graceful shutdown
 # ---------------------------------------------------------------------------
-# splunkd daemonizes into its own session, so supervisord's killasgroup may not
-# reach it; on stop signals we best-effort stop splunkd (bounded) and clean up
-# the tail pipeline, then exit 143 so the wrapper does not outlive its work.
+# splunkd daemonizes into its own session; on the ECS stop signal (SIGTERM ->
+# stopTimeout) we best-effort stop splunkd (bounded) and clean up the tail
+# pipeline, then exit 143 so the sidecar shuts down cleanly instead of being
+# SIGKILLed. Preserves normal container lifecycle / graceful shutdown.
 # shellcheck disable=SC2329  # invoked indirectly via `trap`
 cleanup() {
     kill "$TAIL_PID" 2>/dev/null || true
@@ -277,8 +290,8 @@ log "HEALTHY: splunk forwarder started; splunkd running (pid=$SPLUNKD_PID), depl
 # ---------------------------------------------------------------------------
 # Stage 7: stay in the foreground and tie lifetime to splunkd
 # ---------------------------------------------------------------------------
-# Poll status; if splunkd goes away exit non-zero so supervisord restarts us
-# (and it). Log a heartbeat every ~HEARTBEAT_EVERY cycles so CloudWatch shows
+# Poll status; if splunkd goes away exit non-zero so the sidecar exits and ECS
+# restarts it. Log a heartbeat every ~HEARTBEAT_EVERY cycles so CloudWatch shows
 # the forwarder is alive even when splunkd emits nothing.
 i=0
 while run_splunk "liveness-poll" status >/dev/null 2>&1; do
@@ -289,4 +302,4 @@ while run_splunk "liveness-poll" status >/dev/null 2>&1; do
     sleep "$POLL_INTERVAL"
 done
 
-fail "splunkd is no longer running - exiting for supervisor restart" 1
+fail "splunkd is no longer running - exiting for ECS sidecar restart" 1
