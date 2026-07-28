@@ -166,6 +166,19 @@ CHANGED_COLUMNS = {
 }
 
 
+def _format_capped_age(value: Any) -> Any:
+    """Represent the de-identification age cap (89) as '89+' in manifests."""
+    if value == 89:
+        return "89+"
+    return value
+
+
+VALUE_TRANSFORMS = {
+    "Donor.age": _format_capped_age,
+    "ProtectedDonor.age": _format_capped_age,
+}
+
+
 def create_bulk_donor_manifest(
     output: str,
     auth_key: Dict[str, str],
@@ -440,7 +453,8 @@ def format_value_from_properties(
     ]
     if len(results) > 1:  # multiple items returned from search
         for sub in subcolumns:
-            col = f"{item_type}.{sub}"
+            orig_col = f"{item_type}.{sub}"
+            col = orig_col
             if col in CHANGED_COLUMNS.keys():
                 col = CHANGED_COLUMNS[col]
             values = []
@@ -449,6 +463,8 @@ def format_value_from_properties(
                     value = hit[sub]
                     if type(value) is list:
                         value = ";".join(value)
+                    if orig_col in VALUE_TRANSFORMS:
+                        value = VALUE_TRANSFORMS[orig_col](value)
                     if value or value == 0:
                         values.append(str(value))
                     else:
@@ -458,13 +474,16 @@ def format_value_from_properties(
             donor_manifest.at[idx, col] = "|".join(values)
     elif len(results) == 1:
         for sub in subcolumns:
-            col = f"{item_type}.{sub}"
+            orig_col = f"{item_type}.{sub}"
+            col = orig_col
             if col in CHANGED_COLUMNS.keys():
                 col = CHANGED_COLUMNS[col]
             if sub in results[0]:
                 value = results[0][sub]
                 if type(value) is list:
                     value = ";".join(value)
+                if orig_col in VALUE_TRANSFORMS:
+                    value = VALUE_TRANSFORMS[orig_col](value)
                 if value or value == 0:
                     donor_manifest.at[idx, col] = value
                 else:
