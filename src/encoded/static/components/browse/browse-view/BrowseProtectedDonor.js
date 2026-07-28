@@ -7,7 +7,6 @@ import { BrowseViewControllerWithSelections } from '../../static-pages/component
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
 import {
-    BROWSE_STATUS_FILTERS,
     BROWSE_LINKS,
     NoResultsBrowseModal,
 } from '../BrowseView';
@@ -18,6 +17,8 @@ import {
     customRenderDetailPane,
     createBaseDonorColumnExtensionMap,
 } from './BrowseDonorBase';
+import { DonorDataProvider } from './BrowseDonorDataProvider';
+import { buildDonorPeekMetadataHref } from './BrowseDonorPeekMetadata';
 
 export { formatTissueData, formatAssayData } from './BrowseDonorBase';
 
@@ -104,9 +105,6 @@ const BrowseProtectedDonorSearchTable = (props) => {
             ...context,
             clear_filters: BROWSE_LINKS.protected_donor,
         },
-        customColumnSearchHref: (result) =>
-            `/peek-metadata/?additional_facet=file_size&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=` +
-            result?.display_title,
         defaultColAlignment: 'text-left',
     };
 
@@ -126,9 +124,7 @@ const BrowseProtectedDonorSearchTable = (props) => {
         createBrowseProtectedDonorColumnExtensionMap(selectedFileProps);
 
     const facetListSortFxns = {
-        hardy_scale: (a, b) => {
-            return a.key - b.key;
-        },
+        hardy_scale: (a, b) => a.key - b.key,
     };
 
     return (
@@ -161,22 +157,26 @@ export const BrowseProtectedDonorBody = (props) => {
     const { context, alerts, href, userDownloadAccess, isAccessResolved } =
         props;
     return (
-        <>
+        <React.Fragment>
             <Alerts alerts={alerts} className="mt-2" />
             <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
             <hr />
-            <BrowseViewControllerWithSelections {...props}>
-                <BrowseProtectedDonorSearchTable />
-            </BrowseViewControllerWithSelections>
-            {context?.total === 0 && (
-                <NoResultsBrowseModal
-                    type="protected_donor"
-                    context={context}
-                    href={href}
-                    userDownloadAccess={userDownloadAccess}
-                    isAccessResolved={isAccessResolved}
-                />
-            )}
-        </>
+            <DonorDataProvider
+                key={href}
+                buildHref={buildDonorPeekMetadataHref}>
+                <BrowseViewControllerWithSelections {...props}>
+                    <BrowseProtectedDonorSearchTable />
+                </BrowseViewControllerWithSelections>
+                {context?.total === 0 && (
+                    <NoResultsBrowseModal
+                        type="protected_donor"
+                        context={context}
+                        href={href}
+                        userDownloadAccess={userDownloadAccess}
+                        isAccessResolved={isAccessResolved}
+                    />
+                )}
+            </DonorDataProvider>
+        </React.Fragment>
     );
 };

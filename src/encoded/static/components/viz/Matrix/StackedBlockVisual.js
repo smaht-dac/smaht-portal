@@ -243,6 +243,378 @@ export function extendListObjectsWithIndex(objList){
     });
 }
 
+// Reduces the currently-visible matrix (same data/countFor state the grid renders from) into a
+// flat, JSON-serializable table: one row per leaf row-group (donor, donor+tissue, or tissue),
+// one field per visible column, plus row/column/grand totals sourced the same way the on-screen
+// summary cells are (from rowTotals/columnTotals, not by re-summing `data`).
+// Example: buildMatrixExportData({ data, rowTotals, columnTotals, groupingProperties: ['donor','tissue'], columnGrouping: 'assay', countFor: 'files' })
+const EXPORT_FALLBACK_GROUP_KEY = 'N/A';
+
+export function buildMatrixExportData({
+    data = [],
+    rowTotals = [],
+    columnTotals = [],
+    groupingProperties = [],
+    columnGrouping = null,
+    countFor = 'files',
+    overallCounts = null,
+    matrixMode = null,
+    rowAxisLabel = null,
+    columnAxisLabel = null,
+    rowGroups = null,
+    showRowGroups = false,
+    columnGroups = null,
+    showColumnGroups = false,
+    rawRegularCountOverrides = null,
+    dedupeBenchmarkingDsaAcrossTissues = false
+} = {}) {
+    const countField = countFor === 'tissue_files' ? 'files' : countFor;
+
+    const computeValueForField = (items, field) => {
+        if (!Array.isArray(items) || items.length === 0) return 0;
+        if (field === 'donors') {
+            const uniqueDonorCount = getUniqueDonorCountFromItems(items);
+            if (uniqueDonorCount !== null) return uniqueDonorCount;
+            return _.reduce(items, (max, item) => Math.max(max, getCountValueFromItem(item, field)), 0);
+        }
+        return _.reduce(items, (sum, item) => sum + getCountValueFromItem(item, field), 0);
+    };
+    const computeCellValue = (items) => computeValueForField(items, countField);
+
+    // The grid always shows a secondary summary band counting distinct *rows* of the primary
+    // grouping entity - "Total Donors" for Donor x Assay/Donor x Tissue, but "Total Tissues" for
+    // Tissue x Assay (see rowGroupsSummary's `primarySummaryEntity` / renderSummaryBlocks'
+    // `getPrimaryGroupCountFromGroupedRows`, which key off `groupingProperties[0]`, not a fixed
+    // "donor" field) - regardless of what the Files/Coverage/Donors toggle is currently on. Mirror
+    // that here instead of hardcoding "donors", which would silently mislabel this as a donor
+    // count in Tissue x Assay when it's actually counting tissues.
+    const primaryEntityField = groupingProperties[0] || null;
+    const PRIMARY_ENTITY_LABELS = { donor: 'Donors', tissue: 'Tissues' };
+    const primaryEntityLabel = primaryEntityField
+        ? (PRIMARY_ENTITY_LABELS[primaryEntityField] || `${primaryEntityField.charAt(0).toUpperCase()}${primaryEntityField.slice(1)}s`)
+        : 'Entities';
+    const computePrimaryEntityCount = (items) => {
+        if (!primaryEntityField || !Array.isArray(items)) return 0;
+        const valueSet = new Set();
+        items.forEach((item) => {
+            const value = item && item[primaryEntityField];
+            if (Array.isArray(value)) {
+                value.forEach((v) => { if (v != null) valueSet.add(String(v)); });
+            } else if (value != null) {
+                valueSet.add(String(value));
+            }
+        });
+        return valueSet.size;
+    };
+
+    // A benchmarking DSA-like file can be linked to more than one tissue for the same donor
+    // (see DataMatrix.buildRawRegularCountOverrides's depth-0 case), so the backend reports the
+    // same file count on every one of that donor's tissue rows rather than splitting it - naively
+    // summing the "DSA" column across those rows (as computeCellValue does) counts that file once
+    // per linked tissue. The on-screen grid corrects for this in its collapsed per-donor summary
+    // band; this reproduces the same correction (max per donor, not sum) for the export's
+    // aggregate totals - `columnFiles`/`sectionFiles` here - which read straight off `data`/
+    // `sectionItems` and would otherwise silently over-count "DSA" the same way. Per-row leaf
+    // values (buildLeafRow) are unaffected: each tissue's own row is supposed to show that file's
+    // full count.
+    const dedupeDsaTotalByPrimaryEntity = (items) => {
+        if (!dedupeBenchmarkingDsaAcrossTissues || !primaryEntityField || countField !== 'files') return null;
+        const maxByEntity = {};
+        (items || []).forEach((item) => {
+            const entityValue = item?.[primaryEntityField];
+            if (entityValue == null) return;
+            const key = String(entityValue);
+            const value = Number(item?.counts?.files) || 0;
+            maxByEntity[key] = Math.max(maxByEntity[key] || 0, value);
+        });
+        return _.reduce(maxByEntity, (sum, value) => sum + value, 0);
+    };
+    const dsaColumnDedupExcess = (items) => {
+        const dsaItems = _.filter(items, (item) => item?.[columnGrouping] === 'DSA');
+        if (!dsaItems.length) return 0;
+        const dedupedTotal = dedupeDsaTotalByPrimaryEntity(dsaItems);
+        if (dedupedTotal == null) return 0;
+        return Math.max(0, computeCellValue(dsaItems) - dedupedTotal);
+    };
+
+    // Name the count fields after the metric they actually hold (columnFiles/columnCoverage/
+    // columnDonors) instead of a generic "columnTotals" whose meaning would otherwise only be
+    // discoverable by cross-referencing the top-level `countFor` field.
+    const countFieldLabel = countField === 'total_coverage' ? 'Coverage' : (countField === 'donors' ? 'Donors' : 'Files');
+    const columnMetricKey = `column${countFieldLabel}`;
+    const totalMetricKey = `total${countFieldLabel}`;
+    const sectionMetricKey = `section${countFieldLabel}`;
+    // Same idea for each row's own per-column breakdown/total (was the generic "counts"/
+    // "rowTotal").
+    const rowCountsKey = countFieldLabel.toLowerCase();
+    const rowMetricKey = `row${countFieldLabel}`;
+    const columnEntityKey = `column${primaryEntityLabel}`;
+    const totalEntityKey = `total${primaryEntityLabel}`;
+    const sectionEntityKey = `section${primaryEntityLabel}`;
+    // The always-shown entity count is only a true duplicate of the toggle-driven metric when
+    // they're both literally "distinct donors" (Donor x Assay/Donor x Tissue with the Donors
+    // toggle on) - in Tissue x Assay, toggling to "Donors" counts donors while this band still
+    // counts tissues, so both are meaningful and neither should be dropped.
+    const includeEntityCountAlias = !(primaryEntityField === 'donor' && countField === 'donors');
+
+    const safeData = Array.isArray(data) ? data : [];
+    const nestedData = groupByMultiple(safeData, groupingProperties);
+    const groupedByColumn = typeof columnGrouping === 'string' ? _.groupBy(safeData, columnGrouping) : {};
+    // `_.groupBy` preserves first-occurrence order, matching the grid's own `groupedDataIndices`.
+    // The grid then reorders these via `columnGroups` (assay-family bands for Donor/Tissue x
+    // Assay, auto-populated germLayer bands for Donor x Tissue - see
+    // DataMatrix.getNextStateForMatrixMode's `effectiveAutoPopulateColumnGroupsMapFields`) using
+    // the exact same sortByArray/mergeValues pair reused here, so this must NOT alphabetize
+    // independently - that would visibly scramble the on-screen grouped order.
+    const unorderedColumns = _.keys(groupedByColumn);
+    const hasColumnGroups = !!(showColumnGroups && columnGroups && _.keys(columnGroups).length > 0);
+    const columns = hasColumnGroups
+        ? StackedBlockGroupedRow.sortByArray(unorderedColumns, StackedBlockGroupedRow.mergeValues(columnGroups))
+        : unorderedColumns;
+
+    // germLayer (Ectoderm/Mesoderm/Endoderm/Germline) is intrinsic to a *tissue*, so when the
+    // columns are tissues (e.g. Donor x Tissue) it's the columns - not the rows - that map
+    // cleanly onto a single germLayer each; expose that mapping so it isn't lost on export just
+    // because it isn't one of the explicit row/column grouping fields.
+    const columnGermLayers = {};
+    columns.forEach((col) => {
+        const germLayerValues = _.chain(groupedByColumn[col] || [])
+            .map((item) => item?.germLayer)
+            .compact()
+            .uniq()
+            .value();
+        if (germLayerValues.length === 1) {
+            columnGermLayers[col] = germLayerValues[0];
+        }
+    });
+
+    // The same `columnGroups` band shown on-screen above the column headers (e.g. "Bulk WGS" /
+    // "RNA-seq" / "Duplex-seq" for Donor x Assay, Tissue x Assay, and Benchmarking) - expose which
+    // band each column belongs to, since that grouping is otherwise only implied by column order.
+    // Donor x Tissue's columns are tissues, already covered by `columnGermLayers` above (its
+    // `columnGroups` bands ARE germLayers) - only add this for the assay-family case so the two
+    // fields don't just duplicate each other.
+    const isTissueColumnGrouping = columnGrouping === 'tissue';
+    const columnAssayGroups = {};
+    if (hasColumnGroups && !isTissueColumnGrouping) {
+        _.each(columnGroups, (groupConfig, groupKey) => {
+            _.each(groupConfig?.values || [], (col) => {
+                if (unorderedColumns.includes(col)) {
+                    columnAssayGroups[col] = groupKey;
+                }
+            });
+        });
+    }
+
+    // Row/column totals come from the backend-aggregated totals arrays (same source the
+    // row-summary/col-summary blocks use), keyed by the same grouping-property values.
+    const rowTotalsByPath = _.groupBy(
+        Array.isArray(rowTotals) ? rowTotals : [],
+        (row) => JSON.stringify(groupingProperties.map((prop) => row?.[prop]))
+    );
+    const columnTotalsByKey = _.groupBy(Array.isArray(columnTotals) ? columnTotals : [], columnGrouping);
+
+    // Same lookup the grid's regular blocks use (see StackedBlockGroupedRow.
+    // getRawRegularOverrideForColumn) - a row/column value present here means that column's raw
+    // file count before some of its rows got relabeled onto a synthetic "Variant Call
+    // Sets"/"DSA" column (resultTransformedPostProcessFuncs.analysisDerivedColumns), which would
+    // otherwise make this export silently undercount the original assay the same way summing
+    // `data` naively would.
+    const overrideDepth = groupingProperties.length - 1;
+    const getRawRegularOverride = (pathValues, col) => {
+        if (!rawRegularCountOverrides || countField !== 'files' || overrideDepth < 0) return null;
+        const pathKey = pathValues.map((value) => String(value)).join('||');
+        const overrideValue = rawRegularCountOverrides?.[overrideDepth]?.[pathKey]?.[String(col)];
+        return typeof overrideValue === 'number' ? overrideValue : null;
+    };
+
+    // Sum of the same per-row overrides above, one level up: the backend's `columnTotals`
+    // aggregation buckets purely by the raw assay/platform key, with no `data_type` awareness, so
+    // a DSA-like (DSA/Chain File/Sequence Interval) file tagged with e.g. "Fiber-Seq" is still
+    // counted in that bucket even though `getRawRegularOverride` above (and the on-screen grid)
+    // excludes that same row from ever appearing under "Fiber-Seq" - leaving the backend bucket's
+    // total higher than what the column's own exported rows actually sum to. Reuse the override
+    // map wholesale here so every column's total always equals the sum of its rows, instead of
+    // only patching the one column (Fiber-Seq) this happened to surface on.
+    const overrideColumnTotals = {};
+    if (rawRegularCountOverrides && countField === 'files' && overrideDepth >= 0) {
+        _.each(rawRegularCountOverrides[overrideDepth] || {}, (colValues) => {
+            _.each(colValues, (value, col) => {
+                overrideColumnTotals[col] = (overrideColumnTotals[col] || 0) + (Number(value) || 0);
+            });
+        });
+    }
+
+    const buildLeafRow = (items, pathValues) => {
+        const rowKeyFields = _.object(groupingProperties, pathValues);
+        const byColumn = _.groupBy(items, columnGrouping);
+        const counts = {};
+        columns.forEach((col) => {
+            const overrideValue = getRawRegularOverride(pathValues, col);
+            counts[col] = overrideValue != null ? overrideValue : computeCellValue(byColumn[col] || []);
+        });
+        const matchingRowTotals = rowTotalsByPath[JSON.stringify(pathValues)];
+        // Prefer the backend-aggregated row-totals value, but backend `row_totals` rows aren't
+        // guaranteed to carry every metric - e.g. benchmarking's donor+tissue row_totals track
+        // `files`/`donors` but not `total_coverage`, so computeCellValue(matchingRowTotals) comes
+        // back 0 for every row under the Coverage toggle even though the row's own cells (summed
+        // from `items` below) are clearly non-zero. Falling back to `items` only when the
+        // row-totals figure is 0 keeps the backend total authoritative whenever it actually has
+        // this metric, without resurrecting a genuine 0 as if it were missing data.
+        const rowTotalsValue = matchingRowTotals && matchingRowTotals.length ? computeCellValue(matchingRowTotals) : null;
+        const itemsValue = computeCellValue(items);
+        const rowMetricValue = (rowTotalsValue != null && rowTotalsValue !== 0) ? rowTotalsValue : itemsValue;
+        // germLayer (e.g. Ectoderm/Mesoderm/Endoderm/Germline) is shown on-screen as a colored
+        // vertical row-group label when a row represents a single tissue (e.g. Donor x Assay's
+        // donor+tissue rows). Only surface it here when every underlying item actually shares one
+        // germLayer - for views where a row spans multiple tissues (e.g. Donor x Tissue's
+        // donor-only rows), picking one item's value would misrepresent the row as a whole.
+        const rowGermLayerValues = _.chain(items).map((item) => item?.germLayer).compact().uniq().value();
+        const germLayerValue = rowGermLayerValues.length === 1 ? rowGermLayerValues[0] : null;
+        return {
+            ...rowKeyFields,
+            ...(germLayerValue != null ? { germLayer: germLayerValue } : {}),
+            [rowCountsKey]: counts,
+            [rowMetricKey]: rowMetricValue
+        };
+    };
+
+    // Columns are already sorted alphabetically (above); sort rows the same way so the export
+    // reads consistently rather than in whatever order rows first appeared in the raw data.
+    const sortRowsAlphabetically = (rows) => _.sortBy(rows, (row) => groupingProperties.map((prop) => String(row?.[prop] ?? '')).join(' '));
+
+    const collectLeafRowsInto = (node, pathValues, depth, out) => {
+        if (depth >= groupingProperties.length) {
+            out.push(buildLeafRow(Array.isArray(node) ? node : [], pathValues));
+            return;
+        }
+        _.each(node, (childNode, key) => collectLeafRowsInto(childNode, [...pathValues, key], depth + 1, out));
+    };
+
+    const flattenGroupItems = (node) => {
+        if (Array.isArray(node)) return node;
+        return _.reduce(_.values(node || {}), (memo, child) => memo.concat(flattenGroupItems(child)), []);
+    };
+
+    const columnTotalsMap = {};
+    const columnEntityCounts = {};
+    columns.forEach((col) => {
+        const matchingColumnTotals = columnTotalsByKey[col];
+        const columnItems = matchingColumnTotals && matchingColumnTotals.length ? matchingColumnTotals : (groupedByColumn[col] || []);
+        // DSA's cross-tissue duplication (see dedupeDsaTotalByPrimaryEntity above) affects the raw
+        // per-item rows regardless of which source `columnItems` came from, so recompute from
+        // `groupedByColumn` - the raw rows - rather than `matchingColumnTotals`, which may already
+        // be a backend pre-aggregate without a usable `primaryEntityField` to dedupe by.
+        const dedupedDsaTotal = col === 'DSA' ? dedupeDsaTotalByPrimaryEntity(groupedByColumn[col] || []) : null;
+        columnTotalsMap[col] = dedupedDsaTotal != null
+            ? dedupedDsaTotal
+            : (overrideColumnTotals[col] != null ? overrideColumnTotals[col] : computeCellValue(columnItems));
+        // Mirrors the always-visible "Total Donors"/"Total Tissues" band shown above "Total
+        // Files"/"Total Coverage" on screen - computed the same way regardless of `countFor` so
+        // it doesn't just repeat columnTotals when the toggle happens to already match. Uses the
+        // raw per-item rows (`groupedByColumn`), NOT the backend-aggregated `columnTotals` entries
+        // used above for the metric value - those are already summed across donors/tissues and
+        // carry no raw `donor`/`tissue` field to count unique values from, which would silently
+        // compute 0 whenever a backend column-total row happened to be available.
+        columnEntityCounts[col] = computePrimaryEntityCount(groupedByColumn[col] || []);
+    });
+
+    const grandTotal = overallCounts && Number.isFinite(Number(overallCounts?.[countField]))
+        ? Number(overallCounts[countField])
+        : computeCellValue(Array.isArray(columnTotals) && columnTotals.length ? columnTotals : safeData);
+
+    // The backend-provided overall shortcut is specifically a donor count, so it only applies
+    // when the primary entity actually is "donor" - Tissue x Assay's tissue count has no
+    // equivalent backend field and must always be derived from the data. Always derive from the
+    // raw `safeData` (not the aggregated `columnTotals`) for the same reason as columnEntityCounts
+    // above.
+    const overallEntityCount = primaryEntityField === 'donor' ? (overallCounts?.donors ?? overallCounts?.donor_count) : null;
+    // `Number(null)` is `0`, and `Number.isFinite(0)` is `true` - so checking finiteness alone
+    // silently treats "no backend shortcut available" (null) as a real, valid count of zero
+    // instead of falling through to the raw-data derivation below. That's exactly what happened
+    // for Tissue x Assay: `overallEntityCount` is intentionally null there, `Number.isFinite(0)`
+    // still passed, and every export reported "totalTissues": 0 instead of the real count.
+    const totalEntityCount = overallEntityCount != null && Number.isFinite(Number(overallEntityCount))
+        ? Number(overallEntityCount)
+        : computePrimaryEntityCount(safeData);
+
+    const baseExport = {
+        matrixMode,
+        countFor,
+        rowFields: groupingProperties,
+        columnField: columnGrouping,
+        rowAxisLabel,
+        columnAxisLabel,
+        columns,
+        ...(_.keys(columnGermLayers).length > 0 ? { columnGermLayers } : {}),
+        ...(_.keys(columnAssayGroups).length > 0 ? { columnAssayGroups } : {}),
+        [columnMetricKey]: columnTotalsMap,
+        ...(includeEntityCountAlias ? { [columnEntityKey]: columnEntityCounts } : {}),
+        [totalMetricKey]: grandTotal,
+        ...(includeEntityCountAlias ? { [totalEntityKey]: totalEntityCount } : {}),
+        generatedAt: new Date().toISOString()
+    };
+
+    const hasRowGroups = !!(showRowGroups && rowGroups && Object.keys(rowGroups).length > 0);
+    if (!hasRowGroups) {
+        const rows = [];
+        collectLeafRowsInto(nestedData, [], 0, rows);
+        return { ...baseExport, rows: sortRowsAlphabetically(rows) };
+    }
+
+    // Some views (e.g. benchmarking) split the top-level row axis into named sections
+    // (e.g. "Cell Lines" vs "Benchmarking Donors"), each with its own subtotal row on-screen.
+    // Reproduce that same section split/order/subtotals here instead of flattening rows,
+    // reusing the exact ordering/matching helpers the grid itself renders with.
+    const topLevelKeys = _.keys(nestedData);
+    const orderedTopLevelKeys = StackedBlockGroupedRow.sortByArray(topLevelKeys, StackedBlockGroupedRow.mergeValues(rowGroups));
+    const allGroupedValues = StackedBlockGroupedRow.mergeValues(rowGroups);
+    const rowGroupKeysInOrder = [..._.keys(rowGroups), EXPORT_FALLBACK_GROUP_KEY];
+
+    const rowGroupSections = _.compact(_.map(rowGroupKeysInOrder, (groupKey) => {
+        const matchedTopLevelKeys = groupKey === EXPORT_FALLBACK_GROUP_KEY
+            ? StackedBlockGroupedRow.difference(orderedTopLevelKeys, allGroupedValues)
+            : StackedBlockGroupedRow.intersection(orderedTopLevelKeys, (rowGroups[groupKey] || {}).values || []);
+        if (!matchedTopLevelKeys.length) return null;
+
+        const sectionRows = [];
+        matchedTopLevelKeys.forEach((topKey) => {
+            collectLeafRowsInto(nestedData[topKey], [topKey], 1, sectionRows);
+        });
+
+        const sectionItems = _.chain(matchedTopLevelKeys)
+            .map((topKey) => flattenGroupItems(nestedData[topKey]))
+            .flatten()
+            .value();
+        const sectionByColumn = _.groupBy(sectionItems, columnGrouping);
+        const sectionColumnTotals = {};
+        const sectionColumnEntityCounts = {};
+        columns.forEach((col) => {
+            const sectionColumnItems = sectionByColumn[col] || [];
+            const dedupedDsaTotal = col === 'DSA' ? dedupeDsaTotalByPrimaryEntity(sectionColumnItems) : null;
+            sectionColumnTotals[col] = dedupedDsaTotal != null ? dedupedDsaTotal : computeCellValue(sectionColumnItems);
+            sectionColumnEntityCounts[col] = computePrimaryEntityCount(sectionColumnItems);
+        });
+        // computeCellValue(sectionItems) below sums every item including "DSA"'s raw
+        // (undeduped) rows - subtract exactly the excess those contributed so the section total
+        // still matches sum(sectionColumnTotals) instead of double-counting the same fix twice.
+        const sectionDsaDedupExcess = dsaColumnDedupExcess(sectionItems);
+
+        return {
+            key: groupKey,
+            label: groupKey === EXPORT_FALLBACK_GROUP_KEY ? EXPORT_FALLBACK_GROUP_KEY : `Total ${StackedBlockVisual.pluralize(groupKey)}`,
+            entityCount: matchedTopLevelKeys.length,
+            rows: sectionRows,
+            [columnMetricKey]: sectionColumnTotals,
+            ...(includeEntityCountAlias ? { [columnEntityKey]: sectionColumnEntityCounts } : {}),
+            [sectionMetricKey]: computeCellValue(sectionItems) - sectionDsaDedupExcess,
+            ...(includeEntityCountAlias ? { [sectionEntityKey]: computePrimaryEntityCount(sectionItems) } : {})
+        };
+    }));
+
+    return { ...baseExport, rowGroups: rowGroupSections };
+}
+
 // VisualBody renders the matrix wrapper with popovers and count formatting.
 // Example: <VisualBody results={{ all: data, row_totals: totals }} groupingProperties={['donor','tissue']} columnGrouping="assay" />
 export class VisualBody extends React.PureComponent {

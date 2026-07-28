@@ -12,11 +12,18 @@ from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 # See loadxl_extensions.define_progress_tracker for details.
 
 def includeme(config):
-    config.add_route("ingestion_status", "/ingestion-status/{submission_uuid}")
+    config.add_route("submission_ingestion_status", "/ingestion-status/{submission_uuid}")
+    # Legacy path used by older smaht-submitr clients; kept alongside the hyphenated path above.
+    # Uses a distinct Pyramid route name so it does not collide with Snovault's own
+    # ingestion_status route (registered for the unrelated /ingestion_status queue-health
+    # endpoint by snovault.ingestion.ingestion_listener.includeme).
+    config.add_route("legacy_submission_ingestion_status", "/ingestion_status/{submission_uuid}")
     config.scan(__name__)
 
 
-@view_config(route_name="ingestion_status", request_method=["GET"], effective_principals=Authenticated)
+@view_config(route_name="submission_ingestion_status", request_method=["GET"], effective_principals=Authenticated)
+@view_config(route_name="legacy_submission_ingestion_status", request_method=["GET"],
+             effective_principals=Authenticated)
 @debug_log
 def ingestion_status(context, request):
     if value := request.matchdict.get("submission_uuid"):

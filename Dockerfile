@@ -163,6 +163,15 @@ RUN mkdir -p /var/log/nginx /var/lib/nginx /var/log/smaht && \
           /var/log/smaht/smaht1.log /var/log/smaht/smaht2.log /var/log/smaht/smaht3.log \
           /var/log/smaht/smaht4.log /var/log/smaht/smaht5.log
 
+# nginx config gate (from main PR #721): validate the installed nginx.conf against
+# the actual nginx now that the config, its conf.d includes, and the log paths it
+# references all exist. This runs during `docker build` (the CI Docker job), so a
+# syntactically invalid or directive-incompatible nginx.conf fails the build instead
+# of only failing at container start. Syntax/directive test only -- it does not prove
+# runtime behavior, and it validates the TLS-DISABLED default (empty smaht_tls.conf);
+# the runtime TLS cert/config is validated separately by setup_nginx_tls.sh.
+RUN nginx -v && nginx -t
+
 WORKDIR /home/nginx/smaht-portal
 
 # Bring in the built venv and the built application tree from the builder. --chown
