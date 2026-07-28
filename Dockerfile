@@ -119,7 +119,7 @@ RUN apt-get update && \
     ( getent group adm >/dev/null || /usr/sbin/groupadd --system adm ) && \
     ( getent group www-data >/dev/null || /usr/sbin/groupadd --system www-data ) && \
     ( getent passwd www-data >/dev/null || /usr/sbin/useradd --system --gid www-data --no-create-home --home-dir /var/www --shell /usr/sbin/nologin www-data ) && \
-    apt-get install -y --no-install-recommends nginx ca-certificates git libmagic1 make && \
+    apt-get install -y --no-install-recommends nginx ca-certificates git libmagic1 make openssl && \
     /usr/sbin/groupadd --system --gid 121 nginx && \
     /usr/sbin/useradd --system --gid nginx --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin --uid 121 nginx && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -133,35 +133,47 @@ COPY deploy/docker/production/nginx.conf /etc/nginx/nginx.conf
 # Shared server body (locations + security headers), included by both the plain
 # :8000 server and the generated TLS server. Copied read-only.
 COPY deploy/docker/production/nginx/smaht_server_common.conf /etc/nginx/conf.d/smaht_server_common.conf
+# Plain HTTP (:8000) server include -- the image default (TLS disabled / local runs).
+# setup_nginx_tls.sh regenerates it at runtime (empties it when TLS is enabled -> fail
+# closed), so it must be nginx-writable.
+COPY deploy/docker/production/nginx/smaht_http.conf /etc/nginx/conf.d/smaht_http.conf
 
-# LB->ECS TLS scaffolding. nginx.conf `include`s conf.d/smaht_tls.conf; ship it
-# EMPTY so the plain :8000 server works with TLS disabled. When TLS is enabled,
-# setup_nginx_tls.sh (run by the portal entrypoint) materializes the cert/key
-# from the ECS-injected secret into /etc/nginx/ssl (owner-only) and writes the
-# TLS server block into smaht_tls.conf. Both the ssl dir and the include file
-# must be nginx-writable at runtime (the container runs as nginx).
+# LB->ECS TLS scaffolding. nginx.conf `include`s conf.d/smaht_http.conf and
+# conf.d/smaht_tls.conf; ship smaht_tls.conf EMPTY so the plain :8000 server works
+# with TLS disabled. When TLS is enabled, setup_nginx_tls.sh (run by the portal
+# entrypoint) materializes the cert/key into /etc/nginx/ssl (owner-only), writes the
+# TLS server block into smaht_tls.conf, and EMPTIES smaht_http.conf (no plaintext
+# :8000). The ssl dir and both generated includes must be nginx-writable at runtime
+# (the container runs as nginx).
 RUN mkdir -p /etc/nginx/ssl /etc/nginx/conf.d && \
     chmod 700 /etc/nginx/ssl && \
     : > /etc/nginx/conf.d/smaht_tls.conf && \
-    chown -R nginx:nginx /etc/nginx/ssl /etc/nginx/conf.d/smaht_tls.conf
+    chown -R nginx:nginx /etc/nginx/ssl \
+          /etc/nginx/conf.d/smaht_tls.conf /etc/nginx/conf.d/smaht_http.conf
 
 # nginx + app runtime log filesystem. Everything runs as the non-root nginx user
-# under supervisord, so the paths written (nginx error/access logs, state/temp dir,
-# pid, and the app worker logs) must be nginx-owned. /var/log/smaht holds the app
-# worker output written for the Splunk SIDECAR: the app container writes here and
-# the Splunk sidecar mounts this path as a shared volume and tails it (the
-# forwarder no longer runs in this image). The log-shipper program re-emits these
-# files to container stdout so CloudWatch still sees them. Files are pre-created
-# so both the shipper and the sidecar find them immediately at startup.
-RUN mkdir -p /var/log/nginx /var/lib/nginx /var/log/smaht && \
-    chown -R nginx:nginx /var/log/nginx /var/lib/nginx /var/log/smaht && \
-    rm -f /var/log/nginx/* && \
-    touch /var/log/nginx/error.log /var/log/nginx/access.log /var/run/nginx.pid \
+# (uid/gid 121) under supervisord, so every path written must be nginx-owned.
+#
+# /var/log/smaht is the SHARED-VOLUME log root: the app container writes here and the
+# Splunk sidecar mounts it read-only and tails it. It holds BOTH the app worker logs
+# (smahtN.log) AND the nginx web-tier logs (nginx/{access,error}.log) -- one volume,
+# no separate/optional nginx volume (B6). /var/lib/nginx is nginx's state/temp dir;
+# it stays image-local (not shared). /var/log/nginx is kept nginx-owned as insurance
+# for nginx's compiled-in default error-log path (our config redirects logs to
+# /var/log/smaht/nginx, but the default dir must be writable for any pre-config error).
+# Files are pre-created nginx-owned so the shipper and the sidecar find them
+# immediately, and so this ownership is what the shared volume preserves (VOLUME, B2).
+RUN mkdir -p /var/lib/nginx /var/log/nginx /var/log/smaht/nginx && \
+    chown -R nginx:nginx /var/lib/nginx /var/log/nginx /var/log/smaht && \
+    touch /var/run/nginx.pid \
+          /var/log/smaht/nginx/error.log /var/log/smaht/nginx/access.log \
           /var/log/smaht/smaht1.log /var/log/smaht/smaht2.log /var/log/smaht/smaht3.log \
           /var/log/smaht/smaht4.log /var/log/smaht/smaht5.log && \
-    chown nginx:nginx /var/log/nginx/error.log /var/log/nginx/access.log /var/run/nginx.pid \
+    chown nginx:nginx /var/run/nginx.pid \
+          /var/log/smaht/nginx/error.log /var/log/smaht/nginx/access.log \
           /var/log/smaht/smaht1.log /var/log/smaht/smaht2.log /var/log/smaht/smaht3.log \
-          /var/log/smaht/smaht4.log /var/log/smaht/smaht5.log
+          /var/log/smaht/smaht4.log /var/log/smaht/smaht5.log && \
+    chmod 0755 /var/log/smaht /var/log/smaht/nginx
 
 # nginx config gate (from main PR #721): validate the installed nginx.conf against
 # the actual nginx now that the config, its conf.d includes, and the log paths it
@@ -171,6 +183,15 @@ RUN mkdir -p /var/log/nginx /var/lib/nginx /var/log/smaht && \
 # runtime behavior, and it validates the TLS-DISABLED default (empty smaht_tls.conf);
 # the runtime TLS cert/config is validated separately by setup_nginx_tls.sh.
 RUN nginx -v && nginx -t
+
+# B2 (shared-volume ownership): declare /var/log/smaht a VOLUME so an ECS bind/managed
+# mount PRESERVES the image path's nginx (uid 121) ownership + mode instead of masking
+# it with a fresh root:root 0755 mount. Without this the non-root app could not create
+# /var/log/smaht/*.log. Declared AFTER the directory is created, chowned, and validated
+# so the preserved content is correct. The Splunk sidecar mounts the same volume
+# read-only as uid 4321; 0755 dirs + world-readable log files let that other-uid read.
+# See deploy/docker/splunk/README.md ("shared log volume") for the task-definition mounts.
+VOLUME ["/var/log/smaht"]
 
 WORKDIR /home/nginx/smaht-portal
 

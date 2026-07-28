@@ -35,14 +35,24 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Pin the forwarder version/build (matches the app image's prior pin). `dpkg -x`
-# unpacks the filesystem tree (to /opt/splunkforwarder) WITHOUT running any
-# maintainer scripts, so no users/dirs are created in the builder - the runtime
-# stage owns user creation and ownership.
+# Pin the forwarder version/build (matches the app image's prior pin) AND verify the
+# download's SHA-256 before extraction (N3): a version/build tag alone does not
+# guarantee integrity. The default hash was verified by independently downloading this
+# exact artifact from download.splunk.com (Splunk's authoritative CDN). Before bumping
+# the version, re-verify the new hash from Splunk's published checksums and update
+# SPLUNK_UF_SHA256 -- a mismatch fails the build.
+#
+# `dpkg -x` unpacks the filesystem tree (to /opt/splunkforwarder) WITHOUT running any
+# maintainer scripts, so no users/dirs are created in the builder - the runtime stage
+# owns user creation and ownership. (The deb's postinst normally writes
+# etc/splunk-launch.conf / etc/packagetype; the forwarder regenerates a usable
+# splunk-launch.conf on first `splunk` invocation, which the sidecar tests exercise.)
 ARG SPLUNK_UF_VERSION=9.4.12
 ARG SPLUNK_UF_BUILD=9dfc486f3d48
+ARG SPLUNK_UF_SHA256=92559ff78ddbb99c3ff278a7f8ecc7c4c07e1c5def0d7232e50c6df2303c4e6e
 RUN curl -fsSL -o /tmp/splunkforwarder.deb \
       "https://download.splunk.com/products/universalforwarder/releases/${SPLUNK_UF_VERSION}/linux/splunkforwarder-${SPLUNK_UF_VERSION}-${SPLUNK_UF_BUILD}-linux-amd64.deb" && \
+    echo "${SPLUNK_UF_SHA256}  /tmp/splunkforwarder.deb" | sha256sum -c - && \
     dpkg -x /tmp/splunkforwarder.deb / && \
     rm -f /tmp/splunkforwarder.deb
 

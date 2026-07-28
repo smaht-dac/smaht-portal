@@ -114,29 +114,87 @@ around the same harness. Lint the shell with `shellcheck -s sh`.
 ## ECS task-definition handoff (NOT owned by this repository)
 
 This repo owns the sidecar **image and its config/entrypoint**. It does **not**
-contain the ECS task definition, the shared-volume declaration, or the
-load-balancer wiring — those live in the infrastructure/CloudFormation project
-that provisions the SMaHT ECS service (the same place the CrowdStrike sidecar and
-the `FALCON_*` / `FALCON_ECR` values referenced in `buildspec.yml` are defined).
-The task-definition owner must add:
+contain the ECS task definition, the shared-volume declaration, the container
+restart policy, or the load-balancer wiring — those live in the
+infrastructure/CloudFormation project that provisions the SMaHT ECS service (the
+same place the CrowdStrike sidecar and the `FALCON_*` / `FALCON_ECR` values
+referenced in `buildspec.yml` are defined). What this repo CAN validate is marked
+below; the rest is the exact, complete contract the task-definition owner must add.
 
-1. **A shared log volume.** Declare a task `volume` (e.g. a local `emptyDir`-style
-   volume named `smaht-logs`) and mount it:
-   - into the **app** container read-write at `/var/log/smaht`;
-   - into the **splunk sidecar** read-only at `/var/log/smaht`.
-   (Optionally also share `/var/log/nginx` the same way to ship the nginx
-   web-tier logs; `inputs.conf` already monitors those paths.)
+### What this repo already guarantees (validated in-repo)
+
+- The sidecar entrypoint accepts the license non-interactively, starts/readiness-
+  checks splunkd, exits non-zero on failure, and does a **bounded** graceful
+  `splunk stop` on SIGTERM (`tests/run_forwarder_tests.sh`, 41 cases).
+- The app image writes app worker logs **and** nginx access/error logs into one
+  `/var/log/smaht` tree, owned by the non-root `nginx` user, and declares it a
+  `VOLUME` so a mount preserves that ownership (`Dockerfile`, guarded by
+  `deploy/docker/production/tests/test_container_contracts.py`).
+
+### What the task definition MUST add (external, not validated here)
+
+1. **A shared log volume** (e.g. a Fargate ephemeral volume named `smaht-logs`),
+   mounted:
+   - into the **app** container **read-write** at `/var/log/smaht`;
+   - into the **splunk sidecar** **read-only** at `/var/log/smaht`.
+
+   **Ownership/mode contract (B2 — this is the sharp edge).** An ECS bind/managed
+   mount defaults to owner `root:root`, mode `0755`, which would MASK the image's
+   nginx-owned directory and stop the non-root app (uid **121**) from creating
+   `/var/log/smaht/*.log`. The app image declares `VOLUME ["/var/log/smaht"]` so
+   the mount **preserves** the image path's ownership; confirm on the target
+   platform that:
+   - the app container runs as uid/gid **121** (`nginx`) and can create/rotate
+     `/var/log/smaht/smahtN.log` and `/var/log/smaht/nginx/{access,error}.log`;
+   - the sidecar runs as uid/gid **4321** (`splunkfwd`) and can **read** them.
+     Dirs are `0755` and the app/nginx log files are world-readable, so uid 4321
+     reads them via `other`. If your platform ignores the `VOLUME` ownership hint
+     (some managed volume drivers do), add a **root init container** that
+     `chown 121:121 /var/log/smaht -R && chmod 0755 /var/log/smaht /var/log/smaht/nginx`
+     with `dependsOn: { app: START }` ordering, OR give both containers a shared
+     supplementary gid and make the logs group-readable.
+   - **Mount order:** the app must mount RW and start writing before/independently
+     of the sidecar; the sidecar only reads.
+
 2. **The sidecar container definition** referencing the image this repo builds,
-   `essential: false` (a forwarder crash must never take the task down), with a
-   `dependsOn` of `{ containerName: <app>, condition: START }` so it starts after
-   the app begins writing.
+   with:
+   - `essential: false` — a forwarder crash must never take the app task down; **and**
+   - **`restartPolicy` with `enabled: true` (B1).** `essential: false` alone does
+     NOT restart a crashed container — ECS just leaves it stopped for the task's
+     lifetime, silently ending log shipping. The entrypoint deliberately exits
+     non-zero on failure expecting a restart, so the policy is REQUIRED, e.g.:
+     ```
+     restartPolicy: { enabled: true, restartAttemptPeriod: 60 }
+     ```
+     (Container restart policies are a per-container opt-in; see the AWS
+     "Restart individual containers in Amazon ECS tasks" doc. Do not set
+     `ignoredExitCodes` for 143 — a clean SIGTERM shutdown on task drain does not
+     loop because the whole task is stopping.)
+   - `dependsOn: { containerName: <app>, condition: START }` so it starts after the
+     app begins writing.
+
 3. **Egress to the HMS deployment server** `10.124.5.202:8089` from the task's
    security group / network path (the sidecar phones home there).
-4. **A `stopTimeout`** long enough for the entrypoint's graceful `splunk stop`
-   on task drain (30s is ample).
+
+4. **A `stopTimeout`** strictly greater than the sidecar's `SPLUNK_FWD_STOP_TIMEOUT`
+   (default 20s) so the bounded graceful `splunk stop` completes before ECS
+   SIGKILLs the container — 30s is ample.
+
 5. **A log configuration** (`awslogs` / CloudWatch) on the sidecar so the
    `[splunk-forwarder]` / `[splunk-cli]` / `[splunkd.log]` output is captured.
 
 Until that task-definition change lands, this image builds and passes its tests
 but is not yet wired into the running task. The top-level PR spells out this
 handoff explicitly.
+
+## Building/validating the sidecar image (proportionate, Docker-gated)
+
+`tests/smoke_test.sh` builds the sidecar image and runs it end-to-end (uid/gid,
+`splunk version`, start/readiness, TERM/stop, no raw secrets in output). It needs
+a Docker daemon and network access to `download.splunk.com`, so it is **not** part
+of the unit-test stack and was **not runnable in this environment** (no Docker
+daemon). Run it before a first deployment:
+
+```sh
+sh deploy/docker/splunk/tests/smoke_test.sh
+```

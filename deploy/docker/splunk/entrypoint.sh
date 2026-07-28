@@ -58,6 +58,8 @@ READY_TIMEOUT="${SPLUNK_FWD_READY_TIMEOUT:-120}"      # max seconds to reach "ru
 HEARTBEAT_EVERY="${SPLUNK_FWD_HEARTBEAT_EVERY:-10}"   # heartbeat every N poll cycles
 CLI_TAIL_LINES="${SPLUNK_FWD_CLI_TAIL_LINES:-40}"     # bounded CLI output echoed
 LOG_TAIL_LINES="${SPLUNK_FWD_LOG_TAIL_LINES:-50}"     # bounded splunkd.log tail on failure
+STOP_TIMEOUT="${SPLUNK_FWD_STOP_TIMEOUT:-20}"         # max seconds for graceful splunk stop
+                                                      # (MUST be < the ECS task stopTimeout)
 
 # Temp file for capturing Splunk CLI stdout/stderr per invocation.
 CLI_OUT="$(mktemp "${TMPDIR:-/tmp}/splunk-cli.XXXXXX")"
@@ -154,6 +156,51 @@ fail() {
     dump_splunkd_log
     exit "$_rc"
 }
+
+# ---------------------------------------------------------------------------
+# Graceful shutdown (installed EARLY, before the first Splunk command - N1)
+# ---------------------------------------------------------------------------
+# splunkd daemonizes into its own session; on the ECS stop signal (SIGTERM ->
+# stopTimeout) we best-effort stop splunkd and clean up the tail pipeline, then
+# exit 143 so the sidecar shuts down cleanly instead of being SIGKILLed.
+#
+# These handlers are installed BEFORE license acceptance / start / readiness so a
+# stop that arrives DURING startup still gets a graceful splunk stop (previously the
+# traps were installed only after readiness, leaving the whole startup window
+# uncovered). TAIL_PID is guarded because it is not set until stage 6.
+#
+# The stop is BOUNDED by STOP_TIMEOUT: `splunk stop` can itself hang, and an
+# unbounded stop would run until ECS SIGKILLs the container at stopTimeout, losing
+# the clean exit. We run stop in the background and abandon it past the deadline.
+# shellcheck disable=SC2329  # invoked indirectly via `trap`
+cleanup() {
+    [ -n "${TAIL_PID:-}" ] && kill "$TAIL_PID" 2>/dev/null || true
+}
+# shellcheck disable=SC2329  # invoked indirectly via `trap`
+bounded_splunk_stop() {
+    _t0="$(date +%s)"
+    ( "$SPLUNK" stop --accept-license --answer-yes --no-prompt </dev/null >/dev/null 2>&1 ) &
+    _stop_pid=$!
+    while kill -0 "$_stop_pid" 2>/dev/null; do
+        if [ "$(( $(date +%s) - _t0 ))" -ge "$STOP_TIMEOUT" ]; then
+            kill "$_stop_pid" 2>/dev/null || true
+            log "stage 'stop': 'splunk stop' exceeded ${STOP_TIMEOUT}s - abandoned (container will exit; ECS reaps)"
+            return 1
+        fi
+        sleep 1
+    done
+    log "stage 'stop': 'splunk stop' completed within ${STOP_TIMEOUT}s"
+    return 0
+}
+# shellcheck disable=SC2329  # invoked indirectly via `trap`
+shutdown() {
+    log "received stop signal - stopping splunkd (bounded ${STOP_TIMEOUT}s)"
+    bounded_splunk_stop || true
+    cleanup
+    exit 143
+}
+trap 'cleanup' EXIT
+trap 'shutdown' INT TERM
 
 # ---------------------------------------------------------------------------
 # Stage 0: announce + context
@@ -264,26 +311,9 @@ tail -n 200 -F "$SPLUNKD_LOG" 2>/dev/null \
     | sed -u 's/^/[splunkd.log] /' &
 TAIL_PID=$!
 
-# ---------------------------------------------------------------------------
-# Graceful shutdown
-# ---------------------------------------------------------------------------
-# splunkd daemonizes into its own session; on the ECS stop signal (SIGTERM ->
-# stopTimeout) we best-effort stop splunkd (bounded) and clean up the tail
-# pipeline, then exit 143 so the sidecar shuts down cleanly instead of being
-# SIGKILLed. Preserves normal container lifecycle / graceful shutdown.
-# shellcheck disable=SC2329  # invoked indirectly via `trap`
-cleanup() {
-    kill "$TAIL_PID" 2>/dev/null || true
-}
-# shellcheck disable=SC2329  # invoked indirectly via `trap`
-shutdown() {
-    log "received stop signal - stopping splunkd"
-    run_splunk "stop" stop || log "stage 'stop': 'splunk stop' returned non-zero (continuing shutdown)"
-    cleanup
-    exit 143
-}
-trap 'cleanup' EXIT
-trap 'shutdown' INT TERM
+# Graceful-shutdown traps were already installed early (before license acceptance);
+# nothing to (re)install here. The backgrounded TAIL_PID above is now covered by the
+# existing cleanup()/shutdown() handlers.
 
 log "HEALTHY: splunk forwarder started; splunkd running (pid=$SPLUNKD_PID), deployment-server=${DEPLOY_TARGET:-<none>}, monitoring for connection activity"
 

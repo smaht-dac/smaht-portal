@@ -169,17 +169,21 @@ Regression tests are self-contained (no real Splunk/network/AWS):
 `deploy/docker/production/setup_nginx_tls.sh` (run by `entrypoint_portal.sh`
 before supervisord) materializes the nginx cert/key from the ECS-injected
 `NGINX_SSL_CERTIFICATE[_KEY]` env vars (Secrets Manager via the ECS `secrets:`
-path) into owner-only files and writes a `listen 8443 ssl` server block into
-`/etc/nginx/conf.d/smaht_tls.conf`. `nginx.conf`'s server body lives in the
-shared `nginx/smaht_server_common.conf` snippet, included by both the plain
-`:8000` server and the generated TLS server. TLS is opt-in via
-`NGINX_TLS_ENABLED=true`; disabled → plain `:8000` only (no behavior change).
-Missing/malformed/mismatched material fails the container loudly; the secret is
-never logged and is unset before supervisord starts. Secret shape, rotation, and
-the LB-listener/ECS-`secrets:` **infrastructure handoff** (not in this repo) are
-documented in `deploy/docker/production/nginx/README.md`. Tests:
-`sh deploy/docker/production/tests/setup_nginx_tls_tests.sh` (needs `openssl`;
-validates the generated block with `nginx -t`).
+path) into owner-only files and generates the server blocks into
+`/etc/nginx/conf.d/smaht_http.conf` + `smaht_tls.conf` (both `include`d by
+`nginx.conf`; server body shared via `nginx/smaht_server_common.conf` so they
+can't drift). Opt-in via `NGINX_TLS_ENABLED=true`. **Fail closed:** enabled →
+`listen 8443 ssl` **and the plaintext `:8000` listener is removed**; disabled →
+plain `:8000` only. It then runs the authoritative `nginx -t` (the real gate —
+catches malformed/mismatched material even without `openssl`) and only logs
+`HEALTHY` if it passes; any failure exits non-zero (ECS restarts). The raw secret
+is never logged and is `unset` before `assume_identity`/`exec supervisord` (the
+entrypoints use an `exec` dispatch chain so PID 1 keeps a scrubbed environment).
+Secret shape, rotation, the fail-closed port table, ALB behavior, and the
+LB-listener/ECS-`secrets:`/health-check **infrastructure handoff** (not in this
+repo) are in `deploy/docker/production/nginx/README.md`. Tests:
+`sh deploy/docker/production/tests/setup_nginx_tls_tests.sh` and
+`test_container_contracts.py`.
 
 ## Maintaining this file
 

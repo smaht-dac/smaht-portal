@@ -89,6 +89,11 @@ case "$CMD" in
         ;;
     stop)
         license_gate "$@"
+        # FAKE_SPLUNK_STOP=hang models a `splunk stop` that never returns, so tests
+        # can exercise the wrapper's BOUNDED stop (STOP_TIMEOUT) path.
+        if [ "${FAKE_SPLUNK_STOP:-ok}" = "hang" ]; then
+            while true; do sleep 3600; done
+        fi
         rm -f "$PIDFILE"
         echo "Stopping splunkd..."
         exit 0

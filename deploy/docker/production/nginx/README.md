@@ -38,18 +38,40 @@ On boot, `setup_nginx_tls.sh`:
 2. Writes them to `/etc/nginx/ssl/server.crt` and `/etc/nginx/ssl/server.key`,
    mode `0600`, in a `0700` dir.
 3. Writes the `listen 8443 ssl` server block (TLSv1.2/1.3, `HIGH:!aNULL:!MD5`)
-   into `/etc/nginx/conf.d/smaht_tls.conf`, reusing `smaht_server_common.conf`.
-4. Emits `HEALTHY: LB->ECS TLS configured …`.
+   into `/etc/nginx/conf.d/smaht_tls.conf`, reusing `smaht_server_common.conf`, and
+   **empties `smaht_http.conf`** so there is **no plaintext `:8000` listener at
+   all** — TLS mode fails closed (B4).
+4. Runs the **authoritative `nginx -t -c /etc/nginx/nginx.conf`** (B3). This loads
+   the cert/key and parses every include, so marker-shaped-but-invalid material, a
+   mismatched pair, or any config/include error is caught HERE — even when
+   `openssl` is unavailable. `openssl` is nonetheless installed in the image as a
+   first-line check.
+5. Emits `HEALTHY: LB->ECS TLS configured …` **only after `nginx -t` passes**.
 
-`entrypoint_portal.sh` then **unsets** `NGINX_SSL_CERTIFICATE[_KEY]` before
-starting supervisord, so nginx (which reads the cert from disk) and the app
-workers never inherit the raw secret.
+`entrypoint_portal.sh` **unsets** `NGINX_SSL_CERTIFICATE[_KEY]` immediately after
+this step and **before** it runs `assume_identity` or `exec supervisord` (B5), so
+nothing downstream (nginx — which reads the cert from disk — the app workers, or
+`assume_identity`) inherits the raw secret, and PID 1 (`exec`'d to supervisord)
+does not keep it in `/proc/1/environ`.
 
-**Failure is loud.** Missing, empty, non-PEM, or mismatched material makes
-`setup_nginx_tls.sh` exit non-zero; `entrypoint_portal.sh` then exits and ECS
-restarts the task rather than silently serving plaintext. Only sanitized metadata
-(present/absent, byte counts, file modes, parse verdict) is ever logged — never
-the certificate or key bytes, no `set -x`, no env dump.
+**Failure is loud.** Missing, empty, non-PEM, mismatched, or `nginx -t`-invalid
+material makes `setup_nginx_tls.sh` exit non-zero; `entrypoint_portal.sh` then
+exits and ECS restarts the task rather than silently serving plaintext OR coming up
+with a broken cert (which would previously have surfaced as an nginx restart loop
+behind a still-"HEALTHY" log). Only sanitized metadata (present/absent, byte
+counts, file modes, parse verdict, redacted `nginx -t` output) is ever logged —
+never the certificate or key bytes, no `set -x`, no env dump.
+
+### Ports (fail closed)
+
+| Mode | `:8000` (plaintext) | `:8443` (TLS) |
+| --- | --- | --- |
+| `NGINX_TLS_ENABLED` unset/false | **serving** (plain HTTP) | not listening |
+| `NGINX_TLS_ENABLED=true` | **not listening** (removed) | serving (TLS) |
+
+So a stale/mistyped target group or security-group rule cannot quietly keep using
+plaintext when TLS is enabled — nothing answers on `:8000`. The image still
+`EXPOSE`s both ports (metadata only); the ACTIVE listener is chosen at boot.
 
 ## The required secret shape
 
@@ -86,9 +108,14 @@ sh deploy/docker/production/tests/setup_nginx_tls_tests.sh   # direct
 #   deploy/docker/production/tests/test_setup_nginx_tls.py
 ```
 
-Covers: TLS-disabled no-op; missing cert; missing key; malformed cert; malformed
-key; mismatched pair; valid pair → `0600` files + a `listen 8443 ssl` block that
-`nginx -t` accepts; and proof the secret bytes never reach stdout/stderr.
+Covers: TLS-disabled plain-`:8000` include (validated by `nginx -t`); missing cert;
+missing key; malformed cert; malformed key; mismatched pair; valid pair → `0600`
+files + a `listen 8443 ssl` block **and an emptied plaintext include** (fail
+closed) that `nginx -t` accepts; the **no-`openssl` path** where `nginx -t` alone
+catches marker-shaped garbage (no false HEALTHY) and accepts valid material; and
+proof the secret bytes never reach stdout/stderr. The structural container
+invariants (VOLUME, exec chain, log paths, sha256 pin) are guarded by
+`deploy/docker/production/tests/test_container_contracts.py`.
 
 ## Infrastructure handoff (NOT owned by this repository)
 
@@ -105,10 +132,22 @@ the ECS/CloudFormation infrastructure project and must be added there:
    ```
    The task **execution role** needs `secretsmanager:GetSecretValue` on that ARN
    (and `kms:Decrypt` if the secret is CMK-encrypted).
-2. **LB listener + target group.** Point the load balancer at the container's
-   **8443** target (the image now `EXPOSE`s 8000 and 8443) and configure the
-   listener→target hop as TLS/HTTPS. If the ALB validates the upstream
-   certificate, the cert's SAN must match what the target group expects.
+2. **LB listener + target group + health check.** Point the load balancer at the
+   container's **8443** target and configure the listener→target hop as HTTPS. In
+   TLS mode nothing listens on `:8000`, so the **target-group health check must
+   also target `:8443` (HTTPS)** — a health check left on `:8000` will fail every
+   task.
+
+   **ALB certificate validation (N4).** An Application Load Balancer does **not**
+   validate the target's certificate: per AWS's ALB target-group documentation it
+   accepts self-signed or expired target certs and does not check the SAN/hostname.
+   So the cert here does not need a particular SAN for the ALB to connect — this
+   hop encrypts transit, it does not authenticate the target to the ALB. Choose the
+   certificate's lifecycle/rotation to fit your compliance policy (see "Rotation /
+   restart behavior"); the encryption requirement stands regardless.
+
+`NGINX_TLS_ENABLED` can be a plain container `environment` entry (`"true"`) — it is
+not sensitive; only `NGINX_SSL_CERTIFICATE[_KEY]` come from the `secrets:` mapping.
 
 Certificate and private-key values must never appear in task definitions, PR
 text, logs, or images — only the **secret ARN** is referenced. Until the two

@@ -158,6 +158,28 @@ want    "splunkd.log activity is surfaced"       "[splunkd.log]"
 wantnot "raw splunkd.log secret STAGE6SECRETVALUE absent" "STAGE6SECRETVALUE"
 want    "splunkd.log secret is redacted"         "<redacted>"
 
+echo "TEST 12 (N1): SIGTERM DURING STARTUP (never ready) still runs a graceful stop"
+# never_ready keeps the wrapper in the readiness stage (splunkd never reports
+# running). TERM arrives there, BEFORE HEALTHY. Because the traps are installed
+# early (not after readiness), the stop is handled gracefully. The old code, which
+# installed traps only after readiness, could not have caught this.
+run_case first hang never_ready 2
+want    "early trap handles stop during startup" "received stop signal"
+want    "graceful splunk stop was invoked"       "stage 'stop'"
+wantnot "did not falsely reach HEALTHY"           "HEALTHY: splunk forwarder"
+
+echo "TEST 13 (N1): a HUNG 'splunk stop' is bounded and does not block shutdown forever"
+# FAKE_SPLUNK_STOP=hang makes 'splunk stop' never return; the wrapper must abandon
+# it after SPLUNK_FWD_STOP_TIMEOUT and still exit (rather than hang until ECS
+# SIGKILLs it). Set the bound to 1s so the case is quick.
+export FAKE_SPLUNK_STOP=hang
+export SPLUNK_FWD_STOP_TIMEOUT=1
+run_case later hang ok 4
+want            "handles stop signal"             "received stop signal"
+want            "bounded stop abandons hung stop"  "abandoned"
+want_rc_nonzero "exits (not blocked) after the bounded stop"
+unset FAKE_SPLUNK_STOP SPLUNK_FWD_STOP_TIMEOUT
+
 echo
 echo "==================================================================="
 echo "PASSED: $PASS   FAILED: $FAIL"
