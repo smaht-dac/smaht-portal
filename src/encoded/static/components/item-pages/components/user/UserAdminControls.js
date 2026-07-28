@@ -23,6 +23,7 @@ import {
     getStatusEnum,
     getGroupsEnum,
     extractUserBaseline,
+    draftFromBaseline,
     buildUserPatchPayload,
     diffUserFields,
     getChangedFields,
@@ -131,11 +132,7 @@ export default class UserAdminControls extends React.Component {
         this.state = {
             baselineStatus: LOAD.loading,
             original: baseline,
-            draft: {
-                ...baseline,
-                groups: baseline.groups.slice(),
-                submits_for: baseline.submits_for.slice(),
-            },
+            draft: draftFromBaseline(baseline),
             scOptions: [],
             scLabelMap: initialLabelMap,
             scStatus: LOAD.loading,
@@ -175,11 +172,7 @@ export default class UserAdminControls extends React.Component {
                         original,
                         draft: pending
                             ? prev.draft
-                            : {
-                                ...original,
-                                groups: original.groups.slice(),
-                                submits_for: original.submits_for.slice(),
-                            },
+                            : draftFromBaseline(original),
                     };
                 });
             },
@@ -290,11 +283,7 @@ export default class UserAdminControls extends React.Component {
                 const original = extractUserBaseline(embeddedResp);
                 this.setState({
                     original,
-                    draft: {
-                        ...original,
-                        groups: original.groups.slice(),
-                        submits_for: original.submits_for.slice(),
-                    },
+                    draft: draftFromBaseline(original),
                     saving: false,
                     showConfirm: false,
                 });

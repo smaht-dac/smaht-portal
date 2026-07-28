@@ -13,6 +13,7 @@ const {
     getStatusEnum,
     getGroupsEnum,
     extractUserBaseline,
+    draftFromBaseline,
     normalizeLinkArray,
     sameStringSet,
     isFieldChanged,
@@ -82,6 +83,40 @@ describe('userAdminHelpers - baseline normalization', () => {
     it('handles a user with no admin-editable fields set', () => {
         expect(extractUserBaseline({})).toEqual({
             status: '',
+            groups: [],
+            submits_for: [],
+        });
+    });
+});
+
+describe('userAdminHelpers - draftFromBaseline', () => {
+    it('copies scalar and array values from the baseline', () => {
+        const baseline = {
+            status: 'current',
+            groups: ['dbgap'],
+            submits_for: ['/a/'],
+        };
+        expect(draftFromBaseline(baseline)).toEqual(baseline);
+    });
+
+    it('clones arrays so draft never shares references with the baseline', () => {
+        const baseline = {
+            status: 'current',
+            groups: ['dbgap'],
+            submits_for: ['/a/'],
+        };
+        const draft = draftFromBaseline(baseline);
+        expect(draft.groups).not.toBe(baseline.groups);
+        expect(draft.submits_for).not.toBe(baseline.submits_for);
+    });
+
+    it('tolerates missing/undefined array fields', () => {
+        expect(draftFromBaseline({ status: 'current' })).toEqual({
+            status: 'current',
+            groups: [],
+            submits_for: [],
+        });
+        expect(draftFromBaseline(undefined)).toEqual({
             groups: [],
             submits_for: [],
         });

@@ -90,6 +90,25 @@ export function extractUserBaseline(source) {
 }
 
 /**
+ * Build an editable draft from a baseline, cloning the arrays so the draft and
+ * its baseline never share array references (edits replace, but a shared
+ * reference would still alias the two objects and break diffing). Single source
+ * of truth for the constructor / post-fetch / post-save seeding.
+ * @param {{status: string, groups: string[], submits_for: string[]}} baseline
+ * @returns {{status: string, groups: string[], submits_for: string[]}}
+ */
+export function draftFromBaseline(baseline) {
+    const base = baseline || {};
+    return {
+        ...base,
+        groups: Array.isArray(base.groups) ? base.groups.slice() : [],
+        submits_for: Array.isArray(base.submits_for)
+            ? base.submits_for.slice()
+            : [],
+    };
+}
+
+/**
  * Coerce a linkTo array (of `@id` strings and/or embedded objects) to a plain
  * array of `@id` strings, dropping anything without a resolvable `@id`.
  * @param {Array} arr
