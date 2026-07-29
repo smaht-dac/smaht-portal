@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+2.6.4
+=====
+
+`PR 733: update bulk donor manifest script to represent 89 as '89+' <https://github.com/smaht-dac/smaht-portal/pull/733>`_
+
+* Handles the case where donor age is 89 and represents it as "89+" in the bulk donor manifest
+* Ensures no newline characters are present in the bulk donor manifest output
+
 2.6.3
 =====
 
