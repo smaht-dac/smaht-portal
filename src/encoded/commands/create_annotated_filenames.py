@@ -57,6 +57,7 @@ TRANSCRIPT_SEQUENCE_DATA_TYPE = "Transcript Sequence"
 TRANSCRIPT_MODEL_DATA_TYPE = "Transcript Model"
 SEQUENCING_READS_DATA_CATEGORY = "Sequencing Reads"
 ALIGNED_READS_DATA_TYPE = "Aligned Reads"
+SEQUENCING_SUPPLEMENT_DATA_CATEGORY = "Sequencing Supplement"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -1180,6 +1181,7 @@ def get_analysis(
     kinnex_info_code = get_kinnex_value(file, assay)
     consensus_read_flag = get_consensus_value(file, assay)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
+    metadata_code = get_metadata_value(file)
     value = get_analysis_value(
         software_and_versions,
         reference_genome_code,
@@ -1188,7 +1190,8 @@ def get_analysis(
         chain_code,
         dsa_code,
         consensus_read_flag,
-        kinnex_info_code
+        kinnex_info_code,
+        metadata_code
     )
     errors = get_analysis_errors(
         file,
@@ -1254,12 +1257,17 @@ def get_analysis_value(
     chain_code: str,
     dsa_code: str,
     consensus_read_flag: str,
-    kinnex_info_code: str
+    kinnex_info_code: str,
+    metadata_code: str
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, dsa_code, consensus_read_flag, kinnex_info_code]
+        for string in [
+            software_and_versions, reference_genome_code, gene_annotation_code,
+            transcript_info_code, chain_code, dsa_code, consensus_read_flag,
+            kinnex_info_code, metadata_code
+        ]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -1439,6 +1447,13 @@ def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> s
         return "consensus"
     else:
         return ""
+
+
+def get_metadata_value(file: Dict[str, Any]) -> str:
+    """Get metadata value for Sequencing Supplement files."""
+    if SEQUENCING_SUPPLEMENT_DATA_CATEGORY in file_utils.get_data_category(file):
+        return "metadata"
+    return ""
 
 
 def get_kinnex_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> str:
