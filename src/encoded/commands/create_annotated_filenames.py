@@ -1176,9 +1176,8 @@ def get_analysis(
     software_and_versions = get_software_and_versions(software)
     reference_genome_code = get_reference_genome_value(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
-    transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
+    transcript_info_code = get_transcript_analysis_value(file, assay)
     dsa_code = get_dsa_value(file, file_extension, donor_specific_assembly)
-    kinnex_info_code = get_kinnex_value(file, assay)
     consensus_read_flag = get_consensus_value(file, assay)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
     metadata_code = get_metadata_value(file)
@@ -1190,7 +1189,6 @@ def get_analysis(
         chain_code,
         dsa_code,
         consensus_read_flag,
-        kinnex_info_code,
         metadata_code
     )
     errors = get_analysis_errors(
@@ -1234,10 +1232,10 @@ def get_analysis_errors(
         if not reference_genome_code:
             errors.append("No reference genome code found")
     if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
-        if not gene_annotation_code and KINNEX_ASSAY_ID not in get_assay_ids(assays):
+        if not gene_annotation_code:
             errors.append("No gene annotation code found")
-        elif file_format_utils.is_tsv_file(file_extension) and not transcript_info_code:
-            errors.append("No gene or isoform code found")
+        if not transcript_info_code:
+            errors.append("No transcript information code found")
     if file_format_utils.is_chain_file(file_extension):
         if not chain_code:
             errors.append("No chain code found")
@@ -1257,7 +1255,6 @@ def get_analysis_value(
     chain_code: str,
     dsa_code: str,
     consensus_read_flag: str,
-    kinnex_info_code: str,
     metadata_code: str
 ) -> str:
     """Get analysis value for filename."""
@@ -1266,7 +1263,7 @@ def get_analysis_value(
         for string in [
             software_and_versions, reference_genome_code, gene_annotation_code,
             transcript_info_code, chain_code, dsa_code, consensus_read_flag,
-            kinnex_info_code, metadata_code
+            metadata_code
         ]
         if string
     ]
@@ -1418,15 +1415,35 @@ def get_dsa_value(
     return ""
 
 
-def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) -> str:
-    """Get isoform or gene from data type for RNA-seq tsv files."""
-    if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
-        if GENE_DATA_TYPE in file_utils.get_data_type(file):
-            return "gene"
-        elif ISOFORM_DATA_TYPE in file_utils.get_data_type(file):
+def get_transcript_analysis_value(
+    file: Dict[str, Any], assays: List[Dict[str, Any]]
+) -> str:
+    """Get gene/isoform/junction/flnc suffix for RNA-seq, Kinnex, and scRNA-Seq files.
+
+    Kinnex-specific suffixes are handled first, and more general RNA-Seq suffixes are
+    handled next.
+    """
+    data_types = file_utils.get_data_type(file)
+    data_categories = file_utils.get_data_category(file)
+
+    if KINNEX_ASSAY_ID in get_assay_ids(assays):
+        if TRANSCRIPT_SEQUENCE_DATA_TYPE in data_types:
             return "isoform"
-    else:
-        return ""
+        if TRANSCRIPT_MODEL_DATA_TYPE in data_types:
+            return "junction"
+        if (
+            SEQUENCING_READS_DATA_CATEGORY in data_categories
+            and ALIGNED_READS_DATA_TYPE in data_types
+        ):
+            return "flnc"
+    
+    if RNA_DATA_CATEGORY in data_categories:
+        if GENE_DATA_TYPE in data_types:
+            return "gene"
+        if ISOFORM_DATA_TYPE in data_types:
+            return "isoform"
+    
+    return ""
 
 
 def get_assay_categories(assays: List[Dict[str, Any]]) -> List[str]:
@@ -1453,23 +1470,6 @@ def get_metadata_value(file: Dict[str, Any]) -> str:
     """Get metadata value for Sequencing Supplement files."""
     if SEQUENCING_SUPPLEMENT_DATA_CATEGORY in file_utils.get_data_category(file):
         return "metadata"
-    return ""
-
-
-def get_kinnex_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> str:
-    "Get suffixes for Kinnex files"
-    assay_ids = get_assay_ids(assays)
-    if KINNEX_ASSAY_ID in assay_ids:
-        data_categories = file_utils.get_data_category(file)
-        data_types = file_utils.get_data_type(file)
-
-        if TRANSCRIPT_SEQUENCE_DATA_TYPE in data_types:
-            return "isoform"
-        elif TRANSCRIPT_MODEL_DATA_TYPE in data_types:
-            return "junction"
-        elif SEQUENCING_READS_DATA_CATEGORY in data_categories and ALIGNED_READS_DATA_TYPE in data_types:
-            return "flnc"
-    
     return ""
 
 

@@ -955,6 +955,19 @@ def test_get_sequencing_center_code(
             False
         ), # Kinnex junction annotations
         (
+            SOME_JUNCTION_ANNOTATIONS_TXT_FILE,
+            [KINNEX_ASSAY],
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            SOME_GENE_ANNOTATION,
+            TSV_FILE_EXTENSION,
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_junction",
+            False
+        ), # Kinnex junction annotations delivered as TSV (kinnex suffix satisfies the tsv check)
+        (
             SOME_KINNEX_FILE,
             [KINNEX_ASSAY],
             [SOME_SOFTWARE],
