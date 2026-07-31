@@ -7,7 +7,7 @@ from pyramid.interfaces import IAuthenticationPolicy
 from pyramid.security import Authenticated, Everyone
 from pyramid.testing import DummyRequest
 from pyramid.threadlocal import manager
-from pyramid.httpexceptions import HTTPForbidden
+from pyramid.httpexceptions import HTTPForbidden, HTTPUnauthorized
 from snovault import COLLECTIONS
 from zope.interface.verify import verifyClass, verifyObject
 from ..authentication import (
@@ -126,6 +126,53 @@ def test_restricted_emails(testapp, email):
         })
 
 
+# email_is_not_restricted only reads these two keys off the registry, so a plain dict is
+# sufficient (this is exactly how encoded.commands.prune_restricted_users calls it) and lets
+# these cases run without the server fixture stack.
+EMPTY_RESTRICTION_REGISTRY = {
+    'RESTRICTED_DOMAINS': set(),
+    'RESTRICTED_EMAILS': set(),
+}
+
+
+@pytest.mark.parametrize('email', [
+    'leon.schuetz@med.uni-tuebingen.de',  # reported address - multi-label domain, not restricted
+    'person@example.org',
+])
+def test_unrestricted_emails_are_allowed(email):
+    """ Valid, unrestricted addresses must pass through the check without raising. """
+    email_is_not_restricted(EMPTY_RESTRICTION_REGISTRY, None, email)
+
+
+@pytest.mark.parametrize('email', [
+    '',  # empty string
+    '<no auth0 authenticated e-mail supplied>',  # placeholder used when Auth0 login is absent
+    '<no e-mail supplied>',  # placeholder used when no email is on the JWT
+    'nodomain',  # no '@' at all
+    'user@',  # no domain part
+    '@example.com',  # no local part
+    'user@one@two.com',  # ambiguous domain
+])
+def test_unparseable_emails_are_forbidden_not_500(email):
+    """ Regression: any value whose domain cannot be determined must be refused via the
+        established HTTPForbidden contract rather than raising IndexError (an HTTP 500).
+    """
+    with pytest.raises(HTTPForbidden):
+        email_is_not_restricted(EMPTY_RESTRICTION_REGISTRY, None, email)
+
+
+def test_restricted_email_still_forbidden_without_fixtures():
+    """ The restriction semantics themselves are unchanged by the parsing hardening. """
+    registry = {
+        'RESTRICTED_DOMAINS': {'restricted.org'},
+        'RESTRICTED_EMAILS': {'blocked@example.com'},
+    }
+    email_is_not_restricted(registry, None, 'fine@example.com')
+    for restricted in ['blocked@example.com', 'anyone@restricted.org', 'person@org.cn']:
+        with pytest.raises(HTTPForbidden):
+            email_is_not_restricted(registry, None, restricted)
+
+
 ATTACKER_EMAIL = 'attacker-self-registration@example.com'
 
 
@@ -187,3 +234,64 @@ def test_create_unauthorized_user_cannot_self_grant_privileges(mock_recaptcha, d
     assert new_user.properties.get('submits_for', []) == []
     assert new_user.properties.get('was_unauthorized') is True
     assert new_user.properties.get('email') == ATTACKER_EMAIL
+
+
+REPORTED_EMAIL = 'leon.schuetz@med.uni-tuebingen.de'
+
+
+@patch('encoded.authentication.redis_is_active', return_value=False)
+@patch('encoded.authentication.app_project')
+def test_create_unauthorized_user_without_auth0_email_is_401_not_500(mock_app_project, mock_redis_active):
+    """ Regression test for an HTTP 500 (IndexError: list index out of range) on
+        POST /create-unauthorized-user.
+
+        When no Auth0 email can be established for the request, the handler falls back to the
+        placeholder string "<no auth0 authenticated e-mail supplied>". That placeholder is meant
+        to be rejected by the `user_props_email != email` comparison with a 401, but the
+        restricted-email check ran ahead of that comparison and tried `placeholder.split('@')[1]`,
+        raising IndexError. The submitted address itself is perfectly valid and never reaches the
+        crash, which is why a report like this one looks like an address-parsing problem.
+
+        This case stops well before any database write, so it is mocked rather than
+        fixture-backed and runs without the server fixture stack.
+    """
+    mock_app_project.return_value.env_allows_auto_registration.return_value = True
+    request = MagicMock()
+    request.json = {
+        'g-recaptcha-response': 'fake-recaptcha-token',
+        'email': REPORTED_EMAIL,
+        'first_name': 'Leon',
+        'last_name': 'Schuetz',
+    }
+    # A MagicMock answers hasattr() for anything, so the attribute is explicitly removed to
+    # reproduce the request shape that produced the 500: no Auth0-authenticated email.
+    del request._auth0_authenticated
+    assert not hasattr(request, '_auth0_authenticated')
+
+    with pytest.raises(HTTPUnauthorized):
+        smaht_create_unauthorized_user(None, request)
+
+
+@patch('encoded.authentication.requests.get')
+def test_create_unauthorized_user_accepts_multi_label_domain(mock_recaptcha, dummy_request):
+    """ The reported (valid, unrestricted) address must reach the normal registration flow. """
+    mock_recaptcha.return_value = MagicMock(json=lambda: {'success': True})
+
+    dummy_request.json = {
+        'g-recaptcha-response': 'fake-recaptcha-token',
+        'email': REPORTED_EMAIL,
+        'first_name': 'Leon',
+        'last_name': 'Schuetz',
+    }
+    dummy_request._auth0_authenticated = REPORTED_EMAIL
+    dummy_request.context = dummy_request.root
+
+    manager.push({'request': dummy_request, 'registry': dummy_request.registry})
+    try:
+        smaht_create_unauthorized_user(None, dummy_request)
+    finally:
+        manager.pop()
+
+    new_user = dummy_request.registry[COLLECTIONS]['User'][REPORTED_EMAIL]
+    assert new_user.properties.get('email') == REPORTED_EMAIL
+    assert new_user.properties.get('was_unauthorized') is True
