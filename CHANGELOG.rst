@@ -8,6 +8,13 @@ Change Log
 ----------
 
 
+2.6.5
+=====
+
+`PR 734: WF Add annotated file names for scRNA-Seq data' <https://github.com/smaht-dac/smaht-portal/pull/734`_
+
+* Update annotated file names script for scRNA-Seq data
+
 2.6.4
 =====
 
