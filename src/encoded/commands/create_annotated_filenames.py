@@ -1232,6 +1232,8 @@ def get_analysis_errors(
         if not reference_genome_code:
             errors.append("No reference genome code found")
     if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
+        if not reference_genome_code:
+            errors.append("No reference genome code found")
         if not gene_annotation_code:
             errors.append("No gene annotation code found")
         if not transcript_info_code:
