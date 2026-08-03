@@ -6,6 +6,30 @@ from .utils import (
     get_search
 )
 
+
+PROTECTED_METADATA_TYPES = [
+    ("Demographic", "DEMOGRAPHIC", {}),
+    ("DeathCircumstances", "DEATH-CIRCUMSTANCES", {}),
+    (
+        "FamilyHistory",
+        "FAMILY-HISTORY",
+        {"disease": "Pulmonary Fibrosis", "relatives": ["Father"]},
+    ),
+    ("MedicalHistory", "MEDICAL-HISTORY", {}),
+    ("TissueCollection", "TISSUE-COLLECTION", {}),
+]
+
+
+def _protected_metadata_body(item_code, suffix, donor, extra_properties=None):
+    body = {
+        "submitted_id": f"TEST_{item_code}_{suffix}",
+        "submission_centers": ["smaht"],
+        "donor": donor,
+    }
+    if extra_properties:
+        body.update(extra_properties)
+    return body
+
 @pytest.mark.workbook
 def test_medical_history_rev_link(es_testapp: TestApp, workbook: None) -> None:
     """Ensure medical_history rev link works."""
@@ -54,3 +78,84 @@ def test_tissue_collection_rev_link(es_testapp: TestApp, workbook: None) -> None
         "?type=ProtectedDonor&tissue_collection!=No+value"
     )
     assert donor_search
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize("item_type,item_code,extra_properties", PROTECTED_METADATA_TYPES)
+def test_protected_metadata_rejects_unprotected_donor(
+    es_testapp: TestApp,
+    workbook: None,
+    item_type: str,
+    item_code: str,
+    extra_properties: dict,
+) -> None:
+    """Protected metadata items must not link their donor field to plain Donor."""
+    body = _protected_metadata_body(
+        item_code,
+        f"UNPROTECTED-{item_code}",
+        "TEST_DONOR_MALE",
+        extra_properties,
+    )
+    response = es_testapp.post_json(f"/{item_type}", body, status=422)
+    assert "ProtectedDonor" in str(response.json)
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize("item_type,item_code,extra_properties", PROTECTED_METADATA_TYPES)
+def test_protected_metadata_accepts_protected_donor(
+    es_testapp: TestApp,
+    workbook: None,
+    item_type: str,
+    item_code: str,
+    extra_properties: dict,
+) -> None:
+    """Protected metadata items can link their donor field to ProtectedDonor."""
+    body = _protected_metadata_body(
+        item_code,
+        f"PROTECTED-{item_code}",
+        "TEST_PROTECTED-DONOR_MALE",
+        extra_properties,
+    )
+    es_testapp.post_json(f"/{item_type}", body, status=201)
+
+
+@pytest.mark.workbook
+def test_protected_metadata_donor_check_skips_when_links_are_skipped(
+    es_testapp: TestApp,
+    workbook: None,
+) -> None:
+    """Server validation-only paths use skip_links=true for submitr upgrade compatibility."""
+    body = _protected_metadata_body(
+        "DEMOGRAPHIC",
+        "SKIP-LINKS-UNPROTECTED",
+        "TEST_DONOR_MALE",
+    )
+    es_testapp.post_json("/Demographic?skip_links=true", body, status=201)
+
+
+@pytest.mark.workbook
+def test_existing_bad_protected_metadata_fails_on_edit_without_skip_links(
+    es_testapp: TestApp,
+    workbook: None,
+) -> None:
+    """Existing protected metadata linked to plain Donor should fail future edits."""
+    body = _protected_metadata_body(
+        "DEMOGRAPHIC",
+        "BAD-EDIT-UNPROTECTED",
+        "TEST_DONOR_MALE",
+    )
+    posted = es_testapp.post_json(
+        "/Demographic?skip_links=true", body, status=201
+    ).json["@graph"][0]
+    response = es_testapp.patch_json(
+        posted["@id"],
+        {"military_association": "Unknown"},
+        status=422,
+    )
+    assert "ProtectedDonor" in str(response.json)
+
+    es_testapp.patch_json(
+        posted["@id"],
+        {"donor": "TEST_PROTECTED-DONOR_MALE"},
+        status=200,
+    )
