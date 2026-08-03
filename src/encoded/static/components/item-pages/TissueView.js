@@ -232,11 +232,27 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // instead) -- lets the panel hint "updating" without unmounting the
     // still-valid previous diagram.
     const [samplesUpdating, setSamplesUpdating] = useState(false);
-    // Which donor's aliquot layout the visualization panel reflects.
-    // Defaults to this page's own donor; the panel offers a picker (only
-    // shown once >1 donor shares this tissue_type) so the other donors' real
-    // aliquot layouts are reachable too.
-    const [selectedDonorUuid, setSelectedDonorUuid] = useState(donor?.uuid || null);
+    // Which donor's aliquot layout the visualization panel reflects. Starts
+    // null and is seeded below, once `donors` loads, to the first entry in
+    // that same sorted (by display_title) list the <select> below renders --
+    // NOT this page's own `donor` (an arbitrary pick among possibly several
+    // Tissue records sharing this tissue_type, per dedupeTissuesByDonor's
+    // note), since defaulting to that would silently select an option that
+    // isn't the dropdown's first/visible one.
+    const [selectedDonorUuid, setSelectedDonorUuid] = useState(null);
+
+    // Re-seeds to the sorted list's first donor whenever `donors` (re)loads,
+    // unless the current selection is a user choice that's still valid in
+    // the new list (e.g. donors reloaded after a session change).
+    useEffect(() => {
+        if (donors.length === 0) return;
+        setSelectedDonorUuid((current) => {
+            if (current && donors.some((entry) => entry.donor?.uuid === current)) {
+                return current;
+            }
+            return donors[0]?.donor?.uuid || null;
+        });
+    }, [donors]);
 
     const selectedDonorEntry = useMemo(
         () => donors.find((entry) => entry.donor?.uuid === selectedDonorUuid) || null,
