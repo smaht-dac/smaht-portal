@@ -7,6 +7,32 @@ smaht-portal
 Change Log
 ----------
 
+
+2.6.4
+=====
+
+`PR 733: update bulk donor manifest script to represent 89 as '89+' <https://github.com/smaht-dac/smaht-portal/pull/733>`_
+
+* Handles the case where donor age is 89 and represents it as "89+" in the bulk donor manifest
+* Ensures no newline characters are present in the bulk donor manifest output
+
+2.6.3
+=====
+
+`PR 732: add SMAHT tissue color scheme data and fix donor x tissue column ordering <https://github.com/smaht-dac/smaht-portal/pull/732>`_
+
+* Add the SMAHT tissue color scheme JSON data file
+* Sort Donor x Tissue matrix columns by TPC tissue code within each germ layer
+
+
+2.6.2
+=====
+
+`PR 723: test: add Cypress coverage for Data Matrix Export dropdown (Screenshot PNG / Export JSON) <https://github.com/smaht-dac/smaht-portal/pull/723>`_
+
+* Add Cypress spec for the Data Matrix Export dropdown, covering both Screenshot PNG and Export JSON functionality
+
+
 2.6.1
 =====
 
