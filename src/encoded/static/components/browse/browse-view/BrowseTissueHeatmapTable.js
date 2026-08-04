@@ -48,7 +48,7 @@ function buildColumnGroups(tissueTypes, tissueTypeCategories) {
 // "3M - Adrenal Gland, R"), so without this the heatmap's own link would
 // always trigger a visible redirect on click. Mirrors urlencode's default
 // quote_via=quote_plus encoding for exactly that one character class.
-const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g, '+');
+export const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g, '+');
 
 // Exported for unit testing. Pivots raw Tissue search results into a
 // donor (external_id) x tissue_type matrix of values (as picked by

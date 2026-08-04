@@ -1520,11 +1520,21 @@ div.browse-link-icon {
 	}
 
 	.tissue-germ-layer-bubble {
+		display: block;
 		width: 56px;
 		height: 56px;
 		border-radius: 50%;
 		border: 1.5px dashed #D7E1EA;
 		background-color: #FBFCFE;
+		cursor: pointer;
+		transition: background-color 0.15s ease, border-color 0.15s ease;
+
+		&:hover,
+		&:focus {
+			border-style: solid;
+			border-color: #A9DFBC;
+			background-color: #EAF7F0;
+		}
 	}
 
 	@include media-breakpoint-down(md) {
