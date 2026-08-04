@@ -228,6 +228,13 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 		background: url('/static/img/polygon-bg-header-donor.svg'), linear-gradient(175deg, rgba(240, 251, 255, 0.5), rgba(165, 158, 240, 0.25)), #F5F9FD;
 		background-size: cover;
 	}
+
+	// Same green gradient as .tissue-view .view-title (item-pages.scss),
+	// so Browse by Tissue's title bar matches the Tissue Overview page's.
+	&[data-at-type="TissueSearchResults"] #page-title-container {
+		background: url('/static/img/polygon-bg-header.svg'), linear-gradient(165deg, rgba(233, 250, 240, 0.92), rgba(212, 238, 222, 0.72));
+		background-size: cover;
+	}
 }
 
 #page-title-container {
