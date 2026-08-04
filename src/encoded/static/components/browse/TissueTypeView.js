@@ -44,8 +44,9 @@ import {
 pageTitleViews.register(() => null, 'Tissue-Overview');
 
 const TissueTypeViewTitle = ({ representativeTissue }) => {
+    // Same tissue_type-first preference as the body's targetTissueValue below.
     const targetTissueValue =
-        representativeTissue?.uberon_id || representativeTissue?.tissue_type || null;
+        representativeTissue?.tissue_type || representativeTissue?.uberon_id || null;
     const breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
@@ -106,7 +107,14 @@ export default function TissueTypeView({ context = {}, href, session }) {
     const { display_title, uberon_id, tissue_type, study, category } = representativeTissue || {};
 
     const uberonHref = uberon_id && uberon_id['@id'] ? uberon_id['@id'] : null;
-    const targetTissueValue = uberon_id || tissue_type || null;
+    // `tissue_type` (not uberon_id.display_title) so the displayed name
+    // always uses the "<code> - <description>" convention (e.g. "3AN -
+    // Brain, Hippocampus, L") -- uberon_id's own display_title formatting
+    // is inconsistent across ontology terms (some carry the code prefix,
+    // some don't), while tissue_type is always canonicalized this way
+    // (item_utils/tissue.py's get_tissue_type). Still link out to the
+    // ontology term via uberon_id when available.
+    const targetTissueValue = tissue_type || uberon_id || null;
     const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
     // `category` is a real backend-calculated field (item_utils/tissue.py) --

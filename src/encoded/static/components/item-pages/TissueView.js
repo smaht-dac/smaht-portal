@@ -39,7 +39,8 @@ const TissueViewTitle = ({ context }) => {
     // its specific instance ID (e.g. "SMHT001-3AL") in the breadcrumb would
     // overstate that certainty, so use the same descriptive tissue name the
     // page heading uses instead.
-    const targetTissueValue = context?.uberon_id || context?.tissue_type || null;
+    // tissue_type first, not uberon_id -- see the body's targetTissueValue below.
+    const targetTissueValue = context?.tissue_type || context?.uberon_id || null;
     const breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
@@ -86,7 +87,14 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     const { userDownloadAccess } = useUserDownloadAccess(session);
 
     const uberonHref = uberon_id && uberon_id['@id'] ? uberon_id['@id'] : null;
-    const targetTissueValue = uberon_id || tissue_type || null;
+    // `tissue_type` (not uberon_id.display_title) so the displayed name
+    // always uses the "<code> - <description>" convention (e.g. "3AN -
+    // Brain, Hippocampus, L") -- uberon_id's own display_title formatting
+    // is inconsistent across ontology terms (some carry the code prefix,
+    // some don't), while tissue_type is always canonicalized this way
+    // (item_utils/tissue.py's get_tissue_type). Still link out to the
+    // ontology term via uberon_id when available.
+    const targetTissueValue = tissue_type || uberon_id || null;
     const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
     // `category` is a real backend-calculated field (item_utils/tissue.py) --
