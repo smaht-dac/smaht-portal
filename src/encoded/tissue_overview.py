@@ -52,6 +52,14 @@ def tissue_overview(context, request, search_type=DEFAULT_TISSUE_OVERVIEW_TYPE, 
         request.GET['limit'] = 'all'
     if 'type' not in request.GET:
         request.GET['type'] = search_type
+    # This page's donor population is always "released Production donors"
+    # (matching Browse by Donor/Browse by File, see types/tissue.py's
+    # embedded_list) -- not a per-request choice, so force it here too
+    # rather than leaving callers to spell it out in the URL.
+    if 'donor.study' not in request.GET:
+        request.GET['donor.study'] = 'Production'
+    if 'donor.tags' not in request.GET:
+        request.GET['donor.tags'] = 'has_released_files'
 
     result = search(context, request, search_type, return_generator, forced_type="Tissue-Overview")
 

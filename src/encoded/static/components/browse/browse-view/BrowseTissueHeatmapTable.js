@@ -56,9 +56,10 @@ const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g, '+');
 // link column headers to /tissue-overview/?tissue_type=<value> (a real
 // tissue_type-keyed page, backed by encoded/tissue_overview.py -- unlike
 // the legacy /tissues/<uuid>/ page, which is keyed on a single Tissue
-// instance, not on tissue_type). type=Tissue and limit=all are deliberately
-// NOT in this href -- tissue_overview.py forces both server-side, so the
-// address bar stays clean.
+// instance, not on tissue_type). type=Tissue, limit=all, and the
+// donor.study/donor.tags population filter are deliberately NOT in this
+// href -- tissue_overview.py forces all of them server-side, so the
+// address bar stays down to just tissue_type.
 //
 // When a donor has multiple Tissue records for the same tissue_type, the
 // one with a populated pathology_summary is preferred over an arbitrary
@@ -79,9 +80,7 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
         if (!donors.includes(donorId)) donors.push(donorId);
         if (!tissueTypes.includes(tissueType)) tissueTypes.push(tissueType);
         if (!tissueTypeHrefs[tissueType]) {
-            tissueTypeHrefs[tissueType] =
-                `/tissue-overview/?tissue_type=${formUrlEncode(tissueType)}` +
-                '&donor.study=Production&donor.tags=has_released_files';
+            tissueTypeHrefs[tissueType] = `/tissue-overview/?tissue_type=${formUrlEncode(tissueType)}`;
         }
         if (!tissueTypeCategories[tissueType] && t.category) tissueTypeCategories[tissueType] = t.category;
 
