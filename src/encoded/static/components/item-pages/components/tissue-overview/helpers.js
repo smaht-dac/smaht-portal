@@ -8,6 +8,23 @@ import React from 'react';
 // tissue_type summary from a list of Tissue search results, just sourced
 // via a different route.
 
+// A tissue_type's donor population is rarely all one sex (unlike the single
+// Tissue item the legacy page used to read `donor.sex` directly off), so
+// this summarizes the whole `donors` list (dedupeTissuesByDonor's output)
+// into e.g. "Male (12), Female (6)" -- descending by count, omitting any
+// sex with zero donors rather than always listing every possible value.
+export const formatSexBreakdown = (donors = []) => {
+    const countsBySex = {};
+    donors.forEach(({ donor }) => {
+        const sex = donor?.sex;
+        if (!sex) return;
+        countsBySex[sex] = (countsBySex[sex] || 0) + 1;
+    });
+    const entries = Object.entries(countsBySex).sort((a, b) => b[1] - a[1]);
+    if (entries.length === 0) return null;
+    return entries.map(([sex, count]) => `${sex} (${count})`).join(', ');
+};
+
 // Links to the ProtectedDonor page when the viewing user has protected/dbGaP
 // access and the donor's protected_donor is visible to them (embedded
 // server-side, permission-filtered); otherwise falls back to the public

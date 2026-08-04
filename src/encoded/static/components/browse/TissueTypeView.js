@@ -18,6 +18,7 @@ import {
     formatYesNo,
     getAutolysisScoreCellClass,
     dedupeTissuesByDonor,
+    formatSexBreakdown,
     TissueDatum,
     sampleAliquotSlicesFallback,
     getTissueKitIdFromExternalId,
@@ -318,7 +319,7 @@ export default function TissueTypeView({ context = {}, href, session }) {
                                         href={targetTissueHref}
                                     />
                                     <TissueDatum title="Non-Tissue Presence" value="Protected" />
-                                    <TissueDatum title="Sex" value={selectedDonorEntry?.donor?.sex} />
+                                    <TissueDatum title="Sex" value={formatSexBreakdown(donors)} />
                                     <TissueDatum
                                         title="Total Coverage"
                                         value={!isLoading ? formatCoverageDisplayValue(totalCoverage).display : null}

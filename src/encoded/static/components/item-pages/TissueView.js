@@ -15,6 +15,7 @@ import {
     formatYesNo,
     getAutolysisScoreCellClass,
     dedupeTissuesByDonor,
+    formatSexBreakdown,
     TissueDatum,
     sampleAliquotSlicesFallback,
     getTissueKitIdFromExternalId,
@@ -387,7 +388,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                         href={targetTissueHref}
                                     />
                                     <TissueDatum title="Non-Tissue Presence" value="Protected" />
-                                    <TissueDatum title="Sex" value={donor?.sex} />
+                                    <TissueDatum title="Sex" value={formatSexBreakdown(donors)} />
                                     <TissueDatum
                                         title="Total Coverage"
                                         value={!isLoading ? formatCoverageDisplayValue(totalCoverage).display : null}
