@@ -466,3 +466,26 @@ describe('UserView admin gating (source invariants)', () => {
         expect(userViewSource).toContain("'col-12 col-lg-6 col-xl-5'");
     });
 });
+
+describe('UserAdminControls component structure', () => {
+    const userAdminControlsSource = fs.readFileSync(
+        path.resolve(
+            __dirname,
+            '../item-pages/components/user/UserAdminControls.js'
+        ),
+        'utf8'
+    );
+
+    it('uses a functional component with hooks for its lifecycle and state', () => {
+        expect(userAdminControlsSource).toContain(
+            'function UserAdminControls('
+        );
+        expect(userAdminControlsSource).toContain('useState');
+        expect(userAdminControlsSource).toContain('useEffect');
+        expect(userAdminControlsSource).not.toContain(
+            'class UserAdminControls'
+        );
+        expect(userAdminControlsSource).not.toContain('componentDidMount');
+        expect(userAdminControlsSource).not.toContain('this.handle');
+    });
+});
