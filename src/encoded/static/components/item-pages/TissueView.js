@@ -8,6 +8,7 @@ import AliquotVisualization from './components/tissue-overview/AliquotVisualizat
 import NonSolidAliquotVisualization from './components/tissue-overview/NonSolidAliquotVisualization';
 import { useUserDownloadAccess } from '../util/hooks';
 import { formatDonorAge } from './components/donor-overview/ProtectedDonorViewDataCards';
+import { formatCoverageDisplayValue } from '../viz/Matrix/StackedBlockVisual';
 import {
     getDonorHref,
     getDisplayText,
@@ -103,6 +104,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     );
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
+    const [totalCoverage, setTotalCoverage] = useState(0);
     const [donors, setDonors] = useState([]);
     // Every Tissue record sharing this tissue_type, undeduped -- unlike
     // `donors` (one representative Tissue per donor, for the summary table),
@@ -281,6 +283,12 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
             tissueMatrixFilterValue
                 ? `sample_summary.tissues=${encodeURIComponent(tissueMatrixFilterValue)}`
                 : null,
+            // Needed for the coverage sum below, not just the count -- `total`
+            // reflects every match regardless of page size, but summing
+            // `@graph` without this only sees the first page (10 by default,
+            // snovault/search/search.py's PAGINATION_SIZE) and silently
+            // undercounts.
+            'limit=all',
         ].filter(Boolean);
 
         setIsLoading(true);
@@ -288,11 +296,21 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
             `/search/?${queryParts.join('&')}`,
             (resp) => {
                 setFileCount(resp?.total || 0);
+                // Same semantics as DataMatrix.js's total_coverage reducers
+                // and visualization.py's SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION:
+                // a sum of each File's own (already-averaged) per-BAM coverage.
+                const files = resp?.['@graph'] || [];
+                const coverageSum = files.reduce(
+                    (sum, f) => sum + (Number(f?.data_generation_summary?.average_coverage) || 0),
+                    0
+                );
+                setTotalCoverage(coverageSum);
                 setIsLoading(false);
             },
             'GET',
             () => {
                 setFileCount(0);
+                setTotalCoverage(0);
                 setIsLoading(false);
             }
         );
@@ -370,7 +388,10 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                     />
                                     <TissueDatum title="Non-Tissue Presence" value="Protected" />
                                     <TissueDatum title="Sex" value={donor?.sex} />
-                                    <TissueDatum title="Total Coverage" value="Protected" />
+                                    <TissueDatum
+                                        title="Total Coverage"
+                                        value={!isLoading ? formatCoverageDisplayValue(totalCoverage).display : null}
+                                    />
                                 </div>
                             </div>
                             <div className="tissue-summary-stats d-flex gap-3">

@@ -11,6 +11,7 @@ import NonSolidAliquotVisualization from '../item-pages/components/tissue-overvi
 import { useUserDownloadAccess } from '../util/hooks';
 import { pageTitleViews } from '../PageTitleSection';
 import { formatDonorAge } from '../item-pages/components/donor-overview/ProtectedDonorViewDataCards';
+import { formatCoverageDisplayValue } from '../viz/Matrix/StackedBlockVisual';
 import {
     getDonorHref,
     getDisplayText,
@@ -121,6 +122,7 @@ export default function TissueTypeView({ context = {}, href, session }) {
 
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
+    const [totalCoverage, setTotalCoverage] = useState(0);
     const [tissueSamples, setTissueSamples] = useState(null);
     // True only while re-fetching for an already-rendered donor switch (not
     // the initial load, which uses aliquotSamplesLoading/the spinner
@@ -235,6 +237,7 @@ export default function TissueTypeView({ context = {}, href, session }) {
     useEffect(() => {
         if (!tissueMatrixFilterValue) {
             setFileCount(0);
+            setTotalCoverage(0);
             setIsLoading(false);
             return;
         }
@@ -243,6 +246,12 @@ export default function TissueTypeView({ context = {}, href, session }) {
             BROWSE_STATUS_FILTERS,
             'dataset!=No+value',
             `sample_summary.tissues=${encodeURIComponent(tissueMatrixFilterValue)}`,
+            // Needed for the coverage sum below, not just the count -- `total`
+            // reflects every match regardless of page size, but summing
+            // `@graph` without this only sees the first page (10 by default,
+            // snovault/search/search.py's PAGINATION_SIZE) and silently
+            // undercounts, same failure mode the Files stat itself had.
+            'limit=all',
         ];
 
         setIsLoading(true);
@@ -250,11 +259,21 @@ export default function TissueTypeView({ context = {}, href, session }) {
             `/search/?${queryParts.join('&')}`,
             (resp) => {
                 setFileCount(resp?.total || 0);
+                // Same semantics as DataMatrix.js's total_coverage reducers
+                // and visualization.py's SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION:
+                // a sum of each File's own (already-averaged) per-BAM coverage.
+                const files = resp?.['@graph'] || [];
+                const coverageSum = files.reduce(
+                    (sum, f) => sum + (Number(f?.data_generation_summary?.average_coverage) || 0),
+                    0
+                );
+                setTotalCoverage(coverageSum);
                 setIsLoading(false);
             },
             'GET',
             () => {
                 setFileCount(0);
+                setTotalCoverage(0);
                 setIsLoading(false);
             }
         );
@@ -300,7 +319,10 @@ export default function TissueTypeView({ context = {}, href, session }) {
                                     />
                                     <TissueDatum title="Non-Tissue Presence" value="Protected" />
                                     <TissueDatum title="Sex" value={selectedDonorEntry?.donor?.sex} />
-                                    <TissueDatum title="Total Coverage" value="Protected" />
+                                    <TissueDatum
+                                        title="Total Coverage"
+                                        value={!isLoading ? formatCoverageDisplayValue(totalCoverage).display : null}
+                                    />
                                 </div>
                             </div>
                             <div className="tissue-summary-stats d-flex gap-3">

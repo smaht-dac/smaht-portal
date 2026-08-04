@@ -142,7 +142,7 @@ function formatCompactedNumericValue(value, {
     };
 }
 
-function formatCoverageDisplayValue(value, compact = false) {
+export function formatCoverageDisplayValue(value, compact = false) {
     const normalizedValue = Number(value) || 0;
     if (normalizedValue <= 0) {
         return {

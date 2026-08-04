@@ -117,6 +117,7 @@ const TissueGermLayerPanel = ({ href, session }) => {
                                     key={tissueType}
                                     href={`/tissue-overview/?tissue_type=${formUrlEncode(tissueType)}`}
                                     data-tip={tissueType}
+                                    aria-label={tissueType}
                                 />
                             ))}
                     </div>
