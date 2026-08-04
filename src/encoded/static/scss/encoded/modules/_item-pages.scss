@@ -2912,7 +2912,47 @@ File and Donor Overview Styles
 						width: auto;
 						min-width: 140px;
 						font-size: 0.875rem;
+
+						// Draws the eye to the picker itself while nothing is
+						// selected yet, instead of defaulting to a donor and
+						// leaving this affordance undiscovered.
+						&.is-unselected {
+							border-color: #1F9F55;
+							box-shadow: 0 0 0 3px rgba(31, 159, 85, 0.15);
+							animation: tissue-aliquot-select-pulse 1.8s ease-in-out infinite;
+						}
 					}
+				}
+
+				.tissue-aliquot-prompt {
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					gap: 10px;
+					color: #97A6B8;
+					text-align: center;
+					padding: 0 24px;
+
+					i {
+						font-size: 1.5rem;
+						color: #1F9F55;
+						animation: tissue-aliquot-prompt-bounce 1.8s ease-in-out infinite;
+					}
+
+					p {
+						margin: 0;
+						font-size: 0.875rem;
+					}
+				}
+
+				@keyframes tissue-aliquot-select-pulse {
+					0%, 100% { box-shadow: 0 0 0 3px rgba(31, 159, 85, 0.15); }
+					50% { box-shadow: 0 0 0 6px rgba(31, 159, 85, 0.08); }
+				}
+
+				@keyframes tissue-aliquot-prompt-bounce {
+					0%, 100% { transform: translateY(0); }
+					50% { transform: translateY(-4px); }
 				}
 
 				.tissue-aliquot-body {

@@ -138,19 +138,22 @@ export default function TissueTypeView({ context = {}, href, session }) {
     // instead) -- lets the panel hint "updating" without unmounting the
     // still-valid previous diagram.
     const [samplesUpdating, setSamplesUpdating] = useState(false);
+    // Stays null (no auto-selected default) until the user explicitly picks
+    // one from the <select> below -- the panel shows a "pick a donor"
+    // prompt instead of any donor's data until then.
     const [selectedDonorUuid, setSelectedDonorUuid] = useState(null);
 
-    // Re-seeds to the sorted list's first donor whenever `donors` (re)loads,
-    // unless the current selection is a user choice that's still valid in
-    // the new list (e.g. donors reloaded after a session change).
+    // Clears the selection if it's no longer valid for the current `donors`
+    // list (e.g. donors reloaded after a session change) -- never seeds a
+    // default, so nothing renders until the user chooses.
     useEffect(() => {
-        if (donors.length === 0) return;
-        setSelectedDonorUuid((current) => {
-            if (current && donors.some((entry) => entry.donor?.uuid === current)) {
-                return current;
-            }
-            return donors[0]?.donor?.uuid || null;
-        });
+        if (donors.length === 0) {
+            setSelectedDonorUuid(null);
+            return;
+        }
+        setSelectedDonorUuid((current) =>
+            current && donors.some((entry) => entry.donor?.uuid === current) ? current : null
+        );
     }, [donors]);
 
     const selectedDonorEntry = useMemo(
@@ -236,7 +239,8 @@ export default function TissueTypeView({ context = {}, href, session }) {
         return realAliquots.length > 0 ? realAliquots : sampleNonSolidAliquots;
     }, [tissueSamples]);
 
-    const aliquotSamplesLoading = donors.length === 0 || tissueSamples === null;
+    const aliquotSamplesLoading = !!selectedDonorUuid && tissueSamples === null;
+    const showDonorPrompt = donors.length > 0 && !selectedDonorUuid;
 
     // Not filtered by any single donor -- this page covers every donor
     // sharing this tissue_type (see `donors` above), so the Files stat
@@ -366,16 +370,22 @@ export default function TissueTypeView({ context = {}, href, session }) {
                                     ? 'Sample non-solid aliquot layout'
                                     : 'Sample solid-organ aliquot layout'}
                             </span>
-                            {donors.length > 1 ? (
+                            {donors.length > 0 ? (
                                 <div className="tissue-aliquot-donor-select">
                                     <label htmlFor="tissue-aliquot-donor-select">
                                         Donor
                                     </label>
                                     <select
                                         id="tissue-aliquot-donor-select"
-                                        className="form-select form-select-sm"
+                                        className={
+                                            'form-select form-select-sm' +
+                                            (!selectedDonorUuid ? ' is-unselected' : '')
+                                        }
                                         value={selectedDonorUuid || ''}
-                                        onChange={(e) => setSelectedDonorUuid(e.target.value)}>
+                                        onChange={(e) => setSelectedDonorUuid(e.target.value || null)}>
+                                        <option value="" disabled hidden>
+                                            Select a donor…
+                                        </option>
                                         {donors.map(({ donor: d }) => (
                                             <option key={d.uuid} value={d.uuid}>
                                                 {getDisplayText(d)}
@@ -390,7 +400,12 @@ export default function TissueTypeView({ context = {}, href, session }) {
                                 'tissue-aliquot-body' +
                                 (samplesUpdating && !aliquotSamplesLoading ? ' is-updating' : '')
                             }>
-                            {aliquotSamplesLoading ? (
+                            {showDonorPrompt ? (
+                                <div className="tissue-aliquot-prompt">
+                                    <i className="icon icon-arrow-up fas" />
+                                    <p>Select a donor above to view its aliquot layout.</p>
+                                </div>
+                            ) : aliquotSamplesLoading ? (
                                 <div className="tissue-aliquot-loading">
                                     <i className="icon icon-circle-notch icon-spin fas" />
                                 </div>

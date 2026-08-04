@@ -82,7 +82,6 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         tissue_type,
         study,
         category,
-        uuid: tissueUuid,
     } = context;
     const { userDownloadAccess } = useUserDownloadAccess(session);
 
@@ -127,26 +126,23 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // instead) -- lets the panel hint "updating" without unmounting the
     // still-valid previous diagram.
     const [samplesUpdating, setSamplesUpdating] = useState(false);
-    // Which donor's aliquot layout the visualization panel reflects. Starts
-    // null and is seeded below, once `donors` loads, to the first entry in
-    // that same sorted (by display_title) list the <select> below renders --
-    // NOT this page's own `donor` (an arbitrary pick among possibly several
-    // Tissue records sharing this tissue_type, per dedupeTissuesByDonor's
-    // note), since defaulting to that would silently select an option that
-    // isn't the dropdown's first/visible one.
+    // Which donor's aliquot layout the visualization panel reflects. Stays
+    // null (no auto-selected default) until the user explicitly picks one
+    // from the <select> below -- the panel shows a "pick a donor" prompt
+    // instead of any donor's data until then.
     const [selectedDonorUuid, setSelectedDonorUuid] = useState(null);
 
-    // Re-seeds to the sorted list's first donor whenever `donors` (re)loads,
-    // unless the current selection is a user choice that's still valid in
-    // the new list (e.g. donors reloaded after a session change).
+    // Clears the selection if it's no longer valid for the current `donors`
+    // list (e.g. donors reloaded after a session change) -- never seeds a
+    // default, so nothing renders until the user chooses.
     useEffect(() => {
-        if (donors.length === 0) return;
-        setSelectedDonorUuid((current) => {
-            if (current && donors.some((entry) => entry.donor?.uuid === current)) {
-                return current;
-            }
-            return donors[0]?.donor?.uuid || null;
-        });
+        if (donors.length === 0) {
+            setSelectedDonorUuid(null);
+            return;
+        }
+        setSelectedDonorUuid((current) =>
+            current && donors.some((entry) => entry.donor?.uuid === current) ? current : null
+        );
     }, [donors]);
 
     const selectedDonorEntry = useMemo(
@@ -156,17 +152,16 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // A donor's Fixed and Frozen Tissue records for this tissue_type are two
     // separate items sharing one tissue_type string (confirmed against real
     // data -- see note above sampleAliquotSlicesFallback), so the aliquot
-    // panel needs every sibling Tissue's uuid, not just one. Falls back to
-    // this page's own Tissue while the sibling search hasn't loaded yet.
+    // panel needs every sibling Tissue's uuid, not just one. Empty (no
+    // fallback to this page's own Tissue) until a donor is explicitly
+    // selected -- see selectedDonorUuid above.
     const tissueUuidsForSelectedDonor = useMemo(() => {
-        const targetDonorUuid = selectedDonorUuid || donor?.uuid;
-        const matches = targetDonorUuid
-            ? allTissuesForType.filter((t) => t?.donor?.uuid === targetDonorUuid)
-            : [];
-        if (matches.length > 0) return matches.map((t) => t.uuid);
-        return tissueUuid ? [tissueUuid] : [];
-    }, [allTissuesForType, selectedDonorUuid, donor, tissueUuid]);
-    const selectedDonorDisplayTitle = selectedDonorEntry?.donor?.display_title || donor?.display_title;
+        if (!selectedDonorUuid) return [];
+        return allTissuesForType
+            .filter((t) => t?.donor?.uuid === selectedDonorUuid)
+            .map((t) => t.uuid);
+    }, [allTissuesForType, selectedDonorUuid]);
+    const selectedDonorDisplayTitle = selectedDonorEntry?.donor?.display_title;
     // Real sample IDs are "{donor}-{protocol}-{aliquot}{suffix}" (e.g.
     // "SMHT001-3I-001A1", see item_utils/tissue_sample.py's *_REGEX
     // constants) -- used only as a fallback when a slice has no real
@@ -275,8 +270,11 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // jump no matter how few steps it takes to get there (different slice
     // counts/colors/arrangement) -- show a spinner instead of the fallback
     // while genuinely loading, and reserve the fallback for a tissue that
-    // has finished loading and truly has no TissueSamples yet.
-    const aliquotSamplesLoading = donorsLoading || tissueSamples === null;
+    // has finished loading and truly has no TissueSamples yet. Once donors
+    // have loaded but none is selected yet, showDonorPrompt takes over
+    // instead of this spinner (see render below).
+    const aliquotSamplesLoading = donorsLoading || (!!selectedDonorUuid && tissueSamples === null);
+    const showDonorPrompt = !donorsLoading && donors.length > 0 && !selectedDonorUuid;
 
     // `session` in the dependency array (here and below) so logging in/out
     // re-fetches -- permission-filtered results can change without `href`
@@ -439,16 +437,22 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                     ? 'Sample non-solid aliquot layout'
                                     : 'Sample solid-organ aliquot layout'}
                             </span>
-                            {donors.length > 1 ? (
+                            {donors.length > 0 ? (
                                 <div className="tissue-aliquot-donor-select">
                                     <label htmlFor="tissue-aliquot-donor-select">
                                         Donor
                                     </label>
                                     <select
                                         id="tissue-aliquot-donor-select"
-                                        className="form-select form-select-sm"
+                                        className={
+                                            'form-select form-select-sm' +
+                                            (!selectedDonorUuid ? ' is-unselected' : '')
+                                        }
                                         value={selectedDonorUuid || ''}
-                                        onChange={(e) => setSelectedDonorUuid(e.target.value)}>
+                                        onChange={(e) => setSelectedDonorUuid(e.target.value || null)}>
+                                        <option value="" disabled hidden>
+                                            Select a donor…
+                                        </option>
                                         {donors.map(({ donor: d }) => (
                                             <option key={d.uuid} value={d.uuid}>
                                                 {getDisplayText(d)}
@@ -463,7 +467,12 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                 'tissue-aliquot-body' +
                                 (samplesUpdating && !aliquotSamplesLoading ? ' is-updating' : '')
                             }>
-                            {aliquotSamplesLoading ? (
+                            {showDonorPrompt ? (
+                                <div className="tissue-aliquot-prompt">
+                                    <i className="icon icon-arrow-up fas" />
+                                    <p>Select a donor above to view its aliquot layout.</p>
+                                </div>
+                            ) : aliquotSamplesLoading ? (
                                 <div className="tissue-aliquot-loading">
                                     <i className="icon icon-circle-notch icon-spin fas" />
                                 </div>
