@@ -58,7 +58,7 @@ export const BROWSE_LINKS = {
     protected_donor:
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
         BROWSE_STATUS_FILTERS,
-    tissue: '/browse/?type=Tissue&study=Production&' + BROWSE_STATUS_FILTERS,
+    tissue: '/browse/?type=Tissue&donor.study=Production&donor.tags=has_released_files&' + BROWSE_STATUS_FILTERS,
 };
 
 export const FILE_BROWSE_HIDE_FACETS = [

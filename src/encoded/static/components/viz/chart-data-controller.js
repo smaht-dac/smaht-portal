@@ -227,13 +227,24 @@ export const ChartDataController = {
             // mappings apply, so this stat box's donor count matches Browse
             // by Donor/Browse by File instead of counting every donor with a
             // Tissue record regardless of study or release status.
-            if (Object.prototype.hasOwnProperty.call(fileFilters, 'study') && fileFilters.study !== undefined) {
-                fileFilters['sample_summary.studies'] = fileFilters.study;
-                delete fileFilters.study;
+            //
+            // BROWSE_LINKS.tissue (BrowseView.js) filters Tissue by
+            // 'donor.study'/'donor.tags' (Tissue's real embedded field
+            // paths, types/tissue.py's embedded_list -- Tissue links a
+            // single `donor`, unlike File's plural `donors`), not bare
+            // 'study'/'tags'. Renaming those unprefixed keys here was
+            // therefore silently a no-op on every real Browse by Tissue
+            // href: 'donor.study'/'donor.tags' passed through unrenamed
+            // into the forced type=File search below, where they don't
+            // exist as fields (File has no singular 'donor'), matching
+            // zero File docs and leaving the germ-layer panel empty.
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'donor.study') && fileFilters['donor.study'] !== undefined) {
+                fileFilters['sample_summary.studies'] = fileFilters['donor.study'];
+                delete fileFilters['donor.study'];
             }
-            if (Object.prototype.hasOwnProperty.call(fileFilters, 'tags') && fileFilters.tags !== undefined) {
-                fileFilters['donors.tags'] = fileFilters.tags;
-                delete fileFilters.tags;
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'donor.tags') && fileFilters['donor.tags'] !== undefined) {
+                fileFilters['donors.tags'] = fileFilters['donor.tags'];
+                delete fileFilters['donor.tags'];
             }
             fileFilters.type = ['File'];
             fileFilters.status = ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
