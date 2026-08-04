@@ -10,7 +10,7 @@ from snovault.search.search_utils import (
     get_es_index,
     make_search_subreq,
 )
-from typing import Tuple, NamedTuple, List
+from typing import Tuple, NamedTuple, List, Dict, Any, Iterable
 from urllib.parse import urlencode
 from webob.multidict import MultiDict
 import csv
@@ -38,6 +38,7 @@ SAMPLE = 2
 EXPERIMENT = 3
 EXPERIMENT_ANALYTE = 4
 EXPERIMENT_LIBRARY = 5
+SAMPLE_PATHOLOGY = 6
 
 
 # This field is special because it is a transformation applied from other fields
@@ -46,6 +47,11 @@ SAMPLE_TYPE = 'SampleType'
 SAMPLE_TYPE_LIST = ['TissueSample','CellSample','CellCultureSample']
 SAMPLE_SOURCE_TYPE = 'SampleSourceType'
 SAMPLE_SOURCE_TYPE_LIST = ['Tissue','CellCultureMixture','CellCulture']
+PATHOLOGY_METADATA_AVAILABLE = 'pathology_report_available'
+PATHOLOGY_NO_LINKED_FIXED_SAMPLE = 'no_linked_fixed_sample'
+PATHOLOGY_NO_PATHOLOGY_REPORT = 'no_pathology_report'
+PATHOLOGY_LINKED_FIXED_SAMPLE_NOT_VISIBLE = 'linked_fixed_sample_not_visible'
+PATHOLOGY_NOT_TISSUE_SAMPLE = 'not_tissue_sample'
 
 
 class MetadataArgs(NamedTuple):
@@ -794,6 +800,118 @@ TSV_MAPPING = {
                                                         field_name=['sequencing.preparation_kits.vendor']),
         'SequencingPreparationKitVersion': TSVDescriptor(field_type=EXPERIMENT,
                                                          field_name=['sequencing.preparation_kits.version'])
+    },
+    SAMPLE_PATHOLOGY: {
+        'SequencedSampleAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
+        'SequencedSampleExternalID': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['external_id']),
+        'SequencedSamplePreservationType': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['preservation_type']),
+        'SequencedSampleCategory': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['category']),
+        'SequencedSampleDonorAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                       field_name=['sample_sources.donor.accession']),
+        'FixedSampleAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
+        'FixedSampleExternalID': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['external_id']),
+        'FixedSamplePreservationType': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['preservation_type']),
+        'FixedSampleCategory': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['category']),
+        'LinkedFixedSampleIdentifier': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['uuid']),
+        'PathologyReportAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
+        'PathologyReportSubmittedID': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['submitted_id']),
+        'PathologyReportType': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['@type']),
+        'PathologyReportStatus': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['status']),
+        'PathologyTissueName': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['tissue_name']),
+        'PathologyOutcome': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['outcome']),
+        'PathologyFinalReviewDetermination': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                           field_name=['final_review_determination']),
+        'PathologyIsIndeterminate': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['is_indeterminate']),
+        'PathologyUnacceptableDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                          field_name=['unacceptable_description']),
+        'PathologyAdditionalNotes': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['additional_notes']),
+        'PathologyAnatomicalSampleLocation': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                           field_name=['anatomical_sample_location']),
+        'PathologyTargetTissueSubtype': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                      field_name=['target_tissues.target_tissue_subtype']),
+        'PathologyTargetTissuePresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                      field_name=['target_tissues.target_tissue_present']),
+        'PathologyTargetTissuePercentage': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                         field_name=['target_tissues.target_tissue_percentage']),
+        'PathologyTargetTissueAutolysisScore': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                             field_name=['target_tissues.target_tissue_autolysis_score']),
+        'PathologyNonTargetTissueSubtype': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                         field_name=['non_target_tissues.non_target_tissue_subtype']),
+        'PathologyNonTargetTissuePresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                         field_name=['non_target_tissues.non_target_tissue_present']),
+        'PathologyNonTargetTissuePercentage': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                            field_name=['non_target_tissues.non_target_tissue_percentage']),
+        'PathologyNonTargetTissueDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                             field_name=['non_target_tissues.non_target_tissue_description']),
+        'PathologyFindingType': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                              field_name=['pathologic_findings.finding_type']),
+        'PathologyFindingPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                 field_name=['pathologic_findings.finding_present']),
+        'PathologyFindingDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                     field_name=['pathologic_findings.finding_description']),
+        'PathologyFindingPercentage': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                    field_name=['pathologic_findings.finding_percentage']),
+        'PathologyBrainSubregion': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                 field_name=['brain_subregions.subregion']),
+        'PathologyBrainSubregionPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                        field_name=['brain_subregions.is_present']),
+        'PathologyBrainSubregionAutolysisScore': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                               field_name=['brain_subregions.tissue_autolysis_score']),
+        'PathologyDevelopmentalNeuropathologyPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                     field_name=['developmental_neuropathology_present']),
+        'PathologyDevelopmentalNeuropathologyDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                         field_name=['developmental_neuropathology_description']),
+        'PathologyInfectiousNeuropathologyPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                  field_name=['infectious_neuropathology_present']),
+        'PathologyInfectiousNeuropathologyDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                      field_name=['infectious_neuropathology_description']),
+        'PathologyInflammatoryNeuropathologyPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                    field_name=['inflammatory_neuropathology_present']),
+        'PathologyInflammatoryNeuropathologyDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                        field_name=['inflammatory_neuropathology_description']),
+        'PathologyNeoplasticNeuropathologyPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                  field_name=['neoplastic_neuropathology_present']),
+        'PathologyNeoplasticNeuropathologyDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                      field_name=['neoplastic_neuropathology_description']),
+        'PathologyTBIPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['tbi_neuropathology_present']),
+        'PathologyTBIDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                 field_name=['tbi_neuropathology_description']),
+        'PathologyVascularNeuropathologyPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                field_name=['vascular_neuropathology_present']),
+        'PathologyVascularNeuropathologyDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                    field_name=['vascular_neuropathology_description']),
+        'PathologyNeurodegenerativeNeuropathologyPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                         field_name=['neurodegenerative_neuropathology_present']),
+        'PathologyNeurodegenerativeNeuropathologyDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                             field_name=['neurodegenerative_neuropathology_description']),
+        'PathologyMetabolicNeuropathologyPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                 field_name=['metabolic_neuropathology_present']),
+        'PathologyMetabolicNeuropathologyDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                                     field_name=['metabolic_neuropathology_description']),
+        'PathologyArtifactsPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['artifacts_present']),
+        'PathologyArtifactsDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['artifacts_description']),
+        'PathologyOtherPathologyPresent': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                        field_name=['other_pathology_present']),
+        'PathologyOtherPathologyDescription': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                            field_name=['other_pathology_description']),
+        'PathologyAdditionalAgeRelatedStainingPerformed': TSVDescriptor(
+            field_type=SAMPLE_PATHOLOGY, field_name=['additional_age-related_staining_performed']),
+        'PathologyABCScoreA': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['abc_score_A']),
+        'PathologyABCScoreB': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['abc_score_B']),
+        'PathologyABCScoreC': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['abc_score_C']),
+        'PathologyCERADScore': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['cerad_score']),
+        'PathologyADNeuropathologicChangeLevel': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
+                                                               field_name=['ad_neuropathologic_change_level']),
+        'PathologyBraakPD': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['braak_pd']),
+        'PathologySmallVesselDisease': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['small_vessel_disease']),
+        'PathologyBraakAndBraakAD': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['braak_and_braak_ad']),
+        'PathologyThal': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['thal']),
+        'PathologyCAAVonsattel': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['caa_vonsattel']),
+        'PathologyMcKeith': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['mckeith']),
+        'PathologyVonsattelHD': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['vonsattel_hd']),
+        'PathologyFinalNeuropathologicalDiagnosis': TSVDescriptor(
+            field_type=SAMPLE_PATHOLOGY, field_name=['final_neuropathological_diagnosis']),
+        'PathologyMetadataStatus': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['_synthetic_metadata_status']),
     }
 }
 
@@ -1335,6 +1453,9 @@ def handle_metadata_arguments(context, request):
     if download_file_name is None:
         download_file_name = f'smaht_manifest_{manifest_enum}' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
 
+    if manifest_enum not in TSV_MAPPING:
+        return Response("Invalid manifest enum", status=400)
+
     # Generate a header, resolve mapping
     header = generate_manifest_header(download_file_name, manifest_enum, cli=cli)
     tsv_mapping = TSV_MAPPING[manifest_enum]
@@ -1476,6 +1597,242 @@ def generate_file_manifest(request, args, search_iter, cli):
                 yield ef_line
 
 
+def _first_specific_type(value, preferred_types):
+    """Return the most-specific @type value from a comma-joined/list value."""
+    if not value:
+        return ''
+    if isinstance(value, str):
+        values = value.split(',')
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        values = value
+    else:
+        values = [value]
+    for preferred_type in preferred_types:
+        if preferred_type in values:
+            return preferred_type
+    return values[0] if values else ''
+
+
+def _linked_item_identifier(item):
+    """Return a stable identifier from an embedded link object or string link."""
+    if isinstance(item, Mapping):
+        return item.get('uuid') or item.get('@id') or item.get('accession') or item.get('submitted_id')
+    return item
+
+
+def _linked_item_identifiers(items):
+    return [identifier for identifier in (_linked_item_identifier(item) for item in (items or [])) if identifier]
+
+
+def _index_items_by_identifiers(items):
+    """Index embedded items by all identifiers links in manifests might carry."""
+    indexed = {}
+    for item in items:
+        for key in ('uuid', '@id', 'accession', 'submitted_id'):
+            value = item.get(key)
+            if value:
+                indexed[value] = item
+    return indexed
+
+
+def _get_pathology_report_type(report):
+    return _first_specific_type(report.get('@type'), ['BrainPathologyReport', 'NonBrainPathologyReport', 'PathologyReport'])
+
+
+def _extract_manifest_field(request, item, field_name):
+    descriptor = TSV_MAPPING[SAMPLE_PATHOLOGY][field_name]
+    return descend_field(request, item or {}, descriptor.field_name()) or ''
+
+
+def _build_sample_pathology_row(request, sequenced_sample, fixed_sample=None, report=None,
+                                metadata_status=PATHOLOGY_METADATA_AVAILABLE,
+                                linked_fixed_sample_identifier=''):
+    """Build one SAMPLE_PATHOLOGY manifest row as a dict keyed by TSV column."""
+    row = {
+        'SequencedSampleAccession': _extract_manifest_field(request, sequenced_sample, 'SequencedSampleAccession'),
+        'SequencedSampleExternalID': _extract_manifest_field(request, sequenced_sample, 'SequencedSampleExternalID'),
+        'SequencedSamplePreservationType': _extract_manifest_field(request, sequenced_sample,
+                                                                   'SequencedSamplePreservationType'),
+        'SequencedSampleCategory': _extract_manifest_field(request, sequenced_sample, 'SequencedSampleCategory'),
+        'SequencedSampleDonorAccession': _extract_manifest_field(request, sequenced_sample,
+                                                                 'SequencedSampleDonorAccession'),
+        'PathologyMetadataStatus': metadata_status,
+    }
+    if fixed_sample:
+        row.update({
+            'FixedSampleAccession': _extract_manifest_field(request, fixed_sample, 'FixedSampleAccession'),
+            'FixedSampleExternalID': _extract_manifest_field(request, fixed_sample, 'FixedSampleExternalID'),
+            'FixedSamplePreservationType': _extract_manifest_field(request, fixed_sample,
+                                                                   'FixedSamplePreservationType'),
+            'FixedSampleCategory': _extract_manifest_field(request, fixed_sample, 'FixedSampleCategory'),
+            'LinkedFixedSampleIdentifier': linked_fixed_sample_identifier or fixed_sample.get('uuid') or '',
+        })
+    elif linked_fixed_sample_identifier:
+        row['LinkedFixedSampleIdentifier'] = linked_fixed_sample_identifier
+    if report:
+        for field_name in TSV_MAPPING[SAMPLE_PATHOLOGY].keys():
+            if (field_name.startswith('Pathology')
+                    and field_name not in ('PathologyMetadataStatus', 'PathologyReportType')):
+                row[field_name] = _extract_manifest_field(request, report, field_name)
+        row['PathologyReportType'] = _get_pathology_report_type(report)
+    return [row.get(field_name, '') for field_name in TSV_MAPPING[SAMPLE_PATHOLOGY].keys()]
+
+
+def _stream_pathology_reports_for_fixed_samples(request, fixed_sample_identifiers: Iterable[str], source_fields):
+    """Stream PathologyReports linked to any fixed sample via tissue_samples."""
+    fixed_sample_identifiers = sorted({identifier for identifier in fixed_sample_identifiers if identifier})
+    if not fixed_sample_identifiers:
+        return
+
+    es = request.registry[ELASTIC_SEARCH]
+    es_index = get_es_index(request, ['PathologyReport'])
+    source_fields = sorted(set(source_fields) | {'uuid'})
+    source_includes = [f'embedded.{p}' for p in source_fields] + ['embedded.@id', 'embedded.@type', 'embedded.uuid']
+    query = {
+        'bool': {
+            'filter': [
+                build_permission_filter(request),
+                {'terms': {'embedded.@type.raw': ['PathologyReport']}},
+                {
+                    'bool': {
+                        'should': [
+                            {'terms': {'embedded.tissue_samples.uuid.raw': fixed_sample_identifiers}},
+                            {'terms': {'embedded.tissue_samples.@id.raw': fixed_sample_identifiers}},
+                            {'terms': {'embedded.tissue_samples.accession.raw': fixed_sample_identifiers}},
+                            {'terms': {'embedded.tissue_samples.submitted_id.raw': fixed_sample_identifiers}},
+                            {'terms': {'embedded.tissue_samples.raw': fixed_sample_identifiers}},
+                        ],
+                        'minimum_should_match': 1,
+                    }
+                },
+            ]
+        }
+    }
+    for source in execute_streaming_search(
+        es,
+        index=es_index,
+        query=query,
+        source_includes=source_includes,
+        sort_fields=[{'embedded.uuid.raw': {'order': 'asc'}}],
+        batch_size=_METADATA_ES_BATCH_SIZE,
+        timeout=_METADATA_ES_TIMEOUT,
+    ):
+        yield source.get('embedded', {})
+
+
+def generate_sample_pathology_manifest(request, args, search_iter):
+    """Generate one row per sequenced sample, linked fixed sample, and pathology report.
+
+    The manifest starts from the same file selection as other manifests, then pivots
+    to sequenced samples, their `linked_fixed_samples`, and PathologyReports whose
+    `tissue_samples` include those fixed samples. All lookups are batched ES
+    streaming queries to avoid per-sample embeds or N+1 request-time lookups.
+    """
+    sequenced_sample_uuids = set()
+    for f in search_iter:
+        for sample in f.get('samples', []) or ():
+            uuid = sample.get('uuid') if isinstance(sample, Mapping) else sample
+            if uuid:
+                sequenced_sample_uuids.add(uuid)
+
+    if not sequenced_sample_uuids:
+        return
+
+    sample_source_fields = [
+        'uuid', '@type', 'accession', 'external_id', 'preservation_type', 'category',
+        'sample_sources.donor.accession', 'linked_fixed_samples',
+        'linked_fixed_samples.uuid', 'linked_fixed_samples.accession',
+        'linked_fixed_samples.external_id',
+    ]
+    sequenced_samples = list(_stream_metadata_items(
+        request,
+        type_param='Sample',
+        uuids=sequenced_sample_uuids,
+        source_fields=sample_source_fields,
+    ))
+
+    fixed_identifiers = set()
+    sequenced_to_fixed = {}
+    for sample in sequenced_samples:
+        if _first_specific_type(sample.get('@type'), ['TissueSample']) != 'TissueSample':
+            sequenced_to_fixed[sample.get('uuid')] = None
+            continue
+        linked_fixed = _linked_item_identifiers(sample.get('linked_fixed_samples'))
+        sequenced_to_fixed[sample.get('uuid')] = linked_fixed
+        fixed_identifiers.update(linked_fixed)
+
+    fixed_samples = list(_stream_metadata_items(
+        request,
+        type_param='TissueSample',
+        uuids=fixed_identifiers,
+        source_fields=['uuid', '@id', 'accession', 'submitted_id', 'external_id', 'preservation_type', 'category'],
+    )) if fixed_identifiers else []
+    fixed_by_identifier = _index_items_by_identifiers(fixed_samples)
+    fixed_identifier_to_uuid = {
+        identifier: fixed.get('uuid')
+        for identifier, fixed in fixed_by_identifier.items()
+        if fixed.get('uuid')
+    }
+    fixed_report_query_identifiers = set(fixed_identifier_to_uuid.keys())
+
+    report_source_fields = sorted(set(_collect_source_fields(args.tsv_mapping, include_extra_files=False)) | {
+        'tissue_samples', 'tissue_samples.uuid', 'tissue_samples.@id',
+        'tissue_samples.accession', 'tissue_samples.submitted_id'
+    })
+    reports_by_fixed_uuid: Dict[str, List[Dict[str, Any]]] = {}
+    for report in _stream_pathology_reports_for_fixed_samples(request, fixed_report_query_identifiers,
+                                                             report_source_fields) or ():
+        for tissue_sample_identifier in _linked_item_identifiers(report.get('tissue_samples')):
+            fixed_uuid = fixed_identifier_to_uuid.get(tissue_sample_identifier)
+            if fixed_uuid:
+                reports_by_fixed_uuid.setdefault(fixed_uuid, []).append(report)
+
+    log.info(
+        'sample_pathology_manifest_join',
+        sequenced_samples=len(sequenced_samples),
+        linked_fixed_identifiers=len(fixed_identifiers),
+        visible_fixed_samples=len(fixed_samples),
+        fixed_samples_with_reports=len(reports_by_fixed_uuid),
+        pathology_reports=sum(len(reports) for reports in reports_by_fixed_uuid.values()),
+    )
+
+    for sequenced_sample in sequenced_samples:
+        linked_fixed = sequenced_to_fixed.get(sequenced_sample.get('uuid'))
+        if linked_fixed is None:
+            yield _build_sample_pathology_row(
+                request, sequenced_sample, metadata_status=PATHOLOGY_NOT_TISSUE_SAMPLE
+            )
+            continue
+        if not linked_fixed:
+            yield _build_sample_pathology_row(
+                request, sequenced_sample, metadata_status=PATHOLOGY_NO_LINKED_FIXED_SAMPLE
+            )
+            continue
+        for fixed_identifier in linked_fixed:
+            fixed_sample = fixed_by_identifier.get(fixed_identifier)
+            if not fixed_sample:
+                yield _build_sample_pathology_row(
+                    request, sequenced_sample,
+                    metadata_status=PATHOLOGY_LINKED_FIXED_SAMPLE_NOT_VISIBLE,
+                    linked_fixed_sample_identifier=fixed_identifier,
+                )
+                continue
+            reports = reports_by_fixed_uuid.get(fixed_sample.get('uuid')) or []
+            if not reports:
+                yield _build_sample_pathology_row(
+                    request, sequenced_sample, fixed_sample=fixed_sample,
+                    metadata_status=PATHOLOGY_NO_PATHOLOGY_REPORT,
+                    linked_fixed_sample_identifier=fixed_identifier,
+                )
+                continue
+            for report in reports:
+                yield _build_sample_pathology_row(
+                    request, sequenced_sample, fixed_sample=fixed_sample, report=report,
+                    metadata_status=PATHOLOGY_METADATA_AVAILABLE,
+                    linked_fixed_sample_identifier=fixed_identifier,
+                )
+
+
 def generate_sample_manifest(request, args, search_iter):
     """ For the sample manifest, we first traverse the original search_iter for sample IDs, then
         execute another search to retrieve all those samples and write the manifest from
@@ -1594,6 +1951,8 @@ def metadata_tsv(context, request):
     Alternatively, can accept a GET request wherein all files from ExpSets matching search query params are included.
     """
     args = handle_metadata_arguments(context, request)
+    if isinstance(args, Response):
+        return args
 
     # Pick the source fields the top-level streaming search needs to fetch.
     # For FILE the manifest reads from these documents directly, so we need
@@ -1604,7 +1963,7 @@ def metadata_tsv(context, request):
         source_fields = _collect_source_fields(
             args.tsv_mapping, include_extra_files=args.include_extra_files,
         )
-    elif args.manifest_enum == SAMPLE:
+    elif args.manifest_enum in (SAMPLE, SAMPLE_PATHOLOGY):
         source_fields = ['samples.uuid']
     elif args.manifest_enum == EXPERIMENT_ANALYTE:
         source_fields = ['analytes.uuid']
@@ -1629,6 +1988,8 @@ def metadata_tsv(context, request):
     )
     if args.manifest_enum == SAMPLE:
         data_lines = generate_sample_manifest(request, args, search_iter)
+    elif args.manifest_enum == SAMPLE_PATHOLOGY:
+        data_lines = generate_sample_pathology_manifest(request, args, search_iter)
     elif args.manifest_enum == FILE:
         data_lines = generate_file_manifest(request, args, search_iter, cli)
     elif args.manifest_enum == EXPERIMENT_LIBRARY:

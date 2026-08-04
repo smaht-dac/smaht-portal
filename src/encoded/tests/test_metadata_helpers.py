@@ -1,9 +1,22 @@
+from types import SimpleNamespace
 from typing import Any, Optional
 
 import pytest
 
+from .. import metadata as metadata_module
+
 from ..metadata import (
+    PATHOLOGY_METADATA_AVAILABLE,
+    PATHOLOGY_LINKED_FIXED_SAMPLE_NOT_VISIBLE,
+    PATHOLOGY_NO_LINKED_FIXED_SAMPLE,
+    PATHOLOGY_NO_PATHOLOGY_REPORT,
+    SAMPLE_PATHOLOGY,
+    TSV_MAPPING,
+    _build_sample_pathology_row,
+    _index_items_by_identifiers,
+    _linked_item_identifiers,
     _neutralize_formula_injection,
+    generate_sample_pathology_manifest,
     handle_file_group,
     handle_sample_source_type,
     handle_sample_type,
@@ -103,3 +116,153 @@ def test_handle_sample_type(field: Optional[str], expected: str) -> None:
 )
 def test_handle_sample_source_type(field: Optional[str], expected: str) -> None:
     assert handle_sample_source_type(field) == expected
+
+
+def test_linked_item_identifiers_handles_embedded_links_and_strings() -> None:
+    assert _linked_item_identifiers([
+        {"uuid": "uuid-1", "@id": "/tissue-samples/1/"},
+        {"@id": "/tissue-samples/2/"},
+        "uuid-3",
+        {},
+        None,
+    ]) == ["uuid-1", "/tissue-samples/2/", "uuid-3"]
+
+
+def test_index_items_by_identifiers_indexes_common_link_keys() -> None:
+    item = {
+        "uuid": "uuid-1",
+        "@id": "/pathology-reports/uuid-1/",
+        "accession": "SMP123",
+        "submitted_id": "TEST_ITEM_1",
+    }
+    indexed = _index_items_by_identifiers([item])
+    assert indexed["uuid-1"] is item
+    assert indexed["/pathology-reports/uuid-1/"] is item
+    assert indexed["SMP123"] is item
+    assert indexed["TEST_ITEM_1"] is item
+
+
+def test_build_sample_pathology_row_includes_common_and_subtype_fields() -> None:
+    sequenced_sample = {
+        "accession": "SMHT-SAMPLE-1",
+        "external_id": "SMHT001-1A-100A1",
+        "preservation_type": "Frozen",
+        "category": "Core",
+        "sample_sources": [{"donor": {"accession": "SMHT-DONOR-1"}}],
+    }
+    fixed_sample = {
+        "accession": "SMHT-FIXED-1",
+        "external_id": "SMHT001-1B-100A1",
+        "preservation_type": "Formalin-fixed Paraffin-embedded",
+        "category": "Core",
+    }
+    report = {
+        "@type": ["NonBrainPathologyReport", "PathologyReport", "SubmittedItem"],
+        "accession": "SMHT-PR-1",
+        "submitted_id": "TEST_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-1B-100A1",
+        "status": "released",
+        "tissue_name": "Liver",
+        "outcome": "Acceptable",
+        "target_tissues": [
+            {"target_tissue_subtype": "Liver", "target_tissue_present": "Yes"},
+            {"target_tissue_subtype": "Cortex", "target_tissue_present": "No"},
+        ],
+    }
+
+    row = _build_sample_pathology_row(
+        None, sequenced_sample, fixed_sample=fixed_sample, report=report,
+        metadata_status=PATHOLOGY_METADATA_AVAILABLE,
+    )
+    columns = list(TSV_MAPPING[SAMPLE_PATHOLOGY].keys())
+    row_by_column = dict(zip(columns, row))
+
+    assert row_by_column["SequencedSampleAccession"] == "SMHT-SAMPLE-1"
+    assert row_by_column["FixedSampleExternalID"] == "SMHT001-1B-100A1"
+    assert row_by_column["LinkedFixedSampleIdentifier"] == ""
+    assert row_by_column["PathologyReportType"] == "NonBrainPathologyReport"
+    assert row_by_column["PathologyOutcome"] == "Acceptable"
+    assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex,Liver"
+    assert row_by_column["PathologyTargetTissuePresent"] == "No,Yes"
+    assert row_by_column["PathologyMetadataStatus"] == PATHOLOGY_METADATA_AVAILABLE
+
+
+def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_reports(monkeypatch) -> None:
+    sequenced_samples = [
+        {
+            "uuid": "sequenced-with-report",
+            "@type": ["TissueSample", "Sample"],
+            "accession": "SMHT-SAMPLE-1",
+            "external_id": "SMHT001-3Q-001A1",
+            "linked_fixed_samples": [{"uuid": "fixed-with-report"}],
+        },
+        {
+            "uuid": "sequenced-no-report",
+            "@type": ["TissueSample", "Sample"],
+            "accession": "SMHT-SAMPLE-2",
+            "external_id": "SMHT001-3Q-002A1",
+            "linked_fixed_samples": [{"uuid": "fixed-no-report"}],
+        },
+        {
+            "uuid": "sequenced-no-fixed",
+            "@type": ["TissueSample", "Sample"],
+            "accession": "SMHT-SAMPLE-3",
+            "external_id": "SMHT001-3Q-003A1",
+        },
+        {
+            "uuid": "sequenced-mixed-visibility",
+            "@type": ["TissueSample", "Sample"],
+            "accession": "SMHT-SAMPLE-4",
+            "external_id": "SMHT001-3Q-004A1",
+            "linked_fixed_samples": [{"uuid": "fixed-with-report"}, {"uuid": "fixed-not-visible"}],
+        },
+    ]
+    fixed_samples = [
+        {"uuid": "fixed-with-report", "accession": "SMHT-FIXED-1", "external_id": "SMHT001-3R-001A1"},
+        {"uuid": "fixed-no-report", "accession": "SMHT-FIXED-2", "external_id": "SMHT001-3R-002A1"},
+    ]
+    reports = [
+        {
+            "uuid": "report-1",
+            "@type": ["BrainPathologyReport", "PathologyReport"],
+            "accession": "SMHT-PR-1",
+            "outcome": "Acceptable",
+            "tissue_samples": [{"uuid": "fixed-with-report"}],
+        }
+    ]
+
+    def fake_stream_metadata_items(_request, *, type_param, uuids=None, **_kwargs):
+        if type_param == "Sample":
+            return (sample for sample in sequenced_samples if sample["uuid"] in uuids)
+        if type_param == "TissueSample":
+            return (sample for sample in fixed_samples if sample["uuid"] in uuids)
+        raise AssertionError(type_param)
+
+    def fake_stream_pathology_reports(_request, fixed_identifiers, _source_fields):
+        assert "fixed-with-report" in fixed_identifiers
+        return iter(reports)
+
+    monkeypatch.setattr(metadata_module, "_stream_metadata_items", fake_stream_metadata_items)
+    monkeypatch.setattr(metadata_module, "_stream_pathology_reports_for_fixed_samples", fake_stream_pathology_reports)
+
+    args = SimpleNamespace(tsv_mapping=TSV_MAPPING[SAMPLE_PATHOLOGY])
+    search_iter = [{"samples": [{"uuid": sample["uuid"]} for sample in sequenced_samples]}]
+    rows = list(generate_sample_pathology_manifest(None, args, search_iter))
+    columns = list(TSV_MAPPING[SAMPLE_PATHOLOGY].keys())
+    rows_by_column = [dict(zip(columns, row)) for row in rows]
+
+    assert len(rows_by_column) == 5
+    assert rows_by_column[0]["SequencedSampleAccession"] == "SMHT-SAMPLE-1"
+    assert rows_by_column[0]["FixedSampleAccession"] == "SMHT-FIXED-1"
+    assert rows_by_column[0]["LinkedFixedSampleIdentifier"] == "fixed-with-report"
+    assert rows_by_column[0]["PathologyReportAccession"] == "SMHT-PR-1"
+    assert rows_by_column[0]["PathologyReportType"] == "BrainPathologyReport"
+    assert rows_by_column[0]["PathologyMetadataStatus"] == PATHOLOGY_METADATA_AVAILABLE
+    assert rows_by_column[1]["FixedSampleAccession"] == "SMHT-FIXED-2"
+    assert rows_by_column[1]["PathologyMetadataStatus"] == PATHOLOGY_NO_PATHOLOGY_REPORT
+    assert rows_by_column[2]["SequencedSampleAccession"] == "SMHT-SAMPLE-3"
+    assert rows_by_column[2]["PathologyMetadataStatus"] == PATHOLOGY_NO_LINKED_FIXED_SAMPLE
+    assert rows_by_column[3]["SequencedSampleAccession"] == "SMHT-SAMPLE-4"
+    assert rows_by_column[3]["PathologyMetadataStatus"] == PATHOLOGY_METADATA_AVAILABLE
+    assert rows_by_column[4]["SequencedSampleAccession"] == "SMHT-SAMPLE-4"
+    assert rows_by_column[4]["LinkedFixedSampleIdentifier"] == "fixed-not-visible"
+    assert rows_by_column[4]["PathologyMetadataStatus"] == PATHOLOGY_LINKED_FIXED_SAMPLE_NOT_VISIBLE
