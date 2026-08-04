@@ -33,6 +33,7 @@ import FileView from './item-pages/FileView';
 import PublicDonorView from './item-pages/PublicDonorView';
 import ProtectedDonorView from './item-pages/ProtectedDonorView';
 import TissueView from './item-pages/TissueView';
+import TissueTypeView from './browse/TissueTypeView';
 
 /**
  * These content_view.register actions occur in this index.js as otherwise
@@ -57,6 +58,7 @@ content_views.register(FileView, 'File');
 content_views.register(PublicDonorView, 'Donor');
 content_views.register(ProtectedDonorView, 'ProtectedDonor');
 content_views.register(TissueView, 'Tissue');
+content_views.register(TissueTypeView, 'Tissue-Overview');
 
 content_views.register(SMaHTSubmissionView, 'Item', 'edit');
 content_views.register(SMaHTSubmissionView, 'Item', 'create');

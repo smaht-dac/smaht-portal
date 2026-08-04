@@ -2639,25 +2639,90 @@ File and Donor Overview Styles
 	}
 }
 
+// Only the legacy per-item /tissues/<uuid>/ "Tissue Overview" tab renders
+// inside .item-page-container.type-Tissue's tabs bar; the type-keyed
+// /tissue-overview/?tissue_type=<value> page (TissueTypeView.js) is a
+// standalone page with no tabs bar, so this rule stays scoped separately
+// from the shared .tissue-view content styling below.
 .item-page-container.type-Tissue {
 	.tabs-bar-outer .tabs-bar .tab-item.active {
 		border-top-color: #1F9F55;
 	}
+}
+
+// Shared by both the legacy /tissues/<uuid>/ "Tissue Overview" tab and the
+// type-keyed /tissue-overview/?tissue_type=<value> page -- both render
+// their content inside a top-level <div className="tissue-view">. The base
+// .view-title/.breadcrumb-list/.view-title-text rules here are otherwise
+// only defined under the shared .item-page-container.type-File/Donor/etc.
+// block above (which the standalone /tissue-overview/ page never gets,
+// since it isn't wrapped by DefaultItemView) -- duplicated here rather than
+// widening that block's selector, since it also carries File/Donor-specific
+// rules (e.g. .data-group) that shouldn't apply to this page.
+.tissue-view {
+	font-family: 'Inter';
 
 	.view-title {
 		background: url('/static/img/polygon-bg-header.svg'),
 			linear-gradient(165deg, rgba(233, 250, 240, 0.92), rgba(212, 238, 222, 0.72));
 		background-size: cover;
+		border: 1px solid $porcelain;
+		padding-top: 30px;
+		padding-bottom: 20px;
+
+		&-navigation {
+			display: flex;
+			flex-direction: row;
+
+			.breadcrumb-list {
+				list-style-type: none;
+				display: flex;
+				justify-content: center;
+				padding: 0px;
+
+				&-item {
+					font-size: .875rem;
+					&-link {
+						color: #428bca;
+
+						&.no-link {
+							color: #5b698b;
+
+							&:hover {
+								color: #5b698b;
+								text-decoration: none;
+							}
+						}
+
+						&:hover {
+							color: #2a6496;
+						}
+					}
+					.icon {
+						color: $gray-30;
+						margin: auto;
+					}
+				}
+			}
+		}
+
+		&-text {
+			font-size: 1.25rem;
+			font-weight: 500;
+			color: $gray-70;
+			margin: 5px 0px 0px 0px;
+		}
 	}
 
 	.view-content {
+		padding: 40px 32px 0px;
+
 		.tissue-summary-header {
 			display: flex;
-			align-items: center;
+			align-items: flex-start;
 			gap: 20px;
-			padding: 20px 0;
+			padding: 20px 0 0;
 			margin-bottom: 24px;
-			border-bottom: 1px solid #E7F0F3;
 
 			&-icon {
 				display: flex;
@@ -2677,12 +2742,15 @@ File and Donor Overview Styles
 			}
 
 			&-content {
+				flex: 1;
 				display: flex;
 				flex-direction: column;
-				gap: 10px;
+				align-self: stretch;
 
 				h1 {
 					margin: 0;
+					padding-bottom: 16px;
+					border-bottom: 1px solid #E7F0F3;
 					font-size: 1.75rem;
 				}
 			}
@@ -2690,12 +2758,17 @@ File and Donor Overview Styles
 			&-notes {
 				display: flex;
 				align-items: baseline;
-				gap: 10px;
+				padding-top: 14px;
+				padding-bottom: 16px;
+				border-bottom: 1px solid #E7F0F3;
 				font-size: 0.875rem;
 
 				.notes-label {
 					font-weight: 600;
 					color: #4E6884;
+					padding-right: 10px;
+					margin-right: 10px;
+					border-right: 1px solid #E7F0F3;
 				}
 
 				.notes-value {

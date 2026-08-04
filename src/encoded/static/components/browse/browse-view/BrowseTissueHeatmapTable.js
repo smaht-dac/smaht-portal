@@ -40,12 +40,25 @@ function buildColumnGroups(tissueTypes, tissueTypeCategories) {
     return groups;
 }
 
+// Snovault's canonical_redirect (snovault/renderers.py) 302s a request
+// whenever its query string doesn't literally match the search response's
+// own recomputed '@id' query string -- which Python's urlencode renders
+// with '+' for spaces (application/x-www-form-urlencoded), not
+// encodeURIComponent's '%20'. tissue_type values contain spaces (e.g.
+// "3M - Adrenal Gland, R"), so without this the heatmap's own link would
+// always trigger a visible redirect on click. Mirrors urlencode's default
+// quote_via=quote_plus encoding for exactly that one character class.
+const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g, '+');
+
 // Exported for unit testing. Pivots raw Tissue search results into a
 // donor (external_id) x tissue_type matrix of values (as picked by
-// `getValue`), plus a tissue_type -> representative Tissue @id map (the
-// first Tissue instance encountered for that type) used to link column
-// headers to a Tissue Overview page, since /tissues/<uuid>/ is keyed on a
-// single Tissue instance, not on tissue_type directly.
+// `getValue`), plus a tissue_type -> Tissue Overview page href map, used to
+// link column headers to /tissue-overview/?tissue_type=<value> (a real
+// tissue_type-keyed page, backed by encoded/tissue_overview.py -- unlike
+// the legacy /tissues/<uuid>/ page, which is keyed on a single Tissue
+// instance, not on tissue_type). type=Tissue and limit=all are deliberately
+// NOT in this href -- tissue_overview.py forces both server-side, so the
+// address bar stays clean.
 //
 // When a donor has multiple Tissue records for the same tissue_type, the
 // one with a populated pathology_summary is preferred over an arbitrary
@@ -65,7 +78,11 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
         if (!donorId || !tissueType) return;
         if (!donors.includes(donorId)) donors.push(donorId);
         if (!tissueTypes.includes(tissueType)) tissueTypes.push(tissueType);
-        if (!tissueTypeHrefs[tissueType] && t['@id']) tissueTypeHrefs[tissueType] = t['@id'];
+        if (!tissueTypeHrefs[tissueType]) {
+            tissueTypeHrefs[tissueType] =
+                `/tissue-overview/?tissue_type=${formUrlEncode(tissueType)}` +
+                '&donor.study=Production&donor.tags=has_released_files';
+        }
         if (!tissueTypeCategories[tissueType] && t.category) tissueTypeCategories[tissueType] = t.category;
 
         const key = `${donorId} ${tissueType}`;

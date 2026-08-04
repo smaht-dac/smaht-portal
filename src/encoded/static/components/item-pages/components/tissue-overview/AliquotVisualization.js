@@ -49,7 +49,9 @@ function PathologyReportLinks({ reports }) {
         return (
             <React.Fragment key={reportHref || reportIndex}>
                 {reportIndex > 0 ? ', ' : ''}
-                <a href={reportHref}>{reportLabel}</a>
+                <a href={reportHref} target="_blank" rel="noopener noreferrer">
+                    {reportLabel}
+                </a>
             </React.Fragment>
         );
     });

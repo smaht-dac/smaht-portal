@@ -1,13 +1,16 @@
 'use strict';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import DefaultItemView from './DefaultItemView';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
-import AliquotVisualization from './components/tissue-overview/AliquotVisualization';
-import NonSolidAliquotVisualization from './components/tissue-overview/NonSolidAliquotVisualization';
+import {
+    ajax,
+    memoizedUrlParse,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { BROWSE_STATUS_FILTERS } from './BrowseView';
+import AliquotVisualization from '../item-pages/components/tissue-overview/AliquotVisualization';
+import NonSolidAliquotVisualization from '../item-pages/components/tissue-overview/NonSolidAliquotVisualization';
 import { useUserDownloadAccess } from '../util/hooks';
-import { formatDonorAge } from './components/donor-overview/ProtectedDonorViewDataCards';
+import { pageTitleViews } from '../PageTitleSection';
+import { formatDonorAge } from '../item-pages/components/donor-overview/ProtectedDonorViewDataCards';
 import {
     getDonorHref,
     getDisplayText,
@@ -19,25 +22,28 @@ import {
     getTissueKitIdFromExternalId,
     sampleNonSolidAliquots,
     getCoreWellFromExternalId,
-} from './components/tissue-overview/helpers';
+} from '../item-pages/components/tissue-overview/helpers';
 
-export default class TissueOverview extends DefaultItemView {
-    getTabViewContents() {
-        const initTabs = [];
-        initTabs.push(TissueView.getTabObject(this.props));
-        return initTabs.concat(this.getCommonTabs());
-    }
-}
+// Standalone page for /tissue-overview/?tissue_type=<value>, registered
+// against the synthetic 'Tissue-Overview' @type the backend's
+// tissue_overview.py route forces onto its search response -- this is a
+// real tissue_type-keyed page (unlike the legacy TissueOverview tab on a
+// single Tissue item's page at /tissues/<uuid>/), so `context` here is the
+// search response itself (its `@graph` already is the Tissue-search-by-
+// tissue_type dataset).
 
-const TissueViewTitle = ({ context }) => {
-    // A user reaches this page from a Browse-by-Tissue table header, i.e. by
-    // tissue *type*, not by picking this one specific Tissue record -- and
-    // which record actually renders here is itself a best-effort pick among
-    // possibly several sharing that type (see dedupeTissuesByDonor). Showing
-    // its specific instance ID (e.g. "SMHT001-3AL") in the breadcrumb would
-    // overstate that certainty, so use the same descriptive tissue name the
-    // page heading uses instead.
-    const targetTissueValue = context?.uberon_id || context?.tissue_type || null;
+// This page renders its own title/breadcrumb (TissueTypeViewTitle, below)
+// inline with its content, same as item pages do -- suppress
+// PageTitleSection's generic fallback (which would otherwise render
+// context.title as a duplicate heading above it). The browser tab title
+// (app.js's HTMLTitle) still reads context.title directly -- tissue_overview.py
+// overrides that field per-request to the actual tissue_type value, so the
+// tab title is meaningful without this page needing its own title view.
+pageTitleViews.register(() => null, 'Tissue-Overview');
+
+const TissueTypeViewTitle = ({ representativeTissue }) => {
+    const targetTissueValue =
+        representativeTissue?.uberon_id || representativeTissue?.tissue_type || null;
     const breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
@@ -71,17 +77,31 @@ const TissueViewTitle = ({ context }) => {
     );
 };
 
-const TissueView = React.memo(function TissueView({ context = {}, session }) {
-    const {
-        display_title,
-        donor,
-        uberon_id,
-        tissue_type,
-        study,
-        category,
-        uuid: tissueUuid,
-    } = context;
+export default function TissueTypeView({ context = {}, href, session }) {
+    const tissueType = useMemo(
+        () => (typeof href === 'string' ? memoizedUrlParse(href).query?.tissue_type : null) || null,
+        [href]
+    );
     const { userDownloadAccess } = useUserDownloadAccess(session);
+
+    // The route's own search results already are the donor population for
+    // this tissue_type (donor.study=Production&donor.tags=has_released_files,
+    // baked into the link that got the user here -- see
+    // BrowseTissueHeatmapTable.js) -- no separate client-side fetch needed
+    // for this, unlike the legacy per-item TissueView.js.
+    const allTissuesForType = context?.['@graph'] || [];
+    const donors = useMemo(() => dedupeTissuesByDonor(allTissuesForType), [allTissuesForType]);
+    const donorCount = donors.length;
+
+    // Representative Tissue for header/summary fields (uberon_id, category,
+    // study, display_title) -- prefer an entry with a populated
+    // pathology_summary, same preference dedupeTissuesByDonor uses.
+    const representativeTissue = useMemo(
+        () => allTissuesForType.find((t) => t?.pathology_summary) || allTissuesForType[0] || null,
+        [allTissuesForType]
+    );
+
+    const { display_title, uberon_id, tissue_type, study, category } = representativeTissue || {};
 
     const uberonHref = uberon_id && uberon_id['@id'] ? uberon_id['@id'] : null;
     const targetTissueValue = uberon_id || tissue_type || null;
@@ -97,32 +117,16 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 ? 'buccal'
                 : 'blood'
             : null;
-    const tissueMatrixFilterValue = useMemo(
-        () => tissue_type || uberon_id?.display_title || null,
-        [tissue_type, uberon_id]
-    );
+    const tissueMatrixFilterValue = tissueType || tissue_type || null;
+
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
-    const [donors, setDonors] = useState([]);
-    // Every Tissue record sharing this tissue_type, undeduped -- unlike
-    // `donors` (one representative Tissue per donor, for the summary table),
-    // this keeps sibling Fixed/Frozen Tissue records together so the aliquot
-    // panel can combine both into one box for a given donor.
-    const [allTissuesForType, setAllTissuesForType] = useState([]);
-    const [donorsLoading, setDonorsLoading] = useState(true);
     const [tissueSamples, setTissueSamples] = useState(null);
     // True only while re-fetching for an already-rendered donor switch (not
     // the initial load, which uses aliquotSamplesLoading/the spinner
     // instead) -- lets the panel hint "updating" without unmounting the
     // still-valid previous diagram.
     const [samplesUpdating, setSamplesUpdating] = useState(false);
-    // Which donor's aliquot layout the visualization panel reflects. Starts
-    // null and is seeded below, once `donors` loads, to the first entry in
-    // that same sorted (by display_title) list the <select> below renders --
-    // NOT this page's own `donor` (an arbitrary pick among possibly several
-    // Tissue records sharing this tissue_type, per dedupeTissuesByDonor's
-    // note), since defaulting to that would silently select an option that
-    // isn't the dropdown's first/visible one.
     const [selectedDonorUuid, setSelectedDonorUuid] = useState(null);
 
     // Re-seeds to the sorted list's first donor whenever `donors` (re)loads,
@@ -143,51 +147,32 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         [donors, selectedDonorUuid]
     );
     // A donor's Fixed and Frozen Tissue records for this tissue_type are two
-    // separate items sharing one tissue_type string (confirmed against real
-    // data -- see note above sampleAliquotSlicesFallback), so the aliquot
-    // panel needs every sibling Tissue's uuid, not just one. Falls back to
-    // this page's own Tissue while the sibling search hasn't loaded yet.
+    // separate items sharing one tissue_type string, so the aliquot panel
+    // needs every sibling Tissue's uuid, not just one.
     const tissueUuidsForSelectedDonor = useMemo(() => {
-        const targetDonorUuid = selectedDonorUuid || donor?.uuid;
-        const matches = targetDonorUuid
-            ? allTissuesForType.filter((t) => t?.donor?.uuid === targetDonorUuid)
-            : [];
-        if (matches.length > 0) return matches.map((t) => t.uuid);
-        return tissueUuid ? [tissueUuid] : [];
-    }, [allTissuesForType, selectedDonorUuid, donor, tissueUuid]);
-    const selectedDonorDisplayTitle = selectedDonorEntry?.donor?.display_title || donor?.display_title;
-    // Real sample IDs are "{donor}-{protocol}-{aliquot}{suffix}" (e.g.
-    // "SMHT001-3I-001A1", see item_utils/tissue_sample.py's *_REGEX
-    // constants) -- used only as a fallback when a slice has no real
-    // external_id of its own (the illustrative demo set).
+        if (!selectedDonorUuid) return [];
+        return allTissuesForType
+            .filter((t) => t?.donor?.uuid === selectedDonorUuid)
+            .map((t) => t.uuid);
+    }, [allTissuesForType, selectedDonorUuid]);
+    const selectedDonorDisplayTitle = selectedDonorEntry?.donor?.display_title;
     const aliquotIdPrefix =
         selectedDonorDisplayTitle && tissueProtocolCode
             ? `${selectedDonorDisplayTitle}-${tissueProtocolCode}`
             : tissueProtocolCode;
 
-    // The number of aliquots isn't a fixed/derivable constant (confirmed
-    // against real TissueSample fixture data and PR smaht-dac/smaht-portal#728's
-    // associate_fixed_samples.py, which counts real linked samples rather than
-    // assuming one) -- it's whatever was actually submitted for this tissue
-    // block, so it has to come from a live count of TissueSamples across
-    // every sibling Tissue (Fixed + Frozen) sharing this tissue_type.
+    // The number of aliquots isn't a fixed/derivable constant -- it's
+    // whatever was actually submitted for this tissue block, so it has to
+    // come from a live count of TissueSamples across every sibling Tissue
+    // (Fixed + Frozen) sharing this tissue_type.
     useEffect(() => {
-        // Wait for the sibling-Tissue search (donorsLoading) to finish before
-        // fetching -- otherwise this fires once with just this page's own
-        // Tissue uuid, renders that partial result, then fires again once
-        // the sibling Fixed/Frozen Tissue is found, replacing it a moment
-        // later. Both fetches were real, but the visible flash between them
-        // reads as a bug, so wait for the complete uuid set instead.
-        if (donorsLoading || tissueUuidsForSelectedDonor.length === 0) {
+        if (tissueUuidsForSelectedDonor.length === 0) {
             setTissueSamples(null);
             return;
         }
-        // Deliberately not resetting to null here: on the very first load
-        // that's already the initial state, but on a later donor switch it
-        // would blank out an already-rendered diagram (swap to spinner, then
-        // swap again to the new donor's data) for no reason -- keep showing
-        // the previous donor's slices until the new ones are ready, then
-        // swap directly, once.
+        // Deliberately not resetting to null here: on a donor switch it
+        // would blank out an already-rendered diagram for no reason -- keep
+        // showing the previous donor's slices until the new ones are ready.
         setSamplesUpdating(true);
         const sampleSourceParams = tissueUuidsForSelectedDonor
             .map((uuid) => `sample_sources.uuid=${encodeURIComponent(uuid)}`)
@@ -204,7 +189,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 setSamplesUpdating(false);
             }
         );
-    }, [tissueUuidsForSelectedDonor, donorsLoading, session]);
+    }, [tissueUuidsForSelectedDonor, session]);
 
     // Real samples win once loaded; while loading (tissueSamples === null) or
     // if none exist yet, fall back to the illustrative demo set so the panel
@@ -219,30 +204,10 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     type: sample.preservation_type === 'Fixed' ? 'pink' : 'yellow',
                     widthCm: sample.preservation_type === 'Fixed' ? 0.5 : 1,
                     description: sample.external_id || sample.accession || undefined,
-                    // This slice's own real "{donor}-{protocol}" -- Fixed and
-                    // Frozen siblings have different protocol codes despite
-                    // sharing one tissue_type, so each slice needs its own.
                     idPrefix: getTissueKitIdFromExternalId(sample.external_id),
-                    // Explicit [] (not undefined) for a real Frozen sample with
-                    // no Core suffix -- so AliquotVisualization's `|| DEFAULT`
-                    // fallback (meant only for illustrative demo slices) does
-                    // not kick in and invent a well this real sample doesn't have.
                     frozenCoreWells: coreWell ? [coreWell] : [],
-                    // Backend-computed (types/tissue_sample.py): chains this
-                    // Frozen/Fresh sample's `linked_fixed_samples` through
-                    // each linked Fixed sample's own `pathology_reports`.
-                    // Only Frozen/Fresh samples have this; Fixed samples
-                    // never will, so this is naturally empty for pink slices.
                     associatedPathologyReports: sample.associated_pathology_reports || [],
-                    // A Fixed sample's *own* pathology_reports (direct
-                    // rev-link) -- this is the actual, most direct
-                    // relationship; associatedPathologyReports above only
-                    // exists to give Frozen/Fresh samples a path to this same
-                    // data through their linked Fixed sample(s).
                     pathologyReports: sample.pathology_reports || [],
-                    // The real submitting institution (e.g. "BROAD GCC",
-                    // "UWSC GCC") -- shown instead of a made-up "GCC1"/"GCC2"
-                    // sequence number.
                     submissionCenter: sample.submission_centers?.[0]?.display_title || null,
                 };
             });
@@ -260,28 +225,25 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         return realAliquots.length > 0 ? realAliquots : sampleNonSolidAliquots;
     }, [tissueSamples]);
 
-    // Real data replacing the illustrative fallback mid-render is a visible
-    // jump no matter how few steps it takes to get there (different slice
-    // counts/colors/arrangement) -- show a spinner instead of the fallback
-    // while genuinely loading, and reserve the fallback for a tissue that
-    // has finished loading and truly has no TissueSamples yet.
-    const aliquotSamplesLoading = donorsLoading || tissueSamples === null;
+    const aliquotSamplesLoading = donors.length === 0 || tissueSamples === null;
 
-    // `session` in the dependency array (here and below) so logging in/out
-    // re-fetches -- permission-filtered results can change without `href`
-    // or any of this component's other inputs changing.
+    // Not filtered by any single donor -- this page covers every donor
+    // sharing this tissue_type (see `donors` above), so the Files stat
+    // needs to be the same population's total, not one representative
+    // donor's own count (which undercounts whenever other donors in the
+    // Donor Details table below have their own files for this tissue_type).
     useEffect(() => {
+        if (!tissueMatrixFilterValue) {
+            setFileCount(0);
+            setIsLoading(false);
+            return;
+        }
         const queryParts = [
             'type=File',
             BROWSE_STATUS_FILTERS,
             'dataset!=No+value',
-            donor?.display_title
-                ? `donors.display_title=${encodeURIComponent(donor.display_title)}`
-                : null,
-            tissueMatrixFilterValue
-                ? `sample_summary.tissues=${encodeURIComponent(tissueMatrixFilterValue)}`
-                : null,
-        ].filter(Boolean);
+            `sample_summary.tissues=${encodeURIComponent(tissueMatrixFilterValue)}`,
+        ];
 
         setIsLoading(true);
         ajax.load(
@@ -296,43 +258,11 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 setIsLoading(false);
             }
         );
-    }, [donor?.display_title, tissueMatrixFilterValue, session]);
-
-    // All donors that share this Tissue's resolved tissue_type, not just this Tissue's own donor.
-    useEffect(() => {
-        if (!tissueMatrixFilterValue) {
-            setDonors([]);
-            setDonorsLoading(false);
-            return;
-        }
-        setDonorsLoading(true);
-        ajax.load(
-            // donor.study/donor.tags restrict this to the same donor
-            // population Browse by Donor/Browse by File use (Production
-            // study, has_released_files tag) -- see types/tissue.py's
-            // embedded_list -- so this list doesn't include donors who don't
-            // have released files yet (e.g. benchmarking-only donors).
-            `/search/?type=Tissue&tissue_type=${encodeURIComponent(tissueMatrixFilterValue)}&donor.study=Production&donor.tags=has_released_files&limit=all`,
-            (resp) => {
-                const results = resp?.['@graph'] || [];
-                setAllTissuesForType(results);
-                setDonors(dedupeTissuesByDonor(results));
-                setDonorsLoading(false);
-            },
-            'GET',
-            () => {
-                setAllTissuesForType([]);
-                setDonors([]);
-                setDonorsLoading(false);
-            }
-        );
     }, [tissueMatrixFilterValue, session]);
-
-    const donorCount = donors.length;
 
     return (
         <div className="tissue-view">
-            <TissueViewTitle context={context} />
+            <TissueTypeViewTitle representativeTissue={representativeTissue} />
             <div className="view-content">
                 <div className="tissue-summary-header">
                     <div className="tissue-summary-header-icon">
@@ -369,7 +299,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                         href={targetTissueHref}
                                     />
                                     <TissueDatum title="Non-Tissue Presence" value="Protected" />
-                                    <TissueDatum title="Sex" value={donor?.sex} />
+                                    <TissueDatum title="Sex" value={selectedDonorEntry?.donor?.sex} />
                                     <TissueDatum title="Total Coverage" value="Protected" />
                                 </div>
                             </div>
@@ -379,11 +309,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                         <i className="icon icon-lungs fas"></i>Donors
                                     </div>
                                     <div className="donor-statistic-value text-center">
-                                        {!donorsLoading ? (
-                                            <span>{donorCount}</span>
-                                        ) : (
-                                            <i className="icon icon-circle-notch icon-spin fas" />
-                                        )}
+                                        <span>{donorCount}</span>
                                     </div>
                                 </div>
                                 <div className="donor-statistic files d-flex flex-column p-2 gap-2">
@@ -464,13 +390,6 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     <div className="header">
                         <span className="header-text">Donor Details</span>
                     </div>
-                    {/*
-                        Lists every donor whose Tissue shares this Tissue's resolved tissue_type
-                        (not just this Tissue's own donor). Autolysis Score, Non-Target Tissue
-                        Presence, and Unexpected/Pathologic Finding come from each donor's own
-                        Tissue.pathology_summary (Tissue -> TissueSample -> PathologyReport
-                        rev-link chain); "-" means no pathology report covers that tissue sample.
-                    */}
                     <div className="body">
                         <table className="tissue-donor-table table">
                             <thead>
@@ -485,13 +404,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {donorsLoading ? (
-                                    <tr>
-                                        <td colSpan={8}>
-                                            <i className="icon icon-circle-notch icon-spin fas" />
-                                        </td>
-                                    </tr>
-                                ) : donors.length > 0 ? (
+                                {donors.length > 0 ? (
                                     donors.map(({ donor: d, tissue: t }) => {
                                         const donorHref = getDonorHref(d, userDownloadAccess);
                                         const pathologySummary = t?.pathology_summary || {};
@@ -536,12 +449,4 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
             </div>
         </div>
     );
-});
-
-TissueView.getTabObject = function (props) {
-    return {
-        tab: <span>Tissue Overview</span>,
-        key: 'tissue-overview',
-        content: <TissueView {...props} />,
-    };
-};
+}
