@@ -136,7 +136,7 @@ EMPTY_RESTRICTION_REGISTRY = {
 
 
 @pytest.mark.parametrize('email', [
-    'leon.schuetz@med.uni-tuebingen.de',  # reported address - multi-label domain, not restricted
+    'user@dept.example.org',  # multi-label domain, not restricted
     'person@example.org',
 ])
 def test_unrestricted_emails_are_allowed(email):
@@ -236,7 +236,7 @@ def test_create_unauthorized_user_cannot_self_grant_privileges(mock_recaptcha, d
     assert new_user.properties.get('email') == ATTACKER_EMAIL
 
 
-REPORTED_EMAIL = 'leon.schuetz@med.uni-tuebingen.de'
+REPORTED_EMAIL = 'user@dept.example.org'
 
 
 @patch('encoded.authentication.redis_is_active', return_value=False)
@@ -260,8 +260,8 @@ def test_create_unauthorized_user_without_auth0_email_is_401_not_500(mock_app_pr
     request.json = {
         'g-recaptcha-response': 'fake-recaptcha-token',
         'email': REPORTED_EMAIL,
-        'first_name': 'Leon',
-        'last_name': 'Schuetz',
+        'first_name': 'Jane',
+        'last_name': 'Doe',
     }
     # A MagicMock answers hasattr() for anything, so the attribute is explicitly removed to
     # reproduce the request shape that produced the 500: no Auth0-authenticated email.
@@ -280,8 +280,8 @@ def test_create_unauthorized_user_accepts_multi_label_domain(mock_recaptcha, dum
     dummy_request.json = {
         'g-recaptcha-response': 'fake-recaptcha-token',
         'email': REPORTED_EMAIL,
-        'first_name': 'Leon',
-        'last_name': 'Schuetz',
+        'first_name': 'Jane',
+        'last_name': 'Doe',
     }
     dummy_request._auth0_authenticated = REPORTED_EMAIL
     dummy_request.context = dummy_request.root
