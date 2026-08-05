@@ -20,6 +20,14 @@ Change Log
   client-rendered only (never in server-rendered output).
 
 
+2.6.6
+=====
+
+`PR 738: fix: remove symlink node_modules <https://github.com/smaht-dac/smaht-portal/pull/738>`_
+
+* Remove node_modules symlink
+* Change gitignore to include symlink
+
 2.6.5
 =====
 
