@@ -1010,7 +1010,6 @@
     },
     {
         "identifier": "publication_collections",
-        "title": "Publication Collections",
         "file": "/docs/public/publication_collections.jsx",
         "status": "in review",
         "options": {
