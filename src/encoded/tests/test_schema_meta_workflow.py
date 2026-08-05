@@ -111,6 +111,13 @@ def test_meta_workflow_input(
     patch_item(testapp, patch_body, meta_workflow["uuid"], status=expected_status)
 
 
+def test_meta_workflow_revision_history_not_tracked(
+    testapp: TestApp, meta_workflow: Dict[str, Any]
+) -> None:
+    """MetaWorkflow opts out of Postgres revision-history tracking."""
+    testapp.get(f'/{meta_workflow["uuid"]}/@@revision-history', status=404)
+
+
 @pytest.mark.parametrize(
     "input_property,expected_status",
     [

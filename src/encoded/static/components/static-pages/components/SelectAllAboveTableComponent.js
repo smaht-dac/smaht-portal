@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
-import { Modal, Tabs, Tab, OverlayTrigger } from 'react-bootstrap';
+import { Modal, Tabs, Tab, OverlayTrigger, Popover } from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
 
 import {
@@ -58,7 +58,10 @@ export const SelectAllAboveTableComponent = (props) => {
                 Results
             </div>
             <div className="ms-auto col-auto me-0 d-flex pe-0">
-                <SelectAllFilesButton {...selectedFileProps} {...{ context, searchHref }} />
+                <SelectAllFilesButton
+                    {...selectedFileProps}
+                    {...{ context, searchHref }}
+                />
                 {/* Show popover if user has the access needed for this table */}
                 {canDownloadFiles ? (
                     <SelectedItemsDownloadButton
@@ -97,7 +100,7 @@ export const SelectAllAboveTableComponent = (props) => {
     );
 };
 
-const SELECT_ALL_LIMIT = 8000;
+const SELECT_ALL_LIMIT = 3000;
 
 const manifest_enum_map = [
     'file',
@@ -115,7 +118,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         'display_title',
         '@id',
         '@type',
-        'file_sets.@id'
+        'file_sets.@id',
     ];
     static isLocalhost =
         typeof window !== 'undefined' &&
@@ -141,13 +144,17 @@ export class SelectAllFilesButton extends React.PureComponent {
         super(props);
         this.isAllSelected = this.isAllSelected.bind(this);
         this.handleSelectAll = this.handleSelectAll.bind(this);
-        this.fetchAllPagesForSelection = this.fetchAllPagesForSelection.bind(
-            this
-        );
-        this.updateProgressTrackWidth = this.updateProgressTrackWidth.bind(this);
+        this.fetchAllPagesForSelection =
+            this.fetchAllPagesForSelection.bind(this);
+        this.updateProgressTrackWidth =
+            this.updateProgressTrackWidth.bind(this);
         this.selectAllButtonRef = React.createRef();
         this.selectAllButtonResizeObserver = null;
-        this.state = { selecting: false, selectingProgress: 0, progressTrackWidth: null };
+        this.state = {
+            selecting: false,
+            selectingProgress: 0,
+            progressTrackWidth: null,
+        };
     }
 
     componentDidMount() {
@@ -157,10 +164,14 @@ export class SelectAllFilesButton extends React.PureComponent {
             typeof window.ResizeObserver === 'function' &&
             this.selectAllButtonRef.current
         ) {
-            this.selectAllButtonResizeObserver = new window.ResizeObserver(() => {
-                this.updateProgressTrackWidth();
-            });
-            this.selectAllButtonResizeObserver.observe(this.selectAllButtonRef.current);
+            this.selectAllButtonResizeObserver = new window.ResizeObserver(
+                () => {
+                    this.updateProgressTrackWidth();
+                }
+            );
+            this.selectAllButtonResizeObserver.observe(
+                this.selectAllButtonRef.current
+            );
         } else if (typeof window !== 'undefined') {
             // Fallback for environments lacking ResizeObserver support.
             window.addEventListener('resize', this.updateProgressTrackWidth);
@@ -227,10 +238,13 @@ export class SelectAllFilesButton extends React.PureComponent {
     async fetchAllPagesForSelection(searchHref) {
         const currentHrefParts = memoizedUrlParse(searchHref);
         const currentHrefQuery = _.extend({}, currentHrefParts.query);
-        const { total, pageSize, concurrentRequests } = this.getSelectAllConfig();
+        const { total, pageSize, concurrentRequests } =
+            this.getSelectAllConfig();
         const requestPathname = (() => {
             const parsedPathname =
-                currentHrefParts?.pathname || String(searchHref || '').split('?')[0] || '/search/';
+                currentHrefParts?.pathname ||
+                String(searchHref || '').split('?')[0] ||
+                '/search/';
             if (parsedPathname === '/browse/' || parsedPathname === '/browse') {
                 return '/search/';
             }
@@ -270,7 +284,8 @@ export class SelectAllFilesButton extends React.PureComponent {
             const batchResponses = await Promise.all(
                 batchStarts.map((from) => {
                     const query = { ...currentHrefQuery, from };
-                    const reqHref = requestPathname + '?' + queryString.stringify(query);
+                    const reqHref =
+                        requestPathname + '?' + queryString.stringify(query);
                     return ajax.promise(reqHref);
                 })
             );
@@ -349,7 +364,7 @@ export class SelectAllFilesButton extends React.PureComponent {
             );
         }
         if (!searchHref) {
-            logger.error("No search href available for Select All.");
+            logger.error('No search href available for Select All.');
             Alerts.queue({
                 title: 'Select All Failed',
                 message:
@@ -435,21 +450,34 @@ export class SelectAllFilesButton extends React.PureComponent {
             (selecting
                 ? 'circle-notch icon-spin fas'
                 : isAllSelected
-                    ? 'square far'
-                    : 'check-square far');
+                ? 'square far'
+                : 'check-square far');
         const cls =
             'btn btn-sm me-05 align-items-center ' +
             (isAllSelected ? 'btn-secondary' : 'btn-outline-secondary');
-        const tooltip =
-            !isAllSelected && !isEnabled
-                ? `"Select All" is disabled since the total file count exceeds the upper limit: ${SELECT_ALL_LIMIT}`
-                : null;
+        const showMaxDownloadLimitPopover =
+            !selecting && !isAllSelected && !isEnabled;
+        const maxDownloadLimitPopover = (
+            <Popover className="download-popover protected selection-limit">
+                <Popover.Header as="h3">
+                    Maximum Download Limit: {SELECT_ALL_LIMIT}
+                </Popover.Header>
+                <Popover.Body>
+                    For optimal download speed and portal performance, files can
+                    only be downloaded {SELECT_ALL_LIMIT.toLocaleString()} at a
+                    time. <br />
+                    <br />
+                    If more files need to be downloaded, please download them in
+                    multiple smaller batches.
+                </Popover.Body>
+            </Popover>
+        );
 
         if (type === 'checkbox') {
             const checkboxTooltip = selecting
                 ? `Selecting ${selectingProgress}%`
-                : tooltip;
-            return (
+                : null;
+            const checkboxContent = (
                 <span
                     ref={this.selectAllButtonRef}
                     className="d-inline-flex flex-column align-items-center"
@@ -471,7 +499,8 @@ export class SelectAllFilesButton extends React.PureComponent {
                         }
                         style={{
                             width:
-                                progressTrackWidth && Number.isFinite(progressTrackWidth)
+                                progressTrackWidth &&
+                                Number.isFinite(progressTrackWidth)
                                     ? `${progressTrackWidth}px`
                                     : '100%',
                         }}>
@@ -486,35 +515,66 @@ export class SelectAllFilesButton extends React.PureComponent {
                     </div>
                 </span>
             );
+            if (showMaxDownloadLimitPopover) {
+                return (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={maxDownloadLimitPopover}>
+                        {checkboxContent}
+                    </OverlayTrigger>
+                );
+            }
+            return checkboxContent;
         }
+
+        const selectAllButton = (
+            <button
+                ref={this.selectAllButtonRef}
+                type="button"
+                id="select-all-files-button"
+                disabled={selecting || (!isAllSelected && !isEnabled)}
+                className={cls}
+                onClick={this.handleSelectAll}>
+                <i className={iconClassName} />
+                <span className="d-none d-md-inline text-400">
+                    {selecting
+                        ? `Selecting ${selectingProgress}%`
+                        : isAllSelected
+                        ? 'Deselect'
+                        : 'Select'}{' '}
+                </span>
+                <span className="text-600">All</span>
+            </button>
+        );
+
+        const selectAllButtonWrapper = (
+            <span
+                className="d-inline-block"
+                data-tip={selecting ? `Selecting ${selectingProgress}%` : null}>
+                {selectAllButton}
+            </span>
+        );
 
         return (
             <div className="d-inline-flex flex-column">
-                <span className="d-inline-block" data-tip={tooltip}>
-                    <button
-                        ref={this.selectAllButtonRef}
-                        type="button"
-                        id="select-all-files-button"
-                        disabled={selecting || (!isAllSelected && !isEnabled)}
-                        className={cls}
-                        onClick={this.handleSelectAll}>
-                        <i className={iconClassName} />
-                        <span className="d-none d-md-inline text-400">
-                            {selecting
-                                ? `Selecting ${selectingProgress}%`
-                                : isAllSelected
-                                    ? 'Deselect'
-                                    : 'Select'}{' '}
-                        </span>
-                        <span className="text-600">All</span>
-                    </button>
-                </span>
+                {showMaxDownloadLimitPopover ? (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={maxDownloadLimitPopover}>
+                        {selectAllButtonWrapper}
+                    </OverlayTrigger>
+                ) : (
+                    selectAllButtonWrapper
+                )}
                 {selecting ? (
                     <div
                         className="progress mt-03 select-all-progress select-all-progress-button"
                         style={{
                             width:
-                                progressTrackWidth && Number.isFinite(progressTrackWidth)
+                                progressTrackWidth &&
+                                Number.isFinite(progressTrackWidth)
                                     ? `${progressTrackWidth}px`
                                     : '100%',
                         }}>
@@ -1359,7 +1419,10 @@ const SelectedItemsDownloadStartButton = React.memo(
                         className="btn btn-primary mt-0 me-1 btn-block-xs-only"
                         data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                         <i className="icon icon-fw icon-download fas me-1" />
-                        Download <b>{isAWSDownload ? 'AWS CLI ' : 'cURL'}</b> File Manifest
+                        Download <b>
+                            {isAWSDownload ? 'AWS CLI ' : 'cURL'}
+                        </b>{' '}
+                        File Manifest
                     </button>
                 </form>
             </>

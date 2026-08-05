@@ -72,3 +72,10 @@ def test_body_or_file_validation(
     if file:
         patch_body["file"] = file
     patch_item(testapp, patch_body, static_section["uuid"], status=expected_status)
+
+
+def test_static_section_revision_history_not_tracked(
+    testapp: TestApp, static_section: Dict[str, Any]
+) -> None:
+    """StaticSection opts out of Postgres revision-history tracking."""
+    testapp.get(f'/{static_section["uuid"]}/@@revision-history', status=404)
