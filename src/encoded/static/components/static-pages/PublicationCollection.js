@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { PublicationSearchResultRow } from '../browse/components/PublicationSearchTable';
 import { EmbeddedItemSearchTable } from '../item-pages/components/EmbeddedItemSearchTable';
 
@@ -13,12 +14,79 @@ const PUBLICATION_LINKS = {
     p150: '/search/?type=Publication',
 };
 
+// `limit=0` skips fetching @graph rows entirely - the response still includes
+// `total` and the full `journal` facet (a default facet on Publication), which
+// is all this block needs.
+const PUBLICATION_STATS_HREF = '/search/?type=Publication&limit=0';
+
+// Counts Files that carry at least one DOI in `doi_list` (i.e. files tied to
+// a publication) - `doi_list!=No value` is a plain filter, not a facet, so no
+// `additional_facet` is needed. `skip_default_facets=true` additionally skips
+// computing File's default facets since only `total` is read here, making
+// this cheaper than the Publication stats call above (which needs a facet).
+const FILES_ANALYZED_HREF =
+    '/search/?type=File&doi_list!=No+value&skip_default_facets=true&limit=0';
+
 // Sttatistics for Publication Browse
-const PublicationStatistics = ({ context }) => {
-    console.log('PublicationStatistics props', context);
-    const publicationCount = context?.total || 0;
-    const journalCount =
-        context?.facets?.find((f) => f.field === 'journal')?.terms?.length || 0;
+const PublicationStatistics = () => {
+    const [publicationCount, setPublicationCount] = useState(0);
+    const [journalCount, setJournalCount] = useState(0);
+    const [filesAnalyzedCount, setFilesAnalyzedCount] = useState(0);
+    const [isLoadingPublicationStats, setIsLoadingPublicationStats] =
+        useState(true);
+    const [isLoadingFilesAnalyzed, setIsLoadingFilesAnalyzed] = useState(true);
+
+    // Load Publication and Journal counts
+    useEffect(() => {
+        let canceled = false;
+        ajax.load(
+            PUBLICATION_STATS_HREF,
+            (resp) => {
+                if (canceled) return;
+                const journalTerms =
+                    resp?.facets?.find((f) => f.field === 'journal')
+                        ?.original_terms || [];
+                setPublicationCount(resp?.total || 0);
+                setJournalCount(
+                    journalTerms.filter((term) => term.key !== 'No value')
+                        .length
+                );
+                setIsLoadingPublicationStats(false);
+            },
+            'GET',
+            (error) => {
+                console.error('Error loading publication statistics:', error);
+                if (canceled) return;
+                setIsLoadingPublicationStats(false);
+            }
+        );
+        return () => {
+            canceled = true;
+        };
+    }, []);
+
+    // Load Files Analyzed count
+    useEffect(() => {
+        let canceled = false;
+        ajax.load(
+            FILES_ANALYZED_HREF,
+            (resp) => {
+                if (canceled) return;
+                setFilesAnalyzedCount(resp?.total || 0);
+                setIsLoadingFilesAnalyzed(false);
+            },
+            'GET',
+            (error) => {
+                console.error('Error loading files analyzed count:', error);
+                if (canceled) return;
+                setIsLoadingFilesAnalyzed(false);
+            }
+        );
+        return () => {
+            canceled = true;
+        };
+    }, []);
+
     return (
         <div className="data-summary">
             <div className="donor-statistic publications d-flex flex-column p-2 gap-2">
@@ -26,7 +94,11 @@ const PublicationStatistics = ({ context }) => {
                     Publications
                 </div>
                 <div className="donor-statistic-value text-center">
-                    {publicationCount}
+                    {isLoadingPublicationStats ? (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    ) : (
+                        publicationCount
+                    )}
                 </div>
             </div>
             <div className="donor-statistic journals d-flex flex-column p-2 gap-2">
@@ -34,14 +106,24 @@ const PublicationStatistics = ({ context }) => {
                     Journals / Preprints
                 </div>
                 <div className="donor-statistic-value text-center">
-                    {journalCount}
+                    {isLoadingPublicationStats ? (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    ) : (
+                        journalCount
+                    )}
                 </div>
             </div>
             <div className="donor-statistic files d-flex flex-column p-2 gap-2">
                 <div className="donor-statistic-label text-center">
                     Files Analyzed
                 </div>
-                <div className="donor-statistic-value text-center">0</div>
+                <div className="donor-statistic-value text-center">
+                    {isLoadingFilesAnalyzed ? (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    ) : (
+                        filesAnalyzedCount
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -96,7 +178,6 @@ const PublicationTable = ({
 // Layout for PublicationCollection pages
 const PublicationCollectionLayout = ({ ...props }) => {
     console.log('PublicationCollectionLayout props', props);
-    const { context, session } = props;
     return (
         <div className="publication-collection-layout">
             <div className="introduction">
@@ -131,7 +212,7 @@ const PublicationCollectionLayout = ({ ...props }) => {
                         </p>
                     </div>
                     <div className="statistics-block">
-                        <PublicationStatistics context={context} />
+                        <PublicationStatistics />
                     </div>
                 </div>
                 <div className="image">
