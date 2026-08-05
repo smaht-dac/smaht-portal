@@ -2688,6 +2688,12 @@ File, Donor, and Publication Overview Styles
                     display: flex;
                     gap: 8px;
                     font-size: 0.875rem;
+
+                    .scope {
+                        color: #5d5e63;
+                        padding-left: 8px;
+                        border-left: 1.5px solid #e5e5e5;
+                    }
                 }
             }
         }

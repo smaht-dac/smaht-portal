@@ -14,6 +14,7 @@ import { replaceString as placeholderReplacementFxn } from './../static-pages/pl
 import { RightArrowIcon } from '../util/icon';
 import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 function getStaticContentSection(staticContent, location) {
     if (!Array.isArray(staticContent)) return null;
@@ -359,8 +360,9 @@ const PublicationView = React.memo(function PublicationView(props) {
                             )}
                             {context?.scope && (
                                 <div className="scope">
-                                    <span>|</span>
-                                    <span>{context.scope}</span>
+                                    <span>
+                                        {capitalizeSentence(context.scope)}
+                                    </span>
                                 </div>
                             )}
                         </div>
