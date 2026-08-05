@@ -8,6 +8,19 @@ Change Log
 ----------
 
 
+2.6.5
+=====
+
+`PR 735: fix 500 on self-registration when no Auth0 email was established <https://github.com/smaht-dac/smaht-portal/pull/735>`_
+
+* Fixes an HTTP 500 (``IndexError``) on ``POST /create-unauthorized-user``: the restricted-email
+  check ran ahead of the Auth0 email-match check, so the internal "no auth0 authenticated e-mail
+  supplied" placeholder was passed to ``email_is_not_restricted`` and failed to parse. Callers with
+  no established Auth0 email now get the intended 401.
+* ``email_is_not_restricted`` now refuses an address whose domain cannot be determined with
+  ``HTTPForbidden`` instead of raising ``IndexError``.
+* Restricted domain/email semantics and self-registration privilege stripping are unchanged.
+
 2.6.4
 =====
 
