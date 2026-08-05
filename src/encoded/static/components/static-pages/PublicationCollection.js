@@ -5,30 +5,15 @@ import { EmbeddedItemSearchTable } from '../item-pages/components/EmbeddedItemSe
 
 // Links for PublicationCollection page tables
 const PUBLICATION_LINKS = {
-    // Set to all Publications for testing
-    // benchmarking: '/search/?type=Publication&study=Benchmarking',
-    // p25: '/search/?type=Publication&study=P25',
-    // p150: '/search/?type=Publication&study=P150',
-    benchmarking: '/search/?type=Publication',
-    p25: '/search/?type=Publication',
-    p150: '/search/?type=Publication',
+    benchmarking: '/search/?type=Publication&publication_groups=Benchmarking',
+    p25: '/search/?type=Publication&publication_groups=P25',
+    p150: '/search/?type=Publication&publication_groups=P150',
 };
 
-// `limit=0` skips fetching @graph rows entirely - the response still includes
-// `total` and the full `journal` facet (a default facet on Publication), which
-// is all this block needs.
-const PUBLICATION_STATS_HREF = '/search/?type=Publication&limit=0';
-
-// Counts Files that carry at least one DOI in `doi_list` (i.e. files tied to
-// a publication) - `doi_list!=No value` is a plain filter, not a facet, so no
-// `additional_facet` is needed. `skip_default_facets=true` additionally skips
-// computing File's default facets since only `total` is read here, making
-// this cheaper than the Publication stats call above (which needs a facet).
-const FILES_ANALYZED_HREF =
-    '/search/?type=File&doi_list!=No+value&skip_default_facets=true&limit=0';
-
-// Sttatistics for Publication Browse
-const PublicationStatistics = () => {
+// Sttatistics for Publication Browse - scoped to the same `publication_groups`
+// filter (`PUBLICATION_LINKS[type]`) used by the tables below, so the counts
+// always match what's actually shown on this page.
+const PublicationStatistics = ({ type }) => {
     const [publicationCount, setPublicationCount] = useState(0);
     const [journalCount, setJournalCount] = useState(0);
     const [filesAnalyzedCount, setFilesAnalyzedCount] = useState(0);
@@ -36,11 +21,20 @@ const PublicationStatistics = () => {
         useState(true);
     const [isLoadingFilesAnalyzed, setIsLoadingFilesAnalyzed] = useState(true);
 
-    // Load Publication and Journal counts
+    const groupHref = PUBLICATION_LINKS[type];
+
+    // Load Publication and Journal counts for this publication group.
+    // `limit=0` skips fetching @graph rows entirely - the response still
+    // includes `total` and the full `journal` facet (a default facet on
+    // Publication), which is all this block needs.
     useEffect(() => {
+        if (!groupHref) {
+            setIsLoadingPublicationStats(false);
+            return;
+        }
         let canceled = false;
         ajax.load(
-            PUBLICATION_STATS_HREF,
+            groupHref + '&limit=0',
             (resp) => {
                 if (canceled) return;
                 const journalTerms =
@@ -63,21 +57,59 @@ const PublicationStatistics = () => {
         return () => {
             canceled = true;
         };
-    }, []);
+    }, [groupHref]);
 
-    // Load Files Analyzed count
+    // Load Files Analyzed count: Files have no `publication_groups` field, so
+    // a File can't be filtered by publication group directly. Instead, fetch
+    // this group's publication DOIs first, then count Files whose
+    // `doi_list` matches any of them.
     useEffect(() => {
+        if (!groupHref) {
+            setIsLoadingFilesAnalyzed(false);
+            return;
+        }
         let canceled = false;
         ajax.load(
-            FILES_ANALYZED_HREF,
+            groupHref + '&limit=all&field=doi',
             (resp) => {
                 if (canceled) return;
-                setFilesAnalyzedCount(resp?.total || 0);
-                setIsLoadingFilesAnalyzed(false);
+                const dois = (resp?.['@graph'] || [])
+                    .map((pub) => pub.doi)
+                    .filter(Boolean);
+                if (dois.length === 0) {
+                    setFilesAnalyzedCount(0);
+                    setIsLoadingFilesAnalyzed(false);
+                    return;
+                }
+                const doiParams = dois
+                    .map((doi) => 'doi_list=' + encodeURIComponent(doi))
+                    .join('&');
+                ajax.load(
+                    '/search/?type=File&' +
+                        doiParams +
+                        '&skip_default_facets=true&limit=0',
+                    (fileResp) => {
+                        if (canceled) return;
+                        setFilesAnalyzedCount(fileResp?.total || 0);
+                        setIsLoadingFilesAnalyzed(false);
+                    },
+                    'GET',
+                    (error) => {
+                        console.error(
+                            'Error loading files analyzed count:',
+                            error
+                        );
+                        if (canceled) return;
+                        setIsLoadingFilesAnalyzed(false);
+                    }
+                );
             },
             'GET',
             (error) => {
-                console.error('Error loading files analyzed count:', error);
+                console.error(
+                    'Error loading publication DOIs for files analyzed count:',
+                    error
+                );
                 if (canceled) return;
                 setIsLoadingFilesAnalyzed(false);
             }
@@ -85,7 +117,7 @@ const PublicationStatistics = () => {
         return () => {
             canceled = true;
         };
-    }, []);
+    }, [groupHref]);
 
     return (
         <div className="data-summary">
@@ -139,7 +171,6 @@ const PublicationTable = ({
     showFacets = false,
     ...props
 }) => {
-    console.log('PublicationTable props', props);
     return (
         <div className="publication-search-table-container">
             <h2 className="table-header text-gray-70 fs-3 fw-semibold">
@@ -177,7 +208,6 @@ const PublicationTable = ({
 
 // Layout for PublicationCollection pages
 const PublicationCollectionLayout = ({ ...props }) => {
-    console.log('PublicationCollectionLayout props', props);
     return (
         <div className="publication-collection-layout">
             <div className="introduction">
@@ -212,7 +242,7 @@ const PublicationCollectionLayout = ({ ...props }) => {
                         </p>
                     </div>
                     <div className="statistics-block">
-                        <PublicationStatistics />
+                        <PublicationStatistics type={props.type} />
                     </div>
                 </div>
                 <div className="image">
