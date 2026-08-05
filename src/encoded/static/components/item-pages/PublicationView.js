@@ -357,12 +357,12 @@ const PublicationView = React.memo(function PublicationView(props) {
                                         context.authors[0]}
                                 </span>
                             )}
-                            {/* {context?.scope && (
+                            {context?.scope && (
                                 <div className="scope">
                                     <span>|</span>
                                     <span>{context.scope}</span>
                                 </div>
-                            )} */}
+                            )}
                         </div>
                     </div>
                 </div>
