@@ -21,7 +21,7 @@ beanstalk.cfg
 /.eggs/
 /extends/
 /jsconfig.json
-/node_modules/
+/node_modules
 /cypress/screenshots/
 /cypress/videos/
 /cypress/downloads/
