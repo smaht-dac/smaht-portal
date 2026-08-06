@@ -173,7 +173,7 @@ const PublicationTable = ({
 }) => {
     return (
         <div className="publication-search-table-container">
-            <h2 className="table-header text-gray-70 fs-3 fw-semibold">
+            <h2 className="table-header text-gray-70 fw-semibold">
                 {props.header_title || 'Publications'}
             </h2>
             <EmbeddedItemSearchTable
@@ -187,6 +187,7 @@ const PublicationTable = ({
                 onResetSelectedItems={props.onResetSelectedItems}
                 hideHeaderRow
                 hideFacetHeader
+                hideFacets={['publication_groups']}
                 rowHeight={150}
                 maxResultsBodyHeight={735}
                 defaultClosedFacets
