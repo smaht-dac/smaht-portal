@@ -16,13 +16,17 @@ PROTECTED_METADATA_DONOR_ERROR = (
 
 
 def _should_skip_protected_donor_validation(request: Request) -> bool:
-    """Allow submitr/loadxl validation-only paths to defer this link check.
+    """Allow only check-only submitr/loadxl validation to defer this link check.
 
-    Server-side workbook validation uses skip_links=true so older submitr clients can
-    validate workbooks before transforming Donor sheets to ProtectedDonor sheets. Actual
-    ingestion does not use skip_links=true and should enforce this privacy invariant.
+    Server-side workbook validation uses check_only=true with skip_links=true so older
+    submitr clients can validate workbooks before transforming Donor sheets to
+    ProtectedDonor sheets. Actual ingestion must enforce this privacy invariant, even
+    if a caller supplies skip_links=true.
     """
-    return asbool(request.params.get("skip_links", False))
+    return (
+        asbool(request.params.get("skip_links", False))
+        and asbool(request.params.get("check_only", False))
+    )
 
 
 def _get_donor_identifier_for_validation(context: Item, request: Request) -> Optional[str]:

@@ -120,17 +120,36 @@ def test_protected_metadata_accepts_protected_donor(
 
 
 @pytest.mark.workbook
-def test_protected_metadata_donor_check_skips_when_links_are_skipped(
+def test_protected_metadata_donor_check_skips_for_check_only_skip_links(
     es_testapp: TestApp,
     workbook: None,
 ) -> None:
-    """Server validation-only paths use skip_links=true for submitr upgrade compatibility."""
+    """Server validation-only paths use check_only + skip_links for compatibility."""
     body = _protected_metadata_body(
         "DEMOGRAPHIC",
-        "SKIP-LINKS-UNPROTECTED",
+        "CHECK-ONLY-SKIP-LINKS-UNPROTECTED",
         "TEST_DONOR_MALE",
     )
-    es_testapp.post_json("/Demographic?skip_links=true", body, status=201)
+    es_testapp.post_json(
+        "/Demographic?check_only=true&skip_links=true",
+        body,
+        status=200,
+    )
+
+
+@pytest.mark.workbook
+def test_protected_metadata_donor_check_does_not_skip_for_skip_links_write(
+    es_testapp: TestApp,
+    workbook: None,
+) -> None:
+    """skip_links=true alone must not bypass this validator on DB-writing requests."""
+    body = _protected_metadata_body(
+        "DEMOGRAPHIC",
+        "SKIP-LINKS-WRITE-UNPROTECTED",
+        "TEST_DONOR_MALE",
+    )
+    response = es_testapp.post_json("/Demographic?skip_links=true", body, status=422)
+    assert "ProtectedDonor" in str(response.json)
 
 
 @pytest.mark.workbook
@@ -145,7 +164,7 @@ def test_existing_bad_protected_metadata_fails_on_edit_without_skip_links(
         "TEST_DONOR_MALE",
     )
     posted = es_testapp.post_json(
-        "/Demographic?skip_links=true", body, status=201
+        "/Demographic?validate=false", body, status=201
     ).json["@graph"][0]
     response = es_testapp.patch_json(
         posted["@id"],
