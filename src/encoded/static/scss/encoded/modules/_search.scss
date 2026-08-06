@@ -1315,6 +1315,7 @@ body[data-at-type^='Publication-collections'] {
             margin: 0px;
             border-bottom: 1px solid #9ba5b7;
             z-index: 1;
+            font-size: 1.25rem;
         }
         .results-column {
             .table-header {
@@ -1368,6 +1369,10 @@ body[data-at-type^='Publication-collections'] {
                                 }
                                 .expand-toggle {
                                     margin: 0px;
+
+                                    i {
+                                        margin-right: 0px;
+                                    }
                                 }
                             }
                             &-list {
@@ -1382,6 +1387,10 @@ body[data-at-type^='Publication-collections'] {
                                     background-color: $pure-white;
                                     border: 1px solid $mercury;
                                 }
+                            }
+
+                            &.closed {
+                                border: none;
                             }
                         }
                     }
@@ -1414,6 +1423,24 @@ body[data-at-type^='Publication-collections'] {
                     .title {
                         h4 {
                             font-size: 1.125rem;
+                            margin-top: 0px;
+                        }
+                        .author-info {
+                            display: flex;
+                            align-items: baseline;
+
+                            .scope {
+                                display: flex;
+                                align-items: center;
+                                color: #5d5e63;
+                                padding-left: 5px;
+                                border-left: 1.5px solid #e5e5e5;
+                                margin-left: 5px;
+
+                                span {
+                                    line-height: 1rem;
+                                }
+                            }
                         }
                     }
                 }
@@ -1456,6 +1483,7 @@ body[data-at-type^='Publication-collections'] {
                     font-size: 0.75rem;
 
                     a {
+                        width: max-content;
                         text-align: right;
                     }
                 }
