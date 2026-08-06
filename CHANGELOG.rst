@@ -7,6 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+2.7.0
+=====
+
+* Add an admin-only control panel to the User profile page that lets administrators edit a
+  user's ``status``, ``groups``, and ``submits_for`` (submission centers) through searchable
+  controls, applied as a single atomic PATCH of only the changed fields after a confirmation
+  modal. The full ``status`` enum and all schema groups (including ``admin`` and
+  ``read-only-admin``) are exposed, and an admin may edit their own account (warn-only). The
+  panel is frontend-only: authorization is enforced by the existing backend
+  ``restricted_fields`` permission, and the client-side admin gate is cosmetic. The panel is
+  client-rendered only (never in server-rendered output).
+
 
 2.6.7
 =====
@@ -25,7 +37,7 @@ Change Log
 `PR 738: fix: remove symlink node_modules <https://github.com/smaht-dac/smaht-portal/pull/738>`_
 
 * Remove node_modules symlink
-
+* Change gitignore to include symlink
 
 2.6.5
 =====
