@@ -310,45 +310,50 @@ const PublicationView = React.memo(function PublicationView(props) {
     const pubYear = context?.date_published?.split('-')[0];
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
     const doiCode = context?.doi ? context.doi.split('/').pop() : '';
-    // shorten the authors list to 10 items and last item
-    const shortenedAuthorsList = [...context?.authors.slice(0, 20)];
-    const lastAuthor = context?.authors[context?.authors.length - 1];
+    const authorsList = context?.authors || [];
+    // shorten the authors list to 20 items and last item
+    const shortenedAuthorsList = authorsList.slice(0, 20);
+    const lastAuthor = authorsList[authorsList.length - 1];
     const citationString =
         context?.citation ??
-        shortenedAuthorsList
-            .map((a) => a.last_name + ', ' + a.first_name)
-            ?.join(', ') +
-            ' ... ' +
-            lastAuthor.last_name +
-            ', ' +
-            lastAuthor.first_name +
-            ' (' +
-            pubYear +
-            '). ' +
-            context?.title +
-            '. ' +
-            context?.journal +
-            '. ' +
-            doiCode;
-    '.' + doiLink;
+        (lastAuthor
+            ? shortenedAuthorsList
+                .map((a) => a.last_name + ', ' + a.first_name)
+                .join(', ') +
+                  ' ... ' +
+                  lastAuthor.last_name +
+                  ', ' +
+                  lastAuthor.first_name +
+                  ' (' +
+                  pubYear +
+                  '). ' +
+                  context?.title +
+                  '. ' +
+                  context?.journal +
+                  '. ' +
+                  doiCode
+            : '');
 
-    const fullAuthorsList = context?.authors
+    const fullAuthorsList = authorsList
         .map((a) => a.last_name + ', ' + a.first_name)
-        ?.join(', ');
+        .join(', ');
 
     return (
         <div className="publication-view">
             <PublicationViewTitle />
             <div className="view-content">
                 <div className="publication-header">
-                    <img
-                        className="thumbnail"
-                        src={
-                            context?.key_image_thumbnail_link ||
-                            'https://placehold.co/180x110'
-                        }
-                        alt={context.title || 'Publication key figure'}
-                    />
+                    {context?.key_image_thumbnail_link ? (
+                        <img
+                            className="thumbnail"
+                            src={context.key_image_thumbnail_link}
+                            alt={context.title || 'Publication key figure'}
+                        />
+                    ) : (
+                        <div className="thumbnail thumbnail-placeholder">
+                            <i className="icon icon-fw icon-newspaper fas" />
+                        </div>
+                    )}
                     <div className="publication-header-text">
                         <h2 className="title">{context?.display_title}</h2>
                         <div className="details">
