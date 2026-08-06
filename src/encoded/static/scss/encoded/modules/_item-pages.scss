@@ -2898,9 +2898,9 @@ File, Donor, and Publication Overview Styles
                 }
                 .description {
                     position: relative;
-                    padding-right: 550px;
                     padding-top: 0px;
-                    min-height: 300px;
+                    padding-bottom: 40px;
+
                     p {
                         font-size: 0.9375rem;
                         line-height: 1.75rem;
@@ -2917,9 +2917,17 @@ File, Donor, and Publication Overview Styles
                         border: 1px solid #e5e5e5;
                     }
 
+                    // Only reserve space for the image when the content
+                    // actually includes one
+                    @supports selector(:has(*)) {
+                        &:has(img) {
+                            padding-right: 550px;
+                            min-height: 300px;
+                        }
+                    }
+
                     @include media-breakpoint-down(lg) {
                         padding-right: 0px;
-                        padding-top: 300px;
 
                         img {
                             right: auto;
@@ -2928,10 +2936,21 @@ File, Donor, and Publication Overview Styles
                             width: auto;
                             max-width: 100%;
                         }
+
+                        @supports selector(:has(*)) {
+                            &:has(img) {
+                                padding-top: 300px;
+                            }
+                        }
                     }
                     @include media-breakpoint-down(sm) {
                         padding-right: 0px;
-                        padding-top: 250px;
+
+                        @supports selector(:has(*)) {
+                            &:has(img) {
+                                padding-top: 250px;
+                            }
+                        }
                     }
                 }
                 .no-results .header {
