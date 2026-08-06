@@ -4,6 +4,7 @@ import { BROWSE_LINKS } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { Schemas } from '../../util';
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 // Custom result row component for publication search results
 export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
@@ -41,9 +42,18 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
                             {display_title}
                         </a>
                     </h4>
-                    {short_citation && (
-                        <span className="text-gray-70">{short_citation}</span>
-                    )}
+                    <div className="author-info">
+                        {short_citation && (
+                            <span className="text-gray-70">
+                                {short_citation}
+                            </span>
+                        )}
+                        {result?.scope && (
+                            <div className="scope">
+                                <span>{capitalizeSentence(result.scope)}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="detail">
