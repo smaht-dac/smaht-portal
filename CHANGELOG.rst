@@ -7,6 +7,30 @@ smaht-portal
 Change Log
 ----------
 
+2.8.0
+=====
+
+`PR 728: Link fixed TissueSamples to their fresh/frozen source samples <https://github.com/smaht-dac/smaht-portal/pull/728>`_
+
+* Adds a ``linked_fixed_samples`` field on fresh/frozen ``TissueSample``\ s, linking to
+  TPC-submitted fixed ``TissueSample``\ s from the same tissue block (donor + protocol-pair
+  match), restricted to admin-editable (``restricted_fields``).
+* Adds a validator enforcing that ``linked_fixed_samples`` can only be set on a GCC-submitted
+  fresh/frozen sample, targeting valid TPC-submitted fixed samples of the matching protocol and
+  donor.
+* Adds calculated properties ``pathology_reports`` (rev-link) and ``associated_pathology_reports``
+  on ``TissueSample``, so a fresh/frozen sample surfaces the pathology reports of its linked fixed
+  samples.
+* Adds a new admin CLI command, ``associate-fixed-samples``, to populate or remove
+  ``linked_fixed_samples`` across TissueSamples (supports ``--all``, ``--search-query``,
+  ``--identifiers``/``--identifiers-file`` scopes, ``--delete``, and dry-run), including
+  reconciliation of stale links and warnings for orphaned fresh/fixed groups.
+* Adds ``FRESH_TO_FIXED_PROTOCOL_MAP`` and related helpers (``get_fixed_to_fresh_protocols``,
+  ``get_protocol_id_from_external_id`` usage) centralizing the fresh/fixed protocol-code mapping
+  used by both the validator and the linking script.
+* Expands test coverage for ``TissueSample`` item utils and types to cover the new field,
+  calculated properties, and validation logic.
+
 
 2.7.1
 =====

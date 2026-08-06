@@ -538,6 +538,200 @@ def test_tissue_sample(
     return post_item(testapp, item, "TissueSample")
 
 
+# ---- linked_fixed_samples fixtures (plain testapp, no ES needed) ----
+#
+# is_tpc_submission() (types/tissue_sample.py) hardcodes a check for a
+# submission center with identifier "ndri_tpc" -- none of the existing
+# fixtures above use that identifier, so a dedicated one is needed here.
+
+TEST_NDRI_TPC_SUBMISSION_CENTER_CODE = "ndritest"
+TEST_NDRI_TPC_SUBMITTED_ID_CODE = TEST_NDRI_TPC_SUBMISSION_CENTER_CODE.upper()
+
+
+@pytest.fixture
+def test_ndri_tpc_submission_center(testapp: TestApp) -> Dict[str, Any]:
+    """Submission center recognized as TPC by is_tpc_submission()."""
+    item = {
+        "identifier": "ndri_tpc",
+        "title": "NDRI TPC Test",
+        "code": TEST_NDRI_TPC_SUBMISSION_CENTER_CODE,
+    }
+    return post_item_and_return_location(testapp, item, "submission_center")
+
+
+@pytest.fixture
+def test_fixed_lung_tissue(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+    test_tpc_donor: Dict[str, Any],
+    test_ontology_term: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Fixed counterpart of test_tissue (protocol 3Q -> 3R), same donor."""
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_TISSUE_SMHT001-3R",
+        "donor": test_tpc_donor["uuid"],
+        "external_id": "SMHT001-3R",
+        "uberon_id": test_ontology_term["uuid"],
+    }
+    return post_item(testapp, item, "Tissue")
+
+
+@pytest.fixture
+def test_gcc_fresh_tissue_sample(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+    test_tissue: Dict[str, Any],
+) -> Dict[str, Any]:
+    """GCC-submitted (non-TPC) fresh TissueSample -- a valid
+    linked_fixed_samples source."""
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_TISSUE-SAMPLE_SMHT001-3Q-002A1",
+        "sample_sources": [test_tissue["uuid"]],
+        "external_id": "SMHT001-3Q-002A1",
+        "category": "Core",
+        "core_size": "1.5",
+        "preservation_type": "Fresh",
+    }
+    return post_item(testapp, item, "TissueSample")
+
+
+@pytest.fixture
+def test_tpc_fixed_tissue_sample(
+    testapp: TestApp,
+    test_ndri_tpc_submission_center: Dict[str, Any],
+    test_fixed_lung_tissue: Dict[str, Any],
+) -> Dict[str, Any]:
+    """TPC-submitted Fixed TissueSample -- a valid linked_fixed_samples
+    target for test_gcc_fresh_tissue_sample (same donor, 3Q -> 3R pair)."""
+    item = {
+        "submission_centers": [test_ndri_tpc_submission_center["uuid"]],
+        "submitted_id": f"{TEST_NDRI_TPC_SUBMITTED_ID_CODE}_TISSUE-SAMPLE_SMHT001-3R-001A1",
+        "sample_sources": [test_fixed_lung_tissue["uuid"]],
+        "external_id": "SMHT001-3R-001A1",
+        "category": "Core",
+        "core_size": "1.5",
+        "preservation_type": "Fixed",
+    }
+    return post_item(testapp, item, "TissueSample")
+
+
+@pytest.fixture
+def test_fixed_liver_tissue(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+    test_tpc_donor: Dict[str, Any],
+    test_ontology_term: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Fixed tissue with an unrelated protocol (3J, Liver) from the same
+    donor as test_fixed_lung_tissue -- reuses the Lung uberon term purely as
+    a convenient existing fixture; only the protocol code matters for the
+    "wrong protocol" test case this supports."""
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_TISSUE_SMHT001-3J",
+        "donor": test_tpc_donor["uuid"],
+        "external_id": "SMHT001-3J",
+        "uberon_id": test_ontology_term["uuid"],
+    }
+    return post_item(testapp, item, "Tissue")
+
+
+@pytest.fixture
+def test_tpc_fixed_liver_tissue_sample(
+    testapp: TestApp,
+    test_ndri_tpc_submission_center: Dict[str, Any],
+    test_fixed_liver_tissue: Dict[str, Any],
+) -> Dict[str, Any]:
+    """TPC-submitted, Fixed, correct donor -- but the wrong protocol (3J, not
+    3R) relative to test_gcc_fresh_tissue_sample's 3Q. Invalid
+    linked_fixed_samples target."""
+    item = {
+        "submission_centers": [test_ndri_tpc_submission_center["uuid"]],
+        "submitted_id": f"{TEST_NDRI_TPC_SUBMITTED_ID_CODE}_TISSUE-SAMPLE_SMHT001-3J-001A1",
+        "sample_sources": [test_fixed_liver_tissue["uuid"]],
+        "external_id": "SMHT001-3J-001A1",
+        "category": "Core",
+        "core_size": "1.5",
+        "preservation_type": "Fixed",
+    }
+    return post_item(testapp, item, "TissueSample")
+
+
+@pytest.fixture
+def test_second_tpc_donor(
+    testapp: TestApp,
+    test_ndri_tpc_submission_center: Dict[str, Any],
+) -> Dict[str, Any]:
+    """A different donor than test_tpc_donor, for isolating a "wrong donor"
+    linked_fixed_samples test from a protocol mismatch."""
+    item = {
+        "submission_centers": [test_ndri_tpc_submission_center["uuid"]],
+        "submitted_id": f"{TEST_NDRI_TPC_SUBMITTED_ID_CODE}_DONOR_SMHT002",
+        "age": 42,
+        "sex": "Female",
+        "tpc_submitted": "True",
+        "external_id": "SMHT002",
+    }
+    return post_item(testapp, item, "Donor")
+
+
+@pytest.fixture
+def test_fixed_lung_tissue_other_donor(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+    test_second_tpc_donor: Dict[str, Any],
+    test_ontology_term: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Same protocol (3R) as test_fixed_lung_tissue, but a different donor."""
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_TISSUE_SMHT002-3R",
+        "donor": test_second_tpc_donor["uuid"],
+        "external_id": "SMHT002-3R",
+        "uberon_id": test_ontology_term["uuid"],
+    }
+    return post_item(testapp, item, "Tissue")
+
+
+@pytest.fixture
+def test_tpc_fixed_tissue_sample_other_donor(
+    testapp: TestApp,
+    test_ndri_tpc_submission_center: Dict[str, Any],
+    test_fixed_lung_tissue_other_donor: Dict[str, Any],
+) -> Dict[str, Any]:
+    """TPC-submitted, Fixed, correct protocol (3R) -- but the wrong donor
+    relative to test_gcc_fresh_tissue_sample. Invalid linked_fixed_samples
+    target."""
+    item = {
+        "submission_centers": [test_ndri_tpc_submission_center["uuid"]],
+        "submitted_id": f"{TEST_NDRI_TPC_SUBMITTED_ID_CODE}_TISSUE-SAMPLE_SMHT002-3R-001A1",
+        "sample_sources": [test_fixed_lung_tissue_other_donor["uuid"]],
+        "external_id": "SMHT002-3R-001A1",
+        "category": "Core",
+        "core_size": "1.5",
+        "preservation_type": "Fixed",
+    }
+    return post_item(testapp, item, "TissueSample")
+
+
+@pytest.fixture
+def test_non_brain_pathology_report(
+    testapp: TestApp,
+    test_ndri_tpc_submission_center: Dict[str, Any],
+    test_tpc_fixed_tissue_sample: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_ndri_tpc_submission_center["uuid"]],
+        "submitted_id": f"{TEST_NDRI_TPC_SUBMITTED_ID_CODE}_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-3R-001A1",
+        "tissue_name": "Lung",
+        "outcome": "Acceptable",
+        "tissue_samples": [test_tpc_fixed_tissue_sample["uuid"]],
+    }
+    return post_item(testapp, item, "non_brain_pathology_report")
+
+
 @pytest.fixture
 def test_ontology(
     testapp,
