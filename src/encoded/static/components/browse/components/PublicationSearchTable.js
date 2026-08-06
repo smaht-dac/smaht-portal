@@ -77,26 +77,13 @@ export function createBrowsePublicationColumnExtensionMap() {
 
 // Search Table
 export const BrowsePublicationSearchTable = (props) => {
-    const {
-        context,
-        currentAction,
-        schemas,
-        selectedItems,
-        onSelectItem,
-        onResetSelectedItems,
-    } = props;
+    const { context, currentAction, schemas } = props;
 
     const facets = context?.facets
         ? transformedFacets(context, currentAction, schemas)
         : [];
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
-
-    const selectedFileProps = {
-        selectedItems, // From SelectedItemsController
-        onSelectItem, // From SelectedItemsController
-        onResetSelectedItems, // From SelectedItemsController
-    };
 
     // Pass modified context to CommonSearchView to set default filters
     const passProps = {
@@ -107,11 +94,8 @@ export const BrowsePublicationSearchTable = (props) => {
         },
     };
 
-    // Remove above table component
-    const aboveTableComponent = null;
-
     const { columnExtensionMap, columns, hideFacets } =
-        createBrowsePublicationColumnExtensionMap(selectedFileProps);
+        createBrowsePublicationColumnExtensionMap();
 
     return (
         <div className="publication-search-table-container">
@@ -123,7 +107,6 @@ export const BrowsePublicationSearchTable = (props) => {
                     facetColumnClassName,
                     facets,
                     aboveFacetListComponent: null,
-                    aboveTableComponent,
                     columns,
                     hideFacets,
                 }}
