@@ -4571,6 +4571,7 @@ FAQ page styles
     display: flex;
     flex-direction: column;
     gap: 24px;
+    margin-top: 30px;
 
     .publication-collections-breadcrumb {
         display: flex;
@@ -4596,7 +4597,7 @@ FAQ page styles
         .publication-collections-heading {
             margin: 0;
             font-size: 1.75rem;
-            font-weight: 400;
+            font-weight: 300;
             color: $gray-70;
 
             b {
@@ -4615,6 +4616,10 @@ FAQ page styles
             white-space: nowrap;
             transition: background-color 150ms ease;
 
+            i {
+                margin-right: 8px;
+            }
+
             &:hover {
                 background-color: $primary-dark;
                 color: $pure-white;
@@ -4625,6 +4630,7 @@ FAQ page styles
 
     .publication-collections-grid {
         display: flex;
+        justify-content: center;
         flex-wrap: wrap;
         gap: 24px;
 
@@ -4633,6 +4639,7 @@ FAQ page styles
         }
 
         @include media-breakpoint-down(lg) {
+            justify-content: start;
             .publication-collection-card {
                 flex-basis: calc((100% - 24px) / 2);
             }
