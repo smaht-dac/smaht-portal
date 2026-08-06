@@ -354,5 +354,6 @@ function CustomStaticLinks({ pathName, href, session }) {
                 </div>
             );
         default:
+            return null;
     }
 }
