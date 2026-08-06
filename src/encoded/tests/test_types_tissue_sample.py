@@ -446,3 +446,117 @@ def test_tissue_sample_without_tpc_sample(es_testapp: TestApp, workbook: None) -
     assert_validation_error_as_expected(
         res, location="body", name_start="TissueSample: No TPC Tissue Sample"
     )
+
+
+def test_validate_linked_fixed_samples_valid_pairing(
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+    test_tpc_fixed_tissue_sample: Dict[str, Any],
+) -> None:
+    """A GCC fresh/frozen sample can link to its correct TPC Fixed counterpart
+    (same donor, valid 3Q -> 3R protocol pair). Plain testapp throughout (no
+    es_testapp/workbook): run_sample_metadata_validation is the only
+    ES-dependent validator, and it no-ops when ELASTIC_SEARCH isn't in the
+    registry, which is the case for plain testapp -- every other check these
+    tests exercise is pure DB/Python logic."""
+    patch_item(
+        testapp,
+        {"linked_fixed_samples": [test_tpc_fixed_tissue_sample["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
+        status=200,
+    )
+
+
+def test_validate_linked_fixed_samples_wrong_protocol(
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+    test_tpc_fixed_liver_tissue_sample: Dict[str, Any],
+) -> None:
+    """linked_fixed_samples target must have a protocol that's a valid fixed
+    counterpart of the source's protocol (3Q -> 3R here) -- a Fixed,
+    TPC-submitted, same-donor target with an unrelated protocol (3J) is
+    still rejected."""
+    patch_item(
+        testapp,
+        {"linked_fixed_samples": [test_tpc_fixed_liver_tissue_sample["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
+        status=422,
+    )
+
+
+def test_validate_linked_fixed_samples_wrong_donor(
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+    test_tpc_fixed_tissue_sample_other_donor: Dict[str, Any],
+) -> None:
+    """linked_fixed_samples target must belong to the same donor as the
+    source -- a Fixed, TPC-submitted, correct-protocol target from a
+    different donor is still rejected."""
+    patch_item(
+        testapp,
+        {"linked_fixed_samples": [test_tpc_fixed_tissue_sample_other_donor["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
+        status=422,
+    )
+
+
+def test_validate_linked_fixed_samples_target_must_be_tpc(
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+) -> None:
+    """linked_fixed_samples cannot point at a GCC-submitted sample -- the
+    target must be TPC-submitted."""
+    patch_item(
+        testapp,
+        {"linked_fixed_samples": [test_gcc_fresh_tissue_sample["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
+        status=422,
+    )
+
+
+def test_associated_pathology_reports_calculated_property(
+    testapp: TestApp,
+    test_gcc_fresh_tissue_sample: Dict[str, Any],
+    test_tpc_fixed_tissue_sample: Dict[str, Any],
+    test_non_brain_pathology_report: Dict[str, Any],
+) -> None:
+    """Once linked_fixed_samples is set, associated_pathology_reports on the
+    fresh sample surfaces the fixed sample's PathologyReport(s) paired with
+    the fixed sample's external_id, and pathology_reports on the fixed sample
+    itself (a plain reverse of the existing PathologyReport.tissue_samples
+    field) resolves independently. Plain testapp throughout -- see
+    test_validate_linked_fixed_samples_valid_pairing for why that's safe, and
+    it also sidesteps any ES-indexing timing concern for the rev-link reads
+    below, since plain testapp always computes calculated properties fresh
+    from Postgres.
+    """
+    patch_item(
+        testapp,
+        {"linked_fixed_samples": [test_tpc_fixed_tissue_sample["uuid"]]},
+        test_gcc_fresh_tissue_sample["uuid"],
+        status=200,
+    )
+
+    # pathology_reports is a rev_link_atids property, so it holds resource-path
+    # atids (e.g. /non-brain-pathology-reports/<uuid>/), not bare uuids -- but
+    # only under frame="object". Without it, the default/page view embeds
+    # every linkTo-typed field (including this one, since its own calculated
+    # property schema declares linkTo) into full nested objects instead.
+    target_view = get_item(
+        testapp,
+        test_tpc_fixed_tissue_sample["uuid"],
+        collection="TissueSample",
+        frame="object",
+    )
+    assert test_non_brain_pathology_report["@id"] in (target_view.get("pathology_reports") or [])
+
+    source_view = get_item(
+        testapp,
+        test_gcc_fresh_tissue_sample["uuid"],
+        collection="TissueSample",
+        frame="object",
+    )
+    associated = source_view.get("associated_pathology_reports") or []
+    assert len(associated) == 1
+    assert associated[0]["fixed_sample_external_id"] == test_tpc_fixed_tissue_sample["external_id"]
+    assert test_non_brain_pathology_report["@id"] in associated[0]["pathology_reports"]
