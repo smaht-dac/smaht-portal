@@ -66,7 +66,7 @@ export const CLTCard = ({ currentTier }) => {
             items: [
                 {
                     iconSrc: '/static/img/anatomy-icons/Brain.svg',
-                    title: 'Brain: unrelated donors',
+                    title: 'Brain',
                     tier_0: true,
                     tier_1: false,
                     // TODO: Discuss implications adjusting overall popover style override for

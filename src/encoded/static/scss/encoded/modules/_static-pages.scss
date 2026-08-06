@@ -1646,10 +1646,11 @@ body[data-path='/'] > #application > #layout {
                     }
                     &.announcements {
                         display: flex;
+                        max-height: max-content;
 
                         .section-body {
                             &-container {
-                                flex: 1;
+                                flex: auto;
                                 display: flex;
                                 overflow-y: auto;
                                 overflow-x: hidden;
@@ -1657,6 +1658,7 @@ body[data-path='/'] > #application > #layout {
                                 border-radius: 12px;
                                 background-color: #eef6fe;
                                 border: 1px solid #b4c1f7;
+                                max-height: 250px;
                             }
 
                             display: flex;
