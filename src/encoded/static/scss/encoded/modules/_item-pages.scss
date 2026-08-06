@@ -2672,6 +2672,19 @@ File, Donor, and Publication Overview Styles
                 height: auto;
                 border-radius: 5px;
                 border: 1px solid #cfebff;
+
+                &.thumbnail-placeholder {
+                    height: 110px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: $mercury;
+
+                    i {
+                        font-size: 1.75rem;
+                        color: #9a9a9a;
+                    }
+                }
             }
 
             &-text {
