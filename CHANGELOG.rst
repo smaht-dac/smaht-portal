@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+
+2.7.1
+=====
+
+`PR 740: Fix: Donor x Tissue matrix cells don't dim on click <https://github.com/smaht-dac/smaht-portal/pull/740>`_
+
+* Fixes the Data Matrix's Donor x Tissue tab so clicking a cell dims the other cells, matching the
+  existing Donor x Assay / Tissue x Assay behavior.
+* Removes the ``disableBlockOpen`` flag that was preventing ``openBlock`` state from ever being set
+  in Donor x Tissue mode, and the now-dead early-return branch in ``StackedBlockVisual``'s
+  ``handleBlockClick``.
+
+
 2.7.0
 =====
 
@@ -19,17 +32,6 @@ Change Log
   ``restricted_fields`` permission, and the client-side admin gate is cosmetic. The panel is
   client-rendered only (never in server-rendered output).
 
-
-2.6.7
-=====
-
-`PR 740: Fix: Donor x Tissue matrix cells don't dim on click <https://github.com/smaht-dac/smaht-portal/pull/740>`_
-
-* Fixes the Data Matrix's Donor x Tissue tab so clicking a cell dims the other cells, matching the
-  existing Donor x Assay / Tissue x Assay behavior.
-* Removes the ``disableBlockOpen`` flag that was preventing ``openBlock`` state from ever being set
-  in Donor x Tissue mode, and the now-dead early-return branch in ``StackedBlockVisual``'s
-  ``handleBlockClick``.
 
 2.6.6
 =====
