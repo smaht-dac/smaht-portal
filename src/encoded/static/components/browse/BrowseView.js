@@ -457,6 +457,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
         case 'DonorSearchResults':
             BrowseType = 'Donor';
             break;
+        case 'PublicationSearchResults':
+            BrowseType = 'Publication';
+            break;
         default:
             break;
     }
@@ -492,7 +495,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                     </div>
                 </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
-                    SMaHT Production Data
+                    {BrowseType === 'Publication'
+                        ? 'Browse by Publication'
+                        : 'SMaHT Production Data'}
                 </OnlyTitle>
             </div>
         </PageTitleContainer>
