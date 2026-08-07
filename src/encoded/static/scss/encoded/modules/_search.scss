@@ -1187,6 +1187,64 @@ body[data-at-type^='Publication-collections'] {
     .publication-collection-layout {
         padding: 20px;
 
+        .publication-collections-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            color: $slate-60;
+            margin-bottom: 24px;
+            margin-top: 30px;
+
+            .crumb-divider {
+                color: $gray-30;
+            }
+        }
+
+        .publication-collections-heading-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid $gray-20;
+
+            .publication-collections-heading {
+                margin: 0;
+                font-size: 1.75rem;
+                font-weight: 300;
+                color: $gray-70;
+
+                b {
+                    font-weight: 600;
+                }
+            }
+
+            .publication-collections-search-btn {
+                flex-shrink: 0;
+                background-color: $primary;
+                color: $pure-white;
+                font-weight: 600;
+                font-size: 0.875rem;
+                padding: 3px 22px;
+                border-radius: 6px;
+                white-space: nowrap;
+                transition: background-color 150ms ease;
+                line-height: 1.65rem;
+
+                i {
+                    margin-right: 8px;
+                }
+
+                &:hover {
+                    background-color: $primary-dark;
+                    color: $pure-white;
+                    text-decoration: none;
+                }
+            }
+        }
+
         .introduction {
             display: flex;
             padding: 0px;
@@ -1519,8 +1577,10 @@ body[data-at-type^='Publication-collections'] {
                         text-align: right;
                     }
                 }
+            }
 
-                &:last-of-type {
+            &:last-of-type {
+                .publication-search-result-row {
                     border-bottom: none;
                 }
             }
