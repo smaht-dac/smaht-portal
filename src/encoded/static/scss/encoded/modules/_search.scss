@@ -1379,13 +1379,44 @@ body[data-at-type^='Publication-collections'] {
                                 padding: 0px;
                                 .expandable-list {
                                     padding-top: 5px;
+
+                                    div:has(.icon-minus) {
+                                        .view-more-button {
+                                            display: none;
+                                        }
+                                    }
+
+                                    .collapsing {
+                                        display: none;
+                                        transition-duration: 0.01s;
+                                    }
                                 }
-                                .expandable-list .collapse,
-                                .expandable-list .collapsing {
+                                .expandable-list .collapse {
                                     position: absolute;
                                     width: 200px;
                                     background-color: $pure-white;
-                                    border: 1px solid $mercury;
+                                    border: none;
+                                    overflow-y: scroll;
+                                    overflow-x: clip;
+
+                                    div.text-small {
+                                        position: sticky;
+                                        top: 0px;
+                                        z-index: 2;
+                                        background: white;
+                                    }
+                                }
+                                & > .expandable-list {
+                                    .collapse {
+                                        border: 1px solid $mercury;
+                                        overflow: auto;
+
+                                        .expandable-list .collapse {
+                                            border: none;
+                                            overflow: clip;
+                                            width: 100%;
+                                        }
+                                    }
                                 }
                             }
 
@@ -1398,7 +1429,6 @@ body[data-at-type^='Publication-collections'] {
             }
             .search-results-container {
                 border: 1px solid $mercury;
-                border-bottom: none;
 
                 .fin {
                     display: none;
@@ -1424,6 +1454,7 @@ body[data-at-type^='Publication-collections'] {
                         h4 {
                             font-size: 1.125rem;
                             margin-top: 0px;
+                            padding-right: 10px;
                         }
                         .author-info {
                             display: flex;
@@ -1481,11 +1512,16 @@ body[data-at-type^='Publication-collections'] {
                     flex-direction: column;
                     align-items: end;
                     font-size: 0.75rem;
+                    line-height: 1.65rem;
 
                     a {
                         width: max-content;
                         text-align: right;
                     }
+                }
+
+                &:last-of-type {
+                    border-bottom: none;
                 }
             }
         }
