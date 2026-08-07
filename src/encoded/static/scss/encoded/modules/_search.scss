@@ -1502,6 +1502,8 @@ body[data-at-type^='Publication-collections'] {
                 height: 150px;
                 padding: 15px 30px;
                 border-bottom: 1px solid $mercury;
+                border-left: 1px solid $mercury;
+                border-right: 1px solid $mercury;
                 box-shadow: none;
 
                 .thumbnail-title {
