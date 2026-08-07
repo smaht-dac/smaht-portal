@@ -1331,6 +1331,12 @@ body[data-at-type^='Publication-collections'] {
             }
         }
 
+        @include media-breakpoint-up(xl) {
+            .data-summary {
+                justify-content: start;
+            }
+        }
+
         @include media-breakpoint-down(lg) {
             .introduction {
                 flex-direction: column-reverse;
