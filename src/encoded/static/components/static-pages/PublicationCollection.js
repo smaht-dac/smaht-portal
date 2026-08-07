@@ -257,7 +257,7 @@ const PublicationCollectionLayout = ({ ...props }) => {
             <div className="publication-tables-container">
                 <PublicationTable
                     {...props}
-                    additionalParams="&scope=Benchmarking"
+                    additionalParams="&scope=Network"
                     header_title="Introducing the SMaHT Network & Benchmark Studies"
                 />
                 <PublicationTable
