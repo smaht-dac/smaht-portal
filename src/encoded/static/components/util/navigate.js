@@ -75,10 +75,16 @@ navigate.getBrowseBaseParams.mappings = {
         }
     },
     'tissue' : {
+        // 'donor.study'/'donor.tags', not bare 'study'/'tags' -- Tissue
+        // links a single `donor` (types/tissue.py's embedded_list), unlike
+        // Donor which just *is* the donor, so its real field paths are
+        // prefixed. Must match BROWSE_LINKS.tissue (BrowseView.js) and
+        // ChartDataController.transformFilterDonorToFile's 'tissue'
+        // mapping, which both rename from these exact keys.
         'parameters': {
             'type': ['Tissue'],
-            'study': ['Production'],
-            'tags': ['has_released_files']
+            'donor.study': ['Production'],
+            'donor.tags': ['has_released_files']
         }
     }
 };
