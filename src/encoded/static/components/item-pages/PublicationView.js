@@ -318,20 +318,20 @@ const PublicationView = React.memo(function PublicationView(props) {
         context?.citation ??
         (lastAuthor
             ? shortenedAuthorsList
-                .map((a) => a.last_name + ', ' + a.first_name)
-                .join(', ') +
-                  ' ... ' +
-                  lastAuthor.last_name +
-                  ', ' +
-                  lastAuthor.first_name +
-                  ' (' +
-                  pubYear +
-                  '). ' +
-                  context?.title +
-                  '. ' +
-                  context?.journal +
-                  '. ' +
-                  doiCode
+                  .map((a) => a.last_name + ', ' + a.first_name)
+                  .join(', ') +
+              ' ... ' +
+              lastAuthor.last_name +
+              ', ' +
+              lastAuthor.first_name +
+              ' (' +
+              pubYear +
+              '). ' +
+              context?.title +
+              '. ' +
+              context?.journal +
+              '. ' +
+              doiCode
             : '');
 
     const fullAuthorsList = authorsList
@@ -366,6 +366,7 @@ const PublicationView = React.memo(function PublicationView(props) {
                             {context?.scope && (
                                 <div className="scope">
                                     <span>
+                                        {context?.working_group_name ?? ''}{' '}
                                         {capitalizeSentence(context.scope)}
                                     </span>
                                 </div>

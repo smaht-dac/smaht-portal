@@ -50,7 +50,10 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
                         )}
                         {result?.scope && (
                             <div className="scope">
-                                <span>{capitalizeSentence(result.scope)}</span>
+                                <span>
+                                    {result?.working_group_name ?? ''}{' '}
+                                    {capitalizeSentence(result.scope)}
+                                </span>
                             </div>
                         )}
                     </div>
