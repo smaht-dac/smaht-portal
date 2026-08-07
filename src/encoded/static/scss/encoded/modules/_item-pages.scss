@@ -1034,7 +1034,8 @@ body[data-pathname^="/users/"] {
 			.card {
 				box-shadow: none;
 				&.access-keys-container,
-				&.organizations {
+				&.organizations,
+				&.user-admin-controls {
 					.card-header {
 						height: 95px;
 						display: flex;

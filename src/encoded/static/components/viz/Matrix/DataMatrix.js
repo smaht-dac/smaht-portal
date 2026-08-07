@@ -2131,8 +2131,6 @@ export default class DataMatrix extends React.PureComponent {
             showCoverageSummaries: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             // Donor x Tissue should not expose expand controls.
             disableRowExpand: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
-            // Donor x Tissue blocks are informational; disable click-to-open highlighting/popover selection.
-            disableBlockOpen: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             isGridRefreshing: isCountToggleRefreshing,
             // Avoid showing the fallback N/A germ-layer band while a donor/tissue refresh is in flight.
             hideFallbackColumnGroupHeader: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE && isRefreshing,
