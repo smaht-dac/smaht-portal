@@ -412,15 +412,35 @@ const PublicationView = React.memo(function PublicationView(props) {
                                     <i className="icon icon-external-link-alt fas"></i>
                                 </a>
                             )}
-                            {context?.repository_urls?.length > 0 && (
+                            {context?.code_repository_urls?.length > 0 ? (
                                 <a
                                     className="btn btn-primary"
-                                    href={context.repository_urls[0]}
+                                    href={context.code_repository_urls[0]}
                                     target="_blank"
                                     rel="noopener noreferrer">
                                     Code Repository
                                     <i className="icon icon-external-link-alt fas"></i>
                                 </a>
+                            ) : (
+                                <OverlayTrigger
+                                    trigger={['hover', 'focus']}
+                                    placement="top"
+                                    overlay={
+                                        <Popover id="popover-code-repository-disabled">
+                                            <Popover.Body>
+                                                There is no linked repository to
+                                                this publication.
+                                            </Popover.Body>
+                                        </Popover>
+                                    }>
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        disabled>
+                                        Code Repository
+                                        <i className="icon icon-external-link-alt fas"></i>
+                                    </button>
+                                </OverlayTrigger>
                             )}
                         </div>
                     </div>
