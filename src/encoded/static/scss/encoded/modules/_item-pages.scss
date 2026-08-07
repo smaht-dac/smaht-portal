@@ -2767,7 +2767,8 @@ File, Donor, and Publication Overview Styles
                         font-size: 0.75rem;
                     }
 
-                    a {
+                    a,
+                    button {
                         display: flex;
                         justify-content: center;
                         align-items: baseline;
@@ -2781,6 +2782,14 @@ File, Donor, and Publication Overview Styles
                         i {
                             margin-left: 12px;
                             font-size: 0.875rem;
+                        }
+
+                        &:disabled {
+                            background-color: #fcfdff;
+                            border-color: #dee2e6;
+                            color: #343741;
+                            pointer-events: auto;
+                            cursor: default;
                         }
                     }
                 }

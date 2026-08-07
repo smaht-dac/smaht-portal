@@ -168,6 +168,7 @@ const PublicationTable = ({
     schemas,
     session,
     href,
+    additionalParams,
     showFacets = false,
     ...props
 }) => {
@@ -179,7 +180,7 @@ const PublicationTable = ({
             <EmbeddedItemSearchTable
                 key={session}
                 embeddedTableHeader={null}
-                searchHref={PUBLICATION_LINKS[type]}
+                searchHref={PUBLICATION_LINKS[type] + additionalParams}
                 schemas={schemas}
                 session={session}
                 selectedItems={props.selectedItems}
@@ -187,7 +188,7 @@ const PublicationTable = ({
                 onResetSelectedItems={props.onResetSelectedItems}
                 hideHeaderRow
                 hideFacetHeader
-                hideFacets={['publication_groups']}
+                hideFacets={['publication_groups', 'scope']}
                 rowHeight={150}
                 maxResultsBodyHeight={735}
                 defaultClosedFacets
@@ -256,14 +257,17 @@ const PublicationCollectionLayout = ({ ...props }) => {
             <div className="publication-tables-container">
                 <PublicationTable
                     {...props}
+                    additionalParams="&scope=Benchmarking"
                     header_title="Introducing the SMaHT Network & Benchmark Studies"
                 />
                 <PublicationTable
                     {...props}
+                    additionalParams="&scope=Working+group"
                     header_title="Variant Detection from SMaHT Working Groups"
                 />
                 <PublicationTable
                     {...props}
+                    additionalParams="&scope=Individual+Lab"
                     header_title="Individual Contributor Papers"
                     showFacets={true}
                 />
