@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+2.8.1
+=====
+
+`PR 742: Rename VISTA-Seq to VISTA-META-seq in data matrix <https://github.com/smaht-dac/smaht-portal/pull/742>`_
+
+* Renames the VISTA assay label from ``VISTA-Seq`` to ``VISTA-META-seq`` in the Donor x Tissue
+  data matrix and its Cypress coverage.
+* Raises ``MAX_BUCKET_COUNT`` (30 -> 200) in ``data_matrix_aggregations``, fixing a silent
+  undercount where donors with low file counts in a tissue could be dropped from the Donor x
+  Tissue matrix once that tissue's donor cardinality exceeded the old limit.
+
 2.8.0
 =====
 
