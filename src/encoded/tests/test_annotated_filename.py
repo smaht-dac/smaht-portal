@@ -391,6 +391,9 @@ BED_FILE_EXTENSION = {
     "standard_file_extension": "bed",
     "valid_item_types": ["SupplementaryFile"]
 }
+SOME_SEQUENCING_SUPPLEMENT_FILE = {
+    "data_category": ["Sequencing Supplement"],
+}
 
 @pytest.mark.parametrize(
     "cell_culture_mixtures,cell_lines,tissues,expected,errors",
@@ -1016,6 +1019,19 @@ def test_get_sequencing_center_code(
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}",
             False,
         ), # VCF file with DSA reference
+        (
+            SOME_SEQUENCING_SUPPLEMENT_FILE,
+            [],
+            [],
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            "metadata",
+            False,
+        ), # Sequencing Supplement file
     ],
 )
 def test_get_analysis(
