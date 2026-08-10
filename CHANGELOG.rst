@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.8.2
+=====
+
+`PR 734: WF Add annotated file names for scRNA-Seq data' <https://github.com/smaht-dac/smaht-portal/pull/734`_
+
+* Update annotated file names script for scRNA-Seq data
+
+
 2.8.1
 =====
 
@@ -76,6 +84,7 @@ Change Log
 * Remove node_modules symlink
 * Change gitignore to include symlink
 
+
 2.6.5
 =====
 
@@ -89,12 +98,6 @@ Change Log
   ``HTTPForbidden`` instead of raising ``IndexError``.
 * Restricted domain/email semantics and self-registration privilege stripping are unchanged.
 
-2.6.5
-=====
-
-`PR 734: WF Add annotated file names for scRNA-Seq data' <https://github.com/smaht-dac/smaht-portal/pull/734`_
-
-* Update annotated file names script for scRNA-Seq data
 
 2.6.4
 =====
@@ -103,6 +106,7 @@ Change Log
 
 * Handles the case where donor age is 89 and represents it as "89+" in the bulk donor manifest
 * Ensures no newline characters are present in the bulk donor manifest output
+
 
 2.6.3
 =====
@@ -142,6 +146,7 @@ Change Log
   which had been transitively supplying ``pandas``; ``pandas`` is now declared
   directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
   ``create-bulk-donor-manifest`` command keeps working.
+
 
 2.5.1
 =====
