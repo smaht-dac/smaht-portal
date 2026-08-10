@@ -3013,6 +3013,35 @@ File, Donor, and Publication Overview Styles
                     padding: 0px;
                 }
             }
+
+            @include media-breakpoint-down(lg) {
+                margin-top: 0px;
+
+                .embedded-search-container {
+                    div {
+                        margin-left: 0px !important;
+                    }
+                }
+            }
+        }
+
+        @include media-breakpoint-down(lg) {
+            .publication-header {
+                flex-direction: column;
+
+                .thumbnail {
+                    width: 100%;
+                }
+            }
+            .citation-container {
+                .citation-body {
+                    flex-direction: column;
+                    gap: 20px;
+                }
+            }
+            .details-container {
+                flex-direction: column;
+            }
         }
     }
 }
