@@ -61,7 +61,7 @@ export const PublicationCollectionsNavigation = (props) => {
                 </h2>
                 <a
                     className="publication-collections-search-btn"
-                    href="/browse/?type=Publication">
+                    href="/browse/?type=Publication&status=open">
                     <i className="icon icon-book-open fas"></i>
                     Browse all Publications
                 </a>

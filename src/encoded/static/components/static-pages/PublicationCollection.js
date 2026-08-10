@@ -5,9 +5,10 @@ import { EmbeddedItemSearchTable } from '../item-pages/components/EmbeddedItemSe
 
 // Links for PublicationCollection page tables
 const PUBLICATION_LINKS = {
-    benchmarking: '/search/?type=Publication&publication_groups=Benchmarking',
-    p25: '/search/?type=Publication&publication_groups=P25',
-    p150: '/search/?type=Publication&publication_groups=P150',
+    benchmarking:
+        '/search/?type=Publication&status=open&publication_groups=Benchmarking',
+    p25: '/search/?type=Publication&status=open&publication_groups=P25',
+    p150: '/search/?type=Publication&status=open&publication_groups=P150',
 };
 
 // Intro content per collection `type`, keyed the same way as PUBLICATION_LINKS.
