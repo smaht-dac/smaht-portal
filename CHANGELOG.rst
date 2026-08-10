@@ -10,7 +10,7 @@ Change Log
 2.8.2
 =====
 
-`PR 734: WF Add annotated file names for scRNA-Seq data' <https://github.com/smaht-dac/smaht-portal/pull/734`_
+`PR 734: WF Add annotated file names for scRNA-Seq data <https://github.com/smaht-dac/smaht-portal/pull/734>`_
 
 * Update annotated file names script for scRNA-Seq data
 
@@ -25,6 +25,7 @@ Change Log
 * Raises ``MAX_BUCKET_COUNT`` (30 -> 200) in ``data_matrix_aggregations``, fixing a silent
   undercount where donors with low file counts in a tissue could be dropped from the Donor x
   Tissue matrix once that tissue's donor cardinality exceeded the old limit.
+
 
 2.8.0
 =====
