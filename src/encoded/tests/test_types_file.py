@@ -1134,6 +1134,22 @@ def test_sample_summary(es_testapp: TestApp, workbook: None) -> None:
     assert_all_summary_fields_present_in_items(
         files_with_summary_search, all_fields, "sample_summary"
     )
+    assert_known_file_sample_summary_cell_lines(
+        es_testapp, "TEST_UNALIGNED-READS_HELA-FASTQ-R1", ["HELA"]
+    )
+    assert_known_file_sample_summary_cell_lines(
+        es_testapp, "TEST_UNALIGNED-READS_HELA-HEK293-BAM", ["HELA", "HEK293"]
+    )
+
+
+def assert_known_file_sample_summary_cell_lines(
+    es_testapp: TestApp, submitted_id: str, expected_cell_lines: List[str]
+) -> None:
+    """Ensure known workbook cell culture files summarize resolved cell lines."""
+    files = get_search(es_testapp, f"?type=File&submitted_id={submitted_id}")
+    assert len(files) == 1
+    sample_summary = file_utils.get_sample_summary(files[0])
+    assert set(sample_summary.get("cell_lines", [])) == set(expected_cell_lines)
 
 
 def assert_sample_summary_matches_expected(
@@ -1203,6 +1219,10 @@ def assert_sample_summary_matches_expected(
             sample_utils.get_studies, request_handler=request_handler
         ),
     )
+    expected_cell_lines = get_unique_values(
+        request_handler.get_items(file_utils.get_cell_lines(file, request_handler)),
+        item_utils.get_code,
+    )
     assert_values_match_if_present(
         sample_summary, "analytes", expected_analytes
     )
@@ -1229,6 +1249,9 @@ def assert_sample_summary_matches_expected(
     )
     assert_values_match_if_present(
         sample_summary, "studies", expected_studies
+    )
+    assert_values_match_if_present(
+        sample_summary, "cell_lines", expected_cell_lines
     )
 
 
