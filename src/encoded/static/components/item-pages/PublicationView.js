@@ -132,7 +132,7 @@ const PublicationStatViewer = ({ doi, session }) => {
 
     const statsProps = { session, loading, error, data };
     return (
-        <div className="browse-summary publication-stat-viewer d-flex flex-row mt-2 mb-3 flex-wrap">
+        <div className="browse-summary publication-stat-viewer mt-2 mb-3">
             <BrowseSummaryStatController
                 type="File"
                 subtitle="Files Analyzed"
@@ -147,6 +147,7 @@ const PublicationStatViewer = ({ doi, session }) => {
             <BrowseSummaryStatController type="Assay" {...statsProps} />
             <BrowseSummaryStatController type="File Size" {...statsProps} />
             <a className="" href={searchUrl}>
+                <span>Browse Data</span>
                 <RightArrowIcon fill={'#70A3E2'} />
             </a>
         </div>
@@ -326,7 +327,10 @@ const PublicationView = React.memo(function PublicationView(props) {
                   .map((a) => a.last_name + ', ' + a.first_name)
                   .join(', ') +
               (isAuthorsListTruncated
-                  ? ' ... ' + lastAuthor.last_name + ', ' + lastAuthor.first_name
+                  ? ' ... ' +
+                    lastAuthor.last_name +
+                    ', ' +
+                    lastAuthor.first_name
                   : '') +
               ' (' +
               pubYear +

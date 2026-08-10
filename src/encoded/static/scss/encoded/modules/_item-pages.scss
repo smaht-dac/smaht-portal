@@ -2883,6 +2883,9 @@ File, Donor, and Publication Overview Styles
             }
         }
         .publication-stat-viewer {
+            display: flex;
+            flex-wrap: wrap;
+
             a {
                 margin: auto 0px auto auto;
                 display: flex;
@@ -2898,6 +2901,40 @@ File, Donor, and Publication Overview Styles
 
                     svg {
                         fill: white;
+                    }
+                }
+
+                span {
+                    display: none;
+                }
+            }
+
+            @include media-breakpoint-down(lg) {
+                .browse-summary-stat {
+                    padding-left: 30px !important;
+                    padding-right: 30px !important;
+                }
+            }
+            @include media-breakpoint-down(md) {
+                flex-direction: column;
+                .browse-summary-stat {
+                    padding-left: 0px !important;
+                    border-right: none;
+                }
+
+                a {
+                    border-radius: 10px;
+                    margin: auto;
+                    width: 100%;
+                    padding: 15px;
+                    span {
+                        display: flex;
+                        margin-right: 10px;
+                    }
+                    &:hover {
+                        span {
+                            color: white;
+                        }
                     }
                 }
             }
