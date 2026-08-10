@@ -13,10 +13,12 @@ export const BigDropdownBigLink = (props) => {
         disabled,
         protectedHref,
         href,
+        session,
+        ...passProps // Contains: `rel`, `onClick`, etc.
     } = props;
 
     // Allow users with protected access to see protected links
-    const { userDownloadAccess } = useUserDownloadAccess(props.session);
+    const { userDownloadAccess } = useUserDownloadAccess(session);
 
     // Determine proper href to send users to
     const hrefToUse = disabled
@@ -56,7 +58,8 @@ export const BigDropdownBigLink = (props) => {
                 'big-link' +
                 (className ? ' ' + className : '') +
                 (isActive ? ' active' : '')
-            }>
+            }
+            {...passProps}>
             <div className="row align-items-center justify-content-center h-100">
                 {iconCol}
                 {textCol}
