@@ -83,7 +83,7 @@ export function createBrowsePublicationColumnExtensionMap() {
     };
 
     const columns = {};
-    const hideFacets = [];
+    const hideFacets = ['status'];
 
     return { columnExtensionMap, columns, hideFacets };
 }
