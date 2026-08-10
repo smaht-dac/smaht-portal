@@ -311,19 +311,23 @@ const PublicationView = React.memo(function PublicationView(props) {
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
     const doiCode = context?.doi ? context.doi.split('/').pop() : '';
     const authorsList = context?.authors || [];
-    // shorten the authors list to 20 items and last item
-    const shortenedAuthorsList = authorsList.slice(0, 20);
     const lastAuthor = authorsList[authorsList.length - 1];
+    const isAuthorsListTruncated = authorsList.length > 20;
+    // shorten the authors list to 20 items when there are more than 20 authors;
+    // the last author is appended separately below, so only truncate here to
+    // avoid including it twice
+    const shortenedAuthorsList = isAuthorsListTruncated
+        ? authorsList.slice(0, 20)
+        : authorsList;
     const citationString =
         context?.citation ??
         (lastAuthor
             ? shortenedAuthorsList
                   .map((a) => a.last_name + ', ' + a.first_name)
                   .join(', ') +
-              ' ... ' +
-              lastAuthor.last_name +
-              ', ' +
-              lastAuthor.first_name +
+              (isAuthorsListTruncated
+                  ? ' ... ' + lastAuthor.last_name + ', ' + lastAuthor.first_name
+                  : '') +
               ' (' +
               pubYear +
               '). ' +
