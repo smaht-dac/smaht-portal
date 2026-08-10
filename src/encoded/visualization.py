@@ -467,7 +467,12 @@ def bar_plot_chart(context, request):
 @debug_log
 def data_matrix_aggregations(context, request):
 
-    MAX_BUCKET_COUNT = 30  # Max grouping in a data matrix.
+    # Max terms returned per aggregation bucket, applied at every nesting level (e.g. Donor
+    # nested inside each Tissue bucket in the Donor x Tissue matrix). Must stay above the
+    # largest possible per-bucket cardinality, which in practice is the total donor count
+    # (expected to cap around 150) since some tissues are sampled by nearly every donor.
+    # A value at or below that cardinality silently drops the lowest doc_count buckets.
+    MAX_BUCKET_COUNT = 200
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_VALUE_DELIMITER = ' '
     # Set of field names whose array values should be concatenated into a single key during data matrix aggregation (e.g., {'data_type'}).
