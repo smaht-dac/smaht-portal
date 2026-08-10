@@ -1519,7 +1519,7 @@
     {
         "identifier": "publication-collections",
         "uuid": "9a725a22-9992-4cc9-90d7-29d2c085c379",
-        "status": "in review",
+        "status": "open",
         "content": [
             "ccbf17aa-90ea-42d6-a53a-543504df5440"
         ],
@@ -1537,7 +1537,7 @@
     {
         "identifier": "publication-collections/benchmarking",
         "uuid": "e019d7d4-37c5-4443-8a80-0aa92cd38567",
-        "status": "in review",
+        "status": "open",
         "content": [
             "1f109810-48ed-40ff-a3fc-b4a971717e4e"
         ],

@@ -1011,7 +1011,7 @@
     {
         "identifier": "publication_collections",
         "file": "/docs/public/publication_collections.jsx",
-        "status": "in review",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -1029,7 +1029,7 @@
     {
         "identifier": "benchmarking_collection",
         "file": "/docs/public/benchmarking_collection.jsx",
-        "status": "in review",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
