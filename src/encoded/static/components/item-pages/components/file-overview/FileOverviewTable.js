@@ -81,6 +81,8 @@ export const FileOverviewTable = (props) => {
 
     const FileOverviewColExtMap = {
         ...originalColExtMap,
+        // customColumns first so brand-new keys (not already hardcoded below)
+        // get added to the map as-is.
         ...customColumns,
         // Select all button
         '@type': {
@@ -98,6 +100,10 @@ export const FileOverviewTable = (props) => {
                     />
                 );
             },
+            // Merged last so a customColumns['@type'] override (e.g. widthMap)
+            // only overrides the specific properties it sets, instead of
+            // replacing this whole column definition.
+            ...customColumns['@type'],
         },
         // Access
         access_status: {
@@ -120,6 +126,7 @@ export const FileOverviewTable = (props) => {
                     <span className="value text-start">{access_status}</span>
                 );
             },
+            ...customColumns.access_status,
         },
         // File Name
         annotated_filename: {
@@ -145,6 +152,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.annotated_filename,
         },
 
         // Pipeline
@@ -162,6 +170,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns['software.display_title'],
         },
         // Version
         'software.version': {
@@ -177,6 +186,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns['software.version'],
         },
         // Status
         status: {
@@ -196,6 +206,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.status,
         },
         // Notes
         tsv_notes: {
@@ -236,6 +247,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.tsv_notes,
         },
         // Release Date
         release_date: {
@@ -257,6 +269,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.release_date,
         },
         // File Size
         file_size: {
@@ -272,6 +285,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.file_size,
         },
     };
 
