@@ -10,6 +10,35 @@ const PUBLICATION_LINKS = {
     p150: '/search/?type=Publication&publication_groups=P150',
 };
 
+// Intro content per collection `type`, keyed the same way as PUBLICATION_LINKS.
+// label/title/description text mirrors the copy already used for these
+// collections' cards in PublicationCollectionsNavigation.js.
+const PUBLICATION_COLLECTION_CONTENT = {
+    benchmarking: {
+        label: 'Benchmarking',
+        title: 'Benchmarking Somatic Mutation Detection',
+        description: [
+            'Somatic mosaicism is important yet hard to detect. The SMaHT Network benchmarked sequencing and computational methods across multiple samples using deep short- and long-read data. We integrated bulk, single-cell, and duplex approaches, and made use of donor-specific assemblies and the pangenome for accurate detection of somatic mutation, identifying optimal, genome-wide strategies.',
+            'Here, we present the compendium of papers as the result of the benchmarking studies from the SMaHT Network.',
+        ],
+        headerImage: '/static/img/publication-page-header-img.png',
+    },
+    p25: {
+        label: 'P25',
+        title: 'Learning from the first 25 SMaHT Donors',
+        description: [
+            'The P25 Donor paper collection is coming soon and will be announced upon its release in the proper journals.',
+        ],
+    },
+    p150: {
+        label: 'P150',
+        title: 'Somatic Mosaicism across 150 Donors',
+        description: [
+            'The P150 Donor paper collection will be announced upon its release in the proper journals upon the completion of Phase 1 of the project.',
+        ],
+    },
+};
+
 // Sttatistics for Publication Browse - scoped to the same `publication_groups`
 // filter (`PUBLICATION_LINKS[type]`) used by the tables below, so the counts
 // always match what's actually shown on this page.
@@ -202,7 +231,7 @@ const PublicationTable = ({
                 )}
                 columnExtensionMap={{}}
                 hideColumns={[]}
-                columns={{ '@type': {}, access_status: {} }}
+                columns={{ '@type': {} }}
             />
         </div>
     );
@@ -210,6 +239,10 @@ const PublicationTable = ({
 
 // Layout for PublicationCollection pages
 const PublicationCollectionLayout = ({ ...props }) => {
+    const content =
+        PUBLICATION_COLLECTION_CONTENT[props.type] ??
+        PUBLICATION_COLLECTION_CONTENT.benchmarking;
+
     return (
         <div className="publication-collection-layout">
             <div className="introduction">
@@ -217,7 +250,7 @@ const PublicationCollectionLayout = ({ ...props }) => {
                     <div>
                         <span>
                             <span className="text-slate-70 fw-medium">
-                                Benchmarking
+                                {content.label}
                             </span>
                             <span className="text-gray-20"> | </span>
                             <span className="text-slate-70 fw-light">
@@ -225,34 +258,26 @@ const PublicationCollectionLayout = ({ ...props }) => {
                             </span>
                         </span>
                         <h2 className="text-gray-70 fw-semibold fs-3">
-                            Benchmarking Somatic Mutation Detection
+                            {content.title}
                         </h2>
-                        <p className="fw-light">
-                            Somatic mosaicism is important yet hard to detect.
-                            The SMaHT Network benchmarked sequencing and
-                            computational methods across multiple samples using
-                            deep short- and long-read data. We integrated bulk,
-                            single-cell, and duplex approaches, and made use of
-                            donor-specific assemblies and the pangenome for
-                            accurate detection of somatic mutation, identifying
-                            optimal, genome-wide strategies.
-                        </p>
-                        <p className="fw-light">
-                            Here, we present the compendium of papers as the
-                            result of the benchmarking studies from the SMaHT
-                            Network.
-                        </p>
+                        {content.description.map((paragraph, i) => (
+                            <p className="fw-light" key={i}>
+                                {paragraph}
+                            </p>
+                        ))}
                     </div>
                     <div className="statistics-block">
                         <PublicationStatistics type={props.type} />
                     </div>
                 </div>
-                <div className="image">
-                    <img
-                        src="/static/img/publication-page-header-img.png"
-                        alt="Publication page header image"
-                    />
-                </div>
+                {content.headerImage && (
+                    <div className="image">
+                        <img
+                            src={content.headerImage}
+                            alt="Publication page header image"
+                        />
+                    </div>
+                )}
             </div>
             <div className="publication-tables-container">
                 <PublicationTable
