@@ -84,8 +84,12 @@ const PublicationStatViewer = ({ doi, session }) => {
         ? `/search/?type=File&type!=ExternalOutputFile&doi_list=${doi}`
         : null;
 
-    // only re-fetch data when [session] changes
+    // re-fetch data when [doi, session] changes
     useEffect(() => {
+        if (!searchUrl) {
+            setLoading(false);
+            return;
+        }
         if (!loading) setLoading(true);
         if (error) setError(false);
 
@@ -128,7 +132,7 @@ const PublicationStatViewer = ({ doi, session }) => {
             {},
             null
         );
-    }, [session]);
+    }, [doi, session]);
 
     const statsProps = { session, loading, error, data };
     return (
@@ -332,9 +336,8 @@ const PublicationView = React.memo(function PublicationView(props) {
                     ', ' +
                     lastAuthor.first_name
                   : '') +
-              ' (' +
-              pubYear +
-              '). ' +
+              (pubYear ? ' (' + pubYear + ').' : '.') +
+              ' ' +
               context?.title +
               '. ' +
               context?.journal +
@@ -365,10 +368,10 @@ const PublicationView = React.memo(function PublicationView(props) {
                     <div className="publication-header-text">
                         <h2 className="title">{context?.display_title}</h2>
                         <div className="details">
-                            {context?.short_citation && (
+                            {(context?.short_citation || authorsList[0]) && (
                                 <span className="author">
-                                    {context.short_citation ||
-                                        context.authors[0]}
+                                    {context?.short_citation ??
+                                        `${authorsList[0].last_name}, ${authorsList[0].first_name}`}
                                 </span>
                             )}
                             {context?.scope && (
