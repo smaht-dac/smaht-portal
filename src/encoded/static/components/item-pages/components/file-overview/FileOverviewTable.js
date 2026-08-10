@@ -329,6 +329,12 @@ export const FileOverviewTable = (props) => {
                     ]
                 }
                 columns={
+                    // NOTE: unlike FileOverviewColExtMap above (which merges
+                    // customColumns into each default column definition),
+                    // this fully replaces the default visible-column set
+                    // rather than adding to it. A caller that supplies
+                    // customColumns must list every column it wants shown,
+                    // not just the ones it wants to add or override.
                     Object.keys(customColumns).length > 0
                         ? customColumns
                         : {
