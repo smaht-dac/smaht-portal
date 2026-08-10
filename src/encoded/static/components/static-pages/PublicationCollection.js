@@ -218,7 +218,7 @@ const PublicationTable = ({
                 onResetSelectedItems={props.onResetSelectedItems}
                 hideHeaderRow
                 hideFacetHeader
-                hideFacets={['publication_groups', 'scope']}
+                hideFacets={['publication_groups', 'scope', 'status']}
                 rowHeight={150}
                 maxResultsBodyHeight={735}
                 defaultClosedFacets
