@@ -2229,6 +2229,18 @@ File, Donor, and Publication Overview Styles
                     flex: auto;
                 }
             }
+            .tab-router-contents {
+                .embedded-search-container {
+                    div.d-flex:first-of-type {
+                        flex-direction: column;
+
+                        & > div.ms-auto:last-of-type {
+                            margin-top: 10px;
+                            padding-left: 0px;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -2299,17 +2311,6 @@ File, Donor, and Publication Overview Styles
                 }
                 .tab-router-contents {
                     margin-top: 20px;
-
-                    .embedded-search-container {
-                        div.d-flex:first-of-type {
-                            flex-wrap: wrap;
-
-                            & > div.ms-auto:last-of-type {
-                                margin-top: 10px;
-                                padding-left: 0px;
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -2669,6 +2670,8 @@ File, Donor, and Publication Overview Styles
             border-bottom: 1px solid #e5e5e5;
 
             .thumbnail {
+                width: 180px;
+                min-width: 180px;
                 width: 180px;
                 height: auto;
                 border-radius: 5px;
@@ -3030,6 +3033,7 @@ File, Donor, and Publication Overview Styles
                 flex-direction: column;
 
                 .thumbnail {
+                    min-height: 200px;
                     width: 100%;
                 }
             }
