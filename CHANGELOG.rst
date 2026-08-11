@@ -15,6 +15,14 @@ Change Log
 * Implement page for publication items
 
 
+2.8.2
+=====
+
+`PR 734: WF Add annotated file names for scRNA-Seq data <https://github.com/smaht-dac/smaht-portal/pull/734>`_
+
+* Update annotated file names script for scRNA-Seq data
+
+
 2.8.1
 =====
 
@@ -147,6 +155,7 @@ Change Log
   which had been transitively supplying ``pandas``; ``pandas`` is now declared
   directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
   ``create-bulk-donor-manifest`` command keeps working.
+
 
 2.5.1
 =====
