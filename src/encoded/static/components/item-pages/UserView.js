@@ -33,6 +33,7 @@ import {
     DataReleaseNotificationEnrollment,
     DATA_RELEASE_NOTIFICATION_ENROLLED,
 } from './components/DataReleaseNotificationEnrollment';
+import UserAdminControls from './components/user/UserAdminControls';
 
 // eslint-disable-next-line no-unused-vars
 import { Item } from './../util/typedefs';
@@ -195,8 +196,14 @@ class SyncedAccessKeyTable extends React.PureComponent {
                                 Access Key ID
                             </div>
                             <div className="col-7">
-                                <object.CopyWrapper value={access_key_id} data-tip={'Click to copy'} className="d-inline-block"
-                                    wrapperElement="div" iconProps={{}} analyticsOnCopy={false}><code>{access_key_id}</code>
+                                <object.CopyWrapper
+                                    value={access_key_id}
+                                    data-tip={'Click to copy'}
+                                    className="d-inline-block"
+                                    wrapperElement="div"
+                                    iconProps={{}}
+                                    analyticsOnCopy={false}>
+                                    <code>{access_key_id}</code>
                                 </object.CopyWrapper>
                             </div>
                         </div>
@@ -205,8 +212,14 @@ class SyncedAccessKeyTable extends React.PureComponent {
                                 Secret Access Key
                             </div>
                             <div className="col-7">
-                                <object.CopyWrapper value={secret_access_key} data-tip={'Click to copy'} className="d-inline-block"
-                                    wrapperElement="div" iconProps={{}} analyticsOnCopy={false}><code>{secret_access_key}</code>
+                                <object.CopyWrapper
+                                    value={secret_access_key}
+                                    data-tip={'Click to copy'}
+                                    className="d-inline-block"
+                                    wrapperElement="div"
+                                    iconProps={{}}
+                                    analyticsOnCopy={false}>
+                                    <code>{secret_access_key}</code>
                                 </object.CopyWrapper>
                             </div>
                         </div>
@@ -530,7 +543,13 @@ export default class UserView extends React.Component {
 
     constructor(props) {
         super(props);
-        _.bindAll(this, 'handleNotificationEnrollmentChange');
+        // `isAdmin` gates the cosmetic admin control panel only. It is resolved
+        // after mount (JWT groups live in localStorage, absent during SSR) so
+        // the first client render matches the server render for everyone and
+        // the panel appears on the following commit — avoiding a structural
+        // hydration mismatch. Backend `restricted_fields` permissions are the
+        // real authorization for any edit made through the panel.
+        this.state = { isAdmin: false };
     }
 
     handleNotificationEnrollmentChange(enrolled) {
@@ -542,6 +561,13 @@ export default class UserView extends React.Component {
                 [DATA_RELEASE_NOTIFICATION_ENROLLED]: enrolled,
             },
         });
+    }
+
+    componentDidMount() {
+        const groups = JWT.getUserGroups() || [];
+        if (groups.indexOf('admin') >= 0) {
+            this.setState({ isAdmin: true });
+        }
     }
 
     mayEdit() {
@@ -560,6 +586,7 @@ export default class UserView extends React.Component {
             alerts = [],
         } = this.props;
         const { email, project } = user;
+        const { isAdmin } = this.state;
         const mayEdit = this.mayEdit();
         const currentUser = JWT.getUserDetails();
         const isOwnProfile = Boolean(
@@ -568,6 +595,17 @@ export default class UserView extends React.Component {
                 email &&
                 currentUser.email.toLowerCase() === email.toLowerCase()
         );
+
+        // Non-admin column classes are kept byte-identical to the pre-feature
+        // layout so the non-admin render tree is unchanged. When admin, the two
+        // existing cards shrink and an Admin Controls panel is added as a third
+        // sibling column (5 + 4 + 3 = 12).
+        const infoColCls = isAdmin
+            ? 'col-12 col-xl-5 mb-2 mb-xl-0'
+            : 'col-12 col-lg-6 col-xl-7 mb-2 mb-lg-0';
+        const workColCls = isAdmin
+            ? 'col-12 col-xl-4 mb-2 mb-xl-0'
+            : 'col-12 col-lg-6 col-xl-5';
         // Todo: remove
         const ifCurrentlyEditingClass =
             this.state && this.state.currentlyEditing
@@ -595,7 +633,7 @@ export default class UserView extends React.Component {
                             />
                         </div>
                         <div className="row">
-                            <div className="col-12 col-lg-6 col-xl-7 mb-2 mb-lg-0">
+                            <div className={infoColCls}>
                                 <div className="user-info card h-100">
                                     <div className="card-header">
                                         <div className="row title-row align-items-center py-2">
@@ -655,9 +693,19 @@ export default class UserView extends React.Component {
                                     </div>
                                 </div>
                             </div>
-                            <div className="col-12 col-lg-6 col-xl-5">
+                            <div className={workColCls}>
                                 <ProfileWorkFields user={user} />
                             </div>
+                            {isAdmin ? (
+                                <div className="col-12 col-xl-3">
+                                    <UserAdminControls
+                                        user={user}
+                                        schemas={schemas}
+                                        mayEdit={mayEdit}
+                                        onUpdated={UserView.onEditableFieldSave}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
 
                         <SyncedAccessKeyTable {...{ user }} />
@@ -776,16 +824,18 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                             </div>
                             <div id="submission_centers" className="col-md-9">
                                 <ul className="list-unstyled mb-0">
-                                    {submissionCenters.map((submissionCenter) => (
-                                        <li
-                                            key={submissionCenter?.atId}
-                                            id={submissionCenter?.atId}
-                                            className="value text-500">
-                                            {object.itemUtil.generateLink(
-                                                submissionCenter
-                                            )}
-                                        </li>
-                                    ))}
+                                    {submissionCenters.map(
+                                        (submissionCenter) => (
+                                            <li
+                                                key={submissionCenter?.atId}
+                                                id={submissionCenter?.atId}
+                                                className="value text-500">
+                                                {object.itemUtil.generateLink(
+                                                    submissionCenter
+                                                )}
+                                            </li>
+                                        )
+                                    )}
                                 </ul>
                             </div>
                         </div>
@@ -896,7 +946,10 @@ const UserViewPageTitle = React.memo(function UserViewPageTitle({
     const myEmail = myDetails && myDetails.email;
     let titleStr;
     if (myEmail && context && context.email && myEmail === context.email) {
-        titleStr = currentAction === 'impersonate-user' ? 'Impersonate User' : 'My Profile';
+        titleStr =
+            currentAction === 'impersonate-user'
+                ? 'Impersonate User'
+                : 'My Profile';
     } else {
         titleStr = object.itemUtil.getTitleStringFromContext(context);
     }

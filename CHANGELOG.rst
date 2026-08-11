@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.7.0
+2.10.0
 =====
 
 `PR #716: Add data-release email notification enrollment <https://github.com/smaht-dac/smaht-portal/pull/716>`_
@@ -24,12 +24,91 @@ Change Log
   ``sns:ListSubscriptionsByTopic`` on that topic
 
 
+2.9.0
+======
+
+`PR 637: feat: publication view <https://github.com/smaht-dac/smaht-portal/pull/637>`_
+
+* Implement page for publication items
+
+
+2.8.2
+=====
+
+`PR 734: WF Add annotated file names for scRNA-Seq data <https://github.com/smaht-dac/smaht-portal/pull/734>`_
+
+* Update annotated file names script for scRNA-Seq data
+
+
+2.8.1
+=====
+
+`PR 742: Rename VISTA-Seq to VISTA-META-seq in data matrix <https://github.com/smaht-dac/smaht-portal/pull/742>`_
+
+* Renames the VISTA assay label from ``VISTA-Seq`` to ``VISTA-META-seq`` in the Donor x Tissue
+  data matrix and its Cypress coverage.
+* Raises ``MAX_BUCKET_COUNT`` (30 -> 200) in ``data_matrix_aggregations``, fixing a silent
+  undercount where donors with low file counts in a tissue could be dropped from the Donor x
+  Tissue matrix once that tissue's donor cardinality exceeded the old limit.
+
+
+2.8.0
+=====
+
+`PR 728: Link fixed TissueSamples to their fresh/frozen source samples <https://github.com/smaht-dac/smaht-portal/pull/728>`_
+
+* Adds a ``linked_fixed_samples`` field on fresh/frozen ``TissueSample``\ s, linking to
+  TPC-submitted fixed ``TissueSample``\ s from the same tissue block (donor + protocol-pair
+  match), restricted to admin-editable (``restricted_fields``).
+* Adds a validator enforcing that ``linked_fixed_samples`` can only be set on a GCC-submitted
+  fresh/frozen sample, targeting valid TPC-submitted fixed samples of the matching protocol and
+  donor.
+* Adds calculated properties ``pathology_reports`` (rev-link) and ``associated_pathology_reports``
+  on ``TissueSample``, so a fresh/frozen sample surfaces the pathology reports of its linked fixed
+  samples.
+* Adds a new admin CLI command, ``associate-fixed-samples``, to populate or remove
+  ``linked_fixed_samples`` across TissueSamples (supports ``--all``, ``--search-query``,
+  ``--identifiers``/``--identifiers-file`` scopes, ``--delete``, and dry-run), including
+  reconciliation of stale links and warnings for orphaned fresh/fixed groups.
+* Adds ``FRESH_TO_FIXED_PROTOCOL_MAP`` and related helpers (``get_fixed_to_fresh_protocols``,
+  ``get_protocol_id_from_external_id`` usage) centralizing the fresh/fixed protocol-code mapping
+  used by both the validator and the linking script.
+* Expands test coverage for ``TissueSample`` item utils and types to cover the new field,
+  calculated properties, and validation logic.
+
+
+2.7.1
+=====
+
+`PR 740: Fix: Donor x Tissue matrix cells don't dim on click <https://github.com/smaht-dac/smaht-portal/pull/740>`_
+
+* Fixes the Data Matrix's Donor x Tissue tab so clicking a cell dims the other cells, matching the
+  existing Donor x Assay / Tissue x Assay behavior.
+* Removes the ``disableBlockOpen`` flag that was preventing ``openBlock`` state from ever being set
+  in Donor x Tissue mode, and the now-dead early-return branch in ``StackedBlockVisual``'s
+  ``handleBlockClick``.
+
+
+2.7.0
+=====
+
+* Add an admin-only control panel to the User profile page that lets administrators edit a
+  user's ``status``, ``groups``, and ``submits_for`` (submission centers) through searchable
+  controls, applied as a single atomic PATCH of only the changed fields after a confirmation
+  modal. The full ``status`` enum and all schema groups (including ``admin`` and
+  ``read-only-admin``) are exposed, and an admin may edit their own account (warn-only). The
+  panel is frontend-only: authorization is enforced by the existing backend
+  ``restricted_fields`` permission, and the client-side admin gate is cosmetic. The panel is
+  client-rendered only (never in server-rendered output).
+
+
 2.6.6
 =====
 
 `PR 738: fix: remove symlink node_modules <https://github.com/smaht-dac/smaht-portal/pull/738>`_
 
 * Remove node_modules symlink
+* Change gitignore to include symlink
 
 
 2.6.5
@@ -44,6 +123,7 @@ Change Log
 * ``email_is_not_restricted`` now refuses an address whose domain cannot be determined with
   ``HTTPForbidden`` instead of raising ``IndexError``.
 * Restricted domain/email semantics and self-registration privilege stripping are unchanged.
+
 
 2.6.4
 =====
@@ -92,6 +172,7 @@ Change Log
   which had been transitively supplying ``pandas``; ``pandas`` is now declared
   directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
   ``create-bulk-donor-manifest`` command keeps working.
+
 
 2.5.1
 =====

@@ -106,4 +106,19 @@ Popover Styles
             }
         }
     }
+
+    &.files-access-popover {
+        max-width: 350px;
+
+        .popover-header {
+            margin: 0px;
+            background-color: #f1f9ff;
+            font-weight: 500;
+            padding: 8px 12px;
+        }
+
+        .popover-body {
+            padding: 12px 12px;
+        }
+    }
 }
