@@ -29,6 +29,8 @@ export const FileOverviewTableController = (props) => {
         session,
         href,
         context,
+        customColumns = {},
+        customHideColumns = null,
     } = props;
 
     return (
@@ -44,6 +46,8 @@ export const FileOverviewTableController = (props) => {
                     href,
                     searchHref: associatedFilesSearchHref,
                     embeddedTableHeaderText,
+                    customColumns,
+                    customHideColumns,
                 }}
             />
         </SelectedItemsController>
@@ -65,6 +69,8 @@ export const FileOverviewTable = (props) => {
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         originalColExtMap,
+        customColumns = {},
+        customHideColumns = null,
     } = props;
 
     const selectedFileProps = {
@@ -75,6 +81,9 @@ export const FileOverviewTable = (props) => {
 
     const FileOverviewColExtMap = {
         ...originalColExtMap,
+        // customColumns first so brand-new keys (not already hardcoded below)
+        // get added to the map as-is.
+        ...customColumns,
         // Select all button
         '@type': {
             colTitle: (
@@ -91,6 +100,10 @@ export const FileOverviewTable = (props) => {
                     />
                 );
             },
+            // Merged last so a customColumns['@type'] override (e.g. widthMap)
+            // only overrides the specific properties it sets, instead of
+            // replacing this whole column definition.
+            ...customColumns['@type'],
         },
         // Access
         access_status: {
@@ -113,6 +126,7 @@ export const FileOverviewTable = (props) => {
                     <span className="value text-start">{access_status}</span>
                 );
             },
+            ...customColumns.access_status,
         },
         // File Name
         annotated_filename: {
@@ -138,6 +152,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.annotated_filename,
         },
 
         // Pipeline
@@ -155,6 +170,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns['software.display_title'],
         },
         // Version
         'software.version': {
@@ -170,6 +186,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns['software.version'],
         },
         // Status
         status: {
@@ -189,6 +206,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.status,
         },
         // Notes
         tsv_notes: {
@@ -229,6 +247,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.tsv_notes,
         },
         // Release Date
         release_date: {
@@ -250,6 +269,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.release_date,
         },
         // File Size
         file_size: {
@@ -265,6 +285,7 @@ export const FileOverviewTable = (props) => {
                 );
             },
             noSort: true,
+            ...customColumns.file_size,
         },
     };
 
@@ -296,26 +317,38 @@ export const FileOverviewTable = (props) => {
                 }}
                 facets={null}
                 columnExtensionMap={FileOverviewColExtMap}
-                hideColumns={[
-                    'display_title',
-                    'data_type',
-                    'sequencers.display_title',
-                    'file_format.display_title',
-                    'submission_centers.display_title',
-                    'assays.display_title',
-                    'sequencing_center.display_title',
-                ]}
-                columns={{
-                    '@type': {},
-                    access_status: {},
-                    annotated_filename: {},
-                    'software.display_title': {},
-                    'software.version': {},
-                    status: {},
-                    tsv_notes: {},
-                    release_date: {},
-                    file_size: {},
-                }}
+                hideColumns={
+                    customHideColumns ?? [
+                        'display_title',
+                        'data_type',
+                        'sequencers.display_title',
+                        'file_format.display_title',
+                        'submission_centers.display_title',
+                        'assays.display_title',
+                        'sequencing_center.display_title',
+                    ]
+                }
+                columns={
+                    // NOTE: unlike FileOverviewColExtMap above (which merges
+                    // customColumns into each default column definition),
+                    // this fully replaces the default visible-column set
+                    // rather than adding to it. A caller that supplies
+                    // customColumns must list every column it wants shown,
+                    // not just the ones it wants to add or override.
+                    Object.keys(customColumns).length > 0
+                        ? customColumns
+                        : {
+                              '@type': {},
+                              access_status: {},
+                              annotated_filename: {},
+                              'software.display_title': {},
+                              'software.version': {},
+                              status: {},
+                              tsv_notes: {},
+                              release_date: {},
+                              file_size: {},
+                          }
+                }
             />
         </>
     );
