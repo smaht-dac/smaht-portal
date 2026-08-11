@@ -82,7 +82,7 @@ export function createBrowsePublicationColumnExtensionMap() {
         ...originalColExtMap, // Pull in defaults for all tables
     };
 
-    const columns = {};
+    const columns = null;
     const hideFacets = ['status'];
 
     return { columnExtensionMap, columns, hideFacets };

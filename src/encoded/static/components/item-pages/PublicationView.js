@@ -349,6 +349,8 @@ const PublicationView = React.memo(function PublicationView(props) {
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
     const doiCode = context?.doi ? context.doi.split('/').pop() : '';
     const authorsList = context?.authors || [];
+    const formatAuthorName = (a) =>
+        a.first_name ? `${a.last_name}, ${a.first_name}` : a.last_name;
     const lastAuthor = authorsList[authorsList.length - 1];
     const isAuthorsListTruncated = authorsList.length > 20;
     // shorten the authors list to 20 items when there are more than 20 authors;
@@ -360,14 +362,9 @@ const PublicationView = React.memo(function PublicationView(props) {
     const citationString =
         context?.citation ??
         (lastAuthor
-            ? shortenedAuthorsList
-                  .map((a) => a.last_name + ', ' + a.first_name)
-                  .join(', ') +
+            ? shortenedAuthorsList.map(formatAuthorName).join(', ') +
               (isAuthorsListTruncated
-                  ? ' ... ' +
-                    lastAuthor.last_name +
-                    ', ' +
-                    lastAuthor.first_name
+                  ? ' ... ' + formatAuthorName(lastAuthor)
                   : '') +
               (pubYear ? ' (' + pubYear + ').' : '.') +
               ' ' +
@@ -378,9 +375,7 @@ const PublicationView = React.memo(function PublicationView(props) {
               doiCode
             : '');
 
-    const fullAuthorsList = authorsList
-        .map((a) => a.last_name + ', ' + a.first_name)
-        .join(', ');
+    const fullAuthorsList = authorsList.map(formatAuthorName).join(', ');
 
     return (
         <div className="publication-view">
@@ -404,7 +399,7 @@ const PublicationView = React.memo(function PublicationView(props) {
                             {(context?.short_citation || authorsList[0]) && (
                                 <span className="author">
                                     {context?.short_citation ??
-                                        `${authorsList[0].last_name}, ${authorsList[0].first_name}`}
+                                        formatAuthorName(authorsList[0])}
                                 </span>
                             )}
                             {context?.scope && (
@@ -456,10 +451,10 @@ const PublicationView = React.memo(function PublicationView(props) {
                                     <i className="icon icon-external-link-alt fas"></i>
                                 </a>
                             )}
-                            {context?.code_repository_urls?.length > 0 ? (
+                            {context?.code_repositories?.length > 0 ? (
                                 <a
                                     className="btn btn-primary"
-                                    href={context.code_repository_urls[0]}
+                                    href={context.code_repositories[0]}
                                     target="_blank"
                                     rel="noopener noreferrer">
                                     Code Repository
