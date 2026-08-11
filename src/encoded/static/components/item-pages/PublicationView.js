@@ -494,7 +494,7 @@ const PublicationView = React.memo(function PublicationView(props) {
                                 </div>
                                 <div className="journal-details">
                                     <h5>Journal Details</h5>
-                                    {context?.journal && (
+                                    {context?.journal && context?.journal_url && (
                                         <span>
                                             Link:{' '}
                                             <a

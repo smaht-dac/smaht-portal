@@ -11,7 +11,6 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
     const {
         '@id': atId,
         display_title,
-        annotated_filename,
         short_citation = '',
         scope = '',
         date_published = '',
