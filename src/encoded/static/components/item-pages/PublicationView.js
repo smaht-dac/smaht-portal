@@ -367,12 +367,9 @@ const PublicationView = React.memo(function PublicationView(props) {
                   ? ' ... ' + formatAuthorName(lastAuthor)
                   : '') +
               (pubYear ? ' (' + pubYear + ').' : '.') +
-              ' ' +
-              context?.title +
-              '. ' +
-              context?.journal +
-              '. ' +
-              doiCode
+              (context?.title ? ' ' + context.title + '.' : '') +
+              (context?.journal ? ' ' + context.journal + '.' : '') +
+              (doiCode ? ' ' + doiCode : '')
             : '');
 
     const fullAuthorsList = authorsList.map(formatAuthorName).join(', ');
@@ -427,6 +424,7 @@ const PublicationView = React.memo(function PublicationView(props) {
                             </div>
                             <span className="citation">{citationString}</span>
                             <button
+                                type="button"
                                 className="author-details-toggle"
                                 onClick={toggleFullAuthorList}>
                                 <span>
