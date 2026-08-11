@@ -148,6 +148,7 @@ export const BrowseSummaryStatController = (props) => {
         error,
         data,
         subtitle,
+        subtitleAddon,
     } = props;
 
     const [value, setValue] = useState('');
@@ -193,7 +194,15 @@ export const BrowseSummaryStatController = (props) => {
 
     return (
         <BrowseSummaryStat
-            {...{ value, type, loading, units, containerCls, subtitle }}
+            {...{
+                value,
+                type,
+                loading,
+                units,
+                containerCls,
+                subtitle,
+                subtitleAddon,
+            }}
         />
     );
 };
@@ -201,6 +210,8 @@ BrowseSummaryStatController.propTypes = {
     type: PropTypes.oneOf(['File', 'Donor', 'Tissue', 'Assay', 'File Size'])
         .isRequired,
     containerCls: PropTypes.string,
+    subtitle: PropTypes.string,
+    subtitleAddon: PropTypes.node,
     session: PropTypes.bool.isRequired,
     href: PropTypes.string,
     data: PropTypes.oneOfType([
@@ -225,6 +236,7 @@ export const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
         units,
         containerCls = 'ms-2',
         subtitle = '',
+        subtitleAddon = null,
     } = props;
 
     let subtitleText = subtitle;
@@ -271,6 +283,7 @@ export const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
                 )}
                 <div className="browse-summary-stat-subtitle">
                     {subtitleText}
+                    {subtitleAddon}
                 </div>
             </div>
         </div>

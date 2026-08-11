@@ -70,12 +70,17 @@ const PublicationViewTitle = () => {
 /**
  * Function to retrive and display summary statistics related to the files used
  * in a publication, including number of files, donors, tissues, assays, and
- * total file size
+ * total file size. Donor and Tissue counts are hidden for Benchmarking
+ * publications - the underlying data doesn't yet reliably resolve donors or
+ * tissues for cell-line-based samples, so those stats are omitted there
+ * until that's fixed, rather than shown as inaccurate.
  * @param {*} doi - DOI of the publication to retrieve stats for
  * @param {*} session - User session object
+ * @param {*} isBenchmarking - Whether this publication belongs to the
+ *     Benchmarking publication group
  * @returns
  */
-const PublicationStatViewer = ({ doi, session }) => {
+const PublicationStatViewer = ({ doi, session, isBenchmarking }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
@@ -163,14 +168,19 @@ const PublicationStatViewer = ({ doi, session }) => {
             <BrowseSummaryStatController
                 type="File"
                 subtitle="Files Analyzed"
+                subtitleAddon={filesStatTooltip}
                 {...statsProps}
             />
-            <BrowseSummaryStatController type="Donor" {...statsProps} />
-            <BrowseSummaryStatController
-                type="Tissue"
-                subtitle="Cell Lines/Tissues"
-                {...statsProps}
-            />
+            {!isBenchmarking && (
+                <BrowseSummaryStatController type="Donor" {...statsProps} />
+            )}
+            {!isBenchmarking && (
+                <BrowseSummaryStatController
+                    type="Tissue"
+                    subtitle="Cell Lines/Tissues"
+                    {...statsProps}
+                />
+            )}
             <BrowseSummaryStatController type="Assay" {...statsProps} />
             <BrowseSummaryStatController type="File Size" {...statsProps} />
             <a className="" href={searchUrl}>
@@ -564,7 +574,13 @@ const PublicationView = React.memo(function PublicationView(props) {
                 <h2 className="section-header fw-semibold">
                     SMaHT Data Analyzed
                 </h2>
-                <PublicationStatViewer doi={context?.doi} session={session} />
+                <PublicationStatViewer
+                    doi={context?.doi}
+                    session={session}
+                    isBenchmarking={context?.publication_groups?.includes(
+                        'Benchmarking'
+                    )}
+                />
                 <PublicationViewTabs {...props} />
             </div>
         </div>
