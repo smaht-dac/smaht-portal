@@ -1370,6 +1370,9 @@ body[data-at-type^='Publication-collections'] {
     }
 
     // Publication Search Table Styles
+    .publication-tables-container {
+        margin-bottom: 100px;
+    }
     .publication-search-table-container {
         margin-top: 50px;
 
@@ -1410,6 +1413,8 @@ body[data-at-type^='Publication-collections'] {
                         padding: 10px 20px;
                         gap: 10px;
                         background-color: $pure-white;
+                        border-left: 1px solid #e5e5e5;
+                        border-right: 1px solid #e5e5e5;
 
                         .facet {
                             min-width: 201px;
@@ -1492,8 +1497,6 @@ body[data-at-type^='Publication-collections'] {
                 }
             }
             .search-results-container {
-                border: 1px solid $mercury;
-
                 .fin {
                     display: none;
                 }
