@@ -135,6 +135,29 @@ const PublicationStatViewer = ({ doi, session }) => {
     }, [doi, session]);
 
     const statsProps = { session, loading, error, data };
+
+    const filesStatTooltip = (
+        <OverlayTrigger
+            trigger={['hover', 'focus']}
+            placement="top"
+            overlay={
+                <Popover
+                    className="files-access-popover"
+                    id="popover-files-access-notice">
+                    <Popover.Header>File Access Notice</Popover.Header>
+                    <Popover.Body>
+                        This publication analyzed data from protected files.
+                        <br />
+                        <br />
+                        Please log in to see complete file list. Downloading
+                        protected files requires dbGAP approval.
+                    </Popover.Body>
+                </Popover>
+            }>
+            <i className="icon icon-info-circle fas ms-1" />
+        </OverlayTrigger>
+    );
+
     return (
         <div className="browse-summary publication-stat-viewer mt-2 mb-3">
             <BrowseSummaryStatController
