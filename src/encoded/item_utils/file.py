@@ -236,6 +236,16 @@ def get_cell_culture_mixtures(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get cell culture mixtures associated with file."""
     sample_sources = get_sample_sources(properties, request_handler=request_handler)
+    return _get_cell_culture_mixtures_from_sample_sources(
+        sample_sources, request_handler=request_handler
+    )
+
+
+def _get_cell_culture_mixtures_from_sample_sources(
+    sample_sources: List[Union[str, Dict[str, Any]]],
+    request_handler: Optional[RequestHandler] = None,
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get cell culture mixtures from precomputed sample sources."""
     if request_handler:
         return [
             sample_source
@@ -252,41 +262,55 @@ def get_cell_culture_mixtures(
     ]
 
 
-def get_cell_cultures(
-    properties: Dict[str, Any], request_handler: RequestHandler
-) -> List[str]:
-    """Get cell cultures associated with file."""
-    sample_sources = get_sample_sources(properties, request_handler=request_handler)
-    cell_culture_mixtures = get_cell_culture_mixtures(
-        properties, request_handler=request_handler
-    )
-    cell_cultures_from_mixtures = get_property_values_from_identifiers(
-        request_handler, cell_culture_mixtures, cell_culture_mixture.get_cell_cultures
-    )
-    direct_cell_cultures = [
+def _get_direct_cell_cultures_from_sample_sources(
+    sample_sources: List[Union[str, Dict[str, Any]]],
+    request_handler: RequestHandler,
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get direct cell cultures from precomputed sample sources."""
+    return [
         sample_source
         for sample_source in sample_sources
         if cell_culture.is_cell_culture(request_handler.get_item(sample_source))
     ]
+
+
+def _get_cell_cultures_from_sample_sources(
+    sample_sources: List[Union[str, Dict[str, Any]]],
+    request_handler: RequestHandler,
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get direct and mixture-component cell cultures from sample sources."""
+    cell_culture_mixtures = _get_cell_culture_mixtures_from_sample_sources(
+        sample_sources, request_handler=request_handler
+    )
+    cell_cultures_from_mixtures = get_property_values_from_identifiers(
+        request_handler, cell_culture_mixtures, cell_culture_mixture.get_cell_cultures
+    )
+    direct_cell_cultures = _get_direct_cell_cultures_from_sample_sources(
+        sample_sources, request_handler
+    )
     return dedupe_identifiers(cell_cultures_from_mixtures + direct_cell_cultures)
+
+
+def get_cell_cultures(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get cell cultures associated with file."""
+    sample_sources = get_sample_sources(properties, request_handler=request_handler)
+    return _get_cell_cultures_from_sample_sources(sample_sources, request_handler)
 
 
 def get_cell_lines(
     properties: Dict[str, Any], request_handler: RequestHandler
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get cell lines associated with file."""
-    cell_cultures = get_cell_cultures(properties, request_handler)
-    cell_culture_mixtures = get_cell_culture_mixtures(
-        properties, request_handler=request_handler
+    sample_sources = get_sample_sources(properties, request_handler=request_handler)
+    # Mixture-associated cell lines are covered by expanding mixtures to cultures.
+    cell_cultures = _get_cell_cultures_from_sample_sources(
+        sample_sources, request_handler
     )
     return dedupe_identifiers(
         get_property_values_from_identifiers(
             request_handler, cell_cultures, cell_culture.get_cell_line
-        )
-        + get_property_values_from_identifiers(
-            request_handler,
-            cell_culture_mixtures,
-            partial(cell_culture_mixture.get_cell_lines, request_handler),
         )
     )
 
