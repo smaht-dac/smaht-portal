@@ -34,7 +34,10 @@ const CollectionCardThumbnail = ({ collectionKey, label }) => {
     if (collectionKey === 'benchmarking') {
         return (
             <div className="publication-collection-card-thumbnail thumbnail-benchmarking">
-                <img src="/static/img/publication-page-header-img.png" alt="" />
+                <img
+                    src="/static/img/publication-page-header-img-optimized.jpg"
+                    alt={`${label} collection thumbnail`}
+                />
             </div>
         );
     }

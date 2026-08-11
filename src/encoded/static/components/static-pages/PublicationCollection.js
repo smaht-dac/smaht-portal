@@ -22,7 +22,7 @@ const PUBLICATION_COLLECTION_CONTENT = {
             'Somatic mosaicism is important yet hard to detect. The SMaHT Network benchmarked sequencing and computational methods across multiple samples using deep short- and long-read data. We integrated bulk, single-cell, and duplex approaches, and made use of donor-specific assemblies and the pangenome for accurate detection of somatic mutation, identifying optimal, genome-wide strategies.',
             'Here, we present the compendium of papers as the result of the benchmarking studies from the SMaHT Network.',
         ],
-        headerImage: '/static/img/publication-page-header-img.png',
+        headerImage: '/static/img/publication-page-header-img-optimized.jpg',
     },
     p25: {
         label: 'P25',
