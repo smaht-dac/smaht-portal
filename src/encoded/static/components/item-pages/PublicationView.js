@@ -494,15 +494,19 @@ const PublicationView = React.memo(function PublicationView(props) {
                                 </div>
                                 <div className="journal-details">
                                     <h5>Journal Details</h5>
-                                    {context?.journal && context?.journal_url && (
+                                    {context?.journal && (
                                         <span>
                                             Link:{' '}
-                                            <a
-                                                href={context.journal_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer">
-                                                {context.journal}
-                                            </a>
+                                            {context?.journal_url ? (
+                                                <a
+                                                    href={context.journal_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer">
+                                                    {context.journal}
+                                                </a>
+                                            ) : (
+                                                context.journal
+                                            )}
                                         </span>
                                     )}
                                     {doiLink && (

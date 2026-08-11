@@ -122,6 +122,7 @@ export const BrowsePublicationSearchTable = (props) => {
                     columns,
                     hideFacets,
                 }}
+                hideHeaderRow
                 rowHeight={150}
                 renderResultRow={(result, rowNumber, rowProps) => {
                     return (
