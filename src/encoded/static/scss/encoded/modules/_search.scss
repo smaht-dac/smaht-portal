@@ -1371,7 +1371,7 @@ body[data-at-type^='Publication-collections'] {
 
     // Publication Search Table Styles
     .publication-tables-container {
-        margin-bottom: 100px;
+        margin-bottom: 120px;
     }
     .publication-search-table-container {
         margin-top: 50px;
@@ -1493,6 +1493,13 @@ body[data-at-type^='Publication-collections'] {
                                 border: none;
                             }
                         }
+                    }
+                }
+
+                @include media-breakpoint-down(md) {
+                    .facets-container.facets.with-header-bg
+                        .facets-body.has-max-height {
+                        overflow-x: auto;
                     }
                 }
             }
