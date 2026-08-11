@@ -104,6 +104,9 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   `-m "not workbook"` and `make test-npm` means `-m workbook`; trust the recipes in `Makefile`.
   `make test-static` runs static pytest checks plus frontend lint. `make remote-test` uses the shared
   AWS-authenticated OpenSearch test service and is the CI path, not a credential-free local check.
+- Prefer non-workbook tests with targeted fixtures for new behavior when feasible. Workbook tests are
+  appropriate for validating existing workbook inserts/ES-indexed behavior, but avoid new tests that
+  patch or mutate workbook items unless the mutation itself is the behavior under test.
 - React/Jest tests live in `src/encoded/static/components/__tests__/`; Cypress specifications and
   configuration live under `deploy/post_deploy_testing/`. Use the `cypress:*` scripts in
   `package.json`; they require Auth0 credentials and an explicit/local or deployed target.

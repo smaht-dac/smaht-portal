@@ -1134,6 +1134,7 @@ def test_sample_summary(es_testapp: TestApp, workbook: None) -> None:
     assert_all_summary_fields_present_in_items(
         files_with_summary_search, all_fields, "sample_summary"
     )
+    # Cover both direct CellCulture and CellCultureMixture sample source paths.
     assert_known_file_sample_summary_cell_lines(
         es_testapp, "TEST_UNALIGNED-READS_HELA-FASTQ-R1", ["HELA"]
     )
