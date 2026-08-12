@@ -2012,6 +2012,7 @@ def write_existing_publication_rows(
     publications: List[Dict[str, Any]],
     append: bool,
     request_handler: RequestHandler,
+    portal_url: Optional[str] = None,
 ) -> None:
     """Pre-fill one row per existing Publication: identifier columns always, static_content only if appending."""
     column_by_name = {property_.name: index for index, property_ in enumerate(ordered_properties, start=1)}
@@ -2024,7 +2025,9 @@ def write_existing_publication_rows(
         if uuid_column:
             worksheet.cell(row=row, column=uuid_column, value=publication.get("uuid", ""))
         if append:
-            write_existing_static_content(worksheet, column_by_name, publication, row, slot_count, request_handler)
+            write_existing_static_content(
+                worksheet, column_by_name, publication, row, slot_count, request_handler, portal_url
+            )
 
 
 def write_existing_static_content(
@@ -2034,6 +2037,7 @@ def write_existing_static_content(
     row: int,
     slot_count: int,
     request_handler: RequestHandler,
+    portal_url: Optional[str] = None,
 ) -> None:
     """Pre-fill a Publication's existing static_content entries into the configured slots.
 
@@ -2055,7 +2059,7 @@ def write_existing_static_content(
         if content_column:
             worksheet.cell(
                 row=row, column=content_column,
-                value=get_existing_static_content_identifier(entry.get("content", ""), request_handler),
+                value=get_existing_static_content_identifier(entry.get("content", ""), request_handler, portal_url),
             )
         if location_column:
             worksheet.cell(row=row, column=location_column, value=entry.get("location", ""))
@@ -2063,18 +2067,26 @@ def write_existing_static_content(
             worksheet.cell(row=row, column=description_column, value=entry.get("description"))
 
 
-def get_existing_static_content_identifier(content: str, request_handler: RequestHandler) -> str:
+def get_existing_static_content_identifier(
+    content: str, request_handler: RequestHandler, portal_url: Optional[str] = None
+) -> str:
     """Resolve a static_content entry's linked StaticSection to its `identifier`/`uuid`.
 
     `content` as returned by the portal (frame=object) is typically an `@id` path
     rather than the `identifier`/`uuid` this workbook expects submitters to enter,
     so it's resolved here to keep populated-mode output directly re-submittable.
+    Resolved against `portal_url` when given, mirroring `get_existing_publications`,
+    so this lookup targets the same server the Publication was fetched from rather
+    than the server implied by `request_handler`'s own `--env`-bound auth_key.
     Falls back to the raw value if resolution fails.
     """
     if not content:
         return content
+    auth_key = dict(request_handler.auth_key) if request_handler.auth_key else {}
+    if portal_url:
+        auth_key = {**auth_key, "server": portal_url}
     try:
-        static_section = request_handler.get_item(content)
+        static_section = ff_utils.get_metadata(content, key=auth_key, add_on="frame=object")
     except Exception as e:
         log.error(f"Error resolving StaticSection {content}: {e}")
         return content
@@ -2163,7 +2175,8 @@ def write_publication_static_section_workbook(
 
     if mode == "populated" and existing_publications:
         write_existing_publication_rows(
-            publication_sheet, ordered_publication_properties, existing_publications, append, request_handler
+            publication_sheet, ordered_publication_properties, existing_publications, append, request_handler,
+            portal_url,
         )
 
     save_workbook(workbook, output)

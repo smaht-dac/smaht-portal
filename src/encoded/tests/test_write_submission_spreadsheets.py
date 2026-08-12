@@ -844,23 +844,28 @@ def patch_publication_static_section_profiles(
     """Patch `RequestHandler.get_item` to serve the mock raw profile schemas.
 
     `static_sections_by_id`, if given, additionally resolves specific StaticSection
-    `@id`s (as populated-mode static_content pre-fill would look up).
+    `@id`s via `ff_utils.get_metadata` (as populated-mode static_content pre-fill,
+    via `get_existing_static_content_identifier`, would look up).
     """
     static_sections_by_id = static_sections_by_id or {}
 
     def fake_get_item(identifier: str, collection: Optional[str] = None) -> Dict[str, Any]:
-        if identifier in static_sections_by_id:
-            return static_sections_by_id[identifier]
         if "static_section" in identifier:
             return raw_static_section_schema
         if "publication" in identifier:
             return raw_publication_schema
         return {}
 
+    def fake_get_metadata(identifier: str, key: Optional[Dict[str, str]] = None, add_on: str = "") -> Dict[str, Any]:
+        return static_sections_by_id.get(identifier, {})
+
     request_handler = get_mock_request_handler()
     request_handler.get_item.side_effect = fake_get_item
     request_handler.auth_key = {"server": "https://example.com", "key": "test-key", "secret": "test-secret"}
-    yield request_handler
+    with mock.patch(
+        "encoded.commands.write_submission_spreadsheets.ff_utils.get_metadata", side_effect=fake_get_metadata
+    ):
+        yield request_handler
 
 
 def get_cell_value_by_header(sheet, header: str, row: int) -> Any:
@@ -1047,22 +1052,59 @@ def test_write_publication_static_section_workbook_populated_replace(
 def test_get_existing_static_content_identifier_resolves_linked_item() -> None:
     """Test that a static_content `@id` is resolved to the target StaticSection's identifier."""
     request_handler = get_mock_request_handler()
-    request_handler.get_item.return_value = {"identifier": "SMAHT001.key-findings", "uuid": "some-uuid"}
-    result = get_existing_static_content_identifier("/static-sections/some-uuid/", request_handler)
+    request_handler.auth_key = {"server": "https://example.com", "key": "test-key", "secret": "test-secret"}
+    with mock.patch(
+        "encoded.commands.write_submission_spreadsheets.ff_utils.get_metadata",
+        return_value={"identifier": "SMAHT001.key-findings", "uuid": "some-uuid"},
+    ) as mock_get_metadata:
+        result = get_existing_static_content_identifier("/static-sections/some-uuid/", request_handler)
     assert result == "SMAHT001.key-findings"
-    request_handler.get_item.assert_called_once_with("/static-sections/some-uuid/")
+    mock_get_metadata.assert_called_once_with(
+        "/static-sections/some-uuid/", key=request_handler.auth_key, add_on="frame=object"
+    )
+
+
+def test_get_existing_static_content_identifier_uses_portal_url_server() -> None:
+    """Test that a given `portal_url` overrides the auth_key server used for resolution.
+
+    This keeps the resolution lookup targeting the same server the Publication was
+    fetched from, matching `get_existing_publications`'s own server override, rather
+    than the server implied by `request_handler`'s `--env`-bound auth_key.
+    """
+    request_handler = get_mock_request_handler()
+    request_handler.auth_key = {"server": "https://env-server.example.com", "key": "test-key", "secret": "test-secret"}
+    with mock.patch(
+        "encoded.commands.write_submission_spreadsheets.ff_utils.get_metadata",
+        return_value={"identifier": "SMAHT001.key-findings", "uuid": "some-uuid"},
+    ) as mock_get_metadata:
+        result = get_existing_static_content_identifier(
+            "/static-sections/some-uuid/", request_handler, portal_url="https://portal-url.example.com"
+        )
+    assert result == "SMAHT001.key-findings"
+    mock_get_metadata.assert_called_once_with(
+        "/static-sections/some-uuid/",
+        key={"server": "https://portal-url.example.com", "key": "test-key", "secret": "test-secret"},
+        add_on="frame=object",
+    )
 
 
 def test_get_existing_static_content_identifier_falls_back_to_raw_value() -> None:
     """Test that an unresolvable static_content `@id` falls back to the raw value rather than an empty cell."""
     request_handler = get_mock_request_handler()
-    request_handler.get_item.return_value = {}
-    result = get_existing_static_content_identifier("/static-sections/some-uuid/", request_handler)
+    request_handler.auth_key = {"server": "https://example.com", "key": "test-key", "secret": "test-secret"}
+    with mock.patch(
+        "encoded.commands.write_submission_spreadsheets.ff_utils.get_metadata",
+        return_value={},
+    ):
+        result = get_existing_static_content_identifier("/static-sections/some-uuid/", request_handler)
     assert result == "/static-sections/some-uuid/"
 
 
 def test_get_existing_static_content_identifier_handles_empty_value() -> None:
     """Test that an empty static_content value is returned as-is without attempting a lookup."""
     request_handler = get_mock_request_handler()
-    assert get_existing_static_content_identifier("", request_handler) == ""
-    request_handler.get_item.assert_not_called()
+    with mock.patch(
+        "encoded.commands.write_submission_spreadsheets.ff_utils.get_metadata"
+    ) as mock_get_metadata:
+        assert get_existing_static_content_identifier("", request_handler) == ""
+    mock_get_metadata.assert_not_called()
