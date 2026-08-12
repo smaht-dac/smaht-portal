@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+2.9.1
+======
+
+`PR 743: feat: publication pages followup <https://github.com/smaht-dac/smaht-portal/pull/743>`_
+
+* Fixes ``PublicationView``'s static content sections to fall back correctly when a linked
+  ``StaticSection`` is redacted for the viewer (e.g. still ``in review``), instead of rendering an
+  empty "Reference Set Generation" or "Key / Novel Findings" section.
+* Adds borders and spacing around the publication search tables and their facet dropdowns, and
+  makes long facet lists horizontally scrollable on mobile.
+* Bumps ``@hms-dbmi-bgm/shared-portal-components`` to ``0.1.101``.
+
+
 2.9.0
 ======
 
