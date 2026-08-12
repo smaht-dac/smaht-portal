@@ -59,7 +59,11 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
                 </div>
             </div>
             <div className="detail">
-                {scope && <span className="text-gray-70 fw-bold">{scope}</span>}
+                {scope && (
+                    <span className="text-gray-70 fw-bold">
+                        {capitalizeSentence(scope)}
+                    </span>
+                )}
                 {date_published && <span>{date_published}</span>}
                 {journal_url && journal && (
                     <a

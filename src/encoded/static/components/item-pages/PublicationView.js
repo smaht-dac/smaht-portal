@@ -16,10 +16,16 @@ import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/uti
 import { OverlayTrigger, Popover } from 'react-bootstrap';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
+/**
+ * Finds the `static_content` entry for a given `location`, returning its
+ * `content` (a StaticSection object) or null if absent or not viewable.
+ */
 function getStaticContentSection(staticContent, location) {
     if (!Array.isArray(staticContent)) return null;
     const entry = staticContent.find((s) => s.location === location);
-    return entry?.content || null;
+    const content = entry?.content;
+    if (!content || content.error) return null; // No view permission(s)
+    return content;
 }
 
 // Page containing the details of Items of type File
