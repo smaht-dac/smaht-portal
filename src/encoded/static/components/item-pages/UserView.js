@@ -549,7 +549,10 @@ export default class UserView extends React.Component {
         // the panel appears on the following commit — avoiding a structural
         // hydration mismatch. Backend `restricted_fields` permissions are the
         // real authorization for any edit made through the panel.
-        this.state = { isAdmin: false };
+        // `isOwnProfile` follows the same pattern: JWT.getUserDetails() also
+        // reads localStorage, so it must be resolved post-mount rather than
+        // in render().
+        this.state = { isAdmin: false, isOwnProfile: false };
     }
 
     handleNotificationEnrollmentChange(enrolled) {
@@ -565,9 +568,19 @@ export default class UserView extends React.Component {
 
     componentDidMount() {
         const groups = JWT.getUserGroups() || [];
-        if (groups.indexOf('admin') >= 0) {
-            this.setState({ isAdmin: true });
-        }
+        const { context: user } = this.props;
+        const { email } = user;
+        const currentUser = JWT.getUserDetails();
+        const isOwnProfile = Boolean(
+            currentUser &&
+                currentUser.email &&
+                email &&
+                currentUser.email.toLowerCase() === email.toLowerCase()
+        );
+        this.setState({
+            isAdmin: groups.indexOf('admin') >= 0,
+            isOwnProfile,
+        });
     }
 
     mayEdit() {
@@ -586,15 +599,8 @@ export default class UserView extends React.Component {
             alerts = [],
         } = this.props;
         const { email, project } = user;
-        const { isAdmin } = this.state;
+        const { isAdmin, isOwnProfile } = this.state;
         const mayEdit = this.mayEdit();
-        const currentUser = JWT.getUserDetails();
-        const isOwnProfile = Boolean(
-            currentUser &&
-                currentUser.email &&
-                email &&
-                currentUser.email.toLowerCase() === email.toLowerCase()
-        );
 
         // Non-admin column classes are kept byte-identical to the pre-feature
         // layout so the non-admin render tree is unchanged. When admin, the two
