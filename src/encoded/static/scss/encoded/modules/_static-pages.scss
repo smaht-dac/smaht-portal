@@ -4607,22 +4607,23 @@ FAQ page styles
 
         .publication-collections-search-btn {
             flex-shrink: 0;
-            background-color: $primary;
-            color: $pure-white;
+            background-color: $pure-white;
+            color: #4e6781;
             font-weight: 600;
             font-size: 0.875rem;
             padding: 3px 22px;
             border-radius: 6px;
+            border: 1px solid #b7c9dc;
             white-space: nowrap;
             transition: background-color 150ms ease;
+            line-height: 1.65rem;
 
             i {
                 margin-right: 8px;
             }
 
             &:hover {
-                background-color: $primary-dark;
-                color: $pure-white;
+                background-color: #e9f2fb;
                 text-decoration: none;
             }
         }
