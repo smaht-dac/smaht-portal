@@ -1618,14 +1618,9 @@ def save_workbook(workbook: openpyxl.Workbook, file_path: Path) -> None:
 #
 # Attaches StaticSection content blocks to existing Publications. Unlike the rest
 # of this module, this reads the raw `/profiles/<item>.json` schema rather than
-# `/submission-schemas/<item>.json`: the submission-schema endpoint unconditionally
-# drops `accession`, `uuid`, `submission_centers`, and `consortia` (see
-# `SMaHTProjectSchemaViews.get_properties_for_exclusion`) and also drops the
-# `required` list of nested array-item objects (see
-# `snovault.schema_views._build_embedded_obj`), all of which this admin-facing
-# workbook needs. Since the raw schema carries no `is_required` annotation at all,
-# required-ness here is always derived explicitly from the schema's own `required`
-# lists via `required_override`, never from `is_required()`.
+# `/submission-schemas/<item>.json`, and always derives required-ness explicitly
+# via `required_override` rather than `is_required()`. See
+# `src/encoded/docs/AGENTS.md` for why.
 
 PUBLICATION_STATIC_SECTION_WORKBOOK_FILENAME = "publication_static_section_submission.xlsx"
 DEFAULT_STATIC_CONTENT_SLOTS = 3
