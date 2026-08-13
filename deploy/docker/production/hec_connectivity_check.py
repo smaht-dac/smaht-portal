@@ -518,10 +518,12 @@ def send_event(config, token, context, check_id):
     payload = json.dumps(build_event(check_id)).encode("utf-8")
     # NOTE: this opens a FRESH TLS connection. The stage 'tcp'/'tls' probe socket
     # above is closed before we get here, so the handshake reported by those
-    # stages is not the session carrying this request -- a second handshake
-    # happens now, over the same host/port/context.
+    # stages is NOT the session carrying this request -- a second handshake
+    # happens now. HTTPSConnection also re-resolves the hostname, so on a
+    # multi-address endpoint this can land on a different IP than the one probed.
     log("stage 'send': opening a NEW TLS connection (the probe socket is closed; "
-        "this re-establishes the handshake) to https://%s:%d%s"
+        "this re-resolves the hostname and re-establishes the handshake, so it may "
+        "use a different address than the peer probed above) to https://%s:%d%s"
         % (config["host"], config["port"], config["path"]))
     connection = http.client.HTTPSConnection(
         config["host"], config["port"], timeout=config["timeout"], context=context
