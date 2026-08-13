@@ -151,7 +151,15 @@ BrowseSummaryStatsViewer.propTypes = {
 };
 
 export const BrowseSummaryStatController = (props) => {
-    const { type, containerCls = 'ms-2', loading, error, data } = props;
+    const {
+        type,
+        containerCls = 'ms-2',
+        loading,
+        error,
+        data,
+        subtitle,
+        subtitleAddon,
+    } = props;
 
     const [value, setValue] = useState('');
     const [units, setUnits] = useState('');
@@ -195,13 +203,25 @@ export const BrowseSummaryStatController = (props) => {
     }, [data, type, error, loading]);
 
     return (
-        <BrowseSummaryStat {...{ value, type, loading, units, containerCls }} />
+        <BrowseSummaryStat
+            {...{
+                value,
+                type,
+                loading,
+                units,
+                containerCls,
+                subtitle,
+                subtitleAddon,
+            }}
+        />
     );
 };
 BrowseSummaryStatController.propTypes = {
     type: PropTypes.oneOf(['File', 'Donor', 'Tissue', 'Assay', 'File Size'])
         .isRequired,
     containerCls: PropTypes.string,
+    subtitle: PropTypes.string,
+    subtitleAddon: PropTypes.node,
     session: PropTypes.bool.isRequired,
     href: PropTypes.string,
     data: PropTypes.oneOfType([
@@ -219,24 +239,32 @@ BrowseSummaryStatController.propTypes = {
 };
 
 export const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
-    const { type, value, loading, units, containerCls = 'ms-2' } = props;
+    const {
+        type,
+        value,
+        loading,
+        units,
+        containerCls = 'ms-2',
+        subtitle = '',
+        subtitleAddon = null,
+    } = props;
 
-    let subtitle;
+    let subtitleText = subtitle;
     switch (type) {
         case 'File':
-            subtitle = 'Files Generated';
+            if (!subtitleText) subtitleText = 'Files Generated';
             break;
         case 'Donor':
-            subtitle = 'Donors';
+            if (!subtitleText) subtitleText = 'Donors';
             break;
         case 'Tissue':
-            subtitle = 'Tissues';
+            if (!subtitleText) subtitleText = 'Tissues';
             break;
         case 'Assay':
-            subtitle = 'Assays';
+            if (!subtitleText) subtitleText = 'Assays';
             break;
         case 'File Size':
-            subtitle = 'Total File Size';
+            if (!subtitleText) subtitleText = 'Total File Size';
             break;
         default:
             throw new Error('Must provide a valid type.');
@@ -263,7 +291,10 @@ export const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
                         </div>
                     </>
                 )}
-                <div className="browse-summary-stat-subtitle">{subtitle}</div>
+                <div className="browse-summary-stat-subtitle">
+                    {subtitleText}
+                    {subtitleAddon}
+                </div>
             </div>
         </div>
     );

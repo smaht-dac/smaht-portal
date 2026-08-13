@@ -127,7 +127,7 @@ function stepNavAndRedirection(caps, roleKey) {
             )
                 .should("be.visible")
                 .then(($listItems) => {
-                    expect($listItems).to.have.length(3);
+                    expect($listItems).to.have.length(2);
 
                     const items = Array.from($listItems);
 

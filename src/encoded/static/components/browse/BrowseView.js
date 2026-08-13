@@ -41,6 +41,7 @@ import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { BrowseTissueBody } from './browse-view/BrowseTissue';
+import { BrowsePublicationBody } from './browse-view/BrowsePublication';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
@@ -59,6 +60,7 @@ export const BROWSE_LINKS = {
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
         BROWSE_STATUS_FILTERS,
     tissue: '/browse/?type=Tissue&donor.study=Production&donor.tags=has_released_files&' + BROWSE_STATUS_FILTERS,
+    publication: '/browse/?type=Publication&status=open',
 };
 
 export const FILE_BROWSE_HIDE_FACETS = [
@@ -257,6 +259,10 @@ const renderBrowseBody = (props) => {
             return <BrowseProtectedDonorBody {...props} />;
         case 'TissueSearchResults':
             return <BrowseTissueBody {...props} />;
+        case 'PublicationSearchResults':
+            return <BrowsePublicationBody {...props} />;
+        // case 'TissueSearchResults':
+        //     return <BrowseTissueBody {...props} />;
         // case 'AssaySearchResults':
         //     return <BrowseAssayBody {...props} />;
         default:
@@ -285,6 +291,11 @@ const BrowseViewContent = (props) => {
         userDownloadAccess,
         isAccessResolved,
     };
+
+    // Don't render sidebar for Publication Browse
+    if (context?.['@type'][0] === 'PublicationSearchResults') {
+        return <div className="browse-body">{renderBrowseBody(passProps)}</div>;
+    }
 
     return (
         <SlidingSidebarLayout openByDefault={false}>
@@ -453,6 +464,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
         case 'TissueSearchResults':
             BrowseType = 'Tissue';
             break;
+        case 'PublicationSearchResults':
+            BrowseType = 'Publication';
+            break;
         default:
             break;
     }
@@ -488,7 +502,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                     </div>
                 </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
-                    SMaHT Production Data
+                    {BrowseType === 'Publication'
+                        ? 'Browse by Publication'
+                        : 'SMaHT Production Data'}
                 </OnlyTitle>
             </div>
         </PageTitleContainer>
