@@ -543,6 +543,7 @@ export default class UserView extends React.Component {
 
     constructor(props) {
         super(props);
+        _.bindAll(this, 'handleNotificationEnrollmentChange');
         // `isAdmin` gates the cosmetic admin control panel only. It is resolved
         // after mount (JWT groups live in localStorage, absent during SSR) so
         // the first client render matches the server render for everyone and
