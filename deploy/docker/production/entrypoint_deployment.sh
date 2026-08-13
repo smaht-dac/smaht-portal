@@ -1,8 +1,41 @@
 #!/bin/bash
+# NOTE: entrypoint.sh dispatches with `exec sh entrypoint_deployment.sh`, so this
+# runs under /bin/sh (dash on the Debian base) and the shebang above is NOT what
+# executes it. Keep everything in this file POSIX sh - no bashisms - and lint with
+# `shellcheck -s sh`.
 
 set -e
 
 echo "Running a SMAHT deployment on the given environment"
+
+# ---------------------------------------------------------------------------
+# Optional Splunk Cloud HEC connectivity diagnostic.
+#
+# Runs FIRST so the captain sees the network verdict immediately, even if a later
+# deployment step fails, and because it needs nothing from production.ini - only
+# the ECS task role, which is already available.
+#
+# OPT-IN: does nothing at all unless SPLUNK_HEC_CONNECTIVITY_TEST=true. On the
+# success path it sends exactly ONE synthetic event, so ordinary deployments must
+# not (and do not) trigger it.
+#
+# NON-FATAL BY DESIGN: this is a diagnostic, not a gate. `set -e` is active, so
+# the call is wrapped in an `if` (exempt from -e) and the exit status is only
+# reported - a failed probe must never abort a production deployment. That is
+# deliberately the OPPOSITE of setup_nginx_tls.sh, which fails closed because
+# serving plaintext when TLS was requested is a security regression; failing to
+# reach a test HEC endpoint is not.
+#
+# The script logs only timestamped, bounded, sanitized lines; the HEC token is
+# fetched from Secrets Manager at runtime and is never logged, never placed on a
+# command line, and never exported into this shell. See the module docstring in
+# deploy/docker/production/hec_connectivity_check.py for the env contract.
+# ---------------------------------------------------------------------------
+if poetry run python -m hec_connectivity_check; then
+  echo "HEC connectivity check finished (exit 0); see the [hec-check] RESULT line above"
+else
+  echo "HEC connectivity check reported exit $? (non-fatal); see the [hec-check] RESULT line above"
+fi
 
 # Run assume_identity.py to access the desired deployment configuration from
 # secrets manager - this builds production.ini

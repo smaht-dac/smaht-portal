@@ -216,6 +216,11 @@ COPY --chown=nginx:nginx deploy/docker/production/entrypoint_ingester.sh .
 COPY --chown=nginx:nginx deploy/docker/production/supervisord.conf .
 COPY --chown=nginx:nginx deploy/docker/production/assume_identity.py .
 COPY --chown=nginx:nginx deploy/docker/production/setup_nginx_tls.sh .
+# Opt-in Splunk HEC connectivity diagnostic, run by entrypoint_deployment.sh as
+# `python -m hec_connectivity_check` from this WORKDIR (same pattern as
+# assume_identity). It uses only the stdlib plus boto3 (already an app dependency)
+# because curl exists in the builder stage ONLY and is not in this runtime image.
+COPY --chown=nginx:nginx deploy/docker/production/hec_connectivity_check.py .
 
 # Create the runtime-writable files (populated at startup) and make entrypoints
 # executable - all in one layer.
@@ -223,7 +228,7 @@ RUN touch production.ini session-secret.b64 supervisord.log supervisord.sock sup
     chown nginx:nginx production.ini session-secret.b64 supervisord.log supervisord.sock supervisord.pid && \
     chmod +x entrypoint.sh entrypoint_local.sh entrypoint_portal.sh \
              entrypoint_deployment.sh entrypoint_indexer.sh entrypoint_ingester.sh \
-             assume_identity.py setup_nginx_tls.sh
+             assume_identity.py setup_nginx_tls.sh hec_connectivity_check.py
 
 # 8000 = plain HTTP (TLS disabled); 8443 = HTTPS for the LB->ECS TLS path when
 # NGINX_TLS_ENABLED=true. The ECS task definition / LB target group selects which
