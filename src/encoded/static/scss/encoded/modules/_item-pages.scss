@@ -3401,6 +3401,26 @@ File, Donor, and Publication Overview Styles
                     }
                 }
 
+                .tissue-aliquot-layout-note {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 8px;
+                    margin: 0 24px 12px;
+                    padding: 10px 14px;
+                    border-radius: 8px;
+                    background-color: #f4f8fb;
+                    border: 1px solid #dbe6ef;
+                    color: #4e6884;
+                    font-size: 0.8125rem;
+                    line-height: 1.4;
+
+                    i {
+                        margin-top: 2px;
+                        color: #6c8bab;
+                        flex-shrink: 0;
+                    }
+                }
+
                 .tissue-aliquot-body {
                     flex: 1;
                     display: flex;

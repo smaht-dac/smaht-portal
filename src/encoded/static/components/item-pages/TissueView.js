@@ -24,6 +24,8 @@ import {
     getAliquotNumberFromExternalId,
     getTissueIconSrc,
     getGccFilesBrowseHref,
+    getTissueAliquotDepthCm,
+    getAliquotLayoutNote,
 } from './components/tissue-overview/helpers';
 
 export default class TissueOverview extends DefaultItemView {
@@ -98,6 +100,8 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // ontology term via uberon_id when available.
     const targetTissueValue = tissue_type || uberon_id || null;
     const tissueIconSrc = getTissueIconSrc(tissue_type || getDisplayText(uberon_id));
+    const aliquotDepthCm = getTissueAliquotDepthCm(tissue_type || getDisplayText(uberon_id));
+    const aliquotLayoutNote = getAliquotLayoutNote(tissue_type || getDisplayText(uberon_id));
     const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
     // `category` is a real backend-calculated field (item_utils/tissue.py) --
@@ -528,6 +532,12 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                 </div>
                             ) : null}
                         </div>
+                        {aliquotLayoutNote && !nonSolidSpecimenType ? (
+                            <p className="tissue-aliquot-layout-note">
+                                <i className="icon icon-info-circle fas" />
+                                {aliquotLayoutNote}
+                            </p>
+                        ) : null}
                         <div
                             className={
                                 'tissue-aliquot-body' +
@@ -557,9 +567,9 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                     slices={solidAliquotSlices}
                                     dimensions={{
                                         heightCm: 1,
-                                        depthCm: 1.5,
+                                        depthCm: aliquotDepthCm,
                                         heightLabel: '1 cm',
-                                        depthLabel: '1.5 cm',
+                                        depthLabel: `${aliquotDepthCm} cm`,
                                     }}
                                     idPrefix={aliquotIdPrefix}
                                     showSliceLabels={false}

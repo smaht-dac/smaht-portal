@@ -184,9 +184,18 @@ export default function AliquotVisualization({
         handleHidePopover();
     }, [slices]);
 
+    // Real aliquot block depth varies by tissue (SMaHT Tissue Recovery
+    // Schema Fig. 2a: Lung/Liver ~3cm, bivalved organs ~1cm, everything
+    // else ~1.5cm) -- scale the isometric depth edges by depthCm relative
+    // to that 1.5cm baseline so the drawn box's proportions actually
+    // reflect the real block, not just the printed "Depth" label.
+    const { heightCm = 1, depthCm = 1.5 } = dimensions || {};
+    const DEFAULT_DEPTH_CM = 1.5;
+    const depthScale = depthCm / DEFAULT_DEPTH_CM;
+
     const heightPx = 172;
-    const depthX = 72;
-    const depthY = 58;
+    const depthX = 72 * depthScale;
+    const depthY = 58 * depthScale;
     const sliceBase = 86;
     const typeCounters = { pink: 0, yellow: 0 };
     const normalizedSlices = slices.map((slice) => {
@@ -230,8 +239,6 @@ export default function AliquotVisualization({
     // instead of being stretched to fill a container).
     const viewBoxHeight = heightPx + depthY + 32;
     const {
-        heightCm = 1,
-        depthCm = 1.5,
         widthLabel = `${totalWidthCm} cm`,
         heightLabel = `${heightCm} cm`,
         depthLabel = `${depthCm} cm`,

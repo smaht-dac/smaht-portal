@@ -115,6 +115,74 @@ export const getTissueIconSrc = (tissueTypeValue) => {
     return filename ? `/static/img/anatomy-icons/${encodeURIComponent(filename)}` : null;
 };
 
+// The physical aliquot block's real depth (front-to-back cm) isn't uniform
+// across tissues (SMaHT Tissue Recovery Schema, Fig. 2a): Lung/Liver blocks
+// are recovered noticeably deeper (medial+lateral halves in one block) than
+// the standard strip tissues, while bivalved organs (Adrenal, Heart,
+// Gonads) are cut into small anterior/posterior cubes instead. Keyed by the
+// same internal tissue codes as ANATOMY_ICON_BY_INTERNAL_CODE above.
+// DEFAULT_ALIQUOT_DEPTH_CM covers the "Muscle, Skin, Colon, Aorta,
+// Esophagus" strip group and every Brain region (both 1.5cm per Fig. 2).
+const DEFAULT_ALIQUOT_DEPTH_CM = 1.5;
+const ALIQUOT_DEPTH_CM_BY_INTERNAL_CODE = {
+    LUNG: 3,
+    LIVR: 3,
+    ADGL: 1,
+    ADGR: 1,
+    HART: 1,
+    TESL: 1,
+    TESR: 1,
+    OVAL: 1,
+    OVAR: 1,
+};
+
+// tissue_type is a "<TPC code> - <name>" string (e.g. "3Q - Lung"); resolve
+// it to that tissue's real aliquot block depth in cm, falling back to the
+// standard strip-tissue depth for anything not called out above (including
+// tissue_type values with no TPC code prefix, e.g. plain "Brain").
+export const getTissueAliquotDepthCm = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return DEFAULT_ALIQUOT_DEPTH_CM;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    return (internalCode && ALIQUOT_DEPTH_CM_BY_INTERNAL_CODE[internalCode]) || DEFAULT_ALIQUOT_DEPTH_CM;
+};
+
+// Per Fig. 2a, Adrenal/Heart/Gonads are physically bivalved into Anterior
+// and Posterior halves *before* aliquotting -- i.e. the real block is two
+// separate small pieces, not one continuous strip. Lung/Liver blocks are
+// instead cut into medial and lateral portions. Neither half is captured
+// anywhere in the data model today (no field on TissueSample/Tissue, and no
+// reliable naming convention in external_id/description/submitted_id --
+// confirmed by inspecting real Adrenal/Heart/Testis fixture records, whose
+// only laterality-like text is organ-side Left/Right, a different concept).
+// So real TissueSamples can't be split into their actual half -- this note
+// says so explicitly instead of drawing a fabricated split.
+const BIVALVED_NOTE =
+    'This organ is recovered as two separate pieces (Anterior and Posterior halves) before aliquotting. Individual aliquots below aren’t linked to a specific half in the current data.';
+const MEDIAL_LATERAL_NOTE =
+    'This tissue block is recovered with medial and lateral portions. Individual aliquots below aren’t linked to a specific portion in the current data.';
+const ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE = {
+    LUNG: MEDIAL_LATERAL_NOTE,
+    LIVR: MEDIAL_LATERAL_NOTE,
+    ADGL: BIVALVED_NOTE,
+    ADGR: BIVALVED_NOTE,
+    HART: BIVALVED_NOTE,
+    TESL: BIVALVED_NOTE,
+    TESR: BIVALVED_NOTE,
+    OVAL: BIVALVED_NOTE,
+    OVAR: BIVALVED_NOTE,
+};
+
+// Returns an explanatory note for tissues whose real recovery/aliquotting
+// layout isn't a single continuous strip (see above), or null for tissues
+// where the single-strip rendering already matches reality.
+export const getAliquotLayoutNote = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return null;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    return (internalCode && ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE[internalCode]) || null;
+};
+
 export const formatYesNo = (value) => {
     if (value === null || typeof value === 'undefined') return '-';
     return value ? 'Yes' : 'No';
