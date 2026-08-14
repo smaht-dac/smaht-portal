@@ -3605,6 +3605,22 @@ File, Donor, and Publication Overview Styles
                     }
                 }
             }
+
+            // Only the Files stat is ever rendered as an <a> (when a
+            // reliable, count-matching Browse link is available) -- other
+            // stats stay plain <div>s, so this only ever touches that one
+            // card.
+            a.donor-statistic.files {
+                text-decoration: none;
+                cursor: pointer;
+                transition: box-shadow 0.15s ease, border-color 0.15s ease;
+
+                &:hover,
+                &:focus-visible {
+                    border-color: #a9c6e6;
+                    box-shadow: 0 0 0 3px rgba(70, 119, 169, 0.15);
+                }
+            }
         }
 
         .tabs-container {

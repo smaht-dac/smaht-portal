@@ -252,6 +252,27 @@ export default function AliquotVisualization({
         : null;
     const selectedFrozenWells =
         selectedSlice?.frozenCoreWells || DEFAULT_FROZEN_CORE_WELLS;
+    // Every well submitted by the same GCC (the common case -- one physical
+    // aliquot is usually processed by a single center) collapses into one
+    // group instead of repeating that GCC's name once per well, which reads
+    // as noisy duplication once an aliquot has more than a couple of wells
+    // (real data has seen 6 wells under one TPC/GCC). Grouped by center
+    // regardless of well order -- wells from the same center aren't always
+    // adjacent (real data has seen BROAD/UWSC/BROAD/UWSC interleaved).
+    const selectedFrozenWellGroups = [];
+    const groupIndexByKey = new Map();
+    selectedFrozenWells.forEach((wellId) => {
+        const submissionCenter =
+            selectedSlice?.frozenCoreWellSubmissionCenters?.[wellId] || null;
+        const filesHref = selectedSlice?.frozenCoreWellFilesHrefs?.[wellId] || null;
+        const key = `${submissionCenter || ''}|${filesHref || ''}`;
+        if (groupIndexByKey.has(key)) {
+            selectedFrozenWellGroups[groupIndexByKey.get(key)].wells.push(wellId);
+        } else {
+            groupIndexByKey.set(key, selectedFrozenWellGroups.length);
+            selectedFrozenWellGroups.push({ submissionCenter, filesHref, wells: [wellId] });
+        }
+    });
     const topDepthOffset = 12;
     const rightOffset = -12;
     const topDimensionLine = offsetLine(
@@ -509,31 +530,35 @@ export default function AliquotVisualization({
                                 </p>
                                 {selectedSlice?.type === 'yellow' && selectedFrozenWells.length > 0 ? (
                                     <div className="aliquot-popover-cores">
-                                        {selectedFrozenWells.map((wellId, wellIndex) => (
-                                            <div
-                                                className="aliquot-popover-row"
-                                                key={wellId}>
-                                                <span>
-                                                    {selectedSlice?.filesHref ? (
-                                                        <a
-                                                            href={selectedSlice.filesHref}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            title="View this GCC's files for this donor & tissue">
-                                                            {selectedSlice?.submissionCenter ||
-                                                                `GCC${wellIndex + 1}`}
-                                                        </a>
-                                                    ) : (
-                                                        selectedSlice?.submissionCenter ||
-                                                        `GCC${wellIndex + 1}`
-                                                    )}
-                                                </span>
-                                                <strong>
-                                                    {selectedAliquotId}
-                                                    {wellId}
-                                                </strong>
-                                            </div>
-                                        ))}
+                                        {selectedFrozenWellGroups.flatMap((group, groupIndex) =>
+                                            group.wells.map((wellId, wellIndexInGroup) => (
+                                                <div
+                                                    className="aliquot-popover-row"
+                                                    key={wellId}>
+                                                    <span>
+                                                        {wellIndexInGroup === 0 ? (
+                                                            group.filesHref ? (
+                                                                <a
+                                                                    href={group.filesHref}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    title="View this GCC's files for this donor & tissue">
+                                                                    {group.submissionCenter ||
+                                                                        `GCC${groupIndex + 1}`}
+                                                                </a>
+                                                            ) : (
+                                                                group.submissionCenter ||
+                                                                `GCC${groupIndex + 1}`
+                                                            )
+                                                        ) : null}
+                                                    </span>
+                                                    <strong>
+                                                        {selectedAliquotId}
+                                                        {wellId}
+                                                    </strong>
+                                                </div>
+                                            ))
+                                        )}
                                     </div>
                                 ) : null}
                                 <div className="aliquot-popover-row">
@@ -687,8 +712,8 @@ AliquotVisualization.propTypes = {
                 })
             ),
             pathologyReports: PropTypes.arrayOf(PATHOLOGY_REPORT_PROPTYPE),
-            submissionCenter: PropTypes.string,
-            filesHref: PropTypes.string,
+            frozenCoreWellSubmissionCenters: PropTypes.objectOf(PropTypes.string),
+            frozenCoreWellFilesHrefs: PropTypes.objectOf(PropTypes.string),
             idPrefix: PropTypes.string,
         })
     ).isRequired,

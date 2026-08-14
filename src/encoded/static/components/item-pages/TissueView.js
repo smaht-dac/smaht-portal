@@ -24,6 +24,7 @@ import {
     getAliquotNumberFromExternalId,
     getTissueIconSrc,
     getGccFilesBrowseHref,
+    getTissueFilesBrowseHref,
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
 } from './components/tissue-overview/helpers';
@@ -118,6 +119,12 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
         () => tissue_type || uberon_id?.display_title || null,
         [tissue_type, uberon_id]
     );
+    // Mirrors the fileCount fetch below exactly (same donor + tissue_type
+    // filters, no GCC filter) so this always matches the "Files: N" stat.
+    const filesBrowseHref = getTissueFilesBrowseHref({
+        donorDisplayTitle: donor?.display_title,
+        tissueTypeValue: tissueMatrixFilterValue,
+    });
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
     const [totalCoverage, setTotalCoverage] = useState(0);
@@ -258,8 +265,14 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     existing.pathologyReports = existing.pathologyReports.concat(
                         sample.pathology_reports || []
                     );
-                    if (!existing.submissionCenter) {
-                        existing.submissionCenter =
+                    // Per-well, not per-slice -- wells merged into the same
+                    // aliquot box can genuinely have different submitting
+                    // GCCs (confirmed against real data: donor SMHT001's
+                    // "3AM" aliquot 001 has wells submitted by both BROAD GCC
+                    // and UWSC GCC), so a single shared value would show the
+                    // wrong center for some rows.
+                    if (coreWell) {
+                        existing.frozenCoreWellSubmissionCenters[coreWell] =
                             sample.submission_centers?.[0]?.display_title || null;
                     }
                     return;
@@ -290,24 +303,33 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     // exists to give Frozen/Fresh samples a path to this same
                     // data through their linked Fixed sample(s).
                     pathologyReports: sample.pathology_reports || [],
-                    // The real submitting institution (e.g. "BROAD GCC",
-                    // "UWSC GCC") -- shown instead of a made-up "GCC1"/"GCC2"
-                    // sequence number.
-                    submissionCenter: sample.submission_centers?.[0]?.display_title || null,
+                    // The real submitting institution per well (e.g. "BROAD
+                    // GCC", "UWSC GCC") -- keyed by well since merged wells
+                    // can have different submitting centers (see above).
+                    frozenCoreWellSubmissionCenters: coreWell
+                        ? { [coreWell]: sample.submission_centers?.[0]?.display_title || null }
+                        : {},
                 };
                 realSlices.push(slice);
                 if (groupKey) slicesByGroupKey.set(groupKey, slice);
             });
         if (realSlices.length === 0) return sampleAliquotSlicesFallback;
-        // Links each row's GCC to that center's files for this donor+tissue
-        // (verified facets -- see getGccFilesBrowseHref) -- not to this
-        // specific well, since File's own sample-level field isn't faceted.
+        // Links each row's own GCC to that center's files for this
+        // donor+tissue (verified facets -- see getGccFilesBrowseHref) -- not
+        // to this specific well, since File's own sample-level field isn't
+        // faceted. Computed per well (not once per slice), since merged
+        // wells can have different submitting centers.
         realSlices.forEach((slice) => {
-            slice.filesHref = getGccFilesBrowseHref({
-                donorDisplayTitle: selectedDonorDisplayTitle,
-                tissueTypeValue: tissueMatrixFilterValue,
-                submissionCenter: slice.submissionCenter,
-            });
+            slice.frozenCoreWellFilesHrefs = {};
+            Object.entries(slice.frozenCoreWellSubmissionCenters).forEach(
+                ([wellId, submissionCenter]) => {
+                    slice.frozenCoreWellFilesHrefs[wellId] = getGccFilesBrowseHref({
+                        donorDisplayTitle: selectedDonorDisplayTitle,
+                        tissueTypeValue: tissueMatrixFilterValue,
+                        submissionCenter,
+                    });
+                }
+            );
         });
         return realSlices;
     }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
@@ -486,18 +508,36 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                         )}
                                     </div>
                                 </div>
-                                <div className="donor-statistic files d-flex flex-column p-2 gap-2">
-                                    <div className="donor-statistic-label text-center">
-                                        <i className="icon icon-file fas"></i>Files
-                                    </div>
-                                    <div className="donor-statistic-value text-center">
-                                        {!isLoading ? (
-                                            <span>{fileCount}</span>
-                                        ) : (
-                                            <i className="icon icon-circle-notch icon-spin fas" />
-                                        )}
-                                    </div>
-                                </div>
+                                {(() => {
+                                    const filesStatContent = (
+                                        <>
+                                            <div className="donor-statistic-label text-center">
+                                                <i className="icon icon-file fas"></i>Files
+                                            </div>
+                                            <div className="donor-statistic-value text-center">
+                                                {!isLoading ? (
+                                                    <span>{fileCount}</span>
+                                                ) : (
+                                                    <i className="icon icon-circle-notch icon-spin fas" />
+                                                )}
+                                            </div>
+                                        </>
+                                    );
+                                    return !isLoading && fileCount > 0 && filesBrowseHref ? (
+                                        <a
+                                            className="donor-statistic files d-flex flex-column p-2 gap-2"
+                                            href={filesBrowseHref}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title="View all files for this donor & tissue">
+                                            {filesStatContent}
+                                        </a>
+                                    ) : (
+                                        <div className="donor-statistic files d-flex flex-column p-2 gap-2">
+                                            {filesStatContent}
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>

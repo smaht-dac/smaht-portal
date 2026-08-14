@@ -305,8 +305,18 @@ export function getAliquotNumberFromExternalId(externalId) {
 // which isn't guaranteed to be the same center that submitted this
 // TissueSample -- so this is "this GCC's files for this donor+tissue",
 // not strictly "this well's files".
+//
+// TissueSample.submission_centers can be a TPC (Tissue Procurement Center,
+// e.g. "NDRI TPC") or a TTD/DAC/OC-suffixed center that only ever submits
+// Tissue/TissueSample items, never File items -- confirmed against real
+// submission_center fixture data, where every center's title consistently
+// ends in its role suffix (GCC/TPC/TTD/DAC/OC). Filtering File search by
+// one of those would structurally always return zero results, so only
+// build the link for GCC-suffixed centers, which do generate files (e.g.
+// "BCM GCC").
 export const getGccFilesBrowseHref = ({ donorDisplayTitle, tissueTypeValue, submissionCenter }) => {
     if (!donorDisplayTitle || !tissueTypeValue || !submissionCenter) return null;
+    if (!submissionCenter.trim().endsWith('GCC')) return null;
     const queryParts = [
         'type=File',
         BROWSE_STATUS_FILTERS,
@@ -315,5 +325,29 @@ export const getGccFilesBrowseHref = ({ donorDisplayTitle, tissueTypeValue, subm
         `sample_summary.tissues=${encodeURIComponent(tissueTypeValue)}`,
         `submission_centers.display_title=${encodeURIComponent(submissionCenter)}`,
     ];
+    return `/browse/?${queryParts.join('&')}`;
+};
+
+// Unfiltered-by-GCC counterpart to getGccFilesBrowseHref, for the page's
+// own "Files: N" stat -- most real files trace back to a downstream
+// processing/analysis center (e.g. "HMS DAC"), not the GCC that submitted
+// the originating TissueSample, so per-well GCC links can only ever surface
+// a fraction of a tissue's files (confirmed against real fixture data: 10
+// of 12 files for one donor+tissue combination were HMS DAC, only 2 were
+// the aliquot's own submitting GCC). This mirrors exactly the donor+tissue
+// query each page's own file-count fetch already uses (TissueView.js adds
+// donorDisplayTitle, TissueTypeView.js's is tissue-only across every donor
+// sharing the tissue_type), so the count and the link always agree.
+// donorDisplayTitle is optional -- omit it to match TissueTypeView.js's
+// donor-independent count.
+export const getTissueFilesBrowseHref = ({ donorDisplayTitle, tissueTypeValue }) => {
+    if (!tissueTypeValue) return null;
+    const queryParts = [
+        'type=File',
+        BROWSE_STATUS_FILTERS,
+        'dataset!=No+value',
+        donorDisplayTitle ? `donors.display_title=${encodeURIComponent(donorDisplayTitle)}` : null,
+        `sample_summary.tissues=${encodeURIComponent(tissueTypeValue)}`,
+    ].filter(Boolean);
     return `/browse/?${queryParts.join('&')}`;
 };
