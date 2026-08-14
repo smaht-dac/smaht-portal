@@ -275,6 +275,11 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // instead of this spinner (see render below).
     const aliquotSamplesLoading = donorsLoading || (!!selectedDonorUuid && tissueSamples === null);
     const showDonorPrompt = !donorsLoading && donors.length > 0 && !selectedDonorUuid;
+    // Distinct from showDonorPrompt (donors loaded, none picked yet) --
+    // this is the permission-filtered donors search coming back empty
+    // (e.g. logged out), which must not fall through to the illustrative
+    // fallback diagram as if it were real data.
+    const showNoDonorData = !donorsLoading && donors.length === 0;
 
     // `session` in the dependency array (here and below) so logging in/out
     // re-fetches -- permission-filtered results can change without `href`
@@ -465,7 +470,11 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                 'tissue-aliquot-body' +
                                 (samplesUpdating && !aliquotSamplesLoading ? ' is-updating' : '')
                             }>
-                            {showDonorPrompt ? (
+                            {showNoDonorData ? (
+                                <div className="tissue-aliquot-prompt">
+                                    <p>No donor data available for this tissue type.</p>
+                                </div>
+                            ) : showDonorPrompt ? (
                                 <div className="tissue-aliquot-prompt">
                                     <i className="icon icon-arrow-up fas" />
                                     <p>Select a donor above to view its aliquot layout.</p>

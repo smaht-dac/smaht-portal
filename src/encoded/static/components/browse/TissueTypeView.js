@@ -241,6 +241,11 @@ export default function TissueTypeView({ context = {}, href, session }) {
 
     const aliquotSamplesLoading = !!selectedDonorUuid && tissueSamples === null;
     const showDonorPrompt = donors.length > 0 && !selectedDonorUuid;
+    // Distinct from showDonorPrompt (donors loaded, none picked yet) --
+    // this is the permission-filtered donors search coming back empty
+    // (e.g. logged out), which must not fall through to the illustrative
+    // fallback diagram as if it were real data.
+    const showNoDonorData = !isLoading && donors.length === 0;
 
     // Not filtered by any single donor -- this page covers every donor
     // sharing this tissue_type (see `donors` above), so the Files stat
@@ -398,7 +403,11 @@ export default function TissueTypeView({ context = {}, href, session }) {
                                 'tissue-aliquot-body' +
                                 (samplesUpdating && !aliquotSamplesLoading ? ' is-updating' : '')
                             }>
-                            {showDonorPrompt ? (
+                            {showNoDonorData ? (
+                                <div className="tissue-aliquot-prompt">
+                                    <p>No donor data available for this tissue type.</p>
+                                </div>
+                            ) : showDonorPrompt ? (
                                 <div className="tissue-aliquot-prompt">
                                     <i className="icon icon-arrow-up fas" />
                                     <p>Select a donor above to view its aliquot layout.</p>
