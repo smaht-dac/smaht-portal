@@ -213,3 +213,16 @@ export function getCoreWellFromExternalId(externalId) {
     const match = externalId ? externalId.match(CORE_WELL_SUFFIX_REGEX) : null;
     return match ? match[1] : null;
 }
+
+// The 3-digit aliquot number is shared by every Core TissueSample cut from
+// the same physical Frozen aliquot, just at a different well
+// (item_utils/tissue_sample.py's TISSUE_ALIQUOT_REGEX "-NNN$" is that same
+// number without a well suffix, CORE_REGEX "-NNN[A-F][1-6]$" is one Core
+// derived from it) -- grouping real slices by idPrefix + this number is how
+// multiple Core samples end up as one slice box with several highlighted
+// wells instead of one duplicate box per well.
+export const ALIQUOT_NUMBER_REGEX = /-([0-9]{3})(?:[A-F][1-6])?$/;
+export function getAliquotNumberFromExternalId(externalId) {
+    const match = externalId ? externalId.match(ALIQUOT_NUMBER_REGEX) : null;
+    return match ? match[1] : null;
+}

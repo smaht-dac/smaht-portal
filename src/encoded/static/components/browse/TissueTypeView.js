@@ -24,6 +24,7 @@ import {
     getTissueKitIdFromExternalId,
     sampleNonSolidAliquots,
     getCoreWellFromExternalId,
+    getAliquotNumberFromExternalId,
     getTissueIconSrc,
 } from '../item-pages/components/tissue-overview/helpers';
 
@@ -211,21 +212,55 @@ export default function TissueTypeView({ context = {}, href, session }) {
     // if none exist yet, fall back to the illustrative demo set so the panel
     // isn't empty.
     const solidAliquotSlices = useMemo(() => {
-        const realSlices = (tissueSamples || [])
+        // Multiple Core TissueSamples (one per well) can be cut from the
+        // same physical Frozen aliquot -- group those by idPrefix + aliquot
+        // number into one slice box with several highlighted wells instead
+        // of one duplicate box per well (see getAliquotNumberFromExternalId).
+        const slicesByGroupKey = new Map();
+        const realSlices = [];
+        (tissueSamples || [])
             .filter((sample) => sample.preservation_type !== 'Fresh')
-            .map((sample) => {
+            .forEach((sample) => {
+                const isFixed = sample.preservation_type === 'Fixed';
                 const coreWell = getCoreWellFromExternalId(sample.external_id);
-                return {
+                const idPrefix = getTissueKitIdFromExternalId(sample.external_id);
+                const aliquotNumber = !isFixed
+                    ? getAliquotNumberFromExternalId(sample.external_id)
+                    : null;
+                const groupKey = aliquotNumber ? `${idPrefix}-${aliquotNumber}` : null;
+                const existing = groupKey ? slicesByGroupKey.get(groupKey) : null;
+                if (existing) {
+                    if (coreWell && !existing.frozenCoreWells.includes(coreWell)) {
+                        existing.frozenCoreWells.push(coreWell);
+                    }
+                    existing.associatedPathologyReports =
+                        existing.associatedPathologyReports.concat(
+                            sample.associated_pathology_reports || []
+                        );
+                    existing.pathologyReports = existing.pathologyReports.concat(
+                        sample.pathology_reports || []
+                    );
+                    if (!existing.submissionCenter) {
+                        existing.submissionCenter =
+                            sample.submission_centers?.[0]?.display_title || null;
+                    }
+                    return;
+                }
+                const slice = {
                     id: sample.uuid,
-                    type: sample.preservation_type === 'Fixed' ? 'pink' : 'yellow',
-                    widthCm: sample.preservation_type === 'Fixed' ? 0.5 : 1,
-                    description: sample.external_id || sample.accession || undefined,
-                    idPrefix: getTissueKitIdFromExternalId(sample.external_id),
+                    type: isFixed ? 'pink' : 'yellow',
+                    widthCm: isFixed ? 0.5 : 1,
+                    description: groupKey
+                        ? `${idPrefix}-${aliquotNumber}`
+                        : sample.external_id || sample.accession || undefined,
+                    idPrefix,
                     frozenCoreWells: coreWell ? [coreWell] : [],
                     associatedPathologyReports: sample.associated_pathology_reports || [],
                     pathologyReports: sample.pathology_reports || [],
                     submissionCenter: sample.submission_centers?.[0]?.display_title || null,
                 };
+                realSlices.push(slice);
+                if (groupKey) slicesByGroupKey.set(groupKey, slice);
             });
         return realSlices.length > 0 ? realSlices : sampleAliquotSlicesFallback;
     }, [tissueSamples]);

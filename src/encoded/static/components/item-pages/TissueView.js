@@ -21,6 +21,7 @@ import {
     getTissueKitIdFromExternalId,
     sampleNonSolidAliquots,
     getCoreWellFromExternalId,
+    getAliquotNumberFromExternalId,
     getTissueIconSrc,
 } from './components/tissue-overview/helpers';
 
@@ -218,27 +219,63 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
     // if none exist yet, fall back to the illustrative demo set so the panel
     // isn't empty.
     const solidAliquotSlices = useMemo(() => {
-        const realSlices = (tissueSamples || [])
+        // Multiple Core TissueSamples (one per well) can be cut from the
+        // same physical Frozen aliquot -- group those by idPrefix + aliquot
+        // number into one slice box with several highlighted wells instead
+        // of one duplicate box per well (see getAliquotNumberFromExternalId).
+        const slicesByGroupKey = new Map();
+        const realSlices = [];
+        (tissueSamples || [])
             .filter((sample) => sample.preservation_type !== 'Fresh')
-            .map((sample) => {
+            .forEach((sample) => {
+                const isFixed = sample.preservation_type === 'Fixed';
                 const coreWell = getCoreWellFromExternalId(sample.external_id);
-                return {
+                // This slice's own real "{donor}-{protocol}" -- Fixed and
+                // Frozen siblings have different protocol codes despite
+                // sharing one tissue_type, so each slice needs its own.
+                const idPrefix = getTissueKitIdFromExternalId(sample.external_id);
+                const aliquotNumber = !isFixed
+                    ? getAliquotNumberFromExternalId(sample.external_id)
+                    : null;
+                const groupKey = aliquotNumber ? `${idPrefix}-${aliquotNumber}` : null;
+                const existing = groupKey ? slicesByGroupKey.get(groupKey) : null;
+                if (existing) {
+                    if (coreWell && !existing.frozenCoreWells.includes(coreWell)) {
+                        existing.frozenCoreWells.push(coreWell);
+                    }
+                    // Backend-computed (types/tissue_sample.py): chains this
+                    // Frozen/Fresh sample's `linked_fixed_samples` through
+                    // each linked Fixed sample's own `pathology_reports`.
+                    existing.associatedPathologyReports =
+                        existing.associatedPathologyReports.concat(
+                            sample.associated_pathology_reports || []
+                        );
+                    existing.pathologyReports = existing.pathologyReports.concat(
+                        sample.pathology_reports || []
+                    );
+                    if (!existing.submissionCenter) {
+                        existing.submissionCenter =
+                            sample.submission_centers?.[0]?.display_title || null;
+                    }
+                    return;
+                }
+                const slice = {
                     id: sample.uuid,
-                    type: sample.preservation_type === 'Fixed' ? 'pink' : 'yellow',
-                    widthCm: sample.preservation_type === 'Fixed' ? 0.5 : 1,
-                    description: sample.external_id || sample.accession || undefined,
-                    // This slice's own real "{donor}-{protocol}" -- Fixed and
-                    // Frozen siblings have different protocol codes despite
-                    // sharing one tissue_type, so each slice needs its own.
-                    idPrefix: getTissueKitIdFromExternalId(sample.external_id),
+                    type: isFixed ? 'pink' : 'yellow',
+                    widthCm: isFixed ? 0.5 : 1,
+                    // The grouped aliquot's own id (no well suffix) once more
+                    // than one well shares it -- a single sample's full
+                    // external_id (with well suffix) would misleadingly
+                    // describe the whole box as just its first well.
+                    description: groupKey
+                        ? `${idPrefix}-${aliquotNumber}`
+                        : sample.external_id || sample.accession || undefined,
+                    idPrefix,
                     // Explicit [] (not undefined) for a real Frozen sample with
                     // no Core suffix -- so AliquotVisualization's `|| DEFAULT`
                     // fallback (meant only for illustrative demo slices) does
                     // not kick in and invent a well this real sample doesn't have.
                     frozenCoreWells: coreWell ? [coreWell] : [],
-                    // Backend-computed (types/tissue_sample.py): chains this
-                    // Frozen/Fresh sample's `linked_fixed_samples` through
-                    // each linked Fixed sample's own `pathology_reports`.
                     // Only Frozen/Fresh samples have this; Fixed samples
                     // never will, so this is naturally empty for pink slices.
                     associatedPathologyReports: sample.associated_pathology_reports || [],
@@ -253,6 +290,8 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                     // sequence number.
                     submissionCenter: sample.submission_centers?.[0]?.display_title || null,
                 };
+                realSlices.push(slice);
+                if (groupKey) slicesByGroupKey.set(groupKey, slice);
             });
         return realSlices.length > 0 ? realSlices : sampleAliquotSlicesFallback;
     }, [tissueSamples]);
