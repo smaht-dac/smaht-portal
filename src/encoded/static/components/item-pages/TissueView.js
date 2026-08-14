@@ -450,9 +450,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                         }
                                         value={selectedDonorUuid || ''}
                                         onChange={(e) => setSelectedDonorUuid(e.target.value || null)}>
-                                        <option value="" disabled hidden>
-                                            Select a donor…
-                                        </option>
+                                        <option value="">Select a donor…</option>
                                         {donors.map(({ donor: d }) => (
                                             <option key={d.uuid} value={d.uuid}>
                                                 {getDisplayText(d)}
