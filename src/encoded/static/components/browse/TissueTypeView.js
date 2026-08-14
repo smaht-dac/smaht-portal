@@ -24,6 +24,7 @@ import {
     getTissueKitIdFromExternalId,
     sampleNonSolidAliquots,
     getCoreWellFromExternalId,
+    getTissueIconSrc,
 } from '../item-pages/components/tissue-overview/helpers';
 
 // Standalone page for /tissue-overview/?tissue_type=<value>, registered
@@ -116,6 +117,7 @@ export default function TissueTypeView({ context = {}, href, session }) {
     // ontology term via uberon_id when available.
     const targetTissueValue = tissue_type || uberon_id || null;
     const targetTissueHref = uberon_id ? uberonHref : null;
+    const tissueIconSrc = getTissueIconSrc(tissue_type || getDisplayText(uberon_id));
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
     // `category` is a real backend-calculated field (item_utils/tissue.py) --
     // "Clinically Accessible" covers exactly blood and buccal swab tissues.
@@ -303,7 +305,17 @@ export default function TissueTypeView({ context = {}, href, session }) {
             <div className="view-content">
                 <div className="tissue-summary-header">
                     <div className="tissue-summary-header-icon">
-                        <i className="icon icon-lungs fas"></i>
+                        {tissueIconSrc ? (
+                            <i
+                                className="tissue-icon-mask"
+                                style={{
+                                    WebkitMaskImage: `url(${tissueIconSrc})`,
+                                    maskImage: `url(${tissueIconSrc})`,
+                                }}
+                            />
+                        ) : (
+                            <i className="icon icon-lungs fas"></i>
+                        )}
                     </div>
                     <div className="tissue-summary-header-content">
                         <h1 className="header-text fw-semibold">

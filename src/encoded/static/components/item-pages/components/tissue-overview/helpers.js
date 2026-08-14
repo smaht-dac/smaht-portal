@@ -1,6 +1,7 @@
 'use strict';
 
 import React from 'react';
+import { getTissueInternalCodeFromFacetTerm } from '../../../util/data';
 
 // Shared between the legacy item-keyed TissueView.js (/tissues/<uuid>/'s
 // "Tissue Overview" tab) and the type-keyed TissueTypeView.js
@@ -52,6 +53,65 @@ export const getDisplayText = (value) => {
         if (value['@id']) return value['@id'];
     }
     return String(value);
+};
+
+// Keyed by data.js's internal tissue codes (e.g. 'LUNG', 'SKSE') so this
+// stays in sync with the same TPC-code/tissue-name resolution used for
+// facet categorization, rather than re-deriving tissue_type parsing here.
+const ANATOMY_ICON_BY_INTERNAL_CODE = {
+    BLOO: 'Blood.svg',
+    BUCC: 'Buccal Swab.svg',
+    ESOP: 'Esophagus.svg',
+    COAS: 'Ascending Colon.svg',
+    CODS: 'Descending Colon.svg',
+    LIVR: 'Liver.svg',
+    ADGL: 'Adrenal Gland.svg',
+    ADGR: 'Adrenal Gland.svg',
+    AORT: 'Aorta.svg',
+    LUNG: 'Lung.svg',
+    HART: 'Heart.svg',
+    TESL: 'Testes or Ovary.svg',
+    TESR: 'Testes or Ovary.svg',
+    OVAL: 'Testes or Ovary.svg',
+    OVAR: 'Testes or Ovary.svg',
+    FBRO: 'Fibroblast.svg',
+    SKSE: 'Sun-exposed skin.svg',
+    SKNE: 'Non-exposed skin.svg',
+    MUSC: 'Skeletal Muscle.svg',
+    BRFL: 'Brain.svg',
+    BRTL: 'Brain.svg',
+    BRCE: 'Brain.svg',
+    BRHL: 'Brain.svg',
+    BRHR: 'Brain.svg',
+};
+
+// Fallback for tissue_type values with no TPC code prefix (e.g. plain
+// "Brain", "Colon") that getTissueInternalCodeFromFacetTerm can't resolve.
+const ANATOMY_ICON_BY_TISSUE_NAME = {
+    brain: 'Brain.svg',
+    colon: 'Colon.svg',
+    'adipose tissue': 'Adipose Tissue.svg',
+    adipose: 'Adipose Tissue.svg',
+    'cell line mixture': 'Cell Line Mixture.svg',
+};
+
+// tissue_type is a "<TPC code> - <name>" string (e.g. "3Q - Lung"); resolve
+// it to one of src/encoded/static/img/anatomy-icons' svgs so the Tissue
+// Overview header icon reflects the actual tissue instead of always
+// showing the generic lungs glyph. Returns null (caller falls back to the
+// generic icon) when the tissue_type doesn't match a known icon.
+export const getTissueIconSrc = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return null;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    const filename =
+        (internalCode && ANATOMY_ICON_BY_INTERNAL_CODE[internalCode]) ||
+        ANATOMY_ICON_BY_TISSUE_NAME[raw.split(' - ').pop().split(',')[0].trim().toLowerCase()] ||
+        null;
+    // Filenames like "Adrenal Gland.svg" contain spaces, which breaks an
+    // unquoted CSS url(...) (used for the mask-image header icon) unless
+    // encoded here.
+    return filename ? `/static/img/anatomy-icons/${encodeURIComponent(filename)}` : null;
 };
 
 export const formatYesNo = (value) => {

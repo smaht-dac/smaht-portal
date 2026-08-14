@@ -3155,6 +3155,24 @@ File, Donor, and Publication Overview Styles
                     font-size: 2.25rem;
                     color: #1f9f55;
                 }
+
+                // Anatomy-icon SVGs ship with their own fixed fill color
+                // (e.g. #636363), which doesn't match this circle's green
+                // theme -- masking with the SVG instead of rendering it as
+                // an <img> lets a plain background-color fill it solid,
+                // same look as the FontAwesome icon it replaces.
+                .tissue-icon-mask {
+                    display: inline-block;
+                    width: 60px;
+                    height: 60px;
+                    background-color: #1f9f55;
+                    -webkit-mask-repeat: no-repeat;
+                    mask-repeat: no-repeat;
+                    -webkit-mask-position: center;
+                    mask-position: center;
+                    -webkit-mask-size: contain;
+                    mask-size: contain;
+                }
             }
 
             &-content {
