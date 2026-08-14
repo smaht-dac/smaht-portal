@@ -507,8 +507,19 @@ export default function AliquotVisualization({
                                                 className="aliquot-popover-row"
                                                 key={wellId}>
                                                 <span>
-                                                    {selectedSlice?.submissionCenter ||
-                                                        `GCC${wellIndex + 1}`}
+                                                    {selectedSlice?.filesHref ? (
+                                                        <a
+                                                            href={selectedSlice.filesHref}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            title="View this GCC's files for this donor & tissue">
+                                                            {selectedSlice?.submissionCenter ||
+                                                                `GCC${wellIndex + 1}`}
+                                                        </a>
+                                                    ) : (
+                                                        selectedSlice?.submissionCenter ||
+                                                        `GCC${wellIndex + 1}`
+                                                    )}
                                                 </span>
                                                 <strong>
                                                     {selectedAliquotId}
@@ -670,6 +681,7 @@ AliquotVisualization.propTypes = {
             ),
             pathologyReports: PropTypes.arrayOf(PATHOLOGY_REPORT_PROPTYPE),
             submissionCenter: PropTypes.string,
+            filesHref: PropTypes.string,
             idPrefix: PropTypes.string,
         })
     ).isRequired,

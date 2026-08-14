@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { getTissueInternalCodeFromFacetTerm } from '../../../util/data';
+import { BROWSE_STATUS_FILTERS } from '../../../browse/BrowseView';
 
 // Shared between the legacy item-keyed TissueView.js (/tissues/<uuid>/'s
 // "Tissue Overview" tab) and the type-keyed TissueTypeView.js
@@ -226,3 +227,25 @@ export function getAliquotNumberFromExternalId(externalId) {
     const match = externalId ? externalId.match(ALIQUOT_NUMBER_REGEX) : null;
     return match ? match[1] : null;
 }
+
+// Scopes to donor + tissue_type + the GCC that generated/submitted the
+// files -- NOT to one specific well's TissueSample, since File's own
+// sample_summary.sample_names isn't embedded/faceted for Browse (only
+// sample_summary.tissues is, per file.json's facets). Mirrors the verified
+// donor+tissue link BrowseDonorBase.js already builds for the Files stat.
+// A File's submission_centers is whoever generated/submitted that file,
+// which isn't guaranteed to be the same center that submitted this
+// TissueSample -- so this is "this GCC's files for this donor+tissue",
+// not strictly "this well's files".
+export const getGccFilesBrowseHref = ({ donorDisplayTitle, tissueTypeValue, submissionCenter }) => {
+    if (!donorDisplayTitle || !tissueTypeValue || !submissionCenter) return null;
+    const queryParts = [
+        'type=File',
+        BROWSE_STATUS_FILTERS,
+        'dataset!=No+value',
+        `donors.display_title=${encodeURIComponent(donorDisplayTitle)}`,
+        `sample_summary.tissues=${encodeURIComponent(tissueTypeValue)}`,
+        `submission_centers.display_title=${encodeURIComponent(submissionCenter)}`,
+    ];
+    return `/browse/?${queryParts.join('&')}`;
+};

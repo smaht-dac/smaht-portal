@@ -23,6 +23,7 @@ import {
     getCoreWellFromExternalId,
     getAliquotNumberFromExternalId,
     getTissueIconSrc,
+    getGccFilesBrowseHref,
 } from './components/tissue-overview/helpers';
 
 export default class TissueOverview extends DefaultItemView {
@@ -293,8 +294,19 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 realSlices.push(slice);
                 if (groupKey) slicesByGroupKey.set(groupKey, slice);
             });
-        return realSlices.length > 0 ? realSlices : sampleAliquotSlicesFallback;
-    }, [tissueSamples]);
+        if (realSlices.length === 0) return sampleAliquotSlicesFallback;
+        // Links each row's GCC to that center's files for this donor+tissue
+        // (verified facets -- see getGccFilesBrowseHref) -- not to this
+        // specific well, since File's own sample-level field isn't faceted.
+        realSlices.forEach((slice) => {
+            slice.filesHref = getGccFilesBrowseHref({
+                donorDisplayTitle: selectedDonorDisplayTitle,
+                tissueTypeValue: tissueMatrixFilterValue,
+                submissionCenter: slice.submissionCenter,
+            });
+        });
+        return realSlices;
+    }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
 
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
