@@ -3059,7 +3059,11 @@ body[data-path="/statistics"] {
 }
 
 // hide page title for /data-matrix and /recent-releases
-body[data-path="/data-matrix"], body[data-path="/recent-releases"] {
+// Uses `data-pathname` (path only), not `data-path` (path+querystring):
+// RecentReleasesTimelineMatrix keeps view/date state in the query string via
+// history.replaceState, so a `data-path` selector stops matching as soon as
+// a query string is present.
+body[data-pathname="/data-matrix"], body[data-pathname="/recent-releases"] {
     .static-page {
         margin-top: 0px !important;
         
