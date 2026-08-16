@@ -202,6 +202,15 @@ export default function TissueTypeView({ context = {}, href, session }) {
         // Deliberately not resetting to null here: on a donor switch it
         // would blank out an already-rendered diagram for no reason -- keep
         // showing the previous donor's slices until the new ones are ready.
+        //
+        // `ignore` guards against a stale in-flight request winning a race
+        // against a newer one -- e.g. donor A's (real-data) response
+        // arriving after donor B's (genuinely empty, 404) response if A was
+        // slower, which would otherwise overwrite B's correctly-cleared
+        // state with A's stale slices right after the swap to B. Any
+        // earlier effect run's callbacks become no-ops once a newer one
+        // starts (cleanup below).
+        let ignore = false;
         setSamplesUpdating(true);
         const sampleSourceParams = tissueUuidsForSelectedDonor
             .map((uuid) => `sample_sources.uuid=${encodeURIComponent(uuid)}`)
@@ -209,15 +218,20 @@ export default function TissueTypeView({ context = {}, href, session }) {
         ajax.load(
             `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}`,
             (resp) => {
+                if (ignore) return;
                 setTissueSamples(resp?.['@graph'] || []);
                 setSamplesUpdating(false);
             },
             'GET',
             () => {
+                if (ignore) return;
                 setTissueSamples([]);
                 setSamplesUpdating(false);
             }
         );
+        return () => {
+            ignore = true;
+        };
     }, [tissueUuidsForSelectedDonor, session]);
 
     // Real samples win once loaded; while loading (tissueSamples === null) or
