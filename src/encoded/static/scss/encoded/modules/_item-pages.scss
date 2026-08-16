@@ -4141,11 +4141,14 @@ File, Donor, and Publication Overview Styles
     }
 
     .aliquot-popover-cores {
-        // Caps just this list, not the whole popover -- a short list (the
-        // common case) never scrolls at all; only a genuinely long one
-        // (many core positions) scrolls internally instead of pushing the
-        // popover past the viewport.
-        max-height: 220px;
+        // Per-group "Show N more" collapsing (CORE_POSITIONS_COLLAPSE_THRESHOLD)
+        // already keeps this bounded in the normal case (a handful of GCCs,
+        // each capped at a few rows) -- this max-height is just a backstop
+        // for a pathological number of distinct GCCs, generous enough that
+        // realistic cases never hit it (an internal scrollbar here would
+        // hide whatever GCC group comes after it, same problem the
+        // collapsing was added to avoid).
+        max-height: 320px;
         overflow-y: auto;
     }
 
@@ -4207,6 +4210,26 @@ File, Donor, and Publication Overview Styles
             color: #1e2d3d;
             font-weight: 600;
             text-align: right;
+        }
+    }
+
+    .aliquot-popover-toggle {
+        // Resets the <button> defaults it inherits alongside
+        // .aliquot-popover-row's flex layout.
+        appearance: none;
+        background: none;
+        border: none;
+        padding: 0;
+        width: 100%;
+        font: inherit;
+        cursor: pointer;
+        color: #2f6fb0;
+        font-size: 0.8125rem;
+        text-align: left;
+
+        &:hover,
+        &:focus-visible {
+            text-decoration: underline;
         }
     }
 

@@ -29,6 +29,11 @@ const SLICE_TYPE_STYLES = {
 const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const FROZEN_GRID_COLS = [1, 2, 3, 4, 5, 6];
 const DEFAULT_FROZEN_CORE_POSITIONS = ['A1', 'C2'];
+// How many core positions a single GCC group shows before collapsing the
+// rest behind a "Show N more" toggle (real data has seen 10+ positions
+// under one center) -- see the render site for why this replaced an
+// internal scrollbar.
+const CORE_POSITIONS_COLLAPSE_THRESHOLD = 3;
 
 const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
     PropTypes.string,
@@ -197,6 +202,12 @@ export default function AliquotVisualization({
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
+    // Which GCC groups (by index) have been expanded past
+    // CORE_POSITIONS_COLLAPSE_THRESHOLD in the currently open popover -- see
+    // that constant for why this exists. Reset whenever the popover targets
+    // a different slice (below) so re-opening it, or opening a different
+    // one, always starts collapsed again.
+    const [expandedGroupIndexes, setExpandedGroupIndexes] = useState(() => new Set());
     const popoverId = useId();
     function handleHidePopover() {
         setSelectedSliceIndex(null);
@@ -219,6 +230,13 @@ export default function AliquotVisualization({
         }
         handleHidePopover();
     }, [slices]);
+
+    // A newly opened (or newly switched-to) slice's GCC groups should
+    // always start collapsed, not carry over whichever groups happened to
+    // be expanded for the previously selected slice.
+    useEffect(() => {
+        setExpandedGroupIndexes(new Set());
+    }, [selectedSliceIndex]);
 
     // Real aliquot block depth varies by tissue (SMaHT Tissue Recovery
     // Schema Fig. 2a: Lung/Liver ~3cm, bivalved organs ~1cm, everything
@@ -641,35 +659,95 @@ export default function AliquotVisualization({
                                 </p>
                                 {selectedSlice?.type === 'yellow' && selectedFrozenCorePositions.length > 0 ? (
                                     <div className="aliquot-popover-cores">
-                                        {selectedFrozenCorePositionGroups.flatMap((group, groupIndex) =>
-                                            group.positions.map((corePosition, positionIndexInGroup) => (
-                                                <div
-                                                    className="aliquot-popover-row"
-                                                    key={corePosition}>
-                                                    <span>
-                                                        {positionIndexInGroup === 0 ? (
-                                                            group.filesHref ? (
-                                                                <a
-                                                                    href={group.filesHref}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    title="View this GCC's files for this donor & tissue">
-                                                                    {group.submissionCenter ||
-                                                                        `GCC${groupIndex + 1}`}
-                                                                </a>
-                                                            ) : (
-                                                                group.submissionCenter ||
-                                                                `GCC${groupIndex + 1}`
-                                                            )
-                                                        ) : null}
-                                                    </span>
-                                                    <strong>
-                                                        {selectedAliquotId}
-                                                        {corePosition}
-                                                    </strong>
-                                                </div>
-                                            ))
-                                        )}
+                                        {selectedFrozenCorePositionGroups.flatMap((group, groupIndex) => {
+                                            const isExpanded = expandedGroupIndexes.has(groupIndex);
+                                            const visiblePositions =
+                                                isExpanded ||
+                                                group.positions.length <=
+                                                    CORE_POSITIONS_COLLAPSE_THRESHOLD
+                                                    ? group.positions
+                                                    : group.positions.slice(
+                                                        0,
+                                                        CORE_POSITIONS_COLLAPSE_THRESHOLD
+                                                    );
+                                            const hiddenCount =
+                                                group.positions.length - visiblePositions.length;
+                                            const rows = visiblePositions.map(
+                                                (corePosition, positionIndexInGroup) => (
+                                                    <div
+                                                        className="aliquot-popover-row"
+                                                        key={corePosition}>
+                                                        <span>
+                                                            {positionIndexInGroup === 0 ? (
+                                                                group.filesHref ? (
+                                                                    <a
+                                                                        href={group.filesHref}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        title="View this GCC's files for this donor & tissue">
+                                                                        {group.submissionCenter ||
+                                                                            `GCC${groupIndex + 1}`}
+                                                                    </a>
+                                                                ) : (
+                                                                    group.submissionCenter ||
+                                                                    `GCC${groupIndex + 1}`
+                                                                )
+                                                            ) : null}
+                                                        </span>
+                                                        <strong>
+                                                            {selectedAliquotId}
+                                                            {corePosition}
+                                                        </strong>
+                                                    </div>
+                                                )
+                                            );
+                                            // A long GCC list (real data has seen 10+
+                                            // positions under one center) used to just
+                                            // scroll internally -- but a scrollbar hides
+                                            // whatever comes *after* it (e.g. a second
+                                            // GCC's rows) without any hint there's more,
+                                            // so collapse it to a "Show N more" toggle
+                                            // instead: every group stays visible, only
+                                            // its own overflow is tucked away.
+                                            if (hiddenCount > 0) {
+                                                rows.push(
+                                                    <button
+                                                        type="button"
+                                                        key={`${groupIndex}-toggle`}
+                                                        className="aliquot-popover-row aliquot-popover-toggle"
+                                                        onClick={() =>
+                                                            setExpandedGroupIndexes((prev) => {
+                                                                const next = new Set(prev);
+                                                                next.add(groupIndex);
+                                                                return next;
+                                                            })
+                                                        }>
+                                                        Show {hiddenCount} more
+                                                    </button>
+                                                );
+                                            } else if (
+                                                isExpanded &&
+                                                group.positions.length >
+                                                    CORE_POSITIONS_COLLAPSE_THRESHOLD
+                                            ) {
+                                                rows.push(
+                                                    <button
+                                                        type="button"
+                                                        key={`${groupIndex}-toggle`}
+                                                        className="aliquot-popover-row aliquot-popover-toggle"
+                                                        onClick={() =>
+                                                            setExpandedGroupIndexes((prev) => {
+                                                                const next = new Set(prev);
+                                                                next.delete(groupIndex);
+                                                                return next;
+                                                            })
+                                                        }>
+                                                        Show less
+                                                    </button>
+                                                );
+                                            }
+                                            return rows;
+                                        })}
                                     </div>
                                 ) : null}
                                 <div className="aliquot-popover-row">
