@@ -340,6 +340,25 @@ export default function TissueTypeView({ context = {}, href, session }) {
     // (e.g. logged out), which must not fall through to the illustrative
     // fallback diagram as if it were real data.
     const showNoDonorData = !isLoading && donors.length === 0;
+    // A donor explicitly selected, its TissueSample search has finished
+    // (not still loading), and it genuinely returned zero real samples --
+    // e.g. the search 404s. AliquotVisualization/NonSolidAliquotVisualization
+    // would otherwise render the illustrative fallback set, but that fallback
+    // still gets labelled with this donor's own real idPrefix (e.g.
+    // "SMHT023-3M"), which reads as real per-donor data even though every
+    // field on it is fabricated -- confirmed misleading in practice, so show
+    // an explicit empty state instead of the fallback once we know for
+    // certain (not just "still loading") that this donor has none. Mirrors
+    // solidAliquotSlices/nonSolidAliquots' own real-vs-fallback check
+    // exactly (Fresh samples don't count for solid tissues, per that
+    // useMemo's own filter) -- a donor whose only TissueSamples are Fresh
+    // (filtered out there too) would otherwise still fall through to the
+    // same mislabelled fallback despite tissueSamples.length > 0.
+    const hasRealAliquotData = nonSolidSpecimenType
+        ? (tissueSamples || []).length > 0
+        : (tissueSamples || []).some((sample) => sample.preservation_type !== 'Fresh');
+    const showNoSampleData =
+        !aliquotSamplesLoading && !!selectedDonorUuid && Array.isArray(tissueSamples) && !hasRealAliquotData;
 
     // Not filtered by any single donor -- this page covers every donor
     // sharing this tissue_type (see `donors` above), so the Files stat
@@ -543,6 +562,10 @@ export default function TissueTypeView({ context = {}, href, session }) {
                             ) : aliquotSamplesLoading ? (
                                 <div className="tissue-aliquot-loading">
                                     <i className="icon icon-circle-notch icon-spin fas" />
+                                </div>
+                            ) : showNoSampleData ? (
+                                <div className="tissue-aliquot-prompt">
+                                    <p>No aliquot data available for the selected donor.</p>
                                 </div>
                             ) : nonSolidSpecimenType ? (
                                 <NonSolidAliquotVisualization
