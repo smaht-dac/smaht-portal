@@ -304,19 +304,37 @@ export default function AliquotVisualization({
     // TPC/GCC). Grouped by center regardless of position order -- positions
     // from the same center aren't always adjacent (real data has seen
     // BROAD/UWSC/BROAD/UWSC interleaved).
+    //
+    // A single position can have more than one real submitting center
+    // (confirmed against real data: the same physical core gets both a TPC
+    // procurement-level record and a separate GCC-submitted record) -- so
+    // `frozenCorePositionSubmissionCenters`/`...FilesHrefs` are arrays per
+    // position, and one position can end up contributing a row to more than
+    // one group here (once per distinct center), rather than only ever
+    // showing its last-processed center.
     const selectedFrozenCorePositionGroups = [];
     const groupIndexByKey = new Map();
     selectedFrozenCorePositions.forEach((corePosition) => {
-        const submissionCenter =
-            selectedSlice?.frozenCorePositionSubmissionCenters?.[corePosition] || null;
-        const filesHref = selectedSlice?.frozenCorePositionFilesHrefs?.[corePosition] || null;
-        const key = `${submissionCenter || ''}|${filesHref || ''}`;
-        if (groupIndexByKey.has(key)) {
-            selectedFrozenCorePositionGroups[groupIndexByKey.get(key)].positions.push(corePosition);
-        } else {
-            groupIndexByKey.set(key, selectedFrozenCorePositionGroups.length);
-            selectedFrozenCorePositionGroups.push({ submissionCenter, filesHref, positions: [corePosition] });
-        }
+        const submissionCenters = selectedSlice?.frozenCorePositionSubmissionCenters?.[
+            corePosition
+        ] || [null];
+        const filesHrefs = selectedSlice?.frozenCorePositionFilesHrefs?.[corePosition] || [];
+        submissionCenters.forEach((submissionCenter, centerIndex) => {
+            const filesHref = filesHrefs[centerIndex] || null;
+            const key = `${submissionCenter || ''}|${filesHref || ''}`;
+            if (groupIndexByKey.has(key)) {
+                selectedFrozenCorePositionGroups[groupIndexByKey.get(key)].positions.push(
+                    corePosition
+                );
+            } else {
+                groupIndexByKey.set(key, selectedFrozenCorePositionGroups.length);
+                selectedFrozenCorePositionGroups.push({
+                    submissionCenter,
+                    filesHref,
+                    positions: [corePosition],
+                });
+            }
+        });
     });
     const topDepthOffset = 12;
     const rightOffset = -12;
@@ -552,20 +570,32 @@ export default function AliquotVisualization({
                                                                         />
                                                                     );
                                                                 }
-                                                                const positionSubmissionCenter =
+                                                                // A position can have more than one real
+                                                                // submitting center (see the grouping
+                                                                // comment above selectedFrozenCorePositionGroups)
+                                                                // -- list every distinct one in the
+                                                                // tooltip, and link to whichever has a
+                                                                // real files href (a TPC-only position has
+                                                                // none; prefer the first one that does).
+                                                                const positionSubmissionCenters = (
                                                                     selectedSlice
                                                                         ?.frozenCorePositionSubmissionCenters?.[
                                                                             corePosition
-                                                                        ];
-                                                                const positionFilesHref =
+                                                                        ] || []
+                                                                ).filter(Boolean);
+                                                                const positionFilesHrefs =
                                                                     selectedSlice
                                                                         ?.frozenCorePositionFilesHrefs?.[
                                                                             corePosition
-                                                                        ];
+                                                                        ] || [];
+                                                                const positionFilesHref =
+                                                                    positionFilesHrefs.find(Boolean) || null;
                                                                 const positionId = `${selectedAliquotId}${corePosition}`;
                                                                 const positionTitle =
-                                                                    positionSubmissionCenter
-                                                                        ? `${positionId} (${positionSubmissionCenter})`
+                                                                    positionSubmissionCenters.length > 0
+                                                                        ? `${positionId} (${positionSubmissionCenters.join(
+                                                                            ', '
+                                                                        )})`
                                                                         : positionId;
                                                                 // Every highlighted dot reflects a real
                                                                 // Core TissueSample -- link it to that
@@ -797,8 +827,10 @@ AliquotVisualization.propTypes = {
                 })
             ),
             pathologyReports: PropTypes.arrayOf(PATHOLOGY_REPORT_PROPTYPE),
-            frozenCorePositionSubmissionCenters: PropTypes.objectOf(PropTypes.string),
-            frozenCorePositionFilesHrefs: PropTypes.objectOf(PropTypes.string),
+            frozenCorePositionSubmissionCenters: PropTypes.objectOf(
+                PropTypes.arrayOf(PropTypes.string)
+            ),
+            frozenCorePositionFilesHrefs: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
             idPrefix: PropTypes.string,
             aliquotNumber: PropTypes.string,
         })

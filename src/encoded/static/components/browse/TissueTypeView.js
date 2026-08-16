@@ -278,15 +278,23 @@ export default function TissueTypeView({ context = {}, href, session }) {
                     existing.pathologyReports = existing.pathologyReports.concat(
                         sample.pathology_reports || []
                     );
-                    // Per-position, not per-slice -- positions merged into
-                    // the same aliquot box can genuinely have different
-                    // submitting GCCs (confirmed against real data: donor
-                    // SMHT001's "3AM" aliquot 001 has positions submitted by
-                    // both BROAD GCC and UWSC GCC), so a single shared value
-                    // would show the wrong center for some rows.
+                    // A position can have more than one real TissueSample
+                    // record -- confirmed against real production data: the
+                    // same physical core gets a TPC procurement-level record
+                    // (e.g. "NDRI TPC") *and* a separate GCC-submitted record
+                    // (e.g. "UWSC GCC") for the same "SMHT001-3AM-001D2".
+                    // Overwriting with just the last one processed silently
+                    // dropped the other institution's record entirely (a
+                    // real reported bug), so keep every distinct center per
+                    // position instead of picking one.
                     if (corePosition) {
-                        existing.frozenCorePositionSubmissionCenters[corePosition] =
-                            sample.submission_centers?.[0]?.display_title || null;
+                        const center = sample.submission_centers?.[0]?.display_title || null;
+                        const existingCenters =
+                            existing.frozenCorePositionSubmissionCenters[corePosition] || [];
+                        if (!existingCenters.includes(center)) {
+                            existing.frozenCorePositionSubmissionCenters[corePosition] =
+                                existingCenters.concat([center]);
+                        }
                     }
                     return;
                 }
@@ -306,12 +314,14 @@ export default function TissueTypeView({ context = {}, href, session }) {
                     frozenCorePositions: corePosition ? [corePosition] : [],
                     associatedPathologyReports: sample.associated_pathology_reports || [],
                     pathologyReports: sample.pathology_reports || [],
-                    // The real submitting institution per core position
-                    // (e.g. "BROAD GCC", "UWSC GCC") -- keyed by position
-                    // since merged positions can have different submitting
-                    // centers (see above).
+                    // The real submitting institution(s) per core position
+                    // (e.g. "BROAD GCC", "UWSC GCC") -- keyed by position,
+                    // one array per position since a single position can
+                    // have more than one real TissueSample record (see the
+                    // merge branch above for why this is an array, not a
+                    // single value).
                     frozenCorePositionSubmissionCenters: corePosition
-                        ? { [corePosition]: sample.submission_centers?.[0]?.display_title || null }
+                        ? { [corePosition]: [sample.submission_centers?.[0]?.display_title || null] }
                         : {},
                 };
                 realSlices.push(slice);
@@ -321,17 +331,20 @@ export default function TissueTypeView({ context = {}, href, session }) {
         // Links each row's own GCC to that center's files for this
         // donor+tissue (verified facets -- see getGccFilesBrowseHref) -- not
         // to this specific core position, since File's own sample-level
-        // field isn't faceted. Computed per position (not once per slice),
-        // since merged positions can have different submitting centers.
+        // field isn't faceted. Computed per (position, center) pair, since a
+        // position can have more than one real submitting center.
         realSlices.forEach((slice) => {
             slice.frozenCorePositionFilesHrefs = {};
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
-                ([corePosition, submissionCenter]) => {
-                    slice.frozenCorePositionFilesHrefs[corePosition] = getGccFilesBrowseHref({
-                        donorDisplayTitle: selectedDonorDisplayTitle,
-                        tissueTypeValue: tissueMatrixFilterValue,
-                        submissionCenter,
-                    });
+                ([corePosition, submissionCenters]) => {
+                    slice.frozenCorePositionFilesHrefs[corePosition] = submissionCenters.map(
+                        (submissionCenter) =>
+                            getGccFilesBrowseHref({
+                                donorDisplayTitle: selectedDonorDisplayTitle,
+                                tissueTypeValue: tissueMatrixFilterValue,
+                                submissionCenter,
+                            })
+                    );
                 }
             );
             // Merging core positions concatenates each one's own linked
@@ -341,6 +354,19 @@ export default function TissueTypeView({ context = {}, href, session }) {
             slice.associatedPathologyReports = dedupePathologyReportEntries(
                 slice.associatedPathologyReports
             );
+        });
+        // Sort by real aliquot number (ascending, numeric) so boxes read
+        // left-to-right in the order a person would expect ("001" before
+        // "002") instead of whatever order the raw TissueSample search
+        // happened to return them in -- see TissueView.js's identical sort
+        // for the confirmed real-world case this fixes.
+        realSlices.sort((a, b) => {
+            const aNum = a.aliquotNumber ? parseInt(a.aliquotNumber, 10) : null;
+            const bNum = b.aliquotNumber ? parseInt(b.aliquotNumber, 10) : null;
+            if (aNum === null && bNum === null) return 0;
+            if (aNum === null) return 1;
+            if (bNum === null) return -1;
+            return aNum - bNum;
         });
         return realSlices;
     }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
