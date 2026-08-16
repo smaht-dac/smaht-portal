@@ -4,6 +4,23 @@ import React from 'react';
 import { getTissueInternalCodeFromFacetTerm } from '../../../util/data';
 import { BROWSE_STATUS_FILTERS } from '../../../browse/BrowseView';
 
+// Merging several Core TissueSamples into one slice box (see
+// getAliquotNumberFromExternalId) concatenates each sample's own
+// `associated_pathology_reports` -- but siblings cut from the same
+// physical aliquot commonly share the same linked Fixed sample(s), so the
+// same entry (e.g. "Pathology (SMHT001-3N-002)") ends up repeated once per
+// core position instead of once per distinct Fixed sample. Dedupe by
+// `fixed_sample_external_id`, keeping the first occurrence.
+export const dedupePathologyReportEntries = (entries = []) => {
+    const seen = new Set();
+    return entries.filter((entry) => {
+        const key = entry?.fixed_sample_external_id;
+        if (key && seen.has(key)) return false;
+        if (key) seen.add(key);
+        return true;
+    });
+};
+
 // Shared between the legacy item-keyed TissueView.js (/tissues/<uuid>/'s
 // "Tissue Overview" tab) and the type-keyed TissueTypeView.js
 // (/tissue-overview/?tissue_type=<value>) -- both render the same kind of

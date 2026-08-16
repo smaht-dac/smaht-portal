@@ -4123,6 +4123,13 @@ File, Donor, and Publication Overview Styles
         padding: 8px 0;
         border-top: 1px solid #e4edf5;
         border-bottom: 1px solid #e4edf5;
+        // Caps just this list, not the whole popover -- a short list (the
+        // common case) never scrolls at all; only a genuinely long one
+        // (many core positions, or several distinct linked Fixed samples)
+        // scrolls internally instead of pushing the popover past the
+        // viewport.
+        max-height: 220px;
+        overflow-y: auto;
     }
 
     .aliquot-popover-row {

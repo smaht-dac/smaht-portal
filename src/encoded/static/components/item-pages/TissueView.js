@@ -27,6 +27,7 @@ import {
     getTissueFilesBrowseHref,
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
+    dedupePathologyReportEntries,
 } from './components/tissue-overview/helpers';
 
 export default class TissueOverview extends DefaultItemView {
@@ -347,6 +348,13 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                         submissionCenter,
                     });
                 }
+            );
+            // Merging core positions concatenates each one's own linked
+            // Fixed-sample pathology entries -- siblings usually share the
+            // same Fixed sample(s), so this dedupes the repeats down to one
+            // row per distinct Fixed sample instead of one per position.
+            slice.associatedPathologyReports = dedupePathologyReportEntries(
+                slice.associatedPathologyReports
             );
         });
         return realSlices;

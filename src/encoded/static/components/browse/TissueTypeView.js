@@ -30,6 +30,7 @@ import {
     getTissueFilesBrowseHref,
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
+    dedupePathologyReportEntries,
 } from '../item-pages/components/tissue-overview/helpers';
 
 // Standalone page for /tissue-overview/?tissue_type=<value>, registered
@@ -317,6 +318,13 @@ export default function TissueTypeView({ context = {}, href, session }) {
                         submissionCenter,
                     });
                 }
+            );
+            // Merging core positions concatenates each one's own linked
+            // Fixed-sample pathology entries -- siblings usually share the
+            // same Fixed sample(s), so this dedupes the repeats down to one
+            // row per distinct Fixed sample instead of one per position.
+            slice.associatedPathologyReports = dedupePathologyReportEntries(
+                slice.associatedPathologyReports
             );
         });
         return realSlices;
