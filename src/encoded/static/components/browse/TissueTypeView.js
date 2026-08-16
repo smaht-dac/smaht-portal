@@ -23,7 +23,7 @@ import {
     sampleAliquotSlicesFallback,
     getTissueKitIdFromExternalId,
     sampleNonSolidAliquots,
-    getCoreWellFromExternalId,
+    getCorePositionFromExternalId,
     getAliquotNumberFromExternalId,
     getTissueIconSrc,
     getGccFilesBrowseHref,
@@ -224,17 +224,18 @@ export default function TissueTypeView({ context = {}, href, session }) {
     // if none exist yet, fall back to the illustrative demo set so the panel
     // isn't empty.
     const solidAliquotSlices = useMemo(() => {
-        // Multiple Core TissueSamples (one per well) can be cut from the
-        // same physical Frozen aliquot -- group those by idPrefix + aliquot
-        // number into one slice box with several highlighted wells instead
-        // of one duplicate box per well (see getAliquotNumberFromExternalId).
+        // Multiple Core TissueSamples (one per core position) can be cut
+        // from the same physical Frozen aliquot -- group those by idPrefix +
+        // aliquot number into one slice box with several highlighted
+        // positions instead of one duplicate box per position (see
+        // getAliquotNumberFromExternalId).
         const slicesByGroupKey = new Map();
         const realSlices = [];
         (tissueSamples || [])
             .filter((sample) => sample.preservation_type !== 'Fresh')
             .forEach((sample) => {
                 const isFixed = sample.preservation_type === 'Fixed';
-                const coreWell = getCoreWellFromExternalId(sample.external_id);
+                const corePosition = getCorePositionFromExternalId(sample.external_id);
                 const idPrefix = getTissueKitIdFromExternalId(sample.external_id);
                 const aliquotNumber = !isFixed
                     ? getAliquotNumberFromExternalId(sample.external_id)
@@ -242,8 +243,8 @@ export default function TissueTypeView({ context = {}, href, session }) {
                 const groupKey = aliquotNumber ? `${idPrefix}-${aliquotNumber}` : null;
                 const existing = groupKey ? slicesByGroupKey.get(groupKey) : null;
                 if (existing) {
-                    if (coreWell && !existing.frozenCoreWells.includes(coreWell)) {
-                        existing.frozenCoreWells.push(coreWell);
+                    if (corePosition && !existing.frozenCorePositions.includes(corePosition)) {
+                        existing.frozenCorePositions.push(corePosition);
                     }
                     existing.associatedPathologyReports =
                         existing.associatedPathologyReports.concat(
@@ -252,14 +253,14 @@ export default function TissueTypeView({ context = {}, href, session }) {
                     existing.pathologyReports = existing.pathologyReports.concat(
                         sample.pathology_reports || []
                     );
-                    // Per-well, not per-slice -- wells merged into the same
-                    // aliquot box can genuinely have different submitting
-                    // GCCs (confirmed against real data: donor SMHT001's
-                    // "3AM" aliquot 001 has wells submitted by both BROAD GCC
-                    // and UWSC GCC), so a single shared value would show the
-                    // wrong center for some rows.
-                    if (coreWell) {
-                        existing.frozenCoreWellSubmissionCenters[coreWell] =
+                    // Per-position, not per-slice -- positions merged into
+                    // the same aliquot box can genuinely have different
+                    // submitting GCCs (confirmed against real data: donor
+                    // SMHT001's "3AM" aliquot 001 has positions submitted by
+                    // both BROAD GCC and UWSC GCC), so a single shared value
+                    // would show the wrong center for some rows.
+                    if (corePosition) {
+                        existing.frozenCorePositionSubmissionCenters[corePosition] =
                             sample.submission_centers?.[0]?.display_title || null;
                     }
                     return;
@@ -272,14 +273,15 @@ export default function TissueTypeView({ context = {}, href, session }) {
                         ? `${idPrefix}-${aliquotNumber}`
                         : sample.external_id || sample.accession || undefined,
                     idPrefix,
-                    frozenCoreWells: coreWell ? [coreWell] : [],
+                    frozenCorePositions: corePosition ? [corePosition] : [],
                     associatedPathologyReports: sample.associated_pathology_reports || [],
                     pathologyReports: sample.pathology_reports || [],
-                    // The real submitting institution per well (e.g. "BROAD
-                    // GCC", "UWSC GCC") -- keyed by well since merged wells
-                    // can have different submitting centers (see above).
-                    frozenCoreWellSubmissionCenters: coreWell
-                        ? { [coreWell]: sample.submission_centers?.[0]?.display_title || null }
+                    // The real submitting institution per core position
+                    // (e.g. "BROAD GCC", "UWSC GCC") -- keyed by position
+                    // since merged positions can have different submitting
+                    // centers (see above).
+                    frozenCorePositionSubmissionCenters: corePosition
+                        ? { [corePosition]: sample.submission_centers?.[0]?.display_title || null }
                         : {},
                 };
                 realSlices.push(slice);
@@ -288,14 +290,14 @@ export default function TissueTypeView({ context = {}, href, session }) {
         if (realSlices.length === 0) return sampleAliquotSlicesFallback;
         // Links each row's own GCC to that center's files for this
         // donor+tissue (verified facets -- see getGccFilesBrowseHref) -- not
-        // to this specific well, since File's own sample-level field isn't
-        // faceted. Computed per well (not once per slice), since merged
-        // wells can have different submitting centers.
+        // to this specific core position, since File's own sample-level
+        // field isn't faceted. Computed per position (not once per slice),
+        // since merged positions can have different submitting centers.
         realSlices.forEach((slice) => {
-            slice.frozenCoreWellFilesHrefs = {};
-            Object.entries(slice.frozenCoreWellSubmissionCenters).forEach(
-                ([wellId, submissionCenter]) => {
-                    slice.frozenCoreWellFilesHrefs[wellId] = getGccFilesBrowseHref({
+            slice.frozenCorePositionFilesHrefs = {};
+            Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
+                ([corePosition, submissionCenter]) => {
+                    slice.frozenCorePositionFilesHrefs[corePosition] = getGccFilesBrowseHref({
                         donorDisplayTitle: selectedDonorDisplayTitle,
                         tissueTypeValue: tissueMatrixFilterValue,
                         submissionCenter,

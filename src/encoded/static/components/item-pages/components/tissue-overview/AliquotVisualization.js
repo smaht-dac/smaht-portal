@@ -28,7 +28,7 @@ const SLICE_TYPE_STYLES = {
 
 const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const FROZEN_GRID_COLS = [1, 2, 3, 4, 5, 6];
-const DEFAULT_FROZEN_CORE_WELLS = ['A1', 'C2'];
+const DEFAULT_FROZEN_CORE_POSITIONS = ['A1', 'C2'];
 
 const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
     PropTypes.string,
@@ -250,27 +250,28 @@ export default function AliquotVisualization({
     const selectedAliquotId = selectedSlice
         ? `${selectedSlice.idPrefix || idPrefix || selectedStyles.idPrefix}-${selectedSlice.sequenceLabel}`
         : null;
-    const selectedFrozenWells =
-        selectedSlice?.frozenCoreWells || DEFAULT_FROZEN_CORE_WELLS;
-    // Every well submitted by the same GCC (the common case -- one physical
-    // aliquot is usually processed by a single center) collapses into one
-    // group instead of repeating that GCC's name once per well, which reads
-    // as noisy duplication once an aliquot has more than a couple of wells
-    // (real data has seen 6 wells under one TPC/GCC). Grouped by center
-    // regardless of well order -- wells from the same center aren't always
-    // adjacent (real data has seen BROAD/UWSC/BROAD/UWSC interleaved).
-    const selectedFrozenWellGroups = [];
+    const selectedFrozenCorePositions =
+        selectedSlice?.frozenCorePositions || DEFAULT_FROZEN_CORE_POSITIONS;
+    // Every core position submitted by the same GCC (the common case -- one
+    // physical aliquot is usually processed by a single center) collapses
+    // into one group instead of repeating that GCC's name once per
+    // position, which reads as noisy duplication once an aliquot has more
+    // than a couple of positions (real data has seen 6 positions under one
+    // TPC/GCC). Grouped by center regardless of position order -- positions
+    // from the same center aren't always adjacent (real data has seen
+    // BROAD/UWSC/BROAD/UWSC interleaved).
+    const selectedFrozenCorePositionGroups = [];
     const groupIndexByKey = new Map();
-    selectedFrozenWells.forEach((wellId) => {
+    selectedFrozenCorePositions.forEach((corePosition) => {
         const submissionCenter =
-            selectedSlice?.frozenCoreWellSubmissionCenters?.[wellId] || null;
-        const filesHref = selectedSlice?.frozenCoreWellFilesHrefs?.[wellId] || null;
+            selectedSlice?.frozenCorePositionSubmissionCenters?.[corePosition] || null;
+        const filesHref = selectedSlice?.frozenCorePositionFilesHrefs?.[corePosition] || null;
         const key = `${submissionCenter || ''}|${filesHref || ''}`;
         if (groupIndexByKey.has(key)) {
-            selectedFrozenWellGroups[groupIndexByKey.get(key)].wells.push(wellId);
+            selectedFrozenCorePositionGroups[groupIndexByKey.get(key)].positions.push(corePosition);
         } else {
-            groupIndexByKey.set(key, selectedFrozenWellGroups.length);
-            selectedFrozenWellGroups.push({ submissionCenter, filesHref, wells: [wellId] });
+            groupIndexByKey.set(key, selectedFrozenCorePositionGroups.length);
+            selectedFrozenCorePositionGroups.push({ submissionCenter, filesHref, positions: [corePosition] });
         }
     });
     const topDepthOffset = 12;
@@ -494,14 +495,14 @@ export default function AliquotVisualization({
                                                             className="aliquot-grid-row"
                                                             key={row}>
                                                             {FROZEN_GRID_COLS.map((col) => {
-                                                                const wellId = `${row}${col}`;
+                                                                const corePosition = `${row}${col}`;
                                                                 return (
                                                                     <span
-                                                                        key={wellId}
+                                                                        key={corePosition}
                                                                         className={
-                                                                            'aliquot-grid-well' +
-                                                                            (selectedFrozenWells.includes(
-                                                                                wellId
+                                                                            'aliquot-grid-core' +
+                                                                            (selectedFrozenCorePositions.includes(
+                                                                                corePosition
                                                                             )
                                                                                 ? ' is-highlighted'
                                                                                 : '')
@@ -528,15 +529,15 @@ export default function AliquotVisualization({
                                 <p className="aliquot-popover-caption">
                                     {selectedStyles.caption}
                                 </p>
-                                {selectedSlice?.type === 'yellow' && selectedFrozenWells.length > 0 ? (
+                                {selectedSlice?.type === 'yellow' && selectedFrozenCorePositions.length > 0 ? (
                                     <div className="aliquot-popover-cores">
-                                        {selectedFrozenWellGroups.flatMap((group, groupIndex) =>
-                                            group.wells.map((wellId, wellIndexInGroup) => (
+                                        {selectedFrozenCorePositionGroups.flatMap((group, groupIndex) =>
+                                            group.positions.map((corePosition, positionIndexInGroup) => (
                                                 <div
                                                     className="aliquot-popover-row"
-                                                    key={wellId}>
+                                                    key={corePosition}>
                                                     <span>
-                                                        {wellIndexInGroup === 0 ? (
+                                                        {positionIndexInGroup === 0 ? (
                                                             group.filesHref ? (
                                                                 <a
                                                                     href={group.filesHref}
@@ -554,7 +555,7 @@ export default function AliquotVisualization({
                                                     </span>
                                                     <strong>
                                                         {selectedAliquotId}
-                                                        {wellId}
+                                                        {corePosition}
                                                     </strong>
                                                 </div>
                                             ))
@@ -704,7 +705,7 @@ AliquotVisualization.propTypes = {
             label: PropTypes.string,
             description: PropTypes.string,
             widthCm: PropTypes.number,
-            frozenCoreWells: PropTypes.arrayOf(PropTypes.string),
+            frozenCorePositions: PropTypes.arrayOf(PropTypes.string),
             associatedPathologyReports: PropTypes.arrayOf(
                 PropTypes.shape({
                     fixed_sample_external_id: PropTypes.string,
@@ -712,8 +713,8 @@ AliquotVisualization.propTypes = {
                 })
             ),
             pathologyReports: PropTypes.arrayOf(PATHOLOGY_REPORT_PROPTYPE),
-            frozenCoreWellSubmissionCenters: PropTypes.objectOf(PropTypes.string),
-            frozenCoreWellFilesHrefs: PropTypes.objectOf(PropTypes.string),
+            frozenCorePositionSubmissionCenters: PropTypes.objectOf(PropTypes.string),
+            frozenCorePositionFilesHrefs: PropTypes.objectOf(PropTypes.string),
             idPrefix: PropTypes.string,
         })
     ).isRequired,

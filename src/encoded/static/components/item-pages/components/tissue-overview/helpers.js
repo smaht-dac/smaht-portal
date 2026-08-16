@@ -275,21 +275,22 @@ export const sampleNonSolidAliquots = [
 
 // A Core TissueSample's own external_id ends in "<3-digit aliquot>[A-F][1-6]"
 // (item_utils/tissue_sample.py's CORE_REGEX) -- e.g. "SMHT001-3AL-001B2" is
-// specifically well B2. Extracting it here means the popover's well-plate
-// highlight reflects this sample's real position instead of a fixed default.
-export const CORE_WELL_SUFFIX_REGEX = /-[0-9]{3}([A-F][1-6])$/;
-export function getCoreWellFromExternalId(externalId) {
-    const match = externalId ? externalId.match(CORE_WELL_SUFFIX_REGEX) : null;
+// specifically core position B2. Extracting it here means the popover's
+// core grid highlight reflects this sample's real position instead of a
+// fixed default.
+export const CORE_POSITION_SUFFIX_REGEX = /-[0-9]{3}([A-F][1-6])$/;
+export function getCorePositionFromExternalId(externalId) {
+    const match = externalId ? externalId.match(CORE_POSITION_SUFFIX_REGEX) : null;
     return match ? match[1] : null;
 }
 
 // The 3-digit aliquot number is shared by every Core TissueSample cut from
-// the same physical Frozen aliquot, just at a different well
+// the same physical Frozen aliquot, just at a different position
 // (item_utils/tissue_sample.py's TISSUE_ALIQUOT_REGEX "-NNN$" is that same
-// number without a well suffix, CORE_REGEX "-NNN[A-F][1-6]$" is one Core
-// derived from it) -- grouping real slices by idPrefix + this number is how
-// multiple Core samples end up as one slice box with several highlighted
-// wells instead of one duplicate box per well.
+// number without a position suffix, CORE_REGEX "-NNN[A-F][1-6]$" is one
+// Core derived from it) -- grouping real slices by idPrefix + this number
+// is how multiple Core samples end up as one slice box with several
+// highlighted positions instead of one duplicate box per position.
 export const ALIQUOT_NUMBER_REGEX = /-([0-9]{3})(?:[A-F][1-6])?$/;
 export function getAliquotNumberFromExternalId(externalId) {
     const match = externalId ? externalId.match(ALIQUOT_NUMBER_REGEX) : null;
@@ -297,7 +298,7 @@ export function getAliquotNumberFromExternalId(externalId) {
 }
 
 // Scopes to donor + tissue_type + the GCC that sequenced the files -- NOT
-// to one specific well's TissueSample, since File's own
+// to one specific core position's TissueSample, since File's own
 // sample_summary.sample_names isn't embedded/faceted for Browse (only
 // sample_summary.tissues is, per file.json's facets). Mirrors the verified
 // donor+tissue link BrowseDonorBase.js already builds for the Files stat.
@@ -343,7 +344,7 @@ export const getGccFilesBrowseHref = ({ donorDisplayTitle, tissueTypeValue, subm
 // Unfiltered-by-GCC counterpart to getGccFilesBrowseHref, for the page's
 // own "Files: N" stat -- most real files trace back to a downstream
 // processing/analysis center (e.g. "HMS DAC"), not the GCC that submitted
-// the originating TissueSample, so per-well GCC links can only ever surface
+// the originating TissueSample, so per-core-position GCC links can only ever surface
 // a fraction of a tissue's files (confirmed against real fixture data: 10
 // of 12 files for one donor+tissue combination were HMS DAC, only 2 were
 // the aliquot's own submitting GCC). This mirrors exactly the donor+tissue
