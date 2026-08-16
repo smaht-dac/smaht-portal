@@ -57,6 +57,42 @@ function PathologyReportLinks({ reports }) {
     });
 }
 
+// Flattens associatedPathologyReports (one entry per linked Fixed sample,
+// each with its own pathology_reports array) into one row per report --
+// sorted by the Fixed sample's external_id so the list reads in a stable,
+// predictable order instead of whatever order the samples happened to
+// merge in. The full report name is long (e.g.
+// "NDRI_NON-BRAIN-PATHOLOGY-REPORT_SMHT004-3T-003") -- keep the visible
+// label to the short, already-distinguishing external_id and put the full
+// name in the link's `title` tooltip instead of spending a second line on
+// it.
+function getSortedPathologyReportItems(entries) {
+    return (entries || [])
+        .slice()
+        .sort((a, b) =>
+            String(a?.fixed_sample_external_id || '').localeCompare(
+                String(b?.fixed_sample_external_id || ''),
+                undefined,
+                { numeric: true }
+            )
+        )
+        .flatMap((entry) => {
+            const externalId = entry?.fixed_sample_external_id;
+            const reports = entry?.pathology_reports;
+            if (!reports || reports.length === 0) {
+                return [{ key: externalId, externalId, href: null, label: null }];
+            }
+            return reports.map((report, reportIndex) => {
+                return {
+                    key: `${externalId}-${reportIndex}`,
+                    externalId,
+                    href: typeof report === 'string' ? report : report?.['@id'],
+                    label: typeof report === 'object' ? report?.display_title || 'View' : 'View',
+                };
+            });
+        });
+}
+
 function buildSliceGeometry({
     widthPx,
     heightPx,
@@ -634,33 +670,37 @@ export default function AliquotVisualization({
                                         </p>
                                     ) : null}
                                 {selectedSlice?.associatedPathologyReports?.length > 0 ? (
-                                    <div className="aliquot-popover-pathology">
-                                        {selectedSlice.associatedPathologyReports.map(
-                                            (entry, entryIndex) => (
-                                                <div
-                                                    className="aliquot-popover-row"
-                                                    key={
-                                                        entry.fixed_sample_external_id ||
-                                                        entryIndex
-                                                    }>
-                                                    <span>
-                                                        Pathology (
-                                                        {entry.fixed_sample_external_id})
-                                                    </span>
-                                                    <strong>
-                                                        {entry.pathology_reports?.length > 0 ? (
-                                                            <PathologyReportLinks
-                                                                reports={
-                                                                    entry.pathology_reports
-                                                                }
-                                                            />
-                                                        ) : (
-                                                            'No report yet'
-                                                        )}
-                                                    </strong>
-                                                </div>
-                                            )
-                                        )}
+                                    <div className="aliquot-popover-pathology-section">
+                                        {/* Sits directly under this slice's own
+                                            id (aliquot-popover-description above)
+                                            -- both are "SMHT###-##-###"-shaped
+                                            ids, so labelling this one avoids it
+                                            reading as an accidental repeat of
+                                            the slice's own id. */}
+                                        <span className="aliquot-popover-pathology-heading">
+                                            Linked Fixed sample pathology
+                                        </span>
+                                        <ul className="aliquot-popover-pathology-list">
+                                            {getSortedPathologyReportItems(
+                                                selectedSlice.associatedPathologyReports
+                                            ).map((item) => (
+                                                <li key={item.key}>
+                                                    {item.href ? (
+                                                        <a
+                                                            href={item.href}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            title={item.label}>
+                                                            {item.externalId}
+                                                        </a>
+                                                    ) : (
+                                                        <span title="No report yet">
+                                                            {item.externalId} &ndash; no report yet
+                                                        </span>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 ) : null}
                             </PopoverBody>

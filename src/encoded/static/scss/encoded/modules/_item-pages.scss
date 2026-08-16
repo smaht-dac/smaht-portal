@@ -4116,20 +4116,71 @@ File, Donor, and Publication Overview Styles
     }
 
     .aliquot-popover-cores,
-    .aliquot-popover-pathology {
+    .aliquot-popover-pathology,
+    .aliquot-popover-pathology-section {
         display: flex;
         flex-direction: column;
         gap: 4px;
         padding: 8px 0;
         border-top: 1px solid #e4edf5;
         border-bottom: 1px solid #e4edf5;
+    }
+
+    .aliquot-popover-cores {
         // Caps just this list, not the whole popover -- a short list (the
         // common case) never scrolls at all; only a genuinely long one
-        // (many core positions, or several distinct linked Fixed samples)
-        // scrolls internally instead of pushing the popover past the
-        // viewport.
+        // (many core positions) scrolls internally instead of pushing the
+        // popover past the viewport.
         max-height: 220px;
         overflow-y: auto;
+    }
+
+    .aliquot-popover-pathology-heading {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #97a6b8;
+    }
+
+    .aliquot-popover-pathology-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        // Caps just the list -- the heading above it stays put so a long
+        // list scrolls without losing the "what is this" context.
+        max-height: 180px;
+        overflow-y: auto;
+
+        li {
+            position: relative;
+            padding-left: 14px;
+            color: #4e6379;
+            font-size: 0.8125rem;
+            // Truncate instead of wrapping -- the whole point of moving to
+            // one line per report is to stop each entry from eating two
+            // lines; the full name is still reachable via the link's title
+            // tooltip.
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            &::before {
+                content: '\2022';
+                position: absolute;
+                left: 2px;
+                color: #97a6b8;
+            }
+        }
+
+        a {
+            color: #2f6fb0;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
     }
 
     .aliquot-popover-row {
