@@ -241,7 +241,15 @@ export default function AliquotVisualization({
             ...slice,
             type,
             typeIndex,
-            sequenceLabel: String(typeIndex + 1).padStart(3, '0'),
+            // Prefer the slice's own real aliquot number (e.g. "002",
+            // whatever it was actually submitted under) over this purely
+            // positional "the Nth slice of this type" count -- the two can
+            // disagree (confirmed against real data: a tissue whose only
+            // Frozen aliquot is really "002" would otherwise get relabeled
+            // "001" here just for being the first Frozen slice rendered).
+            // Only demo/illustrative slices (no real aliquotNumber) fall
+            // back to the positional count.
+            sequenceLabel: slice.aliquotNumber || String(typeIndex + 1).padStart(3, '0'),
             widthCm: typeof slice.widthCm === 'number' ? slice.widthCm : 1,
             widthPx:
                 (typeof slice.widthCm === 'number' ? slice.widthCm : 1) *
@@ -792,6 +800,7 @@ AliquotVisualization.propTypes = {
             frozenCorePositionSubmissionCenters: PropTypes.objectOf(PropTypes.string),
             frozenCorePositionFilesHrefs: PropTypes.objectOf(PropTypes.string),
             idPrefix: PropTypes.string,
+            aliquotNumber: PropTypes.string,
         })
     ).isRequired,
 };

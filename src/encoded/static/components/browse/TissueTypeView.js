@@ -217,7 +217,13 @@ export default function TissueTypeView({ context = {}, href, session }) {
             .map((uuid) => `sample_sources.uuid=${encodeURIComponent(uuid)}`)
             .join('&');
         ajax.load(
-            `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}`,
+            // `limit=all` -- without it, Snovault's default PAGINATION_SIZE
+            // (10, not the more commonly assumed 25) silently truncates the
+            // result set. Confirmed as a real bug against production data:
+            // a tissue with 20 real TissueSamples (4 Fixed + 16 Core) only
+            // ever surfaced the first 10, cutting off 10 real Core positions
+            // with no error or indication anything was missing.
+            `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}&limit=all`,
             (resp) => {
                 if (ignore) return;
                 setTissueSamples(resp?.['@graph'] || []);
@@ -252,10 +258,14 @@ export default function TissueTypeView({ context = {}, href, session }) {
                 const isFixed = sample.preservation_type === 'Fixed';
                 const corePosition = getCorePositionFromExternalId(sample.external_id);
                 const idPrefix = getTissueKitIdFromExternalId(sample.external_id);
-                const aliquotNumber = !isFixed
-                    ? getAliquotNumberFromExternalId(sample.external_id)
-                    : null;
-                const groupKey = aliquotNumber ? `${idPrefix}-${aliquotNumber}` : null;
+                // Real aliquot number embedded in the external_id (e.g. "002"
+                // in "SMHT004-3S-002A1") -- extracted for every sample, Fixed
+                // included, so the popover can label a slice with the number
+                // it actually was submitted under. Only used as a *merge* key
+                // for non-Fixed samples (Fixed ones are never merged), but
+                // every slice still carries its own real number for display.
+                const aliquotNumber = getAliquotNumberFromExternalId(sample.external_id);
+                const groupKey = !isFixed && aliquotNumber ? `${idPrefix}-${aliquotNumber}` : null;
                 const existing = groupKey ? slicesByGroupKey.get(groupKey) : null;
                 if (existing) {
                     if (corePosition && !existing.frozenCorePositions.includes(corePosition)) {
@@ -288,6 +298,11 @@ export default function TissueTypeView({ context = {}, href, session }) {
                         ? `${idPrefix}-${aliquotNumber}`
                         : sample.external_id || sample.accession || undefined,
                     idPrefix,
+                    // The real aliquot number this slice was actually
+                    // submitted under -- see TissueView.js's identical field
+                    // for why AliquotVisualization prefers this over its own
+                    // positional numbering.
+                    aliquotNumber: aliquotNumber || undefined,
                     frozenCorePositions: corePosition ? [corePosition] : [],
                     associatedPathologyReports: sample.associated_pathology_reports || [],
                     pathologyReports: sample.pathology_reports || [],

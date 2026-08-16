@@ -224,7 +224,13 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
             .map((uuid) => `sample_sources.uuid=${encodeURIComponent(uuid)}`)
             .join('&');
         ajax.load(
-            `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}`,
+            // `limit=all` -- without it, Snovault's default PAGINATION_SIZE
+            // (10, not the more commonly assumed 25) silently truncates the
+            // result set. Confirmed as a real bug against production data:
+            // a tissue with 20 real TissueSamples (4 Fixed + 16 Core) only
+            // ever surfaced the first 10, cutting off 10 real Core positions
+            // with no error or indication anything was missing.
+            `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}&limit=all`,
             (resp) => {
                 if (ignore) return;
                 setTissueSamples(resp?.['@graph'] || []);
@@ -262,10 +268,14 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                 // Frozen siblings have different protocol codes despite
                 // sharing one tissue_type, so each slice needs its own.
                 const idPrefix = getTissueKitIdFromExternalId(sample.external_id);
-                const aliquotNumber = !isFixed
-                    ? getAliquotNumberFromExternalId(sample.external_id)
-                    : null;
-                const groupKey = aliquotNumber ? `${idPrefix}-${aliquotNumber}` : null;
+                // Real aliquot number embedded in the external_id (e.g. "002"
+                // in "SMHT004-3S-002A1") -- extracted for every sample, Fixed
+                // included, so the popover can label a slice with the number
+                // it actually was submitted under. Only used as a *merge* key
+                // for non-Fixed samples (Fixed ones are never merged), but
+                // every slice still carries its own real number for display.
+                const aliquotNumber = getAliquotNumberFromExternalId(sample.external_id);
+                const groupKey = !isFixed && aliquotNumber ? `${idPrefix}-${aliquotNumber}` : null;
                 const existing = groupKey ? slicesByGroupKey.get(groupKey) : null;
                 if (existing) {
                     if (corePosition && !existing.frozenCorePositions.includes(corePosition)) {
@@ -306,6 +316,16 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                         ? `${idPrefix}-${aliquotNumber}`
                         : sample.external_id || sample.accession || undefined,
                     idPrefix,
+                    // The real aliquot number this slice was actually
+                    // submitted under (e.g. "002") -- AliquotVisualization
+                    // prefers this over its own positional numbering, so the
+                    // popover title/"Frozen #" reflects reality instead of
+                    // just "the Nth slice rendered", which can disagree with
+                    // the real number whenever a tissue's aliquot numbering
+                    // isn't contiguous from 001 (confirmed against real data:
+                    // a donor whose only real Frozen aliquot is "002", with
+                    // no "001" ever submitted).
+                    aliquotNumber: aliquotNumber || undefined,
                     // Explicit [] (not undefined) for a real Frozen sample with
                     // no Core suffix -- so AliquotVisualization's `|| DEFAULT`
                     // fallback (meant only for illustrative demo slices) does
