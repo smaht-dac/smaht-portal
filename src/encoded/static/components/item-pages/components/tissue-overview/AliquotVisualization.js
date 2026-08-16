@@ -532,17 +532,53 @@ export default function AliquotVisualization({
                                                             key={row}>
                                                             {FROZEN_GRID_COLS.map((col) => {
                                                                 const corePosition = `${row}${col}`;
-                                                                return (
+                                                                const isHighlighted =
+                                                                    selectedFrozenCorePositions.includes(
+                                                                        corePosition
+                                                                    );
+                                                                if (!isHighlighted) {
+                                                                    return (
+                                                                        <span
+                                                                            key={corePosition}
+                                                                            className="aliquot-grid-core"
+                                                                        />
+                                                                    );
+                                                                }
+                                                                const positionSubmissionCenter =
+                                                                    selectedSlice
+                                                                        ?.frozenCorePositionSubmissionCenters?.[
+                                                                            corePosition
+                                                                        ];
+                                                                const positionFilesHref =
+                                                                    selectedSlice
+                                                                        ?.frozenCorePositionFilesHrefs?.[
+                                                                            corePosition
+                                                                        ];
+                                                                const positionId = `${selectedAliquotId}${corePosition}`;
+                                                                const positionTitle =
+                                                                    positionSubmissionCenter
+                                                                        ? `${positionId} (${positionSubmissionCenter})`
+                                                                        : positionId;
+                                                                // Every highlighted dot reflects a real
+                                                                // Core TissueSample -- link it to that
+                                                                // position's own GCC files (same target
+                                                                // as clicking its row below) when one is
+                                                                // available, instead of leaving it a
+                                                                // dead-end visual.
+                                                                return positionFilesHref ? (
+                                                                    <a
+                                                                        key={corePosition}
+                                                                        href={positionFilesHref}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        title={`View ${positionTitle}'s files`}
+                                                                        className="aliquot-grid-core is-highlighted is-linked"
+                                                                    />
+                                                                ) : (
                                                                     <span
                                                                         key={corePosition}
-                                                                        className={
-                                                                            'aliquot-grid-core' +
-                                                                            (selectedFrozenCorePositions.includes(
-                                                                                corePosition
-                                                                            )
-                                                                                ? ' is-highlighted'
-                                                                                : '')
-                                                                        }
+                                                                        title={positionTitle}
+                                                                        className="aliquot-grid-core is-highlighted"
                                                                     />
                                                                 );
                                                             })}

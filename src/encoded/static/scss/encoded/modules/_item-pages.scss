@@ -4089,6 +4089,20 @@ File, Donor, and Publication Overview Styles
             background-color: #1e5b4f;
             border-color: #1e5b4f;
         }
+
+        // Only highlighted dots with a real per-position GCC files link get
+        // this -- an interactive affordance so they don't read as purely
+        // decorative once every other highlighted dot is clickable.
+        &.is-linked {
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+
+            &:hover,
+            &:focus-visible {
+                transform: scale(1.25);
+                box-shadow: 0 0 0 3px rgba(30, 91, 79, 0.25);
+            }
+        }
     }
 
     .aliquot-grid-col-labels {
