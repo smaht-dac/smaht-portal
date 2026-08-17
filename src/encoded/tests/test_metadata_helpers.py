@@ -174,13 +174,14 @@ def test_build_sample_pathology_row_includes_common_and_subtype_fields() -> None
     assert row_by_column["SequencedSampleAccession"] == "SMHT-SAMPLE-1"
     assert row_by_column["FixedSampleAccession"] == "SMHT-FIXED-1"
     assert row_by_column["FixedSampleExternalID"] == "SMHT001-1B-100A1"
-    assert row_by_column["LinkedFixedSampleIdentifier"] == ""
-    assert row_by_column["PathologyReportType"] == "NonBrainPathologyReport"
     assert row_by_column["PathologyOutcome"] == "Acceptable"
     assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex,Liver"
     assert row_by_column["PathologyTargetTissuePresent"] == "No,Yes"
     assert "PathologyMetadataStatus" not in row_by_column
     assert "SequencedSampleExternalID" not in row_by_column
+    assert "LinkedFixedSampleIdentifier" not in row_by_column
+    assert "PathologyReportType" not in row_by_column
+    assert "PathologyReportSubmittedID" not in row_by_column
 
 
 def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_reports(monkeypatch) -> None:
@@ -255,26 +256,28 @@ def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_repo
     rows_by_column = [dict(zip(columns, row)) for row in rows]
 
     assert len(rows_by_column) == 3
-    assert columns[:5] == [
+    assert columns[:4] == [
         "FixedSampleAccession",
         "SequencedSampleAccession",
         "FixedSampleExternalID",
-        "FixedSamplePreservationType",
-        "FixedSampleCategory",
+        "PathologyReportAccession",
     ]
     assert "PathologyMetadataStatus" not in columns
     assert "SequencedSampleExternalID" not in columns
+    assert "FixedSamplePreservationType" not in columns
+    assert "FixedSampleCategory" not in columns
+    assert "LinkedFixedSampleIdentifier" not in columns
+    assert "PathologyReportType" not in columns
+    assert "PathologyReportSubmittedID" not in columns
+    assert not any(name.endswith("SubmittedID") for name in columns)
     assert rows_by_column[0]["FixedSampleAccession"] == "SMHT-FIXED-1"
     assert rows_by_column[0]["SequencedSampleAccession"] == "SMHT-SAMPLE-1"
-    assert rows_by_column[0]["LinkedFixedSampleIdentifier"] == "fixed-with-report"
     assert rows_by_column[0]["PathologyReportAccession"] == "SMHT-PR-1"
-    assert rows_by_column[0]["PathologyReportType"] == "BrainPathologyReport"
     assert rows_by_column[1]["FixedSampleAccession"] == "SMHT-FIXED-2"
     assert rows_by_column[1]["SequencedSampleAccession"] == "SMHT-SAMPLE-2"
     assert rows_by_column[1]["PathologyReportAccession"] == ""
     assert rows_by_column[1]["PathologyOutcome"] == ""
     assert rows_by_column[2]["FixedSampleAccession"] == "SMHT-FIXED-1"
     assert rows_by_column[2]["SequencedSampleAccession"] == "SMHT-SAMPLE-4"
-    assert rows_by_column[2]["LinkedFixedSampleIdentifier"] == "fixed-with-report"
     assert all(row["SequencedSampleAccession"] != "SMHT-SAMPLE-3" for row in rows_by_column)
     assert all(row["SequencedSampleAccession"] != "SMHT-SAMPLE-5" for row in rows_by_column)

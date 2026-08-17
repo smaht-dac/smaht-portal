@@ -800,12 +800,7 @@ TSV_MAPPING = {
         'FixedSampleAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
         'SequencedSampleAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
         'FixedSampleExternalID': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['external_id']),
-        'FixedSamplePreservationType': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['preservation_type']),
-        'FixedSampleCategory': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['category']),
-        'LinkedFixedSampleIdentifier': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['uuid']),
         'PathologyReportAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
-        'PathologyReportSubmittedID': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['submitted_id']),
-        'PathologyReportType': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['@type']),
         'PathologyReportStatus': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['status']),
         'PathologyTissueName': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['tissue_name']),
         'PathologyOutcome': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['outcome']),
@@ -1624,32 +1619,22 @@ def _index_items_by_identifiers(items):
     return indexed
 
 
-def _get_pathology_report_type(report):
-    return _first_specific_type(report.get('@type'), ['BrainPathologyReport', 'NonBrainPathologyReport', 'PathologyReport'])
-
-
 def _extract_manifest_field(request, item, field_name):
     descriptor = TSV_MAPPING[SAMPLE_PATHOLOGY][field_name]
     return descend_field(request, item or {}, descriptor.field_name()) or ''
 
 
-def _build_sample_pathology_row(request, sequenced_sample, fixed_sample, report=None,
-                                linked_fixed_sample_identifier=''):
+def _build_sample_pathology_row(request, sequenced_sample, fixed_sample, report=None):
     """Build one SAMPLE_PATHOLOGY manifest row as a dict keyed by TSV column."""
     row = {
         'FixedSampleAccession': _extract_manifest_field(request, fixed_sample, 'FixedSampleAccession'),
         'SequencedSampleAccession': _extract_manifest_field(request, sequenced_sample, 'SequencedSampleAccession'),
         'FixedSampleExternalID': _extract_manifest_field(request, fixed_sample, 'FixedSampleExternalID'),
-        'FixedSamplePreservationType': _extract_manifest_field(request, fixed_sample,
-                                                               'FixedSamplePreservationType'),
-        'FixedSampleCategory': _extract_manifest_field(request, fixed_sample, 'FixedSampleCategory'),
-        'LinkedFixedSampleIdentifier': linked_fixed_sample_identifier or fixed_sample.get('uuid') or '',
     }
     if report:
         for field_name in TSV_MAPPING[SAMPLE_PATHOLOGY].keys():
-            if field_name.startswith('Pathology') and field_name != 'PathologyReportType':
+            if field_name.startswith('Pathology'):
                 row[field_name] = _extract_manifest_field(request, report, field_name)
-        row['PathologyReportType'] = _get_pathology_report_type(report)
     return [row.get(field_name, '') for field_name in TSV_MAPPING[SAMPLE_PATHOLOGY].keys()]
 
 
@@ -1784,13 +1769,11 @@ def generate_sample_pathology_manifest(request, args, search_iter):
             if not reports:
                 yield _build_sample_pathology_row(
                     request, sequenced_sample, fixed_sample=fixed_sample,
-                    linked_fixed_sample_identifier=fixed_identifier,
                 )
                 continue
             for report in reports:
                 yield _build_sample_pathology_row(
                     request, sequenced_sample, fixed_sample=fixed_sample, report=report,
-                    linked_fixed_sample_identifier=fixed_identifier,
                 )
 
     log.info(
