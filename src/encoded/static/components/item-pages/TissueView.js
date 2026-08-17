@@ -28,6 +28,7 @@ import {
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
     isMedialLateralAliquotLayout,
+    isBivalvedAliquotLayout,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
 } from './components/tissue-overview/helpers';
@@ -113,6 +114,9 @@ const TissueView = React.memo(function TissueView({
     const aliquotDepthCm = getTissueAliquotDepthCm(tissue_type || getDisplayText(uberon_id));
     const aliquotLayoutNote = getAliquotLayoutNote(tissue_type || getDisplayText(uberon_id));
     const showMedialLateralHint = isMedialLateralAliquotLayout(
+        tissue_type || getDisplayText(uberon_id)
+    );
+    const enableBivalvedSplit = isBivalvedAliquotLayout(
         tissue_type || getDisplayText(uberon_id)
     );
     const targetTissueHref = uberon_id ? uberonHref : null;
@@ -725,6 +729,7 @@ const TissueView = React.memo(function TissueView({
                                     idPrefix={aliquotIdPrefix}
                                     showSliceLabels={false}
                                     showMedialLateralHint={showMedialLateralHint}
+                                    enableBivalvedSplit={enableBivalvedSplit}
                                 />
                             )}
                         </div>

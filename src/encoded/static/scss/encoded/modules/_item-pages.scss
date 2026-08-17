@@ -3832,6 +3832,21 @@ File, Donor, and Publication Overview Styles
         }
     }
 
+    // Sits in the visual gap between a bivalved tissue's two split box
+    // groups (see enableBivalvedSplit) -- neutral gray, not the medial/
+    // lateral hint's red, since this one isn't warning about an unverified
+    // annotation drawn over real geometry, just captioning a real (if
+    // illustrative) gap that's already visually obvious as two boxes.
+    .aliquot-bivalved-split-caption {
+        fill: #3c4650;
+        font-size: 13px;
+        font-style: italic;
+        font-weight: 700;
+        paint-order: stroke;
+        stroke: #ffffff;
+        stroke-width: 3px;
+    }
+
     .aliquot-slice {
         transition: filter 180ms ease;
 

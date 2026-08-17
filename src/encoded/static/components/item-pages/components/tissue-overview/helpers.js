@@ -233,6 +233,20 @@ export const isMedialLateralAliquotLayout = (tissueTypeValue) => {
     return ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE[internalCode] === MEDIAL_LATERAL_NOTE;
 };
 
+// True only for the bivalved tissues above (Adrenal/Heart/Gonads), not the
+// medial/lateral ones -- used to gate AliquotVisualization's
+// enableBivalvedSplit, which (unlike the medial/lateral hint line) only ever
+// activates when this donor's own slice widths happen to divide evenly at a
+// slice boundary (see that prop's comment) -- still never asserts which
+// specific real aliquot lands in which half, since nothing in the data model
+// says so (see BIVALVED_NOTE above).
+export const isBivalvedAliquotLayout = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return false;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    return ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE[internalCode] === BIVALVED_NOTE;
+};
+
 export const formatYesNo = (value) => {
     if (value === null || typeof value === 'undefined') return '-';
     return value ? 'Yes' : 'No';

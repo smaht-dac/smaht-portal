@@ -31,6 +31,7 @@ import {
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
     isMedialLateralAliquotLayout,
+    isBivalvedAliquotLayout,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
 } from '../item-pages/components/tissue-overview/helpers';
@@ -136,6 +137,9 @@ export default function TissueTypeView({
     const aliquotDepthCm = getTissueAliquotDepthCm(tissue_type || getDisplayText(uberon_id));
     const aliquotLayoutNote = getAliquotLayoutNote(tissue_type || getDisplayText(uberon_id));
     const showMedialLateralHint = isMedialLateralAliquotLayout(
+        tissue_type || getDisplayText(uberon_id)
+    );
+    const enableBivalvedSplit = isBivalvedAliquotLayout(
         tissue_type || getDisplayText(uberon_id)
     );
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
@@ -646,6 +650,7 @@ export default function TissueTypeView({
                                     idPrefix={aliquotIdPrefix}
                                     showSliceLabels={false}
                                     showMedialLateralHint={showMedialLateralHint}
+                                    enableBivalvedSplit={enableBivalvedSplit}
                                 />
                             )}
                         </div>

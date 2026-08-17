@@ -111,14 +111,23 @@ function getSortedPathologyReportItems(entries) {
 }
 
 function buildSliceGeometry({
-    widthPx,
     heightPx,
     depthX,
     depthY,
     slices,
+    // Where this run of slices starts along the width axis, and what global
+    // index its first slice should carry -- both default to 0 for a single
+    // continuous box, but a bivalved split (see enableBivalvedSplit) calls
+    // this twice, once per half, with the second half's offsetX pushed past
+    // the first half's own width plus a gap, and its startIndex continuing
+    // on from the first half's slice count (so `index` still lines up with
+    // normalizedSlices/selectedSliceIndex regardless of grouping).
+    offsetX = 0,
+    startIndex = 0,
 }) {
-    let currentX = 0;
-    return slices.map((slice, index) => {
+    let currentX = offsetX;
+    return slices.map((slice, i) => {
+        const index = startIndex + i;
         const width = slice.widthPx;
         const x0 = currentX;
         const x1 = currentX + width;
@@ -218,6 +227,17 @@ export default function AliquotVisualization({
     // isMedialLateralAliquotLayout in tissue-overview/helpers.js). Labelled
     // as an example in the diagram itself so it can't read as real data.
     showMedialLateralHint = false,
+    // For bivalved tissues (Adrenal/Heart/Gonads -- see
+    // isBivalvedAliquotLayout in helpers.js). Unlike showMedialLateralHint
+    // this doesn't just annotate the single box with a line -- when this
+    // donor's own slice widths happen to add up to an even split at a
+    // boundary between two slices (never through the middle of one, so no
+    // slice's own box gets torn in half), the two halves are drawn as
+    // physically separate boxes with a real gap between them. If no such
+    // boundary exists, nothing changes: still one continuous box, same as
+    // any other tissue. Still doesn't claim which real aliquot belongs to
+    // which half -- see the in-canvas caption below.
+    enableBivalvedSplit = false,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -293,21 +313,70 @@ export default function AliquotVisualization({
                 sliceBase,
         };
     });
-    const widthPx = normalizedSlices.reduce(
-        (sum, slice) => sum + slice.widthPx,
-        0
-    );
     const totalWidthCm = normalizedSlices.reduce(
         (sum, slice) => sum + slice.widthCm,
         0
     );
-    const geometry = buildSliceGeometry({
-        widthPx,
-        heightPx,
-        depthX,
-        depthY,
-        slices: normalizedSlices,
+    // Only look for a split boundary when the caller says this tissue is
+    // bivalved AND there's more than one slice to split -- and only accept
+    // a boundary that falls between two slices (cumulative width from the
+    // left exactly half the total, within floating-point tolerance), never
+    // a point that would fall inside a single slice's own box. No such
+    // boundary existing (e.g. an odd slice whose own width straddles the
+    // midpoint) is a normal, expected outcome, not an error -- it just means
+    // this donor's real aliquot count doesn't happen to support a clean
+    // hypothetical split, so the tissue renders as one continuous box like
+    // any other.
+    const BIVALVED_SPLIT_TOLERANCE_CM = 0.01;
+    let bivalvedSplitIndex = null;
+    if (enableBivalvedSplit && normalizedSlices.length > 1) {
+        const halfCm = totalWidthCm / 2;
+        let cumulativeCm = 0;
+        for (let i = 0; i < normalizedSlices.length - 1; i++) {
+            cumulativeCm += normalizedSlices[i].widthCm;
+            if (Math.abs(cumulativeCm - halfCm) < BIVALVED_SPLIT_TOLERANCE_CM) {
+                bivalvedSplitIndex = i + 1;
+                break;
+            }
+        }
+    }
+    const hasBivalvedSplit = bivalvedSplitIndex !== null;
+    // A visible gap in pixel space only, not a real measured distance --
+    // drawn so the two halves read as physically separate pieces (per Fig.
+    // 2a's "Anterior half" / "Posterior half" boxes), not as one block with
+    // a line through it.
+    const BIVALVED_SPLIT_GAP_PX = 56;
+    const sliceGroupBounds = hasBivalvedSplit
+        ? [
+            { start: 0, end: bivalvedSplitIndex },
+            { start: bivalvedSplitIndex, end: normalizedSlices.length },
+        ]
+        : [{ start: 0, end: normalizedSlices.length }];
+    let cursorX = 0;
+    const sliceGroups = sliceGroupBounds.map((bounds, groupIndex) => {
+        if (groupIndex > 0) cursorX += BIVALVED_SPLIT_GAP_PX;
+        const groupSlices = normalizedSlices.slice(bounds.start, bounds.end);
+        const groupWidthPx = groupSlices.reduce((sum, slice) => sum + slice.widthPx, 0);
+        const groupWidthCm = groupSlices.reduce((sum, slice) => sum + slice.widthCm, 0);
+        const startX = cursorX;
+        const groupGeometry = buildSliceGeometry({
+            heightPx,
+            depthX,
+            depthY,
+            slices: groupSlices,
+            offsetX: startX,
+            startIndex: bounds.start,
+        });
+        cursorX += groupWidthPx;
+        return { startX, widthPx: groupWidthPx, widthCm: groupWidthCm, geometry: groupGeometry };
     });
+    const geometry = sliceGroups.flatMap((group) => group.geometry);
+    // The full drawn extent along the width axis, including any bivalved
+    // gap -- everything that used to size/position itself off the single
+    // box's `widthPx` (viewBox, dimension arrows, the medial/lateral hint)
+    // uses this instead, so it still spans edge-to-edge across both halves
+    // when split, or is just the one box's width when it isn't.
+    const widthPx = cursorX;
     const viewBoxMinX = -76;
     const viewBoxMinY = -42;
     const viewBoxWidth = widthPx + depthX + 180;
@@ -455,15 +524,45 @@ export default function AliquotVisualization({
                     viewBox={`${viewBoxMinX} ${viewBoxMinY} ${viewBoxWidth} ${viewBoxHeight}`}
                     role="img"
                     aria-label="Aliquot slice visualization">
-                    <DimensionArrow
-                        x1={topDimensionLine.x1 + 8}
-                        y1={topDimensionLine.y1}
-                        x2={topDimensionLine.x2 - 8}
-                        y2={topDimensionLine.y2}
-                        label={widthLabel}
-                        labelX={topMidpoint.x}
-                        labelY={topMidpoint.y - 14}
-                    />
+                    {hasBivalvedSplit ? (
+                        sliceGroups.map((group, groupIndex) => {
+                            const groupTopLine = offsetLine(
+                                depthX + group.startX,
+                                0,
+                                depthX + group.startX + group.widthPx,
+                                0,
+                                -topDepthOffset
+                            );
+                            const groupTopMidpoint = midpoint(
+                                groupTopLine.x1,
+                                groupTopLine.y1,
+                                groupTopLine.x2,
+                                groupTopLine.y2
+                            );
+                            return (
+                                <DimensionArrow
+                                    key={`width-${groupIndex}`}
+                                    x1={groupTopLine.x1 + 8}
+                                    y1={groupTopLine.y1}
+                                    x2={groupTopLine.x2 - 8}
+                                    y2={groupTopLine.y2}
+                                    label={`${group.widthCm} cm`}
+                                    labelX={groupTopMidpoint.x}
+                                    labelY={groupTopMidpoint.y - 14}
+                                />
+                            );
+                        })
+                    ) : (
+                        <DimensionArrow
+                            x1={topDimensionLine.x1 + 8}
+                            y1={topDimensionLine.y1}
+                            x2={topDimensionLine.x2 - 8}
+                            y2={topDimensionLine.y2}
+                            label={widthLabel}
+                            labelX={topMidpoint.x}
+                            labelY={topMidpoint.y - 14}
+                        />
+                    )}
                     <DimensionArrow
                         x1={depthDimensionLine.x1}
                         y1={depthDimensionLine.y1}
@@ -475,14 +574,28 @@ export default function AliquotVisualization({
                         textAnchor="start"
                     />
 
-                    <g className="aliquot-box-outline">
-                        <polygon
-                            points={`0,${depthY} ${depthX},0 ${depthX + widthPx},0 ${widthPx},${depthY}`}
-                        />
-                        <polygon
-                            points={`${widthPx},${depthY} ${widthPx + depthX},0 ${widthPx + depthX},${heightPx} ${widthPx},${depthY + heightPx}`}
-                        />
-                    </g>
+                    {sliceGroups.map((group, groupIndex) => {
+                        const groupX1 = group.startX + group.widthPx;
+                        return (
+                            <g className="aliquot-box-outline" key={`outline-${groupIndex}`}>
+                                <polygon
+                                    points={`${group.startX},${depthY} ${group.startX + depthX},0 ${groupX1 + depthX},0 ${groupX1},${depthY}`}
+                                />
+                                <polygon
+                                    points={`${groupX1},${depthY} ${groupX1 + depthX},0 ${groupX1 + depthX},${heightPx} ${groupX1},${depthY + heightPx}`}
+                                />
+                            </g>
+                        );
+                    })}
+                    {hasBivalvedSplit ? (
+                        <text
+                            className="aliquot-bivalved-split-caption"
+                            x={sliceGroups[0].startX + sliceGroups[0].widthPx + BIVALVED_SPLIT_GAP_PX / 2 + depthX / 2}
+                            y={depthY + heightPx + 24}
+                            textAnchor="middle">
+                            Example split (illustrative)
+                        </text>
+                    ) : null}
 
                     {geometry.map((slice) => {
                         const styles = SLICE_TYPE_STYLES[slice.type];
@@ -995,6 +1108,7 @@ AliquotVisualization.propTypes = {
     className: PropTypes.string,
     idPrefix: PropTypes.string,
     showMedialLateralHint: PropTypes.bool,
+    enableBivalvedSplit: PropTypes.bool,
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,
