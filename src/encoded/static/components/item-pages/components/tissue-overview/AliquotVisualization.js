@@ -34,6 +34,18 @@ const DEFAULT_FROZEN_CORE_POSITIONS = ['A1', 'C2'];
 // under one center) -- see the render site for why this replaced an
 // internal scrollbar.
 const CORE_POSITIONS_COLLAPSE_THRESHOLD = 3;
+// Distinct, colorblind-considerate hues (not just lightness steps of one
+// base color) so cores submitted by different centers are visually
+// distinguishable at a glance in the grid, not just via tooltip/click.
+const CORE_DOT_COLOR_PALETTE = [
+    '#1e5b4f', // dark teal-green (matches the default single-GCC highlight)
+    '#c99a2e', // amber/gold
+    '#5b5fc4', // indigo
+    '#c0524a', // brick red
+    '#2f8fa6', // teal-blue
+    '#8a4fae', // violet
+];
+const [CORE_DOT_DEFAULT_COLOR] = CORE_DOT_COLOR_PALETTE;
 
 const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
     PropTypes.string,
@@ -354,6 +366,22 @@ export default function AliquotVisualization({
             }
         });
     });
+    // A distinct, stable color per real submitting center in the currently
+    // open popover -- assigned in first-encounter order so the same center
+    // always gets the same color within one popover session, letting the
+    // grid dots and the GCC rows below double as each other's legend
+    // instead of needing a separate one. Positions with no known center
+    // (demo/fallback data) fall back to CORE_DOT_DEFAULT_COLOR.
+    const submissionCenterColors = new Map();
+    selectedFrozenCorePositionGroups.forEach((group) => {
+        const key = group.submissionCenter || null;
+        if (key && !submissionCenterColors.has(key)) {
+            submissionCenterColors.set(
+                key,
+                CORE_DOT_COLOR_PALETTE[submissionCenterColors.size % CORE_DOT_COLOR_PALETTE.length]
+            );
+        }
+    });
     const topDepthOffset = 12;
     const rightOffset = -12;
     const topDimensionLine = offsetLine(
@@ -592,22 +620,41 @@ export default function AliquotVisualization({
                                                                 // submitting center (see the grouping
                                                                 // comment above selectedFrozenCorePositionGroups)
                                                                 // -- list every distinct one in the
-                                                                // tooltip, and link to whichever has a
-                                                                // real files href (a TPC-only position has
-                                                                // none; prefer the first one that does).
-                                                                const positionSubmissionCenters = (
+                                                                // tooltip, and link/color by whichever has
+                                                                // a real files href (a TPC-only position
+                                                                // has none; prefer the first one that
+                                                                // does).
+                                                                const rawSubmissionCenters =
                                                                     selectedSlice
                                                                         ?.frozenCorePositionSubmissionCenters?.[
                                                                             corePosition
-                                                                        ] || []
-                                                                ).filter(Boolean);
-                                                                const positionFilesHrefs =
+                                                                        ] || [];
+                                                                const rawFilesHrefs =
                                                                     selectedSlice
                                                                         ?.frozenCorePositionFilesHrefs?.[
                                                                             corePosition
                                                                         ] || [];
+                                                                const linkedIndex =
+                                                                    rawFilesHrefs.findIndex(Boolean);
                                                                 const positionFilesHref =
-                                                                    positionFilesHrefs.find(Boolean) || null;
+                                                                    linkedIndex >= 0
+                                                                        ? rawFilesHrefs[linkedIndex]
+                                                                        : null;
+                                                                const positionSubmissionCenters =
+                                                                    rawSubmissionCenters.filter(Boolean);
+                                                                const primaryCenter =
+                                                                    (linkedIndex >= 0
+                                                                        ? rawSubmissionCenters[linkedIndex]
+                                                                        : null) || positionSubmissionCenters[0];
+                                                                // Different GCCs get visually distinct dot
+                                                                // colors, not just distinct tooltips/links
+                                                                // -- see submissionCenterColors above.
+                                                                const dotColor =
+                                                                    (primaryCenter &&
+                                                                        submissionCenterColors.get(
+                                                                            primaryCenter
+                                                                        )) ||
+                                                                    CORE_DOT_DEFAULT_COLOR;
                                                                 const positionId = `${selectedAliquotId}${corePosition}`;
                                                                 const positionTitle =
                                                                     positionSubmissionCenters.length > 0
@@ -628,12 +675,20 @@ export default function AliquotVisualization({
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         title={`View ${positionTitle}'s files`}
+                                                                        style={{
+                                                                            backgroundColor: dotColor,
+                                                                            borderColor: dotColor,
+                                                                        }}
                                                                         className="aliquot-grid-core is-highlighted is-linked"
                                                                     />
                                                                 ) : (
                                                                     <span
                                                                         key={corePosition}
                                                                         title={positionTitle}
+                                                                        style={{
+                                                                            backgroundColor: dotColor,
+                                                                            borderColor: dotColor,
+                                                                        }}
                                                                         className="aliquot-grid-core is-highlighted"
                                                                     />
                                                                 );
@@ -672,6 +727,15 @@ export default function AliquotVisualization({
                                                     );
                                             const hiddenCount =
                                                 group.positions.length - visiblePositions.length;
+                                            // Same color this group's positions are dotted
+                                            // with in the grid above -- makes this list
+                                            // double as that color coding's legend.
+                                            const groupColor =
+                                                (group.submissionCenter &&
+                                                    submissionCenterColors.get(
+                                                        group.submissionCenter
+                                                    )) ||
+                                                CORE_DOT_DEFAULT_COLOR;
                                             const rows = visiblePositions.map(
                                                 (corePosition, positionIndexInGroup) => (
                                                     <div
@@ -679,19 +743,27 @@ export default function AliquotVisualization({
                                                         key={corePosition}>
                                                         <span>
                                                             {positionIndexInGroup === 0 ? (
-                                                                group.filesHref ? (
-                                                                    <a
-                                                                        href={group.filesHref}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        title="View this GCC's files for this donor & tissue">
-                                                                        {group.submissionCenter ||
-                                                                            `GCC${groupIndex + 1}`}
-                                                                    </a>
-                                                                ) : (
-                                                                    group.submissionCenter ||
-                                                                    `GCC${groupIndex + 1}`
-                                                                )
+                                                                <>
+                                                                    <span
+                                                                        className="aliquot-popover-gcc-dot"
+                                                                        style={{
+                                                                            backgroundColor: groupColor,
+                                                                        }}
+                                                                    />
+                                                                    {group.filesHref ? (
+                                                                        <a
+                                                                            href={group.filesHref}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            title="View this GCC's files for this donor & tissue">
+                                                                            {group.submissionCenter ||
+                                                                                `GCC${groupIndex + 1}`}
+                                                                        </a>
+                                                                    ) : (
+                                                                        group.submissionCenter ||
+                                                                        `GCC${groupIndex + 1}`
+                                                                    )}
+                                                                </>
                                                             ) : null}
                                                         </span>
                                                         <strong>
