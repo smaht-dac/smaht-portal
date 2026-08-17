@@ -21,7 +21,7 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
         key_image_link = '',
     } = result || {};
 
-    const pubYear = date_published ? date_published.split('-')[0] : '';
+    const pubYear = Schemas.getPublicationYear(date_published);
 
     return (
         <div className="search-result-row publication-search-result-row">

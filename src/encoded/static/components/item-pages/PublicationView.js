@@ -19,6 +19,7 @@ import {
     formatAuthorName,
     formatAuthorsList,
     formatShortCitationAuthors,
+    getPublicationYear,
 } from '../util/Schemas';
 
 /**
@@ -356,7 +357,7 @@ const PublicationView = React.memo(function PublicationView(props) {
         'key-findings'
     );
 
-    const pubYear = context?.date_published?.split('-')[0];
+    const pubYear = getPublicationYear(context?.date_published);
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
     const doiCode = context?.doi ? context.doi.split('/').pop() : '';
     const authorsList = context?.authors || [];

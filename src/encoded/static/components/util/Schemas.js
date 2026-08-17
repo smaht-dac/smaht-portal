@@ -291,6 +291,11 @@ export const Field = {
 
 const CO_FIRST_AUTHOR = 'co-first author';
 
+/** Extracts the 4-digit year from a "YYYY-MM-DD" `date_published` value. */
+export function getPublicationYear(datePublished) {
+    return datePublished ? datePublished.split('-')[0] : '';
+}
+
 /** Formats a single author as "Last, First" (used for full author lists). */
 export function formatAuthorName(author) {
     const { first_name, last_name } = author || {};
@@ -313,7 +318,6 @@ export function getCoFirstAuthors(authorsList = []) {
  * Builds initials from a given name, e.g. "Yoo-Jin Jiny" -> "Y-JJ".
  * A hyphenated segment within one name keeps its hyphen; separate,
  * space-separated given names are concatenated with no separator.
- * Module-private: only `formatAuthorAbbreviated` needs this.
  */
 function getInitials(firstName) {
     if (!firstName) return '';
@@ -323,16 +327,14 @@ function getInitials(firstName) {
         .map((part) =>
             part
                 .split('-')
-                .map((sub) => (sub ? sub[0].toUpperCase() : ''))
+                .filter(Boolean)
+                .map((sub) => sub[0].toUpperCase())
                 .join('-')
         )
         .join('');
 }
 
-/**
- * Formats a single author as "Surname Initials", e.g. "Ha Y-JJ".
- * Module-private: only `formatShortCitationAuthors` needs this.
- */
+/** Formats a single author as "Surname Initials", e.g. "Ha Y-JJ". */
 function formatAuthorAbbreviated(author) {
     const { first_name, last_name } = author || {};
     const initials = getInitials(first_name);
@@ -352,13 +354,16 @@ export function formatShortCitationAuthors(
     shortCitation,
     year
 ) {
+    const yearString = year ? ` (${year})` : '';
     const coFirstAuthors = getCoFirstAuthors(authorsList);
     if (coFirstAuthors.length === 0) {
-        return shortCitation || null;
+        if (shortCitation) return shortCitation;
+        return authorsList.length > 0
+            ? `${formatAuthorName(authorsList[0])}${yearString}`
+            : null;
     }
 
     const namesString = coFirstAuthors.map(formatAuthorAbbreviated).join(', ');
-    const yearString = year ? ` (${year})` : '';
     const hasMoreAuthors = authorsList.length > coFirstAuthors.length;
 
     if (!hasMoreAuthors) {
