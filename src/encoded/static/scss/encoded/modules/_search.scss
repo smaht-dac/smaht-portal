@@ -2001,27 +2001,84 @@ div.browse-link-icon {
 	}
 
 	.tissue-germ-layer-bubble {
-		display: block;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		width: 56px;
 		height: 56px;
 		border-radius: 50%;
 		border: 1.5px dashed #D7E1EA;
 		background-color: #FBFCFE;
 		cursor: pointer;
-		transition: background-color 0.15s ease, border-color 0.15s ease;
+		transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 
+		// Bubbles for a tissue_type the color scheme covers get an inline
+		// background-color/border-color (a tint of that tissue's own
+		// official color, same treatment as the Tissue Overview header
+		// icon) -- an inline style always wins over this fallback and over
+		// a background/border-color :hover rule here, so hover feedback
+		// that would otherwise conflict with (or just get silently
+		// ignored on) a colored bubble uses transform/box-shadow instead,
+		// which works the same whether or not the bubble has its own color.
 		&:hover,
 		&:focus {
-			border-style: solid;
-			border-color: #A9DFBC;
-			background-color: #EAF7F0;
+			transform: scale(1.08);
+			box-shadow: 0 2px 8px rgba(30, 38, 50, 0.18);
 		}
+	}
+
+	// Same masking technique as .tissue-icon-mask on the Tissue Overview
+	// header -- the anatomy-icon SVGs ship with their own fixed fill color,
+	// so masking with the SVG (instead of rendering it as an <img>) lets a
+	// plain background-color fill it. Each bubble overrides this default
+	// inline with that tissue's own official color (smaht_tissue_colors.json,
+	// via getTissueColorHex) when one exists -- this is just the fallback
+	// for the few tissue_type values that scheme doesn't cover.
+	.tissue-germ-layer-bubble-icon {
+		display: inline-block;
+		width: 34px;
+		height: 34px;
+		background-color: #4E6884;
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+		-webkit-mask-position: center;
+		mask-position: center;
+		-webkit-mask-size: contain;
+		mask-size: contain;
+		transition: background-color 0.15s ease;
+		// Some official tissue colors are themselves very pale (e.g. Brain-
+		// Frontal lobe's #BBE7FF), and the anatomy-icon artwork is thin-lined
+		// to begin with -- both combine to make the icon barely readable
+		// against the bubble's near-white background. Stacking several
+		// zero-blur, 1px-offset drop-shadows around every direction traces a
+		// solid ~1px dark outline around the icon's own silhouette (the
+		// classic CSS "stroke via drop-shadow" trick) without touching its
+		// actual fill color, so even the palest icons stay legible without
+		// deviating from the official palette. (A first attempt used
+		// sub-pixel 0.75px offsets, which some browsers round down to
+		// nothing -- whole-pixel offsets render reliably.)
+		$outline-color: #12161d;
+		$outline-offset: 1px;
+		$outline-offset-neg: $outline-offset * -1;
+		filter: drop-shadow($outline-offset 0 0 $outline-color)
+			drop-shadow($outline-offset-neg 0 0 $outline-color)
+			drop-shadow(0 $outline-offset 0 $outline-color)
+			drop-shadow(0 $outline-offset-neg 0 $outline-color)
+			drop-shadow($outline-offset $outline-offset 0 $outline-color)
+			drop-shadow($outline-offset-neg $outline-offset 0 $outline-color)
+			drop-shadow($outline-offset $outline-offset-neg 0 $outline-color)
+			drop-shadow($outline-offset-neg $outline-offset-neg 0 $outline-color);
 	}
 
 	@include media-breakpoint-down(md) {
 		.tissue-germ-layer-bubble {
 			width: 42px;
 			height: 42px;
+		}
+
+		.tissue-germ-layer-bubble-icon {
+			width: 26px;
+			height: 26px;
 		}
 	}
 }

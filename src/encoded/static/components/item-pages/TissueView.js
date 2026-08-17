@@ -31,6 +31,8 @@ import {
     isBivalvedAliquotLayout,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
+    getTissueColorHex,
+    hexToRgba,
 } from './components/tissue-overview/helpers';
 
 export default class TissueOverview extends DefaultItemView {
@@ -111,6 +113,12 @@ const TissueView = React.memo(function TissueView({
     // ontology term via uberon_id when available.
     const targetTissueValue = tissue_type || uberon_id || null;
     const tissueIconSrc = getTissueIconSrc(tissue_type || getDisplayText(uberon_id));
+    // Same official per-tissue color used for the germ-layer summary
+    // bubbles (BrowseTissueVizWrapper.js) -- null for the tissue_type
+    // values that color scheme doesn't cover, in which case the header
+    // icon just keeps its existing default green theme (see the fallback
+    // styling below and _item-pages.scss's .tissue-summary-header-icon).
+    const tissueColorHex = getTissueColorHex(tissue_type || getDisplayText(uberon_id));
     const aliquotDepthCm = getTissueAliquotDepthCm(tissue_type || getDisplayText(uberon_id));
     const aliquotLayoutNote = getAliquotLayoutNote(tissue_type || getDisplayText(uberon_id));
     const showMedialLateralHint = isMedialLateralAliquotLayout(
@@ -555,17 +563,32 @@ const TissueView = React.memo(function TissueView({
             <TissueViewTitle context={context} />
             <div className="view-content">
                 <div className="tissue-summary-header">
-                    <div className="tissue-summary-header-icon">
+                    <div
+                        className="tissue-summary-header-icon"
+                        style={
+                            tissueColorHex
+                                ? {
+                                    backgroundColor: hexToRgba(tissueColorHex, 0.12),
+                                    borderColor: hexToRgba(tissueColorHex, 0.55),
+                                }
+                                : undefined
+                        }>
                         {tissueIconSrc ? (
                             <i
                                 className="tissue-icon-mask"
                                 style={{
                                     WebkitMaskImage: `url(${tissueIconSrc})`,
                                     maskImage: `url(${tissueIconSrc})`,
+                                    ...(tissueColorHex
+                                        ? { backgroundColor: tissueColorHex }
+                                        : null),
                                 }}
                             />
                         ) : (
-                            <i className="icon icon-lungs fas"></i>
+                            <i
+                                className="icon icon-lungs fas"
+                                style={tissueColorHex ? { color: tissueColorHex } : undefined}>
+                            </i>
                         )}
                     </div>
                     <div className="tissue-summary-header-content">

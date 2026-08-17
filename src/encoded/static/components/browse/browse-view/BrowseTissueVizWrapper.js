@@ -10,6 +10,12 @@ import { normalizeQueryValuesForStringify } from '@hms-dbmi-bgm/shared-portal-co
 import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
 import { ChartDataController } from '../../viz/chart-data-controller';
 import { formUrlEncode } from './BrowseTissueHeatmapTable';
+import {
+    getTissueIconSrc,
+    getTissueDisplayLabel,
+    getTissueColorHex,
+    hexToRgba,
+} from '../../item-pages/components/tissue-overview/helpers';
 
 // Groups the categories returned by item_utils/tissue.py::get_category() into
 // the 4 display rows the germ-layer panel has always shown.
@@ -111,15 +117,61 @@ const TissueGermLayerPanel = ({ href, session }) => {
                     </div>
                     <div className="tissue-germ-layer-bubbles">
                         {!loading &&
-                            tissueTypes.map((tissueType) => (
-                                <a
-                                    className="tissue-germ-layer-bubble"
-                                    key={tissueType}
-                                    href={`/tissue-overview/?tissue_type=${formUrlEncode(tissueType)}`}
-                                    data-tip={tissueType}
-                                    aria-label={tissueType}
-                                />
-                            ))}
+                            tissueTypes.map((tissueType) => {
+                                // Same per-tissue anatomy icon and 4-letter
+                                // code label used on the Tissue Overview
+                                // header and Browse-by-Tissue table headers
+                                // (getTissueIconSrc/getTissueDisplayLabel) --
+                                // this tooltip previously showed the raw
+                                // tissue_type string (leading TPC code, e.g.
+                                // "3AM - Brain, Cerebellum") instead of that
+                                // already-adopted display convention.
+                                const bubbleIconSrc = getTissueIconSrc(tissueType);
+                                const bubbleLabel = getTissueDisplayLabel(tissueType);
+                                // Official per-tissue color (smaht_tissue_colors.json),
+                                // same one used to fill the anatomy icon here as the
+                                // rest of the app uses for this tissue elsewhere --
+                                // falls back to the panel's neutral default color (set
+                                // in SCSS) for the handful of tissue_type values that
+                                // scheme doesn't cover.
+                                const bubbleColorHex = getTissueColorHex(tissueType);
+                                // Same tinted-circle treatment as the Tissue Overview
+                                // header icon (TissueView.js/TissueTypeView.js) -- a
+                                // pale background/border wash of the tissue's own
+                                // color, not just the icon fill, so a pale tissue
+                                // color (e.g. Brain-Frontal lobe's very light blue)
+                                // still reads as "this bubble's color" via the border
+                                // even where the icon fill alone is easy to miss.
+                                const bubbleStyle = bubbleColorHex
+                                    ? {
+                                        backgroundColor: hexToRgba(bubbleColorHex, 0.14),
+                                        borderColor: hexToRgba(bubbleColorHex, 0.65),
+                                        borderStyle: 'solid',
+                                    }
+                                    : undefined;
+                                return (
+                                    <a
+                                        className="tissue-germ-layer-bubble"
+                                        key={tissueType}
+                                        href={`/tissue-overview/?tissue_type=${formUrlEncode(tissueType)}`}
+                                        data-tip={bubbleLabel}
+                                        aria-label={bubbleLabel}
+                                        style={bubbleStyle}>
+                                        {bubbleIconSrc ? (
+                                            <i
+                                                className="tissue-germ-layer-bubble-icon"
+                                                style={{
+                                                    WebkitMaskImage: `url(${bubbleIconSrc})`,
+                                                    maskImage: `url(${bubbleIconSrc})`,
+                                                    ...(bubbleColorHex
+                                                        ? { backgroundColor: bubbleColorHex }
+                                                        : null),
+                                                }}
+                                            />
+                                        ) : null}
+                                    </a>
+                                );
+                            })}
                     </div>
                 </div>
             ))}

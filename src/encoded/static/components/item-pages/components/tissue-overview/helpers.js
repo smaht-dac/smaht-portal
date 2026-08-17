@@ -3,6 +3,46 @@
 import React from 'react';
 import { getTissueInternalCodeFromFacetTerm } from '../../../util/data';
 import { BROWSE_STATUS_FILTERS } from '../../../browse/BrowseView';
+import smahtTissueColors from '../../../../data/color-schemes/smaht_tissue_colors.json';
+
+// smaht_tissue_colors.json is keyed by TPC code (e.g. "3AM"), but callers
+// here only ever have this file's own internal 4-letter code (from
+// getTissueInternalCodeFromFacetTerm) -- re-key once by each entry's own
+// `smaht_code` field so lookups don't have to re-derive/guess a TPC code.
+const TISSUE_COLOR_HEX_BY_INTERNAL_CODE = Object.values(smahtTissueColors).reduce(
+    (acc, { smaht_code, tissue_color_hex }) => {
+        if (smaht_code && tissue_color_hex) acc[smaht_code] = `#${tissue_color_hex}`;
+        return acc;
+    },
+    {}
+);
+
+// tissue_type is a "<TPC code> - <name>" string (e.g. "3Q - Lung"); resolve
+// it to its official SMaHT tissue color (smaht_tissue_colors.json), or null
+// for tissue_type values this color scheme doesn't cover (e.g. plain
+// "Brain"/"Colon" with no TPC code prefix, or "Cell Line Mixture").
+export const getTissueColorHex = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return null;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    return (internalCode && TISSUE_COLOR_HEX_BY_INTERNAL_CODE[internalCode]) || null;
+};
+
+// getTissueColorHex's output is a solid "#rrggbb" -- too strong to use as-is
+// for a tinted background/border (e.g. the Tissue Overview header icon's
+// circle), so this converts it to an rgba() string at a given alpha. Returns
+// null for a null/malformed hex so callers can fall back to their default
+// (non-tissue-specific) styling with the same `hex ? {...} : undefined`
+// pattern used elsewhere.
+export const hexToRgba = (hex, alpha = 1) => {
+    const match = String(hex || '').trim().match(/^#?([0-9a-f]{6})$/i);
+    if (!match) return null;
+    const value = parseInt(match[1], 16);
+    const r = (value >> 16) & 255;
+    const g = (value >> 8) & 255;
+    const b = value & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 // Merging several Core TissueSamples into one slice box (see
 // getAliquotNumberFromExternalId) concatenates each sample's own
