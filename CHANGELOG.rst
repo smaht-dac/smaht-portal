@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+2.10.0
+======
+
+`PR 746: Add publication author_info schema support <https://github.com/smaht-dac/smaht-portal/pull/746>`_
+
+* Adds optional ``author_info`` on ``Publication.authors`` as an array of constrained strings,
+  supporting ``co-first author``, ``co-corresponding author``, and ``corresponding author``.
+* Adds focused publication schema/type test coverage and workbook fixture updates to exercise
+  ``author_info`` while preserving existing citation and short-citation behavior.
+* Includes the publication author formatting and table-rendering follow-up already present on this
+  branch, covering helper-based author formatting and the updated publication table/view rendering.
+
+
 2.9.1
 ======
 
