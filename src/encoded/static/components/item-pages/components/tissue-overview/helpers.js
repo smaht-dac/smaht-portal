@@ -219,6 +219,20 @@ export const getAliquotLayoutNote = (tissueTypeValue) => {
     return (internalCode && ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE[internalCode]) || null;
 };
 
+// True only for the medial/lateral tissues above (Lung/Liver), not the
+// bivalved ones -- used to draw a purely illustrative reference line on the
+// diagram (see AliquotVisualization's showMedialLateralHint). That line is
+// NOT derived from this donor's real data (confirmed nothing in the data
+// model marks which real aliquot is which portion -- see the note above),
+// so it's only drawn at the block's visual midpoint regardless of aliquot
+// boundaries, and only for tissues where Fig. 2a actually shows this split.
+export const isMedialLateralAliquotLayout = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return false;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    return ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE[internalCode] === MEDIAL_LATERAL_NOTE;
+};
+
 export const formatYesNo = (value) => {
     if (value === null || typeof value === 'undefined') return '-';
     return value ? 'Yes' : 'No';

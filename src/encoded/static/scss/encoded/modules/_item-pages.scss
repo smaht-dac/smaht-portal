@@ -3810,6 +3810,28 @@ File, Donor, and Publication Overview Styles
         }
     }
 
+    // Purely illustrative reference line (see showMedialLateralHint in
+    // AliquotVisualization.js) -- red + dashed specifically to read as an
+    // annotation/example, not as a real drawn boundary like the solid
+    // slice/box outlines above.
+    .aliquot-medial-lateral-hint {
+        line {
+            stroke: #c0392b;
+            stroke-width: 1.5;
+            stroke-dasharray: 5 4;
+        }
+
+        text {
+            fill: #c0392b;
+            font-size: 11px;
+            font-style: italic;
+            font-weight: 600;
+            paint-order: stroke;
+            stroke: #ffffff;
+            stroke-width: 3px;
+        }
+    }
+
     .aliquot-slice {
         transition: filter 180ms ease;
 

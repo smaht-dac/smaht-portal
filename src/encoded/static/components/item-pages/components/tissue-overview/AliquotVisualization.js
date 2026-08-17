@@ -211,6 +211,13 @@ export default function AliquotVisualization({
     showSliceLabels,
     className,
     idPrefix,
+    // Purely illustrative -- a fixed reference line at the block's visual
+    // midpoint for tissues Fig. 2a shows as medial/lateral (Lung/Liver), NOT
+    // derived from this donor's real aliquot boundaries (nothing in the data
+    // model marks which aliquot is which portion -- see
+    // isMedialLateralAliquotLayout in tissue-overview/helpers.js). Labelled
+    // as an example in the diagram itself so it can't read as real data.
+    showMedialLateralHint = false,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -555,6 +562,38 @@ export default function AliquotVisualization({
                         labelY={heightMidpoint.y}
                         textAnchor="start"
                     />
+                    {showMedialLateralHint ? (
+                        <g className="aliquot-medial-lateral-hint">
+                            {/* Runs along the width axis (front edge to
+                                back edge, side to side) at half depth --
+                                medial/lateral is a front/back split, so the
+                                line has to cross depth, not run along it
+                                (that would split width in half instead). */}
+                            <line
+                                x1={depthX / 2}
+                                y1={depthY / 2}
+                                x2={widthPx + depthX / 2}
+                                y2={depthY / 2}
+                            />
+                            {/* The same cut plane continues down the box's
+                                right side face (it slices through the full
+                                height, not just the top) -- traced from
+                                where the line above meets that face's top
+                                edge straight down to its bottom edge. */}
+                            <line
+                                x1={widthPx + depthX / 2}
+                                y1={depthY / 2}
+                                x2={widthPx + depthX / 2}
+                                y2={depthY / 2 + heightPx}
+                            />
+                            <text
+                                x={widthPx / 2 + depthX / 2}
+                                y={depthY / 2 - 6}
+                                textAnchor="middle">
+                                Example split
+                            </text>
+                        </g>
+                    ) : null}
                 </svg>
                 <Overlay
                     show={!!selectedSlice && !!selectedTarget}
@@ -955,6 +994,7 @@ AliquotVisualization.propTypes = {
     showSliceLabels: PropTypes.bool,
     className: PropTypes.string,
     idPrefix: PropTypes.string,
+    showMedialLateralHint: PropTypes.bool,
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,

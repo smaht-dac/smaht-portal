@@ -27,6 +27,7 @@ import {
     getTissueFilesBrowseHref,
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
+    isMedialLateralAliquotLayout,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
 } from './components/tissue-overview/helpers';
@@ -111,6 +112,9 @@ const TissueView = React.memo(function TissueView({
     const tissueIconSrc = getTissueIconSrc(tissue_type || getDisplayText(uberon_id));
     const aliquotDepthCm = getTissueAliquotDepthCm(tissue_type || getDisplayText(uberon_id));
     const aliquotLayoutNote = getAliquotLayoutNote(tissue_type || getDisplayText(uberon_id));
+    const showMedialLateralHint = isMedialLateralAliquotLayout(
+        tissue_type || getDisplayText(uberon_id)
+    );
     const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
     // `category` is a real backend-calculated field (item_utils/tissue.py) --
@@ -720,6 +724,7 @@ const TissueView = React.memo(function TissueView({
                                     }}
                                     idPrefix={aliquotIdPrefix}
                                     showSliceLabels={false}
+                                    showMedialLateralHint={showMedialLateralHint}
                                 />
                             )}
                         </div>

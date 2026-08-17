@@ -30,6 +30,7 @@ import {
     getTissueFilesBrowseHref,
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
+    isMedialLateralAliquotLayout,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
 } from '../item-pages/components/tissue-overview/helpers';
@@ -134,6 +135,9 @@ export default function TissueTypeView({
     const tissueIconSrc = getTissueIconSrc(tissue_type || getDisplayText(uberon_id));
     const aliquotDepthCm = getTissueAliquotDepthCm(tissue_type || getDisplayText(uberon_id));
     const aliquotLayoutNote = getAliquotLayoutNote(tissue_type || getDisplayText(uberon_id));
+    const showMedialLateralHint = isMedialLateralAliquotLayout(
+        tissue_type || getDisplayText(uberon_id)
+    );
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
     // `category` is a real backend-calculated field (item_utils/tissue.py) --
     // "Clinically Accessible" covers exactly blood and buccal swab tissues.
@@ -641,6 +645,7 @@ export default function TissueTypeView({
                                     }}
                                     idPrefix={aliquotIdPrefix}
                                     showSliceLabels={false}
+                                    showMedialLateralHint={showMedialLateralHint}
                                 />
                             )}
                         </div>
