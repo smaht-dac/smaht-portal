@@ -105,56 +105,6 @@ def test_b6_nginx_logs_on_shared_volume_and_shipped():
 
 
 @pytest.mark.unit
-def test_hec_check_ships_in_the_image_and_is_invoked():
-    """The HEC connectivity diagnostic is useless unless it is actually IN the
-    runtime image and actually invoked by the deployment entrypoint. The
-    behavioral tests exercise the module directly, so they would all still pass
-    with the COPY or the call missing -- guard both here."""
-    dockerfile = _read("Dockerfile")
-    assert "COPY --chown=nginx:nginx deploy/docker/production/hec_connectivity_check.py ." \
-        in dockerfile, "the diagnostic must be copied into the runtime image"
-    # It is run as `python -m hec_connectivity_check` from the WORKDIR, so it must
-    # land beside assume_identity.py (same COPY-to-'.' pattern).
-    assert re.search(r"chmod \+x[^\n]*(\n[^\n]*)*hec_connectivity_check\.py", dockerfile)
-
-    entry = _read("deploy/docker/production/entrypoint_deployment.sh")
-    assert "poetry run python -m hec_connectivity_check" in entry
-
-
-@pytest.mark.unit
-def test_hec_check_is_non_fatal_and_runs_before_the_deployment_work():
-    """`set -e` is active in the deployment entrypoint, so the diagnostic must be
-    invoked inside an `if` (exempt from -e): a failed connectivity probe must
-    never abort a production deployment. It also runs before the deploy steps so
-    the verdict is visible even when a later step fails."""
-    entry = _read("deploy/docker/production/entrypoint_deployment.sh")
-    call = "poetry run python -m hec_connectivity_check"
-    assert "if " + call + "; then" in entry, \
-        "must be guarded by `if` so `set -e` cannot abort the deployment"
-    assert entry.index(call) < entry.index("poetry run python -m assume_identity")
-    assert entry.index(call) < entry.index("create-mapping-on-deploy-verbose")
-
-
-@pytest.mark.unit
-def test_hec_check_is_opt_in_and_holds_no_credential():
-    """No token may be checked in, and the probe must not run (or send an event)
-    unless the clearly-named switch is set."""
-    source = _read("deploy/docker/production/hec_connectivity_check.py")
-    assert 'ENABLE_VAR = "SPLUNK_HEC_CONNECTIVITY_TEST"' in source
-    # The ARN is an identifier and is fine in source; a token never is.
-    assert "arn:aws:secretsmanager:us-east-1:527768939855:" in source
-    # HEC tokens are UUIDs - no UUID-shaped literal may appear in the source.
-    assert not re.search(
-        r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
-        source,
-    ), "no credential-shaped literal may be committed"
-    # The token is fetched at runtime through the supported task-role path.
-    assert 'boto3.client("secretsmanager"' in source
-    # Exactly one send, no retries anywhere on the send path.
-    assert source.count("connection.request(") == 1
-
-
-@pytest.mark.unit
 def test_n3_sidecar_pins_and_verifies_splunk_download():
     """N3: the sidecar image verifies the Splunk deb SHA-256 before extraction."""
     dockerfile = _read("deploy/docker/splunk/Dockerfile")

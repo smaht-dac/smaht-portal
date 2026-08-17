@@ -45,6 +45,9 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   hydrates and calls JSON endpoints. Follow `webpack.config.js` aliases and bundle entries when
   tracing frontend imports. Shared UI dependencies include `@hms-dbmi-bgm/shared-portal-components`
   and `@hms-dbmi-bgm/react-workflow-viz` (see `package.json` and their Gulp build steps).
+- Application console logging is configured by `src/encoded/logging_config.py` through structlog's
+  standard-library `ProcessorFormatter`; its bounded exception shape and single-line JSON contract
+  are covered by `src/encoded/tests/test_logging_config.py`.
 - Ingestion submissions flow through `src/encoded/ingestion/` into Snovault's listener/message
   infrastructure. Production runs portal, indexer, ingester, and deployment entrypoint roles from
   `deploy/docker/production/`; do not assume every role executes the same startup path.
@@ -184,30 +187,6 @@ LB-listener/ECS-`secrets:`/health-check **infrastructure handoff** (not in this
 repo) are in `deploy/docker/production/nginx/README.md`. Tests:
 `sh deploy/docker/production/tests/setup_nginx_tls_tests.sh` and
 `test_container_contracts.py`.
-
-## Splunk HEC connectivity diagnostic (deployment task, opt-in)
-
-`deploy/docker/production/hec_connectivity_check.py`, run non-fatally by
-`entrypoint_deployment.sh`, answers "which hop fails between Fargate and Splunk
-Cloud HEC" — DNS, TCP, TLS/cert, Secrets Manager, or HEC authorization — each a
-separate stage line and exit code. **Opt-in via `SPLUNK_HEC_CONNECTIVITY_TEST=true`
-because the success path sends one real event**; unset, it does no DNS, no TCP,
-no Secrets Manager call. See the module docstring for the full env contract.
-
-Two sharp edges worth knowing beyond the source:
-
-- **The runtime image has no `curl`** — curl is installed in the `builder` stage
-  only. Anything needing HTTP at runtime must use the Python venv (stdlib +
-  boto3, already app deps), as this diagnostic does. `openssl` *is* present.
-- **`entrypoint_deployment.sh` runs under `dash`, not bash.** `entrypoint.sh`
-  dispatches with `exec sh entrypoint_deployment.sh`, so its `#!/bin/bash`
-  shebang never executes. Keep it POSIX and lint `shellcheck -s sh`. It is also
-  `set -e`, so the diagnostic is called inside an `if` — a failed probe must not
-  abort a deployment (deliberately unlike `setup_nginx_tls.sh`, which fails closed).
-
-Tests (no AWS, no internet — a real local TLS server plus a fake Secrets Manager):
-`deploy/docker/production/tests/test_hec_connectivity_check.py`, with image/entrypoint
-wiring guarded in `test_container_contracts.py`.
 
 ## Maintaining this file
 
