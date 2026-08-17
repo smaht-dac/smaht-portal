@@ -7,6 +7,60 @@ smaht-portal
 Change Log
 ----------
 
+2.10.0
+======
+
+`PR 746: Add publication author_info schema support <https://github.com/smaht-dac/smaht-portal/pull/746>`_
+
+* Adds optional ``author_info`` on ``Publication.authors`` as an array of constrained strings,
+  supporting ``co-first author``, ``co-corresponding author``, and ``corresponding author``.
+* Adds focused publication schema/type test coverage and workbook fixture updates to exercise
+  ``author_info`` while preserving existing citation and short-citation behavior.
+* Includes the publication author formatting and table-rendering follow-up already present on this
+  branch, covering helper-based author formatting and the updated publication table/view rendering.
+
+
+2.9.1
+======
+
+`PR 743: feat: publication pages followup <https://github.com/smaht-dac/smaht-portal/pull/743>`_
+
+* Fixes ``PublicationView``'s static content sections to fall back correctly when a linked
+  ``StaticSection`` is redacted for the viewer (e.g. still ``in review``), instead of rendering an
+  empty "Reference Set Generation" or "Key / Novel Findings" section.
+* Adds borders and spacing around the publication search tables and their facet dropdowns, and
+  makes long facet lists horizontally scrollable on mobile.
+* Bumps ``@hms-dbmi-bgm/shared-portal-components`` to ``0.1.101``.
+
+
+2.9.0
+======
+
+`PR 637: feat: publication view <https://github.com/smaht-dac/smaht-portal/pull/637>`_
+
+* Implement page for publication items
+
+
+2.8.2
+=====
+
+`PR 734: WF Add annotated file names for scRNA-Seq data <https://github.com/smaht-dac/smaht-portal/pull/734>`_
+
+* Update annotated file names script for scRNA-Seq data
+
+
+2.8.1
+=====
+
+`PR 742: Rename VISTA-Seq to VISTA-META-seq in data matrix <https://github.com/smaht-dac/smaht-portal/pull/742>`_
+
+* Renames the VISTA assay label from ``VISTA-Seq`` to ``VISTA-META-seq`` in the Donor x Tissue
+  data matrix and its Cypress coverage.
+* Raises ``MAX_BUCKET_COUNT`` (30 -> 200) in ``data_matrix_aggregations``, fixing a silent
+  undercount where donors with low file counts in a tissue could be dropped from the Donor x
+  Tissue matrix once that tissue's donor cardinality exceeded the old limit.
+
+
 2.8.0
 =====
 
@@ -65,6 +119,7 @@ Change Log
 * Remove node_modules symlink
 * Change gitignore to include symlink
 
+
 2.6.5
 =====
 
@@ -78,6 +133,7 @@ Change Log
   ``HTTPForbidden`` instead of raising ``IndexError``.
 * Restricted domain/email semantics and self-registration privilege stripping are unchanged.
 
+
 2.6.4
 =====
 
@@ -85,6 +141,7 @@ Change Log
 
 * Handles the case where donor age is 89 and represents it as "89+" in the bulk donor manifest
 * Ensures no newline characters are present in the bulk donor manifest output
+
 
 2.6.3
 =====
@@ -124,6 +181,7 @@ Change Log
   which had been transitively supplying ``pandas``; ``pandas`` is now declared
   directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
   ``create-bulk-donor-manifest`` command keeps working.
+
 
 2.5.1
 =====

@@ -143,7 +143,7 @@ export default class DataMatrix extends React.PureComponent {
             "shortName": "RNA"
         },
         "Duplex-seq": {
-            "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
+            "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-META-seq', 'CompDuplex-Seq', 'HiDEF-seq'],
             "backgroundColor": "#2b4792",
             "textColor": "#ffffff",
             "shortName": "Dupl"
@@ -226,9 +226,9 @@ export default class DataMatrix extends React.PureComponent {
                 "NanoSeq - Illumina": "NanoSeq",
                 "ATAC-seq - Illumina": "ATAC-Seq",
                 "varCUT&Tag - Illumina": "varCUT&Tag",
-                "VISTA-seq - Illumina": "VISTA-Seq",
-                "scVISTA-seq - Illumina": "VISTA-Seq",
-                "Microbulk VISTA-seq - Illumina": "VISTA-Seq",
+                "VISTA-META-seq - Illumina": "VISTA-META-seq",
+                "scVISTA-META-seq - Illumina": "VISTA-META-seq",
+                "Microbulk VISTA-META-seq - Illumina": "VISTA-META-seq",
                 "CODEC - Illumina": "CODEC",
                 "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
                 "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
@@ -927,9 +927,9 @@ export default class DataMatrix extends React.PureComponent {
             //
             // NOTE: a matching exclusion for analysis_details Filtered/Phased ("Variant Call
             // Sets") rows was tried here and reverted - Duplex-seq assays (NanoSeq/CODEC/
-            // VISTA-Seq) also carry Filtered/Phased rows that are NOT variant calls, and
+            // VISTA-META-seq) also carry Filtered/Phased rows that are NOT variant calls, and
             // excluding them dropped their real files from the override (confirmed via
-            // production export regression: NanoSeq -88, CODEC -100, VISTA-Seq -68 files).
+            // production export regression: NanoSeq -88, CODEC -100, VISTA-META-seq -68 files).
             // analysisDerivedColumns's variantCallAnalysisDetails filter is assay-agnostic and
             // may itself be over-broad, but fixing that needs assay/data_type-aware filtering,
             // not a blanket analysis_details check here.

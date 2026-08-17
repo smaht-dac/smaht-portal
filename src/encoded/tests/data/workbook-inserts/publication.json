@@ -5,7 +5,11 @@
         "pubmed_id": "PMID:11111111",
         "title": "Test Publication One",
         "authors": [
-            {"first_name": "Author", "last_name": "One"},
+            {
+                "first_name": "Author",
+                "last_name": "One",
+                "author_info": ["co-first author", "corresponding author"]
+            },
             {"first_name": "Author", "last_name": "Two"},
             {"first_name": "A.", "last_name": "Three"}
         ],
