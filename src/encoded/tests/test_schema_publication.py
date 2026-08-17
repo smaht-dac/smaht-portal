@@ -24,7 +24,6 @@ from .utils import post_item
                     }
                 ],
                 "scope": "Network",
-                "consortia": ["smaht"],
             },
             201,
         ),
@@ -40,14 +39,20 @@ from .utils import post_item
                     }
                 ],
                 "scope": "Network",
-                "consortia": ["smaht"],
             },
             422,
         ),
     ],
 )
 def test_author_info_schema(
-    testapp: TestApp, post_body: Dict[str, Any], status: int
+    testapp: TestApp,
+    test_consortium: Dict[str, Any],
+    post_body: Dict[str, Any],
+    status: int,
 ) -> None:
     """Ensure publication author_info accepts only the supported enum values."""
-    assert post_item(testapp, post_body, "Publication", status=status)
+    publication = {
+        **post_body,
+        "consortia": [test_consortium["uuid"]],
+    }
+    assert post_item(testapp, publication, "Publication", status=status)
