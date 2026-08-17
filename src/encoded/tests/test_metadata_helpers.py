@@ -6,10 +6,6 @@ import pytest
 from .. import metadata as metadata_module
 
 from ..metadata import (
-    PATHOLOGY_METADATA_AVAILABLE,
-    PATHOLOGY_LINKED_FIXED_SAMPLE_NOT_VISIBLE,
-    PATHOLOGY_NO_LINKED_FIXED_SAMPLE,
-    PATHOLOGY_NO_PATHOLOGY_REPORT,
     SAMPLE_PATHOLOGY,
     TSV_MAPPING,
     _build_sample_pathology_row,
@@ -171,19 +167,20 @@ def test_build_sample_pathology_row_includes_common_and_subtype_fields() -> None
 
     row = _build_sample_pathology_row(
         None, sequenced_sample, fixed_sample=fixed_sample, report=report,
-        metadata_status=PATHOLOGY_METADATA_AVAILABLE,
     )
     columns = list(TSV_MAPPING[SAMPLE_PATHOLOGY].keys())
     row_by_column = dict(zip(columns, row))
 
     assert row_by_column["SequencedSampleAccession"] == "SMHT-SAMPLE-1"
+    assert row_by_column["FixedSampleAccession"] == "SMHT-FIXED-1"
     assert row_by_column["FixedSampleExternalID"] == "SMHT001-1B-100A1"
     assert row_by_column["LinkedFixedSampleIdentifier"] == ""
     assert row_by_column["PathologyReportType"] == "NonBrainPathologyReport"
     assert row_by_column["PathologyOutcome"] == "Acceptable"
     assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex,Liver"
     assert row_by_column["PathologyTargetTissuePresent"] == "No,Yes"
-    assert row_by_column["PathologyMetadataStatus"] == PATHOLOGY_METADATA_AVAILABLE
+    assert "PathologyMetadataStatus" not in row_by_column
+    assert "SequencedSampleExternalID" not in row_by_column
 
 
 def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_reports(monkeypatch) -> None:
@@ -214,6 +211,13 @@ def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_repo
             "accession": "SMHT-SAMPLE-4",
             "external_id": "SMHT001-3Q-004A1",
             "linked_fixed_samples": [{"uuid": "fixed-with-report"}, {"uuid": "fixed-not-visible"}],
+        },
+        {
+            "uuid": "sequenced-not-tissue",
+            "@type": ["CellCultureSample", "Sample"],
+            "accession": "SMHT-SAMPLE-5",
+            "external_id": "SMHT001-3Q-005A1",
+            "linked_fixed_samples": [{"uuid": "fixed-with-report"}],
         },
     ]
     fixed_samples = [
@@ -250,19 +254,27 @@ def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_repo
     columns = list(TSV_MAPPING[SAMPLE_PATHOLOGY].keys())
     rows_by_column = [dict(zip(columns, row)) for row in rows]
 
-    assert len(rows_by_column) == 5
-    assert rows_by_column[0]["SequencedSampleAccession"] == "SMHT-SAMPLE-1"
+    assert len(rows_by_column) == 3
+    assert columns[:5] == [
+        "FixedSampleAccession",
+        "SequencedSampleAccession",
+        "FixedSampleExternalID",
+        "FixedSamplePreservationType",
+        "FixedSampleCategory",
+    ]
+    assert "PathologyMetadataStatus" not in columns
+    assert "SequencedSampleExternalID" not in columns
     assert rows_by_column[0]["FixedSampleAccession"] == "SMHT-FIXED-1"
+    assert rows_by_column[0]["SequencedSampleAccession"] == "SMHT-SAMPLE-1"
     assert rows_by_column[0]["LinkedFixedSampleIdentifier"] == "fixed-with-report"
     assert rows_by_column[0]["PathologyReportAccession"] == "SMHT-PR-1"
     assert rows_by_column[0]["PathologyReportType"] == "BrainPathologyReport"
-    assert rows_by_column[0]["PathologyMetadataStatus"] == PATHOLOGY_METADATA_AVAILABLE
     assert rows_by_column[1]["FixedSampleAccession"] == "SMHT-FIXED-2"
-    assert rows_by_column[1]["PathologyMetadataStatus"] == PATHOLOGY_NO_PATHOLOGY_REPORT
-    assert rows_by_column[2]["SequencedSampleAccession"] == "SMHT-SAMPLE-3"
-    assert rows_by_column[2]["PathologyMetadataStatus"] == PATHOLOGY_NO_LINKED_FIXED_SAMPLE
-    assert rows_by_column[3]["SequencedSampleAccession"] == "SMHT-SAMPLE-4"
-    assert rows_by_column[3]["PathologyMetadataStatus"] == PATHOLOGY_METADATA_AVAILABLE
-    assert rows_by_column[4]["SequencedSampleAccession"] == "SMHT-SAMPLE-4"
-    assert rows_by_column[4]["LinkedFixedSampleIdentifier"] == "fixed-not-visible"
-    assert rows_by_column[4]["PathologyMetadataStatus"] == PATHOLOGY_LINKED_FIXED_SAMPLE_NOT_VISIBLE
+    assert rows_by_column[1]["SequencedSampleAccession"] == "SMHT-SAMPLE-2"
+    assert rows_by_column[1]["PathologyReportAccession"] == ""
+    assert rows_by_column[1]["PathologyOutcome"] == ""
+    assert rows_by_column[2]["FixedSampleAccession"] == "SMHT-FIXED-1"
+    assert rows_by_column[2]["SequencedSampleAccession"] == "SMHT-SAMPLE-4"
+    assert rows_by_column[2]["LinkedFixedSampleIdentifier"] == "fixed-with-report"
+    assert all(row["SequencedSampleAccession"] != "SMHT-SAMPLE-3" for row in rows_by_column)
+    assert all(row["SequencedSampleAccession"] != "SMHT-SAMPLE-5" for row in rows_by_column)

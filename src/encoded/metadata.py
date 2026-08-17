@@ -47,11 +47,6 @@ SAMPLE_TYPE = 'SampleType'
 SAMPLE_TYPE_LIST = ['TissueSample','CellSample','CellCultureSample']
 SAMPLE_SOURCE_TYPE = 'SampleSourceType'
 SAMPLE_SOURCE_TYPE_LIST = ['Tissue','CellCultureMixture','CellCulture']
-PATHOLOGY_METADATA_AVAILABLE = 'pathology_report_available'
-PATHOLOGY_NO_LINKED_FIXED_SAMPLE = 'no_linked_fixed_sample'
-PATHOLOGY_NO_PATHOLOGY_REPORT = 'no_pathology_report'
-PATHOLOGY_LINKED_FIXED_SAMPLE_NOT_VISIBLE = 'linked_fixed_sample_not_visible'
-PATHOLOGY_NOT_TISSUE_SAMPLE = 'not_tissue_sample'
 
 
 class MetadataArgs(NamedTuple):
@@ -802,13 +797,8 @@ TSV_MAPPING = {
                                                          field_name=['sequencing.preparation_kits.version'])
     },
     SAMPLE_PATHOLOGY: {
-        'SequencedSampleAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
-        'SequencedSampleExternalID': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['external_id']),
-        'SequencedSamplePreservationType': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['preservation_type']),
-        'SequencedSampleCategory': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['category']),
-        'SequencedSampleDonorAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
-                                                       field_name=['sample_sources.donor.accession']),
         'FixedSampleAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
+        'SequencedSampleAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
         'FixedSampleExternalID': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['external_id']),
         'FixedSamplePreservationType': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['preservation_type']),
         'FixedSampleCategory': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['category']),
@@ -911,7 +901,6 @@ TSV_MAPPING = {
         'PathologyVonsattelHD': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['vonsattel_hd']),
         'PathologyFinalNeuropathologicalDiagnosis': TSVDescriptor(
             field_type=SAMPLE_PATHOLOGY, field_name=['final_neuropathological_diagnosis']),
-        'PathologyMetadataStatus': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['_synthetic_metadata_status']),
     }
 }
 
@@ -1644,35 +1633,21 @@ def _extract_manifest_field(request, item, field_name):
     return descend_field(request, item or {}, descriptor.field_name()) or ''
 
 
-def _build_sample_pathology_row(request, sequenced_sample, fixed_sample=None, report=None,
-                                metadata_status=PATHOLOGY_METADATA_AVAILABLE,
+def _build_sample_pathology_row(request, sequenced_sample, fixed_sample, report=None,
                                 linked_fixed_sample_identifier=''):
     """Build one SAMPLE_PATHOLOGY manifest row as a dict keyed by TSV column."""
     row = {
+        'FixedSampleAccession': _extract_manifest_field(request, fixed_sample, 'FixedSampleAccession'),
         'SequencedSampleAccession': _extract_manifest_field(request, sequenced_sample, 'SequencedSampleAccession'),
-        'SequencedSampleExternalID': _extract_manifest_field(request, sequenced_sample, 'SequencedSampleExternalID'),
-        'SequencedSamplePreservationType': _extract_manifest_field(request, sequenced_sample,
-                                                                   'SequencedSamplePreservationType'),
-        'SequencedSampleCategory': _extract_manifest_field(request, sequenced_sample, 'SequencedSampleCategory'),
-        'SequencedSampleDonorAccession': _extract_manifest_field(request, sequenced_sample,
-                                                                 'SequencedSampleDonorAccession'),
-        'PathologyMetadataStatus': metadata_status,
+        'FixedSampleExternalID': _extract_manifest_field(request, fixed_sample, 'FixedSampleExternalID'),
+        'FixedSamplePreservationType': _extract_manifest_field(request, fixed_sample,
+                                                               'FixedSamplePreservationType'),
+        'FixedSampleCategory': _extract_manifest_field(request, fixed_sample, 'FixedSampleCategory'),
+        'LinkedFixedSampleIdentifier': linked_fixed_sample_identifier or fixed_sample.get('uuid') or '',
     }
-    if fixed_sample:
-        row.update({
-            'FixedSampleAccession': _extract_manifest_field(request, fixed_sample, 'FixedSampleAccession'),
-            'FixedSampleExternalID': _extract_manifest_field(request, fixed_sample, 'FixedSampleExternalID'),
-            'FixedSamplePreservationType': _extract_manifest_field(request, fixed_sample,
-                                                                   'FixedSamplePreservationType'),
-            'FixedSampleCategory': _extract_manifest_field(request, fixed_sample, 'FixedSampleCategory'),
-            'LinkedFixedSampleIdentifier': linked_fixed_sample_identifier or fixed_sample.get('uuid') or '',
-        })
-    elif linked_fixed_sample_identifier:
-        row['LinkedFixedSampleIdentifier'] = linked_fixed_sample_identifier
     if report:
         for field_name in TSV_MAPPING[SAMPLE_PATHOLOGY].keys():
-            if (field_name.startswith('Pathology')
-                    and field_name not in ('PathologyMetadataStatus', 'PathologyReportType')):
+            if field_name.startswith('Pathology') and field_name != 'PathologyReportType':
                 row[field_name] = _extract_manifest_field(request, report, field_name)
         row['PathologyReportType'] = _get_pathology_report_type(report)
     return [row.get(field_name, '') for field_name in TSV_MAPPING[SAMPLE_PATHOLOGY].keys()]
@@ -1721,12 +1696,13 @@ def _stream_pathology_reports_for_fixed_samples(request, fixed_sample_identifier
 
 
 def generate_sample_pathology_manifest(request, args, search_iter):
-    """Generate one row per sequenced sample, linked fixed sample, and pathology report.
+    """Generate one row per visible linked fixed sample and pathology report.
 
     The manifest starts from the same file selection as other manifests, then pivots
-    to sequenced samples, their `linked_fixed_samples`, and PathologyReports whose
-    `tissue_samples` include those fixed samples. All lookups are batched ES
-    streaming queries to avoid per-sample embeds or N+1 request-time lookups.
+    to sequenced TissueSamples, their visible `linked_fixed_samples`, and
+    PathologyReports whose `tissue_samples` include those fixed samples. All
+    lookups are batched ES streaming queries to avoid per-sample embeds or N+1
+    request-time lookups.
     """
     sequenced_sample_uuids = set()
     for f in search_iter:
@@ -1787,6 +1763,36 @@ def generate_sample_pathology_manifest(request, args, search_iter):
             if fixed_uuid:
                 reports_by_fixed_uuid.setdefault(fixed_uuid, []).append(report)
 
+    omitted_non_tissue_samples = 0
+    omitted_samples_without_linked_fixed = 0
+    omitted_non_visible_linked_fixed_samples = 0
+
+    for sequenced_sample in sequenced_samples:
+        linked_fixed = sequenced_to_fixed.get(sequenced_sample.get('uuid'))
+        if linked_fixed is None:
+            omitted_non_tissue_samples += 1
+            continue
+        if not linked_fixed:
+            omitted_samples_without_linked_fixed += 1
+            continue
+        for fixed_identifier in linked_fixed:
+            fixed_sample = fixed_by_identifier.get(fixed_identifier)
+            if not fixed_sample:
+                omitted_non_visible_linked_fixed_samples += 1
+                continue
+            reports = reports_by_fixed_uuid.get(fixed_sample.get('uuid')) or []
+            if not reports:
+                yield _build_sample_pathology_row(
+                    request, sequenced_sample, fixed_sample=fixed_sample,
+                    linked_fixed_sample_identifier=fixed_identifier,
+                )
+                continue
+            for report in reports:
+                yield _build_sample_pathology_row(
+                    request, sequenced_sample, fixed_sample=fixed_sample, report=report,
+                    linked_fixed_sample_identifier=fixed_identifier,
+                )
+
     log.info(
         'sample_pathology_manifest_join',
         sequenced_samples=len(sequenced_samples),
@@ -1794,43 +1800,10 @@ def generate_sample_pathology_manifest(request, args, search_iter):
         visible_fixed_samples=len(fixed_samples),
         fixed_samples_with_reports=len(reports_by_fixed_uuid),
         pathology_reports=sum(len(reports) for reports in reports_by_fixed_uuid.values()),
+        omitted_non_tissue_samples=omitted_non_tissue_samples,
+        omitted_samples_without_linked_fixed=omitted_samples_without_linked_fixed,
+        omitted_non_visible_linked_fixed_samples=omitted_non_visible_linked_fixed_samples,
     )
-
-    for sequenced_sample in sequenced_samples:
-        linked_fixed = sequenced_to_fixed.get(sequenced_sample.get('uuid'))
-        if linked_fixed is None:
-            yield _build_sample_pathology_row(
-                request, sequenced_sample, metadata_status=PATHOLOGY_NOT_TISSUE_SAMPLE
-            )
-            continue
-        if not linked_fixed:
-            yield _build_sample_pathology_row(
-                request, sequenced_sample, metadata_status=PATHOLOGY_NO_LINKED_FIXED_SAMPLE
-            )
-            continue
-        for fixed_identifier in linked_fixed:
-            fixed_sample = fixed_by_identifier.get(fixed_identifier)
-            if not fixed_sample:
-                yield _build_sample_pathology_row(
-                    request, sequenced_sample,
-                    metadata_status=PATHOLOGY_LINKED_FIXED_SAMPLE_NOT_VISIBLE,
-                    linked_fixed_sample_identifier=fixed_identifier,
-                )
-                continue
-            reports = reports_by_fixed_uuid.get(fixed_sample.get('uuid')) or []
-            if not reports:
-                yield _build_sample_pathology_row(
-                    request, sequenced_sample, fixed_sample=fixed_sample,
-                    metadata_status=PATHOLOGY_NO_PATHOLOGY_REPORT,
-                    linked_fixed_sample_identifier=fixed_identifier,
-                )
-                continue
-            for report in reports:
-                yield _build_sample_pathology_row(
-                    request, sequenced_sample, fixed_sample=fixed_sample, report=report,
-                    metadata_status=PATHOLOGY_METADATA_AVAILABLE,
-                    linked_fixed_sample_identifier=fixed_identifier,
-                )
 
 
 def generate_sample_manifest(request, args, search_iter):
