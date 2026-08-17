@@ -28,6 +28,7 @@ import {
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
     dedupePathologyReportEntries,
+    getTissueDisplayLabel,
 } from './components/tissue-overview/helpers';
 
 export default class TissueOverview extends DefaultItemView {
@@ -52,7 +53,7 @@ const TissueViewTitle = ({ context }) => {
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
         { display_title: 'Tissues' },
-        { display_title: getDisplayText(targetTissueValue) },
+        { display_title: getTissueDisplayLabel(targetTissueValue) },
     ];
 
     return (
@@ -557,7 +558,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                         <h1 className="header-text fw-semibold">
                             {study ? `${study} Tissue: ` : 'Tissue: '}
                             {getDisplayText(targetTissueValue) !== '-'
-                                ? getDisplayText(targetTissueValue)
+                                ? getTissueDisplayLabel(targetTissueValue)
                                 : display_title}
                         </h1>
                         <div className="tissue-summary-header-notes">
@@ -580,7 +581,7 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                 <div className="tissue-summary-grid">
                                     <TissueDatum
                                         title="Target Tissue"
-                                        value={targetTissueValue}
+                                        value={getTissueDisplayLabel(targetTissueValue)}
                                         href={targetTissueHref}
                                     />
                                     <TissueDatum title="Non-Tissue Presence" value="Protected" />

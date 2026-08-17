@@ -73,6 +73,25 @@ export const getDisplayText = (value) => {
     return String(value);
 };
 
+// Replaces the leading TPC protocol code in a "<code> - <name>" tissue_type
+// display string with the stable 4-letter internal code (e.g. "3AM - Brain,
+// Cerebellum" -> "BRCE - Brain, Cerebellum") so the page title/breadcrumb/
+// Target Tissue field read consistently with the Browse-by-Tissue table's
+// column headers (BrowseTissueHeatmapTable.js's identical lookup). Only the
+// leading code token is rewritten -- the descriptive name after it, and any
+// value without a "<code> - " prefix at all (e.g. a plain ontology term
+// display_title), pass through unchanged. Real submitted external_ids shown
+// elsewhere in the aliquot visualization still use the raw TPC code, since
+// that's the actual value GCCs submitted -- this only affects this
+// human-facing label.
+export const getTissueDisplayLabel = (value) => {
+    const text = getDisplayText(value);
+    if (text === '-') return text;
+    const internalCode = getTissueInternalCodeFromFacetTerm(text);
+    if (!internalCode) return text;
+    return text.replace(/^\S+(?=\s-\s)/, internalCode);
+};
+
 // Keyed by data.js's internal tissue codes (e.g. 'LUNG', 'SKSE') so this
 // stays in sync with the same TPC-code/tissue-name resolution used for
 // facet categorization, rather than re-deriving tissue_type parsing here.

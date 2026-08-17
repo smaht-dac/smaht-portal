@@ -31,6 +31,7 @@ import {
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
     dedupePathologyReportEntries,
+    getTissueDisplayLabel,
 } from '../item-pages/components/tissue-overview/helpers';
 
 // Standalone page for /tissue-overview/?tissue_type=<value>, registered
@@ -58,7 +59,7 @@ const TissueTypeViewTitle = ({ representativeTissue }) => {
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
         { display_title: 'Tissues' },
-        { display_title: getDisplayText(targetTissueValue) },
+        { display_title: getTissueDisplayLabel(targetTissueValue) },
     ];
 
     return (
@@ -481,7 +482,7 @@ export default function TissueTypeView({ context = {}, href, session }) {
                         <h1 className="header-text fw-semibold">
                             {study ? `${study} Tissue: ` : 'Tissue: '}
                             {getDisplayText(targetTissueValue) !== '-'
-                                ? getDisplayText(targetTissueValue)
+                                ? getTissueDisplayLabel(targetTissueValue)
                                 : display_title}
                         </h1>
                         <div className="tissue-summary-header-notes">
@@ -504,7 +505,7 @@ export default function TissueTypeView({ context = {}, href, session }) {
                                 <div className="tissue-summary-grid">
                                     <TissueDatum
                                         title="Target Tissue"
-                                        value={targetTissueValue}
+                                        value={getTissueDisplayLabel(targetTissueValue)}
                                         href={targetTissueHref}
                                     />
                                     <TissueDatum title="Non-Tissue Presence" value="Protected" />

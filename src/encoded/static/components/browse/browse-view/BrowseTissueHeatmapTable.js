@@ -7,6 +7,7 @@ import {
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 import { GERM_LAYER_COLORS } from '../../util/germ-layer-colors';
+import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
 
 // Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
 // mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
@@ -148,10 +149,24 @@ function formatTargetTissuePercentage(value) {
 // `tissue_type` is stored/sorted as "<protocol code> - <name>" (e.g.
 // "3AK - Brain, Frontal Lobe") so the code stays part of the value used for
 // column identity/lookup, but showing that code in the header is meaningless
-// to someone browsing by tissue -- strip it for display only.
+// to someone browsing by tissue -- strip it for display only. Also doubles
+// as the sort key (below), so this always stays the full descriptive name,
+// not the short header label (formatTissueTypeHeaderLabel) -- switching
+// *this* one to the 4-letter code would silently reorder columns
+// alphabetically by code instead of by the name a person actually reads.
 function formatTissueTypeLabel(tissueType) {
     if (!tissueType) return tissueType;
     return tissueType.replace(/^\S+\s-\s*/, '');
+}
+
+// The header label itself: prefers the stable 4-letter internal code (e.g.
+// "BRFL", via the same tissue-code table the icon/depth lookups elsewhere
+// already use) so columns stay compact, falling back to the full name
+// (formatTissueTypeLabel) for any tissue_type that table doesn't cover. The
+// full "<code> - <name>" string is still the header's `title` tooltip.
+function formatTissueTypeHeaderLabel(tissueType) {
+    if (!tissueType) return tissueType;
+    return getTissueInternalCodeFromFacetTerm(tissueType) || formatTissueTypeLabel(tissueType);
 }
 
 function getTargetTissuePercentageScoreClass(value) {
@@ -210,10 +225,10 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             <th key={tissueType} title={tissueType}>
                                 {tissueTypeHrefs[tissueType] ? (
                                     <a href={tissueTypeHrefs[tissueType]}>
-                                        {formatTissueTypeLabel(tissueType)}
+                                        {formatTissueTypeHeaderLabel(tissueType)}
                                     </a>
                                 ) : (
-                                    formatTissueTypeLabel(tissueType)
+                                    formatTissueTypeHeaderLabel(tissueType)
                                 )}
                             </th>
                         ))}
