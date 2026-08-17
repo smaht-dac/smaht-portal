@@ -290,6 +290,90 @@ export const Field = {
     },
 };
 
+/*******************************************
+ ** Publication author-list formatting **
+ *******************************************/
+
+const CO_FIRST_AUTHOR = 'co-first author';
+
+/** Formats a single author as "Last, First" (used for full author lists). */
+export function formatAuthorName(author) {
+    const { first_name, last_name } = author || {};
+    return first_name ? `${last_name}, ${first_name}` : last_name;
+}
+
+/** Joins a list of authors into a "Last, First, Last, First" string. */
+export function formatAuthorsList(authorsList = []) {
+    return authorsList.map(formatAuthorName).join(', ');
+}
+
+/** Returns the subset of authors flagged as co-first via `author_info`. */
+export function getCoFirstAuthors(authorsList = []) {
+    return authorsList.filter((author) =>
+        author?.author_info?.includes(CO_FIRST_AUTHOR)
+    );
+}
+
+/**
+ * Builds initials from a given name, e.g. "Yoo-Jin Jiny" -> "Y-JJ".
+ * A hyphenated segment within one name keeps its hyphen; separate,
+ * space-separated given names are concatenated with no separator.
+ * Module-private: only `formatAuthorAbbreviated` needs this.
+ */
+function getInitials(firstName) {
+    if (!firstName) return '';
+    return firstName
+        .trim()
+        .split(/\s+/)
+        .map((part) =>
+            part
+                .split('-')
+                .map((sub) => (sub ? sub[0].toUpperCase() : ''))
+                .join('-')
+        )
+        .join('');
+}
+
+/**
+ * Formats a single author as "Surname Initials", e.g. "Ha Y-JJ".
+ * Module-private: only `formatShortCitationAuthors` needs this.
+ */
+function formatAuthorAbbreviated(author) {
+    const { first_name, last_name } = author || {};
+    const initials = getInitials(first_name);
+    return initials ? `${last_name} ${initials}` : last_name;
+}
+
+/**
+ * Builds a short citation's author segment: when one or more authors are
+ * flagged co-first, every co-first author is shown as "Surname Initials",
+ * followed by an italicized "et al." if there are more authors beyond
+ * them, then the year. When nobody is flagged co-first, `shortCitation`
+ * (the backend-computed `Publication.short_citation`, which already has
+ * its own single/two-author/et-al. handling and year) is used as-is.
+ */
+export function formatShortCitationAuthors(authorsList = [], shortCitation, year) {
+    const coFirstAuthors = getCoFirstAuthors(authorsList);
+    if (coFirstAuthors.length === 0) {
+        return shortCitation || null;
+    }
+
+    const namesString = coFirstAuthors.map(formatAuthorAbbreviated).join(', ');
+    const yearString = year ? ` (${year})` : '';
+    const hasMoreAuthors = authorsList.length > coFirstAuthors.length;
+
+    if (!hasMoreAuthors) {
+        return `${namesString}${yearString}`;
+    }
+
+    return (
+        <>
+            {namesString}, <i>et al.</i>
+            {yearString}
+        </>
+    );
+}
+
 /**
  * Builds dictionaries of facets from schemas.
  * Will exclude any additionally-calculated facets.
