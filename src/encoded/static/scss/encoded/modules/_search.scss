@@ -2171,14 +2171,33 @@ div.browse-link-icon {
 			border-right: 1px solid #E7F0F3;
 		}
 
+		// Zebra striping -- with conditional (score-band) coloring off by
+		// default, this is the main thing that still lets an eye track
+		// across a row instead of every cell reading as one flat block.
+		tbody tr:nth-child(even) {
+			.tissue-heatmap-donor-id,
+			.tissue-heatmap-cell:not(.score-0):not(.score-1):not(.score-2):not(.score-3) {
+				background-color: #F7F9FB;
+			}
+		}
+
 		tbody tr:not(:last-of-type) .tissue-heatmap-donor-id,
 		tbody tr:not(:last-of-type) .tissue-heatmap-cell {
-			border-bottom: 1px solid #FFFFFF;
+			border-bottom: 1px solid #E7F0F3;
 		}
 
 		.tissue-heatmap-cell {
 			color: #212529;
 			font-weight: 500;
+			// A real (not just white-on-white) vertical grid line between
+			// columns -- without conditional coloring's own background
+			// blocks to visually separate cells, this is what keeps a wide,
+			// data-driven number of tissue-type columns scannable.
+			border-right: 1px solid #E7F0F3;
+
+			&:last-child {
+				border-right: none;
+			}
 
 			&.score-0 {
 				background-color: #4CAF6D;
@@ -2196,9 +2215,10 @@ div.browse-link-icon {
 				background-color: #E0503C;
 				color: #FFFFFF;
 			}
-			&.na {
-				background-color: #FFFFFF;
+			&.na,
+			&.is-empty {
 				color: #A8AEB5;
+				font-weight: 400;
 			}
 		}
 	}

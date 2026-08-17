@@ -194,6 +194,10 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     matrix,
     formatValue,
     getScoreClass,
+    // Gates the score-band background coloring (score-0..score-3, applied
+    // below) on each cell -- off by default per request, flip back on to
+    // restore the previous always-on heatmap coloring.
+    enableConditionalColor = false,
 }) {
     const columnGroups = useMemo(
         () => buildColumnGroups(tissueTypes, tissueTypeCategories),
@@ -246,7 +250,19 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             {cells.map((value, i) => (
                                 <td
                                     key={tissueTypes[i]}
-                                    className={'tissue-heatmap-cell ' + getScoreClass(value)}>
+                                    className={
+                                        'tissue-heatmap-cell' +
+                                        (enableConditionalColor ? ` ${getScoreClass(value)}` : '') +
+                                        // Muted styling for "no data" cells is
+                                        // plain typography (grey vs. dark
+                                        // text), not the score-band heatmap
+                                        // coloring enableConditionalColor
+                                        // gates -- keeps real values legible
+                                        // against empty ones either way.
+                                        (value === null || typeof value === 'undefined'
+                                            ? ' is-empty'
+                                            : '')
+                                    }>
                                     {formatValue(value)}
                                 </td>
                             ))}
@@ -259,7 +275,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
 });
 
 export const BrowseTissueHeatmapTable = (props) => {
-    const { href, session } = props;
+    // Gates the score-band cell coloring in all three tabs' tables -- see
+    // MetricHeatmapTable's identical prop. Off by default per request.
+    const { href, session, enableConditionalColor = false } = props;
     const [loading, setLoading] = useState(true);
     const [tissueResults, setTissueResults] = useState([]);
 
@@ -324,6 +342,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             {...ischemicTime}
                             formatValue={formatIschemicTime}
                             getScoreClass={getIschemicTimeScoreClass}
+                            enableConditionalColor={enableConditionalColor}
                         />
                     )}
                 </DotRouterTab>
@@ -341,6 +360,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             {...autolysisScore}
                             formatValue={formatAutolysisScore}
                             getScoreClass={getAutolysisScoreClass}
+                            enableConditionalColor={enableConditionalColor}
                         />
                     )}
                 </DotRouterTab>
@@ -358,6 +378,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             {...targetTissuePercentage}
                             formatValue={formatTargetTissuePercentage}
                             getScoreClass={getTargetTissuePercentageScoreClass}
+                            enableConditionalColor={enableConditionalColor}
                         />
                     )}
                 </DotRouterTab>

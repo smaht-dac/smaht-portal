@@ -82,7 +82,13 @@ const TissueViewTitle = ({ context }) => {
     );
 };
 
-const TissueView = React.memo(function TissueView({ context = {}, session }) {
+const TissueView = React.memo(function TissueView({
+    context = {},
+    session,
+    // Gates the Donor Details table's Autolysis Score cell coloring below --
+    // off by default per request.
+    enableConditionalColor = false,
+}) {
     const {
         display_title,
         donor,
@@ -767,7 +773,14 @@ const TissueView = React.memo(function TissueView({ context = {}, session }) {
                                                 </td>
                                                 <td>{getDisplayText(d.sex)}</td>
                                                 <td>{getDisplayText(formatDonorAge(d.age))}</td>
-                                                <td className={getAutolysisScoreCellClass(pathologySummary.autolysis_score)}>
+                                                <td
+                                                    className={
+                                                        enableConditionalColor
+                                                            ? getAutolysisScoreCellClass(
+                                                                pathologySummary.autolysis_score
+                                                            )
+                                                            : ''
+                                                    }>
                                                     {getDisplayText(pathologySummary.autolysis_score)}
                                                 </td>
                                                 <td>{formatYesNo(pathologySummary.non_target_tissue_present)}</td>

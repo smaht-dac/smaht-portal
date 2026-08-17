@@ -88,7 +88,14 @@ const TissueTypeViewTitle = ({ representativeTissue }) => {
     );
 };
 
-export default function TissueTypeView({ context = {}, href, session }) {
+export default function TissueTypeView({
+    context = {},
+    href,
+    session,
+    // Gates the Donor Details table's Autolysis Score cell coloring below --
+    // off by default per request.
+    enableConditionalColor = false,
+}) {
     const tissueType = useMemo(
         () => (typeof href === 'string' ? memoizedUrlParse(href).query?.tissue_type : null) || null,
         [href]
@@ -674,7 +681,14 @@ export default function TissueTypeView({ context = {}, href, session }) {
                                                 </td>
                                                 <td>{getDisplayText(d.sex)}</td>
                                                 <td>{getDisplayText(formatDonorAge(d.age))}</td>
-                                                <td className={getAutolysisScoreCellClass(pathologySummary.autolysis_score)}>
+                                                <td
+                                                    className={
+                                                        enableConditionalColor
+                                                            ? getAutolysisScoreCellClass(
+                                                                pathologySummary.autolysis_score
+                                                            )
+                                                            : ''
+                                                    }>
                                                     {getDisplayText(pathologySummary.autolysis_score)}
                                                 </td>
                                                 <td>{formatYesNo(pathologySummary.non_target_tissue_present)}</td>
