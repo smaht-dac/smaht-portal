@@ -142,39 +142,28 @@ def test_protected_metadata_donor_check_does_not_skip_for_skip_links_write(
     es_testapp: TestApp,
     workbook: None,
 ) -> None:
-    """skip_links=true alone must not bypass this validator on DB-writing requests."""
+    """skip_links=true alone is rejected before any DB-writing validation can be bypassed."""
     body = _protected_metadata_body(
         "DEMOGRAPHIC",
         "SKIP-LINKS-WRITE-UNPROTECTED",
         "TEST_DONOR_MALE",
     )
-    response = es_testapp.post_json("/Demographic?skip_links=true", body, status=422)
-    assert "ProtectedDonor" in str(response.json)
+    response = es_testapp.post_json("/Demographic?skip_links=true", body, status=400)
+    assert "check_only=true" in response.json["detail"]
 
 
 @pytest.mark.workbook
-def test_existing_bad_protected_metadata_fails_on_edit_without_skip_links(
+def test_validate_false_does_not_bypass_protected_metadata_donor_check(
     es_testapp: TestApp,
     workbook: None,
 ) -> None:
-    """Existing protected metadata linked to plain Donor should fail future edits."""
+    """validate=false must not allow creating protected metadata on a plain Donor."""
     body = _protected_metadata_body(
         "DEMOGRAPHIC",
         "BAD-EDIT-UNPROTECTED",
         "TEST_DONOR_MALE",
     )
-    posted = es_testapp.post_json(
-        "/Demographic?validate=false", body, status=201
-    ).json["@graph"][0]
-    response = es_testapp.patch_json(
-        posted["@id"],
-        {"military_association": "Unknown"},
-        status=422,
+    response = es_testapp.post_json(
+        "/Demographic?validate=false", body, status=422
     )
     assert "ProtectedDonor" in str(response.json)
-
-    es_testapp.patch_json(
-        posted["@id"],
-        {"donor": "TEST_PROTECTED-DONOR_MALE"},
-        status=200,
-    )
