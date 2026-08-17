@@ -15,6 +15,11 @@ import { RightArrowIcon } from '../util/icon';
 import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { OverlayTrigger, Popover } from 'react-bootstrap';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+import {
+    formatAuthorName,
+    formatAuthorsList,
+    formatShortCitationAuthors,
+} from '../util/Schemas';
 
 /**
  * Finds the `static_content` entry for a given `location`, returning its
@@ -355,8 +360,6 @@ const PublicationView = React.memo(function PublicationView(props) {
     const doiLink = context?.doi ? `https://doi.org/${context.doi}` : '';
     const doiCode = context?.doi ? context.doi.split('/').pop() : '';
     const authorsList = context?.authors || [];
-    const formatAuthorName = (a) =>
-        a.first_name ? `${a.last_name}, ${a.first_name}` : a.last_name;
     const lastAuthor = authorsList[authorsList.length - 1];
     const isAuthorsListTruncated = authorsList.length > 20;
     // shorten the authors list to 20 items when there are more than 20 authors;
@@ -368,7 +371,7 @@ const PublicationView = React.memo(function PublicationView(props) {
     const citationString =
         context?.citation ??
         (lastAuthor
-            ? shortenedAuthorsList.map(formatAuthorName).join(', ') +
+            ? formatAuthorsList(shortenedAuthorsList) +
               (isAuthorsListTruncated
                   ? ' ... ' + formatAuthorName(lastAuthor)
                   : '') +
@@ -378,7 +381,7 @@ const PublicationView = React.memo(function PublicationView(props) {
               (doiCode ? ' ' + doiCode : '')
             : '');
 
-    const fullAuthorsList = authorsList.map(formatAuthorName).join(', ');
+    const fullAuthorsList = formatAuthorsList(authorsList);
 
     return (
         <div className="publication-view">
@@ -399,10 +402,14 @@ const PublicationView = React.memo(function PublicationView(props) {
                     <div className="publication-header-text">
                         <h2 className="title">{context?.display_title}</h2>
                         <div className="details">
-                            {(context?.short_citation || authorsList[0]) && (
+                            {(authorsList.length > 0 ||
+                                context?.short_citation) && (
                                 <span className="author">
-                                    {context?.short_citation ??
-                                        formatAuthorName(authorsList[0])}
+                                    {formatShortCitationAuthors(
+                                        authorsList,
+                                        context?.short_citation,
+                                        pubYear
+                                    )}
                                 </span>
                             )}
                             {context?.scope && (

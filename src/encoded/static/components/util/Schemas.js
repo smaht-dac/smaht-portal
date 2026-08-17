@@ -252,20 +252,15 @@ export const Field = {
         'assays.display_title': 'Assay Type',
         'sequencers.display_title': 'Sequencer',
         'donors.display_title': 'Donor',
-        'data_type': 'Data Type',
+        data_type: 'Data Type',
         'file_format.display_title': 'File Format',
-        'data_category': 'Data Category',
+        data_category: 'Data Category',
         'software.display_title': 'Software',
         '@id': 'Link',
         display_title: 'Title',
     },
 
-    toName: function (
-        field,
-        schemas,
-        schemaOnly = false,
-        itemType = 'Donor'
-    ) {
+    toName: function (field, schemas, schemaOnly = false, itemType = 'Donor') {
         if (!schemaOnly && Field.nameMap[field]) {
             return Field.nameMap[field];
         } else {
@@ -352,7 +347,11 @@ function formatAuthorAbbreviated(author) {
  * (the backend-computed `Publication.short_citation`, which already has
  * its own single/two-author/et-al. handling and year) is used as-is.
  */
-export function formatShortCitationAuthors(authorsList = [], shortCitation, year) {
+export function formatShortCitationAuthors(
+    authorsList = [],
+    shortCitation,
+    year
+) {
     const coFirstAuthors = getCoFirstAuthors(authorsList);
     if (coFirstAuthors.length === 0) {
         return shortCitation || null;
