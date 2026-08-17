@@ -1,7 +1,10 @@
 import io
 import json
 import logging
+import os
+import subprocess
 import sys
+import textwrap
 import traceback
 
 from ..logging_config import make_console_formatter
@@ -99,3 +102,99 @@ def test_one_line_messages_remain_json_and_physical_single_line():
     assert len(lines) == 2
     assert json.loads(lines[0])["message"] == "ordinary message"
     assert json.loads(lines[1])["message"] == "message with\nembedded newline"
+
+
+def test_uncaught_process_exception_uses_one_json_line_and_keeps_failure_status():
+    """Exercise the real interpreter hook in a pserve-worker equivalent child."""
+
+    child = textwrap.dedent(
+        """
+        import logging
+        import sys
+        from encoded.logging_config import configure_application_logging
+
+        handler = logging.StreamHandler(sys.stderr)
+        root_logger = logging.getLogger()
+        root_logger.handlers[:] = [handler]
+        root_logger.setLevel(logging.INFO)
+        configure_application_logging()
+
+        logging.getLogger("encoded.tests.ordinary").error("ordinary application error")
+
+        def raise_deep(depth):
+            if depth:
+                return raise_deep(depth - 1)
+            raise ValueError("uncaught terminal failure")
+
+        raise_deep(8)
+        """
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", child],
+        capture_output=True,
+        text=True,
+        env=os.environ.copy(),
+        check=False,
+    )
+
+    assert result.returncode != 0
+    lines = result.stderr.splitlines()
+    assert len(lines) == 2
+
+    ordinary = json.loads(lines[0])
+    assert ordinary["message"] == "ordinary application error"
+    assert "exception" not in ordinary
+
+    uncaught = json.loads(lines[1])
+    exception = uncaught["exception"]
+    assert uncaught["message"] == "Uncaught exception"
+    assert exception["type"] == "ValueError"
+    assert exception["class"] == "builtins.ValueError"
+    assert exception["message"] == "uncaught terminal failure"
+    assert len(exception["frames"]) == 5
+    assert exception["truncated"] is True
+    assert exception["omitted_frame_count"] == 5
+    assert "Traceback (most recent call last):" not in result.stderr
+
+
+def test_uncaught_thread_exception_uses_one_json_line_without_changing_thread_semantics():
+    """The sibling interpreter hook has the same physical-line guarantee."""
+
+    child = textwrap.dedent(
+        """
+        import logging
+        import sys
+        import threading
+        from encoded.logging_config import install_uncaught_exception_logging, make_console_formatter
+
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setFormatter(make_console_formatter())
+        root_logger = logging.getLogger()
+        root_logger.handlers[:] = [handler]
+        root_logger.setLevel(logging.INFO)
+        install_uncaught_exception_logging()
+
+        def worker():
+            raise RuntimeError("uncaught thread failure")
+
+        thread = threading.Thread(target=worker, name="uncaught-test-worker")
+        thread.start()
+        thread.join()
+        """
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", child],
+        capture_output=True,
+        text=True,
+        env=os.environ.copy(),
+        check=False,
+    )
+
+    assert result.returncode == 0
+    lines = result.stderr.splitlines()
+    assert len(lines) == 1
+    record = json.loads(lines[0])
+    assert record["message"] == "Uncaught exception"
+    assert record["exception"]["type"] == "RuntimeError"
+    assert record["exception"]["class"] == "builtins.RuntimeError"
+    assert record["exception"]["message"] == "uncaught thread failure"

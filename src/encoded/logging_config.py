@@ -17,6 +17,7 @@ chain gets its own first-five-frame view and truncation metadata.
 import json
 import logging
 import sys
+import threading
 import traceback
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
 
@@ -30,6 +31,7 @@ from dcicutils.log_utils import (
 
 
 MAX_TRACEBACK_FRAMES = 5
+UNCAUGHT_EXCEPTION_LOGGER = "encoded.uncaught"
 
 
 def _exception_info(exc_info: Any) -> Optional[Tuple[type, BaseException, Any]]:
@@ -179,6 +181,40 @@ def make_console_formatter() -> structlog.stdlib.ProcessorFormatter:
     )
 
 
+def _log_uncaught_exception(
+    exc_type: type,
+    exc_value: BaseException,
+    exc_traceback: Any,
+) -> None:
+    """Emit an interpreter-level exception through the configured JSON handler."""
+
+    logging.getLogger(UNCAUGHT_EXCEPTION_LOGGER).error(
+        "Uncaught exception",
+        exc_info=(exc_type, exc_value, exc_traceback),
+    )
+
+
+def _threading_excepthook(args: Any) -> None:
+    """Adapt ``threading.excepthook``'s argument object to the stdlib logger."""
+
+    _log_uncaught_exception(args.exc_type, args.exc_value, args.exc_traceback)
+
+
+def install_uncaught_exception_logging() -> None:
+    """Route process and thread uncaught exceptions through application logging.
+
+    The hooks only replace Python's raw traceback renderer.  A main-thread
+    exception still returns to the interpreter, which exits non-zero after the
+    hook returns, and a thread exception retains Python's normal thread-local
+    termination behavior.
+    """
+
+    if sys.excepthook is not _log_uncaught_exception:
+        sys.excepthook = _log_uncaught_exception
+    if hasattr(threading, "excepthook") and threading.excepthook is not _threading_excepthook:
+        threading.excepthook = _threading_excepthook
+
+
 def _configure_structlog(in_prod: bool) -> None:
     """Configure structlog to hand event dictionaries to ProcessorFormatter."""
 
@@ -235,3 +271,4 @@ def configure_application_logging(in_prod: bool = False) -> None:
     formatter = make_console_formatter()
     for handler in _console_handlers():
         handler.setFormatter(formatter)
+    install_uncaught_exception_logging()
