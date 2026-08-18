@@ -187,6 +187,26 @@ function buildSliceGeometry({
     });
 }
 
+// A slice's own side face is normally left fully hidden behind the *next*
+// slice's opaque top+front (only the true last-in-a-run slice ever shows
+// its side face on its own) -- invisible, and fine, between two normally-
+// colored slices, but that leaves no visible boundary where a real slice's
+// data stops and a template placeholder (grey, no real aliquot yet) starts,
+// reading as if the real slice had been swallowed by the grey one. Flags
+// exactly that case (`needsSideCap`) so the render site can redraw just
+// those slices' side faces in a second, later pass -- on top of everything,
+// slightly transparent so it reads as a translucent edge cap rather than a
+// second solid wall.
+function markSideCaps(geometrySlices) {
+    return geometrySlices.map((slice, i, arr) => {
+        const next = arr[i + 1];
+        return {
+            ...slice,
+            needsSideCap: !slice.isPlaceholder && !!next?.isPlaceholder,
+        };
+    });
+}
+
 function DimensionArrow({
     x1,
     y1,
@@ -433,15 +453,17 @@ export default function AliquotVisualization({
             if (bounds.layer === 0) {
                 mainWidthPx = groupWidthPx;
                 geometry = geometry.concat(
-                    buildSliceGeometry({
-                        heightPx,
-                        depthX: halfDepthX,
-                        depthY: halfDepthY,
-                        slices: groupSlices,
-                        startIndex: bounds.start,
-                        originX: 0,
-                        originY: depthY,
-                    })
+                    markSideCaps(
+                        buildSliceGeometry({
+                            heightPx,
+                            depthX: halfDepthX,
+                            depthY: halfDepthY,
+                            slices: groupSlices,
+                            startIndex: bounds.start,
+                            originX: 0,
+                            originY: depthY,
+                        })
+                    )
                 );
             } else if (bounds.layer === 1) {
                 const layerGeometry = buildSliceGeometry({
@@ -513,14 +535,16 @@ export default function AliquotVisualization({
             const groupWidthPx = groupSlices.reduce((sum, slice) => sum + slice.widthPx, 0);
             const groupWidthCm = groupSlices.reduce((sum, slice) => sum + slice.widthCm, 0);
             const startX = cursorX;
-            const groupGeometry = buildSliceGeometry({
-                heightPx,
-                depthX,
-                depthY,
-                slices: groupSlices,
-                offsetX: startX,
-                startIndex: bounds.start,
-            });
+            const groupGeometry = markSideCaps(
+                buildSliceGeometry({
+                    heightPx,
+                    depthX,
+                    depthY,
+                    slices: groupSlices,
+                    offsetX: startX,
+                    startIndex: bounds.start,
+                })
+            );
             cursorX += groupWidthPx;
             return {
                 startX,
@@ -872,6 +896,23 @@ export default function AliquotVisualization({
                             </g>
                         );
                     })}
+                    {/* A second, later pass so these draw on top of
+                        everything above -- see markSideCaps for why a real
+                        slice immediately before a placeholder needs its own
+                        side face redrawn instead of staying fully hidden
+                        behind the placeholder's opaque top+front. */}
+                    {geometry
+                        .filter((slice) => slice.needsSideCap)
+                        .map((slice) => (
+                            <polygon
+                                key={`side-cap-${slice.id || slice.index}`}
+                                className="slice-face slice-side-cap"
+                                points={slice.sidePoints}
+                                fill={SLICE_TYPE_STYLES[slice.type].side}
+                                stroke={SLICE_TYPE_STYLES[slice.type].border}
+                                pointerEvents="none"
+                            />
+                        ))}
                     <DimensionArrow
                         x1={heightDimensionLine.x1}
                         y1={heightDimensionLine.y1 + 8}

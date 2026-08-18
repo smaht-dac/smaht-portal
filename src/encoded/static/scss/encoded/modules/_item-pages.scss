@@ -3854,13 +3854,16 @@ File, Donor, and Publication Overview Styles
             }
         }
 
-        .slice-top {
-            opacity: 0.92;
-        }
-
-        .slice-side {
-            opacity: 0.95;
-        }
+        // .slice-top/.slice-side used to carry a slight opacity (0.92/0.95)
+        // for a subtle "lit from above" look -- but every slice's own side
+        // face geometrically extends past its right edge and relies on the
+        // *next* slice's top+front being fully opaque to hide it (only the
+        // true last-in-row slice is meant to show its side face at all).
+        // Between two normally-colored slices that partial transparency was
+        // imperceptible, but it let a real slice's color visibly bleed
+        // through a placeholder's much paler fill, muddying the boundary
+        // right where a real slice meets a grey one. Full opacity everywhere
+        // removes any chance of that regardless of what's adjacent.
 
         // A bivalved template position with no real aliquot submitted yet
         // (see PLACEHOLDER_SLICE_STYLE/isPlaceholder) -- inert grey box, no
@@ -3872,6 +3875,17 @@ File, Donor, and Publication Overview Styles
                 font-weight: 500;
             }
         }
+    }
+
+    // A real slice's side face, redrawn in a later pass on top of the
+    // placeholder that would otherwise fully hide it (see
+    // AliquotVisualization.js's markSideCaps/needsSideCap) -- translucent so
+    // it reads as "this is where the real data actually stops" rather than
+    // a second solid wall competing with the placeholder's own fill.
+    .slice-side-cap {
+        opacity: 0.3;
+        vector-effect: non-scaling-stroke;
+        stroke-width: 1.5;
     }
 
     .aliquot-slice-hitarea {
