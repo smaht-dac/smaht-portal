@@ -240,7 +240,7 @@ export const getTissueAliquotDepthCm = (tissueTypeValue) => {
 const BIVALVED_NOTE =
     'This organ is recovered as two separate pieces (Anterior and Posterior halves) before aliquotting, shown below in that fixed layout. Grey slices are positions with no aliquot submitted yet for this donor.';
 const MEDIAL_LATERAL_NOTE =
-    'This tissue block is recovered with medial and lateral portions. Individual aliquots below aren’t linked to a specific portion in the current data.';
+    'This tissue block is recovered with lateral and medial portions, shown below in that fixed layout. Grey slices are positions with no aliquot submitted yet for this donor.';
 const ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE = {
     LUNG: MEDIAL_LATERAL_NOTE,
     LIVR: MEDIAL_LATERAL_NOTE,
@@ -264,12 +264,9 @@ export const getAliquotLayoutNote = (tissueTypeValue) => {
 };
 
 // True only for the medial/lateral tissues above (Lung/Liver), not the
-// bivalved ones -- used to draw a purely illustrative reference line on the
-// diagram (see AliquotVisualization's showMedialLateralHint). That line is
-// NOT derived from this donor's real data (confirmed nothing in the data
-// model marks which real aliquot is which portion -- see the note above),
-// so it's only drawn at the block's visual midpoint regardless of aliquot
-// boundaries, and only for tissues where Fig. 2a actually shows this split.
+// bivalved ones -- used to gate AliquotVisualization's
+// enableMedialLateralLayers (draws the fixed Lateral/Medial depth-layered
+// layout -- see LUNG_LIVER_TEMPLATE/getMedialLateralTemplate below).
 export const isMedialLateralAliquotLayout = (tissueTypeValue) => {
     const raw = String(tissueTypeValue || '').trim();
     if (!raw) return false;
@@ -387,6 +384,97 @@ export const buildBivalvedTemplateSlices = (template, realSlices = []) => {
             type: templateSlice.type,
             widthCm: templateSlice.widthCm,
             bivalvedHalf: templateSlice.half,
+            isPlaceholder: true,
+        };
+    });
+    const extraSlices = [];
+    realByTypeAndNumber.forEach((slice, key) => {
+        if (!consumedKeys.has(key)) extraSlices.push(slice);
+    });
+    return templateSlices.concat(extraSlices, unmatchableSlices);
+};
+
+// Fig. 2a's Lung/Liver layout -- a single depth-continuous block cut into a
+// Lateral (front half, 0-1.5cm depth) and Medial (back half, 1.5-3cm depth)
+// layer, each with the same 7-slice-wide strip (Fixed-Frozen-Frozen-Fixed-
+// Frozen-Frozen-Fixed). Fixed/Frozen aliquot numbers count up continuously
+// across both layers (Fixed 1-3 Lateral/4-6 Medial, Frozen 1-4 Lateral/5-8
+// Medial) -- a fixed fact of the recovery protocol, identical for every
+// donor of these tissues, same as the bivalved templates above.
+const LUNG_LIVER_LAYER_WIDTH_PATTERN = [
+    { type: 'pink', widthCm: 0.5 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'pink', widthCm: 0.5 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'pink', widthCm: 0.5 },
+];
+function buildMedialLateralLayer(layer, pinkStart, yellowStart) {
+    let pinkSeq = pinkStart;
+    let yellowSeq = yellowStart;
+    return LUNG_LIVER_LAYER_WIDTH_PATTERN.map(({ type, widthCm }) => {
+        return {
+            layer,
+            type,
+            seq: type === 'pink' ? pinkSeq++ : yellowSeq++,
+            widthCm,
+        };
+    });
+}
+const LUNG_LIVER_TEMPLATE = [
+    ...buildMedialLateralLayer(0, 1, 1), // Lateral (front): Fixed 1-3, Frozen 1-4
+    ...buildMedialLateralLayer(1, 4, 5), // Medial (back): Fixed 4-6, Frozen 5-8
+];
+const MEDIAL_LATERAL_TEMPLATE_BY_INTERNAL_CODE = {
+    LUNG: LUNG_LIVER_TEMPLATE,
+    LIVR: LUNG_LIVER_TEMPLATE,
+};
+
+// tissue_type is a "<TPC code> - <name>" string; resolves to this tissue's
+// fixed medial/lateral template (see above), or null for non-Lung/Liver
+// tissues.
+export const getMedialLateralTemplate = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return null;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    return (internalCode && MEDIAL_LATERAL_TEMPLATE_BY_INTERNAL_CODE[internalCode]) || null;
+};
+
+// Lung/Liver counterpart to buildBivalvedTemplateSlices above -- same
+// matching-by-type-and-number logic (see that function's comment), just
+// tagging each slice with `medialLateralLayer` (0 = Lateral/front, 1 =
+// Medial/back) instead of `bivalvedHalf`.
+export const buildMedialLateralTemplateSlices = (template, realSlices = []) => {
+    const realByTypeAndNumber = new Map();
+    const unmatchableSlices = [];
+    realSlices.forEach((slice) => {
+        const number = parseInt(slice.aliquotNumber, 10);
+        if (!Number.isFinite(number)) {
+            unmatchableSlices.push(slice);
+            return;
+        }
+        realByTypeAndNumber.set(`${slice.type}-${number}`, slice);
+    });
+    const consumedKeys = new Set();
+    const templateSlices = template.map((templateSlice, index) => {
+        const key = `${templateSlice.type}-${templateSlice.seq}`;
+        const real = realByTypeAndNumber.get(key);
+        if (real) {
+            consumedKeys.add(key);
+            return {
+                ...real,
+                type: templateSlice.type,
+                widthCm: templateSlice.widthCm,
+                medialLateralLayer: templateSlice.layer,
+                isPlaceholder: false,
+            };
+        }
+        return {
+            id: `medial-lateral-placeholder-${index}`,
+            type: templateSlice.type,
+            widthCm: templateSlice.widthCm,
+            medialLateralLayer: templateSlice.layer,
             isPlaceholder: true,
         };
     });

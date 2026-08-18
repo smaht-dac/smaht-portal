@@ -136,6 +136,18 @@ function buildSliceGeometry({
     // normalizedSlices/selectedSliceIndex regardless of grouping).
     offsetX = 0,
     startIndex = 0,
+    // Where this run's own *front* edge sits, in the shared coordinate
+    // system -- defaults to (0, depthY), i.e. this run's front is the whole
+    // box's true front (the normal case, and a bivalved half's case, since
+    // both start a fresh box at the true front). A medial/lateral layer
+    // (see enableMedialLateralLayers) isn't a fresh box, though -- the
+    // Medial (back) layer's own front is the Lateral layer's own back (at
+    // the box's half-depth midline), not the box's true front, so it passes
+    // a different originX/originY while keeping its own depthX/depthY at
+    // half the box's total depth. This is what lets one shared box be cut
+    // into two depth-wise layers instead of two side-by-side ones.
+    originX = 0,
+    originY = depthY,
 }) {
     let currentX = offsetX;
     return slices.map((slice, i) => {
@@ -144,17 +156,33 @@ function buildSliceGeometry({
         const x0 = currentX;
         const x1 = currentX + width;
         currentX = x1;
+        const frontX0 = x0 + originX;
+        const frontX1 = x1 + originX;
+        const frontY = originY;
+        const backX0 = frontX0 + depthX;
+        const backX1 = frontX1 + depthX;
+        const backY = originY - depthY;
 
         return {
             ...slice,
             index,
-            frontPoints: `${x0},${depthY} ${x1},${depthY} ${x1},${depthY + heightPx} ${x0},${depthY + heightPx}`,
-            topPoints: `${x0},${depthY} ${x0 + depthX},0 ${x1 + depthX},0 ${x1},${depthY}`,
-            sidePoints: `${x1},${depthY} ${x1 + depthX},0 ${x1 + depthX},${heightPx} ${x1},${depthY + heightPx}`,
-            frontLabelX: x0 + width / 2,
-            frontLabelY: depthY + heightPx / 2,
-            x0,
-            x1,
+            frontPoints: `${frontX0},${frontY} ${frontX1},${frontY} ${frontX1},${frontY + heightPx} ${frontX0},${frontY + heightPx}`,
+            topPoints: `${frontX0},${frontY} ${backX0},${backY} ${backX1},${backY} ${frontX1},${frontY}`,
+            sidePoints: `${frontX1},${frontY} ${backX1},${backY} ${backX1},${backY + heightPx} ${frontX1},${frontY + heightPx}`,
+            frontLabelX: frontX0 + width / 2,
+            frontLabelY: frontY + heightPx / 2,
+            // Centroid of the top face's 4 corners -- only meaningful for a
+            // slice with no visible front face of its own (a medial layer
+            // slice, see hideFrontFace below), whose sequence number has to
+            // sit on the top face instead. Nudged a few px right of the
+            // exact arithmetic centroid -- the parallelogram's own skew
+            // (front-left corner further left than the shape visually reads
+            // as "centered" around) otherwise put the number right up
+            // against the slice's left edge.
+            topLabelX: (frontX0 + frontX1 + backX0 + backX1) / 4 + 6,
+            topLabelY: (frontY + backY) / 2,
+            x0: frontX0,
+            x1: frontX1,
         };
     });
 }
@@ -244,24 +272,24 @@ export default function AliquotVisualization({
     showSliceLabels,
     className,
     idPrefix,
-    // Purely illustrative -- a fixed reference line at the block's visual
-    // midpoint for tissues Fig. 2a shows as medial/lateral (Lung/Liver), NOT
-    // derived from this donor's real aliquot boundaries (nothing in the data
-    // model marks which aliquot is which portion -- see
-    // isMedialLateralAliquotLayout in tissue-overview/helpers.js). Labelled
-    // as an example in the diagram itself so it can't read as real data.
-    showMedialLateralHint = false,
     // For bivalved tissues (Adrenal/Heart/Gonads -- see
-    // isBivalvedAliquotLayout in helpers.js). Unlike showMedialLateralHint
-    // this doesn't just annotate a single box with a line -- `slices` is
-    // expected to already be the tissue's full fixed Anterior/Posterior
-    // template (helpers.js's buildBivalvedTemplateSlices), with each slice
-    // carrying its own `bivalvedHalf` (0 or 1) and `isPlaceholder` (true
-    // for template positions with no real aliquot yet). When true, this
-    // draws the two halves as physically separate boxes with a real gap
-    // between them (per Fig. 2a's "Anterior half"/"Posterior half"), and
-    // renders placeholder slices as inert grey boxes.
+    // isBivalvedAliquotLayout in helpers.js). `slices` is expected to
+    // already be the tissue's full fixed Anterior/Posterior template
+    // (helpers.js's buildBivalvedTemplateSlices), with each slice carrying
+    // its own `bivalvedHalf` (0 or 1) and `isPlaceholder` (true for
+    // template positions with no real aliquot yet). When true, this draws
+    // the two halves as physically separate boxes with a real gap between
+    // them (per Fig. 2a's "Anterior half"/"Posterior half"), and renders
+    // placeholder slices as inert grey boxes.
     enableBivalvedSplit = false,
+    // For medial/lateral tissues (Lung/Liver -- see
+    // isMedialLateralAliquotLayout in helpers.js). Same idea as
+    // enableBivalvedSplit, but the two portions aren't side-by-side pieces
+    // -- Fig. 2a shows them as one continuous block cut into a Lateral
+    // (front) and Medial (back) *depth* layer instead, so `slices` is
+    // expected to be helpers.js's buildMedialLateralTemplateSlices output,
+    // each slice carrying `medialLateralLayer` (0 or 1) and `isPlaceholder`.
+    enableMedialLateralLayers = false,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -337,10 +365,6 @@ export default function AliquotVisualization({
                 sliceBase,
         };
     });
-    const totalWidthCm = normalizedSlices.reduce(
-        (sum, slice) => sum + slice.widthCm,
-        0
-    );
     // Each slice of a bivalved tissue's `slices` already carries its own
     // `bivalvedHalf` (0 = Anterior, 1 = Posterior -- a fixed protocol fact,
     // see helpers.js's getBivalvedTemplate/buildBivalvedTemplateSlices, not
@@ -351,56 +375,169 @@ export default function AliquotVisualization({
     const hasBivalvedSplit =
         enableBivalvedSplit &&
         normalizedSlices.some((slice) => typeof slice.bivalvedHalf === 'number');
+    // Same idea for a medial/lateral tissue's `medialLateralLayer` (0 =
+    // Lateral/front, 1 = Medial/back -- see
+    // helpers.js's getMedialLateralTemplate/buildMedialLateralTemplateSlices).
+    const hasMedialLateralLayers =
+        enableMedialLateralLayers &&
+        normalizedSlices.some((slice) => typeof slice.medialLateralLayer === 'number');
+    // Lateral and Medial share the same width (both are the same 7-slice
+    // strip, just at different depths -- see below), so summing every
+    // slice's widthCm here would double it; medial/lateral's own totalWidthCm
+    // is just the Lateral layer's.
+    const totalWidthCm = hasMedialLateralLayers
+        ? normalizedSlices
+            .filter((slice) => slice.medialLateralLayer === 0)
+            .reduce((sum, slice) => sum + slice.widthCm, 0)
+        : normalizedSlices.reduce((sum, slice) => sum + slice.widthCm, 0);
     // A visible gap in pixel space only, not a real measured distance --
-    // drawn so the two halves read as physically separate pieces (per Fig.
-    // 2a's "Anterior half" / "Posterior half" boxes), not as one block with
-    // a line through it.
+    // drawn so bivalved's two halves read as physically separate pieces
+    // (per Fig. 2a's "Anterior half" / "Posterior half" boxes), not as one
+    // block with a line through it. Also reused for medial/lateral's rare
+    // "real aliquot outside the template's expected range" case below.
     const BIVALVED_SPLIT_GAP_PX = 56;
-    const sliceGroupBounds = [];
-    if (hasBivalvedSplit) {
+    const BIVALVED_HALF_LABELS = ['Anterior half', 'Posterior half'];
+
+    let sliceGroups;
+    let geometry;
+    let widthPx;
+    if (hasMedialLateralLayers) {
+        // Unlike bivalved's two side-by-side pieces, Lateral/Medial are one
+        // continuous physical block cut into a front (Lateral) and back
+        // (Medial) *depth* layer -- so instead of positioning two groups
+        // along the width axis with a gap, both layers share the same
+        // width span and are positioned along the depth axis: Lateral runs
+        // from the box's true front to its half-depth midline, Medial from
+        // that midline to the box's true back (see buildSliceGeometry's
+        // originX/originY). A real aliquot outside the template's expected
+        // range (see buildMedialLateralTemplateSlices) still isn't dropped,
+        // though -- it's appended past the main box instead, full depth,
+        // its own gap, same as bivalved's identical edge case.
+        const halfDepthX = depthX / 2;
+        const halfDepthY = depthY / 2;
+        const layerGroupBounds = [];
         normalizedSlices.forEach((slice, i) => {
-            const lastGroup = sliceGroupBounds[sliceGroupBounds.length - 1];
-            if (lastGroup && lastGroup.half === slice.bivalvedHalf) {
+            const lastGroup = layerGroupBounds[layerGroupBounds.length - 1];
+            if (lastGroup && lastGroup.layer === slice.medialLateralLayer) {
                 lastGroup.end = i + 1;
             } else {
-                sliceGroupBounds.push({ start: i, end: i + 1, half: slice.bivalvedHalf });
+                layerGroupBounds.push({ start: i, end: i + 1, layer: slice.medialLateralLayer });
             }
         });
-    } else {
-        sliceGroupBounds.push({ start: 0, end: normalizedSlices.length });
-    }
-    const BIVALVED_HALF_LABELS = ['Anterior half', 'Posterior half'];
-    let cursorX = 0;
-    const sliceGroups = sliceGroupBounds.map((bounds, groupIndex) => {
-        if (groupIndex > 0) cursorX += BIVALVED_SPLIT_GAP_PX;
-        const groupSlices = normalizedSlices.slice(bounds.start, bounds.end);
-        const groupWidthPx = groupSlices.reduce((sum, slice) => sum + slice.widthPx, 0);
-        const groupWidthCm = groupSlices.reduce((sum, slice) => sum + slice.widthCm, 0);
-        const startX = cursorX;
-        const groupGeometry = buildSliceGeometry({
-            heightPx,
-            depthX,
-            depthY,
-            slices: groupSlices,
-            offsetX: startX,
-            startIndex: bounds.start,
+        geometry = [];
+        let mainWidthPx = 0;
+        let extraCursorX = 0;
+        layerGroupBounds.forEach((bounds) => {
+            const groupSlices = normalizedSlices.slice(bounds.start, bounds.end);
+            const groupWidthPx = groupSlices.reduce((sum, slice) => sum + slice.widthPx, 0);
+            if (bounds.layer === 0) {
+                mainWidthPx = groupWidthPx;
+                geometry = geometry.concat(
+                    buildSliceGeometry({
+                        heightPx,
+                        depthX: halfDepthX,
+                        depthY: halfDepthY,
+                        slices: groupSlices,
+                        startIndex: bounds.start,
+                        originX: 0,
+                        originY: depthY,
+                    })
+                );
+            } else if (bounds.layer === 1) {
+                const layerGeometry = buildSliceGeometry({
+                    heightPx,
+                    depthX: halfDepthX,
+                    depthY: halfDepthY,
+                    slices: groupSlices,
+                    startIndex: bounds.start,
+                    originX: halfDepthX,
+                    originY: halfDepthY,
+                });
+                geometry = geometry.concat(
+                    layerGeometry.map((slice, i) => {
+                        return {
+                            ...slice,
+                            hideFrontFace: true,
+                            // Every other slice's side face is normally
+                            // hidden by the *next* slice's front face
+                            // (drawn later, on top -- see the box-outline
+                            // comment above) -- but a Medial-layer slice
+                            // has no front face to do that with, so its own
+                            // side face (a thin diagonal sliver) would
+                            // otherwise stay fully exposed for every slice,
+                            // not just the true rightmost one, and read as
+                            // a row of "stalactites" rather than one clean
+                            // right edge.
+                            hideSideFace: i < layerGeometry.length - 1,
+                        };
+                    })
+                );
+            } else {
+                const startX = mainWidthPx + BIVALVED_SPLIT_GAP_PX + extraCursorX;
+                geometry = geometry.concat(
+                    buildSliceGeometry({
+                        heightPx,
+                        depthX,
+                        depthY,
+                        slices: groupSlices,
+                        offsetX: startX,
+                        startIndex: bounds.start,
+                    })
+                );
+                extraCursorX += groupWidthPx;
+            }
         });
-        cursorX += groupWidthPx;
-        return {
-            startX,
-            widthPx: groupWidthPx,
-            widthCm: groupWidthCm,
-            geometry: groupGeometry,
-            halfLabel: BIVALVED_HALF_LABELS[bounds.half] || null,
-        };
-    });
-    const geometry = sliceGroups.flatMap((group) => group.geometry);
-    // The full drawn extent along the width axis, including any bivalved
-    // gap -- everything that used to size/position itself off the single
-    // box's `widthPx` (viewBox, dimension arrows, the medial/lateral hint)
-    // uses this instead, so it still spans edge-to-edge across both halves
-    // when split, or is just the one box's width when it isn't.
-    const widthPx = cursorX;
+        widthPx = mainWidthPx + (extraCursorX > 0 ? BIVALVED_SPLIT_GAP_PX + extraCursorX : 0);
+        // One bounding outline for the whole (single, continuous) block --
+        // see the box-outline render site, which draws one per sliceGroups
+        // entry off its startX/widthPx regardless of which mode built it.
+        sliceGroups = [{ startX: 0, widthPx, widthCm: totalWidthCm, geometry: [], halfLabel: null }];
+    } else {
+        const sliceGroupBounds = [];
+        if (hasBivalvedSplit) {
+            normalizedSlices.forEach((slice, i) => {
+                const lastGroup = sliceGroupBounds[sliceGroupBounds.length - 1];
+                if (lastGroup && lastGroup.half === slice.bivalvedHalf) {
+                    lastGroup.end = i + 1;
+                } else {
+                    sliceGroupBounds.push({ start: i, end: i + 1, half: slice.bivalvedHalf });
+                }
+            });
+        } else {
+            sliceGroupBounds.push({ start: 0, end: normalizedSlices.length });
+        }
+        let cursorX = 0;
+        sliceGroups = sliceGroupBounds.map((bounds, groupIndex) => {
+            if (groupIndex > 0) cursorX += BIVALVED_SPLIT_GAP_PX;
+            const groupSlices = normalizedSlices.slice(bounds.start, bounds.end);
+            const groupWidthPx = groupSlices.reduce((sum, slice) => sum + slice.widthPx, 0);
+            const groupWidthCm = groupSlices.reduce((sum, slice) => sum + slice.widthCm, 0);
+            const startX = cursorX;
+            const groupGeometry = buildSliceGeometry({
+                heightPx,
+                depthX,
+                depthY,
+                slices: groupSlices,
+                offsetX: startX,
+                startIndex: bounds.start,
+            });
+            cursorX += groupWidthPx;
+            return {
+                startX,
+                widthPx: groupWidthPx,
+                widthCm: groupWidthCm,
+                geometry: groupGeometry,
+                halfLabel: BIVALVED_HALF_LABELS[bounds.half] || null,
+            };
+        });
+        geometry = sliceGroups.flatMap((group) => group.geometry);
+        // The full drawn extent along the width axis, including any
+        // bivalved gap -- everything that used to size/position itself off
+        // the single box's `widthPx` (viewBox, dimension arrows) uses this
+        // instead, so it still spans edge-to-edge across both halves when
+        // split, or is just the one box's width when it isn't.
+        widthPx = cursorX;
+    }
     const viewBoxMinX = -76;
     const viewBoxMinY = -42;
     const viewBoxWidth = widthPx + depthX + 180;
@@ -631,6 +768,19 @@ export default function AliquotVisualization({
                         const styles = slice.isPlaceholder
                             ? PLACEHOLDER_SLICE_STYLE
                             : SLICE_TYPE_STYLES[slice.type];
+                        // A Medial-layer slice (medial/lateral mode -- see
+                        // enableMedialLateralLayers) has no visible front
+                        // face of its own (it's the box's back half, hidden
+                        // behind the Lateral layer sitting in front of it),
+                        // so its click target and sequence label both move
+                        // to its own top face instead of the usual front one.
+                        const labelX = slice.hideFrontFace ? slice.topLabelX : slice.frontLabelX;
+                        const labelY = slice.hideFrontFace ? slice.topLabelY : slice.frontLabelY;
+                        const ariaLabel = `View details for ${slice.label || styles.label} slice ${slice.index + 1}`;
+                        function handleSelect(event) {
+                            setSelectedSliceIndex(slice.index);
+                            setSelectedTarget(event.currentTarget);
+                        }
                         return (
                             <g
                                 key={slice.id || slice.index}
@@ -647,19 +797,44 @@ export default function AliquotVisualization({
                                     fill={styles.top}
                                     stroke={styles.border}
                                 />
-                                <polygon
-                                    className="slice-face slice-side"
-                                    points={slice.sidePoints}
-                                    fill={styles.side}
-                                    stroke={styles.border}
-                                />
-                                <polygon
-                                    className="slice-face slice-front"
-                                    points={slice.frontPoints}
-                                    fill={styles.front}
-                                    stroke={styles.border}
-                                />
-                                {slice.isPlaceholder ? null : (
+                                {slice.hideSideFace ? null : (
+                                    <polygon
+                                        className="slice-face slice-side"
+                                        points={slice.sidePoints}
+                                        fill={styles.side}
+                                        stroke={styles.border}
+                                    />
+                                )}
+                                {slice.hideFrontFace ? null : (
+                                    <polygon
+                                        className="slice-face slice-front"
+                                        points={slice.frontPoints}
+                                        fill={styles.front}
+                                        stroke={styles.border}
+                                    />
+                                )}
+                                {slice.isPlaceholder ? null : slice.hideFrontFace ? (
+                                    // No front face to overlay a rectangular
+                                    // foreignObject/button on (the top face
+                                    // is a skewed parallelogram) -- a plain
+                                    // polygon click target with manual
+                                    // button semantics instead.
+                                    <polygon
+                                        className="aliquot-slice-hitarea-polygon"
+                                        points={slice.topPoints}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={ariaLabel}
+                                        onClick={handleSelect}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter' || event.key === ' ') {
+                                                event.preventDefault();
+                                                handleSelect(event);
+                                            }
+                                        }}
+                                    />
+                                ) : (
                                     <foreignObject
                                         x={slice.x0}
                                         y={depthY}
@@ -668,11 +843,8 @@ export default function AliquotVisualization({
                                         <button
                                             type="button"
                                             className="aliquot-slice-hitarea"
-                                            onClick={(event) => {
-                                                setSelectedSliceIndex(slice.index);
-                                                setSelectedTarget(event.currentTarget);
-                                            }}
-                                            aria-label={`View details for ${slice.label || styles.label} slice ${slice.index + 1}`}>
+                                            onClick={handleSelect}
+                                            aria-label={ariaLabel}>
                                             <span className="visually-hidden">
                                                 {slice.label || styles.label}
                                             </span>
@@ -681,19 +853,19 @@ export default function AliquotVisualization({
                                 )}
                                 <text
                                     className="slice-inline-label slice-sequence-label"
-                                    x={slice.frontLabelX}
+                                    x={labelX}
                                     y={
-                                        showSliceLabels
-                                            ? slice.frontLabelY - 10
-                                            : slice.frontLabelY
+                                        showSliceLabels && !slice.hideFrontFace
+                                            ? labelY - 10
+                                            : labelY
                                     }>
                                     {slice.sequenceLabel}
                                 </text>
-                                {showSliceLabels ? (
+                                {showSliceLabels && !slice.hideFrontFace ? (
                                     <text
                                         className="slice-inline-label"
-                                        x={slice.frontLabelX}
-                                        y={slice.frontLabelY + 10}>
+                                        x={labelX}
+                                        y={labelY + 10}>
                                         {slice.widthCm} cm
                                     </text>
                                 ) : null}
@@ -710,38 +882,6 @@ export default function AliquotVisualization({
                         labelY={heightMidpoint.y}
                         textAnchor="start"
                     />
-                    {showMedialLateralHint ? (
-                        <g className="aliquot-medial-lateral-hint">
-                            {/* Runs along the width axis (front edge to
-                                back edge, side to side) at half depth --
-                                medial/lateral is a front/back split, so the
-                                line has to cross depth, not run along it
-                                (that would split width in half instead). */}
-                            <line
-                                x1={depthX / 2}
-                                y1={depthY / 2}
-                                x2={widthPx + depthX / 2}
-                                y2={depthY / 2}
-                            />
-                            {/* The same cut plane continues down the box's
-                                right side face (it slices through the full
-                                height, not just the top) -- traced from
-                                where the line above meets that face's top
-                                edge straight down to its bottom edge. */}
-                            <line
-                                x1={widthPx + depthX / 2}
-                                y1={depthY / 2}
-                                x2={widthPx + depthX / 2}
-                                y2={depthY / 2 + heightPx}
-                            />
-                            <text
-                                x={widthPx / 2 + depthX / 2}
-                                y={depthY / 2 - 6}
-                                textAnchor="middle">
-                                Example split
-                            </text>
-                        </g>
-                    ) : null}
                 </svg>
                 <Overlay
                     show={!!selectedSlice && !!selectedTarget}
@@ -1163,8 +1303,8 @@ AliquotVisualization.propTypes = {
     showSliceLabels: PropTypes.bool,
     className: PropTypes.string,
     idPrefix: PropTypes.string,
-    showMedialLateralHint: PropTypes.bool,
     enableBivalvedSplit: PropTypes.bool,
+    enableMedialLateralLayers: PropTypes.bool,
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,
@@ -1196,6 +1336,9 @@ AliquotVisualization.propTypes = {
             // Bivalved tissues only (enableBivalvedSplit) -- see
             // helpers.js's buildBivalvedTemplateSlices.
             bivalvedHalf: PropTypes.number,
+            // Medial/lateral tissues only (enableMedialLateralLayers) --
+            // see helpers.js's buildMedialLateralTemplateSlices.
+            medialLateralLayer: PropTypes.number,
             isPlaceholder: PropTypes.bool,
         })
     ).isRequired,

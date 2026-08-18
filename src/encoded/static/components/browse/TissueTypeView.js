@@ -34,6 +34,8 @@ import {
     isBivalvedAliquotLayout,
     getBivalvedTemplate,
     buildBivalvedTemplateSlices,
+    getMedialLateralTemplate,
+    buildMedialLateralTemplateSlices,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
     getTissueColorHex,
@@ -148,7 +150,7 @@ export default function TissueTypeView({
     const tissueColorHex = getTissueColorHex(tissue_type || getDisplayText(uberon_id));
     const aliquotDepthCm = getTissueAliquotDepthCm(tissue_type || getDisplayText(uberon_id));
     const aliquotLayoutNote = getAliquotLayoutNote(tissue_type || getDisplayText(uberon_id));
-    const showMedialLateralHint = isMedialLateralAliquotLayout(
+    const enableMedialLateralLayers = isMedialLateralAliquotLayout(
         tissue_type || getDisplayText(uberon_id)
     );
     const enableBivalvedSplit = isBivalvedAliquotLayout(
@@ -417,10 +419,18 @@ export default function TissueTypeView({
     const bivalvedTemplate = enableBivalvedSplit
         ? getBivalvedTemplate(tissueMatrixFilterValue)
         : null;
+    // Same fixed-template treatment for Lung/Liver (see getMedialLateralTemplate) --
+    // enableBivalvedSplit/enableMedialLateralLayers are mutually exclusive per
+    // tissue_type, so only one of these two ever actually resolves a template.
+    const medialLateralTemplate = enableMedialLateralLayers
+        ? getMedialLateralTemplate(tissueMatrixFilterValue)
+        : null;
     const displaySlices =
         bivalvedTemplate && solidAliquotSlices !== sampleAliquotSlicesFallback
             ? buildBivalvedTemplateSlices(bivalvedTemplate, solidAliquotSlices)
-            : solidAliquotSlices;
+            : medialLateralTemplate && solidAliquotSlices !== sampleAliquotSlicesFallback
+                ? buildMedialLateralTemplateSlices(medialLateralTemplate, solidAliquotSlices)
+                : solidAliquotSlices;
 
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
@@ -693,7 +703,7 @@ export default function TissueTypeView({
                                     }}
                                     idPrefix={aliquotIdPrefix}
                                     showSliceLabels={false}
-                                    showMedialLateralHint={showMedialLateralHint}
+                                    enableMedialLateralLayers={enableMedialLateralLayers}
                                     enableBivalvedSplit={enableBivalvedSplit}
                                 />
                             )}
