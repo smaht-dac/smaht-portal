@@ -120,7 +120,7 @@ const getTargetTissuePercentageValue = (t) => t?.pathology_summary?.target_tissu
 
 function formatIschemicTime(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
-    return `${value}h`;
+    return `${value}`;
 }
 
 function getIschemicTimeScoreClass(value) {
@@ -329,7 +329,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                 prependDotPath="tissue-heatmap">
                 <DotRouterTab
                     dotPath=".ischemic-time"
-                    tabTitle="Ischemic Time"
+                    tabTitle="Ischemic Time (h)"
                     arrowTabs={false}
                     cache={true}
                     default>
