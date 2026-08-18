@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.11.0
+======
+
+`PR 736: Add validators for donor linked protected items <https://github.com/smaht-dac/smaht-portal/pull/736>`_
+
+* Adds validators to enforce that a donor's linked protected items ('MedicalHistory', 'Demographic', 'FamilyHistory', 'DeathCircumstances' and 'TissueCollection') are only linked to ProtectedDonor items.
+* Pulls in new snovault for fix for skip_links options
+
 2.10.0
 ======
 
