@@ -2007,19 +2007,19 @@ div.browse-link-icon {
 		width: 56px;
 		height: 56px;
 		border-radius: 50%;
-		border: 1.5px dashed #D7E1EA;
+		border: 2px dashed #D7E1EA;
 		background-color: #FBFCFE;
 		cursor: pointer;
-		transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+		transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 
-		// Bubbles for a tissue_type the color scheme covers get an inline
-		// background-color/border-color (a tint of that tissue's own
-		// official color, same treatment as the Tissue Overview header
-		// icon) -- an inline style always wins over this fallback and over
-		// a background/border-color :hover rule here, so hover feedback
-		// that would otherwise conflict with (or just get silently
-		// ignored on) a colored bubble uses transform/box-shadow instead,
-		// which works the same whether or not the bubble has its own color.
+		// Bubbles for a tissue_type the color scheme covers get an inline,
+		// thicker solid border-color/width (a tint of that tissue's own
+		// official color) -- color lives only on the ring, not the fill (see
+		// the render site for why), so an inline style overriding just this
+		// one property is enough; no background/icon override to worry
+		// about conflicting with a :hover rule here, so hover feedback uses
+		// transform/box-shadow instead, which works the same whether or not
+		// the bubble has its own color.
 		&:hover,
 		&:focus {
 			transform: scale(1.08);
@@ -2030,10 +2030,9 @@ div.browse-link-icon {
 	// Same masking technique as .tissue-icon-mask on the Tissue Overview
 	// header -- the anatomy-icon SVGs ship with their own fixed fill color,
 	// so masking with the SVG (instead of rendering it as an <img>) lets a
-	// plain background-color fill it. Each bubble overrides this default
-	// inline with that tissue's own official color (smaht_tissue_colors.json,
-	// via getTissueColorHex) when one exists -- this is just the fallback
-	// for the few tissue_type values that scheme doesn't cover.
+	// plain background-color fill it. Always this one plain neutral color,
+	// regardless of tissue -- per-tissue color lives only on the bubble's
+	// own border (see the render site), not the icon fill.
 	.tissue-germ-layer-bubble-icon {
 		display: inline-block;
 		width: 34px;

@@ -135,18 +135,22 @@ const TissueGermLayerPanel = ({ href, session }) => {
                                 // in SCSS) for the handful of tissue_type values that
                                 // scheme doesn't cover.
                                 const bubbleColorHex = getTissueColorHex(tissueType);
-                                // Same tinted-circle treatment as the Tissue Overview
-                                // header icon (TissueView.js/TissueTypeView.js) -- a
-                                // pale background/border wash of the tissue's own
-                                // color, not just the icon fill, so a pale tissue
-                                // color (e.g. Brain-Frontal lobe's very light blue)
-                                // still reads as "this bubble's color" via the border
-                                // even where the icon fill alone is easy to miss.
+                                // Color lives only on the ring now -- an
+                                // earlier version also tinted the bubble's
+                                // background and the icon's own fill, but
+                                // that read as too much color competing with
+                                // the rest of the page (its blue links/
+                                // toggle accent especially). The icon stays
+                                // the panel's plain neutral fill (CSS
+                                // default, no per-tissue color); only the
+                                // border carries the tissue's own color, a
+                                // bit thicker than the plain/uncovered
+                                // fallback ring so it still reads clearly.
                                 const bubbleStyle = bubbleColorHex
                                     ? {
-                                        backgroundColor: hexToRgba(bubbleColorHex, 0.14),
-                                        borderColor: hexToRgba(bubbleColorHex, 0.65),
+                                        borderColor: hexToRgba(bubbleColorHex, 0.85),
                                         borderStyle: 'solid',
+                                        borderWidth: '2.5px',
                                     }
                                     : undefined;
                                 return (
@@ -163,9 +167,6 @@ const TissueGermLayerPanel = ({ href, session }) => {
                                                 style={{
                                                     WebkitMaskImage: `url(${bubbleIconSrc})`,
                                                     maskImage: `url(${bubbleIconSrc})`,
-                                                    ...(bubbleColorHex
-                                                        ? { backgroundColor: bubbleColorHex }
-                                                        : null),
                                                 }}
                                             />
                                         ) : null}

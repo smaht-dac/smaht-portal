@@ -3148,24 +3148,31 @@ File, Donor, and Publication Overview Styles
                 height: 88px;
                 min-width: 88px;
                 border-radius: 50%;
-                background-color: #eaf7f0;
-                border: 3px solid #a9dfbc;
+                // Neutral fill/border -- color (when this tissue_type has an
+                // official one, smaht_tissue_colors.json) lives only on the
+                // ring via an inline style override (see TissueView.js/
+                // TissueTypeView.js), same treatment as the Browse-by-Tissue
+                // germ-layer bubbles (_search.scss's .tissue-germ-layer-bubble).
+                // This is also the fallback look for tissue_types that
+                // scheme doesn't cover.
+                background-color: #F7F9FB;
+                border: 3px solid #D7E1EA;
 
                 i {
                     font-size: 2.25rem;
-                    color: #1f9f55;
+                    color: #4E6884;
                 }
 
                 // Anatomy-icon SVGs ship with their own fixed fill color
-                // (e.g. #636363), which doesn't match this circle's green
-                // theme -- masking with the SVG instead of rendering it as
-                // an <img> lets a plain background-color fill it solid,
-                // same look as the FontAwesome icon it replaces.
+                // (e.g. #636363), which doesn't match this circle's theme --
+                // masking with the SVG instead of rendering it as an <img>
+                // lets a plain background-color fill it solid, same look as
+                // the FontAwesome icon it replaces.
                 .tissue-icon-mask {
                     display: inline-block;
                     width: 60px;
                     height: 60px;
-                    background-color: #1f9f55;
+                    background-color: #4E6884;
                     -webkit-mask-repeat: no-repeat;
                     mask-repeat: no-repeat;
                     -webkit-mask-position: center;

@@ -503,8 +503,8 @@ export default function TissueTypeView({
                         style={
                             tissueColorHex
                                 ? {
-                                    backgroundColor: hexToRgba(tissueColorHex, 0.12),
-                                    borderColor: hexToRgba(tissueColorHex, 0.55),
+                                    borderColor: hexToRgba(tissueColorHex, 0.85),
+                                    borderWidth: 4,
                                 }
                                 : undefined
                         }>
@@ -514,16 +514,10 @@ export default function TissueTypeView({
                                 style={{
                                     WebkitMaskImage: `url(${tissueIconSrc})`,
                                     maskImage: `url(${tissueIconSrc})`,
-                                    ...(tissueColorHex
-                                        ? { backgroundColor: tissueColorHex }
-                                        : null),
                                 }}
                             />
                         ) : (
-                            <i
-                                className="icon icon-lungs fas"
-                                style={tissueColorHex ? { color: tissueColorHex } : undefined}>
-                            </i>
+                            <i className="icon icon-lungs fas"></i>
                         )}
                     </div>
                     <div className="tissue-summary-header-content">
