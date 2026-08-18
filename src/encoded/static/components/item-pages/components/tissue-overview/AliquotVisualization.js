@@ -26,16 +26,35 @@ const SLICE_TYPE_STYLES = {
     },
 };
 
-// A bivalved tissue's fixed template (see helpers.js's getBivalvedTemplate)
-// always includes every position, whether or not this donor has a real
-// aliquot there yet (buildBivalvedTemplateSlices' isPlaceholder) -- these
-// render as plain inert grey boxes, visually distinct from the real Fixed/
-// Frozen colors and not clickable (no popover data to show).
-const PLACEHOLDER_SLICE_STYLE = {
-    front: '#E4E7EB',
-    top: '#EDEFF2',
-    side: '#D3D7DC',
-    border: '#B7BEC7',
+// A fixed template (see helpers.js's getBivalvedTemplate/
+// getMedialLateralTemplate/getStripTemplate) always includes every
+// position, whether or not this donor has a real aliquot there yet
+// (isPlaceholder) -- these render as inert, not clickable (no popover data
+// to show), and visually muted vs. the real Fixed/Frozen colors. A single
+// flat grey for both types made it impossible to tell a missing Fixed slot
+// from a missing Frozen one at a glance, though -- these are each type's own
+// color desaturated toward its own distinct grey instead, so the type is
+// still legible (doesn't rely on hue discrimination alone for colorblind
+// users). A first attempt muted pink toward a much lighter grey than
+// yellow's -- pink nearly disappeared against the page background while
+// yellow stayed clearly visible, an unbalanced "one type reads as disabled,
+// the other doesn't" look; both now target a similarly-dark grey (checked
+// against roughly matching luminance per corresponding face) so they read
+// as equally muted, distinguishable from each other by hue, not by one
+// being much fainter than the other.
+const PLACEHOLDER_SLICE_STYLES = {
+    pink: {
+        front: '#D4B6A2',
+        top: '#D7C1B0',
+        side: '#CEAD94',
+        border: '#AB8B72',
+    },
+    yellow: {
+        front: '#B5C597',
+        top: '#BFCAA8',
+        side: '#A8BD85',
+        border: '#83966A',
+    },
 };
 
 const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -790,7 +809,7 @@ export default function AliquotVisualization({
 
                     {geometry.map((slice) => {
                         const styles = slice.isPlaceholder
-                            ? PLACEHOLDER_SLICE_STYLE
+                            ? PLACEHOLDER_SLICE_STYLES[slice.type]
                             : SLICE_TYPE_STYLES[slice.type];
                         // A Medial-layer slice (medial/lateral mode -- see
                         // enableMedialLateralLayers) has no visible front
