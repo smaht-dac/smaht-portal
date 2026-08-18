@@ -1,6 +1,7 @@
 'use strict';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import ReactTooltip from 'react-tooltip';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
     DotRouter,
@@ -117,6 +118,22 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
 const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
 const getAutolysisScoreValue = (t) => t?.pathology_summary?.autolysis_score ?? null;
 const getTargetTissuePercentageValue = (t) => t?.pathology_summary?.target_tissue_percentage ?? null;
+
+// Same "label + info-circle with a data-tip" pattern as Browse by Donor's
+// Age column header (BrowseDonorBase.js) -- react-tooltip's static-attribute
+// API, picked up by the app-level <ReactTooltip/> mount (see app.js).
+function TabTitleWithInfo({ label, tooltip }) {
+    return (
+        <span>
+            {label}
+            <i
+                className="icon icon-fw icon-info-circle fas"
+                style={{ marginLeft: 6 }}
+                data-tip={tooltip}
+            />
+        </span>
+    );
+}
 
 function formatIschemicTime(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
@@ -281,6 +298,16 @@ export const BrowseTissueHeatmapTable = (props) => {
     const [loading, setLoading] = useState(true);
     const [tissueResults, setTissueResults] = useState([]);
 
+    // The tab titles' info-circle icons (TabTitleWithInfo) are static-attribute
+    // react-tooltip targets (data-tip) -- app.js's global <ReactTooltip/> only
+    // picks up nodes present at its own last build, and this component can
+    // mount after that (e.g. scrolled/tabbed into view later), so it needs an
+    // explicit rebuild once mounted, same as BrowseTissueVizWrapper.js's
+    // germ-layer bubbles.
+    useEffect(() => {
+        ReactTooltip.rebuild();
+    }, []);
+
     // `session` in the dependency array so logging in/out re-fetches --
     // permission-filtered fields (e.g. protected donor data) can change
     // without `href` itself changing, and this component previously had no
@@ -329,7 +356,12 @@ export const BrowseTissueHeatmapTable = (props) => {
                 prependDotPath="tissue-heatmap">
                 <DotRouterTab
                     dotPath=".ischemic-time"
-                    tabTitle="Ischemic Time (h)"
+                    tabTitle={
+                        <TabTitleWithInfo
+                            label="Ischemic Time (h)"
+                            tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)"
+                        />
+                    }
                     arrowTabs={false}
                     cache={true}
                     default>
@@ -348,7 +380,12 @@ export const BrowseTissueHeatmapTable = (props) => {
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".autolysis-score"
-                    tabTitle="Autolysis Score"
+                    tabTitle={
+                        <TabTitleWithInfo
+                            label="Autolysis Score"
+                            tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
+                        />
+                    }
                     arrowTabs={false}
                     cache={true}>
                     {loading ? (
@@ -366,7 +403,12 @@ export const BrowseTissueHeatmapTable = (props) => {
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".target-tissue"
-                    tabTitle="Target Tissue %"
+                    tabTitle={
+                        <TabTitleWithInfo
+                            label="Target Tissue %"
+                            tooltip="Percentage range of the sample that was the target tissue subtype"
+                        />
+                    }
                     arrowTabs={false}
                     cache={true}>
                     {loading ? (
