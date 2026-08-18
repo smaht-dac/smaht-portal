@@ -14,6 +14,14 @@ import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
 // mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
 const TARGET_TISSUE_PERCENTAGE_ORDER = ['0', '[0-10]', '[11-25]', '[26-49]', '[50-100]'];
 
+// The 5 region-specific brain internal codes (see util/data.js's tissue-code
+// table) -- a donor's brain Tissue record sometimes carries the generic
+// "Brain" ontology term instead of one of these (confirmed against real
+// production data: e.g. donor SMHT001 has ischemic_time only under plain
+// "Brain", while its BRCE/BRFL/... columns have none of their own). See
+// buildTissueMetricMatrix below for how that generic value gets used.
+const BRAIN_REGION_INTERNAL_CODES = ['BRCE', 'BRFL', 'BRHL', 'BRHR', 'BRTL'];
+
 // Column group order, by the same `category` values item_utils/tissue.py's
 // get_category() computes on each Tissue. Colors come from the shared
 // GERM_LAYER_COLORS palette (also used by viz/Matrix/DataMatrix.js) so this
@@ -67,7 +75,14 @@ export const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g
 // one with a populated pathology_summary is preferred over an arbitrary
 // "last encountered" pick, matching the selection rule used by
 // TissueView.js's dedupeTissuesByDonor.
-export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
+//
+// `distributeGenericBrainValue` -- see the comment further down where it's
+// used: the generic "Brain" column is always hidden, but copying its value
+// into the region-specific columns first is an Ischemic Time-only treatment
+// (per explicit request), not something Autolysis Score/Target Tissue %
+// should also do -- those two just hide the column and leave each region's
+// own cell exactly as it already was (its own real value, or n/a).
+export const buildTissueMetricMatrix = (tissueResults = [], getValue, distributeGenericBrainValue = false) => {
     const tissueTypes = [];
     const donors = [];
     const cellsByDonorAndTissue = {};
@@ -94,6 +109,37 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
         }
     });
 
+    // A generic "Brain" tissue_type carries no region of its own, so its own
+    // column is always hidden here, on every tab. Copying its value into
+    // whichever of the 5 region-specific columns (BRCE/BRFL/BRHL/BRHR/BRTL)
+    // don't already have their own real value for that donor -- because
+    // ischemic time is a collection-event measurement, not specific to which
+    // region was later dissected out, so the generic value is an equally
+    // valid stand-in there -- is Ischemic Time-only (distributeGenericBrainValue).
+    // Autolysis Score/Target Tissue % don't make that same assumption: they
+    // hide the column but leave each region's own cell as-is.
+    const genericBrainTissueType = tissueTypes.find((t) => t.trim() === 'Brain');
+    const brainRegionTissueTypes = tissueTypes.filter((t) =>
+        BRAIN_REGION_INTERNAL_CODES.includes(getTissueInternalCodeFromFacetTerm(t))
+    );
+    if (genericBrainTissueType) {
+        if (distributeGenericBrainValue) {
+            donors.forEach((donorId) => {
+                const genericValue = cellsByDonorAndTissue[`${donorId} ${genericBrainTissueType}`];
+                if (genericValue === null || typeof genericValue === 'undefined') return;
+                brainRegionTissueTypes.forEach((regionTissueType) => {
+                    const key = `${donorId} ${regionTissueType}`;
+                    if (cellsByDonorAndTissue[key] === null || typeof cellsByDonorAndTissue[key] === 'undefined') {
+                        cellsByDonorAndTissue[key] = genericValue;
+                    }
+                });
+            });
+        }
+        tissueTypes.splice(tissueTypes.indexOf(genericBrainTissueType), 1);
+        delete tissueTypeHrefs[genericBrainTissueType];
+        delete tissueTypeCategories[genericBrainTissueType];
+    }
+
     donors.sort();
     // Group by germ layer/category first (Ectoderm, Mesoderm, Endoderm, Germ
     // Cells, Clinically Accessible), alphabetical by display label within
@@ -112,7 +158,25 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue) => {
         };
     });
 
-    return { tissueTypes, tissueTypeHrefs, tissueTypeCategories, matrix };
+    return {
+        tissueTypes,
+        tissueTypeHrefs,
+        tissueTypeCategories,
+        matrix,
+        // Columns eligible to have consecutive equal-valued cells in the
+        // same row merged into one spanning cell (MetricHeatmapTable) --
+        // just the brain regions the generic "Brain" value above may have
+        // been copied into, so this stays a targeted de-duplication of that
+        // specific distributed-value case rather than a general "collapse
+        // any two adjacent columns that happen to match" behavior (which
+        // would misleadingly merge unrelated tissues that coincidentally
+        // share a value, e.g. two different organs both reading "n/a").
+        // Empty when nothing was actually distributed (distributeGenericBrainValue
+        // false, or there was no generic "Brain" column to begin with).
+        mergeableTissueTypes: distributeGenericBrainValue
+            ? new Set(brainRegionTissueTypes)
+            : EMPTY_MERGEABLE_TISSUE_TYPES,
+    };
 };
 
 const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
@@ -195,6 +259,54 @@ function getTargetTissuePercentageScoreClass(value) {
     return `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
 }
 
+function heatmapCellClassName(value, getScoreClass, enableConditionalColor) {
+    return (
+        'tissue-heatmap-cell' +
+        (enableConditionalColor ? ` ${getScoreClass(value)}` : '') +
+        // Muted styling for "no data" cells is plain typography (grey vs.
+        // dark text), not the score-band heatmap coloring
+        // enableConditionalColor gates -- keeps real values legible against
+        // empty ones either way.
+        (value === null || typeof value === 'undefined' ? ' is-empty' : '')
+    );
+}
+
+// One row's cells, merging a consecutive run of `mergeableTissueTypes`
+// columns that share the exact same value (e.g. the brain regions a
+// generic "Brain" value was distributed into, see buildTissueMetricMatrix)
+// into a single spanning <td> instead of repeating that value once per
+// column -- column headers stay one-per-tissue-type regardless (only body
+// cells merge), so which specific columns a merged cell covers is still
+// visible by lining it up with the header row above.
+function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor) {
+    const nodes = [];
+    let i = 0;
+    while (i < cells.length) {
+        const tissueType = tissueTypes[i];
+        const value = cells[i];
+        let span = 1;
+        if (mergeableTissueTypes.has(tissueType)) {
+            while (
+                i + span < cells.length &&
+                mergeableTissueTypes.has(tissueTypes[i + span]) &&
+                cells[i + span] === value
+            ) {
+                span += 1;
+            }
+        }
+        nodes.push(
+            <td
+                key={tissueType}
+                colSpan={span > 1 ? span : undefined}
+                className={heatmapCellClassName(value, getScoreClass, enableConditionalColor)}>
+                {formatValue(value)}
+            </td>
+        );
+        i += span;
+    }
+    return nodes;
+}
+
 // Memoized so that clicking between tabs -- which re-renders the whole
 // BrowseTissueHeatmapTable (DotRouterTab's onClick updates the page href,
 // which flows back down as a new `href` prop) -- doesn't also re-render
@@ -204,6 +316,8 @@ function getTargetTissuePercentageScoreClass(value) {
 // (memoized upstream in BrowseTissueHeatmapTable), so shallow prop equality
 // correctly bails out here instead of redoing this work for tables whose
 // tab isn't even visible.
+const EMPTY_MERGEABLE_TISSUE_TYPES = new Set();
+
 const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     tissueTypes,
     tissueTypeHrefs,
@@ -215,6 +329,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // below) on each cell -- off by default per request, flip back on to
     // restore the previous always-on heatmap coloring.
     enableConditionalColor = false,
+    // See renderRowCells -- which columns are eligible to have consecutive
+    // equal-valued cells in the same row merged into one spanning cell.
+    mergeableTissueTypes = EMPTY_MERGEABLE_TISSUE_TYPES,
 }) {
     const columnGroups = useMemo(
         () => buildColumnGroups(tissueTypes, tissueTypeCategories),
@@ -264,25 +381,14 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 </td>
                             ) : null}
                             <td className="tissue-heatmap-donor-id">{donor}</td>
-                            {cells.map((value, i) => (
-                                <td
-                                    key={tissueTypes[i]}
-                                    className={
-                                        'tissue-heatmap-cell' +
-                                        (enableConditionalColor ? ` ${getScoreClass(value)}` : '') +
-                                        // Muted styling for "no data" cells is
-                                        // plain typography (grey vs. dark
-                                        // text), not the score-band heatmap
-                                        // coloring enableConditionalColor
-                                        // gates -- keeps real values legible
-                                        // against empty ones either way.
-                                        (value === null || typeof value === 'undefined'
-                                            ? ' is-empty'
-                                            : '')
-                                    }>
-                                    {formatValue(value)}
-                                </td>
-                            ))}
+                            {renderRowCells(
+                                cells,
+                                tissueTypes,
+                                mergeableTissueTypes,
+                                formatValue,
+                                getScoreClass,
+                                enableConditionalColor
+                            )}
                         </tr>
                     ))}
                 </tbody>
@@ -334,7 +440,7 @@ export const BrowseTissueHeatmapTable = (props) => {
     }, [session]);
 
     const ischemicTime = useMemo(
-        () => buildTissueMetricMatrix(tissueResults, getIschemicTimeValue),
+        () => buildTissueMetricMatrix(tissueResults, getIschemicTimeValue, true),
         [tissueResults]
     );
     const autolysisScore = useMemo(
@@ -398,6 +504,13 @@ export const BrowseTissueHeatmapTable = (props) => {
                             formatValue={formatAutolysisScore}
                             getScoreClass={getAutolysisScoreClass}
                             enableConditionalColor={enableConditionalColor}
+                            // Merging same-value brain-region cells is an
+                            // Ischemic Time-only treatment (per request) --
+                            // the generic "Brain" -> region distribution and
+                            // column hiding above still apply here, each
+                            // region's own (distributed or real) value just
+                            // renders in its own cell, never merged.
+                            mergeableTissueTypes={EMPTY_MERGEABLE_TISSUE_TYPES}
                         />
                     )}
                 </DotRouterTab>
@@ -421,6 +534,8 @@ export const BrowseTissueHeatmapTable = (props) => {
                             formatValue={formatTargetTissuePercentage}
                             getScoreClass={getTargetTissuePercentageScoreClass}
                             enableConditionalColor={enableConditionalColor}
+                            // See the Autolysis Score tab's identical prop above.
+                            mergeableTissueTypes={EMPTY_MERGEABLE_TISSUE_TYPES}
                         />
                     )}
                 </DotRouterTab>
