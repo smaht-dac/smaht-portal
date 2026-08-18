@@ -189,6 +189,18 @@ function DimensionArrow({
     );
 }
 
+// A TPC (Tissue Procurement Center, e.g. "NDRI TPC") record is the
+// procurement-level entry for a core position, not a sequencing/file-
+// producing one -- unlike a GCC's, it has no files of its own to link to,
+// so it's excluded from the grid dots and the popover's per-center list
+// entirely (a position whose only submitting center(s) are TPCs renders as
+// unmarked, same as a position with no data at all). A null/missing center
+// (illustrative/demo data, before a real donor is selected) isn't a TPC and
+// is left alone.
+function isTpcSubmissionCenter(center) {
+    return typeof center === 'string' && center.trim().endsWith('TPC');
+}
+
 function offsetLine(x1, y1, x2, y2, distance) {
     const dx = x2 - x1;
     const dy = y2 - y1;
@@ -426,6 +438,7 @@ export default function AliquotVisualization({
         ] || [null];
         const filesHrefs = selectedSlice?.frozenCorePositionFilesHrefs?.[corePosition] || [];
         submissionCenters.forEach((submissionCenter, centerIndex) => {
+            if (isTpcSubmissionCenter(submissionCenter)) return;
             const filesHref = filesHrefs[centerIndex] || null;
             const key = `${submissionCenter || ''}|${filesHref || ''}`;
             if (groupIndexByKey.has(key)) {
@@ -756,10 +769,32 @@ export default function AliquotVisualization({
                                                             key={row}>
                                                             {FROZEN_GRID_COLS.map((col) => {
                                                                 const corePosition = `${row}${col}`;
+                                                                const rawSubmissionCenters =
+                                                                    selectedSlice
+                                                                        ?.frozenCorePositionSubmissionCenters?.[
+                                                                            corePosition
+                                                                        ] || [];
+                                                                const rawFilesHrefs =
+                                                                    selectedSlice
+                                                                        ?.frozenCorePositionFilesHrefs?.[
+                                                                            corePosition
+                                                                        ] || [];
+                                                                // A position whose only known submitting
+                                                                // center(s) are TPCs (procurement records,
+                                                                // no files of their own -- see
+                                                                // isTpcSubmissionCenter) doesn't get
+                                                                // marked at all, same as a position with no
+                                                                // data. Illustrative/demo data (no center
+                                                                // info at all yet) isn't affected.
+                                                                const hasOnlyTpcCenters =
+                                                                    rawSubmissionCenters.length > 0 &&
+                                                                    rawSubmissionCenters.every(
+                                                                        isTpcSubmissionCenter
+                                                                    );
                                                                 const isHighlighted =
                                                                     selectedFrozenCorePositions.includes(
                                                                         corePosition
-                                                                    );
+                                                                    ) && !hasOnlyTpcCenters;
                                                                 if (!isHighlighted) {
                                                                     return (
                                                                         <span
@@ -771,29 +806,28 @@ export default function AliquotVisualization({
                                                                 // A position can have more than one real
                                                                 // submitting center (see the grouping
                                                                 // comment above selectedFrozenCorePositionGroups)
-                                                                // -- list every distinct one in the
-                                                                // tooltip, and link/color by whichever has
-                                                                // a real files href (a TPC-only position
-                                                                // has none; prefer the first one that
-                                                                // does).
-                                                                const rawSubmissionCenters =
-                                                                    selectedSlice
-                                                                        ?.frozenCorePositionSubmissionCenters?.[
-                                                                            corePosition
-                                                                        ] || [];
-                                                                const rawFilesHrefs =
-                                                                    selectedSlice
-                                                                        ?.frozenCorePositionFilesHrefs?.[
-                                                                            corePosition
-                                                                        ] || [];
-                                                                const linkedIndex =
-                                                                    rawFilesHrefs.findIndex(Boolean);
+                                                                // -- list every distinct GCC one in the
+                                                                // tooltip (TPC entries excluded, see
+                                                                // isTpcSubmissionCenter), and link/color by
+                                                                // whichever has a real files href (prefer
+                                                                // the first GCC one that does).
+                                                                const linkedIndex = rawFilesHrefs.findIndex(
+                                                                    (href, i) =>
+                                                                        Boolean(href) &&
+                                                                        !isTpcSubmissionCenter(
+                                                                            rawSubmissionCenters[i]
+                                                                        )
+                                                                );
                                                                 const positionFilesHref =
                                                                     linkedIndex >= 0
                                                                         ? rawFilesHrefs[linkedIndex]
                                                                         : null;
                                                                 const positionSubmissionCenters =
-                                                                    rawSubmissionCenters.filter(Boolean);
+                                                                    rawSubmissionCenters.filter(
+                                                                        (center) =>
+                                                                            Boolean(center) &&
+                                                                            !isTpcSubmissionCenter(center)
+                                                                    );
                                                                 const primaryCenter =
                                                                     (linkedIndex >= 0
                                                                         ? rawSubmissionCenters[linkedIndex]
