@@ -485,12 +485,24 @@ export const buildMedialLateralTemplateSlices = (template, realSlices = []) => {
     return templateSlices.concat(extraSlices, unmatchableSlices);
 };
 
+// Builds a strip template from a plain type/widthCm pattern, numbering each
+// type's own `seq` in the order it appears (1, 2, 3, ... independently for
+// pink and yellow) -- shared by every single-row (no split/layering) fixed
+// layout below.
+function buildStripTemplate(widthPattern) {
+    let pinkSeq = 1;
+    let yellowSeq = 1;
+    return widthPattern.map(({ type, widthCm }) => {
+        return { type, seq: type === 'pink' ? pinkSeq++ : yellowSeq++, widthCm };
+    });
+}
+
 // Fig. 2a's strip layout for Muscle/Skin/Colon/Aorta/Esophagus -- a single
 // continuous 9-slice block (Fixed-Frozen-Frozen-Frozen-Fixed-Frozen-Frozen-
 // Frozen-Fixed, 3 Fixed + 6 Frozen total), no split/layering unlike Lung/
 // Liver or the bivalved organs. Fixed fact of the recovery protocol,
 // identical for every donor of these tissues.
-const STRIP_TEMPLATE_WIDTH_PATTERN = [
+const STRIP_TEMPLATE = buildStripTemplate([
     { type: 'pink', widthCm: 0.5 },
     { type: 'yellow', widthCm: 1 },
     { type: 'yellow', widthCm: 1 },
@@ -500,14 +512,30 @@ const STRIP_TEMPLATE_WIDTH_PATTERN = [
     { type: 'yellow', widthCm: 1 },
     { type: 'yellow', widthCm: 1 },
     { type: 'pink', widthCm: 0.5 },
-];
-const STRIP_TEMPLATE = (() => {
-    let pinkSeq = 1;
-    let yellowSeq = 1;
-    return STRIP_TEMPLATE_WIDTH_PATTERN.map(({ type, widthCm }) => {
-        return { type, seq: type === 'pink' ? pinkSeq++ : yellowSeq++, widthCm };
-    });
-})();
+]);
+
+// Fig. 2a's Brain layout -- also a single strip (no split/layering), but a
+// different fixed shape than the group above: one Fixed (0.5cm) followed by
+// several Frozen (1cm each), no Fixed slices interleaved partway through.
+// Frontal lobe/Temporal lobe/Cerebellum (only ever collected from the Left
+// hemisphere) get 6 Frozen; Hippocampus (collected from *each* hemisphere,
+// hence both BRHL and BRHR existing as separate tissue_types) gets 3.
+const BRAIN_LOBE_TEMPLATE = buildStripTemplate([
+    { type: 'pink', widthCm: 0.5 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+]);
+const BRAIN_HIPPOCAMPUS_TEMPLATE = buildStripTemplate([
+    { type: 'pink', widthCm: 0.5 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+]);
+
 const STRIP_TEMPLATE_BY_INTERNAL_CODE = {
     MUSC: STRIP_TEMPLATE,
     SKSE: STRIP_TEMPLATE,
@@ -516,13 +544,17 @@ const STRIP_TEMPLATE_BY_INTERNAL_CODE = {
     CODS: STRIP_TEMPLATE,
     AORT: STRIP_TEMPLATE,
     ESOP: STRIP_TEMPLATE,
+    BRFL: BRAIN_LOBE_TEMPLATE,
+    BRTL: BRAIN_LOBE_TEMPLATE,
+    BRCE: BRAIN_LOBE_TEMPLATE,
+    BRHL: BRAIN_HIPPOCAMPUS_TEMPLATE,
+    BRHR: BRAIN_HIPPOCAMPUS_TEMPLATE,
 };
 
 // tissue_type is a "<TPC code> - <name>" string; resolves to this tissue's
-// fixed strip template (see above), or null for tissues that don't use it
-// (including Brain regions, which also default to this same 1.5cm depth
-// but aren't part of Fig. 2a's named strip group and so have no confirmed
-// fixed slice count of their own).
+// fixed strip template (see above), or null for tissues that don't use one
+// of these fixed single-row layouts (e.g. Lung/Liver, the bivalved organs,
+// or any tissue_type Fig. 2a doesn't cover at all).
 export const getStripTemplate = (tissueTypeValue) => {
     const raw = String(tissueTypeValue || '').trim();
     if (!raw) return null;
