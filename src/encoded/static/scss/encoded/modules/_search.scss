@@ -2256,20 +2256,31 @@ div.browse-link-icon {
 				border-right: none;
 			}
 
+			// Neutral sequential scale (ColorBrewer "Greys", single-hue,
+			// light -> dark) instead of the earlier green->yellow->orange->red
+			// ramp -- that one read as a status/alarm signal (red = "bad")
+			// regardless of what the metric actually was. A multi-hue
+			// neutral scale (lavender -> blue -> teal) was tried next (hue
+			// *shift* read as unrelated categories against this table's
+			// sparse real data), then single-hue blue -- but this page's own
+			// links/active-tab/toggle accents are already blue, so a blue
+			// heatmap on top blurred into them instead of standing apart.
+			// Achromatic grey reads as pure intensity with nothing to
+			// compete against.
 			&.score-0 {
-				background-color: #4CAF6D;
-				color: #FFFFFF;
+				background-color: #F2F2F2;
+				color: #33414F;
 			}
 			&.score-1 {
-				background-color: #F2D94E;
-				color: #4E4419;
+				background-color: #CCCCCC;
+				color: #33414F;
 			}
 			&.score-2 {
-				background-color: #F0923B;
+				background-color: #969696;
 				color: #FFFFFF;
 			}
 			&.score-3 {
-				background-color: #E0503C;
+				background-color: #525252;
 				color: #FFFFFF;
 			}
 			&.na,

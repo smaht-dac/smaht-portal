@@ -97,8 +97,10 @@ export default function TissueTypeView({
     href,
     session,
     // Gates the Donor Details table's Autolysis Score cell coloring below --
-    // off by default per request.
-    enableConditionalColor = false,
+    // on by default using a neutral light->dark scale (_item-pages.scss),
+    // not the earlier green->yellow->orange->red ramp that read as a status/
+    // alarm signal regardless of what the metric actually was.
+    enableConditionalColor = true,
 }) {
     const tissueType = useMemo(
         () => (typeof href === 'string' ? memoizedUrlParse(href).query?.tissue_type : null) || null,

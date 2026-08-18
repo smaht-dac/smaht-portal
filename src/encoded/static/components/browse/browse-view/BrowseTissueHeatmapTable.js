@@ -326,9 +326,10 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     formatValue,
     getScoreClass,
     // Gates the score-band background coloring (score-0..score-3, applied
-    // below) on each cell -- off by default per request, flip back on to
-    // restore the previous always-on heatmap coloring.
-    enableConditionalColor = false,
+    // below) on each cell -- on by default using a neutral light->dark scale
+    // (_search.scss), not the earlier green->yellow->orange->red ramp that
+    // read as a status/alarm signal regardless of what the metric actually was.
+    enableConditionalColor = true,
     // See renderRowCells -- which columns are eligible to have consecutive
     // equal-valued cells in the same row merged into one spanning cell.
     mergeableTissueTypes = EMPTY_MERGEABLE_TISSUE_TYPES,
@@ -399,8 +400,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
 
 export const BrowseTissueHeatmapTable = (props) => {
     // Gates the score-band cell coloring in all three tabs' tables -- see
-    // MetricHeatmapTable's identical prop. Off by default per request.
-    const { href, session, enableConditionalColor = false } = props;
+    // MetricHeatmapTable's identical prop. On by default.
+    const { href, session, enableConditionalColor = true } = props;
     const [loading, setLoading] = useState(true);
     const [tissueResults, setTissueResults] = useState([]);
 

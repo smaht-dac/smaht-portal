@@ -3517,30 +3517,35 @@ File, Donor, and Publication Overview Styles
                     background-color: #f6faf7;
                 }
 
-                // Soft severity-tinted fill for the whole Autolysis Score
-                // cell (0=None through 3=severe) -- same direction as the
-                // Browse-by-Tissue heatmap's solid-filled score cells, but a
-                // pastel tint instead, matching this table's plainer style.
-                // `td.score-N` beats the zebra-row rule above since it's
-                // more specific (a class selector vs. `:nth-child`).
+                // Soft, pastel version of the same neutral single-hue
+                // grey light->dark scale as the Browse-by-Tissue heatmap's
+                // solid-filled score cells (_search.scss's
+                // .tissue-heatmap-cell) -- previously a green->yellow->
+                // orange->red ramp (status/alarm signal), then lavender->
+                // blue->teal (hue-shift read as unrelated categories), then
+                // single-hue blue (blurred into this page's own blue links/
+                // toggle accents). Achromatic grey doesn't compete with
+                // anything else on the page. `td.score-N` beats the
+                // zebra-row rule above since it's more specific (a class
+                // selector vs. `:nth-child`).
                 td.autolysis-score-cell {
                     font-weight: 600;
 
                     &.score-0 {
-                        background-color: #e6f6ea;
-                        color: #1f9f55;
+                        background-color: #F2F2F2;
+                        color: #4A5460;
                     }
                     &.score-1 {
-                        background-color: #fdf3d8;
-                        color: #8a6d1d;
+                        background-color: #DCDCDC;
+                        color: #3A4550;
                     }
                     &.score-2 {
-                        background-color: #fce8d7;
-                        color: #b15c00;
+                        background-color: #BFBFBF;
+                        color: #2E3742;
                     }
                     &.score-3 {
-                        background-color: #fbe4e1;
-                        color: #c0392b;
+                        background-color: #A0A0A0;
+                        color: #1E252E;
                     }
                 }
             }
