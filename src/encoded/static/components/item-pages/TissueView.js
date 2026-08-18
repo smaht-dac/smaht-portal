@@ -33,6 +33,8 @@ import {
     buildBivalvedTemplateSlices,
     getMedialLateralTemplate,
     buildMedialLateralTemplateSlices,
+    getStripTemplate,
+    buildStripTemplateSlices,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
     getTissueColorHex,
@@ -463,12 +465,23 @@ const TissueView = React.memo(function TissueView({
     const medialLateralTemplate = enableMedialLateralLayers
         ? getMedialLateralTemplate(tissueMatrixFilterValue)
         : null;
+    // Muscle/Skin/Colon/Aorta/Esophagus's fixed 9-slice strip (see
+    // getStripTemplate) -- no split/layering prop needed for this one,
+    // since it renders through the same plain single-row path as any other
+    // (non-bivalved, non-medial/lateral) tissue already does; only ever
+    // resolves for the tissues explicitly in that group, so it can't
+    // conflict with the other two templates above.
+    const stripTemplate = !bivalvedTemplate && !medialLateralTemplate
+        ? getStripTemplate(tissueMatrixFilterValue)
+        : null;
     const displaySlices =
         bivalvedTemplate && solidAliquotSlices !== sampleAliquotSlicesFallback
             ? buildBivalvedTemplateSlices(bivalvedTemplate, solidAliquotSlices)
             : medialLateralTemplate && solidAliquotSlices !== sampleAliquotSlicesFallback
                 ? buildMedialLateralTemplateSlices(medialLateralTemplate, solidAliquotSlices)
-                : solidAliquotSlices;
+                : stripTemplate && solidAliquotSlices !== sampleAliquotSlicesFallback
+                    ? buildStripTemplateSlices(stripTemplate, solidAliquotSlices)
+                    : solidAliquotSlices;
 
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {

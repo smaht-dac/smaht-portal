@@ -485,6 +485,93 @@ export const buildMedialLateralTemplateSlices = (template, realSlices = []) => {
     return templateSlices.concat(extraSlices, unmatchableSlices);
 };
 
+// Fig. 2a's strip layout for Muscle/Skin/Colon/Aorta/Esophagus -- a single
+// continuous 9-slice block (Fixed-Frozen-Frozen-Frozen-Fixed-Frozen-Frozen-
+// Frozen-Fixed, 3 Fixed + 6 Frozen total), no split/layering unlike Lung/
+// Liver or the bivalved organs. Fixed fact of the recovery protocol,
+// identical for every donor of these tissues.
+const STRIP_TEMPLATE_WIDTH_PATTERN = [
+    { type: 'pink', widthCm: 0.5 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'pink', widthCm: 0.5 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'yellow', widthCm: 1 },
+    { type: 'pink', widthCm: 0.5 },
+];
+const STRIP_TEMPLATE = (() => {
+    let pinkSeq = 1;
+    let yellowSeq = 1;
+    return STRIP_TEMPLATE_WIDTH_PATTERN.map(({ type, widthCm }) => {
+        return { type, seq: type === 'pink' ? pinkSeq++ : yellowSeq++, widthCm };
+    });
+})();
+const STRIP_TEMPLATE_BY_INTERNAL_CODE = {
+    MUSC: STRIP_TEMPLATE,
+    SKSE: STRIP_TEMPLATE,
+    SKNE: STRIP_TEMPLATE,
+    COAS: STRIP_TEMPLATE,
+    CODS: STRIP_TEMPLATE,
+    AORT: STRIP_TEMPLATE,
+    ESOP: STRIP_TEMPLATE,
+};
+
+// tissue_type is a "<TPC code> - <name>" string; resolves to this tissue's
+// fixed strip template (see above), or null for tissues that don't use it
+// (including Brain regions, which also default to this same 1.5cm depth
+// but aren't part of Fig. 2a's named strip group and so have no confirmed
+// fixed slice count of their own).
+export const getStripTemplate = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return null;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    return (internalCode && STRIP_TEMPLATE_BY_INTERNAL_CODE[internalCode]) || null;
+};
+
+// Strip-tissue counterpart to buildBivalvedTemplateSlices/
+// buildMedialLateralTemplateSlices above -- same matching-by-type-and-number
+// logic (see buildBivalvedTemplateSlices' comment), just with no group field
+// to tag (a strip is one continuous row, not split into halves/layers).
+export const buildStripTemplateSlices = (template, realSlices = []) => {
+    const realByTypeAndNumber = new Map();
+    const unmatchableSlices = [];
+    realSlices.forEach((slice) => {
+        const number = parseInt(slice.aliquotNumber, 10);
+        if (!Number.isFinite(number)) {
+            unmatchableSlices.push(slice);
+            return;
+        }
+        realByTypeAndNumber.set(`${slice.type}-${number}`, slice);
+    });
+    const consumedKeys = new Set();
+    const templateSlices = template.map((templateSlice, index) => {
+        const key = `${templateSlice.type}-${templateSlice.seq}`;
+        const real = realByTypeAndNumber.get(key);
+        if (real) {
+            consumedKeys.add(key);
+            return {
+                ...real,
+                type: templateSlice.type,
+                widthCm: templateSlice.widthCm,
+                isPlaceholder: false,
+            };
+        }
+        return {
+            id: `strip-placeholder-${index}`,
+            type: templateSlice.type,
+            widthCm: templateSlice.widthCm,
+            isPlaceholder: true,
+        };
+    });
+    const extraSlices = [];
+    realByTypeAndNumber.forEach((slice, key) => {
+        if (!consumedKeys.has(key)) extraSlices.push(slice);
+    });
+    return templateSlices.concat(extraSlices, unmatchableSlices);
+};
+
 export const formatYesNo = (value) => {
     if (value === null || typeof value === 'undefined') return '-';
     return value ? 'Yes' : 'No';
