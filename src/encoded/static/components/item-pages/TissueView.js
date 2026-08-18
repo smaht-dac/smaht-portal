@@ -346,6 +346,16 @@ const TissueView = React.memo(function TissueView({
                         if (!existingCenters.includes(center)) {
                             existing.frozenCorePositionSubmissionCenters[corePosition] =
                                 existingCenters.concat([center]);
+                            // Parallel to the centers array above (same
+                            // index per (position, center) pair) -- this
+                            // record's own external_id, so the position's
+                            // files link (below) can narrow down to just
+                            // this specific TissueSample's files instead of
+                            // every file the GCC produced for the whole
+                            // donor+tissue.
+                            existing.frozenCorePositionExternalIds[corePosition] = (
+                                existing.frozenCorePositionExternalIds[corePosition] || []
+                            ).concat([sample.external_id || null]);
                         }
                     }
                     return;
@@ -397,26 +407,35 @@ const TissueView = React.memo(function TissueView({
                     frozenCorePositionSubmissionCenters: corePosition
                         ? { [corePosition]: [sample.submission_centers?.[0]?.display_title || null] }
                         : {},
+                    // This record's own external_id per position -- parallel
+                    // array to frozenCorePositionSubmissionCenters above (see
+                    // that field's comment).
+                    frozenCorePositionExternalIds: corePosition
+                        ? { [corePosition]: [sample.external_id || null] }
+                        : {},
                 };
                 realSlices.push(slice);
                 if (groupKey) slicesByGroupKey.set(groupKey, slice);
             });
         if (realSlices.length === 0) return sampleAliquotSlicesFallback;
-        // Links each row's own GCC to that center's files for this
-        // donor+tissue (verified facets -- see getGccFilesBrowseHref) -- not
-        // to this specific core position, since File's own sample-level
-        // field isn't faceted. Computed per (position, center) pair, since a
-        // position can have more than one real submitting center.
+        // Links each row's own GCC to *that specific core position's own*
+        // files for this donor+tissue (via sample_summary.sample_names --
+        // see getGccFilesBrowseHref's coreExternalId param), not every file
+        // the GCC produced for the whole donor+tissue. Computed per
+        // (position, center) pair, since a position can have more than one
+        // real submitting center.
         realSlices.forEach((slice) => {
             slice.frozenCorePositionFilesHrefs = {};
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
                 ([corePosition, submissionCenters]) => {
+                    const externalIds = slice.frozenCorePositionExternalIds[corePosition] || [];
                     slice.frozenCorePositionFilesHrefs[corePosition] = submissionCenters.map(
-                        (submissionCenter) =>
+                        (submissionCenter, i) =>
                             getGccFilesBrowseHref({
                                 donorDisplayTitle: selectedDonorDisplayTitle,
                                 tissueTypeValue: tissueMatrixFilterValue,
                                 submissionCenter,
+                                coreExternalId: externalIds[i] || null,
                             })
                     );
                 }

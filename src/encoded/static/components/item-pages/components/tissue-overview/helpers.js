@@ -718,10 +718,16 @@ export function getAliquotNumberFromExternalId(externalId) {
     return match ? match[1] : null;
 }
 
-// Scopes to donor + tissue_type + the GCC that sequenced the files -- NOT
-// to one specific core position's TissueSample, since File's own
-// sample_summary.sample_names isn't embedded/faceted for Browse (only
-// sample_summary.tissues is, per file.json's facets). Mirrors the verified
+// Scopes to donor + tissue_type + the GCC that sequenced the files, and
+// (when `coreExternalId` is given) further down to one specific core
+// position's own TissueSample. File.sample_summary.sample_names holds that
+// TissueSample's real external_id verbatim (confirmed in
+// item_utils/sample.py's get_sample_names -> item.get_external_id) -- it
+// isn't declared in file.json's `facets` (so it won't show up as a facet
+// widget in the Browse UI), but Snovault turns *any* query param into an
+// `embedded.<field>` term filter regardless of whether it's a declared facet
+// (see snovault's search.py:prepare_search_term), so filtering by it here
+// still works correctly even though it's not a facet. Mirrors the verified
 // donor+tissue link BrowseDonorBase.js already builds for the Files stat.
 //
 // Filters by File.sequencing_center (which GCC's lab/instrument actually
@@ -748,7 +754,16 @@ export function getAliquotNumberFromExternalId(externalId) {
 // centers ever run sequencing. Filtering by a non-GCC center would
 // structurally always return zero results, so only build the link when the
 // aliquot's submitting center is itself a GCC.
-export const getGccFilesBrowseHref = ({ donorDisplayTitle, tissueTypeValue, submissionCenter }) => {
+export const getGccFilesBrowseHref = ({
+    donorDisplayTitle,
+    tissueTypeValue,
+    submissionCenter,
+    // Optional -- a specific core position's own TissueSample.external_id
+    // (e.g. "SMHT004-3AF-001B5"). When given, narrows the link down to just
+    // that core's own files instead of every file this GCC produced for the
+    // whole donor+tissue.
+    coreExternalId,
+}) => {
     if (!donorDisplayTitle || !tissueTypeValue || !submissionCenter) return null;
     if (!submissionCenter.trim().endsWith('GCC')) return null;
     const queryParts = [
@@ -758,7 +773,10 @@ export const getGccFilesBrowseHref = ({ donorDisplayTitle, tissueTypeValue, subm
         `donors.display_title=${encodeURIComponent(donorDisplayTitle)}`,
         `sample_summary.tissues=${encodeURIComponent(tissueTypeValue)}`,
         `sequencing_center.display_title=${encodeURIComponent(submissionCenter)}`,
-    ];
+        coreExternalId
+            ? `sample_summary.sample_names=${encodeURIComponent(coreExternalId)}`
+            : null,
+    ].filter(Boolean);
     return `/browse/?${queryParts.join('&')}`;
 };
 
