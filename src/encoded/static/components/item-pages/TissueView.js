@@ -29,6 +29,8 @@ import {
     getAliquotLayoutNote,
     isMedialLateralAliquotLayout,
     isBivalvedAliquotLayout,
+    getBivalvedTemplate,
+    buildBivalvedTemplateSlices,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
     getTissueColorHex,
@@ -443,6 +445,21 @@ const TissueView = React.memo(function TissueView({
         return realSlices;
     }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
 
+    // Bivalved tissues (Adrenal/Heart/Gonads) always render their full
+    // fixed Anterior/Posterior template (see getBivalvedTemplate) once
+    // there's real data at all -- not just solidAliquotSlices' own
+    // variable-length real slice list. Left alone while solidAliquotSlices
+    // is still the illustrative demo set (no donor picked yet): expanding a
+    // fabricated demo slice list out to fill a real fixed template would
+    // only compound how much of the panel is made up.
+    const bivalvedTemplate = enableBivalvedSplit
+        ? getBivalvedTemplate(tissueMatrixFilterValue)
+        : null;
+    const displaySlices =
+        bivalvedTemplate && solidAliquotSlices !== sampleAliquotSlicesFallback
+            ? buildBivalvedTemplateSlices(bivalvedTemplate, solidAliquotSlices)
+            : solidAliquotSlices;
+
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
             return {
@@ -746,7 +763,7 @@ const TissueView = React.memo(function TissueView({
                                 />
                             ) : (
                                 <AliquotVisualization
-                                    slices={solidAliquotSlices}
+                                    slices={displaySlices}
                                     dimensions={{
                                         heightCm: 1,
                                         depthCm: aliquotDepthCm,

@@ -26,6 +26,18 @@ const SLICE_TYPE_STYLES = {
     },
 };
 
+// A bivalved tissue's fixed template (see helpers.js's getBivalvedTemplate)
+// always includes every position, whether or not this donor has a real
+// aliquot there yet (buildBivalvedTemplateSlices' isPlaceholder) -- these
+// render as plain inert grey boxes, visually distinct from the real Fixed/
+// Frozen colors and not clickable (no popover data to show).
+const PLACEHOLDER_SLICE_STYLE = {
+    front: '#E4E7EB',
+    top: '#EDEFF2',
+    side: '#D3D7DC',
+    border: '#B7BEC7',
+};
+
 const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const FROZEN_GRID_COLS = [1, 2, 3, 4, 5, 6];
 const DEFAULT_FROZEN_CORE_POSITIONS = ['A1', 'C2'];
@@ -241,14 +253,14 @@ export default function AliquotVisualization({
     showMedialLateralHint = false,
     // For bivalved tissues (Adrenal/Heart/Gonads -- see
     // isBivalvedAliquotLayout in helpers.js). Unlike showMedialLateralHint
-    // this doesn't just annotate the single box with a line -- when this
-    // donor's own slice widths happen to add up to an even split at a
-    // boundary between two slices (never through the middle of one, so no
-    // slice's own box gets torn in half), the two halves are drawn as
-    // physically separate boxes with a real gap between them. If no such
-    // boundary exists, nothing changes: still one continuous box, same as
-    // any other tissue. Still doesn't claim which real aliquot belongs to
-    // which half -- see the in-canvas caption below.
+    // this doesn't just annotate a single box with a line -- `slices` is
+    // expected to already be the tissue's full fixed Anterior/Posterior
+    // template (helpers.js's buildBivalvedTemplateSlices), with each slice
+    // carrying its own `bivalvedHalf` (0 or 1) and `isPlaceholder` (true
+    // for template positions with no real aliquot yet). When true, this
+    // draws the two halves as physically separate boxes with a real gap
+    // between them (per Fig. 2a's "Anterior half"/"Posterior half"), and
+    // renders placeholder slices as inert grey boxes.
     enableBivalvedSplit = false,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
@@ -329,41 +341,35 @@ export default function AliquotVisualization({
         (sum, slice) => sum + slice.widthCm,
         0
     );
-    // Only look for a split boundary when the caller says this tissue is
-    // bivalved AND there's more than one slice to split -- and only accept
-    // a boundary that falls between two slices (cumulative width from the
-    // left exactly half the total, within floating-point tolerance), never
-    // a point that would fall inside a single slice's own box. No such
-    // boundary existing (e.g. an odd slice whose own width straddles the
-    // midpoint) is a normal, expected outcome, not an error -- it just means
-    // this donor's real aliquot count doesn't happen to support a clean
-    // hypothetical split, so the tissue renders as one continuous box like
-    // any other.
-    const BIVALVED_SPLIT_TOLERANCE_CM = 0.01;
-    let bivalvedSplitIndex = null;
-    if (enableBivalvedSplit && normalizedSlices.length > 1) {
-        const halfCm = totalWidthCm / 2;
-        let cumulativeCm = 0;
-        for (let i = 0; i < normalizedSlices.length - 1; i++) {
-            cumulativeCm += normalizedSlices[i].widthCm;
-            if (Math.abs(cumulativeCm - halfCm) < BIVALVED_SPLIT_TOLERANCE_CM) {
-                bivalvedSplitIndex = i + 1;
-                break;
-            }
-        }
-    }
-    const hasBivalvedSplit = bivalvedSplitIndex !== null;
+    // Each slice of a bivalved tissue's `slices` already carries its own
+    // `bivalvedHalf` (0 = Anterior, 1 = Posterior -- a fixed protocol fact,
+    // see helpers.js's getBivalvedTemplate/buildBivalvedTemplateSlices, not
+    // derived from this donor's data), and always arrives in template order
+    // (every Anterior position, then every Posterior one) -- so grouping is
+    // just finding where that field changes, same approach as
+    // BrowseTissueHeatmapTable.js's buildColumnGroups.
+    const hasBivalvedSplit =
+        enableBivalvedSplit &&
+        normalizedSlices.some((slice) => typeof slice.bivalvedHalf === 'number');
     // A visible gap in pixel space only, not a real measured distance --
     // drawn so the two halves read as physically separate pieces (per Fig.
     // 2a's "Anterior half" / "Posterior half" boxes), not as one block with
     // a line through it.
     const BIVALVED_SPLIT_GAP_PX = 56;
-    const sliceGroupBounds = hasBivalvedSplit
-        ? [
-            { start: 0, end: bivalvedSplitIndex },
-            { start: bivalvedSplitIndex, end: normalizedSlices.length },
-        ]
-        : [{ start: 0, end: normalizedSlices.length }];
+    const sliceGroupBounds = [];
+    if (hasBivalvedSplit) {
+        normalizedSlices.forEach((slice, i) => {
+            const lastGroup = sliceGroupBounds[sliceGroupBounds.length - 1];
+            if (lastGroup && lastGroup.half === slice.bivalvedHalf) {
+                lastGroup.end = i + 1;
+            } else {
+                sliceGroupBounds.push({ start: i, end: i + 1, half: slice.bivalvedHalf });
+            }
+        });
+    } else {
+        sliceGroupBounds.push({ start: 0, end: normalizedSlices.length });
+    }
+    const BIVALVED_HALF_LABELS = ['Anterior half', 'Posterior half'];
     let cursorX = 0;
     const sliceGroups = sliceGroupBounds.map((bounds, groupIndex) => {
         if (groupIndex > 0) cursorX += BIVALVED_SPLIT_GAP_PX;
@@ -380,7 +386,13 @@ export default function AliquotVisualization({
             startIndex: bounds.start,
         });
         cursorX += groupWidthPx;
-        return { startX, widthPx: groupWidthPx, widthCm: groupWidthCm, geometry: groupGeometry };
+        return {
+            startX,
+            widthPx: groupWidthPx,
+            widthCm: groupWidthCm,
+            geometry: groupGeometry,
+            halfLabel: BIVALVED_HALF_LABELS[bounds.half] || null,
+        };
     });
     const geometry = sliceGroups.flatMap((group) => group.geometry);
     // The full drawn extent along the width axis, including any bivalved
@@ -600,23 +612,31 @@ export default function AliquotVisualization({
                             </g>
                         );
                     })}
-                    {hasBivalvedSplit ? (
-                        <text
-                            className="aliquot-bivalved-split-caption"
-                            x={sliceGroups[0].startX + sliceGroups[0].widthPx + BIVALVED_SPLIT_GAP_PX / 2 + depthX / 2}
-                            y={depthY + heightPx + 24}
-                            textAnchor="middle">
-                            Example split (illustrative)
-                        </text>
-                    ) : null}
+                    {hasBivalvedSplit
+                        ? sliceGroups.map((group, groupIndex) =>
+                            group.halfLabel ? (
+                                <text
+                                    key={`half-label-${groupIndex}`}
+                                    className="aliquot-bivalved-split-caption"
+                                    x={group.startX + group.widthPx / 2 + depthX / 2}
+                                    y={depthY + heightPx + 24}
+                                    textAnchor="middle">
+                                    {group.halfLabel}
+                                </text>
+                            ) : null
+                        )
+                        : null}
 
                     {geometry.map((slice) => {
-                        const styles = SLICE_TYPE_STYLES[slice.type];
+                        const styles = slice.isPlaceholder
+                            ? PLACEHOLDER_SLICE_STYLE
+                            : SLICE_TYPE_STYLES[slice.type];
                         return (
                             <g
                                 key={slice.id || slice.index}
                                 className={
                                     'aliquot-slice' +
+                                    (slice.isPlaceholder ? ' is-placeholder' : '') +
                                     (selectedSliceIndex === slice.index
                                         ? ' is-selected'
                                         : '')
@@ -639,24 +659,26 @@ export default function AliquotVisualization({
                                     fill={styles.front}
                                     stroke={styles.border}
                                 />
-                                <foreignObject
-                                    x={slice.x0}
-                                    y={depthY}
-                                    width={slice.widthPx}
-                                    height={heightPx}>
-                                    <button
-                                        type="button"
-                                        className="aliquot-slice-hitarea"
-                                        onClick={(event) => {
-                                            setSelectedSliceIndex(slice.index);
-                                            setSelectedTarget(event.currentTarget);
-                                        }}
-                                        aria-label={`View details for ${slice.label || styles.label} slice ${slice.index + 1}`}>
-                                        <span className="visually-hidden">
-                                            {slice.label || styles.label}
-                                        </span>
-                                    </button>
-                                </foreignObject>
+                                {slice.isPlaceholder ? null : (
+                                    <foreignObject
+                                        x={slice.x0}
+                                        y={depthY}
+                                        width={slice.widthPx}
+                                        height={heightPx}>
+                                        <button
+                                            type="button"
+                                            className="aliquot-slice-hitarea"
+                                            onClick={(event) => {
+                                                setSelectedSliceIndex(slice.index);
+                                                setSelectedTarget(event.currentTarget);
+                                            }}
+                                            aria-label={`View details for ${slice.label || styles.label} slice ${slice.index + 1}`}>
+                                            <span className="visually-hidden">
+                                                {slice.label || styles.label}
+                                            </span>
+                                        </button>
+                                    </foreignObject>
+                                )}
                                 <text
                                     className="slice-inline-label slice-sequence-label"
                                     x={slice.frontLabelX}
@@ -1171,6 +1193,10 @@ AliquotVisualization.propTypes = {
             frozenCorePositionFilesHrefs: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
             idPrefix: PropTypes.string,
             aliquotNumber: PropTypes.string,
+            // Bivalved tissues only (enableBivalvedSplit) -- see
+            // helpers.js's buildBivalvedTemplateSlices.
+            bivalvedHalf: PropTypes.number,
+            isPlaceholder: PropTypes.bool,
         })
     ).isRequired,
 };

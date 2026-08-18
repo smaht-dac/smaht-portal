@@ -226,15 +226,19 @@ export const getTissueAliquotDepthCm = (tissueTypeValue) => {
 // Per Fig. 2a, Adrenal/Heart/Gonads are physically bivalved into Anterior
 // and Posterior halves *before* aliquotting -- i.e. the real block is two
 // separate small pieces, not one continuous strip. Lung/Liver blocks are
-// instead cut into medial and lateral portions. Neither half is captured
-// anywhere in the data model today (no field on TissueSample/Tissue, and no
-// reliable naming convention in external_id/description/submitted_id --
-// confirmed by inspecting real Adrenal/Heart/Testis fixture records, whose
-// only laterality-like text is organ-side Left/Right, a different concept).
-// So real TissueSamples can't be split into their actual half -- this note
-// says so explicitly instead of drawing a fabricated split.
+// instead cut into medial and lateral portions. Which specific donor
+// TissueSample is which half isn't itself a stored field (no field on
+// TissueSample/Tissue, and no reliable naming convention in external_id/
+// description/submitted_id -- confirmed by inspecting real Adrenal/Heart/
+// Testis fixture records, whose only laterality-like text is organ-side
+// Left/Right, a different concept) -- but which half a given *aliquot
+// number* belongs to is a fixed fact of the recovery protocol itself (Fig.
+// 2a's own layout, identical for every donor), not something inferred from
+// this donor's data. See BIVALVED_TEMPLATE_BY_INTERNAL_CODE/
+// buildBivalvedTemplateSlices below for how that's used to place each real
+// aliquot at its correct position.
 const BIVALVED_NOTE =
-    'This organ is recovered as two separate pieces (Anterior and Posterior halves) before aliquotting. Individual aliquots below aren’t linked to a specific half in the current data.';
+    'This organ is recovered as two separate pieces (Anterior and Posterior halves) before aliquotting, shown below in that fixed layout. Grey slices are positions with no aliquot submitted yet for this donor.';
 const MEDIAL_LATERAL_NOTE =
     'This tissue block is recovered with medial and lateral portions. Individual aliquots below aren’t linked to a specific portion in the current data.';
 const ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE = {
@@ -275,16 +279,122 @@ export const isMedialLateralAliquotLayout = (tissueTypeValue) => {
 
 // True only for the bivalved tissues above (Adrenal/Heart/Gonads), not the
 // medial/lateral ones -- used to gate AliquotVisualization's
-// enableBivalvedSplit, which (unlike the medial/lateral hint line) only ever
-// activates when this donor's own slice widths happen to divide evenly at a
-// slice boundary (see that prop's comment) -- still never asserts which
-// specific real aliquot lands in which half, since nothing in the data model
-// says so (see BIVALVED_NOTE above).
+// enableBivalvedSplit (draws the fixed Anterior/Posterior layout -- see
+// BIVALVED_TEMPLATE_BY_INTERNAL_CODE below).
 export const isBivalvedAliquotLayout = (tissueTypeValue) => {
     const raw = String(tissueTypeValue || '').trim();
     if (!raw) return false;
     const internalCode = getTissueInternalCodeFromFacetTerm(raw);
     return ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE[internalCode] === BIVALVED_NOTE;
+};
+
+// The fixed Anterior/Posterior slice layout Fig. 2a shows for Adrenal/Heart
+// -- 3 Frozen (1cm) + 2 Fixed (0.5cm) per half, alternating
+// Frozen-Fixed-Frozen-Fixed-Frozen, with the Frozen and Fixed aliquot
+// numbers each counting up continuously across both halves (Frozen 1-3 in
+// Anterior, 4-6 in Posterior; Fixed 1-2 in Anterior, 3-4 in Posterior) --
+// this is a fixed fact of the recovery protocol, identical for every donor
+// of these tissues, not derived from any one donor's data.
+const ADRENAL_HEART_BIVALVED_TEMPLATE = [
+    { half: 0, type: 'yellow', seq: 1, widthCm: 1 },
+    { half: 0, type: 'pink', seq: 1, widthCm: 0.5 },
+    { half: 0, type: 'yellow', seq: 2, widthCm: 1 },
+    { half: 0, type: 'pink', seq: 2, widthCm: 0.5 },
+    { half: 0, type: 'yellow', seq: 3, widthCm: 1 },
+    { half: 1, type: 'yellow', seq: 4, widthCm: 1 },
+    { half: 1, type: 'pink', seq: 3, widthCm: 0.5 },
+    { half: 1, type: 'yellow', seq: 5, widthCm: 1 },
+    { half: 1, type: 'pink', seq: 4, widthCm: 0.5 },
+    { half: 1, type: 'yellow', seq: 6, widthCm: 1 },
+];
+
+// Fig. 2a's Gonads layout -- 4 Frozen (1cm) + 1 Fixed (0.5cm) per half,
+// Frozen-Frozen-Fixed-Frozen-Frozen, same continuing-numbering rule as
+// above (Frozen 1-4 Anterior/5-8 Posterior, Fixed 1 Anterior/2 Posterior).
+const GONADS_BIVALVED_TEMPLATE = [
+    { half: 0, type: 'yellow', seq: 1, widthCm: 1 },
+    { half: 0, type: 'yellow', seq: 2, widthCm: 1 },
+    { half: 0, type: 'pink', seq: 1, widthCm: 0.5 },
+    { half: 0, type: 'yellow', seq: 3, widthCm: 1 },
+    { half: 0, type: 'yellow', seq: 4, widthCm: 1 },
+    { half: 1, type: 'yellow', seq: 5, widthCm: 1 },
+    { half: 1, type: 'yellow', seq: 6, widthCm: 1 },
+    { half: 1, type: 'pink', seq: 2, widthCm: 0.5 },
+    { half: 1, type: 'yellow', seq: 7, widthCm: 1 },
+    { half: 1, type: 'yellow', seq: 8, widthCm: 1 },
+];
+
+const BIVALVED_TEMPLATE_BY_INTERNAL_CODE = {
+    ADGL: ADRENAL_HEART_BIVALVED_TEMPLATE,
+    ADGR: ADRENAL_HEART_BIVALVED_TEMPLATE,
+    HART: ADRENAL_HEART_BIVALVED_TEMPLATE,
+    TESL: GONADS_BIVALVED_TEMPLATE,
+    TESR: GONADS_BIVALVED_TEMPLATE,
+    OVAL: GONADS_BIVALVED_TEMPLATE,
+    OVAR: GONADS_BIVALVED_TEMPLATE,
+};
+
+// tissue_type is a "<TPC code> - <name>" string; resolves to this tissue's
+// fixed bivalved template (see above), or null for non-bivalved tissues.
+export const getBivalvedTemplate = (tissueTypeValue) => {
+    const raw = String(tissueTypeValue || '').trim();
+    if (!raw) return null;
+    const internalCode = getTissueInternalCodeFromFacetTerm(raw);
+    return (internalCode && BIVALVED_TEMPLATE_BY_INTERNAL_CODE[internalCode]) || null;
+};
+
+// Expands a bivalved tissue's real (variable-length) slice list out to the
+// full, fixed-size template (see getBivalvedTemplate) -- every template
+// position is always present, in Anterior-then-Posterior order. A position
+// is filled with this donor's real slice (and all its real data -- core
+// positions, pathology links, etc.) when one exists whose own type + real
+// aliquot number matches that position; every other position becomes an
+// inert placeholder (isPlaceholder: true, no real data). This never guesses
+// which half a real aliquot belongs to -- the template's half assignment is
+// the fixed protocol fact described above, matched here purely by type +
+// number. A real aliquot that doesn't match any template position (a number
+// outside the range Fig. 2a documents, or with no parseable number at all)
+// is still appended after the template instead of silently dropped -- the
+// template describes the *expected* layout, not a hard cap on what a donor
+// can actually have submitted.
+export const buildBivalvedTemplateSlices = (template, realSlices = []) => {
+    const realByTypeAndNumber = new Map();
+    const unmatchableSlices = [];
+    realSlices.forEach((slice) => {
+        const number = parseInt(slice.aliquotNumber, 10);
+        if (!Number.isFinite(number)) {
+            unmatchableSlices.push(slice);
+            return;
+        }
+        realByTypeAndNumber.set(`${slice.type}-${number}`, slice);
+    });
+    const consumedKeys = new Set();
+    const templateSlices = template.map((templateSlice, index) => {
+        const key = `${templateSlice.type}-${templateSlice.seq}`;
+        const real = realByTypeAndNumber.get(key);
+        if (real) {
+            consumedKeys.add(key);
+            return {
+                ...real,
+                type: templateSlice.type,
+                widthCm: templateSlice.widthCm,
+                bivalvedHalf: templateSlice.half,
+                isPlaceholder: false,
+            };
+        }
+        return {
+            id: `bivalved-placeholder-${index}`,
+            type: templateSlice.type,
+            widthCm: templateSlice.widthCm,
+            bivalvedHalf: templateSlice.half,
+            isPlaceholder: true,
+        };
+    });
+    const extraSlices = [];
+    realByTypeAndNumber.forEach((slice, key) => {
+        if (!consumedKeys.has(key)) extraSlices.push(slice);
+    });
+    return templateSlices.concat(extraSlices, unmatchableSlices);
 };
 
 export const formatYesNo = (value) => {

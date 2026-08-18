@@ -3844,11 +3844,10 @@ File, Donor, and Publication Overview Styles
         }
     }
 
-    // Sits in the visual gap between a bivalved tissue's two split box
-    // groups (see enableBivalvedSplit) -- neutral gray, not the medial/
-    // lateral hint's red, since this one isn't warning about an unverified
-    // annotation drawn over real geometry, just captioning a real (if
-    // illustrative) gap that's already visually obvious as two boxes.
+    // "Anterior half"/"Posterior half" labels under a bivalved tissue's two
+    // split box groups (see enableBivalvedSplit) -- this is Fig. 2a's own
+    // fixed layout, not an unverified annotation, so it's captioned plainly
+    // (neutral gray, not the medial/lateral hint's warning red).
     .aliquot-bivalved-split-caption {
         fill: #3c4650;
         font-size: 13px;
@@ -3883,6 +3882,17 @@ File, Donor, and Publication Overview Styles
 
         .slice-side {
             opacity: 0.95;
+        }
+
+        // A bivalved template position with no real aliquot submitted yet
+        // (see PLACEHOLDER_SLICE_STYLE/isPlaceholder) -- inert grey box, no
+        // hover feedback (it's not clickable, unlike every other slice
+        // here) and a muted sequence number instead of the normal dark one.
+        &.is-placeholder {
+            .slice-inline-label {
+                fill: #9aa2ab;
+                font-weight: 500;
+            }
         }
     }
 
