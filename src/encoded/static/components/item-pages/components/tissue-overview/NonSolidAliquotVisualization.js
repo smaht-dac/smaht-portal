@@ -5,17 +5,40 @@ import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
 
+// liquidColor renders as an actual filled tube -- unlike the categorical
+// colors used for icons/bubbles elsewhere (chosen only to be mutually
+// distinguishable in a chart legend, per smaht_tissue_colors.json), this
+// one reads as "what's really in the tube", so it's picked to resemble the
+// real specimen's own appearance instead. Blood's official color (#FF382E)
+// happens to already look like blood, so it doubles as both; buccal swab's
+// official color (a dark maroon, #75001F) does not -- a buccal swab is a
+// cheek-cell/saliva suspension, pale and faintly cloudy, not blood-red, so
+// using the categorical color here would misleadingly read as a blood vial.
 const SPECIMEN_TYPE_STYLES = {
     blood: {
         label: 'Blood',
-        liquidColor: '#B7282E',
+        liquidColor: '#FF382E',
         idPrefix: '3A',
         caption: 'Core and DNA/RNA metadata from sequencing.',
     },
     buccal: {
         label: 'Buccal Swab',
-        liquidColor: '#DDB25E',
+        liquidColor: '#F0D9C4',
         idPrefix: '3B',
+        caption: 'Core and DNA/RNA metadata from sequencing.',
+    },
+    // Cultured cell suspension, not a sliced solid-tissue block -- treated
+    // as non-solid like blood/buccal swab even though item_utils/tissue.py's
+    // get_category() puts it under "Mesoderm" (a germ-layer grouping, not a
+    // specimen-form one) rather than "Clinically Accessible" (see
+    // TissueView.js/TissueTypeView.js's nonSolidSpecimenType). liquidColor
+    // is a rose-pink, resembling the phenol-red cell-culture medium
+    // fibroblasts are actually stored/shipped in, not the official
+    // categorical FBRO color (a pale yellow with no such association).
+    fibroblast: {
+        label: 'Fibroblast',
+        liquidColor: '#E8829A',
+        idPrefix: '3AC',
         caption: 'Core and DNA/RNA metadata from sequencing.',
     },
 };
@@ -359,7 +382,7 @@ export default function NonSolidAliquotVisualization({
 NonSolidAliquotVisualization.propTypes = {
     title: PropTypes.string,
     className: PropTypes.string,
-    specimenType: PropTypes.oneOf(['blood', 'buccal']),
+    specimenType: PropTypes.oneOf(['blood', 'buccal', 'fibroblast']),
     idPrefix: PropTypes.string,
     aliquots: PropTypes.arrayOf(
         PropTypes.shape({

@@ -154,13 +154,21 @@ export default function TissueTypeView({
     // `category` is a real backend-calculated field (item_utils/tissue.py) --
     // "Clinically Accessible" covers exactly blood and buccal swab tissues.
     // Which of the two it is isn't itself a stored field, so that part still
-    // falls back to matching the tissue_type label.
+    // falls back to matching the tissue_type label. Fibroblast is *also* a
+    // non-solid (cultured-cell-suspension) specimen like blood/buccal swab,
+    // but get_category() groups it under "Mesoderm" (its germ-layer
+    // category, for the Browse germ-layer panel) rather than "Clinically
+    // Accessible" -- so it can't be detected the same way. It's still
+    // reliably identifiable by protocol code though: get_tissue_type()
+    // special-cases fibroblast to always return "3AC - Fibroblast".
     const nonSolidSpecimenType =
         category === 'Clinically Accessible'
             ? tissue_type?.toLowerCase().includes('buccal')
                 ? 'buccal'
                 : 'blood'
-            : null;
+            : tissueProtocolCode === '3AC'
+                ? 'fibroblast'
+                : null;
     const tissueMatrixFilterValue = tissueType || tissue_type || null;
     // Mirrors the fileCount fetch below exactly (tissue_type only, every
     // donor sharing it -- no single donor here) so this always matches the
