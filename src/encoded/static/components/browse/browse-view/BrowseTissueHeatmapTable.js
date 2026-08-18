@@ -204,12 +204,44 @@ function formatIschemicTime(value) {
     return `${value}`;
 }
 
-function getIschemicTimeScoreClass(value) {
-    if (value === null || typeof value === 'undefined') return 'na';
-    if (value <= 6) return 'score-0';
-    if (value <= 12) return 'score-1';
-    if (value <= 18) return 'score-2';
-    return 'score-3';
+// Fixed clinical-sounding thresholds (0-6/6-12/12-18/18+) looked reasonable
+// in the abstract, but real Ischemic Time values cluster tightly in the
+// upper half of that range (confirmed against production data -- most
+// donors fall between 15-24h) -- so almost every cell landed in the same
+// one or two darkest bands, and the heatmap stopped showing any real
+// variation. Quartile-based banding instead splits whatever values are
+// actually in this table into 4 equal-sized groups, so the color spread
+// always reflects this dataset's own distribution rather than a threshold
+// picked without knowing it. Exported for unit testing.
+export function buildQuartileScoreClassifier(values) {
+    const sorted = values
+        .filter((value) => typeof value === 'number' && Number.isFinite(value))
+        .slice()
+        .sort((a, b) => a - b);
+    if (sorted.length === 0) {
+        return () => 'na';
+    }
+    // Linear-interpolated quantile (same convention as numpy's default) --
+    // exact index most of the time here since Ischemic Time datasets are
+    // small, but avoids picking an arbitrary neighbor on datasets where it
+    // doesn't land on a whole index.
+    const quantile = (p) => {
+        const index = (sorted.length - 1) * p;
+        const lower = Math.floor(index);
+        const upper = Math.ceil(index);
+        if (lower === upper) return sorted[lower];
+        return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
+    };
+    const q1 = quantile(0.25);
+    const q2 = quantile(0.5);
+    const q3 = quantile(0.75);
+    return (value) => {
+        if (value === null || typeof value === 'undefined') return 'na';
+        if (value <= q1) return 'score-0';
+        if (value <= q2) return 'score-1';
+        if (value <= q3) return 'score-2';
+        return 'score-3';
+    };
 }
 
 function formatAutolysisScore(value) {
@@ -444,6 +476,12 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => buildTissueMetricMatrix(tissueResults, getIschemicTimeValue, true),
         [tissueResults]
     );
+    // Built from this table's own real values -- see
+    // buildQuartileScoreClassifier for why fixed thresholds don't work here.
+    const ischemicTimeScoreClass = useMemo(
+        () => buildQuartileScoreClassifier(ischemicTime.matrix.flatMap((row) => row.cells)),
+        [ischemicTime]
+    );
     const autolysisScore = useMemo(
         () => buildTissueMetricMatrix(tissueResults, getAutolysisScoreValue),
         [tissueResults]
@@ -480,7 +518,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                         <MetricHeatmapTable
                             {...ischemicTime}
                             formatValue={formatIschemicTime}
-                            getScoreClass={getIschemicTimeScoreClass}
+                            getScoreClass={ischemicTimeScoreClass}
                             enableConditionalColor={enableConditionalColor}
                         />
                     )}
