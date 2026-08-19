@@ -27,6 +27,7 @@ import {
     getAliquotNumberFromExternalId,
     getTissueIconSrc,
     getGccFilesBrowseHref,
+    isTpcSubmissionCenter,
     getTissueFilesBrowseHref,
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
@@ -393,8 +394,13 @@ export default function TissueTypeView({
             // that group's own header link is meant to mean "this GCC's
             // files for this whole donor+tissue", not any one position's;
             // each position's own row links to its own core-specific href
-            // (frozenCorePositionFilesHrefs above) instead.
-            slice.submissionCenterFilesHrefs = {};
+            // (frozenCorePositionFilesHrefs above) instead. Named for the
+            // *filter* the resulting href actually applies
+            // (sequencing_center.display_title on File, per
+            // getGccFilesBrowseHref) rather than the submissionCenter input
+            // value -- see TissueView.js's identical field for the full
+            // rationale.
+            slice.gccFilesHrefs = {};
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
                 ([corePosition, submissionCenters]) => {
                     const externalIds = slice.frozenCorePositionExternalIds[corePosition] || [];
@@ -408,10 +414,10 @@ export default function TissueTypeView({
                             })
                     );
                     submissionCenters.forEach((submissionCenter) => {
-                        if (!submissionCenter || slice.submissionCenterFilesHrefs[submissionCenter]) {
+                        if (!submissionCenter || slice.gccFilesHrefs[submissionCenter]) {
                             return;
                         }
-                        slice.submissionCenterFilesHrefs[submissionCenter] = getGccFilesBrowseHref({
+                        slice.gccFilesHrefs[submissionCenter] = getGccFilesBrowseHref({
                             donorDisplayTitle: selectedDonorDisplayTitle,
                             tissueTypeValue: tissueMatrixFilterValue,
                             submissionCenter,
@@ -479,14 +485,30 @@ export default function TissueTypeView({
 
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
+            const rawSubmissionCenter = sample.submission_centers?.[0]?.display_title || null;
+            // See TissueView.js's identical block for the full rationale.
+            const hasOnlyTpcSubmission = isTpcSubmissionCenter(rawSubmissionCenter);
             return {
                 id: sample.uuid,
                 description: sample.external_id || sample.accession || undefined,
-                submissionCenter: sample.submission_centers?.[0]?.display_title || null,
+                submissionCenter: hasOnlyTpcSubmission ? null : rawSubmissionCenter,
+                hasOnlyTpcSubmission,
+                filesHref: getGccFilesBrowseHref({
+                    donorDisplayTitle: selectedDonorDisplayTitle,
+                    tissueTypeValue: tissueMatrixFilterValue,
+                    submissionCenter: rawSubmissionCenter,
+                    coreExternalId: sample.external_id || null,
+                }),
+                // See TissueView.js's identical field.
+                gccFilesHref: getGccFilesBrowseHref({
+                    donorDisplayTitle: selectedDonorDisplayTitle,
+                    tissueTypeValue: tissueMatrixFilterValue,
+                    submissionCenter: rawSubmissionCenter,
+                }),
             };
         });
         return realAliquots.length > 0 ? realAliquots : sampleNonSolidAliquots;
-    }, [tissueSamples]);
+    }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
 
     const aliquotSamplesLoading = !!selectedDonorUuid && tissueSamples === null;
     const showDonorPrompt = donors.length > 0 && !selectedDonorUuid;

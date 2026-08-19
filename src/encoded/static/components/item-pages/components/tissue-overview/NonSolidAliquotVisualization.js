@@ -176,11 +176,23 @@ export default function NonSolidAliquotVisualization({
     const resolvedIdPrefix = idPrefix || styles.idPrefix;
 
     const normalizedAliquots = aliquots.map((aliquot, index) => {
+        // `submissionCenter` (see TissueView.js's nonSolidAliquots) is
+        // already null for a TPC-only real record, same treatment
+        // AliquotVisualization.js gives TPC entries elsewhere -- distinct
+        // from `hasOnlyTpcSubmission`, which flags *why* it's null so this
+        // can say so honestly instead of falling through to the generic
+        // "GCCN" placeholder meant only for illustrative demo data (which
+        // has neither field set at all).
+        const displayCenterLabel = aliquot.submissionCenter
+            ? aliquot.submissionCenter
+            : aliquot.hasOnlyTpcSubmission
+                ? 'No files yet'
+                : `GCC${index + 1}`;
         return {
             ...aliquot,
             index,
             sequenceLabel: String(index + 1).padStart(3, '0'),
-            gccLabel: `GCC${index + 1}`,
+            displayCenterLabel,
         };
     });
 
@@ -291,10 +303,13 @@ export default function NonSolidAliquotVisualization({
                                     y2={sequenceLabelY + 4 + GCC_BRANCH_HEIGHT}
                                 />
                                 <text
-                                    className="nonsolid-gcc-label"
+                                    className={
+                                        'nonsolid-gcc-label' +
+                                        (aliquot.hasOnlyTpcSubmission ? ' is-empty' : '')
+                                    }
                                     x={subTubeCenterX}
                                     y={gccLabelY}>
-                                    {aliquot.submissionCenter || aliquot.gccLabel}
+                                    {aliquot.displayCenterLabel}
                                 </text>
                             </g>
                         );
@@ -338,11 +353,35 @@ export default function NonSolidAliquotVisualization({
                                 <p className="aliquot-popover-caption">{styles.caption}</p>
                                 <div className="aliquot-popover-cores">
                                     <div className="aliquot-popover-row">
-                                        <span>
-                                            {selectedAliquot?.submissionCenter ||
-                                                selectedAliquot?.gccLabel}
-                                        </span>
-                                        <strong>{selectedAliquotId}</strong>
+                                        {selectedAliquot?.gccFilesHref ? (
+                                            <a
+                                                href={selectedAliquot.gccFilesHref}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title="View this GCC's files for this donor & tissue">
+                                                {selectedAliquot.displayCenterLabel}
+                                            </a>
+                                        ) : (
+                                            <span
+                                                className={
+                                                    selectedAliquot?.hasOnlyTpcSubmission
+                                                        ? 'aliquot-popover-pathology-empty'
+                                                        : undefined
+                                                }>
+                                                {selectedAliquot?.displayCenterLabel}
+                                            </span>
+                                        )}
+                                        {selectedAliquot?.filesHref ? (
+                                            <a
+                                                href={selectedAliquot.filesHref}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title={`View ${selectedAliquotId}'s own files`}>
+                                                <strong>{selectedAliquotId}</strong>
+                                            </a>
+                                        ) : (
+                                            <strong>{selectedAliquotId}</strong>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="aliquot-popover-row">
@@ -390,6 +429,9 @@ NonSolidAliquotVisualization.propTypes = {
             label: PropTypes.string,
             description: PropTypes.string,
             submissionCenter: PropTypes.string,
+            hasOnlyTpcSubmission: PropTypes.bool,
+            filesHref: PropTypes.string,
+            gccFilesHref: PropTypes.string,
         })
     ).isRequired,
 };

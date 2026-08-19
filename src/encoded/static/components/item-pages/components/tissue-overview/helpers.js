@@ -718,6 +718,18 @@ export function getAliquotNumberFromExternalId(externalId) {
     return match ? match[1] : null;
 }
 
+// A TPC (Tissue Procurement Center, e.g. "NDRI TPC") record is the
+// procurement-level entry for a sample, not a sequencing/file-producing one
+// -- unlike a GCC's, it has no files of its own to link to, so callers
+// exclude it entirely from GCC-attribution UI (grid dots/popover lists in
+// AliquotVisualization.js, non-solid aliquot tube labels in
+// NonSolidAliquotVisualization.js) rather than showing it as if it were the
+// aliquot's owning GCC. A null/missing center (illustrative/demo data,
+// before a real donor is selected) isn't a TPC and is left alone.
+export function isTpcSubmissionCenter(center) {
+    return typeof center === 'string' && center.trim().endsWith('TPC');
+}
+
 // Scopes to donor + tissue_type + the GCC that sequenced the files, and
 // (when `coreExternalId` is given) further down to one specific core
 // position's own TissueSample. File.sample_summary.sample_names holds that

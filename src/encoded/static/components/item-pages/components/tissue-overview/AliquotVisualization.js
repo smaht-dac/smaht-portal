@@ -4,6 +4,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
+import { isTpcSubmissionCenter } from './helpers';
 
 const SLICE_TYPE_STYLES = {
     pink: {
@@ -264,18 +265,6 @@ function DimensionArrow({
             </text>
         </g>
     );
-}
-
-// A TPC (Tissue Procurement Center, e.g. "NDRI TPC") record is the
-// procurement-level entry for a core position, not a sequencing/file-
-// producing one -- unlike a GCC's, it has no files of its own to link to,
-// so it's excluded from the grid dots and the popover's per-center list
-// entirely (a position whose only submitting center(s) are TPCs renders as
-// unmarked, same as a position with no data at all). A null/missing center
-// (illustrative/demo data, before a real donor is selected) isn't a TPC and
-// is left alone.
-function isTpcSubmissionCenter(center) {
-    return typeof center === 'string' && center.trim().endsWith('TPC');
 }
 
 function offsetLine(x1, y1, x2, y2, distance) {
@@ -654,7 +643,7 @@ export default function AliquotVisualization({
                     submissionCenter,
                     filesHref:
                         (submissionCenter &&
-                            selectedSlice?.submissionCenterFilesHrefs?.[submissionCenter]) ||
+                            selectedSlice?.gccFilesHrefs?.[submissionCenter]) ||
                         null,
                     positions: [corePosition],
                     positionFilesHrefs: { [corePosition]: filesHref },
@@ -1422,7 +1411,7 @@ AliquotVisualization.propTypes = {
             // Generic (non-core-specific) href per submitting center --
             // used for a popover group's own header link, distinct from
             // each position's own frozenCorePositionFilesHrefs entry.
-            submissionCenterFilesHrefs: PropTypes.objectOf(PropTypes.string),
+            gccFilesHrefs: PropTypes.objectOf(PropTypes.string),
             idPrefix: PropTypes.string,
             aliquotNumber: PropTypes.string,
             // Bivalved tissues only (enableBivalvedSplit) -- see

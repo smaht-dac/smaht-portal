@@ -24,6 +24,7 @@ import {
     getAliquotNumberFromExternalId,
     getTissueIconSrc,
     getGccFilesBrowseHref,
+    isTpcSubmissionCenter,
     getTissueFilesBrowseHref,
     getTissueAliquotDepthCm,
     getAliquotLayoutNote,
@@ -432,8 +433,13 @@ const TissueView = React.memo(function TissueView({
             // that group's own header link is meant to mean "this GCC's
             // files for this whole donor+tissue", not any one position's;
             // each position's own row links to its own core-specific href
-            // (frozenCorePositionFilesHrefs above) instead.
-            slice.submissionCenterFilesHrefs = {};
+            // (frozenCorePositionFilesHrefs above) instead. Named for the
+            // *filter* the resulting href actually applies
+            // (sequencing_center.display_title on File, per
+            // getGccFilesBrowseHref) rather than the submissionCenter input
+            // value, since submission_centers on a File is often a
+            // downstream analysis center (e.g. "HMS DAC"), not this GCC.
+            slice.gccFilesHrefs = {};
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
                 ([corePosition, submissionCenters]) => {
                     const externalIds = slice.frozenCorePositionExternalIds[corePosition] || [];
@@ -447,10 +453,10 @@ const TissueView = React.memo(function TissueView({
                             })
                     );
                     submissionCenters.forEach((submissionCenter) => {
-                        if (!submissionCenter || slice.submissionCenterFilesHrefs[submissionCenter]) {
+                        if (!submissionCenter || slice.gccFilesHrefs[submissionCenter]) {
                             return;
                         }
-                        slice.submissionCenterFilesHrefs[submissionCenter] = getGccFilesBrowseHref({
+                        slice.gccFilesHrefs[submissionCenter] = getGccFilesBrowseHref({
                             donorDisplayTitle: selectedDonorDisplayTitle,
                             tissueTypeValue: tissueMatrixFilterValue,
                             submissionCenter,
@@ -522,14 +528,46 @@ const TissueView = React.memo(function TissueView({
 
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
+            const rawSubmissionCenter = sample.submission_centers?.[0]?.display_title || null;
+            // A TPC (e.g. "NDRI TPC") is a procurement-level record with no
+            // files of its own -- excluded here the same way
+            // AliquotVisualization.js excludes it from the solid-tissue core
+            // grid/popover, rather than shown as if it were this aliquot's
+            // owning GCC. `hasOnlyTpcSubmission` (vs. just leaving
+            // submissionCenter null, which also covers "no data at all"/
+            // demo slices) lets the render side tell a real TPC-only
+            // aliquot apart from an illustrative placeholder, so it can say
+            // "no files yet" instead of a fabricated "GCC1" label.
+            const hasOnlyTpcSubmission = isTpcSubmissionCenter(rawSubmissionCenter);
             return {
                 id: sample.uuid,
                 description: sample.external_id || sample.accession || undefined,
-                submissionCenter: sample.submission_centers?.[0]?.display_title || null,
+                submissionCenter: hasOnlyTpcSubmission ? null : rawSubmissionCenter,
+                hasOnlyTpcSubmission,
+                // getGccFilesBrowseHref itself already returns null for a
+                // non-GCC center, so passing the raw (unfiltered) center
+                // through is safe -- narrowed to just this aliquot's own
+                // files via its own external_id (sample_summary.sample_names).
+                filesHref: getGccFilesBrowseHref({
+                    donorDisplayTitle: selectedDonorDisplayTitle,
+                    tissueTypeValue: tissueMatrixFilterValue,
+                    submissionCenter: rawSubmissionCenter,
+                    coreExternalId: sample.external_id || null,
+                }),
+                // The GCC's own name is also a link in the solid-tissue
+                // popover (AliquotVisualization.js's group header) -- to
+                // this same generic (not core-specific) "all this GCC's
+                // files for this donor+tissue" href, not this one
+                // aliquot's own narrower one above.
+                gccFilesHref: getGccFilesBrowseHref({
+                    donorDisplayTitle: selectedDonorDisplayTitle,
+                    tissueTypeValue: tissueMatrixFilterValue,
+                    submissionCenter: rawSubmissionCenter,
+                }),
             };
         });
         return realAliquots.length > 0 ? realAliquots : sampleNonSolidAliquots;
-    }, [tissueSamples]);
+    }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
 
     // Real data replacing the illustrative fallback mid-render is a visible
     // jump no matter how few steps it takes to get there (different slice

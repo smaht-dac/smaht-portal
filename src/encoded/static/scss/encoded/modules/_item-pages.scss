@@ -3994,6 +3994,17 @@ File, Donor, and Publication Overview Styles
             font-weight: 600;
             text-anchor: middle;
             pointer-events: none;
+
+            // A real aliquot whose only submitting record is a TPC (no
+            // files of its own -- see hasOnlyTpcSubmission) -- muted and
+            // not bold, same "honest empty state" treatment as
+            // .aliquot-popover-pathology-empty, distinct from a normal
+            // GCC's own bold label.
+            &.is-empty {
+                fill: #9aa2ab;
+                font-weight: 500;
+                font-style: italic;
+            }
         }
 
         .nonsolid-aliquot-hitarea {
