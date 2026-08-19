@@ -21,7 +21,7 @@ import {
     formatShortCitationAuthors,
     getPublicationYear,
 } from '../util/Schemas';
-import { renderLoginAccessPopover } from '../item-pages/PublicDonorView';
+import { renderLoginAccessPopover } from './PublicDonorView';
 
 /**
  * Finds the `static_content` entry for a given `location`, returning its
