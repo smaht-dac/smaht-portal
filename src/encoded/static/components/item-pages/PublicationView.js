@@ -167,8 +167,8 @@ const PublicationStatViewer = ({ doi, session, isBenchmarking }) => {
                         This publication analyzed data from protected files.
                         <br />
                         <br />
-                        Please log in to see complete file list. Downloading
-                        protected files requires dbGAP approval.
+                        {!session && 'Please log in to see complete file list'}.
+                        Downloading protected files requires dbGAP approval.
                     </Popover.Body>
                 </Popover>
             }>
