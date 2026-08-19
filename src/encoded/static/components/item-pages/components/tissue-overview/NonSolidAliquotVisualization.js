@@ -223,8 +223,25 @@ export default function NonSolidAliquotVisualization({
 
     const selectedAliquot =
         selectedAliquotIndex === null ? null : normalizedAliquots[selectedAliquotIndex];
+    // Synthetic idPrefix+sequenceLabel, same convention
+    // AliquotVisualization.js's own selectedAliquotId uses for the solid
+    // popover title -- kept synthetic here too (rather than the sample's
+    // real external_id) so the two popovers' header layout stays
+    // consistent; the real external_id (selectedAliquot.description) is
+    // shown instead where AliquotVisualization.js's row itself shows a
+    // fuller/more specific id than its own header (see the "own files" row
+    // below), which is also where it lines up with the file-link filter.
     const selectedAliquotId = selectedAliquot
         ? `${resolvedIdPrefix}-${selectedAliquot.sequenceLabel}`
+        : null;
+    // The sample's own real external_id (e.g. "SMHT005-3A-001X") -- shown
+    // for the "own files" row/link instead of the synthetic
+    // selectedAliquotId above, since that's what actually matches the
+    // file-link filter (sample_summary.sample_names). Demo/illustrative
+    // aliquots have no real sample behind them, so this falls back to the
+    // same synthetic id used for the header in that case.
+    const selectedFullAliquotId = selectedAliquot
+        ? selectedAliquot.description || selectedAliquotId
         : null;
 
     return (
@@ -376,11 +393,11 @@ export default function NonSolidAliquotVisualization({
                                                 href={selectedAliquot.filesHref}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                title={`View ${selectedAliquotId}'s own files`}>
-                                                <strong>{selectedAliquotId}</strong>
+                                                title={`View ${selectedFullAliquotId}'s own files`}>
+                                                <strong>{selectedFullAliquotId}</strong>
                                             </a>
                                         ) : (
-                                            <strong>{selectedAliquotId}</strong>
+                                            <strong>{selectedFullAliquotId}</strong>
                                         )}
                                     </div>
                                 </div>
@@ -395,11 +412,6 @@ export default function NonSolidAliquotVisualization({
                                         {normalizedAliquots.length}
                                     </strong>
                                 </div>
-                                {selectedAliquot?.description ? (
-                                    <p className="aliquot-popover-description">
-                                        {selectedAliquot.description}
-                                    </p>
-                                ) : null}
                             </PopoverBody>
                         </Popover>
                     )}

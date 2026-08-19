@@ -4074,11 +4074,18 @@ File, Donor, and Publication Overview Styles
 }
 
 .popover.aliquot-popover {
-    max-width: 320px;
+    max-width: 360px;
 
     .popover-header {
         font-weight: 600;
         background-color: #f4f9ff;
+        // Popover width otherwise auto-sizes to whichever body row is
+        // widest (e.g. the GCC name / id row), which is usually narrower
+        // than "<id> · <Specimen Type> Aliquot" -- wrapping the header mid
+        // phrase ("Fibroblast" / "Aliquot" on separate lines). Forcing
+        // nowrap makes the header's own intrinsic width drive sizing
+        // instead, up to the max-width cap above.
+        white-space: nowrap;
     }
 
     .popover-body {
