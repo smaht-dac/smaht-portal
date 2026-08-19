@@ -7,6 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+2.12.0
+======
+
+`PR 747: Archive source files during the file release <https://github.com/smaht-dac/smaht-portal/pull/747>`_
+
+* Adds an opt-in ``--archive`` option to ``release-file``. When a final output BAM or CRAM is
+  released with it, the source files of the associated file set(s) are archived, i.e.
+  ``s3_lifecycle_category`` is set to ``long_term_archive`` on the submitted unaligned reads,
+  the submitted CRAMs and the FASTQs that were generated from those CRAMs. This replaces the
+  manual ``archive_unaligned_reads`` and ``archive_broad_crams_and_fastqs`` steps in magma.
+* The archive patches are part of the regular two-step release flow, so they are listed in
+  the release summary (counted by item type and file format), validated, and applied
+  together with the other patches.
+* Files that already have an ``s3_lifecycle_category`` are never archived. A warning is
+  reported for those unless they are already set to ``long_term_archive``.
+
 2.11.0
 ======
 
