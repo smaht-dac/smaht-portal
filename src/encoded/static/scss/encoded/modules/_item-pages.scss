@@ -4210,7 +4210,6 @@ File, Donor, and Publication Overview Styles
     }
 
     .aliquot-popover-cores,
-    .aliquot-popover-pathology,
     .aliquot-popover-pathology-section {
         display: flex;
         flex-direction: column;
@@ -4322,16 +4321,6 @@ File, Donor, and Publication Overview Styles
         &:hover,
         &:focus-visible {
             text-decoration: underline;
-        }
-    }
-
-    .aliquot-popover-pathology .aliquot-popover-row {
-        flex-direction: column;
-        gap: 2px;
-
-        strong {
-            text-align: left;
-            word-break: break-word;
         }
     }
 

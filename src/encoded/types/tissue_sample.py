@@ -48,7 +48,18 @@ NDRI_TPC_DT = "NDRI TPC"
 class TissueSample(Sample):
     item_type = "tissue_sample"
     schema = load_schema("encoded:schemas/tissue_sample.json")
-    embedded_list = Sample.embedded_list
+    embedded_list = Sample.embedded_list + [
+        # `display_title` (auto-embedded for any linkTo regardless of
+        # embedded_list) always resolves to a PathologyReport's own
+        # submitted_id, not its accession -- encoded's shared
+        # Item.display_title override checks submitted_id (always present,
+        # required) before accession, so accession would otherwise never
+        # surface. Embedded here so the tissue-overview aliquot popover
+        # (AliquotVisualization.js) can show a short accession-based label
+        # instead of a generic "Report N" placeholder.
+        "pathology_reports.accession",
+        "associated_pathology_reports.pathology_reports.accession",
+    ]
 
     rev = {
         "pathology_reports": ("PathologyReport", "tissue_samples")

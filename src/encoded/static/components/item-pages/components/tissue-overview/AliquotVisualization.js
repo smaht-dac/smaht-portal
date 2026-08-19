@@ -86,21 +86,25 @@ const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
 ]);
 
 // `reports` entries come back as a bare @id string in the @@object frame, or
-// a full embedded object (with display_title) in /search/'s embedded frame
-// -- render whichever shape shows up as a comma-separated list of links.
-function PathologyReportLinks({ reports }) {
-    return reports.map((report, reportIndex) => {
-        const reportHref = typeof report === 'string' ? report : report?.['@id'];
-        const reportLabel =
-            typeof report === 'object' ? report?.display_title || 'View' : 'View';
-        return (
-            <React.Fragment key={reportHref || reportIndex}>
-                {reportIndex > 0 ? ', ' : ''}
-                <a href={reportHref} target="_blank" rel="noopener noreferrer">
-                    {reportLabel}
-                </a>
-            </React.Fragment>
-        );
+// a full embedded object in /search/'s embedded frame -- `display_title`
+// (auto-embedded for any linkTo) is always long for a PathologyReport (e.g.
+// "NDRI_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-3T-003": encoded's shared
+// Item.display_title override checks submitted_id, always present, before
+// accession), so it's kept only as the link's title tooltip. `accession`
+// (explicitly embedded via TissueSample.embedded_list, see
+// types/tissue_sample.py) is short and used as the visible label instead
+// when present; falls back to "View report"/"Report N" only for the rarer
+// cases without one yet (not-yet-accessioned report, or the @@object frame,
+// which carries neither field).
+function getPathologyReportItems(reports) {
+    return (reports || []).map((report, reportIndex, arr) => {
+        const accession = typeof report === 'object' ? report?.accession : null;
+        return {
+            key: typeof report === 'string' ? report : report?.['@id'] || reportIndex,
+            href: typeof report === 'string' ? report : report?.['@id'],
+            title: typeof report === 'object' ? report?.display_title || null : null,
+            label: accession || (arr.length > 1 ? `Report ${reportIndex + 1}` : 'View report'),
+        };
     });
 }
 
@@ -127,12 +131,21 @@ function getSortedPathologyReportItems(entries) {
             const externalId = entry?.fixed_sample_external_id;
             const reports = entry?.pathology_reports;
             if (!reports || reports.length === 0) {
-                return [{ key: externalId, externalId, href: null, label: null }];
+                return [
+                    { key: externalId, externalId, suffix: '', href: null, label: null },
+                ];
             }
             return reports.map((report, reportIndex) => {
+                const accession = typeof report === 'object' ? report?.accession : null;
                 return {
                     key: `${externalId}-${reportIndex}`,
                     externalId,
+                    // Disambiguates the rare case of more than one report
+                    // for the same Fixed sample (nothing in the schema
+                    // prevents it) -- without this, multiple rows would
+                    // show the exact same externalId text with no visible
+                    // difference beyond their tooltips.
+                    suffix: reports.length > 1 ? ` (${accession || reportIndex + 1})` : '',
                     href: typeof report === 'string' ? report : report?.['@id'],
                     label: typeof report === 'object' ? report?.display_title || 'View' : 'View',
                 };
@@ -1287,17 +1300,25 @@ export default function AliquotVisualization({
                                 {selectedSlice?.type === 'pink' &&
                                 selectedSlice?.pathologyReports ? (
                                         selectedSlice.pathologyReports.length > 0 ? (
-                                            <div className="aliquot-popover-pathology">
-                                                <div className="aliquot-popover-row">
-                                                    <span>Pathology</span>
-                                                    <strong>
-                                                        <PathologyReportLinks
-                                                            reports={
-                                                                selectedSlice.pathologyReports
-                                                            }
-                                                        />
-                                                    </strong>
-                                                </div>
+                                            <div className="aliquot-popover-pathology-section">
+                                                <span className="aliquot-popover-pathology-heading">
+                                                    Pathology
+                                                </span>
+                                                <ul className="aliquot-popover-pathology-list">
+                                                    {getPathologyReportItems(
+                                                        selectedSlice.pathologyReports
+                                                    ).map((item) => (
+                                                        <li key={item.key}>
+                                                            <a
+                                                                href={item.href}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={item.title || undefined}>
+                                                                {item.label}
+                                                            </a>
+                                                        </li>
+                                                    ))}
+                                                </ul>
                                             </div>
                                         ) : (
                                             <p className="aliquot-popover-pathology-empty">
@@ -1341,6 +1362,7 @@ export default function AliquotVisualization({
                                                             rel="noopener noreferrer"
                                                             title={item.label}>
                                                             {item.externalId}
+                                                            {item.suffix}
                                                         </a>
                                                     ) : (
                                                         <span title="No report yet">
