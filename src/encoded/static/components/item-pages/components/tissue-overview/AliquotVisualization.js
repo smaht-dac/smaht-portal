@@ -622,6 +622,19 @@ export default function AliquotVisualization({
     // position, and one position can end up contributing a row to more than
     // one group here (once per distinct center), rather than only ever
     // showing its last-processed center.
+    //
+    // Grouped by submissionCenter alone -- NOT also by filesHref, even
+    // though frozenCorePositionFilesHrefs is itself per-position (each
+    // position's own href narrows down to just that position's files, via
+    // sample_summary.sample_names). Keying on filesHref too would put every
+    // position back in its own single-position group the moment two
+    // positions under the same GCC have two different (position-specific)
+    // hrefs -- which is now *always*, defeating the grouping entirely
+    // (confirmed as a real regression: real data with 3 positions under one
+    // GCC rendered as 3 separate one-line groups instead of one). The
+    // group's own header link (`filesHref` below) is instead the GCC-wide
+    // link for this whole donor+tissue; each position's own row links to
+    // its own specific href via `positionFilesHrefs`.
     const selectedFrozenCorePositionGroups = [];
     const groupIndexByKey = new Map();
     selectedFrozenCorePositions.forEach((corePosition) => {
@@ -632,17 +645,21 @@ export default function AliquotVisualization({
         submissionCenters.forEach((submissionCenter, centerIndex) => {
             if (isTpcSubmissionCenter(submissionCenter)) return;
             const filesHref = filesHrefs[centerIndex] || null;
-            const key = `${submissionCenter || ''}|${filesHref || ''}`;
+            const key = submissionCenter || '';
             if (groupIndexByKey.has(key)) {
-                selectedFrozenCorePositionGroups[groupIndexByKey.get(key)].positions.push(
-                    corePosition
-                );
+                const group = selectedFrozenCorePositionGroups[groupIndexByKey.get(key)];
+                group.positions.push(corePosition);
+                group.positionFilesHrefs[corePosition] = filesHref;
             } else {
                 groupIndexByKey.set(key, selectedFrozenCorePositionGroups.length);
                 selectedFrozenCorePositionGroups.push({
                     submissionCenter,
-                    filesHref,
+                    filesHref:
+                        (submissionCenter &&
+                            selectedSlice?.submissionCenterFilesHrefs?.[submissionCenter]) ||
+                        null,
                     positions: [corePosition],
+                    positionFilesHrefs: { [corePosition]: filesHref },
                 });
             }
         });
@@ -1174,10 +1191,23 @@ export default function AliquotVisualization({
                                                                 </>
                                                             ) : null}
                                                         </span>
-                                                        <strong>
-                                                            {selectedAliquotId}
-                                                            {corePosition}
-                                                        </strong>
+                                                        {group.positionFilesHrefs[corePosition] ? (
+                                                            <a
+                                                                href={group.positionFilesHrefs[corePosition]}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={`View ${selectedAliquotId}${corePosition}'s own files`}>
+                                                                <strong>
+                                                                    {selectedAliquotId}
+                                                                    {corePosition}
+                                                                </strong>
+                                                            </a>
+                                                        ) : (
+                                                            <strong>
+                                                                {selectedAliquotId}
+                                                                {corePosition}
+                                                            </strong>
+                                                        )}
                                                     </div>
                                                 )
                                             );
@@ -1391,6 +1421,10 @@ AliquotVisualization.propTypes = {
                 PropTypes.arrayOf(PropTypes.string)
             ),
             frozenCorePositionFilesHrefs: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
+            // Generic (non-core-specific) href per submitting center --
+            // used for a popover group's own header link, distinct from
+            // each position's own frozenCorePositionFilesHrefs entry.
+            submissionCenterFilesHrefs: PropTypes.objectOf(PropTypes.string),
             idPrefix: PropTypes.string,
             aliquotNumber: PropTypes.string,
             // Bivalved tissues only (enableBivalvedSplit) -- see

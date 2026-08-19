@@ -387,6 +387,14 @@ export default function TissueTypeView({
         // real submitting center.
         realSlices.forEach((slice) => {
             slice.frozenCorePositionFilesHrefs = {};
+            // Generic (not core-specific) href per distinct submitting
+            // center -- the popover groups every position under the same
+            // GCC into one row group (see AliquotVisualization.js), and
+            // that group's own header link is meant to mean "this GCC's
+            // files for this whole donor+tissue", not any one position's;
+            // each position's own row links to its own core-specific href
+            // (frozenCorePositionFilesHrefs above) instead.
+            slice.submissionCenterFilesHrefs = {};
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
                 ([corePosition, submissionCenters]) => {
                     const externalIds = slice.frozenCorePositionExternalIds[corePosition] || [];
@@ -399,6 +407,16 @@ export default function TissueTypeView({
                                 coreExternalId: externalIds[i] || null,
                             })
                     );
+                    submissionCenters.forEach((submissionCenter) => {
+                        if (!submissionCenter || slice.submissionCenterFilesHrefs[submissionCenter]) {
+                            return;
+                        }
+                        slice.submissionCenterFilesHrefs[submissionCenter] = getGccFilesBrowseHref({
+                            donorDisplayTitle: selectedDonorDisplayTitle,
+                            tissueTypeValue: tissueMatrixFilterValue,
+                            submissionCenter,
+                        });
+                    });
                 }
             );
             // Merging core positions concatenates each one's own linked
