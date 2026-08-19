@@ -3865,16 +3865,14 @@ File, Donor, and Publication Overview Styles
         // right where a real slice meets a grey one. Full opacity everywhere
         // removes any chance of that regardless of what's adjacent.
 
-        // A bivalved template position with no real aliquot submitted yet
-        // (see PLACEHOLDER_SLICE_STYLE/isPlaceholder) -- inert grey box, no
-        // hover feedback (it's not clickable, unlike every other slice
-        // here) and a muted sequence number instead of the normal dark one.
-        &.is-placeholder {
-            .slice-inline-label {
-                fill: #9aa2ab;
-                font-weight: 500;
-            }
-        }
+        // A fixed-template position with no real aliquot submitted yet (see
+        // PLACEHOLDER_SLICE_STYLES/isPlaceholder) -- inert box, no hover
+        // feedback (it's not clickable, unlike every other slice here).
+        // Deliberately no .slice-inline-label override: an earlier version
+        // muted the sequence number too, on top of the already-muted fill,
+        // which just made it hard to read for no benefit -- the fill color
+        // alone already signals "no data here yet", so the number stays at
+        // the same .slice-inline-label styling every other slice uses.
     }
 
     // A real slice's side face, redrawn in a later pass on top of the

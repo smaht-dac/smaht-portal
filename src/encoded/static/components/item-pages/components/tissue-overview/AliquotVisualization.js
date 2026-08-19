@@ -30,30 +30,28 @@ const SLICE_TYPE_STYLES = {
 // getMedialLateralTemplate/getStripTemplate) always includes every
 // position, whether or not this donor has a real aliquot there yet
 // (isPlaceholder) -- these render as inert, not clickable (no popover data
-// to show), and visually muted vs. the real Fixed/Frozen colors. A single
-// flat grey for both types made it impossible to tell a missing Fixed slot
-// from a missing Frozen one at a glance, though -- these are each type's own
-// color desaturated toward its own distinct grey instead, so the type is
-// still legible (doesn't rely on hue discrimination alone for colorblind
-// users). A first attempt muted pink toward a much lighter grey than
-// yellow's -- pink nearly disappeared against the page background while
-// yellow stayed clearly visible, an unbalanced "one type reads as disabled,
-// the other doesn't" look; both now target a similarly-dark grey (checked
-// against roughly matching luminance per corresponding face) so they read
-// as equally muted, distinguishable from each other by hue, not by one
-// being much fainter than the other.
+// to show), and visually muted vs. the real Fixed/Frozen colors. Went
+// through a few passes: a single flat grey for both types made it
+// impossible to tell a missing Fixed slot from a missing Frozen one at a
+// glance; muting each type toward its *own* color at a moderate ratio kept
+// the type legible but read as too close to the real, enabled colors --
+// "disabled" wasn't obvious at a glance, which was the whole point. Both
+// now mix much further toward one shared neutral grey (only a faint warm/
+// cool tint left per type, luminance kept close between the two so neither
+// reads as more "disabled" than the other) -- clearly muted first, with the
+// type only a secondary, closer-look cue.
 const PLACEHOLDER_SLICE_STYLES = {
     pink: {
-        front: '#D4B6A2',
-        top: '#D7C1B0',
-        side: '#CEAD94',
-        border: '#AB8B72',
+        front: '#BEB7B3',
+        top: '#BFBBBA',
+        side: '#BBB3AD',
+        border: '#ABA39D',
     },
     yellow: {
-        front: '#B5C597',
-        top: '#BFCAA8',
-        side: '#A8BD85',
-        border: '#83966A',
+        front: '#B6BFB0',
+        top: '#BAC1B8',
+        side: '#B1BBA8',
+        border: '#A0AA9C',
     },
 };
 

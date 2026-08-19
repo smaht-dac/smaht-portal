@@ -238,9 +238,9 @@ export const getTissueAliquotDepthCm = (tissueTypeValue) => {
 // buildBivalvedTemplateSlices below for how that's used to place each real
 // aliquot at its correct position.
 const BIVALVED_NOTE =
-    'This organ is recovered as two separate pieces (Anterior and Posterior halves) before aliquotting, shown below in that fixed layout. Grey slices are positions with no aliquot submitted yet for this donor.';
+    'This organ is recovered as two separate pieces (Anterior and Posterior halves) before aliquotting, shown below in that fixed layout. Muted slices are positions with no aliquot submitted yet for this donor.';
 const MEDIAL_LATERAL_NOTE =
-    'This tissue block is recovered with lateral and medial portions, shown below in that fixed layout. Grey slices are positions with no aliquot submitted yet for this donor.';
+    'This tissue block is recovered with lateral and medial portions, shown below in that fixed layout. Muted slices are positions with no aliquot submitted yet for this donor.';
 const ALIQUOT_LAYOUT_NOTE_BY_INTERNAL_CODE = {
     LUNG: MEDIAL_LATERAL_NOTE,
     LIVR: MEDIAL_LATERAL_NOTE,
