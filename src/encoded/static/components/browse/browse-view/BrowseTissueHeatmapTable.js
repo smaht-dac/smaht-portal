@@ -1,8 +1,8 @@
 'use strict';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
     DotRouter,
     DotRouterTab,
@@ -291,6 +291,189 @@ function getTargetTissuePercentageScoreClass(value) {
     return `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
 }
 
+// --- Experimental: user-customizable conditional-color palette ---------
+// Data wranglers previously had no way to try a different heatmap color
+// scheme short of asking for a code change + deployment. This lets anyone
+// pick a base color (a curated preset or a free color-wheel pick) and
+// generates a 4-step light->dark sequential scale from it. Deliberately not
+// persisted anywhere (no localStorage/sessionStorage) -- a pick only lasts
+// for the current page view and always starts back at the default on the
+// next load, per explicit request; nothing here is a shared/server-side
+// setting either way, so it can't affect what other users see regardless.
+// "Reset" clears the override and falls back to the hardcoded default scale
+// already in _search.scss.
+
+// Each preset is just a single base hue -- buildSequentialPaletteFromHex
+// below turns it into the actual 4-step scale, same as a free color-wheel
+// pick, so every preset is guaranteed to follow the same light->dark
+// construction (no hand-tuned-then-drifted swatches to keep in sync).
+export const HEATMAP_COLOR_PRESETS = [
+    { name: 'Teal', hex: '#2F8F83' },
+    { name: 'Purple', hex: '#7C6BA6' },
+    { name: 'Amber', hex: '#C08A2E' },
+    { name: 'Rose', hex: '#B5657A' },
+    { name: 'Forest', hex: '#4F7A5B' },
+];
+
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+}
+
+function hexToRgb(hex) {
+    const clean = String(hex || '').replace('#', '');
+    return [0, 2, 4].map((i) => parseInt(clean.slice(i, i + 2), 16));
+}
+
+function rgbToHex([r, g, b]) {
+    return `#${[r, g, b]
+        .map((v) => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0'))
+        .join('')}`;
+}
+
+function rgbToHsl([r, g, b]) {
+    const rN = r / 255;
+    const gN = g / 255;
+    const bN = b / 255;
+    const max = Math.max(rN, gN, bN);
+    const min = Math.min(rN, gN, bN);
+    const l = (max + min) / 2;
+    let h = 0;
+    let s = 0;
+    const d = max - min;
+    if (d !== 0) {
+        s = d / (1 - Math.abs(2 * l - 1));
+        if (max === rN) h = ((gN - bN) / d) % 6;
+        else if (max === gN) h = (bN - rN) / d + 2;
+        else h = (rN - gN) / d + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+    }
+    return [h, s * 100, l * 100];
+}
+
+function hslToRgb(h, s, l) {
+    const sN = s / 100;
+    const lN = l / 100;
+    const c = (1 - Math.abs(2 * lN - 1)) * sN;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = lN - c / 2;
+    let seg = [0, 0, 0];
+    if (h < 60) seg = [c, x, 0];
+    else if (h < 120) seg = [x, c, 0];
+    else if (h < 180) seg = [0, c, x];
+    else if (h < 240) seg = [0, x, c];
+    else if (h < 300) seg = [x, 0, c];
+    else seg = [c, 0, x];
+    return seg.map((v) => (v + m) * 255);
+}
+
+// Exported for unit testing. Fixed saturation curve (clamped so a very
+// dull or very neon input hue still lands in a reasonable range) and
+// lightness steps -- only the hue actually comes from `baseHex`, so every
+// generated scale keeps the same light->dark "feel" regardless of which
+// color was picked.
+export function buildSequentialPaletteFromHex(baseHex) {
+    const [h, rawSaturation] = rgbToHsl(hexToRgb(baseHex));
+    const saturation = clamp(rawSaturation, 28, 46);
+    return [88, 72, 50, 32].map((lightness) => {
+        const bg = rgbToHex(hslToRgb(h, saturation, lightness));
+        // Same threshold direction as the hardcoded default scale (light
+        // bands get dark text, the darkest band or two get white text).
+        const text = lightness > 58 ? '#28323C' : '#FFFFFF';
+        return { bg, text };
+    });
+}
+
+// A small button + panel for picking the base color above -- presets on
+// the left, a native color-wheel input for anything else, and a reset back
+// to the built-in default. Closes on an outside click/Escape like any
+// other lightweight dropdown; deliberately not react-bootstrap's Overlay
+// machinery since this doesn't need to track a scrolling anchor.
+function HeatmapColorPicker({ baseHex, onPick, onReset }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && containerRef.current?.contains(event.target)) {
+                return;
+            }
+            setIsOpen(false);
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="tissue-heatmap-color-picker" ref={containerRef}>
+            <button
+                type="button"
+                className="tissue-heatmap-color-picker-toggle"
+                onClick={() => setIsOpen((prev) => !prev)}
+                aria-expanded={isOpen}
+                title="Customize conditional color (this browser only)">
+                <span
+                    className="tissue-heatmap-color-picker-swatch"
+                    style={baseHex ? { backgroundColor: baseHex } : undefined}
+                />
+                Colors
+            </button>
+            {isOpen ? (
+                <div className="tissue-heatmap-color-picker-panel">
+                    <p className="tissue-heatmap-color-picker-note">
+                        Experimental -- resets to default on page reload,
+                        and doesn&rsquo;t change what other users see.
+                    </p>
+                    <div className="tissue-heatmap-color-picker-presets">
+                        {HEATMAP_COLOR_PRESETS.map((preset) => (
+                            <button
+                                type="button"
+                                key={preset.name}
+                                className={
+                                    'tissue-heatmap-color-picker-preset' +
+                                    (baseHex === preset.hex ? ' is-active' : '')
+                                }
+                                style={{ backgroundColor: preset.hex }}
+                                title={preset.name}
+                                aria-label={preset.name}
+                                onClick={() => {
+                                    onPick(preset.hex);
+                                    setIsOpen(false);
+                                }}
+                            />
+                        ))}
+                        <label
+                            className="tissue-heatmap-color-picker-preset tissue-heatmap-color-picker-custom"
+                            title="Pick a custom color">
+                            <input
+                                type="color"
+                                value={baseHex || '#5B6670'}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onChange={(event) => onPick(event.target.value)}
+                            />
+                        </label>
+                    </div>
+                    <button
+                        type="button"
+                        className="tissue-heatmap-color-picker-reset"
+                        onClick={() => {
+                            onReset();
+                            setIsOpen(false);
+                        }}>
+                        Reset to default
+                    </button>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
 function heatmapCellClassName(value, getScoreClass, enableConditionalColor) {
     return (
         'tissue-heatmap-cell' +
@@ -436,6 +619,26 @@ export const BrowseTissueHeatmapTable = (props) => {
     const { href, session, enableConditionalColor = true } = props;
     const [loading, setLoading] = useState(true);
     const [tissueResults, setTissueResults] = useState([]);
+    // The color picker is an internal dev/data-wrangling tool, not
+    // something a regular viewer needs -- gated to the "admin" JWT group,
+    // same check DataMatrix.js's isAdminUser uses. JWT.getUserGroups() reads
+    // the already-decoded token client-side (no extra request), so this can
+    // just be recomputed with `session` rather than needing its own fetch.
+    const isAdminUser = useMemo(
+        () => (JWT.getUserGroups() || []).includes('admin'),
+        [session]
+    );
+    // Experimental color override -- see HeatmapColorPicker. Plain
+    // in-memory state, not persisted anywhere: a pick only lasts for this
+    // page view, and always starts back at the default (null = "use the
+    // built-in scale") on every fresh page load, per explicit request.
+    const [paletteBaseHex, setPaletteBaseHex] = useState(null);
+    const heatmapPalette = useMemo(
+        () => (paletteBaseHex ? buildSequentialPaletteFromHex(paletteBaseHex) : null),
+        [paletteBaseHex]
+    );
+    const handlePickPaletteColor = (hex) => setPaletteBaseHex(hex);
+    const handleResetPaletteColor = () => setPaletteBaseHex(null);
 
     // The tab titles' info-circle icons (TabTitleWithInfo) are static-attribute
     // react-tooltip targets (data-tip) -- app.js's global <ReactTooltip/> only
@@ -491,8 +694,31 @@ export const BrowseTissueHeatmapTable = (props) => {
         [tissueResults]
     );
 
+    // Applied as CSS custom properties on the whole card -- _search.scss's
+    // .score-0..3 rules read these with a `var(--x, <hardcoded-default>)`
+    // fallback, so leaving this undefined (no override picked) reproduces
+    // the exact built-in scale unchanged.
+    const paletteStyle = heatmapPalette
+        ? heatmapPalette.reduce((style, { bg, text }, i) => {
+            style[`--heatmap-score-${i}-bg`] = bg;
+            style[`--heatmap-score-${i}-text`] = text;
+            return style;
+        }, {})
+        : undefined;
+
     return (
-        <div className="tissue-heatmap-card">
+        <div className="tissue-heatmap-card" style={paletteStyle}>
+            {isAdminUser ? (
+                <div className="tissue-heatmap-toolbar">
+                    <HeatmapColorPicker
+                        baseHex={paletteBaseHex}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onPick={handlePickPaletteColor}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onReset={handleResetPaletteColor}
+                    />
+                </div>
+            ) : null}
             <DotRouter
                 href={href}
                 navClassName="tissue-heatmap-tabs"
