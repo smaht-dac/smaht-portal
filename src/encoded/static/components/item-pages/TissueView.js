@@ -1,6 +1,7 @@
 'use strict';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
 import DefaultItemView from './DefaultItemView';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
@@ -187,6 +188,7 @@ const TissueView = React.memo(function TissueView({
     // from the <select> below -- the panel shows a "pick a donor" prompt
     // instead of any donor's data until then.
     const [selectedDonorUuid, setSelectedDonorUuid] = useState(null);
+    const [showAliquotLayoutNote, setShowAliquotLayoutNote] = useState(false);
 
     // Clears the selection if it's no longer valid for the current `donors`
     // list (e.g. donors reloaded after a session change) -- never seeds a
@@ -801,6 +803,49 @@ const TissueView = React.memo(function TissueView({
                                 {nonSolidSpecimenType
                                     ? 'Sample non-solid aliquot layout'
                                     : 'Sample solid-organ aliquot layout'}
+                                {aliquotLayoutNote && !nonSolidSpecimenType ? (
+                                    <OverlayTrigger
+                                        show={showAliquotLayoutNote}
+                                        overlay={
+                                            <Popover id="tissue-aliquot-layout-note-popover">
+                                                <PopoverBody
+                                                    // eslint-disable-next-line react/jsx-no-bind
+                                                    onMouseEnter={() =>
+                                                        setShowAliquotLayoutNote(true)
+                                                    }
+                                                    // eslint-disable-next-line react/jsx-no-bind
+                                                    onMouseLeave={() =>
+                                                        setShowAliquotLayoutNote(false)
+                                                    }>
+                                                    {aliquotLayoutNote}
+                                                </PopoverBody>
+                                            </Popover>
+                                        }
+                                        placement="right"
+                                        flip={true}
+                                        popperConfig={{
+                                            modifiers: [
+                                                {
+                                                    name: 'flip',
+                                                    options: {
+                                                        fallbackPlacements: [
+                                                            'bottom',
+                                                            'left',
+                                                            'top',
+                                                        ],
+                                                    },
+                                                },
+                                            ],
+                                        }}>
+                                        <i
+                                            className="icon icon-info-circle fas aliquot-title-info-icon"
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onMouseEnter={() => setShowAliquotLayoutNote(true)}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onMouseLeave={() => setShowAliquotLayoutNote(false)}
+                                        />
+                                    </OverlayTrigger>
+                                ) : null}
                             </span>
                             {donors.length > 0 ? (
                                 <div className="tissue-aliquot-donor-select">
@@ -825,12 +870,6 @@ const TissueView = React.memo(function TissueView({
                                 </div>
                             ) : null}
                         </div>
-                        {aliquotLayoutNote && !nonSolidSpecimenType ? (
-                            <p className="tissue-aliquot-layout-note">
-                                <i className="icon icon-info-circle fas" />
-                                {aliquotLayoutNote}
-                            </p>
-                        ) : null}
                         <div
                             className={
                                 'tissue-aliquot-body' +

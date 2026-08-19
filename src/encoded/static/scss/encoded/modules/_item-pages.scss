@@ -3332,6 +3332,16 @@ File, Donor, and Publication Overview Styles
                         color: #31465d;
                         font-size: 1rem;
                         font-weight: 600;
+
+                        .aliquot-title-info-icon {
+                            margin-left: 6px;
+                            font-size: 0.8125rem;
+                            color: #6c8bab;
+
+                            &:hover {
+                                color: #4e6884;
+                            }
+                        }
                     }
                 }
 
@@ -3405,26 +3415,6 @@ File, Donor, and Publication Overview Styles
                     }
                     50% {
                         transform: translateY(-4px);
-                    }
-                }
-
-                .tissue-aliquot-layout-note {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 8px;
-                    margin: 0 24px 12px;
-                    padding: 10px 14px;
-                    border-radius: 8px;
-                    background-color: #f4f8fb;
-                    border: 1px solid #dbe6ef;
-                    color: #4e6884;
-                    font-size: 0.8125rem;
-                    line-height: 1.4;
-
-                    i {
-                        margin-top: 2px;
-                        color: #6c8bab;
-                        flex-shrink: 0;
                     }
                 }
 
@@ -4071,6 +4061,14 @@ File, Donor, and Publication Overview Styles
     stroke-width: 1.5;
     opacity: 0.6;
     vector-effect: non-scaling-stroke;
+}
+
+// No custom font-size/color override here -- inherits the default Bootstrap
+// popover-body styling, same as .description-definitions-popover
+// (ProtectedDonorViewDataCards.js's Hardy Scale/age popovers) below, so
+// every info-icon popover across the portal reads consistently.
+#tissue-aliquot-layout-note-popover {
+    max-width: 320px;
 }
 
 .popover.aliquot-popover {
