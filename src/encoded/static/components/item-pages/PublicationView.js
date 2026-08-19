@@ -442,7 +442,12 @@ const PublicationView = React.memo(function PublicationView(props) {
                                     value={citationString}
                                     wrapperElement="span"></object.CopyWrapper>
                             </div>
-                            <span className="citation">{citationString}</span>
+                            <span className="citation">
+                                {citationString}
+                                {context?.accession === 'SMAPBTYIDADU' && (
+                                    <span>. Accepted at Cell Genomics.</span>
+                                )}
+                            </span>
                             <button
                                 type="button"
                                 className="author-details-toggle"
