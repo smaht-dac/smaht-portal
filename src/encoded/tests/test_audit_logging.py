@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pyramid.config import Configurator
 from pyramid.httpexceptions import HTTPForbidden, HTTPTemporaryRedirect
 from webob.multidict import MultiDict
 
@@ -12,11 +13,11 @@ from snovault.types.access_key import AccessKey as SnovaultAccessKey
 from snovault.resources import Item as SnovaultItem
 
 from ..audit_logging import authenticated_actor_fields, result_subject_uuid
-from ..browse import browse
+from ..browse import browse, protected_donor_search
 from ..logging_config import _configure_structlog, make_console_formatter
 from ..types.access_key import AccessKey, access_key_add, access_key_reset_secret
 from ..types.file import download, download_cli
-from ..types.protected_donor import protected_donor_item_view, protected_donor_search
+from ..types.protected_donor import protected_donor_item_view
 from ..types.user import User, user_add
 
 
@@ -88,6 +89,38 @@ def test_actor_uuid_requires_one_canonical_uuid_principal():
     }) == "00000000-0000-4000-8000-000000000017"
 
 
+def test_protected_donor_views_load_in_application_order():
+    """The always-scanned type module must not require the late search route."""
+    type_config = Configurator(settings={"testing": True})
+    for module in (
+        "snovault.calculated",
+        "snovault.config",
+        "snovault.typeinfo",
+        "snovault.resources",
+        "snovault.util",
+        "snovault.server_defaults",
+    ):
+        type_config.include(module)
+    type_config.scan("encoded.types.protected_donor")
+    type_config.commit()
+    type_views = [dict(item["introspectable"]) for item in type_config.introspector.get_category("views")]
+    assert any(view.get("callable") is protected_donor_item_view for view in type_views)
+
+    search_config = Configurator(settings={"testing": True})
+    search_config.include("snovault.search.search")
+    search_config.include("encoded.browse")
+    search_config.commit()
+    search_views = [
+        dict(item["introspectable"])
+        for item in search_config.introspector.get_category("views")
+    ]
+    assert any(
+        view.get("route_name") == "search"
+        and view.get("callable") is protected_donor_search
+        for view in search_views
+    )
+
+
 def test_access_key_audit_events_include_actor_uuid_without_secrets(encoded_log_stream):
     create_result = {
         "access_key_id": "synthetic-access-key-id",
@@ -137,7 +170,7 @@ def test_protected_donor_search_audit_omits_query_and_filter_values(encoded_log_
         has_permission=MagicMock(return_value=True),
     )
     result = {"total": 2, "@graph": [{"uuid": "synthetic-record"}]}
-    with patch("encoded.types.protected_donor.sno_search", return_value=result):
+    with patch("encoded.browse.search", return_value=result):
         assert protected_donor_search(MagicMock(), request) == result
 
     browse_request = SimpleNamespace(

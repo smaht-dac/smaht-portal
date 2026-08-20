@@ -8,7 +8,6 @@ from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.view import view_config
 from snovault import calculated_property, collection, load_schema
 from snovault.resource_views import item_view as sno_item_view
-from snovault.search.search import search as sno_search
 from snovault.util import debug_log
 
 from ..audit_logging import authenticated_actor_fields, canonical_uuid
@@ -52,27 +51,6 @@ def log_protected_donor_search(request, result, outcome="allowed"):
         result_count=_protected_donor_result_count(result),
         **authenticated_actor_fields(request),
     )
-
-
-@view_config(
-    route_name="search",
-    request_method="GET",
-    permission=NO_PERMISSION_REQUIRED,
-    custom_predicates=[is_protected_donor_search],
-)
-@debug_log
-def protected_donor_search(context, request):
-    """Audit ProtectedDonor searches while retaining Snovault's search behavior."""
-    if not request.has_permission("search"):
-        log_protected_donor_search(request, None, outcome="denied")
-        raise HTTPForbidden()
-    try:
-        result = sno_search(context, request, forced_type="Search")
-    except Exception:
-        log_protected_donor_search(request, None, outcome="failure")
-        raise
-    log_protected_donor_search(request, result)
-    return result
 
 
 def _build_protected_donor_embedded_list():
