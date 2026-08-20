@@ -694,12 +694,12 @@ export default function TissueTypeView({
                                 ? getTissueDisplayLabel(targetTissueValue)
                                 : display_title}
                         </h1>
-                        <div className="tissue-summary-header-notes">
-                            <span className="notes-label">Notes</span>
-                            <span className="notes-value">
-                                Extended Clinical Data about this donor is available through the donor manifest
-                            </span>
-                        </div>
+                        {uberon_id?.description ? (
+                            <div className="tissue-summary-header-notes">
+                                <span className="notes-label">Description</span>
+                                <span className="notes-value">{uberon_id.description}</span>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
 
