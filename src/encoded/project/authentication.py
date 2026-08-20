@@ -1,10 +1,19 @@
+import structlog
+
 from pyramid.httpexceptions import HTTPUnauthorized
 from snovault.project.authentication import SnovaultProjectAuthentication
 
 
+log = structlog.getLogger(__name__)
+
+
 class SMAHTProjectAuthentication(SnovaultProjectAuthentication):
     def login(self, context, request, *, samesite):
-        return super().login(context, request, samesite=samesite)
+        response = super().login(context, request, samesite=samesite)
+        # Keep this event deliberately identity-free: the authenticated token and
+        # user details must never be copied into the application log stream.
+        log.warning("User login successful", event_type="user_login")
+        return response
 
     def namespaced_authentication_policy_authenticated_userid(self, namespaced_authentication_policy, request,
                                                               set_user_info_property):

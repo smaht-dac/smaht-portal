@@ -12,6 +12,9 @@ No Docker, network, AWS, Postgres, or ES required.
 
 import os
 import re
+import shlex
+import subprocess
+import time
 
 import pytest
 
@@ -102,6 +105,50 @@ def test_b6_nginx_logs_on_shared_volume_and_shipped():
     assert "/var/log/smaht/nginx/access.log" in inputs
     assert "/var/log/smaht/nginx/error.log" in inputs
     assert "/var/log/nginx/access.log" not in inputs, "must not depend on a separate nginx volume"
+
+
+@pytest.mark.unit
+def test_log_shipper_quietly_tails_all_app_files(tmp_path):
+    """Multi-file tail must keep application lines without emitting file headers."""
+    supervisord = _read("deploy/docker/production/supervisord.conf")
+    command = next(
+        line for line in supervisord.splitlines()
+        if line.startswith("command=tail ")
+    )
+    assert command.startswith("command=tail -q -n0 -F ")
+    assert command.count("/var/log/smaht/smaht") == 5
+
+    tail_args = shlex.split(command.removeprefix("command="))
+    file_start = tail_args.index("-F") + 1
+    log_paths = [
+        os.path.join(str(tmp_path), f"smaht{index}.log")
+        for index in range(1, 6)
+    ]
+    for log_path in log_paths:
+        with open(log_path, "w"):
+            pass
+    tail_args[file_start:] = log_paths
+
+    process = subprocess.Popen(
+        tail_args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        time.sleep(0.2)
+        with open(log_paths[1], "a") as log_file:
+            log_file.write('{"message":"synthetic application event"}\n')
+        with open(log_paths[3], "a") as log_file:
+            log_file.write('{"message":"synthetic second event"}\n')
+        time.sleep(0.2)
+    finally:
+        process.terminate()
+        output, _ = process.communicate(timeout=2)
+
+    assert '"message":"synthetic application event"' in output
+    assert '"message":"synthetic second event"' in output
+    assert "==> " not in output
 
 
 @pytest.mark.unit

@@ -1,3 +1,6 @@
+import io
+import json
+import logging
 import pytest
 import unittest
 
@@ -13,6 +16,8 @@ from zope.interface.verify import verifyClass, verifyObject
 from ..authentication import (
     NamespacedAuthenticationPolicy, email_is_not_restricted, smaht_create_unauthorized_user
 )
+from ..logging_config import _configure_structlog, make_console_formatter
+from ..project.authentication import SMAHTProjectAuthentication
 
 
 pytestmark = [pytest.mark.setone, pytest.mark.working]
@@ -108,6 +113,44 @@ class TestNamespacedAuthenticationPolicy(unittest.TestCase):
         result = policy.forget(request)
         self.assertEqual(request.session.get('userid'), None)
         self.assertEqual(result, [])
+
+
+def test_login_emits_identity_free_structured_audit_event():
+    """A successful login request is visible on the configured encoded log path."""
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(make_console_formatter())
+    encoded_logger = logging.getLogger("encoded")
+    auth_logger = logging.getLogger("encoded.project.authentication")
+    previous_encoded = (list(encoded_logger.handlers), encoded_logger.level, encoded_logger.propagate)
+    previous_auth = (list(auth_logger.handlers), auth_logger.level, auth_logger.propagate)
+    encoded_logger.handlers[:] = [handler]
+    encoded_logger.setLevel(logging.WARNING)
+    encoded_logger.propagate = False
+    auth_logger.handlers[:] = []
+    auth_logger.setLevel(logging.NOTSET)
+    auth_logger.propagate = True
+    try:
+        _configure_structlog(in_prod=True)
+        request = DummyRequest(headers={'Authorization': 'Bearer synthetic-login-token'})
+        request.scheme = 'http'
+        result = SMAHTProjectAuthentication().login(None, request, samesite='strict')
+    finally:
+        encoded_logger.handlers[:] = previous_encoded[0]
+        encoded_logger.setLevel(previous_encoded[1])
+        encoded_logger.propagate = previous_encoded[2]
+        auth_logger.handlers[:] = previous_auth[0]
+        auth_logger.setLevel(previous_auth[1])
+        auth_logger.propagate = previous_auth[2]
+        handler.close()
+
+    record = json.loads(stream.getvalue())
+    assert result == {'saved_cookie': True}
+    assert record['logger'] == 'encoded.project.authentication'
+    assert record['message'] == 'User login successful'
+    assert record['event_type'] == 'user_login'
+    assert 'synthetic-login-token' not in stream.getvalue()
+    assert 'synthetic-login@example.invalid' not in stream.getvalue()
 
 
 @pytest.mark.parametrize('email', [
