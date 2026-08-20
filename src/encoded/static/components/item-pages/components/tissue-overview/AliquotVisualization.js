@@ -606,6 +606,16 @@ export default function AliquotVisualization({
         : null;
     const selectedFrozenCorePositions =
         selectedSlice?.frozenCorePositions || DEFAULT_FROZEN_CORE_POSITIONS;
+    // Only reachable for real data -- demo/illustrative slices never set
+    // frozenCorePositions at all, so they fall through to
+    // DEFAULT_FROZEN_CORE_POSITIONS (always non-empty) instead of landing
+    // here. An empty array means this Frozen sample's own external_id
+    // doesn't carry a core/well suffix yet (see
+    // getCorePositionFromExternalId) -- i.e. it hasn't been split into
+    // individual sequencing cores by a GCC yet, not a rendering problem --
+    // shown so a blank grid doesn't read as broken.
+    const showNoCorePositionsNote =
+        selectedSlice?.type === 'yellow' && selectedFrozenCorePositions.length === 0;
     // Every core position submitted by the same GCC (the common case -- one
     // physical aliquot is usually processed by a single center) collapses
     // into one group instead of repeating that GCC's name once per
@@ -1137,6 +1147,13 @@ export default function AliquotVisualization({
                                 <p className="aliquot-popover-caption">
                                     {selectedStyles.caption}
                                 </p>
+                                {showNoCorePositionsNote ? (
+                                    <p className="aliquot-popover-pathology-empty">
+                                        No core positions assigned yet -- this
+                                        aliquot hasn&apos;t been split into
+                                        individual sequencing cores.
+                                    </p>
+                                ) : null}
                                 {selectedSlice?.type === 'yellow' && selectedFrozenCorePositions.length > 0 ? (
                                     <div className="aliquot-popover-cores">
                                         {selectedFrozenCorePositionGroups.flatMap((group, groupIndex) => {
