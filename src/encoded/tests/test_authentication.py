@@ -4,7 +4,7 @@ import logging
 import pytest
 import unittest
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from pyramid.interfaces import IAuthenticationPolicy
 from pyramid.security import Authenticated, Everyone
@@ -116,8 +116,8 @@ class TestNamespacedAuthenticationPolicy(unittest.TestCase):
         self.assertEqual(result, [])
 
 
-def test_login_emits_identity_free_structured_audit_event():
-    """A successful login request is visible on the configured encoded log path."""
+def test_login_emits_actor_uuid_structured_audit_event():
+    """A successful login includes only the canonical actor UUID."""
     stream = io.StringIO()
     handler = logging.StreamHandler(stream)
     handler.setFormatter(make_console_formatter())
@@ -135,7 +135,13 @@ def test_login_emits_identity_free_structured_audit_event():
         _configure_structlog(in_prod=True)
         request = DummyRequest(headers={'Authorization': 'Bearer synthetic-login-token'})
         request.scheme = 'http'
-        result = SMAHTProjectAuthentication().login(None, request, samesite='strict')
+        with patch.object(
+            type(request),
+            'effective_principals',
+            new_callable=PropertyMock,
+            return_value=['userid.00000000-0000-4000-8000-000000000001'],
+        ):
+            result = SMAHTProjectAuthentication().login(None, request, samesite='strict')
     finally:
         encoded_logger.handlers[:] = previous_encoded[0]
         encoded_logger.setLevel(previous_encoded[1])
@@ -152,6 +158,7 @@ def test_login_emits_identity_free_structured_audit_event():
     assert record['event_type'] == 'user_login'
     assert record['action'] == 'login'
     assert record['outcome'] == 'success'
+    assert record['user_uuid'] == '00000000-0000-4000-8000-000000000001'
     assert 'synthetic-login-token' not in stream.getvalue()
     assert 'synthetic-login@example.invalid' not in stream.getvalue()
 
@@ -192,6 +199,7 @@ def test_login_failure_emits_identity_free_structured_audit_event():
     assert record['event_type'] == 'user_login'
     assert record['action'] == 'login'
     assert record['outcome'] == 'failure'
+    assert 'user_uuid' not in record
     assert 'synthetic-login-token' not in stream.getvalue()
     assert 'synthetic-login@example.invalid' not in stream.getvalue()
 

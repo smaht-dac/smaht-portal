@@ -2,6 +2,7 @@ from typing import Dict, List, Tuple
 
 import structlog
 from pyramid.authorization import Allow
+from pyramid.threadlocal import get_current_request
 from pyramid.view import view_config
 from snovault import collection, load_schema
 from snovault.types.access_key import (
@@ -13,6 +14,7 @@ from snovault.types.access_key import (
 from snovault.util import debug_log
 from snovault.validators import validate_item_content_post
 
+from ..audit_logging import authenticated_actor_fields
 from .acl import ALLOW_AUTHENTICATED_CREATE_ACL, ONLY_ADMIN_VIEW_ACL
 from .base import DELETED_ACL
 from .base import Item
@@ -66,6 +68,10 @@ class AccessKey(Item, SnovaultAccessKey):
             self.properties.get("status") == "current"
             and properties.get("status") == "deleted"
         )
+        actor_fields = (
+            authenticated_actor_fields(get_current_request())
+            if revoke_requested else {}
+        )
         try:
             result = super().update(properties, sheets)
         except Exception:
@@ -75,6 +81,7 @@ class AccessKey(Item, SnovaultAccessKey):
                     action="access_key_revoke",
                     outcome="failure",
                     event_type="access_key",
+                    **actor_fields,
                 )
             raise
         if revoke_requested:
@@ -83,6 +90,7 @@ class AccessKey(Item, SnovaultAccessKey):
                 action="access_key_revoke",
                 outcome="success",
                 event_type="access_key",
+                **actor_fields,
             )
         return result
 
@@ -100,6 +108,7 @@ def access_key_add(context, request):
             action="access_key_create",
             outcome="failure",
             event_type="access_key",
+            **authenticated_actor_fields(request),
         )
         raise
     log.warning(
@@ -107,6 +116,7 @@ def access_key_add(context, request):
         action="access_key_create",
         outcome="success",
         event_type="access_key",
+        **authenticated_actor_fields(request),
     )
     return result
 
@@ -124,6 +134,7 @@ def access_key_reset_secret(context, request):
             action="access_key_reset",
             outcome="failure",
             event_type="access_key",
+            **authenticated_actor_fields(request),
         )
         raise
     log.warning(
@@ -131,6 +142,7 @@ def access_key_reset_secret(context, request):
         action="access_key_reset",
         outcome="success",
         event_type="access_key",
+        **authenticated_actor_fields(request),
     )
     return result
 

@@ -45,6 +45,7 @@ from snovault.util import get_item_or_none
 from snovault.server_defaults import add_last_modified
 
 from . import acl
+from ..audit_logging import authenticated_actor_fields
 from .base import (
     Item,
     collection_add,
@@ -1549,13 +1550,14 @@ def validate_user_has_public_protected_access(request):
     return False
 
 
-def _log_download_event(action, outcome):
-    """Emit a bounded download audit event without resource or user details."""
+def _log_download_event(action, outcome, request):
+    """Emit a bounded download audit event without resource or raw user details."""
     log.warning(
         "File download",
         action=action,
         outcome=outcome,
         event_type="file_download",
+        **authenticated_actor_fields(request),
     )
 
 
@@ -1565,21 +1567,21 @@ def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
     # Download restriction for restricted status
     if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
-        _log_download_event("file_download_cli", "failure")
+        _log_download_event("file_download_cli", "failure", request)
         raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     # Download restriction for protected
     if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        _log_download_event("file_download_cli", "failure")
+        _log_download_event("file_download_cli", "failure", request)
         raise HTTPForbidden('This is a protected file and is not available through download_cli without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
     try:
         result = CoreDownloadCli(context, request)
     except Exception:
-        _log_download_event("file_download_cli", "failure")
+        _log_download_event("file_download_cli", "failure", request)
         raise
-    _log_download_event("file_download_cli", "success")
+    _log_download_event("file_download_cli", "success", request)
     return result
 
 
@@ -1588,13 +1590,13 @@ def download_cli(context, request):
 def download(context, request):
     # Download restriction for protected
     if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
-        _log_download_event("file_download", "failure")
+        _log_download_event("file_download", "failure", request)
         raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     # Download restriction for protected
     if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        _log_download_event("file_download", "failure")
+        _log_download_event("file_download", "failure", request)
         raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
 
@@ -1602,7 +1604,7 @@ def download(context, request):
     try:
         check_user_is_logged_in(request)
     except Exception:
-        _log_download_event("file_download", "failure")
+        _log_download_event("file_download", "failure", request)
         raise
 
     # first check for restricted status
@@ -1684,7 +1686,7 @@ def download(context, request):
 
     # The signed URL is now available, but the audit event deliberately omits
     # it, the file identifier/name, and all request/user details.
-    _log_download_event("file_download", "success")
+    _log_download_event("file_download", "success", request)
 
     # Analytics Stuff
     ga_config = request.registry.settings.get('ga_config')
