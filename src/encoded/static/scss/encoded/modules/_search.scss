@@ -1289,13 +1289,12 @@ body[data-at-type^='Publication-collections'] {
                 flex: 1;
                 border: 1px solid gray;
                 border-radius: 5px;
-                max-width: 180px;
 
                 &-label {
                     font-weight: 500;
                 }
                 &-value {
-                    font-size: 2rem;
+                    font-size: 1.75rem;
                     font-weight: 500;
                     color: $gray-70;
 
@@ -1333,7 +1332,7 @@ body[data-at-type^='Publication-collections'] {
 
         @include media-breakpoint-up(xl) {
             .data-summary {
-                justify-content: start;
+                justify-content: space-around;
             }
         }
 
@@ -1525,6 +1524,7 @@ body[data-at-type^='Publication-collections'] {
                 .thumbnail-title {
                     display: flex;
                     align-items: center;
+                    margin-right: 50px;
 
                     .title {
                         h4 {

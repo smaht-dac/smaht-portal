@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+2.11.1
+======
+
+`PR 749: feat: popover update to publication view <https://github.com/smaht-dac/smaht-portal/pull/749>`_
+
+* Add popover for statistics link button and file search view when users are logged out
+* Add string at the end of citation for SNV paper
+
+
 2.11.0
 ======
 
@@ -14,6 +23,7 @@ Change Log
 
 * Adds validators to enforce that a donor's linked protected items ('MedicalHistory', 'Demographic', 'FamilyHistory', 'DeathCircumstances' and 'TissueCollection') are only linked to ProtectedDonor items.
 * Pulls in new snovault for fix for skip_links options
+
 
 2.10.0
 ======
