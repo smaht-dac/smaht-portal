@@ -21,6 +21,7 @@ import {
     formatShortCitationAuthors,
     getPublicationYear,
 } from '../util/Schemas';
+import { renderLoginAccessPopover } from './PublicDonorView';
 
 /**
  * Finds the `static_content` entry for a given `location`, returning its
@@ -166,8 +167,9 @@ const PublicationStatViewer = ({ doi, session, isBenchmarking }) => {
                         This publication analyzed data from protected files.
                         <br />
                         <br />
-                        Please log in to see complete file list. Downloading
-                        protected files requires dbGAP approval.
+                        {!session &&
+                            'Please log in to see complete file list. '}
+                        Downloading protected files requires dbGAP approval.
                     </Popover.Body>
                 </Popover>
             }>
@@ -195,10 +197,15 @@ const PublicationStatViewer = ({ doi, session, isBenchmarking }) => {
             )}
             <BrowseSummaryStatController type="Assay" {...statsProps} />
             <BrowseSummaryStatController type="File Size" {...statsProps} />
-            <a className="" href={searchUrl}>
-                <span>Browse Data</span>
-                <RightArrowIcon fill={'#70A3E2'} />
-            </a>
+            <OverlayTrigger
+                trigger={['hover', 'focus']}
+                placement="top"
+                overlay={!session ? renderLoginAccessPopover() : <></>}>
+                <a className="" href={searchUrl}>
+                    <span>Browse Data</span>
+                    <RightArrowIcon fill={'#70A3E2'} />
+                </a>
+            </OverlayTrigger>
         </div>
     );
 };
@@ -436,7 +443,12 @@ const PublicationView = React.memo(function PublicationView(props) {
                                     value={citationString}
                                     wrapperElement="span"></object.CopyWrapper>
                             </div>
-                            <span className="citation">{citationString}</span>
+                            <span className="citation">
+                                {citationString}
+                                {context?.accession === 'SMAPBTYIDADU' && (
+                                    <span>. Accepted at Cell Genomics.</span>
+                                )}
+                            </span>
                             <button
                                 type="button"
                                 className="author-details-toggle"
