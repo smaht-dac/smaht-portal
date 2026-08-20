@@ -1,4 +1,7 @@
 from typing import Optional, Union
+
+import structlog
+from pyramid.threadlocal import get_current_request
 from pyramid.view import view_config
 from snovault import calculated_property, collection, display_title_schema, load_schema
 from snovault.types.user import User as SnovaultUser
@@ -8,6 +11,41 @@ from snovault.util import debug_log
 
 from .acl import ONLY_ADMIN_VIEW_ACL, ONLY_OWNER_VIEW_PROFILE_ACL, DELETED_USER_ACL
 from .base import Item
+from ..audit_logging import (
+    authenticated_actor_fields,
+    result_subject_uuid,
+    safe_user_field_value,
+    subject_uuid_fields,
+)
+
+
+log = structlog.getLogger(__name__)
+AUDITED_USER_FIELDS = ("status", "groups", "submits_for", "submission_centers")
+USER_ARRAY_FIELDS = frozenset(AUDITED_USER_FIELDS) - {"status"}
+
+
+def _user_audit_snapshot(properties):
+    return {
+        field_name: safe_user_field_value(field_name, properties.get(
+            field_name, [] if field_name in USER_ARRAY_FIELDS else None
+        ))
+        for field_name in AUDITED_USER_FIELDS
+    }
+
+
+def _log_user_record_event(action, actor_fields, subject_fields, changed_fields, changes,
+                           **extra_fields):
+    log.warning(
+        "User record audit event",
+        event_type="user_account",
+        action=action,
+        outcome="success",
+        changed_fields=changed_fields,
+        changes=changes,
+        **actor_fields,
+        **subject_fields,
+        **extra_fields,
+    )
 
 
 @collection(
@@ -76,6 +114,70 @@ class User(Item, SnovaultUser):
         roles[owner] = 'role.owner'
         return roles
 
+    def update(self, properties, sheets=None):
+        """Audit security-relevant User changes after the persistence update succeeds."""
+        update_properties = dict(properties or {})
+        before = dict(self.properties or {})
+        before_snapshot = _user_audit_snapshot(before)
+        result = super().update(properties, sheets)
+        after = before.copy()
+        after.update(update_properties)
+        after_snapshot = _user_audit_snapshot(after)
+
+        changes = {
+            field_name: {
+                "before": before_snapshot[field_name],
+                "after": after_snapshot[field_name],
+            }
+            for field_name in AUDITED_USER_FIELDS
+            if field_name in update_properties
+            and before_snapshot[field_name] != after_snapshot[field_name]
+        }
+        changed_fields = list(changes)
+        for field_name in update_properties:
+            if field_name in AUDITED_USER_FIELDS or field_name == "uuid":
+                continue
+            if before.get(field_name) != after.get(field_name):
+                changed_fields.append(field_name)
+        if not changed_fields:
+            return result
+
+        actor_fields = authenticated_actor_fields(get_current_request())
+        subject_fields = subject_uuid_fields(getattr(self, "uuid", None))
+        if set(changed_fields) - {"groups"}:
+            _log_user_record_event(
+                "user_record_change",
+                actor_fields,
+                subject_fields,
+                changed_fields,
+                changes,
+            )
+
+        if "groups" in changes:
+            before_groups = set(before_snapshot["groups"])
+            after_groups = set(after_snapshot["groups"])
+            granted_groups = sorted(after_groups - before_groups)
+            revoked_groups = sorted(before_groups - after_groups)
+            if granted_groups:
+                _log_user_record_event(
+                    "user_group_grant",
+                    actor_fields,
+                    subject_fields,
+                    ["groups"],
+                    {"groups": changes["groups"]},
+                    granted_groups=granted_groups,
+                )
+            if revoked_groups:
+                _log_user_record_event(
+                    "user_group_revoke",
+                    actor_fields,
+                    subject_fields,
+                    ["groups"],
+                    {"groups": changes["groups"]},
+                    revoked_groups=revoked_groups,
+                )
+        return result
+
 
 USER_PAGE_VIEW_ATTRIBUTES = ['@id', '@type', 'uuid', 'title', 'display_title', 'email', 'consortia',
                              'submission_centers']
@@ -92,7 +194,28 @@ def user_page_view(context, request, user_page_view_attributes=USER_PAGE_VIEW_AT
              physical_path="/users")
 @debug_log
 def user_add(context, request):
-    return SnoUserAdd(context, request)
+    actor_fields = authenticated_actor_fields(request)
+    try:
+        result = SnoUserAdd(context, request)
+    except Exception:
+        log.warning(
+            "User account creation failed",
+            event_type="user_account",
+            action="user_account_create",
+            outcome="failure",
+            **actor_fields,
+        )
+        raise
+    if isinstance(result, dict) and result.get("status") == "success":
+        log.warning(
+            "User account created",
+            event_type="user_account",
+            action="user_account_create",
+            outcome="success",
+            **actor_fields,
+            **subject_uuid_fields(result_subject_uuid(result)),
+        )
+    return result
 
 
 @calculated_property(context=User, category='user_action')

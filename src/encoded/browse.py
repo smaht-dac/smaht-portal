@@ -10,6 +10,7 @@ from encoded.endpoints.recent_files_summary.recent_files_summary import (
     recent_files_summary_endpoint,
     recent_release_days_endpoint
 )
+from encoded.types.protected_donor import is_protected_donor_search, log_protected_donor_search
 
 log = structlog.getLogger(__name__)
 
@@ -38,7 +39,10 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
     """
     search_type = request.params.get('type', DEFAULT_BROWSE_TYPE)
 
-    return search(context, request, search_type, return_generator, forced_type="Browse")
+    result = search(context, request, search_type, return_generator, forced_type="Browse")
+    if is_protected_donor_search(context, request):
+        log_protected_donor_search(request, result)
+    return result
 
 
 # @view_config(route_name="recent_files_summary", request_method=["GET"], effective_principals=Authenticated)

@@ -1,4 +1,5 @@
 import requests
+import structlog
 from dcicutils.redis_tools import RedisSessionToken
 from snovault.authentication import (
     NamespacedAuthenticationPolicy,
@@ -24,6 +25,10 @@ from urllib.parse import urlencode
 import re
 
 from snovault.validation import ValidationFailure
+from .audit_logging import authenticated_actor_fields, result_subject_uuid, subject_uuid_fields
+
+
+log = structlog.getLogger(__name__)
 
 # From NIH CADR List
 BLOCKED_TLDS = ["cn", "hk", "mo", "ru", "ir", "kp", "cu", "ve"]
@@ -275,6 +280,14 @@ def smaht_create_unauthorized_user(context, request):
     if recap_res['success']:
         sno_res = sno_collection_add(user_coll, request, False)  # POST User
         if sno_res.get('status') == 'success':
+            log.warning(
+                "User account created",
+                event_type="user_account",
+                action="user_account_create",
+                outcome="success",
+                **authenticated_actor_fields(request),
+                **subject_uuid_fields(result_subject_uuid(sno_res)),
+            )
             return sno_res
         else:
             raise HTTPForbidden(title="Could not create user. Try logging in again.")

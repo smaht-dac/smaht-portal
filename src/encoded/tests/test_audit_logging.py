@@ -6,13 +6,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from pyramid.httpexceptions import HTTPForbidden, HTTPTemporaryRedirect
+from webob.multidict import MultiDict
 
 from snovault.types.access_key import AccessKey as SnovaultAccessKey
+from snovault.resources import Item as SnovaultItem
 
-from ..audit_logging import authenticated_actor_fields
+from ..audit_logging import authenticated_actor_fields, result_subject_uuid
+from ..browse import browse
 from ..logging_config import _configure_structlog, make_console_formatter
 from ..types.access_key import AccessKey, access_key_add, access_key_reset_secret
 from ..types.file import download, download_cli
+from ..types.protected_donor import protected_donor_item_view, protected_donor_search
+from ..types.user import User, user_add
 
 
 @pytest.fixture
@@ -21,7 +26,15 @@ def encoded_log_stream():
     stream = io.StringIO()
     handler = logging.StreamHandler(stream)
     handler.setFormatter(make_console_formatter())
-    logger_names = ["encoded", "encoded.types.access_key", "encoded.types.file"]
+    logger_names = [
+        "encoded",
+        "encoded.authentication",
+        "encoded.browse",
+        "encoded.types.access_key",
+        "encoded.types.file",
+        "encoded.types.protected_donor",
+        "encoded.types.user",
+    ]
     loggers = [logging.getLogger(name) for name in logger_names]
     previous = [
         (list(logger.handlers), logger.level, logger.propagate)
@@ -70,6 +83,9 @@ def test_actor_uuid_requires_one_canonical_uuid_principal():
     assert authenticated_actor_fields(SimpleNamespace(
         effective_principals=["system.Everyone"]
     )) == {}
+    assert result_subject_uuid({
+        "@graph": ["/users/00000000-0000-4000-8000-000000000017/"]
+    }) == "00000000-0000-4000-8000-000000000017"
 
 
 def test_access_key_audit_events_include_actor_uuid_without_secrets(encoded_log_stream):
@@ -108,6 +124,166 @@ def test_access_key_audit_events_include_actor_uuid_without_secrets(encoded_log_
     assert "synthetic-access-key-id" not in output
     assert "synthetic-create-secret" not in output
     assert "synthetic-reset-secret" not in output
+
+
+def test_protected_donor_search_audit_omits_query_and_filter_values(encoded_log_stream):
+    actor_uuid = "00000000-0000-4000-8000-000000000004"
+    request = SimpleNamespace(
+        effective_principals=[f"userid.{actor_uuid}"],
+        params=MultiDict([
+            ("type", "ProtectedDonor"),
+            ("external_id", "synthetic-filter-value"),
+        ]),
+        has_permission=MagicMock(return_value=True),
+    )
+    result = {"total": 2, "@graph": [{"uuid": "synthetic-record"}]}
+    with patch("encoded.types.protected_donor.sno_search", return_value=result):
+        assert protected_donor_search(MagicMock(), request) == result
+
+    browse_request = SimpleNamespace(
+        effective_principals=[f"userid.{actor_uuid}"],
+        params=MultiDict([
+            ("type", "ProtectedDonor"),
+            ("status", "synthetic-status-filter"),
+        ]),
+    )
+    with patch("encoded.browse.search", return_value={"total": 3, "@graph": []}):
+        browse(MagicMock(), browse_request)
+
+    records = _records(encoded_log_stream)
+    assert [(record["action"], record["outcome"], record["result_count"]) for record in records] == [
+        ("protected_donor_search", "allowed", 2),
+        ("protected_donor_search", "allowed", 3),
+    ]
+    assert all(record["event_type"] == "protected_donor_access" for record in records)
+    assert all(record["user_uuid"] == actor_uuid for record in records)
+    output = encoded_log_stream.getvalue()
+    assert "synthetic-filter-value" not in output
+    assert "synthetic-status-filter" not in output
+    assert "synthetic-record" not in output
+
+
+def test_protected_donor_search_and_record_denials_are_audited(encoded_log_stream):
+    actor_uuid = "00000000-0000-4000-8000-000000000005"
+    search_request = SimpleNamespace(
+        effective_principals=[f"userid.{actor_uuid}"],
+        params=MultiDict([( "type", "ProtectedDonor")]),
+        has_permission=MagicMock(return_value=False),
+    )
+    with pytest.raises(HTTPForbidden):
+        protected_donor_search(MagicMock(), search_request)
+
+    record_uuid = "00000000-0000-4000-8000-000000000006"
+    record_request = SimpleNamespace(
+        effective_principals=[f"userid.{actor_uuid}"],
+        has_permission=MagicMock(return_value=False),
+    )
+    with pytest.raises(HTTPForbidden):
+        protected_donor_item_view(SimpleNamespace(uuid=record_uuid), record_request)
+
+    records = _records(encoded_log_stream)
+    assert [(record["action"], record["outcome"]) for record in records] == [
+        ("protected_donor_search", "denied"),
+        ("protected_donor_record_access", "denied"),
+    ]
+    assert records[0]["result_count"] == 0
+    assert records[1]["target_uuid"] == record_uuid
+    assert all(record["user_uuid"] == actor_uuid for record in records)
+
+
+def test_protected_donor_allowed_record_access_has_target_uuid(encoded_log_stream):
+    actor_uuid = "00000000-0000-4000-8000-000000000007"
+    record_uuid = "00000000-0000-4000-8000-000000000008"
+    request = SimpleNamespace(
+        effective_principals=[f"userid.{actor_uuid}"],
+        has_permission=MagicMock(return_value=True),
+    )
+    with patch("encoded.types.protected_donor.sno_item_view", return_value={"safe": True}):
+        assert protected_donor_item_view(SimpleNamespace(uuid=record_uuid), request) == {"safe": True}
+    record = _records(encoded_log_stream)[0]
+    assert record["action"] == "protected_donor_record_access"
+    assert record["outcome"] == "allowed"
+    assert record["target_uuid"] == record_uuid
+    assert record["user_uuid"] == actor_uuid
+
+
+def test_user_account_creation_distinguishes_actor_and_subject(encoded_log_stream):
+    actor_uuid = "00000000-0000-4000-8000-000000000009"
+    subject_uuid = "00000000-0000-4000-8000-000000000010"
+    request = SimpleNamespace(effective_principals=[f"userid.{actor_uuid}"])
+    result = {
+        "status": "success",
+        "@graph": [{"uuid": subject_uuid, "email": "synthetic-user@example.invalid"}],
+    }
+    with patch("encoded.types.user.SnoUserAdd", return_value=result):
+        assert user_add(MagicMock(), request) == result
+    record = _records(encoded_log_stream)[0]
+    assert record["action"] == "user_account_create"
+    assert record["outcome"] == "success"
+    assert record["user_uuid"] == actor_uuid
+    assert record["subject_uuid"] == subject_uuid
+    assert "synthetic-user@example.invalid" not in encoded_log_stream.getvalue()
+
+
+def test_user_security_field_changes_have_safe_deltas_and_group_semantics(encoded_log_stream):
+    actor_uuid = "00000000-0000-4000-8000-000000000011"
+    subject_uuid = "00000000-0000-4000-8000-000000000012"
+    old_center = "00000000-0000-4000-8000-000000000013"
+    new_center = "00000000-0000-4000-8000-000000000014"
+    old_submission = "00000000-0000-4000-8000-000000000015"
+    new_submission = "00000000-0000-4000-8000-000000000016"
+    request = SimpleNamespace(effective_principals=[f"userid.{actor_uuid}"])
+    user = object.__new__(User)
+    user.model = SimpleNamespace(
+        properties={
+            "email": "synthetic-subject@example.invalid",
+            "status": "inactive",
+            "groups": ["group.viewer"],
+            "submits_for": [old_submission],
+            "submission_centers": [old_center],
+        },
+        uuid=subject_uuid,
+    )
+    update = {
+        "status": "current",
+        "groups": ["group.admin"],
+        "submits_for": [new_submission],
+        "submission_centers": [new_center],
+        "email": "synthetic-updated@example.invalid",
+    }
+    with patch("encoded.types.user.get_current_request", return_value=request), \
+            patch.object(SnovaultItem, "update", return_value=None):
+        user.update(update)
+
+    records = _records(encoded_log_stream)
+    assert [record["action"] for record in records] == [
+        "user_record_change",
+        "user_group_grant",
+        "user_group_revoke",
+    ]
+    record = records[0]
+    assert record["user_uuid"] == actor_uuid
+    assert record["subject_uuid"] == subject_uuid
+    assert record["changed_fields"] == [
+        "status", "groups", "submits_for", "submission_centers", "email"
+    ]
+    assert record["changes"]["status"] == {"before": "inactive", "after": "current"}
+    assert record["changes"]["groups"] == {
+        "before": ["group.viewer"],
+        "after": ["group.admin"],
+    }
+    assert record["changes"]["submits_for"] == {"before": [old_submission], "after": [new_submission]}
+    assert record["changes"]["submission_centers"] == {
+        "before": [old_center],
+        "after": [new_center],
+    }
+    assert records[1]["granted_groups"] == ["group.admin"]
+    assert records[2]["revoked_groups"] == ["group.viewer"]
+    assert all(record["user_uuid"] == actor_uuid for record in records)
+    assert all(record["subject_uuid"] == subject_uuid for record in records)
+    output = encoded_log_stream.getvalue()
+    assert "synthetic-subject@example.invalid" not in output
+    assert "synthetic-updated@example.invalid" not in output
 
 
 def test_download_audit_events_cover_signed_and_denied_paths(encoded_log_stream):
