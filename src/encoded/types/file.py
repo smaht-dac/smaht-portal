@@ -1549,20 +1549,38 @@ def validate_user_has_public_protected_access(request):
     return False
 
 
+def _log_download_event(action, outcome):
+    """Emit a bounded download audit event without resource or user details."""
+    log.warning(
+        "File download",
+        action=action,
+        outcome=outcome,
+        event_type="file_download",
+    )
+
+
 @view_config(name='download_cli', context=File, permission='view', request_method=['GET'])
 @debug_log
 def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
     # Download restriction for restricted status
     if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
+        _log_download_event("file_download_cli", "failure")
         raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     # Download restriction for protected
     if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
+        _log_download_event("file_download_cli", "failure")
         raise HTTPForbidden('This is a protected file and is not available through download_cli without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
-    return CoreDownloadCli(context, request)
+    try:
+        result = CoreDownloadCli(context, request)
+    except Exception:
+        _log_download_event("file_download_cli", "failure")
+        raise
+    _log_download_event("file_download_cli", "success")
+    return result
 
 
 @view_config(name='download', context=File, request_method='GET',
@@ -1570,16 +1588,22 @@ def download_cli(context, request):
 def download(context, request):
     # Download restriction for protected
     if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
+        _log_download_event("file_download", "failure")
         raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     # Download restriction for protected
     if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
+        _log_download_event("file_download", "failure")
         raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
 
     # Download implementation, which requires non-trivial overrides follows
-    check_user_is_logged_in(request)
+    try:
+        check_user_is_logged_in(request)
+    except Exception:
+        _log_download_event("file_download", "failure")
+        raise
 
     # first check for restricted status
     try:
@@ -1657,6 +1681,10 @@ def download(context, request):
                                                                        request_datastore_is_database)
     else:
         raise ValueError(external.get('service'))
+
+    # The signed URL is now available, but the audit event deliberately omits
+    # it, the file identifier/name, and all request/user details.
+    _log_download_event("file_download", "success")
 
     # Analytics Stuff
     ga_config = request.registry.settings.get('ga_config')

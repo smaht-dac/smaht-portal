@@ -9,10 +9,16 @@ log = structlog.getLogger(__name__)
 
 class SMAHTProjectAuthentication(SnovaultProjectAuthentication):
     def login(self, context, request, *, samesite):
-        response = super().login(context, request, samesite=samesite)
+        try:
+            response = super().login(context, request, samesite=samesite)
+        except Exception:
+            # Do not include request data here. The token is intentionally not
+            # copied into the application log stream.
+            log.warning("User login failed", action="login", outcome="failure", event_type="user_login")
+            raise
         # Keep this event deliberately identity-free: the authenticated token and
         # user details must never be copied into the application log stream.
-        log.warning("User login successful", event_type="user_login")
+        log.warning("User login successful", action="login", outcome="success", event_type="user_login")
         return response
 
     def namespaced_authentication_policy_authenticated_userid(self, namespaced_authentication_policy, request,

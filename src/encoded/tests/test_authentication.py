@@ -12,6 +12,7 @@ from pyramid.testing import DummyRequest
 from pyramid.threadlocal import manager
 from pyramid.httpexceptions import HTTPForbidden
 from snovault import COLLECTIONS
+from snovault.project.authentication import SnovaultProjectAuthentication
 from zope.interface.verify import verifyClass, verifyObject
 from ..authentication import (
     NamespacedAuthenticationPolicy, email_is_not_restricted, smaht_create_unauthorized_user
@@ -149,6 +150,48 @@ def test_login_emits_identity_free_structured_audit_event():
     assert record['logger'] == 'encoded.project.authentication'
     assert record['message'] == 'User login successful'
     assert record['event_type'] == 'user_login'
+    assert record['action'] == 'login'
+    assert record['outcome'] == 'success'
+    assert 'synthetic-login-token' not in stream.getvalue()
+    assert 'synthetic-login@example.invalid' not in stream.getvalue()
+
+
+def test_login_failure_emits_identity_free_structured_audit_event():
+    """A login processing failure reaches the same configured log path."""
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(make_console_formatter())
+    encoded_logger = logging.getLogger("encoded")
+    auth_logger = logging.getLogger("encoded.project.authentication")
+    previous_encoded = (list(encoded_logger.handlers), encoded_logger.level, encoded_logger.propagate)
+    previous_auth = (list(auth_logger.handlers), auth_logger.level, auth_logger.propagate)
+    encoded_logger.handlers[:] = [handler]
+    encoded_logger.setLevel(logging.WARNING)
+    encoded_logger.propagate = False
+    auth_logger.handlers[:] = []
+    auth_logger.setLevel(logging.NOTSET)
+    auth_logger.propagate = True
+    try:
+        _configure_structlog(in_prod=True)
+        request = DummyRequest(headers={'Authorization': 'Bearer synthetic-login-token'})
+        with patch.object(SnovaultProjectAuthentication, 'login', side_effect=ValueError('synthetic failure')):
+            with pytest.raises(ValueError, match='synthetic failure'):
+                SMAHTProjectAuthentication().login(None, request, samesite='strict')
+    finally:
+        encoded_logger.handlers[:] = previous_encoded[0]
+        encoded_logger.setLevel(previous_encoded[1])
+        encoded_logger.propagate = previous_encoded[2]
+        auth_logger.handlers[:] = previous_auth[0]
+        auth_logger.setLevel(previous_auth[1])
+        auth_logger.propagate = previous_auth[2]
+        handler.close()
+
+    record = json.loads(stream.getvalue())
+    assert record['logger'] == 'encoded.project.authentication'
+    assert record['message'] == 'User login failed'
+    assert record['event_type'] == 'user_login'
+    assert record['action'] == 'login'
+    assert record['outcome'] == 'failure'
     assert 'synthetic-login-token' not in stream.getvalue()
     assert 'synthetic-login@example.invalid' not in stream.getvalue()
 

@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple
 
+import structlog
 from pyramid.authorization import Allow
 from pyramid.view import view_config
 from snovault import collection, load_schema
@@ -15,6 +16,9 @@ from snovault.validators import validate_item_content_post
 from .acl import ALLOW_AUTHENTICATED_CREATE_ACL, ONLY_ADMIN_VIEW_ACL
 from .base import DELETED_ACL
 from .base import Item
+
+
+log = structlog.getLogger(__name__)
 
 
 @collection(
@@ -57,13 +61,54 @@ class AccessKey(Item, SnovaultAccessKey):
     def __ac_local_roles__(self) -> Dict[str, str]:
         return SnovaultAccessKey.__ac_local_roles__(self)
 
+    def update(self, properties, sheets=None):
+        revoke_requested = (
+            self.properties.get("status") == "current"
+            and properties.get("status") == "deleted"
+        )
+        try:
+            result = super().update(properties, sheets)
+        except Exception:
+            if revoke_requested:
+                log.warning(
+                    "Access key revocation failed",
+                    action="access_key_revoke",
+                    outcome="failure",
+                    event_type="access_key",
+                )
+            raise
+        if revoke_requested:
+            log.warning(
+                "Access key revoked",
+                action="access_key_revoke",
+                outcome="success",
+                event_type="access_key",
+            )
+        return result
+
 
 @view_config(context=AccessKey.Collection, request_method="POST",
              permission="add",
              validators=[validate_item_content_post])
 @debug_log
 def access_key_add(context, request):
-    return sno_access_key_add(context, request)
+    try:
+        result = sno_access_key_add(context, request)
+    except Exception:
+        log.warning(
+            "Access key creation failed",
+            action="access_key_create",
+            outcome="failure",
+            event_type="access_key",
+        )
+        raise
+    log.warning(
+        "Access key created",
+        action="access_key_create",
+        outcome="success",
+        event_type="access_key",
+    )
+    return result
 
 
 @view_config(name="reset-secret", context=AccessKey,
@@ -71,7 +116,23 @@ def access_key_add(context, request):
              request_method="POST", subpath_segments=0)
 @debug_log
 def access_key_reset_secret(context, request):
-    return sno_access_key_reset_secret(context, request)
+    try:
+        result = sno_access_key_reset_secret(context, request)
+    except Exception:
+        log.warning(
+            "Access key reset failed",
+            action="access_key_reset",
+            outcome="failure",
+            event_type="access_key",
+        )
+        raise
+    log.warning(
+        "Access key reset",
+        action="access_key_reset",
+        outcome="success",
+        event_type="access_key",
+    )
+    return result
 
 
 @view_config(context=AccessKey, permission="view_raw", request_method="GET",
