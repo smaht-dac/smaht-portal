@@ -143,6 +143,14 @@ RUN chown -R nginx:nginx /var/cache/nginx && \
     mkdir -p /data/nginx/cache && \
     chown -R nginx:nginx /data/nginx/cache
 
+# nginx config gate: validate the installed config against the EXACT pinned nginx
+# (1.21.6, from install_nginx_bullseye.sh) now that the config file and the log/cache
+# paths it references exist. This runs during `docker build` (the CI Docker job), so a
+# syntactically invalid or directive-incompatible nginx.conf fails the build instead of
+# only failing at container start. Local `nginx -t` on a different nginx version is not a
+# substitute for this. (Syntax/directive test only -- it does not prove runtime behavior.)
+RUN nginx -v && nginx -t
+
 WORKDIR /home/nginx/smaht-portal
 
 # Bring in the built venv and the built application tree from the builder. --chown

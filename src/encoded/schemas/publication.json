@@ -108,6 +108,19 @@
                         "title": "Surname",
                         "description": "An author's surname (last name)",
                         "type": "string"
+                    },
+                    "author_info": {
+                        "title": "Author Info",
+                        "description": "Optional author role annotations.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "co-first author",
+                                "co-corresponding author",
+                                "corresponding author"
+                            ]
+                        }
                     }
                 }
             },

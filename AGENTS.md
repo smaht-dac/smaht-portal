@@ -79,6 +79,8 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
 - `make build` installs frontend dependencies with `npm ci`, builds assets, installs Poetry 1.8.5
   and Python dependencies, and generates local INI files. It also downloads AWS IP ranges and
   restricted-domain data, so it requires network access.
+- `poetry.toml` keeps Poetry's installer serial because Poetry 1.8.5 can race `packaging` while
+  building legacy sdists such as `future`; revisit this when the Poetry bootstrap is upgraded.
 - Start PostgreSQL/OpenSearch/nginx and load local data with `make deploy1`, then serve Pyramid in a
   second terminal with `make deploy2`; the portal is proxied at `http://localhost:8000`. Variants
   `deploy1a`/`deploy1b` separate the ingestion listener for debugging. These commands clear the local
@@ -93,7 +95,9 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   and start PostgreSQL/OpenSearch; fixtures and shared settings are in `src/encoded/tests/conftest.py`
   and `conftest_settings.py`.
 - Focus first: `pytest -vv src/encoded/tests/test_<area>.py` or add `-k <name>`. Pure utility tests can
-  run alone, but schema/type/view tests usually need the fixture stack. Add
+  run alone, but schema/type/view tests usually need the fixture stack. For fully mocked/unit tests,
+  `NO_SERVER_FIXTURES=true` makes the session-scoped PostgreSQL/ES fixtures no-ops so they run without
+  local database binaries (the gate lives in `dcicutils.ff_mocks` and `snovault.tests.serverfixtures`). Add
   `--cov=encoded.<module> --cov-report=term-missing` for focused coverage; conftest imports before
   coverage starts can make import-time lines appear missed.
 - `make test` runs both marker groups. Despite legacy target names, `make test-unit` means

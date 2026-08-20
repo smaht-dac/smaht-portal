@@ -182,6 +182,10 @@ def includeme(config):
 class Page(Item, CorePage):
     item_type = 'page'
     schema = load_schema("encoded:schemas/page.json")
+    # Static pages are edited by admins and rendered from current content
+    # only; retaining every Postgres revision adds storage growth without
+    # useful audit value.
+    track_revisions = False
     embedded_list = [
         'content.*',
         'children.*',

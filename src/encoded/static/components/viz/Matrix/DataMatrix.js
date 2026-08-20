@@ -143,7 +143,7 @@ export default class DataMatrix extends React.PureComponent {
             "shortName": "RNA"
         },
         "Duplex-seq": {
-            "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
+            "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'META-VISTA-seq', 'CompDuplex-Seq', 'HiDEF-seq'],
             "backgroundColor": "#2b4792",
             "textColor": "#ffffff",
             "shortName": "Dupl"
@@ -226,9 +226,9 @@ export default class DataMatrix extends React.PureComponent {
                 "NanoSeq - Illumina": "NanoSeq",
                 "ATAC-seq - Illumina": "ATAC-Seq",
                 "varCUT&Tag - Illumina": "varCUT&Tag",
-                "VISTA-seq - Illumina": "VISTA-Seq",
-                "scVISTA-seq - Illumina": "VISTA-Seq",
-                "Microbulk VISTA-seq - Illumina": "VISTA-Seq",
+                "META-VISTA-seq - Illumina": "META-VISTA-seq",
+                "scMETA-VISTA-seq - Illumina": "META-VISTA-seq",
+                "Microbulk META-VISTA-seq - Illumina": "META-VISTA-seq",
                 "CODEC - Illumina": "CODEC",
                 "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
                 "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
@@ -927,9 +927,9 @@ export default class DataMatrix extends React.PureComponent {
             //
             // NOTE: a matching exclusion for analysis_details Filtered/Phased ("Variant Call
             // Sets") rows was tried here and reverted - Duplex-seq assays (NanoSeq/CODEC/
-            // VISTA-Seq) also carry Filtered/Phased rows that are NOT variant calls, and
+            // META-VISTA-seq) also carry Filtered/Phased rows that are NOT variant calls, and
             // excluding them dropped their real files from the override (confirmed via
-            // production export regression: NanoSeq -88, CODEC -100, VISTA-Seq -68 files).
+            // production export regression: NanoSeq -88, CODEC -100, META-VISTA-seq -68 files).
             // analysisDerivedColumns's variantCallAnalysisDetails filter is assay-agnostic and
             // may itself be over-broad, but fixing that needs assay/data_type-aware filtering,
             // not a blanket analysis_details check here.
@@ -1205,8 +1205,12 @@ export default class DataMatrix extends React.PureComponent {
                     }
                 });
                 _.forEach(_.keys(autoPopulateMap), (k) => {
+                    const values = Array.from(autoPopulateMap[k]);
+                    if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE) {
+                        values.sort((a, b) => compareTissueFacetTerms({ key: a }, { key: b }));
+                    }
                     autoPopulateMap[k] = {
-                        values: Array.from(autoPopulateMap[k])
+                        values
                     };
                 });
 
@@ -2126,8 +2130,6 @@ export default class DataMatrix extends React.PureComponent {
             showCoverageSummaries: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             // Donor x Tissue should not expose expand controls.
             disableRowExpand: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
-            // Donor x Tissue blocks are informational; disable click-to-open highlighting/popover selection.
-            disableBlockOpen: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE,
             isGridRefreshing: isCountToggleRefreshing,
             // Avoid showing the fallback N/A germ-layer band while a donor/tissue refresh is in flight.
             hideFallbackColumnGroupHeader: matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE && isRefreshing,

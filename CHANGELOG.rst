@@ -7,6 +7,298 @@ smaht-portal
 Change Log
 ----------
 
+2.11.2
+======
+
+`PR 750: update VISTA-seq mapping in data matrix <https://github.com/smaht-dac/smaht-portal/pull/750>`_
+
+* Renames the ``VISTA-META-seq``, ``scVISTA-META-seq``, and ``Microbulk VISTA-META-seq`` data matrix
+  assay mappings to ``META-VISTA-seq``, ``scMETA-VISTA-seq``, and ``Microbulk META-VISTA-seq``,
+  matching the updated backend assay display titles.
+* Updates the corresponding Cypress post-deploy data matrix assertions.
+
+
+2.11.1
+======
+
+`PR 749: feat: popover update to publication view <https://github.com/smaht-dac/smaht-portal/pull/749>`_
+
+* Add popover for statistics link button and file search view when users are logged out
+* Add string at the end of citation for SNV paper
+
+
+2.11.0
+======
+
+`PR 736: Add validators for donor linked protected items <https://github.com/smaht-dac/smaht-portal/pull/736>`_
+
+* Adds validators to enforce that a donor's linked protected items ('MedicalHistory', 'Demographic', 'FamilyHistory', 'DeathCircumstances' and 'TissueCollection') are only linked to ProtectedDonor items.
+* Pulls in new snovault for fix for skip_links options
+
+
+2.10.0
+======
+
+`PR 746: Add publication author_info schema support <https://github.com/smaht-dac/smaht-portal/pull/746>`_
+
+* Adds optional ``author_info`` on ``Publication.authors`` as an array of constrained strings,
+  supporting ``co-first author``, ``co-corresponding author``, and ``corresponding author``.
+* Adds focused publication schema/type test coverage and workbook fixture updates to exercise
+  ``author_info`` while preserving existing citation and short-citation behavior.
+* Includes the publication author formatting and table-rendering follow-up already present on this
+  branch, covering helper-based author formatting and the updated publication table/view rendering.
+
+
+2.9.1
+======
+
+`PR 743: feat: publication pages followup <https://github.com/smaht-dac/smaht-portal/pull/743>`_
+
+* Fixes ``PublicationView``'s static content sections to fall back correctly when a linked
+  ``StaticSection`` is redacted for the viewer (e.g. still ``in review``), instead of rendering an
+  empty "Reference Set Generation" or "Key / Novel Findings" section.
+* Adds borders and spacing around the publication search tables and their facet dropdowns, and
+  makes long facet lists horizontally scrollable on mobile.
+* Bumps ``@hms-dbmi-bgm/shared-portal-components`` to ``0.1.101``.
+
+
+2.9.0
+======
+
+`PR 637: feat: publication view <https://github.com/smaht-dac/smaht-portal/pull/637>`_
+
+* Implement page for publication items
+
+
+2.8.2
+=====
+
+`PR 734: WF Add annotated file names for scRNA-Seq data <https://github.com/smaht-dac/smaht-portal/pull/734>`_
+
+* Update annotated file names script for scRNA-Seq data
+
+
+2.8.1
+=====
+
+`PR 742: Rename VISTA-Seq to VISTA-META-seq in data matrix <https://github.com/smaht-dac/smaht-portal/pull/742>`_
+
+* Renames the VISTA assay label from ``VISTA-Seq`` to ``VISTA-META-seq`` in the Donor x Tissue
+  data matrix and its Cypress coverage.
+* Raises ``MAX_BUCKET_COUNT`` (30 -> 200) in ``data_matrix_aggregations``, fixing a silent
+  undercount where donors with low file counts in a tissue could be dropped from the Donor x
+  Tissue matrix once that tissue's donor cardinality exceeded the old limit.
+
+
+2.8.0
+=====
+
+`PR 728: Link fixed TissueSamples to their fresh/frozen source samples <https://github.com/smaht-dac/smaht-portal/pull/728>`_
+
+* Adds a ``linked_fixed_samples`` field on fresh/frozen ``TissueSample``\ s, linking to
+  TPC-submitted fixed ``TissueSample``\ s from the same tissue block (donor + protocol-pair
+  match), restricted to admin-editable (``restricted_fields``).
+* Adds a validator enforcing that ``linked_fixed_samples`` can only be set on a GCC-submitted
+  fresh/frozen sample, targeting valid TPC-submitted fixed samples of the matching protocol and
+  donor.
+* Adds calculated properties ``pathology_reports`` (rev-link) and ``associated_pathology_reports``
+  on ``TissueSample``, so a fresh/frozen sample surfaces the pathology reports of its linked fixed
+  samples.
+* Adds a new admin CLI command, ``associate-fixed-samples``, to populate or remove
+  ``linked_fixed_samples`` across TissueSamples (supports ``--all``, ``--search-query``,
+  ``--identifiers``/``--identifiers-file`` scopes, ``--delete``, and dry-run), including
+  reconciliation of stale links and warnings for orphaned fresh/fixed groups.
+* Adds ``FRESH_TO_FIXED_PROTOCOL_MAP`` and related helpers (``get_fixed_to_fresh_protocols``,
+  ``get_protocol_id_from_external_id`` usage) centralizing the fresh/fixed protocol-code mapping
+  used by both the validator and the linking script.
+* Expands test coverage for ``TissueSample`` item utils and types to cover the new field,
+  calculated properties, and validation logic.
+
+
+2.7.1
+=====
+
+`PR 740: Fix: Donor x Tissue matrix cells don't dim on click <https://github.com/smaht-dac/smaht-portal/pull/740>`_
+
+* Fixes the Data Matrix's Donor x Tissue tab so clicking a cell dims the other cells, matching the
+  existing Donor x Assay / Tissue x Assay behavior.
+* Removes the ``disableBlockOpen`` flag that was preventing ``openBlock`` state from ever being set
+  in Donor x Tissue mode, and the now-dead early-return branch in ``StackedBlockVisual``'s
+  ``handleBlockClick``.
+
+
+2.7.0
+=====
+
+* Add an admin-only control panel to the User profile page that lets administrators edit a
+  user's ``status``, ``groups``, and ``submits_for`` (submission centers) through searchable
+  controls, applied as a single atomic PATCH of only the changed fields after a confirmation
+  modal. The full ``status`` enum and all schema groups (including ``admin`` and
+  ``read-only-admin``) are exposed, and an admin may edit their own account (warn-only). The
+  panel is frontend-only: authorization is enforced by the existing backend
+  ``restricted_fields`` permission, and the client-side admin gate is cosmetic. The panel is
+  client-rendered only (never in server-rendered output).
+
+
+2.6.6
+=====
+
+`PR 738: fix: remove symlink node_modules <https://github.com/smaht-dac/smaht-portal/pull/738>`_
+
+* Remove node_modules symlink
+* Change gitignore to include symlink
+
+
+2.6.5
+=====
+
+`PR 735: fix 500 on self-registration when no Auth0 email was established <https://github.com/smaht-dac/smaht-portal/pull/735>`_
+
+* Fixes an HTTP 500 (``IndexError``) on ``POST /create-unauthorized-user``: the restricted-email
+  check ran ahead of the Auth0 email-match check, so the internal "no auth0 authenticated e-mail
+  supplied" placeholder was passed to ``email_is_not_restricted`` and failed to parse. Callers with
+  no established Auth0 email now get the intended 401.
+* ``email_is_not_restricted`` now refuses an address whose domain cannot be determined with
+  ``HTTPForbidden`` instead of raising ``IndexError``.
+* Restricted domain/email semantics and self-registration privilege stripping are unchanged.
+
+
+2.6.4
+=====
+
+`PR 733: update bulk donor manifest script to represent 89 as '89+' <https://github.com/smaht-dac/smaht-portal/pull/733>`_
+
+* Handles the case where donor age is 89 and represents it as "89+" in the bulk donor manifest
+* Ensures no newline characters are present in the bulk donor manifest output
+
+
+2.6.3
+=====
+
+`PR 732: add SMAHT tissue color scheme data and fix donor x tissue column ordering <https://github.com/smaht-dac/smaht-portal/pull/732>`_
+
+* Add the SMAHT tissue color scheme JSON data file
+* Sort Donor x Tissue matrix columns by TPC tissue code within each germ layer
+
+
+2.6.2
+=====
+
+`PR 723: test: add Cypress coverage for Data Matrix Export dropdown (Screenshot PNG / Export JSON) <https://github.com/smaht-dac/smaht-portal/pull/723>`_
+
+* Add Cypress spec for the Data Matrix Export dropdown, covering both Screenshot PNG and Export JSON functionality
+
+
+2.6.1
+=====
+
+`PR 727: add annotation mixin to supp file <https://github.com/smaht-dac/smaht-portal/pull/727>`_
+
+* Add annotation mixin to supplementary file schema to support the `annotated_file_name` script
+
+
+2.6.0
+=====
+
+`PR 719: Add restore-devtest-db command for snapshot-based devtest DB restore <https://github.com/smaht-dac/smaht-portal/pull/719>`_
+
+* Add the ``restore-devtest-db`` operator command, which rebuilds the ``smaht-devtest``
+  RDS database from a fresh snapshot of production and repoints the devtest IDENTITY
+  secret at the new instance. See ``docs/operations/restore_devtest_db.md``.
+* Update ``dcicsnovault`` to the newest compatible release ``11.34.0`` (within the
+  existing ``^11.30.0`` constraint). ``11.34.0`` drops its ``pmdarima`` dependency,
+  which had been transitively supplying ``pandas``; ``pandas`` is now declared
+  directly (``^3.0.0``, unchanged resolution ``3.0.3``) so the existing
+  ``create-bulk-donor-manifest`` command keeps working.
+
+
+2.5.1
+=====
+
+* Disable Postgres revision-history tracking for ``Workflow`` and ``MetaWorkflowRun`` items, and add a deployment command that uses set-based deletion per item type to purge already-stored historical propsheet rows while preserving each item's current version.
+* Emit bounded, structured progress events (initialization, resource/revision inventory scan start/periodic/complete, target-RID discovery, and cleanup phase/per-type boundaries) so a long-running ``delete-revision-history`` invocation stays visible instead of appearing silent, without changing its SQL, transaction, or batching behavior. Production evidence then showed the ``logger.info``-only path was not reliably reaching CloudWatch, so every operator-critical event and inventory summary line (per-type and database-total) is now also written directly and flushed to stdout, the one channel confirmed to reach CloudWatch, independent of logger level/handler configuration.
+* Add ``create-mapping-on-deploy-verbose`` and use it in the deployment path in place of ``create-mapping-on-deploy``: it raises only the two logger namespaces that own this infrequent command's own mapping/reindex decision narration (previously silently dropped by a ``dcicsnovault`` logger-scoping gap the same package's source has acknowledged since January 2022) to INFO, and adds one narrow log line distinguishing an existing index being rebuilt due to a mapping/signature mismatch from a first-time index creation, without altering mapping comparison, signature generation, index deletion/recreation, reindex selection, or queueing behavior.
+* Split ``delete-revision-history``'s single ``--batch-size`` into two independently configurable settings: a new ``--scan-batch-size`` (default 2000) bounding the read-only resource/revision inventory scans, and the existing ``--batch-size`` (default 500, unchanged) bounding deletion/would-be-deletion candidate pages and write transactions. Progress/boundary output now reports each phase's own batch size unambiguously; SQL predicates, ordering, transaction/commit boundaries, keyset advancement, interruption/resume, idempotency, and dry-run non-mutation are unchanged - this is page sizing only.
+* Expand the ``delete-revision-history`` purge list from ``Workflow``/``MetaWorkflowRun`` to eight item types (``AccessKey``, ``FileFormat``, ``Workflow``, ``WorkflowRun``, ``MetaWorkflow``, ``MetaWorkflowRun``, ``Page``, ``StaticSection``), setting ``track_revisions = False`` on each type's own leaf class (never on a shared abstract base also extended by unrelated types like ``CellCulture``/``CellSample``/``CellCultureSample``), fixing a missing-comma adjacent-string-literal bug that had silently merged two of the intended targets into one bogus tuple element, and adding a registry-wide invariant test plus per-type revision-history-disabled coverage for every newly-added type.
+* ``Tissue`` and ``TissueSample`` were briefly added to the purge list above and then removed on the same (still unreleased) branch: the captain decided both may need revision history in the future, so their Postgres revision tracking remains enabled (the ordinary Snovault default) and neither is ever selected for cleanup. Added a registry-level test proving both stay tracked and unpurged, and positive coverage proving representative edits continue to produce accessible ``@@revision-history`` entries.
+
+  
+2.5.0
+=====
+
+`PR 718: Submission Status: Add Auto-review QC <https://github.com/smaht-dac/smaht-portal/pull/718>`_
+
+* Add automated file set QC review to the Submission Status page: evaluate Warn/Fail QC
+  metrics on submitted and processed files and group coverage against target, then tag
+  file sets ("reviewed", plus "ready_to_release" when they pass) and record an
+  auto-review comment for each QC problem. Existing manual tags and comments are kept.
+* Add an "Auto-review QC" action in the "QC status" column header (admin-only, with
+  confirmation) that reviews every file set in the current view at once.
+* Fix tissue filtering so benchmarking file sets (whose ``tissue_type`` omits the code
+  prefix) are no longer dropped, and add ``tissue_type`` to the file set embedded list.
+
+
+2.4.4
+=====
+
+`PR 714: fix: decrease select-all file limit to 3000 <https://github.com/smaht-dac/smaht-portal/pull/714>`_
+
+* Decrease the "Select All" upper limit from 8000 to 3000 files
+* Update the disabled-state tooltip to reflect the new limit
+
+
+2.4.3
+=====
+
+`PR 724: fix: donor age on donor view <https://github.com/smaht-dac/smaht-portal/pull/724>`_
+
+* Support "+" age in donor view
+* Add popover for age field
+>>>>>>> main
+
+
+2.4.2
+=====
+
+`PR 721: Harden nginx failover and observability while deferring the RSS-limit increase <https://github.com/smaht-dac/smaht-portal/pull/721>`_
+
+nginx failover reliability and observability for worker SIGKILL/restart churn. The
+per-worker ``rss_limit`` remains at ``450MB`` pending task-wide capacity evidence.
+
+* ``deploy/docker/production/nginx.conf`` changes:
+
+  * Make all 5 workers active in ``upstream app`` (port 6547 was ``backup``). This is a
+    request-distribution change at the unchanged 450MB cap; failover is preserved by
+    ``proxy_next_upstream``. (Note: warming the formerly-cold worker's lazy Node SSR
+    children can raise task RSS even though the parent-process cap is unchanged.)
+  * Reduce upstream ``fail_timeout`` from ``45s`` to ``15s`` so a recovered peer becomes
+    selectable again sooner; ``max_fails`` left at its default (1). (The real pserve
+    socket-ready time after SIGKILL is unmeasured; 15s is revisited once measured.)
+  * Bound retry fan-out with ``proxy_next_upstream_tries 2`` (at most **two total** upstream
+    attempts, not two retries) and ``proxy_next_upstream_timeout 30s`` (bounds only when a
+    handoff to another peer may be *initiated* -- **not** an end-to-end request deadline).
+    Deliberate availability trade: a request that hits two failed peers can error even if a
+    third is healthy, in exchange for bounded amplification. Retry method policy is nginx's
+    default: POST/LOCK/PATCH are not retried once sent to an upstream (after-send protection
+    against duplicate side effects), while a pre-send connection failure and non-protected
+    methods (GET/HEAD/PUT/DELETE/OPTIONS/...) may retry -- it is **not** "GET/HEAD only".
+  * Add a targeted ``upstream_debug`` access log (to ``/dev/stdout``) for multiple-attempt
+    failover and upstream 502/504 gateway failures. It logs ``$request_method`` and ``$uri``
+    (no query string) plus ``$request_id``, but not the client address; ordinary application
+    5xx responses remain solely in the LB log. This separate stream's retention/access
+    controls must match the LB log's.
+* Add ``RUN nginx -t`` to the production ``Dockerfile`` so the config is validated against the
+  pinned nginx 1.21.6 during the CI Docker build, and add an offline behavioral harness
+  (``deploy/docker/production/test_nginx_failover.py``) for the retry/method/logging cases.
+
+
+2.4.1
+=====
+
+`PR 722: Down-sample Sentry performance transactions for the internal /index endpoint <https://github.com/smaht-dac/smaht-portal/pull/722>`_
+
+* Replaces the flat ``traces_sample_rate`` with a ``traces_sampler`` in ``init_sentry`` (``src/encoded/__init__.py``) that samples the continuously-polled indexer ``/index`` transaction at a very low nonzero rate (0.001), preserves inherited sampling decisions for other transactions, and keeps locally started user-facing transactions at the normal 0.1 rate. This contains Sentry transaction-quota burn driven by the indexer without changing error/exception capture, which remains governed by the separate ``sample_rate`` (kept at its default 1.0).
+
 
 2.4.0
 =====
