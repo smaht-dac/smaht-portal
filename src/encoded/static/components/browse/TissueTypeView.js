@@ -277,7 +277,10 @@ export default function TissueTypeView({
             // a tissue with 20 real TissueSamples (4 Fixed + 16 Core) only
             // ever surfaced the first 10, cutting off 10 real Core positions
             // with no error or indication anything was missing.
-            `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}&limit=all`,
+            //
+            // See TissueView.js's identical fetch for why this is
+            // `status%21=deleted`, not the literal `status!=deleted`.
+            `/search/?type=TissueSample&status%21=deleted&${sampleSourceParams}&limit=all`,
             (resp) => {
                 if (ignore) return;
                 setTissueSamples(resp?.['@graph'] || []);

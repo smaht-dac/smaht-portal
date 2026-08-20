@@ -287,7 +287,15 @@ const TissueView = React.memo(function TissueView({
             // a tissue with 20 real TissueSamples (4 Fixed + 16 Core) only
             // ever surfaced the first 10, cutting off 10 real Core positions
             // with no error or indication anything was missing.
-            `/search/?type=TissueSample&status!=deleted&${sampleSourceParams}&limit=all`,
+            //
+            // `status%21=deleted`, not the literal `status!=deleted` -- a
+            // raw "!" here is technically valid in a query string (RFC
+            // 3986 leaves it unreserved, so the browser sends it as-is),
+            // but Snovault's own URL canonicalization always percent-
+            // encodes it, 301-redirecting to `%21` before actually serving
+            // the search. Sending the encoded form directly skips that
+            // redirect round-trip.
+            `/search/?type=TissueSample&status%21=deleted&${sampleSourceParams}&limit=all`,
             (resp) => {
                 if (ignore) return;
                 setTissueSamples(resp?.['@graph'] || []);

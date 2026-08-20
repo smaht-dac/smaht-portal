@@ -781,7 +781,11 @@ export const getGccFilesBrowseHref = ({
     const queryParts = [
         'type=File',
         BROWSE_STATUS_FILTERS,
-        'dataset!=No+value',
+        // Percent-encoded "!" (not the literal 'dataset!=No+value') --
+        // Snovault's own URL canonicalization always encodes a raw "!" in
+        // a query string and 301-redirects to the encoded form, so this
+        // skips that extra round-trip.
+        'dataset%21=No+value',
         `donors.display_title=${encodeURIComponent(donorDisplayTitle)}`,
         `sample_summary.tissues=${encodeURIComponent(tissueTypeValue)}`,
         `sequencing_center.display_title=${encodeURIComponent(submissionCenter)}`,
@@ -809,7 +813,11 @@ export const getTissueFilesBrowseHref = ({ donorDisplayTitle, tissueTypeValue })
     const queryParts = [
         'type=File',
         BROWSE_STATUS_FILTERS,
-        'dataset!=No+value',
+        // Percent-encoded "!" (not the literal 'dataset!=No+value') --
+        // Snovault's own URL canonicalization always encodes a raw "!" in
+        // a query string and 301-redirects to the encoded form, so this
+        // skips that extra round-trip.
+        'dataset%21=No+value',
         donorDisplayTitle ? `donors.display_title=${encodeURIComponent(donorDisplayTitle)}` : null,
         `sample_summary.tissues=${encodeURIComponent(tissueTypeValue)}`,
     ].filter(Boolean);
