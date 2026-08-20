@@ -4341,6 +4341,16 @@ File, Donor, and Publication Overview Styles
         font-size: 0.8125rem;
         font-style: italic;
     }
+
+    // Same muted/italic "honest empty state" treatment as
+    // .aliquot-popover-pathology-empty and non-solid's .nonsolid-gcc-label
+    // .is-empty -- a real GCC/position confirmed (via TissueView.js's
+    // hasFiles) to have no files indexed yet, not just an unlinked label.
+    .aliquot-popover-no-files {
+        color: #98a2b3;
+        font-weight: 500;
+        font-style: italic;
+    }
 }
 
 .callout-card {

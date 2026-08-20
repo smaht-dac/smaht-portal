@@ -43,6 +43,11 @@ import {
     hexToRgba,
 } from './components/tissue-overview/helpers';
 
+// `search_query_params` for /data_matrix_aggregations/ takes status as a
+// plain array, not a query string -- derived once from BROWSE_STATUS_FILTERS
+// itself (rather than a second hardcoded list) so the two can't drift apart.
+const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('status');
+
 export default class TissueOverview extends DefaultItemView {
     getTabViewContents() {
         const initTabs = [];
@@ -170,6 +175,16 @@ const TissueView = React.memo(function TissueView({
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
     const [totalCoverage, setTotalCoverage] = useState(0);
+    // Every sample_summary.sample_names value seen across this donor+tissue's
+    // actual indexed Files (built for free below, off the same fetch used
+    // for fileCount/totalCoverage) -- lets each aliquot/core position check
+    // whether it *really* has files instead of just inferring "probably yes"
+    // from having a real (non-TPC) submission_centers value. A TissueSample
+    // can be submitted to a real GCC well before that GCC's files actually
+    // exist/are indexed, so that inference was confirmed misleading: the
+    // popover would show a GCC name and a clickable link that resolves to
+    // 0 results.
+    const [sampleNamesWithFiles, setSampleNamesWithFiles] = useState(null);
     const [donors, setDonors] = useState([]);
     // Every Tissue record sharing this tissue_type, undeduped -- unlike
     // `donors` (one representative Tissue per donor, for the summary table),
@@ -442,27 +457,56 @@ const TissueView = React.memo(function TissueView({
             // value, since submission_centers on a File is often a
             // downstream analysis center (e.g. "HMS DAC"), not this GCC.
             slice.gccFilesHrefs = {};
+            // Ground truth, not an inference from having a real (non-TPC)
+            // submissionCenter -- see nonSolidAliquots' identical
+            // `hasFiles` for the full rationale (a TissueSample can be
+            // submitted to a real GCC well before that GCC's files for it
+            // actually exist/are indexed). `sampleNamesWithFiles === null`
+            // (still loading) intentionally reads as "yes" so the popover
+            // doesn't flash "No files yet" and then correct itself.
+            const centersWithFiles = new Set();
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
                 ([corePosition, submissionCenters]) => {
                     const externalIds = slice.frozenCorePositionExternalIds[corePosition] || [];
                     slice.frozenCorePositionFilesHrefs[corePosition] = submissionCenters.map(
-                        (submissionCenter, i) =>
-                            getGccFilesBrowseHref({
+                        (submissionCenter, i) => {
+                            const externalId = externalIds[i] || null;
+                            const hasFiles =
+                                sampleNamesWithFiles === null ||
+                                (!!externalId && sampleNamesWithFiles.has(externalId));
+                            if (hasFiles && submissionCenter) {
+                                centersWithFiles.add(submissionCenter);
+                            }
+                            return hasFiles
+                                ? getGccFilesBrowseHref({
+                                    donorDisplayTitle: selectedDonorDisplayTitle,
+                                    tissueTypeValue: tissueMatrixFilterValue,
+                                    submissionCenter,
+                                    coreExternalId: externalId,
+                                })
+                                : null;
+                        }
+                    );
+                }
+            );
+            Object.values(slice.frozenCorePositionSubmissionCenters).forEach(
+                (submissionCenters) => {
+                    submissionCenters.forEach((submissionCenter) => {
+                        if (
+                            !submissionCenter ||
+                            slice.gccFilesHrefs[submissionCenter] !== undefined
+                        ) {
+                            return;
+                        }
+                        slice.gccFilesHrefs[submissionCenter] = centersWithFiles.has(
+                            submissionCenter
+                        )
+                            ? getGccFilesBrowseHref({
                                 donorDisplayTitle: selectedDonorDisplayTitle,
                                 tissueTypeValue: tissueMatrixFilterValue,
                                 submissionCenter,
-                                coreExternalId: externalIds[i] || null,
                             })
-                    );
-                    submissionCenters.forEach((submissionCenter) => {
-                        if (!submissionCenter || slice.gccFilesHrefs[submissionCenter]) {
-                            return;
-                        }
-                        slice.gccFilesHrefs[submissionCenter] = getGccFilesBrowseHref({
-                            donorDisplayTitle: selectedDonorDisplayTitle,
-                            tissueTypeValue: tissueMatrixFilterValue,
-                            submissionCenter,
-                        });
+                            : null;
                     });
                 }
             );
@@ -492,7 +536,12 @@ const TissueView = React.memo(function TissueView({
             return aNum - bNum;
         });
         return realSlices;
-    }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
+    }, [
+        tissueSamples,
+        selectedDonorDisplayTitle,
+        tissueMatrixFilterValue,
+        sampleNamesWithFiles,
+    ]);
 
     // Bivalved tissues (Adrenal/Heart/Gonads) always render their full
     // fixed Anterior/Posterior template (see getBivalvedTemplate) once
@@ -541,35 +590,59 @@ const TissueView = React.memo(function TissueView({
             // aliquot apart from an illustrative placeholder, so it can say
             // "no files yet" instead of a fabricated "GCC1" label.
             const hasOnlyTpcSubmission = isTpcSubmissionCenter(rawSubmissionCenter);
+            // Ground truth, not an inference from submission_centers -- a
+            // sample can be legitimately submitted to a real GCC well
+            // before that GCC's files for it actually exist/are indexed
+            // (see sampleNamesWithFiles above), so `hasOnlyTpcSubmission`
+            // alone isn't enough to promise "this aliquot has files".
+            // `sampleNamesWithFiles === null` (still loading) intentionally
+            // reads as "yes" here rather than flashing "No files yet" and
+            // then correcting itself once the fetch resolves.
+            const hasFiles =
+                !hasOnlyTpcSubmission &&
+                (sampleNamesWithFiles === null ||
+                    sampleNamesWithFiles.has(sample.external_id));
             return {
                 id: sample.uuid,
                 description: sample.external_id || sample.accession || undefined,
                 submissionCenter: hasOnlyTpcSubmission ? null : rawSubmissionCenter,
                 hasOnlyTpcSubmission,
+                hasFiles,
                 // getGccFilesBrowseHref itself already returns null for a
                 // non-GCC center, so passing the raw (unfiltered) center
                 // through is safe -- narrowed to just this aliquot's own
                 // files via its own external_id (sample_summary.sample_names).
-                filesHref: getGccFilesBrowseHref({
-                    donorDisplayTitle: selectedDonorDisplayTitle,
-                    tissueTypeValue: tissueMatrixFilterValue,
-                    submissionCenter: rawSubmissionCenter,
-                    coreExternalId: sample.external_id || null,
-                }),
+                // Nulled out when hasFiles is false so the popover can't
+                // link to a query that's confirmed to resolve to 0 results.
+                filesHref: hasFiles
+                    ? getGccFilesBrowseHref({
+                        donorDisplayTitle: selectedDonorDisplayTitle,
+                        tissueTypeValue: tissueMatrixFilterValue,
+                        submissionCenter: rawSubmissionCenter,
+                        coreExternalId: sample.external_id || null,
+                    })
+                    : null,
                 // The GCC's own name is also a link in the solid-tissue
                 // popover (AliquotVisualization.js's group header) -- to
                 // this same generic (not core-specific) "all this GCC's
                 // files for this donor+tissue" href, not this one
                 // aliquot's own narrower one above.
-                gccFilesHref: getGccFilesBrowseHref({
-                    donorDisplayTitle: selectedDonorDisplayTitle,
-                    tissueTypeValue: tissueMatrixFilterValue,
-                    submissionCenter: rawSubmissionCenter,
-                }),
+                gccFilesHref: hasFiles
+                    ? getGccFilesBrowseHref({
+                        donorDisplayTitle: selectedDonorDisplayTitle,
+                        tissueTypeValue: tissueMatrixFilterValue,
+                        submissionCenter: rawSubmissionCenter,
+                    })
+                    : null,
             };
         });
         return realAliquots.length > 0 ? realAliquots : sampleNonSolidAliquots;
-    }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
+    }, [
+        tissueSamples,
+        selectedDonorDisplayTitle,
+        tissueMatrixFilterValue,
+        sampleNamesWithFiles,
+    ]);
 
     // Real data replacing the illustrative fallback mid-render is a visible
     // jump no matter how few steps it takes to get there (different slice
@@ -609,47 +682,74 @@ const TissueView = React.memo(function TissueView({
     // `session` in the dependency array (here and below) so logging in/out
     // re-fetches -- permission-filtered results can change without `href`
     // or any of this component's other inputs changing.
+    //
+    // Uses /data_matrix_aggregations/ (the same aggregation endpoint
+    // DataMatrix.js/BrowseDonorVizWrapper.js already rely on) instead of a
+    // plain /search/?limit=all fetch of every matching File -- this donor's
+    // one tissue realistically stays well under the endpoint's own
+    // per-bucket cap (MAX_BUCKET_COUNT=200 in visualization.py, sized for
+    // "up to ~150 donors"), so a single request gets fileCount, the real
+    // total_coverage sum, *and* sampleNamesWithFiles all as proper ES
+    // aggregations -- no File document bodies transferred at all, so this
+    // doesn't get more expensive as this donor+tissue's file count grows.
+    // `column_agg_fields: ['status']` groups by File's own (single-valued,
+    // non-array) status -- at most the handful of values in
+    // BROWSE_STATUS_VALUES -- purely so each bucket's total_coverage can be
+    // summed client-side into one overall figure without double-counting
+    // (status is 1-per-File, unlike sample_summary.sample_names, which is
+    // why that field is nested as `row_agg_fields` instead: a pooled/"MC"
+    // File can legitimately list more than one sample_name, so summing
+    // *that* dimension's per-bucket coverage would double-count it).
     useEffect(() => {
-        const queryParts = [
-            'type=File',
-            BROWSE_STATUS_FILTERS,
-            'dataset!=No+value',
-            donor?.display_title
-                ? `donors.display_title=${encodeURIComponent(donor.display_title)}`
-                : null,
-            tissueMatrixFilterValue
-                ? `sample_summary.tissues=${encodeURIComponent(tissueMatrixFilterValue)}`
-                : null,
-            // Needed for the coverage sum below, not just the count -- `total`
-            // reflects every match regardless of page size, but summing
-            // `@graph` without this only sees the first page (10 by default,
-            // snovault/search/search.py's PAGINATION_SIZE) and silently
-            // undercounts.
-            'limit=all',
-        ].filter(Boolean);
+        const searchQueryParams = {
+            type: ['File'],
+            status: BROWSE_STATUS_VALUES,
+            'dataset!': ['No value'],
+            ...(donor?.display_title
+                ? { 'donors.display_title': [donor.display_title] }
+                : {}),
+            ...(tissueMatrixFilterValue
+                ? { 'sample_summary.tissues': [tissueMatrixFilterValue] }
+                : {}),
+        };
 
         setIsLoading(true);
         ajax.load(
-            `/search/?${queryParts.join('&')}`,
+            '/data_matrix_aggregations/',
             (resp) => {
-                setFileCount(resp?.total || 0);
-                // Same semantics as DataMatrix.js's total_coverage reducers
-                // and visualization.py's SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION:
-                // a sum of each File's own (already-averaged) per-BAM coverage.
-                const files = resp?.['@graph'] || [];
-                const coverageSum = files.reduce(
-                    (sum, f) => sum + (Number(f?.data_generation_summary?.average_coverage) || 0),
-                    0
-                );
+                setFileCount(resp?.counts?.files || 0);
+                const statusBuckets = resp?.terms || {};
+                // Same semantics as DataMatrix.js's total_coverage reducers:
+                // a sum of each File's own (already-averaged) per-BAM
+                // coverage, computed here by ES itself (Painless script,
+                // see SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION)
+                // rather than summed client-side over fetched documents.
+                let coverageSum = 0;
+                const namesWithFiles = new Set();
+                Object.values(statusBuckets).forEach((bucket) => {
+                    coverageSum += Number(bucket?.counts?.total_coverage) || 0;
+                    Object.keys(bucket?.terms || {}).forEach((name) =>
+                        namesWithFiles.add(name)
+                    );
+                });
                 setTotalCoverage(coverageSum);
+                setSampleNamesWithFiles(namesWithFiles);
                 setIsLoading(false);
             },
-            'GET',
+            'POST',
             () => {
                 setFileCount(0);
                 setTotalCoverage(0);
+                setSampleNamesWithFiles(new Set());
                 setIsLoading(false);
-            }
+            },
+            JSON.stringify({
+                search_query_params: searchQueryParams,
+                column_agg_fields: ['status'],
+                row_agg_fields: ['sample_summary.sample_names'],
+            }),
+            {},
+            null
         );
     }, [donor?.display_title, tissueMatrixFilterValue, session]);
 

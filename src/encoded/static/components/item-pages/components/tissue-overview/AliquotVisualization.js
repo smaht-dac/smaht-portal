@@ -1184,8 +1184,25 @@ export default function AliquotVisualization({
                                                                             {group.submissionCenter ||
                                                                                 `GCC${groupIndex + 1}`}
                                                                         </a>
+                                                                    ) : group.submissionCenter ? (
+                                                                        // A real GCC (grouped
+                                                                        // here means it isn't
+                                                                        // a TPC, and demo/
+                                                                        // illustrative slices
+                                                                        // never set a real
+                                                                        // submissionCenter at
+                                                                        // all -- see below),
+                                                                        // just no files
+                                                                        // indexed yet for any
+                                                                        // of its positions
+                                                                        // (TissueView.js's
+                                                                        // hasFiles).
+                                                                        <span
+                                                                            className="aliquot-popover-no-files"
+                                                                            title="No files yet for this GCC">
+                                                                            {group.submissionCenter}
+                                                                        </span>
                                                                     ) : (
-                                                                        group.submissionCenter ||
                                                                         `GCC${groupIndex + 1}`
                                                                     )}
                                                                 </>
@@ -1202,6 +1219,16 @@ export default function AliquotVisualization({
                                                                     {corePosition}
                                                                 </strong>
                                                             </a>
+                                                        ) : group.submissionCenter ? (
+                                                            // Same real-vs-demo
+                                                            // distinction as the GCC
+                                                            // name above.
+                                                            <strong
+                                                                className="aliquot-popover-no-files"
+                                                                title="No files yet for this position">
+                                                                {selectedAliquotId}
+                                                                {corePosition}
+                                                            </strong>
                                                         ) : (
                                                             <strong>
                                                                 {selectedAliquotId}

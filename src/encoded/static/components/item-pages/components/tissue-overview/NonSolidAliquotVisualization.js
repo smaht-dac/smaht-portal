@@ -176,18 +176,22 @@ export default function NonSolidAliquotVisualization({
     const resolvedIdPrefix = idPrefix || styles.idPrefix;
 
     const normalizedAliquots = aliquots.map((aliquot, index) => {
-        // `submissionCenter` (see TissueView.js's nonSolidAliquots) is
-        // already null for a TPC-only real record, same treatment
-        // AliquotVisualization.js gives TPC entries elsewhere -- distinct
-        // from `hasOnlyTpcSubmission`, which flags *why* it's null so this
-        // can say so honestly instead of falling through to the generic
-        // "GCCN" placeholder meant only for illustrative demo data (which
-        // has neither field set at all).
-        const displayCenterLabel = aliquot.submissionCenter
-            ? aliquot.submissionCenter
-            : aliquot.hasOnlyTpcSubmission
-                ? 'No files yet'
-                : `GCC${index + 1}`;
+        // `hasFiles` (see TissueView.js's nonSolidAliquots) is ground truth
+        // from this donor+tissue's actual indexed Files, not just an
+        // inference from having a real (non-TPC) submission_centers value
+        // -- a sample can be submitted to a real GCC well before that GCC's
+        // files for it actually exist, so showing the GCC name there would
+        // read as a working link that resolves to 0 results. Only real
+        // aliquots carry `hasFiles` at all (`undefined` on the
+        // illustrative demo fallback, which has neither field set), so
+        // that's what distinguishes "no files yet" from the demo-only
+        // "GCCN" placeholder below.
+        const displayCenterLabel =
+            aliquot.hasFiles === undefined
+                ? `GCC${index + 1}`
+                : aliquot.hasFiles
+                    ? aliquot.submissionCenter
+                    : 'No files yet';
         return {
             ...aliquot,
             index,
@@ -322,7 +326,7 @@ export default function NonSolidAliquotVisualization({
                                 <text
                                     className={
                                         'nonsolid-gcc-label' +
-                                        (aliquot.hasOnlyTpcSubmission ? ' is-empty' : '')
+                                        (aliquot.hasFiles === false ? ' is-empty' : '')
                                     }
                                     x={subTubeCenterX}
                                     y={gccLabelY}>
@@ -381,7 +385,7 @@ export default function NonSolidAliquotVisualization({
                                         ) : (
                                             <span
                                                 className={
-                                                    selectedAliquot?.hasOnlyTpcSubmission
+                                                    selectedAliquot?.hasFiles === false
                                                         ? 'aliquot-popover-pathology-empty'
                                                         : undefined
                                                 }>
@@ -442,6 +446,7 @@ NonSolidAliquotVisualization.propTypes = {
             description: PropTypes.string,
             submissionCenter: PropTypes.string,
             hasOnlyTpcSubmission: PropTypes.bool,
+            hasFiles: PropTypes.bool,
             filesHref: PropTypes.string,
             gccFilesHref: PropTypes.string,
         })

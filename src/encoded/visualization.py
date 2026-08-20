@@ -469,10 +469,18 @@ def data_matrix_aggregations(context, request):
 
     # Max terms returned per aggregation bucket, applied at every nesting level (e.g. Donor
     # nested inside each Tissue bucket in the Donor x Tissue matrix). Must stay above the
-    # largest possible per-bucket cardinality, which in practice is the total donor count
-    # (expected to cap around 150) since some tissues are sampled by nearly every donor.
-    # A value at or below that cardinality silently drops the lowest doc_count buckets.
-    MAX_BUCKET_COUNT = 200
+    # largest possible per-bucket cardinality for whichever fields a caller aggregates on --
+    # for the Donor x Tissue matrix that's the total donor count (expected to cap around
+    # 150), but a caller bucketing on something with higher cardinality (e.g. a per-tissue-
+    # type TissueSample external_id, across every donor) needs a higher cap. A value at or
+    # below the true cardinality silently drops the lowest doc_count buckets, so callers
+    # that need more room can opt in via `max_bucket_count` rather than every caller paying
+    # for a larger default (each nesting level multiplies the aggregation's own cost).
+    DEFAULT_MAX_BUCKET_COUNT = 200
+    # Hard ceiling regardless of what a caller requests -- keeps a single request from
+    # forcing Elasticsearch to build an unbounded number of buckets (each nesting level
+    # multiplies this, so row x column could otherwise reach this value squared).
+    MAX_BUCKET_COUNT_CEILING = 5000
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_VALUE_DELIMITER = ' '
     # Set of field names whose array values should be concatenated into a single key during data matrix aggregation (e.g., {'data_type'}).
@@ -494,6 +502,10 @@ def data_matrix_aggregations(context, request):
         row_agg_fields_orig = json_body.get('row_agg_fields')
         flatten_values = json_body.get('flatten_values', False)
         value_delimiter = json_body.get('value_delimiter', DEFAULT_VALUE_DELIMITER)
+        MAX_BUCKET_COUNT = min(
+            int(json_body.get('max_bucket_count', DEFAULT_MAX_BUCKET_COUNT)),
+            MAX_BUCKET_COUNT_CEILING
+        )
     except json.decoder.JSONDecodeError:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 

@@ -63,6 +63,15 @@ import {
 // tab title is meaningful without this page needing its own title view.
 pageTitleViews.register(() => null, 'Tissue-Overview');
 
+// See TissueView.js's identical constant for the full rationale.
+const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('status');
+// This page's Files stat spans every donor sharing a tissue_type (unlike
+// TissueView.js's single-donor scope), so the number of distinct
+// sample_summary.sample_names values can realistically exceed
+// data_matrix_aggregations' default per-bucket cap -- opt into a higher one
+// (see visualization.py's max_bucket_count/MAX_BUCKET_COUNT_CEILING).
+const TISSUE_TYPE_MAX_BUCKET_COUNT = 3000;
+
 const TissueTypeViewTitle = ({ representativeTissue }) => {
     // Same tissue_type-first preference as the body's targetTissueValue below.
     const targetTissueValue =
@@ -190,6 +199,8 @@ export default function TissueTypeView({
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
     const [totalCoverage, setTotalCoverage] = useState(0);
+    // See TissueView.js's identical state for the full rationale.
+    const [sampleNamesWithFiles, setSampleNamesWithFiles] = useState(null);
     const [tissueSamples, setTissueSamples] = useState(null);
     // True only while re-fetching for an already-rendered donor switch (not
     // the initial load, which uses aliquotSamplesLoading/the spinner
@@ -403,27 +414,52 @@ export default function TissueTypeView({
             // value -- see TissueView.js's identical field for the full
             // rationale.
             slice.gccFilesHrefs = {};
+            // See TissueView.js's identical block for the full rationale
+            // (hasFiles is ground truth from sampleNamesWithFiles, not an
+            // inference from having a real submissionCenter).
+            const centersWithFiles = new Set();
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
                 ([corePosition, submissionCenters]) => {
                     const externalIds = slice.frozenCorePositionExternalIds[corePosition] || [];
                     slice.frozenCorePositionFilesHrefs[corePosition] = submissionCenters.map(
-                        (submissionCenter, i) =>
-                            getGccFilesBrowseHref({
+                        (submissionCenter, i) => {
+                            const externalId = externalIds[i] || null;
+                            const hasFiles =
+                                sampleNamesWithFiles === null ||
+                                (!!externalId && sampleNamesWithFiles.has(externalId));
+                            if (hasFiles && submissionCenter) {
+                                centersWithFiles.add(submissionCenter);
+                            }
+                            return hasFiles
+                                ? getGccFilesBrowseHref({
+                                    donorDisplayTitle: selectedDonorDisplayTitle,
+                                    tissueTypeValue: tissueMatrixFilterValue,
+                                    submissionCenter,
+                                    coreExternalId: externalId,
+                                })
+                                : null;
+                        }
+                    );
+                }
+            );
+            Object.values(slice.frozenCorePositionSubmissionCenters).forEach(
+                (submissionCenters) => {
+                    submissionCenters.forEach((submissionCenter) => {
+                        if (
+                            !submissionCenter ||
+                            slice.gccFilesHrefs[submissionCenter] !== undefined
+                        ) {
+                            return;
+                        }
+                        slice.gccFilesHrefs[submissionCenter] = centersWithFiles.has(
+                            submissionCenter
+                        )
+                            ? getGccFilesBrowseHref({
                                 donorDisplayTitle: selectedDonorDisplayTitle,
                                 tissueTypeValue: tissueMatrixFilterValue,
                                 submissionCenter,
-                                coreExternalId: externalIds[i] || null,
                             })
-                    );
-                    submissionCenters.forEach((submissionCenter) => {
-                        if (!submissionCenter || slice.gccFilesHrefs[submissionCenter]) {
-                            return;
-                        }
-                        slice.gccFilesHrefs[submissionCenter] = getGccFilesBrowseHref({
-                            donorDisplayTitle: selectedDonorDisplayTitle,
-                            tissueTypeValue: tissueMatrixFilterValue,
-                            submissionCenter,
-                        });
+                            : null;
                     });
                 }
             );
@@ -449,7 +485,12 @@ export default function TissueTypeView({
             return aNum - bNum;
         });
         return realSlices;
-    }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
+    }, [
+        tissueSamples,
+        selectedDonorDisplayTitle,
+        tissueMatrixFilterValue,
+        sampleNamesWithFiles,
+    ]);
 
     // Bivalved tissues (Adrenal/Heart/Gonads) always render their full
     // fixed Anterior/Posterior template (see getBivalvedTemplate) once
@@ -490,27 +531,42 @@ export default function TissueTypeView({
             const rawSubmissionCenter = sample.submission_centers?.[0]?.display_title || null;
             // See TissueView.js's identical block for the full rationale.
             const hasOnlyTpcSubmission = isTpcSubmissionCenter(rawSubmissionCenter);
+            // See TissueView.js's identical field for the full rationale.
+            const hasFiles =
+                !hasOnlyTpcSubmission &&
+                (sampleNamesWithFiles === null ||
+                    sampleNamesWithFiles.has(sample.external_id));
             return {
                 id: sample.uuid,
                 description: sample.external_id || sample.accession || undefined,
                 submissionCenter: hasOnlyTpcSubmission ? null : rawSubmissionCenter,
                 hasOnlyTpcSubmission,
-                filesHref: getGccFilesBrowseHref({
-                    donorDisplayTitle: selectedDonorDisplayTitle,
-                    tissueTypeValue: tissueMatrixFilterValue,
-                    submissionCenter: rawSubmissionCenter,
-                    coreExternalId: sample.external_id || null,
-                }),
+                hasFiles,
+                filesHref: hasFiles
+                    ? getGccFilesBrowseHref({
+                        donorDisplayTitle: selectedDonorDisplayTitle,
+                        tissueTypeValue: tissueMatrixFilterValue,
+                        submissionCenter: rawSubmissionCenter,
+                        coreExternalId: sample.external_id || null,
+                    })
+                    : null,
                 // See TissueView.js's identical field.
-                gccFilesHref: getGccFilesBrowseHref({
-                    donorDisplayTitle: selectedDonorDisplayTitle,
-                    tissueTypeValue: tissueMatrixFilterValue,
-                    submissionCenter: rawSubmissionCenter,
-                }),
+                gccFilesHref: hasFiles
+                    ? getGccFilesBrowseHref({
+                        donorDisplayTitle: selectedDonorDisplayTitle,
+                        tissueTypeValue: tissueMatrixFilterValue,
+                        submissionCenter: rawSubmissionCenter,
+                    })
+                    : null,
             };
         });
         return realAliquots.length > 0 ? realAliquots : sampleNonSolidAliquots;
-    }, [tissueSamples, selectedDonorDisplayTitle, tissueMatrixFilterValue]);
+    }, [
+        tissueSamples,
+        selectedDonorDisplayTitle,
+        tissueMatrixFilterValue,
+        sampleNamesWithFiles,
+    ]);
 
     const aliquotSamplesLoading = !!selectedDonorUuid && tissueSamples === null;
     const showDonorPrompt = donors.length > 0 && !selectedDonorUuid;
@@ -548,44 +604,56 @@ export default function TissueTypeView({
         if (!tissueMatrixFilterValue) {
             setFileCount(0);
             setTotalCoverage(0);
+            setSampleNamesWithFiles(new Set());
             setIsLoading(false);
             return;
         }
-        const queryParts = [
-            'type=File',
-            BROWSE_STATUS_FILTERS,
-            'dataset!=No+value',
-            `sample_summary.tissues=${encodeURIComponent(tissueMatrixFilterValue)}`,
-            // Needed for the coverage sum below, not just the count -- `total`
-            // reflects every match regardless of page size, but summing
-            // `@graph` without this only sees the first page (10 by default,
-            // snovault/search/search.py's PAGINATION_SIZE) and silently
-            // undercounts, same failure mode the Files stat itself had.
-            'limit=all',
-        ];
+        // See TissueView.js's identical effect for the full rationale
+        // (aggregation instead of /search/?limit=all, status as the
+        // column dimension to avoid double-counting pooled/"MC" files'
+        // coverage). max_bucket_count is raised here (see the constant
+        // above) since this page's scope is every donor sharing this
+        // tissue_type, not just one.
+        const searchQueryParams = {
+            type: ['File'],
+            status: BROWSE_STATUS_VALUES,
+            'dataset!': ['No value'],
+            'sample_summary.tissues': [tissueMatrixFilterValue],
+        };
 
         setIsLoading(true);
         ajax.load(
-            `/search/?${queryParts.join('&')}`,
+            '/data_matrix_aggregations/',
             (resp) => {
-                setFileCount(resp?.total || 0);
-                // Same semantics as DataMatrix.js's total_coverage reducers
-                // and visualization.py's SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION:
-                // a sum of each File's own (already-averaged) per-BAM coverage.
-                const files = resp?.['@graph'] || [];
-                const coverageSum = files.reduce(
-                    (sum, f) => sum + (Number(f?.data_generation_summary?.average_coverage) || 0),
-                    0
-                );
+                setFileCount(resp?.counts?.files || 0);
+                const statusBuckets = resp?.terms || {};
+                let coverageSum = 0;
+                const namesWithFiles = new Set();
+                Object.values(statusBuckets).forEach((bucket) => {
+                    coverageSum += Number(bucket?.counts?.total_coverage) || 0;
+                    Object.keys(bucket?.terms || {}).forEach((name) =>
+                        namesWithFiles.add(name)
+                    );
+                });
                 setTotalCoverage(coverageSum);
+                setSampleNamesWithFiles(namesWithFiles);
                 setIsLoading(false);
             },
-            'GET',
+            'POST',
             () => {
                 setFileCount(0);
                 setTotalCoverage(0);
+                setSampleNamesWithFiles(new Set());
                 setIsLoading(false);
-            }
+            },
+            JSON.stringify({
+                search_query_params: searchQueryParams,
+                column_agg_fields: ['status'],
+                row_agg_fields: ['sample_summary.sample_names'],
+                max_bucket_count: TISSUE_TYPE_MAX_BUCKET_COUNT,
+            }),
+            {},
+            null
         );
     }, [tissueMatrixFilterValue, session]);
 
