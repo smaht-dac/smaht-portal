@@ -11,6 +11,7 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
     const {
         '@id': atId,
         display_title,
+        authors = [],
         short_citation = '',
         scope = '',
         date_published = '',
@@ -19,6 +20,8 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
         doi = '',
         key_image_link = '',
     } = result || {};
+
+    const pubYear = Schemas.getPublicationYear(date_published);
 
     return (
         <div className="search-result-row publication-search-result-row">
@@ -42,9 +45,13 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
                         </a>
                     </h4>
                     <div className="author-info">
-                        {short_citation && (
+                        {(authors.length > 0 || short_citation) && (
                             <span className="text-gray-70">
-                                {short_citation}
+                                {Schemas.formatShortCitationAuthors(
+                                    authors,
+                                    short_citation,
+                                    pubYear
+                                )}
                             </span>
                         )}
                         {result?.scope && (
