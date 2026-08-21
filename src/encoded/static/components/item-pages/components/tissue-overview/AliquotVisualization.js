@@ -801,9 +801,23 @@ export default function AliquotVisualization({
                         x2={depthDimensionLine.x2}
                         y2={depthDimensionLine.y2}
                         label={depthLabel}
-                        labelX={depthMidpoint.x - 28}
-                        labelY={depthMidpoint.y - 10}
-                        textAnchor="start"
+                        // The old fixed (-28, -10) nudge put the label's
+                        // *start* just past the line's near end, but with
+                        // textAnchor="start" the text then runs back
+                        // rightward across the depth diagonal's own default
+                        // angle (72:58, DEFAULT_DEPTH_CM's own unscaled
+                        // case, not an unusual one) -- confirmed by
+                        // walking the actual line/label coordinates, the
+                        // label's right portion crossed back over the
+                        // line. Centering it (textAnchor="middle") and
+                        // pushing along the line's own normal
+                        // (depthDimensionLine.nx/ny, the same direction
+                        // offsetLine already moved this line away from the
+                        // box by) keeps it symmetric around the line's
+                        // midpoint with a consistent clearance instead.
+                        labelX={depthMidpoint.x - depthDimensionLine.nx * 20}
+                        labelY={depthMidpoint.y - depthDimensionLine.ny * 20}
+                        textAnchor="middle"
                     />
 
                     {sliceGroups.map((group, groupIndex) => {
