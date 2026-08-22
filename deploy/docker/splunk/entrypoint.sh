@@ -68,6 +68,17 @@ log() {
     echo "[splunk-forwarder] $(date -u '+%Y-%m-%dT%H:%M:%SZ') $*"
 }
 
+# Permission mode of a path, as a stable string across platforms. macOS `ls`
+# appends `@` for extended attributes - which do NOT change permissions, and
+# which macOS 14 adds (com.apple.provenance) to ordinary files - so the raw
+# string is platform-dependent. Only that `@` is stripped; the `+` marker (an
+# ACL, and what GNU ls reports for extended security) is deliberately kept,
+# because an ACL can widen effective access and must stay visible.
+# shellcheck disable=SC2012  # fixed, controlled paths; mode field only, never contents
+mode_of() {
+    ls -l "$1" 2>/dev/null | awk '{print $1}' | sed 's/@$//'
+}
+
 # Redact secret-bearing values from any text we echo (Splunk CLI output, config
 # validation output, log tails). Masks the VALUE of any key whose name looks
 # like a password / secret / token / symmetric key, in both `key = value` and
@@ -225,8 +236,7 @@ if [ ! -e "$SPLUNK_HOME/etc/passwd" ] && [ ! -e "$USER_SEED_CONF" ]; then
     SEED_PW="$(head -c 24 /dev/urandom | base64 | tr -d '/+=')"
     ( umask 077; printf '[user_info]\nUSERNAME = admin\nPASSWORD = %s\n' "$SEED_PW" > "$USER_SEED_CONF" )
     unset SEED_PW
-    # shellcheck disable=SC2012  # fixed path; report mode only, never contents
-    log "stage 'seed-credential': wrote $USER_SEED_CONF (mode $(ls -l "$USER_SEED_CONF" | awk '{print $1}'))"
+    log "stage 'seed-credential': wrote $USER_SEED_CONF (mode $(mode_of "$USER_SEED_CONF"))"
 else
     log "stage 'seed-credential': skipped (credential already present)"
 fi

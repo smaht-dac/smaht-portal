@@ -62,6 +62,17 @@ log() {
     echo "[nginx-tls] $(date -u '+%Y-%m-%dT%H:%M:%SZ') $*"
 }
 
+# Permission mode of a path, as a stable string across platforms. macOS `ls`
+# appends `@` for extended attributes - which do NOT change permissions, and
+# which macOS 14 adds (com.apple.provenance) to ordinary files - so the raw
+# string is platform-dependent. Only that `@` is stripped; the `+` marker (an
+# ACL, and what GNU ls reports for extended security) is deliberately kept,
+# because an ACL can widen effective access and must stay visible.
+# shellcheck disable=SC2012  # fixed paths; mode field only, never contents
+mode_of() {
+    ls -l "$1" 2>/dev/null | awk '{print $1}' | sed 's/@$//'
+}
+
 # Redact anything key/secret-shaped from captured tool output (defensive: nginx -t
 # does not print key bytes, but a future directive/error might echo a value).
 redact() {
@@ -164,8 +175,7 @@ chmod 700 "$SSL_DIR" 2>/dev/null || true
     printf '%s\n' "$_KEY"  > "$KEY_FILE"
 )
 chmod 600 "$CERT_FILE" "$KEY_FILE" 2>/dev/null || true
-# shellcheck disable=SC2012  # fixed paths; report mode only, never contents
-log "stage 'write': $CERT_FILE (mode $(ls -l "$CERT_FILE" | awk '{print $1}')) $KEY_FILE (mode $(ls -l "$KEY_FILE" | awk '{print $1}'))"
+log "stage 'write': $CERT_FILE (mode $(mode_of "$CERT_FILE")) $KEY_FILE (mode $(mode_of "$KEY_FILE"))"
 
 # ---------------------------------------------------------------------------
 # Stage 3: deep validation when openssl is available (defense in depth). Confirms

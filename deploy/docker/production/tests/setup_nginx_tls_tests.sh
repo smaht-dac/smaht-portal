@@ -29,8 +29,12 @@ want_rc_zero()    { if [ "$RUN_RC" = 0 ]; then ok "$1"; else bad "$1"; fi; }
 want_rc_nonzero() { if [ "$RUN_RC" != 0 ]; then ok "$1"; else bad "$1"; fi; }
 want_file()    { if grep -Fq -- "$3" "$2" 2>/dev/null; then ok "$1"; else bad "$1"; fi; }
 wantnot_file() { if grep -Fq -- "$3" "$2" 2>/dev/null; then bad "$1"; else ok "$1"; fi; }
+# Mode string of a path, normalized so one assertion holds on macOS and Linux:
+# the trailing macOS extended-attribute marker `@` is stripped (it does not
+# affect permissions), while `+` (ACL / extended security) is kept so widened
+# effective access still fails an owner-only assertion.
 # shellcheck disable=SC2012  # fixed test paths; ls mode field is fine
-perm_of() { ls -l "$1" 2>/dev/null | awk '{print $1}'; }
+perm_of() { ls -l "$1" 2>/dev/null | awk '{print $1}' | sed 's/@$//'; }
 
 HAVE_OPENSSL=0; command -v openssl >/dev/null 2>&1 && HAVE_OPENSSL=1
 HAVE_NGINX=0;   command -v nginx   >/dev/null 2>&1 && HAVE_NGINX=1
