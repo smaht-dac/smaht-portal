@@ -512,6 +512,23 @@ def data_matrix_aggregations(context, request):
     if column_agg_fields_orig is None or len(column_agg_fields_orig) == 0 or row_agg_fields_orig is None or len(row_agg_fields_orig) == 0:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 
+    # SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION and
+    # EXTRA_TOTAL_AGGREGATIONS (donors.external_id) are both File-only
+    # fields -- confirmed as a real bug: calling this endpoint with
+    # `type: ['TissueSample']` (no `data_generation_summary` field on that
+    # type at all) made the coverage script's `doc['embedded.data_generation
+    # _summary.average_coverage.raw']` access blow up with an Elasticsearch
+    # runtime error, 400ing the entire request. Same
+    # isFileTypeSearch pattern bar_plot_chart already uses -- only attach
+    # these when the search is actually scoped to File, so a caller
+    # aggregating a different type doesn't inherit File-specific fields it
+    # has no reason to expect.
+    search_type = search_param_lists.get('type')
+    is_file_type_search = (
+        (isinstance(search_type, list) and 'File' in search_type and len(search_type) == 1) or
+        (isinstance(search_type, str) and search_type == 'File')
+    )
+
     def flatten(items):
         for item in items:
             if isinstance(item, str):
@@ -599,7 +616,10 @@ def data_matrix_aggregations(context, request):
             }
         return extra_aggs
 
-    extra_total_aggs = build_extra_total_aggs()
+    extra_total_aggs = build_extra_total_aggs() if is_file_type_search else {}
+    coverage_agg_def = (
+        deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION) if is_file_type_search else {}
+    )
 
     primary_agg = {
         "field_0": {
@@ -608,7 +628,7 @@ def data_matrix_aggregations(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION)
+            "aggs": deepcopy(coverage_agg_def)
         },
         "row_totals_0": {
             "terms": {
@@ -662,7 +682,7 @@ def data_matrix_aggregations(context, request):
 
     # Nest in additional fields, if any
     base_aggregation_def = {
-        **deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION),
+        **deepcopy(coverage_agg_def),
         **deepcopy(extra_total_aggs)
     }
     build_nested_aggs(primary_agg, row_agg_fields, base_aggregation_def, "field_0", "field_")

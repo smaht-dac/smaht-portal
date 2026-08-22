@@ -201,6 +201,8 @@ export default function TissueTypeView({
     const [totalCoverage, setTotalCoverage] = useState(0);
     // See TissueView.js's identical state for the full rationale.
     const [sampleNamesWithFiles, setSampleNamesWithFiles] = useState(null);
+    // See TissueView.js's identical state for the full rationale.
+    const [donorsWithAliquotData, setDonorsWithAliquotData] = useState(null);
     const [tissueSamples, setTissueSamples] = useState(null);
     // True only while re-fetching for an already-rendered donor switch (not
     // the initial load, which uses aliquotSamplesLoading/the spinner
@@ -660,6 +662,36 @@ export default function TissueTypeView({
         );
     }, [tissueMatrixFilterValue, session]);
 
+    // See TissueView.js's identical effect for the full rationale.
+    useEffect(() => {
+        const tissueUuids = allTissuesForType.map((t) => t?.uuid).filter(Boolean);
+        if (tissueUuids.length === 0) {
+            setDonorsWithAliquotData(new Set());
+            return;
+        }
+        ajax.load(
+            '/data_matrix_aggregations/',
+            (resp) => {
+                const bucket = resp?.terms || {};
+                setDonorsWithAliquotData(new Set(Object.keys(bucket)));
+            },
+            'POST',
+            () => setDonorsWithAliquotData(new Set()),
+            JSON.stringify({
+                search_query_params: {
+                    type: ['TissueSample'],
+                    'status!': ['deleted'],
+                    'sample_sources.uuid': tissueUuids,
+                },
+                column_agg_fields: ['sample_sources.donor.external_id'],
+                row_agg_fields: ['status'],
+                max_bucket_count: Math.max(tissueUuids.length, 200),
+            }),
+            {},
+            null
+        );
+    }, [allTissuesForType, session]);
+
     return (
         <div className="tissue-view">
             <TissueTypeViewTitle representativeTissue={representativeTissue} />
@@ -832,11 +864,20 @@ export default function TissueTypeView({
                                         value={selectedDonorUuid || ''}
                                         onChange={(e) => setSelectedDonorUuid(e.target.value || null)}>
                                         <option value="">Select a donor…</option>
-                                        {donors.map(({ donor: d }) => (
-                                            <option key={d.uuid} value={d.uuid}>
-                                                {getDisplayText(d)}
-                                            </option>
-                                        ))}
+                                        {donors.map(({ donor: d }) => {
+                                            const hasData =
+                                                donorsWithAliquotData === null ||
+                                                donorsWithAliquotData.has(d.external_id);
+                                            return (
+                                                <option
+                                                    key={d.uuid}
+                                                    value={d.uuid}
+                                                    disabled={!hasData}>
+                                                    {getDisplayText(d)}
+                                                    {hasData ? '' : ' (no data yet)'}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
                             ) : null}

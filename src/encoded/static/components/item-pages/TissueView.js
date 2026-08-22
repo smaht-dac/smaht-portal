@@ -192,6 +192,16 @@ const TissueView = React.memo(function TissueView({
     // panel can combine both into one box for a given donor.
     const [allTissuesForType, setAllTissuesForType] = useState([]);
     const [donorsLoading, setDonorsLoading] = useState(true);
+    // Which of `donors`, keyed by external_id, actually have >=1 real
+    // TissueSample (Core/Fixed/Frozen/Liquid/Cells) for this tissue_type --
+    // a donor can have a real Tissue record (which is all `donors` itself
+    // confirms) well before any aliquot has actually been submitted/
+    // processed for it, which otherwise meant every single option in the
+    // donor picker had to be clicked through by hand to discover which
+    // ones actually had anything to show. null (not an empty Set) while
+    // still loading/unknown, so nothing gets incorrectly disabled before
+    // this resolves.
+    const [donorsWithAliquotData, setDonorsWithAliquotData] = useState(null);
     const [tissueSamples, setTissueSamples] = useState(null);
     // True only while re-fetching for an already-rendered donor switch (not
     // the initial load, which uses aliquotSamplesLoading/the spinner
@@ -791,6 +801,48 @@ const TissueView = React.memo(function TissueView({
         );
     }, [tissueMatrixFilterValue, session]);
 
+    // Batch pre-check (one request, not one per donor) for which donors in
+    // the picker above actually have real TissueSample data for this
+    // tissue_type -- reuses /data_matrix_aggregations/ (now fixed to only
+    // attach its File-specific coverage aggregation when the search is
+    // actually scoped to File -- see visualization.py's is_file_type_search
+    // -- confirmed against real data after the earlier fix caused every
+    // donor to wrongly show as having no data), scoped to every donor's
+    // own Tissue uuid(s) at once via sample_sources.uuid, bucketed by
+    // sample_sources.donor.external_id (already embedded, see
+    // types/sample.py's embedded_list) so it doesn't need per-donor
+    // requests. max_bucket_count is set generously above this tissue_type's
+    // actual donor count since a caller undercounting it silently drops
+    // the lowest-count donors from the result (see visualization.py).
+    useEffect(() => {
+        const tissueUuids = allTissuesForType.map((t) => t?.uuid).filter(Boolean);
+        if (tissueUuids.length === 0) {
+            setDonorsWithAliquotData(donorsLoading ? null : new Set());
+            return;
+        }
+        ajax.load(
+            '/data_matrix_aggregations/',
+            (resp) => {
+                const bucket = resp?.terms || {};
+                setDonorsWithAliquotData(new Set(Object.keys(bucket)));
+            },
+            'POST',
+            () => setDonorsWithAliquotData(new Set()),
+            JSON.stringify({
+                search_query_params: {
+                    type: ['TissueSample'],
+                    'status!': ['deleted'],
+                    'sample_sources.uuid': tissueUuids,
+                },
+                column_agg_fields: ['sample_sources.donor.external_id'],
+                row_agg_fields: ['status'],
+                max_bucket_count: Math.max(tissueUuids.length, 200),
+            }),
+            {},
+            null
+        );
+    }, [allTissuesForType, donorsLoading, session]);
+
     const donorCount = donors.length;
 
     return (
@@ -969,11 +1021,23 @@ const TissueView = React.memo(function TissueView({
                                         value={selectedDonorUuid || ''}
                                         onChange={(e) => setSelectedDonorUuid(e.target.value || null)}>
                                         <option value="">Select a donor…</option>
-                                        {donors.map(({ donor: d }) => (
-                                            <option key={d.uuid} value={d.uuid}>
-                                                {getDisplayText(d)}
-                                            </option>
-                                        ))}
+                                        {donors.map(({ donor: d }) => {
+                                            // null (still loading) reads as
+                                            // "don't know yet" -- nothing
+                                            // gets disabled prematurely.
+                                            const hasData =
+                                                donorsWithAliquotData === null ||
+                                                donorsWithAliquotData.has(d.external_id);
+                                            return (
+                                                <option
+                                                    key={d.uuid}
+                                                    value={d.uuid}
+                                                    disabled={!hasData}>
+                                                    {getDisplayText(d)}
+                                                    {hasData ? '' : ' (no data yet)'}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
                             ) : null}
