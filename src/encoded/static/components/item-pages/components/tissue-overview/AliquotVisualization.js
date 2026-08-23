@@ -305,12 +305,12 @@ function midpoint(x1, y1, x2, y2) {
 }
 
 export default function AliquotVisualization({
-    title,
+    title = null,
     slices,
-    dimensions,
-    showSliceLabels,
-    className,
-    idPrefix,
+    dimensions = null,
+    showSliceLabels = false,
+    className = null,
+    idPrefix = null,
     // For bivalved tissues (Adrenal/Heart/Gonads -- see
     // isBivalvedAliquotLayout in helpers.js). `slices` is expected to
     // already be the tissue's full fixed Anterior/Posterior template
@@ -1505,10 +1505,3 @@ AliquotVisualization.propTypes = {
     ).isRequired,
 };
 
-AliquotVisualization.defaultProps = {
-    title: null,
-    showSliceLabels: false,
-    className: null,
-    idPrefix: null,
-    dimensions: null,
-};

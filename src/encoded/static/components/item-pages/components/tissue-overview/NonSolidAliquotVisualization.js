@@ -144,11 +144,11 @@ function TubeIcon({
 }
 
 export default function NonSolidAliquotVisualization({
-    title,
+    title = null,
     aliquots,
-    specimenType,
-    idPrefix,
-    className,
+    specimenType = 'blood',
+    idPrefix = null,
+    className = null,
 }) {
     const [selectedAliquotIndex, setSelectedAliquotIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -453,9 +453,3 @@ NonSolidAliquotVisualization.propTypes = {
     ).isRequired,
 };
 
-NonSolidAliquotVisualization.defaultProps = {
-    title: null,
-    className: null,
-    specimenType: 'blood',
-    idPrefix: null,
-};
