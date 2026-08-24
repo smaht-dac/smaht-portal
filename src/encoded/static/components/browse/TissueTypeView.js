@@ -1096,7 +1096,10 @@ export default function TissueTypeView({
                                                 <td>{formatYesNo(pathologySummary.pathologic_finding_present)}</td>
                                                 <td>
                                                     {histologyImages.length > 0 ? (
-                                                        <a href={histologyImages[0]}>
+                                                        <a
+                                                            href={histologyImages[0]?.href || histologyImages[0]?.['@id']}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer">
                                                             View{histologyImages.length > 1 ? ` (${histologyImages.length})` : ''}
                                                         </a>
                                                     ) : (
