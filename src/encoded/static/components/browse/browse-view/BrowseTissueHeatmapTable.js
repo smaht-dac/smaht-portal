@@ -291,6 +291,15 @@ function getTargetTissuePercentageScoreClass(value) {
     return `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
 }
 
+// Target Tissue % cell values are ordered band strings (e.g. "[26-49]"),
+// not numbers -- MetricHeatmapTable's default sort-value extractor
+// (defaultGetSortValue) only handles plain numbers, so this tab needs its
+// own override ranking bands by their real order (not alphabetically).
+function getTargetTissuePercentageSortValue(value) {
+    const index = TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
+    return index === -1 ? null : index;
+}
+
 // --- Experimental: user-customizable conditional-color palette ---------
 // Data wranglers previously had no way to try a different heatmap color
 // scheme short of asking for a code change + deployment. This lets anyone
@@ -533,6 +542,55 @@ function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, g
 // tab isn't even visible.
 const EMPTY_MERGEABLE_TISSUE_TYPES = new Set();
 
+// Default value extraction for sorting -- correct as-is for Ischemic Time
+// and Autolysis Score (already plain numbers). Target Tissue % overrides
+// this (see BrowseTissueHeatmapTable's getTargetTissuePercentageSortValue)
+// since its cell values are ordered band strings (e.g. "[26-49]"), not
+// numbers -- a plain numeric check on those would return null for every
+// value and break sorting for that tab entirely.
+const defaultGetSortValue = (value) => (typeof value === 'number' ? value : null);
+
+// null/undefined sort values (n/a cells) always sort to the end, regardless
+// of direction -- standard data-table convention, and avoids NaN-driven
+// comparator inconsistency from comparing a number against null.
+function compareSortValues(a, b, direction) {
+    const aIsNull = a === null || typeof a === 'undefined';
+    const bIsNull = b === null || typeof b === 'undefined';
+    if (aIsNull && bIsNull) return 0;
+    if (aIsNull) return 1;
+    if (bIsNull) return -1;
+    return direction === 'asc' ? a - b : b - a;
+}
+
+// One clickable header label + a FontAwesome sort-direction icon --
+// mirrors the icon-sort-up/icon-sort-down convention shared-portal-
+// components' HeadersRow.js (ColumnSortIcon) already uses for the plain
+// /browse/ search-results table, so this reads as consistent without
+// pulling in that component's heavier URL/context-driven sort machinery
+// (architecturally mismatched here -- this table sorts already-fetched
+// rows client-side, not a live search grid).
+function SortableHeaderLabel({ label, sortDirection, onClick }) {
+    return (
+        <button
+            type="button"
+            className={'tissue-heatmap-sort-button' + (sortDirection ? ' is-active' : '')}
+            onClick={onClick}>
+            {label}
+            <i
+                className={
+                    'icon icon-fw fas tissue-heatmap-sort-icon' +
+                    ' ' +
+                    (sortDirection === 'asc'
+                        ? 'icon-sort-up'
+                        : sortDirection === 'desc'
+                            ? 'icon-sort-down'
+                            : 'icon-sort')
+                }
+            />
+        </button>
+    );
+}
+
 const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     tissueTypes,
     tissueTypeHrefs,
@@ -548,18 +606,71 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // See renderRowCells -- which columns are eligible to have consecutive
     // equal-valued cells in the same row merged into one spanning cell.
     mergeableTissueTypes = EMPTY_MERGEABLE_TISSUE_TYPES,
+    // Extracts a comparable value from a raw cell value for sorting -- see
+    // defaultGetSortValue's comment for why Target Tissue % overrides this.
+    getSortValue = defaultGetSortValue,
 }) {
     const columnGroups = useMemo(
         () => buildColumnGroups(tissueTypes, tissueTypeCategories),
         [tissueTypes, tissueTypeCategories]
     );
+
+    // null (default order, today's fixed donor-alphabetical order from
+    // buildTissueMetricMatrix) or { key: 'donor' | <tissueType>, direction }.
+    // Lives locally per MetricHeatmapTable instance -- each of the 3 tabs
+    // renders its own instance (kept mounted simultaneously via
+    // DotRouterTab's `cache` prop), so per-tab independent sort state falls
+    // out naturally with no cross-tab coordination needed. Local state also
+    // isn't a prop, so it doesn't affect this component's own React.memo
+    // comparison above.
+    const [sortState, setSortState] = useState(null);
+
+    const handleHeaderClick = (key) => {
+        setSortState((prev) => {
+            if (!prev || prev.key !== key) return { key, direction: 'asc' };
+            if (prev.direction === 'asc') return { key, direction: 'desc' };
+            return null;
+        });
+    };
+
+    const displayMatrix = useMemo(() => {
+        if (!sortState) return matrix;
+        const { key, direction } = sortState;
+        if (key === 'donor') {
+            return [...matrix].sort((rowA, rowB) => {
+                const cmp = rowA.donor.localeCompare(rowB.donor, undefined, { numeric: true });
+                return direction === 'asc' ? cmp : -cmp;
+            });
+        }
+        const columnIndex = tissueTypes.indexOf(key);
+        if (columnIndex === -1) return matrix;
+        return [...matrix].sort((rowA, rowB) =>
+            compareSortValues(
+                getSortValue(rowA.cells[columnIndex]),
+                getSortValue(rowB.cells[columnIndex]),
+                direction
+            )
+        );
+    }, [matrix, sortState, tissueTypes, getSortValue]);
+
+    const orderLabel = !sortState
+        ? 'Donor Distribution Order'
+        : `Sorted by ${sortState.key === 'donor' ? 'Donor ID' : formatTissueTypeHeaderLabel(sortState.key)} (${sortState.direction === 'asc' ? 'ascending' : 'descending'})`;
+
     return (
         <div className="tissue-heatmap-table-wrap">
             <table className="tissue-heatmap-table">
                 <thead>
                     <tr className="tissue-heatmap-group-row">
                         <th className="tissue-heatmap-order-header" rowSpan={2} />
-                        <th className="tissue-heatmap-donor-header" rowSpan={2} />
+                        <th className="tissue-heatmap-donor-header" rowSpan={2}>
+                            <SortableHeaderLabel
+                                label="Donor ID"
+                                sortDirection={sortState?.key === 'donor' ? sortState.direction : null}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onClick={() => handleHeaderClick('donor')}
+                            />
+                        </th>
                         {columnGroups.map((group, i) => (
                             <th
                                 key={i}
@@ -584,16 +695,22 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 ) : (
                                     formatTissueTypeHeaderLabel(tissueType)
                                 )}
+                                <SortableHeaderLabel
+                                    label=""
+                                    sortDirection={sortState?.key === tissueType ? sortState.direction : null}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    onClick={() => handleHeaderClick(tissueType)}
+                                />
                             </th>
                         ))}
                     </tr>
                 </thead>
                 <tbody>
-                    {matrix.map(({ donor, cells }, rowIndex) => (
+                    {displayMatrix.map(({ donor, cells }, rowIndex) => (
                         <tr key={donor}>
                             {rowIndex === 0 ? (
-                                <td className="tissue-heatmap-order-label" rowSpan={matrix.length}>
-                                    <span>Donor Distribution Order</span>
+                                <td className="tissue-heatmap-order-label" rowSpan={displayMatrix.length}>
+                                    <span>{orderLabel}</span>
                                 </td>
                             ) : null}
                             <td className="tissue-heatmap-donor-id">{donor}</td>
@@ -798,6 +915,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             {...targetTissuePercentage}
                             formatValue={formatTargetTissuePercentage}
                             getScoreClass={getTargetTissuePercentageScoreClass}
+                            getSortValue={getTargetTissuePercentageSortValue}
                             enableConditionalColor={enableConditionalColor}
                             // See the Autolysis Score tab's identical prop above.
                             mergeableTissueTypes={EMPTY_MERGEABLE_TISSUE_TYPES}

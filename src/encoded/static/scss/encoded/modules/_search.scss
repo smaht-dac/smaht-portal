@@ -2449,6 +2449,40 @@ div.browse-link-icon {
 				font-weight: 400;
 			}
 		}
+
+		// Click-to-sort column headers (BrowseTissueHeatmapTable.js's
+		// SortableHeaderLabel) -- deliberately not the shared
+		// `.column-sort-icon`/HeadersRow.js machinery, which is scoped to
+		// the URL/context-driven `/browse/` search-results table and
+		// architecturally mismatched for this table's plain client-side
+		// row sort. Only the icon-sort-up/icon-sort-down convention is
+		// borrowed for visual consistency.
+		.tissue-heatmap-sort-button {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			background: none;
+			border: none;
+			padding: 0;
+			margin-left: 4px;
+			font: inherit;
+			font-weight: inherit;
+			color: inherit;
+			cursor: pointer;
+
+			&:hover .tissue-heatmap-sort-icon {
+				color: #657b95;
+			}
+
+			&.is-active .tissue-heatmap-sort-icon {
+				color: #428bca;
+			}
+		}
+
+		.tissue-heatmap-sort-icon {
+			font-size: 0.6875rem;
+			color: #C8CED4;
+		}
 	}
 }
 
