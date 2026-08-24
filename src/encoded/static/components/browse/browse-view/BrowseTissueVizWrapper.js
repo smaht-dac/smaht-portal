@@ -525,7 +525,7 @@ export const BrowseTissueVizWrapper = (props) => {
                     divCls="view-toggle p-1"
                 />
             </div>
-            <div className="col ps-0">
+            <div className="col ps-0 tissue-viz-content">
                 {toggleViewIndex === 0 ? (
                     <TissueGermLayerPanel fileFilters={fileFilters} session={session} />
                 ) : (

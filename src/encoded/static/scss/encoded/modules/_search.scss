@@ -1968,6 +1968,19 @@ div.browse-link-icon {
             }
         }
     }
+
+    // Tissue View (the germ-layer bubble panel, ~280-300px tall) and Cohort
+    // View (a row of 420px-tall DonorCohortViewChart cards) occupy very
+    // different heights -- without a floor, toggling between them reflows
+    // everything below (the <hr/> + Ischemic Time/Autolysis Score/Target
+    // Tissue % heatmap table in BrowseTissue.js), which visibly jumps up/
+    // down on every click. 420px matches DonorCohortViewChart's own
+    // `chartHeight` prop (BrowseTissueVizWrapper.js's TissueCohortCharts),
+    // the taller of the two states, so the shorter one just leaves empty
+    // space instead of shrinking the whole row.
+    .tissue-viz-content {
+        min-height: 420px;
+    }
 }
 
 .tissue-germ-layer-panel {
