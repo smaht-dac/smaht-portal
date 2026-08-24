@@ -59,6 +59,14 @@ class TissueSample(Sample):
         # instead of a generic "Report N" placeholder.
         "pathology_reports.accession",
         "associated_pathology_reports.pathology_reports.accession",
+        # Mirrors Tissue's own donor.study/donor.tags embeds
+        # (types/tissue.py's _build_tissue_embedded_list) -- lets a
+        # TissueSample search be filtered to the same released-donor
+        # Production population the rest of the app uses (Browse by
+        # Donor/Tissue/File), instead of only being derivable indirectly
+        # via a submitting center's role-suffix naming convention.
+        "sample_sources.donor.study",
+        "sample_sources.donor.tags",
     ]
 
     rev = {

@@ -17,7 +17,6 @@ import {
     getTissueDisplayLabel,
     getTissueColorHex,
     hexToRgba,
-    isTpcSubmissionCenter,
 } from '../../item-pages/components/tissue-overview/helpers';
 
 // Groups the categories returned by item_utils/tissue.py::get_category() into
@@ -96,8 +95,8 @@ export const renderSubmissionCenterPopover = (customId) => (
                     <tr>
                         <td className="text-left">
                             Shows the number of tissue sample records processed by each Genome
-                            Characterization Center. Tissue Procurement Center submissions are
-                            excluded.
+                            Characterization Center. Other center types (e.g. Tissue Procurement
+                            Centers) are not shown.
                         </td>
                     </tr>
                 </tbody>
@@ -292,15 +291,15 @@ const buildAutolysisScoreChartData = (tissueResults = []) => {
 // submission_centers.display_title is embedded/facetable on TissueSample --
 // no need to pull every record client-side just to count them.
 //
-// TPC entries are filtered out (same `isTpcSubmissionCenter` helper
-// AliquotVisualization/TissueTypeView.js already use to exclude TPC-only
-// submissions from their own "who processed this" views) -- every
-// TissueSample's TPC is the same single procuring center already known to
-// carry no real variation, so leaving it in just dwarfs the GCC bars this
-// chart actually exists to compare.
+// Only GCC-suffixed centers are kept -- every submission_centers value ends
+// in its role suffix (GCC/TPC/TTD/DAC/OC, confirmed against real fixture
+// data; see helpers.js's getGccFilesBrowseHref, which uses this same
+// `endsWith('GCC')` check), and this chart exists specifically to compare
+// GCCs. TPC, TTD, DAC, etc. are a different kind of center entirely, not
+// just noise to threshold away.
 const buildSubmissionCenterChartData = (termsByCenter = {}) => {
-    const gccEntries = Object.entries(termsByCenter).filter(
-        ([center]) => !isTpcSubmissionCenter(center)
+    const gccEntries = Object.entries(termsByCenter).filter(([center]) =>
+        center?.trim().endsWith('GCC')
     );
     const total = gccEntries.reduce((sum, [, bucket]) => sum + (bucket?.doc_count || 0), 0);
     return gccEntries
@@ -369,10 +368,12 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
 
     // TissueSample rather than Tissue -- Tissue.submission_centers is always
     // the procuring TPC (no variation to show, see buildSubmissionCenterChartData's
-    // comment); the GCC diversity lives on TissueSample. Not filtered to the
-    // same released-donor population as the other two charts: TissueSample
-    // doesn't embed sample_sources.donor.study/tags, so that population
-    // filter isn't queryable here without a backend embed change.
+    // comment); the GCC diversity lives on TissueSample. Filtered to the same
+    // released-donor Production population as the other two charts, via
+    // sample_sources.donor.study/tags -- added to TissueSample's
+    // embedded_list (types/tissue_sample.py) specifically so this filter
+    // would be real rather than relying only on the GCC-suffix naming
+    // convention (which doesn't itself guarantee "Production").
     useEffect(() => {
         setSubmissionCenterLoading(true);
         ajax.load(
@@ -384,7 +385,12 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
             'POST',
             () => setSubmissionCenterLoading(false),
             JSON.stringify({
-                search_query_params: { type: ['TissueSample'], 'status!': ['deleted'] },
+                search_query_params: {
+                    type: ['TissueSample'],
+                    'status!': ['deleted'],
+                    'sample_sources.donor.study': ['Production'],
+                    'sample_sources.donor.tags': ['has_released_files'],
+                },
                 fields_to_aggregate_for: ['submission_centers.display_title'],
             }),
             {},
