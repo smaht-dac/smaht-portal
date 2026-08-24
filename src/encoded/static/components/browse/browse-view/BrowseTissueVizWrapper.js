@@ -12,6 +12,7 @@ import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
 import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import { formUrlEncode } from './BrowseTissueHeatmapTable';
+import { BROWSE_STATUS_FILTERS } from '../BrowseView';
 import {
     getTissueIconSrc,
     getTissueDisplayLabel,
@@ -33,6 +34,12 @@ const GERM_LAYER_LABELS = [
 // Cohort View charts, which chart each category on its own rather than
 // folding Germ Cells/Clinically Accessible into one row.
 const TISSUE_CATEGORY_ORDER = ['Ectoderm', 'Mesoderm', 'Endoderm', 'Germ Cells', 'Clinically Accessible'];
+
+// Same population filter Browse by Donor/Browse by File use, mirrored from
+// TissueTypeView.js's identical constant -- keeps the GCC chart's file-count
+// fetch consistent with the rest of the page's population instead of
+// counting every File regardless of release status.
+const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('status');
 
 // pathology_summary.autolysis_score is an integer 0-3 (see
 // item-pages/components/tissue-overview/helpers.js's getAutolysisScoreCellClass
@@ -297,7 +304,11 @@ const buildAutolysisScoreChartData = (tissueResults = []) => {
 // `endsWith('GCC')` check), and this chart exists specifically to compare
 // GCCs. TPC, TTD, DAC, etc. are a different kind of center entirely, not
 // just noise to threshold away.
-const buildSubmissionCenterChartData = (termsByCenter = {}) => {
+// `fileCountsByCenter` (from a separate type=File aggregation on
+// sequencing_center.display_title -- see TissueCohortCharts) feeds the
+// tooltip's "Files" line/link; the bar height itself stays the TissueSample
+// count from `termsByCenter`, matching what the chart's own title/axis say.
+const buildSubmissionCenterChartData = (termsByCenter = {}, fileCountsByCenter = {}) => {
     const gccEntries = Object.entries(termsByCenter).filter(([center]) =>
         center?.trim().endsWith('GCC')
     );
@@ -306,8 +317,10 @@ const buildSubmissionCenterChartData = (termsByCenter = {}) => {
         .map(([center, bucket]) => ({
             group: center,
             value1: bucket?.doc_count || 0,
+            value1FileCount: fileCountsByCenter[center] || 0,
+            totalFileCount: fileCountsByCenter[center] || 0,
             total,
-            field: 'submission_centers.display_title',
+            field: 'sequencing_center.display_title',
             from: center,
             to: center,
         }))
@@ -398,13 +411,59 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
         );
     }, [session]);
 
+    // File counts per GCC, for the GCC chart's tooltip "Files" line/link --
+    // a separate File-scoped aggregation (not derivable from the
+    // TissueSample-scoped fetch above, which never carries File counts,
+    // see visualization.py's bar_plot_chart: `files` is 0 unless the search
+    // itself is type=File). Filters by `fileFilters` (the same File-mapped,
+    // released-donor population every other chart on this page uses).
+    const [submissionCenterFileCounts, setSubmissionCenterFileCounts] = useState({});
+    useEffect(() => {
+        ajax.load(
+            '/bar_plot_aggregations/',
+            (resp) => {
+                const countsByCenter = {};
+                Object.entries(resp?.terms || {}).forEach(([center, bucket]) => {
+                    countsByCenter[center] = bucket?.doc_count || 0;
+                });
+                setSubmissionCenterFileCounts(countsByCenter);
+            },
+            'POST',
+            () => setSubmissionCenterFileCounts({}),
+            JSON.stringify({
+                search_query_params: {
+                    ...fileFilters,
+                    type: ['File'],
+                    status: BROWSE_STATUS_VALUES,
+                    'dataset!': ['No value'],
+                },
+                fields_to_aggregate_for: ['sequencing_center.display_title'],
+            }),
+            {},
+            null
+        );
+    }, [fileFilters, session]);
+
+    // Exact-match File browse link factory -- unlike BrowseDonorVizWrapper.js's
+    // buildFilesHref (which builds `.from`/`.to` *range* filters for numeric
+    // fields like age/hardy_scale), the GCC name and tissue category charts
+    // below both group by a plain categorical value, so each just needs a
+    // direct equality filter on the corresponding File field. Shared here
+    // since both charts need the exact same shape, just a different field.
+    const buildCategoricalFilesHref = (field) => (d) =>
+        d?.group ? url.format({ pathname: '/browse/', query: { ...fileFilters, [field]: d.group } }) : null;
+    // Same field/convention helpers.js's getGccFilesBrowseHref already uses
+    // for GCC file links elsewhere in the app.
+    const buildSubmissionCenterFilesHref = buildCategoricalFilesHref('sequencing_center.display_title');
+    const buildTissueCategoryFilesHref = buildCategoricalFilesHref('sample_summary.category');
+
     const autolysisScoreData = useMemo(
         () => buildAutolysisScoreChartData(tissueResults),
         [tissueResults]
     );
     const submissionCenterData = useMemo(
-        () => buildSubmissionCenterChartData(submissionCenterTerms),
-        [submissionCenterTerms]
+        () => buildSubmissionCenterChartData(submissionCenterTerms, submissionCenterFileCounts),
+        [submissionCenterTerms, submissionCenterFileCounts]
     );
 
     return (
@@ -420,6 +479,8 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
                 yAxisTitle="# of Donors"
                 showBarTooltip={true}
                 tooltipTitles={{ crumb: null, left: 'Tissue Category', right: '# of Donors' }}
+                // eslint-disable-next-line react/jsx-no-bind
+                buildFilesHref={buildTissueCategoryFilesHref}
                 showXAxisTitle={true}
                 popover={renderTissueCategoryPopover()}
                 session={session}
@@ -451,7 +512,10 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
                 topStackColor="#4567CF"
                 xAxisTitle="# of Tissue Samples"
                 showYAxisTitle={false}
-                showBarTooltip={false}
+                showBarTooltip={true}
+                tooltipTitles={{ crumb: null, left: 'GCC', right: '# of Tissue Samples' }}
+                // eslint-disable-next-line react/jsx-no-bind
+                buildFilesHref={buildSubmissionCenterFilesHref}
                 showXAxisTitle={true}
                 popover={renderSubmissionCenterPopover()}
                 session={session}

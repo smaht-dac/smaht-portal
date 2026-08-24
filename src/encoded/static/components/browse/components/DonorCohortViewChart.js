@@ -19,7 +19,8 @@ const THEME = {
     hoverStroke: {
         male: '#17379D',
         female: '#5852C2',
-        hardy: '#1672C7'
+        hardy: '#1672C7',
+        horizontal: '#0E8E95'
     }
 };
 
@@ -394,7 +395,9 @@ const DonorCohortViewChart = ({
                 ? THEME.hoverStroke.male
                 : barStackType === 'secondary'
                     ? THEME.hoverStroke.female
-                    : THEME.hoverStroke.hardy;
+                    : isHorizontal
+                        ? THEME.hoverStroke.horizontal
+                        : THEME.hoverStroke.hardy;
             insetStroke(d3.select(_pinnedSelection), strokeColor);
 
             const left = e.pageX + 12;
@@ -483,6 +486,40 @@ const DonorCohortViewChart = ({
         };
         const labelY = (v, pad = 6) => Math.max(y(v) - pad, 10);
 
+        // Hoisted above both branches (previously only declared in the
+        // Vertical section, below) -- generic, dimension-cache-driven hover/
+        // pin inset-stroke helpers, needed by the Horizontal branch too now
+        // that its bars support click-to-pin the same way Vertical's do.
+        // `baseDims` (the per-series dims calculators) stays vertical-only
+        // below, since it depends on the vertical x/y scales computed there;
+        // the Horizontal branch sets its own dims per bar inline instead.
+        const hoverStrokeWidth = 3;
+        const baseDimMap = new WeakMap();
+
+        const insetStroke = (selection, color) => {
+            const dims = baseDimMap.get(selection.node());
+            if (!dims) return;
+            selection
+                .attr('stroke', color)
+                .attr('stroke-width', hoverStrokeWidth)
+                .attr('x', dims.x + hoverStrokeWidth / 2)
+                .attr('y', dims.y + hoverStrokeWidth / 2)
+                .attr('width', Math.max(0, dims.width - hoverStrokeWidth))
+                .attr('height', Math.max(0, dims.height - hoverStrokeWidth));
+        };
+
+        const clearStroke = (selection) => {
+            const dims = baseDimMap.get(selection.node());
+            if (!dims) return;
+            selection
+                .attr('stroke', 'none')
+                .attr('stroke-width', null)
+                .attr('x', dims.x)
+                .attr('y', dims.y)
+                .attr('width', dims.width)
+                .attr('height', dims.height);
+        };
+
         // ---------- Horizontal (Ethnicity) ----------
         if (isHorizontal) {
             const value = (d) => (d.value1 || 0) + (d.value2 || 0);
@@ -547,6 +584,7 @@ const DonorCohortViewChart = ({
 
 
             // Bars
+            const horizontalHoverStroke = THEME.hoverStroke.horizontal;
             g.selectAll('.bar-h')
                 .data(data).enter().append('rect')
                 .attr('x', 0)
@@ -555,9 +593,23 @@ const DonorCohortViewChart = ({
                 .attr('width', (d) => x(value(d)))
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, d, null))
+                .each(function (d) {
+                    baseDimMap.set(this, { x: 0, y: y(d.group), width: x(value(d)), height: y.bandwidth() });
+                })
+                .on('mouseover', (e, d) => {
+                    if (value(d) > 0) {
+                        insetStroke(d3.select(e.currentTarget), horizontalHoverStroke);
+                        showTip(e, d, null);
+                    }
+                })
                 .on('mousemove', moveTip)
-                .on('mouseout', hideTip);
+                .on('mouseout', function () {
+                    if (_pinnedSelection !== this) {
+                        clearStroke(d3.select(this));
+                    }
+                    hideTip();
+                })
+                .on('click', (e, d) => { if (value(d) > 0) { pinTip(e, d, null); } });
 
             // End-value labels
             g.selectAll('.label-h')
@@ -621,9 +673,6 @@ const DonorCohortViewChart = ({
             .nice()
             .range([height, 0]);
 
-        const hoverStrokeWidth = 3;
-        const baseDimMap = new WeakMap();
-
         const baseDims = {
             female: (d) => ({
                 x: x(d.group),
@@ -643,30 +692,6 @@ const DonorCohortViewChart = ({
                 width: x.bandwidth(),
                 height: y(0) - y(d.value1 || 0)
             })
-        };
-
-        const insetStroke = (selection, color) => {
-            const dims = baseDimMap.get(selection.node());
-            if (!dims) return;
-            selection
-                .attr('stroke', color)
-                .attr('stroke-width', hoverStrokeWidth)
-                .attr('x', dims.x + hoverStrokeWidth / 2)
-                .attr('y', dims.y + hoverStrokeWidth / 2)
-                .attr('width', Math.max(0, dims.width - hoverStrokeWidth))
-                .attr('height', Math.max(0, dims.height - hoverStrokeWidth));
-        };
-
-        const clearStroke = (selection) => {
-            const dims = baseDimMap.get(selection.node());
-            if (!dims) return;
-            selection
-                .attr('stroke', 'none')
-                .attr('stroke-width', null)
-                .attr('x', dims.x)
-                .attr('y', dims.y)
-                .attr('width', dims.width)
-                .attr('height', dims.height);
         };
 
         // --- Vertical GRID (keep Y-axis ticks; remove only top gridline) ---
