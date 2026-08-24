@@ -3524,26 +3524,72 @@ File, Donor, and Publication Overview Styles
                 td.autolysis-score-cell {
                     font-weight: 600;
 
+                    // Each background/text pair reads a
+                    // `--tissue-donor-score-N-bg`/`-text` custom property
+                    // first, falling back to these hardcoded values when
+                    // unset -- TissueTypeView.js's experimental
+                    // HeatmapColorPicker (imported from
+                    // BrowseTissueHeatmapTable.js) sets those (as an inline
+                    // style on .tissue-donor-table-card) when a user has
+                    // picked a different per-browser palette. Deliberately
+                    // a separate variable namespace from the Browse-by-
+                    // Tissue heatmap's `--heatmap-score-N-*`
+                    // (_search.scss) -- these two tables' palettes stay
+                    // independently pickable rather than coupled together.
+                    //
                     // Darkened from #F0F3F5 -- same reasoning as the
                     // Browse-by-Tissue heatmap's score-0 (_search.scss):
                     // too close to the zebra-striped/white row background
                     // to read as colored at all.
                     &.score-0 {
-                        background-color: #DDE5EA;
-                        color: #4A5460;
+                        background-color: var(--tissue-donor-score-0-bg, #DDE5EA);
+                        color: var(--tissue-donor-score-0-text, #4A5460);
                     }
                     &.score-1 {
-                        background-color: #DCE3E8;
-                        color: #3A4550;
+                        background-color: var(--tissue-donor-score-1-bg, #DCE3E8);
+                        color: var(--tissue-donor-score-1-text, #3A4550);
                     }
                     &.score-2 {
-                        background-color: #C2CDD4;
-                        color: #2E3742;
+                        background-color: var(--tissue-donor-score-2-bg, #C2CDD4);
+                        color: var(--tissue-donor-score-2-text, #2E3742);
                     }
                     &.score-3 {
-                        background-color: #A6B3BC;
-                        color: #1E252E;
+                        background-color: var(--tissue-donor-score-3-bg, #A6B3BC);
+                        color: var(--tissue-donor-score-3-text, #1E252E);
                     }
+                }
+
+                // Click-to-sort column headers (BrowseTissueHeatmapTable.js's
+                // exported SortableHeaderLabel, reused here) -- see
+                // _search.scss's identical `.tissue-heatmap-sort-*` block
+                // for the full rationale (duplicated, not cross-referenced,
+                // since these are two separate page-scoped SCSS partials
+                // with no existing shared-button-styles mixin to hook into).
+                .tissue-heatmap-sort-button {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    margin-left: 4px;
+                    font: inherit;
+                    font-weight: inherit;
+                    color: inherit;
+                    cursor: pointer;
+
+                    &:hover .tissue-heatmap-sort-icon {
+                        color: #657b95;
+                    }
+
+                    &.is-active .tissue-heatmap-sort-icon {
+                        color: #428bca;
+                    }
+                }
+
+                .tissue-heatmap-sort-icon {
+                    font-size: 0.6875rem;
+                    color: #C8CED4;
                 }
             }
         }

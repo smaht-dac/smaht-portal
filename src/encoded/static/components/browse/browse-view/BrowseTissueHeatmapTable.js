@@ -398,7 +398,7 @@ export function buildSequentialPaletteFromHex(baseHex) {
 // to the built-in default. Closes on an outside click/Escape like any
 // other lightweight dropdown; deliberately not react-bootstrap's Overlay
 // machinery since this doesn't need to track a scrolling anchor.
-function HeatmapColorPicker({ baseHex, onPick, onReset }) {
+export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
 
@@ -552,14 +552,21 @@ const defaultGetSortValue = (value) => (typeof value === 'number' ? value : null
 
 // null/undefined sort values (n/a cells) always sort to the end, regardless
 // of direction -- standard data-table convention, and avoids NaN-driven
-// comparator inconsistency from comparing a number against null.
-function compareSortValues(a, b, direction) {
+// comparator inconsistency from comparing a number against null. Handles
+// both numbers (Ischemic Time/Autolysis Score/etc.) and strings (e.g.
+// TissueTypeView.js's Donor ID/Sex columns) so every sortable column in
+// either table can share this one comparator.
+export function compareSortValues(a, b, direction) {
     const aIsNull = a === null || typeof a === 'undefined';
     const bIsNull = b === null || typeof b === 'undefined';
     if (aIsNull && bIsNull) return 0;
     if (aIsNull) return 1;
     if (bIsNull) return -1;
-    return direction === 'asc' ? a - b : b - a;
+    const cmp =
+        typeof a === 'string' && typeof b === 'string'
+            ? a.localeCompare(b, undefined, { numeric: true })
+            : a - b;
+    return direction === 'asc' ? cmp : -cmp;
 }
 
 // One clickable header label + a FontAwesome sort-direction icon --
@@ -569,7 +576,7 @@ function compareSortValues(a, b, direction) {
 // pulling in that component's heavier URL/context-driven sort machinery
 // (architecturally mismatched here -- this table sorts already-fetched
 // rows client-side, not a live search grid).
-function SortableHeaderLabel({ label, sortDirection, onClick }) {
+export function SortableHeaderLabel({ label, sortDirection, onClick }) {
     return (
         <button
             type="button"
@@ -637,10 +644,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         if (!sortState) return matrix;
         const { key, direction } = sortState;
         if (key === 'donor') {
-            return [...matrix].sort((rowA, rowB) => {
-                const cmp = rowA.donor.localeCompare(rowB.donor, undefined, { numeric: true });
-                return direction === 'asc' ? cmp : -cmp;
-            });
+            return [...matrix].sort((rowA, rowB) =>
+                compareSortValues(rowA.donor, rowB.donor, direction)
+            );
         }
         const columnIndex = tissueTypes.indexOf(key);
         if (columnIndex === -1) return matrix;

@@ -5,8 +5,15 @@ import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
 import {
     ajax,
     memoizedUrlParse,
+    JWT,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BROWSE_STATUS_FILTERS } from './BrowseView';
+import {
+    HeatmapColorPicker,
+    buildSequentialPaletteFromHex,
+    SortableHeaderLabel,
+    compareSortValues,
+} from './browse-view/BrowseTissueHeatmapTable';
 import AliquotVisualization from '../item-pages/components/tissue-overview/AliquotVisualization';
 import NonSolidAliquotVisualization from '../item-pages/components/tissue-overview/NonSolidAliquotVisualization';
 import { useUserDownloadAccess } from '../util/hooks';
@@ -133,6 +140,67 @@ export default function TissueTypeView({
     const allTissuesForType = context?.['@graph'] || [];
     const donors = useMemo(() => dedupeTissuesByDonor(allTissuesForType), [allTissuesForType]);
     const donorCount = donors.length;
+
+    // Experimental Colors picker for the Donor Details table's Autolysis
+    // Score column -- same admin-only, in-memory-only pattern as
+    // BrowseTissueHeatmapTable.js's HeatmapColorPicker (imported directly
+    // rather than reimplemented), just wired to this table's own,
+    // independent `--tissue-donor-score-N-*` custom properties (see
+    // _item-pages.scss) instead of the heatmap's `--heatmap-score-N-*`.
+    const isAdminUser = useMemo(
+        () => (JWT.getUserGroups() || []).includes('admin'),
+        [session]
+    );
+    const [paletteBaseHex, setPaletteBaseHex] = useState(null);
+    const donorTablePalette = useMemo(
+        () => (paletteBaseHex ? buildSequentialPaletteFromHex(paletteBaseHex) : null),
+        [paletteBaseHex]
+    );
+    const handlePickPaletteColor = (hex) => setPaletteBaseHex(hex);
+    const handleResetPaletteColor = () => setPaletteBaseHex(null);
+    const donorTablePaletteStyle = donorTablePalette
+        ? donorTablePalette.reduce((style, { bg, text }, i) => {
+            style[`--tissue-donor-score-${i}-bg`] = bg;
+            style[`--tissue-donor-score-${i}-text`] = text;
+            return style;
+        }, {})
+        : undefined;
+
+    // Donor Details table sort -- same asc/desc/none click-cycle pattern as
+    // BrowseTissueHeatmapTable.js's MetricHeatmapTable, adapted to this
+    // table's donor-row (not donor x tissue-type) shape. Histology Viewer
+    // has no entry here -- it's a link/count, not a meaningful ranking value.
+    const [donorTableSortState, setDonorTableSortState] = useState(null);
+    const handleDonorTableHeaderClick = (key) => {
+        setDonorTableSortState((prev) => {
+            if (!prev || prev.key !== key) return { key, direction: 'asc' };
+            if (prev.direction === 'asc') return { key, direction: 'desc' };
+            return null;
+        });
+    };
+    const donorTableSortValueGetters = {
+        donorId: ({ donor: d }) => getDisplayText(d),
+        sex: ({ donor: d }) => d?.sex ?? null,
+        age: ({ donor: d }) => (typeof d?.age === 'number' ? d.age : null),
+        autolysisScore: ({ tissue: t }) => t?.pathology_summary?.autolysis_score ?? null,
+        nonTargetPresence: ({ tissue: t }) => {
+            const value = t?.pathology_summary?.non_target_tissue_present;
+            return typeof value === 'boolean' ? Number(value) : null;
+        },
+        pathologicFinding: ({ tissue: t }) => {
+            const value = t?.pathology_summary?.pathologic_finding_present;
+            return typeof value === 'boolean' ? Number(value) : null;
+        },
+    };
+    const displayDonors = useMemo(() => {
+        if (!donorTableSortState) return donors;
+        const getSortValue = donorTableSortValueGetters[donorTableSortState.key];
+        if (!getSortValue) return donors;
+        return [...donors].sort((entryA, entryB) =>
+            compareSortValues(getSortValue(entryA), getSortValue(entryB), donorTableSortState.direction)
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [donors, donorTableSortState]);
 
     // Representative Tissue for header/summary fields (uberon_id, category,
     // study, display_title) -- prefer an entry with a populated
@@ -929,26 +997,77 @@ export default function TissueTypeView({
                     </div>
                 </div>
 
-                <div className="tissue-donor-table-card">
-                    <div className="header">
+                <div className="tissue-donor-table-card" style={donorTablePaletteStyle}>
+                    <div className="header d-flex justify-content-between align-items-center">
                         <span className="header-text">Donor Details</span>
+                        {isAdminUser ? (
+                            <HeatmapColorPicker
+                                baseHex={paletteBaseHex}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onPick={handlePickPaletteColor}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onReset={handleResetPaletteColor}
+                            />
+                        ) : null}
                     </div>
                     <div className="body">
                         <table className="tissue-donor-table table">
                             <thead>
                                 <tr>
-                                    <th>Donor ID</th>
-                                    <th>Sex</th>
-                                    <th>Age</th>
-                                    <th>Autolysis Score</th>
-                                    <th>Non-Target Tissue Presence</th>
-                                    <th>Unexpected/Pathologic Finding</th>
+                                    <th>
+                                        <SortableHeaderLabel
+                                            label="Donor ID"
+                                            sortDirection={donorTableSortState?.key === 'donorId' ? donorTableSortState.direction : null}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={() => handleDonorTableHeaderClick('donorId')}
+                                        />
+                                    </th>
+                                    <th>
+                                        <SortableHeaderLabel
+                                            label="Sex"
+                                            sortDirection={donorTableSortState?.key === 'sex' ? donorTableSortState.direction : null}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={() => handleDonorTableHeaderClick('sex')}
+                                        />
+                                    </th>
+                                    <th>
+                                        <SortableHeaderLabel
+                                            label="Age"
+                                            sortDirection={donorTableSortState?.key === 'age' ? donorTableSortState.direction : null}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={() => handleDonorTableHeaderClick('age')}
+                                        />
+                                    </th>
+                                    <th>
+                                        <SortableHeaderLabel
+                                            label="Autolysis Score"
+                                            sortDirection={donorTableSortState?.key === 'autolysisScore' ? donorTableSortState.direction : null}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={() => handleDonorTableHeaderClick('autolysisScore')}
+                                        />
+                                    </th>
+                                    <th>
+                                        <SortableHeaderLabel
+                                            label="Non-Target Tissue Presence"
+                                            sortDirection={donorTableSortState?.key === 'nonTargetPresence' ? donorTableSortState.direction : null}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={() => handleDonorTableHeaderClick('nonTargetPresence')}
+                                        />
+                                    </th>
+                                    <th>
+                                        <SortableHeaderLabel
+                                            label="Unexpected/Pathologic Finding"
+                                            sortDirection={donorTableSortState?.key === 'pathologicFinding' ? donorTableSortState.direction : null}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={() => handleDonorTableHeaderClick('pathologicFinding')}
+                                        />
+                                    </th>
                                     <th>Histology Viewer</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {donors.length > 0 ? (
-                                    donors.map(({ donor: d, tissue: t }) => {
+                                {displayDonors.length > 0 ? (
+                                    displayDonors.map(({ donor: d, tissue: t }) => {
                                         const donorHref = getDonorHref(d, userDownloadAccess);
                                         const pathologySummary = t?.pathology_summary || {};
                                         const histologyImages = pathologySummary.histology_images || [];
