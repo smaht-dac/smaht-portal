@@ -526,11 +526,17 @@ export const BrowseTissueVizWrapper = (props) => {
                 />
             </div>
             <div className="col ps-0 tissue-viz-content">
-                {toggleViewIndex === 0 ? (
+                {/* Both stay mounted (toggled via d-none, not a ternary that
+                    unmounts) so switching back to a tab whose data already
+                    loaded doesn't re-run its fetch effects from scratch --
+                    same reasoning as BrowseTissueHeatmapTable.js's DotRouterTab
+                    `cache` prop for its 3 tabs. */}
+                <div className={toggleViewIndex === 0 ? '' : 'd-none'}>
                     <TissueGermLayerPanel fileFilters={fileFilters} session={session} />
-                ) : (
+                </div>
+                <div className={toggleViewIndex === 1 ? '' : 'd-none'}>
                     <TissueCohortCharts fileFilters={fileFilters} session={session} />
-                )}
+                </div>
             </div>
         </div>
     );
