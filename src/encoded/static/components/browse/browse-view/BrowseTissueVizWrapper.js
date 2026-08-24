@@ -12,12 +12,12 @@ import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
 import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import { formUrlEncode } from './BrowseTissueHeatmapTable';
-import { BROWSE_STATUS_FILTERS } from '../BrowseView';
 import {
     getTissueIconSrc,
     getTissueDisplayLabel,
     getTissueColorHex,
     hexToRgba,
+    isTpcSubmissionCenter,
 } from '../../item-pages/components/tissue-overview/helpers';
 
 // Groups the categories returned by item_utils/tissue.py::get_category() into
@@ -34,12 +34,6 @@ const GERM_LAYER_LABELS = [
 // Cohort View charts, which chart each category on its own rather than
 // folding Germ Cells/Clinically Accessible into one row.
 const TISSUE_CATEGORY_ORDER = ['Ectoderm', 'Mesoderm', 'Endoderm', 'Germ Cells', 'Clinically Accessible'];
-
-// Same population filter Browse by Donor/Browse by File use, mirrored from
-// TissueTypeView.js's identical constant -- keeps the coverage chart's file
-// population consistent with the rest of the app instead of counting every
-// File regardless of release status.
-const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('status');
 
 // pathology_summary.autolysis_score is an integer 0-3 (see
 // item-pages/components/tissue-overview/helpers.js's getAutolysisScoreCellClass
@@ -80,10 +74,9 @@ export const renderAutolysisScorePopover = (customId) => (
                 <tbody>
                     <tr>
                         <td className="text-left">
-                            Counts individual tissue specimens (not donors) by autolysis score
-                            (0 = None, 3 = Severe). A donor with multiple procured tissues
-                            contributes one count per tissue. Each tissue&rsquo;s score is the
-                            highest reported across its pathology reports.
+                            Shows the number of tissue specimens by autolysis score (0 = None, 3 =
+                            Severe). Each specimen is counted once, using the highest score across
+                            its pathology reports.
                         </td>
                     </tr>
                 </tbody>
@@ -92,17 +85,19 @@ export const renderAutolysisScorePopover = (customId) => (
     </Popover>
 );
 
-export const renderTissueCoveragePopover = (customId) => (
-    <Popover id={customId || 'chart-info-popover-tissue-coverage'} className="w-auto description-definitions-popover">
+export const renderSubmissionCenterPopover = (customId) => (
+    <Popover id={customId || 'chart-info-popover-submission-center'} className="w-auto description-definitions-popover">
         <Popover.Body className="p-0">
             <table className="table">
                 <thead>
-                    <tr><th className="text-left">Coverage per Tissue Category</th></tr>
+                    <tr><th className="text-left">Genome Characterization Center Distribution</th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td className="text-left">
-                            Shows total sequencing coverage (and file count, in the tooltip) per germ-layer category.
+                            Shows the number of tissue sample records processed by each Genome
+                            Characterization Center. Tissue Procurement Center submissions are
+                            excluded.
                         </td>
                     </tr>
                 </tbody>
@@ -268,31 +263,6 @@ const buildTissueCategoryChartData = (termsByCategory = {}, totalDonors = 0) =>
         };
     });
 
-const buildTissueCoverageChartData = (columnTotals = []) => {
-    const countsByCategory = {};
-    columnTotals.forEach((entry) => {
-        const category = entry?.['sample_summary.category'];
-        if (category) countsByCategory[category] = entry.counts || {};
-    });
-    const totalCoverage = TISSUE_CATEGORY_ORDER.reduce(
-        (sum, category) => sum + (countsByCategory[category]?.total_coverage || 0),
-        0
-    );
-    return TISSUE_CATEGORY_ORDER.map((category) => {
-        const counts = countsByCategory[category] || {};
-        return {
-            group: category,
-            value1: Math.round((counts.total_coverage || 0) * 10) / 10,
-            value1FileCount: counts.files || 0,
-            totalFileCount: counts.files || 0,
-            total: totalCoverage,
-            field: 'sample_summary.category',
-            from: category,
-            to: category,
-        };
-    });
-};
-
 const buildAutolysisScoreChartData = (tissueResults = []) => {
     const countsByScore = {};
     tissueResults.forEach((t) => {
@@ -310,17 +280,52 @@ const buildAutolysisScoreChartData = (tissueResults = []) => {
     }));
 };
 
+// Tissue.submission_centers is always the procuring TPC (this program routes
+// physical tissue procurement through a single TPC, confirmed against real
+// data -- that dimension has no real variation to chart). The GCC diversity
+// is a level down, on the individual TissueSample records a TPC's tissue
+// gets aliquoted/processed into (see TissueTypeView.js's own
+// `sample.submission_centers?.[0]?.display_title` on TissueSample, which
+// already shows real TPC/GCC mixes like "NDRI TPC"/"UWSC GCC"/"BROAD GCC").
+// Built from a `bar_plot_aggregations` bucket count (unlike Autolysis Score,
+// which needs the full Tissue records for pathology_summary) since
+// submission_centers.display_title is embedded/facetable on TissueSample --
+// no need to pull every record client-side just to count them.
+//
+// TPC entries are filtered out (same `isTpcSubmissionCenter` helper
+// AliquotVisualization/TissueTypeView.js already use to exclude TPC-only
+// submissions from their own "who processed this" views) -- every
+// TissueSample's TPC is the same single procuring center already known to
+// carry no real variation, so leaving it in just dwarfs the GCC bars this
+// chart actually exists to compare.
+const buildSubmissionCenterChartData = (termsByCenter = {}) => {
+    const gccEntries = Object.entries(termsByCenter).filter(
+        ([center]) => !isTpcSubmissionCenter(center)
+    );
+    const total = gccEntries.reduce((sum, [, bucket]) => sum + (bucket?.doc_count || 0), 0);
+    return gccEntries
+        .map(([center, bucket]) => ({
+            group: center,
+            value1: bucket?.doc_count || 0,
+            total,
+            field: 'submission_centers.display_title',
+            from: center,
+            to: center,
+        }))
+        .sort((a, b) => b.value1 - a.value1 || a.group.localeCompare(b.group, undefined, { numeric: true }));
+};
+
 // Population-level Cohort View charts -- analogous to BrowseDonorVizWrapper.js's
 // Age Groups/Hardy Scale/Donor Sequencing Progress charts, but built around
-// tissue category, autolysis score, and per-category coverage instead of the
+// tissue category, autolysis score, and submitting center instead of the
 // donor-oriented demographic fields.
 const TissueCohortCharts = ({ fileFilters, session }) => {
     const [tissueCategoryData, setTissueCategoryData] = useState();
-    const [coverageData, setCoverageData] = useState();
-    const [autolysisScoreData, setAutolysisScoreData] = useState();
     const [categoryLoading, setCategoryLoading] = useState(false);
-    const [coverageLoading, setCoverageLoading] = useState(false);
-    const [autolysisLoading, setAutolysisLoading] = useState(false);
+    const [tissueResults, setTissueResults] = useState([]);
+    const [tissueResultsLoading, setTissueResultsLoading] = useState(false);
+    const [submissionCenterTerms, setSubmissionCenterTerms] = useState();
+    const [submissionCenterLoading, setSubmissionCenterLoading] = useState(false);
 
     useEffect(() => {
         setCategoryLoading(true);
@@ -343,44 +348,58 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
         );
     }, [fileFilters, session]);
 
+    // Only Autolysis Score needs full Tissue records (pathology_summary
+    // isn't a bucketable stored field, unlike sample_summary.category or
+    // TissueSample's submission_centers below).
     useEffect(() => {
-        setCoverageLoading(true);
+        setTissueResultsLoading(true);
         ajax.load(
-            '/data_matrix_aggregations/',
+            '/search/?type=Tissue&donor.study=Production&donor.tags=has_released_files&limit=all',
             (resp) => {
-                setCoverageData(buildTissueCoverageChartData(resp?.column_totals));
-                setCoverageLoading(false);
+                setTissueResults(resp?.['@graph'] || []);
+                setTissueResultsLoading(false);
+            },
+            'GET',
+            () => {
+                setTissueResults([]);
+                setTissueResultsLoading(false);
+            }
+        );
+    }, [session]);
+
+    // TissueSample rather than Tissue -- Tissue.submission_centers is always
+    // the procuring TPC (no variation to show, see buildSubmissionCenterChartData's
+    // comment); the GCC diversity lives on TissueSample. Not filtered to the
+    // same released-donor population as the other two charts: TissueSample
+    // doesn't embed sample_sources.donor.study/tags, so that population
+    // filter isn't queryable here without a backend embed change.
+    useEffect(() => {
+        setSubmissionCenterLoading(true);
+        ajax.load(
+            '/bar_plot_aggregations/',
+            (resp) => {
+                setSubmissionCenterTerms(resp?.terms);
+                setSubmissionCenterLoading(false);
             },
             'POST',
-            () => setCoverageLoading(false),
+            () => setSubmissionCenterLoading(false),
             JSON.stringify({
-                search_query_params: {
-                    ...fileFilters,
-                    type: ['File'],
-                    status: BROWSE_STATUS_VALUES,
-                    'dataset!': ['No value'],
-                },
-                column_agg_fields: ['sample_summary.category'],
-                row_agg_fields: ['status'],
-                max_bucket_count: 20,
+                search_query_params: { type: ['TissueSample'], 'status!': ['deleted'] },
+                fields_to_aggregate_for: ['submission_centers.display_title'],
             }),
             {},
             null
         );
-    }, [fileFilters, session]);
-
-    useEffect(() => {
-        setAutolysisLoading(true);
-        ajax.load(
-            '/search/?type=Tissue&donor.study=Production&donor.tags=has_released_files&limit=all',
-            (resp) => {
-                setAutolysisScoreData(buildAutolysisScoreChartData(resp?.['@graph']));
-                setAutolysisLoading(false);
-            },
-            'GET',
-            () => setAutolysisLoading(false)
-        );
     }, [session]);
+
+    const autolysisScoreData = useMemo(
+        () => buildAutolysisScoreChartData(tissueResults),
+        [tissueResults]
+    );
+    const submissionCenterData = useMemo(
+        () => buildSubmissionCenterChartData(submissionCenterTerms),
+        [submissionCenterTerms]
+    );
 
     return (
         <div className="donor-cohort-view-chart-container">
@@ -414,24 +433,23 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
                 showXAxisTitle={true}
                 popover={renderAutolysisScorePopover()}
                 session={session}
-                loading={autolysisLoading}
+                loading={tissueResultsLoading}
             />
 
             <DonorCohortViewChart
-                title="Coverage per Tissue Category"
-                data={coverageData}
+                title="Genome Characterization Center Distribution"
+                data={submissionCenterData}
                 chartWidth="auto"
                 chartHeight={420}
-                chartType="single"
+                chartType="horizontal"
                 topStackColor="#4567CF"
-                xAxisTitle="Tissue category"
-                yAxisTitle="Total coverage"
-                showBarTooltip={true}
-                tooltipTitles={{ crumb: null, left: 'Tissue Category', right: 'Total Coverage' }}
+                xAxisTitle="# of Tissue Samples"
+                showYAxisTitle={false}
+                showBarTooltip={false}
                 showXAxisTitle={true}
-                popover={renderTissueCoveragePopover()}
+                popover={renderSubmissionCenterPopover()}
                 session={session}
-                loading={coverageLoading}
+                loading={submissionCenterLoading}
             />
         </div>
     );
@@ -439,7 +457,7 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
 
 export const BrowseTissueVizWrapper = (props) => {
     const { href, session, windowWidth } = props;
-    const [toggleViewIndex, setToggleViewIndex] = useState(0);
+    const [toggleViewIndex, setToggleViewIndex] = useState(1);
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
     // The Ischemic Time/Autolysis Score/Target Tissue % tabs below this
