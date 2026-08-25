@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+2.11.3
+======
+
+`PR 753: feat: add smaht snv pipeline v2 to pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/753>`_
+
+* Update pipeline docs with new pipeline
+* Move badge styles into larger scope
+
+
 2.11.2
 ======
 
