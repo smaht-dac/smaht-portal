@@ -166,9 +166,9 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             ) : (
                                 <>
                                     I would like to receive{' '}
-                                    <strong>monthly</strong> emails to notify me
-                                    about new data released on the SMaHT Data
-                                    Portal.
+                                    <strong>monthly</strong> emails on the first
+                                    day of each month to notify me about new
+                                    data released on the SMaHT Data Portal.
                                 </>
                             )}
                         </p>
