@@ -23,6 +23,27 @@ Change Log
 * Files that already have an ``s3_lifecycle_category`` are never archived. A warning is
   reported for those unless they are already set to ``long_term_archive``.
 
+
+2.11.2
+======
+
+`PR 750: update VISTA-seq mapping in data matrix <https://github.com/smaht-dac/smaht-portal/pull/750>`_
+
+* Renames the ``VISTA-META-seq``, ``scVISTA-META-seq``, and ``Microbulk VISTA-META-seq`` data matrix
+  assay mappings to ``META-VISTA-seq``, ``scMETA-VISTA-seq``, and ``Microbulk META-VISTA-seq``,
+  matching the updated backend assay display titles.
+* Updates the corresponding Cypress post-deploy data matrix assertions.
+
+
+2.11.1
+======
+
+`PR 749: feat: popover update to publication view <https://github.com/smaht-dac/smaht-portal/pull/749>`_
+
+* Add popover for statistics link button and file search view when users are logged out
+* Add string at the end of citation for SNV paper
+
+
 2.11.0
 ======
 
@@ -30,6 +51,7 @@ Change Log
 
 * Adds validators to enforce that a donor's linked protected items ('MedicalHistory', 'Demographic', 'FamilyHistory', 'DeathCircumstances' and 'TissueCollection') are only linked to ProtectedDonor items.
 * Pulls in new snovault for fix for skip_links options
+
 
 2.10.0
 ======
