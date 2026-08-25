@@ -210,7 +210,7 @@ def test_get_archive_summary() -> None:
         ]
     )
     assert get_archive_summary(files) == (
-        f"\nArchiving {warning_text('14')} files:"
+        f"Archiving {warning_text('14')} files:"
         " 12 UnalignedReads (fastq_gz), 2 AlignedReads (cram)"
     )
 
@@ -283,7 +283,7 @@ def test_add_archive_files_to_patchdict() -> None:
         {"uuid": "to-archive", "s3_lifecycle_category": "long_term_archive"},
     ]
     assert file_release.patch_infos_minimal[0] == (
-        f"\nArchiving {warning_text('1')} files: 1 UnalignedReads (fastq_gz)"
+        f" - Archiving {warning_text('1')} files: 1 UnalignedReads (fastq_gz)"
     )
     # Both the submitted ID and the accession are reported
     assert file_release.patch_infos[1] == (
