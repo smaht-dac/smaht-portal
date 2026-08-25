@@ -1229,46 +1229,50 @@ WSGIProxy2 = "0.4.2"
 
 [[package]]
 name = "dcicutils"
-version = "8.19.0"
+version = "8.19.0.1b1"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 optional = false
-python-versions = "<3.13,>=3.10"
-files = [
-    {file = "dcicutils-8.19.0-py3-none-any.whl", hash = "sha256:e16028cfafe883ccc81186a6af0eb21cc5832bad3cd467de272a120a65e21fec"},
-    {file = "dcicutils-8.19.0.tar.gz", hash = "sha256:d2c4276129b9a3bafab4e3a4f7a0c724e251ad02513208b75dde13e70a77be1e"},
-]
+python-versions = ">=3.10,<3.13"
+files = []
+develop = false
 
 [package.dependencies]
-appdirs = ">=1.4.4,<2.0.0"
+appdirs = "^1.4.4"
 aws-requests-auth = ">=0.4.2,<1"
-boto3 = ">=1.43.58,<2.0.0"
-botocore = ">=1.43.58,<2.0.0"
-chardet = ">=5.2.0,<6.0.0"
-cryptography = ">=43.0.1,<44.0.0"
-docker = ">=7.1.0,<8.0.0"
+boto3 = "^1.43.58"
+botocore = "^1.43.58"
+chardet = "^5.2.0"
+cryptography = "^43.0.1"
+docker = "^7.1.0"
 elasticsearch = "7.13.4"
-gitpython = ">=3.1.2,<4.0.0"
-jsonc-parser = ">=1.1.5,<2.0.0"
-jsonschema = ">=4.22.0,<5.0.0"
-openpyxl = ">=3.1.2,<4.0.0"
-opensearch-py = ">=2.0.1,<3.0.0"
-PyJWT = ">=2.6.0,<3.0.0"
-pyopenssl = ">=24.2.1,<25.0.0"
-pyperclip = ">=1.8.2,<2.0.0"
+gitpython = "^3.1.2"
+jsonc-parser = "^1.1.5"
+jsonschema = "^4.22.0"
+openpyxl = "^3.1.2"
+opensearch-py = "^2.0.1"
+PyJWT = "^2.6.0"
+pyopenssl = "^24.2.1"
+pyperclip = "^1.8.2"
 pyramid = "1.10.8"
 pytz = ">=2020.4"
-PyYAML = ">=6.0.1,<7.0.0"
-redis = ">=4.5.1,<5.0.0"
-requests = ">=2.27.1,<3.0.0"
-rfc3986 = ">=1.4.0,<2.0.0"
+PyYAML = "^6.0.1"
+redis = "^4.5.1"
+requests = "^2.27.1"
+rfc3986 = "^1.4.0"
 setuptools = ">=70.3,<82"
-shortuuid = ">=1.0.13,<2.0.0"
-structlog = ">=19.2.0,<20.0.0"
+shortuuid = "^1.0.13"
+structlog = "^19.2.0"
 toml = ">=0.10.1,<1"
-tqdm = ">=4.66.2,<5.0.0"
+tqdm = "^4.66.2"
 typing-extensions = ">=3.8"
-urllib3 = ">=1.26.19,<2.0.0"
-webtest = ">=2.0.34,<3.0.0"
+urllib3 = "^1.26.19"
+webtest = "^2.0.34"
+
+[package.source]
+type = "git"
+url = "https://github.com/4dn-dcic/utils.git"
+reference = "a61b3ac4abcfd08e7d72815897d5cefa0b1f41a7"
+resolved_reference = "a61b3ac4abcfd08e7d72815897d5cefa0b1f41a7"
 
 [[package]]
 name = "docker"
@@ -4357,4 +4361,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "fcb5838b005dd2229e7b6cbb3a148364c8eade92ccbe3ff850b33198208d3c26"
+content-hash = "1672d201f464d3d907ce1068a91d81362051f6ca115cfd8a87b18a47b0483b52"
