@@ -105,6 +105,9 @@ EXTERNAL_OUTPUT_FILE_RELEASE = "ExternalOutputFileRelease"
 ANALYSIS_RUN_FILE_RELEASE = "AnalysisRunFileRelease"
 FILESET_FILE_RELEASE = "FilesetFileRelease"
 
+# The S3 lifecycle category that files are archived with
+LONG_TERM_ARCHIVE = file_constants.S3_LIFECYCLE_CATEGORY_LONG_TERM_ARCHIVE
+
 
 class FileRelease:
 
@@ -774,15 +777,12 @@ class FileRelease:
                 f"\n{item_utils.get_type(file)} ({identifier_to_report}):"
             )
             self.add_okay_message(
-                file_constants.S3_LIFECYCLE_CATEGORY,
-                file_constants.S3_LIFECYCLE_CATEGORY_LONG_TERM_ARCHIVE,
+                file_constants.S3_LIFECYCLE_CATEGORY, LONG_TERM_ARCHIVE
             )
             self.patch_dicts.append(
                 {
                     item_constants.UUID: item_utils.get_uuid(file),
-                    file_constants.S3_LIFECYCLE_CATEGORY: (
-                        file_constants.S3_LIFECYCLE_CATEGORY_LONG_TERM_ARCHIVE
-                    ),
+                    file_constants.S3_LIFECYCLE_CATEGORY: LONG_TERM_ARCHIVE,
                 }
             )
 
@@ -799,15 +799,13 @@ class FileRelease:
 
             # An existing S3 lifecycle category is never overwritten
             lifecycle_category = file.get(file_constants.S3_LIFECYCLE_CATEGORY)
+            if lifecycle_category == LONG_TERM_ARCHIVE:
+                continue  # Already archived, nothing to report
             if lifecycle_category:
-                if (
-                    lifecycle_category
-                    != file_constants.S3_LIFECYCLE_CATEGORY_LONG_TERM_ARCHIVE
-                ):
-                    self.add_warning(
-                        f"File {item_utils.get_accession(file)} already has S3 lifecycle"
-                        f" category `{lifecycle_category}`. It will NOT be archived."
-                    )
+                self.add_warning(
+                    f"File {item_utils.get_accession(file)} already has S3 lifecycle"
+                    f" category `{lifecycle_category}`. It will NOT be archived."
+                )
                 continue
             files.append(file)
         return files
