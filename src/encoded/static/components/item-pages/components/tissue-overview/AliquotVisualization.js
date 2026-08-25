@@ -1319,10 +1319,6 @@ export default function AliquotVisualization({
                                     </div>
                                 ) : null}
                                 <div className="aliquot-popover-row">
-                                    <span>Type</span>
-                                    <strong>{selectedStyles.label}</strong>
-                                </div>
-                                <div className="aliquot-popover-row">
                                     <span>Order</span>
                                     <strong>
                                         {/* `normalizedSlices` items don't carry an `index` field
@@ -1337,18 +1333,6 @@ export default function AliquotVisualization({
                                 <div className="aliquot-popover-row">
                                     <span>{selectedStyles.label} #</span>
                                     <strong>{selectedSlice?.sequenceLabel}</strong>
-                                </div>
-                                <div className="aliquot-popover-row">
-                                    <span>Width</span>
-                                    <strong>{selectedSlice?.widthCm} cm</strong>
-                                </div>
-                                <div className="aliquot-popover-row">
-                                    <span>Height</span>
-                                    <strong>{heightCm} cm</strong>
-                                </div>
-                                <div className="aliquot-popover-row">
-                                    <span>Depth</span>
-                                    <strong>{depthCm} cm</strong>
                                 </div>
                                 {selectedSlice?.description ? (
                                     <p className="aliquot-popover-description">
@@ -1446,10 +1430,23 @@ export default function AliquotVisualization({
                         />
                         <span>
                             {styles.label}
-                            {key === 'pink' ? ' = 0.5 cm default' : ' = 1 cm default'}
+                            {key === 'pink'
+                                ? ' = 0.5 cm width (default)'
+                                : ' = 1 cm width (default)'}
                         </span>
                     </div>
                 ))}
+                {/* Height/depth are one shared box-level dimension (see
+                    `dimensions`), identical for every slice regardless of
+                    type -- previously repeated as Height/Depth rows in
+                    every single slice's own popover, which just duplicated
+                    the same two numbers every time instead of stating them
+                    once here. */}
+                <div className="aliquot-legend-item aliquot-legend-dimensions">
+                    <span>
+                        Height {heightCm} cm &middot; Depth {depthCm} cm
+                    </span>
+                </div>
             </div>
         </div>
     );
