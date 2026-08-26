@@ -31,13 +31,14 @@ const SPECIMEN_TYPE_STYLES = {
     // as non-solid like blood/buccal swab even though item_utils/tissue.py's
     // get_category() puts it under "Mesoderm" (a germ-layer grouping, not a
     // specimen-form one) rather than "Clinically Accessible" (see
-    // TissueView.js/TissueTypeView.js's nonSolidSpecimenType). liquidColor
-    // is a rose-pink, resembling the phenol-red cell-culture medium
-    // fibroblasts are actually stored/shipped in, not the official
-    // categorical FBRO color (a pale yellow with no such association).
+    // TissueView.js/TissueTypeView.js's nonSolidSpecimenType). Shares
+    // buccal swab's liquidColor (pale/cloudy, not blood-red) rather than its
+    // own -- same rationale as buccal's own choice above, and the official
+    // categorical FBRO color (a pale yellow) had no stronger claim to being
+    // "more accurate" here either.
     fibroblast: {
         label: 'Fibroblast',
-        liquidColor: '#E8829A',
+        liquidColor: '#F0D9C4',
         idPrefix: '3AC',
         caption: 'Core and DNA/RNA metadata from sequencing.',
     },
