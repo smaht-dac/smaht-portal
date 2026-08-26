@@ -70,21 +70,32 @@ export const renderTissueCategoryPopover = (customId) => (
     </Popover>
 );
 
+// Same per-value table layout as ProtectedDonorViewDataCards.js's Hardy
+// Scale popover -- the x-axis now shows the raw score (matching that
+// chart's own numeric axis convention), so the None/Mild/Moderate/Severe
+// labels live here instead of doubling as tick text.
 export const renderAutolysisScorePopover = (customId) => (
     <Popover id={customId || 'chart-info-popover-autolysis-score'} className="w-auto description-definitions-popover">
         <Popover.Body className="p-0">
             <table className="table">
                 <thead>
-                    <tr><th className="text-left">Autolysis Score Distribution (by Tissue)</th></tr>
+                    <tr><th className="text-left px-4" colSpan={2}>Autolysis Score Distribution (by Tissue)</th></tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td className="text-left">
-                            Shows the number of tissue specimens by autolysis score (0 = None, 3 =
-                            Severe). Each specimen is counted once, using the highest score across
-                            its pathology reports.
+                    <tr className="w-100">
+                        <td className="fw-light text-left px-4 py-3" colSpan={2}>
+                            Shows the number of tissue specimens by autolysis score. Each specimen
+                            is counted once, using the highest score across its pathology reports.
+                            <br />
+                            <i>Score meanings:</i>
                         </td>
                     </tr>
+                    {AUTOLYSIS_SCORE_GROUPS.map(({ value, label }) => (
+                        <tr key={value}>
+                            <td className="fs-5 align-middle text-center index-cell">{value}</td>
+                            <td className="text-left">{label}</td>
+                        </tr>
+                    ))}
                 </tbody>
             </table>
         </Popover.Body>
@@ -276,8 +287,12 @@ const buildAutolysisScoreChartData = (tissueResults = []) => {
         if (score === null || score === undefined) return;
         countsByScore[score] = (countsByScore[score] || 0) + 1;
     });
-    return AUTOLYSIS_SCORE_GROUPS.map(({ value, label }) => ({
-        group: label,
+    // `group` is the numeric score itself (matching BrowseDonorVizWrapper.js's
+    // Hardy Scale chart, whose x-axis is also its own raw scale value) --
+    // the None/Mild/Moderate/Severe labels move to the info popover instead
+    // of doubling as axis tick text.
+    return AUTOLYSIS_SCORE_GROUPS.map(({ value }) => ({
+        group: String(value),
         value1: countsByScore[value] || 0,
         total: tissueResults.length,
         field: 'pathology_summary.autolysis_score',
