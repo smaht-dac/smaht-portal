@@ -78,10 +78,17 @@ export const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g
 //
 // `distributeGenericBrainValue` -- see the comment further down where it's
 // used: the generic "Brain" column is always hidden, but copying its value
-// into the region-specific columns first is an Ischemic Time-only treatment
-// (per explicit request), not something Autolysis Score/Target Tissue %
-// should also do -- those two just hide the column and leave each region's
-// own cell exactly as it already was (its own real value, or n/a).
+// into the region-specific columns first (and merging same-value region
+// columns in the row) is set `true` on all three tabs now:
+// - Ischemic Time/Autolysis Score are collection-event-level measurements
+//   (assessed once per whole brain at procurement, not independently per
+//   dissected region, confirmed against real data), so the generic value is
+//   an equally valid stand-in and same-value regions merge for real.
+// - Target Tissue % has nothing to distribute (BrainPathologyReport has no
+//   target_tissues field at all -- see get_target_tissue_percentage's own
+//   docstring -- so every brain region, generic column included, is
+//   unconditionally null), but `true` still collapses what would otherwise
+//   be 5 repeated "n/a" cells into one.
 export const buildTissueMetricMatrix = (tissueResults = [], getValue, distributeGenericBrainValue = false) => {
     const tissueTypes = [];
     const donors = [];
@@ -110,14 +117,10 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
     });
 
     // A generic "Brain" tissue_type carries no region of its own, so its own
-    // column is always hidden here, on every tab. Copying its value into
-    // whichever of the 5 region-specific columns (BRCE/BRFL/BRHL/BRHR/BRTL)
-    // don't already have their own real value for that donor -- because
-    // ischemic time is a collection-event measurement, not specific to which
-    // region was later dissected out, so the generic value is an equally
-    // valid stand-in there -- is Ischemic Time-only (distributeGenericBrainValue).
-    // Autolysis Score/Target Tissue % don't make that same assumption: they
-    // hide the column but leave each region's own cell as-is.
+    // column is always hidden here, on every tab. When distributeGenericBrainValue
+    // is true (see the comment above where it's passed in), its value is
+    // copied into whichever of the 5 region-specific columns
+    // (BRCE/BRFL/BRHL/BRHR/BRTL) don't already have their own real value.
     const genericBrainTissueType = tissueTypes.find((t) => t.trim() === 'Brain');
     const brainRegionTissueTypes = tissueTypes.filter((t) =>
         BRAIN_REGION_INTERNAL_CODES.includes(getTissueInternalCodeFromFacetTerm(t))
@@ -808,12 +811,25 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => buildQuartileScoreClassifier(ischemicTime.matrix.flatMap((row) => row.cells)),
         [ischemicTime]
     );
+    // Confirmed against real data: every real (non-n/a) region column for a
+    // given donor already carries the exact same autolysis score as its
+    // siblings -- autolysis, like ischemic time, is assessed once per whole
+    // brain at procurement, not independently per dissected sub-region, so
+    // it gets the same distributeGenericBrainValue/merge treatment now.
     const autolysisScore = useMemo(
-        () => buildTissueMetricMatrix(tissueResults, getAutolysisScoreValue),
+        () => buildTissueMetricMatrix(tissueResults, getAutolysisScoreValue, true),
         [tissueResults]
     );
+    // Not for the same reason as Autolysis Score above -- there's no real
+    // value to distribute here (BrainPathologyReport has no target_tissues
+    // field at all, see get_target_tissue_percentage's own docstring, so
+    // every brain region's value is unconditionally null, generic "Brain"
+    // column included). `true` just engages the merge side of the same
+    // flag, collapsing what would otherwise be 5 repeated "n/a" cells
+    // (confirmed against real data: every donor row, every brain region)
+    // into one.
     const targetTissuePercentage = useMemo(
-        () => buildTissueMetricMatrix(tissueResults, getTargetTissuePercentageValue),
+        () => buildTissueMetricMatrix(tissueResults, getTargetTissuePercentageValue, true),
         [tissueResults]
     );
 
@@ -892,13 +908,6 @@ export const BrowseTissueHeatmapTable = (props) => {
                             formatValue={formatAutolysisScore}
                             getScoreClass={getAutolysisScoreClass}
                             enableConditionalColor={enableConditionalColor}
-                            // Merging same-value brain-region cells is an
-                            // Ischemic Time-only treatment (per request) --
-                            // the generic "Brain" -> region distribution and
-                            // column hiding above still apply here, each
-                            // region's own (distributed or real) value just
-                            // renders in its own cell, never merged.
-                            mergeableTissueTypes={EMPTY_MERGEABLE_TISSUE_TYPES}
                         />
                     )}
                 </DotRouterTab>
@@ -923,8 +932,6 @@ export const BrowseTissueHeatmapTable = (props) => {
                             getScoreClass={getTargetTissuePercentageScoreClass}
                             getSortValue={getTargetTissuePercentageSortValue}
                             enableConditionalColor={enableConditionalColor}
-                            // See the Autolysis Score tab's identical prop above.
-                            mergeableTissueTypes={EMPTY_MERGEABLE_TISSUE_TYPES}
                         />
                     )}
                 </DotRouterTab>
