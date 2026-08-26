@@ -4373,12 +4373,19 @@ File, Donor, and Publication Overview Styles
         a {
             min-width: 0;
             overflow-wrap: break-word;
+            // A linked position's second column is the <a> itself (with
+            // <strong> nested inside it), not a bare <strong> -- grid
+            // blockifies whichever tag actually sits in the column, and
+            // text-align only affects a block box's own inline content, so
+            // setting it on <strong> alone did nothing once <a> became the
+            // real grid item (regression: the id lost its right alignment
+            // and sat flush against the label instead).
+            text-align: right;
         }
 
         strong {
             color: #1e2d3d;
             font-weight: 600;
-            text-align: right;
         }
     }
 
