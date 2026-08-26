@@ -502,9 +502,11 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor) {
 // columns that share the exact same value (e.g. the brain regions a
 // generic "Brain" value was distributed into, see buildTissueMetricMatrix)
 // into a single spanning <td> instead of repeating that value once per
-// column -- column headers stay one-per-tissue-type regardless (only body
-// cells merge), so which specific columns a merged cell covers is still
-// visible by lining it up with the header row above.
+// column. The header row above merges the same run too now (see
+// renderHeaderCells), into one synthetic "Brain" cell (BrainRegionHeaderCell)
+// -- both stay in sync since they walk the exact same tissueTypes/
+// mergeableTissueTypes inputs, so a merged body cell always lines up under
+// the one merged header cell spanning the same columns.
 function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor) {
     const nodes = [];
     let i = 0;
@@ -530,6 +532,62 @@ function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, g
             </td>
         );
         i += span;
+    }
+    return nodes;
+}
+
+// Header-row counterpart to renderRowCells above -- merges the same
+// consecutive run of `mergeableTissueTypes` columns into one spanning <th>
+// (BrainRegionHeaderCell), rather than one column-identity-driven pass at a
+// time comparing cell values (there's no single "value" for a header to
+// compare, only tissue_type identity, so the whole mergeable run always
+// merges as one, unconditionally).
+function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick) {
+    const nodes = [];
+    let i = 0;
+    while (i < tissueTypes.length) {
+        const tissueType = tissueTypes[i];
+        if (mergeableTissueTypes.has(tissueType)) {
+            const regionTissueTypes = [tissueType];
+            let span = 1;
+            while (
+                i + span < tissueTypes.length &&
+                mergeableTissueTypes.has(tissueTypes[i + span])
+            ) {
+                regionTissueTypes.push(tissueTypes[i + span]);
+                span += 1;
+            }
+            nodes.push(
+                <th key={tissueType} colSpan={span > 1 ? span : undefined} title="Brain">
+                    <BrainRegionHeaderCell
+                        regionTissueTypes={regionTissueTypes}
+                        tissueTypeHrefs={tissueTypeHrefs}
+                        sortState={sortState}
+                        handleHeaderClick={handleHeaderClick}
+                    />
+                </th>
+            );
+            i += span;
+            continue;
+        }
+        nodes.push(
+            <th key={tissueType} title={tissueType}>
+                {tissueTypeHrefs[tissueType] ? (
+                    <a href={tissueTypeHrefs[tissueType]}>
+                        {formatTissueTypeHeaderLabel(tissueType)}
+                    </a>
+                ) : (
+                    formatTissueTypeHeaderLabel(tissueType)
+                )}
+                <SortableHeaderLabel
+                    label=""
+                    sortDirection={sortState?.key === tissueType ? sortState.direction : null}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={() => handleHeaderClick(tissueType)}
+                />
+            </th>
+        );
+        i += 1;
     }
     return nodes;
 }
@@ -598,6 +656,79 @@ export function SortableHeaderLabel({ label, sortDirection, onClick }) {
                 }
             />
         </button>
+    );
+}
+
+// Header cell for a run of merged brain-region columns (see
+// renderRowCells/mergeableTissueTypes -- the body cells underneath already
+// collapse into one spanning "Brain" cell whenever a donor's regions all
+// share the same value, which they empirically always do for every metric
+// that sets distributeGenericBrainValue). This is a *synthetic* "Brain"
+// label, distinct from the real (always-hidden) generic "Brain" tissue_type
+// column buildTissueMetricMatrix drops -- there's no single tissue_type
+// this header could link to, so clicking it opens a small picker of the
+// real regions instead of navigating directly, trading one click for still
+// reaching a real tissue-overview page. Same outside-click-to-close pattern
+// as HeatmapColorPicker above.
+function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+    // A merged run's rows all carry the same value across every region
+    // (that's what made them mergeable), so sorting by any one of the 5 is
+    // equivalent to sorting by "Brain" as a whole -- the first region is an
+    // arbitrary but stable choice.
+    const [sortKey] = regionTissueTypes;
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && containerRef.current?.contains(event.target)) {
+                return;
+            }
+            setIsOpen(false);
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="tissue-heatmap-brain-picker" ref={containerRef}>
+            <button
+                type="button"
+                className="tissue-heatmap-brain-picker-toggle"
+                onClick={() => setIsOpen((prev) => !prev)}
+                aria-expanded={isOpen}
+                title="Brain -- pick a region to view its own Tissue Overview page">
+                Brain
+                <i className={`icon icon-fw fas ${isOpen ? 'icon-caret-up' : 'icon-caret-down'}`} />
+            </button>
+            <SortableHeaderLabel
+                label=""
+                sortDirection={sortState?.key === sortKey ? sortState.direction : null}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={() => handleHeaderClick(sortKey)}
+            />
+            {isOpen ? (
+                <ul className="tissue-heatmap-brain-picker-panel">
+                    {regionTissueTypes.map((tissueType) => (
+                        <li key={tissueType}>
+                            {tissueTypeHrefs[tissueType] ? (
+                                <a href={tissueTypeHrefs[tissueType]}>
+                                    {formatTissueTypeLabel(tissueType)}
+                                </a>
+                            ) : (
+                                formatTissueTypeLabel(tissueType)
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
+        </div>
     );
 }
 
@@ -695,23 +826,13 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         ))}
                     </tr>
                     <tr>
-                        {tissueTypes.map((tissueType) => (
-                            <th key={tissueType} title={tissueType}>
-                                {tissueTypeHrefs[tissueType] ? (
-                                    <a href={tissueTypeHrefs[tissueType]}>
-                                        {formatTissueTypeHeaderLabel(tissueType)}
-                                    </a>
-                                ) : (
-                                    formatTissueTypeHeaderLabel(tissueType)
-                                )}
-                                <SortableHeaderLabel
-                                    label=""
-                                    sortDirection={sortState?.key === tissueType ? sortState.direction : null}
-                                    // eslint-disable-next-line react/jsx-no-bind
-                                    onClick={() => handleHeaderClick(tissueType)}
-                                />
-                            </th>
-                        ))}
+                        {renderHeaderCells(
+                            tissueTypes,
+                            mergeableTissueTypes,
+                            tissueTypeHrefs,
+                            sortState,
+                            handleHeaderClick
+                        )}
                     </tr>
                 </thead>
                 <tbody>

@@ -2226,6 +2226,76 @@ div.browse-link-icon {
 	}
 }
 
+// The synthetic "Brain" header cell (BrowseTissueHeatmapTable.js's
+// BrainRegionHeaderCell) covering a run of merged brain-region columns --
+// there's no single tissue_type to link to directly, so this opens a small
+// picker of the real regions instead. Deliberately NOT nested under
+// `.tissue-heatmap-card` (see the color picker rules above) for the same
+// reason: looks right wherever this header cell renders.
+.tissue-heatmap-brain-picker {
+	position: relative;
+	display: inline-block;
+}
+
+.tissue-heatmap-brain-picker-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	appearance: none;
+	background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	font-weight: 600;
+	color: #343741;
+	cursor: pointer;
+
+	&:hover,
+	&[aria-expanded="true"] {
+		color: #2F62AA;
+	}
+
+	.icon {
+		font-size: 0.6875rem;
+	}
+}
+
+.tissue-heatmap-brain-picker-panel {
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 10;
+	width: max-content;
+	min-width: 160px;
+	margin: 0;
+	background-color: #FFFFFF;
+	border: 1px solid #D7E1EA;
+	border-radius: 8px;
+	box-shadow: 0 6px 20px rgba(30, 38, 50, 0.14);
+	padding: 6px 0;
+	list-style: none;
+	text-align: left;
+
+	li {
+		white-space: nowrap;
+	}
+
+	a {
+		display: block;
+		padding: 6px 14px;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: #4E6884;
+		text-decoration: none;
+
+		&:hover {
+			background-color: #F4F8FB;
+			color: #212529;
+		}
+	}
+}
+
 .tissue-heatmap-card {
 	background-color: #FFFFFF;
 	position: relative;
