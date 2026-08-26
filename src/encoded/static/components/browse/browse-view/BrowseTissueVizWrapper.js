@@ -75,7 +75,7 @@ export const renderAutolysisScorePopover = (customId) => (
         <Popover.Body className="p-0">
             <table className="table">
                 <thead>
-                    <tr><th className="text-left">Autolysis Score Distribution</th></tr>
+                    <tr><th className="text-left">Autolysis Score Distribution (by Tissue)</th></tr>
                 </thead>
                 <tbody>
                     <tr>
@@ -96,14 +96,14 @@ export const renderSubmissionCenterPopover = (customId) => (
         <Popover.Body className="p-0">
             <table className="table">
                 <thead>
-                    <tr><th className="text-left">Genome Characterization Center Distribution</th></tr>
+                    <tr><th className="text-left">GCC Distribution (by Tissue Sample)</th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td className="text-left">
                             Shows the number of tissue sample records processed by each Genome
-                            Characterization Center. Other center types (e.g. Tissue Procurement
-                            Centers) are not shown.
+                            Characterization Center (GCC). Other center types (e.g. Tissue
+                            Procurement Centers) are not shown.
                         </td>
                     </tr>
                 </tbody>
@@ -488,7 +488,7 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
             />
 
             <DonorCohortViewChart
-                title="Autolysis Score Distribution"
+                title="Autolysis Score Distribution (by Tissue)"
                 data={autolysisScoreData}
                 chartWidth="auto"
                 chartHeight={420}
@@ -504,7 +504,7 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
             />
 
             <DonorCohortViewChart
-                title="Genome Characterization Center Distribution"
+                title="GCC Distribution (by Tissue Sample)"
                 data={submissionCenterData}
                 chartWidth="auto"
                 chartHeight={420}
