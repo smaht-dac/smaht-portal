@@ -329,6 +329,12 @@ export default function AliquotVisualization({
     // expected to be helpers.js's buildMedialLateralTemplateSlices output,
     // each slice carrying `medialLateralLayer` (0 or 1) and `isPlaceholder`.
     enableMedialLateralLayers = false,
+    // Per real TissueSample external_id, the distinct "<Assay> - <Platform>"
+    // combinations among its own Files (see TissueView.js's identical
+    // state for how this is built) -- shown per core position row below,
+    // same label convention the Donor x Assay DataMatrix's own column
+    // headers use.
+    assayPlatformsBySampleName = {},
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -652,14 +658,17 @@ export default function AliquotVisualization({
             corePosition
         ] || [null];
         const filesHrefs = selectedSlice?.frozenCorePositionFilesHrefs?.[corePosition] || [];
+        const externalIds = selectedSlice?.frozenCorePositionExternalIds?.[corePosition] || [];
         submissionCenters.forEach((submissionCenter, centerIndex) => {
             if (isTpcSubmissionCenter(submissionCenter)) return;
             const filesHref = filesHrefs[centerIndex] || null;
+            const externalId = externalIds[centerIndex] || null;
             const key = submissionCenter || '';
             if (groupIndexByKey.has(key)) {
                 const group = selectedFrozenCorePositionGroups[groupIndexByKey.get(key)];
                 group.positions.push(corePosition);
                 group.positionFilesHrefs[corePosition] = filesHref;
+                group.positionExternalIds[corePosition] = externalId;
             } else {
                 groupIndexByKey.set(key, selectedFrozenCorePositionGroups.length);
                 selectedFrozenCorePositionGroups.push({
@@ -670,6 +679,12 @@ export default function AliquotVisualization({
                         null,
                     positions: [corePosition],
                     positionFilesHrefs: { [corePosition]: filesHref },
+                    // The real TissueSample external_id behind this
+                    // position's own row -- used to look up its Files' own
+                    // assay/platform combos (assayPlatformsBySampleName),
+                    // separate from `selectedAliquotId+corePosition` (a
+                    // synthetic label, not always identical to the real id).
+                    positionExternalIds: { [corePosition]: externalId },
                 });
             }
         });
@@ -1193,81 +1208,106 @@ export default function AliquotVisualization({
                                                     )) ||
                                                 CORE_DOT_DEFAULT_COLOR;
                                             const rows = visiblePositions.map(
-                                                (corePosition, positionIndexInGroup) => (
-                                                    <div
-                                                        className="aliquot-popover-row"
-                                                        key={corePosition}>
-                                                        <span>
-                                                            {positionIndexInGroup === 0 ? (
-                                                                <>
-                                                                    <span
-                                                                        className="aliquot-popover-gcc-dot"
-                                                                        style={{
-                                                                            backgroundColor: groupColor,
-                                                                        }}
-                                                                    />
-                                                                    {group.filesHref ? (
-                                                                        <a
-                                                                            href={group.filesHref}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            title="View this GCC's files for this donor & tissue">
-                                                                            {group.submissionCenter ||
+                                                (corePosition, positionIndexInGroup) => {
+                                                    const assayPlatforms =
+                                                    assayPlatformsBySampleName[
+                                                        group.positionExternalIds[corePosition]
+                                                    ] || [];
+                                                    return (
+                                                        <div
+                                                            className="aliquot-popover-position"
+                                                            key={corePosition}>
+                                                            <div className="aliquot-popover-row">
+                                                                <span>
+                                                                    {positionIndexInGroup === 0 ? (
+                                                                        <>
+                                                                            <span
+                                                                                className="aliquot-popover-gcc-dot"
+                                                                                style={{
+                                                                                    backgroundColor: groupColor,
+                                                                                }}
+                                                                            />
+                                                                            {group.filesHref ? (
+                                                                                <a
+                                                                                    href={group.filesHref}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    title="View this GCC's files for this donor & tissue">
+                                                                                    {group.submissionCenter ||
                                                                                 `GCC${groupIndex + 1}`}
-                                                                        </a>
-                                                                    ) : group.submissionCenter ? (
-                                                                        // A real GCC (grouped
-                                                                        // here means it isn't
-                                                                        // a TPC, and demo/
-                                                                        // illustrative slices
-                                                                        // never set a real
-                                                                        // submissionCenter at
-                                                                        // all -- see below),
-                                                                        // just no files
-                                                                        // indexed yet for any
-                                                                        // of its positions
-                                                                        // (TissueView.js's
-                                                                        // hasFiles).
-                                                                        <span
-                                                                            className="aliquot-popover-no-files"
-                                                                            title="No files yet for this GCC">
-                                                                            {group.submissionCenter}
-                                                                        </span>
-                                                                    ) : (
-                                                                        `GCC${groupIndex + 1}`
-                                                                    )}
-                                                                </>
+                                                                                </a>
+                                                                            ) : group.submissionCenter ? (
+                                                                            // A real GCC (grouped
+                                                                            // here means it isn't
+                                                                            // a TPC, and demo/
+                                                                            // illustrative slices
+                                                                            // never set a real
+                                                                            // submissionCenter at
+                                                                            // all -- see below),
+                                                                            // just no files
+                                                                            // indexed yet for any
+                                                                            // of its positions
+                                                                            // (TissueView.js's
+                                                                            // hasFiles).
+                                                                                <span
+                                                                                    className="aliquot-popover-no-files"
+                                                                                    title="No files yet for this GCC">
+                                                                                    {group.submissionCenter}
+                                                                                </span>
+                                                                            ) : (
+                                                                                `GCC${groupIndex + 1}`
+                                                                            )}
+                                                                        </>
+                                                                    ) : null}
+                                                                </span>
+                                                                {group.positionFilesHrefs[corePosition] ? (
+                                                                    <a
+                                                                        href={group.positionFilesHrefs[corePosition]}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        title={`View ${selectedAliquotId}${corePosition}'s own files`}>
+                                                                        <strong>
+                                                                            {selectedAliquotId}
+                                                                            {corePosition}
+                                                                        </strong>
+                                                                    </a>
+                                                                ) : group.submissionCenter ? (
+                                                                // Same real-vs-demo
+                                                                // distinction as the GCC
+                                                                // name above.
+                                                                    <strong
+                                                                        className="aliquot-popover-no-files"
+                                                                        title="No files yet for this position">
+                                                                        {selectedAliquotId}
+                                                                        {corePosition}
+                                                                    </strong>
+                                                                ) : (
+                                                                    <strong>
+                                                                        {selectedAliquotId}
+                                                                        {corePosition}
+                                                                    </strong>
+                                                                )}
+                                                            </div>
+                                                            {assayPlatforms.length > 0 ? (
+                                                                <div className="aliquot-popover-assay-platforms">
+                                                                    {assayPlatforms.join(', ')}
+                                                                </div>
+                                                            ) : group.positionFilesHrefs[corePosition] ? (
+                                                                // This position has files (it's
+                                                                // linked above), but none of them
+                                                                // carry assay/sequencer metadata
+                                                                // yet -- distinct from the no-files
+                                                                // case, which already reads as
+                                                                // empty via the id's own "no files
+                                                                // yet" styling and needs no second
+                                                                // note here.
+                                                                <div className="aliquot-popover-assay-platforms is-empty">
+                                                                    No sequencer/assay data yet
+                                                                </div>
                                                             ) : null}
-                                                        </span>
-                                                        {group.positionFilesHrefs[corePosition] ? (
-                                                            <a
-                                                                href={group.positionFilesHrefs[corePosition]}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                title={`View ${selectedAliquotId}${corePosition}'s own files`}>
-                                                                <strong>
-                                                                    {selectedAliquotId}
-                                                                    {corePosition}
-                                                                </strong>
-                                                            </a>
-                                                        ) : group.submissionCenter ? (
-                                                            // Same real-vs-demo
-                                                            // distinction as the GCC
-                                                            // name above.
-                                                            <strong
-                                                                className="aliquot-popover-no-files"
-                                                                title="No files yet for this position">
-                                                                {selectedAliquotId}
-                                                                {corePosition}
-                                                            </strong>
-                                                        ) : (
-                                                            <strong>
-                                                                {selectedAliquotId}
-                                                                {corePosition}
-                                                            </strong>
-                                                        )}
-                                                    </div>
-                                                )
+                                                        </div>
+                                                    );
+                                                }
                                             );
                                             // A long GCC list (real data has seen 10+
                                             // positions under one center) used to just
@@ -1429,7 +1469,7 @@ export default function AliquotVisualization({
                             style={{ backgroundColor: styles.front }}
                         />
                         <span>
-                            {styles.label}
+                            <strong>{styles.label}</strong>
                             {key === 'pink'
                                 ? ' = 0.5 cm width (default)'
                                 : ' = 1 cm width (default)'}
@@ -1459,6 +1499,7 @@ AliquotVisualization.propTypes = {
     idPrefix: PropTypes.string,
     enableBivalvedSplit: PropTypes.bool,
     enableMedialLateralLayers: PropTypes.bool,
+    assayPlatformsBySampleName: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,

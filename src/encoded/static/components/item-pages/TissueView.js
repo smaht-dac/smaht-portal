@@ -185,6 +185,16 @@ const TissueView = React.memo(function TissueView({
     // popover would show a GCC name and a clickable link that resolves to
     // 0 results.
     const [sampleNamesWithFiles, setSampleNamesWithFiles] = useState(null);
+    // Per real sample_name (core external_id), the distinct "<Assay> -
+    // <Platform>" combinations among its own Files -- same "<assay> -
+    // <platform>" column-label convention ProtectedDonorView.js/
+    // PublicDonorView.js's own Donor x Assay DataMatrix already uses
+    // (columnAggFields: ['assays.display_title', 'sequencers.platform']),
+    // so a core's own popover list reads as the same vocabulary as that
+    // matrix's column headers. Built off the exact same fetch as
+    // sampleNamesWithFiles above (two more nested row_agg_fields, not a
+    // second request).
+    const [assayPlatformsBySampleName, setAssayPlatformsBySampleName] = useState({});
     const [donors, setDonors] = useState([]);
     // Every Tissue record sharing this tissue_type, undeduped -- unlike
     // `donors` (one representative Tissue per donor, for the summary table),
@@ -744,14 +754,33 @@ const TissueView = React.memo(function TissueView({
                 // rather than summed client-side over fetched documents.
                 let coverageSum = 0;
                 const namesWithFiles = new Set();
+                const assayPlatforms = {};
                 Object.values(statusBuckets).forEach((bucket) => {
                     coverageSum += Number(bucket?.counts?.total_coverage) || 0;
-                    Object.keys(bucket?.terms || {}).forEach((name) =>
-                        namesWithFiles.add(name)
-                    );
+                    Object.entries(bucket?.terms || {}).forEach(([name, sampleBucket]) => {
+                        namesWithFiles.add(name);
+                        const combos = assayPlatforms[name] || (assayPlatforms[name] = new Set());
+                        Object.entries(sampleBucket?.terms || {}).forEach(([assay, assayBucket]) => {
+                            Object.keys(assayBucket?.terms || {}).forEach((platform) => {
+                                combos.add(
+                                    platform && platform !== 'No value'
+                                        ? `${assay} - ${platform}`
+                                        : assay
+                                );
+                            });
+                        });
+                    });
                 });
                 setTotalCoverage(coverageSum);
                 setSampleNamesWithFiles(namesWithFiles);
+                setAssayPlatformsBySampleName(
+                    Object.fromEntries(
+                        Object.entries(assayPlatforms).map(([name, combos]) => [
+                            name,
+                            Array.from(combos).sort(),
+                        ])
+                    )
+                );
                 setIsLoading(false);
             },
             'POST',
@@ -759,12 +788,17 @@ const TissueView = React.memo(function TissueView({
                 setFileCount(0);
                 setTotalCoverage(0);
                 setSampleNamesWithFiles(new Set());
+                setAssayPlatformsBySampleName({});
                 setIsLoading(false);
             },
             JSON.stringify({
                 search_query_params: searchQueryParams,
                 column_agg_fields: ['status'],
-                row_agg_fields: ['sample_summary.sample_names'],
+                row_agg_fields: [
+                    'sample_summary.sample_names',
+                    'assays.display_title',
+                    'sequencers.platform',
+                ],
             }),
             {},
             null
@@ -1083,6 +1117,7 @@ const TissueView = React.memo(function TissueView({
                                     showSliceLabels={false}
                                     enableMedialLateralLayers={enableMedialLateralLayers}
                                     enableBivalvedSplit={enableBivalvedSplit}
+                                    assayPlatformsBySampleName={assayPlatformsBySampleName}
                                 />
                             )}
                         </div>

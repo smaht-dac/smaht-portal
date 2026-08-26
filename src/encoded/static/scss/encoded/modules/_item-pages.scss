@@ -3864,7 +3864,7 @@ File, Donor, and Publication Overview Styles
     // (neutral gray, not the medial/lateral hint's warning red).
     .aliquot-bivalved-split-caption {
         fill: #3c4650;
-        font-size: 13px;
+        font-size: 16px;
         font-style: italic;
         font-weight: 700;
         paint-order: stroke;
@@ -3973,6 +3973,15 @@ File, Donor, and Publication Overview Styles
         display: inline-flex;
         align-items: center;
         gap: 8px;
+
+        // "Fixed"/"Frozen" is the actual key being defined here -- the
+        // " = 0.5 cm width (default)" that follows it is supplementary
+        // detail, but both were the same weight/color before, so the type
+        // name itself didn't stand out from its own explanation.
+        strong {
+            color: #1e2d3d;
+            font-weight: 700;
+        }
     }
 
     .legend-swatch {
@@ -4335,15 +4344,61 @@ File, Donor, and Publication Overview Styles
     }
 
     .aliquot-popover-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
+        // Was `display: flex; justify-content: space-between`, whose two
+        // items each default to their content's full intrinsic width (a
+        // flex item's own min-width is `auto`, not 0) -- real ids/GCC
+        // names run long enough (e.g. "SMHT012-3S-001A2") that the second
+        // item wouldn't shrink to wrap even with `min-width: 0` set
+        // directly on it, and instead overflowed the row silently (no
+        // scrollbar, no visible spillover past the popover's own edge --
+        // just a cut-off last character). A grid's `minmax(0, 1fr)` column
+        // resolves to one definite, real pixel width the browser has to
+        // honor, which is what actually makes the second column shrink
+        // and wrap instead of overflowing.
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: baseline;
+        gap: 2px 12px;
         color: #4e6379;
+        // The right-aligned id/GCC-name text (especially the italic
+        // .aliquot-popover-no-files variant, whose slant visually leans
+        // into whatever's to its right) reads as cut off when it sits
+        // flush against the popover's own padding edge -- confirmed via
+        // devtools that the text itself is never actually truncated, just
+        // visually cramped. A little extra clearance here, on top of
+        // .popover-body's own padding, fixes the *look* of it.
+        padding-right: 6px;
+
+        strong,
+        a {
+            min-width: 0;
+            overflow-wrap: break-word;
+        }
 
         strong {
             color: #1e2d3d;
             font-weight: 600;
             text-align: right;
+        }
+    }
+
+    // A position's own "<Assay> - <Platform>" combos (see TissueView.js's
+    // assayPlatformsBySampleName) -- same short/muted secondary-line
+    // treatment as .aliquot-popover-description, right-aligned under its
+    // own row's id like a caption rather than another data row.
+    .aliquot-popover-assay-platforms {
+        margin: 0 0 2px;
+        text-align: right;
+        color: #97a6b8;
+        font-size: 0.75rem;
+        font-style: italic;
+
+        // A position with real files but none carrying assay/sequencer
+        // metadata yet -- same "honest empty state" tone as
+        // .aliquot-popover-no-files, just a touch lighter since this note
+        // is secondary to the id row above it.
+        &.is-empty {
+            color: #b0b8c1;
         }
     }
 

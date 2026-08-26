@@ -270,6 +270,8 @@ export default function TissueTypeView({
     // See TissueView.js's identical state for the full rationale.
     const [sampleNamesWithFiles, setSampleNamesWithFiles] = useState(null);
     // See TissueView.js's identical state for the full rationale.
+    const [assayPlatformsBySampleName, setAssayPlatformsBySampleName] = useState({});
+    // See TissueView.js's identical state for the full rationale.
     const [donorsWithAliquotData, setDonorsWithAliquotData] = useState(null);
     const [tissueSamples, setTissueSamples] = useState(null);
     // True only while re-fetching for an already-rendered donor switch (not
@@ -678,6 +680,7 @@ export default function TissueTypeView({
             setFileCount(0);
             setTotalCoverage(0);
             setSampleNamesWithFiles(new Set());
+            setAssayPlatformsBySampleName({});
             setIsLoading(false);
             return;
         }
@@ -702,14 +705,33 @@ export default function TissueTypeView({
                 const statusBuckets = resp?.terms || {};
                 let coverageSum = 0;
                 const namesWithFiles = new Set();
+                const assayPlatforms = {};
                 Object.values(statusBuckets).forEach((bucket) => {
                     coverageSum += Number(bucket?.counts?.total_coverage) || 0;
-                    Object.keys(bucket?.terms || {}).forEach((name) =>
-                        namesWithFiles.add(name)
-                    );
+                    Object.entries(bucket?.terms || {}).forEach(([name, sampleBucket]) => {
+                        namesWithFiles.add(name);
+                        const combos = assayPlatforms[name] || (assayPlatforms[name] = new Set());
+                        Object.entries(sampleBucket?.terms || {}).forEach(([assay, assayBucket]) => {
+                            Object.keys(assayBucket?.terms || {}).forEach((platform) => {
+                                combos.add(
+                                    platform && platform !== 'No value'
+                                        ? `${assay} - ${platform}`
+                                        : assay
+                                );
+                            });
+                        });
+                    });
                 });
                 setTotalCoverage(coverageSum);
                 setSampleNamesWithFiles(namesWithFiles);
+                setAssayPlatformsBySampleName(
+                    Object.fromEntries(
+                        Object.entries(assayPlatforms).map(([name, combos]) => [
+                            name,
+                            Array.from(combos).sort(),
+                        ])
+                    )
+                );
                 setIsLoading(false);
             },
             'POST',
@@ -717,12 +739,17 @@ export default function TissueTypeView({
                 setFileCount(0);
                 setTotalCoverage(0);
                 setSampleNamesWithFiles(new Set());
+                setAssayPlatformsBySampleName({});
                 setIsLoading(false);
             },
             JSON.stringify({
                 search_query_params: searchQueryParams,
                 column_agg_fields: ['status'],
-                row_agg_fields: ['sample_summary.sample_names'],
+                row_agg_fields: [
+                    'sample_summary.sample_names',
+                    'assays.display_title',
+                    'sequencers.platform',
+                ],
                 max_bucket_count: TISSUE_TYPE_MAX_BUCKET_COUNT,
             }),
             {},
@@ -991,6 +1018,7 @@ export default function TissueTypeView({
                                     showSliceLabels={false}
                                     enableMedialLateralLayers={enableMedialLateralLayers}
                                     enableBivalvedSplit={enableBivalvedSplit}
+                                    assayPlatformsBySampleName={assayPlatformsBySampleName}
                                 />
                             )}
                         </div>
