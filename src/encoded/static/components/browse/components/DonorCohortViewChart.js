@@ -210,7 +210,7 @@ const DonorCohortViewChart = ({
         };
 
         const width = effectiveWidth - margin.left - margin.right;
-        const height = chartHeight - (/*margin.top*/topReserve + 20) - margin.bottom;
+        const height = chartHeight - (topReserve + 20) - margin.bottom;
 
         // Panel (always draw so card looks consistent while loading)
         svg.append('rect')
@@ -486,13 +486,11 @@ const DonorCohortViewChart = ({
         };
         const labelY = (v, pad = 6) => Math.max(y(v) - pad, 10);
 
-        // Hoisted above both branches (previously only declared in the
-        // Vertical section, below) -- generic, dimension-cache-driven hover/
-        // pin inset-stroke helpers, needed by the Horizontal branch too now
-        // that its bars support click-to-pin the same way Vertical's do.
-        // `baseDims` (the per-series dims calculators) stays vertical-only
-        // below, since it depends on the vertical x/y scales computed there;
-        // the Horizontal branch sets its own dims per bar inline instead.
+        // Generic, dimension-cache-driven hover/pin inset-stroke helpers,
+        // shared by both the Horizontal and Vertical branches below.
+        // `baseDims` (the per-series dims calculators) stays vertical-only,
+        // since it depends on the vertical x/y scales computed there; the
+        // Horizontal branch sets its own dims per bar inline instead.
         const hoverStrokeWidth = 3;
         const baseDimMap = new WeakMap();
 

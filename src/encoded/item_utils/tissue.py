@@ -193,12 +193,9 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
 def get_tissue_type_code(properties: Dict[str, Any], request_handler: RequestHandler) -> Optional[str]:
     """Get the leading TPC protocol code from tissue_type (e.g. "3S" from "3S - Heart").
 
-    A stable, name-independent identifier for this tissue's tissue_type -- lets
-    callers (e.g. a shareable tissue-type-overview URL) filter/link by code instead
-    of the full "<code> - <name>" string, whose name half can otherwise only be
-    reconstructed by looking the code back up against live ontology data. Returns
+    A stable, name-independent identifier for this tissue's tissue_type. Returns
     None for a benchmarking tissue's tissue_type, which omits the code entirely
-    (see get_tissue_type above) -- benchmarking isn't in scope for this yet.
+    (see get_tissue_type above).
     """
     tissue_type = get_tissue_type(properties, request_handler=request_handler)
     if tissue_type and " - " in tissue_type:

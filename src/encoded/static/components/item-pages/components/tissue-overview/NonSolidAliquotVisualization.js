@@ -261,14 +261,13 @@ export default function NonSolidAliquotVisualization({
                     className="aliquot-canvas nonsolid-canvas"
                     // Explicit width/height (1 viewBox unit = 1px), same
                     // convention AliquotVisualization.js's own <svg> uses --
-                    // without these, the browser had no intrinsic size to
-                    // work from and stretched the SVG to fill its
-                    // container's width regardless of totalWidth, so fewer
-                    // tubes (a narrower viewBox) rendered every unit -- the
-                    // tubes included -- visibly larger than more tubes did.
-                    // .aliquot-canvas's `max-width:100%; height:auto` then
-                    // only ever shrinks this native size down when there
-                    // isn't room, never stretches it up.
+                    // without these the browser has no intrinsic size to work
+                    // from and stretches the SVG to fill its container's
+                    // width regardless of totalWidth, rendering fewer tubes
+                    // visibly larger than more tubes. .aliquot-canvas's
+                    // `max-width:100%; height:auto` then only ever shrinks
+                    // this native size down when there isn't room, never
+                    // stretches it up.
                     width={totalWidth}
                     height={viewBoxHeight}
                     viewBox={`0 -6 ${totalWidth} ${viewBoxHeight}`}

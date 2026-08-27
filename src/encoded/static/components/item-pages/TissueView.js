@@ -57,14 +57,11 @@ export default class TissueOverview extends DefaultItemView {
 }
 
 const TissueViewTitle = ({ context }) => {
-    // A user reaches this page from a Browse-by-Tissue table header, i.e. by
-    // tissue *type*, not by picking this one specific Tissue record -- and
-    // which record actually renders here is itself a best-effort pick among
-    // possibly several sharing that type (see dedupeTissuesByDonor). Showing
-    // its specific instance ID (e.g. "SMHT001-3AL") in the breadcrumb would
-    // overstate that certainty, so use the same descriptive tissue name the
-    // page heading uses instead.
-    // tissue_type first, not uberon_id -- see the body's targetTissueValue below.
+    // Reached by tissue *type* (Browse-by-Tissue), and the record rendered
+    // here is only a best-effort pick among possibly several sharing that
+    // type (see dedupeTissuesByDonor) -- so the breadcrumb uses the same
+    // descriptive tissue name as the page heading rather than this specific
+    // Tissue's instance ID, which would overstate the certainty.
     const targetTissueValue = context?.tissue_type || context?.uberon_id || null;
     const breadcrumbs = [
         { display_title: 'Home', href: '/' },
@@ -104,8 +101,7 @@ const TissueView = React.memo(function TissueView({
     session,
     // Gates the Donor Details table's Autolysis Score cell coloring below --
     // on by default using a neutral light->dark scale (_item-pages.scss),
-    // not the earlier green->yellow->orange->red ramp that read as a status/
-    // alarm signal regardless of what the metric actually was.
+    // not a green->red alarm-style ramp.
     enableConditionalColor = true,
 }) {
     const {
@@ -122,17 +118,16 @@ const TissueView = React.memo(function TissueView({
     // `tissue_type` (not uberon_id.display_title) so the displayed name
     // always uses the "<code> - <description>" convention (e.g. "3AN -
     // Brain, Hippocampus, L") -- uberon_id's own display_title formatting
-    // is inconsistent across ontology terms (some carry the code prefix,
-    // some don't), while tissue_type is always canonicalized this way
-    // (item_utils/tissue.py's get_tissue_type). Still link out to the
-    // ontology term via uberon_id when available.
+    // is inconsistent across ontology terms, while tissue_type is always
+    // canonicalized this way (item_utils/tissue.py's get_tissue_type).
+    // Still link out to the ontology term via uberon_id when available.
     const targetTissueValue = tissue_type || uberon_id || null;
     const tissueIconSrc = getTissueIconSrc(tissue_type || getDisplayText(uberon_id));
-    // Same official per-tissue color used for the germ-layer summary
-    // bubbles (BrowseTissueVizWrapper.js) -- null for the tissue_type
-    // values that color scheme doesn't cover, in which case the header
-    // icon just keeps its existing default green theme (see the fallback
-    // styling below and _item-pages.scss's .tissue-summary-header-icon).
+    // Same official per-tissue color used for the germ-layer summary bubbles
+    // (BrowseTissueVizWrapper.js) -- null for tissue_type values that color
+    // scheme doesn't cover, in which case the header icon keeps its default
+    // green theme (see the fallback styling below and _item-pages.scss's
+    // .tissue-summary-header-icon).
     const tissueColorHex = getTissueColorHex(tissue_type || getDisplayText(uberon_id));
     const aliquotDepthCm = getTissueAliquotDepthCm(tissue_type || getDisplayText(uberon_id));
     const aliquotLayoutNote = getAliquotLayoutNote(tissue_type || getDisplayText(uberon_id));
@@ -145,15 +140,13 @@ const TissueView = React.memo(function TissueView({
     const targetTissueHref = uberon_id ? uberonHref : null;
     const tissueProtocolCode = tissue_type ? tissue_type.split(' - ')[0].trim() : null;
     // `category` is a real backend-calculated field (item_utils/tissue.py) --
-    // "Clinically Accessible" covers exactly blood and buccal swab tissues.
-    // Which of the two it is isn't itself a stored field, so that part still
-    // falls back to matching the tissue_type label. Fibroblast is *also* a
-    // non-solid (cultured-cell-suspension) specimen like blood/buccal swab,
-    // but get_category() groups it under "Mesoderm" (its germ-layer
-    // category, for the Browse germ-layer panel) rather than "Clinically
-    // Accessible" -- so it can't be detected the same way. It's still
-    // reliably identifiable by protocol code though: get_tissue_type()
-    // special-cases fibroblast to always return "3AC - Fibroblast".
+    // "Clinically Accessible" covers exactly blood and buccal swab tissues,
+    // and which of the two it is isn't itself a stored field, so that part
+    // still falls back to matching the tissue_type label. Fibroblast is
+    // also a non-solid specimen but get_category() groups it under
+    // "Mesoderm" (its germ-layer category) instead, so it's detected by
+    // protocol code instead: get_tissue_type() special-cases fibroblast to
+    // always return "3AC - Fibroblast".
     const nonSolidSpecimenType =
         category === 'Clinically Accessible'
             ? tissue_type?.toLowerCase().includes('buccal')
@@ -176,24 +169,19 @@ const TissueView = React.memo(function TissueView({
     const [fileCount, setFileCount] = useState(0);
     const [totalCoverage, setTotalCoverage] = useState(0);
     // Every sample_summary.sample_names value seen across this donor+tissue's
-    // actual indexed Files (built for free below, off the same fetch used
-    // for fileCount/totalCoverage) -- lets each aliquot/core position check
-    // whether it *really* has files instead of just inferring "probably yes"
-    // from having a real (non-TPC) submission_centers value. A TissueSample
-    // can be submitted to a real GCC well before that GCC's files actually
-    // exist/are indexed, so that inference was confirmed misleading: the
-    // popover would show a GCC name and a clickable link that resolves to
-    // 0 results.
+    // actual indexed Files (built off the same fetch used for
+    // fileCount/totalCoverage) -- lets each aliquot/core position check
+    // whether it *really* has files instead of inferring "probably yes"
+    // from having a real (non-TPC) submission_centers value, since a
+    // TissueSample can be submitted to a real GCC well before that GCC's
+    // files actually exist/are indexed.
     const [sampleNamesWithFiles, setSampleNamesWithFiles] = useState(null);
     // Per real sample_name (core external_id), the distinct "<Assay> -
     // <Platform>" combinations among its own Files -- same "<assay> -
     // <platform>" column-label convention ProtectedDonorView.js/
-    // PublicDonorView.js's own Donor x Assay DataMatrix already uses
-    // (columnAggFields: ['assays.display_title', 'sequencers.platform']),
-    // so a core's own popover list reads as the same vocabulary as that
-    // matrix's column headers. Built off the exact same fetch as
-    // sampleNamesWithFiles above (two more nested row_agg_fields, not a
-    // second request).
+    // PublicDonorView.js's Donor x Assay DataMatrix uses, so a core's own
+    // popover list reads as the same vocabulary as that matrix's column
+    // headers. Built off the same fetch as sampleNamesWithFiles above.
     const [assayPlatformsBySampleName, setAssayPlatformsBySampleName] = useState({});
     const [donors, setDonors] = useState([]);
     // Every Tissue record sharing this tissue_type, undeduped -- unlike
@@ -204,13 +192,10 @@ const TissueView = React.memo(function TissueView({
     const [donorsLoading, setDonorsLoading] = useState(true);
     // Which of `donors`, keyed by external_id, actually have >=1 real
     // TissueSample (Core/Fixed/Frozen/Liquid/Cells) for this tissue_type --
-    // a donor can have a real Tissue record (which is all `donors` itself
-    // confirms) well before any aliquot has actually been submitted/
-    // processed for it, which otherwise meant every single option in the
-    // donor picker had to be clicked through by hand to discover which
-    // ones actually had anything to show. null (not an empty Set) while
-    // still loading/unknown, so nothing gets incorrectly disabled before
-    // this resolves.
+    // a donor can have a real Tissue record well before any aliquot has
+    // actually been submitted/processed for it. null (not an empty Set)
+    // while still loading/unknown, so nothing gets incorrectly disabled
+    // before this resolves.
     const [donorsWithAliquotData, setDonorsWithAliquotData] = useState(null);
     const [tissueSamples, setTissueSamples] = useState(null);
     // True only while re-fetching for an already-rendered donor switch (not
@@ -219,15 +204,13 @@ const TissueView = React.memo(function TissueView({
     // still-valid previous diagram.
     const [samplesUpdating, setSamplesUpdating] = useState(false);
     // Which donor's aliquot layout the visualization panel reflects. Stays
-    // null (no auto-selected default) until the user explicitly picks one
-    // from the <select> below -- the panel shows a "pick a donor" prompt
-    // instead of any donor's data until then.
+    // null until the user explicitly picks one from the <select> below --
+    // the panel shows a "pick a donor" prompt until then.
     const [selectedDonorUuid, setSelectedDonorUuid] = useState(null);
     const [showAliquotLayoutNote, setShowAliquotLayoutNote] = useState(false);
 
     // Clears the selection if it's no longer valid for the current `donors`
-    // list (e.g. donors reloaded after a session change) -- never seeds a
-    // default, so nothing renders until the user chooses.
+    // list -- never seeds a default, so nothing renders until the user chooses.
     useEffect(() => {
         if (donors.length === 0) {
             setSelectedDonorUuid(null);
@@ -243,11 +226,9 @@ const TissueView = React.memo(function TissueView({
         [donors, selectedDonorUuid]
     );
     // A donor's Fixed and Frozen Tissue records for this tissue_type are two
-    // separate items sharing one tissue_type string (confirmed against real
-    // data -- see note above sampleAliquotSlicesFallback), so the aliquot
-    // panel needs every sibling Tissue's uuid, not just one. Empty (no
-    // fallback to this page's own Tissue) until a donor is explicitly
-    // selected -- see selectedDonorUuid above.
+    // separate items sharing one tissue_type string, so the aliquot panel
+    // needs every sibling Tissue's uuid, not just one. Empty until a donor
+    // is explicitly selected -- see selectedDonorUuid above.
     const tissueUuidsForSelectedDonor = useMemo(() => {
         if (!selectedDonorUuid) return [];
         return allTissuesForType
@@ -264,37 +245,28 @@ const TissueView = React.memo(function TissueView({
             ? `${selectedDonorDisplayTitle}-${tissueProtocolCode}`
             : tissueProtocolCode;
 
-    // The number of aliquots isn't a fixed/derivable constant (confirmed
-    // against real TissueSample fixture data and PR smaht-dac/smaht-portal#728's
-    // associate_fixed_samples.py, which counts real linked samples rather than
-    // assuming one) -- it's whatever was actually submitted for this tissue
-    // block, so it has to come from a live count of TissueSamples across
-    // every sibling Tissue (Fixed + Frozen) sharing this tissue_type.
+    // The number of aliquots isn't a fixed/derivable constant -- it's
+    // whatever was actually submitted for this tissue block, so it has to
+    // come from a live count of TissueSamples across every sibling Tissue
+    // (Fixed + Frozen) sharing this tissue_type.
     useEffect(() => {
-        // Wait for the sibling-Tissue search (donorsLoading) to finish before
-        // fetching -- otherwise this fires once with just this page's own
-        // Tissue uuid, renders that partial result, then fires again once
-        // the sibling Fixed/Frozen Tissue is found, replacing it a moment
-        // later. Both fetches were real, but the visible flash between them
-        // reads as a bug, so wait for the complete uuid set instead.
+        // Wait for the sibling-Tissue search (donorsLoading) to finish
+        // before fetching -- otherwise this fires once with just this
+        // page's own Tissue uuid, renders that partial result, then fires
+        // again once the sibling Fixed/Frozen Tissue is found.
         if (donorsLoading || tissueUuidsForSelectedDonor.length === 0) {
             setTissueSamples(null);
             return;
         }
-        // Deliberately not resetting to null here: on the very first load
-        // that's already the initial state, but on a later donor switch it
-        // would blank out an already-rendered diagram (swap to spinner, then
-        // swap again to the new donor's data) for no reason -- keep showing
-        // the previous donor's slices until the new ones are ready, then
-        // swap directly, once.
+        // Not reset to null here: that would blank an already-rendered
+        // diagram on a donor switch for no reason -- keep the previous
+        // donor's slices until the new ones are ready, then swap once.
         //
         // `ignore` guards against a stale in-flight request winning a race
-        // against a newer one -- e.g. donor A's (real-data) response
-        // arriving after donor B's (genuinely empty, 404) response if A was
-        // slower, which would otherwise overwrite B's correctly-cleared
-        // state with A's stale slices right after the swap to B. Any
-        // earlier effect run's callbacks become no-ops once a newer one
-        // starts (cleanup below).
+        // against a newer one (e.g. donor A's response arriving after donor
+        // B's if A was slower, overwriting B's correct state with A's stale
+        // slices). Cleanup below turns an earlier effect run's callbacks
+        // into no-ops once a newer one starts.
         let ignore = false;
         setSamplesUpdating(true);
         const sampleSourceParams = tissueUuidsForSelectedDonor
@@ -303,18 +275,14 @@ const TissueView = React.memo(function TissueView({
         ajax.load(
             // `limit=all` -- without it, Snovault's default PAGINATION_SIZE
             // (10, not the more commonly assumed 25) silently truncates the
-            // result set. Confirmed as a real bug against production data:
-            // a tissue with 20 real TissueSamples (4 Fixed + 16 Core) only
-            // ever surfaced the first 10, cutting off 10 real Core positions
-            // with no error or indication anything was missing.
+            // result set with no error or indication anything is missing.
             //
             // `status%21=deleted`, not the literal `status!=deleted` -- a
-            // raw "!" here is technically valid in a query string (RFC
-            // 3986 leaves it unreserved, so the browser sends it as-is),
-            // but Snovault's own URL canonicalization always percent-
-            // encodes it, 301-redirecting to `%21` before actually serving
-            // the search. Sending the encoded form directly skips that
-            // redirect round-trip.
+            // raw "!" is technically valid in a query string (RFC 3986
+            // leaves it unreserved), but Snovault's own URL canonicalization
+            // always percent-encodes it, 301-redirecting to `%21` before
+            // serving the search. Sending the encoded form directly skips
+            // that redirect round-trip.
             `/search/?type=TissueSample&status%21=deleted&${sampleSourceParams}&limit=all`,
             (resp) => {
                 if (ignore) return;
@@ -354,11 +322,10 @@ const TissueView = React.memo(function TissueView({
                 // sharing one tissue_type, so each slice needs its own.
                 const idPrefix = getTissueKitIdFromExternalId(sample.external_id);
                 // Real aliquot number embedded in the external_id (e.g. "002"
-                // in "SMHT004-3S-002A1") -- extracted for every sample, Fixed
-                // included, so the popover can label a slice with the number
-                // it actually was submitted under. Only used as a *merge* key
-                // for non-Fixed samples (Fixed ones are never merged), but
-                // every slice still carries its own real number for display.
+                // in "SMHT004-3S-002A1"), extracted for every sample so the
+                // popover can label a slice with the number it was actually
+                // submitted under. Only used as a *merge* key for non-Fixed
+                // samples (Fixed ones are never merged).
                 const aliquotNumber = getAliquotNumberFromExternalId(sample.external_id);
                 const groupKey = !isFixed && aliquotNumber ? `${idPrefix}-${aliquotNumber}` : null;
                 const existing = groupKey ? slicesByGroupKey.get(groupKey) : null;
@@ -377,14 +344,11 @@ const TissueView = React.memo(function TissueView({
                         sample.pathology_reports || []
                     );
                     // A position can have more than one real TissueSample
-                    // record -- confirmed against real production data: the
-                    // same physical core gets a TPC procurement-level record
-                    // (e.g. "NDRI TPC") *and* a separate GCC-submitted record
-                    // (e.g. "UWSC GCC") for the same "SMHT001-3AM-001D2".
-                    // Overwriting with just the last one processed silently
-                    // dropped the other institution's record entirely (a
-                    // real reported bug), so keep every distinct center per
-                    // position instead of picking one.
+                    // record -- e.g. the same physical core gets a TPC
+                    // procurement-level record ("NDRI TPC") *and* a separate
+                    // GCC-submitted record ("UWSC GCC") -- so keep every
+                    // distinct center per position instead of overwriting
+                    // with just the last one processed.
                     if (corePosition) {
                         const center = sample.submission_centers?.[0]?.display_title || null;
                         const existingCenters =
@@ -421,13 +385,9 @@ const TissueView = React.memo(function TissueView({
                     idPrefix,
                     // The real aliquot number this slice was actually
                     // submitted under (e.g. "002") -- AliquotVisualization
-                    // prefers this over its own positional numbering, so the
-                    // popover title/"Frozen #" reflects reality instead of
-                    // just "the Nth slice rendered", which can disagree with
-                    // the real number whenever a tissue's aliquot numbering
-                    // isn't contiguous from 001 (confirmed against real data:
-                    // a donor whose only real Frozen aliquot is "002", with
-                    // no "001" ever submitted).
+                    // prefers this over its own positional numbering, since
+                    // a tissue's aliquot numbering isn't always contiguous
+                    // from 001.
                     aliquotNumber: aliquotNumber || undefined,
                     // Explicit [] (not undefined) for a real Frozen sample with
                     // no Core suffix -- so AliquotVisualization's `|| DEFAULT`
@@ -475,21 +435,18 @@ const TissueView = React.memo(function TissueView({
             // Generic (not core-specific) href per distinct submitting
             // center -- the popover groups every position under the same
             // GCC into one row group (see AliquotVisualization.js), and
-            // that group's own header link is meant to mean "this GCC's
-            // files for this whole donor+tissue", not any one position's;
-            // each position's own row links to its own core-specific href
+            // that group's own header link means "this GCC's files for
+            // this whole donor+tissue", not any one position's; each
+            // position's own row links to its core-specific href
             // (frozenCorePositionFilesHrefs above) instead. Named for the
-            // *filter* the resulting href actually applies
-            // (sequencing_center.display_title on File, per
-            // getGccFilesBrowseHref) rather than the submissionCenter input
-            // value, since submission_centers on a File is often a
+            // *filter* the resulting href applies (sequencing_center.
+            // display_title on File) rather than the submissionCenter
+            // input value, since submission_centers on a File is often a
             // downstream analysis center (e.g. "HMS DAC"), not this GCC.
             slice.gccFilesHrefs = {};
             // Ground truth, not an inference from having a real (non-TPC)
-            // submissionCenter -- see nonSolidAliquots' identical
-            // `hasFiles` for the full rationale (a TissueSample can be
-            // submitted to a real GCC well before that GCC's files for it
-            // actually exist/are indexed). `sampleNamesWithFiles === null`
+            // submissionCenter -- see nonSolidAliquots' identical hasFiles
+            // for the full rationale. `sampleNamesWithFiles === null`
             // (still loading) intentionally reads as "yes" so the popover
             // doesn't flash "No files yet" and then correct itself.
             const centersWithFiles = new Set();
@@ -549,11 +506,8 @@ const TissueView = React.memo(function TissueView({
         // Sort by real aliquot number (ascending, numeric) so boxes read
         // left-to-right in the order a person would expect ("001" before
         // "002") instead of whatever order the raw TissueSample search
-        // happened to return them in -- confirmed as a real point of
-        // confusion: a donor's "002" aliquot was rendered as the 2nd box and
-        // "001" as the 3rd, purely because "002"'s samples appeared earlier
-        // in the API response. Slices without a real number (demo/pink with
-        // no parseable number) keep their original relative order, sorted
+        // returned them in. Slices without a real number (demo/pink with no
+        // parseable number) keep their original relative order, sorted
         // after any numbered ones.
         realSlices.sort((a, b) => {
             const aNum = a.aliquotNumber ? parseInt(a.aliquotNumber, 10) : null;
@@ -571,13 +525,13 @@ const TissueView = React.memo(function TissueView({
         sampleNamesWithFiles,
     ]);
 
-    // Bivalved tissues (Adrenal/Heart/Gonads) always render their full
-    // fixed Anterior/Posterior template (see getBivalvedTemplate) once
-    // there's real data at all -- not just solidAliquotSlices' own
-    // variable-length real slice list. Left alone while solidAliquotSlices
-    // is still the illustrative demo set (no donor picked yet): expanding a
-    // fabricated demo slice list out to fill a real fixed template would
-    // only compound how much of the panel is made up.
+    // Bivalved tissues (Adrenal/Heart/Gonads) always render their full fixed
+    // Anterior/Posterior template (see getBivalvedTemplate) once there's
+    // real data at all, not just solidAliquotSlices' own variable-length
+    // real slice list. Left alone while solidAliquotSlices is still the
+    // illustrative demo set (no donor picked yet), since expanding a
+    // fabricated demo list out to fill a real fixed template would only
+    // compound how much of the panel is made up.
     const bivalvedTemplate = enableBivalvedSplit
         ? getBivalvedTemplate(tissueMatrixFilterValue)
         : null;
@@ -588,11 +542,9 @@ const TissueView = React.memo(function TissueView({
         ? getMedialLateralTemplate(tissueMatrixFilterValue)
         : null;
     // Muscle/Skin/Colon/Aorta/Esophagus's fixed 9-slice strip (see
-    // getStripTemplate) -- no split/layering prop needed for this one,
-    // since it renders through the same plain single-row path as any other
-    // (non-bivalved, non-medial/lateral) tissue already does; only ever
-    // resolves for the tissues explicitly in that group, so it can't
-    // conflict with the other two templates above.
+    // getStripTemplate) -- renders through the same plain single-row path
+    // as any other tissue, and only resolves for tissues explicitly in that
+    // group, so it can't conflict with the other two templates above.
     const stripTemplate = !bivalvedTemplate && !medialLateralTemplate
         ? getStripTemplate(tissueMatrixFilterValue)
         : null;
@@ -611,21 +563,18 @@ const TissueView = React.memo(function TissueView({
             // A TPC (e.g. "NDRI TPC") is a procurement-level record with no
             // files of its own -- excluded here the same way
             // AliquotVisualization.js excludes it from the solid-tissue core
-            // grid/popover, rather than shown as if it were this aliquot's
-            // owning GCC. `hasOnlyTpcSubmission` (vs. just leaving
-            // submissionCenter null, which also covers "no data at all"/
-            // demo slices) lets the render side tell a real TPC-only
-            // aliquot apart from an illustrative placeholder, so it can say
-            // "no files yet" instead of a fabricated "GCC1" label.
+            // grid/popover. `hasOnlyTpcSubmission` (vs. just leaving
+            // submissionCenter null, which also covers "no data at all") lets
+            // the render side tell a real TPC-only aliquot apart from an
+            // illustrative placeholder.
             const hasOnlyTpcSubmission = isTpcSubmissionCenter(rawSubmissionCenter);
             // Ground truth, not an inference from submission_centers -- a
             // sample can be legitimately submitted to a real GCC well
             // before that GCC's files for it actually exist/are indexed
-            // (see sampleNamesWithFiles above), so `hasOnlyTpcSubmission`
-            // alone isn't enough to promise "this aliquot has files".
-            // `sampleNamesWithFiles === null` (still loading) intentionally
-            // reads as "yes" here rather than flashing "No files yet" and
-            // then correcting itself once the fetch resolves.
+            // (see sampleNamesWithFiles above). `sampleNamesWithFiles ===
+            // null` (still loading) intentionally reads as "yes" here
+            // rather than flashing "No files yet" and then correcting
+            // itself once the fetch resolves.
             const hasFiles =
                 !hasOnlyTpcSubmission &&
                 (sampleNamesWithFiles === null ||
@@ -636,12 +585,12 @@ const TissueView = React.memo(function TissueView({
                 submissionCenter: hasOnlyTpcSubmission ? null : rawSubmissionCenter,
                 hasOnlyTpcSubmission,
                 hasFiles,
-                // getGccFilesBrowseHref itself already returns null for a
-                // non-GCC center, so passing the raw (unfiltered) center
-                // through is safe -- narrowed to just this aliquot's own
-                // files via its own external_id (sample_summary.sample_names).
-                // Nulled out when hasFiles is false so the popover can't
-                // link to a query that's confirmed to resolve to 0 results.
+                // getGccFilesBrowseHref itself returns null for a non-GCC
+                // center, so passing the raw (unfiltered) center through is
+                // safe -- narrowed to just this aliquot's own files via its
+                // own external_id (sample_summary.sample_names). Nulled out
+                // when hasFiles is false so the popover can't link to a
+                // query that resolves to 0 results.
                 filesHref: hasFiles
                     ? getGccFilesBrowseHref({
                         donorDisplayTitle: selectedDonorDisplayTitle,
@@ -652,9 +601,9 @@ const TissueView = React.memo(function TissueView({
                     : null,
                 // The GCC's own name is also a link in the solid-tissue
                 // popover (AliquotVisualization.js's group header) -- to
-                // this same generic (not core-specific) "all this GCC's
-                // files for this donor+tissue" href, not this one
-                // aliquot's own narrower one above.
+                // this generic (not core-specific) "all this GCC's files
+                // for this donor+tissue" href, not this aliquot's own
+                // narrower one above.
                 gccFilesHref: hasFiles
                     ? getGccFilesBrowseHref({
                         donorDisplayTitle: selectedDonorDisplayTitle,
@@ -673,12 +622,11 @@ const TissueView = React.memo(function TissueView({
     ]);
 
     // Real data replacing the illustrative fallback mid-render is a visible
-    // jump no matter how few steps it takes to get there (different slice
-    // counts/colors/arrangement) -- show a spinner instead of the fallback
-    // while genuinely loading, and reserve the fallback for a tissue that
-    // has finished loading and truly has no TissueSamples yet. Once donors
-    // have loaded but none is selected yet, showDonorPrompt takes over
-    // instead of this spinner (see render below).
+    // jump (different slice counts/colors/arrangement) -- show a spinner
+    // instead of the fallback while genuinely loading, and reserve the
+    // fallback for a tissue that has finished loading and truly has no
+    // TissueSamples yet. Once donors have loaded but none is selected yet,
+    // showDonorPrompt takes over instead of this spinner (see render below).
     const aliquotSamplesLoading = donorsLoading || (!!selectedDonorUuid && tissueSamples === null);
     const showDonorPrompt = !donorsLoading && donors.length > 0 && !selectedDonorUuid;
     // Distinct from showDonorPrompt (donors loaded, none picked yet) --
@@ -686,21 +634,16 @@ const TissueView = React.memo(function TissueView({
     // (e.g. logged out), which must not fall through to the illustrative
     // fallback diagram as if it were real data.
     const showNoDonorData = !donorsLoading && donors.length === 0;
-    // A donor explicitly selected, its TissueSample search has finished
-    // (not still loading), and it genuinely returned zero real samples --
-    // e.g. the search 404s. AliquotVisualization/NonSolidAliquotVisualization
-    // would otherwise render the illustrative fallback set, but that fallback
-    // still gets labelled with this donor's own real idPrefix (e.g.
-    // "SMHT023-3M"), which reads as real per-donor data (real-looking IDs,
-    // "GCC1"/"GCC2" placeholders that look like redacted real centers) even
-    // though every field on it is fabricated -- confirmed misleading in
-    // practice, so show an explicit empty state instead of the fallback
-    // once we know for certain (not just "still loading") that this donor
-    // has none. Mirrors solidAliquotSlices/nonSolidAliquots' own real-vs-
-    // fallback check exactly (Fresh samples don't count for solid tissues,
-    // per that useMemo's own filter) -- a donor whose only TissueSamples are
-    // Fresh (filtered out there too) would otherwise still fall through to
-    // the same mislabelled fallback despite tissueSamples.length > 0.
+    // A donor explicitly selected, its TissueSample search finished, and it
+    // genuinely returned zero real samples. AliquotVisualization/
+    // NonSolidAliquotVisualization would otherwise render the illustrative
+    // fallback set, but that fallback still gets labelled with this donor's
+    // own real idPrefix, which reads as real per-donor data even though
+    // every field on it is fabricated -- so show an explicit empty state
+    // instead once we know for certain this donor has none. Mirrors
+    // solidAliquotSlices/nonSolidAliquots' own real-vs-fallback check
+    // exactly (Fresh samples don't count for solid tissues, per that
+    // useMemo's own filter).
     const hasRealAliquotData = nonSolidSpecimenType
         ? (tissueSamples || []).length > 0
         : (tissueSamples || []).some((sample) => sample.preservation_type !== 'Fresh');
@@ -712,22 +655,16 @@ const TissueView = React.memo(function TissueView({
     // or any of this component's other inputs changing.
     //
     // Uses /data_matrix_aggregations/ (the same aggregation endpoint
-    // DataMatrix.js/BrowseDonorVizWrapper.js already rely on) instead of a
-    // plain /search/?limit=all fetch of every matching File -- this donor's
-    // one tissue realistically stays well under the endpoint's own
-    // per-bucket cap (MAX_BUCKET_COUNT=200 in visualization.py, sized for
-    // "up to ~150 donors"), so a single request gets fileCount, the real
-    // total_coverage sum, *and* sampleNamesWithFiles all as proper ES
-    // aggregations -- no File document bodies transferred at all, so this
-    // doesn't get more expensive as this donor+tissue's file count grows.
-    // `column_agg_fields: ['status']` groups by File's own (single-valued,
-    // non-array) status -- at most the handful of values in
-    // BROWSE_STATUS_VALUES -- purely so each bucket's total_coverage can be
-    // summed client-side into one overall figure without double-counting
-    // (status is 1-per-File, unlike sample_summary.sample_names, which is
-    // why that field is nested as `row_agg_fields` instead: a pooled/"MC"
-    // File can legitimately list more than one sample_name, so summing
-    // *that* dimension's per-bucket coverage would double-count it).
+    // DataMatrix.js/BrowseDonorVizWrapper.js rely on) instead of a plain
+    // /search/?limit=all fetch of every matching File -- a single request
+    // gets fileCount, the real total_coverage sum, *and*
+    // sampleNamesWithFiles all as proper ES aggregations, with no File
+    // document bodies transferred. `column_agg_fields: ['status']` groups
+    // by File's own single-valued status so each bucket's total_coverage
+    // can be summed client-side without double-counting; sample_summary.
+    // sample_names is nested as `row_agg_fields` instead because a pooled
+    // File can legitimately list more than one sample_name, and summing
+    // that dimension's per-bucket coverage would double-count it.
     useEffect(() => {
         const searchQueryParams = {
             type: ['File'],
@@ -837,13 +774,9 @@ const TissueView = React.memo(function TissueView({
 
     // Batch pre-check (one request, not one per donor) for which donors in
     // the picker above actually have real TissueSample data for this
-    // tissue_type -- reuses /data_matrix_aggregations/ (now fixed to only
-    // attach its File-specific coverage aggregation when the search is
-    // actually scoped to File -- see visualization.py's is_file_type_search
-    // -- confirmed against real data after the earlier fix caused every
-    // donor to wrongly show as having no data), scoped to every donor's
-    // own Tissue uuid(s) at once via sample_sources.uuid, bucketed by
-    // sample_sources.donor.external_id (already embedded, see
+    // tissue_type -- reuses /data_matrix_aggregations/, scoped to every
+    // donor's own Tissue uuid(s) at once via sample_sources.uuid, bucketed
+    // by sample_sources.donor.external_id (already embedded, see
     // types/sample.py's embedded_list) so it doesn't need per-donor
     // requests. max_bucket_count is set generously above this tissue_type's
     // actual donor count since a caller undercounting it silently drops

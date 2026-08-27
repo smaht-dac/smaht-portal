@@ -55,19 +55,16 @@ import {
 
 // Standalone page for /tissue-overview/?tissue_type=<value>, registered
 // against the synthetic 'Tissue-Overview' @type the backend's
-// tissue_overview.py route forces onto its search response -- this is a
-// real tissue_type-keyed page (unlike the legacy TissueOverview tab on a
-// single Tissue item's page at /tissues/<uuid>/), so `context` here is the
-// search response itself (its `@graph` already is the Tissue-search-by-
-// tissue_type dataset).
+// tissue_overview.py route forces onto its search response -- a real
+// tissue_type-keyed page (unlike the legacy TissueOverview tab on a single
+// Tissue item's page at /tissues/<uuid>/), so `context` here is the search
+// response itself (its `@graph` is the Tissue-search-by-tissue_type dataset).
 
 // This page renders its own title/breadcrumb (TissueTypeViewTitle, below)
 // inline with its content, same as item pages do -- suppress
-// PageTitleSection's generic fallback (which would otherwise render
-// context.title as a duplicate heading above it). The browser tab title
-// (app.js's HTMLTitle) still reads context.title directly -- tissue_overview.py
-// overrides that field per-request to the actual tissue_type value, so the
-// tab title is meaningful without this page needing its own title view.
+// PageTitleSection's generic fallback. The browser tab title (app.js's
+// HTMLTitle) still reads context.title directly -- tissue_overview.py
+// overrides that field per-request to the actual tissue_type value.
 pageTitleViews.register(() => null, 'Tissue-Overview');
 
 // See TissueView.js's identical constant for the full rationale.
@@ -122,8 +119,7 @@ export default function TissueTypeView({
     session,
     // Gates the Donor Details table's Autolysis Score cell coloring below --
     // on by default using a neutral light->dark scale (_item-pages.scss),
-    // not the earlier green->yellow->orange->red ramp that read as a status/
-    // alarm signal regardless of what the metric actually was.
+    // not a status/alarm-style color ramp.
     enableConditionalColor = true,
 }) {
     const tissueType = useMemo(
@@ -242,12 +238,10 @@ export default function TissueTypeView({
     // "Clinically Accessible" covers exactly blood and buccal swab tissues.
     // Which of the two it is isn't itself a stored field, so that part still
     // falls back to matching the tissue_type label. Fibroblast is *also* a
-    // non-solid (cultured-cell-suspension) specimen like blood/buccal swab,
-    // but get_category() groups it under "Mesoderm" (its germ-layer
-    // category, for the Browse germ-layer panel) rather than "Clinically
-    // Accessible" -- so it can't be detected the same way. It's still
-    // reliably identifiable by protocol code though: get_tissue_type()
-    // special-cases fibroblast to always return "3AC - Fibroblast".
+    // non-solid specimen like blood/buccal swab, but get_category() groups
+    // it under "Mesoderm" instead, so it's detected by protocol code instead
+    // (get_tissue_type() special-cases fibroblast to always return
+    // "3AC - Fibroblast").
     const nonSolidSpecimenType =
         category === 'Clinically Accessible'
             ? tissue_type?.toLowerCase().includes('buccal')
@@ -256,14 +250,11 @@ export default function TissueTypeView({
             : tissueProtocolCode === '3AC'
                 ? 'fibroblast'
                 : null;
-    // Prefer the real, resolved tissue_type off an actual Tissue result
-    // (already correctly filtered server-side, whether the URL's own
-    // tissue_type param was the short internal code or the legacy raw
-    // string -- see tissue_overview.py) over the raw URL token itself,
-    // which every downstream consumer below actually needs (it's the full
-    // "<TPC code> - <name>" string, not the short code the URL may carry).
-    // Only falls back to the raw param when no results exist to read it
-    // from at all (e.g. a code/tissue_type with zero matching Tissues).
+    // Prefer the real, resolved tissue_type off an actual Tissue result over
+    // the raw URL token -- downstream consumers need the full
+    // "<TPC code> - <name>" string, not the short code the URL may carry.
+    // Only falls back to the raw param when there are no results to read it
+    // from (e.g. a tissue_type with zero matching Tissues).
     const tissueMatrixFilterValue = tissue_type || tissueType || null;
     // Mirrors the fileCount fetch below exactly (tissue_type only, every
     // donor sharing it -- no single donor here) so this always matches the
@@ -338,13 +329,8 @@ export default function TissueTypeView({
         // would blank out an already-rendered diagram for no reason -- keep
         // showing the previous donor's slices until the new ones are ready.
         //
-        // `ignore` guards against a stale in-flight request winning a race
-        // against a newer one -- e.g. donor A's (real-data) response
-        // arriving after donor B's (genuinely empty, 404) response if A was
-        // slower, which would otherwise overwrite B's correctly-cleared
-        // state with A's stale slices right after the swap to B. Any
-        // earlier effect run's callbacks become no-ops once a newer one
-        // starts (cleanup below).
+        // `ignore` guards against a stale in-flight request overwriting a
+        // newer one's state if responses arrive out of order (cleanup below).
         let ignore = false;
         setSamplesUpdating(true);
         const sampleSourceParams = tissueUuidsForSelectedDonor
@@ -353,10 +339,7 @@ export default function TissueTypeView({
         ajax.load(
             // `limit=all` -- without it, Snovault's default PAGINATION_SIZE
             // (10, not the more commonly assumed 25) silently truncates the
-            // result set. Confirmed as a real bug against production data:
-            // a tissue with 20 real TissueSamples (4 Fixed + 16 Core) only
-            // ever surfaced the first 10, cutting off 10 real Core positions
-            // with no error or indication anything was missing.
+            // result set with no error or indication anything was missing.
             //
             // See TissueView.js's identical fetch for why this is
             // `status%21=deleted`, not the literal `status!=deleted`.
@@ -416,14 +399,10 @@ export default function TissueTypeView({
                         sample.pathology_reports || []
                     );
                     // A position can have more than one real TissueSample
-                    // record -- confirmed against real production data: the
-                    // same physical core gets a TPC procurement-level record
-                    // (e.g. "NDRI TPC") *and* a separate GCC-submitted record
-                    // (e.g. "UWSC GCC") for the same "SMHT001-3AM-001D2".
-                    // Overwriting with just the last one processed silently
-                    // dropped the other institution's record entirely (a
-                    // real reported bug), so keep every distinct center per
-                    // position instead of picking one.
+                    // record -- e.g. a TPC procurement-level record and a
+                    // separate GCC-submitted record for the same core -- so
+                    // keep every distinct center per position instead of
+                    // overwriting with just the last one processed.
                     if (corePosition) {
                         const center = sample.submission_centers?.[0]?.display_title || null;
                         const existingCenters =
@@ -487,15 +466,10 @@ export default function TissueTypeView({
             // Generic (not core-specific) href per distinct submitting
             // center -- the popover groups every position under the same
             // GCC into one row group (see AliquotVisualization.js), and
-            // that group's own header link is meant to mean "this GCC's
-            // files for this whole donor+tissue", not any one position's;
-            // each position's own row links to its own core-specific href
-            // (frozenCorePositionFilesHrefs above) instead. Named for the
-            // *filter* the resulting href actually applies
-            // (sequencing_center.display_title on File, per
-            // getGccFilesBrowseHref) rather than the submissionCenter input
-            // value -- see TissueView.js's identical field for the full
-            // rationale.
+            // that group's own header link means "this GCC's files for this
+            // whole donor+tissue", not any one position's (which link to
+            // frozenCorePositionFilesHrefs above instead). See TissueView.js's
+            // identical field for the full rationale.
             slice.gccFilesHrefs = {};
             // See TissueView.js's identical block for the full rationale
             // (hasFiles is ground truth from sampleNamesWithFiles, not an
@@ -557,8 +531,7 @@ export default function TissueTypeView({
         // Sort by real aliquot number (ascending, numeric) so boxes read
         // left-to-right in the order a person would expect ("001" before
         // "002") instead of whatever order the raw TissueSample search
-        // happened to return them in -- see TissueView.js's identical sort
-        // for the confirmed real-world case this fixes.
+        // happened to return them in.
         realSlices.sort((a, b) => {
             const aNum = a.aliquotNumber ? parseInt(a.aliquotNumber, 10) : null;
             const bNum = b.aliquotNumber ? parseInt(b.aliquotNumber, 10) : null;
@@ -658,20 +631,16 @@ export default function TissueTypeView({
     // (e.g. logged out), which must not fall through to the illustrative
     // fallback diagram as if it were real data.
     const showNoDonorData = !isLoading && donors.length === 0;
-    // A donor explicitly selected, its TissueSample search has finished
-    // (not still loading), and it genuinely returned zero real samples --
-    // e.g. the search 404s. AliquotVisualization/NonSolidAliquotVisualization
-    // would otherwise render the illustrative fallback set, but that fallback
-    // still gets labelled with this donor's own real idPrefix (e.g.
+    // A donor explicitly selected, its TissueSample search has finished, and
+    // it genuinely returned zero real samples. AliquotVisualization/
+    // NonSolidAliquotVisualization would otherwise render the illustrative
+    // fallback set labelled with this donor's own real idPrefix (e.g.
     // "SMHT023-3M"), which reads as real per-donor data even though every
-    // field on it is fabricated -- confirmed misleading in practice, so show
-    // an explicit empty state instead of the fallback once we know for
-    // certain (not just "still loading") that this donor has none. Mirrors
-    // solidAliquotSlices/nonSolidAliquots' own real-vs-fallback check
-    // exactly (Fresh samples don't count for solid tissues, per that
-    // useMemo's own filter) -- a donor whose only TissueSamples are Fresh
-    // (filtered out there too) would otherwise still fall through to the
-    // same mislabelled fallback despite tissueSamples.length > 0.
+    // field on it is fabricated -- show an explicit empty state instead once
+    // we know for certain (not just "still loading") that this donor has
+    // none. Mirrors solidAliquotSlices/nonSolidAliquots' own real-vs-fallback
+    // check (Fresh samples don't count for solid tissues, per that useMemo's
+    // own filter).
     const hasRealAliquotData = nonSolidSpecimenType
         ? (tissueSamples || []).length > 0
         : (tissueSamples || []).some((sample) => sample.preservation_type !== 'Fresh');

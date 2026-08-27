@@ -467,19 +467,12 @@ def bar_plot_chart(context, request):
 @debug_log
 def data_matrix_aggregations(context, request):
 
-    # Max terms returned per aggregation bucket, applied at every nesting level (e.g. Donor
-    # nested inside each Tissue bucket in the Donor x Tissue matrix). Must stay above the
-    # largest possible per-bucket cardinality for whichever fields a caller aggregates on --
-    # for the Donor x Tissue matrix that's the total donor count (expected to cap around
-    # 150), but a caller bucketing on something with higher cardinality (e.g. a per-tissue-
-    # type TissueSample external_id, across every donor) needs a higher cap. A value at or
-    # below the true cardinality silently drops the lowest doc_count buckets, so callers
-    # that need more room can opt in via `max_bucket_count` rather than every caller paying
-    # for a larger default (each nesting level multiplies the aggregation's own cost).
+    # Max terms returned per aggregation bucket, applied at every nesting level. Must stay
+    # above the largest possible per-bucket cardinality or the lowest doc_count buckets get
+    # silently dropped; callers with higher-cardinality fields can opt in via `max_bucket_count`.
     DEFAULT_MAX_BUCKET_COUNT = 200
-    # Hard ceiling regardless of what a caller requests -- keeps a single request from
-    # forcing Elasticsearch to build an unbounded number of buckets (each nesting level
-    # multiplies this, so row x column could otherwise reach this value squared).
+    # Hard ceiling regardless of what a caller requests -- each nesting level multiplies bucket
+    # count, so an unbounded value could let row x column reach this squared.
     MAX_BUCKET_COUNT_CEILING = 5000
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_VALUE_DELIMITER = ' '
@@ -512,17 +505,10 @@ def data_matrix_aggregations(context, request):
     if column_agg_fields_orig is None or len(column_agg_fields_orig) == 0 or row_agg_fields_orig is None or len(row_agg_fields_orig) == 0:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 
-    # SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION and
-    # EXTRA_TOTAL_AGGREGATIONS (donors.external_id) are both File-only
-    # fields -- confirmed as a real bug: calling this endpoint with
-    # `type: ['TissueSample']` (no `data_generation_summary` field on that
-    # type at all) made the coverage script's `doc['embedded.data_generation
-    # _summary.average_coverage.raw']` access blow up with an Elasticsearch
-    # runtime error, 400ing the entire request. Same
-    # isFileTypeSearch pattern bar_plot_chart already uses -- only attach
-    # these when the search is actually scoped to File, so a caller
-    # aggregating a different type doesn't inherit File-specific fields it
-    # has no reason to expect.
+    # SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION and EXTRA_TOTAL_AGGREGATIONS
+    # (donors.external_id) are File-only fields; guarded behind is_file_type_search
+    # (mirrors bar_plot_chart's own isFileTypeSearch) so a non-File search doesn't
+    # inherit fields that don't exist on that type.
     search_type = search_param_lists.get('type')
     is_file_type_search = (
         (isinstance(search_type, list) and 'File' in search_type and len(search_type) == 1) or

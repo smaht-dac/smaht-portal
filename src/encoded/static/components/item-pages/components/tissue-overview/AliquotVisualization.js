@@ -31,16 +31,10 @@ const SLICE_TYPE_STYLES = {
 // getMedialLateralTemplate/getStripTemplate) always includes every
 // position, whether or not this donor has a real aliquot there yet
 // (isPlaceholder) -- these render as inert, not clickable (no popover data
-// to show), and visually muted vs. the real Fixed/Frozen colors. Went
-// through a few passes: a single flat grey for both types made it
-// impossible to tell a missing Fixed slot from a missing Frozen one at a
-// glance; muting each type toward its *own* color at a moderate ratio kept
-// the type legible but read as too close to the real, enabled colors --
-// "disabled" wasn't obvious at a glance, which was the whole point. Both
-// now mix much further toward one shared neutral grey (only a faint warm/
-// cool tint left per type, luminance kept close between the two so neither
-// reads as more "disabled" than the other) -- clearly muted first, with the
-// type only a secondary, closer-look cue.
+// to show), and visually muted vs. the real Fixed/Frozen colors. Each type
+// is mixed toward one shared neutral grey (only a faint warm/cool tint left
+// per type, luminance kept close between the two) so it reads as clearly
+// muted/"disabled" first, with the type only a secondary, closer-look cue.
 const PLACEHOLDER_SLICE_STYLES = {
     pink: {
         front: '#BEB7B3',
@@ -398,11 +392,10 @@ export default function AliquotVisualization({
             // Prefer the slice's own real aliquot number (e.g. "002",
             // whatever it was actually submitted under) over this purely
             // positional "the Nth slice of this type" count -- the two can
-            // disagree (confirmed against real data: a tissue whose only
-            // Frozen aliquot is really "002" would otherwise get relabeled
-            // "001" here just for being the first Frozen slice rendered).
-            // Only demo/illustrative slices (no real aliquotNumber) fall
-            // back to the positional count.
+            // disagree (e.g. a tissue whose only Frozen aliquot is really
+            // "002" shouldn't get relabeled "001" just for being the first
+            // Frozen slice rendered). Only demo/illustrative slices (no real
+            // aliquotNumber) fall back to the positional count.
             sequenceLabel: slice.aliquotNumber || String(typeIndex + 1).padStart(3, '0'),
             widthCm: typeof slice.widthCm === 'number' ? slice.widthCm : 1,
             widthPx:
@@ -581,10 +574,9 @@ export default function AliquotVisualization({
         });
         geometry = sliceGroups.flatMap((group) => group.geometry);
         // The full drawn extent along the width axis, including any
-        // bivalved gap -- everything that used to size/position itself off
-        // the single box's `widthPx` (viewBox, dimension arrows) uses this
-        // instead, so it still spans edge-to-edge across both halves when
-        // split, or is just the one box's width when it isn't.
+        // bivalved gap -- viewBox and dimension arrows size/position off
+        // this, so they still span edge-to-edge across both halves when
+        // split, or just the one box's width when it isn't.
         widthPx = cursorX;
     }
     const viewBoxMinX = -76;
@@ -592,11 +584,9 @@ export default function AliquotVisualization({
     const viewBoxWidth = widthPx + depthX + 180;
     // Nothing is ever drawn below y = depthY + heightPx (the box's own
     // bottom edge) -- the height dimension arrow runs alongside the box,
-    // not beneath it. This is just a bottom margin, so it should be modest
-    // like viewBoxMinY's top margin, not the ~168px of pure dead space it
-    // was before (nearly as tall as the box itself, and the main source of
-    // the empty space below the diagram once the SVG renders at native size
-    // instead of being stretched to fill a container).
+    // not beneath it -- so this is just a bottom margin, kept modest like
+    // viewBoxMinY's top margin rather than leaving a lot of dead space
+    // beneath the diagram.
     const viewBoxHeight = heightPx + depthY + 32;
     const {
         widthLabel = `${totalWidthCm} cm`,
@@ -625,15 +615,12 @@ export default function AliquotVisualization({
     // Every core position submitted by the same GCC (the common case -- one
     // physical aliquot is usually processed by a single center) collapses
     // into one group instead of repeating that GCC's name once per
-    // position, which reads as noisy duplication once an aliquot has more
-    // than a couple of positions (real data has seen 6 positions under one
-    // TPC/GCC). Grouped by center regardless of position order -- positions
-    // from the same center aren't always adjacent (real data has seen
-    // BROAD/UWSC/BROAD/UWSC interleaved).
+    // position. Grouped by center regardless of position order -- positions
+    // from the same center aren't always adjacent.
     //
-    // A single position can have more than one real submitting center
-    // (confirmed against real data: the same physical core gets both a TPC
-    // procurement-level record and a separate GCC-submitted record) -- so
+    // A single position can have more than one real submitting center (the
+    // same physical core can get both a TPC procurement-level record and a
+    // separate GCC-submitted record) -- so
     // `frozenCorePositionSubmissionCenters`/`...FilesHrefs` are arrays per
     // position, and one position can end up contributing a row to more than
     // one group here (once per distinct center), rather than only ever
@@ -643,14 +630,12 @@ export default function AliquotVisualization({
     // though frozenCorePositionFilesHrefs is itself per-position (each
     // position's own href narrows down to just that position's files, via
     // sample_summary.sample_names). Keying on filesHref too would put every
-    // position back in its own single-position group the moment two
-    // positions under the same GCC have two different (position-specific)
-    // hrefs -- which is now *always*, defeating the grouping entirely
-    // (confirmed as a real regression: real data with 3 positions under one
-    // GCC rendered as 3 separate one-line groups instead of one). The
-    // group's own header link (`filesHref` below) is instead the GCC-wide
-    // link for this whole donor+tissue; each position's own row links to
-    // its own specific href via `positionFilesHrefs`.
+    // position back in its own single-position group whenever two positions
+    // under the same GCC have different (position-specific) hrefs, which is
+    // always, defeating the grouping entirely. The group's own header link
+    // (`filesHref` below) is instead the GCC-wide link for this whole
+    // donor+tissue; each position's own row links to its own specific href
+    // via `positionFilesHrefs`.
     const selectedFrozenCorePositionGroups = [];
     const groupIndexByKey = new Map();
     selectedFrozenCorePositions.forEach((corePosition) => {
@@ -758,14 +743,12 @@ export default function AliquotVisualization({
                     // px-per-cm scale); CSS then only shrinks it to fit a
                     // narrower wrapper (see .aliquot-canvas's `max-width:
                     // 100%; height: auto`), never stretches it to fill one.
-                    // Forcing `width: 100%` here previously inflated a
-                    // diagram's height whenever it had too few slices to be
-                    // width-constrained (viewBoxHeight is constant, so a
-                    // narrower viewBox stretched to full width meant a taller
-                    // one); letting it scroll instead of stretch, tried
-                    // after that, meant a diagram with lots of slices didn't
-                    // fit in view at all. Shrinking both dimensions together
-                    // avoids either problem.
+                    // Forcing `width: 100%` would inflate a diagram's height
+                    // whenever it had too few slices to be width-constrained
+                    // (viewBoxHeight is constant, so a narrower viewBox
+                    // stretched to full width means a taller one) -- shrinking
+                    // both dimensions together instead keeps the aspect ratio
+                    // correct regardless of slice count.
                     width={viewBoxWidth}
                     height={viewBoxHeight}
                     viewBox={`${viewBoxMinX} ${viewBoxMinY} ${viewBoxWidth} ${viewBoxHeight}`}
@@ -816,20 +799,12 @@ export default function AliquotVisualization({
                         x2={depthDimensionLine.x2}
                         y2={depthDimensionLine.y2}
                         label={depthLabel}
-                        // The old fixed (-28, -10) nudge put the label's
-                        // *start* just past the line's near end, but with
-                        // textAnchor="start" the text then runs back
-                        // rightward across the depth diagonal's own default
-                        // angle (72:58, DEFAULT_DEPTH_CM's own unscaled
-                        // case, not an unusual one) -- confirmed by
-                        // walking the actual line/label coordinates, the
-                        // label's right portion crossed back over the
-                        // line. Centering it (textAnchor="middle") and
-                        // pushing along the line's own normal
-                        // (depthDimensionLine.nx/ny, the same direction
-                        // offsetLine already moved this line away from the
-                        // box by) keeps it symmetric around the line's
-                        // midpoint with a consistent clearance instead.
+                        // Centered (textAnchor="middle") and pushed along the
+                        // line's own normal (depthDimensionLine.nx/ny, the
+                        // same direction offsetLine already moved this line
+                        // away from the box by) so the label stays symmetric
+                        // around the line's midpoint with consistent
+                        // clearance regardless of the depth diagonal's angle.
                         labelX={depthMidpoint.x - depthDimensionLine.nx * 20}
                         labelY={depthMidpoint.y - depthDimensionLine.ny * 20}
                         textAnchor="middle"
@@ -1309,14 +1284,12 @@ export default function AliquotVisualization({
                                                     );
                                                 }
                                             );
-                                            // A long GCC list (real data has seen 10+
-                                            // positions under one center) used to just
-                                            // scroll internally -- but a scrollbar hides
-                                            // whatever comes *after* it (e.g. a second
-                                            // GCC's rows) without any hint there's more,
-                                            // so collapse it to a "Show N more" toggle
-                                            // instead: every group stays visible, only
-                                            // its own overflow is tucked away.
+                                            // A "Show N more" toggle rather than an
+                                            // internal scrollbar -- a scrollbar would hide
+                                            // whatever comes after it (e.g. a second GCC's
+                                            // rows) with no hint there's more; this way
+                                            // every group stays visible, only its own
+                                            // overflow is tucked away.
                                             if (hiddenCount > 0) {
                                                 rows.push(
                                                     <button
@@ -1362,10 +1335,9 @@ export default function AliquotVisualization({
                                     <span>Order</span>
                                     <strong>
                                         {/* `normalizedSlices` items don't carry an `index` field
-                                            (only `geometry`, a separate derived array, does) --
-                                            `selectedSlice?.index` was always undefined here, so
-                                            this read `selectedSliceIndex` (the actual array
-                                            position) directly instead. */}
+                                            (only `geometry`, a separate derived array, does), so
+                                            this reads `selectedSliceIndex` (the actual array
+                                            position) directly instead of `selectedSlice?.index`. */}
                                         {(selectedSliceIndex ?? 0) + 1} /{' '}
                                         {normalizedSlices.length}
                                     </strong>
@@ -1478,10 +1450,8 @@ export default function AliquotVisualization({
                 ))}
                 {/* Height/depth are one shared box-level dimension (see
                     `dimensions`), identical for every slice regardless of
-                    type -- previously repeated as Height/Depth rows in
-                    every single slice's own popover, which just duplicated
-                    the same two numbers every time instead of stating them
-                    once here. */}
+                    type, so they're stated once here rather than repeated
+                    in each slice's own popover. */}
                 <div className="aliquot-legend-item aliquot-legend-dimensions">
                     <span>
                         Height {heightCm} cm &middot; Depth {depthCm} cm

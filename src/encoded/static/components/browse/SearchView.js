@@ -63,14 +63,11 @@ export function filterFacet(facet, currentAction) {
     return true;
 }
 
-// sample_summary.sample_names is deliberately not declared as a facet in
-// file.json (see tissue-overview/helpers.js's getGccFilesBrowseHref) so it
-// only shows up ad hoc when a popover's per-core link filters by it. Snovault
-// titles ad hoc facets from the raw last path segment ("sample_names")
-// because its title lookup only checks top-level schema properties, not the
-// nested sample_summary calculated-property schema where this field is
-// titled "Sample ID" (file.py's SAMPLE_SUMMARY_SCHEMA) -- overriding here
-// keeps that fix out of the shared snovault dependency.
+// Snovault titles ad hoc facets (like sample_summary.sample_names, used by
+// tissue-overview popover links) from the raw last path segment, since its
+// title lookup only checks top-level schema properties, not the nested
+// sample_summary calculated-property schema where this field is titled
+// "Sample ID" (file.py's SAMPLE_SUMMARY_SCHEMA).
 const FACET_FIELD_TITLE_OVERRIDES = {
     'sample_summary.sample_names': 'Sample ID',
 };
@@ -190,12 +187,9 @@ export class SearchViewBody extends React.PureComponent {
                         facets,
                         facetListSortFxns,
                     }}
-                    // shared-portal-components' WindowNavigationController never
-                    // receives our `facets` prop -- it recomputes its own facets
-                    // from `context.facets` and force-injects that into every
-                    // descendant via cloneElement, clobbering the `facets` prop
-                    // above. Title overrides only stick if they're baked into
-                    // context.facets itself.
+                    // WindowNavigationController recomputes facets from context.facets
+                    // and clobbers the `facets` prop above, so title overrides must be
+                    // baked into context.facets itself.
                     context={{ ...context, facets }}
                     aboveTableComponent={aboveTableComponent}
                     renderDetailPane={null}

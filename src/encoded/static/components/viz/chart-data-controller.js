@@ -232,12 +232,9 @@ export const ChartDataController = {
             // 'donor.study'/'donor.tags' (Tissue's real embedded field
             // paths, types/tissue.py's embedded_list -- Tissue links a
             // single `donor`, unlike File's plural `donors`), not bare
-            // 'study'/'tags'. Renaming those unprefixed keys here was
-            // therefore silently a no-op on every real Browse by Tissue
-            // href: 'donor.study'/'donor.tags' passed through unrenamed
-            // into the forced type=File search below, where they don't
-            // exist as fields (File has no singular 'donor'), matching
-            // zero File docs and leaving the germ-layer panel empty.
+            // 'study'/'tags', so those prefixed keys must be renamed here
+            // rather than left to match against File's (nonexistent)
+            // singular 'donor' fields.
             if (Object.prototype.hasOwnProperty.call(fileFilters, 'donor.study') && fileFilters['donor.study'] !== undefined) {
                 fileFilters['sample_summary.studies'] = fileFilters['donor.study'];
                 delete fileFilters['donor.study'];

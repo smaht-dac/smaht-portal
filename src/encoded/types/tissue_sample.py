@@ -49,22 +49,14 @@ class TissueSample(Sample):
     item_type = "tissue_sample"
     schema = load_schema("encoded:schemas/tissue_sample.json")
     embedded_list = Sample.embedded_list + [
-        # `display_title` (auto-embedded for any linkTo regardless of
-        # embedded_list) always resolves to a PathologyReport's own
-        # submitted_id, not its accession -- encoded's shared
-        # Item.display_title override checks submitted_id (always present,
-        # required) before accession, so accession would otherwise never
-        # surface. Embedded here so the tissue-overview aliquot popover
-        # (AliquotVisualization.js) can show a short accession-based label
-        # instead of a generic "Report N" placeholder.
+        # PathologyReport's auto-embedded display_title resolves to submitted_id, not
+        # accession, so accession is embedded explicitly for the tissue-overview
+        # aliquot popover (AliquotVisualization.js) to show a short accession-based label.
         "pathology_reports.accession",
         "associated_pathology_reports.pathology_reports.accession",
-        # Mirrors Tissue's own donor.study/donor.tags embeds
-        # (types/tissue.py's _build_tissue_embedded_list) -- lets a
-        # TissueSample search be filtered to the same released-donor
-        # Production population the rest of the app uses (Browse by
-        # Donor/Tissue/File), instead of only being derivable indirectly
-        # via a submitting center's role-suffix naming convention.
+        # Mirrors Tissue's donor.study/donor.tags embeds (types/tissue.py's
+        # _build_tissue_embedded_list) so TissueSample search can filter to the same
+        # released-donor Production population used elsewhere in the app.
         "sample_sources.donor.study",
         "sample_sources.donor.tags",
     ]

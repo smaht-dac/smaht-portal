@@ -125,10 +125,9 @@ export const renderSubmissionCenterPopover = (customId) => (
 );
 
 // Exported for unit testing. `tissueCategoryByTerm` keys are the actual
-// tissue_type term strings (e.g. "Liver") -- previously only their count per
-// germ layer was kept and the terms themselves were discarded, so each
-// bubble below was an unlabeled, unclickable placeholder. Keeping the terms
-// lets each bubble link to its own /tissue-overview/ page instead.
+// tissue_type term strings (e.g. "Liver") -- keeping the terms (not just a
+// count per germ layer) lets each bubble below link to its own
+// /tissue-overview/ page.
 export const countTissueTypesByGermLayer = (tissueCategoryByTerm = {}) => {
     const termsByCategory = {};
     Object.entries(tissueCategoryByTerm).forEach(([term, category]) => {
@@ -203,11 +202,7 @@ const TissueGermLayerPanel = ({ fileFilters, session }) => {
                                 // Same per-tissue anatomy icon and 4-letter
                                 // code label used on the Tissue Overview
                                 // header and Browse-by-Tissue table headers
-                                // (getTissueIconSrc/getTissueDisplayLabel) --
-                                // this tooltip previously showed the raw
-                                // tissue_type string (leading TPC code, e.g.
-                                // "3AM - Brain, Cerebellum") instead of that
-                                // already-adopted display convention.
+                                // (getTissueIconSrc/getTissueDisplayLabel).
                                 const bubbleIconSrc = getTissueIconSrc(tissueType);
                                 const bubbleLabel = getTissueDisplayLabel(tissueType);
                                 // Official per-tissue color (smaht_tissue_colors.json),
@@ -217,17 +212,14 @@ const TissueGermLayerPanel = ({ fileFilters, session }) => {
                                 // in SCSS) for the handful of tissue_type values that
                                 // scheme doesn't cover.
                                 const bubbleColorHex = getTissueColorHex(tissueType);
-                                // Color lives only on the ring now -- an
-                                // earlier version also tinted the bubble's
-                                // background and the icon's own fill, but
-                                // that read as too much color competing with
-                                // the rest of the page (its blue links/
-                                // toggle accent especially). The icon stays
-                                // the panel's plain neutral fill (CSS
-                                // default, no per-tissue color); only the
-                                // border carries the tissue's own color, a
-                                // bit thicker than the plain/uncovered
-                                // fallback ring so it still reads clearly.
+                                // Color lives only on the ring -- tinting the
+                                // bubble background/icon fill too reads as
+                                // too much color competing with the rest of
+                                // the page. The icon keeps the panel's plain
+                                // neutral fill; only the border carries the
+                                // tissue's own color, a bit thicker than the
+                                // uncovered fallback ring so it still reads
+                                // clearly.
                                 const bubbleStyle = bubbleColorHex
                                     ? {
                                         borderColor: hexToRgba(bubbleColorHex, 0.85),
@@ -303,8 +295,8 @@ const buildAutolysisScoreChartData = (tissueResults = []) => {
 };
 
 // Tissue.submission_centers is always the procuring TPC (this program routes
-// physical tissue procurement through a single TPC, confirmed against real
-// data -- that dimension has no real variation to chart). The GCC diversity
+// physical tissue procurement through a single TPC, so that dimension has
+// no real variation to chart). The GCC diversity
 // is a level down, on the individual TissueSample records a TPC's tissue
 // gets aliquoted/processed into (see TissueTypeView.js's own
 // `sample.submission_centers?.[0]?.display_title` on TissueSample, which
@@ -315,11 +307,10 @@ const buildAutolysisScoreChartData = (tissueResults = []) => {
 // no need to pull every record client-side just to count them.
 //
 // Only GCC-suffixed centers are kept -- every submission_centers value ends
-// in its role suffix (GCC/TPC/TTD/DAC/OC, confirmed against real fixture
-// data; see helpers.js's getGccFilesBrowseHref, which uses this same
-// `endsWith('GCC')` check), and this chart exists specifically to compare
-// GCCs. TPC, TTD, DAC, etc. are a different kind of center entirely, not
-// just noise to threshold away.
+// in its role suffix (GCC/TPC/TTD/DAC/OC; see helpers.js's
+// getGccFilesBrowseHref, which uses this same `endsWith('GCC')` check), and
+// this chart exists specifically to compare GCCs. TPC, TTD, DAC, etc. are a
+// different kind of center entirely, not just noise to threshold away.
 // `fileCountsByCenter` (from a separate type=File aggregation on
 // sequencing_center.display_title -- see TissueCohortCharts) feeds the
 // tooltip's "Files" line/link; the bar height itself stays the TissueSample

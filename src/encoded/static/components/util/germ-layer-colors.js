@@ -1,11 +1,9 @@
 'use strict';
 
 // Single source of truth for germ-layer/category display colors, mirroring
-// item_utils/tissue.py's get_category() return values ("Ectoderm", "Mesoderm",
-// "Endoderm", "Germ Cells", "Clinically Accessible"). Shared by
-// viz/Matrix/DataMatrix.js's DEFAULT_ROW_GROUPS_EXTENDED and
-// browse/browse-view/BrowseTissueHeatmapTable.js's column-group headers, so
-// the same palette isn't hardcoded in two places.
+// item_utils/tissue.py's get_category() return values. Shared by
+// viz/Matrix/DataMatrix.js and browse-view/BrowseTissueHeatmapTable.js so the
+// palette isn't hardcoded in two places.
 export const GERM_LAYER_COLORS = {
     Ectoderm: { backgroundColor: '#367151', textColor: '#ffffff' },
     Mesoderm: { backgroundColor: '#30975e', textColor: '#ffffff' },

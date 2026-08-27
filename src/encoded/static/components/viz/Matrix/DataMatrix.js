@@ -926,14 +926,11 @@ export default class DataMatrix extends React.PureComponent {
             // Keep raw assay totals for normal columns, but do not leak DSA-like rows
             // back into their parent assay cells. DSA continues to use its own derived path.
             //
-            // NOTE: a matching exclusion for analysis_details Filtered/Phased ("Variant Call
-            // Sets") rows was tried here and reverted - Duplex-seq assays (NanoSeq/CODEC/
-            // META-VISTA-seq) also carry Filtered/Phased rows that are NOT variant calls, and
-            // excluding them dropped their real files from the override (confirmed via
-            // production export regression: NanoSeq -88, CODEC -100, META-VISTA-seq -68 files).
-            // analysisDerivedColumns's variantCallAnalysisDetails filter is assay-agnostic and
-            // may itself be over-broad, but fixing that needs assay/data_type-aware filtering,
-            // not a blanket analysis_details check here.
+            // Do NOT add a matching exclusion here for analysis_details Filtered/Phased
+            // ("Variant Call Sets") rows: Duplex-seq assays (NanoSeq/CODEC/META-VISTA-seq)
+            // also carry Filtered/Phased rows that are NOT variant calls, so excluding them
+            // would drop their real files from the override. Any such filtering needs to be
+            // assay/data_type-aware, not a blanket analysis_details check here.
             if (isDsaLikeRow && columnValue !== 'DSA') {
                 return memo;
             }
@@ -1613,12 +1610,10 @@ export default class DataMatrix extends React.PureComponent {
                     // sample_summary.category) from the base row fields - only tissue moves to
                     // columnAggFields. Without data_type/analysis_details here, backend rows
                     // collapse to one per (donor, tissue) with no way to isolate DSA-like rows,
-                    // so normalizeMissingAssayBucket/analysisDerivedColumns's transformDSA (which
-                    // expects "donor+tissue exploded by assay/platform/data_type" - see its
-                    // 'max_dsa_row' comment below) silently drops those files: they're absent from
-                    // dsaData (data_type never populated), so no merged DSA row is added back in,
-                    // and the per-tissue cell/column breakdown undercounts vs. the donor's real
-                    // row total (which the backend still computes independent of these dims).
+                    // so transformDSA (which expects "donor+tissue exploded by assay/platform/
+                    // data_type", see its 'max_dsa_row' comment below) can't find them in dsaData
+                    // and the per-tissue cell/column breakdown silently undercounts vs. the
+                    // donor's real row total.
                     rowAggFields: (baseRowAggFields || []).filter((f) => {
                         if (Array.isArray(f)) {
                             return !f.includes('sample_summary.tissues');

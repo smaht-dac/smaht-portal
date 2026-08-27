@@ -16,9 +16,8 @@ const TARGET_TISSUE_PERCENTAGE_ORDER = ['0', '[0-10]', '[11-25]', '[26-49]', '[5
 
 // The 5 region-specific brain internal codes (see util/data.js's tissue-code
 // table) -- a donor's brain Tissue record sometimes carries the generic
-// "Brain" ontology term instead of one of these (confirmed against real
-// production data: e.g. donor SMHT001 has ischemic_time only under plain
-// "Brain", while its BRCE/BRFL/... columns have none of their own). See
+// "Brain" ontology term instead of one of these, with its own metric values
+// (e.g. ischemic_time) and none on the region-specific columns. See
 // buildTissueMetricMatrix below for how that generic value gets used.
 const BRAIN_REGION_INTERNAL_CODES = ['BRCE', 'BRFL', 'BRHL', 'BRHR', 'BRTL'];
 
@@ -76,14 +75,14 @@ export const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g
 // "last encountered" pick, matching the selection rule used by
 // TissueView.js's dedupeTissuesByDonor.
 //
-// `distributeGenericBrainValue` -- see the comment further down where it's
-// used: the generic "Brain" column is always hidden, but copying its value
-// into the region-specific columns first (and merging same-value region
-// columns in the row) is set `true` on all three tabs now:
+// `distributeGenericBrainValue` -- the generic "Brain" column is always
+// hidden, but copying its value into the region-specific columns first (and
+// merging same-value region columns in the row) is set `true` on all three
+// tabs:
 // - Ischemic Time/Autolysis Score are collection-event-level measurements
 //   (assessed once per whole brain at procurement, not independently per
-//   dissected region, confirmed against real data), so the generic value is
-//   an equally valid stand-in and same-value regions merge for real.
+//   dissected region), so the generic value is an equally valid stand-in
+//   and same-value regions merge for real.
 // - Target Tissue % has nothing to distribute (BrainPathologyReport has no
 //   target_tissues field at all -- see get_target_tissue_percentage's own
 //   docstring -- so every brain region, generic column included, is
@@ -214,15 +213,11 @@ function formatIschemicTime(value) {
     return `${value}`;
 }
 
-// Fixed clinical-sounding thresholds (0-6/6-12/12-18/18+) looked reasonable
-// in the abstract, but real Ischemic Time values cluster tightly in the
-// upper half of that range (confirmed against production data -- most
-// donors fall between 15-24h) -- so almost every cell landed in the same
-// one or two darkest bands, and the heatmap stopped showing any real
-// variation. Quartile-based banding instead splits whatever values are
-// actually in this table into 4 equal-sized groups, so the color spread
-// always reflects this dataset's own distribution rather than a threshold
-// picked without knowing it. Exported for unit testing.
+// Quartile-based banding splits whatever Ischemic Time values are actually
+// in this table into 4 equal-sized groups, so the color spread reflects this
+// dataset's own distribution rather than a fixed threshold (real values
+// cluster tightly, so fixed clinical-sounding bands leave the heatmap
+// showing little variation). Exported for unit testing.
 export function buildQuartileScoreClassifier(values) {
     const sorted = values
         .filter((value) => typeof value === 'number' && Number.isFinite(value))
@@ -311,16 +306,13 @@ function getTargetTissuePercentageSortValue(value) {
 }
 
 // --- Experimental: user-customizable conditional-color palette ---------
-// Data wranglers previously had no way to try a different heatmap color
-// scheme short of asking for a code change + deployment. This lets anyone
-// pick a base color (a curated preset or a free color-wheel pick) and
-// generates a 4-step light->dark sequential scale from it. Deliberately not
-// persisted anywhere (no localStorage/sessionStorage) -- a pick only lasts
-// for the current page view and always starts back at the default on the
-// next load, per explicit request; nothing here is a shared/server-side
-// setting either way, so it can't affect what other users see regardless.
-// "Reset" clears the override and falls back to the hardcoded default scale
-// already in _search.scss.
+// Lets anyone pick a base color (a curated preset or a free color-wheel
+// pick) and generates a 4-step light->dark sequential scale from it.
+// Deliberately not persisted anywhere -- a pick only lasts for the current
+// page view and always starts back at the default on the next load; it's
+// in-memory-only, so it can't affect what other users see. "Reset" clears
+// the override and falls back to the hardcoded default scale in
+// _search.scss.
 
 // Each preset is just a single base hue -- buildSequentialPaletteFromHex
 // below turns it into the actual 4-step scale, same as a free color-wheel
@@ -906,8 +898,7 @@ export const BrowseTissueHeatmapTable = (props) => {
 
     // `session` in the dependency array so logging in/out re-fetches --
     // permission-filtered fields (e.g. protected donor data) can change
-    // without `href` itself changing, and this component previously had no
-    // way to notice that short of a full page reload.
+    // without `href` itself changing.
     useEffect(() => {
         setLoading(true);
         ajax.load(
@@ -939,11 +930,10 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => buildQuartileScoreClassifier(ischemicTime.matrix.flatMap((row) => row.cells)),
         [ischemicTime]
     );
-    // Confirmed against real data: every real (non-n/a) region column for a
-    // given donor already carries the exact same autolysis score as its
-    // siblings -- autolysis, like ischemic time, is assessed once per whole
-    // brain at procurement, not independently per dissected sub-region, so
-    // it gets the same distributeGenericBrainValue/merge treatment now.
+    // Autolysis, like ischemic time, is assessed once per whole brain at
+    // procurement, not independently per dissected sub-region, so every
+    // real region column for a given donor carries the same score and this
+    // gets the same distributeGenericBrainValue/merge treatment.
     const autolysisScore = useMemo(
         () => buildTissueMetricMatrix(tissueResults, getAutolysisScoreValue, true),
         [tissueResults]
@@ -953,9 +943,8 @@ export const BrowseTissueHeatmapTable = (props) => {
     // field at all, see get_target_tissue_percentage's own docstring, so
     // every brain region's value is unconditionally null, generic "Brain"
     // column included). `true` just engages the merge side of the same
-    // flag, collapsing what would otherwise be 5 repeated "n/a" cells
-    // (confirmed against real data: every donor row, every brain region)
-    // into one.
+    // flag, collapsing what would otherwise be 5 repeated "n/a" cells into
+    // one.
     const targetTissuePercentage = useMemo(
         () => buildTissueMetricMatrix(tissueResults, getTargetTissuePercentageValue, true),
         [tissueResults]

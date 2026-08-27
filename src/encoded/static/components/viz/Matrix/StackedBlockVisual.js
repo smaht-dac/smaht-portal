@@ -530,10 +530,8 @@ export function buildMatrixExportData({
     // above.
     const overallEntityCount = primaryEntityField === 'donor' ? (overallCounts?.donors ?? overallCounts?.donor_count) : null;
     // `Number(null)` is `0`, and `Number.isFinite(0)` is `true` - so checking finiteness alone
-    // silently treats "no backend shortcut available" (null) as a real, valid count of zero
-    // instead of falling through to the raw-data derivation below. That's exactly what happened
-    // for Tissue x Assay: `overallEntityCount` is intentionally null there, `Number.isFinite(0)`
-    // still passed, and every export reported "totalTissues": 0 instead of the real count.
+    // would silently treat "no backend shortcut available" (null, e.g. for Tissue x Assay) as a
+    // real, valid count of zero instead of falling through to the raw-data derivation below.
     const totalEntityCount = overallEntityCount != null && Number.isFinite(Number(overallEntityCount))
         ? Number(overallEntityCount)
         : computePrimaryEntityCount(safeData);

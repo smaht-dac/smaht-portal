@@ -3064,13 +3064,11 @@ File, Donor, and Publication Overview Styles
 
 // Shared by both the legacy /tissues/<uuid>/ "Tissue Overview" tab and the
 // type-keyed /tissue-overview/?tissue_type=<value> page -- both render
-// their content inside a top-level <div className="tissue-view">. The base
-// .view-title/.breadcrumb-list/.view-title-text rules here are otherwise
-// only defined under the shared .item-page-container.type-File/Donor/etc.
-// block above (which the standalone /tissue-overview/ page never gets,
-// since it isn't wrapped by DefaultItemView) -- duplicated here rather than
-// widening that block's selector, since it also carries File/Donor-specific
-// rules (e.g. .data-group) that shouldn't apply to this page.
+// inside a top-level <div className="tissue-view">. The base .view-title
+// rules are duplicated here rather than widening the shared
+// .item-page-container.type-File/Donor/etc. block above, since that block
+// also carries File/Donor-specific rules (e.g. .data-group) that shouldn't
+// apply to this page.
 .tissue-view {
     font-family: 'Inter';
 
@@ -3148,13 +3146,10 @@ File, Donor, and Publication Overview Styles
                 height: 88px;
                 min-width: 88px;
                 border-radius: 50%;
-                // Neutral fill/border -- color (when this tissue_type has an
-                // official one, smaht_tissue_colors.json) lives only on the
-                // ring via an inline style override (see TissueView.js/
-                // TissueTypeView.js), same treatment as the Browse-by-Tissue
-                // germ-layer bubbles (_search.scss's .tissue-germ-layer-bubble).
-                // This is also the fallback look for tissue_types that
-                // scheme doesn't cover.
+                // Neutral fill/border -- per-tissue color lives only on the
+                // ring via an inline style override, same treatment as the
+                // Browse-by-Tissue germ-layer bubbles. This is also the
+                // fallback look for tissue_types the color scheme doesn't cover.
                 background-color: #F7F9FB;
                 border: 3px solid #D7E1EA;
 
@@ -3517,30 +3512,21 @@ File, Donor, and Publication Overview Styles
                 // Soft, pastel version of the same neutral blue-grey
                 // light->dark scale as the Browse-by-Tissue heatmap's
                 // solid-filled score cells (_search.scss's
-                // .tissue-heatmap-cell -- see that comment for the full
-                // history of what this replaced). `td.score-N` beats the
-                // zebra-row rule above since it's more specific (a class
-                // selector vs. `:nth-child`).
+                // .tissue-heatmap-cell). `td.score-N` beats the zebra-row
+                // rule above since it's more specific (a class selector vs.
+                // `:nth-child`).
                 td.autolysis-score-cell {
                     font-weight: 600;
 
                     // Each background/text pair reads a
                     // `--tissue-donor-score-N-bg`/`-text` custom property
                     // first, falling back to these hardcoded values when
-                    // unset -- TissueTypeView.js's experimental
-                    // HeatmapColorPicker (imported from
-                    // BrowseTissueHeatmapTable.js) sets those (as an inline
-                    // style on .tissue-donor-table-card) when a user has
-                    // picked a different per-browser palette. Deliberately
-                    // a separate variable namespace from the Browse-by-
-                    // Tissue heatmap's `--heatmap-score-N-*`
-                    // (_search.scss) -- these two tables' palettes stay
-                    // independently pickable rather than coupled together.
-                    //
-                    // Darkened from #F0F3F5 -- same reasoning as the
-                    // Browse-by-Tissue heatmap's score-0 (_search.scss):
-                    // too close to the zebra-striped/white row background
-                    // to read as colored at all.
+                    // unset -- HeatmapColorPicker sets those inline on
+                    // .tissue-donor-table-card when a user picks a
+                    // different palette. Deliberately a separate variable
+                    // namespace from the Browse-by-Tissue heatmap's
+                    // `--heatmap-score-N-*` so the two tables' palettes stay
+                    // independently pickable.
                     &.score-0 {
                         background-color: var(--tissue-donor-score-0-bg, #DDE5EA);
                         color: var(--tissue-donor-score-0-text, #4A5460);
@@ -3560,11 +3546,10 @@ File, Donor, and Publication Overview Styles
                 }
 
                 // Click-to-sort column headers (BrowseTissueHeatmapTable.js's
-                // exported SortableHeaderLabel, reused here) -- see
-                // _search.scss's identical `.tissue-heatmap-sort-*` block
-                // for the full rationale (duplicated, not cross-referenced,
-                // since these are two separate page-scoped SCSS partials
-                // with no existing shared-button-styles mixin to hook into).
+                // exported SortableHeaderLabel, reused here) -- duplicates
+                // _search.scss's `.tissue-heatmap-sort-*` block since these
+                // are two separate page-scoped SCSS partials with no shared
+                // button-styles mixin to hook into.
                 .tissue-heatmap-sort-button {
                     display: inline-flex;
                     align-items: center;
@@ -3822,15 +3807,12 @@ File, Donor, and Publication Overview Styles
 
     .aliquot-canvas {
         display: inline-block;
-        // The svg's `width`/`height` attributes (AliquotVisualization.js)
-        // give it an intrinsic size/aspect-ratio -- `max-width: 100%` with
-        // `height: auto` only ever shrinks it (both dimensions together,
-        // preserving that aspect ratio) when there isn't room, the same way
-        // a responsive `<img>` behaves. A diagram with few slices renders at
-        // native size instead of being stretched to fill the wrapper (which
-        // previously inflated its height for no reason); a diagram with
-        // many slices scales down to fit instead of forcing a horizontal
-        // scrollbar.
+        // The svg's `width`/`height` attributes give it an intrinsic
+        // size/aspect-ratio -- `max-width: 100%` with `height: auto` only
+        // ever shrinks it (preserving that ratio) when there isn't room,
+        // the same way a responsive `<img>` behaves. A diagram with few
+        // slices renders at native size; one with many slices scales down
+        // to fit instead of forcing a horizontal scrollbar.
         max-width: 100%;
         height: auto;
         overflow: visible;
@@ -3861,7 +3843,7 @@ File, Donor, and Publication Overview Styles
     // "Anterior half"/"Posterior half" labels under a bivalved tissue's two
     // split box groups (see enableBivalvedSplit) -- this is Fig. 2a's own
     // fixed layout, not an unverified annotation, so it's captioned plainly
-    // (neutral gray, not the medial/lateral hint's warning red).
+    // (neutral gray).
     .aliquot-bivalved-split-caption {
         fill: #3c4650;
         font-size: 16px;
@@ -3890,25 +3872,17 @@ File, Donor, and Publication Overview Styles
             }
         }
 
-        // .slice-top/.slice-side used to carry a slight opacity (0.92/0.95)
-        // for a subtle "lit from above" look -- but every slice's own side
-        // face geometrically extends past its right edge and relies on the
-        // *next* slice's top+front being fully opaque to hide it (only the
-        // true last-in-row slice is meant to show its side face at all).
-        // Between two normally-colored slices that partial transparency was
-        // imperceptible, but it let a real slice's color visibly bleed
-        // through a placeholder's much paler fill, muddying the boundary
-        // right where a real slice meets a grey one. Full opacity everywhere
-        // removes any chance of that regardless of what's adjacent.
+        // .slice-top/.slice-side are kept fully opaque: each slice's side
+        // face extends past its right edge and relies on the next slice's
+        // top+front being fully opaque to hide it, so any transparency lets
+        // a real slice's color bleed through a placeholder's paler fill at
+        // the boundary between them.
 
         // A fixed-template position with no real aliquot submitted yet (see
-        // PLACEHOLDER_SLICE_STYLES/isPlaceholder) -- inert box, no hover
-        // feedback (it's not clickable, unlike every other slice here).
-        // Deliberately no .slice-inline-label override: an earlier version
-        // muted the sequence number too, on top of the already-muted fill,
-        // which just made it hard to read for no benefit -- the fill color
-        // alone already signals "no data here yet", so the number stays at
-        // the same .slice-inline-label styling every other slice uses.
+        // PLACEHOLDER_SLICE_STYLES/isPlaceholder) is an inert box with no
+        // hover feedback. The sequence number keeps its normal
+        // .slice-inline-label styling -- the muted fill alone already
+        // signals "no data here yet".
     }
 
     // A real slice's side face, redrawn in a later pass on top of the
@@ -3974,10 +3948,9 @@ File, Donor, and Publication Overview Styles
         align-items: center;
         gap: 8px;
 
-        // "Fixed"/"Frozen" is the actual key being defined here -- the
-        // " = 0.5 cm width (default)" that follows it is supplementary
-        // detail, but both were the same weight/color before, so the type
-        // name itself didn't stand out from its own explanation.
+        // The type name (e.g. "Fixed"/"Frozen") is the actual key being
+        // defined; the detail that follows it is supplementary, so only
+        // the name itself is bolded.
         strong {
             color: #1e2d3d;
             font-weight: 700;
@@ -4284,13 +4257,10 @@ File, Donor, and Publication Overview Styles
     }
 
     .aliquot-popover-cores {
-        // Per-group "Show N more" collapsing (CORE_POSITIONS_COLLAPSE_THRESHOLD)
-        // already keeps this bounded in the normal case (a handful of GCCs,
-        // each capped at a few rows) -- this max-height is just a backstop
-        // for a pathological number of distinct GCCs, generous enough that
-        // realistic cases never hit it (an internal scrollbar here would
-        // hide whatever GCC group comes after it, same problem the
-        // collapsing was added to avoid).
+        // Per-group "Show N more" collapsing already keeps this bounded in
+        // the normal case; this max-height is just a generous backstop for
+        // a pathological number of distinct GCCs, so an internal scrollbar
+        // doesn't hide whatever group comes after it.
         max-height: 320px;
         overflow-y: auto;
     }
@@ -4344,42 +4314,32 @@ File, Donor, and Publication Overview Styles
     }
 
     .aliquot-popover-row {
-        // Was `display: flex; justify-content: space-between`, whose two
-        // items each default to their content's full intrinsic width (a
-        // flex item's own min-width is `auto`, not 0) -- real ids/GCC
-        // names run long enough (e.g. "SMHT012-3S-001A2") that the second
-        // item wouldn't shrink to wrap even with `min-width: 0` set
-        // directly on it, and instead overflowed the row silently (no
-        // scrollbar, no visible spillover past the popover's own edge --
-        // just a cut-off last character). A grid's `minmax(0, 1fr)` column
-        // resolves to one definite, real pixel width the browser has to
-        // honor, which is what actually makes the second column shrink
-        // and wrap instead of overflowing.
+        // A grid (not flex) so the `minmax(0, 1fr)` column resolves to a
+        // real pixel width the browser has to honor -- real ids/GCC names
+        // run long enough (e.g. "SMHT012-3S-001A2") that a flex item's
+        // default `min-width: auto` would let the second column overflow
+        // the row silently instead of shrinking to wrap.
         display: grid;
         grid-template-columns: auto minmax(0, 1fr);
         align-items: baseline;
         gap: 2px 12px;
         color: #4e6379;
-        // The right-aligned id/GCC-name text (especially the italic
-        // .aliquot-popover-no-files variant, whose slant visually leans
-        // into whatever's to its right) reads as cut off when it sits
-        // flush against the popover's own padding edge -- confirmed via
-        // devtools that the text itself is never actually truncated, just
-        // visually cramped. A little extra clearance here, on top of
-        // .popover-body's own padding, fixes the *look* of it.
+        // Extra clearance beyond .popover-body's own padding -- the
+        // right-aligned id/GCC-name text (especially the italic
+        // .aliquot-popover-no-files variant, whose slant leans into
+        // whatever's to its right) otherwise reads as visually cramped
+        // against the popover's edge.
         padding-right: 6px;
 
         strong,
         a {
             min-width: 0;
             overflow-wrap: break-word;
-            // A linked position's second column is the <a> itself (with
-            // <strong> nested inside it), not a bare <strong> -- grid
-            // blockifies whichever tag actually sits in the column, and
-            // text-align only affects a block box's own inline content, so
-            // setting it on <strong> alone did nothing once <a> became the
-            // real grid item (regression: the id lost its right alignment
-            // and sat flush against the label instead).
+            // Applies to <a> too, not just <strong>: a linked position's
+            // second column is the <a> itself (with <strong> nested inside
+            // it), and grid blockifies whichever tag actually sits in the
+            // column, so text-align on <strong> alone has no effect once
+            // <a> is the real grid item.
             text-align: right;
         }
 

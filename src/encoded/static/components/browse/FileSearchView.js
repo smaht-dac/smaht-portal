@@ -161,10 +161,8 @@ function FileTableWithSelectedFilesCheckboxes(props) {
 
     const passProps = {
         href,
-        // shared-portal-components' WindowNavigationController never receives
-        // our `facets` prop below -- it recomputes its own from context.facets
-        // and force-injects that into every descendant via cloneElement,
-        // clobbering `facets`. Title overrides only stick if baked into
+        // WindowNavigationController recomputes facets from context.facets
+        // and clobbers `facets` below, so title overrides must be baked into
         // context.facets itself (see SearchView.js's transformedFacets).
         context: { ...context, facets },
         facets,
