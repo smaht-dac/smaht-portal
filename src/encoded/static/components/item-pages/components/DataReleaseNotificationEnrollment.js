@@ -93,8 +93,8 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                     message: (
                         <>
                             <b>Unsubscribed: </b>You will no longer receive
-                            data-release emails. You can subscribe again at any
-                            time.
+                            new-data-release emails. You can subscribe again at
+                            any time.
                         </>
                     ),
                     className: 'alert-unsubscribed',
@@ -165,10 +165,10 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                                 </>
                             ) : (
                                 <>
-                                    I would like to receive{' '}
-                                    <strong>monthly</strong> emails on the first
-                                    day of each month to notify me about new
-                                    data released on the SMaHT Data Portal.
+                                    I would like to receive emails when new data
+                                    are released on the SMaHT Data Portal. The
+                                    emails are sent <strong>monthly</strong>, on
+                                    the first Monday of each month.
                                 </>
                             )}
                         </p>
@@ -222,7 +222,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             shortly to confirm your subscription.
                             <br />
                             <br />
-                            Once you have received this email from AWS,
+                            When you have receive the email from AWS,
                             <br />
                             click the "confirm subscription" link to begin
                             receiving data updates.
