@@ -256,7 +256,15 @@ export default function TissueTypeView({
             : tissueProtocolCode === '3AC'
                 ? 'fibroblast'
                 : null;
-    const tissueMatrixFilterValue = tissueType || tissue_type || null;
+    // Prefer the real, resolved tissue_type off an actual Tissue result
+    // (already correctly filtered server-side, whether the URL's own
+    // tissue_type param was the short internal code or the legacy raw
+    // string -- see tissue_overview.py) over the raw URL token itself,
+    // which every downstream consumer below actually needs (it's the full
+    // "<TPC code> - <name>" string, not the short code the URL may carry).
+    // Only falls back to the raw param when no results exist to read it
+    // from at all (e.g. a code/tissue_type with zero matching Tissues).
+    const tissueMatrixFilterValue = tissue_type || tissueType || null;
     // Mirrors the fileCount fetch below exactly (tissue_type only, every
     // donor sharing it -- no single donor here) so this always matches the
     // "Files: N" stat.

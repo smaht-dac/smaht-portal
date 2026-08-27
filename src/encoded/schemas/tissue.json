@@ -169,6 +169,9 @@
         "tissue_type": {
             "title": "Tissue Type"
         },
+        "tissue_type_code": {
+            "title": "Tissue Type Code"
+        },
         "status": {
             "title": "Status"
         }

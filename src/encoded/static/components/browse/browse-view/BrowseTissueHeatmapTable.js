@@ -104,7 +104,14 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
         if (!donors.includes(donorId)) donors.push(donorId);
         if (!tissueTypes.includes(tissueType)) tissueTypes.push(tissueType);
         if (!tissueTypeHrefs[tissueType]) {
-            tissueTypeHrefs[tissueType] = `/tissue-overview/?tissue_type=${formUrlEncode(tissueType)}`;
+            // The stable 4-letter internal code (e.g. "HART") reads as a real
+            // identifier and makes a much shorter URL than the full raw
+            // "<TPC code> - <name>" string -- falls back to the raw value
+            // when no code is known (e.g. the generic "Brain" placeholder),
+            // which tissue_overview.py still resolves via the legacy exact
+            // match on `tissue_type`.
+            const urlCode = getTissueInternalCodeFromFacetTerm(tissueType) || tissueType;
+            tissueTypeHrefs[tissueType] = `/tissue-overview/?tissue_type=${formUrlEncode(urlCode)}`;
         }
         if (!tissueTypeCategories[tissueType] && t.category) tissueTypeCategories[tissueType] = t.category;
 

@@ -227,6 +227,20 @@ class Tissue(SampleSource):
         tissue_type = tissue_utils.get_tissue_type(self.properties, request_handler=request_handler)
         return tissue_type or None
 
+    @calculated_property(
+        schema={
+            "title": "Tissue Type Code",
+            "description": "Leading TPC protocol code from tissue_type (e.g. \"3S\" for \"3S - Heart\")",
+            "type": "string"
+        }
+    )
+    def tissue_type_code(self, request: Request):
+        """Get the leading TPC protocol code from tissue_type.
+        """
+        request_handler = RequestHandler(request=request)
+        tissue_type_code = tissue_utils.get_tissue_type_code(self.properties, request_handler=request_handler)
+        return tissue_type_code or None
+
 
 @link_related_validator
 def validate_external_id_on_add(context, request):

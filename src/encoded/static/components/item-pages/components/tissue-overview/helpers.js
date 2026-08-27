@@ -132,6 +132,21 @@ export const getTissueDisplayLabel = (value) => {
     return text.replace(/^\S+(?=\s-\s)/, internalCode);
 };
 
+// The stable 4-letter internal code alone (e.g. "HART" for "3S - Heart"),
+// used as the /tissue-overview/?tissue_type=<code> URL value instead of the
+// full raw "<TPC code> - <name>" string -- shorter, and (unlike the TPC
+// code, which is only ever meaningful paired with the name it prefixes)
+// reads as a real identifier on its own. Falls back to the raw value
+// unencoded when no internal code is known (e.g. a plain ontology term
+// display_title with no TPC-code prefix at all) so the link still resolves
+// via the legacy exact-string match on the backend (tissue_overview.py)
+// instead of producing a dead link.
+export const getTissueTypeUrlCode = (value) => {
+    const text = getDisplayText(value);
+    if (text === '-') return text;
+    return getTissueInternalCodeFromFacetTerm(text) || text;
+};
+
 // Keyed by data.js's internal tissue codes (e.g. 'LUNG', 'SKSE') so this
 // stays in sync with the same TPC-code/tissue-name resolution used for
 // facet categorization, rather than re-deriving tissue_type parsing here.

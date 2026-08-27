@@ -16,6 +16,7 @@ import { BROWSE_STATUS_FILTERS } from '../BrowseView';
 import {
     getTissueIconSrc,
     getTissueDisplayLabel,
+    getTissueTypeUrlCode,
     getTissueColorHex,
     hexToRgba,
 } from '../../item-pages/components/tissue-overview/helpers';
@@ -238,7 +239,7 @@ const TissueGermLayerPanel = ({ fileFilters, session }) => {
                                     <a
                                         className="tissue-germ-layer-bubble"
                                         key={tissueType}
-                                        href={`/tissue-overview/?tissue_type=${formUrlEncode(tissueType)}`}
+                                        href={`/tissue-overview/?tissue_type=${formUrlEncode(getTissueTypeUrlCode(tissueType))}`}
                                         data-tip={bubbleLabel}
                                         aria-label={bubbleLabel}
                                         style={bubbleStyle}>

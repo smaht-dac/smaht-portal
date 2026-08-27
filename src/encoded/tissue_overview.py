@@ -26,6 +26,47 @@ def includeme(config):
 
 DEFAULT_TISSUE_OVERVIEW_TYPE = "Tissue"
 
+# Mirrors static/components/util/data.js's `tissueInternalCodeByTpcCode` --
+# keep both in sync by hand (small, fixed set; a real backend/frontend-shared
+# source of truth would be overkill for this). Do NOT source this from
+# static/data/color-schemes/smaht_tissue_colors.json even though it happens
+# to carry the same TPC-code/4-letter-code pairs -- that file is a public
+# reference export for external consumers of the repo's color palettes only,
+# not an internal data source, and isn't guaranteed to keep existing at that
+# path or in that shape. Maps the stable 4-letter internal code used in a
+# /tissue-overview/?tissue_type=<code> URL (e.g. "HART") back to the TPC
+# protocol code stored in Tissue.tissue_type_code (e.g. "3S") -- used to
+# filter directly on that exact, code-only field instead of trying to
+# reconstruct the full "<code> - <name>" string (whose name half can only be
+# gotten right by looking it up against live ontology data; see
+# get_tissue_type_code's own docstring).
+TPC_CODE_BY_INTERNAL_CODE = {
+    'BLOO': '3A',
+    'BUCC': '3B',
+    'ESOP': '3C',
+    'COAS': '3E',
+    'CODS': '3G',
+    'LIVR': '3I',
+    'ADGL': '3K',
+    'ADGR': '3M',
+    'AORT': '3O',
+    'LUNG': '3Q',
+    'HART': '3S',
+    'TESL': '3U',
+    'TESR': '3W',
+    'OVAL': '3Y',
+    'OVAR': '3AA',
+    'FBRO': '3AC',
+    'SKSE': '3AD',
+    'SKNE': '3AF',
+    'MUSC': '3AH',
+    'BRFL': '3AK',
+    'BRTL': '3AL',
+    'BRCE': '3AM',
+    'BRHL': '3AN',
+    'BRHR': '3AO',
+}
+
 
 @view_config(route_name='tissue-overview', request_method='GET', permission='search')
 @debug_log
@@ -61,6 +102,22 @@ def tissue_overview(context, request, search_type=DEFAULT_TISSUE_OVERVIEW_TYPE, 
     if 'donor.tags' not in request.GET:
         request.GET['donor.tags'] = 'has_released_files'
 
+    # A short internal code (e.g. "HART") in `tissue_type` -- the URL value
+    # the frontend now generates (see tissue-overview/helpers.js's
+    # getTissueTypeUrlCode) -- can't be filtered on directly: it's not what's
+    # actually stored in Tissue.tissue_type (that's still the full "<TPC
+    # code> - <name>" string). Rewrite it to the equivalent TPC-code-only
+    # filter on Tissue.tissue_type_code instead, an exact match with no name
+    # involved. A URL still carrying the old raw "<TPC code> - <name>" value
+    # (an existing bookmark/link) isn't a known code, so it falls through
+    # unchanged and keeps matching via the legacy `tissue_type` field --
+    # both forms keep working.
+    display_tissue_type = request.GET.get('tissue_type')
+    tpc_code = TPC_CODE_BY_INTERNAL_CODE.get((display_tissue_type or '').upper())
+    if tpc_code:
+        del request.GET['tissue_type']
+        request.GET['tissue_type_code'] = tpc_code
+
     result = search(context, request, search_type, return_generator, forced_type="Tissue-Overview")
 
     # search() always sets result['title'] to forced_type verbatim
@@ -69,8 +126,9 @@ def tissue_overview(context, request, search_type=DEFAULT_TISSUE_OVERVIEW_TYPE, 
     # the same literal "Tissue-Overview" browser tab title. Overriding it
     # here doesn't touch forced_type/the route name/canonical-redirect
     # matching above (all keyed on forced_type, not on this display field).
-    tissue_type = request.GET.get('tissue_type')
-    if isinstance(result, dict) and tissue_type:
-        result['title'] = tissue_type
+    # Uses the original (possibly short-code) display value captured above --
+    # request.GET['tissue_type'] may have just been deleted.
+    if isinstance(result, dict) and display_tissue_type:
+        result['title'] = display_tissue_type
 
     return result

@@ -319,6 +319,7 @@ class CalcPropConstants:
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
     SAMPLE_SUMMARY_CATEGORY = "category"
     SAMPLE_SUMMARY_TISSUES = "tissues"
+    SAMPLE_SUMMARY_TISSUE_CODES = "tissue_codes"
     SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
     SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
@@ -345,6 +346,13 @@ class CalcPropConstants:
             },
             SAMPLE_SUMMARY_TISSUES: {
                 "title": "Tissue",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_CODES: {
+                "title": "Tissue Code",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -1260,6 +1268,7 @@ class File(Item, CoreFile):
             ),
             constants.SAMPLE_SUMMARY_CATEGORY: file_utils.get_tissue_category(file_properties, request_handler),
             constants.SAMPLE_SUMMARY_TISSUES: file_utils.get_tissue_type(file_properties, request_handler),
+            constants.SAMPLE_SUMMARY_TISSUE_CODES: file_utils.get_tissue_type_code(file_properties, request_handler),
             constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_uberon_ids(file_properties, request_handler),
