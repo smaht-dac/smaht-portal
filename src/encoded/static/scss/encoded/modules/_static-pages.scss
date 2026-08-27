@@ -939,6 +939,8 @@
                 text-overflow: ellipsis;
                 color: #999;
                 margin-bottom: 3px;
+                width: 100%;
+
                 &.with-border-bottom {
                     padding-bottom: 7px;
                     margin-bottom: 7px;
@@ -1087,6 +1089,7 @@
             margin-top: 8px;
             a {
                 border-top: none;
+                width: max-content;
             }
         }
     }
