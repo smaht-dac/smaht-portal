@@ -2467,31 +2467,30 @@ div.browse-link-icon {
 				border-right: none;
 			}
 
-			// A neutral blue-grey sequential scale (light -> dark), not a
-			// green->red ramp, since that read as a status/alarm signal
-			// regardless of what the metric measured. score-0 is darkened
-			// from a paler grey so a scored cell stays visibly distinct
-			// from the zebra stripe and plain white row background even
-			// though production data skews toward the darker bands.
+			// A sequential blue scale (light -> dark), not a green->red
+			// ramp, since that read as a status/alarm signal regardless of
+			// what the metric measured -- "Ocean" (#22528E), generated via
+			// buildSequentialPaletteFromHex, same as any HeatmapColorPicker
+			// pick.
 			//
 			// Each background/text pair also reads a `--heatmap-score-N-bg`/
 			// `-text` custom property first, falling back to these hardcoded
 			// values when unset -- HeatmapColorPicker sets those inline on
 			// .tissue-heatmap-card when a user picks a different palette.
 			&.score-0 {
-				background-color: var(--heatmap-score-0-bg, #D9E1E8);
-				color: var(--heatmap-score-0-text, #33414F);
+				background-color: var(--heatmap-score-0-bg, #D2DFEE);
+				color: var(--heatmap-score-0-text, #28323C);
 			}
 			&.score-1 {
-				background-color: var(--heatmap-score-1-bg, #C6CED4);
-				color: var(--heatmap-score-1-text, #33414F);
+				background-color: var(--heatmap-score-1-bg, #97B4D8);
+				color: var(--heatmap-score-1-text, #28323C);
 			}
 			&.score-2 {
-				background-color: var(--heatmap-score-2-bg, #8D98A3);
-				color: var(--heatmap-score-2-text, #1E2A33);
+				background-color: var(--heatmap-score-2-bg, #4579BA);
+				color: var(--heatmap-score-2-text, #FFFFFF);
 			}
 			&.score-3 {
-				background-color: var(--heatmap-score-3-bg, #5B6670);
+				background-color: var(--heatmap-score-3-bg, #2C4D77);
 				color: var(--heatmap-score-3-text, #FFFFFF);
 			}
 			&.na,

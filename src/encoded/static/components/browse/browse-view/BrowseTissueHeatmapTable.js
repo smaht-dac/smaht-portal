@@ -319,11 +319,18 @@ function getTargetTissuePercentageSortValue(value) {
 // pick, so every preset is guaranteed to follow the same light->dark
 // construction (no hand-tuned-then-drifted swatches to keep in sync).
 export const HEATMAP_COLOR_PRESETS = [
+    // Default scale (see _search.scss's .score-0..3 fallback values) --
+    // listed here too so it's reachable by name after picking something else.
+    { name: 'Ocean', hex: '#22528E' },
     { name: 'Teal', hex: '#2F8F83' },
     { name: 'Purple', hex: '#7C6BA6' },
     { name: 'Amber', hex: '#C08A2E' },
     { name: 'Rose', hex: '#B5657A' },
     { name: 'Forest', hex: '#4F7A5B' },
+    // The neutral grey-blue scale this table used before "Ocean" became the
+    // default (its own darkest band, #5B6670) -- kept reachable here for
+    // anyone who preferred it.
+    { name: 'Slate', hex: '#5B6670' },
 ];
 
 function clamp(value, min, max) {
@@ -464,7 +471,7 @@ export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
                             title="Pick a custom color">
                             <input
                                 type="color"
-                                value={baseHex || '#5B6670'}
+                                value={baseHex || '#22528E'}
                                 // eslint-disable-next-line react/jsx-no-bind
                                 onChange={(event) => onPick(event.target.value)}
                             />
