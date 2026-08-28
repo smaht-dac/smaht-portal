@@ -661,11 +661,11 @@ export function testMatrixPopoverValidation(
                             const hasVariantCallSetAssayColumn = rowHasAnyAssayColumn(
                                 $row,
                                 '.child-blocks [data-block-type="regular"]',
-                                ['CODEC', 'NanoSeq', 'VISTA-META-seq']
+                                ['CODEC', 'NanoSeq', 'META-VISTA-seq']
                             );
                             const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
                             if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
-                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/VISTA-META-seq and Variant Call Sets`).to.be.at.least(expectedRowSummary);
+                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/META-VISTA-seq and Variant Call Sets`).to.be.at.least(expectedRowSummary);
                             } else if (hasDSAColumn) {
                                 expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
                             } else {
@@ -840,11 +840,11 @@ export function testMatrixPopoverValidation(
                             const hasVariantCallSetAssayColumn = rowHasAnyAssayColumn(
                                 $row,
                                 '.blocks-container [data-block-type="regular"]',
-                                ['CODEC', 'NanoSeq', 'VISTA-META-seq']
+                                ['CODEC', 'NanoSeq', 'META-VISTA-seq']
                             );
                             const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
                             if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
-                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/VISTA-META-seq and Variant Call Sets`).to.be.at.least(expectedRowSummary);
+                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/META-VISTA-seq and Variant Call Sets`).to.be.at.least(expectedRowSummary);
                             } else if (hasDSAColumn) {
                                 expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
                             } else {

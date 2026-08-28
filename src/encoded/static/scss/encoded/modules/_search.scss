@@ -1223,12 +1223,13 @@ body[data-at-type^='Publication-collections'] {
 
             .publication-collections-search-btn {
                 flex-shrink: 0;
-                background-color: $primary;
-                color: $pure-white;
+                background-color: $pure-white;
+                color: #4e6781;
                 font-weight: 600;
                 font-size: 0.875rem;
                 padding: 3px 22px;
                 border-radius: 6px;
+                border: 1px solid #b7c9dc;
                 white-space: nowrap;
                 transition: background-color 150ms ease;
                 line-height: 1.65rem;
@@ -1238,8 +1239,7 @@ body[data-at-type^='Publication-collections'] {
                 }
 
                 &:hover {
-                    background-color: $primary-dark;
-                    color: $pure-white;
+                    background-color: #e9f2fb;
                     text-decoration: none;
                 }
             }
@@ -1289,13 +1289,12 @@ body[data-at-type^='Publication-collections'] {
                 flex: 1;
                 border: 1px solid gray;
                 border-radius: 5px;
-                max-width: 180px;
 
                 &-label {
                     font-weight: 500;
                 }
                 &-value {
-                    font-size: 2rem;
+                    font-size: 1.75rem;
                     font-weight: 500;
                     color: $gray-70;
 
@@ -1333,7 +1332,7 @@ body[data-at-type^='Publication-collections'] {
 
         @include media-breakpoint-up(xl) {
             .data-summary {
-                justify-content: start;
+                justify-content: space-around;
             }
         }
 
@@ -1370,6 +1369,9 @@ body[data-at-type^='Publication-collections'] {
     }
 
     // Publication Search Table Styles
+    .publication-tables-container {
+        margin-bottom: 120px;
+    }
     .publication-search-table-container {
         margin-top: 50px;
 
@@ -1410,6 +1412,8 @@ body[data-at-type^='Publication-collections'] {
                         padding: 10px 20px;
                         gap: 10px;
                         background-color: $pure-white;
+                        border-left: 1px solid #e5e5e5;
+                        border-right: 1px solid #e5e5e5;
 
                         .facet {
                             min-width: 201px;
@@ -1490,10 +1494,15 @@ body[data-at-type^='Publication-collections'] {
                         }
                     }
                 }
+
+                @include media-breakpoint-down(md) {
+                    .facets-container.facets.with-header-bg
+                        .facets-body.has-max-height {
+                        overflow-x: auto;
+                    }
+                }
             }
             .search-results-container {
-                border: 1px solid $mercury;
-
                 .fin {
                     display: none;
                 }
@@ -1515,6 +1524,7 @@ body[data-at-type^='Publication-collections'] {
                 .thumbnail-title {
                     display: flex;
                     align-items: center;
+                    margin-right: 50px;
 
                     .title {
                         h4 {

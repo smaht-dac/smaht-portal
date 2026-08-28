@@ -7,8 +7,10 @@ smaht-portal
 Change Log
 ----------
 
-2.9.1
+2.12.2
 ======
+
+`PR 744: Add sample_summary.cell_lines to File calculated properties <https://github.com/smaht-dac/smaht-portal/pull/744>`_
 
 * Adds ``sample_summary.cell_lines`` to File calculated properties, reporting resolved CellLine
   ``code`` values for files linked through direct ``CellCulture`` sample sources or
@@ -19,6 +21,87 @@ Change Log
   CellCultureMixture cell-line traversal paths.
 * Documents testing guidance in ``AGENTS.md`` to prefer targeted non-workbook tests for new behavior
   and avoid mutating workbook items unless mutation is explicitly under test.
+
+
+2.12.1
+======
+
+`PR 754: Fix transcript info code check for RNA QC files <https://github.com/smaht-dac/smaht-portal/pull/754>`_
+
+* Annotated filename generation no longer requires a transcript information code for
+  RNA Quantification files that are also in the ``Quality Control`` data category.
+
+
+2.12.0
+======
+
+`PR 747: Archive source files during the file release <https://github.com/smaht-dac/smaht-portal/pull/747>`_
+
+* Adds an opt-in ``--archive`` option to ``release-file``. When a final output BAM or CRAM is
+  released with it, the source files of the associated file set(s) are archived, i.e.
+  ``s3_lifecycle_category`` is set to ``long_term_archive`` on the submitted unaligned reads,
+  the submitted CRAMs and the FASTQs that were generated from those CRAMs. This replaces the
+  manual ``archive_unaligned_reads`` and ``archive_broad_crams_and_fastqs`` steps in magma.
+* The archive patches are part of the regular two-step release flow, so they are listed in
+  the release summary (counted by item type and file format), validated, and applied
+  together with the other patches.
+* Files that already have an ``s3_lifecycle_category`` are never archived. A warning is
+  reported for those unless they are already set to ``long_term_archive``.
+
+
+2.11.2
+======
+
+`PR 750: update VISTA-seq mapping in data matrix <https://github.com/smaht-dac/smaht-portal/pull/750>`_
+
+* Renames the ``VISTA-META-seq``, ``scVISTA-META-seq``, and ``Microbulk VISTA-META-seq`` data matrix
+  assay mappings to ``META-VISTA-seq``, ``scMETA-VISTA-seq``, and ``Microbulk META-VISTA-seq``,
+  matching the updated backend assay display titles.
+* Updates the corresponding Cypress post-deploy data matrix assertions.
+
+
+2.11.1
+======
+
+`PR 749: feat: popover update to publication view <https://github.com/smaht-dac/smaht-portal/pull/749>`_
+
+* Add popover for statistics link button and file search view when users are logged out
+* Add string at the end of citation for SNV paper
+
+
+2.11.0
+======
+
+`PR 736: Add validators for donor linked protected items <https://github.com/smaht-dac/smaht-portal/pull/736>`_
+
+* Adds validators to enforce that a donor's linked protected items ('MedicalHistory', 'Demographic', 'FamilyHistory', 'DeathCircumstances' and 'TissueCollection') are only linked to ProtectedDonor items.
+* Pulls in new snovault for fix for skip_links options
+
+
+2.10.0
+======
+
+`PR 746: Add publication author_info schema support <https://github.com/smaht-dac/smaht-portal/pull/746>`_
+
+* Adds optional ``author_info`` on ``Publication.authors`` as an array of constrained strings,
+  supporting ``co-first author``, ``co-corresponding author``, and ``corresponding author``.
+* Adds focused publication schema/type test coverage and workbook fixture updates to exercise
+  ``author_info`` while preserving existing citation and short-citation behavior.
+* Includes the publication author formatting and table-rendering follow-up already present on this
+  branch, covering helper-based author formatting and the updated publication table/view rendering.
+
+
+2.9.1
+======
+
+`PR 743: feat: publication pages followup <https://github.com/smaht-dac/smaht-portal/pull/743>`_
+
+* Fixes ``PublicationView``'s static content sections to fall back correctly when a linked
+  ``StaticSection`` is redacted for the viewer (e.g. still ``in review``), instead of rendering an
+  empty "Reference Set Generation" or "Key / Novel Findings" section.
+* Adds borders and spacing around the publication search tables and their facet dropdowns, and
+  makes long facet lists horizontally scrollable on mobile.
+* Bumps ``@hms-dbmi-bgm/shared-portal-components`` to ``0.1.101``.
 
 
 2.9.0
