@@ -325,6 +325,7 @@ class CalcPropConstants:
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
     SAMPLE_SUMMARY_ANALYTES = "analytes"
     SAMPLE_SUMMARY_STUDIES = "studies"
+    SAMPLE_SUMMARY_CELL_LINES = "cell_lines"
     SAMPLE_SUMMARY_SCHEMA = {
         "title": "Sample Summary",
         "type": "object",
@@ -387,6 +388,13 @@ class CalcPropConstants:
             },
             SAMPLE_SUMMARY_STUDIES: {
                 "title": "Study",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_CELL_LINES: {
+                "title": "Cell Lines",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -1297,6 +1305,11 @@ class File(Item, CoreFile):
                 request_handler,
                 file_utils.get_analytes(file_properties, request_handler),
                 analyte_utils.get_molecule,
+            ),
+            constants.SAMPLE_SUMMARY_CELL_LINES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_cell_lines(file_properties, request_handler),
+                item_utils.get_code,
             ),
         }
         return {key: value for key, value in to_include.items() if value}

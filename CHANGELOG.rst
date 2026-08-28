@@ -7,6 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+2.12.2
+======
+
+`PR 744: Add sample_summary.cell_lines to File calculated properties <https://github.com/smaht-dac/smaht-portal/pull/744>`_
+
+* Adds ``sample_summary.cell_lines`` to File calculated properties, reporting resolved CellLine
+  ``code`` values for files linked through direct ``CellCulture`` sample sources or
+  ``CellCultureMixture`` component cultures.
+* Refactors File cell culture/cell line item utility traversal to compute sample sources once and
+  avoid redundant CellCultureMixture-to-CellLine expansion.
+* Adds focused non-workbook unit coverage for tissue-only, direct CellCulture, and
+  CellCultureMixture cell-line traversal paths.
+* Documents testing guidance in ``AGENTS.md`` to prefer targeted non-workbook tests for new behavior
+  and avoid mutating workbook items unless mutation is explicitly under test.
+
+
 2.12.1
 ======
 
