@@ -1,6 +1,7 @@
 import argparse
 import pprint
 import re
+from collections import Counter
 from dataclasses import dataclass
 from functools import cached_property, partial
 from typing import Callable, Dict, List, Any
@@ -64,6 +65,11 @@ pp = pprint.PrettyPrinter(indent=2)
 ##    This currently includes ProtectedDonor, Demographic, DeathCircumstances
 ##    FamilyHistory, TissueCollection, MedicalHistory, Diagnosis, Exposure,
 ##    MedicalTreatment
+##  - With `--archive`, and when the file to release is a final output BAM or CRAM,
+##    the source files of its FileSet(s) are archived, i.e. they get
+##    `s3_lifecycle_category` set to `long_term_archive`. This includes the submitted
+##    UnalignedReads, the submitted CRAMs and the FASTQs that were generated from
+##    those CRAMs. Files that already have an `s3_lifecycle_category` are not touched.
 ##
 ##################################################################
 ##################################################################
@@ -99,12 +105,22 @@ EXTERNAL_OUTPUT_FILE_RELEASE = "ExternalOutputFileRelease"
 ANALYSIS_RUN_FILE_RELEASE = "AnalysisRunFileRelease"
 FILESET_FILE_RELEASE = "FilesetFileRelease"
 
+# The S3 lifecycle category that files are archived with
+LONG_TERM_ARCHIVE = file_constants.S3_LIFECYCLE_CATEGORY_LONG_TERM_ARCHIVE
+
 
 class FileRelease:
 
     TISSUE = "tissue"
 
-    def __init__(self, auth_key: dict, file_identifier: str, mode: str = MODE_EARLY_ACCESS, verbose: bool = True):
+    def __init__(
+        self,
+        auth_key: dict,
+        file_identifier: str,
+        mode: str = MODE_EARLY_ACCESS,
+        verbose: bool = True,
+        archive_files: bool = False,
+    ):
         self.key = auth_key
         self.request_handler = self.get_request_handler()
         self.request_handler_embedded = self.get_request_handler_embedded()
@@ -118,6 +134,7 @@ class FileRelease:
         self.warnings = []
         self.verbose = verbose
         self.mode = mode
+        self.archive_files = archive_files
         self.target_file_status = None
 
     @cached_property
@@ -303,6 +320,64 @@ class FileRelease:
         for tissue in self.tissues:
             search_filter += f"&sample_sources.uuid={item_utils.get_uuid(tissue)}"
         return ff_utils.search_metadata(search_filter, key=self.key)
+
+    @cached_property
+    def files_to_archive(self) -> List[dict]:
+        return self.get_files_to_archive()
+
+    def get_files_to_archive(self) -> List[dict]:
+        """Get the submitted files of the FileSet(s) that will be archived.
+
+        These are the submitted unaligned reads FASTQs, the submitted CRAMs and the
+        FASTQs that have been generated from those CRAMs (Broad). We only archive them
+        when a final output BAM or CRAM is released, i.e. file that have been produced by us.
+        """
+        is_final_bam_or_cram = output_file_utils.is_final_output_bam(
+            self.file
+        ) or output_file_utils.is_final_output_cram(self.file)
+        if not self.archive_files or not is_final_bam_or_cram or not self.file_sets:
+            return []
+
+        # Repeated file_sets.uuid parameters are OR'ed together. 
+        # Currently this is just one FileSet.
+        file_set_filter = "".join(
+            f"&file_sets.uuid={item_utils.get_uuid(file_set)}"
+            for file_set in self.file_sets
+        )
+        # Files that have already been released must not be archived
+        uploaded = f"&{item_constants.STATUS}={item_constants.STATUS_UPLOADED}"
+        search_filters = [
+            # Submitted unaligned reads (FASTQ/unaligned BAM)
+            f"/search/?type=UnalignedReads{uploaded}",
+            # Submitted CRAMs from the Broad
+            (
+                f"/search/?type=SubmittedFile"
+                f"&submission_centers.display_title=BROAD+GCC"
+                f"&file_format.display_title={file_constants.FILE_FORMAT_CRAM}"
+                f"{uploaded}"
+            ),
+            # FASTQs from the CRAM/BAM to FASTQ conversion. The output status
+            # distinguishes them from the FASTQs that pipelines produce as
+            # intermediates (which are not archived but deleted).
+            (
+                f"/search/?type=OutputFile"
+                f"&file_format.display_title={file_constants.FILE_FORMAT_FASTQ_GZ}"
+                f"&output_status={file_constants.OUTPUT_STATUS_FINAL_OUTPUT}"
+                f"{uploaded}"
+            ),
+        ]
+
+        files = []
+        seen_uuids = set()
+        for search_filter in search_filters:
+            for file in ff_utils.search_metadata(
+                f"{search_filter}{file_set_filter}", key=self.key
+            ):
+                uuid = item_utils.get_uuid(file)
+                if uuid not in seen_uuids:
+                    seen_uuids.add(uuid)
+                    files.append(file)
+        return files
 
     # Items that are associated with the Protected Donor
     @cached_property
@@ -598,6 +673,10 @@ class FileRelease:
             obsolete_file = self.get_metadata(obsolete_file_identifier)
             self.add_obsolete_file_patchdict(obsolete_file)
 
+        # This must be the last patchdict to be added. It relies on all files
+        # that are being released to have a patchdict already.
+        self.add_archive_files_to_patchdict()
+
         if self.verbose:
             print("\nThe following metadata patches will be carried out in the next step:")
             for info in self.patch_infos:
@@ -676,6 +755,60 @@ class FileRelease:
 
     def show_patch_dicts(self) -> None:
         pp.pprint(self.patch_dicts)
+
+    def add_archive_files_to_patchdict(self) -> None:
+        """Sets the S3 lifecycle category of the submitted files of the FileSet(s)
+        to `long_term_archive` and adds the corresponding patch dicts
+        """
+        files = self.get_files_to_archive_filtered()
+        if not files:
+            return
+
+        archive_summary = get_archive_summary(files)
+        self.patch_infos.append(f"\n{archive_summary}")
+        self.patch_infos_minimal.append(f" - {archive_summary}")
+
+        for file in files:
+            identifier_to_report = self.get_identifier_to_report(file)
+            accession = item_utils.get_accession(file)
+            if accession and accession != identifier_to_report:
+                identifier_to_report = f"{identifier_to_report}, {accession}"
+            self.patch_infos.append(
+                f"\n{item_utils.get_type(file)} ({identifier_to_report}):"
+            )
+            self.add_okay_message(
+                file_constants.S3_LIFECYCLE_CATEGORY, LONG_TERM_ARCHIVE
+            )
+            self.patch_dicts.append(
+                {
+                    item_constants.UUID: item_utils.get_uuid(file),
+                    file_constants.S3_LIFECYCLE_CATEGORY: LONG_TERM_ARCHIVE,
+                }
+            )
+
+    def get_files_to_archive_filtered(self) -> List[dict]:
+        """Get the files to archive that actually need to be patched."""
+        files_being_released = {
+            item_utils.get_uuid(patch_dict) for patch_dict in self.patch_dicts
+        }
+        files = []
+        for file in self.files_to_archive:
+            # Safety net: never archive a file that is being released
+            if item_utils.get_uuid(file) in files_being_released:
+                continue
+
+            # An existing S3 lifecycle category is never overwritten
+            lifecycle_category = file.get(file_constants.S3_LIFECYCLE_CATEGORY)
+            if lifecycle_category == LONG_TERM_ARCHIVE:
+                continue  # Already archived, nothing to report
+            if lifecycle_category:
+                self.add_warning(
+                    f"File {item_utils.get_accession(file)} already has S3 lifecycle"
+                    f" category `{lifecycle_category}`. It will NOT be archived."
+                )
+                continue
+            files.append(file)
+        return files
 
     def add_release_items_to_patchdict(
         self,
@@ -1415,6 +1548,21 @@ def fail_text(text: str) -> str:
     return f"{bcolors.FAIL}{text}{bcolors.ENDC}"
 
 
+def get_archive_summary(files: List[Dict[str, Any]]) -> str:
+    """Summarize the files to archive by item type and file format."""
+    counts = Counter(
+        (item_utils.get_type(file), file_utils.get_file_format_display_title(file))
+        for file in files
+    )
+    counted = ", ".join(
+        f"{count} {item_type} ({file_format})"
+        for (item_type, file_format), count in sorted(
+            counts.items(), key=lambda item: (-item[1], item[0])
+        )
+    )
+    return f"Archiving {warning_text(str(len(files)))} files: {counted}"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -1439,7 +1587,14 @@ def main() -> None:
         help="Dry run, show patches but do not execute",
         action="store_true",
     )
-    
+    parser.add_argument(
+        "--archive",
+        help=(
+            "Archive the source files (unaligned reads and CRAMs) of the associated"
+            " file set(s). Only applies when a final output BAM or CRAM is released"
+        ),
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -1467,7 +1622,8 @@ def main() -> None:
             file_identifier=file_identifier,
             mode=release_mode,
             verbose=verbose,
-        ) 
+            archive_files=args.archive,
+        )
         
         file_release.prepare(
             dataset=args.dataset, obsolete_file_identifier=args.replace
