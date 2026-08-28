@@ -2361,22 +2361,41 @@ div.browse-link-icon {
 		}
 	}
 
-	// `overflow-x: auto` alone (with overflow-y left at its 'visible'
-	// initial value) gets computed to `overflow-y: auto` too per the CSS
-	// spec's overflow-x/y interaction rule -- silently making this wrapper
-	// its own vertical scroll container. Since its height was otherwise
-	// unbounded (grows to fit content), that container never actually
-	// scrolled internally, so `position: sticky` inside it had no local
-	// scroll movement to react to -- it just rode along with the page
-	// scroll instead of sticking (this is why the sticky column headers
-	// below didn't visually stick despite being correctly configured).
-	// A real, bounded max-height + explicit overflow-y: auto makes this
-	// wrapper an actual scrolling container so sticky has something to
-	// stick relative to -- the standard "frozen header" data-table pattern.
 	.tissue-heatmap-table-wrap {
 		overflow-x: auto;
-		overflow-y: auto;
-		max-height: 70vh;
+	}
+
+	// Fixed-position clone of the <thead> (BrowseTissueHeatmapTable.js's
+	// MetricHeatmapTable renders this only while JS-measured scroll state
+	// says the real header has scrolled above the viewport but the table's
+	// body hasn't fully scrolled past yet -- see that component for why
+	// `position: sticky` can't do this alone: `.tissue-heatmap-table-wrap`
+	// needs `overflow-x: auto` for the table's own horizontal scroll, which
+	// per the CSS overflow spec forces it to also become a vertical scroll
+	// container -- unbounded in height, so it never actually scrolls
+	// internally, silently trapping any `position: sticky` descendant so it
+	// never reacts to the *page's* scroll. `position: fixed` is the only
+	// value that escapes that trap.
+	.tissue-heatmap-sticky-header {
+		position: fixed;
+		// `top` is set inline (BrowseTissueHeatmapTable.js) to the site's
+		// own fixed top nav's live measured height, not hardcoded here --
+		// see that component's `navOffset` for why (varies with the
+		// TestWarning banner and the `lg`+ breakpoint where the nav isn't
+		// fixed at all).
+		overflow: hidden;
+		z-index: 20;
+		box-shadow: 0 2px 6px rgba(30, 38, 50, 0.12);
+
+		// table-layout: fixed + the <colgroup> BrowseTissueHeatmapTable.js
+		// measures from the real body's first row forces this clone's
+		// columns to match the real table's pixel-for-pixel, regardless of
+		// the header's own colSpan-merged cells (germ-layer group labels,
+		// merged brain-region columns) which can't supply per-column widths
+		// on their own.
+		table.tissue-heatmap-table {
+			table-layout: fixed;
+		}
 	}
 
 	table.tissue-heatmap-table {
@@ -2394,23 +2413,6 @@ div.browse-link-icon {
 			padding: 8px 14px;
 		}
 
-		// Ischemic Time/Autolysis Score/Target Tissue % can each have as many
-		// rows as there are donors in the population -- without this, the
-		// column headers (and germ-layer group row above them) scroll away
-		// with the first screenful of rows, and there's no way to tell which
-		// tissue a cell belongs to once you've scrolled down.
-		//
-		// `position: sticky` on <thead> itself (display: table-header-group)
-		// has inconsistent/buggy real-world browser support -- it's applied
-		// per <th> cell instead here, the same technique already proven
-		// working for the sticky-left order/donor columns below. That means
-		// the two header rows need their own explicit, fixed height (36px)
-		// so the second row's `top` offset is a known constant instead of
-		// depending on the first row's actual (content-dependent) rendered
-		// height -- box-sizing: border-box so the declared height already
-		// includes the row's own padding.
-		$heatmap-header-row-height: 36px;
-
 		thead th {
 			background-color: #FFFFFF;
 			font-weight: 600;
@@ -2423,11 +2425,6 @@ div.browse-link-icon {
 		// palette, set in BrowseTissueHeatmapTable.js) -- this just covers
 		// typography and the divider between adjacent groups.
 		.tissue-heatmap-group-label {
-			position: sticky;
-			top: 0;
-			z-index: 4;
-			height: $heatmap-header-row-height;
-			box-sizing: border-box;
 			font-size: 0.6875rem;
 			font-weight: 700;
 			letter-spacing: 0.03em;
@@ -2439,16 +2436,6 @@ div.browse-link-icon {
 			&:first-child {
 				border-left: none;
 			}
-		}
-
-		// The actual tissue-type column headers -- second header row, below
-		// the group-label row above. `:not(.tissue-heatmap-group-row)`
-		// rather than an nth-child/positional selector, since it reads
-		// correctly regardless of row order.
-		thead tr:not(.tissue-heatmap-group-row) th {
-			position: sticky;
-			top: $heatmap-header-row-height;
-			z-index: 4;
 		}
 
 		.tissue-heatmap-order-header,
@@ -2487,9 +2474,7 @@ div.browse-link-icon {
 		// cells' 2) since this corner must always win.
 		thead th.tissue-heatmap-order-header,
 		thead th.tissue-heatmap-donor-header {
-			position: sticky;
-			top: 0;
-			z-index: 5;
+			z-index: 3;
 		}
 
 		.tissue-heatmap-order-label {

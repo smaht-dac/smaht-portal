@@ -598,6 +598,52 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, s
     return nodes;
 }
 
+// Both <thead> rows, factored out so MetricHeatmapTable can render this
+// exact same markup twice -- once as the real, in-flow header, once as the
+// `position: fixed` "stuck" clone shown while scrolled (see
+// MetricHeatmapTable's scroll-measurement effect) -- sharing the same
+// `sortState`/`handleHeaderClick` closures so a sort click on either one
+// updates the same state and can never let the two drift out of sync.
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick) {
+    return (
+        <>
+            <tr className="tissue-heatmap-group-row">
+                <th className="tissue-heatmap-order-header" rowSpan={2} />
+                <th className="tissue-heatmap-donor-header" rowSpan={2}>
+                    <SortableHeaderLabel
+                        label="Donor ID"
+                        sortDirection={sortState?.key === 'donor' ? sortState.direction : null}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => handleHeaderClick('donor')}
+                    />
+                </th>
+                {columnGroups.map((group, i) => (
+                    <th
+                        key={i}
+                        colSpan={group.span}
+                        className="tissue-heatmap-group-label"
+                        title={group.style.label}
+                        style={{
+                            backgroundColor: group.style.backgroundColor,
+                            color: group.style.textColor,
+                        }}>
+                        {group.style.label}
+                    </th>
+                ))}
+            </tr>
+            <tr>
+                {renderHeaderCells(
+                    tissueTypes,
+                    mergeableTissueTypes,
+                    tissueTypeHrefs,
+                    sortState,
+                    handleHeaderClick
+                )}
+            </tr>
+        </>
+    );
+}
+
 // Memoized so that clicking between tabs -- which re-renders the whole
 // BrowseTissueHeatmapTable (DotRouterTab's onClick updates the page href,
 // which flows back down as a new `href` prop) -- doesn't also re-render
@@ -826,66 +872,178 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         ? 'Donor Distribution Order'
         : `Sorted by ${sortKeyLabel} (${sortState.direction === 'asc' ? 'ascending' : 'descending'})`;
 
+    // JS-driven sticky header -- see _search.scss's .tissue-heatmap-sticky-header
+    // comment for why `position: sticky` alone can't do this (the wrapper
+    // below needs `overflow-x: auto` for the table's own horizontal scroll,
+    // which per the CSS overflow spec silently traps any sticky descendant
+    // to that wrapper's own -- here, unbounded and therefore
+    // never-actually-scrolling -- box instead of the page). `null` (not
+    // stuck) or `{ left, width, tableWidth, scrollLeft, colWidths }`.
+    const wrapperRef = useRef(null);
+    const tableRef = useRef(null);
+    const [stickyHeader, setStickyHeader] = useState(null);
+
+    useEffect(() => {
+        let rafId = null;
+
+        const measure = () => {
+            rafId = null;
+            const tableEl = tableRef.current;
+            const wrapperEl = wrapperRef.current;
+            if (!tableEl || !wrapperEl) {
+                setStickyHeader(null);
+                return;
+            }
+            const tableRect = tableEl.getBoundingClientRect();
+            const headerEl = tableEl.querySelector('thead');
+            const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 0;
+            // The site's own top nav (NavigationBar.js's #top-nav) is itself
+            // `position: fixed` at the `lg`+ breakpoint (_navbar.scss), so
+            // without this the two fixed headers stack on top of each
+            // other. Reading its live rendered bottom edge (rather than a
+            // hardcoded 80px) self-adjusts for: the TestWarning banner
+            // (which grows the navbar when shown), the sub-`lg` breakpoint
+            // where it's not fixed at all (its rect naturally scrolls to
+            // top <= 0 there, clamped to 0 below), and any future navbar
+            // height change -- no separate breakpoint/banner check needed.
+            const navEl = document.getElementById('top-nav');
+            const navOffset = navEl ? Math.max(0, navEl.getBoundingClientRect().bottom) : 0;
+            // Stuck once the real header has scrolled up to the bottom edge
+            // of the (possibly fixed) top nav, un-stuck again once the
+            // table's own bottom has too (no point pinning a header over a
+            // table that's no longer on screen at all).
+            const isStuck = tableRect.top <= navOffset && tableRect.bottom > navOffset + headerHeight;
+            if (!isStuck) {
+                setStickyHeader((prev) => (prev === null ? prev : null));
+                return;
+            }
+            const wrapperRect = wrapperEl.getBoundingClientRect();
+            // Width source for the clone's <colgroup> -- the header row
+            // itself can have colSpan-merged cells (germ-layer group
+            // labels, BrainRegionHeaderCell's merged brain columns) that
+            // don't map to one width per real column, so this reads the
+            // body instead. The order-label cell is excluded (only present
+            // on one row, via rowSpan, and its own width is the fixed
+            // 32px column below regardless of which row carries it) --
+            // whatever's left is always donor-id + one cell per tissueType,
+            // possibly colSpan-merged for the same reason the header can be.
+            // A colSpan cell's measured width is split evenly across the
+            // columns it covers -- an approximation, but a harmless one:
+            // the clone's own header re-merges those same columns back into
+            // one spanning <th> (via renderTableHeaderRows below), so only
+            // their *summed* width (unaffected by how it's subdivided)
+            // ever actually shows.
+            const firstBodyRow = tableEl.querySelector('tbody tr');
+            const bodyColWidths = [];
+            if (firstBodyRow) {
+                Array.from(firstBodyRow.children).forEach((cell) => {
+                    if (cell.classList.contains('tissue-heatmap-order-label')) return;
+                    const span = cell.colSpan || 1;
+                    const perColumnWidth = cell.getBoundingClientRect().width / span;
+                    for (let i = 0; i < span; i += 1) bodyColWidths.push(perColumnWidth);
+                });
+            }
+            setStickyHeader({
+                top: navOffset,
+                left: wrapperRect.left,
+                width: wrapperRect.width,
+                tableWidth: tableRect.width,
+                scrollLeft: wrapperEl.scrollLeft,
+                // Fixed 32px to match .tissue-heatmap-order-header/-label's
+                // own CSS-declared width (_search.scss) -- not measured,
+                // since that cell's rowSpan can put it on any row.
+                colWidths: [32, ...bodyColWidths],
+            });
+        };
+
+        const scheduleMeasure = () => {
+            if (rafId !== null) return;
+            rafId = window.requestAnimationFrame(measure);
+        };
+
+        scheduleMeasure();
+        window.addEventListener('scroll', scheduleMeasure, { passive: true });
+        window.addEventListener('resize', scheduleMeasure);
+        const wrapperEl = wrapperRef.current;
+        // The wrapper's own horizontal scroll -- keeps the stuck clone's
+        // translateX in sync so its columns stay aligned with the real
+        // (currently off-screen-above) table's horizontal scroll position.
+        wrapperEl?.addEventListener('scroll', scheduleMeasure, { passive: true });
+
+        return () => {
+            if (rafId !== null) window.cancelAnimationFrame(rafId);
+            window.removeEventListener('scroll', scheduleMeasure);
+            window.removeEventListener('resize', scheduleMeasure);
+            wrapperEl?.removeEventListener('scroll', scheduleMeasure);
+        };
+    }, []);
+
     return (
-        <div className="tissue-heatmap-table-wrap">
-            <table className="tissue-heatmap-table">
-                <thead>
-                    <tr className="tissue-heatmap-group-row">
-                        <th className="tissue-heatmap-order-header" rowSpan={2} />
-                        <th className="tissue-heatmap-donor-header" rowSpan={2}>
-                            <SortableHeaderLabel
-                                label="Donor ID"
-                                sortDirection={sortState?.key === 'donor' ? sortState.direction : null}
-                                // eslint-disable-next-line react/jsx-no-bind
-                                onClick={() => handleHeaderClick('donor')}
-                            />
-                        </th>
-                        {columnGroups.map((group, i) => (
-                            <th
-                                key={i}
-                                colSpan={group.span}
-                                className="tissue-heatmap-group-label"
-                                title={group.style.label}
-                                style={{
-                                    backgroundColor: group.style.backgroundColor,
-                                    color: group.style.textColor,
-                                }}>
-                                {group.style.label}
-                            </th>
-                        ))}
-                    </tr>
-                    <tr>
-                        {renderHeaderCells(
+        <>
+            {stickyHeader ? (
+                <div
+                    className="tissue-heatmap-sticky-header"
+                    style={{ top: stickyHeader.top, left: stickyHeader.left, width: stickyHeader.width }}>
+                    <table
+                        className="tissue-heatmap-table"
+                        style={{
+                            width: stickyHeader.tableWidth,
+                            transform: `translateX(${-stickyHeader.scrollLeft}px)`,
+                        }}>
+                        <colgroup>
+                            {stickyHeader.colWidths.map((colWidth, i) => (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <col key={i} style={{ width: colWidth }} />
+                            ))}
+                        </colgroup>
+                        <thead>
+                            {renderTableHeaderRows(
+                                columnGroups,
+                                tissueTypes,
+                                mergeableTissueTypes,
+                                tissueTypeHrefs,
+                                sortState,
+                                handleHeaderClick
+                            )}
+                        </thead>
+                    </table>
+                </div>
+            ) : null}
+            <div className="tissue-heatmap-table-wrap" ref={wrapperRef}>
+                <table className="tissue-heatmap-table" ref={tableRef}>
+                    <thead>
+                        {renderTableHeaderRows(
+                            columnGroups,
                             tissueTypes,
                             mergeableTissueTypes,
                             tissueTypeHrefs,
                             sortState,
                             handleHeaderClick
                         )}
-                    </tr>
-                </thead>
-                <tbody>
-                    {displayMatrix.map(({ donor, cells }, rowIndex) => (
-                        <tr key={donor}>
-                            {rowIndex === 0 ? (
-                                <td className="tissue-heatmap-order-label" rowSpan={displayMatrix.length}>
-                                    <span>{orderLabel}</span>
-                                </td>
-                            ) : null}
-                            <td className="tissue-heatmap-donor-id">{donor}</td>
-                            {renderRowCells(
-                                cells,
-                                tissueTypes,
-                                mergeableTissueTypes,
-                                formatValue,
-                                getScoreClass,
-                                enableConditionalColor
-                            )}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {displayMatrix.map(({ donor, cells }, rowIndex) => (
+                            <tr key={donor}>
+                                {rowIndex === 0 ? (
+                                    <td className="tissue-heatmap-order-label" rowSpan={displayMatrix.length}>
+                                        <span>{orderLabel}</span>
+                                    </td>
+                                ) : null}
+                                <td className="tissue-heatmap-donor-id">{donor}</td>
+                                {renderRowCells(
+                                    cells,
+                                    tissueTypes,
+                                    mergeableTissueTypes,
+                                    formatValue,
+                                    getScoreClass,
+                                    enableConditionalColor
+                                )}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </>
     );
 });
 
