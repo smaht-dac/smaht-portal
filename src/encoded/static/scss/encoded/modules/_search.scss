@@ -1647,6 +1647,23 @@ body[data-at-type^='Publication-collections'] {
                         }
                     }
                 }
+
+                &.suppressed {
+                    .thumbnail-title {
+                        .thumbnail {
+                            background-color: #f1f9ff;
+                            filter: grayscale(0.8);
+
+                            img {
+                                padding: 15px;
+                                object-fit: contain;
+                            }
+                        }
+                    }
+                    .title .value {
+                        color: #8d8e97;
+                    }
+                }
             }
 
             &:last-of-type {
