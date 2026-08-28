@@ -811,9 +811,20 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         );
     }, [matrix, sortState, tissueTypes, getSortValue]);
 
+    // A sort triggered from the merged "Brain" header (see
+    // BrainRegionHeaderCell) sets sortState.key to its first region's own
+    // tissueType (there's no single tissue_type the merged column itself
+    // could use as a key) -- label it "Brain" here too, matching what the
+    // user actually clicked, rather than that region's own code.
+    const sortKeyLabel =
+        sortState?.key === 'donor'
+            ? 'Donor ID'
+            : BRAIN_REGION_INTERNAL_CODES.includes(getTissueInternalCodeFromFacetTerm(sortState?.key))
+                ? 'Brain'
+                : formatTissueTypeHeaderLabel(sortState?.key);
     const orderLabel = !sortState
         ? 'Donor Distribution Order'
-        : `Sorted by ${sortState.key === 'donor' ? 'Donor ID' : formatTissueTypeHeaderLabel(sortState.key)} (${sortState.direction === 'asc' ? 'ascending' : 'descending'})`;
+        : `Sorted by ${sortKeyLabel} (${sortState.direction === 'asc' ? 'ascending' : 'descending'})`;
 
     return (
         <div className="tissue-heatmap-table-wrap">
