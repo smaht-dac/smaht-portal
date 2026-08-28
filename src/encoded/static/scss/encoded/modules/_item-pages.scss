@@ -1794,6 +1794,13 @@ File, Donor, and Publication Overview Styles
                     }
                 }
 
+                &.abstract {
+                    .body {
+                        font-size: 1rem;
+                        line-height: 1.8rem;
+                    }
+                }
+
                 .header {
                     display: flex;
                     height: 44px;
@@ -2706,7 +2713,7 @@ File, Donor, and Publication Overview Styles
                 .details {
                     display: flex;
                     gap: 8px;
-                    font-size: 0.875rem;
+                    font-size: 1rem;
 
                     .scope {
                         color: #5d5e63;
@@ -2737,13 +2744,13 @@ File, Donor, and Publication Overview Styles
                 display: flex;
                 align-items: flex-end;
                 h5 {
-                    font-size: 0.75rem;
+                    font-size: 0.85rem;
                     margin: 0px;
                 }
                 .copy-wrapper {
                     font-size: 0.75rem;
                     color: #94959a;
-                    margin-left: 8px;
+                    margin-left: 12px;
                 }
             }
 
@@ -2758,7 +2765,7 @@ File, Donor, and Publication Overview Styles
                     padding-right: 50px;
 
                     .citation {
-                        font-size: 0.85rem;
+                        font-size: 0.9rem;
                         line-height: 1.5rem;
                         margin-top: 10px;
                     }
@@ -2769,7 +2776,7 @@ File, Donor, and Publication Overview Styles
                     flex-direction: column;
 
                     h5 {
-                        font-size: 0.75rem;
+                        font-size: 0.85rem;
                         margin-top: 0px;
                         margin-bottom: 15px;
                     }
@@ -2810,7 +2817,7 @@ File, Donor, and Publication Overview Styles
                 border: none;
                 background-color: transparent;
                 margin-top: 10px;
-                font-size: 0.85rem;
+                font-size: 0.9rem;
             }
             .citation-details {
                 display: flex;
@@ -2820,17 +2827,17 @@ File, Donor, and Publication Overview Styles
                 .details-container {
                     display: flex;
                     flex: 1;
-                    gap: 20px;
+                    gap: 40px;
 
                     .full-authors {
                         display: flex;
                         flex: 1;
                         flex-direction: column;
                         gap: 15px;
-                        font-size: 0.85rem;
+                        font-size: 0.95rem;
 
                         .author-list {
-                            line-height: 1.5rem;
+                            line-height: 1.75rem;
                         }
                     }
                     .journal-details {
@@ -2838,7 +2845,7 @@ File, Donor, and Publication Overview Styles
                         flex: 1;
                         flex-direction: column;
                         gap: 15px;
-                        font-size: 0.85rem;
+                        font-size: 0.95rem;
                     }
                 }
             }

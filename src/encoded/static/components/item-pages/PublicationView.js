@@ -441,7 +441,9 @@ const PublicationView = React.memo(function PublicationView(props) {
                                 <h5>Publication Citation</h5>
                                 <object.CopyWrapper
                                     value={citationString}
-                                    wrapperElement="span"></object.CopyWrapper>
+                                    wrapperElement="span">
+                                    Copy
+                                </object.CopyWrapper>
                             </div>
                             <span className="citation">
                                 {citationString}
