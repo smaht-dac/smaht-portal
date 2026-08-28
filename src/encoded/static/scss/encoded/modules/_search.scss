@@ -2278,6 +2278,27 @@ div.browse-link-icon {
 	}
 }
 
+// The same 4-letter internal code every other column header shows
+// (formatTissueTypeHeaderLabel) -- a filled chip in front of each region's
+// full name here, not a plain inline prefix, so it reads as the same kind
+// of label rather than part of the sentence. A flat muted-text prefix
+// (no background, just a lighter color) read as low-contrast against the
+// white panel at this size -- a background + darker text gives it enough
+// tone separation from the full name next to it to actually scan quickly.
+.tissue-heatmap-brain-picker-code {
+	display: inline-block;
+	min-width: 38px;
+	margin-right: 8px;
+	padding: 1px 5px;
+	border-radius: 4px;
+	background-color: #EEF1F4;
+	font-size: 0.6875rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	text-align: center;
+	color: #4E6884;
+}
+
 .tissue-heatmap-card {
 	background-color: #FFFFFF;
 	position: relative;

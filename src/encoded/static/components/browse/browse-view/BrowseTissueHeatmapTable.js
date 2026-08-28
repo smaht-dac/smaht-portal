@@ -721,17 +721,29 @@ function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, 
             />
             {isOpen ? (
                 <ul className="tissue-heatmap-brain-picker-panel">
-                    {regionTissueTypes.map((tissueType) => (
-                        <li key={tissueType}>
-                            {tissueTypeHrefs[tissueType] ? (
-                                <a href={tissueTypeHrefs[tissueType]}>
-                                    {formatTissueTypeLabel(tissueType)}
-                                </a>
-                            ) : (
-                                formatTissueTypeLabel(tissueType)
-                            )}
-                        </li>
-                    ))}
+                    {regionTissueTypes.map((tissueType) => {
+                        // Same 4-letter code convention every other column
+                        // header already shows (formatTissueTypeHeaderLabel) --
+                        // added here too so a region picked from this list
+                        // reads as the same identity as its own (now-hidden,
+                        // merged-away) column would have.
+                        const code = getTissueInternalCodeFromFacetTerm(tissueType);
+                        const label = (
+                            <>
+                                {code ? <span className="tissue-heatmap-brain-picker-code">{code}</span> : null}
+                                {formatTissueTypeLabel(tissueType)}
+                            </>
+                        );
+                        return (
+                            <li key={tissueType}>
+                                {tissueTypeHrefs[tissueType] ? (
+                                    <a href={tissueTypeHrefs[tissueType]}>{label}</a>
+                                ) : (
+                                    label
+                                )}
+                            </li>
+                        );
+                    })}
                 </ul>
             ) : null}
         </div>
