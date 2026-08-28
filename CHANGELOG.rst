@@ -10,7 +10,7 @@ Change Log
 2.12.1
 ======
 
-`PR 753: Fix transcript info code check for RNA QC files <https://github.com/smaht-dac/smaht-portal/pull/753>`_
+`PR 754: Fix transcript info code check for RNA QC files <https://github.com/smaht-dac/smaht-portal/pull/754>`_
 
 * Annotated filename generation no longer requires a transcript information code for
   RNA Quantification files that are also in the ``Quality Control`` data category.
