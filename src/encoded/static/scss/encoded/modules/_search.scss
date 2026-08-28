@@ -2525,26 +2525,45 @@ div.browse-link-icon {
 		// already has -- score-band fill, zebra stripe, germ-layer group
 		// color -- without replacing it.
 		//
-		// Two things tuned after real feedback on earlier passes: (1) a
-		// thin-edge-line version (border-like box-shadows instead of a
-		// fill) read as broken/disconnected rather than a clean row/column
-		// marker, so this is back to a fill; (2) that fill's own opacity is
-		// now lower than the first fill attempt, and blue-tinted (matching
-		// the app's own accent, #2F62AA) rather than neutral grey, so it
-		// reads as a deliberate selection tint instead of muddying the
-		// score-band colors underneath.
-		// Row alpha is higher than the column's -- on an even (zebra-striped,
-		// #F7F9FB) row, the row tint stacks on top of a background that's
-		// already slightly off-white, so the same alpha as the column read
-		// as noticeably weaker there (confirmed against real use); bumped
-		// until it stands out consistently regardless of which zebra
-		// stripe it lands on.
-		tbody tr:hover td {
-			box-shadow: inset 0 0 0 9999px rgba(47, 98, 170, 0.09);
+		// Blue was tried first (matching the app's own accent) and
+		// confirmed, against a real densely-colored table, to basically
+		// disappear: the score-band scale is itself blue (light -> dark
+		// "Ocean"), so a blue tint at any reasonable opacity barely shifts
+		// an already-blue cell -- same hue family, too little perceptual
+		// contrast, especially on the darker score-2/score-3 bands most of
+		// a real table's cells land in. A thin-edge-line version (border-
+		// like box-shadows instead of a fill) was also tried and read as
+		// broken/disconnected rather than a clean marker.
+		//
+		// Amber is a genuinely different hue from the whole blue scale, so
+		// it shifts a light cell toward warm/cream and a dark cell toward
+		// warm/brown -- visible at both ends of the score range, not just
+		// against a plain white background.
+		//
+		// Written as plain literal rgba(...) calls, not a $variable spread
+		// via the `...` splat operator -- that produced a wildly wrong
+		// rendered color (bright green, not amber) against this project's
+		// Sass toolchain, almost certainly because `rgba()` is plain CSS
+		// syntax (not a real Sass function), and splatting a Sass list into
+		// it isn't reliably supported the way it is for actual Sass
+		// functions/mixins. Not worth re-testing without a real browser to
+		// verify against -- literal values sidestep the ambiguity entirely.
+		// `:not(.tissue-heatmap-order-label)` -- that cell is a single
+		// `rowSpan`-ing label for the whole table, not row-specific data;
+		// it only physically lives inside row 1's own <tr> in the DOM (a
+		// rowSpan cell renders once, in whichever row it starts on), so
+		// without this, hovering row 1 specifically lit up that entire
+		// vertical label for the whole table, not just row 1's own cells.
+		// Kept amber (not shifted to a brighter gold/yellow) and softened
+		// further -- per explicit request, this page should stay
+		// consistent with the rest of the app's soft/muted visual language
+		// rather than standing out on its own.
+		tbody tr:hover td:not(.tissue-heatmap-order-label) {
+			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.16);
 		}
 
 		.is-hovered-column {
-			box-shadow: inset 0 0 0 9999px rgba(47, 98, 170, 0.05);
+			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.12);
 		}
 
 		// The crosshair intersection -- the exact cell under the cursor --
@@ -2553,7 +2572,7 @@ div.browse-link-icon {
 		// specificity silently win outright, since box-shadow isn't
 		// additive across separate rules on the same element).
 		tbody tr:hover td.is-hovered-column {
-			box-shadow: inset 0 0 0 9999px rgba(47, 98, 170, 0.14);
+			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.26);
 		}
 
 		.tissue-heatmap-cell {
