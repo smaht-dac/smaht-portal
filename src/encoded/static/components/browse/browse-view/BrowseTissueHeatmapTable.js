@@ -492,7 +492,7 @@ export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
     );
 }
 
-function heatmapCellClassName(value, getScoreClass, enableConditionalColor) {
+function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHoveredColumn) {
     return (
         'tissue-heatmap-cell' +
         (enableConditionalColor ? ` ${getScoreClass(value)}` : '') +
@@ -500,7 +500,8 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor) {
         // dark text), not the score-band heatmap coloring
         // enableConditionalColor gates -- keeps real values legible against
         // empty ones either way.
-        (value === null || typeof value === 'undefined' ? ' is-empty' : '')
+        (value === null || typeof value === 'undefined' ? ' is-empty' : '') +
+        (isHoveredColumn ? ' is-hovered-column' : '')
     );
 }
 
@@ -513,7 +514,16 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor) {
 // -- both stay in sync since they walk the exact same tissueTypes/
 // mergeableTissueTypes inputs, so a merged body cell always lines up under
 // the one merged header cell spanning the same columns.
-function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor) {
+//
+// `hoveredColumn`/`onHoverColumn` -- crosshair highlighting (which row and
+// column a cell belongs to should be obvious on hover, per explicit
+// request). The row half needs no JS at all (`tbody tr:hover` in
+// _search.scss); the column half does, since plain CSS has no way to
+// select "every cell in the same column as the one being hovered" -- each
+// cell reports its own (possibly multi-tissueType, if merged) span on
+// mouseenter, MetricHeatmapTable stores it, and every cell -- this row's
+// and the header's (renderHeaderCells) -- checks it on render.
+function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor, hoveredColumn, onHoverColumn) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
@@ -529,11 +539,21 @@ function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, g
                 span += 1;
             }
         }
+        const columnTissueTypes = tissueTypes.slice(i, i + span);
         nodes.push(
             <td
                 key={tissueType}
                 colSpan={span > 1 ? span : undefined}
-                className={heatmapCellClassName(value, getScoreClass, enableConditionalColor)}>
+                className={heatmapCellClassName(
+                    value,
+                    getScoreClass,
+                    enableConditionalColor,
+                    columnTissueTypes.includes(hoveredColumn)
+                )}
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseEnter={() => onHoverColumn(tissueType)}
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseLeave={() => onHoverColumn(null)}>
                 {formatValue(value)}
             </td>
         );
@@ -548,7 +568,7 @@ function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, g
 // time comparing cell values (there's no single "value" for a header to
 // compare, only tissue_type identity, so the whole mergeable run always
 // merges as one, unconditionally).
-function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick) {
+function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn) {
     const nodes = [];
     let i = 0;
     while (i < tissueTypes.length) {
@@ -564,7 +584,15 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, s
                 span += 1;
             }
             nodes.push(
-                <th key={tissueType} colSpan={span > 1 ? span : undefined} title="Brain">
+                <th
+                    key={tissueType}
+                    colSpan={span > 1 ? span : undefined}
+                    title="Brain"
+                    className={regionTissueTypes.includes(hoveredColumn) ? 'is-hovered-column' : undefined}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseEnter={() => onHoverColumn(tissueType)}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseLeave={() => onHoverColumn(null)}>
                     <BrainRegionHeaderCell
                         regionTissueTypes={regionTissueTypes}
                         tissueTypeHrefs={tissueTypeHrefs}
@@ -577,7 +605,14 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, s
             continue;
         }
         nodes.push(
-            <th key={tissueType} title={tissueType}>
+            <th
+                key={tissueType}
+                title={tissueType}
+                className={hoveredColumn === tissueType ? 'is-hovered-column' : undefined}
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseEnter={() => onHoverColumn(tissueType)}
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseLeave={() => onHoverColumn(null)}>
                 {tissueTypeHrefs[tissueType] ? (
                     <a href={tissueTypeHrefs[tissueType]}>
                         {formatTissueTypeHeaderLabel(tissueType)}
@@ -604,7 +639,7 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, s
 // MetricHeatmapTable's scroll-measurement effect) -- sharing the same
 // `sortState`/`handleHeaderClick` closures so a sort click on either one
 // updates the same state and can never let the two drift out of sync.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick) {
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn) {
     return (
         <>
             <tr className="tissue-heatmap-group-row">
@@ -637,7 +672,9 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                     mergeableTissueTypes,
                     tissueTypeHrefs,
                     sortState,
-                    handleHeaderClick
+                    handleHeaderClick,
+                    hoveredColumn,
+                    onHoverColumn
                 )}
             </tr>
         </>
@@ -830,6 +867,12 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // comparison above.
     const [sortState, setSortState] = useState(null);
 
+    // Column-hover crosshair -- see renderRowCells' comment for why only
+    // this half needs JS (row-hover is plain CSS, `tbody tr:hover`).
+    // Shared by both the real and the sticky-clone header (renderTableHeaderRows)
+    // so the header stays highlighted even while scrolled/stuck.
+    const [hoveredColumn, setHoveredColumn] = useState(null);
+
     const handleHeaderClick = (key) => {
         setSortState((prev) => {
             if (!prev || prev.key !== key) return { key, direction: 'asc' };
@@ -1003,7 +1046,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 mergeableTissueTypes,
                                 tissueTypeHrefs,
                                 sortState,
-                                handleHeaderClick
+                                handleHeaderClick,
+                                hoveredColumn,
+                                setHoveredColumn
                             )}
                         </thead>
                     </table>
@@ -1018,7 +1063,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             mergeableTissueTypes,
                             tissueTypeHrefs,
                             sortState,
-                            handleHeaderClick
+                            handleHeaderClick,
+                            hoveredColumn,
+                            setHoveredColumn
                         )}
                     </thead>
                     <tbody>
@@ -1036,7 +1083,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     mergeableTissueTypes,
                                     formatValue,
                                     getScoreClass,
-                                    enableConditionalColor
+                                    enableConditionalColor,
+                                    hoveredColumn,
+                                    setHoveredColumn
                                 )}
                             </tr>
                         ))}
