@@ -47,6 +47,7 @@ ANALYSIS_INFO_SEPARATOR = "_"
 CHAIN_FILE_INFO_SEPARATOR = "To"
 DSA_INFO_VALUE = "DSA"
 
+QC_DATA_CATEGORY = "Quality Control"
 RNA_DATA_CATEGORY = "RNA Quantification"
 GENE_DATA_TYPE = "Gene Expression"
 ISOFORM_DATA_TYPE = "Transcript Expression"
@@ -1236,7 +1237,7 @@ def get_analysis_errors(
             errors.append("No reference genome code found")
         if not gene_annotation_code:
             errors.append("No gene annotation code found")
-        if not transcript_info_code:
+        if not transcript_info_code and QC_DATA_CATEGORY not in file_utils.get_data_category(file):
             errors.append("No transcript information code found")
     if file_format_utils.is_chain_file(file_extension):
         if not chain_code:
