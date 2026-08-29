@@ -675,6 +675,20 @@ export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
     );
 }
 
+// True only when this cell's entries actually disagree on value -- most
+// multi-record cells turn out to be several physical records (e.g. a Fixed
+// and a Frozen specimen) that just happen to carry the identical number
+// (often a single donor-level constant duplicated per organ). Flagging
+// those too meant the corner indicator lit up on nearly every cell in a
+// real table, which is exactly the "too many things demanding attention at
+// once" complaint it was meant to solve, not help with -- so the flag is
+// reserved for cells where hovering would actually surface a different
+// number, not just a different source record for the same one.
+function hasDistinctAltValues(entries) {
+    if (!entries || entries.length < 2) return false;
+    return entries.some((entry) => entry.value !== entries[0].value);
+}
+
 function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHoveredColumn, entries) {
     return (
         'tissue-heatmap-cell' +
@@ -685,12 +699,13 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHo
         // empty ones either way.
         (value === null || typeof value === 'undefined' ? ' is-empty' : '') +
         (isHoveredColumn ? ' is-hovered-column' : '') +
-        // Excel-style corner flag -- more than one real record is actually
-        // competing for this cell's value (see buildTissueMetricMatrix's
-        // pickPrimaryTissueRecord), not just the single-record case, which
-        // still shows a detail popover on hover (MetricHeatmapTable's
-        // hoverDetail) but doesn't need flagging.
-        (entries && entries.length > 1 ? ' has-alt-values' : '')
+        // Excel-style corner flag -- reserved for cells where the alternate
+        // record(s) actually carry a different value (see
+        // hasDistinctAltValues above), not just any multi-record cell. A
+        // same-value multi-record cell still shows the full detail popover
+        // on hover (MetricHeatmapTable's hoverDetail) -- it's just not
+        // flagged, since there's nothing there worth drawing the eye to.
+        (hasDistinctAltValues(entries) ? ' has-alt-values' : '')
     );
 }
 
