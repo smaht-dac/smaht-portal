@@ -2423,6 +2423,42 @@ div.browse-link-icon {
 	color: #5A6B7D;
 }
 
+// Only rendered for a data-driven scale (Ischemic Time's own quantile
+// split, see BrowseTissueHeatmapTable.js's buildScoreLegend/ScoreLegend) --
+// a fixed, already-explained scale (Autolysis Score's own 0=None..3=severe,
+// already spelled out in that tab's own info tooltip; Target Tissue %'s
+// named bands, self-explanatory on the cells themselves) doesn't need one.
+.tissue-heatmap-score-legend {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 14px;
+	padding: 8px 4px;
+	color: #5A6B7D;
+	font-size: 0.75rem;
+}
+
+.tissue-heatmap-score-legend-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.tissue-heatmap-score-legend-swatch {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border-radius: 3px;
+	// Same custom-property-first fallback the real cells read (see
+	// .tissue-heatmap-cell's own score-0..4 rules) -- a picked palette
+	// (HeatmapColorPicker) recolors the legend right along with the table.
+	&.score-0 { background-color: var(--heatmap-score-0-bg, #DAE4F1); }
+	&.score-1 { background-color: var(--heatmap-score-1-bg, #A2BCDD); }
+	&.score-2 { background-color: var(--heatmap-score-2-bg, #6A94C8); }
+	&.score-3 { background-color: var(--heatmap-score-3-bg, #3E6DA8); }
+	&.score-4 { background-color: var(--heatmap-score-4-bg, #294970); }
+}
+
 .tissue-heatmap-card {
 	background-color: #FFFFFF;
 	position: relative;
@@ -2629,7 +2665,7 @@ div.browse-link-icon {
 		// across a row instead of every cell reading as one flat block.
 		tbody tr:nth-child(even) {
 			.tissue-heatmap-donor-id,
-			.tissue-heatmap-cell:not(.score-0):not(.score-1):not(.score-2):not(.score-3) {
+			.tissue-heatmap-cell:not(.score-0):not(.score-1):not(.score-2):not(.score-3):not(.score-4) {
 				background-color: #F7F9FB;
 			}
 		}
@@ -2654,10 +2690,9 @@ div.browse-link-icon {
 		// disappear: the score-band scale is itself blue (light -> dark
 		// "Ocean"), so a blue tint at any reasonable opacity barely shifts
 		// an already-blue cell -- same hue family, too little perceptual
-		// contrast, especially on the darker score-2/score-3 bands most of
-		// a real table's cells land in. A thin-edge-line version (border-
-		// like box-shadows instead of a fill) was also tried and read as
-		// broken/disconnected rather than a clean marker.
+		// contrast, especially against the darker bands. A thin-edge-line
+		// version (border-like box-shadows instead of a fill) was also
+		// tried and read as broken/disconnected rather than a clean marker.
 		//
 		// Amber is a genuinely different hue from the whole blue scale, so
 		// it shifts a light cell toward warm/cream and a dark cell toward
@@ -2715,28 +2750,35 @@ div.browse-link-icon {
 			// A sequential blue scale (light -> dark), not a green->red
 			// ramp, since that read as a status/alarm signal regardless of
 			// what the metric measured -- "Ocean" (#22528E), generated via
-			// buildSequentialPaletteFromHex, same as any HeatmapColorPicker
-			// pick.
+			// buildSequentialPaletteFromHex(baseHex, 5), same as any
+			// HeatmapColorPicker pick. 5 bands, not 4 -- Ischemic Time's own
+			// quantile split and Target Tissue %'s 5 real bands both need a
+			// 5th (see buildRangeScoreClassifier/getTargetTissuePercentageScoreClass);
+			// Autolysis Score's 4 real levels just never reach score-4.
 			//
 			// Each background/text pair also reads a `--heatmap-score-N-bg`/
 			// `-text` custom property first, falling back to these hardcoded
 			// values when unset -- HeatmapColorPicker sets those inline on
 			// .tissue-heatmap-card when a user picks a different palette.
 			&.score-0 {
-				background-color: var(--heatmap-score-0-bg, #D2DFEE);
+				background-color: var(--heatmap-score-0-bg, #DAE4F1);
 				color: var(--heatmap-score-0-text, #28323C);
 			}
 			&.score-1 {
-				background-color: var(--heatmap-score-1-bg, #97B4D8);
+				background-color: var(--heatmap-score-1-bg, #A2BCDD);
 				color: var(--heatmap-score-1-text, #28323C);
 			}
 			&.score-2 {
-				background-color: var(--heatmap-score-2-bg, #4579BA);
-				color: var(--heatmap-score-2-text, #FFFFFF);
+				background-color: var(--heatmap-score-2-bg, #6A94C8);
+				color: var(--heatmap-score-2-text, #28323C);
 			}
 			&.score-3 {
-				background-color: var(--heatmap-score-3-bg, #2C4D77);
+				background-color: var(--heatmap-score-3-bg, #3E6DA8);
 				color: var(--heatmap-score-3-text, #FFFFFF);
+			}
+			&.score-4 {
+				background-color: var(--heatmap-score-4-bg, #294970);
+				color: var(--heatmap-score-4-text, #FFFFFF);
 			}
 			&.na,
 			&.is-empty {

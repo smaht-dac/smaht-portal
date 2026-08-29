@@ -289,18 +289,53 @@ function formatIschemicTime(value) {
     return `${value}`;
 }
 
-// Quartile-based banding splits whatever Ischemic Time values are actually
-// in this table into 4 equal-sized groups, so the color spread reflects this
-// dataset's own distribution rather than a fixed threshold (real values
-// cluster tightly, so fixed clinical-sounding bands leave the heatmap
-// showing little variation). Exported for unit testing.
-export function buildQuartileScoreClassifier(values) {
+// Equal-width banding splits whatever Ischemic Time values are actually in
+// this table into `bandCount` equal-width value ranges (not equal-*count*
+// groups -- an earlier quantile-based version of this did that, but was
+// switched away from after real use turned up the obvious complaint: two
+// bands' colors can look identical in "how much darker" terms while one
+// covers a 1-unit range and the other a 6-unit range, reading as an
+// arbitrary/unfair cutoff rather than a real difference). This still keeps
+// the color spread relative to this table's own actual values rather than a
+// fixed, clinical-sounding threshold (real values cluster tightly, so a
+// fixed scale leaves the heatmap showing little variation) -- it's just the
+// *width* of each band, not the count of values in it, that's now equal.
+//
+// The width itself is computed off the `clipFraction`..`1 - clipFraction`
+// quantiles, not the true min/max -- confirmed against real production data
+// that a plain equal-width split has its own opposite failure mode: one
+// genuine outlier (an apparent data-entry anomaly far below the rest) plus
+// one small but genuinely-higher cluster (this table's own brain-region
+// values) between them stretch the *whole* scale wide enough that the
+// entire ordinary middle of the data -- the large majority of real
+// cells -- collapses into a single band, reading as flatter/less
+// informative than the original quantile version it replaced. Clipping the
+// ends means the bulk of ordinary values still spread across the *whole*
+// palette; the outer 2 bands become "below/above the Nth percentile"
+// catch-alls instead of a single band each getting stretched by one
+// far-out value. 5 bands (not 4) -- with only 4, the two darkest of them
+// together always cover half the (clipped) value range by construction,
+// reading as a heavier/darker table than the underlying spread actually
+// warrants; a 5th band spreads that same total darkness across more,
+// individually lighter steps.
+//
+// Exported for unit testing. Returns `classify` (the per-value -> CSS-class
+// function every getScoreClass caller expects) alongside `thresholds` (the
+// band boundary values themselves, ascending, `bandCount - 1` of them, each
+// a clipped-quantile-derived value, not one of the raw data points) and the
+// table's own true (unclipped) `min`/`max` -- not `thresholds`' own first/
+// last entries -- so a caller rendering a legend states each outer band's
+// real extent (down to/up to what's actually in the table), not just where
+// its own clipped boundary happens to fall. Unlike Autolysis Score/Target
+// Tissue %'s own fixed, self-explanatory bands, these are computed fresh
+// from whatever's in the table and would otherwise be opaque.
+export function buildRangeScoreClassifier(values, bandCount = 5, clipFraction = 0.05) {
     const sorted = values
         .filter((value) => typeof value === 'number' && Number.isFinite(value))
         .slice()
         .sort((a, b) => a - b);
     if (sorted.length === 0) {
-        return () => 'na';
+        return { classify: () => 'na', thresholds: [] };
     }
     // Linear-interpolated quantile (same convention as numpy's default) --
     // exact index most of the time here since Ischemic Time datasets are
@@ -313,16 +348,75 @@ export function buildQuartileScoreClassifier(values) {
         if (lower === upper) return sorted[lower];
         return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
     };
-    const q1 = quantile(0.25);
-    const q2 = quantile(0.5);
-    const q3 = quantile(0.75);
-    return (value) => {
+    const clippedMin = quantile(clipFraction);
+    const clippedMax = quantile(1 - clipFraction);
+    const span = clippedMax - clippedMin;
+    const thresholds = Array.from(
+        { length: bandCount - 1 },
+        (unused, i) => clippedMin + (span * (i + 1)) / bandCount
+    );
+    const classify = (value) => {
         if (value === null || typeof value === 'undefined') return 'na';
-        if (value <= q1) return 'score-0';
-        if (value <= q2) return 'score-1';
-        if (value <= q3) return 'score-2';
-        return 'score-3';
+        // A value at or below clippedMin (or above every threshold, at or
+        // beyond clippedMax) still lands correctly in the first/last band
+        // here -- no separate clamping needed, since every threshold from
+        // clippedMin up is already >= it, so the very first comparison
+        // already succeeds.
+        const bandIndex = thresholds.findIndex((threshold) => value <= threshold);
+        return `score-${bandIndex === -1 ? bandCount - 1 : bandIndex}`;
     };
+    return { classify, thresholds, min: sorted[0], max: sorted[sorted.length - 1] };
+}
+
+// Number formatting for legend range labels -- values here are already
+// numbers (unlike the table's own formatValue, which also has to handle
+// n/a), just trimmed to 1 decimal so a float-math threshold like
+// 19.600000000000001 doesn't leak into the UI.
+function formatScoreLegendValue(value) {
+    return Number(value.toFixed(1)).toString();
+}
+
+// One legend entry per band -- {className, label} -- built from
+// buildRangeScoreClassifier's own thresholds/min/max, empty when there
+// were no real values to band in the first place (thresholds.length === 0
+// covers both the "no data at all" and "bandCount <= 1" cases). Bounds
+// each band by the table's own real min/max at the open ends instead of
+// leaving them as "<= X"/"> Y", since a reader has no other way to tell
+// whether that end is a hard cutoff or just wherever this table's data
+// happened to stop.
+function buildScoreLegend(scoring) {
+    const { thresholds, min, max } = scoring;
+    if (!thresholds || thresholds.length === 0) return [];
+    const bounds = [min, ...thresholds, max];
+    return bounds.slice(0, -1).map((lower, i) => {
+        const upper = bounds[i + 1];
+        return {
+            className: `score-${i}`,
+            label:
+                lower === upper
+                    ? formatScoreLegendValue(lower)
+                    : `${formatScoreLegendValue(lower)}–${formatScoreLegendValue(upper)}`,
+        };
+    });
+}
+
+// A color swatch + its own value range per band, for a metric (like
+// Ischemic Time) whose band boundaries are computed from the table's own
+// data rather than a fixed, already-explained scale -- see
+// buildScoreLegend. Renders nothing for a fixed-scale metric that doesn't
+// pass one in.
+function ScoreLegend({ entries }) {
+    if (!entries || entries.length === 0) return null;
+    return (
+        <div className="tissue-heatmap-score-legend">
+            {entries.map((entry) => (
+                <span className="tissue-heatmap-score-legend-item" key={entry.className}>
+                    <span className={`tissue-heatmap-score-legend-swatch ${entry.className}`} />
+                    {entry.label}
+                </span>
+            ))}
+        </div>
+    );
 }
 
 function formatAutolysisScore(value) {
@@ -395,7 +489,7 @@ function getTargetTissuePercentageSortValue(value) {
 // pick, so every preset is guaranteed to follow the same light->dark
 // construction (no hand-tuned-then-drifted swatches to keep in sync).
 export const HEATMAP_COLOR_PRESETS = [
-    // Default scale (see _search.scss's .score-0..3 fallback values) --
+    // Default scale (see _search.scss's .score-0..4 fallback values) --
     // listed here too so it's reachable by name after picking something else.
     { name: 'Ocean', hex: '#22528E' },
     { name: 'Teal', hex: '#2F8F83' },
@@ -461,15 +555,28 @@ function hslToRgb(h, s, l) {
     return seg.map((v) => (v + m) * 255);
 }
 
+// Lightness stops per band count -- 4 for a fixed-scale metric (Autolysis
+// Score's own 0-3 levels, and TissueTypeView's identical-shaped Donor
+// Details palette), 5 for Target Tissue %'s 5 real bands (TARGET_TISSUE_
+// PERCENTAGE_ORDER) and Ischemic Time's own quintile split
+// (buildRangeScoreClassifier) -- kept as explicit per-count arrays
+// (not one interpolated formula) so the existing 4-stop palette's exact
+// values -- already the CSS default fallback and every earlier preset pick
+// -- don't shift by rounding error just because a 5-stop caller exists now.
+const LIGHTNESS_STEPS_BY_BAND_COUNT = {
+    4: [88, 72, 50, 32],
+    5: [90, 75, 60, 45, 30],
+};
+
 // Exported for unit testing. Fixed saturation curve (clamped so a very
-// dull or very neon input hue still lands in a reasonable range) and
-// lightness steps -- only the hue actually comes from `baseHex`, so every
-// generated scale keeps the same light->dark "feel" regardless of which
-// color was picked.
-export function buildSequentialPaletteFromHex(baseHex) {
+// dull or very neon input hue still lands in a reasonable range) -- only
+// the hue actually comes from `baseHex`, so every generated scale keeps
+// the same light->dark "feel" regardless of which color was picked.
+export function buildSequentialPaletteFromHex(baseHex, bandCount = 4) {
     const [h, rawSaturation] = rgbToHsl(hexToRgb(baseHex));
     const saturation = clamp(rawSaturation, 28, 46);
-    return [88, 72, 50, 32].map((lightness) => {
+    const lightnessSteps = LIGHTNESS_STEPS_BY_BAND_COUNT[bandCount] || LIGHTNESS_STEPS_BY_BAND_COUNT[4];
+    return lightnessSteps.map((lightness) => {
         const bg = rgbToHex(hslToRgb(h, saturation, lightness));
         // Same threshold direction as the hardcoded default scale (light
         // bands get dark text, the darkest band or two get white text).
@@ -1026,7 +1133,11 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     metricLabel,
     formatValue,
     getScoreClass,
-    // Gates the score-band background coloring (score-0..score-3, applied
+    // See buildScoreLegend -- only a data-driven scale (Ischemic Time) needs
+    // this; a fixed, already-self-explanatory scale (Autolysis Score/Target
+    // Tissue %) leaves it unset and ScoreLegend renders nothing.
+    scoreLegend = null,
+    // Gates the score-band background coloring (score-0..score-4, applied
     // below) on each cell -- on by default using a neutral light->dark scale
     // (_search.scss), not the earlier green->yellow->orange->red ramp that
     // read as a status/alarm signal regardless of what the metric actually was.
@@ -1242,6 +1353,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
 
     return (
         <>
+            <ScoreLegend entries={scoreLegend} />
             {stickyHeader ? (
                 <div
                     className="tissue-heatmap-sticky-header"
@@ -1350,8 +1462,12 @@ export const BrowseTissueHeatmapTable = (props) => {
     // page view, and always starts back at the default (null = "use the
     // built-in scale") on every fresh page load, per explicit request.
     const [paletteBaseHex, setPaletteBaseHex] = useState(null);
+    // 5 stops -- matches Ischemic Time's own 5-band equal-width split and
+    // Target Tissue %'s 5 real bands (both scored/colored higher than
+    // Autolysis Score's 4), so a picked color still covers every band any
+    // tab on this page actually uses.
     const heatmapPalette = useMemo(
-        () => (paletteBaseHex ? buildSequentialPaletteFromHex(paletteBaseHex) : null),
+        () => (paletteBaseHex ? buildSequentialPaletteFromHex(paletteBaseHex, 5) : null),
         [paletteBaseHex]
     );
     const handlePickPaletteColor = (hex) => setPaletteBaseHex(hex);
@@ -1396,10 +1512,23 @@ export const BrowseTissueHeatmapTable = (props) => {
         [tissueResults]
     );
     // Built from this table's own real values -- see
-    // buildQuartileScoreClassifier for why fixed thresholds don't work here.
-    const ischemicTimeScoreClass = useMemo(
-        () => buildQuartileScoreClassifier(ischemicTime.matrix.flatMap((row) => row.cells)),
+    // buildRangeScoreClassifier for why fixed thresholds don't work here.
+    const ischemicTimeScoring = useMemo(
+        () => buildRangeScoreClassifier(ischemicTime.matrix.flatMap((row) => row.cells)),
         [ischemicTime]
+    );
+    // Each band's own value range, for the color legend below -- unlike
+    // Autolysis Score/Target Tissue %'s fixed, self-explanatory bands,
+    // these boundaries are computed fresh from whatever's actually in the
+    // table (see buildRangeScoreClassifier) and would otherwise be
+    // opaque (a color alone doesn't say "this donor's value was between X
+    // and Y hours").
+    // Legend hidden for now, see the scoreLegend={null} override below;
+    // kept computed so re-enabling it is just restoring that prop.
+    // eslint-disable-next-line no-unused-vars
+    const ischemicTimeScoreLegend = useMemo(
+        () => buildScoreLegend(ischemicTimeScoring),
+        [ischemicTimeScoring]
     );
     // Autolysis, like ischemic time, is assessed once per whole brain at
     // procurement, not independently per dissected sub-region, so every
@@ -1422,7 +1551,7 @@ export const BrowseTissueHeatmapTable = (props) => {
     );
 
     // Applied as CSS custom properties on the whole card -- _search.scss's
-    // .score-0..3 rules read these with a `var(--x, <hardcoded-default>)`
+    // .score-0..4 rules read these with a `var(--x, <hardcoded-default>)`
     // fallback, so leaving this undefined (no override picked) reproduces
     // the exact built-in scale unchanged.
     const paletteStyle = heatmapPalette
@@ -1472,7 +1601,12 @@ export const BrowseTissueHeatmapTable = (props) => {
                             {...ischemicTime}
                             metricLabel="Ischemic Time (h)"
                             formatValue={formatIschemicTime}
-                            getScoreClass={ischemicTimeScoreClass}
+                            getScoreClass={ischemicTimeScoring.classify}
+                            // Hidden for now -- ischemicTimeScoreLegend is still
+                            // computed above and ScoreLegend/buildScoreLegend
+                            // stay in place so this can come back with just
+                            // this prop restored.
+                            scoreLegend={null}
                             enableConditionalColor={enableConditionalColor}
                         />
                     )}
