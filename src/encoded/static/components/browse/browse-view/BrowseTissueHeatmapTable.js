@@ -59,21 +59,38 @@ function buildColumnGroups(tissueTypes, tissueTypeCategories) {
 // quote_via=quote_plus encoding for exactly that one character class.
 export const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g, '+');
 
+// A tissue_type maps back to a single anatomical location, but a donor
+// commonly has *two* Tissue records there -- one Fixed, one Frozen/Snap
+// Frozen, both sharing that same tissue_type (see get_tissue_type's own
+// ontology-term-based resolution, which doesn't distinguish preservation
+// type). Real production data confirms these two records' own ischemic_time
+// values genuinely differ, and not just by noise: for a given donor, the
+// Frozen value is typically identical across every one of that donor's
+// organs (a single donor-level timestamp -- e.g. time to the start of the
+// frozen-collection batch -- duplicated onto each Frozen record), while
+// the Fixed value varies per organ (a real, organ-specific measurement).
+// Fixed is therefore the more informative one to surface when both exist;
+// only falls back to whichever record actually has a value when one
+// doesn't. Exported for unit testing.
+export function pickPrimaryTissueRecord(candidates, getValue) {
+    const withValue = candidates.filter((t) => {
+        const value = getValue(t);
+        return value !== null && typeof value !== 'undefined';
+    });
+    const pool = withValue.length > 0 ? withValue : candidates;
+    return pool.find((t) => t.preservation_type === 'Fixed') || pool[0];
+}
+
+// "Fixed" vs everything else ("Snap Frozen", "Fresh", ...) is the same
+// two-way distinction AliquotVisualization.js's own slice coloring uses.
+function formatPreservationTypeLabel(preservationType) {
+    return preservationType === 'Fixed' ? 'Fixed' : 'Frozen';
+}
+
 // Exported for unit testing. Pivots raw Tissue search results into a
 // donor (external_id) x tissue_type matrix of values (as picked by
-// `getValue`), plus a tissue_type -> Tissue Overview page href map, used to
-// link column headers to /tissue-overview/?tissue_type=<value> (a real
-// tissue_type-keyed page, backed by encoded/tissue_overview.py -- unlike
-// the legacy /tissues/<uuid>/ page, which is keyed on a single Tissue
-// instance, not on tissue_type). type=Tissue, limit=all, and the
-// donor.study/donor.tags population filter are deliberately NOT in this
-// href -- tissue_overview.py forces all of them server-side, so the
-// address bar stays down to just tissue_type.
-//
-// When a donor has multiple Tissue records for the same tissue_type, the
-// one with a populated pathology_summary is preferred over an arbitrary
-// "last encountered" pick, matching the selection rule used by
-// TissueView.js's dedupeTissuesByDonor.
+// `getValue`), plus a tissue_type -> Tissue Overview page href map (see the
+// inline comment at its own build site below for that part's own rationale).
 //
 // `distributeGenericBrainValue` -- the generic "Brain" column is always
 // hidden, but copying its value into the region-specific columns first (and
@@ -92,7 +109,13 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
     const tissueTypes = [];
     const donors = [];
     const cellsByDonorAndTissue = {};
-    const tissueByDonorAndTissue = {};
+    // Every candidate Tissue record's own {value, label, isPrimary} for a
+    // (donor, tissue_type) key with more than one record -- absent
+    // entirely for the (typical) single-record case, so a cell only pays
+    // for the multi-value indicator/popover (see renderRowCells) when
+    // there's actually something to disambiguate.
+    const cellEntriesByDonorAndTissue = {};
+    const tissuesByKey = {};
     const tissueTypeHrefs = {};
     const tissueTypeCategories = {};
 
@@ -115,10 +138,35 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
         if (!tissueTypeCategories[tissueType] && t.category) tissueTypeCategories[tissueType] = t.category;
 
         const key = `${donorId} ${tissueType}`;
-        const existing = tissueByDonorAndTissue[key];
-        if (!existing || (!existing.pathology_summary && t.pathology_summary)) {
-            tissueByDonorAndTissue[key] = t;
-            cellsByDonorAndTissue[key] = getValue(t) ?? null;
+        (tissuesByKey[key] || (tissuesByKey[key] = [])).push(t);
+    });
+
+    Object.entries(tissuesByKey).forEach(([key, candidates]) => {
+        const primary = pickPrimaryTissueRecord(candidates, getValue);
+        cellsByDonorAndTissue[key] = getValue(primary) ?? null;
+        // A record with no value for this metric isn't a real alternative
+        // to disambiguate (just an empty record), so it's dropped here
+        // rather than surfaced as "Frozen: n/a" noise -- but the single-
+        // record case still gets an entry (shown on hover as a detail
+        // popover, just without the corner flag, which is reserved for the
+        // genuinely-competing-values case; see renderRowCells).
+        const entriesWithValue = candidates
+            .map((t) => {
+                return {
+                    value: getValue(t) ?? null,
+                    label: formatPreservationTypeLabel(t.preservation_type),
+                    isPrimary: t === primary,
+                    externalId: t.external_id || null,
+                };
+            })
+            .filter((entry) => entry.value !== null);
+        if (entriesWithValue.length > 0) {
+            // Primary listed first -- the popover otherwise reads in
+            // whatever order these records happened to come back from the
+            // search, not necessarily matching the cell's own shown value.
+            cellEntriesByDonorAndTissue[key] = entriesWithValue.sort(
+                (a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0)
+            );
         }
     });
 
@@ -134,12 +182,16 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
     if (genericBrainTissueType) {
         if (distributeGenericBrainValue) {
             donors.forEach((donorId) => {
-                const genericValue = cellsByDonorAndTissue[`${donorId} ${genericBrainTissueType}`];
+                const genericKey = `${donorId} ${genericBrainTissueType}`;
+                const genericValue = cellsByDonorAndTissue[genericKey];
                 if (genericValue === null || typeof genericValue === 'undefined') return;
                 brainRegionTissueTypes.forEach((regionTissueType) => {
                     const key = `${donorId} ${regionTissueType}`;
                     if (cellsByDonorAndTissue[key] === null || typeof cellsByDonorAndTissue[key] === 'undefined') {
                         cellsByDonorAndTissue[key] = genericValue;
+                        if (cellEntriesByDonorAndTissue[genericKey]) {
+                            cellEntriesByDonorAndTissue[key] = cellEntriesByDonorAndTissue[genericKey];
+                        }
                     }
                 });
             });
@@ -164,8 +216,31 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
         return {
             donor,
             cells: tissueTypes.map((tissueType) => cellsByDonorAndTissue[`${donor} ${tissueType}`] ?? null),
+            cellEntries: tissueTypes.map(
+                (tissueType) => cellEntriesByDonorAndTissue[`${donor} ${tissueType}`] || null
+            ),
         };
     });
+
+    // Whether the brain region columns merge into one value on *every* row,
+    // not just some -- gates whether the header itself collapses into one
+    // "Brain" dropdown cell (BrainRegionHeaderCell) or stays 5 separate,
+    // individually-headed columns (see renderColumnHeaderRows). A single
+    // shared table header can't follow a per-row decision the way body
+    // cells do, so it has to pick one or the other for the whole column
+    // run -- and defaults to NOT merging (leaving every region separately
+    // identifiable) unless every row actually agrees, since a merged
+    // header over even one row of genuinely differing values would hide
+    // which value belongs to which region.
+    const brainColumnIndexes = brainRegionTissueTypes
+        .map((tissueType) => tissueTypes.indexOf(tissueType))
+        .filter((index) => index !== -1);
+    const brainColumnsFullyMergeable =
+        brainColumnIndexes.length > 1 &&
+        matrix.every((row) => {
+            const firstValue = row.cells[brainColumnIndexes[0]] ?? null;
+            return brainColumnIndexes.every((index) => (row.cells[index] ?? null) === firstValue);
+        });
 
     return {
         tissueTypes,
@@ -185,6 +260,7 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
         mergeableTissueTypes: distributeGenericBrainValue
             ? new Set(brainRegionTissueTypes)
             : EMPTY_MERGEABLE_TISSUE_TYPES,
+        brainColumnsFullyMergeable,
     };
 };
 
@@ -492,7 +568,7 @@ export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
     );
 }
 
-function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHoveredColumn) {
+function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHoveredColumn, entries) {
     return (
         'tissue-heatmap-cell' +
         (enableConditionalColor ? ` ${getScoreClass(value)}` : '') +
@@ -501,7 +577,86 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHo
         // enableConditionalColor gates -- keeps real values legible against
         // empty ones either way.
         (value === null || typeof value === 'undefined' ? ' is-empty' : '') +
-        (isHoveredColumn ? ' is-hovered-column' : '')
+        (isHoveredColumn ? ' is-hovered-column' : '') +
+        // Excel-style corner flag -- more than one real record is actually
+        // competing for this cell's value (see buildTissueMetricMatrix's
+        // pickPrimaryTissueRecord), not just the single-record case, which
+        // still shows a detail popover on hover (MetricHeatmapTable's
+        // hoverDetail) but doesn't need flagging.
+        (entries && entries.length > 1 ? ' has-alt-values' : '')
+    );
+}
+
+// A rough upper bound on the popover's own rendered height (header + up to
+// a couple of entry rows in the common case) -- just needs to be generous
+// enough that flipping the decision based on it never lands the popover
+// past the viewport edge it was trying to avoid in the first place; a few
+// px of unused space above/below on an unusually short popover is harmless.
+const DETAIL_POPOVER_ESTIMATED_HEIGHT = 160;
+
+// `position: fixed` inline style for the detail popover, anchored off the
+// hovered cell's own live `getBoundingClientRect()` (see MetricHeatmapTable's
+// handleShowDetail) -- opens below-right of the cell by default, flipping
+// to open upward when there isn't estimated room below in the *viewport*
+// (not just the table), same reasoning `.tissue-heatmap-sticky-header`
+// already applies to the header itself. Returns `isFlippedUp` alongside
+// the style so the caller can also flip the popover's own arrow to match.
+function getDetailPopoverStyle(rect) {
+    const isFlippedUp = rect.bottom + DETAIL_POPOVER_ESTIMATED_HEIGHT + 10 > window.innerHeight;
+    return {
+        isFlippedUp,
+        style: {
+            position: 'fixed',
+            right: window.innerWidth - rect.right,
+            ...(isFlippedUp
+                ? { bottom: window.innerHeight - rect.top + 10 }
+                : { top: rect.bottom + 10 }),
+        },
+    };
+}
+
+// Backing Tissue record(s) for the currently-hovered cell -- see
+// buildTissueMetricMatrix's cellEntries and MetricHeatmapTable's
+// hoverDetail/handleShowDetail for why this renders `position: fixed` at a
+// JS-computed spot rather than as a plain CSS :hover-revealed descendant of
+// the cell. The header names the column's own tissue_type (e.g. "Brain,
+// Cerebellum") rather than a generic "Tissue record" -- this can pop up
+// under a merged "Brain" header (see renderHeaderCells) where no other
+// visible label ties a given column back to which region it actually is.
+// `metricLabel` (the current tab's own name, e.g. "Autolysis Score") is
+// shown too -- the value itself is otherwise unlabeled here, and this same
+// popover renders identically across all 3 tabs, so nothing else in it
+// says which metric a bare "2" is even measuring.
+function renderCellAltValues(entries, tissueType, metricLabel, formatValue, style, isFlippedUp) {
+    if (!entries) return null;
+    return (
+        <div
+            className={'tissue-heatmap-cell-alt-values' + (isFlippedUp ? ' is-flipped-up' : '')}
+            style={style}>
+            <div className="tissue-heatmap-cell-alt-values-header">
+                <div className="tissue-heatmap-cell-alt-values-tissue">
+                    {formatTissueTypeLabel(tissueType)}
+                </div>
+                {metricLabel ? (
+                    <div className="tissue-heatmap-cell-alt-values-metric">{metricLabel}</div>
+                ) : null}
+            </div>
+            {entries.map((entry, i) => (
+                <div
+                    key={i}
+                    className={'tissue-heatmap-cell-alt-values-row' + (entry.isPrimary ? ' is-primary' : '')}>
+                    <span className="tissue-heatmap-cell-alt-values-id">
+                        {entry.label ? (
+                            <span className="tissue-heatmap-cell-alt-values-tag">{entry.label}</span>
+                        ) : null}
+                        {entry.externalId ? (
+                            <span className="tissue-heatmap-cell-alt-values-extid">{entry.externalId}</span>
+                        ) : null}
+                    </span>
+                    <span className="tissue-heatmap-cell-alt-values-value">{formatValue(entry.value)}</span>
+                </div>
+            ))}
+        </div>
     );
 }
 
@@ -509,11 +664,12 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHo
 // columns that share the exact same value (e.g. the brain regions a
 // generic "Brain" value was distributed into, see buildTissueMetricMatrix)
 // into a single spanning <td> instead of repeating that value once per
-// column. The header row above merges the same run too now (see
-// renderHeaderCells), into one synthetic "Brain" cell (BrainRegionHeaderCell)
-// -- both stay in sync since they walk the exact same tissueTypes/
-// mergeableTissueTypes inputs, so a merged body cell always lines up under
-// the one merged header cell spanning the same columns.
+// column. The header row above merges the same run too (renderHeaderCells),
+// but only when buildTissueMetricMatrix's brainColumnsFullyMergeable says
+// *every* row agrees, not just this one -- so a merged header always lines
+// up with either a merged body cell (when it does) or the same number of
+// separately-headed individual cells (when this particular row didn't
+// merge, e.g. a "no value at all" row).
 //
 // `hoveredColumn`/`onHoverColumn` -- crosshair highlighting (which row and
 // column a cell belongs to should be obvious on hover, per explicit
@@ -523,12 +679,13 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHo
 // cell reports its own (possibly multi-tissueType, if merged) span on
 // mouseenter, MetricHeatmapTable stores it, and every cell -- this row's
 // and the header's (renderHeaderCells) -- checks it on render.
-function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor, hoveredColumn, onHoverColumn) {
+function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor, hoveredColumn, onHoverColumn, onShowDetail, onHideDetail) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
         const tissueType = tissueTypes[i];
         const value = cells[i];
+        const entries = cellEntries?.[i] || null;
         let span = 1;
         if (mergeableTissueTypes.has(tissueType)) {
             while (
@@ -548,12 +705,19 @@ function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, g
                     value,
                     getScoreClass,
                     enableConditionalColor,
-                    columnTissueTypes.includes(hoveredColumn)
+                    columnTissueTypes.includes(hoveredColumn),
+                    entries
                 )}
                 // eslint-disable-next-line react/jsx-no-bind
-                onMouseEnter={() => onHoverColumn(tissueType)}
+                onMouseEnter={(event) => {
+                    onHoverColumn(tissueType);
+                    onShowDetail(event.currentTarget, entries, tissueType);
+                }}
                 // eslint-disable-next-line react/jsx-no-bind
-                onMouseLeave={() => onHoverColumn(null)}>
+                onMouseLeave={() => {
+                    onHoverColumn(null);
+                    onHideDetail();
+                }}>
                 {formatValue(value)}
             </td>
         );
@@ -562,18 +726,127 @@ function renderRowCells(cells, tissueTypes, mergeableTissueTypes, formatValue, g
     return nodes;
 }
 
-// Header-row counterpart to renderRowCells above -- merges the same
-// consecutive run of `mergeableTissueTypes` columns into one spanning <th>
-// (BrainRegionHeaderCell), rather than one column-identity-driven pass at a
-// time comparing cell values (there's no single "value" for a header to
-// compare, only tissue_type identity, so the whole mergeable run always
-// merges as one, unconditionally).
-function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn) {
+// Shared by every individual tissue_type column header -- ordinary columns
+// always, brain regions too whenever they're not merged into one "Brain"
+// header (see renderHeaderCells/BrainRegionHeaderCell) -- so a region still
+// gets this same code+name link and sort button on its own whenever its
+// value can't be safely summarized under the shared label.
+function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortState, handleHeaderClick }) {
+    return (
+        <>
+            {tissueTypeHrefs[tissueType] ? (
+                <a href={tissueTypeHrefs[tissueType]}>{formatTissueTypeHeaderLabel(tissueType)}</a>
+            ) : (
+                formatTissueTypeHeaderLabel(tissueType)
+            )}
+            <SortableHeaderLabel
+                label=""
+                sortDirection={sortState?.key === tissueType ? sortState.direction : null}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={() => handleHeaderClick(tissueType)}
+            />
+        </>
+    );
+}
+
+// Header cell for a run of merged brain-region columns -- only rendered
+// when buildTissueMetricMatrix's brainColumnsFullyMergeable says every
+// row's regions actually agree (see renderHeaderCells); a merged header
+// over even one row of genuinely differing values would hide which value
+// belongs to which region. This is a *synthetic* "Brain" label, distinct
+// from the real (always-hidden) generic "Brain" tissue_type column
+// buildTissueMetricMatrix drops -- there's no single tissue_type this
+// header could link to, so clicking it opens a small picker of the real
+// regions instead of navigating directly, trading one click for still
+// reaching a real tissue-overview page. Same outside-click-to-close
+// pattern as HeatmapColorPicker above.
+function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+    // Every row's regions agree here (that's what made this mergeable), so
+    // sorting by any one of the 5 is equivalent to sorting by "Brain" as a
+    // whole -- the first region is an arbitrary but stable choice.
+    const [sortKey] = regionTissueTypes;
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && containerRef.current?.contains(event.target)) {
+                return;
+            }
+            setIsOpen(false);
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="tissue-heatmap-brain-picker" ref={containerRef}>
+            <button
+                type="button"
+                className="tissue-heatmap-brain-picker-toggle"
+                onClick={() => setIsOpen((prev) => !prev)}
+                aria-expanded={isOpen}
+                title="Brain -- pick a region to view its own Tissue Overview page">
+                Brain
+                <i className={`icon icon-fw fas ${isOpen ? 'icon-caret-up' : 'icon-caret-down'}`} />
+            </button>
+            <SortableHeaderLabel
+                label=""
+                sortDirection={sortState?.key === sortKey ? sortState.direction : null}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={() => handleHeaderClick(sortKey)}
+            />
+            {isOpen ? (
+                <ul className="tissue-heatmap-brain-picker-panel">
+                    {regionTissueTypes.map((tissueType) => {
+                        // Same 4-letter code convention every other column
+                        // header already shows (formatTissueTypeHeaderLabel) --
+                        // added here too so a region picked from this list
+                        // reads as the same identity as its own (now-hidden,
+                        // merged-away) column would have.
+                        const code = getTissueInternalCodeFromFacetTerm(tissueType);
+                        const label = (
+                            <>
+                                {code ? <span className="tissue-heatmap-brain-picker-code">{code}</span> : null}
+                                {formatTissueTypeLabel(tissueType)}
+                            </>
+                        );
+                        return (
+                            <li key={tissueType}>
+                                {tissueTypeHrefs[tissueType] ? (
+                                    <a href={tissueTypeHrefs[tissueType]}>{label}</a>
+                                ) : (
+                                    label
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
+            ) : null}
+        </div>
+    );
+}
+
+// Header-row counterpart to renderRowCells above. A run of
+// `mergeableTissueTypes` columns (the 5 brain regions) only collapses into
+// one shared "Brain" header (BrainRegionHeaderCell) when
+// `mergeBrainHeader` says every row's regions actually agree (see
+// buildTissueMetricMatrix's brainColumnsFullyMergeable) -- otherwise each
+// region keeps its own individual header (IndividualTissueTypeHeaderLabel),
+// same as any other column, so a value can always be traced back to the
+// region it belongs to.
+function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn) {
     const nodes = [];
     let i = 0;
     while (i < tissueTypes.length) {
         const tissueType = tissueTypes[i];
-        if (mergeableTissueTypes.has(tissueType)) {
+        if (mergeableTissueTypes.has(tissueType) && mergeBrainHeader) {
             const regionTissueTypes = [tissueType];
             let span = 1;
             while (
@@ -613,18 +886,11 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, s
                 onMouseEnter={() => onHoverColumn(tissueType)}
                 // eslint-disable-next-line react/jsx-no-bind
                 onMouseLeave={() => onHoverColumn(null)}>
-                {tissueTypeHrefs[tissueType] ? (
-                    <a href={tissueTypeHrefs[tissueType]}>
-                        {formatTissueTypeHeaderLabel(tissueType)}
-                    </a>
-                ) : (
-                    formatTissueTypeHeaderLabel(tissueType)
-                )}
-                <SortableHeaderLabel
-                    label=""
-                    sortDirection={sortState?.key === tissueType ? sortState.direction : null}
-                    // eslint-disable-next-line react/jsx-no-bind
-                    onClick={() => handleHeaderClick(tissueType)}
+                <IndividualTissueTypeHeaderLabel
+                    tissueType={tissueType}
+                    tissueTypeHrefs={tissueTypeHrefs}
+                    sortState={sortState}
+                    handleHeaderClick={handleHeaderClick}
                 />
             </th>
         );
@@ -639,7 +905,7 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, tissueTypeHrefs, s
 // MetricHeatmapTable's scroll-measurement effect) -- sharing the same
 // `sortState`/`handleHeaderClick` closures so a sort click on either one
 // updates the same state and can never let the two drift out of sync.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn) {
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn) {
     return (
         <>
             <tr className="tissue-heatmap-group-row">
@@ -670,6 +936,7 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                 {renderHeaderCells(
                     tissueTypes,
                     mergeableTissueTypes,
+                    mergeBrainHeader,
                     tissueTypeHrefs,
                     sortState,
                     handleHeaderClick,
@@ -748,96 +1015,15 @@ export function SortableHeaderLabel({ label, sortDirection, onClick }) {
     );
 }
 
-// Header cell for a run of merged brain-region columns (see
-// renderRowCells/mergeableTissueTypes -- the body cells underneath already
-// collapse into one spanning "Brain" cell whenever a donor's regions all
-// share the same value, which they empirically always do for every metric
-// that sets distributeGenericBrainValue). This is a *synthetic* "Brain"
-// label, distinct from the real (always-hidden) generic "Brain" tissue_type
-// column buildTissueMetricMatrix drops -- there's no single tissue_type
-// this header could link to, so clicking it opens a small picker of the
-// real regions instead of navigating directly, trading one click for still
-// reaching a real tissue-overview page. Same outside-click-to-close pattern
-// as HeatmapColorPicker above.
-function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const containerRef = useRef(null);
-    // A merged run's rows all carry the same value across every region
-    // (that's what made them mergeable), so sorting by any one of the 5 is
-    // equivalent to sorting by "Brain" as a whole -- the first region is an
-    // arbitrary but stable choice.
-    const [sortKey] = regionTissueTypes;
-
-    useEffect(() => {
-        if (!isOpen) return undefined;
-        function handleOutsideEvent(event) {
-            if (event.type === 'keydown' && event.key !== 'Escape') return;
-            if (event.type === 'mousedown' && containerRef.current?.contains(event.target)) {
-                return;
-            }
-            setIsOpen(false);
-        }
-        document.addEventListener('mousedown', handleOutsideEvent);
-        document.addEventListener('keydown', handleOutsideEvent);
-        return () => {
-            document.removeEventListener('mousedown', handleOutsideEvent);
-            document.removeEventListener('keydown', handleOutsideEvent);
-        };
-    }, [isOpen]);
-
-    return (
-        <div className="tissue-heatmap-brain-picker" ref={containerRef}>
-            <button
-                type="button"
-                className="tissue-heatmap-brain-picker-toggle"
-                onClick={() => setIsOpen((prev) => !prev)}
-                aria-expanded={isOpen}
-                title="Brain -- pick a region to view its own Tissue Overview page">
-                Brain
-                <i className={`icon icon-fw fas ${isOpen ? 'icon-caret-up' : 'icon-caret-down'}`} />
-            </button>
-            <SortableHeaderLabel
-                label=""
-                sortDirection={sortState?.key === sortKey ? sortState.direction : null}
-                // eslint-disable-next-line react/jsx-no-bind
-                onClick={() => handleHeaderClick(sortKey)}
-            />
-            {isOpen ? (
-                <ul className="tissue-heatmap-brain-picker-panel">
-                    {regionTissueTypes.map((tissueType) => {
-                        // Same 4-letter code convention every other column
-                        // header already shows (formatTissueTypeHeaderLabel) --
-                        // added here too so a region picked from this list
-                        // reads as the same identity as its own (now-hidden,
-                        // merged-away) column would have.
-                        const code = getTissueInternalCodeFromFacetTerm(tissueType);
-                        const label = (
-                            <>
-                                {code ? <span className="tissue-heatmap-brain-picker-code">{code}</span> : null}
-                                {formatTissueTypeLabel(tissueType)}
-                            </>
-                        );
-                        return (
-                            <li key={tissueType}>
-                                {tissueTypeHrefs[tissueType] ? (
-                                    <a href={tissueTypeHrefs[tissueType]}>{label}</a>
-                                ) : (
-                                    label
-                                )}
-                            </li>
-                        );
-                    })}
-                </ul>
-            ) : null}
-        </div>
-    );
-}
-
 const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     tissueTypes,
     tissueTypeHrefs,
     tissueTypeCategories,
     matrix,
+    // This tab's own name (e.g. "Autolysis Score") -- threaded down only
+    // as far as the cell detail popover (renderCellAltValues), which
+    // otherwise has no way to say which metric its own value is.
+    metricLabel,
     formatValue,
     getScoreClass,
     // Gates the score-band background coloring (score-0..score-3, applied
@@ -848,6 +1034,10 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // See renderRowCells -- which columns are eligible to have consecutive
     // equal-valued cells in the same row merged into one spanning cell.
     mergeableTissueTypes = EMPTY_MERGEABLE_TISSUE_TYPES,
+    // See buildTissueMetricMatrix -- whether every row's mergeableTissueTypes
+    // columns actually agree, gating the header's own "Brain" merge
+    // (renderHeaderCells) the same way mergeableTissueTypes gates the body's.
+    brainColumnsFullyMergeable = false,
     // Extracts a comparable value from a raw cell value for sorting -- see
     // defaultGetSortValue's comment for why Target Tissue % overrides this.
     getSortValue = defaultGetSortValue,
@@ -872,6 +1062,32 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // Shared by both the real and the sticky-clone header (renderTableHeaderRows)
     // so the header stays highlighted even while scrolled/stuck.
     const [hoveredColumn, setHoveredColumn] = useState(null);
+
+    // A cell's own detail popover (renderCellAltValues) used to be a plain
+    // CSS :hover-revealed descendant of the <td> -- but that <td> sits
+    // inside .tissue-heatmap-table-wrap, which needs `overflow-x: auto`
+    // for the table's own horizontal scroll and (per the CSS overflow
+    // spec, same trap .tissue-heatmap-sticky-header's own comment
+    // documents) that forces `overflow-y: auto` too. The wrapper's own
+    // height only ever accounts for normal-flow content, not an
+    // absolutely-positioned popover extending past it, so showing one
+    // suddenly made the wrapper discover overflow it didn't have a moment
+    // ago -- a vertical scrollbar popping in (a visible content shift) and
+    // clipping the popover's own bottom edge against that same, freshly
+    // vertical-scrolling box. `position: fixed`, positioned here in JS off
+    // the hovered cell's live `getBoundingClientRect()` rather than as a
+    // CSS descendant, is the only value that escapes that trap (same
+    // reason .tissue-heatmap-sticky-header itself has to be fixed, not
+    // sticky) -- `null` or `{ rect, entries, tissueType }`.
+    const [hoverDetail, setHoverDetail] = useState(null);
+    const handleShowDetail = (targetEl, entries, tissueType) => {
+        if (!entries) return;
+        setHoverDetail({ rect: targetEl.getBoundingClientRect(), entries, tissueType });
+    };
+    const handleHideDetail = () => setHoverDetail(null);
+    const detailPopoverPosition = hoverDetail
+        ? getDetailPopoverStyle(hoverDetail.rect)
+        : null;
 
     const handleHeaderClick = (key) => {
         setSortState((prev) => {
@@ -900,15 +1116,18 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         );
     }, [matrix, sortState, tissueTypes, getSortValue]);
 
-    // A sort triggered from the merged "Brain" header (see
-    // BrainRegionHeaderCell) sets sortState.key to its first region's own
-    // tissueType (there's no single tissue_type the merged column itself
-    // could use as a key) -- label it "Brain" here too, matching what the
-    // user actually clicked, rather than that region's own code.
+    // A sort triggered from the merged "Brain" header (only rendered when
+    // brainColumnsFullyMergeable, see BrainRegionHeaderCell) sets
+    // sortState.key to its first region's own tissueType (there's no single
+    // tissue_type the merged column itself could use as a key) -- label it
+    // "Brain" here too, matching what the user actually clicked, rather
+    // than that region's own code. Doesn't apply when the header isn't
+    // merged -- there, sortState.key really is that one region's own
+    // column, and its own code is the accurate label.
     const sortKeyLabel =
         sortState?.key === 'donor'
             ? 'Donor ID'
-            : BRAIN_REGION_INTERNAL_CODES.includes(getTissueInternalCodeFromFacetTerm(sortState?.key))
+            : brainColumnsFullyMergeable && mergeableTissueTypes.has(sortState?.key)
                 ? 'Brain'
                 : formatTissueTypeHeaderLabel(sortState?.key);
     const orderLabel = !sortState
@@ -963,8 +1182,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
             const wrapperRect = wrapperEl.getBoundingClientRect();
             // Width source for the clone's <colgroup> -- the header row
             // itself can have colSpan-merged cells (germ-layer group
-            // labels, BrainRegionHeaderCell's merged brain columns) that
-            // don't map to one width per real column, so this reads the
+            // labels, the "Brain" sub-group banner) that don't map to one
+            // width per real column, so this reads the
             // body instead. The order-label cell is excluded (only present
             // on one row, via rowSpan, and its own width is the fixed
             // 32px column below regardless of which row carries it) --
@@ -1044,6 +1263,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 columnGroups,
                                 tissueTypes,
                                 mergeableTissueTypes,
+                                brainColumnsFullyMergeable,
                                 tissueTypeHrefs,
                                 sortState,
                                 handleHeaderClick,
@@ -1061,6 +1281,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             columnGroups,
                             tissueTypes,
                             mergeableTissueTypes,
+                            brainColumnsFullyMergeable,
                             tissueTypeHrefs,
                             sortState,
                             handleHeaderClick,
@@ -1069,7 +1290,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         )}
                     </thead>
                     <tbody>
-                        {displayMatrix.map(({ donor, cells }, rowIndex) => (
+                        {displayMatrix.map(({ donor, cells, cellEntries }, rowIndex) => (
                             <tr key={donor}>
                                 {rowIndex === 0 ? (
                                     <td className="tissue-heatmap-order-label" rowSpan={displayMatrix.length}>
@@ -1079,19 +1300,32 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 <td className="tissue-heatmap-donor-id">{donor}</td>
                                 {renderRowCells(
                                     cells,
+                                    cellEntries,
                                     tissueTypes,
                                     mergeableTissueTypes,
                                     formatValue,
                                     getScoreClass,
                                     enableConditionalColor,
                                     hoveredColumn,
-                                    setHoveredColumn
+                                    setHoveredColumn,
+                                    handleShowDetail,
+                                    handleHideDetail
                                 )}
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            {hoverDetail
+                ? renderCellAltValues(
+                    hoverDetail.entries,
+                    hoverDetail.tissueType,
+                    metricLabel,
+                    formatValue,
+                    detailPopoverPosition.style,
+                    detailPopoverPosition.isFlippedUp
+                )
+                : null}
         </>
     );
 });
@@ -1236,6 +1470,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                     ) : (
                         <MetricHeatmapTable
                             {...ischemicTime}
+                            metricLabel="Ischemic Time (h)"
                             formatValue={formatIschemicTime}
                             getScoreClass={ischemicTimeScoreClass}
                             enableConditionalColor={enableConditionalColor}
@@ -1259,6 +1494,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                     ) : (
                         <MetricHeatmapTable
                             {...autolysisScore}
+                            metricLabel="Autolysis Score"
                             formatValue={formatAutolysisScore}
                             getScoreClass={getAutolysisScoreClass}
                             enableConditionalColor={enableConditionalColor}
@@ -1282,6 +1518,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                     ) : (
                         <MetricHeatmapTable
                             {...targetTissuePercentage}
+                            metricLabel="Target Tissue %"
                             formatValue={formatTargetTissuePercentage}
                             getScoreClass={getTargetTissuePercentageScoreClass}
                             getSortValue={getTargetTissuePercentageSortValue}

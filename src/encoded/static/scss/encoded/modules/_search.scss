@@ -2210,10 +2210,11 @@ div.browse-link-icon {
 }
 
 // The synthetic "Brain" header cell (BrowseTissueHeatmapTable.js's
-// BrainRegionHeaderCell) covers a run of merged brain-region columns; since
-// there's no single tissue_type to link to, this opens a small picker of the
-// real regions instead. Deliberately NOT nested under `.tissue-heatmap-card`
-// so it looks right wherever this header cell renders.
+// BrainRegionHeaderCell), only rendered when every row's regions actually
+// agree (brainColumnsFullyMergeable) -- since there's no single tissue_type
+// to link to, this opens a small picker of the real regions instead.
+// Deliberately NOT nested under `.tissue-heatmap-card` so it looks right
+// wherever this header cell renders.
 .tissue-heatmap-brain-picker {
 	position: relative;
 	display: inline-block;
@@ -2281,10 +2282,7 @@ div.browse-link-icon {
 // The same 4-letter internal code every other column header shows
 // (formatTissueTypeHeaderLabel) -- a filled chip in front of each region's
 // full name here, not a plain inline prefix, so it reads as the same kind
-// of label rather than part of the sentence. A flat muted-text prefix
-// (no background, just a lighter color) read as low-contrast against the
-// white panel at this size -- a background + darker text gives it enough
-// tone separation from the full name next to it to actually scan quickly.
+// of label rather than part of the sentence.
 .tissue-heatmap-brain-picker-code {
 	display: inline-block;
 	min-width: 38px;
@@ -2297,6 +2295,132 @@ div.browse-link-icon {
 	letter-spacing: 0.02em;
 	text-align: center;
 	color: #4E6884;
+}
+
+// A cell's own detail popover (BrowseTissueHeatmapTable.js's
+// renderCellAltValues) -- `position: fixed`, positioned in JS off the
+// hovered cell's own live `getBoundingClientRect()` (MetricHeatmapTable's
+// handleShowDetail/getDetailPopoverStyle), not a plain CSS
+// :hover-revealed descendant of the cell -- the table's own scroll
+// wrapper needs `overflow-x: auto`, which (same trap
+// `.tissue-heatmap-sticky-header`'s own comment documents) forces
+// `overflow-y: auto` too, clipping anything absolutely-positioned past the
+// wrapper's own bounds and popping in a vertical scrollbar the moment it
+// tried. Deliberately NOT nested under `.tissue-heatmap-card`/the table for
+// the same reason -- this renders as a sibling of the scrollable wrapper,
+// not a descendant of it.
+.tissue-heatmap-cell-alt-values {
+	// A real card (white, bordered, arrowed), not a dark tooltip bubble --
+	// matches the rest of the app's own popovers (e.g. the aliquot
+	// popover), and has room for a header + label/value rows instead of
+	// just a bare value.
+	display: flex;
+	flex-direction: column;
+	position: fixed;
+	z-index: 30;
+	min-width: 200px;
+	padding: 8px 0;
+	border-radius: 8px;
+	border: 1px solid #E1E7ED;
+	background-color: #FFFFFF;
+	box-shadow: 0 8px 24px rgba(20, 30, 45, 0.18);
+	font-weight: 400;
+	font-size: 0.75rem;
+	text-align: left;
+	white-space: nowrap;
+	cursor: default;
+
+	// Arrow pointing back up at the corner flag that revealed this --
+	// flipped (top/bottom swapped) by getDetailPopoverStyle's own
+	// `isFlippedUp`/`.is-flipped-up` when there isn't estimated room below
+	// in the viewport, same idea `.tissue-heatmap-sticky-header` already
+	// applies to the header itself.
+	&::before,
+	&::after {
+		content: '';
+		position: absolute;
+		bottom: 100%;
+		right: 12px;
+		border: 6px solid transparent;
+		border-bottom-color: #E1E7ED;
+	}
+	&::after {
+		right: 13px;
+		border-width: 5px;
+		border-bottom-color: #FFFFFF;
+	}
+
+	&.is-flipped-up {
+		&::before,
+		&::after {
+			top: 100%;
+			bottom: auto;
+			border-bottom-color: transparent;
+			border-top-color: #E1E7ED;
+		}
+		&::after {
+			border-top-color: #FFFFFF;
+		}
+	}
+}
+
+.tissue-heatmap-cell-alt-values-header {
+	padding: 0 12px 6px;
+	margin-bottom: 4px;
+	border-bottom: 1px solid #EEF2F5;
+}
+
+.tissue-heatmap-cell-alt-values-tissue {
+	color: #1E2D3D;
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+// The current tab's own metric name (e.g. "Autolysis Score") -- this same
+// popover renders identically across every tab, so nothing else in it
+// would otherwise say what the values below are even measuring.
+.tissue-heatmap-cell-alt-values-metric {
+	color: #97A6B8;
+	font-size: 0.6875rem;
+	font-weight: 600;
+}
+
+.tissue-heatmap-cell-alt-values-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 3px 12px;
+	color: #5A6B7D;
+
+	&.is-primary {
+		background-color: #F3F7FB;
+		color: #1E2D3D;
+		font-weight: 600;
+	}
+}
+
+.tissue-heatmap-cell-alt-values-id {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+// A small filled chip, not plain text, so Fixed/Frozen reads as a tag
+// rather than part of the sentence.
+.tissue-heatmap-cell-alt-values-tag {
+	display: inline-block;
+	padding: 1px 5px;
+	border-radius: 4px;
+	background-color: #EEF1F4;
+	font-size: 0.6875rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	color: #4E6884;
+}
+
+.tissue-heatmap-cell-alt-values-extid {
+	color: #5A6B7D;
 }
 
 .tissue-heatmap-card {
@@ -2618,6 +2742,36 @@ div.browse-link-icon {
 			&.is-empty {
 				color: #C7CCD2;
 				font-weight: 400;
+			}
+
+			// The Excel-style corner flag -- more than one real record is
+			// actually competing for this cell's value (see
+			// buildTissueMetricMatrix's pickPrimaryTissueRecord), typically
+			// a Fixed/Frozen pair. The single-record case still shows a
+			// detail popover on hover (MetricHeatmapTable's hoverDetail,
+			// rendered elsewhere -- see .tissue-heatmap-cell-alt-values
+			// below for why) but doesn't get flagged.
+			&.has-alt-values {
+				position: relative;
+
+				&::after {
+					content: '';
+					position: absolute;
+					top: 0;
+					right: 0;
+					border-style: solid;
+					border-width: 0 8px 8px 0;
+					border-color: transparent #E8871E transparent transparent;
+					// A flat fill read fine against the lightest score band
+					// but nearly vanished against the darkest (both are
+					// blue, this palette's whole point) -- a soft
+					// drop-shadow (works on a border-triangle's own
+					// rendered shape, not just boxes) keeps just enough
+					// edge definition to stay legible on any band without a
+					// hard outline, which read as a sticker pasted on top
+					// of the cell rather than a corner fold.
+					filter: drop-shadow(-0.5px 0.5px 0.5px rgba(0, 0, 0, 0.45));
+				}
 			}
 		}
 
