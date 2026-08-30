@@ -2453,10 +2453,10 @@ div.browse-link-icon {
 	// .tissue-heatmap-cell's own score-0..4 rules) -- a picked palette
 	// (HeatmapColorPicker) recolors the legend right along with the table.
 	&.score-0 { background-color: var(--heatmap-score-0-bg, #DAE4F1); }
-	&.score-1 { background-color: var(--heatmap-score-1-bg, #A2BCDD); }
-	&.score-2 { background-color: var(--heatmap-score-2-bg, #6A94C8); }
-	&.score-3 { background-color: var(--heatmap-score-3-bg, #3E6DA8); }
-	&.score-4 { background-color: var(--heatmap-score-4-bg, #294970); }
+	&.score-1 { background-color: var(--heatmap-score-1-bg, #ADC4E1); }
+	&.score-2 { background-color: var(--heatmap-score-2-bg, #80A4D0); }
+	&.score-3 { background-color: var(--heatmap-score-3-bg, #5484C0); }
+	&.score-4 { background-color: var(--heatmap-score-4-bg, #3A669C); }
 }
 
 .tissue-heatmap-card {
@@ -2765,19 +2765,19 @@ div.browse-link-icon {
 				color: var(--heatmap-score-0-text, #28323C);
 			}
 			&.score-1 {
-				background-color: var(--heatmap-score-1-bg, #A2BCDD);
+				background-color: var(--heatmap-score-1-bg, #ADC4E1);
 				color: var(--heatmap-score-1-text, #28323C);
 			}
 			&.score-2 {
-				background-color: var(--heatmap-score-2-bg, #6A94C8);
+				background-color: var(--heatmap-score-2-bg, #80A4D0);
 				color: var(--heatmap-score-2-text, #28323C);
 			}
 			&.score-3 {
-				background-color: var(--heatmap-score-3-bg, #3E6DA8);
+				background-color: var(--heatmap-score-3-bg, #5484C0);
 				color: var(--heatmap-score-3-text, #FFFFFF);
 			}
 			&.score-4 {
-				background-color: var(--heatmap-score-4-bg, #294970);
+				background-color: var(--heatmap-score-4-bg, #3A669C);
 				color: var(--heatmap-score-4-text, #FFFFFF);
 			}
 			&.na,

@@ -565,7 +565,20 @@ function hslToRgb(h, s, l) {
 // -- don't shift by rounding error just because a 5-stop caller exists now.
 const LIGHTNESS_STEPS_BY_BAND_COUNT = {
     4: [88, 72, 50, 32],
-    5: [90, 75, 60, 45, 30],
+    // Originally 90/75/60/45/30 (uniform 15pt gaps) -- raised to a lighter
+    // floor after real Ischemic Time data showed a table can be genuinely
+    // dominated by values landing in the 2 darkest bands (many tissue
+    // types cluster there for most donors), reading as an overly dark/
+    // heavy table even though the banding itself was working as designed.
+    // An earlier attempt only lightened the last 2 stops (leaving 90/75/60
+    // alone), which uniformly-spaced-eyeball this isn't: it *shrank* the
+    // gap between the 2 darkest bands specifically (down to 10-12pts vs.
+    // 15pt everywhere else), making exactly those 2 -- the ones a skewed
+    // table shows the most of -- the hardest pair to tell apart. Kept
+    // uniform 12pt gaps across all 5 stops instead, so every band-to-band
+    // step reads as an equally perceptible jump; this doesn't change which
+    // band a value falls into, just how dark that band's color reads.
+    5: [90, 78, 66, 54, 42],
 };
 
 // Exported for unit testing. Fixed saturation curve (clamped so a very
