@@ -2079,6 +2079,100 @@ div.browse-link-icon {
 	}
 }
 
+// The cell-value-display segmented toggle inside HeatmapAdminSettings'
+// panel (BrowseTissueHeatmapTable.js) -- switches between the default
+// (every real value shown inline in the cell, no hover/click needed) and
+// the earlier corner-flag + hover-popover display. Deliberately NOT nested
+// under `.tissue-heatmap-card` for the same reason as
+// `.tissue-heatmap-color-picker` below -- looks right wherever it's
+// rendered.
+.tissue-heatmap-value-display-toggle {
+	display: inline-flex;
+	border: 1px solid #D7E1EA;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.tissue-heatmap-value-display-toggle-option {
+	appearance: none;
+	background-color: #FBFCFE;
+	border: none;
+	padding: 5px 10px;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	color: #4E6884;
+	cursor: pointer;
+
+	& + & {
+		border-left: 1px solid #D7E1EA;
+	}
+
+	&:hover {
+		color: #212529;
+	}
+
+	&.is-active {
+		background-color: #E7F0F3;
+		color: #212529;
+	}
+}
+
+// HeatmapAdminSettings (BrowseTissueHeatmapTable.js) -- the single gear
+// button/panel that bundles the cell-value-display toggle above and the
+// color picker below, so BrowseTissueHeatmapTable's own toolbar shows one
+// compact control instead of two separate always-visible rows. Deliberately
+// NOT nested under `.tissue-heatmap-card` for the same reason as
+// `.tissue-heatmap-color-picker` below -- looks right wherever it's rendered.
+.tissue-heatmap-admin-settings {
+	position: relative;
+}
+
+.tissue-heatmap-admin-settings-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	appearance: none;
+	background-color: #FBFCFE;
+	border: 1px solid #D7E1EA;
+	border-radius: 6px;
+	color: #4E6884;
+	cursor: pointer;
+
+	&:hover,
+	&[aria-expanded="true"] {
+		border-color: #A9B8C7;
+		color: #212529;
+	}
+}
+
+.tissue-heatmap-admin-settings-panel {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	z-index: 10;
+	width: 220px;
+	background-color: #FFFFFF;
+	border: 1px solid #D7E1EA;
+	border-radius: 8px;
+	box-shadow: 0 6px 20px rgba(30, 38, 50, 0.14);
+	padding: 12px;
+}
+
+.tissue-heatmap-admin-settings-section + .tissue-heatmap-admin-settings-divider,
+.tissue-heatmap-admin-settings-divider {
+	margin: 12px 0;
+	border-top: 1px solid #E7F0F3;
+}
+
+.tissue-heatmap-admin-settings-label {
+	margin: 0 0 6px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: #4E6884;
+}
+
 // HeatmapColorPicker (BrowseTissueHeatmapTable.js) is a shared component
 // also reused by TissueTypeView.js's Donor Details table (own independent
 // --tissue-donor-score-N-* palette, see _item-pages.scss). These rules are
@@ -2474,6 +2568,7 @@ div.browse-link-icon {
 		height: 39px;
 		display: flex;
 		align-items: center;
+		gap: 8px;
 		padding: 0 12px;
 		z-index: 4;
 	}

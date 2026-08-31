@@ -598,6 +598,62 @@ export function buildSequentialPaletteFromHex(baseHex, bandCount = 4) {
     });
 }
 
+// Presets + native color-wheel + reset -- the actual picker UI, with no
+// button/open-state of its own (the caller renders and owns that, and
+// decides what closing means -- see HeatmapColorPicker below, reused
+// standalone by TissueTypeView.js's own Donor Details table, and
+// HeatmapAdminSettings' combined panel further down, which folds this in
+// alongside the cell-value-display toggle instead of giving it a second,
+// separate toggle button in the same toolbar).
+function ColorPickerPanelBody({ baseHex, onPick, onReset, onDone }) {
+    return (
+        <>
+            <p className="tissue-heatmap-color-picker-note">
+                Experimental -- resets to default on page reload,
+                and doesn&rsquo;t change what other users see.
+            </p>
+            <div className="tissue-heatmap-color-picker-presets">
+                {HEATMAP_COLOR_PRESETS.map((preset) => (
+                    <button
+                        type="button"
+                        key={preset.name}
+                        className={
+                            'tissue-heatmap-color-picker-preset' +
+                            (baseHex === preset.hex ? ' is-active' : '')
+                        }
+                        style={{ backgroundColor: preset.hex }}
+                        title={preset.name}
+                        aria-label={preset.name}
+                        onClick={() => {
+                            onPick(preset.hex);
+                            onDone();
+                        }}
+                    />
+                ))}
+                <label
+                    className="tissue-heatmap-color-picker-preset tissue-heatmap-color-picker-custom"
+                    title="Pick a custom color">
+                    <input
+                        type="color"
+                        value={baseHex || '#22528E'}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onChange={(event) => onPick(event.target.value)}
+                    />
+                </label>
+            </div>
+            <button
+                type="button"
+                className="tissue-heatmap-color-picker-reset"
+                onClick={() => {
+                    onReset();
+                    onDone();
+                }}>
+                Reset to default
+            </button>
+        </>
+    );
+}
+
 // A small button + panel for picking the base color above -- presets on
 // the left, a native color-wheel input for anything else, and a reset back
 // to the built-in default. Closes on an outside click/Escape like any
@@ -640,48 +696,108 @@ export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
             </button>
             {isOpen ? (
                 <div className="tissue-heatmap-color-picker-panel">
-                    <p className="tissue-heatmap-color-picker-note">
-                        Experimental -- resets to default on page reload,
-                        and doesn&rsquo;t change what other users see.
-                    </p>
-                    <div className="tissue-heatmap-color-picker-presets">
-                        {HEATMAP_COLOR_PRESETS.map((preset) => (
+                    <ColorPickerPanelBody
+                        baseHex={baseHex}
+                        onPick={onPick}
+                        onReset={onReset}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onDone={() => setIsOpen(false)}
+                    />
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+// BrowseTissueHeatmapTable's own toolbar bundles 2 admin-only, experimental,
+// browser-only display overrides -- which values a multi-record cell shows
+// (all-inline by default, per explicit review feedback that a typical
+// portal user won't reliably hover/click to find data -- the earlier
+// corner-flag + hover-popover behavior is kept reachable here rather than
+// deleted, since it's still a reasonable, more compact power-user option)
+// and the conditional-color palette (ColorPickerPanelBody/HeatmapColorPicker
+// above). Two separate always-visible toggle rows read as visual clutter in
+// the tab row (see the review screenshot this responds to), so both live
+// behind one gear button/panel instead -- same "icon-gear" FontAwesome glyph
+// DataMatrixConfigurator.js already uses for its own admin-only control.
+function HeatmapAdminSettings({
+    showValuesOnHover,
+    onChangeShowValuesOnHover,
+    baseHex,
+    onPickColor,
+    onResetColor,
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && containerRef.current?.contains(event.target)) {
+                return;
+            }
+            setIsOpen(false);
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="tissue-heatmap-admin-settings" ref={containerRef}>
+            <button
+                type="button"
+                className="tissue-heatmap-admin-settings-toggle"
+                onClick={() => setIsOpen((prev) => !prev)}
+                aria-expanded={isOpen}
+                title="Admin display settings (this browser only)">
+                <i className="icon icon-fw icon-gear fas" />
+            </button>
+            {isOpen ? (
+                <div className="tissue-heatmap-admin-settings-panel">
+                    <div className="tissue-heatmap-admin-settings-section">
+                        <p className="tissue-heatmap-admin-settings-label">Cell values</p>
+                        <div
+                            className="tissue-heatmap-value-display-toggle"
+                            role="group"
+                            aria-label="Multi-value cell display">
                             <button
                                 type="button"
-                                key={preset.name}
                                 className={
-                                    'tissue-heatmap-color-picker-preset' +
-                                    (baseHex === preset.hex ? ' is-active' : '')
+                                    'tissue-heatmap-value-display-toggle-option' +
+                                    (!showValuesOnHover ? ' is-active' : '')
                                 }
-                                style={{ backgroundColor: preset.hex }}
-                                title={preset.name}
-                                aria-label={preset.name}
-                                onClick={() => {
-                                    onPick(preset.hex);
-                                    setIsOpen(false);
-                                }}
-                            />
-                        ))}
-                        <label
-                            className="tissue-heatmap-color-picker-preset tissue-heatmap-color-picker-custom"
-                            title="Pick a custom color">
-                            <input
-                                type="color"
-                                value={baseHex || '#22528E'}
                                 // eslint-disable-next-line react/jsx-no-bind
-                                onChange={(event) => onPick(event.target.value)}
-                            />
-                        </label>
+                                onClick={() => onChangeShowValuesOnHover(false)}>
+                                All values
+                            </button>
+                            <button
+                                type="button"
+                                className={
+                                    'tissue-heatmap-value-display-toggle-option' +
+                                    (showValuesOnHover ? ' is-active' : '')
+                                }
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onClick={() => onChangeShowValuesOnHover(true)}>
+                                On hover
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        type="button"
-                        className="tissue-heatmap-color-picker-reset"
-                        onClick={() => {
-                            onReset();
-                            setIsOpen(false);
-                        }}>
-                        Reset to default
-                    </button>
+                    <div className="tissue-heatmap-admin-settings-divider" />
+                    <div className="tissue-heatmap-admin-settings-section">
+                        <p className="tissue-heatmap-admin-settings-label">Conditional color</p>
+                        <ColorPickerPanelBody
+                            baseHex={baseHex}
+                            onPick={onPickColor}
+                            onReset={onResetColor}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onDone={() => setIsOpen(false)}
+                        />
+                    </div>
                 </div>
             ) : null}
         </div>
@@ -700,6 +816,25 @@ export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
 function hasDistinctAltValues(entries) {
     if (!entries || entries.length < 2) return false;
     return entries.some((entry) => entry.value !== entries[0].value);
+}
+
+// De-duplicated entry values, primary-first order preserved (Set keeps
+// first-occurrence order, and entries are already sorted primary-first --
+// see buildTissueMetricMatrix) -- e.g. an organ with a Fixed and a Frozen
+// record that happen to carry the identical number shows once ("23.5"),
+// not as a redundant "23.5 / 23.5". A real, informative disagreement (the
+// donor-level Frozen ischemic_time constant differing from an organ-
+// specific Fixed value) still shows both.
+function distinctEntryValues(entries) {
+    if (!entries) return [];
+    const seen = new Set();
+    const result = [];
+    entries.forEach((entry) => {
+        if (seen.has(entry.value)) return;
+        seen.add(entry.value);
+        result.push(entry.value);
+    });
+    return result;
 }
 
 function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHoveredColumn, entries) {
@@ -813,8 +948,21 @@ function renderCellAltValues(entries, tissueType, metricLabel, formatValue, styl
 // select "every cell in the same column as the one being hovered" -- each
 // cell reports its own (possibly multi-tissueType, if merged) span on
 // mouseenter, MetricHeatmapTable stores it, and every cell -- this row's
-// and the header's (renderHeaderCells) -- checks it on render.
-function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor, hoveredColumn, onHoverColumn, onShowDetail, onHideDetail) {
+// and the header's (renderHeaderCells) -- checks it on render. Kept active
+// in both `showValuesOnHover` modes below -- it's automatic on hover, not
+// something a user has to act on to see a value, so it isn't what the
+// "no hover/click to see data" review feedback was about.
+//
+// `showValuesOnHover` -- see HeatmapAdminSettings. `false` (the default)
+// writes every real value for a multi-record cell inline (entries are
+// already primary-first, see buildTissueMetricMatrix), with no corner flag;
+// `true` shows only the primary value plus the corner flag instead. Either
+// way, the detail popover (renderCellAltValues, wired up by the caller via
+// onShowDetail/onHideDetail) still opens on hover -- with every value
+// already visible inline in the default mode, hovering for it isn't
+// required to see the data (what the review feedback objected to), it's
+// just an optional way to see which record each value actually came from.
+function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor, hoveredColumn, onHoverColumn, onShowDetail, onHideDetail, showValuesOnHover) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
@@ -832,6 +980,8 @@ function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, f
             }
         }
         const columnTissueTypes = tissueTypes.slice(i, i + span);
+        const inlineValues = showValuesOnHover ? [] : distinctEntryValues(entries);
+        const showsAllValuesInline = inlineValues.length > 1;
         nodes.push(
             <td
                 key={tissueType}
@@ -841,7 +991,7 @@ function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, f
                     getScoreClass,
                     enableConditionalColor,
                     columnTissueTypes.includes(hoveredColumn),
-                    entries
+                    showValuesOnHover ? entries : null
                 )}
                 // eslint-disable-next-line react/jsx-no-bind
                 onMouseEnter={(event) => {
@@ -853,7 +1003,9 @@ function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, f
                     onHoverColumn(null);
                     onHideDetail();
                 }}>
-                {formatValue(value)}
+                {showsAllValuesInline
+                    ? inlineValues.map((v) => formatValue(v)).join(' / ')
+                    : formatValue(value)}
             </td>
         );
         i += span;
@@ -1180,6 +1332,10 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // Extracts a comparable value from a raw cell value for sorting -- see
     // defaultGetSortValue's comment for why Target Tissue % overrides this.
     getSortValue = defaultGetSortValue,
+    // See HeatmapAdminSettings/renderRowCells -- `false` (default) shows
+    // every real value for a multi-record cell inline; `true` restores the
+    // corner-flag + hover-popover behavior.
+    showValuesOnHover = false,
 }) {
     const columnGroups = useMemo(
         () => buildColumnGroups(tissueTypes, tissueTypeCategories),
@@ -1449,7 +1605,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     hoveredColumn,
                                     setHoveredColumn,
                                     handleShowDetail,
-                                    handleHideDetail
+                                    handleHideDetail,
+                                    showValuesOnHover
                                 )}
                             </tr>
                         ))}
@@ -1500,6 +1657,12 @@ export const BrowseTissueHeatmapTable = (props) => {
     );
     const handlePickPaletteColor = (hex) => setPaletteBaseHex(hex);
     const handleResetPaletteColor = () => setPaletteBaseHex(null);
+
+    // Default (false): every real value for a multi-record cell is shown
+    // inline, no hover/click needed -- see HeatmapAdminSettings for why.
+    // Same in-memory-only, per-page-view, admin-toggleable pattern as
+    // paletteBaseHex above.
+    const [showValuesOnHover, setShowValuesOnHover] = useState(false);
 
     // The tab titles' info-circle icons (TabTitleWithInfo) are static-attribute
     // react-tooltip targets (data-tip) -- app.js's global <ReactTooltip/> only
@@ -1594,12 +1757,15 @@ export const BrowseTissueHeatmapTable = (props) => {
         <div className="tissue-heatmap-card" style={paletteStyle}>
             {isAdminUser ? (
                 <div className="tissue-heatmap-toolbar">
-                    <HeatmapColorPicker
+                    <HeatmapAdminSettings
+                        showValuesOnHover={showValuesOnHover}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onChangeShowValuesOnHover={setShowValuesOnHover}
                         baseHex={paletteBaseHex}
                         // eslint-disable-next-line react/jsx-no-bind
-                        onPick={handlePickPaletteColor}
+                        onPickColor={handlePickPaletteColor}
                         // eslint-disable-next-line react/jsx-no-bind
-                        onReset={handleResetPaletteColor}
+                        onResetColor={handleResetPaletteColor}
                     />
                 </div>
             ) : null}
@@ -1636,6 +1802,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             // this prop restored.
                             scoreLegend={null}
                             enableConditionalColor={enableConditionalColor}
+                            showValuesOnHover={showValuesOnHover}
                         />
                     )}
                 </DotRouterTab>
@@ -1660,6 +1827,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             formatValue={formatAutolysisScore}
                             getScoreClass={getAutolysisScoreClass}
                             enableConditionalColor={enableConditionalColor}
+                            showValuesOnHover={showValuesOnHover}
                         />
                     )}
                 </DotRouterTab>
@@ -1685,6 +1853,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             getScoreClass={getTargetTissuePercentageScoreClass}
                             getSortValue={getTargetTissuePercentageSortValue}
                             enableConditionalColor={enableConditionalColor}
+                            showValuesOnHover={showValuesOnHover}
                         />
                     )}
                 </DotRouterTab>
