@@ -11,23 +11,18 @@ const announcements = [
         date: '2026-08-27',
         body: (session, userId) => (
             <span>
-                The SMaHT Data portal now supports{' '}
-                <b>monthly email notifications</b> for new data releases. Visit
-                your user profile page
-                {userId && (
+                The SMaHT Data Portal now supports{' '}
+                <b>monthly email notifications</b> for new data releases. To
+                subscribe, visit your{' '}
+                {userId ? (
                     <>
                         {' '}
-                        <a href={`/users/${userId}/`}>here</a>
+                        <a href={`/users/${userId}/`}>Profile page</a>
                     </>
+                ) : (
+                    <>Profile page</>
                 )}{' '}
-                to subscribe.
-                {!session && (
-                    <>
-                        <br />
-                        <br />
-                        You must be logged in to subscribe.
-                    </>
-                )}
+                after logging in.
             </span>
         ),
     },
