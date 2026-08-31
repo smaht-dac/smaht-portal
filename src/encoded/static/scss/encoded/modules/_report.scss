@@ -303,6 +303,20 @@
                     color: #212529;
                     padding: 9px 0;
                     border-bottom: 1px solid #eef1f4;
+
+                    // Reserved for the few fields whose value is genuinely
+                    // good/bad news (Outcome, Is Indeterminate) -- same
+                    // green/red as the header's own outcome badge, so the
+                    // two stay one consistent color vocabulary.
+                    &.is-good {
+                        font-weight: 600;
+                        color: #1f9f55;
+                    }
+
+                    &.is-bad {
+                        font-weight: 600;
+                        color: #c0392b;
+                    }
                 }
             }
         }

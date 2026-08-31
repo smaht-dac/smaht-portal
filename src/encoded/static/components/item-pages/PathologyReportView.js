@@ -28,13 +28,21 @@ const getDisplayText = (value) => {
 
 /** Plain label/value pair, rendered into the `.pathology-summary-grid`'s
  * shared grid tracks (see _report.scss's `display: contents` trick) or, for
- * a full-width row, into `.pathology-summary-card > .body > .datum`. */
-const ReportDatum = ({ title, value }) => {
+ * a full-width row, into `.pathology-summary-card > .body > .datum`.
+ *
+ * `tone` colors the value itself -- reserved for the handful of fields
+ * whose value is genuinely good/bad news (Outcome, Is Indeterminate), not
+ * applied broadly. A field like Final Review Determination or Additional
+ * Staining Performed is a plain "was this done" flag, not a pass/fail --
+ * coloring its "No" red would misrepresent it as a negative result. */
+const ReportDatum = ({ title, value, tone = null }) => {
     const text = getDisplayText(value);
     return (
         <div className="datum">
             <span className="datum-title">{title}</span>
-            <span className="datum-value">{text}</span>
+            <span className={'datum-value' + (tone ? ` is-${tone}` : '')}>
+                {text}
+            </span>
         </div>
     );
 };
@@ -626,10 +634,27 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                                         value={anatomical_sample_location}
                                     />
                                 ) : null}
-                                <ReportDatum title="Outcome" value={outcome} />
+                                <ReportDatum
+                                    title="Outcome"
+                                    value={outcome}
+                                    tone={
+                                        outcome === 'Acceptable'
+                                            ? 'good'
+                                            : outcome === 'Unacceptable'
+                                                ? 'bad'
+                                                : null
+                                    }
+                                />
                                 <ReportDatum
                                     title="Is Indeterminate"
                                     value={is_indeterminate}
+                                    tone={
+                                        is_indeterminate === 'No'
+                                            ? 'good'
+                                            : is_indeterminate === 'Yes'
+                                                ? 'bad'
+                                                : null
+                                    }
                                 />
                                 <ReportDatum
                                     title="Final Review Determination"
