@@ -22,6 +22,7 @@ import {
     getPublicationYear,
 } from '../util/Schemas';
 import { renderLoginAccessPopover } from './PublicDonorView';
+import { BROWSE_LINKS } from '../browse/BrowseView';
 
 /**
  * Finds the `static_content` entry for a given `location`, returning its
@@ -50,7 +51,10 @@ const PublicationViewTitle = () => {
     let breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
-        { display_title: 'Browse by Publication' },
+        {
+            display_title: 'Browse by Publication',
+            href: BROWSE_LINKS['publication'],
+        },
     ];
     return (
         <div className="view-title container-wide">
