@@ -2546,11 +2546,11 @@ div.browse-link-icon {
 	// Same custom-property-first fallback the real cells read (see
 	// .tissue-heatmap-cell's own score-0..4 rules) -- a picked palette
 	// (HeatmapColorPicker) recolors the legend right along with the table.
-	&.score-0 { background-color: var(--heatmap-score-0-bg, #DAE4F1); }
-	&.score-1 { background-color: var(--heatmap-score-1-bg, #ADC4E1); }
-	&.score-2 { background-color: var(--heatmap-score-2-bg, #80A4D0); }
-	&.score-3 { background-color: var(--heatmap-score-3-bg, #5484C0); }
-	&.score-4 { background-color: var(--heatmap-score-4-bg, #3A669C); }
+	&.score-0 { background-color: var(--heatmap-score-0-bg, #DEE9ED); }
+	&.score-1 { background-color: var(--heatmap-score-1-bg, #B6CFD7); }
+	&.score-2 { background-color: var(--heatmap-score-2-bg, #8FB4C2); }
+	&.score-3 { background-color: var(--heatmap-score-3-bg, #679AAC); }
+	&.score-4 { background-color: var(--heatmap-score-4-bg, #4C7A8B); }
 }
 
 .tissue-heatmap-card {
@@ -2782,9 +2782,9 @@ div.browse-link-icon {
 		//
 		// Blue was tried first (matching the app's own accent) and
 		// confirmed, against a real densely-colored table, to basically
-		// disappear: the score-band scale is itself blue (light -> dark
-		// "Ocean"), so a blue tint at any reasonable opacity barely shifts
-		// an already-blue cell -- same hue family, too little perceptual
+		// disappear: the score-band scale is itself a blue-grey/teal (light
+		// -> dark "Steel"), so a blue tint at any reasonable opacity barely
+		// shifts an already-blue cell -- same hue family, too little perceptual
 		// contrast, especially against the darker bands. A thin-edge-line
 		// version (border-like box-shadows instead of a fill) was also
 		// tried and read as broken/disconnected rather than a clean marker.
@@ -2842,9 +2842,9 @@ div.browse-link-icon {
 				border-right: none;
 			}
 
-			// A sequential blue scale (light -> dark), not a green->red
+			// A sequential blue-grey scale (light -> dark), not a green->red
 			// ramp, since that read as a status/alarm signal regardless of
-			// what the metric measured -- "Ocean" (#22528E), generated via
+			// what the metric measured -- "Steel" (#4D7C8D), generated via
 			// buildSequentialPaletteFromHex(baseHex, 5), same as any
 			// HeatmapColorPicker pick. 5 bands, not 4 -- Ischemic Time's own
 			// quantile split and Target Tissue %'s 5 real bands both need a
@@ -2856,23 +2856,23 @@ div.browse-link-icon {
 			// values when unset -- HeatmapColorPicker sets those inline on
 			// .tissue-heatmap-card when a user picks a different palette.
 			&.score-0 {
-				background-color: var(--heatmap-score-0-bg, #DAE4F1);
+				background-color: var(--heatmap-score-0-bg, #DEE9ED);
 				color: var(--heatmap-score-0-text, #28323C);
 			}
 			&.score-1 {
-				background-color: var(--heatmap-score-1-bg, #ADC4E1);
+				background-color: var(--heatmap-score-1-bg, #B6CFD7);
 				color: var(--heatmap-score-1-text, #28323C);
 			}
 			&.score-2 {
-				background-color: var(--heatmap-score-2-bg, #80A4D0);
+				background-color: var(--heatmap-score-2-bg, #8FB4C2);
 				color: var(--heatmap-score-2-text, #28323C);
 			}
 			&.score-3 {
-				background-color: var(--heatmap-score-3-bg, #5484C0);
+				background-color: var(--heatmap-score-3-bg, #679AAC);
 				color: var(--heatmap-score-3-text, #FFFFFF);
 			}
 			&.score-4 {
-				background-color: var(--heatmap-score-4-bg, #3A669C);
+				background-color: var(--heatmap-score-4-bg, #4C7A8B);
 				color: var(--heatmap-score-4-text, #FFFFFF);
 			}
 			&.na,
