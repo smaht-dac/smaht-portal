@@ -29,6 +29,10 @@ import {
     pageTitleViews,
 } from './../PageTitleSection';
 import { Term } from './../util/Schemas';
+import {
+    DataReleaseNotificationEnrollment,
+    DATA_RELEASE_NOTIFICATION_ENROLLED,
+} from './components/DataReleaseNotificationEnrollment';
 import UserAdminControls from './components/user/UserAdminControls';
 
 // eslint-disable-next-line no-unused-vars
@@ -192,8 +196,14 @@ class SyncedAccessKeyTable extends React.PureComponent {
                                 Access Key ID
                             </div>
                             <div className="col-7">
-                                <object.CopyWrapper value={access_key_id} data-tip={'Click to copy'} className="d-inline-block"
-                                    wrapperElement="div" iconProps={{}} analyticsOnCopy={false}><code>{access_key_id}</code>
+                                <object.CopyWrapper
+                                    value={access_key_id}
+                                    data-tip={'Click to copy'}
+                                    className="d-inline-block"
+                                    wrapperElement="div"
+                                    iconProps={{}}
+                                    analyticsOnCopy={false}>
+                                    <code>{access_key_id}</code>
                                 </object.CopyWrapper>
                             </div>
                         </div>
@@ -202,8 +212,14 @@ class SyncedAccessKeyTable extends React.PureComponent {
                                 Secret Access Key
                             </div>
                             <div className="col-7">
-                                <object.CopyWrapper value={secret_access_key} data-tip={'Click to copy'} className="d-inline-block"
-                                    wrapperElement="div" iconProps={{}} analyticsOnCopy={false}><code>{secret_access_key}</code>
+                                <object.CopyWrapper
+                                    value={secret_access_key}
+                                    data-tip={'Click to copy'}
+                                    className="d-inline-block"
+                                    wrapperElement="div"
+                                    iconProps={{}}
+                                    analyticsOnCopy={false}>
+                                    <code>{secret_access_key}</code>
                                 </object.CopyWrapper>
                             </div>
                         </div>
@@ -491,7 +507,7 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
 
 export default class UserView extends React.Component {
     static onEditableFieldSave(nextContext) {
-        store.dispatch({ type: 'CONTEXT', payload: nextContext });
+        store.dispatch({ type: 'SET_CONTEXT', payload: nextContext });
     }
 
     static propTypes = {
@@ -506,6 +522,7 @@ export default class UserView extends React.Component {
             status: PropTypes.string,
             timezone: PropTypes.string,
             role: PropTypes.string,
+            data_release_notification_enrolled: PropTypes.bool,
         }),
         href: PropTypes.string.isRequired,
         schemas: PropTypes.shape({
@@ -526,20 +543,45 @@ export default class UserView extends React.Component {
 
     constructor(props) {
         super(props);
+        _.bindAll(this, 'handleNotificationEnrollmentChange');
         // `isAdmin` gates the cosmetic admin control panel only. It is resolved
         // after mount (JWT groups live in localStorage, absent during SSR) so
         // the first client render matches the server render for everyone and
         // the panel appears on the following commit — avoiding a structural
         // hydration mismatch. Backend `restricted_fields` permissions are the
         // real authorization for any edit made through the panel.
-        this.state = { isAdmin: false };
+        // `isOwnProfile` follows the same pattern: JWT.getUserDetails() also
+        // reads localStorage, so it must be resolved post-mount rather than
+        // in render().
+        this.state = { isAdmin: false, isOwnProfile: false };
+    }
+
+    handleNotificationEnrollmentChange(enrolled) {
+        const { context: user } = this.props;
+        store.dispatch({
+            type: 'SET_CONTEXT',
+            payload: {
+                ...user,
+                [DATA_RELEASE_NOTIFICATION_ENROLLED]: enrolled,
+            },
+        });
     }
 
     componentDidMount() {
         const groups = JWT.getUserGroups() || [];
-        if (groups.indexOf('admin') >= 0) {
-            this.setState({ isAdmin: true });
-        }
+        const { context: user } = this.props;
+        const { email } = user;
+        const currentUser = JWT.getUserDetails();
+        const isOwnProfile = Boolean(
+            currentUser &&
+                currentUser.email &&
+                email &&
+                currentUser.email.toLowerCase() === email.toLowerCase()
+        );
+        this.setState({
+            isAdmin: groups.indexOf('admin') >= 0,
+            isOwnProfile,
+        });
     }
 
     mayEdit() {
@@ -558,7 +600,7 @@ export default class UserView extends React.Component {
             alerts = [],
         } = this.props;
         const { email, project } = user;
-        const { isAdmin } = this.state;
+        const { isAdmin, isOwnProfile } = this.state;
         const mayEdit = this.mayEdit();
 
         // Non-admin column classes are kept byte-identical to the pre-feature
@@ -674,6 +716,15 @@ export default class UserView extends React.Component {
                         </div>
 
                         <SyncedAccessKeyTable {...{ user }} />
+
+                        {isOwnProfile ? (
+                            <DataReleaseNotificationEnrollment
+                                user={user}
+                                onChange={
+                                    this.handleNotificationEnrollmentChange
+                                }
+                            />
+                        ) : null}
                     </div>
                 </div>
             </div>
@@ -780,16 +831,18 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                             </div>
                             <div id="submission_centers" className="col-md-9">
                                 <ul className="list-unstyled mb-0">
-                                    {submissionCenters.map((submissionCenter) => (
-                                        <li
-                                            key={submissionCenter?.atId}
-                                            id={submissionCenter?.atId}
-                                            className="value text-500">
-                                            {object.itemUtil.generateLink(
-                                                submissionCenter
-                                            )}
-                                        </li>
-                                    ))}
+                                    {submissionCenters.map(
+                                        (submissionCenter) => (
+                                            <li
+                                                key={submissionCenter?.atId}
+                                                id={submissionCenter?.atId}
+                                                className="value text-500">
+                                                {object.itemUtil.generateLink(
+                                                    submissionCenter
+                                                )}
+                                            </li>
+                                        )
+                                    )}
                                 </ul>
                             </div>
                         </div>
@@ -852,7 +905,7 @@ export function ImpersonateUserForm({ updateAppSessionState }) {
     );
 
     return (
-        <div className='user-profile-page bg-light'>
+        <div className="user-profile-page bg-light">
             <div id="content" className="container card mt-36 col-12 col-lg-6">
                 <div className="card-body mt-3">
                     {/* <h2 className="text-400 mt-5">Impersonate a User</h2> */}
@@ -900,7 +953,10 @@ const UserViewPageTitle = React.memo(function UserViewPageTitle({
     const myEmail = myDetails && myDetails.email;
     let titleStr;
     if (myEmail && context && context.email && myEmail === context.email) {
-        titleStr = currentAction === 'impersonate-user' ? 'Impersonate User' : 'My Profile';
+        titleStr =
+            currentAction === 'impersonate-user'
+                ? 'Impersonate User'
+                : 'My Profile';
     } else {
         titleStr = object.itemUtil.getTitleStringFromContext(context);
     }
