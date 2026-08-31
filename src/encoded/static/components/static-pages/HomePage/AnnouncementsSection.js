@@ -1,9 +1,36 @@
 import React from 'react';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { RightArrowIcon } from '../../util/icon';
+import { JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 // Default announcement data
 const announcements = [
+    {
+        type: 'feature',
+        title: 'Data Release Mailing List',
+        date: '2026-08-27',
+        body: (session, userId) => (
+            <span>
+                The SMaHT Data portal now supports{' '}
+                <b>monthly email notifications</b> for new data releases. Visit
+                your user profile page
+                {userId && (
+                    <>
+                        {' '}
+                        <a href={`/users/${userId}/`}>here</a>
+                    </>
+                )}{' '}
+                to subscribe.
+                {!session && (
+                    <>
+                        <br />
+                        <br />
+                        You must be logged in to subscribe.
+                    </>
+                )}
+            </span>
+        ),
+    },
     {
         type: 'warning',
         title: 'New Access Regulation',
@@ -36,6 +63,8 @@ const AnnouncementCard = ({
     body = '',
     footer = null,
     date = null,
+    session = false,
+    userId = null,
 }) => {
     return (
         <div className={`announcement-container ${type}`}>
@@ -48,7 +77,9 @@ const AnnouncementCard = ({
                     />
                 ) : null}
             </h5>
-            <div className="body">{body}</div>
+            <div className="body">
+                {typeof body === 'function' ? body(session, userId) : body}
+            </div>
             {footer ? <div className="footer">{footer}</div> : null}
         </div>
     );
@@ -58,7 +89,7 @@ const AnnouncementCard = ({
  * AnnouncementsSection component displays the announcements section.
  * @returns { JSX.Element } - The rendered AnnouncementsSection component.
  */
-export const AnnouncementsSection = () => {
+export const AnnouncementsSection = ({ session }) => {
     return (
         <div className="announcements section">
             <h3 className="section-header">Announcements</h3>
@@ -73,6 +104,8 @@ export const AnnouncementsSection = () => {
                                 footer={announcement.footer}
                                 type={announcement.type}
                                 date={announcement.date}
+                                session={session}
+                                userId={JWT?.getUserInfo()?.details?.uuid}
                             />
                         );
                     })}

@@ -166,9 +166,9 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             ) : (
                                 <>
                                     I would like to receive emails when new data
-                                    are released on the SMaHT Data Portal. The
-                                    emails are sent <strong>monthly</strong>, on
-                                    the first Monday of each month.
+                                    are released on the SMaHT Data Portal.
+                                    Emails are sent on the{' '}
+                                    <b>first Monday of each month.</b>
                                 </>
                             )}
                         </p>

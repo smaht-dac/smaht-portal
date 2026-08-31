@@ -1758,7 +1758,7 @@ body[data-path='/'] > #application > #layout {
                         border-radius: 9px;
 
                         .header {
-                            font-size: 0.75rem;
+                            font-size: 0.7rem;
                             color: #485983;
                             margin-top: 0px;
                             margin-bottom: 5px;
@@ -1813,7 +1813,11 @@ body[data-path='/'] > #application > #layout {
                                 }
                             }
                         }
-
+                        &.feature {
+                            .header {
+                                color: #3184ef;
+                            }
+                        }
                         &.warning {
                             .header {
                                 color: #b13535;
@@ -1950,7 +1954,7 @@ body[data-path='/'] > #application > #layout {
                     display: flex;
                     flex-direction: column;
                     justify-content: flex-start;
-                    gap: 30px;
+                    gap: 23px;
                     margin-bottom: auto;
                     padding: 40px 15px;
                     height: 100%;
@@ -1973,10 +1977,6 @@ body[data-path='/'] > #application > #layout {
 
                         .section-body-container {
                             max-height: none;
-                        }
-
-                        &.data-release-tracker {
-                            flex: none;
                         }
 
                         &.about-consortium {
