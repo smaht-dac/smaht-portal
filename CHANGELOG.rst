@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.11.3
+2.12.2
 ======
 
 `PR 753: feat: add smaht snv pipeline v2 to pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/753>`_
