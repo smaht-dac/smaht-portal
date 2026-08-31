@@ -28,13 +28,13 @@ Schema Documentation
             <tbody class="table-border-inner">
                 <tr>
                     <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v2.1.pdf" download>
+                        <a href="/static/files/SMaHT Sample and File Nomenclature v3.0.pdf" download>
                             <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
                     </td>
-                    <td>2.1 (latest)</td>
-                    <td>01/02/2026</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v2.1.pdf" download>SMaHT Sample and File Nomenclature v2.1.pdf</a></td>
+                    <td>3.0 (latest)</td>
+                    <td>2026-08-19</td>
+                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v3.0.pdf" download>SMaHT Sample and File Nomenclature v3.0.pdf</a></td>
                 </tr>
             </tbody>
         </table>
@@ -111,6 +111,52 @@ Table 1. Donor identifiers for SMaHT benchmark cell lines.
             </tbody>
         </table>
     </div>
+
+
+Figure 1. SMaHT Tissue Recovery Schema.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+    
+    <figure>
+        <img
+            class="grey-border"
+            src="/static/img/Nomenclature_Fig1.png"
+            alt="Nomenclature Fig. 1"
+        />
+        <figcaption>
+            SMaHT Tissue Recovery Schema. a) Schema of the spatial relationship between fixed (pink) and frozen 
+            (green) tissue aliquots recovered for each type of non-brain tissue for the SMaHT project. Larger 
+            tissue samples from the lung and liver are recovered and sectioned into medial and lateral halves, 
+            as denoted by the dotted red line in the upper right panel. Small organs (e.g., adrenal glands and 
+            gonads) and the heart ventricle are bisected into anterior and posterior halves before aliquoting. 
+            b) Recovery and processing schema of the brain for SMaHT. c) Standardized orientation of both fixed 
+            and frozen aliquots prior to preservation from solid tissues. Frozen aliquots from mucosal tissues 
+            (e.g., skin, colon, aorta, and esophagus) are all placed serosa side down in cassettes for processing 
+            of a full-thickness sample (e.g., all cell layers). 
+        </figcaption>
+    </figure>
+
+
+Figure 2. Example Standardized Tissue Coring Schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <figure>
+        <img
+            class="grey-border"
+            src="/static/img/Nomenclature_Fig2.png"
+            alt="Nomenclature Fig. 2"
+        />
+        <figcaption>
+            Representative diagram of the standardized coring schema for frozen solid tissue aliquots. 
+            The core ID consists of a letter between A and F to denote the vertical position of the 
+            core, followed by a single numerical digit between 1 and 6 to denote the horizontal position 
+            of the core within the aliquot. “X” represents a null value, indicating samples that do not 
+            get sub-sampled (e.g., non-solid tissues).
+        </figcaption>
+    </figure>
 
 
 Table 2A. Benchmark tissue protocol IDs, which combine the tissue types and preservation methods.
