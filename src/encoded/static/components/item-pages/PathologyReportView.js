@@ -3,10 +3,56 @@
 import React from 'react';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import DefaultItemView from './DefaultItemView';
-import {
-    getDisplayText,
-    TissueDatum,
-} from './components/tissue-overview/helpers';
+
+// Kept local (not imported from a shared helpers module) so this view has
+// no dependency outside item-pages/ -- lets the whole report page move as
+// one self-contained unit.
+const getDisplayText = (value) => {
+    if (value === null || typeof value === 'undefined' || value === '') {
+        return '-';
+    }
+    if (Array.isArray(value)) {
+        if (value.length === 0) return '-';
+        return value.join(', ');
+    }
+    if (typeof value === 'number') {
+        return String(value);
+    }
+    if (typeof value === 'object') {
+        if (value.display_title) return value.display_title;
+        if (value.title) return value.title;
+        if (value['@id']) return value['@id'];
+    }
+    return String(value);
+};
+
+/** Plain label/value pair, rendered into the `.pathology-summary-grid`'s
+ * shared grid tracks (see _report.scss's `display: contents` trick) or, for
+ * a full-width row, into `.pathology-summary-card > .body > .datum`. */
+const ReportDatum = ({ title, value }) => {
+    const text = getDisplayText(value);
+    return (
+        <div className="datum">
+            <span className="datum-title">{title}</span>
+            <span className="datum-value">{text}</span>
+        </div>
+    );
+};
+
+/** Free-text note field (`unacceptable_description`, `additional_notes`,
+ * `description`) -- given its own quiet boxed card instead of the plain
+ * label/value row every other Report Summary field uses, since these carry
+ * actual clinical prose that otherwise reads as just another list row and
+ * is easy to skim past. */
+const NoteDatum = ({ title, text }) => (
+    <div className="pathology-note-datum">
+        <div className="pathology-note-datum-label">
+            <i className="icon icon-sticky-note fas" />
+            {title}
+        </div>
+        <div className="pathology-note-datum-text">{text}</div>
+    </div>
+);
 
 // `present`/`description` field pairs shared by every BrainPathologyReport
 // finding category (schemas/brain_pathology_report.json) -- fed into
@@ -29,36 +75,89 @@ const BRAIN_FINDING_CATEGORIES = [
 
 // Numeric-scale scores -- rendered as a filled meter (value / max), one tile
 // per field. A field with no value set is skipped entirely rather than
-// shown as an empty "-" tile (see ScoreTile).
+// shown as an empty "-" tile (see ScoreTile). `hint` is each field's own
+// schema `description` (schemas/brain_pathology_report.json), surfaced as a
+// caption so the meter is legible to a reader unfamiliar with the specific
+// staging system, not just to someone who already knows what "ABC Score A"
+// or "CERAD" means.
 const BRAIN_NUMERIC_SCORE_FIELDS = [
-    { key: 'abc_score_A', label: 'ABC Score A', max: 3 },
-    { key: 'abc_score_B', label: 'ABC Score B', max: 3 },
-    { key: 'abc_score_C', label: 'ABC Score C', max: 3 },
-    { key: 'cerad_score', label: 'CERAD', max: 100 },
-    { key: 'braak_pd', label: 'Braak PD', max: 6 },
-    { key: 'thal', label: 'Thal', max: 5 },
-    { key: 'caa_vonsattel', label: 'CAA VonSattel', max: 4 },
-    { key: 'mckeith', label: 'McKeith', max: 4 },
-    { key: 'vonsattel_hd', label: "VonSattel (Huntington's)", max: 4 },
+    {
+        key: 'abc_score_A',
+        label: 'ABC Score A',
+        max: 3,
+        hint: 'Distribution of Aβ/amyloid plaques. 0 = none, 3 = severe.',
+    },
+    {
+        key: 'abc_score_B',
+        label: 'ABC Score B',
+        max: 3,
+        hint: 'Distribution of neurofibrillary tangles. 0 = none, 3 = severe.',
+    },
+    {
+        key: 'abc_score_C',
+        label: 'ABC Score C',
+        max: 3,
+        hint: 'Density of neuritic plaques. 0 = none, 1 = sparse, 2 = moderate, 3 = frequent.',
+    },
+    {
+        key: 'cerad_score',
+        label: 'CERAD',
+        max: 100,
+        hint: 'Consortium to Establish a Registry for Alzheimer’s Disease score of neuritic plaques. Higher values indicate greater plaque density.',
+    },
+    {
+        key: 'braak_pd',
+        label: 'Braak PD',
+        max: 6,
+        hint: "Braak staging of Parkinson's disease. Stage 0 = none, stage 6 = most widespread (neocortical) involvement.",
+    },
+    {
+        key: 'thal',
+        label: 'Thal',
+        max: 5,
+        hint: 'Thal phase of amyloid deposits by anti-Aβ immunohistochemistry. Phase 0 = no deposits, phase 5 = most widespread.',
+    },
+    {
+        key: 'caa_vonsattel',
+        label: 'CAA VonSattel',
+        max: 4,
+        hint: 'Cerebral amyloid angiopathy, VonSattel system. 0 = none, 1 = mild, 2 = moderate, 3–4 = severe.',
+    },
+    {
+        key: 'mckeith',
+        label: 'McKeith',
+        max: 4,
+        hint: 'McKeith staging system for Lewy body dementia. Higher score indicates more widespread Lewy body pathology.',
+    },
+    {
+        key: 'vonsattel_hd',
+        label: "VonSattel (Huntington's)",
+        max: 4,
+        hint: "VonSattel grading system for Huntington's disease. Grade 0 = no abnormality, grade 4 = severe striatal atrophy.",
+    },
 ];
 
-// Ordered-stage scores (no numeric scale of their own) -- rendered as a dot
-// stepper against their own enum, in schema order (schemas/brain_pathology_report.json).
+// Ordered-stage scores (no numeric scale of their own) -- rendered as a
+// meter filled to the value's step position within its own enum, in schema
+// order (schemas/brain_pathology_report.json). See StageScoreTile.
 const BRAIN_STAGE_SCORE_FIELDS = [
     {
         key: 'ad_neuropathologic_change_level',
         label: 'AD Neuropathologic Change',
         steps: ['None', 'Low', 'Intermediate', 'High'],
+        hint: 'Amount of Alzheimer’s disease-related neuropathologic change observed, on a None–Low–Intermediate–High scale.',
     },
     {
         key: 'small_vessel_disease',
         label: 'Small Vessel Disease',
         steps: ['None', 'Mild', 'Moderate', 'Severe'],
+        hint: 'Amount of small vessel disease observed, on a None–Mild–Moderate–Severe scale.',
     },
     {
         key: 'braak_and_braak_ad',
         label: 'Braak & Braak AD',
         steps: ['0', 'I', 'II', 'III', 'IV', 'V', 'VI'],
+        hint: 'Distribution and severity of neurofibrillary tangle (NFT) pathology. Stage 0 = none, stage VI = most severe (isocortical) involvement.',
     },
 ];
 
@@ -80,7 +179,7 @@ const toBrainFindingEntries = (context) =>
 
 /**
  * Datum whose value can be a *list* of linked items (e.g. `tissue_samples`,
- * `histology_images`) rather than one scalar -- unlike TissueDatum (which
+ * `histology_images`) rather than one scalar -- unlike ReportDatum (which
  * joins arrays into a plain comma string via getDisplayText), each entry
  * here renders as its own icon-chip, linked when it carries an `@id`, so a
  * multi-value linkTo field reads as a set of distinct records rather than a
@@ -119,8 +218,11 @@ const LinkListDatum = ({ title, items = [], icon = 'icon-link' }) => {
 
 /** A single "<value> / <max>" meter tile -- skipped entirely (returns null)
  * when this report doesn't carry a value for it, so an unpopulated score
- * doesn't render as visual noise (a bare "-"). */
-const ScoreTile = ({ label, value, max }) => {
+ * doesn't render as visual noise (a bare "-"). `hint` (the field's own
+ * schema description) is printed as a caption so the meter reads as a
+ * fast-scan layer over the score's real, citable definition rather than
+ * replacing it -- see BRAIN_NUMERIC_SCORE_FIELDS. */
+const ScoreTile = ({ label, value, max, hint }) => {
     if (typeof value !== 'number') return null;
     const pct = Math.max(0, Math.min(100, (value / max) * 100));
     return (
@@ -136,47 +238,67 @@ const ScoreTile = ({ label, value, max }) => {
                     style={{ width: `${pct}%` }}
                 />
             </div>
+            {hint ? <div className="score-tile-hint">{hint}</div> : null}
         </div>
     );
 };
 
-/** A staged/enum score tile (e.g. None/Mild/Moderate/Severe) rendered as a
- * dot stepper against its own vocabulary rather than a numeric meter, since
- * these fields have no shared numeric scale. Skipped when unset. */
-const StageScoreTile = ({ label, value, steps }) => {
+/** A staged/enum score tile (e.g. None/Mild/Moderate/Severe) -- filled
+ * against its own vocabulary's step position rather than a numeric max, but
+ * through the exact same meter markup/style as ScoreTile (not a dot
+ * stepper) so every tile in the Neuropathological Scores grid reads as one
+ * visual language rather than two. Skipped when unset. Carries the same
+ * `hint` caption as ScoreTile, for the same reason. */
+const StageScoreTile = ({ label, value, steps, hint }) => {
     if (!value) return null;
     const activeIndex = steps.indexOf(value);
+    const pct =
+        activeIndex >= 0
+            ? Math.max(
+                0,
+                Math.min(100, ((activeIndex + 1) / steps.length) * 100)
+            )
+            : 0;
     return (
         <div className="score-tile">
             <div className="score-tile-label">{label}</div>
             <div className="score-tile-value">{value}</div>
-            <div className="score-tile-dots">
-                {steps.map((step, i) => (
-                    <span
-                        key={step}
-                        className={
-                            'score-tile-dot' +
-                            (activeIndex >= 0 && i <= activeIndex
-                                ? ' is-filled'
-                                : '')
-                        }
-                        title={step}
-                    />
-                ))}
+            <div className="score-tile-meter">
+                <div
+                    className="score-tile-meter-fill"
+                    style={{ width: `${pct}%` }}
+                />
             </div>
+            {hint ? <div className="score-tile-hint">{hint}</div> : null}
         </div>
     );
 };
 
+// Standard scale for `tissue_autolysis_score`/`target_tissue_autolysis_score`
+// (mixins.json / non_brain_pathology_report.json) -- the only field
+// InlineMeter is ever used for, so it's hardcoded here rather than threaded
+// through as a prop from every call site.
+const AUTOLYSIS_SCALE_HINT =
+    'Tissue autolysis score. 0 = none, 1 = mild, 2 = moderate, 3 = severe.';
+
 /** Inline "<label> [====    ] value/max" meter used inside a
  * FindingsCardGroup entry card (e.g. a subregion or target tissue's own
  * autolysis score) -- same fill mechanics as ScoreTile's meter, just
- * without the standalone tile chrome. */
+ * without the standalone tile chrome. The label carries the scale's own
+ * definition as a tooltip, via the app's shared `react-tooltip` instance
+ * (mounted once in app.js, picked up by any `data-tip` element -- see
+ * DefaultItemView.js's identical pattern) rather than the native `title`
+ * attribute, whose OS-level hover delay reads as sluggish. */
 const InlineMeter = ({ label, value, max }) => {
     const pct = Math.max(0, Math.min(100, (value / max) * 100));
     return (
         <div className="finding-entry-meter">
-            <span className="finding-entry-meter-label">{label}</span>
+            <span
+                className="finding-entry-meter-label"
+                data-tip={AUTOLYSIS_SCALE_HINT}>
+                {label}
+                <i className="icon icon-info-circle fas" />
+            </span>
             <div className="score-tile-meter">
                 <div
                     className="score-tile-meter-fill"
@@ -195,12 +317,21 @@ const InlineMeter = ({ label, value, max }) => {
  * report's multi-value fields (brain_subregions, target_tissues,
  * non_target_tissues, pathologic_findings) and the brain finding-category
  * fields all share underneath their differing field names: some entries are
- * "Yes" (worth a reader's attention) and the rest are "No" (worth
- * confirming were checked, not worth a full row each). Present entries get
- * their own card with whatever detail they carry; absent entries collapse
- * into one line of muted chips, and an all-absent field collapses further
- * to a single reassuring "None observed" line -- so a report with mostly
- * negative findings reads as mostly *quiet*, not as a wall of repeated "No"s.
+ * "Yes" and the rest are "No" (worth confirming were checked, not worth a
+ * full row each). Present entries get their own card with whatever detail
+ * they carry; absent entries collapse into one line of muted chips, and an
+ * all-absent field collapses further to a single reassuring "None observed"
+ * line -- so a report with mostly negative entries reads as mostly *quiet*,
+ * not as a wall of repeated "No"s.
+ *
+ * `tone` controls whether "present" is flagged as something to notice
+ * (`"finding"`, the default -- an unexpected/pathologic finding actually was
+ * observed, e.g. Neuropathological Findings, Pathologic Findings,
+ * Non-Target Tissues) or is just expected inventory (`"neutral"` -- e.g.
+ * Brain Subregions being present, or a Target Tissue subtype being present,
+ * are the *normal*, desired case, not something to flag). Reusing the amber
+ * warning-triangle treatment for the neutral case would read as "5 things
+ * are wrong" when it actually means "5 regions were accounted for".
  */
 const FindingsCardGroup = ({
     title,
@@ -209,15 +340,21 @@ const FindingsCardGroup = ({
     presentKey = 'present',
     descriptionKey = 'description',
     percentageKey = null,
+    percentageHint = 'Percentage of the sample this occupied.',
     autolysisKey = null,
     autolysisMax = 3,
+    tone = 'finding',
 }) => {
     if (!Array.isArray(entries) || entries.length === 0) return null;
     const present = entries.filter((e) => e[presentKey] === 'Yes');
     const absent = entries.filter((e) => e[presentKey] !== 'Yes');
+    const isNeutral = tone === 'neutral';
 
     return (
-        <div className="pathology-findings-card">
+        <div
+            className={
+                'pathology-findings-card' + (isNeutral ? ' is-neutral' : '')
+            }>
             <div className="header">
                 <span className="header-text">{title}</span>
                 {present.length > 0 ? (
@@ -241,8 +378,21 @@ const FindingsCardGroup = ({
                             );
                             return (
                                 <div className="finding-entry" key={i}>
-                                    <div className="finding-entry-icon">
-                                        <i className="icon icon-exclamation-triangle fas" />
+                                    <div
+                                        className="finding-entry-icon"
+                                        data-tip={
+                                            isNeutral
+                                                ? undefined
+                                                : 'Documented finding, present in this sample -- see description'
+                                        }>
+                                        <i
+                                            className={
+                                                'icon fas ' +
+                                                (isNeutral
+                                                    ? 'icon-check-circle'
+                                                    : 'icon-exclamation-triangle')
+                                            }
+                                        />
                                     </div>
                                     <div className="finding-entry-body">
                                         <div className="finding-entry-label">
@@ -252,7 +402,9 @@ const FindingsCardGroup = ({
                                                 )}
                                             </span>
                                             {hasPercentage ? (
-                                                <span className="finding-entry-percentage">
+                                                <span
+                                                    className="finding-entry-percentage"
+                                                    data-tip={percentageHint}>
                                                     {getDisplayText(
                                                         entry[percentageKey]
                                                     )}
@@ -347,7 +499,6 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
         submitted_id,
         status,
         date_created,
-        last_modified,
         description,
         tissue_name,
         outcome,
@@ -375,6 +526,13 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
         : isNonBrain
             ? 'Non-Brain Pathology Report'
             : 'Pathology Report';
+    // A brain report's `tissue_name` is always literally "Brain" (schema
+    // enum), so appending it after "Brain Pathology Report" only ever
+    // repeats a word already in the title -- suppressed there. Non-brain
+    // reports vary (Liver, Lung, Skin, ...), so the suffix carries real
+    // information for them.
+    const titleSuffix = !isBrain && tissue_name ? `: ${tissue_name}` : '';
+    const headerIcon = isBrain ? 'icon-brain' : 'icon-file-medical-alt';
     const outcomeClass =
         outcome === 'Acceptable'
             ? 'is-acceptable'
@@ -401,12 +559,12 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                 <div className="pathology-report-paper">
                     <div className="pathology-summary-header">
                         <div className="pathology-summary-header-icon">
-                            <i className="icon icon-microscope fas"></i>
+                            <i className={`icon ${headerIcon} fas`}></i>
                         </div>
                         <div className="pathology-summary-header-content">
                             <h1 className="header-text fw-semibold">
                                 {reportTypeTitle}
-                                {tissue_name ? `: ${tissue_name}` : ''}
+                                {titleSuffix}
                             </h1>
                             <div className="pathology-summary-header-notes">
                                 {submitted_id ? (
@@ -458,27 +616,27 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                         </div>
                         <div className="body">
                             <div className="pathology-summary-grid">
-                                <TissueDatum
+                                <ReportDatum
                                     title="Tissue Name"
                                     value={tissue_name}
                                 />
                                 {isNonBrain ? (
-                                    <TissueDatum
+                                    <ReportDatum
                                         title="Anatomical Sample Location"
                                         value={anatomical_sample_location}
                                     />
                                 ) : null}
-                                <TissueDatum title="Outcome" value={outcome} />
-                                <TissueDatum
+                                <ReportDatum title="Outcome" value={outcome} />
+                                <ReportDatum
                                     title="Is Indeterminate"
                                     value={is_indeterminate}
                                 />
-                                <TissueDatum
+                                <ReportDatum
                                     title="Final Review Determination"
                                     value={final_review_determination}
                                 />
                                 {isNonBrain ? (
-                                    <TissueDatum
+                                    <ReportDatum
                                         title="Tissue Autolysis Score"
                                         value={getDisplayText(
                                             tissue_autolysis_score
@@ -486,7 +644,7 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                                     />
                                 ) : null}
                                 {isBrain ? (
-                                    <TissueDatum
+                                    <ReportDatum
                                         title="Additional Staining Performed"
                                         value={additionalStainingPerformed}
                                     />
@@ -503,34 +661,22 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                                 icon="icon-images"
                             />
                             {unacceptable_description ? (
-                                <div className="datum">
-                                    <div className="datum-title">
-                                        Unacceptable Description
-                                    </div>
-                                    <div className="datum-value">
-                                        {unacceptable_description}
-                                    </div>
-                                </div>
+                                <NoteDatum
+                                    title="Unacceptable Description"
+                                    text={unacceptable_description}
+                                />
                             ) : null}
                             {additional_notes ? (
-                                <div className="datum">
-                                    <div className="datum-title">
-                                        Additional Notes
-                                    </div>
-                                    <div className="datum-value">
-                                        {additional_notes}
-                                    </div>
-                                </div>
+                                <NoteDatum
+                                    title="Additional Notes"
+                                    text={additional_notes}
+                                />
                             ) : null}
                             {description ? (
-                                <div className="datum">
-                                    <div className="datum-title">
-                                        Description
-                                    </div>
-                                    <div className="datum-value">
-                                        {description}
-                                    </div>
-                                </div>
+                                <NoteDatum
+                                    title="Description"
+                                    text={description}
+                                />
                             ) : null}
                         </div>
                     </div>
@@ -561,6 +707,7 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                             presentKey="finding_present"
                             descriptionKey="finding_description"
                             percentageKey="finding_percentage"
+                            percentageHint="Percentage range of the sample displaying this finding."
                         />
                     ) : null}
 
@@ -572,6 +719,7 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                             presentKey="is_present"
                             descriptionKey={null}
                             autolysisKey="tissue_autolysis_score"
+                            tone="neutral"
                         />
                     ) : null}
 
@@ -584,7 +732,9 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                                 presentKey="target_tissue_present"
                                 descriptionKey={null}
                                 percentageKey="target_tissue_percentage"
+                                percentageHint="Percentage range of the sample composed of this target tissue subtype."
                                 autolysisKey="target_tissue_autolysis_score"
+                                tone="neutral"
                             />
                             <FindingsCardGroup
                                 title="Non-Target Tissues"
@@ -593,6 +743,7 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                                 presentKey="non_target_tissue_present"
                                 descriptionKey="non_target_tissue_description"
                                 percentageKey="non_target_tissue_percentage"
+                                percentageHint="Percentage range of the sample composed of this non-target tissue subtype."
                             />
                         </>
                     ) : null}
@@ -607,22 +758,24 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                             <div className="body">
                                 <div className="score-tile-grid">
                                     {populatedNumericScores.map(
-                                        ({ key, label, max }) => (
+                                        ({ key, label, max, hint }) => (
                                             <ScoreTile
                                                 key={key}
                                                 label={label}
                                                 value={context[key]}
                                                 max={max}
+                                                hint={hint}
                                             />
                                         )
                                     )}
                                     {populatedStageScores.map(
-                                        ({ key, label, steps }) => (
+                                        ({ key, label, steps, hint }) => (
                                             <StageScoreTile
                                                 key={key}
                                                 label={label}
                                                 value={context[key]}
                                                 steps={steps}
+                                                hint={hint}
                                             />
                                         )
                                     )}
@@ -631,28 +784,15 @@ const PathologyReportOverview = React.memo(function PathologyReportOverview({
                         </div>
                     ) : null}
 
-                    {date_created || last_modified?.date_modified ? (
+                    {date_created ? (
                         <div className="pathology-report-recordinfo">
-                            {date_created ? (
-                                <span>
-                                    Record created{' '}
-                                    <LocalizedTime
-                                        timestamp={date_created}
-                                        formatType="date-time-md"
-                                        dateTimeSeparator=" - "
-                                    />
-                                </span>
-                            ) : null}
-                            {last_modified?.date_modified ? (
-                                <span>
-                                    Last modified{' '}
-                                    <LocalizedTime
-                                        timestamp={last_modified.date_modified}
-                                        formatType="date-time-md"
-                                        dateTimeSeparator=" - "
-                                    />
-                                </span>
-                            ) : null}
+                            <span>
+                                Created{' '}
+                                <LocalizedTime
+                                    timestamp={date_created}
+                                    formatType="date-md"
+                                />
+                            </span>
                         </div>
                     ) : null}
                 </div>

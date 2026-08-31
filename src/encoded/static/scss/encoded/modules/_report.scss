@@ -148,7 +148,12 @@
             // document's lead section without reintroducing a colored
             // header bar on every section.
             &.is-primary {
-                padding-top: 4px;
+                // Matches the .pathology-summary-header + .pathology-summary-card
+                // rule below, which wins here (equal specificity, later in
+                // source) whenever this card directly follows the
+                // letterhead -- true today for every report. Kept in sync
+                // rather than left to rely on that alone.
+                padding-top: 16px;
 
                 .header {
                     background-color: #f3f8fd;
@@ -174,7 +179,10 @@
             gap: 20px;
             padding: 24px 0;
             margin-bottom: 0;
-            border-bottom: 1px solid #e7ecf1;
+            // No border-bottom of its own -- the tinted Report Summary
+            // badge directly below already closes the letterhead off with
+            // its own border, so a second rule line landing just a few
+            // pixels above it read as an accidental double line.
 
             &-icon {
                 display: flex;
@@ -232,13 +240,13 @@
             }
         }
 
-        // The letterhead above already closes itself off with its own
-        // bottom rule -- the section immediately following it (always the
-        // Report Summary card) skips its own top rule so the two don't
-        // double up into a visible double line.
+        // The letterhead above no longer carries its own bottom rule (the
+        // Report Summary badge's own border closes it off instead), so this
+        // section skips its own top rule too -- otherwise it'd be the only
+        // line separating the two.
         .pathology-summary-header + .pathology-summary-card {
             border-top: none;
-            padding-top: 4px;
+            padding-top: 16px;
         }
 
         .pathology-outcome-badge {
@@ -299,19 +307,33 @@
             }
         }
 
-        // Full-width data rows (multi-value link lists, free-text notes)
-        // that sit below .pathology-summary-grid inside the same card body
-        // -- stacked, not gridded, since these values run longer than a
-        // two-column layout comfortably fits.
+        // Full-width multi-value link list rows (Tissue Samples, Histology
+        // Images) that sit below .pathology-summary-grid inside the same
+        // card body -- stacked, not gridded, since a link-chip list runs
+        // longer than a two-column layout comfortably fits. Free-text note
+        // fields use their own .pathology-note-datum below instead.
         .pathology-summary-card > .body > .datum {
             flex-direction: column;
             align-items: flex-start;
-            gap: 4px;
+            gap: 6px;
             padding: 12px 0;
             border-bottom: 1px solid #eef1f4;
 
             &:last-child {
                 border-bottom: none;
+            }
+
+            // Unstyled here otherwise -- these titles are plain `<div>`s
+            // (LinkListDatum doesn't route through ReportDatum), so without
+            // this they render as unweighted body text and don't read as
+            // labels the way every other field in this card does.
+            .datum-title {
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
+                color: #6c7683;
+                margin-bottom: 4px;
             }
 
             .pathology-link-chip-list {
@@ -357,6 +379,44 @@
                         color: #98a2b3;
                     }
                 }
+            }
+        }
+
+        // Free-text note fields (unacceptable_description, additional_notes,
+        // description) -- a quiet boxed card so real clinical prose doesn't
+        // read as just another label/value row and get skimmed past. Kept
+        // deliberately neutral (not blue like the diagnosis callout, not
+        // amber like a present finding) since it isn't a headline result or
+        // a flagged finding, just supporting narrative.
+        .pathology-note-datum {
+            background-color: #f8f9fb;
+            border: 1px solid #e7ecf1;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 14px;
+
+            &-label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
+                color: #6c7683;
+                margin-bottom: 6px;
+
+                i {
+                    font-size: 0.75rem;
+                    color: #98a2b3;
+                }
+            }
+
+            &-text {
+                font-size: 0.875rem;
+                color: #212529;
+                line-height: 1.5;
+                white-space: pre-line;
             }
         }
 
@@ -447,10 +507,19 @@
 
                 &-label {
                     flex: 0 0 auto;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
                     font-size: 0.6875rem;
                     font-weight: 600;
                     color: #898781;
                     text-transform: uppercase;
+
+                    i {
+                        font-size: 0.6875rem;
+                        color: #b7c1cc;
+                        text-transform: none;
+                    }
                 }
 
                 &-value {
@@ -470,6 +539,33 @@
                 font-size: 0.8125rem;
                 color: #52514e;
                 line-height: 1.45;
+            }
+        }
+
+        // FindingsCardGroup's neutral tone (Brain Subregions, Target
+        // Tissues) -- "present" here just means expected inventory was
+        // accounted for, not a flagged finding, so it gets a calm blue
+        // treatment instead of the amber warning used for actual findings.
+        // Scoped from .pathology-findings-card.is-neutral so every
+        // amber-toned child (card, entry, badges) re-themes together.
+        .pathology-findings-card.is-neutral {
+            .header .header-count {
+                color: #1c5cab;
+                background-color: #dcecfa;
+            }
+
+            .finding-entry {
+                background-color: #f3f8fd;
+                border-color: #d7e6f5;
+
+                &-icon {
+                    color: #428bca;
+                }
+
+                &-percentage {
+                    color: #1c5cab;
+                    background-color: #dcecfa;
+                }
             }
         }
 
@@ -534,8 +630,11 @@
         // so this grid only ever shows values a reader can act on.
         .score-tile-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 16px;
+            // Wider than a bare number needs, but each tile also carries a
+            // one-line hint caption (the field's own schema description) --
+            // narrower columns wrapped that caption awkwardly.
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px 20px;
         }
 
         .score-tile {
@@ -573,28 +672,24 @@
                 }
             }
 
-            &-dots {
-                display: flex;
-                gap: 5px;
-            }
-
-            &-dot {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background-color: #e7eef7;
-
-                &.is-filled {
-                    background-color: #428bca;
-                }
+            // The score's own schema description, e.g. "Distribution of
+            // Aβ/amyloid plaques. 0 = none, 3 = severe." -- the bar stays a
+            // fast-scan layer; this is what actually says what the number
+            // means, for a reader unfamiliar with the specific staging
+            // system.
+            &-hint {
+                margin-top: 8px;
+                font-size: 0.6875rem;
+                color: #898781;
+                line-height: 1.4;
             }
         }
 
-        // Database record timestamps (date_created / last_modified) --
-        // deliberately kept out of the letterhead area, which is read as
-        // the *report's own* metadata (accession, status, outcome). These
-        // are about the record row, not any clinical event, so they sit
-        // apart as a plain provenance line, worded to say exactly that.
+        // Database record timestamp (date_created) -- deliberately kept out
+        // of the letterhead area, which is read as the *report's own*
+        // metadata (accession, status, outcome). This is about the record
+        // row, not any clinical event, so it sits apart as a plain
+        // provenance line.
         .pathology-report-recordinfo {
             display: flex;
             flex-wrap: wrap;
