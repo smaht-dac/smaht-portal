@@ -491,16 +491,17 @@ function getTargetTissuePercentageSortValue(value) {
 export const HEATMAP_COLOR_PRESETS = [
     // Default scale (see _search.scss's .score-0..4 fallback values) --
     // listed here too so it's reachable by name after picking something else.
-    { name: 'Ocean', hex: '#22528E' },
+    // ("Indigo", "Teal", "Slate" and "Ocean" were each the default before
+    // this; kept reachable below for anyone who preferred one of them.)
+    { name: 'Steel', hex: '#4D7C8D' },
+    { name: 'Indigo', hex: '#464AA0' },
     { name: 'Teal', hex: '#2F8F83' },
+    { name: 'Slate', hex: '#5B6670' },
+    { name: 'Ocean', hex: '#22528E' },
     { name: 'Purple', hex: '#7C6BA6' },
     { name: 'Amber', hex: '#C08A2E' },
     { name: 'Rose', hex: '#B5657A' },
     { name: 'Forest', hex: '#4F7A5B' },
-    // The neutral grey-blue scale this table used before "Ocean" became the
-    // default (its own darkest band, #5B6670) -- kept reachable here for
-    // anyone who preferred it.
-    { name: 'Slate', hex: '#5B6670' },
 ];
 
 function clamp(value, min, max) {
@@ -635,7 +636,7 @@ function ColorPickerPanelBody({ baseHex, onPick, onReset, onDone }) {
                     title="Pick a custom color">
                     <input
                         type="color"
-                        value={baseHex || '#22528E'}
+                        value={baseHex || '#4D7C8D'}
                         // eslint-disable-next-line react/jsx-no-bind
                         onChange={(event) => onPick(event.target.value)}
                     />
