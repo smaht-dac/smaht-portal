@@ -55,7 +55,7 @@ Naming Schema
     <img class="grey-border" src="/static/img/Nomenclature_Part1.png" alt="Nomenclature Part 1"/>
 
 
-Table 1. Benchmarking cell line codes.
+Table 1. Donor identifiers for SMaHT benchmark cell lines.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
@@ -63,57 +63,57 @@ Table 1. Benchmarking cell line codes.
         <table class="table table-sm text-start">
             <thead class="thead-smaht table-borderless">
                 <tr>
-                    <th>Kit/Sample ID</th>
+                    <th>Donor ID</th>
                     <th>Cell line description</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
                 <tr>
-                    <td>COLO829T</td>
-                    <td>COLO829 tumor cell line</td>
+                    <td>SMHTCOLO829T</td>
+                    <td>COLO829 tumor cell line from ATCC</td>
                 </tr>
                 <tr>
-                    <td>COLO829BL</td>
-                    <td>COLO829BL normal lymphoblast cell line</td>
+                    <td>SMHTCOLO829BL</td>
+                    <td>COLO829BL normal lymphoblast cell line from ATCC</td>
                 </tr>
                 <tr>
-                    <td>COLO829BLT50</td>
-                    <td>COLO829 1:50 admixture</td>
+                    <td>SMHTCOLO829BLT50</td>
+                    <td>Admixture of COLO829 and COLO829BL cell lines at a 1:49 mixture ratio, respectively, created by the SMaHT Network</td>
                 </tr>
                 <tr>
-                    <td>HAPMAP6</td>
-                    <td>Cell admixture of six HapMap cell lines</td>
+                    <td>SMHTHAPMAP6</td>
+                    <td>Admixture of six HapMap cell lines, created for the Network at Coriell (see the SMaHT Data Portal for more details)</td>
                 </tr>
                 <tr>
-                    <td>LBLA2</td>
-                    <td>LB-LA2 fibroblast cell line</td>
+                    <td>SMHTLBLA2</td>
+                    <td>LB-LA2 fibroblast cell line created by the Network</td>
                 </tr>
                 <tr>
-                    <td>LBIPSC1</td>
-                    <td>iPSC line from clone #1 derived from the LB-LA2 fibroblast cell line</td>
+                    <td>SMHTLBIPSC1</td>
+                    <td>iPSC line derived from Clone #1 from the parental LB-LA2 fibroblast cell line, created by the Network</td>
                 </tr>
                 <tr>
-                    <td>LBIPSC2</td>
-                    <td>iPSC line from clone #2 derived from the LB-LA2 fibroblast cell line</td>
+                    <td>SMHTLBIPSC2</td>
+                    <td>iPSC line derived from Clone #2 from the parental LB-LA2 fibroblast cell line, created by the Network</td>
                 </tr>
                 <tr>
-                    <td>LBIPSC4</td>
-                    <td>iPSC line from clone #4 derived from the LB-LA2 fibroblast cell line</td>
+                    <td>SMHTLBIPSC4</td>
+                    <td>iPSC line derived from Clone #4 from the parental LB-LA2 fibroblast cell line, created by the Network</td>
                 </tr>
                 <tr>
-                    <td>LBIPSC52</td>
-                    <td>iPSC line from clone #52 derived from the LB-LA2 fibroblast cell line</td>
+                    <td>SMHTLBIPSC52</td>
+                    <td>iPSC line derived from Clone #52 from the parental LB-LA2 fibroblast cell line, created by the Network</td>
                 </tr>
                 <tr>
-                    <td>LBIPSC60</td>
-                    <td>iPSC line from clone #60 derived from the LB-LA2 fibroblast cell line</td>
+                    <td>SMHTLBIPSC60</td>
+                    <td>iPSC line derived from Clone #60 from the parental LB-LA2 fibroblast cell line, created by the Network</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
 
-Table 2A. Protocol IDs for SMaHT benchmarking tissues.
+Table 2A. Benchmark tissue protocol IDs, which combine the tissue types and preservation methods.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
@@ -121,9 +121,9 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
         <table class="table table-striped table-sm text-start">
             <thead class="thead-smaht table-borderless">
                 <tr>
-                    <th style="min-width:95px">Protocol ID</th>
-                    <th style="min-width:200px">Tissue Name for Container</th>
-                    <th style="min-width:200px">Preservation</th>
+                    <th style="min-width:95px">Tissue Protocol ID</th>
+                    <th style="min-width:200px">Tissue Name</th>
+                    <th style="min-width:200px">Preservation Method</th>
                     <th style="min-width:200px">Notes</th>
                 </tr>
             </thead>
@@ -132,7 +132,7 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>1A</td>
                     <td>Liver</td>
                     <td>Snap Frozen</td>
-                    <td>Homogenate and non-homogenate samples</td>
+                    <td>For both homogenate and non-homogenate samples used in the SMaHT benchmark studies</td>
                 </tr>
                 <tr>
                     <td class="text-secondary fst-italic">1B</td>
@@ -150,7 +150,7 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>1D</td>
                     <td>Lung</td>
                     <td>Snap Frozen</td>
-                    <td>Homogenate and non-homogenate samples</td>
+                    <td>For both homogenate and non-homogenate samples used in the SMaHT benchmark studies</td>
                 </tr>
                 <tr>
                     <td class="text-secondary fst-italic">1E</td>
@@ -168,7 +168,7 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>1G</td>
                     <td>Colon</td>
                     <td>Snap Frozen</td>
-                    <td>Homogenate and non-homogenate samples</td>
+                    <td>For both homogenate and non-homogenate samples used in the SMaHT benchmark studies</td>
                 </tr>
                 <tr>
                     <td class="text-secondary fst-italic">1H</td>
@@ -192,7 +192,7 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>1K</td>
                     <td>Skin</td>
                     <td>Snap Frozen</td>
-                    <td>Tissue core from the intact tissue was made (~1 cm)</td>
+                    <td>A tissue core from an intact tissue was made (~1 cm in diameter)</td>
                 </tr>
                 <tr>
                     <td>1L</td>
@@ -210,14 +210,14 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>1Q</td>
                     <td>Brain, Frontal Lobe</td>
                     <td>Snap Frozen</td>
-                    <td>Homogenate and non-homogenate samples</td>
+                    <td>For both homogenate and non-homogenate samples used in the SMaHT benchmark studies</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
 
-Table 2B. Protocol IDs for SMaHT production tissues.
+Table 2B. Production tissue protocol IDs, which combine the tissue types and preservation methods.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
@@ -545,8 +545,16 @@ Table 3A. Sequencing platform codes.
                     <td class="text-start">Ultima Genomics UG 100</td>
                 </tr>
                 <tr>
-                    <td class="cell-small-text text-start">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
+                    <td class="text-center">N</td>
                     <td class="text-start">PacBio Onso</td>
+                </tr>
+                <tr>
+                    <td class="text-center">O</td>
+                    <td class="text-start">MGI DNBSEQ-T7</td>
+                </tr>
+                <tr>
+                    <td class="text-center">P</td>
+                    <td class="text-start">Roche Axelios 1</td>
                 </tr>
             </tbody>
         </table>
@@ -728,6 +736,11 @@ Table 3B. Experimental assay codes.
                     <td>DNA, Bulk, Duplex-seq, ppmSeq</td>
                 </tr>
                 <tr>
+                    <td>031</td>
+                    <td>SBX-D</td>
+                    <td>DNA, Bulk, Duplex-seq, SBX-D</td>
+                </tr>
+                <tr>
                     <td colspan="3" class="pb-3 pt-07"></td>
                 </tr>
                 <tr class="table-stripe-secondary fst-italic text-600">
@@ -792,7 +805,7 @@ Table 3B. Experimental assay codes.
     </div>
 
 
-Table 4. SMaHT data generation center codes.
+Table 4. Codes for centers in the SMaHT Network. GCCs, TTDs, the DAC, and the TPC, as well as the contact PI of each center, are shown below.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
@@ -884,7 +897,7 @@ Table 4. SMaHT data generation center codes.
                     <td>mayo</td>
                     <td>TTD</td>
                     <td>Mayo Clinic</td>
-                    <td>Alexej Arbyzov</td>
+                    <td>Alexej Abyzov</td>
                 </tr>
                 <tr>
                     <td>nyu</td>
@@ -947,7 +960,7 @@ Part 3: File Name breakdown
     <img class="grey-border" src="/static/img/Nomenclature_Part3.png" alt="Nomenclature Part 3"/>
 
 
-Table 5. Genome version (A) and variant type (B) tables.
+Table 5. Genome version (A) and data type (B) codes.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
@@ -958,7 +971,7 @@ Table 5. Genome version (A) and variant type (B) tables.
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Reference Genome</th>
-                    <th>Code</th>
+                    <th>Code in the file name</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
@@ -985,10 +998,30 @@ Table 5. Genome version (A) and variant type (B) tables.
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Data Type</th>
-                    <th>Code</th>
+                    <th>Code in the file name</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
+                <tr>
+                    <td>Single nucleotide variants</td>
+                    <td>snv</td>
+                </tr>
+                <tr>
+                    <td>Short insertions and deletions</td>
+                    <td>indel</td>
+                </tr>
+                <tr>
+                    <td>Structural variants, including large insertions and deletions, duplications, inversions, and translocations</td>
+                    <td>sv</td>
+                </tr>
+                <tr>
+                    <td>Copy number variants</td>
+                    <td>cnv</td>
+                </tr>
+                <tr>
+                    <td>Mobile element insertions</td>
+                    <td>mei</td>
+                </tr>
                 <tr>
                     <td>Reference conversion</td>
                     <td>[Source]To[Target]</td>
@@ -1002,11 +1035,11 @@ Table 5. Genome version (A) and variant type (B) tables.
                     <td>gene</td>
                 </tr>
                 <tr>
-                    <td>Transcript isoform expression level or isoform information</td>
+                    <td>Transcript isoform expression level or other isoform-level information</td>
                     <td>isoform</td>
                 </tr>
                 <tr>
-                    <td>Junction annotations</td>
+                    <td>Exon/Intron junction annotations</td>
                     <td>junction</td>
                 </tr>
                 <tr>
@@ -1014,18 +1047,13 @@ Table 5. Genome version (A) and variant type (B) tables.
                     <td>flnc</td>
                 </tr>
                 <tr>
-                    <td>Aligned consensus Duplex-Seq BAM</td>
+                    <td>Aligned consensus reads from Duplex-seq data</td>
                     <td>consensus</td>
+                </tr>
+                <tr>
+                    <td>Metadata information</td>
+                    <td>metadata</td>
                 </tr>
             </tbody>
         </table>
     </div>
-
-
-Example Files with the SMaHT Nomenclature
------------------------------------------
-
-.. raw:: html
-
-    <img class="grey-border" src="/static/img/Nomenclature_ExampleFiles.png" alt="Nomenclature_ExampleFiles"/>
-
