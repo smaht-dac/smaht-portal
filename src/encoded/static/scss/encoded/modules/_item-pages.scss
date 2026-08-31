@@ -2963,56 +2963,29 @@ File, Donor, and Publication Overview Styles
                     padding-top: 0px;
                     padding-bottom: 40px;
 
-                    p {
-                        font-size: 0.9375rem;
-                        line-height: 1.75rem;
-                    }
-                    img {
-                        position: absolute;
-                        top: 0px;
-                        right: 0px;
-                        display: block;
-                        max-width: 500px;
-                        width: 100%;
-                        height: auto;
-                        border-radius: 5px;
-                        border: 1px solid #e5e5e5;
-                    }
+                    & div > div {
+                        display: flex;
+                        gap: 40px;
 
-                    // Only reserve space for the image when the content
-                    // actually includes one
-                    @supports selector(:has(*)) {
-                        &:has(img) {
-                            padding-right: 550px;
-                            min-height: 300px;
+                        & > div {
+                            display: flex;
+                            flex-direction: column;
+                            font-size: 0.9375rem;
+                            line-height: 1.75rem;
+                        }
+                        img {
+                            width: 50%;
+                            max-width: 600px;
+                            max-height: 400px;
                         }
                     }
 
                     @include media-breakpoint-down(lg) {
-                        padding-right: 0px;
+                        & div > div {
+                            flex-direction: column-reverse;
 
-                        img {
-                            right: auto;
-                            top: 0px;
-                            max-height: 250px;
-                            width: auto;
-                            max-width: 100%;
-                        }
-
-                        @supports selector(:has(*)) {
-                            &:has(img) {
-                                padding-right: 0px;
-                                padding-top: 300px;
-                            }
-                        }
-                    }
-                    @include media-breakpoint-down(sm) {
-                        padding-right: 0px;
-
-                        @supports selector(:has(*)) {
-                            &:has(img) {
-                                padding-right: 0px;
-                                padding-top: 250px;
+                            img {
+                                width: 100%;
                             }
                         }
                     }
