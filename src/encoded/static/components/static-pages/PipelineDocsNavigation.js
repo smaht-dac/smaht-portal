@@ -443,7 +443,7 @@ export const PipelineDocsNavigation = (props) => {
                                 sequencing libraries from multiple genome
                                 centers (GCCs) as well as core-specific
                                 libraries for each donor are provided as
-                                high-depth input (~300× combined, or ~150x
+                                high-depth input (~300x combined, or ~150x
                                 core-specific short-read coverage) to each
                                 caller. Starting in v2.0.0, each sequencing core
                                 is tracked independently, and the final output
