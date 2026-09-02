@@ -710,20 +710,33 @@ export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
     );
 }
 
+// The 4 ways a multi-value cell can be shown -- all reachable from the same
+// admin toggle (HeatmapAdminSettings below) so test users can be switched
+// between them to compare, per explicit request after the plain "/"-joined
+// text (`inline`) wasn't well received on its own. `inline` stays the
+// fallback for any cell a split mode (`diagonal`/`vertical`) can't actually
+// render as a split -- see renderRowCells' `isSplitMode` -- so every mode
+// still satisfies the original review requirement (every real value visible
+// with no hover/click) except `hover`, which deliberately opts back into
+// the pre-review corner-flag + popover behavior for whoever prefers it.
+const CELL_VALUE_DISPLAY_MODES = [
+    { key: 'inline', label: 'All values' },
+    { key: 'diagonal', label: 'Diagonal split' },
+    { key: 'vertical', label: 'Vertical split' },
+    { key: 'hover', label: 'On hover' },
+];
+
 // BrowseTissueHeatmapTable's own toolbar bundles 2 admin-only, experimental,
 // browser-only display overrides -- which values a multi-record cell shows
-// (all-inline by default, per explicit review feedback that a typical
-// portal user won't reliably hover/click to find data -- the earlier
-// corner-flag + hover-popover behavior is kept reachable here rather than
-// deleted, since it's still a reasonable, more compact power-user option)
-// and the conditional-color palette (ColorPickerPanelBody/HeatmapColorPicker
-// above). Two separate always-visible toggle rows read as visual clutter in
-// the tab row (see the review screenshot this responds to), so both live
-// behind one gear button/panel instead -- same "icon-gear" FontAwesome glyph
-// DataMatrixConfigurator.js already uses for its own admin-only control.
+// (CELL_VALUE_DISPLAY_MODES above) and the conditional-color palette
+// (ColorPickerPanelBody/HeatmapColorPicker above). Two separate always-
+// visible toggle rows read as visual clutter in the tab row (see the review
+// screenshot this responds to), so both live behind one gear button/panel
+// instead -- same "icon-gear" FontAwesome glyph DataMatrixConfigurator.js
+// already uses for its own admin-only control.
 function HeatmapAdminSettings({
-    showValuesOnHover,
-    onChangeShowValuesOnHover,
+    cellValueDisplayMode,
+    onChangeCellValueDisplayMode,
     baseHex,
     onPickColor,
     onResetColor,
@@ -766,26 +779,19 @@ function HeatmapAdminSettings({
                             className="tissue-heatmap-value-display-toggle"
                             role="group"
                             aria-label="Multi-value cell display">
-                            <button
-                                type="button"
-                                className={
-                                    'tissue-heatmap-value-display-toggle-option' +
-                                    (!showValuesOnHover ? ' is-active' : '')
-                                }
-                                // eslint-disable-next-line react/jsx-no-bind
-                                onClick={() => onChangeShowValuesOnHover(false)}>
-                                All values
-                            </button>
-                            <button
-                                type="button"
-                                className={
-                                    'tissue-heatmap-value-display-toggle-option' +
-                                    (showValuesOnHover ? ' is-active' : '')
-                                }
-                                // eslint-disable-next-line react/jsx-no-bind
-                                onClick={() => onChangeShowValuesOnHover(true)}>
-                                On hover
-                            </button>
+                            {CELL_VALUE_DISPLAY_MODES.map((mode) => (
+                                <button
+                                    type="button"
+                                    key={mode.key}
+                                    className={
+                                        'tissue-heatmap-value-display-toggle-option' +
+                                        (cellValueDisplayMode === mode.key ? ' is-active' : '')
+                                    }
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    onClick={() => onChangeCellValueDisplayMode(mode.key)}>
+                                    {mode.label}
+                                </button>
+                            ))}
                         </div>
                     </div>
                     <div className="tissue-heatmap-admin-settings-divider" />
@@ -838,7 +844,7 @@ function distinctEntryValues(entries) {
     return result;
 }
 
-function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHoveredColumn, entries) {
+function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRowSegment, isColumnSegment, entries) {
     return (
         'tissue-heatmap-cell' +
         (enableConditionalColor ? ` ${getScoreClass(value)}` : '') +
@@ -847,7 +853,10 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isHo
         // enableConditionalColor gates -- keeps real values legible against
         // empty ones either way.
         (value === null || typeof value === 'undefined' ? ' is-empty' : '') +
-        (isHoveredColumn ? ' is-hovered-column' : '') +
+        // See renderRowCells' own comment on hoveredCellPosition for what
+        // these 2 mean and why they're 2 separate classes, not 1.
+        (isRowSegment ? ' is-row-highlight' : '') +
+        (isColumnSegment ? ' is-column-highlight' : '') +
         // Excel-style corner flag -- reserved for cells where the alternate
         // record(s) actually carry a different value (see
         // hasDistinctAltValues above), not just any multi-record cell. A
@@ -942,34 +951,54 @@ function renderCellAltValues(entries, tissueType, metricLabel, formatValue, styl
 // separately-headed individual cells (when this particular row didn't
 // merge, e.g. a "no value at all" row).
 //
-// `hoveredColumn`/`onHoverColumn` -- crosshair highlighting (which row and
-// column a cell belongs to should be obvious on hover, per explicit
-// request). The row half needs no JS at all (`tbody tr:hover` in
-// _search.scss); the column half does, since plain CSS has no way to
-// select "every cell in the same column as the one being hovered" -- each
-// cell reports its own (possibly multi-tissueType, if merged) span on
-// mouseenter, MetricHeatmapTable stores it, and every cell -- this row's
-// and the header's (renderHeaderCells) -- checks it on render. Kept active
-// in both `showValuesOnHover` modes below -- it's automatic on hover, not
-// something a user has to act on to see a value, so it isn't what the
-// "no hover/click to see data" review feedback was about.
+// `hoveredColumn`/`hoveredCellPosition`/`onHoverCell` -- "L-shaped" hover
+// guides (per explicit request): hovering a cell highlights only the
+// portion of its row to its left/at it, and the portion of its column
+// above/at it -- not the *entire* row and *entire* column, which read as a
+// distracting "+" cross running through the hovered cell. `hoveredColumn`
+// (a tissue_type, matched via `columnTissueTypes.includes`, unchanged from
+// before) still identifies which column is active at all, including from
+// the *header* itself (which has no row to draw an "L" from -- hovering a
+// header still lights up its whole column, top to bottom, same as always).
+// `hoveredCellPosition` (`{ rowIndex, columnIndex } | null`, set only when
+// the hover actually originates from a *body* cell, see
+// MetricHeatmapTable's handleHoverBodyCell) is what turns that into an L
+// instead of a cross for that case specifically:
+// - Row segment: only cells in `hoveredCellPosition.rowIndex`'s own row,
+//   at or before `hoveredCellPosition.columnIndex`.
+// - Column segment: only cells in the hovered column, at or before
+//   `hoveredCellPosition.rowIndex` -- or every row, when
+//   `hoveredCellPosition` is null (a header hover), preserving that
+//   whole-column behavior.
+// The row's own left "edge" -- .tissue-heatmap-donor-id -- doesn't need
+// any of this: it's always positioned before every data column, so it's
+// always part of the row segment once its own row is hovered at all,
+// which a plain `tbody tr:hover` (_search.scss) already covers with no JS.
 //
-// `showValuesOnHover` -- see HeatmapAdminSettings. `false` (the default)
-// writes every real value for a multi-record cell inline (entries are
-// already primary-first, see buildTissueMetricMatrix), with no corner flag;
-// `true` shows only the primary value plus the corner flag instead. Either
-// way, the detail popover (renderCellAltValues, wired up by the caller via
-// onShowDetail/onHideDetail) still opens on hover -- with every value
-// already visible inline in the default mode, hovering for it isn't
-// required to see the data (what the review feedback objected to), it's
-// just an optional way to see which record each value actually came from.
-function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor, hoveredColumn, onHoverColumn, onShowDetail, onHideDetail, showValuesOnHover) {
+// `cellValueDisplayMode` -- see CELL_VALUE_DISPLAY_MODES/HeatmapAdminSettings.
+// `'inline'` (the default) writes every real value for a multi-record cell
+// inline, "/"-separated (entries are already primary-first, see
+// buildTissueMetricMatrix), no corner flag. `'diagonal'`/`'vertical'` render
+// a genuinely split cell instead -- one half per value -- but only when
+// there are exactly 2 distinct values to split between; a cell with only 1
+// real value obviously can't split, and one with 3+ (e.g. a real 3-target-
+// cell-subtype case) has nowhere left to put a 3rd half, so both fall back
+// to the same "/"-joined text `'inline'` uses, rather than silently
+// dropping a value the review explicitly required stay visible without
+// hovering. `'hover'` shows only the primary value plus the corner flag
+// instead. In every mode, the detail popover (renderCellAltValues, wired up
+// by the caller via onShowDetail/onHideDetail) still opens on hover -- with
+// every value already visible without hovering in every mode but `'hover'`
+// itself, this is just an optional way to see which record each value
+// actually came from, not a requirement to see the data.
+function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor, rowIndex, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, onShowDetail, onHideDetail, cellValueDisplayMode) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
         const tissueType = tissueTypes[i];
         const value = cells[i];
         const entries = cellEntries?.[i] || null;
+        const columnIndex = i;
         let span = 1;
         if (mergeableTissueTypes.has(tissueType)) {
             while (
@@ -981,32 +1010,96 @@ function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, f
             }
         }
         const columnTissueTypes = tissueTypes.slice(i, i + span);
-        const inlineValues = showValuesOnHover ? [] : distinctEntryValues(entries);
-        const showsAllValuesInline = inlineValues.length > 1;
+        const isHoverMode = cellValueDisplayMode === 'hover';
+        const distinctValues = isHoverMode ? [] : distinctEntryValues(entries);
+        const isSplitLayout = cellValueDisplayMode === 'diagonal' || cellValueDisplayMode === 'vertical';
+        const isSplitMode = isSplitLayout && distinctValues.length === 2;
+        const showsAllValuesInline = !isHoverMode && !isSplitMode && distinctValues.length > 1;
+        const isRowSegment =
+            hoveredCellPosition !== null &&
+            hoveredCellPosition.rowIndex === rowIndex &&
+            columnIndex <= hoveredCellPosition.columnIndex;
+        const isColumnSegment =
+            columnTissueTypes.includes(hoveredColumn) &&
+            (hoveredCellPosition === null || rowIndex <= hoveredCellPosition.rowIndex);
+
+        const className = isSplitMode
+            ? 'tissue-heatmap-cell tissue-heatmap-cell-split' +
+              ` tissue-heatmap-cell-split-${cellValueDisplayMode}` +
+              (isRowSegment ? ' is-row-highlight' : '') +
+              (isColumnSegment ? ' is-column-highlight' : '')
+            : heatmapCellClassName(
+                value,
+                getScoreClass,
+                enableConditionalColor,
+                isRowSegment,
+                isColumnSegment,
+                isHoverMode ? entries : null
+            );
+
         nodes.push(
             <td
                 key={tissueType}
                 colSpan={span > 1 ? span : undefined}
-                className={heatmapCellClassName(
-                    value,
-                    getScoreClass,
-                    enableConditionalColor,
-                    columnTissueTypes.includes(hoveredColumn),
-                    showValuesOnHover ? entries : null
-                )}
+                className={className}
                 // eslint-disable-next-line react/jsx-no-bind
                 onMouseEnter={(event) => {
-                    onHoverColumn(tissueType);
+                    onHoverCell(tissueType, rowIndex, columnIndex);
                     onShowDetail(event.currentTarget, entries, tissueType);
                 }}
                 // eslint-disable-next-line react/jsx-no-bind
                 onMouseLeave={() => {
-                    onHoverColumn(null);
+                    onHoverEnd();
                     onHideDetail();
                 }}>
-                {showsAllValuesInline
-                    ? inlineValues.map((v) => formatValue(v)).join(' / ')
-                    : formatValue(value)}
+                {isSplitMode ? (
+                    <>
+                        <span
+                            className={
+                                'tissue-heatmap-cell-split-half tissue-heatmap-cell-split-half-a' +
+                                (enableConditionalColor ? ` ${getScoreClass(distinctValues[0])}` : '')
+                            }>
+                            {formatValue(distinctValues[0])}
+                        </span>
+                        <span
+                            className={
+                                'tissue-heatmap-cell-split-half tissue-heatmap-cell-split-half-b' +
+                                (enableConditionalColor ? ` ${getScoreClass(distinctValues[1])}` : '')
+                            }>
+                            {formatValue(distinctValues[1])}
+                        </span>
+                        {cellValueDisplayMode === 'diagonal' ? (
+                            // A CSS `linear-gradient(to bottom right, ...)`
+                            // hard-stop was tried here first for the
+                            // dividing line -- it looked like a mismatched
+                            // double line/zigzag against a real (non-
+                            // square) column width. Root cause: a "to
+                            // corner" gradient's hard-stop is a line
+                            // perpendicular to the TL->BR axis through the
+                            // box's center, not the literal TL/BR-corner
+                            // diagonal itself -- those 2 lines only
+                            // coincide when the box is a square. The 2
+                            // <span> halves' own `clip-path` polygons don't
+                            // have this problem (percentage vertices
+                            // stretch with the box exactly like this SVG's
+                            // `preserveAspectRatio="none"` viewBox does),
+                            // so this SVG line -- not a gradient -- is what
+                            // actually traces the same diagonal the 2
+                            // halves are cut along, at any column width.
+                            <svg
+                                className="tissue-heatmap-cell-split-divider"
+                                viewBox="0 0 100 100"
+                                preserveAspectRatio="none"
+                                aria-hidden="true">
+                                <line x1="0" y1="100" x2="100" y2="0" vectorEffect="non-scaling-stroke" />
+                            </svg>
+                        ) : null}
+                    </>
+                ) : showsAllValuesInline ? (
+                    distinctValues.map((v) => formatValue(v)).join(' / ')
+                ) : (
+                    formatValue(value)
+                )}
             </td>
         );
         i += span;
@@ -1149,7 +1242,7 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
                     key={tissueType}
                     colSpan={span > 1 ? span : undefined}
                     title="Brain"
-                    className={regionTissueTypes.includes(hoveredColumn) ? 'is-hovered-column' : undefined}
+                    className={regionTissueTypes.includes(hoveredColumn) ? 'is-column-highlight' : undefined}
                     // eslint-disable-next-line react/jsx-no-bind
                     onMouseEnter={() => onHoverColumn(tissueType)}
                     // eslint-disable-next-line react/jsx-no-bind
@@ -1169,7 +1262,7 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
             <th
                 key={tissueType}
                 title={tissueType}
-                className={hoveredColumn === tissueType ? 'is-hovered-column' : undefined}
+                className={hoveredColumn === tissueType ? 'is-column-highlight' : undefined}
                 // eslint-disable-next-line react/jsx-no-bind
                 onMouseEnter={() => onHoverColumn(tissueType)}
                 // eslint-disable-next-line react/jsx-no-bind
@@ -1333,10 +1426,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // Extracts a comparable value from a raw cell value for sorting -- see
     // defaultGetSortValue's comment for why Target Tissue % overrides this.
     getSortValue = defaultGetSortValue,
-    // See HeatmapAdminSettings/renderRowCells -- `false` (default) shows
-    // every real value for a multi-record cell inline; `true` restores the
-    // corner-flag + hover-popover behavior.
-    showValuesOnHover = false,
+    // See CELL_VALUE_DISPLAY_MODES/HeatmapAdminSettings/renderRowCells.
+    cellValueDisplayMode = 'inline',
 }) {
     const columnGroups = useMemo(
         () => buildColumnGroups(tissueTypes, tissueTypeCategories),
@@ -1353,11 +1444,30 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // comparison above.
     const [sortState, setSortState] = useState(null);
 
-    // Column-hover crosshair -- see renderRowCells' comment for why only
-    // this half needs JS (row-hover is plain CSS, `tbody tr:hover`).
-    // Shared by both the real and the sticky-clone header (renderTableHeaderRows)
-    // so the header stays highlighted even while scrolled/stuck.
+    // "L-shaped" hover guides -- see renderRowCells' own comment for the
+    // full reasoning. `hoveredColumn` (a tissue_type) is shared by the real
+    // header, the sticky-clone header (renderTableHeaderRows), and every
+    // body row so the whole column stays identifiable even while scrolled/
+    // stuck; `hoveredCellPosition` (`{ rowIndex, columnIndex } | null`)
+    // additionally narrows that to an L instead of a cross when the hover
+    // actually originates from a body cell (handleHoverBodyCell) rather
+    // than the header itself (handleHoverHeaderColumn, which leaves this
+    // null -- a header hover has no row to draw an L from, so it keeps
+    // lighting up its whole column as before).
     const [hoveredColumn, setHoveredColumn] = useState(null);
+    const [hoveredCellPosition, setHoveredCellPosition] = useState(null);
+    const handleHoverHeaderColumn = (tissueType) => {
+        setHoveredColumn(tissueType);
+        setHoveredCellPosition(null);
+    };
+    const handleHoverBodyCell = (tissueType, rowIndex, columnIndex) => {
+        setHoveredColumn(tissueType);
+        setHoveredCellPosition({ rowIndex, columnIndex });
+    };
+    const handleHoverEnd = () => {
+        setHoveredColumn(null);
+        setHoveredCellPosition(null);
+    };
 
     // A cell's own detail popover (renderCellAltValues) used to be a plain
     // CSS :hover-revealed descendant of the <td> -- but that <td> sits
@@ -1565,7 +1675,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 sortState,
                                 handleHeaderClick,
                                 hoveredColumn,
-                                setHoveredColumn
+                                handleHoverHeaderColumn
                             )}
                         </thead>
                     </table>
@@ -1583,7 +1693,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             sortState,
                             handleHeaderClick,
                             hoveredColumn,
-                            setHoveredColumn
+                            handleHoverHeaderColumn
                         )}
                     </thead>
                     <tbody>
@@ -1603,11 +1713,14 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     formatValue,
                                     getScoreClass,
                                     enableConditionalColor,
+                                    rowIndex,
                                     hoveredColumn,
-                                    setHoveredColumn,
+                                    hoveredCellPosition,
+                                    handleHoverBodyCell,
+                                    handleHoverEnd,
                                     handleShowDetail,
                                     handleHideDetail,
-                                    showValuesOnHover
+                                    cellValueDisplayMode
                                 )}
                             </tr>
                         ))}
@@ -1659,11 +1772,13 @@ export const BrowseTissueHeatmapTable = (props) => {
     const handlePickPaletteColor = (hex) => setPaletteBaseHex(hex);
     const handleResetPaletteColor = () => setPaletteBaseHex(null);
 
-    // Default (false): every real value for a multi-record cell is shown
-    // inline, no hover/click needed -- see HeatmapAdminSettings for why.
-    // Same in-memory-only, per-page-view, admin-toggleable pattern as
-    // paletteBaseHex above.
-    const [showValuesOnHover, setShowValuesOnHover] = useState(false);
+    // Default ('vertical'): a multi-record cell splits into 2 side-by-side
+    // halves, one real value each -- see CELL_VALUE_DISPLAY_MODES for the
+    // other 3 (still satisfies the original review requirement -- every
+    // real value visible with no hover/click -- same as 'inline' and
+    // 'diagonal', just laid out differently). Same in-memory-only,
+    // per-page-view, admin-toggleable pattern as paletteBaseHex above.
+    const [cellValueDisplayMode, setCellValueDisplayMode] = useState('vertical');
 
     // The tab titles' info-circle icons (TabTitleWithInfo) are static-attribute
     // react-tooltip targets (data-tip) -- app.js's global <ReactTooltip/> only
@@ -1759,9 +1874,9 @@ export const BrowseTissueHeatmapTable = (props) => {
             {isAdminUser ? (
                 <div className="tissue-heatmap-toolbar">
                     <HeatmapAdminSettings
-                        showValuesOnHover={showValuesOnHover}
+                        cellValueDisplayMode={cellValueDisplayMode}
                         // eslint-disable-next-line react/jsx-no-bind
-                        onChangeShowValuesOnHover={setShowValuesOnHover}
+                        onChangeCellValueDisplayMode={setCellValueDisplayMode}
                         baseHex={paletteBaseHex}
                         // eslint-disable-next-line react/jsx-no-bind
                         onPickColor={handlePickPaletteColor}
@@ -1803,7 +1918,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             // this prop restored.
                             scoreLegend={null}
                             enableConditionalColor={enableConditionalColor}
-                            showValuesOnHover={showValuesOnHover}
+                            cellValueDisplayMode={cellValueDisplayMode}
                         />
                     )}
                 </DotRouterTab>
@@ -1828,7 +1943,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             formatValue={formatAutolysisScore}
                             getScoreClass={getAutolysisScoreClass}
                             enableConditionalColor={enableConditionalColor}
-                            showValuesOnHover={showValuesOnHover}
+                            cellValueDisplayMode={cellValueDisplayMode}
                         />
                     )}
                 </DotRouterTab>
@@ -1854,7 +1969,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             getScoreClass={getTargetTissuePercentageScoreClass}
                             getSortValue={getTargetTissuePercentageSortValue}
                             enableConditionalColor={enableConditionalColor}
-                            showValuesOnHover={showValuesOnHover}
+                            cellValueDisplayMode={cellValueDisplayMode}
                         />
                     )}
                 </DotRouterTab>

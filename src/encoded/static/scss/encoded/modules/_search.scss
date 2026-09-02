@@ -2079,15 +2079,35 @@ div.browse-link-icon {
 	}
 }
 
-// The cell-value-display segmented toggle inside HeatmapAdminSettings'
-// panel (BrowseTissueHeatmapTable.js) -- switches between the default
-// (every real value shown inline in the cell, no hover/click needed) and
-// the earlier corner-flag + hover-popover display. Deliberately NOT nested
-// under `.tissue-heatmap-card` for the same reason as
-// `.tissue-heatmap-color-picker` below -- looks right wherever it's
-// rendered.
+// The cell-value-display toggle inside HeatmapAdminSettings' panel
+// (BrowseTissueHeatmapTable.js) -- switches between all 4
+// CELL_VALUE_DISPLAY_MODES. A single-row `inline-flex` (as this was when
+// there were only 2 modes: "All values"/"On hover") doesn't work for 4 --
+// flex items don't shrink below their own content's min-width by default,
+// so a longer label like "Diagonal split" forced the row wider than the
+// panel's own fixed width, overflowing the whole page horizontally rather
+// than staying contained (confirmed against the real admin panel, not
+// just a layout nitpick). A 2x2 grid instead can never exceed the panel's
+// own width regardless of label length -- each cell just wraps its own
+// text onto a 2nd line if it needs to (see the "Diagonal split"/"Vertical
+// split" options). Deliberately NOT nested under `.tissue-heatmap-card`
+// for the same reason as `.tissue-heatmap-color-picker` below -- looks
+// right wherever it's rendered.
 .tissue-heatmap-value-display-toggle {
-	display: inline-flex;
+	display: grid;
+	// `minmax(0, 1fr)`, not bare `1fr` -- a bare `1fr` track still carries
+	// an implicit `auto` (content-based) minimum, the exact same overflow
+	// trap this grid replaced flexbox to get away from. `minmax(0, 1fr)`
+	// actually allows a track to shrink below its own content's natural
+	// width, letting text wrap instead of forcing the grid wider than the
+	// panel.
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	// The 1px gap (not individual borders on each option) is what actually
+	// draws the grid lines between options -- it reveals this element's
+	// own background-color underneath, so that color doubles as both the
+	// outer border and the lines between cells with only 1 declaration.
+	gap: 1px;
+	background-color: #D7E1EA;
 	border: 1px solid #D7E1EA;
 	border-radius: 6px;
 	overflow: hidden;
@@ -2097,15 +2117,12 @@ div.browse-link-icon {
 	appearance: none;
 	background-color: #FBFCFE;
 	border: none;
-	padding: 5px 10px;
+	padding: 5px 8px;
 	font-size: 0.8125rem;
 	font-weight: 500;
+	line-height: 1.2;
 	color: #4E6884;
 	cursor: pointer;
-
-	& + & {
-		border-left: 1px solid #D7E1EA;
-	}
 
 	&:hover {
 		color: #212529;
@@ -2755,30 +2772,27 @@ div.browse-link-icon {
 			border-right: 1px solid #E7F0F3;
 		}
 
-		// Zebra striping -- with conditional (score-band) coloring off by
-		// default, this is the main thing that still lets an eye track
-		// across a row instead of every cell reading as one flat block.
-		tbody tr:nth-child(even) {
-			.tissue-heatmap-donor-id,
-			.tissue-heatmap-cell:not(.score-0):not(.score-1):not(.score-2):not(.score-3):not(.score-4) {
-				background-color: #F7F9FB;
-			}
-		}
-
 		tbody tr:not(:last-of-type) .tissue-heatmap-donor-id,
 		tbody tr:not(:last-of-type) .tissue-heatmap-cell {
 			border-bottom: 1px solid #E7F0F3;
 		}
 
-		// Crosshair highlighting -- which row/column a cell belongs to
-		// should be obvious on hover, per explicit request. The row half
-		// needs no JS (just `:hover`); the column half is driven by
-		// BrowseTissueHeatmapTable.js's `hoveredColumn` state (no plain-CSS
-		// way to select "every cell in the same column" as the one under
-		// the cursor). `box-shadow: inset ... 9999px` (not
-		// `background-color`) layers a tint on top of whatever a cell
-		// already has -- score-band fill, zebra stripe, germ-layer group
-		// color -- without replacing it.
+		// "L-shaped" hover guides -- which row/column a cell belongs to
+		// should be obvious on hover, per explicit request, but an earlier
+		// version of this (the *entire* row and *entire* column, a full
+		// "+" cross through the hovered cell) was confirmed against a real
+		// table to read as a distracting cross rather than a helpful guide
+		// -- narrowed to just the portion of the row at/before the hovered
+		// cell and the portion of the column at/above it instead (see
+		// renderRowCells' own comment for the row/column-index math this
+		// is driven by). `.tissue-heatmap-donor-id` is the one exception
+		// that still uses plain `tbody tr:hover`, no JS index math needed
+		// -- it's always positioned before every data column, so it's
+		// always part of the row segment the instant its own row is
+		// hovered at all, regardless of which specific column triggered
+		// it. `box-shadow: inset ... 9999px` (not `background-color`)
+		// layers a tint on top of whatever a cell already has -- score-band
+		// fill, germ-layer group color -- without replacing it.
 		//
 		// Blue was tried first (matching the app's own accent) and
 		// confirmed, against a real densely-colored table, to basically
@@ -2802,30 +2816,28 @@ div.browse-link-icon {
 		// it isn't reliably supported the way it is for actual Sass
 		// functions/mixins. Not worth re-testing without a real browser to
 		// verify against -- literal values sidestep the ambiguity entirely.
-		// `:not(.tissue-heatmap-order-label)` -- that cell is a single
-		// `rowSpan`-ing label for the whole table, not row-specific data;
-		// it only physically lives inside row 1's own <tr> in the DOM (a
-		// rowSpan cell renders once, in whichever row it starts on), so
-		// without this, hovering row 1 specifically lit up that entire
-		// vertical label for the whole table, not just row 1's own cells.
 		// Kept amber (not shifted to a brighter gold/yellow) and softened
 		// further -- per explicit request, this page should stay
 		// consistent with the rest of the app's soft/muted visual language
 		// rather than standing out on its own.
-		tbody tr:hover td:not(.tissue-heatmap-order-label) {
+		tbody tr:hover .tissue-heatmap-donor-id {
 			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.16);
 		}
 
-		.is-hovered-column {
+		.is-row-highlight {
+			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.16);
+		}
+
+		.is-column-highlight {
 			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.12);
 		}
 
-		// The crosshair intersection -- the exact cell under the cursor --
-		// gets a visibly stronger tint than either the row or column alone
+		// The exact hovered cell itself -- where the row and column
+		// segments meet -- gets a visibly stronger tint than either alone
 		// (a plain cascade would otherwise let whichever rule has higher
 		// specificity silently win outright, since box-shadow isn't
 		// additive across separate rules on the same element).
-		tbody tr:hover td.is-hovered-column {
+		.is-row-highlight.is-column-highlight {
 			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.26);
 		}
 
@@ -2909,6 +2921,166 @@ div.browse-link-icon {
 					// of the cell rather than a corner fold.
 					filter: drop-shadow(-0.5px 0.5px 0.5px rgba(0, 0, 0, 0.45));
 				}
+			}
+		}
+
+		// Diagonal/vertical "split" cell layouts (renderRowCells' isSplitMode) --
+		// an alternative to the plain "/"-joined text .tissue-heatmap-cell
+		// itself shows for a multi-value cell in the default 'inline' display
+		// mode; both only ever apply to a cell with exactly 2 distinct values
+		// (see CELL_VALUE_DISPLAY_MODES' own comment for why 3+ falls back to
+		// the joined-text form instead). The outer <td> here intentionally
+		// carries no score-N class of its own (unlike a plain
+		// .tissue-heatmap-cell) -- each half is colored by its OWN value's
+		// band, not the cell's single primary value, so the split itself reads
+		// as 2 real, independently-colored data points instead of 1 colored
+		// cell with a second number tacked on.
+		.tissue-heatmap-cell-split {
+			position: relative;
+			padding: 0;
+			// A fixed height so the diagonal clip-path below (and the vertical
+			// layout's own 2 flex halves) always divide the same physical box
+			// regardless of how many characters either value happens to have.
+			// A plain .tissue-heatmap-cell's own natural height is already
+			// ~36px here (0.8125rem text + 8px top/bottom padding, see
+			// table.tissue-heatmap-table's own th/td rule) -- matching that
+			// directly (52px, then 40px, both read as visibly taller than
+			// the rest of that row's plain cells) keeps a row mixing split
+			// and plain cells from visibly growing at all.
+			height: 36px;
+			color: #212529;
+			border-right: 1px solid #E7F0F3;
+
+			&:last-child {
+				border-right: none;
+			}
+		}
+
+		.tissue-heatmap-cell-split-half {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 600;
+			font-size: 0.8125rem;
+			overflow: hidden;
+
+			// Same 5-band scale .tissue-heatmap-cell's own score-0..4 rules use
+			// (see that block's own comment) -- each half reads its value's band
+			// independently via the same custom-property-first fallback, so a
+			// HeatmapColorPicker pick recolors split cells right along with
+			// every plain one.
+			&.score-0 {
+				background-color: var(--heatmap-score-0-bg, #DEE9ED);
+				color: var(--heatmap-score-0-text, #28323C);
+			}
+			&.score-1 {
+				background-color: var(--heatmap-score-1-bg, #B6CFD7);
+				color: var(--heatmap-score-1-text, #28323C);
+			}
+			&.score-2 {
+				background-color: var(--heatmap-score-2-bg, #8FB4C2);
+				color: var(--heatmap-score-2-text, #28323C);
+			}
+			&.score-3 {
+				background-color: var(--heatmap-score-3-bg, #679AAC);
+				color: var(--heatmap-score-3-text, #FFFFFF);
+			}
+			&.score-4 {
+				background-color: var(--heatmap-score-4-bg, #4C7A8B);
+				color: var(--heatmap-score-4-text, #FFFFFF);
+			}
+		}
+
+		// Each half fills the cell's own top-left/bottom-right triangle
+		// (`clip-path`, not an actual rotated/skewed element -- keeps the text
+		// itself upright and readable rather than running diagonally).
+		.tissue-heatmap-cell-split-diagonal {
+			.tissue-heatmap-cell-split-half-a {
+				position: absolute;
+				inset: 0;
+				clip-path: polygon(0 0, 100% 0, 0 100%);
+				align-items: flex-start;
+				justify-content: flex-start;
+				padding: 4px 6px 0 6px;
+			}
+			.tissue-heatmap-cell-split-half-b {
+				position: absolute;
+				inset: 0;
+				clip-path: polygon(100% 0, 100% 100%, 0 100%);
+				align-items: flex-end;
+				justify-content: flex-end;
+				padding: 0 6px 4px 0;
+			}
+		}
+
+		// The dividing line between the 2 halves above -- an actual SVG
+		// `<line>` (rendered inline by renderRowCells, only for `diagonal`
+		// mode), not a CSS gradient hard-stop, and not a `border` on either
+		// half. A `linear-gradient(to bottom right, ...)` hard-stop was
+		// tried first and looked like a mismatched double line/zigzag
+		// against a real (non-square) column width -- root cause: a
+		// "to corner" gradient's hard-stop is a line perpendicular to the
+		// top-left-to-bottom-right AXIS through the box's center, which
+		// only coincides with the box's own literal corner-to-corner
+		// diagonal when the box is a square. A `border` doesn't work
+		// either -- clip-path only clips already-rendered pixels, it
+		// doesn't add a border along the new cut edge it creates. This
+		// SVG's `viewBox="0 0 100 100"` + `preserveAspectRatio="none"`
+		// stretches non-uniformly exactly like the 2 halves' own
+		// percentage-based `clip-path` polygons do, so the line drawn here
+		// traces the literal same diagonal the halves are cut along, at
+		// any column width -- `vector-effect="non-scaling-stroke"` on the
+		// `<line>` itself keeps its stroke a constant screen pixel width
+		// despite that same non-uniform stretch.
+		.tissue-heatmap-cell-split-divider {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+
+			// 2 earlier attempts before this plain, fixed dark line:
+			// - A soft drop-shadow halo around a plain white stroke (to
+			//   stay visible against the lightest band, where plain white
+			//   nearly vanishes) read as a 2nd, offset line right next to
+			//   the real one against a real table -- the "double stripe"
+			//   look this was meant to avoid in the first place.
+			// - `mix-blend-mode: difference` (inverting whatever's behind
+			//   the stroke -- light backdrop -> dark line, dark backdrop ->
+			//   light line) fixed the contrast, but inverting this
+			//   palette's own blue-toned dark bands lands on a reddish-
+			//   orange, not a neutral tone -- confirmed against a real
+			//   table this reads as an actual color, out of place next to
+			//   an otherwise all-blue-grey scale, not just "a line".
+			// A plain, fixed dark line instead: not truly optimal contrast
+			// against the single darkest band, but every band in this
+			// palette is fairly light-to-medium to begin with (even the
+			// darkest, #4C7A8B, isn't near-black), so one consistent,
+			// on-brand line reads fine everywhere without the previous
+			// approaches' own side effects. First landed at 0.75 opacity,
+			// which read as too heavy/dominant against a real table --
+			// halfway between that and the plain-white line's own
+			// (confirmed too faint) ~0 effective opacity against light
+			// bands is roughly this 0.5.
+			line {
+				stroke: #28323C;
+				stroke-opacity: 0.5;
+				stroke-width: 1.25;
+			}
+		}
+
+		// Plain side-by-side halves, each a real flex child (not clip-path'd)
+		// -- simpler than the diagonal layout since there's no diagonal edge to
+		// fake a border along, a real `border-right` on the first half does it.
+		.tissue-heatmap-cell-split-vertical {
+			display: flex;
+
+			.tissue-heatmap-cell-split-half {
+				width: 50%;
+				height: 100%;
+			}
+			.tissue-heatmap-cell-split-half-a {
+				border-right: 1px solid rgba(255, 255, 255, 0.7);
 			}
 		}
 
