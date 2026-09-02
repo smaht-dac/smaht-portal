@@ -293,7 +293,7 @@ const PublicationViewTabs = (props) => {
     const customHideColumns = [];
 
     const tableProps = {
-        embeddedTableHeaderText: 'Published Data from this Publication',
+        embeddedTableHeaderText: 'Analysis results published with this paper',
         associatedFilesSearchHref: fileSearchUrl,
         schemas,
         session,
@@ -302,6 +302,8 @@ const PublicationViewTabs = (props) => {
         customColumns,
         customHideColumns,
     };
+
+    const shouldShowTable = !context?.tags?.includes('suppress_data_banner');
 
     return (
         <div className="tabs-container">
@@ -334,7 +336,11 @@ const PublicationViewTabs = (props) => {
                                         }
                                     />
                                 </div>
-                                <FileOverviewTableController {...tableProps} />
+                                {shouldShowTable && (
+                                    <FileOverviewTableController
+                                        {...tableProps}
+                                    />
+                                )}
                             </>
                         ) : (
                             <div className="no-results">
