@@ -1054,7 +1054,7 @@ _METADATA_ES_TIMEOUT = '60s'
 
 
 def _build_metadata_es_filter(request, type_param, accessions=None,
-                              status=None, uuids=None):
+                              status=None, uuids=None, excluded_statuses=None):
     """Construct the ES `bool.filter` for a /metadata query.
 
     Reproduces only the filters relevant to /metadata:
@@ -1081,11 +1081,17 @@ def _build_metadata_es_filter(request, type_param, accessions=None,
         filter_clauses.append({'terms': {'embedded.uuid.raw': list(uuids)}})
     if status:
         filter_clauses.append({'terms': {'embedded.status.raw': [status]}})
-    return {'bool': {'filter': filter_clauses}}
+    bool_query = {'filter': filter_clauses}
+    if excluded_statuses:
+        bool_query['must_not'] = [
+            {'terms': {'embedded.status.raw': sorted(set(excluded_statuses))}}
+        ]
+    return {'bool': bool_query}
 
 
 def _stream_metadata_items(request, *, type_param, accessions=None, status=None,
-                           uuids=None, source_fields, sort_param=None):
+                           uuids=None, excluded_statuses=None, source_fields,
+                           sort_param=None):
     """Stream `embedded` views of items matching the metadata query.
 
     This is the workhorse that lets /metadata scale to thousands of files
@@ -1115,6 +1121,7 @@ def _stream_metadata_items(request, *, type_param, accessions=None, status=None,
 
     query = _build_metadata_es_filter(
         request, type_param, accessions=accessions, status=status, uuids=uuids,
+        excluded_statuses=excluded_statuses,
     )
     for source in execute_streaming_search(
         es,
@@ -1619,9 +1626,78 @@ def _index_items_by_identifiers(items):
     return indexed
 
 
+_PATHOLOGY_REPEATED_FIELD_GROUPS = {
+    'target_tissues': (
+        'target_tissue_subtype',
+        'target_tissue_present',
+        'target_tissue_percentage',
+        'target_tissue_autolysis_score',
+    ),
+    'non_target_tissues': (
+        'non_target_tissue_subtype',
+        'non_target_tissue_present',
+        'non_target_tissue_percentage',
+        'non_target_tissue_description',
+    ),
+    'pathologic_findings': (
+        'finding_type',
+        'finding_present',
+        'finding_description',
+        'finding_percentage',
+    ),
+    'brain_subregions': (
+        'subregion',
+        'is_present',
+        'tissue_autolysis_score',
+    ),
+}
+
+
+def _manifest_blank_none(value):
+    return '' if value is None else value
+
+
+def _manifest_join_value(value):
+    return str(_manifest_blank_none(value))
+
+
+def _pathology_record_sort_key(index, record, field_names):
+    if not isinstance(record, Mapping):
+        return (('',), index)
+    return (tuple(_manifest_join_value(record.get(field_name)) for field_name in field_names), index)
+
+
+def _extract_pathology_repeated_field(item, field_path):
+    field_parts = field_path.split('.')
+    if len(field_parts) != 2:
+        return None
+    group_name, field_name = field_parts
+    group_fields = _PATHOLOGY_REPEATED_FIELD_GROUPS.get(group_name)
+    if not group_fields or field_name not in group_fields:
+        return None
+    if not isinstance(item, Mapping):
+        return ''
+    records = item.get(group_name) or []
+    if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):
+        return ''
+    ordered_records = sorted(
+        enumerate(records),
+        key=lambda indexed: _pathology_record_sort_key(indexed[0], indexed[1], group_fields),
+    )
+    values = [
+        _manifest_join_value(record.get(field_name) if isinstance(record, Mapping) else None)
+        for _index, record in ordered_records
+    ]
+    return ','.join(values)
+
+
 def _extract_manifest_field(request, item, field_name):
     descriptor = TSV_MAPPING[SAMPLE_PATHOLOGY][field_name]
-    return descend_field(request, item or {}, descriptor.field_name()) or ''
+    for field_path in descriptor.field_name():
+        repeated_value = _extract_pathology_repeated_field(item or {}, field_path)
+        if repeated_value is not None:
+            return repeated_value
+    return _manifest_blank_none(descend_field(request, item or {}, descriptor.field_name()))
 
 
 def _build_sample_pathology_row(request, sequenced_sample, fixed_sample, report=None):
@@ -1687,7 +1763,10 @@ def generate_sample_pathology_manifest(request, args, search_iter):
     to sequenced TissueSamples, their visible `linked_fixed_samples`, and
     PathologyReports whose `tissue_samples` include those fixed samples. All
     lookups are batched ES streaming queries to avoid per-sample embeds or N+1
-    request-time lookups.
+    request-time lookups. Repeated pathology records are serialized with a shared
+    deterministic order per nested group, preserving blank sibling placeholders
+    within comma-joined TSV columns. PathologyMetadataStatus is intentionally not
+    part of this manifest, and no synthetic status rows are emitted.
     """
     sequenced_sample_uuids = set()
     for f in search_iter:
@@ -1726,6 +1805,7 @@ def generate_sample_pathology_manifest(request, args, search_iter):
         request,
         type_param='TissueSample',
         uuids=fixed_identifiers,
+        excluded_statuses=('in review', 'deleted'),
         source_fields=['uuid', '@id', 'accession', 'submitted_id', 'external_id', 'preservation_type', 'category'],
     )) if fixed_identifiers else []
     fixed_by_identifier = _index_items_by_identifiers(fixed_samples)

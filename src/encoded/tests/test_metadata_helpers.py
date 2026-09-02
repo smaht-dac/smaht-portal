@@ -13,6 +13,7 @@ from ..metadata import (
     _linked_item_identifiers,
     _neutralize_formula_injection,
     generate_sample_pathology_manifest,
+    generate_manifest_header,
     handle_file_group,
     handle_sample_source_type,
     handle_sample_type,
@@ -184,6 +185,134 @@ def test_build_sample_pathology_row_includes_common_and_subtype_fields() -> None
     assert "PathologyReportSubmittedID" not in row_by_column
 
 
+def test_sample_pathology_manifest_header_excludes_rejected_status_and_historical_columns() -> None:
+    _header1, _header2, columns = generate_manifest_header("sample_pathology.tsv", SAMPLE_PATHOLOGY)
+
+    assert columns[:4] == [
+        "FixedSampleAccession",
+        "SequencedSampleAccession",
+        "FixedSampleExternalID",
+        "PathologyReportAccession",
+    ]
+    assert "PathologyMetadataStatus" not in columns
+    assert "SequencedSampleExternalID" not in columns
+    assert "FixedSamplePreservationType" not in columns
+    assert "FixedSampleCategory" not in columns
+    assert "LinkedFixedSampleIdentifier" not in columns
+    assert "PathologyReportType" not in columns
+    assert "PathologyReportSubmittedID" not in columns
+
+
+def test_build_sample_pathology_row_preserves_numeric_zero_values() -> None:
+    report = {
+        "@type": ["BrainPathologyReport", "PathologyReport"],
+        "accession": "SMHT-PR-0",
+        "abc_score_A": 0,
+        "abc_score_B": None,
+        "abc_score_C": 0,
+        "cerad_score": 0,
+        "brain_subregions": [
+            {
+                "subregion": "Cerebellum Left Hemisphere",
+                "is_present": "Yes",
+                "tissue_autolysis_score": 0,
+            },
+        ],
+    }
+
+    row = _build_sample_pathology_row(
+        None,
+        {"accession": "SMHT-SAMPLE-1"},
+        fixed_sample={"accession": "SMHT-FIXED-1"},
+        report=report,
+    )
+    row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
+
+    assert row_by_column["PathologyABCScoreA"] == 0
+    assert row_by_column["PathologyABCScoreB"] == ""
+    assert row_by_column["PathologyABCScoreC"] == 0
+    assert row_by_column["PathologyCERADScore"] == 0
+    assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "0"
+
+
+def test_build_sample_pathology_row_keeps_repeated_pathology_siblings_aligned() -> None:
+    report = {
+        "@type": ["PathologyReport"],
+        "target_tissues": [
+            {
+                "target_tissue_subtype": "Liver",
+                "target_tissue_present": "Yes",
+                "target_tissue_percentage": "[50-100]",
+                "target_tissue_autolysis_score": 0,
+            },
+            {
+                "target_tissue_subtype": "Cortex",
+                "target_tissue_percentage": "0",
+            },
+        ],
+        "non_target_tissues": [
+            {
+                "non_target_tissue_subtype": "Other",
+                "non_target_tissue_present": "Yes",
+                "non_target_tissue_description": "capsule",
+            },
+            {
+                "non_target_tissue_subtype": "Fibroadipose",
+                "non_target_tissue_present": "No",
+                "non_target_tissue_percentage": "[0-10]",
+            },
+        ],
+        "pathologic_findings": [
+            {
+                "finding_type": "Other",
+                "finding_description": "pigment",
+                "finding_percentage": "[11-25]",
+            },
+            {
+                "finding_type": "Inflammation",
+                "finding_present": "No",
+            },
+        ],
+        "brain_subregions": [
+            {
+                "subregion": "Hippocampus Left Hemisphere",
+                "tissue_autolysis_score": 2,
+            },
+            {
+                "subregion": "Cerebellum Left Hemisphere",
+                "is_present": "Yes",
+                "tissue_autolysis_score": 0,
+            },
+        ],
+    }
+
+    row = _build_sample_pathology_row(
+        None,
+        {"accession": "SMHT-SAMPLE-1"},
+        fixed_sample={"accession": "SMHT-FIXED-1"},
+        report=report,
+    )
+    row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
+
+    assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex,Liver"
+    assert row_by_column["PathologyTargetTissuePresent"] == ",Yes"
+    assert row_by_column["PathologyTargetTissuePercentage"] == "0,[50-100]"
+    assert row_by_column["PathologyTargetTissueAutolysisScore"] == ",0"
+    assert row_by_column["PathologyNonTargetTissueSubtype"] == "Fibroadipose,Other"
+    assert row_by_column["PathologyNonTargetTissuePresent"] == "No,Yes"
+    assert row_by_column["PathologyNonTargetTissuePercentage"] == "[0-10],"
+    assert row_by_column["PathologyNonTargetTissueDescription"] == ",capsule"
+    assert row_by_column["PathologyFindingType"] == "Inflammation,Other"
+    assert row_by_column["PathologyFindingPresent"] == "No,"
+    assert row_by_column["PathologyFindingDescription"] == ",pigment"
+    assert row_by_column["PathologyFindingPercentage"] == ",[11-25]"
+    assert row_by_column["PathologyBrainSubregion"] == (
+        "Cerebellum Left Hemisphere,Hippocampus Left Hemisphere"
+    )
+    assert row_by_column["PathologyBrainSubregionPresent"] == "Yes,"
+    assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "0,2"
+
+
 def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_reports(monkeypatch) -> None:
     sequenced_samples = [
         {
@@ -281,3 +410,68 @@ def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_repo
     assert rows_by_column[2]["SequencedSampleAccession"] == "SMHT-SAMPLE-4"
     assert all(row["SequencedSampleAccession"] != "SMHT-SAMPLE-3" for row in rows_by_column)
     assert all(row["SequencedSampleAccession"] != "SMHT-SAMPLE-5" for row in rows_by_column)
+
+
+def test_generate_sample_pathology_manifest_excludes_only_in_review_and_deleted_fixed_samples(monkeypatch) -> None:
+    sequenced_sample = {
+        "uuid": "sequenced-sample",
+        "@type": ["TissueSample", "Sample"],
+        "accession": "SMHT-SAMPLE-1",
+        "linked_fixed_samples": [
+            {"uuid": "fixed-released"},
+            {"uuid": "fixed-open"},
+            {"uuid": "fixed-open-early"},
+            {"uuid": "fixed-open-network"},
+            {"uuid": "fixed-in-review"},
+            {"uuid": "fixed-deleted"},
+        ],
+    }
+    fixed_samples = [
+        {
+            "uuid": f"fixed-{status.replace(' ', '-').replace('_', '-')}",
+            "accession": f"SMHT-FIXED-{index}",
+            "status": status,
+        }
+        for index, status in enumerate(
+            ["released", "open", "open-early", "open-network", "in review", "deleted"],
+            start=1,
+        )
+    ]
+    calls = []
+
+    def fake_stream_metadata_items(_request, *, type_param, uuids=None, excluded_statuses=None, **_kwargs):
+        calls.append((type_param, excluded_statuses))
+        if type_param == "Sample":
+            return iter([sequenced_sample])
+        if type_param == "TissueSample":
+            excluded = set(excluded_statuses or ())
+            return (
+                sample
+                for sample in fixed_samples
+                if sample["uuid"] in uuids and sample["status"] not in excluded
+            )
+        raise AssertionError(type_param)
+
+    monkeypatch.setattr(metadata_module, "_stream_metadata_items", fake_stream_metadata_items)
+    monkeypatch.setattr(metadata_module, "_stream_pathology_reports_for_fixed_samples", lambda *_args: iter([]))
+
+    args = SimpleNamespace(tsv_mapping=TSV_MAPPING[SAMPLE_PATHOLOGY])
+    rows = list(
+        generate_sample_pathology_manifest(
+            None,
+            args,
+            [{"samples": [{"uuid": sequenced_sample["uuid"]}]}],
+        )
+    )
+    rows_by_column = [
+        dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
+        for row in rows
+    ]
+
+    assert calls[1] == ("TissueSample", ("in review", "deleted"))
+    assert [row["FixedSampleAccession"] for row in rows_by_column] == [
+        "SMHT-FIXED-1",
+        "SMHT-FIXED-2",
+        "SMHT-FIXED-3",
+        "SMHT-FIXED-4",
+    ]
