@@ -6,12 +6,15 @@ import pytest
 from .. import metadata as metadata_module
 
 from ..metadata import (
+    FILE,
     SAMPLE_PATHOLOGY,
     TSV_MAPPING,
+    _PATHOLOGY_GROUP_VALUE_DELIMITER,
     _build_sample_pathology_row,
     _index_items_by_identifiers,
     _linked_item_identifiers,
     _neutralize_formula_injection,
+    descend_field,
     generate_sample_pathology_manifest,
     generate_manifest_header,
     handle_file_group,
@@ -176,8 +179,8 @@ def test_build_sample_pathology_row_includes_common_and_subtype_fields() -> None
     assert row_by_column["FixedSampleAccession"] == "SMHT-FIXED-1"
     assert row_by_column["FixedSampleExternalID"] == "SMHT001-1B-100A1"
     assert row_by_column["PathologyOutcome"] == "Acceptable"
-    assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex,Liver"
-    assert row_by_column["PathologyTargetTissuePresent"] == "No,Yes"
+    assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex|Liver"
+    assert row_by_column["PathologyTargetTissuePresent"] == "No|Yes"
     assert "PathologyMetadataStatus" not in row_by_column
     assert "SequencedSampleExternalID" not in row_by_column
     assert "LinkedFixedSampleIdentifier" not in row_by_column
@@ -294,23 +297,262 @@ def test_build_sample_pathology_row_keeps_repeated_pathology_siblings_aligned() 
     )
     row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
 
-    assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex,Liver"
-    assert row_by_column["PathologyTargetTissuePresent"] == ",Yes"
-    assert row_by_column["PathologyTargetTissuePercentage"] == "0,[50-100]"
-    assert row_by_column["PathologyTargetTissueAutolysisScore"] == ",0"
-    assert row_by_column["PathologyNonTargetTissueSubtype"] == "Fibroadipose,Other"
-    assert row_by_column["PathologyNonTargetTissuePresent"] == "No,Yes"
-    assert row_by_column["PathologyNonTargetTissuePercentage"] == "[0-10],"
-    assert row_by_column["PathologyNonTargetTissueDescription"] == ",capsule"
-    assert row_by_column["PathologyFindingType"] == "Inflammation,Other"
-    assert row_by_column["PathologyFindingPresent"] == "No,"
-    assert row_by_column["PathologyFindingDescription"] == ",pigment"
-    assert row_by_column["PathologyFindingPercentage"] == ",[11-25]"
+    assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex|Liver"
+    assert row_by_column["PathologyTargetTissuePresent"] == "|Yes"
+    assert row_by_column["PathologyTargetTissuePercentage"] == "0|[50-100]"
+    assert row_by_column["PathologyTargetTissueAutolysisScore"] == "|0"
+    assert row_by_column["PathologyNonTargetTissueSubtype"] == "Fibroadipose|Other"
+    assert row_by_column["PathologyNonTargetTissuePresent"] == "No|Yes"
+    assert row_by_column["PathologyNonTargetTissuePercentage"] == "[0-10]|"
+    assert row_by_column["PathologyNonTargetTissueDescription"] == "|capsule"
+    assert row_by_column["PathologyFindingType"] == "Inflammation|Other"
+    assert row_by_column["PathologyFindingPresent"] == "No|"
+    assert row_by_column["PathologyFindingDescription"] == "|pigment"
+    assert row_by_column["PathologyFindingPercentage"] == "|[11-25]"
     assert row_by_column["PathologyBrainSubregion"] == (
-        "Cerebellum Left Hemisphere,Hippocampus Left Hemisphere"
+        "Cerebellum Left Hemisphere|Hippocampus Left Hemisphere"
     )
-    assert row_by_column["PathologyBrainSubregionPresent"] == "Yes,"
-    assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "0,2"
+    assert row_by_column["PathologyBrainSubregionPresent"] == "Yes|"
+    assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "0|2"
+
+
+def _split_pathology_group(row_by_column, columns):
+    """Split a repeated-group's sibling columns into per-slot tuples.
+
+    Mirrors what a manifest consumer does: split each sibling column on the
+    group delimiter and read slot i of every column as one pathology record.
+    """
+    slots = {
+        column: row_by_column[column].split(_PATHOLOGY_GROUP_VALUE_DELIMITER)
+        for column in columns
+    }
+    widths = {column: len(values) for column, values in slots.items()}
+    assert len(set(widths.values())) == 1, f"sibling columns disagree on slot count: {widths}"
+    return [
+        {column: slots[column][index] for column in columns}
+        for index in range(next(iter(widths.values())))
+    ]
+
+
+def test_build_sample_pathology_row_keeps_siblings_aligned_across_commas_and_quotes() -> None:
+    """Regression: free text containing the old ',' delimiter must not shift slots.
+
+    Joining sibling group columns on ',' silently desynchronized the whole group
+    as soon as a description contained a comma -- ordinary pathology prose. Each
+    record below carries a comma and/or a double quote in free text, plus missing
+    optional siblings, so a regression re-shifts the columns and fails here.
+    """
+    report = {
+        "@type": ["NonBrainPathologyReport", "PathologyReport"],
+        "pathologic_findings": [
+            {
+                "finding_type": "Necrosis",
+                "finding_present": "Yes",
+                "finding_description": 'coagulative, focal; "punched-out" edges',
+                "finding_percentage": "[11-25]",
+            },
+            {
+                # No finding_present and no finding_percentage: both slots blank.
+                "finding_type": "Inflammation",
+                "finding_description": "mild, patchy",
+            },
+            {
+                "finding_type": "Metaplasia",
+                "finding_present": "No",
+                "finding_description": "",
+                "finding_percentage": "0",
+            },
+        ],
+        "non_target_tissues": [
+            {
+                "non_target_tissue_subtype": "Other",
+                "non_target_tissue_present": "Yes",
+                "non_target_tissue_description": 'capsule, vessel wall, and "rind"',
+            },
+            {
+                "non_target_tissue_subtype": "Fibroadipose",
+                "non_target_tissue_present": "No",
+                "non_target_tissue_percentage": "[0-10]",
+            },
+        ],
+    }
+
+    row = _build_sample_pathology_row(
+        None,
+        {"accession": "SMHT-SAMPLE-1"},
+        fixed_sample={"accession": "SMHT-FIXED-1"},
+        report=report,
+    )
+    row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
+
+    findings = _split_pathology_group(
+        row_by_column,
+        [
+            "PathologyFindingType",
+            "PathologyFindingPresent",
+            "PathologyFindingDescription",
+            "PathologyFindingPercentage",
+        ],
+    )
+    # Ordered by finding_type; every sibling stays with its own record, and the
+    # commas/quotes inside the descriptions survive verbatim.
+    assert findings == [
+        {
+            "PathologyFindingType": "Inflammation",
+            "PathologyFindingPresent": "",
+            "PathologyFindingDescription": "mild, patchy",
+            "PathologyFindingPercentage": "",
+        },
+        {
+            "PathologyFindingType": "Metaplasia",
+            "PathologyFindingPresent": "No",
+            "PathologyFindingDescription": "",
+            "PathologyFindingPercentage": "0",
+        },
+        {
+            "PathologyFindingType": "Necrosis",
+            "PathologyFindingPresent": "Yes",
+            "PathologyFindingDescription": 'coagulative, focal; "punched-out" edges',
+            "PathologyFindingPercentage": "[11-25]",
+        },
+    ]
+
+    non_target = _split_pathology_group(
+        row_by_column,
+        [
+            "PathologyNonTargetTissueSubtype",
+            "PathologyNonTargetTissuePresent",
+            "PathologyNonTargetTissueDescription",
+            "PathologyNonTargetTissuePercentage",
+        ],
+    )
+    assert non_target == [
+        {
+            "PathologyNonTargetTissueSubtype": "Fibroadipose",
+            "PathologyNonTargetTissuePresent": "No",
+            "PathologyNonTargetTissueDescription": "",
+            "PathologyNonTargetTissuePercentage": "[0-10]",
+        },
+        {
+            "PathologyNonTargetTissueSubtype": "Other",
+            "PathologyNonTargetTissuePresent": "Yes",
+            "PathologyNonTargetTissueDescription": 'capsule, vessel wall, and "rind"',
+            "PathologyNonTargetTissuePercentage": "",
+        },
+    ]
+
+
+def test_build_sample_pathology_row_keeps_leading_and_trailing_blank_slots() -> None:
+    """A blank in the first or last slot must still hold its position."""
+    report = {
+        "@type": ["BrainPathologyReport", "PathologyReport"],
+        "brain_subregions": [
+            # Sorts first (subregion "Cerebellum...") but has no autolysis score.
+            {"subregion": "Cerebellum Left Hemisphere", "is_present": "Yes"},
+            # Sorts last and has no is_present.
+            {"subregion": "Hippocampus Left Hemisphere", "tissue_autolysis_score": 0},
+        ],
+    }
+
+    row = _build_sample_pathology_row(
+        None,
+        {"accession": "SMHT-SAMPLE-1"},
+        fixed_sample={"accession": "SMHT-FIXED-1"},
+        report=report,
+    )
+    row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
+
+    assert row_by_column["PathologyBrainSubregionPresent"] == "Yes|"
+    # Zero is a real score, not a blank, and it keeps the trailing slot.
+    assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "|0"
+    assert _split_pathology_group(
+        row_by_column,
+        [
+            "PathologyBrainSubregion",
+            "PathologyBrainSubregionPresent",
+            "PathologyBrainSubregionAutolysisScore",
+        ],
+    ) == [
+        {
+            "PathologyBrainSubregion": "Cerebellum Left Hemisphere",
+            "PathologyBrainSubregionPresent": "Yes",
+            "PathologyBrainSubregionAutolysisScore": "",
+        },
+        {
+            "PathologyBrainSubregion": "Hippocampus Left Hemisphere",
+            "PathologyBrainSubregionPresent": "",
+            "PathologyBrainSubregionAutolysisScore": "0",
+        },
+    ]
+
+
+def test_build_sample_pathology_row_does_not_escape_a_literal_pipe() -> None:
+    """Characterization: a literal '|' in free text is emitted verbatim.
+
+    The convention this reuses -- the Donor manifest's pipe-delimited nested
+    lists (docs/source/manifest.rst) -- defines no escape for a literal pipe,
+    and `create_bulk_donor_manifest.py` escapes nothing either. A literal pipe
+    is schema-legal in `finding_description` and
+    `non_target_tissue_description`, both plain `{"type": "string"}`, so a
+    description containing one adds a slot to that column exactly as a comma
+    used to. No escaping rule is invented here; this test pins the current
+    documented-convention behavior so that closing the gap -- by escaping on
+    output or by validating the field on submission -- is a deliberate change
+    with a visible diff rather than a silent one.
+    """
+    report = {
+        "@type": ["NonBrainPathologyReport", "PathologyReport"],
+        "pathologic_findings": [
+            {"finding_type": "Inflammation", "finding_description": "left|right"},
+            {"finding_type": "Necrosis", "finding_description": "focal"},
+        ],
+    }
+
+    row = _build_sample_pathology_row(
+        None,
+        {"accession": "SMHT-SAMPLE-1"},
+        fixed_sample={"accession": "SMHT-FIXED-1"},
+        report=report,
+    )
+    row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
+
+    # The pipe is passed through unaltered ...
+    assert row_by_column["PathologyFindingDescription"] == "left|right|focal"
+    assert row_by_column["PathologyFindingType"] == "Inflammation|Necrosis"
+    # ... so this one column reports three slots where its siblings report two.
+    # That is the known limitation, not an alignment regression: every other
+    # group column stays in step with the record order.
+    assert len(row_by_column["PathologyFindingDescription"].split("|")) == 3
+    assert len(row_by_column["PathologyFindingType"].split("|")) == 2
+
+
+def test_ordinary_manifest_multi_value_columns_stay_comma_separated() -> None:
+    """Control: the pathology group delimiter must not leak into other manifests.
+
+    Only the repeated pathology object groups use `|`. Ordinary multi-value
+    columns -- file sets, analytes, samples, donors, sequencers, assays,
+    software -- keep the comma join documented for the File Manifest in
+    docs/source/manifest.rst, and go through `descend_field`, which this change
+    does not touch.
+    """
+    file_item = {
+        "sample_summary": {
+            "tissues": ["Liver", "Brain"],
+            "donor_ids": ["SMHT001", "SMHT002"],
+            "analytes": ["DNA", "RNA"],
+        },
+        "assays": [{"display_title": "WGS"}, {"display_title": "Fiber-seq"}],
+    }
+
+    for column, expected in [
+        ("SampleTissues", "Brain,Liver"),
+        ("SampleDonors", "SMHT001,SMHT002"),
+        ("Analytes", "DNA,RNA"),
+        ("Assay", "Fiber-seq,WGS"),
+    ]:
+        value = descend_field(None, file_item, TSV_MAPPING[FILE][column].field_name())
+        assert value == expected, f"{column} should stay comma-joined, got {value!r}"
+        assert _PATHOLOGY_GROUP_VALUE_DELIMITER not in value
 
 
 def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_reports(monkeypatch) -> None:

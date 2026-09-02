@@ -1626,6 +1626,16 @@ def _index_items_by_identifiers(items):
     return indexed
 
 
+# Sibling columns extracted from one repeated pathology object array are
+# positionally correlated: slot i of every column in a group describes the same
+# record. They are joined with '|' rather than ',' because the group subfields
+# include free text in which a comma is ordinary prose, and a comma there would
+# shift every later slot and silently misattribute values across columns. '|' is
+# the delimiter the Donor manifest already uses for the same positional
+# correspondence (see docs/source/manifest.rst, "Nested Lists"). Ordinary
+# multi-value manifest columns keep their comma join in `descend_field`.
+_PATHOLOGY_GROUP_VALUE_DELIMITER = '|'
+
 _PATHOLOGY_REPEATED_FIELD_GROUPS = {
     'target_tissues': (
         'target_tissue_subtype',
@@ -1688,7 +1698,7 @@ def _extract_pathology_repeated_field(item, field_path):
         _manifest_join_value(record.get(field_name) if isinstance(record, Mapping) else None)
         for _index, record in ordered_records
     ]
-    return ','.join(values)
+    return _PATHOLOGY_GROUP_VALUE_DELIMITER.join(values)
 
 
 def _extract_manifest_field(request, item, field_name):
@@ -1764,9 +1774,11 @@ def generate_sample_pathology_manifest(request, args, search_iter):
     PathologyReports whose `tissue_samples` include those fixed samples. All
     lookups are batched ES streaming queries to avoid per-sample embeds or N+1
     request-time lookups. Repeated pathology records are serialized with a shared
-    deterministic order per nested group, preserving blank sibling placeholders
-    within comma-joined TSV columns. PathologyMetadataStatus is intentionally not
-    part of this manifest, and no synthetic status rows are emitted.
+    deterministic order per nested group and joined with
+    `_PATHOLOGY_GROUP_VALUE_DELIMITER`, preserving blank sibling placeholders so
+    slot i of every column in a group describes the same record.
+    PathologyMetadataStatus is intentionally not part of this manifest, and no
+    synthetic status rows are emitted.
     """
     sequenced_sample_uuids = set()
     for f in search_iter:
