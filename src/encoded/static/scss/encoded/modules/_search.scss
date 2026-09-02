@@ -2824,24 +2824,54 @@ div.browse-link-icon {
 			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.16);
 		}
 
-		.is-row-highlight {
-			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.16);
+		// `::after`, not `box-shadow: inset` (tried first) -- box-shadow
+		// paints as part of the <td>'s own background layer, which sits
+		// *behind* its content. A plain cell has no content covering that
+		// background, so it looked fine there, but a diagonal/vertical
+		// split cell's 2 <span> halves (tissue-heatmap-cell-split-half,
+		// each with its own opaque score-band background, absolutely
+		// positioned to fully cover the <td>) sit *in front of* that same
+		// background layer -- completely hiding the box-shadow tint,
+		// confirmed against a real table as the exact cause of highlighting
+		// silently working on ordinary cells but not split ones. A `::after`
+		// overlay is real generated content, painted after (on top of) the
+		// split spans in the same stacking context, so it works identically
+		// either way. Specificity (2 classes beats 1), not source order,
+		// is what makes the combined rule win over either single-state
+		// rule when both apply to the same cell -- unlike box-shadow,
+		// background-color from 2 different rules on the same
+		// pseudo-element can't layer/add together, so this only needs 1
+		// rule to actually take effect per cell, and specificity is what
+		// picks the right one.
+		.is-row-highlight,
+		.is-column-highlight {
+			position: relative;
 		}
 
-		.is-column-highlight {
-			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.12);
+		.is-row-highlight::after,
+		.is-column-highlight::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+		}
+
+		.is-row-highlight::after {
+			background-color: rgba(230, 145, 40, 0.16);
+		}
+
+		.is-column-highlight::after {
+			background-color: rgba(230, 145, 40, 0.12);
 		}
 
 		// The exact hovered cell itself -- where the row and column
-		// segments meet -- gets a visibly stronger tint than either alone
-		// (a plain cascade would otherwise let whichever rule has higher
-		// specificity silently win outright, since box-shadow isn't
-		// additive across separate rules on the same element).
-		.is-row-highlight.is-column-highlight {
-			box-shadow: inset 0 0 0 9999px rgba(230, 145, 40, 0.26);
+		// segments meet -- gets a visibly stronger tint than either alone.
+		.is-row-highlight.is-column-highlight::after {
+			background-color: rgba(230, 145, 40, 0.26);
 		}
 
 		.tissue-heatmap-cell {
+			position: relative;
 			color: #212529;
 			font-weight: 500;
 			// A real (not just white-on-white) vertical grid line between
