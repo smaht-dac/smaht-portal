@@ -7,15 +7,18 @@ without PostgreSQL/OpenSearch, and makes the negative cases (wrong issuer,
 wrong audience, algorithm swap) exact rather than approximate.
 """
 
+import ast
 import datetime
 import json
+import pathlib
 
 import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
-from pyramid.httpexceptions import HTTPForbidden, HTTPUnauthorized
+from pyramid.httpexceptions import HTTPForbidden
 from unittest.mock import MagicMock, patch
 
+from .. import okta as encoded_okta
 from ..okta import (
     OKTA_CALLBACK_PATH,
     OKTA_ID_TOKEN_ALGORITHMS,
@@ -117,37 +120,88 @@ class TestSettings:
         # Whitespace-only values must not read as configured.
         assert not okta_is_configured({"okta.issuer": "  ", "okta.client": CLIENT_ID})
 
-    def test_ini_settings_win_over_environment(self, monkeypatch):
-        monkeypatch.setenv("OKTA_ISSUER", "https://other.okta.com")
-        monkeypatch.setenv("OKTA_CLIENT", "from-env")
+    def test_settings_are_taken_from_the_ini_file(self):
         settings = set_okta_config({"okta.issuer": ISSUER, "okta.client": CLIENT_ID})
-        assert settings["okta.issuer"] == ISSUER
-        assert settings["okta.client"] == CLIENT_ID
-
-    def test_environment_used_when_ini_is_silent(self, monkeypatch):
-        monkeypatch.delenv("IDENTITY", raising=False)
-        monkeypatch.setenv("OKTA_ISSUER", ISSUER)
-        monkeypatch.setenv("OKTA_CLIENT", CLIENT_ID)
-        settings = set_okta_config({})
         assert settings["okta.issuer"] == ISSUER
         assert settings["okta.client"] == CLIENT_ID
         assert settings["okta.scopes"] == "openid email profile"
         assert settings["okta.require_email_verified"] is True
 
-    def test_absent_configuration_is_simply_not_configured(self, monkeypatch):
-        for name in ("IDENTITY", "OKTA_ISSUER", "OKTA_CLIENT", "OKTA_SCOPES"):
-            monkeypatch.delenv(name, raising=False)
+    def test_environment_is_ignored(self, monkeypatch):
+        """The rendered production.ini is the only source.
+
+        `deploy/docker/production/assume_identity.py` expands the identity into
+        production.ini once at startup; reading the environment again at runtime
+        would let a stray OKTA_* variable override (or, for
+        OKTA_REQUIRE_EMAIL_VERIFIED, weaken) what was rendered.
+        """
+        for name, value in (("OKTA_ISSUER", "https://from-env.okta.com"),
+                            ("OKTA_CLIENT", "from-env"),
+                            ("OKTA_SCOPES", "openid"),
+                            ("OKTA_REQUIRE_EMAIL_VERIFIED", "false"),
+                            ("ENCODED_OKTA_ISSUER", "https://from-env.okta.com"),
+                            ("ENCODED_OKTA_CLIENT", "from-env"),
+                            ("ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED", "false")):
+            monkeypatch.setenv(name, value)
+        settings = set_okta_config({})
+        assert not okta_is_configured(settings)
+        assert settings["okta.issuer"] == ""
+        assert settings["okta.client"] == ""
+        assert settings["okta.scopes"] == "openid email profile"
+        # The env var must not be able to turn the verified-email check off.
+        assert settings["okta.require_email_verified"] is True
+
+    def test_no_secrets_manager_lookup_at_runtime(self, monkeypatch):
+        """Even with IDENTITY set, configuration must not call assume_identity."""
+        monkeypatch.setenv("IDENTITY", "SomeIdentityName")
+        with patch("dcicutils.secrets_utils.assume_identity",
+                   side_effect=AssertionError("assume_identity must not be called")):
+            settings = set_okta_config({"okta.issuer": ISSUER, "okta.client": CLIENT_ID})
+        assert settings["okta.issuer"] == ISSUER
+
+    def test_module_code_has_no_identity_or_environment_lookup(self):
+        """Durable guard against reintroducing an Okta-specific secret lookup.
+
+        Checked against the parsed module rather than its text, so the prose
+        explaining *why* the lookup is absent does not trip the assertion.
+        """
+        tree = ast.parse(pathlib.Path(encoded_okta.__file__).read_text(encoding="utf-8"))
+        names = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Name):
+                names.add(node.id)
+            elif isinstance(node, ast.Attribute):
+                names.add(node.attr)
+            elif isinstance(node, (ast.Import, ast.ImportFrom)):
+                names.update(alias.name for alias in node.names)
+                names.update(part for alias in node.names
+                             for part in (alias.name or "").split("."))
+                if isinstance(node, ast.ImportFrom):
+                    names.update((node.module or "").split("."))
+        assert "assume_identity" not in names
+        assert "secrets_utils" not in names
+        assert "os" not in names and "environ" not in names and "getenv" not in names
+
+    def test_absent_configuration_is_simply_not_configured(self):
         settings = set_okta_config({})
         assert not okta_is_configured(settings)
 
     @pytest.mark.parametrize("value,expected", [
         ("true", True), ("True", True), ("1", True), ("yes", True),
-        ("false", False), ("0", False), ("no", False), ("", True),
+        ("false", False), ("0", False), ("no", False),
+        # Absent or blank means "not specified": dcicutils omits the assignment
+        # line entirely for an empty expansion, and the secure default holds.
+        ("", True), ("   ", True), (None, True),
     ])
-    def test_require_email_verified_parsing(self, monkeypatch, value, expected):
-        monkeypatch.delenv("IDENTITY", raising=False)
+    def test_require_email_verified_parsing(self, value, expected):
         settings = set_okta_config({"okta.require_email_verified": value})
         assert settings["okta.require_email_verified"] is expected
+
+    def test_require_email_verified_defaults_true_when_omitted(self):
+        """The rendered production.ini drops the line when the identity is silent."""
+        ini_settings = {"okta.issuer": ISSUER, "okta.client": CLIENT_ID}
+        assert "okta.require_email_verified" not in ini_settings
+        assert set_okta_config(ini_settings)["okta.require_email_verified"] is True
 
 
 class TestValidation:

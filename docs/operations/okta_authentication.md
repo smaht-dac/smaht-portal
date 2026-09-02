@@ -44,16 +44,20 @@ The Okta org must mark the email claim as verified, or set
 
 ## Configuration
 
-Resolved by `encoded.okta.set_okta_config`, in precedence order: ini setting,
-then the AWS Secrets Manager identity, then the process environment.
+`encoded.okta.set_okta_config` reads these from the application settings — the
+ini file the process was started with — and from nothing else. There is no
+Secrets Manager or process-environment lookup at runtime.
 
-| Setting | Identity / env var | Required | Notes |
-| --- | --- | --- | --- |
-| `okta.issuer` | `OKTA_ISSUER` | yes | `https://…`, **no** trailing slash |
-| `okta.client` | `OKTA_CLIENT` | yes | SPA client ID |
-| `okta.scopes` | `OKTA_SCOPES` | no | default `openid email profile`; must include `openid` and `email` |
-| `okta.require_email_verified` | `OKTA_REQUIRE_EMAIL_VERIFIED` | no | default `true` |
-| `okta.jwks_uri` | — | no | overrides OIDC discovery |
+| Setting | Template placeholder | Identity key | Required | Notes |
+| --- | --- | --- | --- | --- |
+| `okta.issuer` | `${OKTA_ISSUER}` | `ENCODED_OKTA_ISSUER` | yes | `https://…`, **no** trailing slash |
+| `okta.client` | `${OKTA_CLIENT}` | `ENCODED_OKTA_CLIENT` | yes | public SPA client ID |
+| `okta.scopes` | `${OKTA_SCOPES}` | `ENCODED_OKTA_SCOPES` | no | default `openid email profile`; must include `openid` and `email` |
+| `okta.require_email_verified` | `${OKTA_REQUIRE_EMAIL_VERIFIED}` | `ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` | no | default `true` |
+| `okta.jwks_uri` | — | — | no | overrides OIDC discovery |
+
+There is deliberately **no** Okta client secret: the browser is a public client
+running Authorization Code with PKCE, so there is nothing to configure or leak.
 
 Example (synthetic) for `development.ini`:
 
@@ -63,11 +67,21 @@ okta.client = 0oa1example2client3id
 okta.scopes = openid email profile
 ```
 
-Okta values are deliberately **not** added to
-`deploy/docker/production/smaht_any_alpha.ini`: that template is expanded by
-`dcicutils` against a fixed variable set, so an unrecognized `${OKTA_*}`
-placeholder would break the build of `production.ini`. Supply them through the
-identity or the ECS task definition's `environment:` instead.
+### How the container gets them
+
+`deploy/docker/production/smaht_any_alpha.ini` carries the four `${OKTA_*}`
+placeholders above. Every production entrypoint runs `python -m assume_identity`
+exactly once before serving, which reads the AWS Secrets Manager identity named
+by `IDENTITY` and expands the template into `production.ini`. `dcicutils`
+8.19.0.1b1 is the first release that binds these four substitutions, hence the
+exact pin in `pyproject.toml`.
+
+`ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` is the one with a subtlety: `dcicutils`
+expands it to `true`/`false` only when the identity actually supplies a boolean,
+and to the empty string otherwise. An empty expansion makes `dcicutils` drop the
+whole `okta.require_email_verified = …` line from the generated `production.ini`,
+so the portal falls back to its own default of requiring a verified email. An
+absent, blank, or unparseable value therefore cannot turn the check off.
 
 With `okta.issuer` or `okta.client` absent, Okta is simply "not configured":
 `/okta_config` returns 403, the login button renders disabled as

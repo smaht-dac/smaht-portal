@@ -16,7 +16,6 @@ request is authenticated by decoding that cookie. See
 `decode_okta_id_token` here.
 """
 
-import os
 import threading
 
 import jwt
@@ -75,45 +74,50 @@ def _clean(value):
 
 
 def set_okta_config(settings):
-    """Resolve the `okta.*` settings.
+    """Normalize the `okta.*` application settings.
 
-    Precedence is ini file, then the AWS Secrets Manager identity (when
-    `IDENTITY` is set, mirroring `set_ga4_config`), then the process
-    environment. Okta values are deliberately NOT added to
-    `deploy/docker/production/smaht_any_alpha.ini`: that template is expanded by
-    dcicutils against a fixed variable set, so an unrecognized `${OKTA_*}`
-    placeholder would break the build of `production.ini`.
+    The only source is the application settings themselves - i.e. the ini file
+    the process was started with. In a container that ini file is
+    `production.ini`, rendered exactly once at startup by
+    `deploy/docker/production/assume_identity.py`, which expands the
+    `${OKTA_ISSUER}` / `${OKTA_CLIENT}` / `${OKTA_SCOPES}` /
+    `${OKTA_REQUIRE_EMAIL_VERIFIED}` placeholders in
+    `deploy/docker/production/smaht_any_alpha.ini` from the AWS Secrets Manager
+    identity (dcicutils 8.19.0.1b1 supports those four substitutions; there is
+    deliberately no Okta client secret, because the SPA is a public client).
+
+    There is deliberately no Secrets Manager or process-environment lookup here.
+    Reading the environment at request time would let a stray
+    `OKTA_REQUIRE_EMAIL_VERIFIED` turn the verified-email check off even when
+    the rendered `production.ini` correctly omits the setting, which is exactly
+    what the omit-on-empty rendering contract exists to prevent.
     """
-    identity = {}
-    if "IDENTITY" in os.environ:
-        from dcicutils.secrets_utils import assume_identity
-        try:
-            identity = assume_identity() or {}
-        except Exception as e:  # noqa: BLE001 - startup must not hard-fail on this
-            log.warning("Could not read identity for Okta configuration", error=str(e))
-            identity = {}
-
-    def resolve(setting_key, identity_key, default=""):
-        configured = _clean(settings.get(setting_key))
-        if configured:
-            return configured
-        return _clean(identity.get(identity_key)) or _clean(os.environ.get(identity_key)) or default
-
-    settings["okta.issuer"] = resolve("okta.issuer", "OKTA_ISSUER")
-    settings["okta.client"] = resolve("okta.client", "OKTA_CLIENT")
-    settings["okta.scopes"] = resolve("okta.scopes", "OKTA_SCOPES", DEFAULT_OKTA_SCOPES)
-    # An Okta org may or may not mark provider-sourced emails as verified. Kept
-    # as an explicit, documented setting rather than a silent assumption.
+    settings["okta.issuer"] = _clean(settings.get("okta.issuer")) or ""
+    settings["okta.client"] = _clean(settings.get("okta.client")) or ""
+    settings["okta.scopes"] = _clean(settings.get("okta.scopes")) or DEFAULT_OKTA_SCOPES
+    # An Okta org may or may not mark provider-sourced emails as verified. When
+    # the setting is absent (dcicutils drops the assignment line entirely for an
+    # empty expansion) we keep the secure default of requiring verification.
     settings["okta.require_email_verified"] = _as_bool(
-        resolve("okta.require_email_verified", "OKTA_REQUIRE_EMAIL_VERIFIED", "true")
+        settings.get("okta.require_email_verified"), default=True
     )
     return settings
 
 
-def _as_bool(value):
+def _as_bool(value, default=False):
+    """Interpret an ini-sourced value as a boolean, falling back to `default`.
+
+    An absent or blank setting means "not specified" and yields `default`; any
+    other unrecognized spelling is treated as false.
+    """
     if isinstance(value, bool):
         return value
-    return str(value).strip().lower() in ("1", "true", "yes", "on")
+    if value is None:
+        return default
+    text = str(value).strip().lower()
+    if not text:
+        return default
+    return text in ("1", "true", "yes", "on")
 
 
 def okta_is_configured(settings):

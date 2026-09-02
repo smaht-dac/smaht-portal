@@ -172,3 +172,145 @@ def test_n1_sidecar_traps_installed_before_first_splunk_command():
     assert trap_idx < version_stage_idx, "traps must be installed before the first splunk call"
     assert "bounded_splunk_stop" in entry
     assert "STOP_TIMEOUT" in entry
+
+
+# ---------------------------------------------------------------------------
+# Okta configuration is rendered once, at container startup, into production.ini
+# ---------------------------------------------------------------------------
+
+OKTA_TEMPLATE = "deploy/docker/production/smaht_any_alpha.ini"
+
+# The exact dcicutils release that binds the four OKTA_* template substitutions.
+# Pinned exactly (not caret-ranged) because it is a pre-release.
+REQUIRED_DCICUTILS_VERSION = "8.19.0.1b1"
+
+
+def _render_template(**okta_env):
+    """Render the production template the way ``assume_identity`` does.
+
+    ``deploy/docker/production/assume_identity.py`` reads the Secrets Manager
+    identity and expands the template under ``override_environ``; here the
+    identity is simulated by the passed environment, so no AWS is involved.
+    A value of ``None`` means the identity did not supply that key at all.
+    """
+    import io
+
+    from dcicutils.deployment_utils import BasicOrchestratedSMAHTIniFileManager
+    from dcicutils.misc_utils import override_environ
+
+    class _Manager(BasicOrchestratedSMAHTIniFileManager):
+        TEMPLATE_DIR = os.path.join(REPO, "deploy", "ini_files")
+        PYPROJECT_FILE_NAME = os.path.join(REPO, "pyproject.toml")
+
+    env = {"ENCODED_OKTA_ISSUER": None, "ENCODED_OKTA_CLIENT": None,
+           "ENCODED_OKTA_SCOPES": None, "ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED": None,
+           "IDENTITY": None, "ENV_NAME": "smaht-test"}
+    env.update(okta_env)
+    out = io.StringIO()
+    with override_environ(**env):
+        _Manager.build_ini_stream_from_template(os.path.join(REPO, OKTA_TEMPLATE), out)
+    return out.getvalue()
+
+
+def _setting(rendered, key):
+    """Return the value assigned to `key`, or None if the line is absent."""
+    m = re.search(r"^%s\s*=\s*(.*)$" % re.escape(key), rendered, re.MULTILINE)
+    return None if m is None else m.group(1).strip()
+
+
+@pytest.mark.unit
+def test_okta_template_declares_the_dcicutils_substitutions():
+    """The template must carry exactly the four names dcicutils binds - and no
+    Okta client secret, because the SPA is a public PKCE client."""
+    template = _read(OKTA_TEMPLATE)
+    assert "okta.issuer = ${OKTA_ISSUER}" in template
+    assert "okta.client = ${OKTA_CLIENT}" in template
+    assert "okta.scopes = ${OKTA_SCOPES}" in template
+    assert "okta.require_email_verified = ${OKTA_REQUIRE_EMAIL_VERIFIED}" in template
+    assert "OKTA_SECRET" not in template and "okta.secret" not in template
+
+
+@pytest.mark.unit
+def test_okta_settings_are_materialized_into_production_ini():
+    """Startup rendering turns the identity's ENCODED_OKTA_* values into the
+    `okta.*` application settings the portal reads at runtime."""
+    rendered = _render_template(
+        ENCODED_OKTA_ISSUER="https://example.okta.com/oauth2/default",
+        ENCODED_OKTA_CLIENT="0oa1example2client3id",
+        ENCODED_OKTA_SCOPES="openid email profile",
+        ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED="false",
+    )
+    assert _setting(rendered, "okta.issuer") == "https://example.okta.com/oauth2/default"
+    assert _setting(rendered, "okta.client") == "0oa1example2client3id"
+    assert _setting(rendered, "okta.scopes") == "openid email profile"
+    assert _setting(rendered, "okta.require_email_verified") == "false"
+    # Auth0 is unaffected by the Okta substitutions.
+    assert _setting(rendered, "auth0.domain") == "hms-dbmi.auth0.com"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("supplied", [None, "", "   ", "maybe", "yes", "1"])
+def test_require_email_verified_line_is_omitted_unless_boolean(supplied):
+    """dcicutils expands the setting to the empty string for anything that is not
+    a boolean, which drops the assignment line entirely so the portal's own
+    secure default (require a verified email) holds. An absent, blank, or
+    unparseable identity value therefore cannot turn the check off."""
+    rendered = _render_template(ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED=supplied)
+    assert _setting(rendered, "okta.require_email_verified") is None
+    assert "okta.require_email_verified" not in rendered
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("supplied,expected", [("true", "true"), ("True", "true"),
+                                               ("false", "false"), ("F", "false")])
+def test_require_email_verified_line_is_rendered_when_boolean(supplied, expected):
+    rendered = _render_template(ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED=supplied)
+    assert _setting(rendered, "okta.require_email_verified") == expected
+
+
+@pytest.mark.unit
+def test_unconfigured_okta_renders_no_okta_settings():
+    """With the identity silent, every okta.* line drops out, so the portal reads
+    'not configured' and the legacy Auth0 path is untouched."""
+    rendered = _render_template()
+    assert "okta." not in rendered
+    assert "auth0.domain = hms-dbmi.auth0.com" in rendered
+
+
+@pytest.mark.unit
+def test_entrypoints_render_production_ini_once_before_serving():
+    """The rendering above is what every production role actually runs, once,
+    before it starts serving/indexing/ingesting."""
+    for role in ("portal", "indexer", "ingester", "deployment"):
+        entry = _read("deploy/docker/production/entrypoint_%s.sh" % role)
+        assert entry.count("python -m assume_identity") == 1, role
+
+
+@pytest.mark.unit
+def test_dcicutils_is_pinned_to_the_exact_beta():
+    """The Okta template substitutions only exist in this release, so the
+    constraint is an exact pin and the lock must resolve to it."""
+    pyproject = _read("pyproject.toml")
+    assert re.search(r'^dcicutils = "%s"$' % re.escape(REQUIRED_DCICUTILS_VERSION),
+                     pyproject, re.MULTILINE), \
+        "pyproject.toml must pin dcicutils == " + REQUIRED_DCICUTILS_VERSION
+    lock = _read("poetry.lock")
+    m = re.search(r'name = "dcicutils"\nversion = "([^"]+)"', lock)
+    assert m, "poetry.lock has no dcicutils entry"
+    assert m.group(1) == REQUIRED_DCICUTILS_VERSION
+
+
+@pytest.mark.unit
+def test_installed_dcicutils_supports_the_okta_substitutions():
+    """Guards against a lock/pin that says one thing and an install that does
+    another: the resolved dcicutils must actually bind these names."""
+    from importlib.metadata import version
+
+    from dcicutils.deployment_utils import IniFileManager
+
+    assert version("dcicutils") == REQUIRED_DCICUTILS_VERSION
+    assert hasattr(IniFileManager, "okta_require_email_verified_setting")
+    assert IniFileManager.okta_require_email_verified_setting("true") == "true"
+    assert IniFileManager.okta_require_email_verified_setting("false") == "false"
+    # Not a boolean -> empty expansion -> the assignment line is omitted.
+    assert IniFileManager.okta_require_email_verified_setting("nonsense") == ""
