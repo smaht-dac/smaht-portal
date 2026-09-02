@@ -196,7 +196,14 @@ def _render_template(**okta_env):
     import io
 
     from dcicutils.deployment_utils import BasicOrchestratedSMAHTIniFileManager
+    from dcicutils.env_utils import EnvUtils
     from dcicutils.misc_utils import override_environ
+
+    # Rendering consults EnvUtils for the mirror env, which would otherwise reach
+    # S3/STS. The root conftest declares the same sample data, so re-declaring it
+    # is a no-op there and keeps this module's "no network/AWS" promise true
+    # regardless of collection order.
+    EnvUtils.set_declared_data(EnvUtils.SAMPLE_TEMPLATE_FOR_CGAP_TESTING)
 
     class _Manager(BasicOrchestratedSMAHTIniFileManager):
         TEMPLATE_DIR = os.path.join(REPO, "deploy", "ini_files")
