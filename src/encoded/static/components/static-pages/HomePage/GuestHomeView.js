@@ -4,18 +4,9 @@ import React, { useEffect, useState } from 'react';
 import _ from 'underscore';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { NotLoggedInAlert } from './../../navigation/components/LoginNavItem';
-import { UserRegistrationModal } from './../../navigation/components/UserRegistrationModal';
-import { auth0Options as navAuth0Options } from './../../navigation/components/AccountNav';
 import SMaHTTimeline from '../../viz/SMaHTTimeline';
 import { NotificationsPanel } from './NotificationsPanel';
 import { HomepageFigure } from '../../viz/HomepageFigure';
-
-const auth0Options = {
-    ...navAuth0Options,
-    container: 'homepage-login-container',
-    // Reverts to using Auth0's logo:
-    // theme: { ...navAuth0Options.theme, logo: null, icon: null }
-};
 
 export const GuestHomeView = React.memo(function GuestHomeView(props) {
     const [currentTier, setCurrentTier] = useState(0);
@@ -56,37 +47,6 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                 </div>
                 <NotificationsPanel {...props} />
             </div>
-        </div>
-    );
-});
-
-const LoginBox = React.memo(function LoginBox(props) {
-    const { showLock, isAuth0LibraryLoaded, unverifiedUserEmail } = props;
-
-    useEffect(
-        function () {
-            // Also show lock again when unverifiedUserEmail is unset, since when registration modal pops up, LoginController will hide lock.
-            if (!isAuth0LibraryLoaded || unverifiedUserEmail) return;
-            showLock();
-        },
-        [isAuth0LibraryLoaded, unverifiedUserEmail]
-    );
-
-    return (
-        <React.Fragment>
-            <LoginBoxContainerElement />
-            {unverifiedUserEmail ? <UserRegistrationModal {...props} /> : null}
-        </React.Fragment>
-    );
-});
-
-/** Memoized with no props, never to be re-rendered since is root of Auth0 widget's own ReactDOM.render. */
-const LoginBoxContainerElement = React.memo(function () {
-    return (
-        <div
-            className="login-container text-center"
-            id="homepage-login-container">
-            <i className="icon icon-circle-notch icon-spin fas text-secondary icon-2x" />
         </div>
     );
 });

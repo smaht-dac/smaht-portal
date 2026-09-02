@@ -30,6 +30,7 @@ from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
 from .appdefs import APP_VERSION_REGISTRY_KEY
 from .schema_formats import format_checker  # noqa
 from .logging_config import configure_application_logging
+from .okta import set_okta_config
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
@@ -65,6 +66,7 @@ def include_encoded(config):
         For detailed explanation see: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html
     """
     config.include('encoded.authentication')
+    config.include('encoded.okta')
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.metadata')
@@ -366,6 +368,7 @@ def main(global_config, **local_config):
     settings['g.recaptcha.secret'] = os.environ.get('reCaptchaSecret')
     settings['snovault.jsonld.terms_prefix'] = 'encode'
     set_auth0_config(settings)
+    set_okta_config(settings)
     # set google analytics keys
     set_ga4_config(settings)
 

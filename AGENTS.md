@@ -190,6 +190,36 @@ repo) are in `deploy/docker/production/nginx/README.md`. Tests:
 `sh deploy/docker/production/tests/setup_nginx_tls_tests.sh` and
 `test_container_contracts.py`.
 
+## Okta login is a public SPA PKCE flow; the portal session contract is unchanged
+
+Login is Okta OIDC Authorization Code + PKCE run entirely in the browser
+(`src/encoded/static/components/auth/`), replacing the `auth0-lock` widget that
+lived in shared-portal-components' `LoginController`. The SPA exchanges the code
+itself and POSTs the resulting **ID token** to `/login`; the httpOnly `jwtToken`
+cookie plus `/session-properties` remain the portal session, so item/permission
+code is unaffected. There is no client secret in React source, `/okta_config`,
+or the bundle - `oktaConfig.js` asserts that rather than assuming it.
+
+Two sharp edges that are easy to undo by accident:
+
+- `SMAHTAuth0AuthenticationPolicy.get_token_info` routes on the token's `alg`:
+  RS256 goes to JWKS verification (`encoded/okta.py`), HS256 stays on snovault's
+  shared-secret path, which the admin *impersonate user* feature and the Cypress
+  `login` command still use. Removing either branch breaks one of them.
+- Nothing may import
+  `@hms-dbmi-bgm/shared-portal-components/es/components/navigation/components/LoginController`,
+  not even for `LogoutController`/`performLogout`: that module carries the
+  `auth0-lock` dynamic import, so importing it puts the dependency back in the
+  bundle. Local replacements are `OktaLogoutController.js` / `oktaSession.js`.
+
+Okta settings, the Okta app registration (redirect + sign-out URIs per origin),
+the CSP allowance, and the reason `react-router-dom` is installed are all in
+`docs/operations/okta_authentication.md`. Tests: `src/encoded/tests/test_okta.py`,
+`src/encoded/tests/test_authentication.py`, and
+`src/encoded/static/components/__tests__/oktaAuth.test.js` (Jest here has no
+config and no jsdom - follow the existing `jest.mock` + `renderToStaticMarkup`
+pattern).
+
 ## Maintaining this file
 
 Keep this file for knowledge useful to almost every future agent session in this project.

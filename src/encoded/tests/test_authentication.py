@@ -12,6 +12,9 @@ from pyramid.testing import DummyRequest
 from pyramid.threadlocal import manager
 from pyramid.httpexceptions import HTTPForbidden, HTTPUnauthorized
 from snovault import COLLECTIONS
+from snovault.authentication import (
+    Auth0AuthenticationPolicy as SnovaultAuth0AuthenticationPolicy,
+)
 from snovault.project.authentication import SnovaultProjectAuthentication
 from zope.interface.verify import verifyClass, verifyObject
 from ..authentication import (
@@ -389,3 +392,201 @@ def test_create_unauthorized_user_accepts_multi_label_domain(mock_recaptcha, dum
     new_user = dummy_request.registry[COLLECTIONS]['User'][REPORTED_EMAIL]
     assert new_user.properties.get('email') == REPORTED_EMAIL
     assert new_user.properties.get('was_unauthorized') is True
+
+
+# ---------------------------------------------------------------------------
+# SMAHTAuth0AuthenticationPolicy token routing.
+#
+# Two token families reach the policy and must stay strictly apart: Okta ID
+# tokens (RS256, verified against the issuer's JWKS) and the legacy
+# Auth0/impersonation tokens (HS256, verified with `auth0.secret`). These tests
+# are fixture-free - an RSA keypair is generated in-process and the JWKS lookup
+# is stubbed - so they exercise the real routing decision, not a mock of it.
+# ---------------------------------------------------------------------------
+
+import datetime as _datetime
+
+import jwt as _jwt
+import requests
+from cryptography.hazmat.primitives.asymmetric import rsa as _rsa
+
+from ..authentication import SMAHTAuth0AuthenticationPolicy
+
+
+_OKTA_ISSUER = "https://example.okta.com/oauth2/default"
+_OKTA_CLIENT = "0oa1example2client3id"
+_LEGACY_SECRET = "legacy-shared-secret-long-enough-for-hs256"
+
+
+def _policy_request(settings):
+    """A minimal request whose registry carries `settings` and records properties."""
+    class Registry(dict):
+        def __init__(self, settings):
+            super().__init__()
+            self.settings = settings
+
+    request = MagicMock()
+    request.registry = Registry(settings)
+    request.domain = "portal.example.org"
+    request.set_property = MagicMock()
+    return request
+
+
+def _okta_settings(**overrides):
+    settings = {
+        "okta.issuer": _OKTA_ISSUER,
+        "okta.client": _OKTA_CLIENT,
+        "okta.scopes": "openid email profile",
+        "okta.jwks_uri": f"{_OKTA_ISSUER}/v1/keys",
+        "okta.require_email_verified": True,
+        "auth0.client": _OKTA_CLIENT,
+        "auth0.secret": _LEGACY_SECRET,
+    }
+    settings.update(overrides)
+    return settings
+
+
+def _rs256_token(key, **claim_overrides):
+    now = _datetime.datetime.now(_datetime.timezone.utc)
+    claims = {
+        "iss": _OKTA_ISSUER,
+        "aud": _OKTA_CLIENT,
+        "sub": "00uexamplesubject",
+        "email": "someone@example.org",
+        "email_verified": True,
+        "iat": int(now.timestamp()),
+        "exp": int((now + _datetime.timedelta(minutes=10)).timestamp()),
+    }
+    claims.update(claim_overrides)
+    return _jwt.encode(claims, key, algorithm="RS256", headers={"kid": "k1"})
+
+
+def _hs256_token(secret=_LEGACY_SECRET, **claim_overrides):
+    """Shaped like the token snovault mints for user impersonation."""
+    claims = {"email": "admin@example.org", "email_verified": True, "aud": _OKTA_CLIENT}
+    claims.update(claim_overrides)
+    return _jwt.encode(claims, secret, algorithm="HS256")
+
+
+def _stubbed_jwks(key):
+    signing_key = MagicMock()
+    signing_key.key = key.public_key()
+    jwks_client = MagicMock()
+    jwks_client.get_signing_key_from_jwt.return_value = signing_key
+    return jwks_client
+
+
+@pytest.fixture(scope="module")
+def policy_rsa_key():
+    return _rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+
+def test_okta_rs256_token_is_verified_and_accepted(policy_rsa_key):
+    request = _policy_request(_okta_settings())
+    token = _rs256_token(policy_rsa_key)
+    with patch("encoded.okta.get_okta_jwks_client",
+               return_value=_stubbed_jwks(policy_rsa_key)):
+        payload = SMAHTAuth0AuthenticationPolicy.get_token_info(token, request)
+    assert payload["email"] == "someone@example.org"
+    assert payload["iss"] == _OKTA_ISSUER
+
+
+def test_okta_token_from_a_foreign_issuer_is_rejected(policy_rsa_key):
+    request = _policy_request(_okta_settings())
+    token = _rs256_token(policy_rsa_key, iss="https://attacker.example.com")
+    with patch("encoded.okta.get_okta_jwks_client",
+               return_value=_stubbed_jwks(policy_rsa_key)):
+        assert SMAHTAuth0AuthenticationPolicy.get_token_info(token, request) is None
+
+
+def test_okta_token_for_a_foreign_audience_is_rejected(policy_rsa_key):
+    request = _policy_request(_okta_settings())
+    token = _rs256_token(policy_rsa_key, aud="some-other-client")
+    with patch("encoded.okta.get_okta_jwks_client",
+               return_value=_stubbed_jwks(policy_rsa_key)):
+        assert SMAHTAuth0AuthenticationPolicy.get_token_info(token, request) is None
+
+
+def test_expired_okta_token_marks_the_request_expired(policy_rsa_key):
+    """`auth0_expired` is what lets the renderers unset the stale cookie."""
+    now = _datetime.datetime.now(_datetime.timezone.utc)
+    request = _policy_request(_okta_settings())
+    token = _rs256_token(
+        policy_rsa_key,
+        iat=int((now - _datetime.timedelta(hours=2)).timestamp()),
+        exp=int((now - _datetime.timedelta(hours=1)).timestamp()),
+    )
+    with patch("encoded.okta.get_okta_jwks_client",
+               return_value=_stubbed_jwks(policy_rsa_key)):
+        assert SMAHTAuth0AuthenticationPolicy.get_token_info(token, request) is None
+    assert request.set_property.called
+
+
+def test_asymmetric_token_is_refused_when_okta_is_not_configured(policy_rsa_key):
+    """Without an issuer there is nothing to verify against, so refuse."""
+    request = _policy_request({"auth0.client": _OKTA_CLIENT, "auth0.secret": _LEGACY_SECRET})
+    token = _rs256_token(policy_rsa_key)
+    assert SMAHTAuth0AuthenticationPolicy.get_token_info(token, request) is None
+
+
+def test_legacy_hs256_token_still_uses_snovaults_verification():
+    """Impersonation tokens are HS256 and must keep working unchanged."""
+    request = _policy_request(_okta_settings())
+    token = _hs256_token()
+    with patch.object(SnovaultAuth0AuthenticationPolicy, "get_token_info",
+                      return_value={"email": "admin@example.org"}) as legacy:
+        payload = SMAHTAuth0AuthenticationPolicy.get_token_info(token, request)
+    legacy.assert_called_once_with(token, request)
+    assert payload == {"email": "admin@example.org"}
+
+
+def test_hs256_token_cannot_be_verified_on_the_okta_path(policy_rsa_key):
+    """Algorithm confusion: an HS256 token never reaches the JWKS verification."""
+    request = _policy_request(_okta_settings())
+    token = _hs256_token()
+    with patch("encoded.okta.decode_okta_id_token") as okta_decode:
+        with patch.object(SnovaultAuth0AuthenticationPolicy, "get_token_info",
+                          return_value=None):
+            SMAHTAuth0AuthenticationPolicy.get_token_info(token, request)
+    okta_decode.assert_not_called()
+
+
+@pytest.mark.parametrize("token", ["", "garbage", "a.b"])
+def test_malformed_tokens_fall_through_to_the_legacy_path(token):
+    request = _policy_request(_okta_settings())
+    with patch.object(SnovaultAuth0AuthenticationPolicy, "get_token_info",
+                      return_value=None) as legacy:
+        assert SMAHTAuth0AuthenticationPolicy.get_token_info(token, request) is None
+    legacy.assert_called_once_with(token, request)
+
+
+def test_jwks_lookup_failure_is_a_rejection_not_a_500(policy_rsa_key):
+    """`InvalidKeyError`/`PyJWKClientError` are not `InvalidTokenError` subclasses."""
+    request = _policy_request(_okta_settings())
+    token = _rs256_token(policy_rsa_key)
+    failing_client = MagicMock()
+    failing_client.get_signing_key_from_jwt.side_effect = (
+        _jwt.exceptions.PyJWKClientConnectionError("JWKS unreachable")
+    )
+    with patch("encoded.okta.get_okta_jwks_client", return_value=failing_client):
+        assert SMAHTAuth0AuthenticationPolicy.get_token_info(token, request) is None
+
+
+def test_unusable_signing_key_is_a_rejection_not_a_500(policy_rsa_key):
+    request = _policy_request(_okta_settings())
+    token = _rs256_token(policy_rsa_key)
+    bad_key = MagicMock()
+    bad_key.key = "not-a-public-key"
+    jwks_client = MagicMock()
+    jwks_client.get_signing_key_from_jwt.return_value = bad_key
+    with patch("encoded.okta.get_okta_jwks_client", return_value=jwks_client):
+        assert SMAHTAuth0AuthenticationPolicy.get_token_info(token, request) is None
+
+
+def test_okta_discovery_failure_is_a_rejection_not_a_500(policy_rsa_key):
+    settings = _okta_settings()
+    settings.pop("okta.jwks_uri")
+    request = _policy_request(settings)
+    token = _rs256_token(policy_rsa_key)
+    with patch("encoded.okta.requests.get", side_effect=requests.ConnectionError("down")):
+        assert SMAHTAuth0AuthenticationPolicy.get_token_info(token, request) is None
