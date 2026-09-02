@@ -3069,18 +3069,30 @@ div.browse-link-icon {
 			}
 		}
 
-		// Plain side-by-side halves, each a real flex child (not clip-path'd)
-		// -- simpler than the diagonal layout since there's no diagonal edge to
-		// fake a border along, a real `border-right` on the first half does it.
+		// Plain side-by-side halves -- simpler than the diagonal layout
+		// since there's no diagonal edge to fake a border along, a real
+		// `border-right` on the first half does it. `display: flex` on
+		// `.tissue-heatmap-cell-split` itself (the <td>) was tried first,
+		// reasoning it's simpler than `position: absolute` for a plain
+		// side-by-side split -- against a real table this broke the whole
+		// row's layout (overriding a table cell's own `display` away from
+		// `table-cell` stops it participating in the table's row-height/
+		// column-width algorithm at all, in a way that's easy to miss on
+		// an isolated cell but corrupts the surrounding table visibly).
+		// `position: absolute`, same as the diagonal halves above, leaves
+		// the <td> itself an ordinary table cell -- only its *children* are
+		// taken out of flow.
 		.tissue-heatmap-cell-split-vertical {
-			display: flex;
-
 			.tissue-heatmap-cell-split-half {
+				position: absolute;
+				inset: 0;
 				width: 50%;
-				height: 100%;
 			}
 			.tissue-heatmap-cell-split-half-a {
 				border-right: 1px solid rgba(255, 255, 255, 0.7);
+			}
+			.tissue-heatmap-cell-split-half-b {
+				left: 50%;
 			}
 		}
 

@@ -944,12 +944,18 @@ function renderCellAltValues(entries, tissueType, metricLabel, formatValue, styl
 // columns that share the exact same value (e.g. the brain regions a
 // generic "Brain" value was distributed into, see buildTissueMetricMatrix)
 // into a single spanning <td> instead of repeating that value once per
-// column. The header row above merges the same run too (renderHeaderCells),
-// but only when buildTissueMetricMatrix's brainColumnsFullyMergeable says
-// *every* row agrees, not just this one -- so a merged header always lines
-// up with either a merged body cell (when it does) or the same number of
-// separately-headed individual cells (when this particular row didn't
-// merge, e.g. a "no value at all" row).
+// column -- but ONLY when `brainColumnsFullyMergeable` says *every* row in
+// the whole table agrees, matching the header's own merge condition
+// exactly (renderHeaderCells). An earlier version merged per-row instead
+// (any row whose own values happened to be equal, regardless of whether
+// every other row did too), which -- confirmed against a real donor whose
+// brain regions genuinely differ (e.g. distinct per-region Autolysis
+// Score) -- read as an arbitrary mix of merged and unmerged rows all under
+// the same *unmerged* header, since 1 disagreeing row was enough to keep
+// the header itself split. Gating both on the same table-wide flag means
+// it's now all-or-nothing: either every row's brain columns merge under a
+// merged header, or none of them do and every row shows all 5 regions
+// individually, even a row whose own values happen to coincide.
 //
 // `hoveredColumn`/`hoveredCellPosition`/`onHoverCell` -- "L-shaped" hover
 // guides (per explicit request): hovering a cell highlights only the
@@ -991,7 +997,7 @@ function renderCellAltValues(entries, tissueType, metricLabel, formatValue, styl
 // every value already visible without hovering in every mode but `'hover'`
 // itself, this is just an optional way to see which record each value
 // actually came from, not a requirement to see the data.
-function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, formatValue, getScoreClass, enableConditionalColor, rowIndex, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, onShowDetail, onHideDetail, cellValueDisplayMode) {
+function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, onShowDetail, onHideDetail, cellValueDisplayMode) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
@@ -1000,7 +1006,16 @@ function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, f
         const entries = cellEntries?.[i] || null;
         const columnIndex = i;
         let span = 1;
-        if (mergeableTissueTypes.has(tissueType)) {
+        // Merging this row's own run of equal-valued brain columns only
+        // when `brainColumnsFullyMergeable` says *every* row agrees keeps
+        // this consistent with the header's own merge decision
+        // (renderHeaderCells) -- without this gate, a row that happens to
+        // have equal values merges into one wide cell even while the
+        // header (and other rows that disagree, e.g. one donor's real
+        // per-region autolysis scores) stays split into individual
+        // columns, which reads as an inconsistent, seemingly arbitrary mix
+        // of merged and unmerged rows under the same unmerged header.
+        if (brainColumnsFullyMergeable && mergeableTissueTypes.has(tissueType)) {
             while (
                 i + span < cells.length &&
                 mergeableTissueTypes.has(tissueTypes[i + span]) &&
@@ -1710,6 +1725,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     cellEntries,
                                     tissueTypes,
                                     mergeableTissueTypes,
+                                    brainColumnsFullyMergeable,
                                     formatValue,
                                     getScoreClass,
                                     enableConditionalColor,
