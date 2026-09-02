@@ -4180,12 +4180,12 @@ FAQ page styles
                         display: flex;
                         flex: 1;
                         padding: 15px;
+                        margin-right: 60px;
 
                         .parent-link {
                             display: block;
                             font-weight: 600;
                             color: $homepage-card-text-color;
-                            padding-right: 40px;
 
                             &:hover {
                                 color: #173b5d;

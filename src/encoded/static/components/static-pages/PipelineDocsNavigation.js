@@ -8,6 +8,7 @@ export const Dropdown = ({
     parentLink,
     subLinks,
     overview,
+    badge,
     expanded = false,
 }) => {
     const [isExpanded, setIsExpanded] = useState(expanded);
@@ -32,6 +33,7 @@ export const Dropdown = ({
                     <a className="parent-link" href={parentLink}>
                         {parentTitle}
                     </a>
+                    {badge}
                 </div>
                 <a className="header-link" href={parentLink}>
                     <RightArrowIcon />
@@ -393,13 +395,11 @@ export const PipelineDocsNavigation = (props) => {
                         }
                     />
                     <Dropdown
-                        parentTitle={
-                            <>
-                                Somatic: SMaHT SNV Pipeline v2.0.0
-                                <span className="quick-link-badge quick-link-badge-open">
-                                    Latest
-                                </span>
-                            </>
+                        parentTitle="Somatic: SMaHT SNV Pipeline v2.0.0"
+                        badge={
+                            <span className="quick-link-badge quick-link-badge-open">
+                                Latest
+                            </span>
                         }
                         parentLink="/docs/additional-resources/pipeline-docs/smaht-snv-calling-v2"
                         subLinks={[
