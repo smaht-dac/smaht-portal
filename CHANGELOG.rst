@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+2.12.2
+======
+
+`PR 753: feat: add smaht snv pipeline v2 to pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/753>`_
+
+* Update pipeline docs with new pipeline
+* Move badge styles into larger scope
+
+
 2.12.1
 ======
 
@@ -280,7 +289,6 @@ Change Log
 
 * Support "+" age in donor view
 * Add popover for age field
->>>>>>> main
 
 
 2.4.2
