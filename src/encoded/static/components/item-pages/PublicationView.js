@@ -454,6 +454,9 @@ const PublicationView = React.memo(function PublicationView(props) {
                                 {context?.accession === 'SMAPBTYIDADU' && (
                                     <span>. Accepted at Cell Genomics.</span>
                                 )}
+                                {context?.accession === 'SMAPB7B2PUV5' && (
+                                    <span>. Accepted in Cell.</span>
+                                )}
                             </span>
                             <button
                                 type="button"
