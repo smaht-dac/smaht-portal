@@ -3423,6 +3423,7 @@ File, Donor, and Publication Overview Styles
                 }
 
                 .tissue-aliquot-body {
+                    position: relative;
                     flex: 1;
                     display: flex;
                     align-items: center;
@@ -3442,6 +3443,48 @@ File, Donor, and Publication Overview Styles
 
                     &.is-updating > * {
                         opacity: 0.45;
+                    }
+                }
+
+                // Before any donor is picked, the illustrative demo diagram
+                // still renders underneath the "select a donor" prompt
+                // (see showDonorPrompt in TissueView.js/TissueTypeView.js) --
+                // barely-visible and inert, just enough to hint at what the
+                // panel will show, not a real per-donor layout to interact
+                // with.
+                .tissue-aliquot-diagram {
+                    width: 100%;
+
+                    &.is-placeholder {
+                        opacity: 0.2;
+                        pointer-events: none;
+                        user-select: none;
+                    }
+                }
+
+                // Sits on top of the dimmed placeholder diagram above
+                // (absolutely positioned over the same .tissue-aliquot-body)
+                // instead of replacing it. A white wash spanning the whole
+                // overlay (this element's own previous approach, sized via
+                // `inset: 0`) drowned out the diagram behind it almost
+                // entirely -- this is instead a content-sized pill, centered
+                // over the diagram but no bigger than its own icon+text, so
+                // only the text's own small backdrop needs the contrast
+                // boost and the rest of the diagram stays visible at its
+                // full placeholder opacity.
+                .tissue-aliquot-prompt-overlay {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(255, 255, 255, 0.88);
+                    padding: 16px 28px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 16px rgba(31, 46, 61, 0.08);
+                    color: #4e6379;
+
+                    p {
+                        font-weight: 500;
                     }
                 }
 

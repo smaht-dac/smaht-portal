@@ -555,7 +555,28 @@ const TissueView = React.memo(function TissueView({
                 ? buildMedialLateralTemplateSlices(medialLateralTemplate, solidAliquotSlices)
                 : stripTemplate && solidAliquotSlices !== sampleAliquotSlicesFallback
                     ? buildStripTemplateSlices(stripTemplate, solidAliquotSlices)
-                    : solidAliquotSlices;
+                    // No real donor data yet (no donor picked, or still
+                    // loading) -- solidAliquotSlices is just the generic
+                    // illustrative demo set at this point, which doesn't
+                    // reflect this tissue_type's own real layout at all. A
+                    // tissue with a fixed template shape (bivalved split /
+                    // medial-lateral layers / strip) instead gets that exact
+                    // shape here, built with an empty real-slices list so
+                    // every position comes back an inert placeholder -- this
+                    // is what the dimmed pre-selection preview
+                    // (tissue-aliquot-body's showDonorPrompt case) actually
+                    // renders, so it already looks like *this* organ instead
+                    // of an unrelated generic box. Tissues with no fixed
+                    // template (plain solid organs) still fall through to
+                    // the generic demo set below, since there's no more
+                    // specific shape available for them.
+                    : bivalvedTemplate
+                        ? buildBivalvedTemplateSlices(bivalvedTemplate, [])
+                        : medialLateralTemplate
+                            ? buildMedialLateralTemplateSlices(medialLateralTemplate, [])
+                            : stripTemplate
+                                ? buildStripTemplateSlices(stripTemplate, [])
+                                : solidAliquotSlices;
 
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
@@ -1019,11 +1040,6 @@ const TissueView = React.memo(function TissueView({
                                     <div className="tissue-aliquot-prompt">
                                         <p>No donor data available for this tissue type.</p>
                                     </div>
-                                ) : showDonorPrompt ? (
-                                    <div className="tissue-aliquot-prompt">
-                                        <i className="icon icon-arrow-up fas" />
-                                        <p>Select a donor above to view its aliquot layout.</p>
-                                    </div>
                                 ) : aliquotSamplesLoading ? (
                                     <div className="tissue-aliquot-loading">
                                         <i className="icon icon-circle-notch icon-spin fas" />
@@ -1032,28 +1048,49 @@ const TissueView = React.memo(function TissueView({
                                     <div className="tissue-aliquot-prompt">
                                         <p>No aliquot data available for the selected donor.</p>
                                     </div>
-                                ) : nonSolidSpecimenType ? (
-                                    <NonSolidAliquotVisualization
-                                        aliquots={nonSolidAliquots}
-                                        specimenType={nonSolidSpecimenType}
-                                        idPrefix={aliquotIdPrefix}
-                                    />
                                 ) : (
-                                    <AliquotVisualization
-                                        slices={displaySlices}
-                                        dimensions={{
-                                            heightCm: 1,
-                                            depthCm: aliquotDepthCm,
-                                            heightLabel: '1 cm',
-                                            depthLabel: `${aliquotDepthCm} cm`,
-                                        }}
-                                        idPrefix={aliquotIdPrefix}
-                                        showSliceLabels={false}
-                                        enableMedialLateralLayers={enableMedialLateralLayers}
-                                        enableBivalvedSplit={enableBivalvedSplit}
-                                        assayPlatformsBySampleName={assayPlatformsBySampleName}
-                                    />
+                                    // Before a donor is picked (showDonorPrompt), `displaySlices`/
+                                    // `nonSolidAliquots` are still the illustrative demo set (no
+                                    // donor's real TissueSamples fetched yet) -- rendered here at
+                                    // near-zero opacity and non-interactive (see .is-placeholder)
+                                    // just to hint at the panel's eventual layout, with the actual
+                                    // prompt overlaid on top rather than replacing it outright.
+                                    <div
+                                        className={
+                                            'tissue-aliquot-diagram' +
+                                            (showDonorPrompt ? ' is-placeholder' : '')
+                                        }
+                                        aria-hidden={showDonorPrompt || undefined}>
+                                        {nonSolidSpecimenType ? (
+                                            <NonSolidAliquotVisualization
+                                                aliquots={nonSolidAliquots}
+                                                specimenType={nonSolidSpecimenType}
+                                                idPrefix={aliquotIdPrefix}
+                                            />
+                                        ) : (
+                                            <AliquotVisualization
+                                                slices={displaySlices}
+                                                dimensions={{
+                                                    heightCm: 1,
+                                                    depthCm: aliquotDepthCm,
+                                                    heightLabel: '1 cm',
+                                                    depthLabel: `${aliquotDepthCm} cm`,
+                                                }}
+                                                idPrefix={aliquotIdPrefix}
+                                                showSliceLabels={false}
+                                                enableMedialLateralLayers={enableMedialLateralLayers}
+                                                enableBivalvedSplit={enableBivalvedSplit}
+                                                assayPlatformsBySampleName={assayPlatformsBySampleName}
+                                            />
+                                        )}
+                                    </div>
                                 )}
+                                {showDonorPrompt ? (
+                                    <div className="tissue-aliquot-prompt tissue-aliquot-prompt-overlay">
+                                        <i className="icon icon-arrow-up fas" />
+                                        <p>Select a donor above to view its aliquot layout.</p>
+                                    </div>
+                                ) : null}
                             </div>
                         </div>
                     </div>
