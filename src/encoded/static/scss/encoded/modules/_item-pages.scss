@@ -3215,12 +3215,14 @@ File, Donor, and Publication Overview Styles
 
         .tissue-summary-row {
             display: flex;
-            // `stretch` (the flex default) forced both cards to match
-            // whichever was taller, leaving large blank space at the
-            // bottom of the shorter one -- these two cards' content
-            // heights are unrelated (one's a compact stat list, the other
-            // a fixed-height diagram), so let each size to its own content.
-            align-items: flex-start;
+            // `stretch` (the flex default) -- both cards match the taller
+            // one's height, same equal-height card treatment as
+            // ProtectedDonorViewDataCards's Data Summary/Prior
+            // Diagnosis/Exposures row. Each card is itself a column flexbox
+            // with its own `.body` set to `flex: 1`, so the extra height
+            // lands as breathing room inside the shorter card's body
+            // rather than a hard cutoff.
+            align-items: stretch;
             gap: 24px;
             margin-bottom: 24px;
 
@@ -3230,15 +3232,13 @@ File, Donor, and Publication Overview Styles
                 border: 1px solid #e7f0f3;
                 border-radius: 8px;
                 overflow: hidden;
-            }
-
-            .tissue-summary-card {
-                flex: 2 1 420px;
-                max-width: 680px;
                 display: flex;
                 flex-direction: column;
 
-                .header {
+                // Shared green header bar -- same treatment as
+                // .tissue-donor-table-card's own `.header` below, so every
+                // card on this tab reads as one consistent design.
+                > .header {
                     background-color: #eaf6ed;
                     padding: 12px 20px;
                     border-bottom: 1px solid #cdebd8;
@@ -3248,18 +3248,24 @@ File, Donor, and Publication Overview Styles
                         font-weight: 600;
                     }
                 }
+            }
+
+            .tissue-summary-card {
+                flex: 2 1 420px;
+                max-width: 680px;
 
                 .body {
                     flex: 1;
                     padding: 20px;
                 }
 
+                // Matches ProtectedDonorViewDataCards's own `.section-title`
+                // styling (donor-overview.js) -- normal case, not the
+                // all-caps treatment this used to have.
                 .tissue-summary-subheader {
                     font-size: 0.75rem;
-                    font-weight: 600;
-                    letter-spacing: 0.03em;
-                    text-transform: uppercase;
-                    color: #98a2b3;
+                    font-weight: 500;
+                    color: #5d5e63;
                     margin-bottom: 10px;
                 }
 
@@ -3312,16 +3318,19 @@ File, Donor, and Publication Overview Styles
             .tissue-aliquot-card {
                 flex: 3 1 520px;
                 max-width: 900px;
-                display: flex;
-                flex-direction: column;
-                padding: 20px 24px 24px;
+
+                .body {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 20px 24px 24px;
+                }
 
                 .tissue-aliquot-header {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                     gap: 16px;
-                    margin-bottom: 12px;
 
                     .aliquot-title {
                         color: #31465d;

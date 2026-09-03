@@ -873,7 +873,7 @@ export default function TissueTypeView({
                     </div>
 
                     <div className="tissue-aliquot-card">
-                        <div className="tissue-aliquot-header">
+                        <div className="header tissue-aliquot-header">
                             <span className="aliquot-title">
                                 {nonSolidSpecimenType
                                     ? 'Sample non-solid aliquot layout'
@@ -954,50 +954,52 @@ export default function TissueTypeView({
                                 </div>
                             ) : null}
                         </div>
-                        <div
-                            className={
-                                'tissue-aliquot-body' +
-                                (samplesUpdating && !aliquotSamplesLoading ? ' is-updating' : '')
-                            }>
-                            {showNoDonorData ? (
-                                <div className="tissue-aliquot-prompt">
-                                    <p>No donor data available for this tissue type.</p>
-                                </div>
-                            ) : showDonorPrompt ? (
-                                <div className="tissue-aliquot-prompt">
-                                    <i className="icon icon-arrow-up fas" />
-                                    <p>Select a donor above to view its aliquot layout.</p>
-                                </div>
-                            ) : aliquotSamplesLoading ? (
-                                <div className="tissue-aliquot-loading">
-                                    <i className="icon icon-circle-notch icon-spin fas" />
-                                </div>
-                            ) : showNoSampleData ? (
-                                <div className="tissue-aliquot-prompt">
-                                    <p>No aliquot data available for the selected donor.</p>
-                                </div>
-                            ) : nonSolidSpecimenType ? (
-                                <NonSolidAliquotVisualization
-                                    aliquots={nonSolidAliquots}
-                                    specimenType={nonSolidSpecimenType}
-                                    idPrefix={aliquotIdPrefix}
-                                />
-                            ) : (
-                                <AliquotVisualization
-                                    slices={displaySlices}
-                                    dimensions={{
-                                        heightCm: 1,
-                                        depthCm: aliquotDepthCm,
-                                        heightLabel: '1 cm',
-                                        depthLabel: `${aliquotDepthCm} cm`,
-                                    }}
-                                    idPrefix={aliquotIdPrefix}
-                                    showSliceLabels={false}
-                                    enableMedialLateralLayers={enableMedialLateralLayers}
-                                    enableBivalvedSplit={enableBivalvedSplit}
-                                    assayPlatformsBySampleName={assayPlatformsBySampleName}
-                                />
-                            )}
+                        <div className="body">
+                            <div
+                                className={
+                                    'tissue-aliquot-body' +
+                                    (samplesUpdating && !aliquotSamplesLoading ? ' is-updating' : '')
+                                }>
+                                {showNoDonorData ? (
+                                    <div className="tissue-aliquot-prompt">
+                                        <p>No donor data available for this tissue type.</p>
+                                    </div>
+                                ) : showDonorPrompt ? (
+                                    <div className="tissue-aliquot-prompt">
+                                        <i className="icon icon-arrow-up fas" />
+                                        <p>Select a donor above to view its aliquot layout.</p>
+                                    </div>
+                                ) : aliquotSamplesLoading ? (
+                                    <div className="tissue-aliquot-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : showNoSampleData ? (
+                                    <div className="tissue-aliquot-prompt">
+                                        <p>No aliquot data available for the selected donor.</p>
+                                    </div>
+                                ) : nonSolidSpecimenType ? (
+                                    <NonSolidAliquotVisualization
+                                        aliquots={nonSolidAliquots}
+                                        specimenType={nonSolidSpecimenType}
+                                        idPrefix={aliquotIdPrefix}
+                                    />
+                                ) : (
+                                    <AliquotVisualization
+                                        slices={displaySlices}
+                                        dimensions={{
+                                            heightCm: 1,
+                                            depthCm: aliquotDepthCm,
+                                            heightLabel: '1 cm',
+                                            depthLabel: `${aliquotDepthCm} cm`,
+                                        }}
+                                        idPrefix={aliquotIdPrefix}
+                                        showSliceLabels={false}
+                                        enableMedialLateralLayers={enableMedialLateralLayers}
+                                        enableBivalvedSplit={enableBivalvedSplit}
+                                        assayPlatformsBySampleName={assayPlatformsBySampleName}
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
