@@ -3822,6 +3822,9 @@ File, Donor, and Publication Overview Styles
         fill: none;
         stroke: #20242a;
         stroke-width: 2;
+        // Same acute-corner miter spike as .slice-face below -- this
+        // outline traces the same isometric angles.
+        stroke-linejoin: round;
     }
 
     .aliquot-dimension,
@@ -3862,6 +3865,14 @@ File, Donor, and Publication Overview Styles
                 opacity 180ms ease, stroke-width 180ms ease;
             vector-effect: non-scaling-stroke;
             stroke-width: 1.5;
+            // The top face's acute corners (where the isometric depth
+            // edges meet the front edge) fall under the default miter
+            // join's angle threshold, so a mitered stroke there juts out
+            // past the vertex as a small spike -- most visible at the
+            // shared boundary between two adjacent slices, where each
+            // side's spike reads as a stray "burr" poking outside the
+            // block's silhouette. Round joins can't spike like that.
+            stroke-linejoin: round;
         }
 
         &:hover,
@@ -3894,6 +3905,7 @@ File, Donor, and Publication Overview Styles
         opacity: 0.3;
         vector-effect: non-scaling-stroke;
         stroke-width: 1.5;
+        stroke-linejoin: round;
     }
 
     .aliquot-slice-hitarea {
