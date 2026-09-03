@@ -4269,6 +4269,7 @@ File, Donor, and Publication Overview Styles
         &.is-highlighted {
             background-color: #1e5b4f;
             border-color: #1e5b4f;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
         }
 
         // Only highlighted dots with a real per-position GCC files link get
@@ -4289,6 +4290,20 @@ File, Donor, and Publication Overview Styles
                 // sets it), and keeps the default teal-green look if it did.
                 box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(30, 91, 79, 0.25));
             }
+        }
+
+        // The same halo, but driven by React state (hoveredCorePosition)
+        // rather than a plain `:hover` pseudo-class -- covers hovering this
+        // position's own row in the list below instead of this dot itself
+        // (see .aliquot-popover-position.is-hovered), and applies to every
+        // highlighted dot, not just is-linked ones (an unlinked dot has
+        // nothing of its own to :hover for, but its row can still be
+        // hovered). Harmless overlap with the :hover rule above when this
+        // dot is the one actually being pointed at -- both set the same
+        // values.
+        &.is-highlighted.is-hovered {
+            transform: scale(1.25);
+            box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(30, 91, 79, 0.25));
         }
     }
 
@@ -4333,6 +4348,33 @@ File, Donor, and Publication Overview Styles
         // doesn't hide whatever group comes after it.
         max-height: 320px;
         overflow-y: auto;
+        // Explicit, not left to default -- per the CSS overflow spec, an
+        // element with only one axis set to a non-`visible` value (just
+        // `overflow-y: auto` here) has the *other* axis silently computed
+        // as `auto` too, not left `visible`. `.aliquot-popover-position`'s
+        // own negative side margins (below) bleed its highlight a few px
+        // past this container's edge on purpose -- without this, that
+        // spec-mandated auto-computed overflow-x turned that harmless bleed
+        // into a real horizontal scrollbar on this whole list.
+        overflow-x: hidden;
+    }
+
+    // One position's own row (+ its assay/platform caption line) -- ties
+    // back to its matching dot in the core grid above (hoveredCorePosition,
+    // set from either direction, see AliquotVisualization.js) with a plain
+    // neutral highlight rather than that dot's own GCC-specific color, since
+    // this row can't always tell which color that was without re-deriving
+    // it (and a neutral highlight already reads clearly against the white
+    // popover background regardless of which GCC it is).
+    .aliquot-popover-position {
+        margin: 0 -8px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        transition: background-color 0.1s ease;
+
+        &.is-hovered {
+            background-color: #eef5fb;
+        }
     }
 
     .aliquot-popover-pathology-heading {

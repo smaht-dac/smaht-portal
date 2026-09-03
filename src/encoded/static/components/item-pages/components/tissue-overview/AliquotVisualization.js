@@ -338,10 +338,18 @@ export default function AliquotVisualization({
     // a different slice (below) so re-opening it, or opening a different
     // one, always starts collapsed again.
     const [expandedGroupIndexes, setExpandedGroupIndexes] = useState(() => new Set());
+    // Which core position (e.g. "A1") the pointer is currently over, in
+    // either direction -- the grid dot or its matching row in the position
+    // list below (see the grid's onMouseEnter/onMouseLeave and each
+    // .aliquot-popover-position's own `is-hovered` class) -- so hovering
+    // either one highlights both, letting a reader trace a dot to its own
+    // row (or a row back to its own dot) without hunting for it.
+    const [hoveredCorePosition, setHoveredCorePosition] = useState(null);
     const popoverId = useId();
     function handleHidePopover() {
         setSelectedSliceIndex(null);
         setSelectedTarget(null);
+        setHoveredCorePosition(null);
     }
 
     // `slices` can swap out from under an open popover -- e.g. the
@@ -363,9 +371,13 @@ export default function AliquotVisualization({
 
     // A newly opened (or newly switched-to) slice's GCC groups should
     // always start collapsed, not carry over whichever groups happened to
-    // be expanded for the previously selected slice.
+    // be expanded for the previously selected slice. Same for any hovered
+    // core position -- a stale one held over from the previous slice would
+    // otherwise highlight a same-named row/dot pair in a popover it no
+    // longer belongs to.
     useEffect(() => {
         setExpandedGroupIndexes(new Set());
+        setHoveredCorePosition(null);
     }, [selectedSliceIndex]);
 
     // Real aliquot block depth varies by tissue (SMaHT Tissue Recovery
@@ -1107,6 +1119,35 @@ export default function AliquotVisualization({
                                                                 // as clicking its row below) when one is
                                                                 // available, instead of leaving it a
                                                                 // dead-end visual.
+                                                                // Hovering this dot also highlights its
+                                                                // matching row in the position list below
+                                                                // (see hoveredCorePosition/.is-hovered) --
+                                                                // cleared on leave rather than only on the
+                                                                // next hover so it doesn't stick once the
+                                                                // pointer moves off the grid entirely.
+                                                                const handleHoverPosition = () =>
+                                                                    setHoveredCorePosition(corePosition);
+                                                                const handleUnhoverPosition = () =>
+                                                                    setHoveredCorePosition(null);
+                                                                // Read by both the hover/focus halo below
+                                                                // (_item-pages.scss) -- a hardcoded halo
+                                                                // color there would only ever match the
+                                                                // default teal-green dot, not a
+                                                                // GCC-specific color from
+                                                                // CORE_DOT_COLOR_PALETTE -- and by
+                                                                // `.is-hovered` (set whenever this position's
+                                                                // own row below is hovered instead of this
+                                                                // dot directly, see .aliquot-popover-position).
+                                                                const dotStyle = {
+                                                                    backgroundColor: dotColor,
+                                                                    borderColor: dotColor,
+                                                                    '--aliquot-core-halo': hexToRgba(
+                                                                        dotColor,
+                                                                        0.3
+                                                                    ),
+                                                                };
+                                                                const isRowHovered =
+                                                                    corePosition === hoveredCorePosition;
                                                                 return positionFilesHref ? (
                                                                     <a
                                                                         key={corePosition}
@@ -1114,30 +1155,33 @@ export default function AliquotVisualization({
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         title={`View ${positionTitle}'s files`}
-                                                                        style={{
-                                                                            backgroundColor: dotColor,
-                                                                            borderColor: dotColor,
-                                                                            // Read by the hover/focus halo
-                                                                            // below (_item-pages.scss) -- a
-                                                                            // hardcoded halo color there
-                                                                            // would only ever match the
-                                                                            // default teal-green dot, not a
-                                                                            // GCC-specific color from
-                                                                            // CORE_DOT_COLOR_PALETTE.
-                                                                            '--aliquot-core-halo':
-                                                                                hexToRgba(dotColor, 0.3),
-                                                                        }}
-                                                                        className="aliquot-grid-core is-highlighted is-linked"
+                                                                        style={dotStyle}
+                                                                        className={
+                                                                            'aliquot-grid-core is-highlighted is-linked' +
+                                                                            (isRowHovered ? ' is-hovered' : '')
+                                                                        }
+                                                                        // eslint-disable-next-line react/jsx-no-bind
+                                                                        onMouseEnter={handleHoverPosition}
+                                                                        // eslint-disable-next-line react/jsx-no-bind
+                                                                        onMouseLeave={handleUnhoverPosition}
+                                                                        // eslint-disable-next-line react/jsx-no-bind
+                                                                        onFocus={handleHoverPosition}
+                                                                        // eslint-disable-next-line react/jsx-no-bind
+                                                                        onBlur={handleUnhoverPosition}
                                                                     />
                                                                 ) : (
                                                                     <span
                                                                         key={corePosition}
                                                                         title={positionTitle}
-                                                                        style={{
-                                                                            backgroundColor: dotColor,
-                                                                            borderColor: dotColor,
-                                                                        }}
-                                                                        className="aliquot-grid-core is-highlighted"
+                                                                        style={dotStyle}
+                                                                        className={
+                                                                            'aliquot-grid-core is-highlighted' +
+                                                                            (isRowHovered ? ' is-hovered' : '')
+                                                                        }
+                                                                        // eslint-disable-next-line react/jsx-no-bind
+                                                                        onMouseEnter={handleHoverPosition}
+                                                                        // eslint-disable-next-line react/jsx-no-bind
+                                                                        onMouseLeave={handleUnhoverPosition}
                                                                     />
                                                                 );
                                                             })}
@@ -1199,8 +1243,23 @@ export default function AliquotVisualization({
                                                     ] || [];
                                                     return (
                                                         <div
-                                                            className="aliquot-popover-position"
-                                                            key={corePosition}>
+                                                            className={
+                                                                'aliquot-popover-position' +
+                                                                (corePosition === hoveredCorePosition
+                                                                    ? ' is-hovered'
+                                                                    : '')
+                                                            }
+                                                            key={corePosition}
+                                                            // Same idea in reverse -- hovering this row
+                                                            // highlights its own dot up in the grid too
+                                                            // (see the grid's identical onMouseEnter/
+                                                            // onMouseLeave pair).
+                                                            // eslint-disable-next-line react/jsx-no-bind
+                                                            onMouseEnter={() =>
+                                                                setHoveredCorePosition(corePosition)
+                                                            }
+                                                            // eslint-disable-next-line react/jsx-no-bind
+                                                            onMouseLeave={() => setHoveredCorePosition(null)}>
                                                             <div className="aliquot-popover-row">
                                                                 <span>
                                                                     {positionIndexInGroup === 0 ? (
