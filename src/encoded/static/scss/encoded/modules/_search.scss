@@ -2563,11 +2563,11 @@ div.browse-link-icon {
 	// Same custom-property-first fallback the real cells read (see
 	// .tissue-heatmap-cell's own score-0..4 rules) -- a picked palette
 	// (HeatmapColorPicker) recolors the legend right along with the table.
-	&.score-0 { background-color: var(--heatmap-score-0-bg, #DEE9ED); }
-	&.score-1 { background-color: var(--heatmap-score-1-bg, #B6CFD7); }
-	&.score-2 { background-color: var(--heatmap-score-2-bg, #8FB4C2); }
-	&.score-3 { background-color: var(--heatmap-score-3-bg, #679AAC); }
-	&.score-4 { background-color: var(--heatmap-score-4-bg, #4C7A8B); }
+	&.score-0 { background-color: var(--heatmap-score-0-bg, #DAEBF1); }
+	&.score-1 { background-color: var(--heatmap-score-1-bg, #ADD3E1); }
+	&.score-2 { background-color: var(--heatmap-score-2-bg, #80BBD0); }
+	&.score-3 { background-color: var(--heatmap-score-3-bg, #54A3C0); }
+	&.score-4 { background-color: var(--heatmap-score-4-bg, #3A829C); }
 }
 
 .tissue-heatmap-card {
@@ -2796,8 +2796,8 @@ div.browse-link-icon {
 		//
 		// Blue was tried first (matching the app's own accent) and
 		// confirmed, against a real densely-colored table, to basically
-		// disappear: the score-band scale is itself a blue-grey/teal (light
-		// -> dark "Steel"), so a blue tint at any reasonable opacity barely
+		// disappear: the score-band scale is itself a bright sky-blue (light
+		// -> dark "Sky"), so a blue tint at any reasonable opacity barely
 		// shifts an already-blue cell -- same hue family, too little perceptual
 		// contrast, especially against the darker bands. A thin-edge-line
 		// version (border-like box-shadows instead of a fill) was also
@@ -2884,9 +2884,9 @@ div.browse-link-icon {
 				border-right: none;
 			}
 
-			// A sequential blue-grey scale (light -> dark), not a green->red
+			// A sequential sky-blue scale (light -> dark), not a green->red
 			// ramp, since that read as a status/alarm signal regardless of
-			// what the metric measured -- "Steel" (#4D7C8D), generated via
+			// what the metric measured -- "Sky" (#4DCFFF), generated via
 			// buildSequentialPaletteFromHex(baseHex, 5), same as any
 			// HeatmapColorPicker pick. 5 bands, not 4 -- Ischemic Time's own
 			// quantile split and Target Tissue %'s 5 real bands both need a
@@ -2898,23 +2898,23 @@ div.browse-link-icon {
 			// values when unset -- HeatmapColorPicker sets those inline on
 			// .tissue-heatmap-card when a user picks a different palette.
 			&.score-0 {
-				background-color: var(--heatmap-score-0-bg, #DEE9ED);
+				background-color: var(--heatmap-score-0-bg, #DAEBF1);
 				color: var(--heatmap-score-0-text, #28323C);
 			}
 			&.score-1 {
-				background-color: var(--heatmap-score-1-bg, #B6CFD7);
+				background-color: var(--heatmap-score-1-bg, #ADD3E1);
 				color: var(--heatmap-score-1-text, #28323C);
 			}
 			&.score-2 {
-				background-color: var(--heatmap-score-2-bg, #8FB4C2);
+				background-color: var(--heatmap-score-2-bg, #80BBD0);
 				color: var(--heatmap-score-2-text, #28323C);
 			}
 			&.score-3 {
-				background-color: var(--heatmap-score-3-bg, #679AAC);
+				background-color: var(--heatmap-score-3-bg, #54A3C0);
 				color: var(--heatmap-score-3-text, #FFFFFF);
 			}
 			&.score-4 {
-				background-color: var(--heatmap-score-4-bg, #4C7A8B);
+				background-color: var(--heatmap-score-4-bg, #3A829C);
 				color: var(--heatmap-score-4-text, #FFFFFF);
 			}
 			&.na,
@@ -3000,23 +3000,23 @@ div.browse-link-icon {
 			// HeatmapColorPicker pick recolors split cells right along with
 			// every plain one.
 			&.score-0 {
-				background-color: var(--heatmap-score-0-bg, #DEE9ED);
+				background-color: var(--heatmap-score-0-bg, #DAEBF1);
 				color: var(--heatmap-score-0-text, #28323C);
 			}
 			&.score-1 {
-				background-color: var(--heatmap-score-1-bg, #B6CFD7);
+				background-color: var(--heatmap-score-1-bg, #ADD3E1);
 				color: var(--heatmap-score-1-text, #28323C);
 			}
 			&.score-2 {
-				background-color: var(--heatmap-score-2-bg, #8FB4C2);
+				background-color: var(--heatmap-score-2-bg, #80BBD0);
 				color: var(--heatmap-score-2-text, #28323C);
 			}
 			&.score-3 {
-				background-color: var(--heatmap-score-3-bg, #679AAC);
+				background-color: var(--heatmap-score-3-bg, #54A3C0);
 				color: var(--heatmap-score-3-text, #FFFFFF);
 			}
 			&.score-4 {
-				background-color: var(--heatmap-score-4-bg, #4C7A8B);
+				background-color: var(--heatmap-score-4-bg, #3A829C);
 				color: var(--heatmap-score-4-text, #FFFFFF);
 			}
 			// The Fixed or Frozen side of a splitByPreservationType cell
@@ -3096,7 +3096,7 @@ div.browse-link-icon {
 			// A plain, fixed dark line instead: not truly optimal contrast
 			// against the single darkest band, but every band in this
 			// palette is fairly light-to-medium to begin with (even the
-			// darkest, #4C7A8B, isn't near-black), so one consistent,
+			// darkest, #3A829C, isn't near-black), so one consistent,
 			// on-brand line reads fine everywhere without the previous
 			// approaches' own side effects. First landed at 0.75 opacity,
 			// which read as too heavy/dominant against a real table --

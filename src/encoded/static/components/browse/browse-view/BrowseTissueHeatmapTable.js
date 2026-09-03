@@ -512,8 +512,10 @@ function getTargetTissuePercentageSortValue(value) {
 export const HEATMAP_COLOR_PRESETS = [
     // Default scale (see _search.scss's .score-0..4 fallback values) --
     // listed here too so it's reachable by name after picking something else.
-    // ("Indigo", "Teal", "Slate" and "Ocean" were each the default before
-    // this; kept reachable below for anyone who preferred one of them.)
+    // "Sky" is RGB(77, 207, 255), converted to hex, per explicit request.
+    // ("Steel", "Indigo", "Teal", "Slate" and "Ocean" were each the default
+    // before this; kept reachable below for anyone who preferred one of them.)
+    { name: 'Sky', hex: '#4DCFFF' },
     { name: 'Steel', hex: '#4D7C8D' },
     { name: 'Indigo', hex: '#464AA0' },
     { name: 'Teal', hex: '#2F8F83' },
@@ -657,7 +659,7 @@ function ColorPickerPanelBody({ baseHex, onPick, onReset, onDone }) {
                     title="Pick a custom color">
                     <input
                         type="color"
-                        value={baseHex || '#4D7C8D'}
+                        value={baseHex || '#4DCFFF'}
                         // eslint-disable-next-line react/jsx-no-bind
                         onChange={(event) => onPick(event.target.value)}
                     />
