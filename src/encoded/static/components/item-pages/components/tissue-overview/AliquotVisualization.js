@@ -4,7 +4,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
-import { isTpcSubmissionCenter } from './helpers';
+import { isTpcSubmissionCenter, hexToRgba } from './helpers';
 
 const SLICE_TYPE_STYLES = {
     pink: {
@@ -1117,6 +1117,15 @@ export default function AliquotVisualization({
                                                                         style={{
                                                                             backgroundColor: dotColor,
                                                                             borderColor: dotColor,
+                                                                            // Read by the hover/focus halo
+                                                                            // below (_item-pages.scss) -- a
+                                                                            // hardcoded halo color there
+                                                                            // would only ever match the
+                                                                            // default teal-green dot, not a
+                                                                            // GCC-specific color from
+                                                                            // CORE_DOT_COLOR_PALETTE.
+                                                                            '--aliquot-core-halo':
+                                                                                hexToRgba(dotColor, 0.3),
                                                                         }}
                                                                         className="aliquot-grid-core is-highlighted is-linked"
                                                                     />

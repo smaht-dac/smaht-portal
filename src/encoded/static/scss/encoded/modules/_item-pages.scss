@@ -4281,7 +4281,13 @@ File, Donor, and Publication Overview Styles
             &:hover,
             &:focus-visible {
                 transform: scale(1.25);
-                box-shadow: 0 0 0 3px rgba(30, 91, 79, 0.25);
+                // `--aliquot-core-halo` (set inline per-dot, see
+                // AliquotVisualization.js) matches this dot's own
+                // GCC-specific color -- the rgba(30, 91, 79, ...) fallback
+                // only applies to a dot with no inline color at all, which
+                // shouldn't happen in practice (every real is-linked dot
+                // sets it), and keeps the default teal-green look if it did.
+                box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(30, 91, 79, 0.25));
             }
         }
     }
