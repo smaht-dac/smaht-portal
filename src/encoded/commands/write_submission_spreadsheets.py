@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -693,12 +694,13 @@ def write_spreadsheets(
 @dataclass(frozen=True)
 class Property:
     """Struct to hold property info required for spreadsheet.
-    
-    Note: Does not currently handle nested objects. 
-    However, arrays of objects with nested properties are handled
-    by making new Property instances for each (currently relevant for CellCultureMixture)
-    and arrays of strings are handled by
-    bringing select info to top level.
+
+    Arrays of objects with nested properties are handled by making new
+    `name#N.child` Property instances for each slot (currently relevant for
+    CellCultureMixture and PathologyReport items, and configurable via
+    `get_array_slot_count`). Plain (non-array) nested objects are flattened to
+    `name.child` Property instances (see `get_flattened_object_properties`).
+    Arrays of strings are handled by bringing select info to top level.
     """
 
     name: str
@@ -925,14 +927,28 @@ def get_eqm_qc_values(item: str, qc_values: Dict[str, Any]):
     return qc_values_properties
 
 
-def get_property(item: str, property_name: str, property_schema: Dict[str, Any],is_nested: bool = False) -> Property:
-    """Get property information"""
+def get_property(
+    item: str,
+    property_name: str,
+    property_schema: Dict[str, Any],
+    is_nested: bool = False,
+    required_override: Optional[bool] = None,
+) -> Property:
+    """Get property information.
+
+    `required_override`, if not None, takes precedence over `is_required()`.
+    Needed for schema sources (e.g. raw profile schemas, or nested object/array
+    items) that don't carry the submission-schema endpoint's computed
+    `is_required` annotation but do have their own `required` list to derive it
+    from instead.
+    """
+    required = is_required(property_schema) if required_override is None else required_override
     return Property(
         name=property_name,
         item=item,
         description=schema_utils.get_description(property_schema),
         value_type=schema_utils.get_schema_type(property_schema),
-        required=is_required(property_schema),
+        required=required,
         link=is_link(property_schema),
         enum=get_enum(property_schema),
         array_subtype=get_array_subtype(property_schema),
@@ -949,40 +965,149 @@ def get_property(item: str, property_name: str, property_schema: Dict[str, Any],
     )
 
 
-def get_nested_properties(item: str, property_name: str, property_schema: Dict[str, Any]) -> List[Property]:
-    """Get nested property information if property is array of objects, otherwise get property information."""
-    if object_array := get_array_object_properties(property_schema):
-        return get_nested_property(item, property_name, object_array)
-    return [get_property(item, property_name, property_schema)]
+DEFAULT_ARRAY_SLOT_COUNT = 2
 
 
-def get_nested_property(item: str, property_name:str, property_schema: Dict[str, Any]) -> List[Property]:
-    """Get property information for nested objects.
-    
-    `count` value is arbitrarily set to 2 to show that multiple values can be accepted in the template.
-    For PathologyReport items, count is set to the number of enums in the type nested property to make it easier
-    for submitters to fill out.
+def get_nested_properties(
+    item: str,
+    property_name: str,
+    property_schema: Dict[str, Any],
+    array_slot_counts: Optional[Dict[str, int]] = None,
+    default_array_slot_count: int = DEFAULT_ARRAY_SLOT_COUNT,
+    required_override: Optional[bool] = None,
+) -> List[Property]:
+    """Get nested property information for a property.
+
+    Handles, in order: arrays of objects (flattened to `name#N.child` columns),
+    plain nested objects (flattened to `name.child` columns), and otherwise
+    falls back to a single scalar/link property.
+
+    `array_slot_counts`/`default_array_slot_count` configure how many `#N` slots
+    to generate for array-of-object properties; see `get_array_slot_count`.
+    `required_override` is only consulted for the scalar fallback case, since the
+    array/object branches derive their children's required-ness from the nested
+    schema's own `required` list instead.
     """
-    object_properties = []
-    count = 2
+    if object_array := get_array_object_properties(property_schema):
+        count = get_array_slot_count(
+            item, property_name, object_array, array_slot_counts, default_array_slot_count
+        )
+        required_keys = get_object_required(property_schema.get("items", {}))
+        return get_nested_property(item, property_name, object_array, count=count, required_keys=required_keys)
+    if object_properties := get_plain_object_properties(property_schema):
+        required_keys = get_object_required(property_schema)
+        return get_flattened_object_properties(item, property_name, object_properties, required_keys)
+    return [get_property(item, property_name, property_schema, required_override=required_override)]
+
+
+def get_array_slot_count(
+    item: str,
+    property_name: str,
+    property_schema: Dict[str, Any],
+    array_slot_counts: Optional[Dict[str, int]],
+    default_count: int = DEFAULT_ARRAY_SLOT_COUNT,
+) -> int:
+    """Get the number of `#N` slot columns to generate for an array-of-objects property.
+
+    Checks an explicit per-property override first (`array_slot_counts`, keyed by
+    property name), then falls back to the legacy per-item special-casing for
+    PathologyReport items (kept for backward compatibility with existing
+    templates), then `default_count`.
+    """
+    if array_slot_counts and property_name in array_slot_counts:
+        return array_slot_counts[property_name]
     if item == "NonBrainPathologyReport":
         # target tissues stays with count 2 as that's usually how many there are
         # non-target tissues and pathologic findings have as many as there are enums
         if property_name == 'non_target_tissues':
-            count = len(property_schema['non_target_tissue_subtype']['enum'])
+            return len(property_schema['non_target_tissue_subtype']['enum'])
         elif property_name == 'pathologic_findings':
-            count = len(property_schema['finding_type']['enum'])
+            return len(property_schema['finding_type']['enum'])
     elif item == "BrainPathologyReport":
         # brain_subregions has as many as there are enums
         if property_name == 'brain_subregions':
-            count = len(property_schema['subregion']['enum'])  
-    for index in range(0,count): 
+            return len(property_schema['subregion']['enum'])
+    return default_count
+
+
+def get_nested_property(
+    item: str,
+    property_name: str,
+    property_schema: Dict[str, Any],
+    count: int = DEFAULT_ARRAY_SLOT_COUNT,
+    required_keys: Optional[List[str]] = None,
+) -> List[Property]:
+    """Get property information for an array of objects, flattened to `name#N.child` columns.
+
+    `count` is the number of slots to generate (see `get_array_slot_count`).
+    `required_keys` are child property names that should be marked required in
+    every slot; the submission-schema endpoint does not propagate the nested
+    object's own `required` list, so callers must supply it explicitly (see
+    `get_object_required`).
+    """
+    object_properties = []
+    required_keys = required_keys or []
+    for index in range(0, count):
         for key, value in property_schema.items():
-            combined_property_name=f"{property_name}#{index}.{key}"
+            combined_property_name = f"{property_name}#{index}.{key}"
             object_properties.append(
-                get_property(item, combined_property_name, value, is_nested=True)
+                get_property(
+                    item,
+                    combined_property_name,
+                    value,
+                    is_nested=True,
+                    required_override=True if key in required_keys else None,
+                )
             )
     return object_properties
+
+
+def get_flattened_object_properties(
+    item: str,
+    property_name: str,
+    object_properties: Dict[str, Any],
+    required_keys: Optional[List[str]] = None,
+) -> List[Property]:
+    """Get property information for a plain (non-array) nested object, flattened to `name.child` columns.
+
+    `required_keys` are child property names to mark required, sourced from the
+    nested object's own `required` list (see `get_object_required`) since these
+    children have no `is_required` annotation of their own.
+    """
+    required_keys = required_keys or []
+    flattened_properties = []
+    for key, value in object_properties.items():
+        combined_property_name = f"{property_name}.{key}"
+        flattened_properties.append(
+            get_property(
+                item,
+                combined_property_name,
+                value,
+                required_override=True if key in required_keys else None,
+            )
+        )
+    return flattened_properties
+
+
+def get_object_required(object_schema: Dict[str, Any]) -> List[str]:
+    """Get the `required` list declared directly on an object (or array `items`) schema.
+
+    Used to propagate required-ness into flattened nested-object/array-of-object
+    columns, since neither the submission-schema endpoint nor a raw profile
+    schema's per-property `is_required`/absence thereof reflects this on its own.
+    """
+    return object_schema.get("required") or []
+
+
+def get_plain_object_properties(property_schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Get the `properties` dict if the schema is a plain (non-array, non-link) object.
+
+    Returns None for arrays (handled separately by `get_array_object_properties`),
+    links, and scalars.
+    """
+    if property_schema.get("type") == "object" and not is_link(property_schema):
+        return property_schema.get("properties") or None
+    return None
 
 
 def get_array_object_properties(property_schema: Dict[str, Any]) -> Union[Dict[str,Any], None]:
@@ -1489,18 +1614,583 @@ def save_workbook(workbook: openpyxl.Workbook, file_path: Path) -> None:
     workbook.save(filename=file_path)
 
 
+# --- Publication / StaticSection workbook ---
+#
+# Attaches StaticSection content blocks to existing Publications. Unlike the rest
+# of this module, this reads the raw `/profiles/<item>.json` schema rather than
+# `/submission-schemas/<item>.json`, and always derives required-ness explicitly
+# via `required_override` rather than `is_required()`. See
+# `src/encoded/docs/AGENTS.md` for why.
+
+PUBLICATION_STATIC_SECTION_WORKBOOK_FILENAME = "publication_static_section_submission.xlsx"
+DEFAULT_STATIC_CONTENT_SLOTS = 3
+DEFAULT_STATIC_SECTION_LOCATIONS = ["key-findings", "reference-set-generation", "header"]
+DEFAULT_SECTION_TYPE_ENUM = [
+    "Page Section", "Announcement", "Search Info Header", "Item Page Header", "Home Page Slide"
+]
+DEFAULT_FILETYPE_ENUM = ["md", "html", "txt", "csv", "jsx", "rst"]
+BOOLEAN_DROPDOWN_VALUES = ["true", "false"]
+DEFAULT_DROPDOWN_DATA_ROWS = 200  # dropdown validation is applied to this many blank rows in template mode
+
+OVERVIEW_SHEET_NAME = "(Overview Guidelines)"
+DROPDOWN_HELPER_SHEET_NAME = "(Dropdown Options)"
+LOCATIONS_HELPER_SHEET_NAME = "(Locations)"
+
+STATIC_SECTION_ITEM = "StaticSection"
+PUBLICATION_ITEM = "Publication"
+
+STATIC_SECTION_CURATED_PROPERTIES = [
+    "identifier", "title", "body", "file", "section_type",
+    "options.filetype", "options.collapsible", "options.default_open",
+    "options.title_icon", "options.link", "options.image",
+    "description", "submission_centers", "consortia",
+]
+
+
+def get_raw_profile_schema(item: str, request_handler: RequestHandler) -> Dict[str, Any]:
+    """Get the full (non-submission-filtered) profile schema for an item.
+
+    See module note above for why this, rather than `get_submission_schema`, is
+    used for the Publication/StaticSection workbook.
+    """
+    return request_handler.get_item(f"/profiles/{to_snake_case(item)}.json")
+
+
+def get_publication_curated_property_names(
+    static_content_slots: int, include_static_headers: bool
+) -> List[str]:
+    """Get the curated Publication sheet column names for the configured slot count."""
+    names = ["accession", "uuid"]
+    for index in range(static_content_slots):
+        names += [
+            f"static_content#{index}.content",
+            f"static_content#{index}.location",
+            f"static_content#{index}.description",
+        ]
+    if include_static_headers:
+        names.append("static_headers")
+    return names
+
+
+def get_curated_properties(
+    item: str,
+    schema: Dict[str, Any],
+    curated_names: List[str],
+    array_slot_counts: Optional[Dict[str, int]] = None,
+) -> List[Property]:
+    """Build a curated Property list from a raw profile schema.
+
+    Generates the full Property list for the schema (flattening nested objects
+    and arrays of objects per `get_nested_properties`), then keeps only the
+    properties named in `curated_names` — this workbook intentionally exposes a
+    fixed, hand-picked subset of each schema's fields, not every submittable
+    property.
+    """
+    top_required = get_object_required(schema)
+    properties = []
+    for key, value in schema_utils.get_properties(schema).items():
+        properties += get_nested_properties(
+            item, key, value,
+            array_slot_counts=array_slot_counts,
+            required_override=key in top_required,
+        )
+    return [property_ for property_ in properties if property_.name in curated_names]
+
+
+def get_property_by_name(properties: List[Property], name: str) -> Optional[Property]:
+    """Get the first property matching `name`, if any."""
+    for property_ in properties:
+        if property_.name == name:
+            return property_
+    return None
+
+
+def append_comment_note(existing_comment: str, note: str) -> str:
+    """Append a note to an existing comment string, if any."""
+    return f"{existing_comment} {note}".strip() if existing_comment else note
+
+
+def get_replace_semantics_note(append: bool) -> str:
+    """Get the note explaining --append/--replace update semantics."""
+    if append:
+        return (
+            "Append mode: in populated mode, each Publication's existing static_content"
+            " entries are pre-filled into the first slots; fill in the remaining empty"
+            " slots to add new StaticSections without losing the existing ones. On"
+            " import, the full slot list (existing + new) replaces the item's"
+            " static_content, since array properties are always submitted as a whole."
+        )
+    return (
+        "Replace mode: existing static_content entries are NOT pre-filled, even in"
+        " populated mode. The complete list you enter becomes the item's entire"
+        " static_content on import; any existing entries you don't re-list are removed."
+    )
+
+
+def augment_static_section_properties(properties: List[Property]) -> List[Property]:
+    """Add workbook-specific comment notes to StaticSection properties that the schema alone can't express."""
+    augmented = []
+    for property_ in properties:
+        if property_.name == "identifier":
+            property_ = dataclasses.replace(
+                property_,
+                comment=append_comment_note(
+                    property_.comment,
+                    "Convention used in this workbook: <Publication accession>.<location>,"
+                    " e.g. SMAHT001.key-findings.",
+                ),
+            )
+        elif property_.name in ("body", "file"):
+            property_ = dataclasses.replace(
+                property_,
+                comment=append_comment_note(
+                    property_.comment, "Provide at most one of `body`/`file`, not both."
+                ),
+            )
+        elif property_.name in ("submission_centers", "consortia"):
+            property_ = dataclasses.replace(
+                property_,
+                comment=append_comment_note(
+                    property_.comment,
+                    "As an admin submitter, leave blank to have this added automatically;"
+                    " set explicitly only to override the default attribution.",
+                ),
+            )
+        augmented.append(property_)
+    return augmented
+
+
+def augment_publication_properties(
+    properties: List[Property], locations: List[str], append: bool
+) -> List[Property]:
+    """Add workbook-specific comment notes/enum overrides to Publication properties."""
+    replace_semantics = get_replace_semantics_note(append)
+    augmented = []
+    for property_ in properties:
+        if property_.name == "accession":
+            property_ = dataclasses.replace(
+                property_,
+                # Not required by the Publication schema itself (accession is
+                # server-assigned); required here because it's how this workbook
+                # locates the existing Publication to update.
+                required=True,
+                comment=append_comment_note(
+                    property_.comment,
+                    "Preferred identifier for locating the existing Publication to update.",
+                ),
+            )
+        elif property_.name == "uuid":
+            property_ = dataclasses.replace(
+                property_,
+                comment=append_comment_note(
+                    property_.comment, "Alternative identifier if accession is not known."
+                ),
+            )
+        elif property_.name.endswith(".content"):
+            property_ = dataclasses.replace(
+                property_,
+                comment=append_comment_note(
+                    append_comment_note(
+                        property_.comment,
+                        "Provide the `identifier` or `uuid` of the target StaticSection item.",
+                    ),
+                    replace_semantics,
+                ),
+            )
+        elif property_.name.endswith(".location"):
+            property_ = dataclasses.replace(
+                property_,
+                enum=list(locations),
+                comment=append_comment_note(
+                    append_comment_note(
+                        property_.comment,
+                        f"Choose from the configured locations (see '{LOCATIONS_HELPER_SHEET_NAME}' sheet).",
+                    ),
+                    replace_semantics,
+                ),
+            )
+        elif property_.name == "static_headers":
+            property_ = dataclasses.replace(
+                property_,
+                comment=append_comment_note(
+                    append_comment_note(
+                        property_.comment,
+                        "Pipe-delimited `identifier`/`uuid` values of StaticSection items to"
+                        " show at the top of the Publication page.",
+                    ),
+                    replace_semantics,
+                ),
+            )
+        augmented.append(property_)
+    return augmented
+
+
+def write_curated_sheet(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet, properties: List[Property]
+) -> List[Property]:
+    """Write a curated property list to a worksheet's header row and return the written order.
+
+    Reuses `write_property`/`get_ordered_properties` so column ordering (required
+    non-links, optional non-links, required links, optional links), fonts, widths,
+    and comments exactly match the conventions used everywhere else in this module.
+    """
+    ordered_properties = get_ordered_properties(properties)
+    for index, property_ in enumerate(ordered_properties, start=1):
+        write_property(worksheet, index, property_)
+    return ordered_properties
+
+
+def write_overview_sheet(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    static_content_slots: int,
+    locations: List[str],
+    mode: str,
+    append: bool,
+    include_static_headers: bool,
+) -> None:
+    """Write plain-text usage guidelines to the overview sheet.
+
+    This sheet's name is parenthesized so submitr ignores it on import; unlike the
+    true helper sheets it stays visible, since it's meant to be read by whoever
+    fills in the workbook.
+    """
+    mode_description = (
+        "headers/comments/dropdowns only, no data rows"
+        if mode == "template"
+        else "pre-filled with existing Publications from the portal"
+    )
+    lines = [
+        "Guidelines for attaching StaticSection content to existing Publications.",
+        "",
+        f"Mode: {mode} ({mode_description}).",
+        "",
+        "Sheet order:",
+        f"  1. {OVERVIEW_SHEET_NAME} - this sheet; ignored by submitr (parenthesized name).",
+        f"  2. {STATIC_SECTION_ITEM} - create/describe the StaticSection content block(s).",
+        f"  3. {PUBLICATION_ITEM} - attach StaticSection(s) to an existing Publication"
+        " (identified by accession or uuid).",
+        "  4. Hidden helper sheets - dropdown source data; ignored by submitr"
+        " (hidden + parenthesized names).",
+        "",
+        "StaticSection identifier convention used in this workbook:",
+        "  <Publication accession>.<location>, e.g. SMAHT001.key-findings",
+        "",
+        f"Configured static_content slots: {static_content_slots}",
+        f"Configured locations: {' | '.join(locations)}",
+        f"static_headers column included: {include_static_headers}",
+        "",
+        "Update semantics (--append / --replace):",
+        f"  {get_replace_semantics_note(append)}",
+        "",
+        "submission_centers / consortia on StaticSection:",
+        "  As an admin submitter, leave these blank to have them added automatically;"
+        " set explicitly only to override the default attribution.",
+    ]
+    for row, line in enumerate(lines, start=1):
+        cell = worksheet.cell(row=row, column=1, value=line)
+        cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
+    worksheet.column_dimensions["A"].width = 110
+
+
+def write_dropdown_helper_sheet(
+    workbook: openpyxl.Workbook, section_type_enum: List[str], filetype_enum: List[str]
+) -> openpyxl.worksheet.worksheet.Worksheet:
+    """Write the hidden helper sheet backing the fixed-enum/boolean dropdowns."""
+    worksheet = workbook.create_sheet(title=DROPDOWN_HELPER_SHEET_NAME)
+    columns = {
+        "A": ("Section Type", section_type_enum),
+        "B": ("File Type", filetype_enum),
+        "C": ("Boolean", BOOLEAN_DROPDOWN_VALUES),
+    }
+    for column, (header, values) in columns.items():
+        worksheet[f"{column}1"] = header
+        for offset, value in enumerate(values, start=2):
+            worksheet[f"{column}{offset}"] = value
+    worksheet.sheet_state = "hidden"
+    return worksheet
+
+
+def write_locations_helper_sheet(
+    workbook: openpyxl.Workbook, locations: List[str]
+) -> openpyxl.worksheet.worksheet.Worksheet:
+    """Write the hidden helper sheet backing the user-configured location dropdown."""
+    worksheet = workbook.create_sheet(title=LOCATIONS_HELPER_SHEET_NAME)
+    worksheet["A1"] = "Location"
+    for offset, location in enumerate(locations, start=2):
+        worksheet[f"A{offset}"] = location
+    worksheet.sheet_state = "hidden"
+    return worksheet
+
+
+def get_dropdown_range(sheet_name: str, column: str, count: int) -> str:
+    """Get a quoted absolute range reference into a helper sheet's dropdown column."""
+    return f"'{sheet_name}'!${column}$2:${column}${max(count, 1) + 1}"
+
+
+def add_dropdown_validation(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    column_index: int,
+    range_reference: str,
+    data_row_count: int,
+) -> None:
+    """Attach a list-type data validation to a column's data rows (below the header)."""
+    if data_row_count < 1:
+        return
+    validation = openpyxl.worksheet.datavalidation.DataValidation(
+        type="list", formula1=f"={range_reference}", allow_blank=True
+    )
+    worksheet.add_data_validation(validation)
+    column_letter = openpyxl.utils.get_column_letter(column_index)
+    validation.add(f"{column_letter}2:{column_letter}{data_row_count + 1}")
+
+
+def apply_static_section_dropdowns(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    ordered_properties: List[Property],
+    section_type_enum: List[str],
+    filetype_enum: List[str],
+    data_row_count: int,
+) -> None:
+    """Attach dropdowns for StaticSection's fixed-enum/boolean columns."""
+    section_type_range = get_dropdown_range(DROPDOWN_HELPER_SHEET_NAME, "A", len(section_type_enum))
+    filetype_range = get_dropdown_range(DROPDOWN_HELPER_SHEET_NAME, "B", len(filetype_enum))
+    boolean_range = get_dropdown_range(DROPDOWN_HELPER_SHEET_NAME, "C", len(BOOLEAN_DROPDOWN_VALUES))
+    for index, property_ in enumerate(ordered_properties, start=1):
+        if property_.name == "section_type":
+            add_dropdown_validation(worksheet, index, section_type_range, data_row_count)
+        elif property_.name == "options.filetype":
+            add_dropdown_validation(worksheet, index, filetype_range, data_row_count)
+        elif property_.name in ("options.collapsible", "options.default_open"):
+            add_dropdown_validation(worksheet, index, boolean_range, data_row_count)
+
+
+def apply_publication_dropdowns(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    ordered_properties: List[Property],
+    locations: List[str],
+    data_row_count: int,
+) -> None:
+    """Attach dropdowns for Publication's user-configured location columns."""
+    locations_range = get_dropdown_range(LOCATIONS_HELPER_SHEET_NAME, "A", len(locations))
+    for index, property_ in enumerate(ordered_properties, start=1):
+        if property_.name.endswith(".location"):
+            add_dropdown_validation(worksheet, index, locations_range, data_row_count)
+
+
+def get_existing_publications(
+    request_handler: RequestHandler, portal_url: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Search the portal for existing Publications, for populated mode."""
+    search = "search/?type=Publication&frame=object"
+    auth_key = dict(request_handler.auth_key) if request_handler.auth_key else {}
+    if portal_url:
+        auth_key = {**auth_key, "server": portal_url}
+    try:
+        return ff_utils.search_metadata(search, key=auth_key)
+    except Exception as e:
+        log.error(f"Error fetching existing Publications: {e}")
+        return []
+
+
+def get_publication_slot_count(ordered_properties: List[Property]) -> int:
+    """Get the configured number of static_content slots from an ordered Publication property list."""
+    return len({
+        extract_nested_property_names(property_.name)[2]
+        for property_ in ordered_properties
+        if property_.nested and property_.name.startswith("static_content#")
+    })
+
+
+def write_existing_publication_rows(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    ordered_properties: List[Property],
+    publications: List[Dict[str, Any]],
+    append: bool,
+    request_handler: RequestHandler,
+    portal_url: Optional[str] = None,
+) -> None:
+    """Pre-fill one row per existing Publication: identifier columns always, static_content only if appending."""
+    column_by_name = {property_.name: index for index, property_ in enumerate(ordered_properties, start=1)}
+    accession_column = column_by_name.get("accession")
+    uuid_column = column_by_name.get("uuid")
+    slot_count = get_publication_slot_count(ordered_properties)
+    for row, publication in enumerate(publications, start=2):
+        if accession_column:
+            worksheet.cell(row=row, column=accession_column, value=publication.get("accession", ""))
+        if uuid_column:
+            worksheet.cell(row=row, column=uuid_column, value=publication.get("uuid", ""))
+        if append:
+            write_existing_static_content(
+                worksheet, column_by_name, publication, row, slot_count, request_handler, portal_url
+            )
+
+
+def write_existing_static_content(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    column_by_name: Dict[str, int],
+    publication: Dict[str, Any],
+    row: int,
+    slot_count: int,
+    request_handler: RequestHandler,
+    portal_url: Optional[str] = None,
+) -> None:
+    """Pre-fill a Publication's existing static_content entries into the configured slots.
+
+    If the Publication has more existing entries than configured slots, the extras
+    are logged and skipped rather than silently dropped.
+    """
+    existing = publication.get("static_content") or []
+    if len(existing) > slot_count:
+        log.warning(
+            f"Publication {publication.get('accession') or publication.get('uuid')} has"
+            f" {len(existing)} existing static_content entries but only {slot_count} slots"
+            f" are configured; the last {len(existing) - slot_count} will not be pre-filled."
+            f" Increase --static-content-slots to include them."
+        )
+    for index, entry in enumerate(existing[:slot_count]):
+        content_column = column_by_name.get(f"static_content#{index}.content")
+        location_column = column_by_name.get(f"static_content#{index}.location")
+        description_column = column_by_name.get(f"static_content#{index}.description")
+        if content_column:
+            worksheet.cell(
+                row=row, column=content_column,
+                value=get_existing_static_content_identifier(entry.get("content", ""), request_handler, portal_url),
+            )
+        if location_column:
+            worksheet.cell(row=row, column=location_column, value=entry.get("location", ""))
+        if description_column and entry.get("description"):
+            worksheet.cell(row=row, column=description_column, value=entry.get("description"))
+
+
+def get_existing_static_content_identifier(
+    content: str, request_handler: RequestHandler, portal_url: Optional[str] = None
+) -> str:
+    """Resolve a static_content entry's linked StaticSection to its `identifier`/`uuid`.
+
+    `content` as returned by the portal (frame=object) is typically an `@id` path
+    rather than the `identifier`/`uuid` this workbook expects submitters to enter,
+    so it's resolved here to keep populated-mode output directly re-submittable.
+    Resolved against `portal_url` when given, mirroring `get_existing_publications`,
+    so this lookup targets the same server the Publication was fetched from rather
+    than the server implied by `request_handler`'s own `--env`-bound auth_key.
+    Falls back to the raw value if resolution fails.
+    """
+    if not content:
+        return content
+    auth_key = dict(request_handler.auth_key) if request_handler.auth_key else {}
+    if portal_url:
+        auth_key = {**auth_key, "server": portal_url}
+    try:
+        static_section = ff_utils.get_metadata(content, key=auth_key, add_on="frame=object")
+    except Exception as e:
+        log.error(f"Error resolving StaticSection {content}: {e}")
+        return content
+    return get_linked_item_id(static_section) or content
+
+
+def get_property_enum(properties: List[Property], name: str, default: List[str]) -> List[str]:
+    """Get a named property's enum values, falling back to `default` if absent/empty."""
+    property_ = get_property_by_name(properties, name)
+    return list(property_.enum) if property_ and property_.enum else list(default)
+
+
+def write_publication_static_section_workbook(
+    output: Path,
+    request_handler: RequestHandler,
+    static_content_slots: int = DEFAULT_STATIC_CONTENT_SLOTS,
+    locations: Optional[List[str]] = None,
+    mode: str = "template",
+    append: bool = True,
+    portal_url: Optional[str] = None,
+    include_static_headers: bool = True,
+) -> None:
+    """Write a workbook for attaching StaticSection content to existing Publications.
+
+    Sheet order: `(Overview Guidelines)` (visible), `StaticSection` (visible),
+    `Publication` (visible), then hidden helper sheets backing the dropdowns.
+
+    `mode="template"` writes headers/comments/dropdowns only. `mode="populated"`
+    additionally fetches existing Publications (optionally from `portal_url`) and
+    writes one row per Publication, pre-filling `accession`/`uuid` always and
+    existing `static_content` only if `append` is True (see
+    `get_replace_semantics_note`).
+    """
+    if mode not in ("template", "populated"):
+        raise ValueError(f"Invalid mode: {mode}. Must be 'template' or 'populated'.")
+    locations = list(locations) if locations else list(DEFAULT_STATIC_SECTION_LOCATIONS)
+
+    static_section_schema = get_raw_profile_schema(STATIC_SECTION_ITEM, request_handler)
+    publication_schema = get_raw_profile_schema(PUBLICATION_ITEM, request_handler)
+
+    static_section_properties = get_curated_properties(
+        STATIC_SECTION_ITEM, static_section_schema, STATIC_SECTION_CURATED_PROPERTIES
+    )
+    static_section_properties = augment_static_section_properties(static_section_properties)
+
+    publication_curated_names = get_publication_curated_property_names(
+        static_content_slots, include_static_headers
+    )
+    publication_properties = get_curated_properties(
+        PUBLICATION_ITEM, publication_schema, publication_curated_names,
+        array_slot_counts={"static_content": static_content_slots},
+    )
+    publication_properties = augment_publication_properties(publication_properties, locations, append)
+
+    section_type_enum = get_property_enum(static_section_properties, "section_type", DEFAULT_SECTION_TYPE_ENUM)
+    filetype_enum = get_property_enum(static_section_properties, "options.filetype", DEFAULT_FILETYPE_ENUM)
+
+    workbook = openpyxl.Workbook()
+    overview_sheet = workbook.active
+    overview_sheet.title = OVERVIEW_SHEET_NAME
+    write_overview_sheet(
+        overview_sheet, static_content_slots, locations, mode, append, include_static_headers
+    )
+
+    static_section_sheet = workbook.create_sheet(title=STATIC_SECTION_ITEM)
+    ordered_static_section_properties = write_curated_sheet(static_section_sheet, static_section_properties)
+
+    publication_sheet = workbook.create_sheet(title=PUBLICATION_ITEM)
+    ordered_publication_properties = write_curated_sheet(publication_sheet, publication_properties)
+
+    write_dropdown_helper_sheet(workbook, section_type_enum, filetype_enum)
+    write_locations_helper_sheet(workbook, locations)
+
+    data_row_count = DEFAULT_DROPDOWN_DATA_ROWS
+    existing_publications = []
+    if mode == "populated":
+        existing_publications = get_existing_publications(request_handler, portal_url)
+        # Extend validation past the pre-filled rows too, so manually-added rows
+        # (e.g. for a Publication not returned by the search) still get dropdowns.
+        data_row_count = len(existing_publications) + DEFAULT_DROPDOWN_DATA_ROWS
+
+    apply_static_section_dropdowns(
+        static_section_sheet, ordered_static_section_properties, section_type_enum, filetype_enum, data_row_count
+    )
+    apply_publication_dropdowns(publication_sheet, ordered_publication_properties, locations, data_row_count)
+
+    if mode == "populated" and existing_publications:
+        write_existing_publication_rows(
+            publication_sheet, ordered_publication_properties, existing_publications, append, request_handler,
+            portal_url,
+        )
+
+    save_workbook(workbook, output)
+    log.info(f"Publication/StaticSection workbook ({mode} mode) written to: {output}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Write submission spreadsheets")
     parser.add_argument(
         "--output",
         help=(
-            f"Output file directory. If not creating a workbook, separate files"
-            f" will be created for each item with the filename"
-            f" <item>{ITEM_SPREADSHEET_SUFFIX}."
-            f" If creating a workbook, the workbook will be saved as"
-            f" {WORKBOOK_FILENAME}."
+            f"Output location. For every mode except --publication-static-sections,"
+            f" this is an existing output file *directory*: if not creating a"
+            f" workbook, separate files will be created for each item with the"
+            f" filename <item>{ITEM_SPREADSHEET_SUFFIX}; if creating a workbook,"
+            f" the workbook will be saved as {WORKBOOK_FILENAME}."
+            f" For --publication-static-sections, this is instead the exact output"
+            f" *file* path, defaulting to {PUBLICATION_STATIC_SECTION_WORKBOOK_FILENAME}."
         ),
-        type=dir_path,
     )
     parser.add_argument("--env", help="Environment", default="data")
     parser.add_argument("--item", help="Item name", nargs="+")
@@ -1540,13 +2230,120 @@ def main():
         ),
         action="store_true"
     )
+    parser.add_argument(
+        "--publication-static-sections",
+        help=(
+            "Write a workbook for attaching StaticSection content to existing"
+            " Publications, instead of any of the normal per-item spreadsheet"
+            " modes. Cannot be combined with --item/--gcc/--tpc/--all/--google/"
+            "--eqm/--example."
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "--static-content-slots",
+        help=(
+            "Number of `static_content#N.*` slot column groups to generate on the"
+            f" Publication sheet. Only used with --publication-static-sections."
+            f" (default: {DEFAULT_STATIC_CONTENT_SLOTS})"
+        ),
+        type=int,
+        default=DEFAULT_STATIC_CONTENT_SLOTS,
+    )
+    parser.add_argument(
+        "--locations",
+        help=(
+            "Location values to offer in the static_content location dropdown."
+            " Only used with --publication-static-sections."
+            f" (default: {DEFAULT_STATIC_SECTION_LOCATIONS})"
+        ),
+        nargs="+",
+        default=None,
+    )
+    update_semantics_group = parser.add_mutually_exclusive_group()
+    update_semantics_group.add_argument(
+        "--append",
+        help=(
+            "In populated mode, pre-fill each Publication's existing static_content"
+            " entries into the first slots so new entries can be added alongside"
+            " them. Only used with --publication-static-sections. (default)"
+        ),
+        dest="append",
+        action="store_true",
+        default=True,
+    )
+    update_semantics_group.add_argument(
+        "--replace",
+        help=(
+            "In populated mode, leave static_content blank so the sheet's contents"
+            " become the item's entire static_content on import, discarding any"
+            " existing entries not re-listed. Only used with"
+            " --publication-static-sections."
+        ),
+        dest="append",
+        action="store_false",
+    )
+    parser.add_argument(
+        "--portal-url",
+        help=(
+            "Portal server URL to search for existing Publications, overriding the"
+            " server implied by --env. Giving --portal-url is what switches"
+            " --publication-static-sections into populated mode (pre-filled from"
+            " the portal); omitting it writes a blank template using --env only"
+            " for schema lookups. Only used with --publication-static-sections."
+        ),
+    )
+    static_headers_group = parser.add_mutually_exclusive_group()
+    static_headers_group.add_argument(
+        "--include-static-headers",
+        help=(
+            "Include the `static_headers` column on the Publication sheet. Only"
+            " used with --publication-static-sections. (default: included)"
+        ),
+        dest="include_static_headers",
+        action="store_true",
+        default=True,
+    )
+    static_headers_group.add_argument(
+        "--no-static-headers",
+        help=(
+            "Omit the `static_headers` column from the Publication sheet. Only used"
+            " with --publication-static-sections."
+        ),
+        dest="include_static_headers",
+        action="store_false",
+    )
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
     log.info(f"Found keys for {args.env}")
     request_handler = RequestHandler(auth_key=keys)
+    if args.publication_static_sections:
+        if args.item or args.gcc or args.tpc or args.all or args.google or args.eqm or args.example:
+            parser.error(
+                "--publication-static-sections cannot be combined with"
+                " --item/--gcc/--tpc/--all/--google/--eqm/--example"
+            )
+        if args.static_content_slots < 0:
+            parser.error("--static-content-slots must be >= 0")
+        output = Path(args.output) if args.output else Path(PUBLICATION_STATIC_SECTION_WORKBOOK_FILENAME)
+        mode = "populated" if args.portal_url else "template"
+        log.info(f"Writing Publication/StaticSection workbook ({mode} mode) to: {output}")
+        write_publication_static_section_workbook(
+            output,
+            request_handler,
+            static_content_slots=args.static_content_slots,
+            locations=args.locations,
+            mode=mode,
+            append=args.append,
+            portal_url=args.portal_url,
+            include_static_headers=args.include_static_headers,
+        )
+        return
     if not args.output and not args.google:
         parser.error("No output specified")
+    if args.output:
+        args.output = dir_path(args.output)
     if args.gcc and args.tpc:
         parser.error("Cannot specify both gcc and tpc")
     if args.all and args.tpc:
