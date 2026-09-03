@@ -2633,6 +2633,133 @@ div.browse-link-icon {
 		}
 	}
 
+	// This tab's own repeated title (matches the tab label above it) plus
+	// the info-circle tooltip that used to sit on the tab label itself --
+	// moved here since the explanatory tooltip is only useful once a reader
+	// is already on this tab looking at the data it explains, not while
+	// still scanning the tab row. Any legend (FixedScoreLegend/ScoreLegend,
+	// see BrowseTissueHeatmapTable.js's MetricHeatmapTable) sits at the
+	// opposite (right) end of this same row instead of stacking underneath
+	// it -- the two read as a matched pair (what this tab shows / how to
+	// read its colors) rather than two separate stacked headers.
+	.tissue-heatmap-metric-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 8px 20px;
+		// Extra breathing room above (vs. a plain top: 4px match on the
+		// legend) -- flush against the tab row read as though this title
+		// belonged to the tabs above it rather than being its own heading.
+		// Bottom padding similarly separates it from the table below --
+		// flush against the header row read as though the title/legend
+		// belonged to the table instead of being its own heading above it.
+		padding: 24px 20px 20px;
+	}
+
+	.tissue-heatmap-metric-title {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0;
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: #212529;
+	}
+
+	.tissue-heatmap-metric-title-info {
+		font-size: 0.8125rem;
+		color: #97A6B8;
+
+		&:hover {
+			color: #5A6B7D;
+		}
+	}
+
+	// A compact swatch-per-band scale for a fixed, already-self-explanatory
+	// metric (Autolysis Score/Target Tissue %) -- see
+	// BrowseTissueHeatmapTable.js's FixedScoreLegend. `entry` swatches reuse
+	// the exact same score-0..4 palette (and any HeatmapColorPicker
+	// override) the table's own cells use, so the legend and the data it's
+	// explaining always stay in sync.
+	.tissue-heatmap-fixed-legend {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 0.75rem;
+	}
+
+	.tissue-heatmap-fixed-legend-caption {
+		color: #5A6B7D;
+		font-weight: 500;
+	}
+
+	.tissue-heatmap-fixed-legend-scale {
+		display: flex;
+		// The 1px gap (not individual borders) draws the dividing lines
+		// between bands the same way .tissue-heatmap-value-display-toggle
+		// does -- this element's own background-color shows through as
+		// both the outer border and the lines between swatches.
+		gap: 1px;
+		background-color: #D7E1EA;
+		border: 1px solid #D7E1EA;
+		border-radius: 4px;
+		overflow: hidden;
+	}
+
+	.tissue-heatmap-fixed-legend-swatch {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 32px;
+		padding: 3px 8px;
+		font-weight: 600;
+		color: #28323C;
+
+		&.score-0 { background-color: var(--heatmap-score-0-bg, #DAEBF1); color: var(--heatmap-score-0-text, #28323C); }
+		&.score-1 { background-color: var(--heatmap-score-1-bg, #ADD3E1); color: var(--heatmap-score-1-text, #28323C); }
+		&.score-2 { background-color: var(--heatmap-score-2-bg, #80BBD0); color: var(--heatmap-score-2-text, #28323C); }
+		&.score-3 { background-color: var(--heatmap-score-3-bg, #54A3C0); color: var(--heatmap-score-3-text, #FFFFFF); }
+		&.score-4 { background-color: var(--heatmap-score-4-bg, #3A829C); color: var(--heatmap-score-4-text, #FFFFFF); }
+	}
+
+	// Ischemic Time's own legend (SplitCellLegend, BrowseTissueHeatmapTable.js)
+	// -- two side-by-side rectangles labeling which half of a split cell is
+	// Fixed vs. Frozen. Deliberately neutral, fixed colors (not the score-0..4
+	// severity palette FixedScoreLegend's swatches use) -- a real cell's own
+	// two halves are each independently colored by that half's own value, not
+	// by which specimen type it is, so tying this legend to the severity
+	// palette would misleadingly imply Fixed/Frozen have their own fixed colors.
+	.tissue-heatmap-split-legend {
+		display: flex;
+		align-items: center;
+		font-size: 0.75rem;
+	}
+
+	.tissue-heatmap-split-legend-swatch {
+		display: flex;
+		// Same 1px-gap-as-divider trick as .tissue-heatmap-fixed-legend-scale.
+		gap: 1px;
+		background-color: #D7E1EA;
+		border: 1px solid #D7E1EA;
+		border-radius: 4px;
+		overflow: hidden;
+	}
+
+	.tissue-heatmap-split-legend-half {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 3px 10px;
+		font-weight: 600;
+		color: #4E6884;
+		background-color: #F7FAFC;
+	}
+
+	.tissue-heatmap-split-legend-half-b {
+		background-color: #EEF3F7;
+	}
+
 	.tissue-heatmap-table-wrap {
 		overflow-x: auto;
 	}

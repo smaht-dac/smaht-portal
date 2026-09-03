@@ -289,21 +289,6 @@ const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
 const getAutolysisScoreValue = (t) => t?.pathology_summary?.autolysis_score ?? null;
 const getTargetTissuePercentageValue = (t) => t?.pathology_summary?.target_tissue_percentage ?? null;
 
-// Same "label + info-circle with a data-tip" pattern as Browse by Donor's
-// Age column header (BrowseDonorBase.js) -- react-tooltip's static-attribute
-// API, picked up by the app-level <ReactTooltip/> mount (see app.js).
-function TabTitleWithInfo({ label, tooltip }) {
-    return (
-        <span>
-            {label}
-            <i
-                className="icon icon-fw icon-info-circle fas"
-                style={{ marginLeft: 6 }}
-                data-tip={tooltip}
-            />
-        </span>
-    );
-}
 
 function formatIschemicTime(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
@@ -426,7 +411,7 @@ function buildScoreLegend(scoring) {
 // data rather than a fixed, already-explained scale -- see
 // buildScoreLegend. Renders nothing for a fixed-scale metric that doesn't
 // pass one in.
-function ScoreLegend({ entries }) {
+export function ScoreLegend({ entries }) {
     if (!entries || entries.length === 0) return null;
     return (
         <div className="tissue-heatmap-score-legend">
@@ -439,6 +424,80 @@ function ScoreLegend({ entries }) {
         </div>
     );
 }
+
+// A compact swatch-per-band scale for a metric whose bands are a small,
+// fixed, already-self-explanatory set (Autolysis Score's 0=None..3=Severe;
+// Target Tissue %'s own named percentage ranges) rather than data-driven
+// quantiles computed fresh from this table's own values (see ScoreLegend
+// above for that case). `leftCaption`/`rightCaption` label the scale's own
+// two ends (e.g. "Minimal"/"Severe") for a metric whose bare band labels
+// (plain numbers) wouldn't otherwise say which end means what; Target Tissue
+// %'s own labels are already full percentage ranges, so it passes neither.
+function FixedScoreLegend({ entries, leftCaption = null, rightCaption = null }) {
+    if (!entries || entries.length === 0) return null;
+    return (
+        <div className="tissue-heatmap-fixed-legend">
+            {leftCaption ? (
+                <span className="tissue-heatmap-fixed-legend-caption">{leftCaption}</span>
+            ) : null}
+            <div className="tissue-heatmap-fixed-legend-scale">
+                {entries.map((entry) => (
+                    <span
+                        key={entry.className}
+                        className={`tissue-heatmap-fixed-legend-swatch ${entry.className}`}>
+                        {entry.label}
+                    </span>
+                ))}
+            </div>
+            {rightCaption ? (
+                <span className="tissue-heatmap-fixed-legend-caption">{rightCaption}</span>
+            ) : null}
+        </div>
+    );
+}
+
+// Ischemic Time's own cells split into a Fixed half and a Frozen half (see
+// splitByPreservationType/cellSlots in renderRowCells) instead of a single
+// value -- unlike FixedScoreLegend below, there's no severity scale to
+// explain here (each half is still colored by its own value's band, same
+// score-0..4 palette as everywhere else), just which half of a split cell
+// is which specimen type, so a reader knows before ever hovering one.
+function SplitCellLegend() {
+    return (
+        <div className="tissue-heatmap-split-legend">
+            <span className="tissue-heatmap-split-legend-swatch">
+                <span className="tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-a">
+                    Fixed
+                </span>
+                <span className="tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-b">
+                    Frozen
+                </span>
+            </span>
+        </div>
+    );
+}
+
+// Same score-0..3 swatch colors getAutolysisScoreClass applies to the cells
+// themselves.
+const AUTOLYSIS_SCORE_LEGEND_ENTRIES = [0, 1, 2, 3].map((value) => {
+    return { className: `score-${value}`, label: String(value) };
+});
+
+// Target Tissue %'s own fixed bands (TARGET_TISSUE_PERCENTAGE_ORDER),
+// reordered lightest-to-darkest to match getTargetTissuePercentageScoreClass's
+// inverted band index -- higher target-tissue presence reads as the
+// lighter, "better" end of the scale, same direction Autolysis Score's
+// 0=None does. Labels match formatTargetTissuePercentage's own formatting
+// exactly, so the legend's swatches read as the same vocabulary as the
+// cells they're explaining.
+const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.map(
+    (label, index) => {
+        return {
+            className: `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`,
+            label: label === '0' ? '0%' : label,
+        };
+    }
+).reverse();
 
 function formatAutolysisScore(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
@@ -1464,16 +1523,24 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     tissueTypeHrefs,
     tissueTypeCategories,
     matrix,
-    // This tab's own name (e.g. "Autolysis Score") -- threaded down only
-    // as far as the cell detail popover (renderCellAltValues), which
-    // otherwise has no way to say which metric its own value is.
+    // This tab's own name (e.g. "Autolysis Score") -- shown as this table's
+    // own heading (see the render below) as well as threaded down to the
+    // cell detail popover (renderCellAltValues), which otherwise has no way
+    // to say which metric its own value is.
     metricLabel,
+    // The same explanatory text the tab's info-circle icon used to carry on
+    // the tab label itself -- now shown on this heading instead (see the
+    // render below), since the reader only sees it once they're already on
+    // this tab and looking at the data it explains.
+    tooltip = null,
     formatValue,
     getScoreClass,
-    // See buildScoreLegend -- only a data-driven scale (Ischemic Time) needs
-    // this; a fixed, already-self-explanatory scale (Autolysis Score/Target
-    // Tissue %) leaves it unset and ScoreLegend renders nothing.
-    scoreLegend = null,
+    // Rendered directly under the heading -- a FixedScoreLegend (Autolysis
+    // Score/Target Tissue %'s own fixed, self-explanatory bands) or a
+    // ScoreLegend (Ischemic Time's data-driven quantile split, currently
+    // passed null/hidden -- see that tab's own `legend={null}` below) or
+    // null for no legend at all.
+    legend = null,
     // Gates the score-band background coloring (score-0..score-4, applied
     // below) on each cell -- on by default using a neutral light->dark scale
     // (_search.scss), not the earlier green->yellow->orange->red ramp that
@@ -1717,7 +1784,18 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
 
     return (
         <>
-            <ScoreLegend entries={scoreLegend} />
+            <div className="tissue-heatmap-metric-heading">
+                <h2 className="tissue-heatmap-metric-title">
+                    {metricLabel}
+                    {tooltip ? (
+                        <i
+                            className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
+                            data-tip={tooltip}
+                        />
+                    ) : null}
+                </h2>
+                {legend}
+            </div>
             {stickyHeader ? (
                 <div
                     className="tissue-heatmap-sticky-header"
@@ -1852,10 +1930,11 @@ export const BrowseTissueHeatmapTable = (props) => {
     // per-page-view, admin-toggleable pattern as paletteBaseHex above.
     const [cellValueDisplayMode, setCellValueDisplayMode] = useState('vertical');
 
-    // The tab titles' info-circle icons (TabTitleWithInfo) are static-attribute
-    // react-tooltip targets (data-tip) -- app.js's global <ReactTooltip/> only
-    // picks up nodes present at its own last build, and this component can
-    // mount after that (e.g. scrolled/tabbed into view later), so it needs an
+    // Each tab's own metric heading carries an info-circle icon (see
+    // MetricHeatmapTable's render) that's a static-attribute react-tooltip
+    // target (data-tip) -- app.js's global <ReactTooltip/> only picks up
+    // nodes present at its own last build, and this component can mount
+    // after that (e.g. scrolled/tabbed into view later), so it needs an
     // explicit rebuild once mounted, same as BrowseTissueVizWrapper.js's
     // germ-layer bubbles.
     useEffect(() => {
@@ -1965,12 +2044,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                 prependDotPath="tissue-heatmap">
                 <DotRouterTab
                     dotPath=".ischemic-time"
-                    tabTitle={
-                        <TabTitleWithInfo
-                            label="Ischemic Time (h)"
-                            tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)"
-                        />
-                    }
+                    tabTitle="Ischemic Time (h)"
                     arrowTabs={false}
                     cache={true}
                     default>
@@ -1982,13 +2056,22 @@ export const BrowseTissueHeatmapTable = (props) => {
                         <MetricHeatmapTable
                             {...ischemicTime}
                             metricLabel="Ischemic Time (h)"
+                            tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)"
                             formatValue={formatIschemicTime}
                             getScoreClass={ischemicTimeScoring.classify}
-                            // Hidden for now -- ischemicTimeScoreLegend is still
-                            // computed above and ScoreLegend/buildScoreLegend
-                            // stay in place so this can come back with just
-                            // this prop restored.
-                            scoreLegend={null}
+                            // The severity-scale legend (ScoreLegend) is
+                            // hidden for now -- ischemicTimeScoreLegend is
+                            // still computed above and
+                            // ScoreLegend/buildScoreLegend stay in place so
+                            // it can come back by rendering both here
+                            // (legend={<>
+                            //     <ScoreLegend entries={ischemicTimeScoreLegend} />
+                            //     <SplitCellLegend />
+                            // </>}). SplitCellLegend itself stays on, though
+                            // -- unlike the severity scale, it's not
+                            // data-driven and explains this tab's own
+                            // Fixed/Frozen split cells regardless.
+                            legend={<SplitCellLegend />}
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
                             splitByPreservationType
@@ -1997,12 +2080,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".autolysis-score"
-                    tabTitle={
-                        <TabTitleWithInfo
-                            label="Autolysis Score"
-                            tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
-                        />
-                    }
+                    tabTitle="Autolysis Score"
                     arrowTabs={false}
                     cache={true}>
                     {loading ? (
@@ -2013,8 +2091,16 @@ export const BrowseTissueHeatmapTable = (props) => {
                         <MetricHeatmapTable
                             {...autolysisScore}
                             metricLabel="Autolysis Score"
+                            tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
                             formatValue={formatAutolysisScore}
                             getScoreClass={getAutolysisScoreClass}
+                            legend={
+                                <FixedScoreLegend
+                                    entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
+                                    leftCaption="Minimal"
+                                    rightCaption="Severe"
+                                />
+                            }
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
                         />
@@ -2022,12 +2108,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".target-tissue"
-                    tabTitle={
-                        <TabTitleWithInfo
-                            label="Target Tissue %"
-                            tooltip="Percentage range of the sample that was the target tissue subtype"
-                        />
-                    }
+                    tabTitle="Target Tissue %"
                     arrowTabs={false}
                     cache={true}>
                     {loading ? (
@@ -2038,9 +2119,13 @@ export const BrowseTissueHeatmapTable = (props) => {
                         <MetricHeatmapTable
                             {...targetTissuePercentage}
                             metricLabel="Target Tissue %"
+                            tooltip="Percentage range of the sample that was the target tissue subtype"
                             formatValue={formatTargetTissuePercentage}
                             getScoreClass={getTargetTissuePercentageScoreClass}
                             getSortValue={getTargetTissuePercentageSortValue}
+                            legend={
+                                <FixedScoreLegend entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES} />
+                            }
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
                         />
