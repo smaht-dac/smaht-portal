@@ -1297,7 +1297,14 @@ function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, 
                 aria-expanded={isOpen}
                 title="Brain -- pick a region to view its own Tissue Overview page">
                 Brain
-                <i className={`icon icon-fw fas ${isOpen ? 'icon-caret-up' : 'icon-caret-down'}`} />
+                {/* A caret here reads as a duplicate of the sort button's own
+                    caret right next to it (see SortableHeaderLabel -- its
+                    default/unsorted icon is now also a plain down-caret, to
+                    match the plain /browse/ search-results table's own
+                    convention). A kebab ("more options") glyph doesn't
+                    collide with that shape, and arguably reads better anyway
+                    -- this opens a *list to pick from*, not a sort toggle. */}
+                <i className="icon icon-fw fas icon-ellipsis-v" />
             </button>
             <SortableHeaderLabel
                 label=""
@@ -1489,13 +1496,17 @@ export function compareSortValues(a, b, direction) {
     return direction === 'asc' ? cmp : -cmp;
 }
 
-// One clickable header label + a FontAwesome sort-direction icon --
-// mirrors the icon-sort-up/icon-sort-down convention shared-portal-
-// components' HeadersRow.js (ColumnSortIcon) already uses for the plain
-// /browse/ search-results table, so this reads as consistent without
-// pulling in that component's heavier URL/context-driven sort machinery
-// (architecturally mismatched here -- this table sorts already-fetched
-// rows client-side, not a live search grid).
+// One clickable header label + a FontAwesome sort-direction icon -- mirrors
+// shared-portal-components' HeadersRow.js (ColumnSortIconElement) exactly:
+// icon-sort-up only while actually sorted ascending, icon-sort-down for
+// both descending AND the default/unsorted state (that component's own
+// `descend={!sortMap || descend}` treats "no sort yet" the same as
+// "descending" for icon purposes) -- not a 3rd, visually distinct "neutral"
+// glyph, so this table's sort buttons read as consistent with the plain
+// /browse/ search-results table's own, without pulling in that component's
+// heavier URL/context-driven sort machinery (architecturally mismatched
+// here -- this table sorts already-fetched rows client-side, not a live
+// search grid).
 export function SortableHeaderLabel({ label, sortDirection, onClick }) {
     return (
         <button
@@ -1507,11 +1518,7 @@ export function SortableHeaderLabel({ label, sortDirection, onClick }) {
                 className={
                     'icon icon-fw fas tissue-heatmap-sort-icon' +
                     ' ' +
-                    (sortDirection === 'asc'
-                        ? 'icon-sort-up'
-                        : sortDirection === 'desc'
-                            ? 'icon-sort-down'
-                            : 'icon-sort')
+                    (sortDirection === 'asc' ? 'icon-sort-up' : 'icon-sort-down')
                 }
             />
         </button>

@@ -2326,9 +2326,17 @@ div.browse-link-icon {
 // to link to, this opens a small picker of the real regions instead.
 // Deliberately NOT nested under `.tissue-heatmap-card` so it looks right
 // wherever this header cell renders.
+// This cell doubles up 2 separate affordances -- the region picker toggle
+// and a plain sort button (.tissue-heatmap-sort-button, SortableHeaderLabel)
+// -- side by side with just a gap between them (below). The toggle itself
+// uses a kebab ("more options") icon rather than a caret (see
+// BrainRegionHeaderCell's own icon-ellipsis-v) specifically so it doesn't
+// read as a duplicate of the sort button's own caret right next to it.
 .tissue-heatmap-brain-picker {
 	position: relative;
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
 }
 
 .tissue-heatmap-brain-picker-toggle {
@@ -2812,11 +2820,32 @@ div.browse-link-icon {
 			padding: 8px 14px;
 		}
 
+		// Same light-blue header background/dark text/500-weight as the
+		// plain `/browse/` search-results table (`$search-header-*` above --
+		// this table isn't that shared component, just visually matching it
+		// for consistency across the app's own tables).
 		thead th {
-			background-color: #FFFFFF;
-			font-weight: 600;
-			color: #343741;
+			background-color: $search-header-background-color;
+			font-weight: 500;
+			color: $search-header-text-color;
 			border-bottom: 1px solid #E7F0F3;
+		}
+
+		// The body's own column divider (.tissue-heatmap-cell's border-right,
+		// below) stopped dead at the header row, reading as though it cut off
+		// rather than continuing all the way up -- this carries the same line
+		// through the tissue-type header row (thead's 2nd/last <tr> -- the
+		// order/donor rowSpan headers and the germ-layer group-label row both
+		// live in the 1st <tr> instead, and are deliberately left out: the
+		// group-label row already marks its own boundaries via background
+		// color, and the order/donor headers' divider is their own sticky
+		// box-shadow, not this border).
+		thead tr:last-child th {
+			border-right: 1px solid #E7F0F3;
+
+			&:last-child {
+				border-right: none;
+			}
 		}
 
 		// Background/text color come from each group's inline style (shared
@@ -2870,10 +2899,15 @@ div.browse-link-icon {
 		// axes at once, matching the tissue-type headers' own sticky-top so
 		// nothing gaps between them during a diagonal scroll. z-index above
 		// every other sticky layer (thead th's own 4, sticky-left body
-		// cells' 2) since this corner must always win.
+		// cells' 2) since this corner must always win. Background overridden
+		// back to the shared light-blue header background (thead th, above)
+		// too -- the 2 sticky rules above it left both cells' header (`th`)
+		// halves plain white, same as their own body (`td`) halves, reading
+		// as a separate white patch rather than part of this header row.
 		thead th.tissue-heatmap-order-header,
 		thead th.tissue-heatmap-donor-header {
 			z-index: 3;
+			background-color: $search-header-background-color;
 		}
 
 		.tissue-heatmap-order-label {
@@ -3291,9 +3325,13 @@ div.browse-link-icon {
 			}
 		}
 
+		// Same base color as the plain `/browse/` search-results table's own
+		// sort icon ($search-header-icon-color) -- see the button's
+		// hover/is-active overrides above for the rest of this table's own
+		// (unrelated) client-side-sort feedback.
 		.tissue-heatmap-sort-icon {
 			font-size: 0.6875rem;
-			color: #C8CED4;
+			color: $search-header-icon-color;
 		}
 	}
 }
