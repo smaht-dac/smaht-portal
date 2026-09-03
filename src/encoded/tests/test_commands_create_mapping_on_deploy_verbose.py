@@ -228,6 +228,14 @@ def test_main_installs_wrapper_before_delegating(monkeypatch):
 
 
 def test_deployment_invokes_verbose_create_mapping_command():
+    """TEMPORARY, branch-specific (cfm-publication_updates): the production
+    entrypoint currently passes --wipe-es instead of --selective-reindex so
+    every deploy from this branch does a complete, unconditional ES reindex
+    (see the comment above the command in entrypoint_deployment.sh). This
+    test intentionally fails if the entrypoint reverts to --selective-reindex
+    or otherwise drops --wipe-es, since either would restore selective/
+    conditional reindexing.
+    """
     deployment_entrypoint = Path("deploy/docker/production/entrypoint_deployment.sh")
     contents = deployment_entrypoint.read_text()
     cleanup_command = (
@@ -235,12 +243,13 @@ def test_deployment_invokes_verbose_create_mapping_command():
     )
     mapping_command = (
         "poetry run create-mapping-on-deploy-verbose production.ini "
-        "--app-name app --selective-reindex"
+        "--app-name app --wipe-es"
     )
     load_data_command = "poetry run load-data-by-type"
 
     assert cleanup_command in contents
     assert mapping_command in contents
+    assert "--selective-reindex" not in contents
     assert contents.index(cleanup_command) < contents.index(mapping_command)
     assert contents.index(mapping_command) < contents.index(load_data_command)
 

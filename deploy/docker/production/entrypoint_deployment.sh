@@ -25,7 +25,14 @@ fi
 # decision-narration loggers to INFO first, since create-mapping-on-deploy's
 # own set_logging() call never reaches them (see the module docstring in
 # encoded/commands/create_mapping_on_deploy_verbose.py).
-poetry run create-mapping-on-deploy-verbose production.ini --app-name app --selective-reindex
+# TEMPORARY, branch-specific override (cfm-publication_updates only - do not
+# merge to main as the permanent default): --wipe-es forces WIPE_ES=True,
+# which makes create_mapping.run() set check_first=False, so every deploy
+# from this branch does a complete, unconditional ES reindex regardless of
+# mapping comparisons, changed item types, or INITIAL_DEPLOYMENT. This does
+# not touch clear-db-es-contents/--only-if-env/--allow-prod above, which only
+# affects the Postgres DB and is unrelated to this ES-only reindex.
+poetry run create-mapping-on-deploy-verbose production.ini --app-name app --wipe-es
 
 # Load Data (based on development.ini, for now just master-inserts)
 # Not necessary after first deploy
