@@ -7,6 +7,9 @@ from ..item_utils.file import (
     are_reads_sorted,
     get_alignment_details,
     get_analysis_details,
+    get_cell_culture_mixtures,
+    get_cell_cultures,
+    get_cell_lines,
     get_data_category,
     get_data_type,
     has_copy_number_variants,
@@ -194,3 +197,95 @@ def test_get_data_category(
 )
 def test_get_data_type(properties: Dict[str, Any], expected: List[str]) -> None:
     assert get_data_type(properties) == expected
+
+
+class FakeRequestHandler:
+    """Minimal request handler for item utility traversal tests."""
+
+    def __init__(self, items: Dict[str, Dict[str, Any]]) -> None:
+        self.items = items
+
+    def get_item(self, identifier, collection=None) -> Dict[str, Any]:
+        if isinstance(identifier, dict):
+            return identifier
+        return self.items.get(identifier, {})
+
+    def get_items(self, identifiers, collection=None) -> List[Dict[str, Any]]:
+        result = []
+        seen = set()
+        for identifier in identifiers:
+            item = self.get_item(identifier, collection=collection)
+            uuid = item.get("uuid", "")
+            if item and uuid not in seen:
+                result.append(item)
+                seen.add(uuid)
+        return result
+
+
+def test_get_cell_lines_reuses_sample_sources_for_direct_and_mixture_paths() -> None:
+    """Cell line traversal handles tissue, direct culture, and mixture sources."""
+    items = {
+        "file-set": {
+            "uuid": "file-set",
+            "samples": ["sample-direct", "sample-mixture", "sample-tissue"],
+        },
+        "sample-direct": {"uuid": "sample-direct", "sample_sources": ["culture-hela"]},
+        "sample-mixture": {"uuid": "sample-mixture", "sample_sources": ["mixture"]},
+        "sample-tissue": {"uuid": "sample-tissue", "sample_sources": ["tissue"]},
+        "culture-hela": {
+            "uuid": "culture-hela",
+            "@type": ["CellCulture", "SampleSource", "Item"],
+            "cell_line": ["cell-line-hela"],
+        },
+        "culture-hek293": {
+            "uuid": "culture-hek293",
+            "@type": ["CellCulture", "SampleSource", "Item"],
+            "cell_line": ["cell-line-hek293"],
+        },
+        "mixture": {
+            "uuid": "mixture",
+            "@type": ["CellCultureMixture", "CellCulture", "SampleSource", "Item"],
+            "components": [
+                {"cell_culture": "culture-hela", "ratio": 50},
+                {"cell_culture": "culture-hek293", "ratio": 50},
+            ],
+        },
+        "tissue": {"uuid": "tissue", "@type": ["Tissue", "SampleSource", "Item"]},
+        "cell-line-hela": {
+            "uuid": "cell-line-hela",
+            "@type": ["CellLine", "Item"],
+            "code": "HELA",
+        },
+        "cell-line-hek293": {
+            "uuid": "cell-line-hek293",
+            "@type": ["CellLine", "Item"],
+            "code": "HEK293",
+        },
+    }
+    request_handler = FakeRequestHandler(items)
+    file_properties = {"file_sets": ["file-set"]}
+
+    assert get_cell_culture_mixtures(file_properties, request_handler) == ["mixture"]
+    assert get_cell_cultures(file_properties, request_handler) == [
+        "culture-hela",
+        "culture-hek293",
+    ]
+    assert get_cell_lines(file_properties, request_handler) == [
+        "cell-line-hela",
+        "cell-line-hek293",
+    ]
+
+
+def test_get_cell_lines_for_tissue_only_file() -> None:
+    """Tissue-only files should not resolve any cell lines."""
+    items = {
+        "file-set": {"uuid": "file-set", "samples": ["sample-tissue"]},
+        "sample-tissue": {"uuid": "sample-tissue", "sample_sources": ["tissue"]},
+        "tissue": {"uuid": "tissue", "@type": ["Tissue", "SampleSource", "Item"]},
+    }
+    request_handler = FakeRequestHandler(items)
+    file_properties = {"file_sets": ["file-set"]}
+
+    assert get_cell_culture_mixtures(file_properties, request_handler) == []
+    assert get_cell_cultures(file_properties, request_handler) == []
+    assert get_cell_lines(file_properties, request_handler) == []
