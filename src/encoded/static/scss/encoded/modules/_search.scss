@@ -3019,6 +3019,17 @@ div.browse-link-icon {
 				background-color: var(--heatmap-score-4-bg, #4C7A8B);
 				color: var(--heatmap-score-4-text, #FFFFFF);
 			}
+			// The Fixed or Frozen side of a splitByPreservationType cell
+			// (renderRowCells) when that specific preservation_type has no
+			// real value for this donor+tissue_type -- same muted, no-band
+			// treatment as a plain .tissue-heatmap-cell's own `.is-empty`
+			// (grey text, no score-color background), just scoped to 1
+			// half instead of the whole cell.
+			&.is-empty {
+				background-color: transparent;
+				color: #C7CCD2;
+				font-weight: 400;
+			}
 		}
 
 		// Each half fills the cell's own top-left/bottom-right triangle

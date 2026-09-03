@@ -115,6 +115,17 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
     // for the multi-value indicator/popover (see renderRowCells) when
     // there's actually something to disambiguate.
     const cellEntriesByDonorAndTissue = {};
+    // A fixed [Fixed entry | null, Frozen entry | null] pair per (donor,
+    // tissue_type) key with at least 1 real value -- unlike cellEntries
+    // above (only as many entries as there are real, distinct-or-not
+    // values, used for the popover/'inline' display), this always has
+    // exactly 2 slots so a split cell (renderRowCells, splitByPreservationType)
+    // can show "Fixed" and "Frozen" in the same fixed position every time,
+    // one side reading "n/a" rather than the whole cell silently reverting
+    // to a single value whenever only 1 preservation_type is actually
+    // represented -- per explicit request that Fixed/Frozen's own
+    // positions stay visually stable whether or not both sides have data.
+    const cellSlotsByDonorAndTissue = {};
     const tissuesByKey = {};
     const tissueTypeHrefs = {};
     const tissueTypeCategories = {};
@@ -167,6 +178,10 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
             cellEntriesByDonorAndTissue[key] = entriesWithValue.sort(
                 (a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0)
             );
+            cellSlotsByDonorAndTissue[key] = [
+                entriesWithValue.find((entry) => entry.label === 'Fixed') || null,
+                entriesWithValue.find((entry) => entry.label === 'Frozen') || null,
+            ];
         }
     });
 
@@ -191,6 +206,9 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
                         cellsByDonorAndTissue[key] = genericValue;
                         if (cellEntriesByDonorAndTissue[genericKey]) {
                             cellEntriesByDonorAndTissue[key] = cellEntriesByDonorAndTissue[genericKey];
+                        }
+                        if (cellSlotsByDonorAndTissue[genericKey]) {
+                            cellSlotsByDonorAndTissue[key] = cellSlotsByDonorAndTissue[genericKey];
                         }
                     }
                 });
@@ -218,6 +236,9 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
             cells: tissueTypes.map((tissueType) => cellsByDonorAndTissue[`${donor} ${tissueType}`] ?? null),
             cellEntries: tissueTypes.map(
                 (tissueType) => cellEntriesByDonorAndTissue[`${donor} ${tissueType}`] || null
+            ),
+            cellSlots: tissueTypes.map(
+                (tissueType) => cellSlotsByDonorAndTissue[`${donor} ${tissueType}`] || null
             ),
         };
     });
@@ -985,19 +1006,28 @@ function renderCellAltValues(entries, tissueType, metricLabel, formatValue, styl
 // `'inline'` (the default) writes every real value for a multi-record cell
 // inline, "/"-separated (entries are already primary-first, see
 // buildTissueMetricMatrix), no corner flag. `'diagonal'`/`'vertical'` render
-// a genuinely split cell instead -- one half per value -- but only when
-// there are exactly 2 distinct values to split between; a cell with only 1
-// real value obviously can't split, and one with 3+ (e.g. a real 3-target-
-// cell-subtype case) has nowhere left to put a 3rd half, so both fall back
-// to the same "/"-joined text `'inline'` uses, rather than silently
-// dropping a value the review explicitly required stay visible without
-// hovering. `'hover'` shows only the primary value plus the corner flag
-// instead. In every mode, the detail popover (renderCellAltValues, wired up
-// by the caller via onShowDetail/onHideDetail) still opens on hover -- with
-// every value already visible without hovering in every mode but `'hover'`
-// itself, this is just an optional way to see which record each value
-// actually came from, not a requirement to see the data.
-function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, onShowDetail, onHideDetail, cellValueDisplayMode) {
+// a genuinely split cell instead -- one half per value. `'hover'` shows
+// only the primary value plus the corner flag instead. In every mode, the
+// detail popover (renderCellAltValues, wired up by the caller via
+// onShowDetail/onHideDetail) still opens on hover -- with every value
+// already visible without hovering in every mode but `'hover'` itself,
+// this is just an optional way to see which record each value actually
+// came from, not a requirement to see the data.
+//
+// `cellSlots`/`splitByPreservationType` -- per explicit request, Ischemic
+// Time's split modes always show a Fixed half and a Frozen half in the
+// same fixed position, even when only 1 of the 2 actually has a value
+// (the other reads "n/a") -- unlike the general case below (distinct
+// *values*, not fixed *slots*), where a cell with only 1 real value can't
+// split at all, and one with 3+ distinct values (e.g. Autolysis Score's
+// own real 3-target-cell-subtype case) has nowhere to put a 3rd half, so
+// both fall back to the same "/"-joined text `'inline'` uses rather than
+// silently dropping a value. `splitByPreservationType` (true only for
+// Ischemic Time, see BrowseTissueHeatmapTable) switches which of those 2
+// rules a `'diagonal'`/`'vertical'` cell follows; `cellSlots` (built by
+// buildTissueMetricMatrix, always exactly
+// `[Fixed entry | null, Frozen entry | null]`) is only read when it does.
+function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, onShowDetail, onHideDetail, cellValueDisplayMode, splitByPreservationType) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
@@ -1028,7 +1058,15 @@ function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, b
         const isHoverMode = cellValueDisplayMode === 'hover';
         const distinctValues = isHoverMode ? [] : distinctEntryValues(entries);
         const isSplitLayout = cellValueDisplayMode === 'diagonal' || cellValueDisplayMode === 'vertical';
-        const isSplitMode = isSplitLayout && distinctValues.length === 2;
+        const slots = splitByPreservationType ? cellSlots?.[i] || null : null;
+        const isSplitMode = isSplitLayout && (splitByPreservationType ? slots !== null : distinctValues.length === 2);
+        // Fixed-first, matching cellEntries' own primary-first ordering
+        // (buildTissueMetricMatrix prefers Fixed as primary) -- either
+        // side can be `null` here (shown as "n/a" below) when
+        // splitByPreservationType and only 1 side has a real value.
+        const splitValues = splitByPreservationType
+            ? [slots?.[0]?.value ?? null, slots?.[1]?.value ?? null]
+            : distinctValues;
         const showsAllValuesInline = !isHoverMode && !isSplitMode && distinctValues.length > 1;
         const isRowSegment =
             hoveredCellPosition !== null &&
@@ -1072,16 +1110,24 @@ function renderRowCells(cells, cellEntries, tissueTypes, mergeableTissueTypes, b
                         <span
                             className={
                                 'tissue-heatmap-cell-split-half tissue-heatmap-cell-split-half-a' +
-                                (enableConditionalColor ? ` ${getScoreClass(distinctValues[0])}` : '')
+                                (splitValues[0] === null
+                                    ? ' is-empty'
+                                    : enableConditionalColor
+                                        ? ` ${getScoreClass(splitValues[0])}`
+                                        : '')
                             }>
-                            {formatValue(distinctValues[0])}
+                            {formatValue(splitValues[0])}
                         </span>
                         <span
                             className={
                                 'tissue-heatmap-cell-split-half tissue-heatmap-cell-split-half-b' +
-                                (enableConditionalColor ? ` ${getScoreClass(distinctValues[1])}` : '')
+                                (splitValues[1] === null
+                                    ? ' is-empty'
+                                    : enableConditionalColor
+                                        ? ` ${getScoreClass(splitValues[1])}`
+                                        : '')
                             }>
-                            {formatValue(distinctValues[1])}
+                            {formatValue(splitValues[1])}
                         </span>
                         {cellValueDisplayMode === 'diagonal' ? (
                             // A CSS `linear-gradient(to bottom right, ...)`
@@ -1443,6 +1489,12 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     getSortValue = defaultGetSortValue,
     // See CELL_VALUE_DISPLAY_MODES/HeatmapAdminSettings/renderRowCells.
     cellValueDisplayMode = 'inline',
+    // See renderRowCells' own comment -- true only for Ischemic Time (the
+    // only tab with real Fixed/Frozen multiplicity; Autolysis Score/Target
+    // Tissue % never have more than 1 real-valued record per cell, so this
+    // would just add an empty, uninformative "Frozen: n/a" half to every
+    // cell there for no reason).
+    splitByPreservationType = false,
 }) {
     const columnGroups = useMemo(
         () => buildColumnGroups(tissueTypes, tissueTypeCategories),
@@ -1712,7 +1764,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         )}
                     </thead>
                     <tbody>
-                        {displayMatrix.map(({ donor, cells, cellEntries }, rowIndex) => (
+                        {displayMatrix.map(({ donor, cells, cellEntries, cellSlots }, rowIndex) => (
                             <tr key={donor}>
                                 {rowIndex === 0 ? (
                                     <td className="tissue-heatmap-order-label" rowSpan={displayMatrix.length}>
@@ -1723,6 +1775,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 {renderRowCells(
                                     cells,
                                     cellEntries,
+                                    cellSlots,
                                     tissueTypes,
                                     mergeableTissueTypes,
                                     brainColumnsFullyMergeable,
@@ -1736,7 +1789,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     handleHoverEnd,
                                     handleShowDetail,
                                     handleHideDetail,
-                                    cellValueDisplayMode
+                                    cellValueDisplayMode,
+                                    splitByPreservationType
                                 )}
                             </tr>
                         ))}
@@ -1935,6 +1989,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             scoreLegend={null}
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
+                            splitByPreservationType
                         />
                     )}
                 </DotRouterTab>
