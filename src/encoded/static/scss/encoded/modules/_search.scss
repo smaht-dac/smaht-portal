@@ -2691,18 +2691,34 @@ div.browse-link-icon {
 	// it -- the two read as a matched pair (what this tab shows / how to
 	// read its colors) rather than two separate stacked headers.
 	.tissue-heatmap-metric-heading {
+		// Extra breathing room above (vs. a plain top: 4px match on the
+		// legend) -- flush against the tab row read as though this title
+		// belonged to the tabs above it rather than being its own heading.
+		// Bottom padding similarly separates it (and its own rule, below)
+		// from the table below -- flush against the header row read as
+		// though the title/legend belonged to the table instead of being
+		// its own heading above it. Also what indents the title/legend
+		// away from the card's own true left/right edges -- the inner
+		// `-row` below carries none of its own, so its own border-bottom
+		// lands exactly at their bounds instead of this padding's outer
+		// (wider) edge.
+		padding: 24px 20px 20px;
+	}
+
+	// The title+legend row itself, separate from `.tissue-heatmap-metric-heading`
+	// above so its own border-bottom (the rule the reference design shows)
+	// can sit flush with the title's own left edge and the legend's own
+	// right edge -- a border on the padded, outer element instead would
+	// sit at *its* edge, 20px wider on each side than the title/legend
+	// actually reach.
+	.tissue-heatmap-metric-heading-row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		flex-wrap: wrap;
 		gap: 8px 20px;
-		// Extra breathing room above (vs. a plain top: 4px match on the
-		// legend) -- flush against the tab row read as though this title
-		// belonged to the tabs above it rather than being its own heading.
-		// Bottom padding similarly separates it from the table below --
-		// flush against the header row read as though the title/legend
-		// belonged to the table instead of being its own heading above it.
-		padding: 24px 20px 20px;
+		padding-bottom: 12px;
+		border-bottom: 1px solid #E3E7EB;
 	}
 
 	.tissue-heatmap-metric-title {

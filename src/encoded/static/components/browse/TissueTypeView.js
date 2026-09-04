@@ -1097,12 +1097,14 @@ export default function TissueTypeView({
                         </nav>
                         <div className="tab-router-contents">
                             <div className="tissue-heatmap-metric-heading">
-                                <h2 className="tissue-heatmap-metric-title">Donor Details</h2>
-                                <FixedScoreLegend
-                                    entries={TISSUE_DONOR_AUTOLYSIS_LEGEND_ENTRIES}
-                                    leftCaption="Minimal"
-                                    rightCaption="Severe"
-                                />
+                                <div className="tissue-heatmap-metric-heading-row">
+                                    <h2 className="tissue-heatmap-metric-title">Donor Details</h2>
+                                    <FixedScoreLegend
+                                        entries={TISSUE_DONOR_AUTOLYSIS_LEGEND_ENTRIES}
+                                        leftCaption="Minimal"
+                                        rightCaption="Severe"
+                                    />
+                                </div>
                             </div>
                             <div className="body">
                                 <table className="tissue-donor-table table">

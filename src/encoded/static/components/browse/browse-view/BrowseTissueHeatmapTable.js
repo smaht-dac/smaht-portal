@@ -1964,16 +1964,28 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     return (
         <>
             <div className="tissue-heatmap-metric-heading">
-                <h2 className="tissue-heatmap-metric-title">
-                    {metricLabel}
-                    {tooltip ? (
-                        <i
-                            className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                            data-tip={tooltip}
-                        />
-                    ) : null}
-                </h2>
-                {legend}
+                {/* The rule (border-bottom, _search.scss) belongs to *this*
+                    inner row specifically, not the outer
+                    .tissue-heatmap-metric-heading -- that outer element's
+                    own left/right padding is what indents the title/legend
+                    away from the card's true edges, so a border on it
+                    directly would sit at its own outer (padding-box) edge,
+                    wider than the title/legend actually are. This inner
+                    row has no padding of its own, so its border-bottom
+                    lands exactly at the title's own left edge and the
+                    legend's own right edge instead. */}
+                <div className="tissue-heatmap-metric-heading-row">
+                    <h2 className="tissue-heatmap-metric-title">
+                        {metricLabel}
+                        {tooltip ? (
+                            <i
+                                className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
+                                data-tip={tooltip}
+                            />
+                        ) : null}
+                    </h2>
+                    {legend}
+                </div>
             </div>
             {stickyHeader ? (
                 <div
