@@ -13,6 +13,9 @@ import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import { formUrlEncode } from './BrowseTissueHeatmapTable';
 import { BROWSE_STATUS_FILTERS } from '../BrowseView';
+import AliquotVisualization, {
+    SLICE_TYPE_STYLES,
+} from '../../item-pages/components/tissue-overview/AliquotVisualization';
 import {
     getTissueIconSrc,
     getTissueDisplayLabel,
@@ -334,6 +337,103 @@ const buildSubmissionCenterChartData = (termsByCenter = {}, fileCountsByCenter =
         .sort((a, b) => b.value1 - a.value1 || a.group.localeCompare(b.group, undefined, { numeric: true }));
 };
 
+// Illustrative Fixed/Frozen/Fixed/Frozen/Frozen/Fixed slice pattern for the
+// representative collection diagram below -- not sampleAliquotSlicesFallback
+// (helpers.js's own placeholder set, used on TissueView.js/TissueTypeView.js
+// before a donor is picked): that one has 3 Fixed + 6 Frozen slices, a
+// different pattern meant to preview a real single-tissue layout, whereas
+// this is its own smaller, purely representative block for the population
+// summary shown here.
+const TISSUE_COLLECTION_SAMPLE_SLICES = [
+    { id: 'fixed-1', type: 'pink', widthCm: 0.5 },
+    { id: 'frozen-1', type: 'yellow', widthCm: 1 },
+    { id: 'frozen-2', type: 'yellow', widthCm: 1 },
+    { id: 'fixed-2', type: 'pink', widthCm: 0.5 },
+    { id: 'frozen-3', type: 'yellow', widthCm: 1 },
+    { id: 'frozen-4', type: 'yellow', widthCm: 1 },
+    { id: 'fixed-3', type: 'pink', widthCm: 0.5 },
+];
+
+// Non-interactive, illustrative stand-in for a real per-tissue aliquot
+// diagram (AliquotVisualization.js's own solid-organ view on TissueView.js/
+// TissueTypeView.js) -- this panel isn't scoped to one tissue, so there's no
+// single real slice layout to draw. Renders a generic Fixed/Frozen demo
+// block (TISSUE_COLLECTION_SAMPLE_SLICES), wrapped so it can't be clicked
+// (no per-slice popover makes sense outside a real tissue's data).
+// The Fixed/Frozen counts below it come from `tissueResults`, the same
+// Tissue records TissueCohortCharts already fetches for the Autolysis Score
+// chart, avoiding a second population query for the same donor set.
+const TissueSampleCollectionViz = ({ tissueResults = [], loading }) => {
+    const counts = useMemo(() => {
+        let fixed = 0;
+        let frozen = 0;
+        tissueResults.forEach((t) => {
+            if (!t?.preservation_type) return;
+            // "Fixed" vs everything else ("Snap Frozen", "Fresh", ...) is
+            // the same two-way distinction AliquotVisualization.js's own
+            // slice coloring (and BrowseTissueHeatmapTable.js's
+            // formatPreservationTypeLabel) uses.
+            if (t.preservation_type === 'Fixed') fixed += 1;
+            else frozen += 1;
+        });
+        return { fixed, frozen };
+    }, [tissueResults]);
+
+    return (
+        <div className="donor-cohort-view-chart tissue-collection-viz-chart">
+            <div className="chart-title-container">
+                <h3>SMaHT Tissue Sample Collection</h3>
+            </div>
+            <div className="tissue-collection-viz-diagram" aria-hidden="true">
+                <AliquotVisualization
+                    slices={TISSUE_COLLECTION_SAMPLE_SLICES}
+                    dimensions={{
+                        heightCm: 1,
+                        depthCm: 1.5,
+                        heightLabel: '1 cm',
+                        depthLabel: '1.5 cm',
+                    }}
+                    idPrefix="tissue-collection-overview"
+                    showSliceLabels={false}
+                    showLegend={false}
+                />
+            </div>
+            <div className="tissue-collection-viz-summary">
+                <div className="tissue-collection-viz-summary-item is-fixed">
+                    <div className="tissue-collection-viz-summary-item-heading">
+                        <span className="swatch" />
+                        <span className="label">Fixed Tissues</span>
+                    </div>
+                    <div className="count">
+                        {loading ? '–' : counts.fixed.toLocaleString()} Samples
+                    </div>
+                    {/* Static/decorative, not real links -- there's no
+                        single destination for these at the population
+                        level the way there is for one donor's own tissue
+                        (per explicit choice over wiring up real hrefs). */}
+                    <ul className="tissue-collection-viz-summary-item-bullets">
+                        <li>Path Report</li>
+                        <li>Histology Views</li>
+                    </ul>
+                </div>
+                <div className="tissue-collection-viz-summary-item is-frozen">
+                    <div className="tissue-collection-viz-summary-item-heading">
+                        <span className="swatch" />
+                        <span className="label">Frozen Tissues</span>
+                    </div>
+                    <div className="count">
+                        {loading ? '–' : counts.frozen.toLocaleString()} Samples
+                    </div>
+                    <ul className="tissue-collection-viz-summary-item-bullets">
+                        <li>Sequencing Data</li>
+                        <li>Download CRAM</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // Population-level Cohort View charts -- analogous to BrowseDonorVizWrapper.js's
 // Age Groups/Hardy Scale/Donor Sequencing Progress charts, but built around
 // tissue category, autolysis score, and submitting center instead of the
@@ -476,31 +576,12 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
     return (
         <div className="donor-cohort-view-chart-container">
             <DonorCohortViewChart
-                title="Tissue Category Distribution"
-                data={tissueCategoryData}
-                chartWidth="auto"
-                chartHeight={420}
-                chartType="single"
-                topStackColor="#30975E"
-                xAxisTitle="Tissue category"
-                yAxisTitle="# of Donors"
-                showBarTooltip={true}
-                tooltipTitles={{ crumb: null, left: 'Tissue Category', right: '# of Donors' }}
-                // eslint-disable-next-line react/jsx-no-bind
-                buildFilesHref={buildTissueCategoryFilesHref}
-                showXAxisTitle={true}
-                popover={renderTissueCategoryPopover()}
-                session={session}
-                loading={categoryLoading}
-            />
-
-            <DonorCohortViewChart
                 title="Autolysis Score Distribution (by Tissue)"
                 data={autolysisScoreData}
                 chartWidth="auto"
                 chartHeight={420}
                 chartType="single"
-                topStackColor="#56A9F5"
+                topStackColor={SLICE_TYPE_STYLES.pink.front}
                 xAxisTitle="Autolysis score"
                 yAxisTitle="# of Tissues"
                 showBarTooltip={false}
@@ -510,13 +591,18 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
                 loading={tissueResultsLoading}
             />
 
+            <TissueSampleCollectionViz
+                tissueResults={tissueResults}
+                loading={tissueResultsLoading}
+            />
+
             <DonorCohortViewChart
                 title="GCC Distribution (by Tissue Sample)"
                 data={submissionCenterData}
                 chartWidth="auto"
                 chartHeight={420}
                 chartType="horizontal"
-                topStackColor="#4567CF"
+                topStackColor={SLICE_TYPE_STYLES.yellow.front}
                 xAxisTitle="# of Tissue Samples"
                 showYAxisTitle={false}
                 showBarTooltip={true}
@@ -528,6 +614,30 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
                 session={session}
                 loading={submissionCenterLoading}
             />
+
+            {/* Kept mounted but hidden rather than removed -- may be
+                reinstated later. See toggleViewIndex above for the same
+                mount-but-hide pattern. */}
+            <div className="d-none">
+                <DonorCohortViewChart
+                    title="Tissue Category Distribution"
+                    data={tissueCategoryData}
+                    chartWidth="auto"
+                    chartHeight={420}
+                    chartType="single"
+                    topStackColor="#30975E"
+                    xAxisTitle="Tissue category"
+                    yAxisTitle="# of Donors"
+                    showBarTooltip={true}
+                    tooltipTitles={{ crumb: null, left: 'Tissue Category', right: '# of Donors' }}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    buildFilesHref={buildTissueCategoryFilesHref}
+                    showXAxisTitle={true}
+                    popover={renderTissueCategoryPopover()}
+                    session={session}
+                    loading={categoryLoading}
+                />
+            </div>
         </div>
     );
 };

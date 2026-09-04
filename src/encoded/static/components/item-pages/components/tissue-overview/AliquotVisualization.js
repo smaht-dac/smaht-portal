@@ -6,7 +6,10 @@ import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
 import { isTpcSubmissionCenter, hexToRgba } from './helpers';
 
-const SLICE_TYPE_STYLES = {
+// Exported so other views can reference the same Fixed/Frozen colors
+// (e.g. BrowseTissueVizWrapper.js's cohort charts) without redeclaring them
+// and risking the two falling out of sync.
+export const SLICE_TYPE_STYLES = {
     pink: {
         label: 'Fixed',
         front: '#F2C4A8',
@@ -303,6 +306,10 @@ export default function AliquotVisualization({
     slices,
     dimensions = null,
     showSliceLabels = false,
+    // Off for callers that already show their own Fixed/Frozen key
+    // elsewhere (e.g. BrowseTissueVizWrapper.js's representative collection
+    // diagram, which has its own Fixed/Frozen count boxes right below it).
+    showLegend = true,
     className = null,
     idPrefix = null,
     // For bivalved tissues (Adrenal/Heart/Gonads -- see
@@ -1501,31 +1508,33 @@ export default function AliquotVisualization({
                     )}
                 </Overlay>
             </div>
-            <div className="aliquot-legend">
-                {Object.entries(SLICE_TYPE_STYLES).map(([key, styles]) => (
-                    <div className="aliquot-legend-item" key={key}>
-                        <span
-                            className={`legend-swatch ${key}`}
-                            style={{ backgroundColor: styles.front }}
-                        />
+            {showLegend ? (
+                <div className="aliquot-legend">
+                    {Object.entries(SLICE_TYPE_STYLES).map(([key, styles]) => (
+                        <div className="aliquot-legend-item" key={key}>
+                            <span
+                                className={`legend-swatch ${key}`}
+                                style={{ backgroundColor: styles.front }}
+                            />
+                            <span>
+                                <strong>{styles.label}</strong>
+                                {key === 'pink'
+                                    ? ' = 0.5 cm width (default)'
+                                    : ' = 1 cm width (default)'}
+                            </span>
+                        </div>
+                    ))}
+                    {/* Height/depth are one shared box-level dimension (see
+                        `dimensions`), identical for every slice regardless of
+                        type, so they're stated once here rather than repeated
+                        in each slice's own popover. */}
+                    <div className="aliquot-legend-item aliquot-legend-dimensions">
                         <span>
-                            <strong>{styles.label}</strong>
-                            {key === 'pink'
-                                ? ' = 0.5 cm width (default)'
-                                : ' = 1 cm width (default)'}
+                            Height {heightCm} cm &middot; Depth {depthCm} cm
                         </span>
                     </div>
-                ))}
-                {/* Height/depth are one shared box-level dimension (see
-                    `dimensions`), identical for every slice regardless of
-                    type, so they're stated once here rather than repeated
-                    in each slice's own popover. */}
-                <div className="aliquot-legend-item aliquot-legend-dimensions">
-                    <span>
-                        Height {heightCm} cm &middot; Depth {depthCm} cm
-                    </span>
                 </div>
-            </div>
+            ) : null}
         </div>
     );
 }
@@ -1533,6 +1542,7 @@ export default function AliquotVisualization({
 AliquotVisualization.propTypes = {
     title: PropTypes.string,
     showSliceLabels: PropTypes.bool,
+    showLegend: PropTypes.bool,
     className: PropTypes.string,
     idPrefix: PropTypes.string,
     enableBivalvedSplit: PropTypes.bool,
