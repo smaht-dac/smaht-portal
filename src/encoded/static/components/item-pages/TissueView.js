@@ -5,6 +5,7 @@ import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
 import DefaultItemView from './DefaultItemView';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
+import { FixedScoreLegend } from '../browse/browse-view/BrowseTissueHeatmapTable';
 import AliquotVisualization from './components/tissue-overview/AliquotVisualization';
 import NonSolidAliquotVisualization from './components/tissue-overview/NonSolidAliquotVisualization';
 import { useUserDownloadAccess } from '../util/hooks';
@@ -47,6 +48,15 @@ import {
 // plain array, not a query string -- derived once from BROWSE_STATUS_FILTERS
 // itself (rather than a second hardcoded list) so the two can't drift apart.
 const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('status');
+
+// See TissueTypeView.js's identical constant for the full rationale -- a
+// distinct `tissue-donor-score-N` class (not BrowseTissueHeatmapTable's own
+// `score-N`) so this legend's colors read the same `--tissue-donor-score-N-*`
+// custom property (_item-pages.scss) this table's own .autolysis-score-cell
+// does.
+const TISSUE_DONOR_AUTOLYSIS_LEGEND_ENTRIES = [0, 1, 2, 3].map((value) => {
+    return { className: `tissue-donor-score-${value}`, label: String(value) };
+});
 
 export default class TissueOverview extends DefaultItemView {
     getTabViewContents() {
@@ -1096,84 +1106,121 @@ const TissueView = React.memo(function TissueView({
                     </div>
                 </div>
 
-                <div className="tissue-donor-table-card">
+                <div className="tissue-donor-table-card tissue-heatmap-card">
                     {/*
                         Lists every donor whose Tissue shares this Tissue's resolved tissue_type
                         (not just this Tissue's own donor). Autolysis Score, Non-Target Tissue
                         Presence, and Unexpected/Pathologic Finding come from each donor's own
                         Tissue.pathology_summary (Tissue -> TissueSample -> PathologyReport
                         rev-link chain); "-" means no pathology report covers that tissue sample.
+
+                        A plain static stand-in for DotRouter/DotRouterTab's
+                        own rendered markup (nav.dot-tab-nav > .dot-tab-nav-list
+                        > button.active > .btn-title, then .tab-router-contents)
+                        -- there's only ever 1 real tab here, and the real
+                        DotRouter (BrowseTissueHeatmapTable.js's own 3-tab
+                        tables) actually throws with just 1 child:
+                        DotRouter.getDefaultTab reads `children.length`, but
+                        React only wraps `props.children` in an array once
+                        there's more than 1 of them -- with exactly 1,
+                        `children` is that single element, `.length` comes
+                        back `undefined`, the loop never finds a default tab,
+                        and render() crashes destructuring `null.props`.
+                        Reusing just the CSS classes (`tissue-heatmap-tabs`, a
+                        real component's own click/URL routing has nothing to
+                        switch to here anyway) gives this table the exact same
+                        tab-strip card look for visual consistency without
+                        that crash.
                     */}
-                    <div className="body">
-                        <table className="tissue-donor-table table">
-                            <thead>
-                                <tr>
-                                    <th>Donor ID</th>
-                                    <th>Sex</th>
-                                    <th>Age</th>
-                                    <th>Autolysis Score</th>
-                                    <th>Non-Target Tissue Presence</th>
-                                    <th>Unexpected/Pathologic Finding</th>
-                                    <th>Histology Viewer</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {donorsLoading ? (
-                                    <tr>
-                                        <td colSpan={8}>
-                                            <i className="icon icon-circle-notch icon-spin fas" />
-                                        </td>
-                                    </tr>
-                                ) : donors.length > 0 ? (
-                                    donors.map(({ donor: d, tissue: t }) => {
-                                        const donorHref = getDonorHref(d, userDownloadAccess);
-                                        const pathologySummary = t?.pathology_summary || {};
-                                        const histologyImages = pathologySummary.histology_images || [];
-                                        return (
-                                            <tr key={d.uuid}>
-                                                <td>
-                                                    {donorHref ? (
-                                                        <a href={donorHref}>{getDisplayText(d)}</a>
-                                                    ) : (
-                                                        getDisplayText(d)
-                                                    )}
-                                                </td>
-                                                <td>{getDisplayText(d.sex)}</td>
-                                                <td>{getDisplayText(formatDonorAge(d.age))}</td>
-                                                <td
-                                                    className={
-                                                        enableConditionalColor
-                                                            ? getAutolysisScoreCellClass(
-                                                                pathologySummary.autolysis_score
-                                                            )
-                                                            : ''
-                                                    }>
-                                                    {getDisplayText(pathologySummary.autolysis_score)}
-                                                </td>
-                                                <td>{formatYesNo(pathologySummary.non_target_tissue_present)}</td>
-                                                <td>{formatYesNo(pathologySummary.pathologic_finding_present)}</td>
-                                                <td>
-                                                    {histologyImages.length > 0 ? (
-                                                        <a
-                                                            href={histologyImages[0]?.href || histologyImages[0]?.['@id']}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer">
-                                                            View{histologyImages.length > 1 ? ` (${histologyImages.length})` : ''}
-                                                        </a>
-                                                    ) : (
-                                                        '-'
-                                                    )}
+                    <div className="tab-router">
+                        <nav className="dot-tab-nav tissue-heatmap-tabs">
+                            <div className="dot-tab-nav-list">
+                                <button type="button" className="active">
+                                    <div className="btn-title">Donor Details</div>
+                                </button>
+                            </div>
+                        </nav>
+                        <div className="tab-router-contents">
+                            <div className="tissue-heatmap-metric-heading">
+                                <h2 className="tissue-heatmap-metric-title">Donor Details</h2>
+                                <FixedScoreLegend
+                                    entries={TISSUE_DONOR_AUTOLYSIS_LEGEND_ENTRIES}
+                                    leftCaption="Minimal"
+                                    rightCaption="Severe"
+                                />
+                            </div>
+                            <div className="body">
+                                <table className="tissue-donor-table table">
+                                    <thead>
+                                        <tr>
+                                            <th>Donor ID</th>
+                                            <th>Sex</th>
+                                            <th>Age</th>
+                                            <th>Autolysis Score</th>
+                                            <th>Non-Target Tissue Presence</th>
+                                            <th>Unexpected/Pathologic Finding</th>
+                                            <th>Histology Viewer</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {donorsLoading ? (
+                                            <tr>
+                                                <td colSpan={8}>
+                                                    <i className="icon icon-circle-notch icon-spin fas" />
                                                 </td>
                                             </tr>
-                                        );
-                                    })
-                                ) : (
-                                    <tr>
-                                        <td colSpan={8}>No donor data available for this tissue type.</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                        ) : donors.length > 0 ? (
+                                            donors.map(({ donor: d, tissue: t }) => {
+                                                const donorHref = getDonorHref(d, userDownloadAccess);
+                                                const pathologySummary = t?.pathology_summary || {};
+                                                const histologyImages = pathologySummary.histology_images || [];
+                                                return (
+                                                    <tr key={d.uuid}>
+                                                        <td>
+                                                            {donorHref ? (
+                                                                <a href={donorHref}>{getDisplayText(d)}</a>
+                                                            ) : (
+                                                                getDisplayText(d)
+                                                            )}
+                                                        </td>
+                                                        <td>{getDisplayText(d.sex)}</td>
+                                                        <td>{getDisplayText(formatDonorAge(d.age))}</td>
+                                                        <td
+                                                            className={
+                                                                enableConditionalColor
+                                                                    ? getAutolysisScoreCellClass(
+                                                                        pathologySummary.autolysis_score
+                                                                    )
+                                                                    : ''
+                                                            }>
+                                                            {getDisplayText(pathologySummary.autolysis_score)}
+                                                        </td>
+                                                        <td>{formatYesNo(pathologySummary.non_target_tissue_present)}</td>
+                                                        <td>{formatYesNo(pathologySummary.pathologic_finding_present)}</td>
+                                                        <td>
+                                                            {histologyImages.length > 0 ? (
+                                                                <a
+                                                                    href={histologyImages[0]?.href || histologyImages[0]?.['@id']}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer">
+                                                                    View{histologyImages.length > 1 ? ` (${histologyImages.length})` : ''}
+                                                                </a>
+                                                            ) : (
+                                                                '-'
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={8}>No donor data available for this tissue type.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -445,7 +445,7 @@ export function ScoreLegend({ entries }) {
 // two ends (e.g. "Minimal"/"Severe") for a metric whose bare band labels
 // (plain numbers) wouldn't otherwise say which end means what; Target Tissue
 // %'s own labels are already full percentage ranges, so it passes neither.
-function FixedScoreLegend({ entries, leftCaption = null, rightCaption = null }) {
+export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = null }) {
     if (!entries || entries.length === 0) return null;
     return (
         <div className="tissue-heatmap-fixed-legend">

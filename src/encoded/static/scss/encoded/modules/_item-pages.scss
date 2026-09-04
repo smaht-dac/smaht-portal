@@ -3514,21 +3514,22 @@ File, Donor, and Publication Overview Styles
             overflow: hidden;
             margin-bottom: 24px;
 
-            // Admin-only Colors picker (TissueTypeView.js) -- absolutely
-            // positioned over the table's own top-right corner instead of
-            // a title bar of its own, since this card no longer has one
-            // (see .tissue-donor-table's own thead below for why -- there's
-            // no separate "Donor Details" heading to anchor a toolbar row
-            // to any more).
-            .tissue-donor-table-toolbar {
-                position: absolute;
-                top: 0;
-                right: 0;
-                height: 45px;
-                display: flex;
-                align-items: center;
-                padding: 0 12px;
-                z-index: 4;
+            // The shared `.tissue-heatmap-tabs.dot-tab-nav` button style
+            // (_search.scss) boxes an active tab in on 3 sides (its own
+            // left/right/bottom borders) to visually separate it from its
+            // *neighboring* tabs -- this card only ever has the 1
+            // ("Donor Details", see TissueTypeView.js/TissueView.js's own
+            // plain static stand-in for DotRouter), so that box read as an
+            // arbitrary outline around nothing in particular. Only the top
+            // accent (the actual "this is the active view" cue) is worth
+            // keeping here. The selector repeats that shared rule's own
+            // full ancestor chain (not just `.tissue-donor-table-card
+            // .dot-tab-nav-list button.active`) so this actually outranks
+            // it on specificity -- a shorter one loses outright regardless
+            // of source order.
+            &.tissue-heatmap-card .tissue-heatmap-tabs.dot-tab-nav .dot-tab-nav-list button.active {
+                border-right-color: transparent;
+                border-left-color: transparent;
             }
 
             .body {
@@ -3606,12 +3607,13 @@ File, Donor, and Publication Overview Styles
                     background-color: $gray-10;
                 }
 
-                // Soft, pastel version of the same neutral blue-grey
-                // light->dark scale as the Browse-by-Tissue heatmap's
-                // solid-filled score cells (_search.scss's
-                // .tissue-heatmap-cell). `td.score-N` beats the zebra-row
-                // rule above since it's more specific (a class selector vs.
-                // `:nth-child`).
+                // Same default "Sky" light->dark scale as the
+                // Browse-by-Tissue heatmap's own solid-filled score cells
+                // (_search.scss's .tissue-heatmap-cell) -- per explicit
+                // request, so the 2 tables' Autolysis Score cells read as
+                // the same convention out of the box. `td.score-N` beats
+                // the zebra-row rule above since it's more specific (a
+                // class selector vs. `:nth-child`).
                 td.autolysis-score-cell {
                     font-weight: 600;
 
@@ -3623,22 +3625,23 @@ File, Donor, and Publication Overview Styles
                     // different palette. Deliberately a separate variable
                     // namespace from the Browse-by-Tissue heatmap's
                     // `--heatmap-score-N-*` so the two tables' palettes stay
-                    // independently pickable.
+                    // independently pickable even though they start out
+                    // showing the same colors.
                     &.score-0 {
-                        background-color: var(--tissue-donor-score-0-bg, #DDE5EA);
-                        color: var(--tissue-donor-score-0-text, #4A5460);
+                        background-color: var(--tissue-donor-score-0-bg, #DAEBF1);
+                        color: var(--tissue-donor-score-0-text, #28323C);
                     }
                     &.score-1 {
-                        background-color: var(--tissue-donor-score-1-bg, #DCE3E8);
-                        color: var(--tissue-donor-score-1-text, #3A4550);
+                        background-color: var(--tissue-donor-score-1-bg, #ADD3E1);
+                        color: var(--tissue-donor-score-1-text, #28323C);
                     }
                     &.score-2 {
-                        background-color: var(--tissue-donor-score-2-bg, #C2CDD4);
-                        color: var(--tissue-donor-score-2-text, #2E3742);
+                        background-color: var(--tissue-donor-score-2-bg, #80BBD0);
+                        color: var(--tissue-donor-score-2-text, #28323C);
                     }
                     &.score-3 {
-                        background-color: var(--tissue-donor-score-3-bg, #A6B3BC);
-                        color: var(--tissue-donor-score-3-text, #1E252E);
+                        background-color: var(--tissue-donor-score-3-bg, #54A3C0);
+                        color: var(--tissue-donor-score-3-text, #FFFFFF);
                     }
                 }
 
@@ -3672,6 +3675,35 @@ File, Donor, and Publication Overview Styles
                 .tissue-heatmap-sort-icon {
                     font-size: 0.6875rem;
                     color: $search-header-icon-color;
+                }
+            }
+
+            // The Donor Details heading's own Autolysis Score legend
+            // (FixedScoreLegend, TissueTypeView.js/TissueView.js) -- a
+            // sibling of .tissue-donor-table above, not nested inside it,
+            // since the legend itself sits in the heading row above the
+            // table, not inside it. `.tissue-donor-score-N`, not
+            // FixedScoreLegend's usual `.score-N`, so its swatches read
+            // this table's own `--tissue-donor-score-N-*` custom property
+            // (matching whatever td.autolysis-score-cell above currently
+            // shows, HeatmapColorPicker pick included) instead of the
+            // Browse-by-Tissue heatmap's separate `--heatmap-score-N-*`.
+            .tissue-heatmap-fixed-legend-swatch {
+                &.tissue-donor-score-0 {
+                    background-color: var(--tissue-donor-score-0-bg, #DAEBF1);
+                    color: var(--tissue-donor-score-0-text, #28323C);
+                }
+                &.tissue-donor-score-1 {
+                    background-color: var(--tissue-donor-score-1-bg, #ADD3E1);
+                    color: var(--tissue-donor-score-1-text, #28323C);
+                }
+                &.tissue-donor-score-2 {
+                    background-color: var(--tissue-donor-score-2-bg, #80BBD0);
+                    color: var(--tissue-donor-score-2-text, #28323C);
+                }
+                &.tissue-donor-score-3 {
+                    background-color: var(--tissue-donor-score-3-bg, #54A3C0);
+                    color: var(--tissue-donor-score-3-text, #FFFFFF);
                 }
             }
         }
