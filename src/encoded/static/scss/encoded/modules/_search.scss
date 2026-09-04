@@ -1269,8 +1269,8 @@ body[data-at-type^='Publication-collections'] {
                 display: flex;
                 margin: auto 0px auto auto;
                 overflow: hidden;
-                border: 1px solid #c2dbec;
-                border-radius: 10px;
+                border: 2px solid #c2dbec;
+                border-radius: 16px;
                 height: max-content;
 
                 img {
@@ -1419,6 +1419,7 @@ body[data-at-type^='Publication-collections'] {
                             min-width: 201px;
                             padding: 0px;
                             background-color: $pure-white;
+                            border-bottom: none;
 
                             &-title {
                                 display: flex;
@@ -1647,6 +1648,23 @@ body[data-at-type^='Publication-collections'] {
                         }
                     }
                 }
+
+                &.suppressed {
+                    .thumbnail-title {
+                        .thumbnail {
+                            background-color: #f1f9ff;
+                            filter: grayscale(0.8);
+
+                            img {
+                                padding: 15px;
+                                object-fit: contain;
+                            }
+                        }
+                    }
+                    .title .value {
+                        color: #8d8e97;
+                    }
+                }
             }
 
             &:last-of-type {
@@ -1654,6 +1672,20 @@ body[data-at-type^='Publication-collections'] {
                     border-bottom: none;
                 }
             }
+        }
+    }
+}
+
+// Widen the Benchmarking publication collection page between the xl (1200px)
+// and xxl (1500px) breakpoints, where the default `.container` max-width
+// otherwise leaves a disproportionately large margin.
+body[data-at-type='Publication-collectionsBenchmarkingPage'] {
+    @include media-breakpoint-only(xl) {
+        #post-navbar-container > #content.container {
+            width: 100%;
+            max-width: calc(100% - 100px);
+            margin-left: 50px;
+            margin-right: 50px;
         }
     }
 }

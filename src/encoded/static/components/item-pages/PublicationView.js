@@ -22,6 +22,7 @@ import {
     getPublicationYear,
 } from '../util/Schemas';
 import { renderLoginAccessPopover } from './PublicDonorView';
+import { BROWSE_LINKS } from '../browse/BrowseView';
 
 /**
  * Finds the `static_content` entry for a given `location`, returning its
@@ -50,7 +51,10 @@ const PublicationViewTitle = () => {
     let breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
-        { display_title: 'Browse by Publication' },
+        {
+            display_title: 'Browse by Publication',
+            href: BROWSE_LINKS['publication'],
+        },
     ];
     return (
         <div className="view-title container-wide">
@@ -289,7 +293,7 @@ const PublicationViewTabs = (props) => {
     const customHideColumns = [];
 
     const tableProps = {
-        embeddedTableHeaderText: 'Published Data from this Publication',
+        embeddedTableHeaderText: 'Analysis results published with this paper',
         associatedFilesSearchHref: fileSearchUrl,
         schemas,
         session,
@@ -298,6 +302,8 @@ const PublicationViewTabs = (props) => {
         customColumns,
         customHideColumns,
     };
+
+    const shouldShowTable = !context?.tags?.includes('suppress_data_banner');
 
     return (
         <div className="tabs-container">
@@ -330,7 +336,11 @@ const PublicationViewTabs = (props) => {
                                         }
                                     />
                                 </div>
-                                <FileOverviewTableController {...tableProps} />
+                                {shouldShowTable && (
+                                    <FileOverviewTableController
+                                        {...tableProps}
+                                    />
+                                )}
                             </>
                         ) : (
                             <div className="no-results">
@@ -441,12 +451,17 @@ const PublicationView = React.memo(function PublicationView(props) {
                                 <h5>Publication Citation</h5>
                                 <object.CopyWrapper
                                     value={citationString}
-                                    wrapperElement="span"></object.CopyWrapper>
+                                    wrapperElement="span">
+                                    Copy
+                                </object.CopyWrapper>
                             </div>
                             <span className="citation">
                                 {citationString}
                                 {context?.accession === 'SMAPBTYIDADU' && (
                                     <span>. Accepted at Cell Genomics.</span>
+                                )}
+                                {context?.accession === 'SMAPB7B2PUV5' && (
+                                    <span>. Accepted in Cell.</span>
                                 )}
                             </span>
                             <button

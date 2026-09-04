@@ -1794,6 +1794,13 @@ File, Donor, and Publication Overview Styles
                     }
                 }
 
+                &.abstract {
+                    .body {
+                        font-size: 1rem;
+                        line-height: 1.8rem;
+                    }
+                }
+
                 .header {
                     display: flex;
                     height: 44px;
@@ -2706,7 +2713,7 @@ File, Donor, and Publication Overview Styles
                 .details {
                     display: flex;
                     gap: 8px;
-                    font-size: 0.875rem;
+                    font-size: 1rem;
 
                     .scope {
                         color: #5d5e63;
@@ -2737,13 +2744,13 @@ File, Donor, and Publication Overview Styles
                 display: flex;
                 align-items: flex-end;
                 h5 {
-                    font-size: 0.75rem;
+                    font-size: 0.85rem;
                     margin: 0px;
                 }
                 .copy-wrapper {
                     font-size: 0.75rem;
                     color: #94959a;
-                    margin-left: 8px;
+                    margin-left: 12px;
                 }
             }
 
@@ -2758,7 +2765,7 @@ File, Donor, and Publication Overview Styles
                     padding-right: 50px;
 
                     .citation {
-                        font-size: 0.85rem;
+                        font-size: 0.9rem;
                         line-height: 1.5rem;
                         margin-top: 10px;
                     }
@@ -2769,7 +2776,7 @@ File, Donor, and Publication Overview Styles
                     flex-direction: column;
 
                     h5 {
-                        font-size: 0.75rem;
+                        font-size: 0.85rem;
                         margin-top: 0px;
                         margin-bottom: 15px;
                     }
@@ -2810,7 +2817,7 @@ File, Donor, and Publication Overview Styles
                 border: none;
                 background-color: transparent;
                 margin-top: 10px;
-                font-size: 0.85rem;
+                font-size: 0.9rem;
             }
             .citation-details {
                 display: flex;
@@ -2820,17 +2827,17 @@ File, Donor, and Publication Overview Styles
                 .details-container {
                     display: flex;
                     flex: 1;
-                    gap: 20px;
+                    gap: 40px;
 
                     .full-authors {
                         display: flex;
                         flex: 1;
                         flex-direction: column;
                         gap: 15px;
-                        font-size: 0.85rem;
+                        font-size: 0.95rem;
 
                         .author-list {
-                            line-height: 1.5rem;
+                            line-height: 1.75rem;
                         }
                     }
                     .journal-details {
@@ -2838,7 +2845,7 @@ File, Donor, and Publication Overview Styles
                         flex: 1;
                         flex-direction: column;
                         gap: 15px;
-                        font-size: 0.85rem;
+                        font-size: 0.95rem;
                     }
                 }
             }
@@ -2956,56 +2963,37 @@ File, Donor, and Publication Overview Styles
                     padding-top: 0px;
                     padding-bottom: 40px;
 
-                    p {
-                        font-size: 0.9375rem;
-                        line-height: 1.75rem;
-                    }
-                    img {
-                        position: absolute;
-                        top: 0px;
-                        right: 0px;
-                        display: block;
-                        max-width: 500px;
-                        width: 100%;
-                        height: auto;
-                        border-radius: 5px;
-                        border: 1px solid #e5e5e5;
+                    & > div {
+                        display: flex;
+                        gap: 40px;
                     }
 
-                    // Only reserve space for the image when the content
-                    // actually includes one
-                    @supports selector(:has(*)) {
-                        &:has(img) {
-                            padding-right: 550px;
-                            min-height: 300px;
-                        }
+                    & div > div {
+                        display: flex;
+                        flex: 1;
+                        font-size: 1rem;
+                        line-height: 1.8rem;
+                    }
+
+                    img:not(.clickable-image),
+                    .clickable-image-container {
+                        display: flex;
+                        flex: 1;
+                        height: auto;
+                        max-width: 600px;
+                    }
+
+                    .clickable-image-container .clickable-image:hover {
+                        filter: brightness(0.5);
                     }
 
                     @include media-breakpoint-down(lg) {
-                        padding-right: 0px;
+                        & > div {
+                            flex-direction: column-reverse;
 
-                        img {
-                            right: auto;
-                            top: 0px;
-                            max-height: 250px;
-                            width: auto;
-                            max-width: 100%;
-                        }
-
-                        @supports selector(:has(*)) {
-                            &:has(img) {
-                                padding-right: 0px;
-                                padding-top: 300px;
-                            }
-                        }
-                    }
-                    @include media-breakpoint-down(sm) {
-                        padding-right: 0px;
-
-                        @supports selector(:has(*)) {
-                            &:has(img) {
-                                padding-right: 0px;
-                                padding-top: 250px;
+                            img:not(.clickable-image),
+                            .clickable-image-container {
+                                width: 100%;
                             }
                         }
                     }
@@ -3080,6 +3068,78 @@ File, Donor, and Publication Overview Styles
 
         img {
             width: 40px;
+        }
+    }
+}
+
+// ClickableImage component styles
+.clickable-image-container {
+    position: relative;
+    display: block;
+    cursor: pointer;
+
+    .clickable-image {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid #e5e5e5;
+        border-radius: 5px;
+
+        &-overlay {
+            position: absolute;
+            opacity: 0;
+            background-color: rgba(0, 0, 0, 0.25);
+            transition: opacity 0.15s ease;
+            height: 100%;
+            width: 100%;
+        }
+    }
+
+    .clickable-image-expand-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #fff;
+        font-size: 2rem;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+
+    &:hover,
+    &:focus-visible {
+        .clickable-image-overlay {
+            opacity: 1;
+        }
+        .clickable-image-expand-icon {
+            opacity: 1;
+        }
+    }
+}
+
+.clickable-image-modal {
+    .modal-dialog {
+        max-width: 90vw;
+
+        &.modal-lg .modal-header {
+            border-bottom: none;
+            padding: 0;
+
+            button.btn-close {
+                margin: 15px 15px auto auto;
+                padding: 0px;
+            }
+        }
+    }
+    .modal-body {
+        display: flex;
+        justify-content: center;
+        padding: 0;
+
+        img {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
         }
     }
 }
