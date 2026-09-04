@@ -3477,7 +3477,28 @@ File, Donor, and Publication Overview Styles
                     position: absolute;
                     top: 50%;
                     left: 50%;
-                    transform: translate(-50%, -50%);
+                    // The isometric SVG's own bounding box isn't symmetric
+                    // around the box it draws -- the box's front face sits
+                    // toward the left, with the depth (top+side faces) and
+                    // the height dimension arrow/label extending further
+                    // right past it (see AliquotVisualization.js's
+                    // viewBoxWidth: widthPx + depthX + 180, where only
+                    // `widthPx` is the front face itself). Centering this
+                    // overlay on that full bounding box (a plain 50%/50%)
+                    // put it visibly right of the box's own visual center --
+                    // barely noticeable for a wide diagram (many slices,
+                    // `widthPx` dominates the total), but obvious for a
+                    // narrow one (e.g. Hippocampus's own short strip
+                    // template) where the fixed depthX+180 slack is a much
+                    // bigger share of the total width. This 2nd translateX
+                    // nudges it back toward the front face's own true
+                    // center -- a fixed pixel offset, not a %, since (as the
+                    // math below the fold works out) the actual gap between
+                    // the 2 centers doesn't depend on `widthPx` at all, only
+                    // on this tissue's own depth (72px at the common 1.5cm
+                    // depthScale=1 baseline most tissues, brain included,
+                    // actually use).
+                    transform: translate(-50%, -50%) translateX(-50px);
                     background: rgba(255, 255, 255, 0.88);
                     padding: 16px 28px;
                     border-radius: 12px;
