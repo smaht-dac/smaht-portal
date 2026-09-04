@@ -1,6 +1,7 @@
 'use strict';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import ReactTooltip from 'react-tooltip';
 import { ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
@@ -816,7 +817,7 @@ const CELL_VALUE_DISPLAY_MODES = [
     { key: 'inline', label: 'All values' },
     { key: 'diagonal', label: 'Diagonal split' },
     { key: 'vertical', label: 'Vertical split' },
-    { key: 'hover', label: 'On hover' },
+    { key: 'hover', label: 'On click' },
 ];
 
 // BrowseTissueHeatmapTable's own toolbar bundles 2 admin-only, experimental,
@@ -954,7 +955,7 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRo
         // record(s) actually carry a different value (see
         // hasDistinctAltValues above), not just any multi-record cell. A
         // same-value multi-record cell still shows the full detail popover
-        // on hover (MetricHeatmapTable's hoverDetail) -- it's just not
+        // on click (MetricHeatmapTable's selectedCell) -- it's just not
         // flagged, since there's nothing there worth drawing the eye to.
         (hasDistinctAltValues(entries) ? ' has-alt-values' : '')
     );
@@ -968,8 +969,8 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRo
 const DETAIL_POPOVER_ESTIMATED_HEIGHT = 160;
 
 // `position: fixed` inline style for the detail popover, anchored off the
-// hovered cell's own live `getBoundingClientRect()` (see MetricHeatmapTable's
-// handleShowDetail) -- opens below-right of the cell by default, flipping
+// clicked cell's own live `getBoundingClientRect()` (see MetricHeatmapTable's
+// handleCellClick) -- opens below-right of the cell by default, flipping
 // to open upward when there isn't estimated room below in the *viewport*
 // (not just the table), same reasoning `.tissue-heatmap-sticky-header`
 // already applies to the header itself. Returns `isFlippedUp` alongside
@@ -988,47 +989,102 @@ function getDetailPopoverStyle(rect) {
     };
 }
 
-// Backing Tissue record(s) for the currently-hovered cell -- see
-// buildTissueMetricMatrix's cellEntries and MetricHeatmapTable's
-// hoverDetail/handleShowDetail for why this renders `position: fixed` at a
-// JS-computed spot rather than as a plain CSS :hover-revealed descendant of
-// the cell. The header names the column's own tissue_type (e.g. "Brain,
-// Cerebellum") rather than a generic "Tissue record" -- this can pop up
-// under a merged "Brain" header (see renderHeaderCells) where no other
-// visible label ties a given column back to which region it actually is.
-// `metricLabel` (the current tab's own name, e.g. "Autolysis Score") is
-// shown too -- the value itself is otherwise unlabeled here, and this same
-// popover renders identically across all 3 tabs, so nothing else in it
-// says which metric a bare "2" is even measuring.
-function renderCellAltValues(entries, tissueType, metricLabel, formatValue, style, isFlippedUp) {
-    if (!entries) return null;
+// Detail popover for the currently-clicked cell (MetricHeatmapTable's
+// selectedCell/handleCellClick) -- `position: fixed`, positioned in JS off
+// the clicked cell's own live `getBoundingClientRect()`, same reasoning as
+// before this became click-triggered: the table's own scroll wrapper needs
+// `overflow-x: auto`, which (same trap `.tissue-heatmap-sticky-header`'s own
+// comment documents) forces `overflow-y: auto` too, clipping anything
+// absolutely-positioned past the wrapper's own bounds. A plain CSS
+// :hover/:focus-revealed descendant of the cell would hit that same trap.
+//
+// Laid out to match viz/Matrix/DataMatrix's own block-click popover format
+// (StackedBlockVisual.js's blockPopover -- a primary-row of label/value
+// pairs, an optional secondary-row for a multi-record breakdown, a
+// footer-row action button) -- per explicit request, so this table's own
+// click-to-inspect popover reads as the same convention used elsewhere in
+// the app rather than a one-off design.
+function renderCellDetailPopover({
+    donor, tissueType, metricLabel, value, entries, slots, splitByPreservationType, formatValue,
+    tissueOverviewHref, style, isFlippedUp,
+}, popoverRef) {
+    // Ischemic Time's own cells always show a Fixed/Frozen breakdown (see
+    // buildTissueMetricMatrix's cellSlots and the table cell's own always-
+    // split rendering, renderRowCells) whether or not *both* sides actually
+    // have a value -- the popover matches that unconditionally too, rather
+    // than falling back to a single-value view (no Fixed/Frozen distinction
+    // at all) whenever only 1 side happens to have real data. Every other
+    // tab's cells have no such fixed 2-way shape, so they only get a
+    // breakdown when there's an actual multi-record disagreement to show
+    // (`entries.length > 1`).
+    const breakdownEntries = splitByPreservationType
+        ? [
+            { label: 'Fixed', value: slots?.[0]?.value ?? null },
+            { label: 'Frozen', value: slots?.[1]?.value ?? null },
+        ]
+        : (entries && entries.length > 1 ? entries : null);
+    // A real multi-record breakdown (Fixed vs. Frozen, typically) gets its
+    // own secondary-row further down, each entry already labeled with this
+    // metric's own name (e.g. "Fixed Ischemic Time (h)") -- showing the bare
+    // metric value a 2nd time up here as well said nothing the breakdown
+    // didn't already, just with less context (no Fixed/Frozen distinction).
+    // The common single-value case has no such breakdown at all, so this is
+    // its only place to show the value.
+    const hasBreakdown = !!breakdownEntries;
     return (
         <div
-            className={'tissue-heatmap-cell-alt-values' + (isFlippedUp ? ' is-flipped-up' : '')}
+            ref={popoverRef}
+            className={'tissue-heatmap-cell-detail-popover' + (isFlippedUp ? ' is-flipped-up' : '')}
             style={style}>
-            <div className="tissue-heatmap-cell-alt-values-header">
-                <div className="tissue-heatmap-cell-alt-values-tissue">
-                    {formatTissueTypeLabel(tissueType)}
+            <div className="inner">
+                <div className="primary-row">
+                    <div className="field">
+                        <div className="label">Donor</div>
+                        <div className="value">{donor}</div>
+                    </div>
+                    <div className="field">
+                        <div className="label">Tissue</div>
+                        <div className="value">{formatTissueTypeLabel(tissueType)}</div>
+                    </div>
+                    {!hasBreakdown ? (
+                        <div className="field">
+                            <div className="label">{metricLabel}</div>
+                            <div className="value">{formatValue(value)}</div>
+                        </div>
+                    ) : null}
                 </div>
-                {metricLabel ? (
-                    <div className="tissue-heatmap-cell-alt-values-metric">{metricLabel}</div>
+                {hasBreakdown ? (
+                    <>
+                        {/* The metric name once, as this whole row's own
+                            caption -- repeating it inside every single
+                            column label below ("Fixed Ischemic Time (h)" /
+                            "Frozen Ischemic Time (h)") said it twice for no
+                            reason; a bare "Fixed"/"Frozen" reads fine once
+                            it's clear what they're both values *of*. */}
+                        <div className="secondary-row-heading">{metricLabel}</div>
+                        <div className="secondary-row">
+                            {breakdownEntries.map((entry, i) => (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <div className="field" key={i}>
+                                    <div className="label">{entry.label || 'Value'}</div>
+                                    <div className="value">{formatValue(entry.value)}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                ) : null}
+                {tissueOverviewHref ? (
+                    <div className="footer-row">
+                        <a
+                            href={tissueOverviewHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary">
+                            Tissue Overview
+                        </a>
+                    </div>
                 ) : null}
             </div>
-            {entries.map((entry, i) => (
-                <div
-                    key={i}
-                    className={'tissue-heatmap-cell-alt-values-row' + (entry.isPrimary ? ' is-primary' : '')}>
-                    <span className="tissue-heatmap-cell-alt-values-id">
-                        {entry.label ? (
-                            <span className="tissue-heatmap-cell-alt-values-tag">{entry.label}</span>
-                        ) : null}
-                        {entry.externalId ? (
-                            <span className="tissue-heatmap-cell-alt-values-extid">{entry.externalId}</span>
-                        ) : null}
-                    </span>
-                    <span className="tissue-heatmap-cell-alt-values-value">{formatValue(entry.value)}</span>
-                </div>
-            ))}
         </div>
     );
 }
@@ -1080,11 +1136,19 @@ function renderCellAltValues(entries, tissueType, metricLabel, formatValue, styl
 // buildTissueMetricMatrix), no corner flag. `'diagonal'`/`'vertical'` render
 // a genuinely split cell instead -- one half per value. `'hover'` shows
 // only the primary value plus the corner flag instead. In every mode, the
-// detail popover (renderCellAltValues, wired up by the caller via
-// onShowDetail/onHideDetail) still opens on hover -- with every value
-// already visible without hovering in every mode but `'hover'` itself,
+// detail popover (renderCellDetailPopover, wired up by the caller via
+// selectedCell/onCellClick) opens on *click*, not hover -- with every value
+// already visible without opening it in every mode but `'hover'` itself,
 // this is just an optional way to see which record each value actually
 // came from, not a requirement to see the data.
+//
+// `donor`/`selectedCell`/`onCellClick` -- clicking a cell opens its own
+// detail popover (see MetricHeatmapTable's selectedCell/handleCellClick)
+// and fades every *other* cell in the table (`.tissue-heatmap-table-wrap
+// .has-selected-cell`, _search.scss) so the clicked one stands out --
+// `donor` (this row's own donor id, otherwise not threaded down this far)
+// is only needed so the click payload can identify which row it came from
+// for the popover's own content.
 //
 // `cellSlots`/`splitByPreservationType` -- per explicit request, Ischemic
 // Time's split modes always show a Fixed half and a Frozen half in the
@@ -1099,7 +1163,7 @@ function renderCellAltValues(entries, tissueType, metricLabel, formatValue, styl
 // rules a `'diagonal'`/`'vertical'` cell follows; `cellSlots` (built by
 // buildTissueMetricMatrix, always exactly
 // `[Fixed entry | null, Frozen entry | null]`) is only read when it does.
-function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, onShowDetail, onHideDetail, cellValueDisplayMode, splitByPreservationType) {
+function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, donor, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, selectedCell, onCellClick, cellValueDisplayMode, splitByPreservationType) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
@@ -1147,8 +1211,18 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
         const isColumnSegment =
             columnTissueTypes.includes(hoveredColumn) &&
             (hoveredCellPosition === null || rowIndex <= hoveredCellPosition.rowIndex);
+        // The clicked cell (MetricHeatmapTable's selectedCell) -- matched by
+        // position, same span-aware range check isColumnSegment's own
+        // columnTissueTypes.includes uses, so clicking a merged "Brain"
+        // cell still recognizes itself as selected regardless of which of
+        // its covered columns selectedCell.columnIndex happens to point at.
+        const isSelected =
+            selectedCell !== null &&
+            selectedCell.rowIndex === rowIndex &&
+            selectedCell.columnIndex >= columnIndex &&
+            selectedCell.columnIndex < columnIndex + span;
 
-        const className = isSplitMode
+        const className = (isSplitMode
             ? 'tissue-heatmap-cell tissue-heatmap-cell-split' +
               ` tissue-heatmap-cell-split-${cellValueDisplayMode}` +
               (isRowSegment ? ' is-row-highlight' : '') +
@@ -1160,7 +1234,7 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                 isRowSegment,
                 isColumnSegment,
                 isHoverMode ? entries : null
-            );
+            )) + (isSelected ? ' is-selected' : '');
 
         nodes.push(
             <td
@@ -1168,15 +1242,16 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                 colSpan={span > 1 ? span : undefined}
                 className={className}
                 // eslint-disable-next-line react/jsx-no-bind
-                onMouseEnter={(event) => {
-                    onHoverCell(tissueType, rowIndex, columnIndex);
-                    onShowDetail(event.currentTarget, entries, tissueType);
-                }}
+                onMouseEnter={() => onHoverCell(tissueType, rowIndex, columnIndex)}
                 // eslint-disable-next-line react/jsx-no-bind
-                onMouseLeave={() => {
-                    onHoverEnd();
-                    onHideDetail();
-                }}>
+                onMouseLeave={onHoverEnd}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={(event) =>
+                    onCellClick(
+                        event.currentTarget, rowIndex, columnIndex, donor, tissueType, value, entries,
+                        slots, splitByPreservationType
+                    )
+                }>
                 {isSplitMode ? (
                     <>
                         <span
@@ -1362,7 +1437,7 @@ function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, 
 // region keeps its own individual header (IndividualTissueTypeHeaderLabel),
 // same as any other column, so a value can always be traced back to the
 // region it belongs to.
-function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn) {
+function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
     const nodes = [];
     let i = 0;
     while (i < tissueTypes.length) {
@@ -1382,7 +1457,10 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
                     key={tissueType}
                     colSpan={span > 1 ? span : undefined}
                     title="Brain"
-                    className={regionTissueTypes.includes(hoveredColumn) ? 'is-column-highlight' : undefined}
+                    className={
+                        (regionTissueTypes.includes(hoveredColumn) ? 'is-column-highlight' : '') +
+                        (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
+                    }
                     // eslint-disable-next-line react/jsx-no-bind
                     onMouseEnter={() => onHoverColumn(tissueType)}
                     // eslint-disable-next-line react/jsx-no-bind
@@ -1402,7 +1480,10 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
             <th
                 key={tissueType}
                 title={tissueType}
-                className={hoveredColumn === tissueType ? 'is-column-highlight' : undefined}
+                className={
+                    (hoveredColumn === tissueType ? 'is-column-highlight' : '') +
+                    (tissueType === selectedTissueType ? ' is-selected-column' : '')
+                }
                 // eslint-disable-next-line react/jsx-no-bind
                 onMouseEnter={() => onHoverColumn(tissueType)}
                 // eslint-disable-next-line react/jsx-no-bind
@@ -1426,7 +1507,7 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
 // MetricHeatmapTable's scroll-measurement effect) -- sharing the same
 // `sortState`/`handleHeaderClick` closures so a sort click on either one
 // updates the same state and can never let the two drift out of sync.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn) {
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
     return (
         <>
             <tr className="tissue-heatmap-group-row">
@@ -1462,7 +1543,8 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                     sortState,
                     handleHeaderClick,
                     hoveredColumn,
-                    onHoverColumn
+                    onHoverColumn,
+                    selectedTissueType
                 )}
             </tr>
         </>
@@ -1543,8 +1625,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     matrix,
     // This tab's own name (e.g. "Autolysis Score") -- shown as this table's
     // own heading (see the render below) as well as threaded down to the
-    // cell detail popover (renderCellAltValues), which otherwise has no way
-    // to say which metric its own value is.
+    // cell detail popover (renderCellDetailPopover), which otherwise has no
+    // way to say which metric its own value is.
     metricLabel,
     // The same explanatory text the tab's info-circle icon used to carry on
     // the tab label itself -- now shown on this heading instead (see the
@@ -1623,31 +1705,110 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         setHoveredCellPosition(null);
     };
 
-    // A cell's own detail popover (renderCellAltValues) used to be a plain
-    // CSS :hover-revealed descendant of the <td> -- but that <td> sits
-    // inside .tissue-heatmap-table-wrap, which needs `overflow-x: auto`
-    // for the table's own horizontal scroll and (per the CSS overflow
-    // spec, same trap .tissue-heatmap-sticky-header's own comment
-    // documents) that forces `overflow-y: auto` too. The wrapper's own
-    // height only ever accounts for normal-flow content, not an
-    // absolutely-positioned popover extending past it, so showing one
-    // suddenly made the wrapper discover overflow it didn't have a moment
-    // ago -- a vertical scrollbar popping in (a visible content shift) and
-    // clipping the popover's own bottom edge against that same, freshly
-    // vertical-scrolling box. `position: fixed`, positioned here in JS off
-    // the hovered cell's live `getBoundingClientRect()` rather than as a
-    // CSS descendant, is the only value that escapes that trap (same
-    // reason .tissue-heatmap-sticky-header itself has to be fixed, not
-    // sticky) -- `null` or `{ rect, entries, tissueType }`.
-    const [hoverDetail, setHoverDetail] = useState(null);
-    const handleShowDetail = (targetEl, entries, tissueType) => {
-        if (!entries) return;
-        setHoverDetail({ rect: targetEl.getBoundingClientRect(), entries, tissueType });
+    // A cell's own detail popover (renderCellDetailPopover) opens on click
+    // now, per explicit request matching viz/Matrix/DataMatrix's own
+    // click-to-inspect + fade-the-rest convention (see .has-selected-cell
+    // below) rather than a hover-revealed one -- a hover popover meant the
+    // detail view flickered open just from moving the mouse across the
+    // table, with no deliberate "I want to inspect this one" action behind
+    // it. `null` or `{ rect, rowIndex, columnIndex, donor, tissueType,
+    // value, entries }`.
+    //
+    // Still `position: fixed`, positioned here in JS off the clicked cell's
+    // live `getBoundingClientRect()`, rather than a plain CSS descendant of
+    // the <td> -- that <td> sits inside .tissue-heatmap-table-wrap, which
+    // needs `overflow-x: auto` for the table's own horizontal scroll and
+    // (per the CSS overflow spec, same trap .tissue-heatmap-sticky-header's
+    // own comment documents) that forces `overflow-y: auto` too. The
+    // wrapper's own height only ever accounts for normal-flow content, not
+    // an absolutely-positioned popover extending past it, so showing one
+    // would otherwise make the wrapper discover overflow it didn't have a
+    // moment ago -- a vertical scrollbar popping in (a visible content
+    // shift) and clipping the popover's own bottom edge against that same,
+    // freshly vertical-scrolling box.
+    const [selectedCell, setSelectedCell] = useState(null);
+    const selectedCellPopoverRef = useRef(null);
+    const handleCellClick = (
+        targetEl, rowIndex, columnIndex, donor, tissueType, value, entries, slots, splitByPreservationType
+    ) => {
+        setSelectedCell((prev) => {
+            // Clicking the already-selected cell again closes it -- the
+            // same toggle-off convention every other click-to-open control
+            // in this file (HeatmapColorPicker, BrainRegionHeaderCell) uses.
+            if (prev && prev.rowIndex === rowIndex && prev.columnIndex === columnIndex) return null;
+            return {
+                rect: targetEl.getBoundingClientRect(),
+                rowIndex, columnIndex, donor, tissueType, value, entries, slots, splitByPreservationType,
+            };
+        });
     };
-    const handleHideDetail = () => setHoverDetail(null);
-    const detailPopoverPosition = hoverDetail
-        ? getDetailPopoverStyle(hoverDetail.rect)
+    const handleCloseSelectedCell = () => setSelectedCell(null);
+    // The flip decision (open above vs. below the clicked cell) first
+    // renders off DETAIL_POPOVER_ESTIMATED_HEIGHT -- a guess, not this
+    // specific popover's real height (which varies: a breakdown row and
+    // footer button both add to it, and neither is always present) -- so a
+    // guess that undershoots still opens downward into a cell near the
+    // bottom of the viewport and runs the popover's real bottom edge past
+    // it. `measuredPopoverPosition` (set from the popover's own actual
+    // rendered height, see the effect below) supersedes that guess the
+    // instant it's available; the estimate only still matters for the 1
+    // frame before that measurement can happen at all (no popover element
+    // exists to measure until after this same render commits).
+    const [measuredPopoverPosition, setMeasuredPopoverPosition] = useState(null);
+    const detailPopoverPosition = selectedCell
+        ? (measuredPopoverPosition || getDetailPopoverStyle(selectedCell.rect))
         : null;
+
+    useEffect(() => {
+        if (!selectedCell) {
+            setMeasuredPopoverPosition(null);
+            return;
+        }
+        const popoverEl = selectedCellPopoverRef.current;
+        if (!popoverEl) return;
+        const realHeight = popoverEl.getBoundingClientRect().height;
+        const isFlippedUp = selectedCell.rect.bottom + realHeight + 10 > window.innerHeight;
+        setMeasuredPopoverPosition({
+            isFlippedUp,
+            style: {
+                position: 'fixed',
+                right: window.innerWidth - selectedCell.rect.right,
+                ...(isFlippedUp
+                    ? { bottom: window.innerHeight - selectedCell.rect.top + 10 }
+                    : { top: selectedCell.rect.bottom + 10 }),
+            },
+        });
+        // Only re-measure when a different cell is selected -- the
+        // popover's own height doesn't otherwise change after that (and if
+        // this effect re-ran every time its result changed isFlippedUp, a
+        // popover that measured right at the flip threshold could
+        // oscillate between the 2 positions every render).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedCell?.rowIndex, selectedCell?.columnIndex]);
+
+    // Closes the popover on an outside click/Escape -- same pattern as
+    // HeatmapColorPicker/BrainRegionHeaderCell above, just against a ref on
+    // the popover itself (this table's own body cells aren't behind one
+    // shared container ref the way those dropdowns' toggle+panel are) --
+    // a click that re-selects a *different* cell still works normally: its
+    // own onClick (handleCellClick) fires after this mousedown listener and
+    // overwrites whatever it set, landing on the newly-clicked cell.
+    useEffect(() => {
+        if (!selectedCell) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && selectedCellPopoverRef.current?.contains(event.target)) {
+                return;
+            }
+            handleCloseSelectedCell();
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [selectedCell]);
 
     const handleHeaderClick = (key) => {
         setSortState((prev) => {
@@ -1840,13 +2001,16 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 sortState,
                                 handleHeaderClick,
                                 hoveredColumn,
-                                handleHoverHeaderColumn
+                                handleHoverHeaderColumn,
+                                selectedCell?.tissueType
                             )}
                         </thead>
                     </table>
                 </div>
             ) : null}
-            <div className="tissue-heatmap-table-wrap" ref={wrapperRef}>
+            <div
+                className={'tissue-heatmap-table-wrap' + (selectedCell ? ' has-selected-cell' : '')}
+                ref={wrapperRef}>
                 <table className="tissue-heatmap-table" ref={tableRef}>
                     <thead>
                         {renderTableHeaderRows(
@@ -1858,7 +2022,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             sortState,
                             handleHeaderClick,
                             hoveredColumn,
-                            handleHoverHeaderColumn
+                            handleHoverHeaderColumn,
+                            selectedCell?.tissueType
                         )}
                     </thead>
                     <tbody>
@@ -1869,7 +2034,13 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                         <span>{orderLabel}</span>
                                     </td>
                                 ) : null}
-                                <td className="tissue-heatmap-donor-id">{donor}</td>
+                                <td
+                                    className={
+                                        'tissue-heatmap-donor-id' +
+                                        (selectedCell?.rowIndex === rowIndex ? ' is-selected-row' : '')
+                                    }>
+                                    {donor}
+                                </td>
                                 {renderRowCells(
                                     cells,
                                     cellEntries,
@@ -1881,12 +2052,13 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     getScoreClass,
                                     enableConditionalColor,
                                     rowIndex,
+                                    donor,
                                     hoveredColumn,
                                     hoveredCellPosition,
                                     handleHoverBodyCell,
                                     handleHoverEnd,
-                                    handleShowDetail,
-                                    handleHideDetail,
+                                    selectedCell,
+                                    handleCellClick,
                                     cellValueDisplayMode,
                                     splitByPreservationType
                                 )}
@@ -1895,14 +2067,33 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                     </tbody>
                 </table>
             </div>
-            {hoverDetail
-                ? renderCellAltValues(
-                    hoverDetail.entries,
-                    hoverDetail.tissueType,
-                    metricLabel,
-                    formatValue,
-                    detailPopoverPosition.style,
-                    detailPopoverPosition.isFlippedUp
+            {selectedCell
+                // A plain child here (position: fixed, per getDetailPopoverStyle)
+                // is only positioned relative to the true viewport as long as
+                // NO ancestor establishes its own containing block for fixed
+                // elements (a `transform`, `filter`, or `will-change: transform`
+                // anywhere above this in the DOM) -- one does, somewhere up this
+                // page's own layout, clipping/mispositioning the popover against
+                // that ancestor's box instead of the viewport once the popover
+                // was tall enough to actually hit that boundary. A portal
+                // straight to the document root sidesteps the whole class of
+                // bug outright, same as CursorComponent.js's identical
+                // `overlaysRoot` pattern elsewhere in this app.
+                ? ReactDOM.createPortal(
+                    renderCellDetailPopover({
+                        donor: selectedCell.donor,
+                        tissueType: selectedCell.tissueType,
+                        metricLabel,
+                        value: selectedCell.value,
+                        entries: selectedCell.entries,
+                        slots: selectedCell.slots,
+                        splitByPreservationType: selectedCell.splitByPreservationType,
+                        formatValue,
+                        tissueOverviewHref: tissueTypeHrefs[selectedCell.tissueType],
+                        style: detailPopoverPosition.style,
+                        isFlippedUp: detailPopoverPosition.isFlippedUp,
+                    }, selectedCellPopoverRef),
+                    document.getElementById('overlays-root') || document.body
                 )
                 : null}
         </>
@@ -1943,9 +2134,11 @@ export const BrowseTissueHeatmapTable = (props) => {
     // Default ('vertical'): a multi-record cell splits into 2 side-by-side
     // halves, one real value each -- see CELL_VALUE_DISPLAY_MODES for the
     // other 3 (still satisfies the original review requirement -- every
-    // real value visible with no hover/click -- same as 'inline' and
-    // 'diagonal', just laid out differently). Same in-memory-only,
-    // per-page-view, admin-toggleable pattern as paletteBaseHex above.
+    // real value visible with no click needed -- same as 'inline' and
+    // 'diagonal', just laid out differently; only 'hover' itself, the
+    // admin-only 4th option, still needs a click on the detail popover to
+    // see a cell's alternate values). Same in-memory-only, per-page-view,
+    // admin-toggleable pattern as paletteBaseHex above.
     const [cellValueDisplayMode, setCellValueDisplayMode] = useState('vertical');
 
     // Each tab's own metric heading carries an info-circle icon (see
