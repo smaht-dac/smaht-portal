@@ -1137,11 +1137,16 @@ def get_linked_spreadsheet(
     nested_links = get_nested_links(spreadsheet)
     for link in links:
         for idx, example in enumerate(spreadsheet.examples):
-            if link in nested_links:   
+            if link in nested_links:
                 values = get_nested_example(example,link)
-                parent_property, nested_property, n_index = extract_nested_property_names(link)
+                if values is None:
+                    continue
                 id_values, example_fields = get_id_list(request_handler,values,example_fields)
-                spreadsheet.examples[idx][parent_property][n_index][nested_property] = " | ".join(id_values)
+                if is_array_object_property_name(link):
+                    parent_property, nested_property, n_index = extract_nested_property_names(link)
+                    spreadsheet.examples[idx][parent_property][n_index][nested_property] = " | ".join(id_values)
+                else:
+                    set_plain_object_nested_example(spreadsheet.examples[idx], link, " | ".join(id_values))
             elif link in example:
                 values = example[link]
                 id_values, example_fields = get_id_list(request_handler,values,example_fields)
@@ -1530,6 +1535,15 @@ def get_plain_object_nested_example(item: Dict[str, Any], property_name: str):
             return None
         value = value.get(property_part)
     return value
+
+
+def set_plain_object_nested_example(item: Dict[str, Any], property_name: str, value: Any) -> None:
+    """Set a value on a plain nested object path using dot notation."""
+    *parent_parts, leaf_property = property_name.split(".")
+    target = item
+    for property_part in parent_parts:
+        target = target.setdefault(property_part, {})
+    target[leaf_property] = value
 
 
 def get_ordered_properties(properties: List[Property]) -> List[Property]:

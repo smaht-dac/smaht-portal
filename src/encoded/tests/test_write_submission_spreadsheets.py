@@ -31,6 +31,7 @@ from ..commands.write_submission_spreadsheets import (
     get_nested_properties,
     get_plain_object_nested_example,
     get_spreadsheet,
+    set_plain_object_nested_example,
     get_static_section_alias,
     get_static_section_examples,
     get_static_section_spreadsheet,
@@ -677,6 +678,22 @@ def test_get_plain_object_nested_example() -> None:
     assert get_plain_object_nested_example(item, "options.filetype") == "jsx"
     assert get_plain_object_nested_example(item, "options.default_open") is True
     assert get_plain_object_nested_example(item, "options.title_icon") is None
+
+
+def test_set_plain_object_nested_example() -> None:
+    """Test dot-notation value assignment for flattened plain nested objects.
+
+    Covers the linkTo-within-a-plain-object case (e.g. last_modified.modified_by),
+    which uses the dot-only naming convention rather than the array-of-objects
+    `parent#n.field` convention.
+    """
+    item = {"last_modified": {"modified_by": "/users/abc-123/"}}
+    set_plain_object_nested_example(item, "last_modified.modified_by", "TEST_ID")
+    assert item == {"last_modified": {"modified_by": "TEST_ID"}}
+
+    item = {}
+    set_plain_object_nested_example(item, "options.filetype", "jsx")
+    assert item == {"options": {"filetype": "jsx"}}
 
 
 @pytest.mark.parametrize(
