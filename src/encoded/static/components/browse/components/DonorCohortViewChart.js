@@ -391,13 +391,16 @@ const DonorCohortViewChart = ({
             _isPinned = true;
             _pinnedData = d;
             _pinnedSelection = e.currentTarget;
+            // Single/horizontal charts (Autolysis Score, GCC, ...) use
+            // whatever bar color the caller passed via topStackColor, not
+            // one of the fixed male/female/hardy theme colors -- their
+            // pinned outline is a darker shade of that same color instead
+            // of a fixed (and often clashing) theme accent.
             const strokeColor = barStackType === 'primary'
                 ? THEME.hoverStroke.male
                 : barStackType === 'secondary'
                     ? THEME.hoverStroke.female
-                    : isHorizontal
-                        ? THEME.hoverStroke.horizontal
-                        : THEME.hoverStroke.hardy;
+                    : d3.color(topStackColor || (isHorizontal ? THEME.colors.ethnicity : THEME.colors.hardy)).darker(1).formatHex();
             insetStroke(d3.select(_pinnedSelection), strokeColor);
 
             const left = e.pageX + 12;
@@ -582,7 +585,11 @@ const DonorCohortViewChart = ({
 
 
             // Bars
-            const horizontalHoverStroke = THEME.hoverStroke.horizontal;
+            // Darker shade of this chart's own bar color, rather than a
+            // fixed theme accent -- so the hover/click outline reads as
+            // "this bar, emphasized" instead of an unrelated blue/teal
+            // ring on top of whatever color the bars actually are.
+            const horizontalHoverStroke = d3.color(color).darker(1).formatHex();
             g.selectAll('.bar-h')
                 .data(data).enter().append('rect')
                 .attr('x', 0)
@@ -820,7 +827,11 @@ const DonorCohortViewChart = ({
         } else {
             // Single-series (Hardy)
             const color = topStackColor || THEME.colors.hardy;
-            const hardyHoverStroke = THEME.hoverStroke.hardy;
+            // Darker shade of this chart's own bar color (see the
+            // horizontal branch's identical reasoning above) instead of a
+            // fixed theme blue that clashes with a differently-colored
+            // caller like Autolysis Score's own peach bars.
+            const hardyHoverStroke = d3.color(color).darker(1).formatHex();
 
             g.selectAll('.bar-single')
                 .data(data).enter().append('rect')
