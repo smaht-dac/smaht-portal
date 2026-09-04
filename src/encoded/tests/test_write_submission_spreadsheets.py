@@ -1,3 +1,4 @@
+import re
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -13,9 +14,14 @@ from ..commands.write_submission_spreadsheets import (
     FONT,
     FONT_SIZE,
     ITEM_SPREADSHEET_SUFFIX,
+    KEY_FINDINGS_BODY,
+    STATIC_SECTION_COLUMNS,
+    STATIC_SECTION_ITEM,
+    SUPPLEMENTARY_IMAGE_LINK_PLACEHOLDER,
     WORKBOOK_FILENAME,
     Property,
     Spreadsheet,
+    generate_static_section_identifier,
     get_array_subtype,
     get_comment_text,
     get_enum,
@@ -23,10 +29,18 @@ from ..commands.write_submission_spreadsheets import (
     get_ordered_properties,
     get_property,
     get_nested_properties,
+    get_plain_object_nested_example,
     get_spreadsheet,
+    set_plain_object_nested_example,
+    get_static_section_alias,
+    get_static_section_examples,
+    get_static_section_spreadsheet,
+    get_supplementary_jsx_body,
     is_link,
+    main,
     write_all_spreadsheets,
     write_item_spreadsheets,
+    write_static_section_workbook,
 )
 from ..item_utils.utils import RequestHandler
 
@@ -62,6 +76,18 @@ def submission_schemas(
 
 def get_mock_request_handler() -> mock.Mock:
     return mock.create_autospec(RequestHandler)
+
+
+def get_rows_by_header(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List[Dict[str, Any]]:
+    """Get worksheet rows keyed by the first-row header values."""
+    headers = [cell.value for cell in sheet[1]]
+    return [
+        {
+            header: sheet.cell(row=row_index, column=column_index).value
+            for column_index, header in enumerate(headers, start=1)
+        }
+        for row_index in range(2, sheet.max_row + 1)
+    ]
 
 
 @contextmanager
@@ -105,6 +131,137 @@ def patch_item_index_order(submission_schemas: Dict[str, Dict[str, Any]]) -> moc
         new_item_index_order,
     ) as mock_item_index_order:
         yield mock_item_index_order
+
+
+def test_generate_static_section_identifier_is_random_and_schema_valid() -> None:
+    """Test generated StaticSection identifiers are valid and not fixed."""
+    identifiers = {generate_static_section_identifier() for _ in range(20)}
+    assert len(identifiers) > 1
+    for identifier in identifiers:
+        assert re.fullmatch(r"^([A-Za-z0-9-_]+[.])*[A-Za-z0-9-_]+$", identifier)
+
+
+def test_get_static_section_alias() -> None:
+    """Test StaticSection aliases use the SMaHT identifier convention."""
+    assert get_static_section_alias("ABC123_key_findings") == "smaht:ABC123_key_findings"
+
+
+def test_get_static_section_spreadsheet_defaults() -> None:
+    """Test the StaticSection builder returns the two expected rows and columns."""
+    spreadsheet = get_static_section_spreadsheet()
+    assert spreadsheet.item == STATIC_SECTION_ITEM
+    assert [property_.name for property_ in spreadsheet.properties] == STATIC_SECTION_COLUMNS
+    assert len(spreadsheet.examples) == 2
+    key_findings, supplementary = spreadsheet.examples
+    assert key_findings["status"] == "open"
+    assert supplementary["status"] == "open"
+    assert key_findings["section_type"] == "Page Section"
+    assert supplementary["section_type"] == "Page Section"
+    assert key_findings["options"]["filetype"] == "md"
+    assert supplementary["options"]["filetype"] == "jsx"
+    assert key_findings["options"]["collapsible"] is False
+    assert supplementary["options"]["default_open"] is True
+    assert key_findings["aliases"] == [f"smaht:{key_findings['identifier']}"]
+    assert supplementary["aliases"] == [f"smaht:{supplementary['identifier']}"]
+    assert "consortia" not in key_findings
+    assert "submission_centers" not in supplementary
+
+
+def test_get_static_section_examples_formats_markdown_and_jsx() -> None:
+    """Test default Markdown and JSX bodies follow the expected templates."""
+    key_findings, supplementary = get_static_section_examples()
+    assert key_findings["body"] == KEY_FINDINGS_BODY
+    assert key_findings["body"].count("### ") == 3
+    assert supplementary["body"].startswith("<div>\n  <div>")
+    assert "<ClickableImage" in supplementary["body"]
+    assert f'src="{SUPPLEMENTARY_IMAGE_LINK_PLACEHOLDER}"' in supplementary["body"]
+    assert "Network's" in supplementary["body"]
+    assert "&#x27;" not in supplementary["body"]
+
+
+def test_get_supplementary_jsx_body_includes_uploaded_file() -> None:
+    """Test supplementary uploaded filename and URL are placed into JSX fields."""
+    body = get_supplementary_jsx_body(
+        uploaded_filename='Example "Figure".jpg',
+        uploaded_file_url="https://example.org/figure.jpg?download=1&x=2",
+    )
+    assert 'alt="Example &quot;Figure&quot;.jpg"' in body
+    assert 'src="https://example.org/figure.jpg?download=1&amp;x=2"' in body
+
+
+def test_write_static_section_workbook() -> None:
+    """Test the StaticSection workbook sheets, rows, and omitted fields."""
+    with tempfile.TemporaryDirectory() as tempdir:
+        workbook_path = write_static_section_workbook(
+            Path(tempdir),
+            uploaded_filename="uploaded-figure.jpg",
+            uploaded_file_url="https://example.org/uploaded-figure.jpg",
+        )
+        assert workbook_path == Path(tempdir, WORKBOOK_FILENAME)
+        workbook = openpyxl.load_workbook(workbook_path)
+    assert workbook.sheetnames == ["(Overview Guidelines)", STATIC_SECTION_ITEM]
+    assert "Publication" not in workbook.sheetnames
+    overview_sheet = workbook["(Overview Guidelines)"]
+    static_section_sheet = workbook[STATIC_SECTION_ITEM]
+    assert overview_sheet.sheet_state == "visible"
+    assert static_section_sheet.sheet_state == "visible"
+    assert [cell.value for cell in static_section_sheet[1]] == STATIC_SECTION_COLUMNS
+    assert "consortia" not in STATIC_SECTION_COLUMNS
+    assert "submission_centers" not in STATIC_SECTION_COLUMNS
+    key_findings, supplementary = get_rows_by_header(static_section_sheet)
+    assert key_findings["options.filetype"] == "md"
+    assert supplementary["options.filetype"] == "jsx"
+    assert key_findings["status"] == "open"
+    assert supplementary["status"] == "open"
+    assert key_findings["aliases"] == f"smaht:{key_findings['identifier']}"
+    assert supplementary["aliases"] == f"smaht:{supplementary['identifier']}"
+    assert key_findings["options.collapsible"] is False
+    assert key_findings["options.default_open"] is True
+    assert supplementary["options.convert_ext_links"] is True
+    assert "uploaded-figure.jpg" in supplementary["body"]
+    assert "https://example.org/uploaded-figure.jpg" in supplementary["body"]
+    assert key_findings["file"] is None
+    assert supplementary["file"] is None
+
+
+def test_main_static_sections_help(capsys: pytest.CaptureFixture, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test CLI help describes the StaticSection-only workbook mode."""
+    monkeypatch.setattr("sys.argv", ["write-submission-spreadsheets", "--help"])
+    with pytest.raises(SystemExit) as error:
+        main()
+    assert error.value.code == 0
+    output = capsys.readouterr().out
+    assert "--static-sections" in output
+    assert "StaticSection-only workbook" in output
+    assert "Publication" in output
+
+
+def test_main_static_sections_writes_workbook_without_key_lookup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test the StaticSection CLI mode writes locally without portal credentials."""
+    with tempfile.TemporaryDirectory() as tempdir:
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "write-submission-spreadsheets",
+                "--static-sections",
+                "--workbook",
+                "--output",
+                tempdir,
+                "--supplementary-uploaded-filename",
+                "figure.jpg",
+                "--supplementary-uploaded-file-url",
+                "https://example.org/figure.jpg",
+            ],
+        )
+        with mock.patch("encoded.commands.write_submission_spreadsheets.SMaHTKeyManager") as key_manager:
+            main()
+        key_manager.assert_not_called()
+        workbook = openpyxl.load_workbook(Path(tempdir, WORKBOOK_FILENAME))
+    supplementary = get_rows_by_header(workbook[STATIC_SECTION_ITEM])[1]
+    assert "figure.jpg" in supplementary["body"]
+    assert "https://example.org/figure.jpg" in supplementary["body"]
 
 
 @pytest.mark.parametrize(
@@ -449,6 +606,61 @@ def test_get_property(
                 )
             ]
         ),
+        (
+            "options",
+            {
+                "description": "Options",
+                "type": "object",
+                "properties": {
+                    "filetype": {
+                        "description": "File Type",
+                        "type": "string",
+                        "enum": ["md", "jsx"],
+                    },
+                    "default_open": {
+                        "description": "Default Open",
+                        "type": "boolean",
+                    },
+                    "$merge": "ignored",
+                },
+            },
+            [
+                Property(
+                    name="options.filetype",
+                    item="Foo",
+                    description="File Type",
+                    value_type="string",
+                    required=False,
+                    link=False,
+                    enum=["md", "jsx"],
+                    array_subtype="",
+                    pattern="",
+                    comment="",
+                    examples=[],
+                    format_="",
+                    requires=[],
+                    exclusive_requirements=[],
+                    nested=True
+                ),
+                Property(
+                    name="options.default_open",
+                    item="Foo",
+                    description="Default Open",
+                    value_type="boolean",
+                    required=False,
+                    link=False,
+                    enum=[],
+                    array_subtype="",
+                    pattern="",
+                    comment="",
+                    examples=[],
+                    format_="",
+                    requires=[],
+                    exclusive_requirements=[],
+                    nested=True
+                ),
+            ],
+        ),
     ]
 )
 def test_get_nested_properties(
@@ -458,6 +670,30 @@ def test_get_nested_properties(
     """
     property_ = get_nested_properties("Foo",property_name, property_schema)
     assert property_ == expected
+
+
+def test_get_plain_object_nested_example() -> None:
+    """Test dot-notation row lookup for flattened plain nested objects."""
+    item = {"options": {"filetype": "jsx", "default_open": True}}
+    assert get_plain_object_nested_example(item, "options.filetype") == "jsx"
+    assert get_plain_object_nested_example(item, "options.default_open") is True
+    assert get_plain_object_nested_example(item, "options.title_icon") is None
+
+
+def test_set_plain_object_nested_example() -> None:
+    """Test dot-notation value assignment for flattened plain nested objects.
+
+    Covers the linkTo-within-a-plain-object case (e.g. last_modified.modified_by),
+    which uses the dot-only naming convention rather than the array-of-objects
+    `parent#n.field` convention.
+    """
+    item = {"last_modified": {"modified_by": "/users/abc-123/"}}
+    set_plain_object_nested_example(item, "last_modified.modified_by", "TEST_ID")
+    assert item == {"last_modified": {"modified_by": "TEST_ID"}}
+
+    item = {}
+    set_plain_object_nested_example(item, "options.filetype", "jsx")
+    assert item == {"options": {"filetype": "jsx"}}
 
 
 @pytest.mark.parametrize(
