@@ -92,6 +92,14 @@ export const BenchmarkingDataMap = {
                     BENCHMARKING_STATUS_FILTERS +
                     '&dataset=colo829blt_in_silico&sort=-file_status_tracking.release_dates.initial_release',
             },
+            {
+                eventKey: '#washu',
+                title: 'COLO829 WashU',
+                searchHref:
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829_WU&sort=-file_status_tracking.release_dates.initial_release',
+            },
         ],
     },
     HapMap: {
