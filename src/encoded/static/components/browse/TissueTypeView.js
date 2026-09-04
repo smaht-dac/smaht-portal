@@ -1042,9 +1042,8 @@ export default function TissueTypeView({
                 </div>
 
                 <div className="tissue-donor-table-card" style={donorTablePaletteStyle}>
-                    <div className="header d-flex justify-content-between align-items-center">
-                        <span className="header-text">Donor Details</span>
-                        {isAdminUser ? (
+                    {isAdminUser ? (
+                        <div className="tissue-donor-table-toolbar">
                             <HeatmapColorPicker
                                 baseHex={paletteBaseHex}
                                 // eslint-disable-next-line react/jsx-no-bind
@@ -1052,8 +1051,8 @@ export default function TissueTypeView({
                                 // eslint-disable-next-line react/jsx-no-bind
                                 onReset={handleResetPaletteColor}
                             />
-                        ) : null}
-                    </div>
+                        </div>
+                    ) : null}
                     <div className="body">
                         <table className="tissue-donor-table table">
                             <thead>

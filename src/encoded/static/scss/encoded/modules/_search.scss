@@ -3292,6 +3292,20 @@ div.browse-link-icon {
 			}
 			.tissue-heatmap-cell-split-half-a {
 				border-right: 1px solid rgba(255, 255, 255, 0.7);
+
+				// The white divider above all but disappears against this
+				// half's own transparent fill (see .is-empty, no score-N
+				// background) -- both halves reading "n/a" then had nothing
+				// to show where one stops and the other starts. A dark,
+				// still-subtle divider instead of a light one only for this
+				// case (a colored half keeps the white one, which already
+				// reads fine against its own dark-ish fill).
+				&.is-empty {
+					// Solid, same as every other border on this table --
+					// dashed read as an unrelated, out-of-place style next
+					// to the table's own plain solid lines everywhere else.
+					border-right-color: rgba(0, 0, 0, 0.03);
+				}
 			}
 			.tissue-heatmap-cell-split-half-b {
 				left: 50%;

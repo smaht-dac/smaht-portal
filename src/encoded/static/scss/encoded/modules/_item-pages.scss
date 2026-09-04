@@ -3235,9 +3235,10 @@ File, Donor, and Publication Overview Styles
                 display: flex;
                 flex-direction: column;
 
-                // Shared green header bar -- same treatment as
-                // .tissue-donor-table-card's own `.header` below, so every
-                // card on this tab reads as one consistent design.
+                // Shared green header bar -- .tissue-donor-table-card
+                // (below) no longer has an equivalent one of its own (no
+                // title, its table now styled to match the plain
+                // `/browse/` search-results table instead).
                 > .header {
                     background-color: #eaf6ed;
                     padding: 12px 20px;
@@ -3506,21 +3507,28 @@ File, Donor, and Publication Overview Styles
         }
 
         .tissue-donor-table-card {
+            position: relative;
             background-color: #ffffff;
             border: 1px solid #e7f0f3;
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 24px;
 
-            .header {
-                background-color: #eaf6ed;
-                padding: 12px 20px;
-                border-bottom: 1px solid #cdebd8;
-
-                .header-text {
-                    font-size: 1.0625rem;
-                    font-weight: 600;
-                }
+            // Admin-only Colors picker (TissueTypeView.js) -- absolutely
+            // positioned over the table's own top-right corner instead of
+            // a title bar of its own, since this card no longer has one
+            // (see .tissue-donor-table's own thead below for why -- there's
+            // no separate "Donor Details" heading to anchor a toolbar row
+            // to any more).
+            .tissue-donor-table-toolbar {
+                position: absolute;
+                top: 0;
+                right: 0;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                padding: 0 12px;
+                z-index: 4;
             }
 
             .body {
@@ -3539,15 +3547,48 @@ File, Donor, and Publication Overview Styles
                     white-space: nowrap;
                 }
 
+                // Same light-blue header background/dark text/500-weight as
+                // the plain `/browse/` search-results table
+                // ($search-header-* -- _search.scss), matching
+                // BrowseTissueHeatmapTable's own tables for consistency
+                // across this page's tables.
                 thead th {
-                    background-color: #fafafd;
-                    font-weight: 600;
-                    color: #343741;
+                    background-color: $search-header-background-color;
+                    font-weight: 500;
+                    color: $search-header-text-color;
                     border-bottom: 1px solid #e7f0f3;
+                    // The plain `/browse/` search-results table's own
+                    // header shows a vertical divider between every column
+                    // (its column-resize handle, `.width-adjuster`, colored
+                    // via $search-header-icon-color) -- this table has no
+                    // resizable columns to hang that off of, but a plain
+                    // border-right in the same color reproduces the same
+                    // look. #e7f0f3 (this card's usual border color
+                    // elsewhere) all but disappeared against this header's
+                    // own light-blue background -- too little contrast to
+                    // read as a real divider.
+                    border-right: 1px solid $search-header-icon-color;
+
+                    &:last-child {
+                        border-right: none;
+                    }
                 }
 
                 tbody td {
                     color: #212529;
+                    // Same subtle column divider the plain `/browse/`
+                    // search-results table's own body cells use
+                    // (`.search-result-column-block`'s border-right,
+                    // rgba(0,0,0,0.05)) -- the header's own divider above is
+                    // deliberately much stronger since it has no zebra
+                    // striping behind it to help separate columns visually;
+                    // a body row already has that, so this only needs to be
+                    // barely-there.
+                    border-right: 1px solid rgba(0, 0, 0, 0.05);
+
+                    &:last-child {
+                        border-right: none;
+                    }
 
                     a {
                         color: #428bca;
@@ -3556,9 +3597,13 @@ File, Donor, and Publication Overview Styles
 
                 // Zebra striping instead of a border between every row --
                 // matches the reference design and reads as more compact
-                // at the tighter row height above.
+                // at the tighter row height above. Neutral gray (same
+                // $gray-10 the plain search-results table itself bands its
+                // own alternating rows with), not the earlier green tint --
+                // this table isn't tissue-green-themed anymore either, now
+                // that its title bar is gone.
                 tbody tr:nth-child(even) td {
-                    background-color: #f6faf7;
+                    background-color: $gray-10;
                 }
 
                 // Soft, pastel version of the same neutral blue-grey
@@ -3626,7 +3671,7 @@ File, Donor, and Publication Overview Styles
 
                 .tissue-heatmap-sort-icon {
                     font-size: 0.6875rem;
-                    color: #C8CED4;
+                    color: $search-header-icon-color;
                 }
             }
         }

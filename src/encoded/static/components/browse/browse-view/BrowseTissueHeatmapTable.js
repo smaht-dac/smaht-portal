@@ -237,8 +237,19 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
             cellEntries: tissueTypes.map(
                 (tissueType) => cellEntriesByDonorAndTissue[`${donor} ${tissueType}`] || null
             ),
+            // `|| [null, null]`, not `|| null` -- a cell with zero real
+            // values on *either* side (no matching TissueSample at all, or
+            // one that exists but has no value for this metric yet) still
+            // needs the same fixed 2-slot shape a split cell
+            // (splitByPreservationType, renderRowCells) expects, or it
+            // silently collapses back to a single centered "n/a" instead of
+            // keeping the Fixed/Frozen split every other cell in the column
+            // shows -- exactly the "stays visually stable either way" gap
+            // cellSlotsByDonorAndTissue's own comment above already
+            // promises, just not previously covered for the *both* empty
+            // case.
             cellSlots: tissueTypes.map(
-                (tissueType) => cellSlotsByDonorAndTissue[`${donor} ${tissueType}`] || null
+                (tissueType) => cellSlotsByDonorAndTissue[`${donor} ${tissueType}`] || [null, null]
             ),
         };
     });

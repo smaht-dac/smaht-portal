@@ -1097,9 +1097,6 @@ const TissueView = React.memo(function TissueView({
                 </div>
 
                 <div className="tissue-donor-table-card">
-                    <div className="header">
-                        <span className="header-text">Donor Details</span>
-                    </div>
                     {/*
                         Lists every donor whose Tissue shares this Tissue's resolved tissue_type
                         (not just this Tissue's own donor). Autolysis Score, Non-Target Tissue
