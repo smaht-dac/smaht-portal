@@ -900,7 +900,7 @@ def get_supplementary_jsx_body(
     return (
         "<div>\n"
         "  <div>\n"
-        f"    {html.escape(supplementary_text)}\n"
+        f"    {supplementary_text}\n"
         "  </div>\n\n"
         "  <ClickableImage "
         f"alt=\"{html.escape(image_alt, quote=True)}\" "

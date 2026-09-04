@@ -174,6 +174,8 @@ def test_get_static_section_examples_formats_markdown_and_jsx() -> None:
     assert supplementary["body"].startswith("<div>\n  <div>")
     assert "<ClickableImage" in supplementary["body"]
     assert f'src="{SUPPLEMENTARY_IMAGE_LINK_PLACEHOLDER}"' in supplementary["body"]
+    assert "Network's" in supplementary["body"]
+    assert "&#x27;" not in supplementary["body"]
 
 
 def test_get_supplementary_jsx_body_includes_uploaded_file() -> None:
