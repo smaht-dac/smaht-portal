@@ -23,6 +23,8 @@ import {
     getTissueColorHex,
     hexToRgba,
 } from '../../item-pages/components/tissue-overview/helpers';
+import { tissueCategoryByTpcCode, getTissueInternalCodeFromFacetTerm } from '../../util/data';
+import smahtTissueColors from '../../../data/color-schemes/smaht_tissue_colors.json';
 
 // Groups the categories returned by item_utils/tissue.py::get_category() into
 // the 4 display rows the germ-layer panel has always shown.
@@ -251,6 +253,185 @@ const TissueGermLayerPanel = ({ fileFilters, session }) => {
                                 );
                             })}
                     </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+// Advanced Tissue View's own display name for each of item_utils/tissue.py's
+// 5 raw categories -- unlike GERM_LAYER_LABELS above (which folds Germ
+// Cells/Clinically Accessible into one "GERM/CLIN" row for the compact
+// bubble panel), Advanced view gives every category its own column, so each
+// gets its own readable title-cased name instead.
+const ADVANCED_GERM_LAYER_CATEGORY_DISPLAY_NAME = {
+    Ectoderm: 'Ectoderm',
+    Mesoderm: 'Mesoderm',
+    Endoderm: 'Endoderm',
+    'Germ cells': 'Germ Cells',
+    'Clinically accessible': 'Clinically Accessible',
+};
+// Germ Cells and Clinically Accessible each have very few tissue types (2
+// apiece), so giving them their own full-width column like Ectoderm/
+// Mesoderm/Endoderm leaves that column mostly empty -- stacking the two
+// inside one shared column instead keeps every column's width consistent
+// without wasting horizontal space.
+//
+// Ectoderm has the most tissue types (7), which at the shared 2-per-row card
+// width made it visibly taller than every other column -- `cardColumns: 3`
+// widens just that column's own flex-basis and card grid so it stays
+// roughly as tall as its neighbors instead of forcing every column to a
+// wider (mostly empty) 3-column grid.
+const ADVANCED_GERM_LAYER_COLUMNS = [
+    { key: 'ectoderm', germLayers: ['Ectoderm'], cardColumns: 3 },
+    { key: 'mesoderm', germLayers: ['Mesoderm'], cardColumns: 2 },
+    { key: 'endoderm', germLayers: ['Endoderm'], cardColumns: 2 },
+    { key: 'germ-clin', germLayers: ['Germ Cells', 'Clinically Accessible'], cardColumns: 2 },
+];
+
+// smaht_tissue_colors.json's full_name uses a bare hyphen for the handful of
+// tissues with a sub-region (e.g. "Brain-Cerebellum", "Colon-Ascending") but
+// already uses ", " for the L/R-suffixed ones (e.g. "Testis, L") -- only
+// rewrite the former so both read the same "Brain, Cerebellum" way.
+const formatAdvancedTissueFullName = (fullName) =>
+    fullName.includes(',') ? fullName : fullName.replace('-', ', ');
+
+// Every tissue type SMaHT tracks, regardless of whether any donor currently
+// has data for it -- Advanced view (unlike TissueGermLayerPanel above, which
+// only shows tissue types the live aggregation actually returned) always
+// shows the complete set, so a tissue with 0 donors still renders as a
+// disabled card instead of being silently absent. Built from the same two
+// static sources TissueGermLayerPanel and helpers.js already rely on
+// (smaht_tissue_colors.json for the code/name, data.js's
+// tissueCategoryByTpcCode for the germ-layer category) rather than a new
+// third list to keep in sync.
+const ALL_TISSUE_TYPES = Object.entries(smahtTissueColors).map(([tpcCode, entry]) => {
+    const fullName = formatAdvancedTissueFullName(entry.full_name);
+    const rawCategory = tissueCategoryByTpcCode[tpcCode];
+    return {
+        tpcCode,
+        internalCode: entry.smaht_code,
+        fullName,
+        category: ADVANCED_GERM_LAYER_CATEGORY_DISPLAY_NAME[rawCategory] || rawCategory,
+        // Same "<TPC code> - <name>" shape real tissue_type facet values
+        // use, so getTissueIconSrc/getTissueColorHex/getTissueTypeUrlCode
+        // (which all parse that shape via getTissueInternalCodeFromFacetTerm)
+        // resolve this tissue's icon/color/URL code the same way they do
+        // for a real facet term.
+        facetTermValue: `${tpcCode} - ${fullName}`,
+    };
+});
+
+const getAdvancedTissueTypesForGermLayer = (germLayer) =>
+    ALL_TISSUE_TYPES.filter((tissueType) => tissueType.category === germLayer).sort((a, b) =>
+        a.fullName.localeCompare(b.fullName, undefined, { numeric: true })
+    );
+
+// Re-keys a `/bar_plot_aggregations/` response's `resp.terms` (raw
+// tissue_type term string -> {donors, files, doc_count}, same shape
+// buildTissueCategoryChartData reads `.donors` off of) by each term's stable
+// 4-letter internal code, so a count can be looked up against
+// ALL_TISSUE_TYPES' own internalCode regardless of which exact tissue_type
+// string variant a given term happens to use.
+export const buildDonorCountByInternalCode = (terms = {}) => {
+    const counts = {};
+    Object.entries(terms).forEach(([term, bucket]) => {
+        const internalCode = getTissueInternalCodeFromFacetTerm(term);
+        if (internalCode) counts[internalCode] = bucket?.donors || 0;
+    });
+    return counts;
+};
+
+const TissueAdvancedGermLayerPanel = ({ fileFilters, session }) => {
+    const [loading, setLoading] = useState(true);
+    const [donorCountByInternalCode, setDonorCountByInternalCode] = useState({});
+
+    useEffect(() => {
+        setLoading(true);
+
+        const requestBody = {
+            search_query_params: fileFilters,
+            fields_to_aggregate_for: ['sample_summary.tissues'],
+        };
+
+        ajax.load(
+            '/bar_plot_aggregations/',
+            (resp) => {
+                setDonorCountByInternalCode(buildDonorCountByInternalCode(resp?.terms));
+                setLoading(false);
+            },
+            'POST',
+            () => setLoading(false),
+            JSON.stringify(requestBody),
+            {},
+            null
+        );
+    }, [fileFilters, session]);
+
+    return (
+        <div className="tissue-advanced-germ-layer-panel">
+            {ADVANCED_GERM_LAYER_COLUMNS.map(({ key, germLayers, cardColumns }) => (
+                <div
+                    className={`tissue-advanced-germ-layer-column tissue-advanced-germ-layer-column--cols-${cardColumns}`}
+                    key={key}>
+                    {germLayers.map((germLayer) => (
+                        <div className="tissue-advanced-germ-layer-section" key={germLayer}>
+                            <h4 className="tissue-advanced-germ-layer-title">{germLayer} Tissues</h4>
+                            <div
+                                className={`tissue-advanced-germ-layer-cards tissue-advanced-germ-layer-cards--cols-${cardColumns}`}>
+                                {getAdvancedTissueTypesForGermLayer(germLayer).map((tissueType) => {
+                                    const donorCount = donorCountByInternalCode[tissueType.internalCode] || 0;
+                                    // Disabled while a count hasn't loaded yet would
+                                    // incorrectly flash every card as disabled, so
+                                    // only 0 donors *after* loading finishes counts.
+                                    const isDisabled = !loading && donorCount === 0;
+                                    const iconSrc = getTissueIconSrc(tissueType.facetTermValue);
+
+                                    const cardContent = (
+                                        <React.Fragment>
+                                            <div className="tissue-advanced-card-header">
+                                                {tissueType.tpcCode} - {tissueType.internalCode}
+                                            </div>
+                                            {iconSrc ? (
+                                                <i
+                                                    className="tissue-advanced-card-icon"
+                                                    style={{
+                                                        WebkitMaskImage: `url(${iconSrc})`,
+                                                        maskImage: `url(${iconSrc})`,
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <div className="tissue-advanced-card-name">{tissueType.fullName}</div>
+                                            <div className="tissue-advanced-card-donors">
+                                                {loading
+                                                    ? '–'
+                                                    : `${donorCount.toLocaleString()} Donor${donorCount === 1 ? '' : 's'}`}
+                                            </div>
+                                        </React.Fragment>
+                                    );
+
+                                    // A disabled card (0 donors) has nothing to link
+                                    // to -- render as a plain, non-interactive div
+                                    // instead of an <a> with a dead/misleading href.
+                                    return isDisabled ? (
+                                        <div
+                                            className="tissue-advanced-card is-disabled"
+                                            key={tissueType.internalCode}
+                                            aria-disabled="true">
+                                            {cardContent}
+                                        </div>
+                                    ) : (
+                                        <a
+                                            className="tissue-advanced-card"
+                                            key={tissueType.internalCode}
+                                            href={`/tissue-overview/?tissue_type=${formUrlEncode(getTissueTypeUrlCode(tissueType.facetTermValue))}`}>
+                                            {cardContent}
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             ))}
         </div>
@@ -643,8 +824,7 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
 };
 
 export const BrowseTissueVizWrapper = (props) => {
-    const { href, session, windowWidth } = props;
-    const [toggleViewIndex, setToggleViewIndex] = useState(1);
+    const { href, session, windowWidth, toggleViewIndex, setToggleViewIndex, tissueDetailModeIndex } = props;
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
     // The Ischemic Time/Autolysis Score/Target Tissue % tabs below this
@@ -713,7 +893,15 @@ export const BrowseTissueVizWrapper = (props) => {
                     same reasoning as BrowseTissueHeatmapTable.js's DotRouterTab
                     `cache` prop for its 3 tabs. */}
                 <div className={toggleViewIndex === 0 ? '' : 'd-none'}>
-                    <TissueGermLayerPanel fileFilters={fileFilters} session={session} />
+                    {/* Both stay mounted (toggled via d-none), same
+                        already-loaded-data reasoning as toggleViewIndex
+                        above. */}
+                    <div className={tissueDetailModeIndex === 0 ? '' : 'd-none'}>
+                        <TissueGermLayerPanel fileFilters={fileFilters} session={session} />
+                    </div>
+                    <div className={tissueDetailModeIndex === 1 ? '' : 'd-none'}>
+                        <TissueAdvancedGermLayerPanel fileFilters={fileFilters} session={session} />
+                    </div>
                 </div>
                 <div className={toggleViewIndex === 1 ? '' : 'd-none'}>
                     <TissueCohortCharts fileFilters={fileFilters} session={session} />
