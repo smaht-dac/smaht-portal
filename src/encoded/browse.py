@@ -1,5 +1,5 @@
-from pyramid.httpexceptions import HTTPFound
-from pyramid.security import Authenticated
+from pyramid.httpexceptions import HTTPForbidden, HTTPFound
+from pyramid.security import Authenticated, NO_PERMISSION_REQUIRED
 from pyramid.view import view_config
 import structlog
 from webob.multidict import MultiDict
@@ -10,6 +10,7 @@ from encoded.endpoints.recent_files_summary.recent_files_summary import (
     recent_files_summary_endpoint,
     recent_release_days_endpoint
 )
+from encoded.types.protected_donor import is_protected_donor_search, log_protected_donor_search
 
 log = structlog.getLogger(__name__)
 
@@ -38,7 +39,31 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
     """
     search_type = request.params.get('type', DEFAULT_BROWSE_TYPE)
 
-    return search(context, request, search_type, return_generator, forced_type="Browse")
+    result = search(context, request, search_type, return_generator, forced_type="Browse")
+    if is_protected_donor_search(context, request):
+        log_protected_donor_search(request, result)
+    return result
+
+
+@view_config(
+    route_name="search",
+    request_method="GET",
+    permission=NO_PERMISSION_REQUIRED,
+    custom_predicates=[is_protected_donor_search],
+)
+@debug_log
+def protected_donor_search(context, request):
+    """Audit ProtectedDonor searches while retaining Snovault's search behavior."""
+    if not request.has_permission("search"):
+        log_protected_donor_search(request, None, outcome="denied")
+        raise HTTPForbidden()
+    try:
+        result = search(context, request, forced_type="Search")
+    except Exception:
+        log_protected_donor_search(request, None, outcome="failure")
+        raise
+    log_protected_donor_search(request, result)
+    return result
 
 
 # @view_config(route_name="recent_files_summary", request_method=["GET"], effective_principals=Authenticated)

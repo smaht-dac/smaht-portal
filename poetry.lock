@@ -1229,13 +1229,13 @@ WSGIProxy2 = "0.4.2"
 
 [[package]]
 name = "dcicutils"
-version = "8.19.0"
+version = "8.19.0.1b1"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 optional = false
 python-versions = "<3.13,>=3.10"
 files = [
-    {file = "dcicutils-8.19.0-py3-none-any.whl", hash = "sha256:e16028cfafe883ccc81186a6af0eb21cc5832bad3cd467de272a120a65e21fec"},
-    {file = "dcicutils-8.19.0.tar.gz", hash = "sha256:d2c4276129b9a3bafab4e3a4f7a0c724e251ad02513208b75dde13e70a77be1e"},
+    {file = "dcicutils-8.19.0.1b1-py3-none-any.whl", hash = "sha256:7f1a6c87cd958e09decf27b16e28e92f3ef2f169c6bc41719bdb517afe8d72ac"},
+    {file = "dcicutils-8.19.0.1b1.tar.gz", hash = "sha256:b042c4f1f7a8554607c549607c1a1b02d35db32bbecfb4da127f51ffdeddfb49"},
 ]
 
 [package.dependencies]
@@ -4357,4 +4357,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "fcb5838b005dd2229e7b6cbb3a148364c8eade92ccbe3ff850b33198208d3c26"
+content-hash = "d2f93b96531ddbf916629482d639190ed0d6a1e08d7ff5c9875baf06f8b54973"

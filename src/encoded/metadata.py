@@ -1107,6 +1107,41 @@ def _count_via_search(request, search_query_params):
     return {'total': search(None, subreq).get('total', 0)}
 
 
+def _count_via_search(request, search_query_params):
+    """Return just the matched-document count for a search query, computing NO facets.
+
+    Used by peek-metadata POST callers that only need "how many items match
+    this query" (e.g. a per-donor existence check) and would otherwise pay for
+    the full default facet set the GET path computes. `skip_default_facets`
+    tells snovault to build its (correct) filter — nested fields, type-subtype
+    expansion, principal filtering, negation params like `dataset!=No value` —
+    but skip every facet aggregation, so this is strictly cheaper than the
+    faceted GET while returning the same `total`.
+
+    `search_query_params` is a dict of {param_name: value | [values]} mirroring
+    the search query string the caller would otherwise GET.
+    """
+    forwarded = MultiDict()
+    for key, values in (search_query_params or {}).items():
+        # `skip_default_facets`/`limit`/`from` are controlled here, not by the caller.
+        if key in ('limit', 'from', 'skip_default_facets'):
+            continue
+        if isinstance(values, (list, tuple)):
+            for value in values:
+                forwarded.add(key, str(value))
+        else:
+            forwarded.add(key, str(values))
+    forwarded.add('skip_default_facets', 'true')
+    forwarded.add('limit', '0')
+
+    subreq = make_search_subreq(
+        request,
+        '/search?{}'.format(urlencode(list(forwarded.items()), True)),
+        inherit_user=True,
+    )
+    return {'total': search(None, subreq).get('total', 0)}
+
+
 def _aggregate_metadata_file_size(request, *, type_param, accessions=None,
                                   status=None, include_extra_files=False):
     """Compute the peek-metadata file_size summary by streaming matching docs.

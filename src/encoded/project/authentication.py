@@ -1,10 +1,33 @@
+import structlog
+
 from pyramid.httpexceptions import HTTPUnauthorized
 from snovault.project.authentication import SnovaultProjectAuthentication
+
+from ..audit_logging import authenticated_actor_fields
+
+
+log = structlog.getLogger(__name__)
 
 
 class SMAHTProjectAuthentication(SnovaultProjectAuthentication):
     def login(self, context, request, *, samesite):
-        return super().login(context, request, samesite=samesite)
+        try:
+            response = super().login(context, request, samesite=samesite)
+        except Exception:
+            # Do not include request data here. The token is intentionally not
+            # copied into the application log stream.
+            log.warning("User login failed", action="login", outcome="failure", event_type="user_login")
+            raise
+        # Keep this event bounded to the canonical actor UUID; the authenticated
+        # token and user details must never be copied into the application log stream.
+        log.warning(
+            "User login successful",
+            action="login",
+            outcome="success",
+            event_type="user_login",
+            **authenticated_actor_fields(request),
+        )
+        return response
 
     def namespaced_authentication_policy_authenticated_userid(self, namespaced_authentication_policy, request,
                                                               set_user_info_property):
