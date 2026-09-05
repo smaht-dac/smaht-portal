@@ -118,7 +118,15 @@ export class OktaLoginController extends React.PureComponent {
         if (this.didAttemptRestore || session || !this.oktaAuth) return;
         this.didAttemptRestore = true;
 
-        const idToken = this.oktaAuth.getIdToken();
+        // Read the token object, not getIdToken()'s bare string: older pages
+        // and other tabs can leave a pendingRemove credential after logout.
+        // Restoration must be safe even before any SDK services have started.
+        const { idToken: storedToken } = this.oktaAuth.tokenManager.getTokensSync();
+        if (storedToken && storedToken.pendingRemove) {
+            this.clearOktaTokens();
+            return;
+        }
+        const idToken = storedToken && storedToken.idToken;
         if (!idToken) return; // Not logged in to Okta; nothing to restore.
         if (JWT.getUserInfo()) return; // Portal already believes it has a session.
 

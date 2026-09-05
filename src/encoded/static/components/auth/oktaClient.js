@@ -20,6 +20,11 @@ import {
  * `/okta/callback` page must share one instance - the PKCE verifier and the
  * `state`/`nonce` written when login starts have to be read back by the same
  * client when the redirect returns.
+ *
+ * Construction does NOT start background SDK services. OktaCallbackSecurity
+ * owns their lifetime on the callback page; normal portal navigation uses the
+ * explicit token APIs without renewal. Logout/restore must therefore handle
+ * token removal themselves rather than depending on tokenManager.start().
  */
 let cachedClient = null;
 let cachedConfigKey = null;

@@ -21,6 +21,21 @@ values below are **synthetic examples**; substitute your own tenant's.
 The browser is a **public** client: there is no client secret in the React
 source, in `/okta_config`, in the bundle, or in this repository.
 
+### Logout and browser SDK lifetime
+
+Logout deletes the portal cookie first, then calls Okta `signOut` with
+`clearTokensBeforeRedirect: true`. This preserves the ID-token logout hint while
+removing local tokens before navigation. Homepage restoration also rejects and
+clears `pendingRemove` tokens left by an older page; it must never exchange them
+for a new portal cookie.
+
+Constructing the shared browser client does not start background SDK services.
+The callback page's `OktaCallbackSecurity` boundary owns that lifetime: its nested
+Okta `Security` starts services, and the boundary stops them on exit or when a
+portal-session error replaces the callback.
+Ordinary navigation uses token storage directly, so logout safety does not depend
+on a later `tokenManager.start()` clearing pending tokens.
+
 ## Registering the application in Okta
 
 Create an **OIDC → Single-Page Application** with:
@@ -149,4 +164,6 @@ module scope for its (unused) `SecureRoute`; the portal wires no router.
 
 Tests: `src/encoded/tests/test_okta.py`,
 `src/encoded/tests/test_authentication.py`,
-`src/encoded/static/components/__tests__/oktaAuth.test.js`.
+`src/encoded/static/components/__tests__/oktaAuth.test.js`, and
+`src/encoded/static/components/__tests__/oktaLogoutLifecycle.test.js` (real locked
+SDK, persistent storage across simulated logout/reload, no IdP/network).

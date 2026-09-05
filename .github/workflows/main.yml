@@ -54,6 +54,10 @@ jobs:
         run: |
           make build
 
+      - name: Frontend regression tests
+        if: ${{ matrix.test_type == 'UNIT' }}
+        run: npm test -- --runInBand
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -76,7 +80,14 @@ jobs:
         if: ${{ matrix.test_type == 'DOCKER' }}
         run: |
           touch deploy/docker/local/docker_development.ini  # cheap substitute for prepare-docker to make ignored file
-          docker build .
+          docker build -t smaht-portal:ci .
+
+      - name: Non-root nginx request-body smoke test
+        if: ${{ matrix.test_type == 'DOCKER' }}
+        run: |
+          # No app entrypoint, credentials, or external network: synthetic upstreams only.
+          docker run --rm --network none --entrypoint python smaht-portal:ci \
+            deploy/docker/production/tests/nginx_request_body_smoke.py
 
       - name: Cleanup
         if: ${{ always() && matrix.test_type == 'UNIT' }}

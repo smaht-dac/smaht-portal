@@ -329,7 +329,8 @@ describe('OktaLogoutController - full logout', () => {
     it('clears the portal session before signing out of Okta', async () => {
         const order = [];
         const oktaAuth = {
-            signOut: () => {
+            signOut: (options) => {
+                expect(options).toEqual({ clearTokensBeforeRedirect: true });
                 order.push('okta');
                 return Promise.resolve();
             },
@@ -449,9 +450,11 @@ describe('OktaLoginController - restoring the session on page load', () => {
         const controller = makeController(
             { session: true },
             {
-                getIdToken: () => {
-                    read = true;
-                    return 'token';
+                tokenManager: {
+                    getTokensSync: () => {
+                        read = true;
+                        return { idToken: { idToken: 'token' } };
+                    },
                 },
             }
         );
@@ -462,7 +465,7 @@ describe('OktaLoginController - restoring the session on page load', () => {
     it('does nothing when the browser holds no Okta tokens', () => {
         const controller = makeController(
             { session: false },
-            { getIdToken: () => undefined }
+            { tokenManager: { getTokensSync: () => ({}) } }
         );
         controller.restorePortalSession();
         expect(controller.state.isLoading).toBe(false);
@@ -473,9 +476,11 @@ describe('OktaLoginController - restoring the session on page load', () => {
         const controller = makeController(
             { session: false },
             {
-                getIdToken: () => {
-                    reads += 1;
-                    return undefined;
+                tokenManager: {
+                    getTokensSync: () => {
+                        reads += 1;
+                        return {};
+                    },
                 },
             }
         );

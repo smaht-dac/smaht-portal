@@ -49,7 +49,10 @@ export async function performFullLogout(args) {
         // `signOut` revokes the tokens and redirects to Okta's end-session
         // endpoint, which returns the browser to `postLogoutRedirectUri`. That
         // is the only way to end the Okta *session*, not just our copy of it.
-        await oktaAuth.signOut();
+        // The default signOut only marks tokens pendingRemove, relying on a
+        // later SDK start() to delete them. Normal portal pages do not start
+        // SDK services, so clear now; the SDK retains the ID-token logout hint.
+        await oktaAuth.signOut({ clearTokensBeforeRedirect: true });
         return { portalLoggedOut: true, oktaSignOutStarted: true };
     } catch (error) {
         // Okta unreachable or the post-logout URI is not registered. The portal

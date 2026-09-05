@@ -117,6 +117,22 @@ proof the secret bytes never reach stdout/stderr. The structural container
 invariants (VOLUME, exec chain, log paths, sha256 pin) are guarded by
 `deploy/docker/production/tests/test_container_contracts.py`.
 
+The CI Docker job also runs the **built app image**, as its default uid/gid 121,
+with no external network and synthetic loopback upstreams:
+
+```sh
+docker run --rm --network none --entrypoint python IMAGE \
+  deploy/docker/production/tests/nginx_request_body_smoke.py
+```
+
+This bypasses the app entrypoint and identity lookup. It checks both a small POST
+and a 230,000-byte POST (above nginx's 128K memory buffer, below its 16M limit),
+including the exact body received upstream. The root build-time `nginx -t` creates
+temp subdirectories; the Dockerfile must repair their ownership **after** that
+check. A passing non-root `nginx -t` alone does not establish disk-buffer access.
+Run this against the approved DHI image before deployment; a public-base local
+substitute is representative evidence only, not equivalent-image validation.
+
 ## Infrastructure handoff (NOT owned by this repository)
 
 This repo configures nginx and materializes the cert files. Two pieces live in

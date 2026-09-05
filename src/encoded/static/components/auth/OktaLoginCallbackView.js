@@ -73,6 +73,29 @@ function goTo(uri) {
     }
 }
 
+/**
+ * The callback owns SDK services: Security starts them, and this boundary stops
+ * them when the callback leaves (or a portal-session error replaces it). Navigation
+ * controllers only use the client/token APIs; they never start renewal services
+ * or rely on service startup to remove credentials left over from logout.
+ */
+export class OktaCallbackSecurity extends React.PureComponent {
+    static propTypes = {
+        oktaAuth: PropTypes.object.isRequired,
+    };
+
+    componentWillUnmount() {
+        const { oktaAuth } = this.props;
+        return oktaAuth.stop().catch((error) => {
+            logger.error('Could not stop Okta callback services: ' + error.message);
+        });
+    }
+
+    render() {
+        return <Security {...this.props} />;
+    }
+}
+
 export default class OktaLoginCallbackView extends React.PureComponent {
     static propTypes = {
         /** Portal context for this route; unused, present for content_views parity. */
@@ -142,12 +165,12 @@ export default class OktaLoginCallbackView extends React.PureComponent {
             return <CallbackPending message="Preparing sign-in…" />;
         }
         return (
-            <Security oktaAuth={oktaAuth} restoreOriginalUri={this.restoreOriginalUri}>
+            <OktaCallbackSecurity oktaAuth={oktaAuth} restoreOriginalUri={this.restoreOriginalUri}>
                 <LoginCallback
                     errorComponent={CallbackError}
                     loadingElement={<CallbackPending />}
                 />
-            </Security>
+            </OktaCallbackSecurity>
         );
     }
 }

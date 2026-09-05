@@ -182,7 +182,11 @@ RUN mkdir -p /var/lib/nginx /var/log/nginx /var/log/smaht/nginx && \
 # of only failing at container start. Syntax/directive test only -- it does not prove
 # runtime behavior, and it validates the TLS-DISABLED default (empty smaht_tls.conf);
 # the runtime TLS cert/config is validated separately by setup_nginx_tls.sh.
-RUN nginx -v && nginx -t
+# The root-run check also creates Debian nginx's temp subdirectories, owned by
+# its compiled-in default worker user. Repair them AFTER the check so runtime
+# uid 121 can buffer request bodies and upstream responses to disk.
+RUN nginx -v && nginx -t && \
+    chown -R nginx:nginx /var/lib/nginx
 
 # B2 (shared-volume ownership): declare /var/log/smaht a VOLUME so an ECS bind/managed
 # mount PRESERVES the image path's nginx (uid 121) ownership + mode instead of masking
