@@ -1,4 +1,5 @@
 import csv
+import json
 import argparse
 from collections import namedtuple
 from dcicutils import ff_utils
@@ -17,9 +18,11 @@ from dcicutils.creds_utils import SMaHTKeyManager
 #   DAC code in the portal
 #   Submitter (Yes/No)
 #   Revoked (Yes/No)
+#   Associate Network Member (Yes/No)
 
 # Define the named tuple
-User = namedtuple('User', ['first_name', 'last_name', 'dua_status', 'email', 'submission_center', 'submits_for'])
+User = namedtuple('User', ['first_name', 'last_name', 'dua_status', 'email', 'submission_center', 'submits_for',
+                          'is_associate'], defaults=('No',))
 
 
 class UserCSVProcessorException(Exception):
@@ -33,6 +36,7 @@ class UserCSVProcessor:
         self.submission_centers = []
         self.user_dict = {}
         self.validate_only = False
+        self.verbose = False
 
     def read_csv(self, file_path: str) -> list:
         """ Pulls the whole CSV into memory and returns a list of rows """
@@ -55,13 +59,14 @@ class UserCSVProcessor:
                                                                              self.clean_str(row[3], lower=False),
                                                                              self.clean_str(row[4]),
                                                                              row[7], row[8])
-        return User(first_name, last_name, dua, email, submission_center, submits_for)
+        is_associate = self.clean_str(row[10], lower=False) if len(row) > 10 else ''
+        return User(first_name, last_name, dua, email, submission_center, submits_for, is_associate)
 
     def generate_submission_center_list(self, user_csv_list: list[list]):
         """ Goes through the CSV and populates the submission center list """
         for row in user_csv_list:
             sc = row[7]
-            if sc not in self.submission_centers:
+            if sc and sc not in self.submission_centers:
                 self.submission_centers.append(sc)
 
     def validate_submission_center_list(self):
@@ -77,6 +82,11 @@ class UserCSVProcessor:
                 continue
             ff_utils.get_metadata(f'/submission-centers/{sc.lower()}', key=self.key)  # this will throw exception if not found
 
+    def validate_consortium_list(self):
+        """ Validates the consortia this script can assign actually exist on the portal """
+        for consortium in ('smaht', 'smaht_associate'):
+            ff_utils.get_metadata(f'/consortia/{consortium}', key=self.key)  # this will throw exception if not found
+
     def check_for_existing_user(self, user: User) -> bool:
         """ Checks if the current user already exists """
         email = user.email
@@ -87,13 +97,25 @@ class UserCSVProcessor:
 
     def generate_users(self, user_csv_list: list[list]) -> dict:
         """ Generates an email --> props mapping of users to post """
-        for _u in user_csv_list:
+        first_seen_row = {}  # email -> row number of first occurrence
+        duplicate_emails = set()  # emails excluded entirely due to a duplicate
+        for row_number, _u in enumerate(user_csv_list, start=2):  # +2: header stripped, 1-indexed
             if _u[9] == 'Yes':  # ignore revoked users
                 continue
             user = self.build_user_from_row(_u)
+            if user.email in duplicate_emails:
+                PRINT(f'\033[1mWARNING: duplicate email "{user.email}" also found at row {row_number} '
+                      f'- row excluded\033[0m')
+                continue
             if user.email in self.user_dict:
-                raise UserCSVProcessorException(f'Found duplicate user in spreadsheet: {user.email}')
+                PRINT(f'\033[1mWARNING: duplicate email "{user.email}" found at row {row_number} '
+                      f'(first seen at row {first_seen_row[user.email]}) - excluding both rows '
+                      f'from processing\033[0m')
+                del self.user_dict[user.email]
+                duplicate_emails.add(user.email)
+                continue
             self.user_dict[user.email] = user
+            first_seen_row[user.email] = row_number
         return self.user_dict
 
     def ignore_existing_users(self) -> None:
@@ -107,96 +129,198 @@ class UserCSVProcessor:
                 PRINT(f'User {email} queued for update')
                 continue  # we want to keep this user
 
-    def post_users_to_portal(self) -> int:
+    @staticmethod
+    def _mapped_submission_centers(submission_center: str) -> list:
+        """ Maps the raw DAC-code column value to actual portal SubmissionCenter
+            identifiers (comma-split), applying the 'dac' -> 'smaht_dac' spreadsheet hardcode. """
+        if not submission_center or submission_center == 'nih':  # XXX: hardcode as NIH has no submission center
+            return []
+        if submission_center == 'dac':  # XXX: hardcode as this differs in spreadsheet
+            return ['smaht_dac']
+        return [sc for sc in submission_center.split(',')]
+
+    def post_users_to_portal(self) -> tuple[int, int]:
         """ Posts the user_dict to the portal """
         number_updated = 0
+        number_failed = 0
         for _, user in self.user_dict.items():
             if user:  # could have been set to None in previous step
                 try:
+                    consortia = ['smaht']
+                    if user.is_associate == 'Yes':
+                        consortia.append('smaht_associate')
                     post_body = {
                         'email': user.email,
                         'first_name': user.first_name,
                         'last_name': user.last_name,
-                        'consortia': [
-                            'smaht'
-                        ]
+                        'consortia': consortia
                     }
                     if user.dua_status == 'Yes':
                         post_body['groups'] = ['dbgap']
-                    if user.submission_center != 'nih':  # XXX: hardcode as NIH has no submission center
-                        post_body['submission_centers'] = [sc for sc in user.submission_center.split(',')]
-                        if user.submits_for == 'Yes':
-                            post_body['submits_for'] = [
-                                user.submission_center
-                            ]
-                    if user.submission_center == 'dac':  # XXX: hardcode as this differs in spreadsheet
-                        post_body['submission_centers'] = ['smaht_dac']
-                        post_body['submits_for'] = ['smaht_dac']  # all dac users can submit for us
+                    mapped_centers = self._mapped_submission_centers(user.submission_center)
+                    if mapped_centers:
+                        post_body['submission_centers'] = mapped_centers
+                    elif not user.submission_center:
+                        PRINT(f'No DAC code for user {user.email} - posting without submission_centers/submits_for')
+                    if user.submits_for == 'Yes' and mapped_centers:
+                        post_body['submits_for'] = mapped_centers
 
-                    ff_utils.post_metadata(post_body, '/User',  key=self.key,
+                    if self.verbose:
+                        PRINT(f'POST body for {user.email}:\n{json.dumps(post_body, indent=2)}')
+                    ff_utils.post_metadata(post_body, 'users', key=self.key,
                                            add_on='?check_only=true' if self.validate_only else '')
                     number_updated += 1
                 except Exception as e:
-                    PRINT(f'Exiting - error encountered in user {user.email}: {e}')
-                    break
-        return number_updated
-
-    def update_submits_for(self) -> int:
-        """ Iterates through the user list updating submits_for and dua status specifically where applicable """
-        number_updated = 0
-        for _, user in self.user_dict.items():
-            existing_user_groups = ff_utils.get_metadata(f'/users/{user.email}', key=self.key).get('groups', [])
-            try:
-                # do not do an update on users who do not have this value
-                if not user.submits_for and not user.dua_status:
+                    PRINT(f'Error encountered in user {user.email} - skipping: {e}')
+                    number_failed += 1
                     continue
-                patch_body = {}
-                if user.submission_center != 'nih':  # XXX: hardcode as NIH has no submission center
-                    patch_body['submits_for'] = [sc for sc in user.submission_center.split(',')]
-                if user.submission_center == 'dac':  # XXX: hardcode as this differs in spreadsheet
-                    patch_body['submits_for'] = ['smaht_dac']  # all dac users can submit for us
-                if user.dua_status == 'Yes':
-                    patch_body['groups'] = list(set(['dbgap'] + existing_user_groups))
+        return number_updated, number_failed
 
-                ff_utils.patch_metadata(patch_body, f'/users/{user.email}', key=self.key,
-                                        add_on='?check_only=true' if self.validate_only else '')
+    @staticmethod
+    def _normalize_linked_item(value) -> str:
+        """ linkTo entries (submits_for, consortia) come back as embedded dicts (has
+            'identifier') from a get_metadata call with an admin key; normalize
+            dict/@id-path/bare-string forms to a bare identifier so comparisons work
+            regardless of shape. """
+        if isinstance(value, dict):
+            return value.get('identifier', '')
+        if isinstance(value, str) and value.startswith('/'):
+            segments = [s for s in value.strip('/').split('/') if s]
+            return segments[-1] if segments else value
+        return value
+
+    def update_submits_for(self, only_if_changed: bool = False) -> tuple[int, int, int]:
+        """ Iterates through the user list updating submits_for, groups, and consortia where applicable """
+        number_updated = 0
+        number_failed = 0
+        number_unchanged = 0
+        for _, user in self.user_dict.items():
+            try:
+                existing = ff_utils.get_metadata(f'/users/{user.email}', key=self.key)
+                existing_groups = existing.get('groups', [])
+                existing_submits_for = [self._normalize_linked_item(sc)
+                                         for sc in existing.get('submits_for', [])]
+                existing_consortia = [self._normalize_linked_item(c)
+                                       for c in existing.get('consortia', [])]
+
+                target_consortia = ['smaht']
+                if user.is_associate == 'Yes':
+                    target_consortia.append('smaht_associate')
+
+                mapped_centers = self._mapped_submission_centers(user.submission_center)
+                if not user.submission_center:
+                    PRINT(f'No DAC code for user {user.email} - updating without submission_centers/submits_for')
+                target_submits_for = mapped_centers if (user.submits_for == 'Yes' and mapped_centers) else []
+
+                existing_has_dbgap = 'dbgap' in existing_groups
+                target_has_dbgap = user.dua_status == 'Yes'
+                groups_patch = None  # the new 'groups' value to send, if any
+                delete_groups_field = False
+                if target_has_dbgap and not existing_has_dbgap:
+                    groups_patch = existing_groups + ['dbgap']  # add, preserving other groups
+                elif not target_has_dbgap and existing_has_dbgap:
+                    remaining = [g for g in existing_groups if g != 'dbgap']  # remove dbgap only
+                    if remaining:
+                        groups_patch = remaining  # other groups survive
+                    else:
+                        delete_groups_field = True  # dbgap was the sole group
+                # else: target_has_dbgap == existing_has_dbgap -> no groups change needed at all
+
+                patch_body = {'consortia': target_consortia}
+                if target_submits_for:
+                    patch_body['submits_for'] = target_submits_for
+                if groups_patch is not None:
+                    patch_body['groups'] = groups_patch
+
+                if only_if_changed:
+                    changed = (
+                        sorted(target_consortia) != sorted(existing_consortia)
+                        or sorted(target_submits_for) != sorted(existing_submits_for)
+                        or groups_patch is not None
+                        or delete_groups_field
+                    )
+                    if not changed:
+                        PRINT(f'No changes needed for user {user.email} - skipping')
+                        number_unchanged += 1
+                        continue
+
+                add_on_params = []
+                if self.validate_only:
+                    add_on_params.append('check_only=true')
+                delete_fields = []
+                if not target_submits_for and existing_submits_for:
+                    delete_fields.append('submits_for')
+                if delete_groups_field:
+                    delete_fields.append('groups')
+                if delete_fields:
+                    add_on_params.append('delete_fields=' + ','.join(delete_fields))
+                add_on = '?' + '&'.join(add_on_params) if add_on_params else ''
+
+                if self.verbose:
+                    PRINT(f'PATCH body for {user.email} (add_on={add_on!r}):\n{json.dumps(patch_body, indent=2)}')
+                ff_utils.patch_metadata(patch_body, f'/users/{user.email}', key=self.key, add_on=add_on)
                 number_updated += 1
             except Exception as e:
-                PRINT(f'Exiting - error encountered in user {user.email}: {e}')
-                break
-        return number_updated
+                PRINT(f'Error encountered in user {user.email} - skipping: {e}')
+                number_failed += 1
+                continue
+        return number_updated, number_failed, number_unchanged
 
     def main(self, args):
         """ Entrypoint for this command """
         self.validate_only = args.validate_only
+        self.verbose = args.verbose
         user_csv_list = self.read_csv(args.csv_file_path)[1:]  # strip header
         self.generate_submission_center_list(user_csv_list)
         self.validate_submission_center_list()
+        self.validate_consortium_list()
         self.generate_users(user_csv_list)
-        PRINT(f'Found {len(self.user_dict.items())} to post')
+        PRINT(f'Found {len(self.user_dict.items())} spreadsheet users to process')
         PRINT(f'Please confirm with y/n')
         y = input()
         if y.lower() != 'y':
             PRINT('Confirmation failed - exiting')
             exit(0)
-        if not args.update:
+        if args.create_new:
             self.ignore_existing_users()
-            number_updated = self.post_users_to_portal()
+            number_updated, number_failed = self.post_users_to_portal()
+            number_unchanged = 0
         else:
-            number_updated = self.update_submits_for()
-        PRINT(f'{number_updated} users have been updated on the portal')
+            number_updated, number_failed, number_unchanged = self.update_submits_for(
+                only_if_changed=args.update_changed)
+        if self.validate_only:
+            PRINT(f'[VALIDATE-ONLY] {number_updated} users passed validation (nothing was persisted to the portal)')
+        else:
+            PRINT(f'{number_updated} users have been updated on the portal')
+        if number_unchanged:
+            PRINT(f'{number_unchanged} users already had matching values on the portal and were skipped')
+        if number_failed:
+            PRINT(f'\033[1mWARNING: {number_failed} users failed and were skipped - see errors above\033[0m')
 
 
-def main():
+def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Reads a CSV of users in expected format and updates the data "
                                                  "portal.")
     parser.add_argument("csv_file_path", help="Path to the User CSV file")
     parser.add_argument("--env", help="env to use (if not data)", default='data')
     parser.add_argument("--validate-only", action='store_true', default=False,
                         help="Only validate the posting of users")
-    parser.add_argument("--update", action='store_true', default=False,
-                        help="Do not post new users - only update existing ones")
-    args = parser.parse_args()
+    parser.add_argument("--verbose", action='store_true', default=False,
+                        help="Print the POST/PATCH JSON body for each user")
+    mode_group = parser.add_mutually_exclusive_group(required=True)
+    mode_group.add_argument("--create-new", action='store_true', default=False,
+                            help="Post new users only - skip users who already exist on the portal")
+    mode_group.add_argument("--update-all", action='store_true', default=False,
+                            help="Do not post new users - unconditionally update submits_for/groups "
+                                 "on existing ones")
+    mode_group.add_argument("--update-changed", action='store_true', default=False,
+                            help="Like --update-all, but skip users whose submits_for/groups already "
+                                 "match the portal - only PATCH users with an actual change")
+    return parser
+
+
+def main(argv=None):
+    args = build_arg_parser().parse_args(argv)
     env = args.env
     PRINT(f'Attempting user load on env {env}, please confirm with y/n')
     y = input()
