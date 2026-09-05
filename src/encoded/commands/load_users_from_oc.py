@@ -87,13 +87,25 @@ class UserCSVProcessor:
 
     def generate_users(self, user_csv_list: list[list]) -> dict:
         """ Generates an email --> props mapping of users to post """
-        for _u in user_csv_list:
+        first_seen_row = {}  # email -> row number of first occurrence
+        duplicate_emails = set()  # emails excluded entirely due to a duplicate
+        for row_number, _u in enumerate(user_csv_list, start=2):  # +2: header stripped, 1-indexed
             if _u[9] == 'Yes':  # ignore revoked users
                 continue
             user = self.build_user_from_row(_u)
+            if user.email in duplicate_emails:
+                PRINT(f'\033[1mWARNING: duplicate email "{user.email}" also found at row {row_number} '
+                      f'- row excluded\033[0m')
+                continue
             if user.email in self.user_dict:
-                raise UserCSVProcessorException(f'Found duplicate user in spreadsheet: {user.email}')
+                PRINT(f'\033[1mWARNING: duplicate email "{user.email}" found at row {row_number} '
+                      f'(first seen at row {first_seen_row[user.email]}) - excluding both rows '
+                      f'from processing\033[0m')
+                del self.user_dict[user.email]
+                duplicate_emails.add(user.email)
+                continue
             self.user_dict[user.email] = user
+            first_seen_row[user.email] = row_number
         return self.user_dict
 
     def ignore_existing_users(self) -> None:
@@ -107,9 +119,10 @@ class UserCSVProcessor:
                 PRINT(f'User {email} queued for update')
                 continue  # we want to keep this user
 
-    def post_users_to_portal(self) -> int:
+    def post_users_to_portal(self) -> tuple[int, int]:
         """ Posts the user_dict to the portal """
         number_updated = 0
+        number_failed = 0
         for _, user in self.user_dict.items():
             if user:  # could have been set to None in previous step
                 try:
@@ -133,20 +146,22 @@ class UserCSVProcessor:
                         post_body['submission_centers'] = ['smaht_dac']
                         post_body['submits_for'] = ['smaht_dac']  # all dac users can submit for us
 
-                    ff_utils.post_metadata(post_body, '/User',  key=self.key,
+                    ff_utils.post_metadata(post_body, 'User', key=self.key,
                                            add_on='?check_only=true' if self.validate_only else '')
                     number_updated += 1
                 except Exception as e:
-                    PRINT(f'Exiting - error encountered in user {user.email}: {e}')
-                    break
-        return number_updated
+                    PRINT(f'Error encountered in user {user.email} - skipping: {e}')
+                    number_failed += 1
+                    continue
+        return number_updated, number_failed
 
-    def update_submits_for(self) -> int:
+    def update_submits_for(self) -> tuple[int, int]:
         """ Iterates through the user list updating submits_for and dua status specifically where applicable """
         number_updated = 0
+        number_failed = 0
         for _, user in self.user_dict.items():
-            existing_user_groups = ff_utils.get_metadata(f'/users/{user.email}', key=self.key).get('groups', [])
             try:
+                existing_user_groups = ff_utils.get_metadata(f'/users/{user.email}', key=self.key).get('groups', [])
                 # do not do an update on users who do not have this value
                 if not user.submits_for and not user.dua_status:
                     continue
@@ -162,9 +177,10 @@ class UserCSVProcessor:
                                         add_on='?check_only=true' if self.validate_only else '')
                 number_updated += 1
             except Exception as e:
-                PRINT(f'Exiting - error encountered in user {user.email}: {e}')
-                break
-        return number_updated
+                PRINT(f'Error encountered in user {user.email} - skipping: {e}')
+                number_failed += 1
+                continue
+        return number_updated, number_failed
 
     def main(self, args):
         """ Entrypoint for this command """
@@ -181,10 +197,15 @@ class UserCSVProcessor:
             exit(0)
         if not args.update:
             self.ignore_existing_users()
-            number_updated = self.post_users_to_portal()
+            number_updated, number_failed = self.post_users_to_portal()
         else:
-            number_updated = self.update_submits_for()
-        PRINT(f'{number_updated} users have been updated on the portal')
+            number_updated, number_failed = self.update_submits_for()
+        if self.validate_only:
+            PRINT(f'[VALIDATE-ONLY] {number_updated} users passed validation (nothing was persisted to the portal)')
+        else:
+            PRINT(f'{number_updated} users have been updated on the portal')
+        if number_failed:
+            PRINT(f'\033[1mWARNING: {number_failed} users failed and were skipped - see errors above\033[0m')
 
 
 def main():
