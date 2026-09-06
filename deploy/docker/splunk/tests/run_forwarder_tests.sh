@@ -21,7 +21,8 @@ FAIL=0
 #   $1 boot  : first | later | running
 #   $2 eof   : hang | fail          (license read on EOF)
 #   $3 start : ok | fail | never_ready
-#   $4 secs  : hard timeout before we TERM the wrapper
+#   $4 secs  : hard timeout before we TERM the wrapper (or KILL in steady mode)
+#   $5 mode  : optional 'steady' synchronizes TERM with the first healthy sleep
 # Captured output is left in $RUN_OUT, exit code in $RUN_RC.
 run_case() {
     _boot="$1"; _eof="$2"; _start="$3"; _timeout="$4"
@@ -56,13 +57,41 @@ EOF
     # after the disposable SPLUNK_HOME tree is removed.
     RUN_OUT="$(mktemp "${TMPDIR:-/tmp}/splunk-fwd-out.XXXXXX")"
     (
-        sh "$SCRIPT" </dev/null >"$RUN_OUT" 2>&1 &
-        _child=$!
-        ( sleep "$_timeout"; kill -TERM "$_child" 2>/dev/null
-          sleep 2; kill -KILL "$_child" 2>/dev/null ) &
+        if [ "${5:-}" = steady ]; then
+            # A FIFO handshake holds the entrypoint in its healthy foreground
+            # sleep, outside CLI-output redirection, until TERM is delivered.
+            # A readiness log alone cannot guarantee it is still at that point.
+            mkdir "$WORK/sync"
+            mkfifo "$WORK/sync/ready" "$WORK/sync/release"
+            cp "$HERE/synchronized_sleep.sh" "$WORK/sync/sleep"
+            chmod +x "$WORK/sync/sleep"
+            env PATH="$WORK/sync:$PATH" SPLUNK_TEST_SYNC_DIR="$WORK/sync" \
+                SPLUNK_TEST_OUT="$RUN_OUT" SPLUNK_TEST_REAL_SLEEP="$(command -v sleep)" \
+                sh "$SCRIPT" </dev/null >"$RUN_OUT" 2>&1 &
+            _child=$!
+            (
+                if IFS= read -r _ready < "$WORK/sync/ready" && [ "$_ready" = ready ]; then
+                    kill -TERM "$_child" && printf 'release\n' > "$WORK/sync/release"
+                fi
+            ) &
+            _signaler=$!
+            # Failure backstop only: successful runs never wait for this timer.
+            ( sleep "$_timeout"; kill -KILL "$_child" 2>/dev/null ) &
+        else
+            sh "$SCRIPT" </dev/null >"$RUN_OUT" 2>&1 &
+            _child=$!
+            ( sleep "$_timeout"; kill -TERM "$_child" 2>/dev/null
+              sleep 2; kill -KILL "$_child" 2>/dev/null ) &
+        fi
         _killer=$!
         wait "$_child"; _rc=$?
         kill "$_killer" 2>/dev/null
+        if [ "${5:-}" = steady ]; then
+            kill "$_signaler" 2>/dev/null || true
+            if [ -f "$WORK/sync/sleep.pid" ]; then
+                kill "$(cat "$WORK/sync/sleep.pid")" 2>/dev/null || true
+            fi
+        fi
         echo "$_rc" > "$RUN_OUT.rc"
     )
     RUN_RC="$(cat "$RUN_OUT.rc" 2>/dev/null || echo '??')"
@@ -145,9 +174,13 @@ want "detects already-running splunkd" "splunkd already running"
 want "reaches HEALTHY without restart" "HEALTHY"
 
 echo "TEST 10: graceful shutdown on SIGTERM stops splunkd"
-run_case later hang ok 6
+# Synchronize to healthy steady state; 30s is a deadlock backstop, not a delay.
+run_case later hang ok 30 steady
+want "reaches HEALTHY before stop" "HEALTHY: splunk forwarder started"
 want "handles stop signal" "received stop signal"
 want "invokes splunk stop" "stage 'stop'"
+want "stop completed successfully" "'splunk stop' completed"
+if [ "$RUN_RC" = 143 ]; then ok "exits gracefully on SIGTERM"; else bad "exits gracefully on SIGTERM"; fi
 
 echo "TEST 11: the backgrounded splunkd.log tail (success path) redacts secrets"
 # The fake writes a WARN line carrying 'sslPassword = STAGE6SECRETVALUE' to
