@@ -2167,7 +2167,11 @@ div.browse-link-icon {
 .tissue-advanced-germ-layer-panel {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-start;
+	// Flex's own default (stretch), made explicit -- the Germ Cells/
+	// Clinically Accessible column (2 stacked sections) is naturally the
+	// tallest, so every column stretches to match it instead of each only
+	// being as tall as its own content.
+	align-items: stretch;
 	gap: 1rem;
 
 	.tissue-advanced-germ-layer-column {
@@ -2984,14 +2988,34 @@ div.browse-link-icon {
 		overflow: hidden;
 	}
 
+	// A plain <span> before, now a <button> (see FixedScoreLegend) so a
+	// swatch can double as a filter toggle -- these first few rules strip
+	// the browser's own default button chrome (border/font/appearance) so
+	// it still reads as exactly the same swatch as before.
 	.tissue-heatmap-fixed-legend-swatch {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		min-width: 32px;
 		padding: 3px 8px;
+		font: inherit;
 		font-weight: 600;
 		color: #28323C;
+		border: none;
+		appearance: none;
+		cursor: pointer;
+		transition: box-shadow 0.15s ease;
+
+		&:disabled {
+			cursor: default;
+		}
+
+		// The active band's own swatch (activeClassName === entry.className) --
+		// an inset ring rather than a border/outline, so it doesn't shift
+		// the swatch's own size or the 1px dividing lines between swatches.
+		&.is-active {
+			box-shadow: inset 0 0 0 2px #28323C;
+		}
 
 		&.score-0 { background-color: var(--heatmap-score-0-bg, #DAEBF1); color: var(--heatmap-score-0-text, #28323C); }
 		&.score-1 { background-color: var(--heatmap-score-1-bg, #ADD3E1); color: var(--heatmap-score-1-text, #28323C); }
@@ -3023,14 +3047,30 @@ div.browse-link-icon {
 		overflow: hidden;
 	}
 
+	// A plain <span> before, now a <button> (see SplitCellLegend) so a half
+	// can double as a filter toggle -- same button-chrome reset as
+	// .tissue-heatmap-fixed-legend-swatch above.
 	.tissue-heatmap-split-legend-half {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		padding: 3px 10px;
+		font: inherit;
 		font-weight: 600;
 		color: #4E6884;
 		background-color: #F7FAFC;
+		border: none;
+		appearance: none;
+		cursor: pointer;
+		transition: box-shadow 0.15s ease;
+
+		&:disabled {
+			cursor: default;
+		}
+
+		&.is-active {
+			box-shadow: inset 0 0 0 2px #4E6884;
+		}
 	}
 
 	.tissue-heatmap-split-legend-half-b {
@@ -3475,6 +3515,16 @@ div.browse-link-icon {
 				font-weight: 400;
 			}
 
+			// A legend swatch/half is selected as a filter (FixedScoreLegend/
+			// SplitCellLegend's activeClassName/activeHalf, applied here via
+			// renderRowCells' activeScoreClass/activeSplitHalf) and this
+			// cell's own band doesn't match it -- fade out rather than hide,
+			// so the table's shape/scroll position stays put and only color
+			// legibility signals which cells matched.
+			&.is-band-dimmed {
+				opacity: 0.25;
+			}
+
 			// The Excel-style corner flag -- more than one real record is
 			// actually competing for this cell's value (see
 			// buildTissueMetricMatrix's pickPrimaryTissueRecord), typically
@@ -3583,6 +3633,15 @@ div.browse-link-icon {
 				background-color: transparent;
 				color: #C7CCD2;
 				font-weight: 400;
+			}
+
+			// Same legend-driven filter fade as .tissue-heatmap-cell's own
+			// `.is-band-dimmed`, just per-half -- lets e.g. clicking "Fixed"
+			// in SplitCellLegend dim only the Frozen half of every split
+			// cell, or a score-band swatch dim only the non-matching half of
+			// a cell whose 2 real values landed in different bands.
+			&.is-band-dimmed {
+				opacity: 0.25;
 			}
 		}
 

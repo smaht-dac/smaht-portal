@@ -445,7 +445,14 @@ export function ScoreLegend({ entries }) {
 // two ends (e.g. "Minimal"/"Severe") for a metric whose bare band labels
 // (plain numbers) wouldn't otherwise say which end means what; Target Tissue
 // %'s own labels are already full percentage ranges, so it passes neither.
-export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = null }) {
+//
+// Each swatch also doubles as a filter toggle -- clicking one dims every
+// cell (and split-cell half) elsewhere in the table whose own band doesn't
+// match (see heatmapCellClassName/renderRowCells' `activeScoreClass`),
+// clicking the same swatch again (or `null`-ing activeClassName) clears it.
+// `onEntryClick`/`activeClassName` are optional so this still renders as a
+// plain, inert key when neither is passed.
+export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = null, activeClassName = null, onEntryClick = null }) {
     if (!entries || entries.length === 0) return null;
     return (
         <div className="tissue-heatmap-fixed-legend">
@@ -454,11 +461,19 @@ export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = n
             ) : null}
             <div className="tissue-heatmap-fixed-legend-scale">
                 {entries.map((entry) => (
-                    <span
+                    <button
+                        type="button"
                         key={entry.className}
-                        className={`tissue-heatmap-fixed-legend-swatch ${entry.className}`}>
+                        className={
+                            `tissue-heatmap-fixed-legend-swatch ${entry.className}` +
+                            (activeClassName === entry.className ? ' is-active' : '')
+                        }
+                        aria-pressed={activeClassName === entry.className}
+                        disabled={!onEntryClick}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={onEntryClick ? () => onEntryClick(entry.className) : undefined}>
                         {entry.label}
-                    </span>
+                    </button>
                 ))}
             </div>
             {rightCaption ? (
@@ -474,16 +489,40 @@ export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = n
 // explain here (each half is still colored by its own value's band, same
 // score-0..4 palette as everywhere else), just which half of a split cell
 // is which specimen type, so a reader knows before ever hovering one.
-function SplitCellLegend() {
+//
+// Each half also doubles as a filter toggle -- clicking "Fixed" dims every
+// Frozen half table-wide (and vice versa), via the same `activeSplitHalf`/
+// `onHalfClick` wiring FixedScoreLegend's `activeClassName`/`onEntryClick`
+// use for score bands (see renderRowCells). Optional, so this still renders
+// as a plain, inert key when neither is passed.
+function SplitCellLegend({ activeHalf = null, onHalfClick = null }) {
     return (
         <div className="tissue-heatmap-split-legend">
             <span className="tissue-heatmap-split-legend-swatch">
-                <span className="tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-a">
+                <button
+                    type="button"
+                    className={
+                        'tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-a' +
+                        (activeHalf === 'a' ? ' is-active' : '')
+                    }
+                    aria-pressed={activeHalf === 'a'}
+                    disabled={!onHalfClick}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={onHalfClick ? () => onHalfClick('a') : undefined}>
                     Fixed
-                </span>
-                <span className="tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-b">
+                </button>
+                <button
+                    type="button"
+                    className={
+                        'tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-b' +
+                        (activeHalf === 'b' ? ' is-active' : '')
+                    }
+                    aria-pressed={activeHalf === 'b'}
+                    disabled={!onHalfClick}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={onHalfClick ? () => onHalfClick('b') : undefined}>
                     Frozen
-                </span>
+                </button>
             </span>
         </div>
     );
@@ -938,10 +977,11 @@ function distinctEntryValues(entries) {
     return result;
 }
 
-function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRowSegment, isColumnSegment, entries) {
+function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRowSegment, isColumnSegment, entries, activeScoreClass = null) {
+    const scoreClass = enableConditionalColor ? getScoreClass(value) : null;
     return (
         'tissue-heatmap-cell' +
-        (enableConditionalColor ? ` ${getScoreClass(value)}` : '') +
+        (scoreClass ? ` ${scoreClass}` : '') +
         // Muted styling for "no data" cells is plain typography (grey vs.
         // dark text), not the score-band heatmap coloring
         // enableConditionalColor gates -- keeps real values legible against
@@ -957,7 +997,13 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRo
         // same-value multi-record cell still shows the full detail popover
         // on click (MetricHeatmapTable's selectedCell) -- it's just not
         // flagged, since there's nothing there worth drawing the eye to.
-        (hasDistinctAltValues(entries) ? ' has-alt-values' : '')
+        (hasDistinctAltValues(entries) ? ' has-alt-values' : '') +
+        // A legend swatch is "selected" (FixedScoreLegend's activeClassName,
+        // set by MetricHeatmapTable) -- every cell whose own band doesn't
+        // match fades out so the matching ones stand out. A `null`
+        // scoreClass (enableConditionalColor off) never matches, so this
+        // only ever dims when there's an active filter to honor.
+        (activeScoreClass && scoreClass !== activeScoreClass ? ' is-band-dimmed' : '')
     );
 }
 
@@ -1163,7 +1209,7 @@ function renderCellDetailPopover({
 // rules a `'diagonal'`/`'vertical'` cell follows; `cellSlots` (built by
 // buildTissueMetricMatrix, always exactly
 // `[Fixed entry | null, Frozen entry | null]`) is only read when it does.
-function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, donor, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, selectedCell, onCellClick, cellValueDisplayMode, splitByPreservationType) {
+function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, donor, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, selectedCell, onCellClick, cellValueDisplayMode, splitByPreservationType, activeScoreClass = null, activeSplitHalf = null) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
@@ -1233,8 +1279,27 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                 enableConditionalColor,
                 isRowSegment,
                 isColumnSegment,
-                isHoverMode ? entries : null
+                isHoverMode ? entries : null,
+                activeScoreClass
             )) + (isSelected ? ' is-selected' : '');
+
+        // Legend-driven per-half dimming (see FixedScoreLegend/SplitCellLegend's
+        // activeClassName/activeHalf) -- `splitByPreservationType` cells
+        // (Ischemic Time) dim by which specimen type half was clicked;
+        // other split cells (a real value tie, e.g. Autolysis Score's rare
+        // 2-distinct-value case) dim by score band, same as a plain cell.
+        const isHalfADimmed = splitByPreservationType
+            ? activeSplitHalf === 'b'
+            : Boolean(activeScoreClass) &&
+              splitValues[0] !== null &&
+              enableConditionalColor &&
+              getScoreClass(splitValues[0]) !== activeScoreClass;
+        const isHalfBDimmed = splitByPreservationType
+            ? activeSplitHalf === 'a'
+            : Boolean(activeScoreClass) &&
+              splitValues[1] !== null &&
+              enableConditionalColor &&
+              getScoreClass(splitValues[1]) !== activeScoreClass;
 
         nodes.push(
             <td
@@ -1261,7 +1326,8 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                                     ? ' is-empty'
                                     : enableConditionalColor
                                         ? ` ${getScoreClass(splitValues[0])}`
-                                        : '')
+                                        : '') +
+                                (isHalfADimmed ? ' is-band-dimmed' : '')
                             }>
                             {formatValue(splitValues[0])}
                         </span>
@@ -1272,7 +1338,8 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                                     ? ' is-empty'
                                     : enableConditionalColor
                                         ? ` ${getScoreClass(splitValues[1])}`
-                                        : '')
+                                        : '') +
+                                (isHalfBDimmed ? ' is-band-dimmed' : '')
                             }>
                             {formatValue(splitValues[1])}
                         </span>
@@ -1636,10 +1703,17 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     formatValue,
     getScoreClass,
     // Rendered directly under the heading -- a FixedScoreLegend (Autolysis
-    // Score/Target Tissue %'s own fixed, self-explanatory bands) or a
-    // ScoreLegend (Ischemic Time's data-driven quantile split, currently
-    // passed null/hidden -- see that tab's own `legend={null}` below) or
-    // null for no legend at all.
+    // Score/Target Tissue %'s own fixed, self-explanatory bands), a
+    // SplitCellLegend (Ischemic Time's Fixed/Frozen key), a ScoreLegend
+    // (Ischemic Time's data-driven quantile split, currently passed
+    // null/hidden -- see that tab's own `legend={null}` below), or null for
+    // no legend at all. Pass a function `({ activeScoreClass, onScoreClassClick,
+    // activeSplitHalf, onSplitHalfClick }) => ReactNode` instead of a plain
+    // node to make the legend clickable -- see the render below for how
+    // those get threaded into a FixedScoreLegend/SplitCellLegend, and
+    // renderRowCells for how the resulting activeScoreClass/activeSplitHalf
+    // dim non-matching cells table-wide. A plain node (or null) still works
+    // and just renders inert, same as always.
     legend = null,
     // Gates the score-band background coloring (score-0..score-4, applied
     // below) on each cell -- on by default using a neutral light->dark scale
@@ -1679,6 +1753,20 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // isn't a prop, so it doesn't affect this component's own React.memo
     // comparison above.
     const [sortState, setSortState] = useState(null);
+
+    // Which legend swatch/half is currently "selected" as a filter -- see
+    // FixedScoreLegend/SplitCellLegend's activeClassName/activeHalf and
+    // renderRowCells' activeScoreClass/activeSplitHalf params. Local state,
+    // same reasoning as sortState above: one independent filter per tab
+    // instance, cleared for free whenever a tab remounts.
+    const [activeScoreClass, setActiveScoreClass] = useState(null);
+    const [activeSplitHalf, setActiveSplitHalf] = useState(null);
+    // Clicking the already-active swatch/half clears the filter instead of
+    // re-selecting it, so the same click toggles the filter on and off.
+    const handleScoreClassClick = (className) =>
+        setActiveScoreClass((prev) => (prev === className ? null : className));
+    const handleSplitHalfClick = (half) =>
+        setActiveSplitHalf((prev) => (prev === half ? null : half));
 
     // "L-shaped" hover guides -- see renderRowCells' own comment for the
     // full reasoning. `hoveredColumn` (a tissue_type) is shared by the real
@@ -1984,7 +2072,14 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             />
                         ) : null}
                     </h2>
-                    {legend}
+                    {typeof legend === 'function'
+                        ? legend({
+                            activeScoreClass,
+                            onScoreClassClick: handleScoreClassClick,
+                            activeSplitHalf,
+                            onSplitHalfClick: handleSplitHalfClick,
+                        })
+                        : legend}
                 </div>
             </div>
             {stickyHeader ? (
@@ -2072,7 +2167,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     selectedCell,
                                     handleCellClick,
                                     cellValueDisplayMode,
-                                    splitByPreservationType
+                                    splitByPreservationType,
+                                    activeScoreClass,
+                                    activeSplitHalf
                                 )}
                             </tr>
                         ))}
@@ -2287,14 +2384,21 @@ export const BrowseTissueHeatmapTable = (props) => {
                             // still computed above and
                             // ScoreLegend/buildScoreLegend stay in place so
                             // it can come back by rendering both here
-                            // (legend={<>
+                            // (legend={() => <>
                             //     <ScoreLegend entries={ischemicTimeScoreLegend} />
                             //     <SplitCellLegend />
                             // </>}). SplitCellLegend itself stays on, though
                             // -- unlike the severity scale, it's not
                             // data-driven and explains this tab's own
-                            // Fixed/Frozen split cells regardless.
-                            legend={<SplitCellLegend />}
+                            // Fixed/Frozen split cells regardless. Its
+                            // Fixed/Frozen halves double as a filter (see
+                            // SplitCellLegend/renderRowCells' activeSplitHalf),
+                            // wired here via MetricHeatmapTable's own render-prop
+                            // legend call.
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeSplitHalf, onSplitHalfClick }) => (
+                                <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
+                            )}
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
                             splitByPreservationType
@@ -2317,13 +2421,16 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
                             formatValue={formatAutolysisScore}
                             getScoreClass={getAutolysisScoreClass}
-                            legend={
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeScoreClass, onScoreClassClick }) => (
                                 <FixedScoreLegend
                                     entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
                                     leftCaption="Minimal"
                                     rightCaption="Severe"
+                                    activeClassName={activeScoreClass}
+                                    onEntryClick={onScoreClassClick}
                                 />
-                            }
+                            )}
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
                         />
@@ -2346,9 +2453,14 @@ export const BrowseTissueHeatmapTable = (props) => {
                             formatValue={formatTargetTissuePercentage}
                             getScoreClass={getTargetTissuePercentageScoreClass}
                             getSortValue={getTargetTissuePercentageSortValue}
-                            legend={
-                                <FixedScoreLegend entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES} />
-                            }
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeScoreClass, onScoreClassClick }) => (
+                                <FixedScoreLegend
+                                    entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
+                                    activeClassName={activeScoreClass}
+                                    onEntryClick={onScoreClassClick}
+                                />
+                            )}
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
                         />
