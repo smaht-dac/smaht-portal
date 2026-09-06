@@ -94,6 +94,10 @@ case "$CMD" in
         if [ "${FAKE_SPLUNK_STOP:-ok}" = "hang" ]; then
             while true; do sleep 3600; done
         fi
+        if [ "${FAKE_SPLUNK_STOP:-ok}" = "fail" ]; then
+            echo "Could not stop splunkd." >&2
+            exit 1
+        fi
         rm -f "$PIDFILE"
         echo "Stopping splunkd..."
         exit 0

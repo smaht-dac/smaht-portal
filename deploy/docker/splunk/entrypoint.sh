@@ -200,8 +200,14 @@ bounded_splunk_stop() {
         fi
         sleep 1
     done
-    log "stage 'stop': 'splunk stop' completed within ${STOP_TIMEOUT}s"
-    return 0
+    _rc=0
+    wait "$_stop_pid" || _rc=$?
+    if [ "$_rc" -eq 0 ]; then
+        log "stage 'stop': 'splunk stop' completed within ${STOP_TIMEOUT}s"
+        return 0
+    fi
+    log "stage 'stop': 'splunk stop' exited non-zero (rc=$_rc) within ${STOP_TIMEOUT}s"
+    return "$_rc"
 }
 # shellcheck disable=SC2329  # invoked indirectly via `trap`
 shutdown() {

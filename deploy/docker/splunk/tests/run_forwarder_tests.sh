@@ -180,6 +180,18 @@ want            "bounded stop abandons hung stop"  "abandoned"
 want_rc_nonzero "exits (not blocked) after the bounded stop"
 unset FAKE_SPLUNK_STOP SPLUNK_FWD_STOP_TIMEOUT
 
+echo "TEST 14: a FAILED 'splunk stop' is reported, not falsely claimed complete"
+# FAKE_SPLUNK_STOP=fail makes 'splunk stop' exit non-zero quickly. The bounded
+# stop must collect that exit status and report it, rather than logging the
+# reassuring 'completed within Ns' success line without proof.
+export FAKE_SPLUNK_STOP=fail
+export SPLUNK_FWD_STOP_TIMEOUT=3
+run_case later hang ok 4
+want    "handles stop signal"                     "received stop signal"
+want    "reports the non-zero stop"               "exited non-zero"
+wantnot "does not falsely claim clean completion" "'splunk stop' completed"
+unset FAKE_SPLUNK_STOP SPLUNK_FWD_STOP_TIMEOUT
+
 echo
 echo "==================================================================="
 echo "PASSED: $PASS   FAILED: $FAIL"
