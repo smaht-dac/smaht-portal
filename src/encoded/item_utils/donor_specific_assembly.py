@@ -53,25 +53,25 @@ def get_donors(
 
 def get_supplementary_files(request_handler: RequestHandler, files: List[str] = None):
     """Return rev-linked non-fasta files."""
-    supp_files=[]
+    supp_files = []
     for file in files:
         if not get_property_value_from_identifier(
             request_handler,
             file,
             partial(file_utils.is_fasta_file,request_handler=request_handler)
         ):
-            supp_files+=[file]
+            supp_files += [file]
     return supp_files
 
 
 def get_sequence_files(request_handler: RequestHandler, files: List[str] = None):
     """Return rev-linked files with fa file extension."""
-    seq_files=[]
+    seq_files = []
     for file in files:
         if get_property_value_from_identifier(
             request_handler,
             file,
             partial(file_utils.is_fasta_file,request_handler=request_handler)
         ):
-            seq_files+=[file]
+            seq_files += [file]
     return seq_files

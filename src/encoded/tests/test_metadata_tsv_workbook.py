@@ -22,12 +22,27 @@ class TestMetadataTSVHelper:
         assert expected_key in part
         assert len(part) == TSV_WIDTH
 
+    @staticmethod
+    def check_extra_file_name(filename):
+        assert filename == 'a_second_bam_bai.bai', (
+            'NOTE: if you failed this test you changed the File manifest structure! Do NOT do so!'
+        )
+
     @classmethod
     def check_type_length(cls, es_testapp, item_type, expected_count):
         res = es_testapp.post_json('/metadata/', {'type': item_type})
         tsv = res._app_iter[0]
         parsed = cls.read_tsv_from_bytestream(tsv)
         assert len(parsed[3:]) == expected_count
+
+
+@pytest.mark.parametrize('filename', ['', 'wrong.bai', 'a_second_bam_bai.bai'])
+def test_manifest_extra_filename_assertion(filename):
+    if filename == 'a_second_bam_bai.bai':
+        TestMetadataTSVHelper.check_extra_file_name(filename)
+    else:
+        with pytest.raises(AssertionError, match='File manifest structure'):
+            TestMetadataTSVHelper.check_extra_file_name(filename)
 
 
 class DummyRequest:
@@ -136,10 +151,7 @@ class TestMetadataTSVWorkbook:
         last_extra_file_name = parsed[-1][2]  # filename in 3rd position in tsv
         # This assert is very important as it validates the correct location of filename, which is used in the
         # manifest file for downloads
-        assert (
-            last_extra_file_name == 'a_second_bam_bai.bai',
-            'NOTE: if you failed this test you changed the File manifest structure! Do NOT do so!'
-        )
+        TestMetadataTSVHelper.check_extra_file_name(last_extra_file_name)
         # check an entire row that is mostly representative
         for row in parsed:
             if '303985cf-f1db-4dea-9782-2e68092d603d' in row[0]:  # this is the row

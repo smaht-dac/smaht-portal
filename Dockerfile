@@ -30,9 +30,13 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 WORKDIR /home/nginx/.nvm
 ENV NVM_DIR=/home/nginx/.nvm
 
-# deb.debian.org is served via a Fastly CDN that intermittently resets pipelined
-# connections ("Connection reset by peer"); retry and disable pipelining so
-# transient network blips don't fail the build.
+# Use Debian's dedicated security mirror: deb.debian.org's security index can
+# reference package objects missing from that CDN (HTTP 404). Preserve package
+# signature verification and security upgrades; changing retries cannot fix 404s.
+COPY deploy/docker/production/configure_apt_security.py /tmp/configure_apt_security.py
+RUN python /tmp/configure_apt_security.py && rm /tmp/configure_apt_security.py
+
+# Retry connection resets and disable pipelining for transient CDN failures.
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
     echo 'Acquire::http::Pipeline-Depth "0";' >> /etc/apt/apt.conf.d/80-retries
 
@@ -102,7 +106,9 @@ ENV NGINX_USER=nginx \
 ENV NODE_DIR=/home/nginx/.nvm/versions/node/v${NODE_VERSION}
 ENV PATH="$VIRTUAL_ENV/bin:${NODE_DIR}/bin:$PATH"
 
-# deb.debian.org CDN reset mitigation (see builder stage).
+# Apply the same dedicated security mirror and CDN reset mitigation as builder.
+COPY deploy/docker/production/configure_apt_security.py /tmp/configure_apt_security.py
+RUN python /tmp/configure_apt_security.py && rm /tmp/configure_apt_security.py
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
     echo 'Acquire::http::Pipeline-Depth "0";' >> /etc/apt/apt.conf.d/80-retries
 
