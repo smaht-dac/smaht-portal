@@ -3336,15 +3336,10 @@ div.browse-link-icon {
 		// look this was meant to avoid; the label still functions as a
 		// link either way, just no longer looks like one.
 		.tissue-heatmap-subtype-subrow-header {
-			font-size: 0.6875rem;
-			font-weight: 500;
+			font-size: 0.8125rem;
+			font-weight: 400;
 			color: #343741;
 			background-color: #DADDE3;
-
-			a {
-				color: inherit;
-				text-decoration: none;
-			}
 		}
 
 		// An unsplit column's own 3rd-row cell (renderSubtypeHeaderCells) --

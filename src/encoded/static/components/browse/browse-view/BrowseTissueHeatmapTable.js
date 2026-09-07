@@ -1238,7 +1238,7 @@ function getDetailPopoverStyle(rect) {
 // click-to-inspect popover reads as the same convention used elsewhere in
 // the app rather than a one-off design.
 function renderCellDetailPopover({
-    donor, tissueType, tissueLabel = null, metricLabel, value, entries, slots, splitByPreservationType,
+    donor, tissueType, tissueLabel = null, subtypeLabel = null, metricLabel, value, entries, slots, splitByPreservationType,
     formatValue, tissueOverviewHref, style, isFlippedUp,
 }, popoverRef) {
     // Ischemic Time's own cells always show a Fixed/Frozen breakdown (see
@@ -1279,10 +1279,10 @@ function renderCellDetailPopover({
                         <div className="label">Tissue</div>
                         <div className="value">{tissueLabel ?? formatTissueTypeLabel(tissueType)}</div>
                     </div>
-                    {!hasBreakdown ? (
+                    {subtypeLabel ? (
                         <div className="field">
-                            <div className="label">{metricLabel}</div>
-                            <div className="value">{formatValue(value)}</div>
+                            <div className="label">Subtype</div>
+                            <div className="value">{subtypeLabel}</div>
                         </div>
                     ) : null}
                 </div>
@@ -1305,7 +1305,21 @@ function renderCellDetailPopover({
                             ))}
                         </div>
                     </>
-                ) : null}
+                ) : (
+                    // Same 2-row shape as the breakdown case above (a
+                    // caption row, then the value(s) below it) even for a
+                    // single plain value, per explicit request that Donor/
+                    // Tissue/Subtype always stay together on their own row,
+                    // separate from whatever the actual metric value is.
+                    <>
+                        <div className="secondary-row-heading">{metricLabel}</div>
+                        <div className="secondary-row">
+                            <div className="field">
+                                <div className="value">{formatValue(value)}</div>
+                            </div>
+                        </div>
+                    </>
+                )}
                 {tissueOverviewHref ? (
                     <div className="footer-row">
                         <a
@@ -1578,20 +1592,29 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
 // `columnInfo` (optional, from buildSubtypeColumnPlan) is passed only by the
 // Autolysis Score/Target Tissue % tabs, whose `tissueType` may actually be a
 // subtype-composite key (see makeSubtypeColumnKey) -- when present, the
-// display label always resolves through it (the real parent's own label, or
-// the bare subtype label for a genuine sub-column) rather than calling
-// formatTissueTypeHeaderLabel directly on `tissueType`, which would show a
-// garbled string for ANY composite key, split or not (every tissue with
-// target_tissues data is composite-keyed, even a single-subtype one -- see
-// expandTissueResultsBySubtype). `tissueTypeHrefs[tissueType]` keeps working
-// unchanged either way since callers already pass the "fixed" href map
-// (buildSubtypeColumnPlan's fixedTissueTypeHrefs), correctly resolved per
-// composite key.
+// display label always resolves through `info.parentTissueType` (the real
+// tissue_type, code and all) rather than calling formatTissueTypeHeaderLabel
+// directly on `tissueType`, which would show a garbled string for ANY
+// composite key (every tissue with target_tissues data is composite-keyed,
+// even a single-subtype one -- see expandTissueResultsBySubtype).
+// `tissueTypeHrefs[tissueType]` keeps working unchanged either way since
+// callers already pass the "fixed" href map (buildSubtypeColumnPlan's
+// fixedTissueTypeHrefs), correctly resolved per composite key.
+//
+// Always `info.parentTissueType`, never `info.subtypeLabel` -- this
+// component is only ever used for a genuinely 'unsplit' column
+// (renderHeaderCells' own 'split' branch renders a real multi-child
+// group's own parent/subtype labels directly, without going through this
+// component at all), so there's no case where showing the bare subtype
+// name instead of the coded tissue-type label is actually correct. A tissue
+// with no real anatomical subtypes (e.g. Liver, Lung) still gets exactly 1
+// target_tissues entry from pathology data, self-titled with the tissue's
+// own plain name (subtype: "Liver") rather than left empty -- confirmed
+// against real data this is what was silently overriding the code (LIVR)
+// with that raw, uncoded name for exactly those tissue types.
 function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortState, handleHeaderClick, columnInfo = null }) {
     const info = columnInfo?.[tissueType];
-    const displayLabel = info?.subtypeLabel
-        ? info.subtypeLabel
-        : formatTissueTypeHeaderLabel(info ? info.parentTissueType : tissueType);
+    const displayLabel = formatTissueTypeHeaderLabel(info ? info.parentTissueType : tissueType);
     return (
         <>
             {tissueTypeHrefs[tissueType] ? (
@@ -1912,13 +1935,19 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
 // 3rd-tier header row builder -- one <th> per run from
 // buildSubtypeAwareDisplayRuns, so the header stays a uniform 3 rows
 // regardless of which columns happen to be split -- a 'split' run's
-// children each get their own real, clickable subtype header (with its own
-// sort button); an 'unsplit' or 'merged-brain' run instead gets a single
-// plain, non-interactive "n/a" placeholder cell (per explicit request -- a
-// tissue with no real subtype data, brain included, still shows one rather
-// than the row silently having a gap under that column), colSpan-matched to
-// that same run's own 2nd-row cell so the 2 rows always align.
-function renderSubtypeHeaderCells(displayRuns, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+// children each get their own sortable subtype label (a real sort button,
+// per explicit request -- otherwise a split tissue type's own subtype
+// columns had no way to sort at all, since the 2nd-row parent header never
+// had a sort control of its own either), but plain text, not a link (a
+// subtype name is a value read off the parent tissue's own column, not a
+// column in its own right the way a plain tissue type is, so it doesn't
+// get its own Tissue Overview page to link to); an 'unsplit' or
+// 'merged-brain' run instead gets a single plain "n/a" placeholder cell
+// (per earlier explicit request -- a tissue with no real subtype data,
+// brain included, still shows one rather than the row silently having a
+// gap under that column), colSpan-matched to that same run's own 2nd-row
+// cell so the 2 rows always align.
+function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
     const nodes = [];
     displayRuns.forEach((run) => {
         if (run.type === 'merged-brain') {
@@ -1966,7 +1995,7 @@ function renderSubtypeHeaderCells(displayRuns, tissueTypeHrefs, sortState, handl
                     onMouseEnter={() => onHoverColumn(key)}
                     // eslint-disable-next-line react/jsx-no-bind
                     onMouseLeave={() => onHoverColumn(null)}>
-                    {tissueTypeHrefs[key] ? <a href={tissueTypeHrefs[key]}>{subtypeLabel}</a> : subtypeLabel}
+                    {subtypeLabel}
                     <SortableHeaderLabel
                         label=""
                         sortDirection={sortState?.key === key ? sortState.direction : null}
@@ -2050,7 +2079,6 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                 <tr>
                     {renderSubtypeHeaderCells(
                         displayRuns,
-                        tissueTypeHrefs,
                         sortState,
                         handleHeaderClick,
                         hoveredColumn,
@@ -2294,6 +2322,18 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     const handleCellClick = (
         targetEl, rowIndex, columnIndex, donor, tissueType, value, entries, slots, splitByPreservationType
     ) => {
+        // A cell with no real data at all -- for a plain cell, `value` is
+        // null; for an Ischemic Time split cell, `value` can be null while
+        // `slots` still isn't (see cellSlots/splitByPreservationType), so
+        // that case needs its own check: BOTH the Fixed and the Frozen slot
+        // have to be empty, not just the primary `value`, before there's
+        // truly nothing to show. Per explicit request, an empty cell isn't
+        // clickable at all -- opening a detail popover onto an "n/a" is
+        // nothing to inspect.
+        const hasRealValue = splitByPreservationType
+            ? Boolean(slots && slots.some((slot) => slot && slot.value !== null))
+            : value !== null;
+        if (!hasRealValue) return;
         setSelectedCell((prev) => {
             // Clicking the already-selected cell again closes it -- the
             // same toggle-off convention every other click-to-open control
@@ -2681,17 +2721,19 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         donor: selectedCell.donor,
                         tissueType: selectedCell.tissueType,
                         // Resolves a subtype-composite key (see
-                        // makeSubtypeColumnKey) into e.g. "Heart —
-                        // Endocardium" instead of showing the raw composite
-                        // string -- null (falls back to the popover's own
-                        // formatTissueTypeLabel(tissueType)) for a plain,
-                        // non-composite key (Ischemic Time, or any tab
-                        // without subtypeColumnInfo at all).
+                        // makeSubtypeColumnKey) into its real parent tissue
+                        // type's own label -- null (falls back to the
+                        // popover's own formatTissueTypeLabel(tissueType))
+                        // for a plain, non-composite key (Ischemic Time, or
+                        // any tab without subtypeColumnInfo at all).
+                        // subtypeLabel is its own separate field (Subtype,
+                        // per explicit request) rather than folded into this
+                        // same string with an em dash -- null whenever this
+                        // column has no real subtype of its own.
                         tissueLabel: subtypeColumnInfo?.[selectedCell.tissueType]
-                            ? subtypeColumnInfo[selectedCell.tissueType].subtypeLabel
-                                ? `${formatTissueTypeLabel(subtypeColumnInfo[selectedCell.tissueType].parentTissueType)} — ${subtypeColumnInfo[selectedCell.tissueType].subtypeLabel}`
-                                : formatTissueTypeLabel(subtypeColumnInfo[selectedCell.tissueType].parentTissueType)
+                            ? formatTissueTypeLabel(subtypeColumnInfo[selectedCell.tissueType].parentTissueType)
                             : null,
+                        subtypeLabel: subtypeColumnInfo?.[selectedCell.tissueType]?.subtypeLabel ?? null,
                         metricLabel,
                         value: selectedCell.value,
                         entries: selectedCell.entries,
