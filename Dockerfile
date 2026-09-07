@@ -36,11 +36,16 @@ ENV NVM_DIR=/home/nginx/.nvm
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
     echo 'Acquire::http::Pipeline-Depth "0";' >> /etc/apt/apt.conf.d/80-retries
 
+# deb.debian.org's live CDN backends have been serving inconsistent bullseye-security
+# pools (Packages index advertises a version whose .deb 404s on some edges) - pin to a
+# fixed snapshot.debian.org timestamp instead, which serves a complete, immutable
+# archive and sidesteps the inconsistency entirely.
+RUN printf 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260901T000000Z/ bullseye main\ndeb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20260901T000000Z/ bullseye-security main\ndeb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260901T000000Z/ bullseye-updates main\n' > /etc/apt/sources.list
+
 RUN apt-get update && \
-    for i in 1 2 3 4 5; do \
-      apt-get install -y --no-install-recommends ca-certificates build-essential \
-      gcc zlib1g-dev libpq-dev git make curl libmagic-dev && break || sleep 10; \
-    done && \
+    apt_install_retry() { for i in 1 2 3 4 5; do apt-get install -y --no-install-recommends "$@" && return 0; sleep 10; done; return 1; } && \
+    apt_install_retry ca-certificates build-essential \
+      gcc zlib1g-dev libpq-dev git make curl libmagic-dev && \
     pip install --upgrade pip && \
     pip install poetry==1.8.5 && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
@@ -108,14 +113,17 @@ ENV PATH="$VIRTUAL_ENV/bin:${NODE_DIR}/bin:$PATH"
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
     echo 'Acquire::http::Pipeline-Depth "0";' >> /etc/apt/apt.conf.d/80-retries
 
+# Pin to a snapshot.debian.org timestamp (see builder stage) instead of the
+# inconsistent live deb.debian.org CDN.
+RUN printf 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260901T000000Z/ bullseye main\ndeb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20260901T000000Z/ bullseye-security main\ndeb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260901T000000Z/ bullseye-updates main\n' > /etc/apt/sources.list
+
 # Runtime OS deps only. psycopg2-binary bundles libpq, so libpq-dev isn't needed
 # here; gcc/build tools aren't needed since wheels are built in the builder stage.
 # libmagic1 is for python-magic; make is for the local entrypoint; git is invoked
 # indirectly by dcicutils at runtime.
 RUN apt-get update && \
-    for i in 1 2 3 4 5; do \
-      apt-get install -y --no-install-recommends ca-certificates git make libmagic1 && break || sleep 10; \
-    done && \
+    apt_install_retry() { for i in 1 2 3 4 5; do apt-get install -y --no-install-recommends "$@" && return 0; sleep 10; done; return 1; } && \
+    apt_install_retry ca-certificates git make libmagic1 && \
     apt-get clean
 
 # nginx: install the pinned nginx.org build (identical to the previous single-stage
