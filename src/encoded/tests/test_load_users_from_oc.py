@@ -3,7 +3,7 @@
 `UserCSVProcessor.__init__` talks to `SMaHTKeyManager` for real portal credentials, so
 every test here builds instances via `UserCSVProcessor.__new__(...)` and sets only the
 attributes it needs, never invoking `__init__`. The only external boundary this command
-has is `dcicutils.ff_utils` (post/patch/get metadata calls), which is monkeypatched
+has is the command's post/patch/get metadata adapter, which is monkeypatched
 through the `load_users_from_oc` module reference. No test here contacts the portal.
 """
 
@@ -87,14 +87,14 @@ def test_generate_users_duplicate_does_not_abort_subsequent_unique_rows():
     assert set(result.keys()) == {'carol@x.com', 'dave@x.com'}
 
 
-def test_generate_users_ignores_revoked_users_and_duplicates_among_revoked(capsys):
+def test_generate_users_excludes_conflicting_active_and_revoked_duplicates(capsys):
     processor = _processor()
     rows = [_row('alice@x.com'), _row('alice@x.com', revoked='Yes')]
 
     result = processor.generate_users(rows)
 
-    assert set(result.keys()) == {'alice@x.com'}
-    assert 'WARNING' not in capsys.readouterr().out
+    assert result == {}
+    assert 'WARNING' in capsys.readouterr().out
 
 
 def test_generate_users_does_not_raise_exception():
@@ -134,10 +134,11 @@ def test_generate_submission_center_list_ignores_blank_dac_code():
     processor = _processor()
     rows = [_row('alice@x.com', sc='dac'), _row('bob@x.com', sc='')]
 
-    processor.generate_submission_center_list(rows)
+    processor.generate_users(rows)
+    processor.generate_submission_center_list()
 
     assert '' not in processor.submission_centers
-    assert processor.submission_centers == ['dac']
+    assert processor.submission_centers == ['smaht_dac']
 
 
 # ---------------------------------------------------------------------------------
@@ -162,7 +163,7 @@ def test_post_users_to_portal_continues_past_failed_user_and_counts_correctly(mo
         if post_body['email'] == 'bob@x.com':
             raise Exception('Bad status code for POST request: 502')
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     number_updated, number_failed = processor.post_users_to_portal()
 
@@ -180,7 +181,7 @@ def test_post_users_to_portal_calls_post_metadata_with_correct_collection_name(m
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         calls.append(schema_name)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     processor.post_users_to_portal()
 
@@ -194,7 +195,7 @@ def test_post_users_to_portal_validate_only_passes_check_only_add_on(monkeypatch
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         add_ons.append(add_on)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     processor.post_users_to_portal()
 
@@ -209,7 +210,7 @@ def test_post_users_to_portal_omits_submission_centers_for_blank_dac_code(monkey
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         captured.append(post_body)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     number_updated, number_failed = processor.post_users_to_portal()
 
@@ -225,7 +226,7 @@ def test_post_users_to_portal_still_sets_submission_centers_when_present(monkeyp
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         captured.append(post_body)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     processor.post_users_to_portal()
 
@@ -240,22 +241,22 @@ def test_post_users_to_portal_sets_submits_for_only_when_data_submitter_yes(monk
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         captured.append(post_body)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     processor.post_users_to_portal()
 
     assert captured[0]['submits_for'] == ['smaht_dac']
 
 
-def test_post_users_to_portal_omits_submits_for_when_data_submitter_not_yes(monkeypatch):
+def test_post_users_to_portal_omits_submits_for_when_non_dac_data_submitter_not_yes(monkeypatch):
     processor = _processor(
-        user_dict={'alice@x.com': _user('alice@x.com', submission_center='dac', submits_for='No')}, key={})
+        user_dict={'alice@x.com': _user('alice@x.com', submission_center='sc1', submits_for='No')}, key={})
     captured = []
 
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         captured.append(post_body)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     processor.post_users_to_portal()
 
@@ -270,7 +271,7 @@ def test_post_users_to_portal_submits_for_matches_split_compound_centers(monkeyp
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         captured.append(post_body)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     processor.post_users_to_portal()
 
@@ -286,7 +287,7 @@ def test_post_users_to_portal_sets_associate_consortium(monkeypatch):
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         captured.append(post_body)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     processor.post_users_to_portal()
 
@@ -300,7 +301,7 @@ def test_post_users_to_portal_sets_default_consortium_for_non_associate(monkeypa
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
         captured.append(post_body)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata', fake_post_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata', fake_post_metadata)
 
     processor.post_users_to_portal()
 
@@ -311,7 +312,7 @@ def test_post_users_to_portal_verbose_prints_body(monkeypatch, capsys):
     processor = _processor(
         user_dict={'alice@x.com': _user('alice@x.com')}, key={}, verbose=True)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata',
                         lambda *a, **kw: None)
 
     processor.post_users_to_portal()
@@ -325,7 +326,7 @@ def test_post_users_to_portal_verbose_prints_body(monkeypatch, capsys):
 def test_post_users_to_portal_not_verbose_omits_body(monkeypatch, capsys):
     processor = _processor(user_dict={'alice@x.com': _user('alice@x.com')}, key={})
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'post_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'post_metadata',
                         lambda *a, **kw: None)
 
     processor.post_users_to_portal()
@@ -345,8 +346,8 @@ def test_update_submits_for_omits_submits_for_for_blank_dac_code(monkeypatch):
     def fake_patch_metadata(patch_body, obj_id, key=None, add_on=''):
         captured.append(patch_body)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for()
 
@@ -363,8 +364,8 @@ def test_update_submits_for_sets_submits_for_only_when_data_submitter_yes(monkey
     def fake_get_metadata(path, key=None):
         return {'groups': [], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}]}
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda body, *a, **kw: captured.append(body))
 
     processor.update_submits_for()
@@ -381,8 +382,8 @@ def test_update_submits_for_submits_for_matches_split_compound_centers(monkeypat
     def fake_get_metadata(path, key=None):
         return {'groups': [], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}]}
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda body, *a, **kw: captured.append(body))
 
     processor.update_submits_for()
@@ -392,7 +393,7 @@ def test_update_submits_for_submits_for_matches_split_compound_centers(monkeypat
 
 def test_update_submits_for_deletes_stale_submits_for_via_add_on(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'dac', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', 'No'),
     }, key={})
     add_ons = []
     bodies = []
@@ -404,8 +405,8 @@ def test_update_submits_for_deletes_stale_submits_for_via_add_on(monkeypatch):
         bodies.append(body)
         add_ons.append(add_on)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
     processor.update_submits_for()
 
@@ -415,7 +416,7 @@ def test_update_submits_for_deletes_stale_submits_for_via_add_on(monkeypatch):
 
 def test_update_submits_for_validate_only_combines_check_only_and_delete_fields(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'dac', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', 'No'),
     }, key={}, validate_only=True)
     add_ons = []
 
@@ -425,8 +426,8 @@ def test_update_submits_for_validate_only_combines_check_only_and_delete_fields(
     def fake_patch_metadata(body, obj_id, key=None, add_on=''):
         add_ons.append(add_on)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
     processor.update_submits_for()
 
@@ -446,8 +447,8 @@ def test_update_submits_for_add_on_omits_delete_fields_when_already_empty(monkey
     def fake_patch_metadata(body, obj_id, key=None, add_on=''):
         add_ons.append(add_on)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
     processor.update_submits_for()
 
@@ -456,15 +457,15 @@ def test_update_submits_for_add_on_omits_delete_fields_when_already_empty(monkey
 
 def test_update_submits_for_only_if_changed_treats_already_cleared_as_unchanged(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'dac', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', 'No'),
     }, key={})
 
     def fake_get_metadata(path, key=None):
         return {'groups': [], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}]}
 
     patched = []
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda *a, **kw: patched.append(a))
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for(only_if_changed=True)
@@ -482,8 +483,8 @@ def test_update_submits_for_adds_dbgap_when_dua_yes_and_absent(monkeypatch):
     def fake_get_metadata(path, key=None):
         return {'groups': ['admin'], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}]}
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda body, *a, **kw: captured.append(body))
 
     processor.update_submits_for()
@@ -505,8 +506,8 @@ def test_update_submits_for_removes_only_dbgap_preserving_other_groups(monkeypat
         captured.append(body)
         add_ons.append(add_on)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
     processor.update_submits_for()
 
@@ -528,8 +529,8 @@ def test_update_submits_for_deletes_groups_field_when_dbgap_was_sole_group(monke
         captured.append(body)
         add_ons.append(add_on)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
     processor.update_submits_for()
 
@@ -552,8 +553,8 @@ def test_update_submits_for_leaves_groups_untouched_when_dbgap_state_matches(mon
             captured.append(body)
             add_ons.append(add_on)
 
-        monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-        monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+        monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+        monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
         processor.update_submits_for()
 
@@ -573,8 +574,8 @@ def test_update_submits_for_only_if_changed_detects_dbgap_addition_needed(monkey
         return {'groups': [], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}]}
 
     patched = []
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda *a, **kw: patched.append(a))
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for(only_if_changed=True)
@@ -585,7 +586,7 @@ def test_update_submits_for_only_if_changed_detects_dbgap_addition_needed(monkey
 
 def test_update_submits_for_combines_submits_for_and_groups_delete_fields(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'dac', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', 'No'),
     }, key={})
     add_ons = []
 
@@ -596,8 +597,8 @@ def test_update_submits_for_combines_submits_for_and_groups_delete_fields(monkey
     def fake_patch_metadata(body, obj_id, key=None, add_on=''):
         add_ons.append(add_on)
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
     processor.update_submits_for()
 
@@ -619,8 +620,8 @@ def test_update_submits_for_continues_past_failed_user(monkeypatch):
         if 'alice' in obj_id:
             raise Exception('Bad status code for PATCH request: 502')
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', fake_patch_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', fake_patch_metadata)
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for()
 
@@ -650,8 +651,8 @@ def test_update_submits_for_patches_consortia_for_associate_members(monkeypatch)
         return {'groups': ['dbgap'], 'submits_for': [{'identifier': 'smaht_dac'}],
                 'consortia': [{'identifier': 'smaht'}]}  # missing smaht_associate
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda body, *a, **kw: captured.append(body))
 
     processor.update_submits_for()
@@ -667,8 +668,8 @@ def test_update_submits_for_verbose_prints_body(monkeypatch, capsys):
     def fake_get_metadata(path, key=None):
         return {'groups': [], 'submits_for': [], 'consortia': []}
 
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata', lambda *a, **kw: None)
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata', lambda *a, **kw: None)
 
     processor.update_submits_for()
 
@@ -687,8 +688,8 @@ def test_update_submits_for_only_if_changed_skips_matching_user(monkeypatch):
                 'consortia': [{'identifier': 'smaht'}]}
 
     patched = []
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda *a, **kw: patched.append(a))
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for(only_if_changed=True)
@@ -707,8 +708,8 @@ def test_update_submits_for_only_if_changed_patches_when_submits_for_differs(mon
                 'consortia': [{'identifier': 'smaht'}]}
 
     patched = []
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda *a, **kw: patched.append(a))
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for(only_if_changed=True)
@@ -727,8 +728,8 @@ def test_update_submits_for_only_if_changed_patches_when_groups_differ(monkeypat
                 'consortia': [{'identifier': 'smaht'}]}
 
     patched = []
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda *a, **kw: patched.append(a))
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for(only_if_changed=True)
@@ -747,8 +748,8 @@ def test_update_submits_for_only_if_changed_patches_when_only_consortia_differs(
                 'consortia': [{'identifier': 'smaht'}]}  # wrong - should be smaht_associate
 
     patched = []
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda *a, **kw: patched.append(a))
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for(only_if_changed=True)
@@ -758,7 +759,7 @@ def test_update_submits_for_only_if_changed_patches_when_only_consortia_differs(
 
 
 def test_update_submits_for_default_still_patches_unconditionally(monkeypatch):
-    """ Plain --update (only_if_changed=False) must keep patching even when nothing changed. """
+    """ --update-all (only_if_changed=False) must keep patching even when nothing changed. """
     processor = _processor(user_dict={
         'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes'),
     }, key={})
@@ -767,8 +768,8 @@ def test_update_submits_for_default_still_patches_unconditionally(monkeypatch):
         return {'groups': ['dbgap'], 'submits_for': [{'identifier': 'smaht_dac'}]}
 
     patched = []
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'get_metadata', fake_get_metadata)
-    monkeypatch.setattr(load_users_from_oc_command.ff_utils, 'patch_metadata',
+    monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
+    monkeypatch.setattr(load_users_from_oc_command, 'patch_metadata',
                         lambda *a, **kw: patched.append(a))
 
     number_updated, number_failed, number_unchanged = processor.update_submits_for()
@@ -782,10 +783,10 @@ def test_update_submits_for_default_still_patches_unconditionally(monkeypatch):
 # ---------------------------------------------------------------------------------
 
 def _main_processor(post_result):
-    processor = _processor()
+    processor = _processor(user_dict={'alice@x.com': _user('alice@x.com')})
     monkeypatch_targets = {
-        'read_csv': lambda self, path: [['header'], _row('alice@x.com')],
-        'generate_submission_center_list': lambda self, rows: None,
+        'read_csv': lambda self, path: [_row('Email'), _row('alice@x.com')],
+        'generate_submission_center_list': lambda self: None,
         'validate_submission_center_list': lambda self: None,
         'validate_consortium_list': lambda self: None,
         'generate_users': lambda self, rows: None,
@@ -824,11 +825,11 @@ def test_main_summary_reports_real_run_wording_and_failure_count(monkeypatch, ca
 
 
 def test_main_update_changed_flag_calls_update_submits_for_with_only_if_changed_true(monkeypatch, capsys):
-    processor = _processor()
+    processor = _processor(user_dict={'alice@x.com': _user('alice@x.com')})
     calls = []
     monkeypatch_targets = {
-        'read_csv': lambda self, path: [['header'], _row('alice@x.com')],
-        'generate_submission_center_list': lambda self, rows: None,
+        'read_csv': lambda self, path: [_row('Email'), _row('alice@x.com')],
+        'generate_submission_center_list': lambda self: None,
         'validate_submission_center_list': lambda self: None,
         'validate_consortium_list': lambda self: None,
         'generate_users': lambda self, rows: None,
