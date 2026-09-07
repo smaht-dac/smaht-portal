@@ -7,6 +7,35 @@ smaht-portal
 Change Log
 ----------
 
+2.12.3
+======
+
+`PR 758: fix(docker): move production image off EOL Debian bullseye to bookworm <https://github.com/smaht-dac/smaht-portal/pull/758>`_
+
+* Moves the production image base from ``python:3.11.12-slim-bullseye`` to
+  ``python:3.11.16-slim-bookworm``. Debian 11 bullseye LTS ended 2026-08-31, after which
+  ``bullseye-security`` kept advertising package versions whose ``.deb`` files had been pruned
+  from the pool, so a clean-cache ``docker build`` failed with apt 404s (exit 100) in both the
+  builder and runtime stages. Debian 12 is under Debian LTS through 2028-06-30, outlasting
+  Python 3.11's own 2027-10 EOL.
+* Pins nginx to the nginx.org stable series at ``1.30.4-1~bookworm`` (njs ``1.0.1``), renaming
+  ``install_nginx_bullseye.sh`` to ``install_nginx_bookworm.sh``. The previous ``1.21.6`` mainline
+  pin required ``libssl1.1``, which bookworm does not ship and bullseye no longer serves.
+* Enables apt signature verification for the nginx.org repository: the ``deb [ trusted=yes ]``
+  source and deprecated ``apt-key adv`` keyserver fetch are replaced by a ``signed-by=`` keyring
+  built from nginx.org's published key bundle, with all three expected fingerprints checked.
+* Removes two unreferenced nginx install scripts:
+  ``deploy/docker/production/install_nginx.sh`` (half-templated and syntactically broken) and
+  ``deploy/docker/local/install_nginx.sh`` (buster-era).
+* Adds static contract checks that keep ``BASE_IMAGE`` off an end-of-life Debian release, keep the
+  nginx script's apt suite on the same release as the base image, and fail if remote apt signature
+  verification is disabled again.
+* No behavior change: the nginx user/group stay at uid/gid 121, ``nginx.conf`` is comment-only
+  changed, and all 10 cases of the offline failover/retry harness pass against nginx 1.30.4.
+* ``deploy/docker/postgres`` (already bookworm) and ``deploy/docker/elasticsearch`` (Amazon Linux,
+  no apt) were verified unaffected and are unchanged.
+
+
 2.12.2
 ======
 
