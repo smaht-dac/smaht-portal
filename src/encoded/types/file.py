@@ -48,8 +48,6 @@ from . import acl
 from ..audit_logging import authenticated_actor_fields
 from .base import (
     Item,
-    collection_add,
-    item_edit,
     validate_user_submission_consistency
 )
 from ..item_utils import (

@@ -17,9 +17,9 @@ client ──TLS──▶ ALB ──TLS (inner)──▶ nginx :8443 ssl ──�
 | File | Role |
 | --- | --- |
 | `smaht_server_common.conf` | The shared server body (routing, security headers, static handling). Included by **both** the plain `:8000` server and the generated TLS server so they can't drift. |
-| `../nginx.conf` | Plain `:8000` server (`include smaht_server_common.conf`) + `include /etc/nginx/conf.d/smaht_tls.conf` (empty unless TLS is enabled). |
+| `../nginx.conf` | Includes `smaht_http.conf` and `smaht_tls.conf`; startup populates only the selected listener. |
 | `../setup_nginx_tls.sh` | Run by `entrypoint_portal.sh` before supervisord. Materializes the cert/key from env into owner-only files and writes the `listen 8443 ssl` server block into `smaht_tls.conf`. |
-| `tests/setup_nginx_tls_tests.sh` | Self-contained regression suite (mints throwaway certs with openssl; validates the generated block with `nginx -t`). |
+| `../tests/setup_nginx_tls_tests.sh` | Self-contained regression suite (mints throwaway certs with openssl; validates the generated block with `nginx -t`). |
 
 ## Enabling TLS
 
@@ -113,9 +113,11 @@ missing key; malformed cert; malformed key; mismatched pair; valid pair → `060
 files + a `listen 8443 ssl` block **and an emptied plaintext include** (fail
 closed) that `nginx -t` accepts; the **no-`openssl` path** where `nginx -t` alone
 catches marker-shaped garbage (no false HEALTHY) and accepts valid material; and
-proof the secret bytes never reach stdout/stderr. The structural container
-invariants (VOLUME, exec chain, log paths, sha256 pin) are guarded by
-`deploy/docker/production/tests/test_container_contracts.py`.
+proof the secret bytes never reach stdout/stderr. This harness drives the TLS
+setup script, not the full portal entrypoint or ECS task.
+`deploy/docker/production/tests/test_container_contracts.py` checks the log-shipper
+process, CI private-registry references, and Okta template/dependency contracts;
+it does not establish shared-volume ownership on ECS.
 
 The CI Docker job also runs the **built app image**, as its default uid/gid 121,
 with no external network and synthetic loopback upstreams:

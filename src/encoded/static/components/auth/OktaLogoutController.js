@@ -51,7 +51,9 @@ export async function performFullLogout(args) {
             return { portalLoggedOut: true, oktaSignOutStarted: true };
         } catch (error) {
             // Local removal still runs below if Okta cannot be reached.
-            logger.error('Okta sign-out failed, clearing local tokens: ' + error.message);
+            logger.error(
+                'Okta sign-out failed, clearing local tokens: ' + error.message
+            );
             return { portalLoggedOut: true, oktaSignOutStarted: false };
         }
     } finally {
@@ -86,7 +88,8 @@ export class OktaLogoutController extends React.PureComponent {
             })
             .catch((error) => {
                 logger.error(
-                    'Could not initialize Okta client for logout: ' + error.message
+                    'Could not initialize Okta client for logout: ' +
+                        error.message
                 );
             });
     }

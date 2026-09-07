@@ -87,7 +87,9 @@ export class OktaCallbackSecurity extends React.PureComponent {
     componentWillUnmount() {
         const { oktaAuth } = this.props;
         return oktaAuth.stop().catch((error) => {
-            logger.error('Could not stop Okta callback services: ' + error.message);
+            logger.error(
+                'Could not stop Okta callback services: ' + error.message
+            );
         });
     }
 
@@ -165,7 +167,9 @@ export default class OktaLoginCallbackView extends React.PureComponent {
             return <CallbackPending message="Preparing sign-in…" />;
         }
         return (
-            <OktaCallbackSecurity oktaAuth={oktaAuth} restoreOriginalUri={this.restoreOriginalUri}>
+            <OktaCallbackSecurity
+                oktaAuth={oktaAuth}
+                restoreOriginalUri={this.restoreOriginalUri}>
                 <LoginCallback
                     errorComponent={CallbackError}
                     loadingElement={<CallbackPending />}

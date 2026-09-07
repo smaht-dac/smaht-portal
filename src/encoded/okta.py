@@ -238,9 +238,10 @@ def resolve_okta_jwks_uri(settings):
 def get_okta_jwks_client(registry):
     """Return a process-wide cached PyJWKClient for the configured issuer.
 
-    The authentication policy runs on every request, so neither discovery nor
-    the JWKS itself may be re-fetched per request; the client is built once and
-    PyJWKClient caches signing keys internally.
+    Reuse discovery and the client across requests, retaining PyJWKClient's
+    default expiring JWKS cache. Do not enable its separate nonexpiring per-key
+    cache: withdrawn signing keys must age out without a worker restart.
+    See test_okta.py::TestJwksCache for rotation regression coverage.
     """
     existing = registry.get(_JWKS_CLIENT_REGISTRY_KEY)
     if existing is not None:

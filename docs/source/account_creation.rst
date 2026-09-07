@@ -41,7 +41,7 @@ Instructions
 Step 1: Click the Login / Register Button to Start
 --------------------------------------------------
 
-On the SMaHT Data Portal `homepage <https://data.smaht.org>`__, click the blue Login / Register button in the top right corner, which will connect you to the Google-based authentication interface (known as “OAuth”).
+On the SMaHT Data Portal `homepage <https://data.smaht.org>`__, click the blue Login / Register button in the top right corner. You will be redirected to the portal's Okta sign-in page, rather than a login pop-up.
 
 |
 
@@ -51,21 +51,14 @@ On the SMaHT Data Portal `homepage <https://data.smaht.org>`__, click the blue L
 |
 
 
-Step 2: Connecting via Google's “OAuth” authentication system
--------------------------------------------------------------
+Step 2: Sign in through Okta
+-----------------------------
 
-|
-
-.. image:: /static/img/docs/account_creation/login-modal.png
-   :alt: SMaHT Data Portal Login Modal
-
-|
-
-Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth authentication system, which will allow you to log in using a Google account linked to your institutional email address.
+Follow the sign-in options offered by your portal's Okta page, using your institutional email address. Available identity providers are managed by the institution; a Google sign-in option is not guaranteed. If you cannot sign in with that address, contact DAC at `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_.
 
 If you plan to access protected data (under dbGaP control) in the SMaHT Data Portal, please ensure that you register with your institutional e-mail address that you will use to apply to dbGaP for protected-access data. In the near future, the Data Portal will interface with dbGaP to automatically authenticate dbGaP-approved portal users when they log into the portal. Users with different e-mail addresses associated with the Data Portal login and dbGaP will not be able to access the protected data.
 
-To create a Google account linked to your institutional email (not your Gmail!), follow the steps below:
+If the sign-in page offers Google and you need to create a Google account linked to your institutional email (not your Gmail!), follow the steps below:
 
 #. Go to the `Google Account Sign In page <https://accounts.google.com/signin>`__. If you already have a google account, click *use another account*.
 #. Click *Create account*.
@@ -89,7 +82,7 @@ Step 3: Registering yourself as a non-member
 
 |
 
-Once your institutional account is connected to google, click Sign in with Google and choose your institutional email. Now you will see your email in the self registration process. Choose “No, I am not a SMaHT Network member” to proceed to the rest of the self-registration steps.
+After Okta returns you to the portal, an authenticated user without a portal account will see their email in the self-registration process. Choose “No, I am not a SMaHT Network member” to proceed to the rest of the self-registration steps.
 
 
 Step 4: Complete the Self-Registration Form
@@ -102,9 +95,9 @@ Step 4: Complete the Self-Registration Form
 
 |
 
-Once you have reached this form, please double-check that you created a Google account with the email address shown in "Email”. Then, enter your first and last name and the name of your affiliation/institution. Finally, click "Sign Up" and you will have created a SMaHT Data Portal account!
+Once you have reached this form, please double-check that the address shown in "Email” is your institutional email. Then, enter your first and last name and the name of your affiliation/institution. Finally, click "Sign Up" and you will have created a SMaHT Data Portal account!
 
-After you have created the SMaHT Data Portal account, the next time when you log in you will be directed straight to our OAuth authentication system with Google to log in. We hope you enjoy using the SMaHT Data Portal!
+After you have created the SMaHT Data Portal account, subsequent logins through Okta will use that account without repeating registration. We hope you enjoy using the SMaHT Data Portal!
 
 
 
@@ -140,42 +133,18 @@ We will notify you once your account is created. In the meantime, please complet
 
 
 
-Step 3: Create a Google Account using Your Institutional Email Address
-----------------------------------------------------------------------
+Step 3: Prepare to Sign In with Your Institutional Email Address
+----------------------------------------------------------------
 
-The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which allows you to log in using a Google account. Please create a Google Account that must be linked to your institutional email address in the SMaHT Network Directory (*DO NOT use your Gmail* or other personal e-mail address!).
-
-.. IMPORTANT::
-    You will create and USE A GOOGLE ACCOUNT, **NOT** A GMAIL ACCOUNT. To link your institutional email to a google account, follow the steps below:
-
-    #. Go to the `Google Account Sign In page <https://accounts.google.com/signin>`__. If you already have a google account, click *use another account*.
-    #. Click *Create account*.
-    #. Select *For my personal use*.
-    #. Enter your name.
-    #. Enter your basic information.
-    #. Click *Use your existing email*.
-    #. Enter your institutional email address.
-    #. Click *Next*.
-    #. Verify your email address with the code sent to your existing email.
-    #. Click *Verify*.
+Use the institutional email address in the SMaHT Network Directory (*DO NOT use your Gmail* or other personal e-mail address!). Follow `Step 2: Sign in through Okta`_ above for sign-in options, including instructions if Google is offered.
 
 |
 
 
-Step 4: Sign In with Your Google Account linked to your institutional e-mail address
-------------------------------------------------------------------------------------
+Step 4: Sign In with Your Institutional Email Address
+------------------------------------------------------
 
-Once your account request to DAC is processed (Step 2), you will be able to log into the SMaHT portal via the “Sign in with Google” option and your Google account.
-
-|
-
-.. image:: /static/img/docs/account_creation/login-modal.png
-   :alt: SMaHT Data Portal Login Modal
-
-|
-	
-
-If you are already logged into this account elsewhere on your computer, you may be able to simply select the account on the “Choose an account” pop-up. Otherwise, you will need to sign in with your institutional email and Google account password.
+Once your account request to DAC is processed (Step 2), click Login / Register and complete Okta sign-in with the institutional email provided to OC and DAC. An existing identity-provider session may let you continue without re-entering credentials.
 
 
 Optional - Step 5: Self Register on the Portal
@@ -209,7 +178,7 @@ FAQ and Troubleshooting
 
 **I already have a Google account set up with my institutional email address used for other data portals (e.g. 4DN). Can I sign into the SMaHT Portal using that Google account?**
 
-Yes, as long as the institutional email you provided to SMaHT OC and DAC is the primary email address on the account, this should work without any issues.
+Only if Google is offered on the portal's Okta sign-in page. The institutional email you provided to SMaHT OC and DAC must be the primary email address on the account. Otherwise, use the institutional sign-in option offered there or contact DAC.
 
 |
 
@@ -219,12 +188,12 @@ Looks like your institutional email is already used as the primary email on a di
 
 |
 
-**I tried to log in with my Google account, but the portal says: “Account Unauthorized: An account associated with the email address does not exist in the system.” What should I do?**
+**I signed in through Okta, but the portal offers registration instead of my existing account. What should I do?**
 
-This means that SMaHT DAC hasn't finished setting up your account. If you have not requested access yet, please return to Step 2 above. You can also click the “Help Desk” button on the top right corner of the SMaHT data portal homepage (`https://data.smaht.org <https://data.smaht.org>`__) or the “Request Access” button in the “Account Unauthorized” popup to start an email request to DAC in your computer's default email client.
+Check that you signed in with the institutional email provided to DAC. If you are a Network member, contact DAC to confirm that your account has been created; do not self-register to obtain Network-member privileges. Non-members can follow the self-registration instructions above.
 
 |
 
-**I tried to log in with my Google account, but the portal says: “Something went wrong.” What should I do?**
+**I cannot complete login, or the portal says “Login Unavailable.” What should I do?**
 
-This sounds like a technical error on our end. Please submit a bug report to `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_ and include information about the operating system and web browser you are using. Also include the email address that you used to sign in.
+Login may be unavailable because the deployment's Okta configuration is missing, or sign-in may have failed. Please submit a bug report to `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_ and include information about the operating system and web browser you are using. Also include the email address that you used to sign in.

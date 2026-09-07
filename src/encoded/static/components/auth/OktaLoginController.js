@@ -31,7 +31,9 @@ import {
  */
 function reloadCurrentView() {
     const windowHash =
-        (typeof window !== 'undefined' && window.location && window.location.hash) ||
+        (typeof window !== 'undefined' &&
+            window.location &&
+            window.location.hash) ||
         '';
     navigate(windowHash, { inPlace: true, dontScrollToTop: !!windowHash });
 }
@@ -98,7 +100,9 @@ export class OktaLoginController extends React.PureComponent {
             .catch((error) => {
                 // Leave login disabled and say why, rather than presenting a
                 // button that builds a broken client when clicked.
-                logger.error('Could not initialize Okta login: ' + error.message);
+                logger.error(
+                    'Could not initialize Okta login: ' + error.message
+                );
                 this.setState({
                     configError: error.message || String(error),
                     isLoginLibraryLoaded: false,
@@ -121,10 +125,13 @@ export class OktaLoginController extends React.PureComponent {
         // Read the token object, not getIdToken()'s bare string: older pages
         // and other tabs can leave a pendingRemove credential after logout.
         // Restoration must be safe even before any SDK services have started.
-        const { idToken: storedToken } = this.oktaAuth.tokenManager.getTokensSync();
-        if (storedToken && (
-            storedToken.pendingRemove || this.oktaAuth.tokenManager.hasExpired(storedToken)
-        )) {
+        const { idToken: storedToken } =
+            this.oktaAuth.tokenManager.getTokensSync();
+        if (
+            storedToken &&
+            (storedToken.pendingRemove ||
+                this.oktaAuth.tokenManager.hasExpired(storedToken))
+        ) {
             this.clearOktaTokens();
             return;
         }
@@ -141,7 +148,10 @@ export class OktaLoginController extends React.PureComponent {
                 })
                 .catch((error) => {
                     this.setState({ isLoading: false });
-                    if (error.code === 401 && !this.oktaAuth.tokenManager.hasExpired(storedToken)) {
+                    if (
+                        error.code === 401 &&
+                        !this.oktaAuth.tokenManager.hasExpired(storedToken)
+                    ) {
                         // Authenticated with Okta but unknown to the portal:
                         // offer self-registration, as the Auth0 flow did.
                         this.beginRegistration(idToken);
@@ -162,17 +172,17 @@ export class OktaLoginController extends React.PureComponent {
     beginRegistration(idToken) {
         const unverifiedUserEmail = unverifiedEmailFromIdToken(idToken);
         if (!unverifiedUserEmail) {
-            logger.error('Okta ID token carried no email claim; cannot register');
+            logger.error(
+                'Okta ID token carried no email claim; cannot register'
+            );
             Alerts.queue(Alerts.LoginFailed);
             this.clearOktaTokens();
             return;
         }
         // Bound in a closure rather than held in state so the token is not
         // parked on the component for the life of the modal.
-        this.onRegistrationCompleteBoundWithToken = this.onRegistrationComplete.bind(
-            this,
-            idToken
-        );
+        this.onRegistrationCompleteBoundWithToken =
+            this.onRegistrationComplete.bind(this, idToken);
         this.setState({ unverifiedUserEmail });
     }
 
@@ -264,14 +274,18 @@ export class OktaLoginController extends React.PureComponent {
                                             your profile
                                         </a>
                                     </b>{' '}
-                                    to edit your account settings or information.
+                                    to edit your account settings or
+                                    information.
                                 </li>
                             </ul>
                         ),
                         style: 'success',
                         navigateDisappearThreshold: 2,
                     });
-                    this.setState({ isLoading: false, unverifiedUserEmail: null });
+                    this.setState({
+                        isLoading: false,
+                        unverifiedUserEmail: null,
+                    });
                     updateAppSessionState();
                     if (typeof onLogin === 'function') onLogin(userInfo);
                     this.trackLogin(userInfo);
@@ -279,7 +293,10 @@ export class OktaLoginController extends React.PureComponent {
                 })
                 .catch((error) => {
                     logger.error('Registration login failed: ' + error.message);
-                    this.setState({ isLoading: false, unverifiedUserEmail: null });
+                    this.setState({
+                        isLoading: false,
+                        unverifiedUserEmail: null,
+                    });
                     JWT.remove();
                     analytics.setUserID(null);
                     this.clearOktaTokens();
@@ -313,7 +330,8 @@ export class OktaLoginController extends React.PureComponent {
                     null,
                     {
                         user_uuid: userId,
-                        user_groups: groups && JSON.stringify(groups.slice().sort()),
+                        user_groups:
+                            groups && JSON.stringify(groups.slice().sort()),
                     }
                 );
             },
@@ -341,11 +359,15 @@ export class OktaLoginController extends React.PureComponent {
             showLock: this.showLock,
         };
         if (unverifiedUserEmail) {
-            childProps.onRegistrationComplete = this.onRegistrationCompleteBoundWithToken;
+            childProps.onRegistrationComplete =
+                this.onRegistrationCompleteBoundWithToken;
             childProps.onRegistrationCancel = this.onRegistrationCancel;
         }
         return React.Children.map(children, function (child) {
-            if (!React.isValidElement(child) || typeof child.type === 'string') {
+            if (
+                !React.isValidElement(child) ||
+                typeof child.type === 'string'
+            ) {
                 return child;
             }
             return React.cloneElement(child, childProps);

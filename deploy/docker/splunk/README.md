@@ -96,6 +96,7 @@ value of any `password` / `secret` / `token` / `pass4SymmKey` / `sslPassword` /
 `SPLUNK_FWD_POLL_INTERVAL` (30s), `SPLUNK_FWD_READY_TIMEOUT` (120s),
 `SPLUNK_FWD_HEARTBEAT_EVERY` (10 cycles), `SPLUNK_FWD_CLI_TAIL_LINES` (40),
 `SPLUNK_FWD_LOG_TAIL_LINES` (50). The tests set the timing knobs low to run fast.
+For `SPLUNK_FWD_STOP_TIMEOUT`, see the ECS stop-timeout contract below.
 
 ## Tests
 
@@ -125,7 +126,8 @@ below; the rest is the exact, complete contract the task-definition owner must a
 
 - The sidecar entrypoint accepts the license non-interactively, starts/readiness-
   checks splunkd, exits non-zero on failure, and does a **bounded** graceful
-  `splunk stop` on SIGTERM (`tests/run_forwarder_tests.sh`, 41 cases).
+  `splunk stop` on SIGTERM; startup and liveness polls use interruptible waits
+  so shutdown need not wait for the poll interval (`tests/run_forwarder_tests.sh`).
 - The app image writes app worker logs **and** nginx error logs into one
   `/var/log/smaht` tree, owned by the non-root `nginx` user, and declares it a
   `VOLUME` so a mount preserves that ownership (`Dockerfile`). Targeted nginx
@@ -146,7 +148,7 @@ below; the rest is the exact, complete contract the task-definition owner must a
    the mount **preserves** the image path's ownership; confirm on the target
    platform that:
    - the app container runs as uid/gid **121** (`nginx`) and can create/rotate
-     `/var/log/smaht/smahtN.log` and `/var/log/smaht/nginx/{access,error}.log`;
+     `/var/log/smaht/smahtN.log` and write `/var/log/smaht/nginx/error.log`;
    - the sidecar runs as uid/gid **4321** (`splunkfwd`) and can **read** them.
      Dirs are `0755` and the app/nginx log files are world-readable, so uid 4321
      reads them via `other`. If your platform ignores the `VOLUME` ownership hint

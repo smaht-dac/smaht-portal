@@ -82,8 +82,8 @@ RUN curl -o aws-ip-ranges.json https://ip-ranges.amazonaws.com/ip-ranges.json &&
 # shared volume (/var/log/smaht) that the Splunk sidecar mounts and tails.
 
 # ---------------------------------------------------------------------------
-# Runtime stage: slim image with only what's needed to serve the app - no
-# compilers, no Node, no editors. Same hardened base, runtime libs only.
+# Runtime stage: same hardened base, without the builder's additional toolchain.
+# Copy the application venv and Node runtime for server-side rendering below.
 # ---------------------------------------------------------------------------
 FROM ${BASE_IMAGE} AS runtime
 
@@ -156,8 +156,8 @@ RUN mkdir -p /etc/nginx/ssl /etc/nginx/conf.d && \
 #
 # /var/log/smaht is the SHARED-VOLUME log root: the app container writes here and the
 # Splunk sidecar mounts it read-only and tails it. It holds BOTH the app worker logs
-# (smahtN.log) AND the nginx web-tier logs (nginx/{access,error}.log) -- one volume,
-# no separate/optional nginx volume (B6). /var/lib/nginx is nginx's state/temp dir;
+# (smahtN.log) AND nginx error logs (nginx/error.log) -- one volume. The pre-created
+# access.log is unused by the targeted stdout access stream. /var/lib/nginx is nginx's state/temp dir;
 # it stays image-local (not shared). /var/log/nginx is kept nginx-owned as insurance
 # for nginx's compiled-in default error-log path (our config redirects logs to
 # /var/log/smaht/nginx, but the default dir must be writable for any pre-config error).

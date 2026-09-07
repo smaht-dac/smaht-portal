@@ -65,10 +65,15 @@ function requireString(raw, key) {
 }
 
 export function normalizeScopes(scopes) {
-    if (!Array.isArray(scopes) || scopes.some((scope) => (
-        typeof scope !== 'string' || !scope || /\s|,/.test(scope)
-    ))) {
-        throw new OktaConfigError('Okta "scopes" must be an array of scope strings');
+    if (
+        !Array.isArray(scopes) ||
+        scopes.some(
+            (scope) => typeof scope !== 'string' || !scope || /\s|,/.test(scope)
+        )
+    ) {
+        throw new OktaConfigError(
+            'Okta "scopes" must be an array of scope strings'
+        );
     }
     if (scopes.indexOf('openid') === -1) {
         throw new OktaConfigError(

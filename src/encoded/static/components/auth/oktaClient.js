@@ -1,7 +1,10 @@
 'use strict';
 
 import { OktaAuth } from '@okta/okta-auth-js';
-import { isServerSide, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    isServerSide,
+    logger,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import {
     buildOktaAuthConfig,
@@ -95,7 +98,9 @@ export function clearBrowserOktaTokens(client = null) {
         try {
             auth.tokenManager.clear();
         } catch (error) {
-            logger.error('Could not clear Okta token manager: ' + error.message);
+            logger.error(
+                'Could not clear Okta token manager: ' + error.message
+            );
         }
     });
     if (typeof window === 'undefined') return;
@@ -103,11 +108,14 @@ export function clearBrowserOktaTokens(client = null) {
         try {
             window[storage].removeItem('okta-token-storage');
         } catch (error) {
-            logger.error('Could not clear Okta token storage: ' + error.message);
+            logger.error(
+                'Could not clear Okta token storage: ' + error.message
+            );
         }
     });
     if (typeof document !== 'undefined') {
-        document.cookie = 'okta-token-storage=; Path=/; Max-Age=0; SameSite=Lax';
+        document.cookie =
+            'okta-token-storage=; Path=/; Max-Age=0; SameSite=Lax';
     }
 }
 

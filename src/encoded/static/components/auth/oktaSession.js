@@ -49,9 +49,12 @@ function timeoutPromise(ms) {
     const promise = new Promise(function (resolve, reject) {
         timer = setTimeout(function () {
             reject(
-                new PortalSessionError('Timed out establishing portal session', {
-                    type: 'timed-out',
-                })
+                new PortalSessionError(
+                    'Timed out establishing portal session',
+                    {
+                        type: 'timed-out',
+                    }
+                )
             );
         }, ms);
     });

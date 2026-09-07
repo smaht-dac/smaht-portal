@@ -66,10 +66,10 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   image build needs `touch deploy/docker/local/docker_development.ini` first because the ignored file
   is copied into the image; `.github/workflows/main.yml` and `buildspec.yml` do the same. Build with
   `DOCKER_BUILDKIT=1 docker build .` when BuildKit is not already the default.
-- The production image installs the pinned nginx.org build via
-  `deploy/docker/production/install_nginx_bullseye.sh`, rather than Debian nginx. `supervisord.conf`
-  runs nginx and multiple non-root Pyramid processes; role entrypoints build runtime configuration
-  before serving, indexing, ingesting, or deploying.
+- `Dockerfile` owns production base-image and nginx package selection; private-base CI access
+  is documented in `docs/operations/ci_private_base.md`. `supervisord.conf` runs nginx and multiple
+  non-root Pyramid processes; role entrypoints build runtime configuration before serving,
+  indexing, ingesting, or deploying.
 - `buildspec.yml` builds and pushes the ECR image. GitHub Actions in `.github/workflows/main.yml`
   runs the Python test suite and a production Docker build; separate Cypress workflows exercise
   deployed environments. Deployment configuration is operationally sensitive—document it, but do
@@ -105,8 +105,9 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   coverage starts can make import-time lines appear missed.
 - `make test` runs both marker groups. Despite legacy target names, `make test-unit` means
   `-m "not workbook"` and `make test-npm` means `-m workbook`; trust the recipes in `Makefile`.
-  `make test-static` runs static pytest checks plus frontend lint. `make remote-test` uses the shared
-  AWS-authenticated OpenSearch test service and is the CI path, not a credential-free local check.
+  `make test-static` runs static pytest checks plus Python lint; `npm run lint` checks frontend code.
+  `make remote-test` uses the shared AWS-authenticated OpenSearch test service and is the CI path,
+  not a credential-free local check.
 - React/Jest tests live in `src/encoded/static/components/__tests__/`; Cypress specifications and
   configuration live under `deploy/post_deploy_testing/`. Use the `cypress:*` scripts in
   `package.json`; they require Auth0 credentials and an explicit/local or deployed target.
@@ -139,35 +140,10 @@ The authoritative implementation and regression coverage are in `src/encoded/met
 
 ## Splunk Universal Forwarder — ECS sidecar (NOT in the app image)
 
-The forwarder runs as **its own ECS sidecar**, built from `deploy/docker/splunk/`
-(`Dockerfile` + `entrypoint.sh`), mirroring the CrowdStrike Falcon sensor
-sidecar. It is intentionally NOT in the application image and NOT a supervisord
-program — the earlier in-app-container design (PR #729) was rolled back on the
-`crowdstrike` branch because running the agent inside the app Fargate container
-was unworkable. The app container only writes its logs to `/var/log/smaht` (a
-shared volume the sidecar mounts read-only and tails; see `inputs.conf`).
-
-The forwarder tree baked into the sidecar (`/opt/splunkforwarder`) starts
-**un-licensed** (the first-time-run marker `$SPLUNK_HOME/ftr` is present) and the
-sidecar has no persistent Splunk volume, so every boot is a first-time run
-requiring non-interactive license acceptance before splunkd will start.
-
-Sharp edge (preserved from PR #729, a Splunk property independent of the sidecar
-move): any `splunk` CLI command run on first boot **without** `--accept-license
---answer-yes --no-prompt` blocks on the interactive license prompt. With no TTY
-and stdin `/dev/null`, it hangs invisibly — the classic symptom is only the
-`starting:` and `first boot:` lines and then nothing. `entrypoint.sh` passes
-those flags (and reads from `/dev/null`) on every `splunk` invocation and accepts
-the license explicitly before any status probe. See
-`deploy/docker/splunk/README.md` for reading the staged startup logs
-(`[splunk-forwarder]` / `[splunk-cli]` / `[splunkd.log]`, the `HEALTHY` success
-line, the `FAILED:` diagnostics) and the **ECS task-definition handoff** (shared
-volume, `dependsOn`, `essential:false`) that lives outside this repo.
-
-Regression tests are self-contained (no real Splunk/network/AWS):
-`sh deploy/docker/splunk/tests/run_forwarder_tests.sh`, wrapped for
-`pytest`/`make test-unit` by `tests/test_run_splunk_forwarder.py`. Lint with
-`shellcheck -s sh`.
+`deploy/docker/splunk/README.md` owns the sidecar architecture, non-interactive
+first-boot license requirement, bounded shutdown, log-volume contract, and
+external ECS task-definition handoff. Use its test and lint commands when
+changing the forwarder; do not add it to the app image or supervisord.
 
 ## nginx LB→ECS TLS (encryption in transit)
 
@@ -186,9 +162,8 @@ is never logged and is `unset` before `assume_identity`/`exec supervisord` (the
 entrypoints use an `exec` dispatch chain so PID 1 keeps a scrubbed environment).
 Secret shape, rotation, the fail-closed port table, ALB behavior, and the
 LB-listener/ECS-`secrets:`/health-check **infrastructure handoff** (not in this
-repo) are in `deploy/docker/production/nginx/README.md`. Tests:
-`sh deploy/docker/production/tests/setup_nginx_tls_tests.sh` and
-`test_container_contracts.py`.
+repo), along with test commands and coverage boundaries, are in
+`deploy/docker/production/nginx/README.md`.
 
 ## Okta login is a public SPA PKCE flow; the portal session contract is unchanged
 

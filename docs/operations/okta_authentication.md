@@ -6,7 +6,9 @@ values below are **synthetic examples**; substitute your own tenant's.
 ## The flow
 
 1. The browser fetches `GET /okta_config` (public: issuer, client ID, redirect
-   URI, post-logout URI, scopes — never a secret).
+   URI, post-logout URI, scopes — never a secret). The browser requires the
+   server's canonical string-array scopes, including `openid` and `email`;
+   it does not normalize scope strings or coerce array members.
 2. Clicking **Login / Register** calls `signInWithRedirect()`, which sends the
    browser to Okta with a PKCE `code_challenge`, `state`, and `nonce`.
 3. Okta redirects back to `{origin}/okta/callback`. That path is served as an
@@ -23,12 +25,15 @@ source, in `/okta_config`, in the bundle, or in this repository.
 
 ### Logout and browser SDK lifetime
 
-Logout deletes the portal cookie first, then calls Okta `signOut` with
-`clearTokensBeforeRedirect: true`. This preserves the ID-token logout hint while
-removing local tokens before navigation. Homepage restoration also rejects and
-clears `pendingRemove` tokens left by an older page; it must never exchange them
-for a new portal cookie. Local tokens are also removed if `/logout` fails (the
-portal error remains visible and no Okta redirect is started), or if logout is
+Logout snapshots the SDK tokens and clears browser token storage synchronously,
+before requesting portal-cookie deletion. It then calls Okta `signOut` with the
+snapshots (for revocation and the ID-token logout hint) and
+`clearTokensBeforeRedirect: true`. A login-controller remount while revocation is
+pending must not restore the portal session. Restoration also rejects and clears
+expired or `pendingRemove` tokens, and rechecks expiry before treating a 401 as
+an unknown account eligible for registration. Local tokens are also removed if
+`/logout` fails (the portal error remains visible and no Okta redirect is
+started), or if logout is
 clicked before `/okta_config` finishes. The config-independent cleanup removes
 only the SDK's `okta-token-storage` key, including its fallback stores.
 
@@ -117,13 +122,21 @@ already relies on for its `secure` cookie flag.
 header and the two families never cross:
 
 * **RS256** → `encoded.okta.decode_okta_id_token`: signature checked against
-  the issuer's JWKS (URI from OIDC discovery, cached per process), plus `iss`,
+  the issuer's JWKS (see the shared client's cache invariant in
+  `encoded.okta.get_okta_jwks_client`), plus `iss`,
   `aud` (the SPA client ID), `exp`/`iat` with 30s leeway, and the required
   claims `iss aud exp iat sub email`. Accepted algorithms are pinned to
   `["RS256"]`.
 * **HS256** → snovault's existing shared-secret verification, unchanged. This
   is what the legacy Auth0/RAS flow and the admin *impersonate user* feature
   use.
+
+Login audit success and the actor UUID come from authenticating the submitted
+credential on a separate request without the previous session cookie. Merely
+saving a cookie at `/login` is not proof of authentication; audit classification
+does not change that endpoint's response contract. See
+`src/encoded/project/authentication.py` and
+`src/encoded/tests/test_audit_security_regressions.py`.
 
 Because the Okta path accepts only RS256 and the legacy path keeps the shared
 secret as its key, an algorithm-confusion downgrade has nowhere to land. An
