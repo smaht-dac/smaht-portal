@@ -57,21 +57,21 @@ EOF
     # after the disposable SPLUNK_HOME tree is removed.
     RUN_OUT="$(mktemp "${TMPDIR:-/tmp}/splunk-fwd-out.XXXXXX")"
     (
-        if [ "${5:-}" = steady ]; then
-            # A FIFO handshake holds the entrypoint in its healthy foreground
-            # sleep, outside CLI-output redirection, until TERM is delivered.
-            # A readiness log alone cannot guarantee it is still at that point.
+        if [ "${5:-}" = steady ] || [ "${5:-}" = readiness ]; then
+            # Synchronize TERM with an actual production-length poll. Do not
+            # release the sleep: only the entrypoint's signal handler may do so.
             mkdir "$WORK/sync"
-            mkfifo "$WORK/sync/ready" "$WORK/sync/release"
+            mkfifo "$WORK/sync/ready"
             cp "$HERE/synchronized_sleep.sh" "$WORK/sync/sleep"
             chmod +x "$WORK/sync/sleep"
             env PATH="$WORK/sync:$PATH" SPLUNK_TEST_SYNC_DIR="$WORK/sync" \
                 SPLUNK_TEST_OUT="$RUN_OUT" SPLUNK_TEST_REAL_SLEEP="$(command -v sleep)" \
+                SPLUNK_TEST_STAGE="$5" SPLUNK_FWD_POLL_INTERVAL=30 \
                 sh "$SCRIPT" </dev/null >"$RUN_OUT" 2>&1 &
             _child=$!
             (
                 if IFS= read -r _ready < "$WORK/sync/ready" && [ "$_ready" = ready ]; then
-                    kill -TERM "$_child" && printf 'release\n' > "$WORK/sync/release"
+                    kill -TERM "$_child"
                 fi
             ) &
             _signaler=$!
@@ -86,7 +86,7 @@ EOF
         _killer=$!
         wait "$_child"; _rc=$?
         kill "$_killer" 2>/dev/null
-        if [ "${5:-}" = steady ]; then
+        if [ "${5:-}" = steady ] || [ "${5:-}" = readiness ]; then
             kill "$_signaler" 2>/dev/null || true
             if [ -f "$WORK/sync/sleep.pid" ]; then
                 kill "$(cat "$WORK/sync/sleep.pid")" 2>/dev/null || true
@@ -174,8 +174,8 @@ want "detects already-running splunkd" "splunkd already running"
 want "reaches HEALTHY without restart" "HEALTHY"
 
 echo "TEST 10: graceful shutdown on SIGTERM stops splunkd"
-# Synchronize to healthy steady state; 30s is a deadlock backstop, not a delay.
-run_case later hang ok 30 steady
+# TERM must interrupt a 30-second sleep and complete well before it finishes.
+run_case later hang ok 5 steady
 want "reaches HEALTHY before stop" "HEALTHY: splunk forwarder started"
 want "handles stop signal" "received stop signal"
 want "invokes splunk stop" "stage 'stop'"
@@ -224,6 +224,13 @@ want    "handles stop signal"                     "received stop signal"
 want    "reports the non-zero stop"               "exited non-zero"
 wantnot "does not falsely claim clean completion" "'splunk stop' completed"
 unset FAKE_SPLUNK_STOP SPLUNK_FWD_STOP_TIMEOUT
+
+echo "TEST 15: startup poll sleep is also immediately interruptible"
+run_case first hang never_ready 5 readiness
+want "startup stop signal handled promptly" "received stop signal"
+want "startup stop completed promptly" "'splunk stop' completed"
+wantnot "startup never claims healthy" "HEALTHY: splunk forwarder"
+if [ "$RUN_RC" = 143 ]; then ok "startup exits before 30s sleep completes"; else bad "startup exits before 30s sleep completes"; fi
 
 echo
 echo "==================================================================="

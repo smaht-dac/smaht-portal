@@ -284,8 +284,11 @@ def test_user_security_field_changes_have_safe_deltas_and_group_semantics(encode
         "submission_centers": [new_center],
         "email": "synthetic-updated@example.invalid",
     }
+    def persist(properties, sheets):
+        user.model.properties = dict(properties)
+
     with patch("encoded.types.user.get_current_request", return_value=request), \
-            patch.object(SnovaultItem, "update", return_value=None):
+            patch.object(SnovaultItem, "update", side_effect=persist):
         user.update(update)
 
     records = _records(encoded_log_stream)

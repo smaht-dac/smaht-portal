@@ -12,7 +12,7 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { OKTA_CONFIG_ENDPOINT, isOktaConfigured } from './oktaConfig';
-import { getOktaAuthClient } from './oktaClient';
+import { clearBrowserOktaTokens, getOktaAuthClient } from './oktaClient';
 import { performPortalLogout } from './oktaSession';
 
 /**
@@ -40,31 +40,28 @@ import { performPortalLogout } from './oktaSession';
  */
 export async function performFullLogout(args) {
     const { oktaAuth = null, fetchImpl } = args || {};
-    await performPortalLogout(fetchImpl ? { fetchImpl } : undefined);
-
-    if (!oktaAuth) {
-        return { portalLoggedOut: true, oktaSignOutStarted: false };
-    }
     try {
-        // `signOut` revokes the tokens and redirects to Okta's end-session
-        // endpoint, which returns the browser to `postLogoutRedirectUri`. That
-        // is the only way to end the Okta *session*, not just our copy of it.
-        // The default signOut only marks tokens pendingRemove, relying on a
-        // later SDK start() to delete them. Normal portal pages do not start
-        // SDK services, so clear now; the SDK retains the ID-token logout hint.
-        await oktaAuth.signOut({ clearTokensBeforeRedirect: true });
-        return { portalLoggedOut: true, oktaSignOutStarted: true };
-    } catch (error) {
-        // Okta unreachable or the post-logout URI is not registered. The portal
-        // session is already gone; drop the local tokens so this browser is not
-        // left holding credentials it can silently log back in with.
-        logger.error('Okta sign-out failed, clearing local tokens: ' + error.message);
-        try {
-            oktaAuth.tokenManager.clear();
-        } catch (e) {
-            logger.error('Could not clear Okta tokens: ' + e.message);
+        await performPortalLogout(fetchImpl ? { fetchImpl } : undefined);
+
+        if (!oktaAuth) {
+            return { portalLoggedOut: true, oktaSignOutStarted: false };
         }
-        return { portalLoggedOut: true, oktaSignOutStarted: false };
+        try {
+            // End the Okta session after the portal session is gone. Clear
+            // immediately instead of relying on SDK background services;
+            // signOut retains the ID token as the redirect's logout hint.
+            await oktaAuth.signOut({ clearTokensBeforeRedirect: true });
+            return { portalLoggedOut: true, oktaSignOutStarted: true };
+        } catch (error) {
+            // Local removal still runs below if Okta cannot be reached.
+            logger.error('Okta sign-out failed, clearing local tokens: ' + error.message);
+            return { portalLoggedOut: true, oktaSignOutStarted: false };
+        }
+    } finally {
+        // Includes /logout failure and a click while /okta_config is pending.
+        // Retain the portal error (and do not redirect), but never leave tokens
+        // that the login controller could use to restore the portal session.
+        clearBrowserOktaTokens(oktaAuth);
     }
 }
 

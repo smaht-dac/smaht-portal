@@ -40,7 +40,7 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
     search_type = request.params.get('type', DEFAULT_BROWSE_TYPE)
 
     result = search(context, request, search_type, return_generator, forced_type="Browse")
-    if is_protected_donor_search(context, request):
+    if is_protected_donor_search(context, request, search_type=search_type):
         log_protected_donor_search(request, result)
     return result
 

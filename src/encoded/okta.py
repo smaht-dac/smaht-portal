@@ -17,6 +17,7 @@ request is authenticated by decoding that cookie. See
 """
 
 import threading
+from urllib.parse import urlsplit
 
 import jwt
 import requests
@@ -188,6 +189,19 @@ def okta_public_config(settings, host_url):
     })
 
 
+def _validate_jwks_uri(uri):
+    """Reject unauthenticated or malformed key sources without logging their value."""
+    try:
+        parsed = urlsplit(uri) if isinstance(uri, str) else None
+        if (parsed is not None and parsed.scheme == "https" and parsed.hostname
+                and parsed.username is None and parsed.password is None
+                and not parsed.fragment):
+            return uri
+    except ValueError:
+        pass
+    raise OktaConfigurationError("Okta jwks_uri must be an absolute HTTPS URL")
+
+
 def resolve_okta_jwks_uri(settings):
     """Resolve the issuer's JWKS URI, preferring OIDC discovery.
 
@@ -202,7 +216,7 @@ def resolve_okta_jwks_uri(settings):
     issuer, _client_id, _scopes = validate_okta_settings(settings)
     configured = _clean(settings.get("okta.jwks_uri"))
     if configured:
-        return configured
+        return _validate_jwks_uri(configured)
     discovery_url = f"{issuer}/.well-known/openid-configuration"
     response = requests.get(discovery_url, timeout=10)
     response.raise_for_status()
@@ -218,7 +232,7 @@ def resolve_okta_jwks_uri(settings):
     jwks_uri = document.get("jwks_uri")
     if not jwks_uri:
         raise OktaConfigurationError(f"Okta discovery at {discovery_url} has no jwks_uri")
-    return jwks_uri
+    return _validate_jwks_uri(jwks_uri)
 
 
 def get_okta_jwks_client(registry):

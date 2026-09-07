@@ -1,7 +1,7 @@
 'use strict';
 
 import { OktaAuth } from '@okta/okta-auth-js';
-import { isServerSide } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { isServerSide, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import {
     buildOktaAuthConfig,
@@ -81,6 +81,34 @@ export function getOktaAuthClient(rawConfig, options) {
     cachedClient = createOktaAuthClient(config, OktaAuthImpl);
     cachedConfigKey = key;
     return cachedClient;
+}
+
+/**
+ * Remove local credentials even before /okta_config has returned. The key is
+ * the SDK default used by buildOktaAuthConfig; clear its fallback stores too.
+ * Never clear unrelated application storage.
+ */
+export function clearBrowserOktaTokens(client = null) {
+    const clients = new Set([client, cachedClient]);
+    clients.forEach((auth) => {
+        if (!auth) return;
+        try {
+            auth.tokenManager.clear();
+        } catch (error) {
+            logger.error('Could not clear Okta token manager: ' + error.message);
+        }
+    });
+    if (typeof window === 'undefined') return;
+    ['localStorage', 'sessionStorage'].forEach((storage) => {
+        try {
+            window[storage].removeItem('okta-token-storage');
+        } catch (error) {
+            logger.error('Could not clear Okta token storage: ' + error.message);
+        }
+    });
+    if (typeof document !== 'undefined') {
+        document.cookie = 'okta-token-storage=; Path=/; Max-Age=0; SameSite=Lax';
+    }
 }
 
 /** Discard the memoized client. Exported for tests. */

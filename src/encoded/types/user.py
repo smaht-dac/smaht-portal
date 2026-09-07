@@ -114,14 +114,31 @@ class User(Item, SnovaultUser):
         roles[owner] = 'role.owner'
         return roles
 
+    @classmethod
+    def create(cls, registry, uuid, properties, sheets=None):
+        """Creation bypasses update(), so audit initial group grants here too."""
+        item = super().create(registry, uuid, properties, sheets)
+        groups = _user_audit_snapshot(item.properties)["groups"]
+        if groups:
+            _log_user_record_event(
+                "user_group_grant",
+                authenticated_actor_fields(get_current_request()),
+                subject_uuid_fields(item.uuid),
+                ["groups"],
+                {"groups": {"before": [], "after": groups}},
+                granted_groups=groups,
+            )
+        return item
+
     def update(self, properties, sheets=None):
         """Audit security-relevant User changes after the persistence update succeeds."""
-        update_properties = dict(properties or {})
         before = dict(self.properties or {})
         before_snapshot = _user_audit_snapshot(before)
         result = super().update(properties, sheets)
-        after = before.copy()
-        after.update(update_properties)
+        # Snovault persists a replacement document (PATCH is merged before
+        # this method). Omitted fields in PUT/JSON Patch removals are revoked,
+        # not retained. Read the actual persisted state, including defaults.
+        after = dict(self.properties or {})
         after_snapshot = _user_audit_snapshot(after)
 
         changes = {
@@ -130,11 +147,10 @@ class User(Item, SnovaultUser):
                 "after": after_snapshot[field_name],
             }
             for field_name in AUDITED_USER_FIELDS
-            if field_name in update_properties
-            and before_snapshot[field_name] != after_snapshot[field_name]
+            if before_snapshot[field_name] != after_snapshot[field_name]
         }
         changed_fields = list(changes)
-        for field_name in update_properties:
+        for field_name in sorted(set(before) | set(after)):
             if field_name in AUDITED_USER_FIELDS or field_name == "uuid":
                 continue
             if before.get(field_name) != after.get(field_name):

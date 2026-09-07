@@ -6,7 +6,7 @@ from pyramid.httpexceptions import HTTPForbidden
 from pyramid.request import Request
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.view import view_config
-from snovault import calculated_property, collection, load_schema
+from snovault import TYPES, calculated_property, collection, load_schema
 from snovault.resource_views import item_view as sno_item_view
 from snovault.util import debug_log
 
@@ -19,14 +19,31 @@ from .abstract_donor import AbstractDonor
 log = structlog.getLogger(__name__)
 
 
-def is_protected_donor_search(context, request):
-    """Match only searches whose requested type includes ProtectedDonor."""
+def is_protected_donor_search(context, request, search_type=None):
+    """Match search scopes that can include ProtectedDonor, not just its name.
+
+    Mirror Snovault's default/wildcard resolution and use its type registry for
+    aliases and abstract subtypes. This selects auditing only; Snovault still
+    performs the search and applies its principal filters.
+    """
     del context
-    try:
-        requested_types = request.params.getall("type")
-    except (AttributeError, KeyError):
-        requested_types = [request.params.get("type")]
-    return "ProtectedDonor" in requested_types
+    if search_type is not None:
+        requested_types = [search_type]
+    else:
+        try:
+            requested_types = request.params.getall("type")
+        except (AttributeError, KeyError):
+            requested_types = [request.params.get("type")]
+        requested_types = requested_types or ["Item"]
+        if "*" in requested_types:
+            requested_types = ["Item"]
+    if "ProtectedDonor" in requested_types or "Item" in requested_types:
+        return True
+    types = request.registry[TYPES]
+    return any(
+        name in types and "ProtectedDonor" in types[name].subtypes
+        for name in requested_types
+    )
 
 
 def _protected_donor_result_count(result):

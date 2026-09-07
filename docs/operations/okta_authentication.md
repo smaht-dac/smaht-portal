@@ -27,7 +27,10 @@ Logout deletes the portal cookie first, then calls Okta `signOut` with
 `clearTokensBeforeRedirect: true`. This preserves the ID-token logout hint while
 removing local tokens before navigation. Homepage restoration also rejects and
 clears `pendingRemove` tokens left by an older page; it must never exchange them
-for a new portal cookie.
+for a new portal cookie. Local tokens are also removed if `/logout` fails (the
+portal error remains visible and no Okta redirect is started), or if logout is
+clicked before `/okta_config` finishes. The config-independent cleanup removes
+only the SDK's `okta-token-storage` key, including its fallback stores.
 
 Constructing the shared browser client does not start background SDK services.
 The callback page's `OktaCallbackSecurity` boundary owns that lifetime: its nested
@@ -69,7 +72,7 @@ Secrets Manager or process-environment lookup at runtime.
 | `okta.client` | `${OKTA_CLIENT}` | `ENCODED_OKTA_CLIENT` | yes | public SPA client ID |
 | `okta.scopes` | `${OKTA_SCOPES}` | `ENCODED_OKTA_SCOPES` | no | default `openid email profile`; must include `openid` and `email` |
 | `okta.require_email_verified` | `${OKTA_REQUIRE_EMAIL_VERIFIED}` | `ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` | no | default `true` |
-| `okta.jwks_uri` | — | — | no | overrides OIDC discovery |
+| `okta.jwks_uri` | — | — | no | overrides OIDC discovery; must be an absolute HTTPS URL, as must discovery's `jwks_uri` |
 
 There is deliberately **no** Okta client secret: the browser is a public client
 running Authorization Code with PKCE, so there is nothing to configure or leak.

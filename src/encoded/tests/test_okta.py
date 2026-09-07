@@ -279,6 +279,25 @@ class TestPublicConfig:
 
 class TestJwksUriResolution:
 
+    @pytest.mark.parametrize("uri", [
+        "http://example.okta.com/keys", "file:///tmp/keys", "/keys",
+        "//example.okta.com/keys", "https:///keys", "https://[invalid/keys",
+        "https://user:password@example.okta.com/keys", {"url": "https://example.org"},
+    ])
+    @pytest.mark.parametrize("source", ["configured", "discovered"])
+    def test_key_sources_require_absolute_https(self, okta_settings, uri, source):
+        response = MagicMock()
+        response.json.return_value = {"issuer": ISSUER, "jwks_uri": uri}
+        if source == "configured":
+            okta_settings["okta.jwks_uri"] = uri
+        else:
+            okta_settings.pop("okta.jwks_uri")
+        with patch("encoded.okta.requests.get", return_value=response) as get:
+            with pytest.raises(OktaConfigurationError, match="absolute HTTPS URL"):
+                resolve_okta_jwks_uri(okta_settings)
+            if source == "configured":
+                get.assert_not_called()
+
     def test_explicit_setting_short_circuits_discovery(self, okta_settings):
         with patch("encoded.okta.requests.get") as mocked:
             assert resolve_okta_jwks_uri(okta_settings) == JWKS_URI

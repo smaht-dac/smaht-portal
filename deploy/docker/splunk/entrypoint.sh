@@ -133,8 +133,11 @@ run_splunk() {
     _label="$1"; shift
     _t0="$(date +%s)"
     set +e
-    "$SPLUNK" "$@" --accept-license --answer-yes --no-prompt </dev/null >"$CLI_OUT" 2>&1
+    "$SPLUNK" "$@" --accept-license --answer-yes --no-prompt </dev/null >"$CLI_OUT" 2>&1 &
+    CHILD_PID=$!
+    wait "$CHILD_PID"
     _rc=$?
+    CHILD_PID=
     set -e
     _t1="$(date +%s)"
     if [ -s "$CLI_OUT" ]; then
@@ -185,7 +188,18 @@ fail() {
 # the clean exit. We run stop in the background and abandon it past the deadline.
 # shellcheck disable=SC2329  # invoked indirectly via `trap`
 cleanup() {
+    [ -n "${CHILD_PID:-}" ] && kill "$CHILD_PID" 2>/dev/null || true
     [ -n "${TAIL_PID:-}" ] && kill "$TAIL_PID" 2>/dev/null || true
+}
+
+# POSIX shells can defer traps throughout a foreground sleep/CLI command.
+# Waiting on a background child lets TERM interrupt immediately, even with the
+# production 30-second poll interval. cleanup terminates that child on exit.
+interruptible_sleep() {
+    sleep "$1" &
+    CHILD_PID=$!
+    wait "$CHILD_PID"
+    CHILD_PID=
 }
 # shellcheck disable=SC2329  # invoked indirectly via `trap`
 bounded_splunk_stop() {
@@ -211,6 +225,9 @@ bounded_splunk_stop() {
 }
 # shellcheck disable=SC2329  # invoked indirectly via `trap`
 shutdown() {
+    trap '' INT TERM
+    [ -n "${CHILD_PID:-}" ] && kill "$CHILD_PID" 2>/dev/null || true
+    CHILD_PID=
     log "received stop signal - stopping splunkd (bounded ${STOP_TIMEOUT}s)"
     bounded_splunk_stop || true
     cleanup
@@ -304,7 +321,7 @@ while [ "$waited" -lt "$READY_TIMEOUT" ]; do
         break
     fi
     waited=$((waited + POLL_INTERVAL))
-    sleep "$POLL_INTERVAL"
+    interruptible_sleep "$POLL_INTERVAL"
 done
 if [ "$ready" -ne 1 ]; then
     fail "splunkd did not reach 'running' within ${READY_TIMEOUT}s" 1
@@ -345,7 +362,7 @@ while run_splunk "liveness-poll" status >/dev/null 2>&1; do
     if [ "$HEARTBEAT_EVERY" -gt 0 ] && [ $((i % HEARTBEAT_EVERY)) -eq 0 ]; then
         log "heartbeat: splunkd up (pid=$(cat "$PIDFILE" 2>/dev/null || echo '?')); deployment-server=${DEPLOY_TARGET:-<none>}"
     fi
-    sleep "$POLL_INTERVAL"
+    interruptible_sleep "$POLL_INTERVAL"
 done
 
 fail "splunkd is no longer running - exiting for ECS sidecar restart" 1

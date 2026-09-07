@@ -343,7 +343,7 @@ describe('OktaLogoutController - full logout', () => {
                 return okLogout();
             },
         });
-        expect(order).toEqual(['portal:/logout', 'okta']);
+        expect(order).toEqual(['portal:/logout', 'okta', 'clear']);
         expect(result).toEqual({ portalLoggedOut: true, oktaSignOutStarted: true });
     });
 
@@ -363,6 +363,46 @@ describe('OktaLogoutController - full logout', () => {
         expect(cleared).toBe(true);
         expect(result.portalLoggedOut).toBe(true);
         expect(result.oktaSignOutStarted).toBe(false);
+    });
+
+    it.each([
+        () => Promise.reject(new Error('network down')),
+        () => Promise.resolve({ deleted_cookie: false }),
+    ])('clears tokens but retains a portal logout failure', async (fetchImpl) => {
+        const oktaAuth = {
+            tokenManager: { clear: jest.fn() },
+            signOut: jest.fn(),
+        };
+        await expect(performFullLogout({ oktaAuth, fetchImpl })).rejects.toThrow();
+        expect(oktaAuth.tokenManager.clear).toHaveBeenCalledTimes(1);
+        expect(oktaAuth.signOut).not.toHaveBeenCalled();
+    });
+
+    it.each([true, false])('clears stored tokens before config arrives (portal success=%s)', async (success) => {
+        const priorWindow = global.window;
+        const priorDocument = global.document;
+        const local = { 'okta-token-storage': 'synthetic-token', unrelated: 'keep' };
+        const session = { 'okta-token-storage': 'synthetic-fallback' };
+        global.window = {
+            localStorage: { removeItem: (key) => { delete local[key]; } },
+            sessionStorage: { removeItem: (key) => { delete session[key]; } },
+        };
+        global.document = { cookie: '' };
+        try {
+            const logout = performFullLogout({
+                oktaAuth: null,
+                fetchImpl: () => Promise.resolve({ deleted_cookie: success }),
+            });
+            if (success) await logout;
+            else await expect(logout).rejects.toThrow();
+            expect(local).toEqual({ unrelated: 'keep' });
+            expect(session).toEqual({});
+            expect(global.document.cookie).toContain('okta-token-storage=;');
+            expect(global.document.cookie).toContain('Max-Age=0');
+        } finally {
+            global.window = priorWindow;
+            global.document = priorDocument;
+        }
     });
 
     it('still logs out of the portal when Okta was never configured', async () => {

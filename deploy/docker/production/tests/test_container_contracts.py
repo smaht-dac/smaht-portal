@@ -17,6 +17,7 @@ import subprocess
 import time
 
 import pytest
+import yaml
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 
@@ -24,6 +25,22 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
 def _read(rel):
     with open(os.path.join(REPO, rel), encoding="utf-8") as fh:
         return fh.read()
+
+
+@pytest.mark.unit
+def test_ci_authenticates_private_dhi_before_build():
+    workflow = yaml.safe_load(_read(".github/workflows/main.yml"))
+    steps = workflow["jobs"]["build"]["steps"]
+    login = next(step for step in steps if step.get("uses") == "docker/login-action@v3")
+    build = next(step for step in steps if step.get("name") == "Docker Build")
+    assert steps.index(login) < steps.index(build)
+    assert login["if"] == build["if"] == "${{ matrix.test_type == 'DOCKER' }}"
+    assert login["with"] == {
+        "registry": "dhi.io",
+        "username": "${{ secrets.DHI_USERNAME }}",
+        "password": "${{ secrets.DHI_TOKEN }}",
+    }
+    assert "dhi.io/" in _read("Dockerfile")
 
 
 @pytest.mark.unit
