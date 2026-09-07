@@ -8,6 +8,7 @@ wrong audience, algorithm swap) exact rather than approximate.
 """
 
 import datetime
+import io
 import json
 
 import jwt
@@ -22,6 +23,7 @@ from ..okta import (
     OktaConfigurationError,
     assert_no_client_secret,
     decode_okta_id_token,
+    get_okta_jwks_client,
     okta_config_view,
     okta_is_configured,
     okta_login_callback_view,
@@ -309,6 +311,35 @@ class TestJwksUriResolution:
         with patch("encoded.okta.requests.get", return_value=response):
             with pytest.raises(OktaConfigurationError):
                 resolve_okta_jwks_uri(okta_settings)
+
+
+class TestJwksCache:
+
+    def test_withdrawn_key_is_rejected_after_jwks_expiry(self, rsa_key, okta_settings):
+        registry = make_registry(okta_settings)
+        token = sign_id_token(rsa_key)
+        key = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(rsa_key.public_key()))
+        key["kid"] = KEY_ID
+        document = {"keys": [key]}
+
+        with patch("jwt.jwks_client.urllib.request.urlopen") as fetch, patch(
+            "jwt.jwk_set_cache.time.monotonic", return_value=0
+        ) as clock:
+            fetch.side_effect = lambda *args, **kwargs: io.BytesIO(
+                json.dumps(document).encode()
+            )
+            client = get_okta_jwks_client(registry)
+            assert decode_okta_id_token(token, registry)["email"] == "someone@example.org"
+            clock.return_value = 299
+            assert get_okta_jwks_client(registry) is client
+            assert decode_okta_id_token(token, registry)["email"] == "someone@example.org"
+            assert fetch.call_count == 1
+
+            document["keys"] = [dict(key, kid="replacement-key")]
+            clock.return_value = 301
+            with pytest.raises(jwt.PyJWKClientError, match="Unable to find a signing key"):
+                decode_okta_id_token(token, registry)
+            assert fetch.call_count > 1
 
 
 class TestTokenRouting:

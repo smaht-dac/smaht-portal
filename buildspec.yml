@@ -1,15 +1,8 @@
 version: 0.2
 
-# dhi.io (Docker Hardened Images) is a private registry, so the base image in the
-# Dockerfile (dhi.io/python:...) requires authentication before `docker build` can
-# pull it. Credentials are read from Secrets Manager (a JSON secret with username/token
-# keys). The CodeBuild service role needs secretsmanager:GetSecretValue on this secret.
 env:
   variables:
     DOCKER_BUILDKIT: "1"
-  secrets-manager:
-    DHI_USERNAME: "dhi-registry-credentials:username"
-    DHI_TOKEN: "dhi-registry-credentials:token"
 
 # Reuse the Docker layer cache across builds when CodeBuild reuses a build host.
 # Requires the CodeBuild project's cache type to be set to LOCAL (and privileged mode,
@@ -26,8 +19,6 @@ phases:
       - ./buildspec_create_gitinfo.sh
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - echo Logging in to dhi.io...
-      - echo "$DHI_TOKEN" | docker login dhi.io --username "$DHI_USERNAME" --password-stdin
   build:
     commands:
       - echo Build started on `date`

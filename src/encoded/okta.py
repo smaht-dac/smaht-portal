@@ -249,7 +249,7 @@ def get_okta_jwks_client(registry):
         existing = registry.get(_JWKS_CLIENT_REGISTRY_KEY)
         if existing is not None:
             return existing
-        client = jwt.PyJWKClient(resolve_okta_jwks_uri(registry.settings), cache_keys=True)
+        client = jwt.PyJWKClient(resolve_okta_jwks_uri(registry.settings))
         registry[_JWKS_CLIENT_REGISTRY_KEY] = client
         return client
 
