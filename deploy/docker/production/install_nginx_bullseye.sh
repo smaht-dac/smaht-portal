@@ -4,12 +4,22 @@ export NGINX_VERSION=1.21.6
 export NJS_VERSION=0.7.2
 export PKG_RELEASE=1~bullseye
 
+# deb.debian.org's mirror backends can intermittently 404 on individual packages
+# within an otherwise-valid transaction (see Dockerfile comment on 80-retries); retry
+# the whole apt-get install rather than failing the build on a transient 404.
+apt_install_retry() {
+    for i in 1 2 3 4 5; do
+        apt-get install "$@" && return 0 || sleep 10
+    done
+    return 1
+}
+
 set -x \
 # create nginx user/group first, to be consistent throughout docker variants
     addgroup --system --gid 121 nginx \
     && adduser --system --disabled-login --ingroup nginx --no-create-home --home /nonexistent --gecos "nginx user" --shell /bin/false --uid 121 nginx \
     && apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests -y gnupg2 ca-certificates \
+    && apt_install_retry --no-install-recommends --no-install-suggests -y gnupg2 ca-certificates \
     && \
     NGINX_GPGKEY=573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; \
     found=''; \
@@ -62,7 +72,7 @@ set -x \
             ;; \
     esac \
     \
-    && apt-get install --no-install-recommends --no-install-suggests -y \
+    && apt_install_retry --no-install-recommends --no-install-suggests -y \
                         $nginxPackages \
                         gettext-base \
                         curl \
