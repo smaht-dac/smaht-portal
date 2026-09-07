@@ -15,6 +15,13 @@ import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
 // mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
 const TARGET_TISSUE_PERCENTAGE_ORDER = ['0', '[0-10]', '[11-25]', '[26-49]', '[50-100]'];
 
+// Ascending order of Tissue.pathology_summary.non_target_tissue_percentage
+// bands, mirrored from
+// item_utils/pathology_report.py::NON_TARGET_TISSUE_PERCENTAGE_ORDER -- no
+// "0" band, unlike TARGET_TISSUE_PERCENTAGE_ORDER above (a non_target_tissues
+// entry is only ever reported when actually present).
+const NON_TARGET_TISSUE_PERCENTAGE_ORDER = ['[0-10]', '[11-25]', '[26-49]', '[50-100]'];
+
 // The 5 region-specific brain internal codes (see util/data.js's tissue-code
 // table) -- a donor's brain Tissue record sometimes carries the generic
 // "Brain" ontology term instead of one of these, with its own metric values
@@ -317,6 +324,7 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
 const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
 const getAutolysisScoreValue = (t) => t?.pathology_summary?.autolysis_score ?? null;
 const getTargetTissuePercentageValue = (t) => t?.pathology_summary?.target_tissue_percentage ?? null;
+const getNonTargetTissuePercentageValue = (t) => t?.pathology_summary?.non_target_tissue_percentage ?? null;
 
 // --- Per-subtype sub-columns (Autolysis Score/Target Tissue % tabs only) ---
 //
@@ -427,6 +435,46 @@ export function expandTissueResultsBySubtype(tissueResults = []) {
 //    href/category, always copied from its REAL PARENT's entry (never
 //    re-derived from the composite key itself, which getTissueInternalCodeFromFacetTerm
 //    can't resolve).
+// Same pre-expansion technique as expandTissueResultsBySubtype above, for
+// the Non Target Tissue % tab only, reading pathology_summary.non_target_tissues
+// instead of target_tissues. Kept as its own separate function rather than
+// a parameter on expandTissueResultsBySubtype -- that one overrides 2
+// fields (autolysis_score AND target_tissue_percentage) in lockstep per
+// virtual record, since Autolysis Score/Target Tissue % share 1 expanded
+// dataset pivoted off the same target_tissues array; Non Target Tissue %
+// has no sibling tab sharing non_target_tissues, and a non_target_tissues
+// entry has no autolysis_score field at all to override in the first place
+// (see item_utils/pathology_report.py's get_non_target_tissue_subtypes).
+export function expandTissueResultsByNonTargetSubtype(tissueResults = []) {
+    const tissueTypesWithSubtypeData = new Set();
+    tissueResults.forEach((t) => {
+        if (t?.pathology_summary?.non_target_tissues?.length) {
+            tissueTypesWithSubtypeData.add(t.tissue_type);
+        }
+    });
+
+    const expanded = [];
+    tissueResults.forEach((t) => {
+        const subtypes = t?.pathology_summary?.non_target_tissues;
+        if (!subtypes || subtypes.length === 0) {
+            if (!tissueTypesWithSubtypeData.has(t?.tissue_type)) expanded.push(t);
+            return;
+        }
+        subtypes.forEach((entry) => {
+            if (!entry?.subtype) return;
+            expanded.push({
+                ...t,
+                tissue_type: makeSubtypeColumnKey(t.tissue_type, entry.subtype),
+                pathology_summary: {
+                    ...t.pathology_summary,
+                    non_target_tissue_percentage: entry.percentage ?? null,
+                },
+            });
+        });
+    });
+    return expanded;
+}
+
 export function buildSubtypeColumnPlan(tissueTypes, realTissueTypeHrefs, realTissueTypeCategories) {
     const columnInfo = {};
     const fixedTissueTypeHrefs = {};
@@ -737,6 +785,18 @@ const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.m
     }
 ).reverse();
 
+// Same construction as TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES above, off
+// NON_TARGET_TISSUE_PERCENTAGE_ORDER instead -- no "0%" special case needed,
+// since that band doesn't exist here.
+const NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = NON_TARGET_TISSUE_PERCENTAGE_ORDER.map(
+    (label, index) => {
+        return {
+            className: `score-${NON_TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`,
+            label,
+        };
+    }
+).reverse();
+
 function formatAutolysisScore(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
     return String(value);
@@ -790,6 +850,34 @@ function getTargetTissuePercentageScoreClass(value) {
 // own override ranking bands by their real order (not alphabetically).
 function getTargetTissuePercentageSortValue(value) {
     const index = TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
+    return index === -1 ? null : index;
+}
+
+function formatNonTargetTissuePercentage(value) {
+    if (value === null || typeof value === 'undefined') return 'n/a';
+    return value;
+}
+
+// Same convention as getTargetTissuePercentageScoreClass above -- higher
+// non-target-tissue presence is "worse" for sample quality, same direction
+// as Target Tissue %'s own "higher presence -> lighter/'better' band"
+// wouldn't quite fit the concept, but there's no separate "good/bad"
+// framing established anywhere else in this table either (Autolysis
+// Score's own 0=None..3=Severe already runs light-to-dark for "more
+// severe"), so this just mirrors Target Tissue %'s own inverted-index
+// convention exactly for visual consistency across all 3 percentage-band
+// tabs, rather than introducing a 3rd, different light/dark direction.
+function getNonTargetTissuePercentageScoreClass(value) {
+    if (value === null || typeof value === 'undefined') return 'na';
+    const index = NON_TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
+    if (index === -1) return 'na';
+    return `score-${NON_TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
+}
+
+// Same reasoning as getTargetTissuePercentageSortValue above -- band
+// strings, not numbers.
+function getNonTargetTissuePercentageSortValue(value) {
+    const index = NON_TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
     return index === -1 ? null : index;
 }
 
@@ -2258,7 +2346,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
 
     // null (default order, today's fixed donor-alphabetical order from
     // buildTissueMetricMatrix) or { key: 'donor' | <tissueType>, direction }.
-    // Lives locally per MetricHeatmapTable instance -- each of the 3 tabs
+    // Lives locally per MetricHeatmapTable instance -- each of the 4 tabs
     // renders its own instance (kept mounted simultaneously via
     // DotRouterTab's `cache` prop), so per-tab independent sort state falls
     // out naturally with no cross-tab coordination needed. Local state also
@@ -2761,7 +2849,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
 });
 
 export const BrowseTissueHeatmapTable = (props) => {
-    // Gates the score-band cell coloring in all three tabs' tables -- see
+    // Gates the score-band cell coloring in all 4 tabs' tables -- see
     // MetricHeatmapTable's identical prop. On by default.
     const { href, session, enableConditionalColor = true } = props;
     const [loading, setLoading] = useState(true);
@@ -2912,6 +3000,31 @@ export const BrowseTissueHeatmapTable = (props) => {
         [targetTissuePercentage.tissueTypes, realTissueTypeHrefsAndCategories]
     );
 
+    // Non Target Tissue % gets its own separate pre-expansion (see
+    // expandTissueResultsByNonTargetSubtype) rather than sharing
+    // expandedForSubtypeTabs above -- that one is pivoted off
+    // pathology_summary.target_tissues, an entirely different array from
+    // non_target_tissues. Same brain-region reasoning as Target Tissue %
+    // above applies here too: BrainPathologyReport has no non_target_tissues
+    // concept at all, so every brain region's value is unconditionally
+    // null; `true` just merges those repeated "n/a" cells into one.
+    const expandedForNonTargetTab = useMemo(
+        () => expandTissueResultsByNonTargetSubtype(tissueResults),
+        [tissueResults]
+    );
+    const nonTargetTissuePercentage = useMemo(
+        () => buildTissueMetricMatrix(expandedForNonTargetTab, getNonTargetTissuePercentageValue, true),
+        [expandedForNonTargetTab]
+    );
+    const nonTargetTissueSubtypePlan = useMemo(
+        () => buildSubtypeColumnPlan(
+            nonTargetTissuePercentage.tissueTypes,
+            realTissueTypeHrefsAndCategories.tissueTypeHrefs,
+            realTissueTypeHrefsAndCategories.tissueTypeCategories
+        ),
+        [nonTargetTissuePercentage.tissueTypes, realTissueTypeHrefsAndCategories]
+    );
+
     // Applied as CSS custom properties on the whole card -- _search.scss's
     // .score-0..4 rules read these with a `var(--x, <hardcoded-default>)`
     // fallback, so leaving this undefined (no override picked) reproduces
@@ -3047,6 +3160,39 @@ export const BrowseTissueHeatmapTable = (props) => {
                             legend={({ activeScoreClass, onScoreClassClick }) => (
                                 <FixedScoreLegend
                                     entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
+                                    activeClassName={activeScoreClass}
+                                    onEntryClick={onScoreClassClick}
+                                />
+                            )}
+                            enableConditionalColor={enableConditionalColor}
+                            cellValueDisplayMode={cellValueDisplayMode}
+                        />
+                    )}
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".non-target-tissue"
+                    tabTitle="Non Target Tissue %"
+                    arrowTabs={false}
+                    cache={true}>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...nonTargetTissuePercentage}
+                            tissueTypeHrefs={nonTargetTissueSubtypePlan.fixedTissueTypeHrefs}
+                            tissueTypeCategories={nonTargetTissueSubtypePlan.fixedTissueTypeCategories}
+                            subtypeColumnInfo={nonTargetTissueSubtypePlan.columnInfo}
+                            metricLabel="Non Target Tissue %"
+                            tooltip="Percentage range of the sample that was NOT the target tissue subtype"
+                            formatValue={formatNonTargetTissuePercentage}
+                            getScoreClass={getNonTargetTissuePercentageScoreClass}
+                            getSortValue={getNonTargetTissuePercentageSortValue}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeScoreClass, onScoreClassClick }) => (
+                                <FixedScoreLegend
+                                    entries={NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
                                     activeClassName={activeScoreClass}
                                     onEntryClick={onScoreClassClick}
                                 />

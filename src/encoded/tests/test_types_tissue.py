@@ -44,6 +44,28 @@ def test_pathology_summary_target_tissues(es_testapp: TestApp, workbook: None) -
 
 
 @pytest.mark.workbook
+def test_pathology_summary_non_target_tissues(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure pathology_summary.non_target_tissues surfaces the per-subtype
+    breakdown from the tissue's own pathology report(s), un-collapsed --
+    same convention as target_tissues (test_pathology_summary_target_tissues
+    above), but with no per-subtype autolysis_score (non_target_tissues
+    entries don't have that field at all).
+
+    TEST_TISSUE_LIVER's same NonBrainPathologyReport
+    (TEST_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-1A-100A1) has exactly 1
+    non_target_tissues entry (Fibroadipose, [0-10]) -- see
+    data/workbook-inserts/non_brain_pathology_report.json.
+    """
+    tissue = get_item(es_testapp, "TEST_TISSUE_LIVER", collection="Tissue")
+    pathology_summary = tissue.get("pathology_summary")
+    assert pathology_summary is not None
+    assert pathology_summary.get("non_target_tissues") == [
+        {"subtype": "Fibroadipose", "percentage": "[0-10]"}
+    ]
+    assert pathology_summary.get("non_target_tissue_percentage") == "[0-10]"
+
+
+@pytest.mark.workbook
 @pytest.mark.parametrize(
     "patch_body,expected_status", [
         ({"donor": "TEST_DONOR_ALT1", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 200),

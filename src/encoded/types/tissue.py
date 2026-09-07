@@ -149,6 +149,38 @@ class Tissue(SampleSource):
                         },
                     },
                 },
+                "non_target_tissue_percentage": {
+                    "title": "Non-Target Tissue Percentage",
+                    "description": "Highest non-target tissue percentage band across pathology reports for this tissue.",
+                    "type": "string",
+                    "enum": pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER,
+                },
+                "non_target_tissues": {
+                    "title": "Non-Target Tissues",
+                    "description": (
+                        "Per-subtype non-target tissue data aggregated across pathology reports for"
+                        " this tissue (e.g. Fibroadipose/Lymphoid/Other), one entry per distinct"
+                        " subtype actually reported. Only present for tissues with"
+                        " NonBrainPathologyReport data; BrainPathologyReport has no non_target_tissues"
+                        " concept. Unlike target_tissues, there's no per-subtype autolysis_score here"
+                        " (non_target_tissues entries don't carry one)."
+                    ),
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "subtype": {
+                                "title": "Non-Target Tissue Subtype",
+                                "type": "string",
+                            },
+                            "percentage": {
+                                "title": "Non-Target Tissue Percentage",
+                                "type": "string",
+                                "enum": pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER,
+                            },
+                        },
+                    },
+                },
                 "histology_images": {
                     "title": "Histology Images",
                     "type": "array",
@@ -213,6 +245,14 @@ class Tissue(SampleSource):
             )
             if band is not None
         ]
+        non_target_tissue_bands = [
+            band
+            for band in (
+                pathology_report_utils.get_non_target_tissue_percentage(report)
+                for report in pathology_reports
+            )
+            if band is not None
+        ]
         histology_images = get_property_values(
             pathology_reports, pathology_report_utils.get_histology_images
         )
@@ -251,6 +291,30 @@ class Tissue(SampleSource):
                 bucket["autolysis_score"] = autolysis_score
         target_tissues = list(target_tissues_by_subtype.values()) or None
 
+        # Same per-subtype max-band aggregation as target_tissues above, but
+        # for non_target_tissues -- no autolysis_score bucket at all here,
+        # since a non_target_tissues entry has no such field to aggregate
+        # (see get_non_target_tissue_subtypes's own docstring).
+        non_target_tissue_subtype_entries = get_property_values(
+            pathology_reports, pathology_report_utils.get_non_target_tissue_subtypes
+        )
+        non_target_tissues_by_subtype: Dict[str, Dict[str, Any]] = {}
+        for entry in non_target_tissue_subtype_entries:
+            subtype = entry.get("subtype")
+            if not subtype:
+                continue
+            bucket = non_target_tissues_by_subtype.setdefault(
+                subtype, {"subtype": subtype, "percentage": None}
+            )
+            percentage = entry.get("percentage")
+            if percentage in pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER and (
+                bucket["percentage"] is None
+                or pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER.index(percentage)
+                > pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER.index(bucket["percentage"])
+            ):
+                bucket["percentage"] = percentage
+        non_target_tissues = list(non_target_tissues_by_subtype.values()) or None
+
         return {
             "autolysis_score": max(autolysis_scores) if autolysis_scores else None,
             "non_target_tissue_present": any(non_target_flags) if non_target_flags else None,
@@ -261,6 +325,12 @@ class Tissue(SampleSource):
                 else None
             ),
             "target_tissues": target_tissues,
+            "non_target_tissue_percentage": (
+                max(non_target_tissue_bands, key=pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER.index)
+                if non_target_tissue_bands
+                else None
+            ),
+            "non_target_tissues": non_target_tissues,
             "histology_images": histology_images or None,
         }
 

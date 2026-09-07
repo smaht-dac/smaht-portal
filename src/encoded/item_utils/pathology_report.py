@@ -6,6 +6,13 @@ from typing import Any, Dict, List, Optional
 # present across a report's target_tissues entries.
 TARGET_TISSUE_PERCENTAGE_ORDER = ["0", "[0-10]", "[11-25]", "[26-49]", "[50-100]"]
 
+# Ascending order of `non_target_tissue_percentage` bands, as defined in
+# schemas/non_brain_pathology_report.json -- no "0" option, unlike
+# TARGET_TISSUE_PERCENTAGE_ORDER above (non_target_tissues entries are only
+# ever reported when actually present, so there's no "0% present" band to
+# represent).
+NON_TARGET_TISSUE_PERCENTAGE_ORDER = ["[0-10]", "[11-25]", "[26-49]", "[50-100]"]
+
 # `finding_present`-style fields on BrainPathologyReport that don't share a
 # single array shape (unlike NonBrainPathologyReport.pathologic_findings),
 # so presence has to be checked field-by-field.
@@ -105,6 +112,50 @@ def get_target_tissue_subtypes(properties: Dict[str, Any]) -> List[Dict[str, Any
         }
         for entry in properties.get("target_tissues") or []
         if entry.get("target_tissue_present") == "Yes" and entry.get("target_tissue_subtype")
+    ]
+
+
+def get_non_target_tissue_percentage(properties: Dict[str, Any]) -> Optional[str]:
+    """Get the highest non_target_tissue_percentage band across a report's non-target tissues.
+
+    Only NonBrainPathologyReport has this concept (`non_target_tissues` array);
+    BrainPathologyReport has no equivalent field, so this returns None (not
+    applicable) for it.
+    """
+    if "non_target_tissues" not in properties:
+        return None
+    bands = [
+        entry.get("non_target_tissue_percentage")
+        for entry in properties.get("non_target_tissues") or []
+        if entry.get("non_target_tissue_present") == "Yes"
+        and entry.get("non_target_tissue_percentage") in NON_TARGET_TISSUE_PERCENTAGE_ORDER
+    ]
+    if not bands:
+        return None
+    return max(bands, key=NON_TARGET_TISSUE_PERCENTAGE_ORDER.index)
+
+
+def get_non_target_tissue_subtypes(properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get the un-collapsed list of present non-target-tissue subtype entries from one report.
+
+    Only NonBrainPathologyReport has this concept (`non_target_tissues` array);
+    BrainPathologyReport has no equivalent field, so this returns [] for it.
+    Unlike get_non_target_tissue_percentage, this does NOT collapse multiple
+    entries down to a single value -- each present subtype (e.g. Fibroadipose,
+    Lymphoid) is returned separately so a caller can aggregate per-subtype
+    instead of per-report. Unlike target_tissues, a non_target_tissues entry
+    has no per-subtype autolysis_score field at all (see the schema), so
+    there's nothing equivalent to include here.
+    """
+    if "non_target_tissues" not in properties:
+        return []
+    return [
+        {
+            "subtype": entry.get("non_target_tissue_subtype"),
+            "percentage": entry.get("non_target_tissue_percentage"),
+        }
+        for entry in properties.get("non_target_tissues") or []
+        if entry.get("non_target_tissue_present") == "Yes" and entry.get("non_target_tissue_subtype")
     ]
 
 
