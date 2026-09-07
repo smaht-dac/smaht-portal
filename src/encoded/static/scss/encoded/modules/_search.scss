@@ -3607,11 +3607,20 @@ div.browse-link-icon {
 			// A legend swatch/half is selected as a filter (FixedScoreLegend/
 			// SplitCellLegend's activeClassName/activeHalf, applied here via
 			// renderRowCells' activeScoreClass/activeSplitHalf) and this
-			// cell's own band doesn't match it -- fade out rather than hide,
-			// so the table's shape/scroll position stays put and only color
-			// legibility signals which cells matched.
+			// cell's own band doesn't match it -- its own fill/text hidden
+			// outright (not just faded/desaturated, which still risked
+			// reading as its own color band regardless of how much either
+			// was dialed down), so only the matching cells show any value
+			// at all. Background/text only, not `visibility: hidden` on the
+			// whole cell -- that also hid this cell's own border-right grid
+			// line, leaving the remaining matched cells looking like
+			// borderless boxes floating with no table structure around
+			// them. `!important` since this has to win over whichever
+			// `&.score-N`/`&.na` rule already set this same cell's own
+			// background/text color.
 			&.is-band-dimmed {
-				opacity: 0.25;
+				background-color: transparent !important;
+				color: transparent !important;
 			}
 
 			// The Excel-style corner flag -- more than one real record is
@@ -3724,13 +3733,19 @@ div.browse-link-icon {
 				font-weight: 400;
 			}
 
-			// Same legend-driven filter fade as .tissue-heatmap-cell's own
-			// `.is-band-dimmed`, just per-half -- lets e.g. clicking "Fixed"
-			// in SplitCellLegend dim only the Frozen half of every split
-			// cell, or a score-band swatch dim only the non-matching half of
-			// a cell whose 2 real values landed in different bands.
+			// Same legend-driven filter hide as .tissue-heatmap-cell's own
+			// `.is-band-dimmed` -- lets e.g. clicking "Fixed" in
+			// SplitCellLegend hide only the Frozen half of every split cell,
+			// or a score-band swatch hide only the non-matching half of a
+			// cell whose 2 real values landed in different bands. A half has
+			// no border of its own to preserve (the split cell's outer
+			// border-right, above, isn't part of this element), so there's
+			// no equivalent "keep the grid line" concern here -- still
+			// background/text only (not `visibility: hidden`), just for
+			// consistency with the whole-cell version.
 			&.is-band-dimmed {
-				opacity: 0.25;
+				background-color: transparent !important;
+				color: transparent !important;
 			}
 		}
 

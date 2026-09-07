@@ -1489,19 +1489,28 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
         // (Ischemic Time) dim by which specimen type half was clicked;
         // other split cells (a real value tie, e.g. Autolysis Score's rare
         // 2-distinct-value case) dim by score band, same as a plain cell.
+        //
+        // A "no value" half is dimmed too whenever ANY filter is active --
+        // for the score-band case this falls out for free (getScoreClass(null)
+        // is never a real score-N class, so it can never equal activeScoreClass);
+        // splitByPreservationType needs it spelled out explicitly, since
+        // "this is the selected specimen type" and "this half actually has
+        // a value" are 2 separate questions there. Without this, selecting
+        // e.g. "Fixed" left every Fixed-but-empty cell showing a plain "n/a"
+        // while Autolysis Score/Target Tissue % correctly went blank for
+        // their own no-value cells under an active filter -- inconsistent
+        // per explicit request; a "no data" cell isn't a real match for any
+        // legend selection, splitByPreservationType included.
         const isHalfADimmed = splitByPreservationType
-            ? activeSplitHalf === 'b'
+            ? activeSplitHalf === 'b' || (Boolean(activeSplitHalf) && splitValues[0] === null)
             : Boolean(activeScoreClass) &&
-              splitValues[0] !== null &&
               enableConditionalColor &&
               getScoreClass(splitValues[0]) !== activeScoreClass;
         const isHalfBDimmed = splitByPreservationType
-            ? activeSplitHalf === 'a'
+            ? activeSplitHalf === 'a' || (Boolean(activeSplitHalf) && splitValues[1] === null)
             : Boolean(activeScoreClass) &&
-              splitValues[1] !== null &&
               enableConditionalColor &&
               getScoreClass(splitValues[1]) !== activeScoreClass;
-
         nodes.push(
             <td
                 key={tissueType}
