@@ -3232,18 +3232,19 @@ div.browse-link-icon {
 		th, td {
 			white-space: nowrap;
 			text-align: center;
-			padding: 8px 14px;
+			padding: 8px 20px;
 		}
 
-		// Same light-blue header background/dark text/500-weight as the
-		// plain `/browse/` search-results table (`$search-header-*` above --
-		// this table isn't that shared component, just visually matching it
-		// for consistency across the app's own tables).
+		// Was the same light-blue header background/dark text/500-weight
+		// as the plain `/browse/` search-results table (`$search-header-*`
+		// above) -- switched to a neutral light grey per explicit request
+		// (the blue read as too close to the table's own blue score-band
+		// palette/donor-id link color to stay a plain neutral header).
 		thead th {
-			background-color: $search-header-background-color;
+			background-color: #F2F3F5;
 			font-weight: 500;
 			color: $search-header-text-color;
-			border-bottom: 1px solid #E7F0F3;
+			border-bottom: 1px solid #C3D8DE;
 		}
 
 		// The body's own column divider (.tissue-heatmap-cell's border-right,
@@ -3256,7 +3257,7 @@ div.browse-link-icon {
 		// color, and the order/donor headers' divider is their own sticky
 		// box-shadow, not this border).
 		thead tr:last-child th {
-			border-right: 1px solid #E7F0F3;
+			border-right: 1px solid #DFEAEE;
 
 			&:last-child {
 				border-right: none;
@@ -3326,6 +3327,17 @@ div.browse-link-icon {
 			color: #5A6B7D;
 		}
 
+		// An unsplit column's own 3rd-row cell (renderSubtypeHeaderCells) --
+		// plain "n/a", not a real subtype, so it's muted like any other
+		// empty value elsewhere in this table (.tissue-heatmap-cell's own
+		// .na/.is-empty) rather than reading as a real (if oddly-named)
+		// subtype column.
+		.tissue-heatmap-subtype-subrow-placeholder {
+			color: #C7CCD2;
+			font-weight: 400;
+			text-align: center;
+		}
+
 		// Column count is data-driven and unbounded (one per distinct
 		// tissue_type string, see BrowseTissueHeatmapTable.js's
 		// buildTissueMetricMatrix) -- the table already scrolls
@@ -3354,15 +3366,15 @@ div.browse-link-icon {
 		// axes at once, matching the tissue-type headers' own sticky-top so
 		// nothing gaps between them during a diagonal scroll. z-index above
 		// every other sticky layer (thead th's own 4, sticky-left body
-		// cells' 2) since this corner must always win. Background overridden
-		// back to the shared light-blue header background (thead th, above)
-		// too -- the 2 sticky rules above it left both cells' header (`th`)
-		// halves plain white, same as their own body (`td`) halves, reading
-		// as a separate white patch rather than part of this header row.
+		// cells' 2) since this corner must always win. Background is left
+		// at the plain white the earlier sticky rule (above) already gives
+		// it -- per explicit request, no header background color behind
+		// Donor ID at all (the earlier light-blue $search-header-background-color
+		// this used to force back on is gone entirely, not swapped for
+		// another color).
 		thead th.tissue-heatmap-order-header,
 		thead th.tissue-heatmap-donor-header {
 			z-index: 3;
-			background-color: $search-header-background-color;
 		}
 
 		.tissue-heatmap-order-label {
@@ -3656,7 +3668,7 @@ div.browse-link-icon {
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			font-weight: 600;
+			font-weight: 500;
 			font-size: 0.8125rem;
 			overflow: hidden;
 

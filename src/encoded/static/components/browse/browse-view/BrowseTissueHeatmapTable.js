@@ -1653,15 +1653,15 @@ function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, 
                 onClick={() => setIsOpen((prev) => !prev)}
                 aria-expanded={isOpen}
                 title="Brain -- pick a region to view its own Tissue Overview page">
-                Brain
                 {/* A caret here reads as a duplicate of the sort button's own
                     caret right next to it (see SortableHeaderLabel -- its
                     default/unsorted icon is now also a plain down-caret, to
                     match the plain /browse/ search-results table's own
-                    convention). A kebab ("more options") glyph doesn't
-                    collide with that shape, and arguably reads better anyway
+                    convention). A leading "+" doesn't collide with that
+                    shape, and reads as "expand this into its real regions"
                     -- this opens a *list to pick from*, not a sort toggle. */}
-                <i className="icon icon-fw fas icon-ellipsis-v" />
+                <i className="icon icon-fw fas icon-plus" />
+                Brain
             </button>
             <SortableHeaderLabel
                 label=""
@@ -1772,30 +1772,99 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
     return nodes;
 }
 
-// 2nd-tier header row builder for a subtype-aware tab (Autolysis Score/
-// Target Tissue %) -- a sibling to renderHeaderCells above, not a branch
-// inside it, so Ischemic Time's own call (which never has subColumnGroups)
-// stays byte-for-byte unchanged. One <th> per buildSubColumnGroups() entry:
-// an unsplit group (span === 1, e.g. a single-subtype or no-subtype tissue)
-// renders exactly what renderHeaderCells renders for a plain column today,
-// just with `rowSpan={2}` so it spans down through the new 3rd row with no
-// empty cell beneath it. A split group instead renders one `colSpan`
-// cell naming the parent tissue type -- label only, no sort button, since
-// sorting a merged parent by "which child" would be ambiguous; sorting
-// stays available per-subtype in the 3rd row (renderSubtypeHeaderCells).
-//
-// Brain regions never appear here -- they never get subtype-expanded (see
-// expandTissueResultsBySubtype), so `mergeableTissueTypes`/`mergeBrainHeader`/
-// BrainRegionHeaderCell logic is intentionally not duplicated in this
-// function; if that invariant ever changes this needs revisiting.
-function renderTissueTypeParentHeaderCells(subColumnGroups, tissueTypeHrefs, columnInfo, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
-    return subColumnGroups.map((group) => {
+// Walks buildSubColumnGroups' own output and additionally collapses any
+// consecutive run of unsplit, brain-region-mergeable groups into one
+// "merged-brain" run -- the same collapse renderHeaderCells' 2-row case
+// already does for a plain tab (mergeableTissueTypes.has(tissueType) &&
+// mergeBrainHeader), redone here because renderTissueTypeParentHeaderCells/
+// renderSubtypeHeaderCells (below) replace renderHeaderCells wholesale for a
+// subtype-aware tab whenever ANY tissue type in the table is actually
+// split -- not just the split columns themselves -- so brain's own merge
+// behavior would otherwise silently be lost table-wide the moment e.g. Skin
+// gets a real subtype split. Both row-builder functions iterate this exact
+// same run list, so their colSpans always agree column-for-column.
+function buildSubtypeAwareDisplayRuns(subColumnGroups, mergeableTissueTypes, mergeBrainHeader) {
+    const runs = [];
+    let i = 0;
+    while (i < subColumnGroups.length) {
+        const group = subColumnGroups[i];
         if (!group.isSplit) {
             const [{ key }] = group.children;
+            if (mergeableTissueTypes.has(key) && mergeBrainHeader) {
+                const regionTissueTypes = [key];
+                let span = 1;
+                while (
+                    i + span < subColumnGroups.length &&
+                    !subColumnGroups[i + span].isSplit &&
+                    mergeableTissueTypes.has(subColumnGroups[i + span].children[0].key)
+                ) {
+                    regionTissueTypes.push(subColumnGroups[i + span].children[0].key);
+                    span += 1;
+                }
+                runs.push({ type: 'merged-brain', regionTissueTypes, span });
+                i += span;
+                continue;
+            }
+            runs.push({ type: 'unsplit', key, span: 1 });
+            i += 1;
+            continue;
+        }
+        runs.push({ type: 'split', group, span: group.span });
+        i += 1;
+    }
+    return runs;
+}
+
+// 2nd-tier header row builder for a subtype-aware tab (Autolysis Score/
+// Target Tissue %) -- a sibling to renderHeaderCells above, not a branch
+// inside it, so Ischemic Time's own call (which never has displayRuns)
+// stays byte-for-byte unchanged. One <th> per buildSubtypeAwareDisplayRuns()
+// entry:
+// - 'unsplit' (a single-subtype or no-subtype tissue) renders exactly what
+//   renderHeaderCells renders for a plain column today -- no `rowSpan` down
+//   into the 3rd row, since every column (split or not) gets its own 3rd-row
+//   cell for a uniform 3-row header (see renderSubtypeHeaderCells' own "n/a"
+//   placeholder, per explicit request that a tissue with no real subtype
+//   still show one rather than the row silently skipping that column). Its
+//   own sort button stays right here, same as today.
+// - 'merged-brain' mirrors BrainRegionHeaderCell's usual merged "Brain"
+//   header (renderHeaderCells), just built from this table's own
+//   subColumnGroups instead of a flat tissueTypes array.
+// - 'split' renders one `colSpan` cell naming the parent tissue type --
+//   label only, no sort button of its own, since sorting a merged parent by
+//   "which child" would be ambiguous; sorting stays available per-subtype in
+//   the 3rd row (renderSubtypeHeaderCells).
+function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnInfo, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+    return displayRuns.map((run) => {
+        if (run.type === 'merged-brain') {
+            const { regionTissueTypes, span } = run;
+            return (
+                <th
+                    key={regionTissueTypes[0]}
+                    colSpan={span > 1 ? span : undefined}
+                    title="Brain"
+                    className={
+                        (regionTissueTypes.includes(hoveredColumn) ? 'is-column-highlight' : '') +
+                        (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
+                    }
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseEnter={() => onHoverColumn(regionTissueTypes[0])}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseLeave={() => onHoverColumn(null)}>
+                    <BrainRegionHeaderCell
+                        regionTissueTypes={regionTissueTypes}
+                        tissueTypeHrefs={tissueTypeHrefs}
+                        sortState={sortState}
+                        handleHeaderClick={handleHeaderClick}
+                    />
+                </th>
+            );
+        }
+        if (run.type === 'unsplit') {
+            const { key } = run;
             return (
                 <th
                     key={key}
-                    rowSpan={2}
                     title={key}
                     className={
                         'tissue-heatmap-subtype-unsplit-header' +
@@ -1816,6 +1885,7 @@ function renderTissueTypeParentHeaderCells(subColumnGroups, tissueTypeHrefs, col
                 </th>
             );
         }
+        const { group } = run;
         const firstChildKey = group.children[0].key;
         const anyChildHovered = group.children.some((c) => c.key === hoveredColumn);
         const anyChildSelected = group.children.some((c) => c.key === selectedTissueType);
@@ -1839,15 +1909,50 @@ function renderTissueTypeParentHeaderCells(subColumnGroups, tissueTypeHrefs, col
     });
 }
 
-// 3rd-tier header row builder -- one <th> (with its own sort button) per
-// leaf column of every SPLIT group only; an unsplit group's single leaf
-// already got its cell via rowSpan={2} in renderTissueTypeParentHeaderCells
-// above, so it's skipped here entirely (no empty 3rd-row cell under it).
-function renderSubtypeHeaderCells(subColumnGroups, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+// 3rd-tier header row builder -- one <th> per run from
+// buildSubtypeAwareDisplayRuns, so the header stays a uniform 3 rows
+// regardless of which columns happen to be split -- a 'split' run's
+// children each get their own real, clickable subtype header (with its own
+// sort button); an 'unsplit' or 'merged-brain' run instead gets a single
+// plain, non-interactive "n/a" placeholder cell (per explicit request -- a
+// tissue with no real subtype data, brain included, still shows one rather
+// than the row silently having a gap under that column), colSpan-matched to
+// that same run's own 2nd-row cell so the 2 rows always align.
+function renderSubtypeHeaderCells(displayRuns, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
     const nodes = [];
-    subColumnGroups.forEach((group) => {
-        if (!group.isSplit) return;
-        group.children.forEach(({ key, subtypeLabel }) => {
+    displayRuns.forEach((run) => {
+        if (run.type === 'merged-brain') {
+            const { regionTissueTypes, span } = run;
+            nodes.push(
+                <th
+                    key={regionTissueTypes[0]}
+                    colSpan={span > 1 ? span : undefined}
+                    className={
+                        'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder' +
+                        (regionTissueTypes.includes(hoveredColumn) ? ' is-column-highlight' : '') +
+                        (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
+                    }>
+                    n/a
+                </th>
+            );
+            return;
+        }
+        if (run.type === 'unsplit') {
+            const { key } = run;
+            nodes.push(
+                <th
+                    key={key}
+                    className={
+                        'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder' +
+                        (hoveredColumn === key ? ' is-column-highlight' : '') +
+                        (key === selectedTissueType ? ' is-selected-column' : '')
+                    }>
+                    n/a
+                </th>
+            );
+            return;
+        }
+        run.group.children.forEach(({ key, subtypeLabel }) => {
             nodes.push(
                 <th
                     key={key}
@@ -1882,15 +1987,15 @@ function renderSubtypeHeaderCells(subColumnGroups, tissueTypeHrefs, sortState, h
 // `sortState`/`handleHeaderClick` closures so a sort click on either one
 // updates the same state and can never let the two drift out of sync.
 //
-// `subColumnGroups`/`columnInfo` (both optional, from buildSubColumnGroups/
+// `displayRuns`/`columnInfo` (both optional, from buildSubtypeAwareDisplayRuns/
 // buildSubtypeColumnPlan) are passed only by the Autolysis Score/Target
 // Tissue % tabs, and only when at least 1 tissue type in the table actually
-// has multiple real subtypes (`subColumnGroups` is null otherwise, even for
+// has multiple real subtypes (`displayRuns` is null otherwise, even for
 // those 2 tabs -- see MetricHeatmapTable's own hasAnySplitColumn gate) --
 // Ischemic Time never passes them, so its own header stays exactly the
 // original 2-row shape.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, subColumnGroups = null, columnInfo = null) {
-    const headerRowSpan = subColumnGroups ? 3 : 2;
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null) {
+    const headerRowSpan = displayRuns ? 3 : 2;
     return (
         <>
             <tr className="tissue-heatmap-group-row">
@@ -1918,9 +2023,9 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                 ))}
             </tr>
             <tr>
-                {subColumnGroups
+                {displayRuns
                     ? renderTissueTypeParentHeaderCells(
-                        subColumnGroups,
+                        displayRuns,
                         tissueTypeHrefs,
                         columnInfo,
                         sortState,
@@ -1941,10 +2046,10 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                         selectedTissueType
                     )}
             </tr>
-            {subColumnGroups ? (
+            {displayRuns ? (
                 <tr>
                     {renderSubtypeHeaderCells(
-                        subColumnGroups,
+                        displayRuns,
                         tissueTypeHrefs,
                         sortState,
                         handleHeaderClick,
@@ -2096,12 +2201,23 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         () => (subtypeColumnInfo ? buildSubColumnGroups(tissueTypes, subtypeColumnInfo) : null),
         [tissueTypes, subtypeColumnInfo]
     );
-    // An all-unsplit subColumnGroups (every tissue type has 0 or 1 real
-    // subtypes) must not render a 3rd header row at all -- an empty <tr> is
-    // invalid/fragile, and there'd be nothing in it anyway (see
-    // renderSubtypeHeaderCells, which only ever emits cells for split
-    // groups).
+    // An all-unsplit subColumnGroups (every tissue type in this table has 0
+    // or 1 real subtypes) must not render a 3rd header row at all -- every
+    // column would just show an "n/a" placeholder (see
+    // renderSubtypeHeaderCells) for no reason, since nothing anywhere in
+    // this table actually has a real subtype to show.
     const hasAnySplitColumn = !!subColumnGroups && subColumnGroups.some((g) => g.isSplit);
+    // Re-collapses consecutive mergeable (brain-region) unsplit groups back
+    // into one "Brain" run -- see buildSubtypeAwareDisplayRuns' own comment
+    // for why this can't just reuse renderHeaderCells' identical logic
+    // as-is: a subtype-aware tab's 2nd/3rd header rows replace
+    // renderHeaderCells wholesale the moment ANY column in the table is
+    // actually split, so brain's own merge behavior has to be rebuilt here
+    // too, not just for the split columns themselves.
+    const displayRuns = useMemo(
+        () => (subColumnGroups ? buildSubtypeAwareDisplayRuns(subColumnGroups, mergeableTissueTypes, brainColumnsFullyMergeable) : null),
+        [subColumnGroups, mergeableTissueTypes, brainColumnsFullyMergeable]
+    );
 
     // null (default order, today's fixed donor-alphabetical order from
     // buildTissueMetricMatrix) or { key: 'donor' | <tissueType>, direction }.
@@ -2478,7 +2594,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 hoveredColumn,
                                 handleHoverHeaderColumn,
                                 selectedCell?.tissueType,
-                                hasAnySplitColumn ? subColumnGroups : null,
+                                hasAnySplitColumn ? displayRuns : null,
                                 subtypeColumnInfo
                             )}
                         </thead>
@@ -2501,7 +2617,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             hoveredColumn,
                             handleHoverHeaderColumn,
                             selectedCell?.tissueType,
-                            hasAnySplitColumn ? subColumnGroups : null,
+                            hasAnySplitColumn ? displayRuns : null,
                             subtypeColumnInfo
                         )}
                     </thead>
