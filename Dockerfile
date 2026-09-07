@@ -36,7 +36,7 @@ ENV NVM_DIR=/home/nginx/.nvm
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
     echo 'Acquire::http::Pipeline-Depth "0";' >> /etc/apt/apt.conf.d/80-retries
 
-RUN apt-get update && apt-get upgrade -y && \
+RUN apt-get update && apt-get upgrade -y --fix-missing && \
     apt-get install -y --no-install-recommends ca-certificates build-essential \
     gcc zlib1g-dev libpq-dev git make curl libmagic-dev && \
     pip install --upgrade pip && \
@@ -110,7 +110,7 @@ RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
 # here; gcc/build tools aren't needed since wheels are built in the builder stage.
 # libmagic1 is for python-magic; make is for the local entrypoint; git is invoked
 # indirectly by dcicutils at runtime.
-RUN apt-get update && apt-get upgrade -y && \
+RUN apt-get update && apt-get upgrade -y --fix-missing && \
     apt-get install -y --no-install-recommends ca-certificates git make libmagic1 && \
     apt-get clean
 
