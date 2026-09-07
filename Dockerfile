@@ -42,10 +42,9 @@ RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
 # archive and sidesteps the inconsistency entirely.
 RUN printf 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260901T000000Z/ bullseye main\ndeb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20260901T000000Z/ bullseye-security main\ndeb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260901T000000Z/ bullseye-updates main\n' > /etc/apt/sources.list
 
-RUN apt-get update && \
-    apt_install_retry() { for i in 1 2 3 4 5; do apt-get install -y --no-install-recommends "$@" && return 0; sleep 10; done; return 1; } && \
-    apt_install_retry ca-certificates build-essential \
-      gcc zlib1g-dev libpq-dev git make curl libmagic-dev && \
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends ca-certificates build-essential \
+    gcc zlib1g-dev libpq-dev git make curl libmagic-dev && \
     pip install --upgrade pip && \
     pip install poetry==1.8.5 && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
@@ -121,9 +120,8 @@ RUN printf 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debia
 # here; gcc/build tools aren't needed since wheels are built in the builder stage.
 # libmagic1 is for python-magic; make is for the local entrypoint; git is invoked
 # indirectly by dcicutils at runtime.
-RUN apt-get update && \
-    apt_install_retry() { for i in 1 2 3 4 5; do apt-get install -y --no-install-recommends "$@" && return 0; sleep 10; done; return 1; } && \
-    apt_install_retry ca-certificates git make libmagic1 && \
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends ca-certificates git make libmagic1 && \
     apt-get clean
 
 # nginx: install the pinned nginx.org build (identical to the previous single-stage
