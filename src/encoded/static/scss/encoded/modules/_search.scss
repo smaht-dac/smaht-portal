@@ -2944,7 +2944,7 @@ div.browse-link-icon {
 		gap: 8px;
 		margin: 0;
 		font-size: 1.125rem;
-		font-weight: 600;
+		font-weight: 400;
 		color: #212529;
 	}
 
@@ -3310,21 +3310,41 @@ div.browse-link-icon {
 
 		// The split-parent's own colSpan label cell (2nd row) -- neutral,
 		// not the germ-layer group color, so it reads as "parent of the
-		// subtype row below" rather than another group-label band.
+		// subtype row below" rather than another group-label band. Same
+		// background as the generic `thead th` rule above (not its own
+		// slightly-different #F7FAFC, as this used to be) -- confirmed
+		// against a real table that a tissue type WITH subtypes (this
+		// class) sitting right next to one without any (plain `thead th`,
+		// no subtype-specific class at all) read as 2 different shades of
+		// the same row, an unintended inconsistency rather than a real
+		// distinction worth drawing.
 		.tissue-heatmap-subtype-parent-header {
 			font-size: 0.75rem;
 			font-weight: 600;
 			color: #4E6884;
-			background-color: #F7FAFC;
+			background-color: #F2F3F5;
 			text-align: center;
 		}
 
 		// The 3rd row's own per-subtype header -- smaller than the parent
-		// label above it, reading as visually "nested" under it.
+		// label above it, reading as visually "nested" under it. Each
+		// subtype label is a real link (see renderSubtypeHeaderCells) when
+		// tissueTypeHrefs has one for it -- `a` doesn't inherit an
+		// ancestor's `color` on its own, so without this override it kept
+		// showing the browser/app's own default link blue right through
+		// this `color: #343741`, exactly the "subtype names read as links"
+		// look this was meant to avoid; the label still functions as a
+		// link either way, just no longer looks like one.
 		.tissue-heatmap-subtype-subrow-header {
 			font-size: 0.6875rem;
 			font-weight: 500;
-			color: #5A6B7D;
+			color: #343741;
+			background-color: #DADDE3;
+
+			a {
+				color: inherit;
+				text-decoration: none;
+			}
 		}
 
 		// An unsplit column's own 3rd-row cell (renderSubtypeHeaderCells) --
@@ -3333,7 +3353,7 @@ div.browse-link-icon {
 		// .na/.is-empty) rather than reading as a real (if oddly-named)
 		// subtype column.
 		.tissue-heatmap-subtype-subrow-placeholder {
-			color: #C7CCD2;
+			color: #93A0B0;
 			font-weight: 400;
 			text-align: center;
 		}
