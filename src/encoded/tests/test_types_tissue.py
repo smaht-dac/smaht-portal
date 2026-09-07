@@ -24,6 +24,26 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
 
 
 @pytest.mark.workbook
+def test_pathology_summary_target_tissues(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure pathology_summary.target_tissues surfaces the per-subtype
+    breakdown from the tissue's own pathology report(s), un-collapsed.
+
+    TEST_TISSUE_LIVER rev-links to NDRITEST_TISSUE-SAMPLE_LIVER_TPC, whose
+    single NonBrainPathologyReport (TEST_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-1A-100A1)
+    has exactly 1 target_tissues entry (Liver, [50-100], no autolysis score) --
+    see data/workbook-inserts/non_brain_pathology_report.json.
+    """
+    tissue = get_item(es_testapp, "TEST_TISSUE_LIVER", collection="Tissue")
+    pathology_summary = tissue.get("pathology_summary")
+    assert pathology_summary is not None
+    assert pathology_summary.get("target_tissues") == [
+        {"subtype": "Liver", "percentage": "[50-100]", "autolysis_score": None}
+    ]
+    # The existing, unrelated scalar fields stay populated exactly as before.
+    assert pathology_summary.get("target_tissue_percentage") == "[50-100]"
+
+
+@pytest.mark.workbook
 @pytest.mark.parametrize(
     "patch_body,expected_status", [
         ({"donor": "TEST_DONOR_ALT1", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 200),

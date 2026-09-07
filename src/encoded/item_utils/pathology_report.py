@@ -85,6 +85,29 @@ def get_target_tissue_percentage(properties: Dict[str, Any]) -> Optional[str]:
     return max(bands, key=TARGET_TISSUE_PERCENTAGE_ORDER.index)
 
 
+def get_target_tissue_subtypes(properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get the un-collapsed list of present target-tissue subtype entries from one report.
+
+    Only NonBrainPathologyReport has this concept (`target_tissues` array);
+    BrainPathologyReport has no equivalent field, so this returns [] for it.
+    Unlike get_target_tissue_percentage, this does NOT collapse multiple
+    entries down to a single value -- each present subtype (e.g. Endocardium,
+    Myocardium, Epicardium for a Heart report) is returned separately so a
+    caller can aggregate per-subtype instead of per-report.
+    """
+    if "target_tissues" not in properties:
+        return []
+    return [
+        {
+            "subtype": entry.get("target_tissue_subtype"),
+            "percentage": entry.get("target_tissue_percentage"),
+            "autolysis_score": entry.get("target_tissue_autolysis_score"),
+        }
+        for entry in properties.get("target_tissues") or []
+        if entry.get("target_tissue_present") == "Yes" and entry.get("target_tissue_subtype")
+    ]
+
+
 def has_pathologic_finding(properties: Dict[str, Any]) -> Optional[bool]:
     """Check if any unexpected/pathologic finding was present in a pathology report.
 

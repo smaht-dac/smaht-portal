@@ -118,6 +118,37 @@ class Tissue(SampleSource):
                     "type": "string",
                     "enum": pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER,
                 },
+                "target_tissues": {
+                    "title": "Target Tissues",
+                    "description": (
+                        "Per-subtype target tissue data aggregated across pathology reports for"
+                        " this tissue (e.g. Endocardium/Myocardium/Epicardium for a Heart tissue),"
+                        " one entry per distinct subtype actually reported. Only present for"
+                        " tissues with NonBrainPathologyReport data; BrainPathologyReport has no"
+                        " target_tissues concept."
+                    ),
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "subtype": {
+                                "title": "Target Tissue Subtype",
+                                "type": "string",
+                            },
+                            "percentage": {
+                                "title": "Target Tissue Percentage",
+                                "type": "string",
+                                "enum": pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER,
+                            },
+                            "autolysis_score": {
+                                "title": "Autolysis Score",
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 3,
+                            },
+                        },
+                    },
+                },
                 "histology_images": {
                     "title": "Histology Images",
                     "type": "array",
@@ -186,6 +217,40 @@ class Tissue(SampleSource):
             pathology_reports, pathology_report_utils.get_histology_images
         )
 
+        # Per-subtype breakdown (e.g. Endocardium/Myocardium/Epicardium for a
+        # Heart tissue) -- unlike target_tissue_percentage above, which
+        # collapses every subtype down to one highest band, this keeps each
+        # subtype's own percentage/autolysis_score separate. A Tissue can
+        # rev-link more than 1 TissueSample (e.g. Fixed + Frozen), each with
+        # its own PathologyReport, so the same subtype can appear in more
+        # than one report -- aggregated here by taking the max percentage
+        # band and max autolysis_score per subtype, same convention as the
+        # scalar fields' own max-across-reports collapsing above.
+        target_tissue_subtype_entries = get_property_values(
+            pathology_reports, pathology_report_utils.get_target_tissue_subtypes
+        )
+        target_tissues_by_subtype: Dict[str, Dict[str, Any]] = {}
+        for entry in target_tissue_subtype_entries:
+            subtype = entry.get("subtype")
+            if not subtype:
+                continue
+            bucket = target_tissues_by_subtype.setdefault(
+                subtype, {"subtype": subtype, "percentage": None, "autolysis_score": None}
+            )
+            percentage = entry.get("percentage")
+            if percentage in pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER and (
+                bucket["percentage"] is None
+                or pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER.index(percentage)
+                > pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER.index(bucket["percentage"])
+            ):
+                bucket["percentage"] = percentage
+            autolysis_score = entry.get("autolysis_score")
+            if autolysis_score is not None and (
+                bucket["autolysis_score"] is None or autolysis_score > bucket["autolysis_score"]
+            ):
+                bucket["autolysis_score"] = autolysis_score
+        target_tissues = list(target_tissues_by_subtype.values()) or None
+
         return {
             "autolysis_score": max(autolysis_scores) if autolysis_scores else None,
             "non_target_tissue_present": any(non_target_flags) if non_target_flags else None,
@@ -195,6 +260,7 @@ class Tissue(SampleSource):
                 if target_tissue_bands
                 else None
             ),
+            "target_tissues": target_tissues,
             "histology_images": histology_images or None,
         }
 

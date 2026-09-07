@@ -106,6 +106,35 @@ function formatPreservationTypeLabel(preservationType) {
 //   docstring -- so every brain region, generic column included, is
 //   unconditionally null), but `true` still collapses what would otherwise
 //   be 5 repeated "n/a" cells into one.
+// Derives each real tissue_type's own tissue-overview href and germ-layer
+// category from a set of raw Tissue search results -- extracted out of
+// buildTissueMetricMatrix (below) so it can also be called directly on the
+// RAW, pre-subtype-expansion tissueResults by the Autolysis Score/Target
+// Tissue % tabs (see expandTissueResultsBySubtype/buildSubtypeColumnPlan) --
+// buildTissueMetricMatrix's own internal computation of these maps, when fed
+// an *expanded* result set, would only ever see composite subtype column
+// keys, never the real tissue_type itself, for any split tissue type.
+export function buildTissueTypeHrefsAndCategories(tissueResults = []) {
+    const tissueTypeHrefs = {};
+    const tissueTypeCategories = {};
+    tissueResults.forEach((t) => {
+        const tissueType = t?.tissue_type;
+        if (!tissueType) return;
+        if (!tissueTypeHrefs[tissueType]) {
+            // The stable 4-letter internal code (e.g. "HART") reads as a real
+            // identifier and makes a much shorter URL than the full raw
+            // "<TPC code> - <name>" string -- falls back to the raw value
+            // when no code is known (e.g. the generic "Brain" placeholder),
+            // which tissue_overview.py still resolves via the legacy exact
+            // match on `tissue_type`.
+            const urlCode = getTissueInternalCodeFromFacetTerm(tissueType) || tissueType;
+            tissueTypeHrefs[tissueType] = `/tissue-overview/?tissue_type=${formUrlEncode(urlCode)}`;
+        }
+        if (!tissueTypeCategories[tissueType] && t.category) tissueTypeCategories[tissueType] = t.category;
+    });
+    return { tissueTypeHrefs, tissueTypeCategories };
+}
+
 export const buildTissueMetricMatrix = (tissueResults = [], getValue, distributeGenericBrainValue = false) => {
     const tissueTypes = [];
     const donors = [];
@@ -128,8 +157,7 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
     // positions stay visually stable whether or not both sides have data.
     const cellSlotsByDonorAndTissue = {};
     const tissuesByKey = {};
-    const tissueTypeHrefs = {};
-    const tissueTypeCategories = {};
+    const { tissueTypeHrefs, tissueTypeCategories } = buildTissueTypeHrefsAndCategories(tissueResults);
 
     tissueResults.forEach((t) => {
         const donorId = t?.donor?.external_id;
@@ -137,17 +165,6 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
         if (!donorId || !tissueType) return;
         if (!donors.includes(donorId)) donors.push(donorId);
         if (!tissueTypes.includes(tissueType)) tissueTypes.push(tissueType);
-        if (!tissueTypeHrefs[tissueType]) {
-            // The stable 4-letter internal code (e.g. "HART") reads as a real
-            // identifier and makes a much shorter URL than the full raw
-            // "<TPC code> - <name>" string -- falls back to the raw value
-            // when no code is known (e.g. the generic "Brain" placeholder),
-            // which tissue_overview.py still resolves via the legacy exact
-            // match on `tissue_type`.
-            const urlCode = getTissueInternalCodeFromFacetTerm(tissueType) || tissueType;
-            tissueTypeHrefs[tissueType] = `/tissue-overview/?tissue_type=${formUrlEncode(urlCode)}`;
-        }
-        if (!tissueTypeCategories[tissueType] && t.category) tissueTypeCategories[tissueType] = t.category;
 
         const key = `${donorId} ${tissueType}`;
         (tissuesByKey[key] || (tissuesByKey[key] = [])).push(t);
@@ -300,6 +317,162 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
 const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
 const getAutolysisScoreValue = (t) => t?.pathology_summary?.autolysis_score ?? null;
 const getTargetTissuePercentageValue = (t) => t?.pathology_summary?.target_tissue_percentage ?? null;
+
+// --- Per-subtype sub-columns (Autolysis Score/Target Tissue % tabs only) ---
+//
+// A NonBrainPathologyReport's own `target_tissues` array can carry several
+// distinct subtypes for one tissue_type (e.g. a Heart report separately
+// recording Endocardium/Myocardium/Epicardium) -- see
+// Tissue.pathology_summary.target_tissues (types/tissue.py). Rather than
+// teaching buildTissueMetricMatrix a 2nd key dimension (which would touch
+// its Fixed/Frozen handling, brain-region distribution, and sorting -- all
+// shared with the untouched Ischemic Time tab), the raw tissueResults are
+// pre-expanded into one synthetic record per subtype, each keyed by a
+// composite tissue_type string, and fed into the otherwise-unmodified
+// buildTissueMetricMatrix. buildTissueMetricMatrix never parses its own
+// tissue_type strings internally -- only a handful of outside call sites do
+// (enumerated where relevant below) -- so it stays 100% generic either way.
+
+// Internal-only separator between a real tissue_type and a synthetic
+// subtype label -- NUL, not a printable character, since real tissue_type
+// strings already contain spaces/hyphens/commas (e.g. "3AM - Brain,
+// Cerebellum") that would make splitting on any printable separator
+// ambiguous. NUL can never appear in a real tissue_type or
+// target_tissue_subtype enum value, so splitting on its first (and only)
+// occurrence is always unambiguous.
+const SUBTYPE_KEY_SEPARATOR = '\u0000';
+
+export function makeSubtypeColumnKey(tissueType, subtypeLabel) {
+    return `${tissueType}${SUBTYPE_KEY_SEPARATOR}${subtypeLabel}`;
+}
+
+// Returns { tissueType, subtypeLabel } -- subtypeLabel is null for a key
+// that was never composite-keyed in the first place (e.g. Ischemic Time's
+// plain tissue_type strings, or any tissue with no target_tissues data).
+export function splitSubtypeColumnKey(key) {
+    const sepIndex = key.indexOf(SUBTYPE_KEY_SEPARATOR);
+    if (sepIndex === -1) return { tissueType: key, subtypeLabel: null };
+    return { tissueType: key.slice(0, sepIndex), subtypeLabel: key.slice(sepIndex + 1) };
+}
+
+// Pre-expansion step, run BEFORE buildTissueMetricMatrix, for the Autolysis
+// Score/Target Tissue % tabs only. For each Tissue record with
+// pathology_summary.target_tissues entries, emits one synthetic "virtual"
+// tissue record per subtype -- its own composite tissue_type key
+// (makeSubtypeColumnKey) and pathology_summary.autolysis_score/
+// target_tissue_percentage overridden to that one subtype's own value -- so
+// buildTissueMetricMatrix pivots one column per real subtype instead of one
+// column per tissue_type. A Tissue with no target_tissues data at all
+// (BrainPathologyReport-backed, or simply no PathologyReport) passes through
+// unchanged, staying a single plain (non-composite-keyed) column -- UNLESS
+// some other donor's Tissue record of that same real tissue_type *does* have
+// subtype data (tissueTypesWithSubtypeData below), in which case this
+// donor's plain record is dropped entirely rather than kept as its own
+// unlabeled sibling column: unlike Ischemic Time's Fixed/Frozen (a fixed,
+// always-both-slots convention), "no pathology report yet" isn't its own
+// subtype, so there's nothing meaningful for it to be a column of -- that
+// donor's row still correctly reads "n/a" in each of the tissue's real
+// subtype columns, since buildTissueMetricMatrix defaults an (donor,
+// column) pair with no entry at all to null.
+//
+// A tissue_type with exactly 1 real subtype still gets composite-keyed here
+// -- it isn't given special "leave it plain" treatment in this function.
+// Making it look identical to an unsplit column (per requirement) is instead
+// handled entirely at the header layer (buildSubColumnGroups' `isSplit`,
+// true only for span > 1), which keeps this expansion a single, uniform
+// transform rather than a "sometimes composite, sometimes not" branch.
+export function expandTissueResultsBySubtype(tissueResults = []) {
+    const tissueTypesWithSubtypeData = new Set();
+    tissueResults.forEach((t) => {
+        if (t?.pathology_summary?.target_tissues?.length) {
+            tissueTypesWithSubtypeData.add(t.tissue_type);
+        }
+    });
+
+    const expanded = [];
+    tissueResults.forEach((t) => {
+        const subtypes = t?.pathology_summary?.target_tissues;
+        if (!subtypes || subtypes.length === 0) {
+            if (!tissueTypesWithSubtypeData.has(t?.tissue_type)) expanded.push(t);
+            return;
+        }
+        subtypes.forEach((entry) => {
+            if (!entry?.subtype) return;
+            expanded.push({
+                ...t,
+                tissue_type: makeSubtypeColumnKey(t.tissue_type, entry.subtype),
+                pathology_summary: {
+                    ...t.pathology_summary,
+                    autolysis_score: entry.autolysis_score ?? null,
+                    target_tissue_percentage: entry.percentage ?? null,
+                },
+            });
+        });
+    });
+    return expanded;
+}
+
+// Built once from buildTissueMetricMatrix's own `tissueTypes` output (for an
+// expanded, subtype-aware tab) plus the REAL tissue_type hrefs/categories
+// (from buildTissueTypeHrefsAndCategories, called on the RAW, pre-expansion
+// tissueResults -- buildTissueMetricMatrix's own internal maps, built from
+// the expanded results, would otherwise only ever have composite-keyed
+// entries, never the real tissue_type itself, for any split tissue type).
+// Returns:
+//  - columnInfo: { [columnKey]: { parentTissueType, subtypeLabel|null } },
+//    used by header/popover/sort-label code to resolve a (possibly
+//    composite) column key back to a real tissue_type + optional subtype
+//    label for display, instead of parsing/showing the raw composite string.
+//  - fixedTissueTypeHrefs/fixedTissueTypeCategories: every column key's own
+//    href/category, always copied from its REAL PARENT's entry (never
+//    re-derived from the composite key itself, which getTissueInternalCodeFromFacetTerm
+//    can't resolve).
+export function buildSubtypeColumnPlan(tissueTypes, realTissueTypeHrefs, realTissueTypeCategories) {
+    const columnInfo = {};
+    const fixedTissueTypeHrefs = {};
+    const fixedTissueTypeCategories = {};
+    tissueTypes.forEach((key) => {
+        const { tissueType: parentTissueType, subtypeLabel } = splitSubtypeColumnKey(key);
+        columnInfo[key] = { parentTissueType, subtypeLabel };
+        fixedTissueTypeHrefs[key] = realTissueTypeHrefs[parentTissueType] ?? null;
+        fixedTissueTypeCategories[key] = realTissueTypeCategories[parentTissueType] ?? null;
+    });
+    return { columnInfo, fixedTissueTypeHrefs, fixedTissueTypeCategories };
+}
+
+// Mid-tier grouping: collapses the (possibly composite) tissueTypes array
+// into contiguous runs sharing the same real parent tissue_type, mirroring
+// buildColumnGroups' own span-collapsing technique one tier down. Relies on
+// same-parent columns being contiguous -- true because
+// buildTissueMetricMatrix's own sort (by formatTissueTypeLabel, which strips
+// only the leading "<code> - " prefix) leaves every child of one parent
+// sharing an identical "<name><SUBTYPE_KEY_SEPARATOR>" prefix, so they
+// always sort adjacent to each other (in alphabetical-by-subtype order --
+// the only canonical order available; no per-tissue anatomical subtype
+// ordering exists anywhere in the schema/codebase).
+//
+// `isSplit` (span > 1), not "was this key composite", is what actually
+// decides whether a parent needs its own 3rd header row -- a tissue with
+// exactly 1 real subtype is still composite-keyed (see
+// expandTissueResultsBySubtype) but reads as `isSplit: false` here, which is
+// what makes it render identically to an always-plain column.
+export function buildSubColumnGroups(tissueTypes, columnInfo) {
+    const groups = [];
+    tissueTypes.forEach((key) => {
+        const { parentTissueType, subtypeLabel } = columnInfo[key];
+        const lastGroup = groups[groups.length - 1];
+        if (lastGroup && lastGroup.parentTissueType === parentTissueType) {
+            lastGroup.span += 1;
+            lastGroup.children.push({ key, subtypeLabel });
+        } else {
+            groups.push({ parentTissueType, span: 1, children: [{ key, subtypeLabel }] });
+        }
+    });
+    groups.forEach((g) => {
+        g.isSplit = g.span > 1;
+    });
+    return groups;
+}
 
 
 function formatIschemicTime(value) {
@@ -498,32 +671,46 @@ export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = n
 function SplitCellLegend({ activeHalf = null, onHalfClick = null }) {
     return (
         <div className="tissue-heatmap-split-legend">
-            <span className="tissue-heatmap-split-legend-swatch">
-                <button
-                    type="button"
-                    className={
-                        'tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-a' +
-                        (activeHalf === 'a' ? ' is-active' : '')
-                    }
-                    aria-pressed={activeHalf === 'a'}
-                    disabled={!onHalfClick}
-                    // eslint-disable-next-line react/jsx-no-bind
-                    onClick={onHalfClick ? () => onHalfClick('a') : undefined}>
-                    Fixed
-                </button>
-                <button
-                    type="button"
-                    className={
-                        'tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-b' +
-                        (activeHalf === 'b' ? ' is-active' : '')
-                    }
-                    aria-pressed={activeHalf === 'b'}
-                    disabled={!onHalfClick}
-                    // eslint-disable-next-line react/jsx-no-bind
-                    onClick={onHalfClick ? () => onHalfClick('b') : undefined}>
-                    Frozen
-                </button>
-            </span>
+            <table className="tissue-heatmap-split-legend-table">
+                <thead>
+                    <tr>
+                        <th>Left</th>
+                        <th>Right</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <button
+                                type="button"
+                                className={
+                                    'tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-a' +
+                                    (activeHalf === 'a' ? ' is-active' : '')
+                                }
+                                aria-pressed={activeHalf === 'a'}
+                                disabled={!onHalfClick}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onClick={onHalfClick ? () => onHalfClick('a') : undefined}>
+                                Fixed
+                            </button>
+                        </td>
+                        <td>
+                            <button
+                                type="button"
+                                className={
+                                    'tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-b' +
+                                    (activeHalf === 'b' ? ' is-active' : '')
+                                }
+                                aria-pressed={activeHalf === 'b'}
+                                disabled={!onHalfClick}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onClick={onHalfClick ? () => onHalfClick('b') : undefined}>
+                                Frozen
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     );
 }
@@ -1051,8 +1238,8 @@ function getDetailPopoverStyle(rect) {
 // click-to-inspect popover reads as the same convention used elsewhere in
 // the app rather than a one-off design.
 function renderCellDetailPopover({
-    donor, tissueType, metricLabel, value, entries, slots, splitByPreservationType, formatValue,
-    tissueOverviewHref, style, isFlippedUp,
+    donor, tissueType, tissueLabel = null, metricLabel, value, entries, slots, splitByPreservationType,
+    formatValue, tissueOverviewHref, style, isFlippedUp,
 }, popoverRef) {
     // Ischemic Time's own cells always show a Fixed/Frozen breakdown (see
     // buildTissueMetricMatrix's cellSlots and the table cell's own always-
@@ -1090,7 +1277,7 @@ function renderCellDetailPopover({
                     </div>
                     <div className="field">
                         <div className="label">Tissue</div>
-                        <div className="value">{formatTissueTypeLabel(tissueType)}</div>
+                        <div className="value">{tissueLabel ?? formatTissueTypeLabel(tissueType)}</div>
                     </div>
                     {!hasBreakdown ? (
                         <div className="field">
@@ -1387,13 +1574,30 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
 // header (see renderHeaderCells/BrainRegionHeaderCell) -- so a region still
 // gets this same code+name link and sort button on its own whenever its
 // value can't be safely summarized under the shared label.
-function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortState, handleHeaderClick }) {
+//
+// `columnInfo` (optional, from buildSubtypeColumnPlan) is passed only by the
+// Autolysis Score/Target Tissue % tabs, whose `tissueType` may actually be a
+// subtype-composite key (see makeSubtypeColumnKey) -- when present, the
+// display label always resolves through it (the real parent's own label, or
+// the bare subtype label for a genuine sub-column) rather than calling
+// formatTissueTypeHeaderLabel directly on `tissueType`, which would show a
+// garbled string for ANY composite key, split or not (every tissue with
+// target_tissues data is composite-keyed, even a single-subtype one -- see
+// expandTissueResultsBySubtype). `tissueTypeHrefs[tissueType]` keeps working
+// unchanged either way since callers already pass the "fixed" href map
+// (buildSubtypeColumnPlan's fixedTissueTypeHrefs), correctly resolved per
+// composite key.
+function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortState, handleHeaderClick, columnInfo = null }) {
+    const info = columnInfo?.[tissueType];
+    const displayLabel = info?.subtypeLabel
+        ? info.subtypeLabel
+        : formatTissueTypeHeaderLabel(info ? info.parentTissueType : tissueType);
     return (
         <>
             {tissueTypeHrefs[tissueType] ? (
-                <a href={tissueTypeHrefs[tissueType]}>{formatTissueTypeHeaderLabel(tissueType)}</a>
+                <a href={tissueTypeHrefs[tissueType]}>{displayLabel}</a>
             ) : (
-                formatTissueTypeHeaderLabel(tissueType)
+                displayLabel
             )}
             <SortableHeaderLabel
                 label=""
@@ -1568,18 +1772,130 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
     return nodes;
 }
 
-// Both <thead> rows, factored out so MetricHeatmapTable can render this
+// 2nd-tier header row builder for a subtype-aware tab (Autolysis Score/
+// Target Tissue %) -- a sibling to renderHeaderCells above, not a branch
+// inside it, so Ischemic Time's own call (which never has subColumnGroups)
+// stays byte-for-byte unchanged. One <th> per buildSubColumnGroups() entry:
+// an unsplit group (span === 1, e.g. a single-subtype or no-subtype tissue)
+// renders exactly what renderHeaderCells renders for a plain column today,
+// just with `rowSpan={2}` so it spans down through the new 3rd row with no
+// empty cell beneath it. A split group instead renders one `colSpan`
+// cell naming the parent tissue type -- label only, no sort button, since
+// sorting a merged parent by "which child" would be ambiguous; sorting
+// stays available per-subtype in the 3rd row (renderSubtypeHeaderCells).
+//
+// Brain regions never appear here -- they never get subtype-expanded (see
+// expandTissueResultsBySubtype), so `mergeableTissueTypes`/`mergeBrainHeader`/
+// BrainRegionHeaderCell logic is intentionally not duplicated in this
+// function; if that invariant ever changes this needs revisiting.
+function renderTissueTypeParentHeaderCells(subColumnGroups, tissueTypeHrefs, columnInfo, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+    return subColumnGroups.map((group) => {
+        if (!group.isSplit) {
+            const [{ key }] = group.children;
+            return (
+                <th
+                    key={key}
+                    rowSpan={2}
+                    title={key}
+                    className={
+                        'tissue-heatmap-subtype-unsplit-header' +
+                        (hoveredColumn === key ? ' is-column-highlight' : '') +
+                        (key === selectedTissueType ? ' is-selected-column' : '')
+                    }
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseEnter={() => onHoverColumn(key)}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseLeave={() => onHoverColumn(null)}>
+                    <IndividualTissueTypeHeaderLabel
+                        tissueType={key}
+                        tissueTypeHrefs={tissueTypeHrefs}
+                        sortState={sortState}
+                        handleHeaderClick={handleHeaderClick}
+                        columnInfo={columnInfo}
+                    />
+                </th>
+            );
+        }
+        const firstChildKey = group.children[0].key;
+        const anyChildHovered = group.children.some((c) => c.key === hoveredColumn);
+        const anyChildSelected = group.children.some((c) => c.key === selectedTissueType);
+        return (
+            <th
+                key={group.parentTissueType}
+                colSpan={group.span}
+                title={group.parentTissueType}
+                className={
+                    'tissue-heatmap-subtype-parent-header' +
+                    (anyChildHovered ? ' is-column-highlight' : '') +
+                    (anyChildSelected ? ' is-selected-column' : '')
+                }>
+                {tissueTypeHrefs[firstChildKey] ? (
+                    <a href={tissueTypeHrefs[firstChildKey]}>{formatTissueTypeHeaderLabel(group.parentTissueType)}</a>
+                ) : (
+                    formatTissueTypeHeaderLabel(group.parentTissueType)
+                )}
+            </th>
+        );
+    });
+}
+
+// 3rd-tier header row builder -- one <th> (with its own sort button) per
+// leaf column of every SPLIT group only; an unsplit group's single leaf
+// already got its cell via rowSpan={2} in renderTissueTypeParentHeaderCells
+// above, so it's skipped here entirely (no empty 3rd-row cell under it).
+function renderSubtypeHeaderCells(subColumnGroups, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+    const nodes = [];
+    subColumnGroups.forEach((group) => {
+        if (!group.isSplit) return;
+        group.children.forEach(({ key, subtypeLabel }) => {
+            nodes.push(
+                <th
+                    key={key}
+                    title={key}
+                    className={
+                        'tissue-heatmap-subtype-subrow-header' +
+                        (hoveredColumn === key ? ' is-column-highlight' : '') +
+                        (key === selectedTissueType ? ' is-selected-column' : '')
+                    }
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseEnter={() => onHoverColumn(key)}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseLeave={() => onHoverColumn(null)}>
+                    {tissueTypeHrefs[key] ? <a href={tissueTypeHrefs[key]}>{subtypeLabel}</a> : subtypeLabel}
+                    <SortableHeaderLabel
+                        label=""
+                        sortDirection={sortState?.key === key ? sortState.direction : null}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => handleHeaderClick(key)}
+                    />
+                </th>
+            );
+        });
+    });
+    return nodes;
+}
+
+// Both/all <thead> rows, factored out so MetricHeatmapTable can render this
 // exact same markup twice -- once as the real, in-flow header, once as the
 // `position: fixed` "stuck" clone shown while scrolled (see
 // MetricHeatmapTable's scroll-measurement effect) -- sharing the same
 // `sortState`/`handleHeaderClick` closures so a sort click on either one
 // updates the same state and can never let the two drift out of sync.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+//
+// `subColumnGroups`/`columnInfo` (both optional, from buildSubColumnGroups/
+// buildSubtypeColumnPlan) are passed only by the Autolysis Score/Target
+// Tissue % tabs, and only when at least 1 tissue type in the table actually
+// has multiple real subtypes (`subColumnGroups` is null otherwise, even for
+// those 2 tabs -- see MetricHeatmapTable's own hasAnySplitColumn gate) --
+// Ischemic Time never passes them, so its own header stays exactly the
+// original 2-row shape.
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, subColumnGroups = null, columnInfo = null) {
+    const headerRowSpan = subColumnGroups ? 3 : 2;
     return (
         <>
             <tr className="tissue-heatmap-group-row">
-                <th className="tissue-heatmap-order-header" rowSpan={2} />
-                <th className="tissue-heatmap-donor-header" rowSpan={2}>
+                <th className="tissue-heatmap-order-header" rowSpan={headerRowSpan} />
+                <th className="tissue-heatmap-donor-header" rowSpan={headerRowSpan}>
                     <SortableHeaderLabel
                         label="Donor ID"
                         sortDirection={sortState?.key === 'donor' ? sortState.direction : null}
@@ -1602,18 +1918,42 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                 ))}
             </tr>
             <tr>
-                {renderHeaderCells(
-                    tissueTypes,
-                    mergeableTissueTypes,
-                    mergeBrainHeader,
-                    tissueTypeHrefs,
-                    sortState,
-                    handleHeaderClick,
-                    hoveredColumn,
-                    onHoverColumn,
-                    selectedTissueType
-                )}
+                {subColumnGroups
+                    ? renderTissueTypeParentHeaderCells(
+                        subColumnGroups,
+                        tissueTypeHrefs,
+                        columnInfo,
+                        sortState,
+                        handleHeaderClick,
+                        hoveredColumn,
+                        onHoverColumn,
+                        selectedTissueType
+                    )
+                    : renderHeaderCells(
+                        tissueTypes,
+                        mergeableTissueTypes,
+                        mergeBrainHeader,
+                        tissueTypeHrefs,
+                        sortState,
+                        handleHeaderClick,
+                        hoveredColumn,
+                        onHoverColumn,
+                        selectedTissueType
+                    )}
             </tr>
+            {subColumnGroups ? (
+                <tr>
+                    {renderSubtypeHeaderCells(
+                        subColumnGroups,
+                        tissueTypeHrefs,
+                        sortState,
+                        handleHeaderClick,
+                        hoveredColumn,
+                        onHoverColumn,
+                        selectedTissueType
+                    )}
+                </tr>
+            ) : null}
         </>
     );
 }
@@ -1738,11 +2078,30 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // would just add an empty, uninformative "Frozen: n/a" half to every
     // cell there for no reason).
     splitByPreservationType = false,
+    // Optional -- { [columnKey]: { parentTissueType, subtypeLabel|null } }
+    // from buildSubtypeColumnPlan, passed only by the Autolysis Score/Target
+    // Tissue % tabs (null for Ischemic Time and any other plain tab). When
+    // present, `tissueTypes` may contain subtype-composite keys (see
+    // makeSubtypeColumnKey) instead of bare tissue_type strings -- every new
+    // code path below (3rd header row, parent-vs-leaf header cells, resolved
+    // popover/sort labels) gates on this being non-null, so Ischemic Time's
+    // own rendering is provably untouched.
+    subtypeColumnInfo = null,
 }) {
     const columnGroups = useMemo(
         () => buildColumnGroups(tissueTypes, tissueTypeCategories),
         [tissueTypes, tissueTypeCategories]
     );
+    const subColumnGroups = useMemo(
+        () => (subtypeColumnInfo ? buildSubColumnGroups(tissueTypes, subtypeColumnInfo) : null),
+        [tissueTypes, subtypeColumnInfo]
+    );
+    // An all-unsplit subColumnGroups (every tissue type has 0 or 1 real
+    // subtypes) must not render a 3rd header row at all -- an empty <tr> is
+    // invalid/fragile, and there'd be nothing in it anyway (see
+    // renderSubtypeHeaderCells, which only ever emits cells for split
+    // groups).
+    const hasAnySplitColumn = !!subColumnGroups && subColumnGroups.some((g) => g.isSplit);
 
     // null (default order, today's fixed donor-alphabetical order from
     // buildTissueMetricMatrix) or { key: 'donor' | <tissueType>, direction }.
@@ -1933,12 +2292,21 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // than that region's own code. Doesn't apply when the header isn't
     // merged -- there, sortState.key really is that one region's own
     // column, and its own code is the accurate label.
+    // A sort on a subtype sub-column (subtypeColumnInfo set) resolves through
+    // it too, same reasoning as brain's "Brain" special-case above --
+    // sortState.key may be a composite key (see makeSubtypeColumnKey), which
+    // formatTissueTypeHeaderLabel can't parse on its own.
+    const sortKeyColumnInfo = subtypeColumnInfo?.[sortState?.key];
     const sortKeyLabel =
         sortState?.key === 'donor'
             ? 'Donor ID'
             : brainColumnsFullyMergeable && mergeableTissueTypes.has(sortState?.key)
                 ? 'Brain'
-                : formatTissueTypeHeaderLabel(sortState?.key);
+                : sortKeyColumnInfo
+                    ? sortKeyColumnInfo.subtypeLabel
+                        ? `${formatTissueTypeHeaderLabel(sortKeyColumnInfo.parentTissueType)} — ${sortKeyColumnInfo.subtypeLabel}`
+                        : formatTissueTypeHeaderLabel(sortKeyColumnInfo.parentTissueType)
+                    : formatTissueTypeHeaderLabel(sortState?.key);
     const orderLabel = !sortState
         ? 'Donor Distribution Order'
         : `Sorted by ${sortKeyLabel} (${sortState.direction === 'asc' ? 'ascending' : 'descending'})`;
@@ -2109,7 +2477,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 handleHeaderClick,
                                 hoveredColumn,
                                 handleHoverHeaderColumn,
-                                selectedCell?.tissueType
+                                selectedCell?.tissueType,
+                                hasAnySplitColumn ? subColumnGroups : null,
+                                subtypeColumnInfo
                             )}
                         </thead>
                     </table>
@@ -2130,7 +2500,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             handleHeaderClick,
                             hoveredColumn,
                             handleHoverHeaderColumn,
-                            selectedCell?.tissueType
+                            selectedCell?.tissueType,
+                            hasAnySplitColumn ? subColumnGroups : null,
+                            subtypeColumnInfo
                         )}
                     </thead>
                     <tbody>
@@ -2192,6 +2564,18 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                     renderCellDetailPopover({
                         donor: selectedCell.donor,
                         tissueType: selectedCell.tissueType,
+                        // Resolves a subtype-composite key (see
+                        // makeSubtypeColumnKey) into e.g. "Heart —
+                        // Endocardium" instead of showing the raw composite
+                        // string -- null (falls back to the popover's own
+                        // formatTissueTypeLabel(tissueType)) for a plain,
+                        // non-composite key (Ischemic Time, or any tab
+                        // without subtypeColumnInfo at all).
+                        tissueLabel: subtypeColumnInfo?.[selectedCell.tissueType]
+                            ? subtypeColumnInfo[selectedCell.tissueType].subtypeLabel
+                                ? `${formatTissueTypeLabel(subtypeColumnInfo[selectedCell.tissueType].parentTissueType)} — ${subtypeColumnInfo[selectedCell.tissueType].subtypeLabel}`
+                                : formatTissueTypeLabel(subtypeColumnInfo[selectedCell.tissueType].parentTissueType)
+                            : null,
                         metricLabel,
                         value: selectedCell.value,
                         entries: selectedCell.entries,
@@ -2308,13 +2692,38 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => buildScoreLegend(ischemicTimeScoring),
         [ischemicTimeScoring]
     );
+    // Real tissue_type hrefs/categories, derived from the RAW (pre-subtype-
+    // expansion) results -- needed by buildSubtypeColumnPlan below since
+    // buildTissueMetricMatrix's own internal maps, built from the *expanded*
+    // results, only ever see composite subtype-column keys, never the real
+    // tissue_type itself, for any split tissue type.
+    const realTissueTypeHrefsAndCategories = useMemo(
+        () => buildTissueTypeHrefsAndCategories(tissueResults),
+        [tissueResults]
+    );
+    // Pre-expansion for the 2 subtype-aware tabs only -- see
+    // expandTissueResultsBySubtype's own comment. Ischemic Time above
+    // deliberately keeps using the raw, un-expanded `tissueResults`.
+    const expandedForSubtypeTabs = useMemo(
+        () => expandTissueResultsBySubtype(tissueResults),
+        [tissueResults]
+    );
+
     // Autolysis, like ischemic time, is assessed once per whole brain at
     // procurement, not independently per dissected sub-region, so every
     // real region column for a given donor carries the same score and this
     // gets the same distributeGenericBrainValue/merge treatment.
     const autolysisScore = useMemo(
-        () => buildTissueMetricMatrix(tissueResults, getAutolysisScoreValue, true),
-        [tissueResults]
+        () => buildTissueMetricMatrix(expandedForSubtypeTabs, getAutolysisScoreValue, true),
+        [expandedForSubtypeTabs]
+    );
+    const autolysisSubtypePlan = useMemo(
+        () => buildSubtypeColumnPlan(
+            autolysisScore.tissueTypes,
+            realTissueTypeHrefsAndCategories.tissueTypeHrefs,
+            realTissueTypeHrefsAndCategories.tissueTypeCategories
+        ),
+        [autolysisScore.tissueTypes, realTissueTypeHrefsAndCategories]
     );
     // Not for the same reason as Autolysis Score above -- there's no real
     // value to distribute here (BrainPathologyReport has no target_tissues
@@ -2324,8 +2733,16 @@ export const BrowseTissueHeatmapTable = (props) => {
     // flag, collapsing what would otherwise be 5 repeated "n/a" cells into
     // one.
     const targetTissuePercentage = useMemo(
-        () => buildTissueMetricMatrix(tissueResults, getTargetTissuePercentageValue, true),
-        [tissueResults]
+        () => buildTissueMetricMatrix(expandedForSubtypeTabs, getTargetTissuePercentageValue, true),
+        [expandedForSubtypeTabs]
+    );
+    const targetTissueSubtypePlan = useMemo(
+        () => buildSubtypeColumnPlan(
+            targetTissuePercentage.tissueTypes,
+            realTissueTypeHrefsAndCategories.tissueTypeHrefs,
+            realTissueTypeHrefsAndCategories.tissueTypeCategories
+        ),
+        [targetTissuePercentage.tissueTypes, realTissueTypeHrefsAndCategories]
     );
 
     // Applied as CSS custom properties on the whole card -- _search.scss's
@@ -2417,6 +2834,9 @@ export const BrowseTissueHeatmapTable = (props) => {
                     ) : (
                         <MetricHeatmapTable
                             {...autolysisScore}
+                            tissueTypeHrefs={autolysisSubtypePlan.fixedTissueTypeHrefs}
+                            tissueTypeCategories={autolysisSubtypePlan.fixedTissueTypeCategories}
+                            subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
                             metricLabel="Autolysis Score"
                             tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
                             formatValue={formatAutolysisScore}
@@ -2448,6 +2868,9 @@ export const BrowseTissueHeatmapTable = (props) => {
                     ) : (
                         <MetricHeatmapTable
                             {...targetTissuePercentage}
+                            tissueTypeHrefs={targetTissueSubtypePlan.fixedTissueTypeHrefs}
+                            tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
+                            subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
                             metricLabel="Target Tissue %"
                             tooltip="Percentage range of the sample that was the target tissue subtype"
                             formatValue={formatTargetTissuePercentage}
