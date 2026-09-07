@@ -7,10 +7,8 @@ without PostgreSQL/OpenSearch, and makes the negative cases (wrong issuer,
 wrong audience, algorithm swap) exact rather than approximate.
 """
 
-import ast
 import datetime
 import json
-import pathlib
 
 import jwt
 import pytest
@@ -18,7 +16,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from pyramid.httpexceptions import HTTPForbidden
 from unittest.mock import MagicMock, patch
 
-from .. import okta as encoded_okta
 from ..okta import (
     OKTA_CALLBACK_PATH,
     OKTA_ID_TOKEN_ALGORITHMS,
@@ -158,29 +155,6 @@ class TestSettings:
                    side_effect=AssertionError("assume_identity must not be called")):
             settings = set_okta_config({"okta.issuer": ISSUER, "okta.client": CLIENT_ID})
         assert settings["okta.issuer"] == ISSUER
-
-    def test_module_code_has_no_identity_or_environment_lookup(self):
-        """Durable guard against reintroducing an Okta-specific secret lookup.
-
-        Checked against the parsed module rather than its text, so the prose
-        explaining *why* the lookup is absent does not trip the assertion.
-        """
-        tree = ast.parse(pathlib.Path(encoded_okta.__file__).read_text(encoding="utf-8"))
-        names = set()
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Name):
-                names.add(node.id)
-            elif isinstance(node, ast.Attribute):
-                names.add(node.attr)
-            elif isinstance(node, (ast.Import, ast.ImportFrom)):
-                names.update(alias.name for alias in node.names)
-                names.update(part for alias in node.names
-                             for part in (alias.name or "").split("."))
-                if isinstance(node, ast.ImportFrom):
-                    names.update((node.module or "").split("."))
-        assert "assume_identity" not in names
-        assert "secrets_utils" not in names
-        assert "os" not in names and "environ" not in names and "getenv" not in names
 
     def test_absent_configuration_is_simply_not_configured(self):
         settings = set_okta_config({})

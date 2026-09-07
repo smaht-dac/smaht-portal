@@ -4,6 +4,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from pyramid.httpexceptions import HTTPForbidden
+from pyramid.authentication import RemoteUserAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
+from pyramid.config import Configurator
+from pyramid.renderers import JSON
+from pyramid.security import Allow, Everyone
+from snovault import AbstractCollection
+from webtest import TestApp
 from snovault import TYPES
 from snovault.resources import Item as SnovaultItem
 from webob.multidict import MultiDict
@@ -53,6 +60,42 @@ def test_broad_search_preserves_permission_checks_and_audits(types, encoded_log_
             protected_donor_search(None, request)
         assert search.call_count == 1
     assert [r["outcome"] for r in _records(encoded_log_stream)] == ["allowed", "denied"]
+
+
+@pytest.mark.parametrize('allowed', [True, False])
+@pytest.mark.parametrize('query', ['', '?type=File'])
+def test_abstract_collection_dispatch_preserves_list_permission(allowed, query, encoded_log_stream):
+    registry_types = request_for().registry[TYPES]
+    config = Configurator()
+    collection = AbstractCollection(
+        config.registry, 'abstract-donors',
+        SimpleNamespace(name='AbstractDonor'),
+        acl=[(Allow, Everyone, 'list' if allowed else 'search')],
+    )
+    collection.__parent__ = None
+    config.set_root_factory(lambda request: {'abstract-donors': collection})
+    config.set_authentication_policy(RemoteUserAuthenticationPolicy())
+    config.set_authorization_policy(ACLAuthorizationPolicy())
+    config.add_renderer(None, JSON())
+    config.registry[TYPES] = registry_types
+    config.include('snovault.search.search')
+    config.include('encoded.browse')
+    app = TestApp(config.make_wsgi_app())
+    with patch('encoded.browse.search', return_value={'total': 1}) as search:
+        response = app.get('/abstract-donors/' + query, status=200 if allowed else 403)
+    if allowed:
+        assert response.json == {'total': 1}
+        context, forwarded_request = search.call_args.args
+        assert context is collection
+        assert forwarded_request.effective_principals == [Everyone]
+        assert search.call_args.kwargs == {
+            'search_type': 'AbstractDonor', 'return_generator': False, 'forced_type': 'Search',
+        }
+    else:
+        search.assert_not_called()
+    record, = _records(encoded_log_stream)
+    assert record['outcome'] == ('allowed' if allowed else 'denied')
+    assert record['result_count'] == (1 if allowed else 0)
 
 
 def test_browse_uses_its_actual_type_not_search_default(encoded_log_stream):  # noqa: F811

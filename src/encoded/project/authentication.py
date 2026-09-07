@@ -1,6 +1,8 @@
 import structlog
 
 from pyramid.httpexceptions import HTTPUnauthorized
+from pyramid.request import Request
+from snovault.authentication import get_jwt_from_auth_header
 from snovault.project.authentication import SnovaultProjectAuthentication
 
 from ..audit_logging import authenticated_actor_fields
@@ -18,14 +20,25 @@ class SMAHTProjectAuthentication(SnovaultProjectAuthentication):
             # copied into the application log stream.
             log.warning("User login failed", action="login", outcome="failure", event_type="user_login")
             raise
-        # Keep this event bounded to the canonical actor UUID; the authenticated
-        # token and user details must never be copied into the application log stream.
+        actor = {}
+        try:
+            token = get_jwt_from_auth_header(request)
+            if token is None:
+                token = request.json_body.get("id_token")
+            if token:
+                credential_request = Request.blank(
+                    request.path_url, headers={"Authorization": f"Bearer {token}"}
+                )
+                credential_request.registry = request.registry
+                actor = authenticated_actor_fields(credential_request)
+        except Exception:
+            pass
         log.warning(
-            "User login successful",
+            "User login successful" if actor else "User login failed",
             action="login",
-            outcome="success",
+            outcome="success" if actor else "failure",
             event_type="user_login",
-            **authenticated_actor_fields(request),
+            **actor,
         )
         return response
 

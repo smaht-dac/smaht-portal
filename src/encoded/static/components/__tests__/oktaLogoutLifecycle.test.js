@@ -10,7 +10,7 @@ jest.mock('@hms-dbmi-bgm/shared-portal-components/es/components/util', () => {
             getUserInfo: () => null,
             saveUserInfoLocalStorage: jest.fn(),
         },
-        ajax: { fetch: jest.fn() },
+        ajax: { fetch: jest.fn(), promise: jest.fn() },
         logger: { error: jest.fn() },
         analytics: {},
         isServerSide: () => false,
@@ -35,6 +35,10 @@ const CONFIG = {
     scopes: ['openid', 'email', 'profile'],
 };
 
+const ID_TOKEN = 'header.' + Buffer.from(JSON.stringify({
+    email: 'user@example.invalid',
+})).toString('base64url') + '.signature';
+
 let storage;
 let stored;
 let clients;
@@ -58,7 +62,7 @@ function storeTokens(client) {
     const expiresAt = Math.floor(Date.now() / 1000) + 600;
     client.tokenManager.setTokens({
         idToken: {
-            idToken: 'synthetic.signed.id-token',
+            idToken: ID_TOKEN,
             claims: { sub: 'synthetic', email: 'user@example.invalid' },
             expiresAt,
             scopes: CONFIG.scopes,
@@ -75,7 +79,7 @@ function storeTokens(client) {
     });
 }
 
-async function restoreHomepage(client) {
+async function restoreHomepage(client, mount = false) {
     const controller = new OktaLoginController({
         session: false,
         updateAppSessionState: jest.fn(),
@@ -86,7 +90,8 @@ async function restoreHomepage(client) {
         controller.state = { ...controller.state, ...state };
         if (callback) callback();
     };
-    controller.restorePortalSession();
+    if (mount) controller.componentDidMount();
+    else controller.restorePortalSession();
     await new Promise((resolve) => setImmediate(resolve));
     return controller;
 }
@@ -108,6 +113,8 @@ beforeEach(() => {
     };
     clients = [];
     resetOktaAuthClient();
+    ajax.promise.mockReset();
+    ajax.promise.mockResolvedValue(CONFIG);
     ajax.fetch.mockReset();
     ajax.fetch.mockImplementation(async (url) => {
         if (url === '/logout') return { deleted_cookie: true };
@@ -154,8 +161,86 @@ test('logout, document reload, and homepage restoration never re-create the port
     expect(tokensAtRedirect).toEqual({});
     expect(reloaded.tokenManager.getTokensSync()).toEqual({});
     expect(window.location.assign.mock.calls[0][0]).toContain(
-        'id_token_hint=synthetic.signed.id-token'
+        'id_token_hint=' + ID_TOKEN
     );
+});
+
+test('a login controller remounted during revocation cannot restore the portal cookie', async () => {
+    const client = clientForDocument();
+    storeTokens(client);
+    const accessToken = client.tokenManager.getTokensSync().accessToken;
+    let releaseRevocation;
+    let revocationStarted;
+    const started = new Promise((resolve) => { revocationStarted = resolve; });
+    client.revokeAccessToken = jest.fn((token) => {
+        expect(token).toEqual(accessToken);
+        revocationStarted();
+        return new Promise((resolve) => { releaseRevocation = resolve; });
+    });
+    let remount;
+    ajax.fetch.mockImplementationOnce(async () => {
+        remount = restoreHomepage(client, true);
+        return { deleted_cookie: true };
+    });
+    const logout = performFullLogout({ oktaAuth: client });
+    expect(client.tokenManager.getTokensSync()).toEqual({});
+    await started;
+    try {
+        await remount;
+        expect(ajax.promise).toHaveBeenCalledWith('/okta_config');
+        expect(ajax.fetch.mock.calls.map(([url]) => url)).toEqual(['/logout']);
+        expect(window.location.assign).not.toHaveBeenCalled();
+    } finally {
+        releaseRevocation();
+        await logout;
+    }
+    expect(window.location.assign.mock.calls[0][0]).toContain('id_token_hint=' + ID_TOKEN);
+});
+
+test('expired stored tokens are cleared without attempting restoration or registration', async () => {
+    const client = clientForDocument();
+    storeTokens(client);
+    const now = Date.now();
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(now + 1200000);
+    try {
+        const controller = await restoreHomepage(client);
+        expect(ajax.fetch).not.toHaveBeenCalled();
+        expect(controller.state.unverifiedUserEmail).toBeNull();
+        expect(client.tokenManager.getTokensSync()).toEqual({});
+    } finally {
+        clock.mockRestore();
+    }
+});
+
+test('expiry during restoration is not mistaken for an unknown portal account', async () => {
+    const client = clientForDocument();
+    storeTokens(client);
+    const now = Date.now();
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(now);
+    ajax.fetch.mockImplementation(async (url) => {
+        if (url === '/login') return { saved_cookie: true };
+        clock.mockReturnValue(now + 1200000);
+        throw { code: 401, message: 'Session Expired' };
+    });
+    try {
+        const controller = await restoreHomepage(client);
+        expect(ajax.fetch.mock.calls.map(([url]) => url)).toEqual(['/login', '/session-properties']);
+        expect(controller.state.unverifiedUserEmail).toBeNull();
+        expect(client.tokenManager.getTokensSync()).toEqual({});
+    } finally {
+        clock.mockRestore();
+    }
+});
+
+test('a valid token with an unknown account still offers registration', async () => {
+    const client = clientForDocument();
+    storeTokens(client);
+    ajax.fetch.mockImplementation(async (url) => {
+        if (url === '/login') return { saved_cookie: true };
+        throw { code: 401, message: 'Login Failure' };
+    });
+    const controller = await restoreHomepage(client);
+    expect(controller.state.unverifiedUserEmail).toBe('user@example.invalid');
 });
 
 test('failed Okta revocation still prevents restoration after document reload', async () => {

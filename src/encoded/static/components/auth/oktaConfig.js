@@ -64,40 +64,25 @@ function requireString(raw, key) {
     return value.trim();
 }
 
-/**
- * Normalize `scopes`, accepting either an array or a space/comma-separated string.
- */
 export function normalizeScopes(scopes) {
-    let list;
-    if (Array.isArray(scopes)) {
-        list = scopes;
-    } else if (typeof scopes === 'string') {
-        list = scopes.replace(/,/g, ' ').split(/\s+/);
-    } else if (scopes === undefined || scopes === null) {
-        list = [];
-    } else {
-        throw new OktaConfigError(
-            'Okta "scopes" must be an array or a string, got ' + typeof scopes
-        );
+    if (!Array.isArray(scopes) || scopes.some((scope) => (
+        typeof scope !== 'string' || !scope || /\s|,/.test(scope)
+    ))) {
+        throw new OktaConfigError('Okta "scopes" must be an array of scope strings');
     }
-    const cleaned = list
-        .map(function (scope) {
-            return String(scope).trim();
-        })
-        .filter(Boolean);
-    if (cleaned.indexOf('openid') === -1) {
+    if (scopes.indexOf('openid') === -1) {
         throw new OktaConfigError(
             'Okta "scopes" must include "openid" to receive an ID token'
         );
     }
-    if (cleaned.indexOf('email') === -1) {
+    if (scopes.indexOf('email') === -1) {
         // The portal identifies users by email address; without the claim,
         // /login can succeed while /session-properties can never resolve a user.
         throw new OktaConfigError(
             'Okta "scopes" must include "email": the portal identifies users by email'
         );
     }
-    return cleaned;
+    return scopes;
 }
 
 /**

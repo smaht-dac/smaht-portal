@@ -4,7 +4,7 @@ import logging
 import pytest
 import unittest
 
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 from pyramid.interfaces import IAuthenticationPolicy
 from pyramid.security import Authenticated, Everyone
@@ -119,8 +119,66 @@ class TestNamespacedAuthenticationPolicy(unittest.TestCase):
         self.assertEqual(result, [])
 
 
-def test_login_emits_actor_uuid_structured_audit_event():
-    """A successful login includes only the canonical actor UUID."""
+@pytest.mark.parametrize('algorithm', ['HS256', 'RS256'])
+@pytest.mark.parametrize('credential,outcome', [
+    ('body', 'success'), ('header', 'success'), ('invalid', 'failure'),
+    ('expired', 'failure'), ('unknown', 'failure'), ('deleted', 'failure'),
+])
+def test_login_audit_authenticates_presented_credential(algorithm, credential, outcome):
+    from types import SimpleNamespace
+    import time
+    import jwt
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from pyramid.config import Configurator
+    from pyramid.request import Request
+
+    actor = '00000000-0000-4000-8000-000000000001'
+    email = 'synthetic-login@example.invalid'
+    secret = 'synthetic-shared-secret-long-enough-for-hs256'
+    issuer = 'https://example.okta.com/oauth2/default'
+    settings = {
+        'auth0.client': 'synthetic-client', 'auth0.secret': secret,
+        'okta.issuer': issuer, 'okta.client': 'synthetic-client',
+        'okta.jwks_uri': issuer + '/v1/keys',
+        'multiauth.policies': 'auth0',
+        'multiauth.groupfinder': 'encoded.authorization.smaht_groupfinder',
+        'multiauth.policy.auth0.use': 'encoded.authentication.NamespacedAuthenticationPolicy',
+        'multiauth.policy.auth0.namespace': 'auth0',
+        'multiauth.policy.auth0.base': 'encoded.authentication.SMAHTAuth0AuthenticationPolicy',
+    }
+    config = Configurator(settings=settings)
+    config.include('pyramid_multiauth')
+    config.commit()
+    config.registry.update(RESTRICTED_DOMAINS=set(), RESTRICTED_EMAILS=set())
+    config.registry[COLLECTIONS] = SimpleNamespace(by_item_type={'user': {
+        email: SimpleNamespace(uuid=actor, properties={
+            'status': 'deleted' if credential == 'deleted' else 'current',
+        }),
+        'previous@example.invalid': SimpleNamespace(
+            uuid='00000000-0000-4000-8000-000000000099', properties={'status': 'current'},
+        ),
+    }})
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    claims = {
+        'iss': issuer, 'aud': 'synthetic-client', 'sub': 'synthetic-subject',
+        'email': 'unknown@example.invalid' if credential == 'unknown' else email,
+        'email_verified': True, 'iat': int(time.time()) - 600,
+        'exp': int(time.time()) + (-120 if credential == 'expired' else 600),
+    }
+    token = jwt.encode(claims, key if algorithm == 'RS256' else secret, algorithm=algorithm)
+    previous_token = jwt.encode(
+        {**claims, 'email': 'previous@example.invalid', 'exp': int(time.time()) + 600},
+        secret, algorithm='HS256',
+    )
+    if credential == 'invalid':
+        token = 'synthetic-invalid-token'
+    request = Request.blank('/login', method='POST', headers={'Cookie': 'jwtToken=' + previous_token})
+    request.registry = config.registry
+    request.content_type = 'application/json'
+    request.body = json.dumps({'id_token': token}).encode('utf-8')
+    if credential == 'header':
+        request.headers['Authorization'] = 'Bearer ' + token
+        request.body = json.dumps({'id_token': 'ignored-invalid-body-token'}).encode('utf-8')
     stream = io.StringIO()
     handler = logging.StreamHandler(stream)
     handler.setFormatter(make_console_formatter())
@@ -136,14 +194,10 @@ def test_login_emits_actor_uuid_structured_audit_event():
     auth_logger.propagate = True
     try:
         _configure_structlog(in_prod=True)
-        request = DummyRequest(headers={'Authorization': 'Bearer synthetic-login-token'})
-        request.scheme = 'http'
-        with patch.object(
-            type(request),
-            'effective_principals',
-            new_callable=PropertyMock,
-            return_value=['userid.00000000-0000-4000-8000-000000000001'],
-        ):
+        signing_key = SimpleNamespace(key=key.public_key())
+        jwks = MagicMock()
+        jwks.get_signing_key_from_jwt.return_value = signing_key
+        with patch('encoded.okta.get_okta_jwks_client', return_value=jwks):
             result = SMAHTProjectAuthentication().login(None, request, samesite='strict')
     finally:
         encoded_logger.handlers[:] = previous_encoded[0]
@@ -154,16 +208,19 @@ def test_login_emits_actor_uuid_structured_audit_event():
         auth_logger.propagate = previous_auth[2]
         handler.close()
 
-    record = json.loads(stream.getvalue())
+    record, = [json.loads(line) for line in stream.getvalue().splitlines()
+               if json.loads(line).get('event_type') == 'user_login']
     assert result == {'saved_cookie': True}
+    assert token in request.response.headers['Set-Cookie']
     assert record['logger'] == 'encoded.project.authentication'
-    assert record['message'] == 'User login successful'
-    assert record['event_type'] == 'user_login'
     assert record['action'] == 'login'
-    assert record['outcome'] == 'success'
-    assert record['user_uuid'] == '00000000-0000-4000-8000-000000000001'
-    assert 'synthetic-login-token' not in stream.getvalue()
-    assert 'synthetic-login@example.invalid' not in stream.getvalue()
+    assert record['outcome'] == outcome
+    if outcome == 'success':
+        assert record['user_uuid'] == actor
+    else:
+        assert 'user_uuid' not in record
+    assert token not in stream.getvalue()
+    assert email not in stream.getvalue()
 
 
 def test_login_failure_emits_identity_free_structured_audit_event():

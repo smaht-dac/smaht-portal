@@ -126,10 +126,11 @@ below; the rest is the exact, complete contract the task-definition owner must a
 - The sidecar entrypoint accepts the license non-interactively, starts/readiness-
   checks splunkd, exits non-zero on failure, and does a **bounded** graceful
   `splunk stop` on SIGTERM (`tests/run_forwarder_tests.sh`, 41 cases).
-- The app image writes app worker logs **and** nginx access/error logs into one
+- The app image writes app worker logs **and** nginx error logs into one
   `/var/log/smaht` tree, owned by the non-root `nginx` user, and declares it a
-  `VOLUME` so a mount preserves that ownership (`Dockerfile`, guarded by
-  `deploy/docker/production/tests/test_container_contracts.py`).
+  `VOLUME` so a mount preserves that ownership (`Dockerfile`). Targeted nginx
+  gateway-failure/failover access events go to stdout/CloudWatch; there is no
+  duplicate full-request access file.
 
 ### What the task definition MUST add (external, not validated here)
 

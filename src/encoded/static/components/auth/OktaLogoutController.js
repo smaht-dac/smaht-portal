@@ -18,11 +18,6 @@ import { performPortalLogout } from './oktaSession';
 /**
  * Logout for both halves of the session.
  *
- * Order matters: the portal session is dropped first, so a failure to reach
- * Okta (network, blocked redirect, missing post-logout URI registration) can
- * never leave the user still logged in to the portal. Only then do we clear the
- * Okta token/session state.
- *
  * Replaces `LogoutController` from shared-portal-components, whose module also
  * contains the `auth0-lock` dynamic import - importing it at all would keep
  * that dependency in the bundle.
@@ -40,6 +35,8 @@ import { performPortalLogout } from './oktaSession';
  */
 export async function performFullLogout(args) {
     const { oktaAuth = null, fetchImpl } = args || {};
+    const tokens = oktaAuth ? oktaAuth.tokenManager.getTokensSync() : {};
+    clearBrowserOktaTokens(oktaAuth);
     try {
         await performPortalLogout(fetchImpl ? { fetchImpl } : undefined);
 
@@ -47,10 +44,10 @@ export async function performFullLogout(args) {
             return { portalLoggedOut: true, oktaSignOutStarted: false };
         }
         try {
-            // End the Okta session after the portal session is gone. Clear
-            // immediately instead of relying on SDK background services;
-            // signOut retains the ID token as the redirect's logout hint.
-            await oktaAuth.signOut({ clearTokensBeforeRedirect: true });
+            await oktaAuth.signOut({
+                ...tokens,
+                clearTokensBeforeRedirect: true,
+            });
             return { portalLoggedOut: true, oktaSignOutStarted: true };
         } catch (error) {
             // Local removal still runs below if Okta cannot be reached.

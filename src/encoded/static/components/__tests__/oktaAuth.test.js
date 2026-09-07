@@ -160,13 +160,12 @@ describe('oktaConfig - configuration validation', () => {
 });
 
 describe('oktaConfig - scopes', () => {
-    it('accepts a space- or comma-separated string', () => {
-        expect(normalizeScopes('openid email profile')).toEqual([
-            'openid',
-            'email',
-            'profile',
-        ]);
-        expect(normalizeScopes('openid, email')).toEqual(['openid', 'email']);
+    it.each([
+        'openid email profile', 'openid, email', null, undefined,
+        ['openid', 'email', 123], ['openid', 'email', ''],
+        ['openid', 'email', ' profile'], ['openid', 'email', 'profile,groups'],
+    ].map((scopes) => [scopes]))('rejects noncanonical scopes: %j', (scopes) => {
+        expect(() => normalizeScopes(scopes)).toThrow(OktaConfigError);
     });
 
     it('requires openid so an ID token is actually issued', () => {
@@ -334,7 +333,10 @@ describe('OktaLogoutController - full logout', () => {
                 order.push('okta');
                 return Promise.resolve();
             },
-            tokenManager: { clear: () => order.push('clear') },
+            tokenManager: {
+                getTokensSync: () => ({}),
+                clear: () => order.push('clear'),
+            },
         };
         const result = await performFullLogout({
             oktaAuth,
@@ -343,7 +345,7 @@ describe('OktaLogoutController - full logout', () => {
                 return okLogout();
             },
         });
-        expect(order).toEqual(['portal:/logout', 'okta', 'clear']);
+        expect(order).toEqual(['clear', 'portal:/logout', 'okta', 'clear']);
         expect(result).toEqual({ portalLoggedOut: true, oktaSignOutStarted: true });
     });
 
@@ -353,6 +355,7 @@ describe('OktaLogoutController - full logout', () => {
             oktaAuth: {
                 signOut: () => Promise.reject(new Error('network down')),
                 tokenManager: {
+                    getTokensSync: () => ({}),
                     clear: () => {
                         cleared = true;
                     },
@@ -370,11 +373,11 @@ describe('OktaLogoutController - full logout', () => {
         () => Promise.resolve({ deleted_cookie: false }),
     ])('clears tokens but retains a portal logout failure', async (fetchImpl) => {
         const oktaAuth = {
-            tokenManager: { clear: jest.fn() },
+            tokenManager: { getTokensSync: () => ({}), clear: jest.fn() },
             signOut: jest.fn(),
         };
         await expect(performFullLogout({ oktaAuth, fetchImpl })).rejects.toThrow();
-        expect(oktaAuth.tokenManager.clear).toHaveBeenCalledTimes(1);
+        expect(oktaAuth.tokenManager.clear).toHaveBeenCalledTimes(2);
         expect(oktaAuth.signOut).not.toHaveBeenCalled();
     });
 

@@ -122,7 +122,9 @@ export class OktaLoginController extends React.PureComponent {
         // and other tabs can leave a pendingRemove credential after logout.
         // Restoration must be safe even before any SDK services have started.
         const { idToken: storedToken } = this.oktaAuth.tokenManager.getTokensSync();
-        if (storedToken && storedToken.pendingRemove) {
+        if (storedToken && (
+            storedToken.pendingRemove || this.oktaAuth.tokenManager.hasExpired(storedToken)
+        )) {
             this.clearOktaTokens();
             return;
         }
@@ -139,7 +141,7 @@ export class OktaLoginController extends React.PureComponent {
                 })
                 .catch((error) => {
                     this.setState({ isLoading: false });
-                    if (error.code === 401) {
+                    if (error.code === 401 && !this.oktaAuth.tokenManager.hasExpired(storedToken)) {
                         // Authenticated with Okta but unknown to the portal:
                         // offer self-registration, as the Auth0 flow did.
                         this.beginRegistration(idToken);
