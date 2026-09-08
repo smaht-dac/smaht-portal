@@ -785,17 +785,22 @@ const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.m
     }
 ).reverse();
 
-// Same construction as TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES above, off
-// NON_TARGET_TISSUE_PERCENTAGE_ORDER instead -- no "0%" special case needed,
-// since that band doesn't exist here.
+// Non Target Tissue % gets its own orange scale (`nt-score-0..3`, see
+// _search.scss) instead of the shared blue score-0..4 palette the other 3
+// tabs use -- unlike Target Tissue %'s "higher presence is better" framing,
+// a higher non-target-tissue percentage is a worse outcome for the sample,
+// so this runs light->dark in direct band order (no index inversion) with
+// its own fixed, non-customizable colors (HeatmapColorPicker only overrides
+// the shared --heatmap-score-N-bg/text custom properties, which these
+// classes deliberately don't read).
 const NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = NON_TARGET_TISSUE_PERCENTAGE_ORDER.map(
     (label, index) => {
         return {
-            className: `score-${NON_TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`,
+            className: `nt-score-${index}`,
             label,
         };
     }
-).reverse();
+);
 
 function formatAutolysisScore(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
@@ -858,20 +863,18 @@ function formatNonTargetTissuePercentage(value) {
     return value;
 }
 
-// Same convention as getTargetTissuePercentageScoreClass above -- higher
-// non-target-tissue presence is "worse" for sample quality, same direction
-// as Target Tissue %'s own "higher presence -> lighter/'better' band"
-// wouldn't quite fit the concept, but there's no separate "good/bad"
-// framing established anywhere else in this table either (Autolysis
-// Score's own 0=None..3=Severe already runs light-to-dark for "more
-// severe"), so this just mirrors Target Tissue %'s own inverted-index
-// convention exactly for visual consistency across all 3 percentage-band
-// tabs, rather than introducing a 3rd, different light/dark direction.
+// Opposite direction from getTargetTissuePercentageScoreClass -- a higher
+// non-target-tissue percentage is a *worse* outcome for the sample (more of
+// the tissue is something other than what was targeted), so this runs
+// light->dark in direct band order, same as Autolysis Score's own
+// 0=None..3=Severe. Uses the tab's own dedicated orange `nt-score-0..3`
+// scale (see _search.scss) rather than the shared score-0..4 classes, so
+// it reads as a distinct, non-customizable severity signal.
 function getNonTargetTissuePercentageScoreClass(value) {
     if (value === null || typeof value === 'undefined') return 'na';
     const index = NON_TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
     if (index === -1) return 'na';
-    return `score-${NON_TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
+    return `nt-score-${index}`;
 }
 
 // Same reasoning as getTargetTissuePercentageSortValue above -- band

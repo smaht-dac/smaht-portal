@@ -27,12 +27,15 @@ import { tissueCategoryByTpcCode, getTissueInternalCodeFromFacetTerm } from '../
 import smahtTissueColors from '../../../data/color-schemes/smaht_tissue_colors.json';
 
 // Groups the categories returned by item_utils/tissue.py::get_category() into
-// the 4 display rows the germ-layer panel has always shown.
+// the 5 display rows the germ-layer panel shows -- Germ Cells and Clinically
+// Accessible each get their own row now, rather than sharing one "GERM/CLIN"
+// row.
 const GERM_LAYER_LABELS = [
     { key: 'ecto', label: 'ECTO', categories: ['Ectoderm'] },
     { key: 'meso', label: 'MESO', categories: ['Mesoderm'] },
     { key: 'endo', label: 'ENDO', categories: ['Endoderm'] },
-    { key: 'germ-clin', label: 'GERM/CLIN', categories: ['Germ Cells', 'Clinically Accessible'] },
+    { key: 'germ', label: 'GERM', categories: ['Germ Cells'] },
+    { key: 'clin', label: 'CLIN', categories: ['Clinically Accessible'] },
 ];
 
 // Fixed display order for the 5 raw categories item_utils/tissue.py's

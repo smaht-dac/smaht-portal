@@ -3022,6 +3022,16 @@ div.browse-link-icon {
 		&.score-2 { background-color: var(--heatmap-score-2-bg, #80BBD0); color: var(--heatmap-score-2-text, #28323C); }
 		&.score-3 { background-color: var(--heatmap-score-3-bg, #54A3C0); color: var(--heatmap-score-3-text, #FFFFFF); }
 		&.score-4 { background-color: var(--heatmap-score-4-bg, #3A829C); color: var(--heatmap-score-4-text, #FFFFFF); }
+
+		// Non Target Tissue %'s own fixed orange scale (see
+		// getNonTargetTissuePercentageScoreClass) -- light->dark in direct
+		// band order, darkest at "[50-100]" since that's the worst outcome
+		// for the tissue. Not custom-property-driven like score-0..4 above;
+		// HeatmapColorPicker doesn't touch this tab.
+		&.nt-score-0 { background-color: #FFE8CC; color: #5C3D1E; }
+		&.nt-score-1 { background-color: #FFC078; color: #4A2E00; }
+		&.nt-score-2 { background-color: #FF922B; color: #28323C; }
+		&.nt-score-3 { background-color: #D9480F; color: #FFFFFF; }
 	}
 
 	// Ischemic Time's own legend (SplitCellLegend, BrowseTissueHeatmapTable.js)
@@ -3598,6 +3608,16 @@ div.browse-link-icon {
 				background-color: var(--heatmap-score-4-bg, #3A829C);
 				color: var(--heatmap-score-4-text, #FFFFFF);
 			}
+
+			// Non Target Tissue %'s own fixed orange scale (see
+			// .tissue-heatmap-fixed-legend-swatch's own nt-score-0..3 rules
+			// above for why this isn't tied to the shared score-0..4
+			// custom properties).
+			&.nt-score-0 { background-color: #FFE8CC; color: #5C3D1E; }
+			&.nt-score-1 { background-color: #FFC078; color: #4A2E00; }
+			&.nt-score-2 { background-color: #FF922B; color: #28323C; }
+			&.nt-score-3 { background-color: #D9480F; color: #FFFFFF; }
+
 			&.na,
 			&.is-empty {
 				color: #C7CCD2;
