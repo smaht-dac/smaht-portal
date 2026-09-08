@@ -1,12 +1,22 @@
 # syntax=docker/dockerfile:1.7
 # SMaHT-Portal (Production) Dockerfile
 
-# Bullseye with Python 3.11.12
-# 2025-05-08: Update docker image to a newer Python 3.11 version;
-# this was previously: FROM python:3.9.16-slim-buster
+# Bookworm (Debian 12) with Python 3.11.16
+# History: python:3.9.16-slim-buster -> python:3.11.12-slim-bullseye (2025-05-08)
+#          -> python:3.11.16-slim-bookworm (2026-09).
+#
+# 2026-09: moved off bullseye because Debian 11 LTS ENDED 2026-08-31. After that date
+# `deb.debian.org/debian-security bullseye-security` still publishes an index listing
+# package versions whose .deb files have been pruned from the pool, so `apt-get upgrade`
+# and even `apt-get install` fail with 404s (exit 100) on a clean-cache build. That is an
+# unfixable-by-pinning condition: the archive no longer carries the artifacts its own
+# index advertises, and libssl1.1 -- which the previously pinned nginx needs -- is among
+# them. Debian 12 bookworm is under Debian LTS through 2028-06-30, which outlasts Python
+# 3.11's own EOL (2027-10), so it is the release this image should sit on.
+#
 # BASE_IMAGE is overridable, but defaults to the standard Debian slim Python image
 # (NOT a hardened image) so plain `docker build .` works with no registry auth.
-ARG BASE_IMAGE=python:3.11.12-slim-bullseye
+ARG BASE_IMAGE=python:3.11.16-slim-bookworm
 
 # ---------------------------------------------------------------------------
 # Builder stage: full toolchain (compilers, Node) used only to build the Python
@@ -120,13 +130,14 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends ca-certificates git make libmagic1 && \
     apt-get clean
 
-# nginx: install the pinned nginx.org build (identical to the previous single-stage
-# image) via the bullseye install script. That script also creates the non-root
-# nginx user (uid/gid 121) and symlinks nginx's access/error logs to stdout/stderr.
+# nginx: install the pinned nginx.org build via the bookworm install script. That
+# script also creates the non-root nginx user (uid/gid 121) and symlinks nginx's
+# access/error logs to stdout/stderr.
 # On this standard Debian slim base the `adm` group (gid 4) and `www-data` user
-# (uid 33) already exist and uid/gid 121 are free, so - unlike the hardened base -
-# no extra account/tooling bootstrapping is required before installing nginx.
-COPY deploy/docker/production/install_nginx_bullseye.sh /install_nginx.sh
+# (uid 33) already exist and uid/gid 121 are free (re-verified on bookworm), so -
+# unlike the hardened base - no extra account/tooling bootstrapping is required
+# before installing nginx.
+COPY deploy/docker/production/install_nginx_bookworm.sh /install_nginx.sh
 RUN bash /install_nginx.sh && \
     apt-get clean
 
@@ -150,7 +161,7 @@ RUN chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /data/nginx/cache
 
 # nginx config gate: validate the installed config against the EXACT pinned nginx
-# (1.21.6, from install_nginx_bullseye.sh) now that the config file and the log/cache
+# (1.30.4, from install_nginx_bookworm.sh) now that the config file and the log/cache
 # paths it references exist. This runs during `docker build` (the CI Docker job), so a
 # syntactically invalid or directive-incompatible nginx.conf fails the build instead of
 # only failing at container start. Local `nginx -t` on a different nginx version is not a
