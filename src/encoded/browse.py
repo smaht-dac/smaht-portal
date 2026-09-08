@@ -1,15 +1,17 @@
-from pyramid.httpexceptions import HTTPFound
-from pyramid.security import Authenticated
+from pyramid.httpexceptions import HTTPForbidden, HTTPFound
+from pyramid.security import Authenticated, NO_PERMISSION_REQUIRED
 from pyramid.view import view_config
 import structlog
 from webob.multidict import MultiDict
 from urllib.parse import urlencode
+from snovault import AbstractCollection
 from snovault.search.search import search
 from snovault.util import debug_log
 from encoded.endpoints.recent_files_summary.recent_files_summary import (
     recent_files_summary_endpoint,
     recent_release_days_endpoint
 )
+from encoded.types.protected_donor import is_protected_donor_search, log_protected_donor_search
 
 log = structlog.getLogger(__name__)
 
@@ -38,7 +40,53 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
     """
     search_type = request.params.get('type', DEFAULT_BROWSE_TYPE)
 
-    return search(context, request, search_type, return_generator, forced_type="Browse")
+    result = search(context, request, search_type, return_generator, forced_type="Browse")
+    if is_protected_donor_search(context, request, search_type=search_type):
+        log_protected_donor_search(request, result)
+    return result
+
+
+@view_config(
+    route_name="search",
+    request_method="GET",
+    permission=NO_PERMISSION_REQUIRED,
+    custom_predicates=[is_protected_donor_search],
+)
+@debug_log
+def protected_donor_search(context, request):
+    """Audit ProtectedDonor searches while retaining Snovault's search behavior."""
+    return audited_protected_donor_search(context, request)
+
+
+def is_protected_donor_collection(context, request):
+    return is_protected_donor_search(context, request, search_type=context.type_info.name)
+
+
+@view_config(
+    context=AbstractCollection,
+    request_method="GET",
+    permission=NO_PERMISSION_REQUIRED,
+    custom_predicates=[is_protected_donor_collection],
+)
+@debug_log
+def protected_donor_collection(context, request):
+    return audited_protected_donor_search(
+        context, request, permission="list", search_type=context.type_info.name,
+        return_generator=False,
+    )
+
+
+def audited_protected_donor_search(context, request, permission="search", **search_options):
+    if not request.has_permission(permission, context):
+        log_protected_donor_search(request, None, outcome="denied")
+        raise HTTPForbidden()
+    try:
+        result = search(context, request, forced_type="Search", **search_options)
+    except Exception:
+        log_protected_donor_search(request, None, outcome="failure")
+        raise
+    log_protected_donor_search(request, result)
+    return result
 
 
 # @view_config(route_name="recent_files_summary", request_method=["GET"], effective_principals=Authenticated)

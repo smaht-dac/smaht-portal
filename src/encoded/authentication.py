@@ -1,4 +1,6 @@
 import requests
+import structlog
+from jwt import exceptions as jwt_exceptions
 from dcicutils.redis_tools import RedisSessionToken
 from snovault.authentication import (
     NamespacedAuthenticationPolicy,
@@ -24,6 +26,16 @@ from urllib.parse import urlencode
 import re
 
 from snovault.validation import ValidationFailure
+from .audit_logging import authenticated_actor_fields, result_subject_uuid, subject_uuid_fields
+from .okta import (
+    OktaConfigurationError,
+    decode_okta_id_token,
+    okta_is_configured,
+    token_is_asymmetrically_signed,
+)
+
+
+log = structlog.getLogger(__name__)
 
 # From NIH CADR List
 BLOCKED_TLDS = ["cn", "hk", "mo", "ru", "ir", "kp", "cu", "ve"]
@@ -138,6 +150,60 @@ def email_is_not_restricted(registry, jwt_info, email=None):
 
 
 class SMAHTAuth0AuthenticationPolicy(Auth0AuthenticationPolicy):
+    """Adds Okta ID-token verification and the restricted-email check.
+
+    Two token families reach this policy and they are kept strictly apart by
+    the token's own `alg` header:
+
+    * Asymmetric (RS256) tokens are Okta ID tokens from the SPA's Authorization
+      Code + PKCE login. They are verified against the configured issuer's JWKS,
+      audience and claims by ``encoded.okta.decode_okta_id_token``.
+    * Symmetric (HS256) tokens are the legacy Auth0/RAS tokens and the tokens
+      snovault mints for user impersonation, signed with ``auth0.secret``. They
+      keep snovault's existing verification untouched.
+
+    Because the Okta path pins its accepted algorithm set to RS256 and the
+    legacy path keeps snovault's shared-secret key, neither family can be
+    verified by the other's rules - an "alg confusion" downgrade has nowhere to
+    land.
+    """
+
+    @staticmethod
+    def get_token_info(token, request):
+        """ Verify Okta-issued ID tokens via JWKS; defer to snovault otherwise.
+
+            Overrides `Auth0AuthenticationPolicy.get_token_info`, which is invoked
+            as `self.get_token_info(...)` by snovault and so dispatches here.
+        """
+        if not token_is_asymmetrically_signed(token):
+            return Auth0AuthenticationPolicy.get_token_info(token, request)
+
+        if not okta_is_configured(request.registry.settings):
+            # An asymmetrically signed token cannot be checked without an issuer
+            # to check it against. Refuse rather than fall through to a
+            # shared-secret decode that would treat the key as opaque bytes.
+            log.warning("Received an asymmetrically signed token but Okta is not configured")
+            request.set_property(lambda r: True, 'auth0_expired')
+            return None
+
+        try:
+            payload = decode_okta_id_token(token, request.registry)
+        except jwt_exceptions.ExpiredSignatureError:
+            # Normal/expected expiration - lets renderers unset the cookie.
+            request.set_property(lambda r: True, 'auth0_expired')
+            return None
+        # PyJWTError is the base for every rejection reason worth catching here,
+        # including InvalidKeyError and PyJWKClientError - neither of which is a
+        # subclass of InvalidTokenError, so a narrower catch would surface a 500.
+        except (jwt_exceptions.PyJWTError, OktaConfigurationError,
+                requests.RequestException, ValueError) as e:
+            log.warning("Rejected Okta ID token", error=str(e))
+            request.set_property(lambda r: True, 'auth0_expired')
+            return None
+
+        request.set_property(lambda r: False, 'auth0_expired')
+        return payload
+
     def unauthenticated_userid(self, request):
         """ Override the login to additionally include restricted user checks """
 
@@ -191,9 +257,31 @@ def smaht_create_unauthorized_user(context, request):
 
     registry = request.registry
 
+    presented_token = get_jwt(request)
+    if (presented_token and token_is_asymmetrically_signed(presented_token)
+            and okta_is_configured(registry.settings)):
+        # Okta SPA self-registration. The browser has already POSTed this Okta ID
+        # token to /login, so it arrives here as the `jwtToken` cookie; verify it
+        # directly. The Redis session-token branch below belongs to the
+        # confidential Auth0/RAS `/callback` exchange, which the PKCE SPA flow
+        # never populates - taking it for an Okta token would fail on a
+        # Redis-enabled environment.
+        try:
+            jwt_info = decode_okta_id_token(presented_token, registry)
+        except (jwt_exceptions.PyJWTError, OktaConfigurationError,
+                requests.RequestException, ValueError) as e:
+            log.warning("Rejected Okta ID token during self-registration", error=str(e))
+            raise HTTPUnauthorized(
+                title="Could not validate your Okta login. Try logging in again.",
+                headers={
+                    'WWW-Authenticate':
+                        "Bearer realm=\"{}\"; Basic realm=\"{}\"".format(request.domain, request.domain)}
+            )
+        email = jwt_info['email'].lower()
+
     # old method for retrieving auth'd email - request object should have _auth0_authenticated set
     # NOTE: it is not obvious to me how this works... probably should be looked into - Will March 29 2023
-    if not redis_is_active(request):
+    elif not redis_is_active(request):
         email = "<no auth0 authenticated e-mail supplied>"
         if hasattr(request, "_auth0_authenticated"):
             email = request._auth0_authenticated  # equal to: jwt_info['email'].lower()
@@ -275,6 +363,14 @@ def smaht_create_unauthorized_user(context, request):
     if recap_res['success']:
         sno_res = sno_collection_add(user_coll, request, False)  # POST User
         if sno_res.get('status') == 'success':
+            log.warning(
+                "User account created",
+                event_type="user_account",
+                action="user_account_create",
+                outcome="success",
+                **authenticated_actor_fields(request),
+                **subject_uuid_fields(result_subject_uuid(sno_res)),
+            )
             return sno_res
         else:
             raise HTTPForbidden(title="Could not create user. Try logging in again.")

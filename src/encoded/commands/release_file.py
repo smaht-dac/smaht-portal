@@ -338,7 +338,7 @@ class FileRelease:
         if not self.archive_files or not is_final_bam_or_cram or not self.file_sets:
             return []
 
-        # Repeated file_sets.uuid parameters are OR'ed together. 
+        # Repeated file_sets.uuid parameters are OR'ed together.
         # Currently this is just one FileSet.
         file_set_filter = "".join(
             f"&file_sets.uuid={item_utils.get_uuid(file_set)}"

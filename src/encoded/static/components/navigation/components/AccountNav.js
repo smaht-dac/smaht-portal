@@ -12,44 +12,14 @@ import {
     memoizedUrlParse,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
-import {
-    LoginController,
-    LogoutController,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/navigation/components/LoginController';
+import { OktaLoginController } from './../../auth/OktaLoginController';
+import { OktaLogoutController } from './../../auth/OktaLogoutController';
 
 import { LoginNavItem } from './LoginNavItem';
 import {
     BigDropdownNavItem,
     BigDropdownIntroductionWrapper,
 } from './BigDropdown';
-
-/** Specific to CGAP */
-export const auth0Options = {
-    auth: {
-        sso: false,
-        redirect: false,
-        responseType: 'token',
-        params: {
-            scope: 'openid email',
-            prompt: 'select_account',
-        },
-    },
-    socialButtonStyle: 'big',
-    // Use SMaHT Logo
-    theme: {
-        logo: '/static/img/SMaHT_Vertical-Logo-Solo_FV.png',
-        icon: '/static/img/SMaHT_Vertical-Logo-Solo_FV.png',
-        primaryColor: '#1b75b9',
-    },
-    allowedConnections: ['partners', 'hms-it', 'bch', 'google-oauth2'],
-    autoclose: true,
-    defaultEnterpriseConnection: 'partners',
-    languageDictionary: {
-        title: 'Log In',
-        emailInputPlaceholder: 'Partners, Harvard/BCH Email',
-        databaseEnterpriseAlternativeLoginInstructions: 'or login via Email',
-    },
-};
 
 /**
  * @typedef {Object} Action
@@ -68,23 +38,18 @@ export const AccountNav = React.memo(function AccountNav(props) {
     const { windowWidth, href } = passProps;
 
     if (!session) {
-        const auth0PopupText = `<h4 class="text-danger text-600 text-center mb-2">Attention New Users!!</h4><p><strong>All users must register with an institutional email address linked to a Google account to log in.</strong><br />For instructions on how to create a Google account linked to non-Gmail emails, see </b><a href="https://data.smaht.org/docs/access/creating-an-account" target="_blank">here</a>.</p><p><strong>Self-registration as a non-SMaHT-Network member</strong> will give you access to open-access data <em>only</em>.</p><p class="mb-3"><strong>If you want protected-access data:</strong> you are <em>required</em> to self-register using your institutional email address linked to the NIH/eRA or Login.gov, and obtain dbGaP approval for protected-access SMaHT data. Learn how to obtain dbGaP approval <a href="/docs/access/getting-dbgap-access" target="_blank" rel="noreferrer noopener">here</a>.</p>`;
         // Render login button
         return (
             <div className="navbar-nav navbar-acct">
                 <HelpdeskButton />
-                <LoginController
-                    {...{
-                        updateAppSessionState,
-                        auth0Options,
-                        auth0PopupText,
-                    }}>
+                <OktaLoginController
+                    {...{ updateAppSessionState, session, href }}>
                     <LoginNavItem
                         {...{ schemas, session, href, windowWidth }}
                         key="login-register"
                         disabled={false}
                     />
-                </LoginController>
+                </OktaLoginController>
             </div>
         );
     }
@@ -207,9 +172,9 @@ function UserActionsMenu(props) {
                 </div>
                 <div className="help-menu-tree level-1-no-child-links level-1 col-12 col-lg-4 mt-2">
                     {renderedActions}
-                    <LogoutController>
+                    <OktaLogoutController>
                         <LogoutLink />
-                    </LogoutController>
+                    </OktaLogoutController>
                 </div>
             </div>
         </React.Fragment>

@@ -13,7 +13,6 @@ from botocore.config import Config
 
 
 from dcicutils.beanstalk_utils import source_beanstalk_env_vars
-from dcicutils.log_utils import set_logging
 from dcicutils.env_utils import get_mirror_env_from_context
 from dcicutils.ff_utils import get_health_page
 from dcicutils.ecs_utils import ECSUtils
@@ -30,6 +29,8 @@ from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
 from .appdefs import APP_VERSION_REGISTRY_KEY
 from .schema_formats import format_checker  # noqa
+from .logging_config import configure_application_logging
+from .okta import set_okta_config
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
@@ -65,6 +66,7 @@ def include_encoded(config):
         For detailed explanation see: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html
     """
     config.include('encoded.authentication')
+    config.include('encoded.okta')
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.metadata')
@@ -274,8 +276,7 @@ def set_logging_main(settings):
         if any(logname in name for logname in lnames):
             logging.getLogger(name).setLevel(logging.WARNING)
     # END PART THAT'S NOT IN FOURFRONT
-    set_logging(in_prod=settings.get('production'))
-    # set_logging(settings.get('elasticsearch.server'), settings.get('production'))
+    configure_application_logging(in_prod=settings.get('production'))
 
 
 def set_auth0_config(settings):
@@ -367,6 +368,7 @@ def main(global_config, **local_config):
     settings['g.recaptcha.secret'] = os.environ.get('reCaptchaSecret')
     settings['snovault.jsonld.terms_prefix'] = 'encode'
     set_auth0_config(settings)
+    set_okta_config(settings)
     # set google analytics keys
     set_ga4_config(settings)
 
