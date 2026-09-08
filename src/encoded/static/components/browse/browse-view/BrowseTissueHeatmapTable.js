@@ -1912,7 +1912,7 @@ function buildSubtypeAwareDisplayRuns(subColumnGroups, mergeableTissueTypes, mer
     while (i < subColumnGroups.length) {
         const group = subColumnGroups[i];
         if (!group.isSplit) {
-            const [{ key }] = group.children;
+            const [{ key, subtypeLabel }] = group.children;
             if (mergeableTissueTypes.has(key) && mergeBrainHeader) {
                 const regionTissueTypes = [key];
                 let span = 1;
@@ -1928,7 +1928,13 @@ function buildSubtypeAwareDisplayRuns(subColumnGroups, mergeableTissueTypes, mer
                 i += span;
                 continue;
             }
-            runs.push({ type: 'unsplit', key, span: 1 });
+            runs.push({
+                type: 'unsplit',
+                key,
+                subtypeLabel,
+                parentTissueType: group.parentTissueType,
+                span: 1,
+            });
             i += 1;
             continue;
         }
@@ -2041,12 +2047,19 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
 // had a sort control of its own either), but plain text, not a link (a
 // subtype name is a value read off the parent tissue's own column, not a
 // column in its own right the way a plain tissue type is, so it doesn't
-// get its own Tissue Overview page to link to); an 'unsplit' or
-// 'merged-brain' run instead gets a single plain "n/a" placeholder cell
-// (per earlier explicit request -- a tissue with no real subtype data,
-// brain included, still shows one rather than the row silently having a
-// gap under that column), colSpan-matched to that same run's own 2nd-row
-// cell so the 2 rows always align.
+// get its own Tissue Overview page to link to); a 'merged-brain' run, or an
+// 'unsplit' run whose lone subtype is just the tissue's own self-titled
+// placeholder (subtypeLabel === the plain tissue name -- see
+// IndividualTissueTypeHeaderLabel's own comment on this same placeholder
+// convention), gets a single plain "n/a" cell instead (per earlier explicit
+// request -- a tissue with no real subtype data still shows one rather than
+// the row silently having a gap under that column). An 'unsplit' run with a
+// genuine single real subtype (e.g. Non Target Tissue %'s Liver, whose only
+// present entry is "Fibroadipose" -- a real category, not a placeholder)
+// shows that subtype's own name instead -- showing "n/a" there was
+// misleading, since the cell's own detail popover always had the real
+// subtype value available regardless. Every branch stays colSpan-matched to
+// that same run's own 2nd-row cell so the 2 rows always align.
 function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
     const nodes = [];
     displayRuns.forEach((run) => {
@@ -2067,16 +2080,24 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
             return;
         }
         if (run.type === 'unsplit') {
-            const { key } = run;
+            const { key, subtypeLabel, parentTissueType } = run;
+            // A self-titled placeholder (subtype name === the plain tissue
+            // name, e.g. Liver's own target_tissues entry) carries no real
+            // information beyond what the 2nd-row header already shows --
+            // still shown as "n/a" (see this function's own comment above).
+            const isRealSubtype =
+                subtypeLabel && subtypeLabel !== formatTissueTypeLabel(parentTissueType);
             nodes.push(
                 <th
                     key={key}
                     className={
-                        'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder' +
+                        (isRealSubtype
+                            ? 'tissue-heatmap-subtype-subrow-header'
+                            : 'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder') +
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }>
-                    n/a
+                    {isRealSubtype ? subtypeLabel : 'n/a'}
                 </th>
             );
             return;
