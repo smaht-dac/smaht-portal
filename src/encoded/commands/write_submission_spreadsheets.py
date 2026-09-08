@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import html
+import secrets
+import string
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -57,6 +60,88 @@ a new token.
 
 ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
 WORKBOOK_FILENAME = "submission_workbook.xlsx"
+STATIC_SECTION_ITEM = "StaticSection"
+STATIC_SECTION_OVERVIEW_SHEET = "(Overview Guidelines)"
+STATIC_SECTION_IDENTIFIER_LENGTH = 12
+STATIC_SECTION_IDENTIFIER_CHARS = string.ascii_uppercase + string.digits
+
+STATIC_SECTION_COLUMNS = [
+    "identifier",
+    "title",
+    "body",
+    "file",
+    "section_type",
+    "status",
+    "aliases",
+    "description",
+    "options.filetype",
+    "options.collapsible",
+    "options.default_open",
+    "options.convert_ext_links",
+    "options.title_icon",
+    "options.link",
+    "options.image",
+]
+
+STATIC_SECTION_OVERVIEW_ROWS = [
+    (
+        "StaticSection workbook scope",
+        "This workbook creates StaticSection items only. Publication items are intentionally deferred.",
+    ),
+    (
+        "Section layout",
+        "Use one Markdown key-findings section and, when needed, one supplementary JSX section per form response.",
+    ),
+    (
+        "Markdown body",
+        "Put all key findings from one form into the first row's body cell as Markdown headings and descriptions.",
+    ),
+    ("JSX body", "Use the supplementary row's JSX body template for optional supplementary text and image content."),
+    (
+        "Identifiers",
+        "Identifiers are generated with random schema-valid tokens for now; meaningful identifiers are deferred.",
+    ),
+    ("Aliases", "Each alias is generated from the identifier with the smaht:<identifier> pattern."),
+    ("Status", "Generated rows default to status open."),
+    ("Ownership", "Do not add consortia or submission_centers here; submitr supplies those during submission."),
+    (
+        "Google Forms",
+        "Google Form response parsing is deferred, but this two-row layout is intended to be populated from parsed "
+        "responses later.",
+    ),
+]
+
+KEY_FINDINGS_TITLE = "Key / Novel Findings - Benchmarking Flagship"
+KEY_FINDINGS_BODY = (
+    "### The SMaHT Network conducted large-scale benchmarking experiments.\n"
+    "The Network evaluated multiple technologies, experimental approaches, and computational methods for detecting "
+    "different types of somatic mutations, "
+    "and generated rich community resources from nine analyzed samples.\n"
+    "### Bulk, single-cell, and duplex methods are complementary, not redundant.\n"
+    "Combining bulk, single-cell, and duplex approaches provides the most comprehensive characterization of tissue "
+    "mosaicism. "
+    "Single-cell and Duplex-Seq resolves cell type-specific mutational patterns and heterogeneity.\n"
+    "### Donor-specific and pangenome assemblies improve somatic mutation calling.\n"
+    "Combining short- and long-read sequencing with donor-specific and pangenome-inferred diploid assemblies extended "
+    "somatic mutation catalogs "
+    "into genomic regions previously too difficult to analyze accurately.\n"
+)
+SUPPLEMENTARY_TITLE = "Key recommendations for mutation calling from SMaHT"
+SUPPLEMENTARY_TEXT = (
+    "The SMaHT Network's benchmarking generated rich, comprehensive multi-modal genomics resources, and provided "
+    "practical, "
+    "method-specific guidance for somatic mutation calling.\n\n"
+    "For SNVs/indels, mapping errors drive false positives, so depth-aware, mappability-stratified filtering and "
+    "assembly-based callers improve accuracy. "
+    "Long reads detect roughly twice as many structural variants, especially insertions, with caller choice tuned to "
+    "variant allele frequency. "
+    "Mobile element insertions benefit from integrating short- and long-read evidence with phasing. Donor-specific and "
+    "pangenome-inferred diploid assemblies are essential in complex or poorly represented genomic regions. Duplex "
+    "technologies perform comparably for SNVs, while single-cell analysis requires "
+    "careful nuclei quality control and coverage-dependent calling strategies."
+)
+SUPPLEMENTARY_IMAGE_ALT_PLACEHOLDER = "[Image alt text]"
+SUPPLEMENTARY_IMAGE_LINK_PLACEHOLDER = "[Image link]"
 
 EXAMPLE_FILE_UUIDS=["4e142999-5d48-4dcd-b7d6-558e5960e69b",
                     "d4020a63-338c-4103-8461-417d09df5cbd",
@@ -405,8 +490,7 @@ def get_example_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
         row_values = {"values":[]}
         for property_ in ordered_properties:
             if property_.nested:
-                parent_property, nested_property, n_index = extract_nested_property_names(property_.name)
-                value = example[parent_property][n_index][nested_property]
+                value = get_nested_example(example, property_.name)
                 row_values["values"].append(get_example_cell_value(value))
             elif property_.name in example:
                 value = example[property_.name]
@@ -574,6 +658,255 @@ def write_workbook(
         log.info(f"Example workbook written to: {file_path}")
     else:
         log.info(f"Workbook written to: {file_path}")
+
+
+def write_static_section_workbook(
+    output: Path,
+    uploaded_filename: str = "",
+    uploaded_file_url: str = "",
+) -> Path:
+    """Write a StaticSection-only workbook for submitr publication-page content."""
+    workbook = openpyxl.Workbook()
+    overview_sheet = workbook.active
+    write_static_section_overview_sheet(overview_sheet)
+    static_section_spreadsheet = get_static_section_spreadsheet(
+        uploaded_filename=uploaded_filename,
+        uploaded_file_url=uploaded_file_url,
+    )
+    static_section_sheet = workbook.create_sheet(title=static_section_spreadsheet.item)
+    write_properties(
+        static_section_sheet,
+        static_section_spreadsheet.properties,
+        examples=static_section_spreadsheet.examples,
+    )
+    file_path = Path(output, WORKBOOK_FILENAME)
+    save_workbook(workbook, file_path)
+    log.info(f"StaticSection workbook written to: {file_path}")
+    return file_path
+
+
+def write_static_section_overview_sheet(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+) -> None:
+    """Write human-facing workbook guidance."""
+    worksheet.title = STATIC_SECTION_OVERVIEW_SHEET
+    worksheet.cell(row=1, column=1, value="Topic")
+    worksheet.cell(row=1, column=2, value="Guideline")
+    for cell in worksheet[1]:
+        cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE, bold=True)
+    for row_index, (topic, guideline) in enumerate(STATIC_SECTION_OVERVIEW_ROWS, start=2):
+        worksheet.cell(row=row_index, column=1, value=topic)
+        worksheet.cell(row=row_index, column=2, value=guideline)
+        worksheet.cell(row=row_index, column=1).font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
+        worksheet.cell(row=row_index, column=2).font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
+    worksheet.column_dimensions["A"].width = 28
+    worksheet.column_dimensions["B"].width = 110
+
+
+def get_static_section_spreadsheet(
+    uploaded_filename: str = "",
+    uploaded_file_url: str = "",
+) -> Spreadsheet:
+    """Get the StaticSection spreadsheet with two submitter-editable rows."""
+    properties = get_static_section_properties()
+    examples = get_static_section_examples(
+        uploaded_filename=uploaded_filename,
+        uploaded_file_url=uploaded_file_url,
+    )
+    return Spreadsheet(
+        item=STATIC_SECTION_ITEM,
+        properties=properties,
+        examples=examples,
+    )
+
+
+def get_static_section_properties() -> List[Property]:
+    """Get the exposed StaticSection workbook columns."""
+    properties = [
+        Property(
+            name="identifier",
+            item=STATIC_SECTION_ITEM,
+            description="Random schema-valid identifier generated for this StaticSection.",
+            value_type="string",
+            required=True,
+            pattern="^([A-Za-z0-9-_]+[.])*[A-Za-z0-9-_]+$",
+        ),
+        Property(
+            name="title",
+            item=STATIC_SECTION_ITEM,
+            description="Display title for this section.",
+            value_type="string",
+        ),
+        Property(
+            name="body",
+            item=STATIC_SECTION_ITEM,
+            description="Markdown or JSX body content. Do not also fill file for the same row.",
+            value_type="string",
+        ),
+        Property(
+            name="file",
+            item=STATIC_SECTION_ITEM,
+            description="Optional portal file path for file-backed sections. Leave blank when body is filled.",
+            value_type="string",
+        ),
+        Property(
+            name="section_type",
+            item=STATIC_SECTION_ITEM,
+            description="What this section is used for.",
+            value_type="string",
+            enum=["Page Section"],
+            examples=["Page Section"],
+        ),
+        Property(
+            name="status",
+            item=STATIC_SECTION_ITEM,
+            description="Generated StaticSections should be submitted as open.",
+            value_type="string",
+            enum=["open"],
+            examples=["open"],
+        ),
+        Property(
+            name="aliases",
+            item=STATIC_SECTION_ITEM,
+            description="Alias generated from identifier using smaht:<identifier>.",
+            value_type="array",
+            array_subtype="string",
+        ),
+        Property(
+            name="description",
+            item=STATIC_SECTION_ITEM,
+            description="Optional internal description for this section.",
+            value_type="string",
+        ),
+        Property(
+            name="options.filetype",
+            item=STATIC_SECTION_ITEM,
+            description="Content type used to render the body or file.",
+            value_type="string",
+            enum=["md", "html", "txt", "csv", "jsx", "rst"],
+            examples=["md", "jsx"],
+            nested=True,
+        ),
+        Property(
+            name="options.collapsible",
+            item=STATIC_SECTION_ITEM,
+            description="Whether this section can be collapsed where supported.",
+            value_type="boolean",
+            examples=["FALSE"],
+            nested=True,
+        ),
+        Property(
+            name="options.default_open",
+            item=STATIC_SECTION_ITEM,
+            description="Whether this section is expanded by default where supported.",
+            value_type="boolean",
+            examples=["TRUE"],
+            nested=True,
+        ),
+        Property(
+            name="options.convert_ext_links",
+            item=STATIC_SECTION_ITEM,
+            description="Whether external links in rendered content should be converted where supported.",
+            value_type="boolean",
+            examples=["TRUE"],
+            nested=True,
+        ),
+        Property(
+            name="options.title_icon",
+            item=STATIC_SECTION_ITEM,
+            description="Optional icon name to display with the section title where supported.",
+            value_type="string",
+            nested=True,
+        ),
+        Property(
+            name="options.link",
+            item=STATIC_SECTION_ITEM,
+            description="Optional link associated with this section where supported.",
+            value_type="string",
+            nested=True,
+        ),
+        Property(
+            name="options.image",
+            item=STATIC_SECTION_ITEM,
+            description="Optional image associated with this section where supported.",
+            value_type="string",
+            nested=True,
+        ),
+    ]
+    return properties
+
+
+def get_static_section_examples(
+    uploaded_filename: str = "",
+    uploaded_file_url: str = "",
+) -> List[Dict[str, Any]]:
+    """Get default rows for one key-findings section and one supplementary section."""
+    identifier_base = generate_static_section_identifier()
+    key_findings_identifier = f"{identifier_base}_key_findings"
+    supplementary_identifier = f"{identifier_base}_supplementary_data"
+    return [
+        {
+            "identifier": key_findings_identifier,
+            "title": KEY_FINDINGS_TITLE,
+            "body": KEY_FINDINGS_BODY,
+            "section_type": "Page Section",
+            "status": "open",
+            "aliases": [get_static_section_alias(key_findings_identifier)],
+            "options": {
+                "filetype": "md",
+                "collapsible": False,
+                "default_open": True,
+                "convert_ext_links": True,
+            },
+        },
+        {
+            "identifier": supplementary_identifier,
+            "title": SUPPLEMENTARY_TITLE,
+            "body": get_supplementary_jsx_body(
+                uploaded_filename=uploaded_filename,
+                uploaded_file_url=uploaded_file_url,
+            ),
+            "section_type": "Page Section",
+            "status": "open",
+            "aliases": [get_static_section_alias(supplementary_identifier)],
+            "options": {
+                "filetype": "jsx",
+                "collapsible": False,
+                "default_open": True,
+                "convert_ext_links": True,
+            },
+        },
+    ]
+
+
+def generate_static_section_identifier(length: int = STATIC_SECTION_IDENTIFIER_LENGTH) -> str:
+    """Generate a random StaticSection identifier base."""
+    return "".join(secrets.choice(STATIC_SECTION_IDENTIFIER_CHARS) for _ in range(length))
+
+
+def get_static_section_alias(identifier: str) -> str:
+    """Get the standard SMaHT alias for a generated identifier."""
+    return f"smaht:{identifier}"
+
+
+def get_supplementary_jsx_body(
+    uploaded_filename: str = "",
+    uploaded_file_url: str = "",
+    supplementary_text: str = SUPPLEMENTARY_TEXT,
+) -> str:
+    """Get the supplementary JSX body using the submitr template shape."""
+    image_alt = uploaded_filename or SUPPLEMENTARY_IMAGE_ALT_PLACEHOLDER
+    image_src = uploaded_file_url or SUPPLEMENTARY_IMAGE_LINK_PLACEHOLDER
+    return (
+        "<div>\n"
+        "  <div>\n"
+        f"    {supplementary_text}\n"
+        "  </div>\n\n"
+        "  <ClickableImage "
+        f"alt=\"{html.escape(image_alt, quote=True)}\" "
+        f"src=\"{html.escape(image_src, quote=True)}\" />\n"
+        "</div>"
+    )
 
 
 def get_ordered_submission_schemas(
@@ -804,11 +1137,16 @@ def get_linked_spreadsheet(
     nested_links = get_nested_links(spreadsheet)
     for link in links:
         for idx, example in enumerate(spreadsheet.examples):
-            if link in nested_links:   
+            if link in nested_links:
                 values = get_nested_example(example,link)
-                parent_property, nested_property, n_index = extract_nested_property_names(link)
+                if values is None:
+                    continue
                 id_values, example_fields = get_id_list(request_handler,values,example_fields)
-                spreadsheet.examples[idx][parent_property][n_index][nested_property] = " | ".join(id_values)
+                if is_array_object_property_name(link):
+                    parent_property, nested_property, n_index = extract_nested_property_names(link)
+                    spreadsheet.examples[idx][parent_property][n_index][nested_property] = " | ".join(id_values)
+                else:
+                    set_plain_object_nested_example(spreadsheet.examples[idx], link, " | ".join(id_values))
             elif link in example:
                 values = example[link]
                 id_values, example_fields = get_id_list(request_handler,values,example_fields)
@@ -953,6 +1291,8 @@ def get_nested_properties(item: str, property_name: str, property_schema: Dict[s
     """Get nested property information if property is array of objects, otherwise get property information."""
     if object_array := get_array_object_properties(property_schema):
         return get_nested_property(item, property_name, object_array)
+    if object_properties := get_plain_object_properties(property_schema):
+        return get_plain_nested_properties(item, property_name, object_properties)
     return [get_property(item, property_name, property_schema)]
 
 
@@ -990,6 +1330,30 @@ def get_array_object_properties(property_schema: Dict[str, Any]) -> Union[Dict[s
     if item := property_schema.get("items",""):
         return item.get("properties","")
     return ""
+
+
+def get_plain_object_properties(property_schema: Dict[str, Any]) -> Union[Dict[str,Any], None]:
+    """Get nested properties if property is a plain object."""
+    if property_schema.get("type") == "object" or property_schema.get("properties"):
+        properties = property_schema.get("properties") or {}
+        return {
+            key: value
+            for key, value in properties.items()
+            if not key.startswith("$")
+        }
+    return ""
+
+
+def get_plain_nested_properties(
+    item: str,
+    property_name: str,
+    property_schema: Dict[str, Any],
+) -> List[Property]:
+    """Get dot-notation property information for a plain nested object."""
+    return [
+        get_property(item, f"{property_name}.{key}", value, is_nested=True)
+        for key, value in property_schema.items()
+    ]
 
 
 def is_required(property_schema: Dict[str, Any]) -> bool:
@@ -1147,8 +1511,39 @@ def extract_nested_property_names(property_name: str):
 
 def get_nested_example(item: Dict[str, Any],property_name: str):
     """Get example values from properties nested within an array of objects."""
+    if is_array_object_property_name(property_name):
+        return get_array_object_nested_example(item, property_name)
+    return get_plain_object_nested_example(item, property_name)
+
+
+def is_array_object_property_name(property_name: str) -> bool:
+    """Check if a nested property name uses the array-of-objects convention."""
+    return "#" in property_name and "." in property_name
+
+
+def get_array_object_nested_example(item: Dict[str, Any], property_name: str):
+    """Get example values from properties nested within an array of objects."""
     parent_property, nested_property, n_index = extract_nested_property_names(property_name)
     return item[parent_property][n_index][nested_property]
+
+
+def get_plain_object_nested_example(item: Dict[str, Any], property_name: str):
+    """Get example values from plain nested object paths using dot notation."""
+    value = item
+    for property_part in property_name.split("."):
+        if not isinstance(value, dict):
+            return None
+        value = value.get(property_part)
+    return value
+
+
+def set_plain_object_nested_example(item: Dict[str, Any], property_name: str, value: Any) -> None:
+    """Set a value on a plain nested object path using dot notation."""
+    *parent_parts, leaf_property = property_name.split(".")
+    target = item
+    for property_part in parent_parts:
+        target = target.setdefault(property_part, {})
+    target[leaf_property] = value
 
 
 def get_ordered_properties(properties: List[Property]) -> List[Property]:
@@ -1516,6 +1911,31 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "--static-sections",
+        help=(
+            "Write a StaticSection-only workbook with key-findings Markdown"
+            " and optional supplementary JSX rows. Does not create Publication"
+            " sheets or ownership columns."
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "--supplementary-uploaded-filename",
+        help=(
+            "Optional uploaded supplementary image filename to place in the"
+            " StaticSection supplementary JSX template alt field."
+        ),
+        default="",
+    )
+    parser.add_argument(
+        "--supplementary-uploaded-file-url",
+        help=(
+            "Optional uploaded supplementary image URL to place in the"
+            " StaticSection supplementary JSX template src field."
+        ),
+        default="",
+    )
+    parser.add_argument(
         "--separate", help="Add comments as separate cells", action="store_true"
     )
     parser.add_argument(
@@ -1541,6 +1961,28 @@ def main():
         action="store_true"
     )
     args = parser.parse_args()
+
+    if args.static_sections:
+        if not args.output:
+            parser.error("--static-sections requires --output")
+        if args.google:
+            parser.error("--static-sections writes a local xlsx workbook and cannot update Google Sheets")
+        if args.all or args.item or args.tpc or args.gcc or args.eqm or args.example or args.separate:
+            parser.error(
+                "--static-sections cannot be combined with --all, --item, --tpc,"
+                " --gcc, --eqm, --example, or --separate"
+            )
+        write_static_section_workbook(
+            args.output,
+            uploaded_filename=args.supplementary_uploaded_filename,
+            uploaded_file_url=args.supplementary_uploaded_file_url,
+        )
+        return
+    if args.supplementary_uploaded_filename or args.supplementary_uploaded_file_url:
+        parser.error(
+            "--supplementary-uploaded-filename and --supplementary-uploaded-file-url"
+            " can only be used with --static-sections"
+        )
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
     log.info(f"Found keys for {args.env}")

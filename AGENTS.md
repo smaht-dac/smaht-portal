@@ -16,7 +16,10 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   feature endpoints are mostly top-level modules such as `browse.py`, `metadata.py`, and
   `visualization.py`, plus `src/encoded/endpoints/`. Submission processing is under
   `src/encoded/ingestion/`; administrative CLIs are under `src/encoded/commands/` and registered in
-  `[tool.poetry.scripts]` in `pyproject.toml`.
+  `[tool.poetry.scripts]` in `pyproject.toml`. `src/encoded/commands/write_submission_spreadsheets.py`
+  is the authoritative submission-workbook generator; it flattens plain nested object properties with
+  dot notation such as `options.filetype`, while arrays of objects keep the existing `property#0.field`
+  convention. Regression coverage lives in `src/encoded/tests/test_write_submission_spreadsheets.py`.
 - `src/encoded/static/` is the React frontend. `browser.js` and `server.js` are the client and
   server-rendering entries; `components/` is organized around browse, item pages, static pages,
   navigation, forms, shared UI, and visualizations. SCSS sources are in `static/scss/`. Webpack and
