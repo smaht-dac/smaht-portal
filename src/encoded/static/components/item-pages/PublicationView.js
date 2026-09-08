@@ -303,7 +303,7 @@ const PublicationViewTabs = (props) => {
         customHideColumns,
     };
 
-    const shouldShowTable = !context?.tags?.includes('suppress_data_banner');
+    const suppress_data_info = context?.tags?.includes('suppress_data_banner');
 
     return (
         <div className="tabs-container">
@@ -336,7 +336,7 @@ const PublicationViewTabs = (props) => {
                                         }
                                     />
                                 </div>
-                                {shouldShowTable && (
+                                {!suppress_data_info && (
                                     <FileOverviewTableController
                                         {...tableProps}
                                     />
@@ -368,6 +368,9 @@ const PublicationViewTabs = (props) => {
 const PublicationView = React.memo(function PublicationView(props) {
     const { context, session, href } = props;
     const [showFullAuthorList, toggleFullAuthorList] = useToggle(false);
+
+    // Check if data info should be suppressed
+    const suppress_data_info = context?.tags?.includes('suppress_data_banner');
 
     const keyFindingsSection = getStaticContentSection(
         context.static_content,
@@ -607,18 +610,21 @@ const PublicationView = React.memo(function PublicationView(props) {
                         </div>
                     )}
                 </div>
-
                 {/* Data Analyzed Section */}
-                <h2 className="section-header fw-semibold">
-                    SMaHT Data Analyzed
-                </h2>
-                <PublicationStatViewer
-                    doi={context?.doi}
-                    session={session}
-                    isBenchmarking={context?.publication_groups?.includes(
-                        'Benchmarking'
-                    )}
-                />
+                {!suppress_data_info && (
+                    <>
+                        <h2 className="section-header fw-semibold">
+                            SMaHT Data Analyzed
+                        </h2>
+                        <PublicationStatViewer
+                            doi={context?.doi}
+                            session={session}
+                            isBenchmarking={context?.publication_groups?.includes(
+                                'Benchmarking'
+                            )}
+                        />
+                    </>
+                )}
                 <PublicationViewTabs {...props} />
             </div>
         </div>
