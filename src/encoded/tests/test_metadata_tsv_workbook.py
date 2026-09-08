@@ -1,6 +1,7 @@
 import pytest
 import io
 import csv
+from itertools import permutations
 from ..metadata import descend_field, TSV_WIDTH
 
 
@@ -23,8 +24,13 @@ class TestMetadataTSVHelper:
         assert len(part) == TSV_WIDTH
 
     @staticmethod
-    def check_extra_file_name(filename):
-        assert filename == 'a_second_bam_bai.bai', (
+    def check_extra_file_name(rows):
+        # Select by file identity and format, independently of the filename column.
+        # The export sorts parents by UUID; this extra file is not necessarily last.
+        download_path = '/output-files/76abf602-c1e6-4cbd-af3b-2c8b9a3dc31b/@@download/'
+        matches = [row for row in rows if download_path in row[0] and row[0].endswith('.bai')]
+        assert len(matches) == 1, 'Expected exactly one BAI extra-file row in the manifest'
+        assert matches[0][2] == 'a_second_bam_bai.bai', (
             'NOTE: if you failed this test you changed the File manifest structure! Do NOT do so!'
         )
 
@@ -36,13 +42,47 @@ class TestMetadataTSVHelper:
         assert len(parsed[3:]) == expected_count
 
 
+def _manifest_extra_row(filename='a_second_bam_bai.bai'):
+    row = [''] * TSV_WIDTH
+    row[0] = 'http://localhost/output-files/76abf602-c1e6-4cbd-af3b-2c8b9a3dc31b/@@download/SMAFI8LOZ6MU.bai'
+    row[2] = filename
+    return row
+
+
 @pytest.mark.parametrize('filename', ['', 'wrong.bai', 'a_second_bam_bai.bai'])
 def test_manifest_extra_filename_assertion(filename):
+    rows = [_manifest_extra_row(filename)]
     if filename == 'a_second_bam_bai.bai':
-        TestMetadataTSVHelper.check_extra_file_name(filename)
+        TestMetadataTSVHelper.check_extra_file_name(rows)
     else:
         with pytest.raises(AssertionError, match='File manifest structure'):
-            TestMetadataTSVHelper.check_extra_file_name(filename)
+            TestMetadataTSVHelper.check_extra_file_name(rows)
+
+
+@pytest.mark.parametrize('order', list(permutations(range(3))))
+def test_manifest_extra_filename_independent_of_row_order(order):
+    extra = _manifest_extra_row()
+    parent = list(extra)
+    parent[0] = parent[0].replace('.bai', '.bam')
+    parent[2] = 'parent.bam'
+    other = list(extra)
+    other[0] = 'http://localhost/output-files/cca15caa-bc11-4a6a-8998-ea0c69df8b9d/@@download/TSTFI2115172.vcf'
+    other[2] = 'TSTFI2115172.vcf'  # The actual last row in the UUID-sorted workbook export.
+    rows = [extra, parent, other]
+    TestMetadataTSVHelper.check_extra_file_name([rows[index] for index in order])
+
+
+@pytest.mark.parametrize('count', [0, 2])
+def test_manifest_extra_filename_requires_one_matching_row(count):
+    with pytest.raises(AssertionError, match='exactly one BAI extra-file row'):
+        TestMetadataTSVHelper.check_extra_file_name([_manifest_extra_row() for _ in range(count)])
+
+
+def test_manifest_extra_filename_rejects_moved_column():
+    row = _manifest_extra_row()
+    row[1], row[2] = row[2], ''
+    with pytest.raises(AssertionError, match='File manifest structure'):
+        TestMetadataTSVHelper.check_extra_file_name([row])
 
 
 class DummyRequest:
@@ -148,10 +188,8 @@ class TestMetadataTSVWorkbook:
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
         tsv = res._app_iter[0]
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
-        last_extra_file_name = parsed[-1][2]  # filename in 3rd position in tsv
-        # This assert is very important as it validates the correct location of filename, which is used in the
-        # manifest file for downloads
-        TestMetadataTSVHelper.check_extra_file_name(last_extra_file_name)
+        # Keep filename in the third manifest column, without assuming which file sorts last.
+        TestMetadataTSVHelper.check_extra_file_name(parsed[3:])
         # check an entire row that is mostly representative
         for row in parsed:
             if '303985cf-f1db-4dea-9782-2e68092d603d' in row[0]:  # this is the row
