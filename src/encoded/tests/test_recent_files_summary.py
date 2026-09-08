@@ -7,7 +7,6 @@ from encoded.endpoints.recent_files_summary.recent_files_summary import (
     recent_files_summary,
     recent_release_days
 )
-import encoded.endpoints.endpoint_utils
 
 _TYPE = "type=OutputFile&type=SubmittedFile"
 _EXPECTED_TYPE = "type=File"
@@ -1085,7 +1084,6 @@ class TestPyramidRequest(PyramidRequest):
 
 def test_recent_files_summary():
 
-    global recent_files_summary_raw_results
 
     request = TestPyramidRequest({
         "date_property_name": "date_created",

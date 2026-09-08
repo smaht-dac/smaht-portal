@@ -58,7 +58,7 @@ a new token.
 ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
 WORKBOOK_FILENAME = "submission_workbook.xlsx"
 
-EXAMPLE_FILE_UUIDS=["4e142999-5d48-4dcd-b7d6-558e5960e69b",
+EXAMPLE_FILE_UUIDS = ["4e142999-5d48-4dcd-b7d6-558e5960e69b",
                     "d4020a63-338c-4103-8461-417d09df5cbd",
                     "f382f84c-f590-49f2-9f62-e852e2c30647"
                     ]
@@ -197,13 +197,13 @@ def update_google_sheets(
 
 
 def get_spreadsheets(
-        request_handler: RequestHandler,
-        gcc: bool = False,
-        tpc: bool = False,
-        items: List[str] = None,
-        eqm: Union[str, None] = None,
-        example: bool = False,
-    ) -> List[Spreadsheet]:
+            request_handler: RequestHandler,
+            gcc: bool = False,
+            tpc: bool = False,
+            items: List[str] = None,
+            eqm: Union[str, None] = None,
+            example: bool = False,
+        ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas, gcc=gcc, tpc=tpc)
     if example:
@@ -235,7 +235,7 @@ def get_spreadsheets(
             for item, submission_schema in ordered_submission_schemas.items()
         ]
     if eqm:
-        eqm_schema ={
+        eqm_schema = {
             'schema': get_submission_schema('ExternalQualityMetric', request_handler)
         }
         spreadsheets.append(get_eqm_spreadsheet(eqm, eqm_schema, request_handler))
@@ -380,7 +380,7 @@ def get_cell_value(property_: Property) -> Dict[str, Any]:
 def get_example_cell_value(value: Union[str, List]) -> Dict[str, Any]:
     """Get the example cell value."""
     if is_list(value):
-        value=get_example_list(value)
+        value = get_example_list(value)
     return {
         "userEnteredValue": {"stringValue": str(value)},
         "userEnteredFormat": {
@@ -763,11 +763,11 @@ def get_eqm_mapping(request_handler: RequestHandler):
 
 
 def get_example_spreadsheet(
-        item: str,
-        request_handler: RequestHandler,
-        example_fields: ExampleFields,
-        submission_schema: Dict[str,Any]
-    ) -> Spreadsheet:
+            item: str,
+            request_handler: RequestHandler,
+            example_fields: ExampleFields,
+            submission_schema: Dict[str,Any]
+        ) -> Spreadsheet:
     """Get example property values of spreadsheet information for item."""
     starting = ['AlignedReads'] # Currently just aligned reads
     #starting = ['AlignedReads','VariantCalls']
@@ -784,11 +784,11 @@ def get_example_spreadsheet(
 
 
 def get_submission_examples(
-    request_handler: RequestHandler,
-    example_fields: ExampleFields,
-    item_type: str = None,
-    seed: bool = False
-    ):
+        request_handler: RequestHandler,
+        example_fields: ExampleFields,
+        item_type: str = None,
+        seed: bool = False
+        ):
     """Get examples of property values for items."""
     items = example_fields.seed_files if seed else example_fields.fields[item_type]
     return [request_handler.get_item(obj_id) for obj_id in items]
@@ -817,10 +817,10 @@ def get_linked_spreadsheet(
 
 
 def get_id_list(
-    request_handler: RequestHandler,
-    values: Union[str,List[str]],
-    example_fields: ExampleFields
-    ):
+        request_handler: RequestHandler,
+        values: Union[str,List[str]],
+        example_fields: ExampleFields
+        ):
     """Return list of submitted_id or identifier values from @ids."""
     id_values = []
     if type(values) is list:
@@ -841,7 +841,7 @@ def update_example_fields(item: Dict[str,Any],example_fields: ExampleFields):
     For item types with multiple submitted items in the type list, get the type to use from MULTI_TYPE_ITEMS. Currently, the only item that matches multiple keys is CellCultureMixture but may need to update later.
     """
     key = [value for value in item['@type'] if value in example_fields.fields.keys()]
-    if len(key)>1:
+    if len(key) > 1:
         overlap = [match for match in set(MULTI_TYPE_ITEMS) & set(key)]
         key = overlap
     if key:
@@ -890,11 +890,11 @@ def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Propert
 
 
 def get_eqm_properties(
-        item: str,
-        eqm: Dict[str, Any],
-        eqm_schema: Dict[str, Any],
-        mapping: Dict[str, Any]
-    ):
+            item: str,
+            eqm: Dict[str, Any],
+            eqm_schema: Dict[str, Any],
+            mapping: Dict[str, Any]
+        ):
     """Format property information from ExternalQualityMetric template.
     
     Grabs normal properties from schema and then formats qc_values.key and qc_values.tooltip to be description and submissionComment.
@@ -978,7 +978,7 @@ def get_nested_property(item: str, property_name:str, property_schema: Dict[str,
             count = len(property_schema['subregion']['enum'])  
     for index in range(0,count): 
         for key, value in property_schema.items():
-            combined_property_name=f"{property_name}#{index}.{key}"
+            combined_property_name = f"{property_name}#{index}.{key}"
             object_properties.append(
                 get_property(item, combined_property_name, value, is_nested=True)
             )
@@ -1141,7 +1141,7 @@ def extract_nested_property_names(property_name: str):
     Expects the format parent_property#n_index.nested_property """
     parent_property = property_name.split("#")[0]
     nested_property = property_name.split(".")[1]
-    n_index= int(property_name.split("#")[1].split(".")[0])
+    n_index = int(property_name.split("#")[1].split(".")[0])
     return parent_property, nested_property, n_index
 
 
@@ -1241,7 +1241,7 @@ def write_example(
 ) -> None:
     """Write example of property value to the worksheet"""
     if is_list(value):
-        value=get_example_list(value)
+        value = get_example_list(value)
     row =  row  # cells 1-indexed, start with 2
     cell = worksheet.cell(row=row, column=index, value=value)
     cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
@@ -1556,7 +1556,7 @@ def main():
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
     if args.eqm and args.example:
-         parser.error("Currently cannot specify both eqm and example")
+        parser.error("Currently cannot specify both eqm and example")
     if args.eqm and args.tpc:
         parser.error("Cannot specify both eqm and tpc")
     if args.eqm and not args.gcc and not args.item:

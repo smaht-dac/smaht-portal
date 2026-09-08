@@ -1,5 +1,4 @@
 import pytest
-import re
 
 from ..item_utils.donor import BENCHMARKING_DONOR_REGEX, PRODUCTION_DONOR_REGEX
 

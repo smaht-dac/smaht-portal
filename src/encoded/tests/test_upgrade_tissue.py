@@ -47,10 +47,10 @@ def test_upgrade_tissue_3_4(
 
 @pytest.fixture
 def test_tissue(
-    testapp,
-    test_submission_center,
-    donor):
-    return{
+        testapp,
+        test_submission_center,
+        donor):
+    return {
         "uuid": "4e92d8b9-e0ad-4469-8e8c-01a0a5d7b313",
         "submission_centers": [
             test_submission_center["uuid"]

@@ -6,11 +6,12 @@ from dcicutils.misc_utils import normalize_spaces
 from encoded.endpoints.elasticsearch_utils import (
         add_additional_field_to_retrieve_to_elasticsearch_aggregation_query,
         create_elasticsearch_aggregation_query,
-        merge_elasticsearch_aggregation_results,
         normalize_elasticsearch_aggregation_results,
         prune_elasticsearch_aggregation_results,
         sort_normalized_aggregation_results,
-        AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE)
+        AGGREGATION_MAX_BUCKETS,
+        AGGREGATION_NO_VALUE,
+)
 from encoded.endpoints.endpoint_utils import (
         request_arg, request_args, request_arg_bool, request_arg_int,
         create_query_string, deconstruct_query_string,
@@ -20,10 +21,8 @@ from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
         AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
         AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
         AGGREGATION_FIELD_CELL_MIXTURE,
-        AGGREGATION_FIELD_DONOR,
-        AGGREGATION_FIELD_DSA_DONOR,
-        AGGREGATION_FIELD_CELL_LINE,
-        AGGREGATION_FIELD_FILE_DESCRIPTOR)
+        AGGREGATION_FIELD_FILE_DESCRIPTOR,
+)
 from encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting import (
         add_info_for_troubleshooting,
         get_normalized_aggregation_results_as_html_for_troublehshooting)
@@ -139,7 +138,6 @@ def recent_files_summary(request: PyramidRequest,
         # and then alternatively (if a cell-line field does not exist) by the donor field.
         # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
         # look first for the donor field and then secondarily for the cell-line field.
-        nonlocal legacy
         aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
         if not legacy:
             # 2025-02-21: This is now the default (using release_tracker_title).
@@ -148,8 +146,6 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_base_query_arguments(request: PyramidRequest) -> dict:
 
-        global QUERY_FILE_CATEGORIES, QUERY_FILE_DATASET, QUERY_FILE_STATUSES, QUERY_FILE_TYPES, QUERY_FILE_TAGS
-        nonlocal exclude_submitted_file
 
         types = request_args(request, "type", QUERY_FILE_TYPES)
         statuses = request_args(request, "status", QUERY_FILE_STATUSES)
@@ -173,8 +169,6 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_query_arguments(request: PyramidRequest, base_query_arguments: Optional[dict] = None) -> str:
 
-        global BASE_SEARCH_QUERY, QUERY_RECENT_MONTHS, QUERY_INCLUDE_CURRENT_MONTH
-        nonlocal date_property_name
 
         recent_months = request_arg_int(request, "nmonths", request_arg_int(request, "months", QUERY_RECENT_MONTHS))
         from_date = request_arg(request, "from_date")
@@ -194,7 +188,6 @@ def recent_files_summary(request: PyramidRequest,
         return query_arguments
 
     def create_query(request: PyramidRequest, base_query_arguments: Optional[dict] = None) -> str:
-        nonlocal legacy
         query_arguments = create_query_arguments(request, base_query_arguments)
         if not legacy:
             if AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE not in query_arguments:
@@ -206,7 +199,6 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
-        nonlocal date_property_name, max_buckets, include_missing, exclude_tissue_info
 
         aggregations = []
         if not isinstance(aggregation_fields, list):
@@ -218,7 +210,6 @@ def recent_files_summary(request: PyramidRequest,
             return {}
 
         def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name, legacy, multi
             if field == date_property_name:
                 return {
                     "date_histogram": {
@@ -291,7 +282,6 @@ def recent_files_summary(request: PyramidRequest,
                 }
 
         def create_field_filter(field: str) -> Optional[dict]:  # noqa
-            nonlocal aggregation_field_grouping_cell_or_donor
             if field == AGGREGATION_FIELD_CELL_MIXTURE:
                 filter = {"bool": {"should": [], "minimum_should_match": 1}}
                 for aggregation_field in aggregation_field_grouping_cell_or_donor:
@@ -318,7 +308,6 @@ def recent_files_summary(request: PyramidRequest,
         return aggregation_query[date_property_name]
 
     def execute_aggregation_query(request: PyramidRequest, query: str, aggregation_query: dict) -> str:
-        nonlocal custom_execute_aggregation_query
         if callable(custom_execute_aggregation_query):
             # For testing/mocking ONLY.
             return custom_execute_aggregation_query(request, query, aggregation_query)
@@ -337,7 +326,6 @@ def recent_files_summary(request: PyramidRequest,
         return results
 
     def fixup_names_values_for_normalized_results(normalized_results: dict) -> None:
-        nonlocal aggregation_field_grouping_cell_or_donor
         if isinstance(normalized_results, dict):
             if isinstance(value := normalized_results.get("value"), str):
                 if ((separator_index := value.find(":")) > 0) and (value_prefix := value[0:separator_index]):
@@ -384,8 +372,6 @@ def recent_files_summary(request: PyramidRequest,
                         del item[additional_value_property_name]
 
     def add_queries_to_normalized_results(normalized_results: dict, base_query_arguments: dict) -> None:
-        global BASE_SEARCH_QUERY
-        nonlocal date_property_name, legacy
         if isinstance(normalized_results, dict):
             if name := normalized_results.get("name"):
                 if value := normalized_results.get("value"):
@@ -563,8 +549,6 @@ def recent_release_days(request: PyramidRequest,
     Lightweight variant of /recent_files_summary intended for calendar rendering.
     Returns only release month/day counts (no donor/tissue/file-descriptor grouping).
     """
-    global BASE_SEARCH_QUERY, QUERY_FILE_CATEGORIES, QUERY_FILE_DATASET, QUERY_FILE_STATUSES, QUERY_FILE_TAGS
-    global QUERY_FILE_TYPES, QUERY_RECENT_MONTHS, QUERY_INCLUDE_CURRENT_MONTH
 
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_int(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
@@ -646,7 +630,6 @@ def recent_release_days(request: PyramidRequest,
         return aggregation_query[date_property_name]
 
     def execute_aggregation_query(query: str, aggregation_query: dict) -> str:
-        nonlocal custom_execute_aggregation_query
         if callable(custom_execute_aggregation_query):
             return custom_execute_aggregation_query(request, query, aggregation_query)
         query += "&from=0&limit=0"

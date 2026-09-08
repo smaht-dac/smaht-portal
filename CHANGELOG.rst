@@ -7,6 +7,24 @@ smaht-portal
 Change Log
 ----------
 
+2.13.0
+======
+
+`PR 757: Harden OC user loading <https://github.com/smaht-dac/smaht-portal/pull/757>`_
+
+* Hardened OC user loading with explicit create, update-changed, update-all,
+  and validation-only modes.
+* Added duplicate-email detection, safe link normalization, fresh database-backed
+  reads, and idempotent update behavior.
+* Preserved existing values for blank spreadsheet flags and protected DAC
+ submission access during updates.
+* Removed unsafe write retries to prevent accidental duplicate updates.
+* Added comprehensive loader and safety tests and restored enforcement of the
+ repository lint gate.
+* Hardened manifest filename assertions and resolved the related Checkmarx
+ unchecked-input finding.
+
+
 2.12.3
 ======
 
