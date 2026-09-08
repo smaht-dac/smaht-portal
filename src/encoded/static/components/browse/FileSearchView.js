@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import memoize from 'memoize-one';
 import _ from 'underscore';
+import { OverlayTrigger } from 'react-bootstrap';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -21,6 +22,7 @@ import {
     PageTitleContainer,
     TitleAndSubtitleBeside,
 } from '../PageTitleSection';
+import { renderLoginAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 import { compareTissueFacetTerms } from '../util/data';
 import { getSelectionQueryKey } from '../static-pages/components/TableControllerWithSelections';
@@ -52,24 +54,43 @@ const SearchViewDownloadButton = ({ session, selectedItems }) => {
     const { userDownloadAccess } = useUserDownloadAccess(session);
 
     // Enable if user has admin access (aka all true in userDownloadAccess)
-    return Object.values(userDownloadAccess).every((v) => v) ? (
-        <SelectedItemsDownloadButton
-            id="download_tsv_multiselect"
-            disabled={selectedItems.size === 0}
-            className="btn btn-primary btn-sm me-05 align-items-center"
-            {...{ selectedItems, session }}
-            analyticsAddItemsToCart>
+    if (Object.values(userDownloadAccess).every((v) => v)) {
+        return (
+            <SelectedItemsDownloadButton
+                id="download_tsv_multiselect"
+                disabled={selectedItems.size === 0}
+                className="btn btn-primary btn-sm me-05 align-items-center"
+                {...{ selectedItems, session }}
+                analyticsAddItemsToCart>
+                <i className="icon icon-download fas me-03" />
+                Download {selectedItems.size} Selected Files
+            </SelectedItemsDownloadButton>
+        );
+    }
+
+    const disabledButton = (
+        <button
+            type="button"
+            className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto"
+            disabled={true}>
             <i className="icon icon-download fas me-03" />
             Download {selectedItems.size} Selected Files
-        </SelectedItemsDownloadButton>
-    ) : (
-        <SelectedItemsDownloadButton
-            id="download_tsv_multiselect"
-            disabled={true}
-            className="download-button btn btn-primary btn-sm me-05 align-items-center">
-            <i className="icon icon-download fas me-03" />
-            Download {selectedItems.size} Selected Files
-        </SelectedItemsDownloadButton>
+        </button>
+    );
+
+    // Only prompt to log in when not logged in; a logged-in user without
+    // admin access simply sees the disabled button with no popover.
+    if (session) {
+        return disabledButton;
+    }
+
+    return (
+        <OverlayTrigger
+            trigger={['hover', 'focus']}
+            placement="top"
+            overlay={renderLoginAccessPopover()}>
+            {disabledButton}
+        </OverlayTrigger>
     );
 };
 

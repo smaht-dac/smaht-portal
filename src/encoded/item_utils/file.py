@@ -27,6 +27,17 @@ def get_file_format(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     return properties.get("file_format", "")
 
 
+def get_file_format_display_title(properties: Dict[str, Any]) -> str:
+    """Get file format display title from properties.
+
+    Only available if the file format is embedded.
+    """
+    file_format = get_file_format(properties)
+    if isinstance(file_format, dict):
+        return item.get_display_title(file_format)
+    return ""
+
+
 def get_file_size(properties: Dict[str, Any]) -> Union[int, None]:
     """Get file size from properties."""
     return properties.get("file_size")

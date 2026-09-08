@@ -1,10 +1,22 @@
 # syntax=docker/dockerfile:1.7
 # SMaHT-Portal (Production) Dockerfile
 
-# Debian Hardened Image. Pin by digest for reproducible, tamper-evident builds:
-#   docker buildx imagetools inspect dhi.io/python:3.11-debian-sfw-dev   # copy the sha256
-#   docker build --build-arg BASE_IMAGE=dhi.io/python:3.11-debian-sfw-dev@sha256:<digest> .
-ARG BASE_IMAGE=dhi.io/python:3.11-debian-sfw-dev
+# Bookworm (Debian 12) with Python 3.11.16
+# History: python:3.9.16-slim-buster -> python:3.11.12-slim-bullseye (2025-05-08)
+#          -> python:3.11.16-slim-bookworm (2026-09).
+#
+# 2026-09: moved off bullseye because Debian 11 LTS ENDED 2026-08-31. After that date
+# `deb.debian.org/debian-security bullseye-security` still publishes an index listing
+# package versions whose .deb files have been pruned from the pool, so `apt-get upgrade`
+# and even `apt-get install` fail with 404s (exit 100) on a clean-cache build. That is an
+# unfixable-by-pinning condition: the archive no longer carries the artifacts its own
+# index advertises, and libssl1.1 -- which the previously pinned nginx needs -- is among
+# them. Debian 12 bookworm is under Debian LTS through 2028-06-30, which outlasts Python
+# 3.11's own EOL (2027-10), so it is the release this image should sit on.
+#
+# BASE_IMAGE is overridable, but defaults to the standard Debian slim Python image
+# (NOT a hardened image) so plain `docker build .` works with no registry auth.
+ARG BASE_IMAGE=python:3.11.16-slim-bookworm
 
 # ---------------------------------------------------------------------------
 # Builder stage: full toolchain (compilers, Node) used only to build the Python
@@ -105,30 +117,31 @@ ENV NGINX_USER=nginx \
 ENV NODE_DIR=/home/nginx/.nvm/versions/node/v${NODE_VERSION}
 ENV PATH="$VIRTUAL_ENV/bin:${NODE_DIR}/bin:$PATH"
 
-# Runtime OS deps only. psycopg2-binary bundles libpq, so libpq is not needed here;
-# gcc/build tools aren't needed since wheels are built in the builder stage.
-# This hardened base strips standard accounts/tooling that Debian's nginx packaging
-# assumes, so we install the user tooling and create the `adm` group (nginx-common's
-# postinst does `chown root:adm /var/log/nginx`, which fails if `adm` doesn't exist)
-# BEFORE installing nginx. libmagic1 is for python-magic; make is for the local
-# entrypoint; git is invoked indirectly by dcicutils at runtime.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends adduser passwd init-system-helpers && \
-    # nginx-common's postinst does `chown www-data:adm /var/log/nginx`; this hardened
-    # base ships neither the `adm` group nor the `www-data` user, so create both first.
-    ( getent group adm >/dev/null || /usr/sbin/groupadd --system adm ) && \
-    ( getent group www-data >/dev/null || /usr/sbin/groupadd --system www-data ) && \
-    ( getent passwd www-data >/dev/null || /usr/sbin/useradd --system --gid www-data --no-create-home --home-dir /var/www --shell /usr/sbin/nologin www-data ) && \
-    apt-get install -y --no-install-recommends nginx ca-certificates git libmagic1 make openssl && \
-    /usr/sbin/groupadd --system --gid 121 nginx && \
-    /usr/sbin/useradd --system --gid nginx --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin --uid 121 nginx && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# deb.debian.org CDN reset mitigation (see builder stage).
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
+    echo 'Acquire::http::Pipeline-Depth "0";' >> /etc/apt/apt.conf.d/80-retries
 
-# nginx config: drop the Debian defaults (sites-enabled/* layout) and install ours.
-RUN rm -f /etc/nginx/nginx.conf \
-          /etc/nginx/conf.d/default.conf \
-          /etc/nginx/sites-enabled/default \
-          /etc/nginx/sites-available/default
+# Runtime OS deps only. psycopg2-binary bundles libpq, so libpq-dev isn't needed
+# here; gcc/build tools aren't needed since wheels are built in the builder stage.
+# libmagic1 is for python-magic; make is for the local entrypoint; git is invoked
+# indirectly by dcicutils at runtime.
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends ca-certificates git make libmagic1 && \
+    apt-get clean
+
+# nginx: install the pinned nginx.org build via the bookworm install script. That
+# script also creates the non-root nginx user (uid/gid 121) and symlinks nginx's
+# access/error logs to stdout/stderr.
+# On this standard Debian slim base the `adm` group (gid 4) and `www-data` user
+# (uid 33) already exist and uid/gid 121 are free (re-verified on bookworm), so -
+# unlike the hardened base - no extra account/tooling bootstrapping is required
+# before installing nginx.
+COPY deploy/docker/production/install_nginx_bookworm.sh /install_nginx.sh
+RUN bash /install_nginx.sh && \
+    apt-get clean
+
+# nginx config: drop the packaged defaults and install ours.
+RUN rm -f /etc/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 COPY deploy/docker/production/nginx.conf /etc/nginx/nginx.conf
 # Shared server body (locations + security headers), included by both the plain
 # :8000 server and the generated TLS server. Copied read-only.

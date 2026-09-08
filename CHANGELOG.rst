@@ -7,6 +7,90 @@ smaht-portal
 Change Log
 ----------
 
+2.12.3
+======
+
+`PR 758: fix(docker): move production image off EOL Debian bullseye to bookworm <https://github.com/smaht-dac/smaht-portal/pull/758>`_
+
+* Moves the production image base from ``python:3.11.12-slim-bullseye`` to
+  ``python:3.11.16-slim-bookworm``. Debian 11 bullseye LTS ended 2026-08-31, after which
+  ``bullseye-security`` kept advertising package versions whose ``.deb`` files had been pruned
+  from the pool, so a clean-cache ``docker build`` failed with apt 404s (exit 100) in both the
+  builder and runtime stages. Debian 12 is under Debian LTS through 2028-06-30, outlasting
+  Python 3.11's own 2027-10 EOL.
+* Pins nginx to the nginx.org stable series at ``1.30.4-1~bookworm`` (njs ``1.0.1``), renaming
+  ``install_nginx_bullseye.sh`` to ``install_nginx_bookworm.sh``. The previous ``1.21.6`` mainline
+  pin required ``libssl1.1``, which bookworm does not ship and bullseye no longer serves.
+* Enables apt signature verification for the nginx.org repository: the ``deb [ trusted=yes ]``
+  source and deprecated ``apt-key adv`` keyserver fetch are replaced by a ``signed-by=`` keyring
+  built from nginx.org's published key bundle, with all three expected fingerprints checked.
+* Removes two unreferenced nginx install scripts:
+  ``deploy/docker/production/install_nginx.sh`` (half-templated and syntactically broken) and
+  ``deploy/docker/local/install_nginx.sh`` (buster-era).
+* Adds static contract checks that keep ``BASE_IMAGE`` off an end-of-life Debian release, keep the
+  nginx script's apt suite on the same release as the base image, and fail if remote apt signature
+  verification is disabled again.
+* No behavior change: the nginx user/group stay at uid/gid 121, ``nginx.conf`` is comment-only
+  changed, and all 10 cases of the offline failover/retry harness pass against nginx 1.30.4.
+* ``deploy/docker/postgres`` (already bookworm) and ``deploy/docker/elasticsearch`` (Amazon Linux,
+  no apt) were verified unaffected and are unchanged.
+
+
+2.12.2
+======
+
+`PR 753: feat: add smaht snv pipeline v2 to pipeline docs <https://github.com/smaht-dac/smaht-portal/pull/753>`_
+
+* Update pipeline docs with new pipeline
+* Move badge styles into larger scope
+
+
+2.12.1
+======
+
+`PR 754: Fix transcript info code check for RNA QC files <https://github.com/smaht-dac/smaht-portal/pull/754>`_
+
+* Annotated filename generation no longer requires a transcript information code for
+  RNA Quantification files that are also in the ``Quality Control`` data category.
+
+
+2.12.0
+======
+
+`PR 747: Archive source files during the file release <https://github.com/smaht-dac/smaht-portal/pull/747>`_
+
+* Adds an opt-in ``--archive`` option to ``release-file``. When a final output BAM or CRAM is
+  released with it, the source files of the associated file set(s) are archived, i.e.
+  ``s3_lifecycle_category`` is set to ``long_term_archive`` on the submitted unaligned reads,
+  the submitted CRAMs and the FASTQs that were generated from those CRAMs. This replaces the
+  manual ``archive_unaligned_reads`` and ``archive_broad_crams_and_fastqs`` steps in magma.
+* The archive patches are part of the regular two-step release flow, so they are listed in
+  the release summary (counted by item type and file format), validated, and applied
+  together with the other patches.
+* Files that already have an ``s3_lifecycle_category`` are never archived. A warning is
+  reported for those unless they are already set to ``long_term_archive``.
+
+
+2.11.2
+======
+
+`PR 750: update VISTA-seq mapping in data matrix <https://github.com/smaht-dac/smaht-portal/pull/750>`_
+
+* Renames the ``VISTA-META-seq``, ``scVISTA-META-seq``, and ``Microbulk VISTA-META-seq`` data matrix
+  assay mappings to ``META-VISTA-seq``, ``scMETA-VISTA-seq``, and ``Microbulk META-VISTA-seq``,
+  matching the updated backend assay display titles.
+* Updates the corresponding Cypress post-deploy data matrix assertions.
+
+
+2.11.1
+======
+
+`PR 749: feat: popover update to publication view <https://github.com/smaht-dac/smaht-portal/pull/749>`_
+
+* Add popover for statistics link button and file search view when users are logged out
+* Add string at the end of citation for SNV paper
+
+
 2.11.0
 ======
 
@@ -14,6 +98,7 @@ Change Log
 
 * Adds validators to enforce that a donor's linked protected items ('MedicalHistory', 'Demographic', 'FamilyHistory', 'DeathCircumstances' and 'TissueCollection') are only linked to ProtectedDonor items.
 * Pulls in new snovault for fix for skip_links options
+
 
 2.10.0
 ======
