@@ -21,7 +21,6 @@ def load_data_into_database(submission_uuid: str,
     ingestion_status.update({PROGRESS_INGESTER.LOADXL_INITIATE: PROGRESS_INGESTER.NOW()})
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
-        nonlocal portal_vapp
         portal = None
         upload_info = []
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\/\d_-]+)\s*(\S+)\s*(\S+)?\s*(.*)$")
@@ -102,7 +101,6 @@ def load_data_into_database(submission_uuid: str,
 
     def define_progress_tracker(submission_uuid: str, validation: bool, total: int,
                                 vapp: Optional[VirtualApp] = None) -> Optional[Callable]:
-        nonlocal ingestion_status
         progress_status_datetime_values = [PROGRESS_LOADXL.START,
                                            PROGRESS_LOADXL.START_SECOND_ROUND,
                                            PROGRESS_LOADXL.DONE]
@@ -120,11 +118,9 @@ def load_data_into_database(submission_uuid: str,
                            PROGRESS_LOADXL.TOTAL: total,
                            PROGRESS_INGESTER.VALIDATION: validation}
         def progress_tracker(progress: PROGRESS_LOADXL) -> None:  # noqa
-            nonlocal progress_status
             def progress_message() -> None:  # noqa
                 # Just a convenience/courtesy so the consumer (smaht-submitr) doesn't have to cobble
                 # together a status message; but the data is still there of course if they want/need to.
-                nonlocal progress_status, total, validate_only
                 processed = progress_status[PROGRESS_LOADXL.ITEM]
                 gets = progress_status[PROGRESS_LOADXL.GET]
                 posts = progress_status[PROGRESS_LOADXL.POST]

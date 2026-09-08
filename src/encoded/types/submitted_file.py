@@ -99,6 +99,7 @@ SUBMITTED_FILE_ADD_VALIDATORS = list(
 def submitted_file_add(context: Item, request: Request, render=None):
     return collection_add(context, request, render)
 
+
 SUBMITTED_FILE_EDIT_PATCH_VALIDATORS = list(
     set(SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + FILE_EDIT_PATCH_VALIDATORS)
 )

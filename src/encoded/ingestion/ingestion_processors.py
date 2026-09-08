@@ -74,7 +74,6 @@ def parse_structured_data(file: str,
                           portal: Optional[Portal] = None) -> StructuredDataSet:
 
     def structured_data_set_progress(status: dict) -> None:
-        nonlocal ingestion_status
         ingestion_status.update(status)
         # structured_data_set_status = {"ingester_parse_" + key: value for key, value in status.items()}
         # ingestion_status.update(structured_data_set_status)

@@ -108,8 +108,8 @@ def test_es_supplementary_files_rev_link(es_testapp: TestApp, workbook: None) ->
 @pytest.mark.workbook
 def test_es_donors_calc_prop(es_testapp: TestApp, workbook: None) -> None:
     """Ensure donors calcprop works."""
-    uuid=get_insert_identifier_for_item_type(es_testapp,"DonorSpecificAssembly")
-    dsa=get_item(
+    uuid = get_insert_identifier_for_item_type(es_testapp,"DonorSpecificAssembly")
+    dsa = get_item(
         es_testapp,
         uuid,
         collection='DonorSpecificAssembly',
@@ -120,8 +120,8 @@ def test_es_donors_calc_prop(es_testapp: TestApp, workbook: None) -> None:
 @pytest.mark.workbook
 def test_es_cell_lines_calc_prop(es_testapp: TestApp, workbook: None) -> None:
     """Ensure the cell line calcprop works."""
-    uuid=get_insert_identifier_for_item_type(es_testapp,"DonorSpecificAssembly")
-    dsa=get_item(
+    uuid = get_insert_identifier_for_item_type(es_testapp,"DonorSpecificAssembly")
+    dsa = get_item(
         es_testapp,
         uuid,
         collection='DonorSpecificAssembly',

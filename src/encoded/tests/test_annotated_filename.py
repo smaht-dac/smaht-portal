@@ -387,7 +387,7 @@ TSV_FILE_EXTENSION = {
     "valid_item_types": ["SupplementaryFile", "OutputFile"]
 }
 BED_FILE_EXTENSION = {
-   "identifier": "BED",
+    "identifier": "BED",
     "standard_file_extension": "bed",
     "valid_item_types": ["SupplementaryFile"]
 }
@@ -613,6 +613,7 @@ def test_get_donor_sex_and_age_parts(
         result = get_donor_sex_and_age(donors, [])
         assert_filename_part_matches(result, expected, errors)
 
+
 REFERENCE_FILE = {"data_category": ["Genome Assembly"]}
 SEQUENCER_CODE = "A"
 SOME_SEQUENCER = {"code": SEQUENCER_CODE}
@@ -811,7 +812,7 @@ def test_get_sequencing_center_code(
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}",
             False,
         ), # Bed file from DSA
-                (
+        (
             SOME_BED_FILE,
             [],
             [SOME_SOFTWARE, SOME_ITEM],
