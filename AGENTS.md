@@ -62,11 +62,9 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
 - `Dockerfile` is a BuildKit multi-stage build (`builder` then non-root `runtime`). A local production
   image build needs `touch deploy/docker/local/docker_development.ini` first because the ignored file
   is copied into the image; `.github/workflows/main.yml` and `buildspec.yml` do the same. Build with
-  `DOCKER_BUILDKIT=1 docker build .` when BuildKit is not already the default. Both stages configure
-  the dedicated Debian security mirror through `deploy/docker/production/configure_apt_security.py`;
-  keep its suite and signature-verification preservation tests in `test_build_configuration.py`.
+  `DOCKER_BUILDKIT=1 docker build .` when BuildKit is not already the default.
 - The production image installs the pinned nginx.org build via
-  `deploy/docker/production/install_nginx_bullseye.sh`, rather than Debian nginx. `supervisord.conf`
+  `deploy/docker/production/install_nginx_bookworm.sh`, rather than Debian nginx. `supervisord.conf`
   runs nginx and multiple non-root Pyramid processes; role entrypoints build runtime configuration
   before serving, indexing, ingesting, or deploying.
 - `buildspec.yml` builds and pushes the ECR image. GitHub Actions in `.github/workflows/main.yml`
@@ -128,6 +126,16 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
 - Schema changes are migrations, not only JSON edits: update `src/encoded/upgrade/` when existing
   stored data must transform, bump schema versions according to neighboring types, and cover both
   schema validation and upgrader behavior.
+- When a Debian release goes EOL, its `-security` suite keeps publishing an index for package
+  versions whose `.deb` files have been pruned, so a clean-cache `docker build` fails with apt 404s
+  (exit 100) even though a warm cache or mirror still succeeds. No pin, retry, or `Acquire::Retries`
+  setting fixes it - the base image has to move. The `test_docker_base_image_*` /
+  `test_nginx_install_script_*` checks in `src/encoded/tests/test_static.py` (run by
+  `make test-static`) keep `Dockerfile`'s `BASE_IMAGE` off an EOL release and keep the nginx.org
+  pin in `deploy/docker/production/install_nginx_bookworm.sh` on that same release; add newly
+  EOL codenames to `END_OF_LIFE_DEBIAN_CODENAMES` there. `deploy/docker/postgres` and
+  `deploy/docker/elasticsearch` track upstream images and are not pinned to a Debian release
+  by this repository.
 
 ## `skip_default_facets=true` + `additional_facet=type` is an HTTP 400 in Snovault
 
