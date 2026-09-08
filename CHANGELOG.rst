@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+2.13.1
+======
+
+`PR 760: Add user subscription property <https://github.com/smaht-dac/smaht-portal/pull/760>`_
+
+* Added boolean property to User schema to indicate if the user has enrolled in the data release subscription service - default=false.
+
 2.13.0
 ======
 
