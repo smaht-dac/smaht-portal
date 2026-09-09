@@ -2971,21 +2971,31 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => buildScoreLegend(ischemicTimeScoring),
         [ischemicTimeScoring]
     );
+    // FBRO (Fibroblast) is a cultured-cell specimen, not a pathology-report
+    // subject -- it never has target_tissues/non_target_tissues/autolysis
+    // data, so it's excluded from the 3 pathology-derived tabs below
+    // (Autolysis Score, Target Tissue %, Non Target Tissue %) per explicit
+    // request. Ischemic Time above deliberately keeps using the raw,
+    // unfiltered `tissueResults` -- collection timing still applies to it.
+    const tissueResultsExcludingFibroblast = useMemo(
+        () => tissueResults.filter((t) => getTissueInternalCodeFromFacetTerm(t?.tissue_type) !== 'FBRO'),
+        [tissueResults]
+    );
     // Real tissue_type hrefs/categories, derived from the RAW (pre-subtype-
     // expansion) results -- needed by buildSubtypeColumnPlan below since
     // buildTissueMetricMatrix's own internal maps, built from the *expanded*
     // results, only ever see composite subtype-column keys, never the real
     // tissue_type itself, for any split tissue type.
     const realTissueTypeHrefsAndCategories = useMemo(
-        () => buildTissueTypeHrefsAndCategories(tissueResults),
-        [tissueResults]
+        () => buildTissueTypeHrefsAndCategories(tissueResultsExcludingFibroblast),
+        [tissueResultsExcludingFibroblast]
     );
     // Pre-expansion for the 2 subtype-aware tabs only -- see
     // expandTissueResultsBySubtype's own comment. Ischemic Time above
     // deliberately keeps using the raw, un-expanded `tissueResults`.
     const expandedForSubtypeTabs = useMemo(
-        () => expandTissueResultsBySubtype(tissueResults),
-        [tissueResults]
+        () => expandTissueResultsBySubtype(tissueResultsExcludingFibroblast),
+        [tissueResultsExcludingFibroblast]
     );
 
     // Autolysis, like ischemic time, is assessed once per whole brain at
@@ -3033,8 +3043,8 @@ export const BrowseTissueHeatmapTable = (props) => {
     // concept at all, so every brain region's value is unconditionally
     // null; `true` just merges those repeated "n/a" cells into one.
     const expandedForNonTargetTab = useMemo(
-        () => expandTissueResultsByNonTargetSubtype(tissueResults),
-        [tissueResults]
+        () => expandTissueResultsByNonTargetSubtype(tissueResultsExcludingFibroblast),
+        [tissueResultsExcludingFibroblast]
     );
     const nonTargetTissuePercentage = useMemo(
         () => buildTissueMetricMatrix(expandedForNonTargetTab, getNonTargetTissuePercentageValue, true),
