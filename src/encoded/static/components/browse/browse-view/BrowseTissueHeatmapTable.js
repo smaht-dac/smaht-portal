@@ -2100,7 +2100,7 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                         (regionTissueTypes.includes(hoveredColumn) ? ' is-column-highlight' : '') +
                         (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
                     }>
-                    n/a
+                    <span className="tissue-heatmap-subtype-subrow-label-text">n/a</span>
                 </th>
             );
             return;
@@ -2124,7 +2124,11 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }>
-                    {isRealSubtype ? subtypeLabel : 'n/a'}
+                    <span
+                        className="tissue-heatmap-subtype-subrow-label-text"
+                        title={isRealSubtype ? subtypeLabel : undefined}>
+                        {isRealSubtype ? subtypeLabel : 'n/a'}
+                    </span>
                 </th>
             );
             return;
@@ -2151,7 +2155,9 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                     onMouseEnter={() => onHoverColumn(key)}
                     // eslint-disable-next-line react/jsx-no-bind
                     onMouseLeave={() => onHoverColumn(null)}>
-                    {subtypeLabel}
+                    <span className="tissue-heatmap-subtype-subrow-label-text" title={subtypeLabel}>
+                        {subtypeLabel}
+                    </span>
                     <SortableHeaderLabel
                         label=""
                         sortDirection={sortState?.key === key ? sortState.direction : null}

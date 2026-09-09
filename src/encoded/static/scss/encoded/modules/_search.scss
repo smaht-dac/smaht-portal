@@ -3388,6 +3388,28 @@ div.browse-link-icon {
 			background-color: #DADDE3;
 		}
 
+		// A fixed-width, ellipsis-truncated box around every 3rd-row
+		// label (real subtype name, self-titled placeholder's "n/a", and
+		// merged-brain's own "n/a") -- column width used to just follow
+		// whichever subtype name happened to be longest (e.g. "Muscularis
+		// propria"), leaving some tissue-type columns much wider than
+		// others with nothing to explain why. Every 3rd-row cell now
+		// requests this same box's width regardless of its own text
+		// length, so table-layout: auto settles on one uniform width for
+		// every subtype-aware column instead; a `title` alongside this
+		// (see renderSubtypeHeaderCells) surfaces the untruncated text on
+		// hover. `vertical-align: middle` keeps this aligned with the sort
+		// button/icon next to it (a split column's own <SortableHeaderLabel>)
+		// rather than baseline-aligning against its icon's own box.
+		.tissue-heatmap-subtype-subrow-label-text {
+			display: inline-block;
+			width: 96px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			vertical-align: middle;
+		}
+
 		// An unsplit column's own 3rd-row cell (renderSubtypeHeaderCells) --
 		// plain "n/a", not a real subtype, so it's muted like any other
 		// empty value elsewhere in this table (.tissue-heatmap-cell's own
@@ -3951,6 +3973,15 @@ div.browse-link-icon {
 			font: inherit;
 			font-weight: inherit;
 			color: inherit;
+			// Matches .tissue-heatmap-subtype-subrow-label-text's own
+			// vertical-align -- keeps the icon sitting on the same line as
+			// a fixed-width (possibly ellipsis-truncated) label next to it,
+			// not shifted by the label's own inline-block baseline. The
+			// label's own `overflow: hidden` is scoped to its own box (a
+			// separate sibling element, not an ancestor of this button), so
+			// this icon is never at risk of being clipped by it regardless
+			// of how much the label itself truncates.
+			vertical-align: middle;
 			cursor: pointer;
 
 			&:hover .tissue-heatmap-sort-icon {
