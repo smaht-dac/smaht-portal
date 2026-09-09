@@ -1025,6 +1025,7 @@ export default function TissueTypeView({
                                                 aliquots={nonSolidAliquots}
                                                 specimenType={nonSolidSpecimenType}
                                                 idPrefix={aliquotIdPrefix}
+                                                assayPlatformsBySampleName={assayPlatformsBySampleName}
                                             />
                                         ) : (
                                             <AliquotVisualization

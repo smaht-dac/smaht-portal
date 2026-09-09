@@ -150,6 +150,13 @@ export default function NonSolidAliquotVisualization({
     specimenType = 'blood',
     idPrefix = null,
     className = null,
+    // Per real TissueSample external_id, the distinct "<Assay> - <Platform>"
+    // combos its own indexed Files carry -- same map (and the same
+    // AliquotVisualization.js-derived convention) the solid popover already
+    // reads, just keyed here off `aliquot.description` (this component's own
+    // real external_id field, see selectedFullAliquotId below) instead of a
+    // core position's own id.
+    assayPlatformsBySampleName = {},
 }) {
     const [selectedAliquotIndex, setSelectedAliquotIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -248,6 +255,14 @@ export default function NonSolidAliquotVisualization({
     const selectedFullAliquotId = selectedAliquot
         ? selectedAliquot.description || selectedAliquotId
         : null;
+    // Only looked up off the real external_id (selectedAliquot.description),
+    // never the synthetic selectedAliquotId fallback -- a demo/illustrative
+    // aliquot (no real sample behind it) has no real external_id and no
+    // matching Files either, so it should read as "no data", not
+    // coincidentally match some other sample's assay/platform combo.
+    const selectedAssayPlatforms = selectedAliquot?.description
+        ? assayPlatformsBySampleName[selectedAliquot.description] || []
+        : [];
 
     return (
         <div
@@ -416,6 +431,19 @@ export default function NonSolidAliquotVisualization({
                                             <strong>{selectedFullAliquotId}</strong>
                                         )}
                                     </div>
+                                    {selectedAssayPlatforms.length > 0 ? (
+                                        <div className="aliquot-popover-assay-platforms">
+                                            {selectedAssayPlatforms.join(', ')}
+                                        </div>
+                                    ) : selectedAliquot?.filesHref ? (
+                                        // Has its own files (linked above), just none of
+                                        // them carry assay/sequencer metadata yet -- same
+                                        // distinction AliquotVisualization.js's own core
+                                        // rows make.
+                                        <div className="aliquot-popover-assay-platforms is-empty">
+                                            No sequencer/assay data yet
+                                        </div>
+                                    ) : null}
                                 </div>
                                 <div className="aliquot-popover-row">
                                     <span>Type</span>
@@ -463,5 +491,6 @@ NonSolidAliquotVisualization.propTypes = {
             gccFilesHref: PropTypes.string,
         })
     ).isRequired,
+    assayPlatformsBySampleName: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
 };
 

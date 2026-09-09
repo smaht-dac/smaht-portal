@@ -1076,6 +1076,7 @@ const TissueView = React.memo(function TissueView({
                                                 aliquots={nonSolidAliquots}
                                                 specimenType={nonSolidSpecimenType}
                                                 idPrefix={aliquotIdPrefix}
+                                                assayPlatformsBySampleName={assayPlatformsBySampleName}
                                             />
                                         ) : (
                                             <AliquotVisualization
