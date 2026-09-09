@@ -1501,7 +1501,7 @@ function renderCellDetailPopover({
 // rules a `'diagonal'`/`'vertical'` cell follows; `cellSlots` (built by
 // buildTissueMetricMatrix, always exactly
 // `[Fixed entry | null, Frozen entry | null]`) is only read when it does.
-function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, donor, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, selectedCell, onCellClick, cellValueDisplayMode, splitByPreservationType, activeScoreClass = null, activeSplitHalf = null) {
+function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, donor, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, selectedCell, onCellClick, cellValueDisplayMode, splitByPreservationType, activeScoreClass = null, activeSplitHalf = null, subtypeColumnInfo = null) {
     const nodes = [];
     let i = 0;
     while (i < cells.length) {
@@ -1560,6 +1560,26 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
             selectedCell.columnIndex >= columnIndex &&
             selectedCell.columnIndex < columnIndex + span;
 
+        // Same real-tissue-type-group boundary the header's own 3rd row
+        // draws a heavier divider at (see renderSubtypeHeaderCells) -- only
+        // meaningful when subtypeColumnInfo is present (a subtype-aware
+        // tab), since that's the only case where more than 1 column can
+        // share a parent tissue type in the first place. Compared off the
+        // LAST column this cell actually covers (not `tissueType`/`i`
+        // itself), since a brain-merge span can cover several real columns
+        // in one <td>.
+        const lastCoveredTissueType = tissueTypes[i + span - 1];
+        const nextTissueType = tissueTypes[i + span];
+        const parentOfColumn = (key) => subtypeColumnInfo?.[key]?.parentTissueType ?? key;
+        // `nextTissueType` must exist -- the table's own very last column
+        // is never treated as a "boundary" (its border-right is already
+        // suppressed entirely via `.tissue-heatmap-cell:last-child`, and
+        // this class must not fight that).
+        const isGroupBoundary =
+            !!subtypeColumnInfo &&
+            !!nextTissueType &&
+            parentOfColumn(lastCoveredTissueType) !== parentOfColumn(nextTissueType);
+
         const className = (isSplitMode
             ? 'tissue-heatmap-cell tissue-heatmap-cell-split' +
               ` tissue-heatmap-cell-split-${cellValueDisplayMode}` +
@@ -1573,7 +1593,7 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                 isColumnSegment,
                 isHoverMode ? entries : null,
                 activeScoreClass
-            )) + (isSelected ? ' is-selected' : '');
+            )) + (isSelected ? ' is-selected' : '') + (isGroupBoundary ? ' tissue-heatmap-cell-group-boundary' : '');
 
         // Legend-driven per-half dimming (see FixedScoreLegend/SplitCellLegend's
         // activeClassName/activeHalf) -- `splitByPreservationType` cells
@@ -1973,7 +1993,12 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
                     colSpan={span > 1 ? span : undefined}
                     title="Brain"
                     className={
-                        (regionTissueTypes.includes(hoveredColumn) ? 'is-column-highlight' : '') +
+                        // Row-2's own light-background boundary variant, not
+                        // .tissue-heatmap-subtype-group-boundary (row 3's
+                        // darker, grey-background one) -- same color as this
+                        // row's other 2 header classes below.
+                        'tissue-heatmap-subtype-row2-boundary' +
+                        (regionTissueTypes.includes(hoveredColumn) ? ' is-column-highlight' : '') +
                         (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
                     }
                     // eslint-disable-next-line react/jsx-no-bind
@@ -2071,6 +2096,7 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                     colSpan={span > 1 ? span : undefined}
                     className={
                         'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder' +
+                        ' tissue-heatmap-subtype-group-boundary' +
                         (regionTissueTypes.includes(hoveredColumn) ? ' is-column-highlight' : '') +
                         (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
                     }>
@@ -2094,6 +2120,7 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                         (isRealSubtype
                             ? 'tissue-heatmap-subtype-subrow-header'
                             : 'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder') +
+                        ' tissue-heatmap-subtype-group-boundary' +
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }>
@@ -2102,13 +2129,21 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
             );
             return;
         }
-        run.group.children.forEach(({ key, subtypeLabel }) => {
+        run.group.children.forEach(({ key, subtypeLabel }, childIndex) => {
+            // Only the LAST child's own border-right actually sits at the
+            // real tissue-type-group boundary -- the others are dividers
+            // between sibling subtypes of the SAME tissue type, which stay
+            // the plain, lighter grid line (see .tissue-heatmap-cell-group-
+            // boundary/its subrow-header equivalent in _search.scss) so the
+            // 2 kinds of divider read as visually distinct.
+            const isLastChild = childIndex === run.group.children.length - 1;
             nodes.push(
                 <th
                     key={key}
                     title={key}
                     className={
                         'tissue-heatmap-subtype-subrow-header' +
+                        (isLastChild ? ' tissue-heatmap-subtype-group-boundary' : '') +
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }
@@ -2818,7 +2853,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     cellValueDisplayMode,
                                     splitByPreservationType,
                                     activeScoreClass,
-                                    activeSplitHalf
+                                    activeSplitHalf,
+                                    subtypeColumnInfo
                                 )}
                             </tr>
                         ))}

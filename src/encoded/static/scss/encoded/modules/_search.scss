@@ -3297,21 +3297,57 @@ div.browse-link-icon {
 			min-width: 40px;
 		}
 
-		// Per-subtype sub-columns (Autolysis Score/Target Tissue % tabs,
-		// BrowseTissueHeatmapTable.js's buildSubColumnGroups) add a 3rd
-		// header row for tissue types with more than 1 real subtype in the
-		// data -- `thead tr:last-child th`'s own border-right divider
-		// (above) only ever reaches whichever row ends up literally last,
-		// so on a table with any split column that's this 3rd row, not the
-		// 2nd -- these 3 classes add the same divider explicitly to every
-		// 2nd-row header cell (both the split parent's own colSpan cell and
-		// an unsplit tissue type's own rowSpan cell), so the vertical grid
-		// line stays continuous across both rows regardless of which
-		// column happens to be split.
+		// Row-2 header cells (parent-header/unsplit-header/merged-brain,
+		// via its own .tissue-heatmap-subtype-row2-boundary) are each
+		// already a whole tissue-type-group's own single cell by
+		// construction -- colSpan for a split group, 1 column for an
+		// unsplit or merged-brain one -- so there's no "sibling" case here
+		// to distinguish; every one of these dividers is a real group
+		// boundary. `thead tr:last-child th`'s own border-right divider
+		// only ever reaches whichever row ends up literally last, so on a
+		// table with any split column that's the 3rd row, not this one --
+		// this carries the same divider explicitly onto every row-2 cell
+		// so the vertical grid line stays continuous across both rows.
+		// Kept lighter than row 3's own boundary color below -- this row's
+		// background is near-white, where that darker color read as too
+		// heavy/attention-grabbing; row 3's grey background needs the
+		// darker one just to register at all (see below).
 		.tissue-heatmap-subtype-parent-header,
 		.tissue-heatmap-subtype-unsplit-header,
+		.tissue-heatmap-subtype-row2-boundary {
+			border-right: 1px solid #CBD5DE;
+
+			&:last-child {
+				border-right: none;
+			}
+		}
+
+		// The 3rd row's own sibling-subtype divider (between 2 subtypes of
+		// the SAME tissue type, e.g. Fibroadipose | Lymphoid) -- darker
+		// than the generic #E7F0F3 grid line used elsewhere in this table,
+		// since this row's own background (#DADDE3 below) is itself darker
+		// than #E7F0F3, which made that line invisible here specifically.
 		.tissue-heatmap-subtype-subrow-header {
-			border-right: 1px solid #E7F0F3;
+			border-right: 1px solid #AEB7C0;
+
+			&:last-child {
+				border-right: none;
+			}
+		}
+
+		// The real tissue-type-group boundary, one tier darker again than
+		// the sibling divider directly above -- a split group's own 3rd-row
+		// cells otherwise looked identical whether they sat between 2
+		// siblings of the SAME tissue type or at the real boundary with the
+		// NEXT tissue type, so there was no way to tell where one tissue
+		// type's own subtype columns actually ended. Applied via this
+		// class (see renderSubtypeHeaderCells) to a split group's own LAST
+		// child and to every unsplit/merged-brain single-column placeholder
+		// in this (grey-background) row only -- row 2's own merged-brain
+		// cell uses the lighter .tissue-heatmap-subtype-row2-boundary
+		// above instead, since its background isn't this row's grey.
+		.tissue-heatmap-subtype-group-boundary {
+			border-right: 1px solid #8698A8;
 
 			&:last-child {
 				border-right: none;
@@ -3573,6 +3609,17 @@ div.browse-link-icon {
 
 			&:last-child {
 				border-right: none;
+			}
+
+			// Same real-tissue-type-group boundary the header's own 3rd
+			// row marks (see .tissue-heatmap-subtype-group-boundary's own
+			// comment above) -- carried down through the body so the
+			// heavier divider reads as one continuous line from header to
+			// last row, not just at the top. Source order (after the plain
+			// border-right above) is what makes this win on a cell
+			// carrying both classes, same specificity either way.
+			&.tissue-heatmap-cell-group-boundary {
+				border-right: 1px solid #CBD5DE;
 			}
 
 			// A sequential sky-blue scale (light -> dark), not a green->red
