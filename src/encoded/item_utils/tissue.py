@@ -172,7 +172,7 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
     
     Special handling of fibroblasts (3AC) and Benchmarking tissues
     """
-     # Use tissue code from external id to identify fibroblast
+    # Use tissue code from external id to identify fibroblast
     fibroblast = is_fibroblast(properties)
     if fibroblast:
         return "3AC - Fibroblast"

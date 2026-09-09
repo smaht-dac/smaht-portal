@@ -1,9 +1,7 @@
 from pyramid.view import view_config
 from snovault.util import debug_log
-from dcicutils.misc_utils import ignored
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
-from .schema_formats import is_accession_for_server
 from urllib.parse import urlencode
 from .submission_status import search_total
 

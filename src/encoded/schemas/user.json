@@ -106,6 +106,12 @@
             "title": "Institution",
             "type": "string",
             "comment": "Can be user supplied - purely informational"
+        },
+        "data_release_notification_enrolled": {
+            "title": "Data Release Notification Enrollment",
+            "description": "Whether the user requested enrollment in data-release email announcements.",
+            "type": "boolean",
+            "default": false
         }
     },
     "facets": {

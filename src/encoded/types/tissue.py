@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 from snovault import collection, load_schema, calculated_property
 from snovault.util import debug_log, get_item_or_none
@@ -416,7 +416,7 @@ def validate_external_id_on_edit(context, request):
     donor_item = get_item_or_none(request, donor, 'sample-sources')
     uberon_id = get_property_for_validation('uberon_id', existing_properties, properties_to_update)
     uberon_item = get_item_or_none(request, uberon_id, 'ontology-terms')
-    if (study:=donor_utils.get_study(donor_item)):
+    if (study := donor_utils.get_study(donor_item)):
         if not assert_valid_external_id(external_id):
             msg = f"external_id {external_id} does not match {study} nomenclature."
             return request.errors.add('body', 'Tissue: invalid property', msg)

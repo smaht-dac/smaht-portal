@@ -250,16 +250,12 @@ class IngestionStatusCache:
             return None
         cache = IngestionStatusCache.instance(resource, redis_client=redis_client)
         def get(sort: bool = False) -> Optional[dict]:  # noqa
-            nonlocal uuid, cache
             return cache.get(uuid, sort=sort) if cache else None
         def set(value: dict) -> bool:  # noqa
-            nonlocal uuid, cache
             cache.set(uuid, value) if cache else False
         def update(value: dict) -> bool:  # noqa
-            nonlocal uuid, cache
             cache.update(uuid, value) if cache else False
         def flush() -> None:  # noqa
-            nonlocal uuid, cache
             cache.flush(uuid) if cache else None
         ingestion_status_connection_type = namedtuple("connection", ["get", "set", "update", "flush"])
         return ingestion_status_connection_type(get, set, update, flush)
