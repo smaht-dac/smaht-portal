@@ -32,8 +32,8 @@ Schema Documentation
                             <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
                     </td>
-                    <td class="font-monospace">3.0 (latest)</td>
-                    <td class="text-center font-monospace">2026-08-19</td>
+                    <td>3.0 (latest)</td>
+                    <td>2026-08-19</td>
                     <td><a href="/static/files/SMaHT Sample and File Nomenclature v3.0.pdf" download>SMaHT Sample and File Nomenclature v3.0.pdf</a></td>
                 </tr>
             </tbody>
@@ -111,6 +111,10 @@ Table 1. Donor identifiers for SMaHT benchmark cell lines.
         </table>
     </div>
 
+    <caption>
+        * LB-LA2 fibroblast and the iPSC cell lines are described in Fasching L et al. (2021) Science.
+    </caption>
+
 
 Figure 1. SMaHT Tissue Recovery Schema.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,8 +162,8 @@ Figure 2. Example Standardized Tissue Coring Schema.
     </figure>
 
 
-Table 2A. Benchmark tissue IDs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Table 2A. Benchmark tissue IDs.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
     <caption>
@@ -259,7 +263,7 @@ Table 2A. Benchmark tissue IDs
                 </tr>
                 <tr>
                     <td class="font-monospace">1Q</td>
-                    <td>Brain, Frontal Lobe</td>
+                    <td>Brain, Frontal lobe</td>
                     <td>Snap Frozen</td>
                     <td>For both homogenate and non-homogenate samples used in the SMaHT benchmark studies</td>
                 </tr>
@@ -268,8 +272,8 @@ Table 2A. Benchmark tissue IDs
     </div>
 
 
-Table 2B. Production tissue IDs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Table 2B. Production tissue IDs.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
     <caption>
@@ -295,7 +299,7 @@ Table 2B. Production tissue IDs
                 </tr>
                 <tr>
                     <td class="font-monospace">3B</td>
-                    <td>Buccal Swab</td>
+                    <td>Buccal swab</td>
                     <td>Fresh</td>
                 </tr>
                 <tr>
@@ -330,32 +334,32 @@ Table 2B. Production tissue IDs
                 </tr>
                 <tr>
                     <td class="font-monospace">3I</td>
-                    <td>Liver Sample</td>
+                    <td>Liver</td>
                     <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">3J</td>
-                    <td>Liver Sample</td>
+                    <td>Liver</td>
                     <td>Fixed</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">3K</td>
-                    <td>Adrenal Gland, Left</td>
+                    <td>Adrenal gland, Left</td>
                     <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">3L</td>
-                    <td>Adrenal Gland, Left</td>
+                    <td>Adrenal gland, Left</td>
                     <td>Fixed</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">3M</td>
-                    <td>Adrenal Gland, Right</td>
+                    <td>Adrenal gland, Right</td>
                     <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">3N</td>
-                    <td>Adrenal Gland, Right</td>
+                    <td>Adrenal gland, Right</td>
                     <td>Fixed</td>
                 </tr>
                 <tr>
@@ -380,12 +384,12 @@ Table 2B. Production tissue IDs
                 </tr>
                 <tr>
                     <td class="font-monospace">3S</td>
-                    <td>Heart, LV</td>
+                    <td>Heart, Left ventricle</td>
                     <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">3T</td>
-                    <td>Heart, LV</td>
+                    <td>Heart, Left ventricle</td>
                     <td>Fixed</td>
                 </tr>
                 <tr>
@@ -429,8 +433,8 @@ Table 2B. Production tissue IDs
                     <td>Fixed</td>
                 </tr>
                 <tr>
-                    <td class="font-monospace">3AC*</td>
-                    <td>Dermal Fibroblast <span class="text-danger">*</span></td>
+                    <td class="font-monospace">3AC</td>
+                    <td>Dermal fibroblast <span class="text-danger">*</span></td>
                     <td>Cultured Cells</td>
                 </tr>
                 <tr>
@@ -470,12 +474,12 @@ Table 2B. Production tissue IDs
                 </tr>
                 <tr>
                     <td class="font-monospace">3AK</td>
-                    <td>Frontal Lobe, Brain, Left hemisphere</td>
+                    <td>Frontal lobe, Brain, Left hemisphere</td>
                     <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">3AL</td>
-                    <td>Temporal Lobe, Brain, Left hemisphere</td>
+                    <td>Temporal lobe, Brain, Left hemisphere</td>
                     <td>Snap Frozen</td>
                 </tr>
                 <tr>
@@ -495,12 +499,12 @@ Table 2B. Production tissue IDs
                 </tr>
                 <tr>
                     <td class="font-monospace">3AP</td>
-                    <td>Frontal Lobe, Brain, Left hemisphere</td>
+                    <td>Frontal lobe, Brain, Left hemisphere</td>
                     <td>Fixed</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">3AQ</td>
-                    <td>Temporal Lobe, Brain, Left hemisphere</td>
+                    <td>Temporal lobe, Brain, Left hemisphere</td>
                     <td>Fixed</td>
                 </tr>
                 <tr>
@@ -648,7 +652,7 @@ Table 3B. Experimental assay codes.
             </thead>
             <tbody class="table-border-inner">
                 <tr>
-                    <td class="text-center font-monospace">000</td>
+                    <td class="font-monospace">000</td>
                     <td></td>
                     <td>(Null or not-applicable)</td>
                 </tr>
@@ -656,157 +660,157 @@ Table 3B. Experimental assay codes.
                     <td colspan="3">[001-100: DNA-based assays]</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">001</td>
+                    <td class="font-monospace">001</td>
                     <td>WGS</td>
                     <td>DNA, PCR-free, Bulk, Whole genome sequencing (WGS)</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">002</td>
+                    <td class="font-monospace">002</td>
                     <td>PCR WGS</td>
                     <td>DNA PCR, Bulk, WGS</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">003</td>
+                    <td class="font-monospace">003</td>
                     <td>Ultra-Long WGS</td>
                     <td>DNA, PCR-free, Bulk, Ultra-Long WGS</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">004</td>
+                    <td class="font-monospace">004</td>
                     <td>Fiber-seq</td>
                     <td>DNA, PCR-free, Bulk, Fiber-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">005</td>
+                    <td class="font-monospace">005</td>
                     <td>Hi-C</td>
                     <td>DNA, Bulk, Hi-C</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">006</td>
+                    <td class="font-monospace">006</td>
                     <td>Bulk NTSeq</td>
                     <td>DNA, Bulk, NTSeq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">007</td>
+                    <td class="font-monospace">007</td>
                     <td>CODEC</td>
                     <td>DNA, Bulk, Duplex-seq, CODEC</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">008</td>
+                    <td class="font-monospace">008</td>
                     <td>Bot-seq</td>
                     <td>DNA, Bulk, Duplex-seq, Bot-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">009</td>
+                    <td class="font-monospace">009</td>
                     <td>NanoSeq</td>
                     <td>DNA, Bulk, Duplex-seq, NanoSeq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">010</td>
+                    <td class="font-monospace">010</td>
                     <td>scNanoSeq</td>
                     <td>DNA, Single-cell, Duplex-seq, scNanoSeq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">011</td>
+                    <td class="font-monospace">011</td>
                     <td>DLP+</td>
                     <td>DNA, Single-cell, DLP+</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">012</td>
+                    <td class="font-monospace">012</td>
                     <td>Microbulk MALBAC WGS</td>
                     <td>DNA, Microbulk, MALBAC-amplified WGS</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">013</td>
+                    <td class="font-monospace">013</td>
                     <td>Single-cell MALBAC WGS</td>
                     <td>DNA, Single-cell, MALBAC-amplified WGS</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">014</td>
+                    <td class="font-monospace">014</td>
                     <td>Microbulk PTA WGS</td>
                     <td>DNA, Microbulk, PTA-amplified WGS</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">015</td>
+                    <td class="font-monospace">015</td>
                     <td>Single-cell PTA WGS</td>
                     <td>DNA, Single-cell, PTA-amplified WGS</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">016</td>
+                    <td class="font-monospace">016</td>
                     <td>scDip-C</td>
                     <td>DNA, Single-cell, scDip-C</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">017</td>
+                    <td class="font-monospace">017</td>
                     <td>CompDuplex-seq</td>
                     <td>DNA, Bulk, Duplex-seq, CompDuplex-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">018</td>
+                    <td class="font-monospace">018</td>
                     <td>scCompDuplex-seq</td>
                     <td>DNA, Single-cell, Duplex-seq, scCompDuplex-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">019</td>
+                    <td class="font-monospace">019</td>
                     <td>Strand-seq</td>
                     <td>DNA, Bulk, Strand-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">020</td>
+                    <td class="font-monospace">020</td>
                     <td>scStrand-seq</td>
                     <td>DNA, Single-cell, scStrand-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">021</td>
+                    <td class="font-monospace">021</td>
                     <td>HiDEF-seq</td>
                     <td>DNA, Bulk, Duplex-seq, HiDEF-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">022</td>
+                    <td class="font-monospace">022</td>
                     <td>HAT-seq</td>
                     <td>DNA, Bulk, HAT-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">023</td>
+                    <td class="font-monospace">023</td>
                     <td>Microbulk HAT-seq</td>
                     <td>DNA, Microbulk, PTA-amplified HAT-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">024</td>
+                    <td class="font-monospace">024</td>
                     <td>scHAT-seq</td>
                     <td>DNA, Single-cell, PTA-amplified, HAT-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">025</td>
+                    <td class="font-monospace">025</td>
                     <td>META-VISTA-seq</td>
                     <td>DNA, Bulk, Duplex-seq, META-VISTA-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">026</td>
+                    <td class="font-monospace">026</td>
                     <td>Microbulk META-VISTA-seq</td>
                     <td>DNA, Microbulk, Duplex-seq, META-VISTA-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">027</td>
+                    <td class="font-monospace">027</td>
                     <td>scMETA-VISTA-seq</td>
                     <td>DNA, Single-cell, Duplex-seq, META-VISTA-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">028</td>
+                    <td class="font-monospace">028</td>
                     <td>TEnCATS</td>
                     <td>DNA, Bulk, TEnCATS</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">029</td>
+                    <td class="font-monospace">029</td>
                     <td>L1-ONT</td>
                     <td>DNA, Bulk, L1-ONT</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">030</td>
+                    <td class="font-monospace">030</td>
                     <td>ppmSeq</td>
                     <td>DNA, Bulk, Duplex-seq, ppmSeq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">031</td>
+                    <td class="font-monospace">031</td>
                     <td>SBX-D</td>
                     <td>DNA, Bulk, Duplex-seq, SBX-D</td>
                 </tr>
@@ -817,27 +821,27 @@ Table 3B. Experimental assay codes.
                     <td colspan="3">[101-200: RNA-based assays]</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">101</td>
+                    <td class="font-monospace">101</td>
                     <td>RNA-seq</td>
                     <td>RNA, Bulk, RNA-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">102</td>
+                    <td class="font-monospace">102</td>
                     <td>Kinnex</td>
                     <td>RNA, Bulk, Kinnex</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">103</td>
+                    <td class="font-monospace">103</td>
                     <td>snRNA-seq</td>
                     <td>RNA, Single-cell, snRNA-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">104</td>
+                    <td class="font-monospace">104</td>
                     <td>STORM-Seq</td>
                     <td>RNA, Single-cell, STORM-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">105</td>
+                    <td class="font-monospace">105</td>
                     <td>Tranquil-Seq</td>
                     <td>RNA, Single-cell, Tranquil-seq</td>
                 </tr>
@@ -848,22 +852,22 @@ Table 3B. Experimental assay codes.
                     <td colspan="3">[201-300: Chromatin-based assays]</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">201</td>
+                    <td class="font-monospace">201</td>
                     <td>ATAC-seq</td>
                     <td>Chromatin, Bulk, ATAC-seq</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">202</td>
+                    <td class="font-monospace">202</td>
                     <td>CUT&Tag</td>
                     <td>Chromatin, Bulk, CUT&Tag</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">203</td>
+                    <td class="font-monospace">203</td>
                     <td>varCUT&Tag</td>
                     <td>Chromatin, Bulk, varCUT&Tag</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">204</td>
+                    <td class="font-monospace">204</td>
                     <td>sc-varCUT&Tag</td>
                     <td>Chromatin, Single-cell, sc-varCUT&Tag</td>
                 </tr>
@@ -888,7 +892,7 @@ Table 4. Codes for centers in the SMaHT Network.
         <table class="table table-striped table-sm text-start">
             <thead class="thead-smaht table-borderless">
                 <tr>
-                    <th>Center Code in the Data portal</th>
+                    <th>Data Portal Code</th>
                     <th>Center Category</th>
                     <th>Full Name of the Center</th>
                     <th>Contact PI</th>
@@ -896,127 +900,127 @@ Table 4. Codes for centers in the SMaHT Network.
             </thead>
             <tbody class="table-border-inner">
                 <tr>
-                    <td class="text-center font-monospace">bcm</td>
+                    <td class="font-monospace">bcm</td>
                     <td>GCC</td>
                     <td>Baylor College of Medicine</td>
                     <td>Richard Gibbs</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">broad</td>
+                    <td class="font-monospace">broad</td>
                     <td>GCC</td>
                     <td>Broad Institute of MIT and Harvard</td>
                     <td>Kristin Ardlie</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">nygc</td>
+                    <td class="font-monospace">nygc</td>
                     <td>GCC</td>
                     <td>New York Genome Center</td>
                     <td>Nicolas Robine</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">uwsc</td>
+                    <td class="font-monospace">uwsc</td>
                     <td>GCC</td>
                     <td>University of Washington & Seattle Children’s Research Institute</td>
                     <td>Jimmy Bennett</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">washu</td>
+                    <td class="font-monospace">washu</td>
                     <td>GCC</td>
                     <td>Washington University in St. Louis and Van Andel Institute</td>
                     <td>Ting Wang</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">bcm1</td>
+                    <td class="font-monospace">bcm1</td>
                     <td>TTD</td>
                     <td>Baylor College of Medicine</td>
                     <td>Chuck Zong</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">bcm2</td>
+                    <td class="font-monospace">bcm2</td>
                     <td>TTD</td>
                     <td>Baylor College of Medicine</td>
                     <td>Fritz Sedlazeck</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">bch1</td>
+                    <td class="font-monospace">bch1</td>
                     <td>TTD</td>
                     <td>Boston Children’s Hospital</td>
                     <td>Christopher Walsh</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">bch2</td>
+                    <td class="font-monospace">bch2</td>
                     <td>TTD</td>
                     <td>Boston Children’s Hospital</td>
                     <td>Sangita Choudhury</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">broad1</td>
+                    <td class="font-monospace">broad1</td>
                     <td>TTD</td>
                     <td>Broad Institute of MIT and Harvard</td>
                     <td>Fei Chen</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">cwru</td>
+                    <td class="font-monospace">cwru</td>
                     <td>TTD</td>
                     <td>Case Western Reserve University</td>
                     <td>Fulai Jin</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">dfci</td>
+                    <td class="font-monospace">dfci</td>
                     <td>TTD</td>
                     <td>Dana-Farber Cancer Institute</td>
                     <td>Kathleen Burns</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">mayo</td>
+                    <td class="font-monospace">mayo</td>
                     <td>TTD</td>
                     <td>Mayo Clinic</td>
                     <td>Alexej Abyzov</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">nyu</td>
+                    <td class="font-monospace">nyu</td>
                     <td>TTD</td>
                     <td>New York University</td>
                     <td>Gilad Evrony</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">stfd</td>
+                    <td class="font-monospace">stfd</td>
                     <td>TTD</td>
                     <td>Stanford University</td>
                     <td>Alexander Urban</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">umass</td>
+                    <td class="font-monospace">umass</td>
                     <td>TTD</td>
                     <td>University of Massachusetts</td>
                     <td>Thomas Fazzio</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">umich</td>
+                    <td class="font-monospace">umich</td>
                     <td>TTD</td>
                     <td>University of Michigan</td>
                     <td>Ryan Mills</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">uutah</td>
+                    <td class="font-monospace">uutah</td>
                     <td>TTD</td>
                     <td>University of Utah</td>
                     <td>Gabor Marth</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">wcnygc</td>
+                    <td class="font-monospace">wcnygc</td>
                     <td>TTD</td>
                     <td>Weill Cornell Medicine & New York Genome Center</td>
                     <td>Dan Landau</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">dac</td>
+                    <td class="font-monospace">dac</td>
                     <td>DAC</td>
                     <td>Harvard Medical School</td>
                     <td>Peter Park</td>
                 </tr>
                 <tr>
-                    <td class="text-center font-monospace">tpc</td>
+                    <td class="font-monospace">tpc</td>
                     <td>TPC</td>
                     <td>National Disease Research Interchange (NDRI)</td>
                     <td>Thomas Bell</td>
@@ -1054,19 +1058,19 @@ Table 5. Genome version (A) and data type (B) codes.
             <tbody class="table-border-inner">
                 <tr>
                     <td>GRCh38 without ALT contigs</td>
-                    <td class="text-center font-monospace">GRCh38</td>
+                    <td class="font-monospace">GRCh38</td>
                 </tr>
                 <tr>
                     <td>GRCh38 with ALT contigs</td>
-                    <td class="text-center font-monospace">GRCh38_ALT</td>
+                    <td class="font-monospace">GRCh38_ALT</td>
                 </tr>
                 <tr>
                     <td>T2T CHM13</td>
-                    <td class="text-center font-monospace">CHM13</td>
+                    <td class="font-monospace">CHM13</td>
                 </tr>
                 <tr>
                     <td>Donor-specific genome assembly</td>
-                    <td class="text-center font-monospace">DSA</td>
+                    <td class="font-monospace">DSA</td>
                 </tr>
             </tbody>
         </table>
@@ -1081,55 +1085,55 @@ Table 5. Genome version (A) and data type (B) codes.
             <tbody class="table-border-inner">
                 <tr>
                     <td>Single nucleotide variants</td>
-                    <td class="text-center font-monospace">snv</td>
+                    <td class="font-monospace">snv</td>
                 </tr>
                 <tr>
                     <td>Short insertions and deletions</td>
-                    <td class="text-center font-monospace">indel</td>
+                    <td class="font-monospace">indel</td>
                 </tr>
                 <tr>
                     <td>Structural variants, including large insertions and deletions, duplications, inversions, and translocations</td>
-                    <td class="text-center font-monospace">sv</td>
+                    <td class="font-monospace">sv</td>
                 </tr>
                 <tr>
                     <td>Copy number variants</td>
-                    <td class="text-center font-monospace">cnv</td>
+                    <td class="font-monospace">cnv</td>
                 </tr>
                 <tr>
                     <td>Mobile element insertions</td>
-                    <td class="text-center font-monospace">mei</td>
+                    <td class="font-monospace">mei</td>
                 </tr>
                 <tr>
                     <td>Reference conversion</td>
-                    <td>[Source]<span class="text-center font-monospace">To</span>[Target]</td>
+                    <td>[Source]<span class="font-monospace">To</span>[Target]</td>
                 </tr>
                 <tr>
                     <td>Donor-specific genome assembly haplotype</td>
-                    <td class="text-center font-monospace">hapX, hapY, hapX1, hapX2</td>
+                    <td class="font-monospace">hapX, hapY, hapX1, hapX2</td>
                 </tr>
                 <tr>
                     <td>Gene expression level</td>
-                    <td class="text-center font-monospace">gene</td>
+                    <td class="font-monospace">gene</td>
                 </tr>
                 <tr>
                     <td>Transcript isoform expression level or other isoform-level information</td>
-                    <td class="text-center font-monospace">isoform</td>
+                    <td class="font-monospace">isoform</td>
                 </tr>
                 <tr>
                     <td>Exon/Intron junction annotations</td>
-                    <td class="text-center font-monospace">junction</td>
+                    <td class="font-monospace">junction</td>
                 </tr>
                 <tr>
                     <td>Full-length, non-concatemer (FLNC) Kinnex</td>
-                    <td class="text-center font-monospace">flnc</td>
+                    <td class="font-monospace">flnc</td>
                 </tr>
                 <tr>
                     <td>Aligned consensus reads from Duplex-seq data</td>
-                    <td class="text-center font-monospace">consensus</td>
+                    <td class="font-monospace">consensus</td>
                 </tr>
                 <tr>
                     <td>Metadata information</td>
-                    <td>metadata</td>
+                    <td class="font-monospace">metadata</td>
                 </tr>
             </tbody>
         </table>
