@@ -16,6 +16,7 @@ import {
     SearchTableTitle,
 } from './../../item-pages/components/EmbeddedItemSearchTable';
 import { YoutubeVideoEmbed } from '../components/YoutubeVideoEmbed';
+import { ClickableImage } from '../components/ClickableImage';
 import {
     BenchmarkingUI,
     COLO829Data,
@@ -48,6 +49,7 @@ const placeholders = {
     EmbeddedItemSearchTable,
     SearchTableTitle,
     YoutubeVideoEmbed,
+    ClickableImage,
     ConsortiumMap,
     Alluvial,
     QualityMetricVisualizations,
