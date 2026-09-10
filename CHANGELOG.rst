@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+2.13.2
+======
+
+`PR 755: Publication updates <https://github.com/smaht-dac/smaht-portal/pull/755>`_
+
+* Added Coming Soon styling and disabled publication title links for publications
+  tagged with ``suppress_links``.
+* Hide data analyzed statistics and the supplementary file table for publications
+  tagged with ``suppress_data_banner``.
+* Added clickable images with an enlarged modal view for static content.
+* Updated publication citations, navigation, supplementary data labels, and page styling.
+* Refreshed the publication collection header image and Benchmarking page layout.
+
 2.13.1
 ======
 
