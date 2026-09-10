@@ -1,6 +1,5 @@
 import functools
 from dataclasses import dataclass
-from botocore.exceptions import ClientError
 from typing import Any, Dict, List, Optional
 
 import pytest
@@ -31,7 +30,7 @@ from ..item_utils.utils import (
     get_unique_values,
     RequestHandler,
 )
-from ..types.file import CalcPropConstants, File
+from ..types.file import CalcPropConstants
 
 
 OUTPUT_FILE_FORMAT = "FASTQ"

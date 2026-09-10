@@ -1,7 +1,5 @@
-from typing import Any, Dict, List, Union
-import functools
+from typing import List, Union
 
-from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 import structlog
