@@ -232,7 +232,8 @@ tissue block as the sequenced sample a file was derived from. It is retrieved fr
 * ``PathologyReport`` (``BrainPathologyReport`` and ``NonBrainPathologyReport``)
 
 There is one row per sequenced sample, linked fixed sample, and pathology report. A linked fixed sample that
-has no pathology report still gets a row, with the pathology columns left empty.
+has no pathology report still gets a row. Its pathology pipecols contain ``NA``; other missing scalar pathology
+fields remain empty. ``PathologyReportStatus`` is not included in this manifest, which has 60 columns.
 
 
 Handling Multiple Values in Pathology Groups
@@ -241,8 +242,9 @@ Handling Multiple Values in Pathology Groups
 A single pathology report can record several target tissues, non-target tissues, pathologic findings, or brain
 subregions. Each of these is a group of related columns. As with the ``Nested Lists`` of the ``Donor
 Manifest``, the values within a group are delimited by the pipe (“\|") character, and the order of the values
-separated by “\|" indicates how the columns in that group correspond to one another. An empty value keeps its
-place in the sequence, so the correspondence is preserved even when a value is missing.
+separated by “\|" indicates how the columns in that group correspond to one another. A missing or empty value is
+represented by the ``NA`` token, which keeps its place in the sequence. A literal pipe in a value is replaced by
+``_pipe_`` before values are joined; pipes between tokens remain the field separator.
 
 The groups of columns that correspond to one another in this way are:
 
@@ -258,10 +260,11 @@ A report records two pathologic findings, and only the first of them has a perce
 * **PathologyFindingType**: ``Inflammation|Necrosis``
 * **PathologyFindingPresent**: ``Yes|Yes``
 * **PathologyFindingDescription**: ``mild, patchy|coagulative, focal``
-* **PathologyFindingPercentage**: ``[0-10]|``
+* **PathologyFindingPercentage**: ``[0-10]|NA``
 
 In this case the report found mild, patchy inflammation covering 0-10% of the sample, and coagulative, focal
-necrosis for which no percentage was recorded.
+necrosis for which no percentage was recorded. ``NA`` is a missing-value token, not an additional record.
+For example, a description containing ``left|right`` is emitted as ``left_pipe_right``.
 
 Note that these groups use the pipe rather than the comma because the free-text description columns routinely
 contain commas. The comma remains the delimiter for the ordinary multi-value columns of the ``File Manifest``

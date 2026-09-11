@@ -1,3 +1,4 @@
+import csv
 from types import SimpleNamespace
 from typing import Any, Optional
 
@@ -10,6 +11,7 @@ from ..metadata import (
     SAMPLE_PATHOLOGY,
     TSV_MAPPING,
     _PATHOLOGY_GROUP_VALUE_DELIMITER,
+    _PATHOLOGY_PIPECOL_NAMES,
     _build_sample_pathology_row,
     _index_items_by_identifiers,
     _linked_item_identifiers,
@@ -17,6 +19,7 @@ from ..metadata import (
     descend_field,
     generate_sample_pathology_manifest,
     generate_manifest_header,
+    generate_tsv,
     handle_file_group,
     handle_sample_source_type,
     handle_sample_type,
@@ -181,6 +184,9 @@ def test_build_sample_pathology_row_includes_common_and_subtype_fields() -> None
     assert row_by_column["PathologyOutcome"] == "Acceptable"
     assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex|Liver"
     assert row_by_column["PathologyTargetTissuePresent"] == "No|Yes"
+    assert row_by_column["PathologyNonTargetTissueSubtype"] == "NA"
+    assert row_by_column["PathologyFindingDescription"] == "NA"
+    assert "PathologyReportStatus" not in row_by_column
     assert "PathologyMetadataStatus" not in row_by_column
     assert "SequencedSampleExternalID" not in row_by_column
     assert "LinkedFixedSampleIdentifier" not in row_by_column
@@ -189,14 +195,19 @@ def test_build_sample_pathology_row_includes_common_and_subtype_fields() -> None
 
 
 def test_sample_pathology_manifest_header_excludes_rejected_status_and_historical_columns() -> None:
-    _header1, _header2, columns = generate_manifest_header("sample_pathology.tsv", SAMPLE_PATHOLOGY)
+    header1, header2, columns = generate_manifest_header("sample_pathology.tsv", SAMPLE_PATHOLOGY)
 
+    assert len(columns) == 60
+    assert header1[3] == "60"
+    assert header2[3] == "60"
+    assert columns[4] == "PathologyTissueName"
     assert columns[:4] == [
         "FixedSampleAccession",
         "SequencedSampleAccession",
         "FixedSampleExternalID",
         "PathologyReportAccession",
     ]
+    assert "PathologyReportStatus" not in columns
     assert "PathologyMetadataStatus" not in columns
     assert "SequencedSampleExternalID" not in columns
     assert "FixedSamplePreservationType" not in columns
@@ -236,6 +247,23 @@ def test_build_sample_pathology_row_preserves_numeric_zero_values() -> None:
     assert row_by_column["PathologyABCScoreC"] == 0
     assert row_by_column["PathologyCERADScore"] == 0
     assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "0"
+
+
+def test_build_sample_pathology_row_uses_na_for_empty_pipecol_values() -> None:
+    report = {
+        "target_tissues": [{"target_tissue_subtype": ""}],
+        "non_target_tissues": [],
+    }
+
+    row = _build_sample_pathology_row(
+        None,
+        {"accession": "SMHT-SAMPLE-1"},
+        fixed_sample={"accession": "SMHT-FIXED-1"},
+        report=report,
+    )
+    row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
+
+    assert all(row_by_column[column] == "NA" for column in _PATHOLOGY_PIPECOL_NAMES)
 
 
 def test_build_sample_pathology_row_keeps_repeated_pathology_siblings_aligned() -> None:
@@ -298,21 +326,21 @@ def test_build_sample_pathology_row_keeps_repeated_pathology_siblings_aligned() 
     row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
 
     assert row_by_column["PathologyTargetTissueSubtype"] == "Cortex|Liver"
-    assert row_by_column["PathologyTargetTissuePresent"] == "|Yes"
+    assert row_by_column["PathologyTargetTissuePresent"] == "NA|Yes"
     assert row_by_column["PathologyTargetTissuePercentage"] == "0|[50-100]"
-    assert row_by_column["PathologyTargetTissueAutolysisScore"] == "|0"
+    assert row_by_column["PathologyTargetTissueAutolysisScore"] == "NA|0"
     assert row_by_column["PathologyNonTargetTissueSubtype"] == "Fibroadipose|Other"
     assert row_by_column["PathologyNonTargetTissuePresent"] == "No|Yes"
-    assert row_by_column["PathologyNonTargetTissuePercentage"] == "[0-10]|"
-    assert row_by_column["PathologyNonTargetTissueDescription"] == "|capsule"
+    assert row_by_column["PathologyNonTargetTissuePercentage"] == "[0-10]|NA"
+    assert row_by_column["PathologyNonTargetTissueDescription"] == "NA|capsule"
     assert row_by_column["PathologyFindingType"] == "Inflammation|Other"
-    assert row_by_column["PathologyFindingPresent"] == "No|"
-    assert row_by_column["PathologyFindingDescription"] == "|pigment"
-    assert row_by_column["PathologyFindingPercentage"] == "|[11-25]"
+    assert row_by_column["PathologyFindingPresent"] == "No|NA"
+    assert row_by_column["PathologyFindingDescription"] == "NA|pigment"
+    assert row_by_column["PathologyFindingPercentage"] == "NA|[11-25]"
     assert row_by_column["PathologyBrainSubregion"] == (
         "Cerebellum Left Hemisphere|Hippocampus Left Hemisphere"
     )
-    assert row_by_column["PathologyBrainSubregionPresent"] == "Yes|"
+    assert row_by_column["PathologyBrainSubregionPresent"] == "Yes|NA"
     assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "0|2"
 
 
@@ -395,18 +423,19 @@ def test_build_sample_pathology_row_keeps_siblings_aligned_across_commas_and_quo
         ],
     )
     # Ordered by finding_type; every sibling stays with its own record, and the
-    # commas/quotes inside the descriptions survive verbatim.
+    # commas/quotes inside the descriptions survive verbatim. Missing values are
+    # explicit `NA` tokens.
     assert findings == [
         {
             "PathologyFindingType": "Inflammation",
-            "PathologyFindingPresent": "",
+            "PathologyFindingPresent": "NA",
             "PathologyFindingDescription": "mild, patchy",
-            "PathologyFindingPercentage": "",
+            "PathologyFindingPercentage": "NA",
         },
         {
             "PathologyFindingType": "Metaplasia",
             "PathologyFindingPresent": "No",
-            "PathologyFindingDescription": "",
+            "PathologyFindingDescription": "NA",
             "PathologyFindingPercentage": "0",
         },
         {
@@ -430,14 +459,14 @@ def test_build_sample_pathology_row_keeps_siblings_aligned_across_commas_and_quo
         {
             "PathologyNonTargetTissueSubtype": "Fibroadipose",
             "PathologyNonTargetTissuePresent": "No",
-            "PathologyNonTargetTissueDescription": "",
+            "PathologyNonTargetTissueDescription": "NA",
             "PathologyNonTargetTissuePercentage": "[0-10]",
         },
         {
             "PathologyNonTargetTissueSubtype": "Other",
             "PathologyNonTargetTissuePresent": "Yes",
             "PathologyNonTargetTissueDescription": 'capsule, vessel wall, and "rind"',
-            "PathologyNonTargetTissuePercentage": "",
+            "PathologyNonTargetTissuePercentage": "NA",
         },
     ]
 
@@ -462,9 +491,9 @@ def test_build_sample_pathology_row_keeps_leading_and_trailing_blank_slots() -> 
     )
     row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
 
-    assert row_by_column["PathologyBrainSubregionPresent"] == "Yes|"
-    # Zero is a real score, not a blank, and it keeps the trailing slot.
-    assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "|0"
+    assert row_by_column["PathologyBrainSubregionPresent"] == "Yes|NA"
+    # Zero is a real score, not a missing value, and it keeps the trailing slot.
+    assert row_by_column["PathologyBrainSubregionAutolysisScore"] == "NA|0"
     assert _split_pathology_group(
         row_by_column,
         [
@@ -476,35 +505,27 @@ def test_build_sample_pathology_row_keeps_leading_and_trailing_blank_slots() -> 
         {
             "PathologyBrainSubregion": "Cerebellum Left Hemisphere",
             "PathologyBrainSubregionPresent": "Yes",
-            "PathologyBrainSubregionAutolysisScore": "",
+            "PathologyBrainSubregionAutolysisScore": "NA",
         },
         {
             "PathologyBrainSubregion": "Hippocampus Left Hemisphere",
-            "PathologyBrainSubregionPresent": "",
+            "PathologyBrainSubregionPresent": "NA",
             "PathologyBrainSubregionAutolysisScore": "0",
         },
     ]
 
 
-def test_build_sample_pathology_row_does_not_escape_a_literal_pipe() -> None:
-    """Characterization: a literal '|' in free text is emitted verbatim.
-
-    The convention this reuses -- the Donor manifest's pipe-delimited nested
-    lists (docs/source/manifest.rst) -- defines no escape for a literal pipe,
-    and `create_bulk_donor_manifest.py` escapes nothing either. A literal pipe
-    is schema-legal in `finding_description` and
-    `non_target_tissue_description`, both plain `{"type": "string"}`, so a
-    description containing one adds a slot to that column exactly as a comma
-    used to. No escaping rule is invented here; this test pins the current
-    documented-convention behavior so that closing the gap -- by escaping on
-    output or by validating the field on submission -- is a deliberate change
-    with a visible diff rather than a silent one.
-    """
+def test_build_sample_pathology_row_escapes_literal_pipes_before_joining() -> None:
+    """Literal pipes in pipecol values cannot create extra slots."""
     report = {
         "@type": ["NonBrainPathologyReport", "PathologyReport"],
         "pathologic_findings": [
-            {"finding_type": "Inflammation", "finding_description": "left|right"},
+            {"finding_type": "Inflammation", "finding_description": "left||right"},
             {"finding_type": "Necrosis", "finding_description": "focal"},
+        ],
+        "non_target_tissues": [
+            {"non_target_tissue_subtype": "Other", "non_target_tissue_description": "capsule|vessel"},
+            {"non_target_tissue_subtype": "Fibroadipose"},
         ],
     }
 
@@ -516,14 +537,48 @@ def test_build_sample_pathology_row_does_not_escape_a_literal_pipe() -> None:
     )
     row_by_column = dict(zip(TSV_MAPPING[SAMPLE_PATHOLOGY].keys(), row))
 
-    # The pipe is passed through unaltered ...
-    assert row_by_column["PathologyFindingDescription"] == "left|right|focal"
+    # Replace every literal pipe in an individual value before joining on the
+    # field separator, including repeated literal pipes.
+    assert row_by_column["PathologyFindingDescription"] == "left_pipe__pipe_right|focal"
+    assert row_by_column["PathologyNonTargetTissueDescription"] == "NA|capsule_pipe_vessel"
     assert row_by_column["PathologyFindingType"] == "Inflammation|Necrosis"
-    # ... so this one column reports three slots where its siblings report two.
-    # That is the known limitation, not an alignment regression: every other
-    # group column stays in step with the record order.
-    assert len(row_by_column["PathologyFindingDescription"].split("|")) == 3
-    assert len(row_by_column["PathologyFindingType"].split("|")) == 2
+    for columns in [
+        [
+            "PathologyFindingType",
+            "PathologyFindingPresent",
+            "PathologyFindingDescription",
+            "PathologyFindingPercentage",
+        ],
+        [
+            "PathologyNonTargetTissueSubtype",
+            "PathologyNonTargetTissuePresent",
+            "PathologyNonTargetTissueDescription",
+            "PathologyNonTargetTissuePercentage",
+        ],
+    ]:
+        assert len({len(row_by_column[column].split("|")) for column in columns}) == 1
+
+
+def test_pathology_pipecol_tokens_survive_tsv_serialization() -> None:
+    report = {
+        "pathologic_findings": [
+            {"finding_type": "Inflammation", "finding_description": "left|right"},
+        ],
+    }
+    row = _build_sample_pathology_row(
+        None,
+        {"accession": "SMHT-SAMPLE-1"},
+        fixed_sample={"accession": "SMHT-FIXED-1"},
+        report=report,
+    )
+    header = generate_manifest_header("sample_pathology.tsv", SAMPLE_PATHOLOGY)
+    serialized = b"".join(generate_tsv(header, [row])).decode("utf-8")
+    output_rows = list(csv.reader(serialized.splitlines(), delimiter="\t"))
+
+    assert len(output_rows[3]) == len(header[2]) == 60
+    finding_description_index = header[2].index("PathologyFindingDescription")
+    assert output_rows[3][finding_description_index] == "left_pipe_right"
+    assert output_rows[3][header[2].index("PathologyFindingPresent")] == "NA"
 
 
 def test_ordinary_manifest_multi_value_columns_stay_comma_separated() -> None:
@@ -633,6 +688,7 @@ def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_repo
         "FixedSampleExternalID",
         "PathologyReportAccession",
     ]
+    assert "PathologyReportStatus" not in columns
     assert "PathologyMetadataStatus" not in columns
     assert "SequencedSampleExternalID" not in columns
     assert "FixedSamplePreservationType" not in columns
@@ -641,6 +697,7 @@ def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_repo
     assert "PathologyReportType" not in columns
     assert "PathologyReportSubmittedID" not in columns
     assert not any(name.endswith("SubmittedID") for name in columns)
+    assert all(len(row) == len(columns) for row in rows)
     assert rows_by_column[0]["FixedSampleAccession"] == "SMHT-FIXED-1"
     assert rows_by_column[0]["SequencedSampleAccession"] == "SMHT-SAMPLE-1"
     assert rows_by_column[0]["PathologyReportAccession"] == "SMHT-PR-1"
@@ -648,6 +705,7 @@ def test_generate_sample_pathology_manifest_joins_samples_fixed_samples_and_repo
     assert rows_by_column[1]["SequencedSampleAccession"] == "SMHT-SAMPLE-2"
     assert rows_by_column[1]["PathologyReportAccession"] == ""
     assert rows_by_column[1]["PathologyOutcome"] == ""
+    assert all(rows_by_column[1][column] == "NA" for column in _PATHOLOGY_PIPECOL_NAMES)
     assert rows_by_column[2]["FixedSampleAccession"] == "SMHT-FIXED-1"
     assert rows_by_column[2]["SequencedSampleAccession"] == "SMHT-SAMPLE-4"
     assert all(row["SequencedSampleAccession"] != "SMHT-SAMPLE-3" for row in rows_by_column)

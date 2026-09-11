@@ -801,7 +801,6 @@ TSV_MAPPING = {
         'SequencedSampleAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
         'FixedSampleExternalID': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['external_id']),
         'PathologyReportAccession': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['accession']),
-        'PathologyReportStatus': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['status']),
         'PathologyTissueName': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['tissue_name']),
         'PathologyOutcome': TSVDescriptor(field_type=SAMPLE_PATHOLOGY, field_name=['outcome']),
         'PathologyFinalReviewDetermination': TSVDescriptor(field_type=SAMPLE_PATHOLOGY,
@@ -1635,6 +1634,8 @@ def _index_items_by_identifiers(items):
 # correspondence (see docs/source/manifest.rst, "Nested Lists"). Ordinary
 # multi-value manifest columns keep their comma join in `descend_field`.
 _PATHOLOGY_GROUP_VALUE_DELIMITER = '|'
+_PATHOLOGY_MISSING_VALUE = 'NA'
+_PATHOLOGY_VALUE_ESCAPE = '_pipe_'
 
 _PATHOLOGY_REPEATED_FIELD_GROUPS = {
     'target_tissues': (
@@ -1671,6 +1672,13 @@ def _manifest_join_value(value):
     return str(_manifest_blank_none(value))
 
 
+def _pathology_group_token(value):
+    """Normalize one value before it is joined into a pathology pipecol."""
+    if value is None or value == '':
+        return _PATHOLOGY_MISSING_VALUE
+    return str(value).replace(_PATHOLOGY_GROUP_VALUE_DELIMITER, _PATHOLOGY_VALUE_ESCAPE)
+
+
 def _pathology_record_sort_key(index, record, field_names):
     if not isinstance(record, Mapping):
         return (('',), index)
@@ -1686,19 +1694,19 @@ def _extract_pathology_repeated_field(item, field_path):
     if not group_fields or field_name not in group_fields:
         return None
     if not isinstance(item, Mapping):
-        return ''
+        return _PATHOLOGY_MISSING_VALUE
     records = item.get(group_name) or []
     if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):
-        return ''
+        return _PATHOLOGY_MISSING_VALUE
     ordered_records = sorted(
         enumerate(records),
         key=lambda indexed: _pathology_record_sort_key(indexed[0], indexed[1], group_fields),
     )
     values = [
-        _manifest_join_value(record.get(field_name) if isinstance(record, Mapping) else None)
+        _pathology_group_token(record.get(field_name) if isinstance(record, Mapping) else None)
         for _index, record in ordered_records
     ]
-    return _PATHOLOGY_GROUP_VALUE_DELIMITER.join(values)
+    return _PATHOLOGY_GROUP_VALUE_DELIMITER.join(values) or _PATHOLOGY_MISSING_VALUE
 
 
 def _extract_manifest_field(request, item, field_name):
@@ -1710,6 +1718,13 @@ def _extract_manifest_field(request, item, field_name):
     return _manifest_blank_none(descend_field(request, item or {}, descriptor.field_name()))
 
 
+_PATHOLOGY_PIPECOL_NAMES = frozenset(
+    field_name
+    for field_name, descriptor in TSV_MAPPING[SAMPLE_PATHOLOGY].items()
+    if any(path.split('.')[0] in _PATHOLOGY_REPEATED_FIELD_GROUPS for path in descriptor.field_name())
+)
+
+
 def _build_sample_pathology_row(request, sequenced_sample, fixed_sample, report=None):
     """Build one SAMPLE_PATHOLOGY manifest row as a dict keyed by TSV column."""
     row = {
@@ -1717,7 +1732,8 @@ def _build_sample_pathology_row(request, sequenced_sample, fixed_sample, report=
         'SequencedSampleAccession': _extract_manifest_field(request, sequenced_sample, 'SequencedSampleAccession'),
         'FixedSampleExternalID': _extract_manifest_field(request, fixed_sample, 'FixedSampleExternalID'),
     }
-    if report:
+    row.update({field_name: _PATHOLOGY_MISSING_VALUE for field_name in _PATHOLOGY_PIPECOL_NAMES})
+    if report is not None:
         for field_name in TSV_MAPPING[SAMPLE_PATHOLOGY].keys():
             if field_name.startswith('Pathology'):
                 row[field_name] = _extract_manifest_field(request, report, field_name)
@@ -1775,10 +1791,10 @@ def generate_sample_pathology_manifest(request, args, search_iter):
     lookups are batched ES streaming queries to avoid per-sample embeds or N+1
     request-time lookups. Repeated pathology records are serialized with a shared
     deterministic order per nested group and joined with
-    `_PATHOLOGY_GROUP_VALUE_DELIMITER`, preserving blank sibling placeholders so
-    slot i of every column in a group describes the same record.
-    PathologyMetadataStatus is intentionally not part of this manifest, and no
-    synthetic status rows are emitted.
+    `_PATHOLOGY_GROUP_VALUE_DELIMITER`, preserving `NA` sibling placeholders so
+    slot i of every column in a group describes the same record. Pathology report
+    status is intentionally not part of this manifest, and no synthetic status
+    rows are emitted.
     """
     sequenced_sample_uuids = set()
     for f in search_iter:
