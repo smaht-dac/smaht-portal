@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+2.13.3
+======
+
+`PR 748: Pathology manifest backend <https://github.com/smaht-dac/smaht-portal/pull/748>`_
+
+* Adds SAMPLE_PATHOLOGY metadata manifest backend functionality to smaht-portal.
+* Adds to document describing the pathology manifest generation and download process to ``docs/source/manifest.rst``.
+* Added unit tests
+* NOTE: UI updates will be needed to support the new pathology manifest download functionality.
+
+
 2.13.2
 ======
 
