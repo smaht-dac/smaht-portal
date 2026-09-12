@@ -467,12 +467,13 @@ def bar_plot_chart(context, request):
 @debug_log
 def data_matrix_aggregations(context, request):
 
-    # Max terms returned per aggregation bucket, applied at every nesting level (e.g. Donor
-    # nested inside each Tissue bucket in the Donor x Tissue matrix). Must stay above the
-    # largest possible per-bucket cardinality, which in practice is the total donor count
-    # (expected to cap around 150) since some tissues are sampled by nearly every donor.
-    # A value at or below that cardinality silently drops the lowest doc_count buckets.
-    MAX_BUCKET_COUNT = 200
+    # Max terms returned per aggregation bucket, applied at every nesting level. Must stay
+    # above the largest possible per-bucket cardinality or the lowest doc_count buckets get
+    # silently dropped; callers with higher-cardinality fields can opt in via `max_bucket_count`.
+    DEFAULT_MAX_BUCKET_COUNT = 200
+    # Hard ceiling regardless of what a caller requests -- each nesting level multiplies bucket
+    # count, so an unbounded value could let row x column reach this squared.
+    MAX_BUCKET_COUNT_CEILING = 5000
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_VALUE_DELIMITER = ' '
     # Set of field names whose array values should be concatenated into a single key during data matrix aggregation (e.g., {'data_type'}).
@@ -494,11 +495,25 @@ def data_matrix_aggregations(context, request):
         row_agg_fields_orig = json_body.get('row_agg_fields')
         flatten_values = json_body.get('flatten_values', False)
         value_delimiter = json_body.get('value_delimiter', DEFAULT_VALUE_DELIMITER)
+        MAX_BUCKET_COUNT = min(
+            int(json_body.get('max_bucket_count', DEFAULT_MAX_BUCKET_COUNT)),
+            MAX_BUCKET_COUNT_CEILING
+        )
     except json.decoder.JSONDecodeError:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 
     if column_agg_fields_orig is None or len(column_agg_fields_orig) == 0 or row_agg_fields_orig is None or len(row_agg_fields_orig) == 0:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
+
+    # SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION and EXTRA_TOTAL_AGGREGATIONS
+    # (donors.external_id) are File-only fields; guarded behind is_file_type_search
+    # (mirrors bar_plot_chart's own isFileTypeSearch) so a non-File search doesn't
+    # inherit fields that don't exist on that type.
+    search_type = search_param_lists.get('type')
+    is_file_type_search = (
+        (isinstance(search_type, list) and 'File' in search_type and len(search_type) == 1) or
+        (isinstance(search_type, str) and search_type == 'File')
+    )
 
     def flatten(items):
         for item in items:
@@ -587,7 +602,10 @@ def data_matrix_aggregations(context, request):
             }
         return extra_aggs
 
-    extra_total_aggs = build_extra_total_aggs()
+    extra_total_aggs = build_extra_total_aggs() if is_file_type_search else {}
+    coverage_agg_def = (
+        deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION) if is_file_type_search else {}
+    )
 
     primary_agg = {
         "field_0": {
@@ -596,7 +614,7 @@ def data_matrix_aggregations(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION)
+            "aggs": deepcopy(coverage_agg_def)
         },
         "row_totals_0": {
             "terms": {
@@ -650,7 +668,7 @@ def data_matrix_aggregations(context, request):
 
     # Nest in additional fields, if any
     base_aggregation_def = {
-        **deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION),
+        **deepcopy(coverage_agg_def),
         **deepcopy(extra_total_aggs)
     }
     build_nested_aggs(primary_agg, row_agg_fields, base_aggregation_def, "field_0", "field_")

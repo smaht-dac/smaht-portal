@@ -1696,6 +1696,86 @@ h2.browse-summary-header {
     font-weight: 600;
 }
 
+// Wraps BrowseTissue.js's title + its Basic/Advanced sub-toggle (icon-only,
+// see .tissue-detail-mode-toggle below) on one row, toggle right-aligned --
+// keeps the toggle level with the title instead of costing the tissue grid
+// its own row of vertical space above or below.
+.browse-summary-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    h2.browse-summary-header {
+        margin-bottom: 0;
+    }
+}
+
+// Icon-only Basic/Advanced toggle (see BrowseTissue.js) -- no frame/background
+// at all (unlike the stats column's boxed Tissue View/Cohort View
+// .view-toggle), just two bare icon buttons whose color alone marks which
+// one is active, so it reads as a lightweight header control rather than
+// another bordered panel next to the title.
+.tissue-detail-mode-toggle {
+    position: relative;
+    display: inline-flex;
+    border-radius: 6px;
+    gap: 4px;
+
+    .btn {
+        width: 1.5rem;
+        height: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background-color: transparent !important;
+        border: none !important;
+
+        .icon {
+            margin: 0;
+            font-size: 0.8125rem;
+        }
+    }
+
+    .btn.btn-link {
+        color: #a9b7c5;
+    }
+
+    .btn.btn-primary-dark {
+        color: #457abc !important;
+    }
+
+    // One-time attention flash, played only the first time Tissue View
+    // activates in a session (see BrowseTissue.js's showIntroHighlight) --
+    // this toggle is otherwise borderless/backgroundless by design (to save
+    // space next to the title), so nothing marks its location on its own.
+    // A single soft-colored ring fades in and out a few times (a plain
+    // solid border, not a gradient -- a multi-color conic-gradient left a
+    // visible seam where its loop met itself on this non-circular pill
+    // shape), then the whole rule unmounts and the toggle goes back to its
+    // plain, understated look.
+    &--intro::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 6px;
+        border: 1.5px solid #5f87ba;
+        pointer-events: none;
+        animation: tissue-detail-mode-toggle-intro-flash 1.1s ease-in-out 2;
+    }
+}
+
+@keyframes tissue-detail-mode-toggle-intro-flash {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.55;
+    }
+}
+
 // Popover used in File column title
 #type-title-popover {
     min-width: 525px;
@@ -2000,6 +2080,1960 @@ div.browse-link-icon {
             }
         }
     }
+
+    // Tissue View and Cohort View panels occupy very different natural
+    // heights; without a floor, toggling between them reflows the heatmap
+    // table below on every click. 420px matches DonorCohortViewChart's own
+    // `chartHeight` prop, the taller of the two states, so the shorter one
+    // just leaves empty space instead of shrinking the whole row.
+    .tissue-viz-content {
+        min-height: 420px;
+    }
+}
+
+.tissue-germ-layer-panel {
+	background-color: #FFFFFF;
+	border: 1px solid #E7F0F3;
+	border-radius: 15px;
+	padding: 1.5rem 2rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.75rem;
+	height: 100%;
+
+	.tissue-germ-layer-row {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.tissue-germ-layer-label {
+		flex: 0 0 60px;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: #4E6884;
+		line-height: 1.2;
+	}
+
+	.tissue-germ-layer-bubbles {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 14px;
+	}
+
+	.tissue-germ-layer-bubble {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		border: 2px dashed #D7E1EA;
+		background-color: #FBFCFE;
+		cursor: pointer;
+		transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+
+		// Tissue-colored bubbles get an inline border-color override; color
+		// lives only on the ring, not the fill, so hover feedback uses
+		// transform/box-shadow instead, which works the same either way.
+		&:hover,
+		&:focus {
+			transform: scale(1.08);
+			box-shadow: 0 2px 8px rgba(30, 38, 50, 0.18);
+		}
+	}
+
+	// Same masking technique as .tissue-icon-mask on the Tissue Overview
+	// header -- masking the SVG (instead of an <img>) lets a plain
+	// background-color fill it. Always this one neutral color, regardless
+	// of tissue; per-tissue color lives on the bubble's border instead.
+	.tissue-germ-layer-bubble-icon {
+		display: inline-block;
+		width: 34px;
+		height: 34px;
+		background-color: #4E6884;
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+		-webkit-mask-position: center;
+		mask-position: center;
+		-webkit-mask-size: contain;
+		mask-size: contain;
+		transition: background-color 0.15s ease;
+		// Some official tissue colors are very pale and the icon artwork is
+		// thin-lined, making it barely readable against the bubble's
+		// near-white background. Stacking zero-blur, 1px-offset drop-shadows
+		// in every direction traces a solid outline around the icon without
+		// touching its fill color. Offsets must be whole pixels -- sub-pixel
+		// offsets get rounded down to nothing in some browsers.
+		$outline-color: #12161d;
+		$outline-offset: 1px;
+		$outline-offset-neg: $outline-offset * -1;
+		filter: drop-shadow($outline-offset 0 0 $outline-color)
+			drop-shadow($outline-offset-neg 0 0 $outline-color)
+			drop-shadow(0 $outline-offset 0 $outline-color)
+			drop-shadow(0 $outline-offset-neg 0 $outline-color)
+			drop-shadow($outline-offset $outline-offset 0 $outline-color)
+			drop-shadow($outline-offset-neg $outline-offset 0 $outline-color)
+			drop-shadow($outline-offset $outline-offset-neg 0 $outline-color)
+			drop-shadow($outline-offset-neg $outline-offset-neg 0 $outline-color);
+	}
+
+	@include media-breakpoint-down(md) {
+		.tissue-germ-layer-bubble {
+			width: 42px;
+			height: 42px;
+		}
+
+		.tissue-germ-layer-bubble-icon {
+			width: 26px;
+			height: 26px;
+		}
+	}
+}
+
+// Advanced Tissue View: every tissue type SMaHT tracks, as a card (icon +
+// TPC/internal code + full name + donor count), grouped into one column per
+// germ layer -- unlike .tissue-germ-layer-panel's compact icon-only bubbles
+// above, this always shows the complete tissue-type list, disabling (not
+// hiding) any tissue with 0 donors.
+.tissue-advanced-germ-layer-panel {
+	display: flex;
+	flex-wrap: wrap;
+	// Flex's own default (stretch), made explicit -- the Germ Cells/
+	// Clinically Accessible column (2 stacked sections) is naturally the
+	// tallest, so every column stretches to match it instead of each only
+	// being as tall as its own content.
+	align-items: stretch;
+	gap: 1rem;
+
+	.tissue-advanced-germ-layer-column {
+		flex: 1 1 200px;
+		background-color: #FFFFFF;
+		border: 1px solid #E7F0F3;
+		border-radius: 15px;
+		padding: 0.75rem;
+
+		// Ectoderm's 3-per-row card grid (see ADVANCED_GERM_LAYER_COLUMNS'
+		// cardColumns) needs a wider column than the other 2-per-row ones
+		// to keep individual cards from getting cramped.
+		&--cols-3 {
+			flex-basis: 290px;
+		}
+	}
+
+	.tissue-advanced-germ-layer-title {
+		text-align: center;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #4E6884;
+		margin-bottom: 0.625rem;
+	}
+
+	// Germ Cells and Clinically Accessible share one column (see
+	// ADVANCED_GERM_LAYER_COLUMNS) as two stacked sections rather than each
+	// getting a full column of their own.
+	.tissue-advanced-germ-layer-section + .tissue-advanced-germ-layer-section {
+		margin-top: 1.25rem;
+	}
+
+	.tissue-advanced-germ-layer-cards {
+		display: grid;
+		gap: 0.375rem;
+
+		// Card count per row (see ADVANCED_GERM_LAYER_COLUMNS' cardColumns) --
+		// Ectoderm's own column gets 3 to keep it from running much taller
+		// than its 2-per-row neighbors.
+		&--cols-2 {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		&--cols-3 {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	.tissue-advanced-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		border: 1px solid #E7F0F3;
+		border-radius: 8px;
+		overflow: hidden;
+		background-color: #FBFCFE;
+		color: inherit;
+		text-decoration: none;
+		transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+		&:hover,
+		&:focus {
+			color: inherit;
+			text-decoration: none;
+			box-shadow: 0 2px 8px rgba(30, 38, 50, 0.18);
+			transform: translateY(-2px);
+		}
+
+		// Cards for tissue types with 0 donors render as a plain <div>
+		// (see TissueAdvancedGermLayerPanel), not a real link -- muted and
+		// inert rather than removed, so the full tissue catalog still reads
+		// as complete.
+		&.is-disabled {
+			opacity: 0.45;
+			cursor: default;
+		}
+	}
+
+	.tissue-advanced-card-header {
+		width: 100%;
+		padding: 0.3125rem 0.25rem 0;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: #30975E;
+	}
+
+	.tissue-advanced-card-icon {
+		display: inline-block;
+		width: 30px;
+		height: 30px;
+		margin: 0.3125rem 0;
+		background-color: #4E6884;
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+		-webkit-mask-position: center;
+		mask-position: center;
+		-webkit-mask-size: contain;
+		mask-size: contain;
+	}
+
+	.tissue-advanced-card-name {
+		font-weight: 600;
+		font-size: 0.75rem;
+		line-height: 1.2;
+		padding: 0 0.1875rem 0.5rem;
+	}
+
+	.tissue-advanced-card-donors {
+		width: 100%;
+		padding: 0.3125rem;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		color: #30975E;
+		background-color: #EAF5EF;
+	}
+
+	@include media-breakpoint-down(md) {
+		.tissue-advanced-germ-layer-cards {
+			grid-template-columns: 1fr;
+		}
+	}
+}
+
+// The cell-value-display toggle inside HeatmapAdminSettings' panel
+// (BrowseTissueHeatmapTable.js) -- switches between all 4
+// CELL_VALUE_DISPLAY_MODES. A single-row `inline-flex` (as this was when
+// there were only 2 modes: "All values"/"On hover") doesn't work for 4 --
+// flex items don't shrink below their own content's min-width by default,
+// so a longer label like "Diagonal split" forced the row wider than the
+// panel's own fixed width, overflowing the whole page horizontally rather
+// than staying contained (confirmed against the real admin panel, not
+// just a layout nitpick). A 2x2 grid instead can never exceed the panel's
+// own width regardless of label length -- each cell just wraps its own
+// text onto a 2nd line if it needs to (see the "Diagonal split"/"Vertical
+// split" options). Deliberately NOT nested under `.tissue-heatmap-card`
+// for the same reason as `.tissue-heatmap-color-picker` below -- looks
+// right wherever it's rendered.
+.tissue-heatmap-value-display-toggle {
+	display: grid;
+	// `minmax(0, 1fr)`, not bare `1fr` -- a bare `1fr` track still carries
+	// an implicit `auto` (content-based) minimum, the exact same overflow
+	// trap this grid replaced flexbox to get away from. `minmax(0, 1fr)`
+	// actually allows a track to shrink below its own content's natural
+	// width, letting text wrap instead of forcing the grid wider than the
+	// panel.
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	// The 1px gap (not individual borders on each option) is what actually
+	// draws the grid lines between options -- it reveals this element's
+	// own background-color underneath, so that color doubles as both the
+	// outer border and the lines between cells with only 1 declaration.
+	gap: 1px;
+	background-color: #D7E1EA;
+	border: 1px solid #D7E1EA;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.tissue-heatmap-value-display-toggle-option {
+	appearance: none;
+	background-color: #FBFCFE;
+	border: none;
+	padding: 5px 8px;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	line-height: 1.2;
+	color: #4E6884;
+	cursor: pointer;
+
+	&:hover {
+		color: #212529;
+	}
+
+	&.is-active {
+		background-color: #E7F0F3;
+		color: #212529;
+	}
+}
+
+// HeatmapAdminSettings (BrowseTissueHeatmapTable.js) -- the single gear
+// button/panel that bundles the cell-value-display toggle above and the
+// color picker below, so BrowseTissueHeatmapTable's own toolbar shows one
+// compact control instead of two separate always-visible rows. Deliberately
+// NOT nested under `.tissue-heatmap-card` for the same reason as
+// `.tissue-heatmap-color-picker` below -- looks right wherever it's rendered.
+.tissue-heatmap-admin-settings {
+	position: relative;
+}
+
+.tissue-heatmap-admin-settings-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	appearance: none;
+	background-color: #FBFCFE;
+	border: 1px solid #D7E1EA;
+	border-radius: 6px;
+	color: #4E6884;
+	cursor: pointer;
+
+	&:hover,
+	&[aria-expanded="true"] {
+		border-color: #A9B8C7;
+		color: #212529;
+	}
+}
+
+.tissue-heatmap-admin-settings-panel {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	z-index: 10;
+	width: 220px;
+	background-color: #FFFFFF;
+	border: 1px solid #D7E1EA;
+	border-radius: 8px;
+	box-shadow: 0 6px 20px rgba(30, 38, 50, 0.14);
+	padding: 12px;
+}
+
+.tissue-heatmap-admin-settings-section + .tissue-heatmap-admin-settings-divider,
+.tissue-heatmap-admin-settings-divider {
+	margin: 12px 0;
+	border-top: 1px solid #E7F0F3;
+}
+
+.tissue-heatmap-admin-settings-label {
+	margin: 0 0 6px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: #4E6884;
+}
+
+// HeatmapColorPicker (BrowseTissueHeatmapTable.js) is a shared component
+// also reused by TissueTypeView.js's Donor Details table (own independent
+// --tissue-donor-score-N-* palette, see _item-pages.scss). These rules are
+// deliberately NOT nested under `.tissue-heatmap-card` so it looks right
+// wherever it's rendered.
+.tissue-heatmap-color-picker {
+	position: relative;
+}
+
+.tissue-heatmap-color-picker-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	appearance: none;
+	background-color: #FBFCFE;
+	border: 1px solid #D7E1EA;
+	border-radius: 6px;
+	padding: 5px 10px;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	color: #4E6884;
+	cursor: pointer;
+
+	&:hover,
+	&[aria-expanded="true"] {
+		border-color: #A9B8C7;
+		color: #212529;
+	}
+}
+
+.tissue-heatmap-color-picker-swatch {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	// The default (no override picked) state -- a small neutral
+	// gradient stand-in for "this is the built-in scale", distinct
+	// from any single flat color a real pick would show.
+	background: linear-gradient(135deg, #D9E1E8 0%, #5B6670 100%);
+}
+
+.tissue-heatmap-color-picker-panel {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	z-index: 10;
+	width: 220px;
+	background-color: #FFFFFF;
+	border: 1px solid #D7E1EA;
+	border-radius: 8px;
+	box-shadow: 0 6px 20px rgba(30, 38, 50, 0.14);
+	padding: 12px;
+}
+
+.tissue-heatmap-color-picker-note {
+	margin: 0 0 10px;
+	font-size: 0.75rem;
+	line-height: 1.4;
+	color: #657B95;
+}
+
+.tissue-heatmap-color-picker-presets {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+
+.tissue-heatmap-color-picker-preset {
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	border: 2px solid #FFFFFF;
+	outline: 1px solid #D7E1EA;
+	cursor: pointer;
+	padding: 0;
+
+	&.is-active {
+		outline: 2px solid #212529;
+		outline-offset: 1px;
+	}
+
+	&:hover {
+		outline-color: #4E6884;
+	}
+}
+
+// The native color-wheel input, styled to look like one more swatch
+// button in the same row instead of a default browser input.
+.tissue-heatmap-color-picker-custom {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+	position: relative;
+	overflow: hidden;
+
+	input[type="color"] {
+		position: absolute;
+		inset: -4px;
+		width: calc(100% + 8px);
+		height: calc(100% + 8px);
+		border: none;
+		padding: 0;
+		cursor: pointer;
+		opacity: 0;
+	}
+}
+
+.tissue-heatmap-color-picker-reset {
+	display: block;
+	width: 100%;
+	appearance: none;
+	background: none;
+	border: none;
+	border-top: 1px solid #E7F0F3;
+	padding: 8px 0 0;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	color: #4E6884;
+	text-align: left;
+	cursor: pointer;
+
+	&:hover {
+		color: #212529;
+		text-decoration: underline;
+	}
+}
+
+// The synthetic "Brain" header cell (BrowseTissueHeatmapTable.js's
+// BrainRegionHeaderCell), only rendered when every row's regions actually
+// agree (brainColumnsFullyMergeable) -- since there's no single tissue_type
+// to link to, this opens a small picker of the real regions instead.
+// Deliberately NOT nested under `.tissue-heatmap-card` so it looks right
+// wherever this header cell renders.
+// This cell doubles up 2 separate affordances -- the region picker toggle
+// and a plain sort button (.tissue-heatmap-sort-button, SortableHeaderLabel)
+// -- side by side with just a gap between them (below). The toggle itself
+// uses a kebab ("more options") icon rather than a caret (see
+// BrainRegionHeaderCell's own icon-ellipsis-v) specifically so it doesn't
+// read as a duplicate of the sort button's own caret right next to it.
+.tissue-heatmap-brain-picker {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.tissue-heatmap-brain-picker-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	appearance: none;
+	background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	font-weight: 600;
+	color: #343741;
+	cursor: pointer;
+
+	&:hover,
+	&[aria-expanded="true"] {
+		color: #2F62AA;
+	}
+
+	.icon {
+		font-size: 0.6875rem;
+	}
+}
+
+.tissue-heatmap-brain-picker-panel {
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 10;
+	width: max-content;
+	min-width: 160px;
+	margin: 0;
+	background-color: #FFFFFF;
+	border: 1px solid #D7E1EA;
+	border-radius: 8px;
+	box-shadow: 0 6px 20px rgba(30, 38, 50, 0.14);
+	padding: 6px 0;
+	list-style: none;
+	text-align: left;
+
+	li {
+		white-space: nowrap;
+	}
+
+	a {
+		display: block;
+		padding: 6px 14px;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: #4E6884;
+		text-decoration: none;
+
+		&:hover {
+			background-color: #F4F8FB;
+			color: #212529;
+		}
+	}
+}
+
+// The same 4-letter internal code every other column header shows
+// (formatTissueTypeHeaderLabel) -- a filled chip in front of each region's
+// full name here, not a plain inline prefix, so it reads as the same kind
+// of label rather than part of the sentence.
+.tissue-heatmap-brain-picker-code {
+	display: inline-block;
+	min-width: 38px;
+	margin-right: 8px;
+	padding: 1px 5px;
+	border-radius: 4px;
+	background-color: #EEF1F4;
+	font-size: 0.6875rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	text-align: center;
+	color: #4E6884;
+}
+
+// A cell's own detail popover (BrowseTissueHeatmapTable.js's
+// renderCellDetailPopover) -- opens on *click* (MetricHeatmapTable's
+// selectedCell/handleCellClick), not hover. `position: fixed`, positioned
+// in JS off the clicked cell's own live `getBoundingClientRect()`
+// (getDetailPopoverStyle), not a plain CSS descendant of the cell -- the
+// table's own scroll wrapper needs `overflow-x: auto`, which (same trap
+// `.tissue-heatmap-sticky-header`'s own comment documents) forces
+// `overflow-y: auto` too, clipping anything absolutely-positioned past the
+// wrapper's own bounds and popping in a vertical scrollbar the moment it
+// tried. Rendered via `ReactDOM.createPortal` straight to the document root
+// (not just a plain JSX sibling of the scrollable wrapper, which still
+// failed once some other ancestor further up this page's own layout turned
+// out to establish its own containing block for `position: fixed`
+// descendants -- a `transform`/`filter`/`will-change: transform` anywhere
+// above it in the real DOM, not just the JSX tree, is enough) -- see that
+// component's own comment at the portal call site. Deliberately NOT nested
+// under `.tissue-heatmap-card`/the table in this stylesheet either, for the
+// same reason.
+//
+// Content laid out to match viz/Matrix/DataMatrix's own click-to-inspect
+// popover format (`_charts.scss`'s `#jap-popover` -- a primary-row of
+// label/value fields, an optional secondary-row breakdown, a footer-row
+// button) per explicit request, rather than this table's own earlier,
+// one-off "header + stacked rows" layout.
+.tissue-heatmap-cell-detail-popover {
+	// A real card (white, bordered, arrowed), not a dark tooltip bubble --
+	// matches the rest of the app's own popovers (e.g. the aliquot
+	// popover). No `overflow: hidden` here -- the arrow (`::before`/
+	// `::after` below) is itself positioned past this box's own edge
+	// (`bottom: 100%`/`top: 100%`), so clipping overflow would clip the
+	// arrow off too; `.inner`'s own children (below) instead stay properly
+	// contained via plain flex layout, not by cropping whatever leaks out.
+	position: fixed;
+	z-index: 30;
+	width: 320px;
+	max-width: calc(100vw - 24px);
+	border-radius: 8px;
+	border: 1px solid #E1E7ED;
+	background-color: #FFFFFF;
+	box-shadow: 0 8px 24px rgba(20, 30, 45, 0.18);
+	font-size: 0.8125rem;
+	text-align: left;
+	cursor: default;
+
+	// Arrow pointing back up at the cell that opened this -- flipped
+	// (top/bottom swapped) by getDetailPopoverStyle's own
+	// `isFlippedUp`/`.is-flipped-up` when there isn't estimated room below
+	// in the viewport, same idea `.tissue-heatmap-sticky-header` already
+	// applies to the header itself.
+	&::before,
+	&::after {
+		content: '';
+		position: absolute;
+		bottom: 100%;
+		right: 12px;
+		border: 6px solid transparent;
+		border-bottom-color: #E1E7ED;
+	}
+	&::after {
+		right: 13px;
+		border-width: 5px;
+		border-bottom-color: #FFFFFF;
+	}
+
+	&.is-flipped-up {
+		&::before,
+		&::after {
+			top: 100%;
+			bottom: auto;
+			border-bottom-color: transparent;
+			border-top-color: #E1E7ED;
+		}
+		&::after {
+			border-top-color: #FFFFFF;
+		}
+	}
+
+	// `.primary-row`/`.secondary-row`/`.footer-row` are themselves the flex
+	// containers (not Bootstrap's real `.row`, reused as-is, which an
+	// earlier version of this tried) -- Bootstrap's `.row`/`.col-*` carry
+	// their own negative-margin gutter compensation, meant to be absorbed
+	// by a `.container`'s matching padding; nothing here provides that, so
+	// content built from them either poked out past this popover's own
+	// padding on the left (a stray sliver of a row's own background,
+	// visible where its negative margin undid `.inner`'s padding early) or
+	// overflowed past its right edge outright (the footer button). Plain
+	// flex with an explicit `gap` sidesteps that whole mismatch. Also avoids
+	// leaking onto `.flexrow` (encoded/_layout.scss's
+	// `.flexrow { @extend .row; }` attaches every rule written against the
+	// literal `.row` class to it too, globally, site-wide).
+	.inner {
+		padding: 4px 12px;
+		// A safety net, not the primary fix for the popover's own position
+		// (that's the flip logic in getDetailPopoverStyle/
+		// MetricHeatmapTable's own post-render height measurement) -- if a
+		// future change ever makes this content taller than the viewport
+		// itself has room for regardless of which way it opens, it scrolls
+		// internally instead of running off-screen with no way to reach
+		// the rest of it. On `.inner` (not the outer card, above) so it
+		// doesn't clip that card's own arrow, which sits deliberately past
+		// the card's own edge.
+		max-height: calc(100vh - 48px);
+		overflow-y: auto;
+	}
+
+	// Same label/value typography as DataMatrix's own #jap-popover.
+	.label {
+		color: #8296AF;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		text-transform: capitalize;
+	}
+
+	.value {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: #1E2D3D;
+	}
+
+	.primary-row,
+	.secondary-row {
+		display: flex;
+		gap: 12px;
+	}
+
+	.field {
+		flex: 1 1 0;
+		min-width: 0;
+		overflow-wrap: break-word;
+	}
+
+	.primary-row {
+		padding: 6px 0;
+	}
+
+	// The metric name (e.g. "Ischemic Time (h)"), captioning the Fixed/Frozen
+	// breakdown row right below it -- shares that row's own light-blue
+	// backdrop (margin split between the two so they read as one continuous
+	// block) rather than repeating the name inside each of the row's own 2
+	// field labels.
+	.secondary-row-heading {
+		margin: 0 -12px;
+		padding: 6px 12px 0;
+		background-color: #F8FBFF;
+		border-top: 1px solid #EEF2F5;
+		color: #8296AF;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		text-transform: capitalize;
+	}
+
+	.secondary-row {
+		margin: 0 -12px;
+		padding: 2px 12px 6px;
+		background-color: #F8FBFF;
+	}
+
+	.footer-row {
+		padding: 8px 0 4px;
+
+		.btn {
+			width: 100%;
+		}
+	}
+}
+
+// Only rendered for a data-driven scale (Ischemic Time's own quantile
+// split, see BrowseTissueHeatmapTable.js's buildScoreLegend/ScoreLegend) --
+// a fixed, already-explained scale (Autolysis Score's own 0=None..3=severe,
+// already spelled out in that tab's own info tooltip; Target Tissue %'s
+// named bands, self-explanatory on the cells themselves) doesn't need one.
+.tissue-heatmap-score-legend {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 14px;
+	padding: 8px 4px;
+	color: #5A6B7D;
+	font-size: 0.75rem;
+}
+
+.tissue-heatmap-score-legend-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.tissue-heatmap-score-legend-swatch {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border-radius: 3px;
+	// Same custom-property-first fallback the real cells read (see
+	// .tissue-heatmap-cell's own score-0..4 rules) -- a picked palette
+	// (HeatmapColorPicker) recolors the legend right along with the table.
+	&.score-0 { background-color: var(--heatmap-score-0-bg, #DAEBF1); }
+	&.score-1 { background-color: var(--heatmap-score-1-bg, #ADD3E1); }
+	&.score-2 { background-color: var(--heatmap-score-2-bg, #80BBD0); }
+	&.score-3 { background-color: var(--heatmap-score-3-bg, #54A3C0); }
+	&.score-4 { background-color: var(--heatmap-score-4-bg, #3A829C); }
+}
+
+.tissue-heatmap-card {
+	background-color: #FFFFFF;
+	position: relative;
+
+	// Holds the HeatmapColorPicker, absolutely positioned over the tab row's
+	// own right side (matching its 39px height) instead of taking a row of
+	// its own, since DotRouter owns the tab row's markup internally and this
+	// can't be laid out inline with it.
+	.tissue-heatmap-toolbar {
+		position: absolute;
+		top: 0;
+		right: 0;
+		height: 39px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 0 12px;
+		z-index: 4;
+	}
+
+	.tissue-heatmap-tabs.dot-tab-nav {
+		border-bottom: 1px solid #E7F0F3;
+
+		.dot-tab-nav-list {
+			display: flex;
+			height: 39px;
+			margin-bottom: -1px;
+
+			button {
+				appearance: none;
+				height: 100%;
+				background-color: transparent;
+				border: 1px solid transparent;
+				border-top: 4px solid transparent;
+				border-radius: 4px 4px 0px 0px;
+				padding: 0px 20px;
+				font-size: 0.9375rem;
+				font-weight: 400;
+				color: #657B95;
+				cursor: pointer;
+
+				&:hover {
+					color: #343741;
+				}
+
+				&.active {
+					background-color: #FFFFFF;
+					border-top-color: #1F9F55;
+					border-right-color: #E7F0F3;
+					border-left-color: #E7F0F3;
+					border-bottom: none;
+					color: #212529;
+					font-weight: 600;
+				}
+
+				&.disabled {
+					color: #B7C3D0;
+					cursor: not-allowed;
+				}
+			}
+		}
+	}
+
+	// This tab's own repeated title (matches the tab label above it) plus
+	// the info-circle tooltip that used to sit on the tab label itself --
+	// moved here since the explanatory tooltip is only useful once a reader
+	// is already on this tab looking at the data it explains, not while
+	// still scanning the tab row. Any legend (FixedScoreLegend/ScoreLegend,
+	// see BrowseTissueHeatmapTable.js's MetricHeatmapTable) sits at the
+	// opposite (right) end of this same row instead of stacking underneath
+	// it -- the two read as a matched pair (what this tab shows / how to
+	// read its colors) rather than two separate stacked headers.
+	.tissue-heatmap-metric-heading {
+		// Extra breathing room above (vs. a plain top: 4px match on the
+		// legend) -- flush against the tab row read as though this title
+		// belonged to the tabs above it rather than being its own heading.
+		// Bottom padding similarly separates it (and its own rule, below)
+		// from the table below -- flush against the header row read as
+		// though the title/legend belonged to the table instead of being
+		// its own heading above it. Also what indents the title/legend
+		// away from the card's own true left/right edges -- the inner
+		// `-row` below carries none of its own, so its own border-bottom
+		// lands exactly at their bounds instead of this padding's outer
+		// (wider) edge.
+		padding: 24px 20px 20px;
+	}
+
+	// The title+legend row itself, separate from `.tissue-heatmap-metric-heading`
+	// above so its own border-bottom (the rule the reference design shows)
+	// can sit flush with the title's own left edge and the legend's own
+	// right edge -- a border on the padded, outer element instead would
+	// sit at *its* edge, 20px wider on each side than the title/legend
+	// actually reach.
+	.tissue-heatmap-metric-heading-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 8px 20px;
+		padding-bottom: 12px;
+		border-bottom: 1px solid #E3E7EB;
+	}
+
+	.tissue-heatmap-metric-title {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0;
+		font-size: 1.125rem;
+		font-weight: 400;
+		color: #212529;
+	}
+
+	.tissue-heatmap-metric-title-info {
+		font-size: 0.8125rem;
+		color: #97A6B8;
+
+		&:hover {
+			color: #5A6B7D;
+		}
+	}
+
+	// A compact swatch-per-band scale for a fixed, already-self-explanatory
+	// metric (Autolysis Score/Target Tissue %) -- see
+	// BrowseTissueHeatmapTable.js's FixedScoreLegend. `entry` swatches reuse
+	// the exact same score-0..4 palette (and any HeatmapColorPicker
+	// override) the table's own cells use, so the legend and the data it's
+	// explaining always stay in sync.
+	.tissue-heatmap-fixed-legend {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 0.75rem;
+	}
+
+	.tissue-heatmap-fixed-legend-caption {
+		color: #5A6B7D;
+		font-weight: 500;
+	}
+
+	.tissue-heatmap-fixed-legend-scale {
+		display: flex;
+		// The 1px gap (not individual borders) draws the dividing lines
+		// between bands the same way .tissue-heatmap-value-display-toggle
+		// does -- this element's own background-color shows through as
+		// both the outer border and the lines between swatches.
+		gap: 1px;
+		background-color: #D7E1EA;
+		border: 1px solid #D7E1EA;
+		border-radius: 4px;
+		overflow: hidden;
+	}
+
+	// A plain <span> before, now a <button> (see FixedScoreLegend) so a
+	// swatch can double as a filter toggle -- these first few rules strip
+	// the browser's own default button chrome (border/font/appearance) so
+	// it still reads as exactly the same swatch as before.
+	.tissue-heatmap-fixed-legend-swatch {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 32px;
+		padding: 3px 8px;
+		font: inherit;
+		font-weight: 600;
+		color: #28323C;
+		border: none;
+		appearance: none;
+		cursor: pointer;
+		transition: box-shadow 0.15s ease;
+
+		&:disabled {
+			cursor: default;
+		}
+
+		// The active band's own swatch (activeClassName === entry.className) --
+		// an inset ring rather than a border/outline, so it doesn't shift
+		// the swatch's own size or the 1px dividing lines between swatches.
+		&.is-active {
+			box-shadow: inset 0 0 0 2px #28323C;
+		}
+
+		&.score-0 { background-color: var(--heatmap-score-0-bg, #DAEBF1); color: var(--heatmap-score-0-text, #28323C); }
+		&.score-1 { background-color: var(--heatmap-score-1-bg, #ADD3E1); color: var(--heatmap-score-1-text, #28323C); }
+		&.score-2 { background-color: var(--heatmap-score-2-bg, #80BBD0); color: var(--heatmap-score-2-text, #28323C); }
+		&.score-3 { background-color: var(--heatmap-score-3-bg, #54A3C0); color: var(--heatmap-score-3-text, #FFFFFF); }
+		&.score-4 { background-color: var(--heatmap-score-4-bg, #3A829C); color: var(--heatmap-score-4-text, #FFFFFF); }
+
+		// Non Target Tissue %'s own fixed orange scale (see
+		// getNonTargetTissuePercentageScoreClass) -- light->dark in direct
+		// band order, darkest at "[50-100]" since that's the worst outcome
+		// for the tissue. Not custom-property-driven like score-0..4 above;
+		// HeatmapColorPicker doesn't touch this tab.
+		&.nt-score-0 { background-color: #FFE8CC; color: #5C3D1E; }
+		&.nt-score-1 { background-color: #FFC078; color: #4A2E00; }
+		&.nt-score-2 { background-color: #FF922B; color: #28323C; }
+		&.nt-score-3 { background-color: #D9480F; color: #FFFFFF; }
+	}
+
+	// Ischemic Time's own legend (SplitCellLegend, BrowseTissueHeatmapTable.js)
+	// -- a small 2-column table: "Left"/"Right" captions (which side of a
+	// split cell each half physically renders on) over "Fixed"/"Frozen"
+	// (which specimen type that side actually is), per explicit request.
+	// Deliberately neutral, fixed colors (not the score-0..4 severity
+	// palette FixedScoreLegend's swatches use) -- a real cell's own two
+	// halves are each independently colored by that half's own value, not
+	// by which specimen type it is, so tying this legend to the severity
+	// palette would misleadingly imply Fixed/Frozen have their own fixed
+	// colors.
+	.tissue-heatmap-split-legend {
+		display: flex;
+		align-items: center;
+		font-size: 0.75rem;
+	}
+
+	.tissue-heatmap-split-legend-table {
+		border-collapse: collapse;
+
+		th {
+			padding: 0 0 3px;
+			font-size: 0.6875rem;
+			font-weight: 400;
+			color: #97A6B8;
+			text-align: center;
+		}
+
+		td {
+			padding: 0;
+		}
+	}
+
+	// A plain <span> before, now a <button> (see SplitCellLegend) so a half
+	// can double as a filter toggle. Each fills its own table cell -- a real
+	// border (not the old swatch's shared-background 1px-gap trick, which
+	// only worked when the 2 halves were siblings in one flex row, not
+	// separate <td>s) between the 2 forms the same bordered-box look.
+	.tissue-heatmap-split-legend-half {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		padding: 3px 10px;
+		font: inherit;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		color: #4E6884;
+		background-color: #F7FAFC;
+		border: 1px solid #D7E1EA;
+		border-radius: 4px;
+		appearance: none;
+		cursor: pointer;
+		transition: box-shadow 0.15s ease;
+
+		&:disabled {
+			cursor: default;
+		}
+
+		&.is-active {
+			box-shadow: inset 0 0 0 2px #4E6884;
+		}
+	}
+
+	.tissue-heatmap-split-legend-half-a {
+		border-top-right-radius: 0;
+		border-bottom-right-radius: 0;
+		border-right: none;
+	}
+
+	.tissue-heatmap-split-legend-half-b {
+		background-color: #EEF3F7;
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+
+	.tissue-heatmap-table-wrap {
+		overflow-x: auto;
+
+		// Clicking a cell (MetricHeatmapTable's selectedCell/handleCellClick)
+		// fades every other cell so the clicked one stands out, matching
+		// viz/Matrix/DataMatrix's own click-to-select + fade convention
+		// (StackedBlockVisual.js's openBlock, this file's own
+		// .has-open-block) rather than a one-off design for this table.
+		&.has-selected-cell {
+			.tissue-heatmap-cell,
+			.tissue-heatmap-cell-split {
+				opacity: 0.35;
+				transition: opacity 0.15s ease;
+
+				&.is-selected {
+					opacity: 1;
+					// A stronger, 2-layer outline (a solid ring plus a soft
+					// glow) -- a single thin 2px outline alone still read as
+					// muted once faded neighbors surrounded it on every
+					// side, competing for attention instead of clearly
+					// winning it.
+					outline: 2px solid #2F6FB0;
+					outline-offset: -2px;
+					box-shadow: 0 0 0 4px rgba(47, 111, 176, 0.18);
+					z-index: 2;
+				}
+			}
+
+			// The hover "L-guide" (.is-row-highlight/.is-column-highlight,
+			// below) is a lighter-weight affordance for scanning *before*
+			// picking a cell -- once one is actually selected, its own tint
+			// compositing on top of the selected cell's score-color fill
+			// (whenever the mouse happens to still be over that row/column)
+			// muddied the very cell this state exists to draw attention to.
+			// Suppressed entirely while a selection is active; the selected
+			// cell's own outline above and the row/column arrows below
+			// (.is-selected-row/.is-selected-column) already show which row
+			// and column it belongs to just as clearly.
+			.is-row-highlight::after,
+			.is-column-highlight::after {
+				display: none;
+			}
+
+			// `tbody tr:hover .tissue-heatmap-donor-id`'s own amber
+			// box-shadow (below) is a 3rd, separate hover affordance this
+			// same suppression missed -- box-shadow doesn't layer across
+			// separate rules, so whichever one wins specificity wins
+			// outright, and that hover tint otherwise painted clean over
+			// (hid) this exact row's own .is-selected-row indicator
+			// whenever the mouse happened to still be over it. Suppressed
+			// the same way as the L-guide above, with the selected row's
+			// own line explicitly re-asserted for the 1 case where both
+			// would otherwise apply to the same cell.
+			tbody tr:hover .tissue-heatmap-donor-id {
+				box-shadow: none;
+
+				&.is-selected-row {
+					box-shadow: inset -3px 0 0 0 #2F6FB0;
+				}
+			}
+
+			// Same idea as DataMatrix's own .has-open-block treatment of
+			// .column-group-header/.label-container -- every OTHER row's
+			// own donor id and every OTHER column's own tissue-type header
+			// fades too, not just the data cells between them, so the
+			// selected cell's own row/column reads as singled out end to
+			// end rather than just at the 1 cell itself.
+			//
+			// `thead tr:last-child th.is-selected-column` (not just
+			// `.is-selected-column`) repeats the fade rule's own ancestor
+			// prefix on purpose -- specificity is compared per selector
+			// *list*, not per class, so a plain `th.is-selected-column`
+			// alone (1 element + 1 class) would actually lose to the fade
+			// rule right above it (1 element + 1 pseudo-class, but also 2
+			// more ancestor elements), staying faded instead of restored.
+			thead tr:last-child th,
+			.tissue-heatmap-donor-id {
+				opacity: 0.35;
+				transition: opacity 0.15s ease;
+			}
+
+			thead tr:last-child th.is-selected-column,
+			.tissue-heatmap-donor-id.is-selected-row {
+				opacity: 1;
+			}
+		}
+	}
+
+	// Fixed-position clone of the <thead> (BrowseTissueHeatmapTable.js's
+	// MetricHeatmapTable renders this only while JS-measured scroll state
+	// says the real header has scrolled above the viewport but the table's
+	// body hasn't fully scrolled past yet -- see that component for why
+	// `position: sticky` can't do this alone: `.tissue-heatmap-table-wrap`
+	// needs `overflow-x: auto` for the table's own horizontal scroll, which
+	// per the CSS overflow spec forces it to also become a vertical scroll
+	// container -- unbounded in height, so it never actually scrolls
+	// internally, silently trapping any `position: sticky` descendant so it
+	// never reacts to the *page's* scroll. `position: fixed` is the only
+	// value that escapes that trap.
+	.tissue-heatmap-sticky-header {
+		position: fixed;
+		// `top` is set inline (BrowseTissueHeatmapTable.js) to the site's
+		// own fixed top nav's live measured height, not hardcoded here --
+		// see that component's `navOffset` for why (varies with the
+		// TestWarning banner and the `lg`+ breakpoint where the nav isn't
+		// fixed at all).
+		overflow: hidden;
+		z-index: 20;
+		box-shadow: 0 2px 6px rgba(30, 38, 50, 0.12);
+
+		// table-layout: fixed + the <colgroup> BrowseTissueHeatmapTable.js
+		// measures from the real body's first row forces this clone's
+		// columns to match the real table's pixel-for-pixel, regardless of
+		// the header's own colSpan-merged cells (germ-layer group labels,
+		// merged brain-region columns) which can't supply per-column widths
+		// on their own.
+		table.tissue-heatmap-table {
+			table-layout: fixed;
+		}
+	}
+
+	table.tissue-heatmap-table {
+		width: 100%;
+		// `border-collapse: collapse` breaks `position: sticky` on td/th in
+		// WebKit/Safari (a long-standing browser bug) -- `separate` with no
+		// spacing renders the same single-sided cell borders used below.
+		border-collapse: separate;
+		border-spacing: 0;
+		font-size: 0.8125rem;
+
+		th, td {
+			white-space: nowrap;
+			text-align: center;
+			padding: 8px 20px;
+		}
+
+		// Was the same light-blue header background/dark text/500-weight
+		// as the plain `/browse/` search-results table (`$search-header-*`
+		// above) -- switched to a neutral light grey per explicit request
+		// (the blue read as too close to the table's own blue score-band
+		// palette/donor-id link color to stay a plain neutral header).
+		thead th {
+			background-color: #F2F3F5;
+			font-weight: 500;
+			color: $search-header-text-color;
+			border-bottom: 1px solid #C3D8DE;
+		}
+
+		// The body's own column divider (.tissue-heatmap-cell's border-right,
+		// below) stopped dead at the header row, reading as though it cut off
+		// rather than continuing all the way up -- this carries the same line
+		// through the tissue-type header row (thead's 2nd/last <tr> -- the
+		// order/donor rowSpan headers and the germ-layer group-label row both
+		// live in the 1st <tr> instead, and are deliberately left out: the
+		// group-label row already marks its own boundaries via background
+		// color, and the order/donor headers' divider is their own sticky
+		// box-shadow, not this border).
+		thead tr:last-child th {
+			border-right: 1px solid #DFEAEE;
+
+			&:last-child {
+				border-right: none;
+			}
+		}
+
+		// Background/text color come from each group's inline style (shared
+		// with viz/Matrix/DataMatrix.js's DEFAULT_ROW_GROUPS_EXTENDED
+		// palette, set in BrowseTissueHeatmapTable.js) -- this just covers
+		// typography and the divider between adjacent groups.
+		.tissue-heatmap-group-label {
+			font-size: 0.6875rem;
+			font-weight: 700;
+			letter-spacing: 0.03em;
+			text-transform: uppercase;
+			border-left: 1px solid #FFFFFF;
+			padding-top: 6px;
+			padding-bottom: 6px;
+
+			&:first-child {
+				border-left: none;
+			}
+		}
+
+		.tissue-heatmap-order-header,
+		.tissue-heatmap-donor-header {
+			min-width: 40px;
+		}
+
+		// Row-2 header cells (parent-header/unsplit-header/merged-brain,
+		// via its own .tissue-heatmap-subtype-row2-boundary) are each
+		// already a whole tissue-type-group's own single cell by
+		// construction -- colSpan for a split group, 1 column for an
+		// unsplit or merged-brain one -- so there's no "sibling" case here
+		// to distinguish; every one of these dividers is a real group
+		// boundary. `thead tr:last-child th`'s own border-right divider
+		// only ever reaches whichever row ends up literally last, so on a
+		// table with any split column that's the 3rd row, not this one --
+		// this carries the same divider explicitly onto every row-2 cell
+		// so the vertical grid line stays continuous across both rows.
+		// Kept lighter than row 3's own boundary color below -- this row's
+		// background is near-white, where that darker color read as too
+		// heavy/attention-grabbing; row 3's grey background needs the
+		// darker one just to register at all (see below).
+		.tissue-heatmap-subtype-parent-header,
+		.tissue-heatmap-subtype-unsplit-header,
+		.tissue-heatmap-subtype-row2-boundary {
+			border-right: 1px solid #CBD5DE;
+
+			&:last-child {
+				border-right: none;
+			}
+		}
+
+		// The 3rd row's own sibling-subtype divider (between 2 subtypes of
+		// the SAME tissue type, e.g. Fibroadipose | Lymphoid) -- darker
+		// than the generic #E7F0F3 grid line used elsewhere in this table,
+		// since this row's own background (#DADDE3 below) is itself darker
+		// than #E7F0F3, which made that line invisible here specifically.
+		.tissue-heatmap-subtype-subrow-header {
+			border-right: 1px solid #AEB7C0;
+
+			&:last-child {
+				border-right: none;
+			}
+		}
+
+		// The real tissue-type-group boundary, one tier darker again than
+		// the sibling divider directly above -- a split group's own 3rd-row
+		// cells otherwise looked identical whether they sat between 2
+		// siblings of the SAME tissue type or at the real boundary with the
+		// NEXT tissue type, so there was no way to tell where one tissue
+		// type's own subtype columns actually ended. Applied via this
+		// class (see renderSubtypeHeaderCells) to a split group's own LAST
+		// child and to every unsplit/merged-brain single-column placeholder
+		// in this (grey-background) row only -- row 2's own merged-brain
+		// cell uses the lighter .tissue-heatmap-subtype-row2-boundary
+		// above instead, since its background isn't this row's grey.
+		.tissue-heatmap-subtype-group-boundary {
+			border-right: 1px solid #8698A8;
+
+			&:last-child {
+				border-right: none;
+			}
+		}
+
+		// The split-parent's own colSpan label cell (2nd row) -- neutral,
+		// not the germ-layer group color, so it reads as "parent of the
+		// subtype row below" rather than another group-label band. Same
+		// background as the generic `thead th` rule above (not its own
+		// slightly-different #F7FAFC, as this used to be) -- confirmed
+		// against a real table that a tissue type WITH subtypes (this
+		// class) sitting right next to one without any (plain `thead th`,
+		// no subtype-specific class at all) read as 2 different shades of
+		// the same row, an unintended inconsistency rather than a real
+		// distinction worth drawing.
+		.tissue-heatmap-subtype-parent-header {
+			font-size: 0.75rem;
+			font-weight: 600;
+			color: #4E6884;
+			background-color: #F2F3F5;
+			text-align: center;
+		}
+
+		// The 3rd row's own per-subtype header -- smaller than the parent
+		// label above it, reading as visually "nested" under it. Each
+		// subtype label is a real link (see renderSubtypeHeaderCells) when
+		// tissueTypeHrefs has one for it -- `a` doesn't inherit an
+		// ancestor's `color` on its own, so without this override it kept
+		// showing the browser/app's own default link blue right through
+		// this `color: #343741`, exactly the "subtype names read as links"
+		// look this was meant to avoid; the label still functions as a
+		// link either way, just no longer looks like one.
+		.tissue-heatmap-subtype-subrow-header {
+			font-size: 0.8125rem;
+			font-weight: 400;
+			color: #343741;
+			background-color: #DADDE3;
+		}
+
+		// A fixed-width, ellipsis-truncated box around every 3rd-row
+		// label (real subtype name, self-titled placeholder's "n/a", and
+		// merged-brain's own "n/a") -- column width used to just follow
+		// whichever subtype name happened to be longest (e.g. "Muscularis
+		// propria"), leaving some tissue-type columns much wider than
+		// others with nothing to explain why. Every 3rd-row cell now
+		// requests this same box's width regardless of its own text
+		// length, so table-layout: auto settles on one uniform width for
+		// every subtype-aware column instead; a `title` alongside this
+		// (see renderSubtypeHeaderCells) surfaces the untruncated text on
+		// hover. `vertical-align: middle` keeps this aligned with the sort
+		// button/icon next to it (a split column's own <SortableHeaderLabel>)
+		// rather than baseline-aligning against its icon's own box.
+		.tissue-heatmap-subtype-subrow-label-text {
+			display: inline-block;
+			width: 96px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			vertical-align: middle;
+		}
+
+		// An unsplit column's own 3rd-row cell (renderSubtypeHeaderCells) --
+		// plain "n/a", not a real subtype, so it's muted like any other
+		// empty value elsewhere in this table (.tissue-heatmap-cell's own
+		// .na/.is-empty) rather than reading as a real (if oddly-named)
+		// subtype column.
+		.tissue-heatmap-subtype-subrow-placeholder {
+			color: #93A0B0;
+			font-weight: 400;
+			text-align: center;
+		}
+
+		// Column count is data-driven and unbounded (one per distinct
+		// tissue_type string, see BrowseTissueHeatmapTable.js's
+		// buildTissueMetricMatrix) -- the table already scrolls
+		// horizontally, so pin the row-identifying columns in place or
+		// scrolling loses track of which donor a row belongs to.
+		.tissue-heatmap-order-header,
+		.tissue-heatmap-order-label {
+			position: sticky;
+			left: 0;
+			z-index: 2;
+			width: 32px;
+			background-color: #FFFFFF;
+		}
+
+		.tissue-heatmap-donor-header,
+		.tissue-heatmap-donor-id {
+			position: sticky;
+			left: 32px;
+			z-index: 2;
+			background-color: #FFFFFF;
+			box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.12);
+		}
+
+		// Frozen top-left corner -- these two rowSpan={2} cells are already
+		// sticky-left (above); pinning `top: 0` too makes them stick on both
+		// axes at once, matching the tissue-type headers' own sticky-top so
+		// nothing gaps between them during a diagonal scroll. z-index above
+		// every other sticky layer (thead th's own 4, sticky-left body
+		// cells' 2) since this corner must always win. Background is left
+		// at the plain white the earlier sticky rule (above) already gives
+		// it -- per explicit request, no header background color behind
+		// Donor ID at all (the earlier light-blue $search-header-background-color
+		// this used to force back on is gone entirely, not swapped for
+		// another color).
+		thead th.tissue-heatmap-order-header,
+		thead th.tissue-heatmap-donor-header {
+			z-index: 3;
+		}
+
+		.tissue-heatmap-order-label {
+			border-right: 1px solid #E7F0F3;
+			vertical-align: middle;
+			padding: 8px 4px;
+
+			span {
+				display: inline-block;
+				writing-mode: vertical-rl;
+				transform: rotate(180deg);
+				font-weight: 600;
+				font-size: 0.75rem;
+				color: #343741;
+				white-space: nowrap;
+			}
+		}
+
+		.tissue-heatmap-donor-id {
+			text-align: left;
+			font-weight: 600;
+			color: #428bca;
+			border-right: 1px solid #E7F0F3;
+		}
+
+		// Same idea as DataMatrix's own .open-block-row/.open-block-column
+		// (_charts.scss) -- a small arrow pointing at the selected cell's
+		// own row/column, on top of that cell's own outline (above), so
+		// tracing "which donor/tissue is this" doesn't require reading the
+		// header text over on the far left/top again.
+		.tissue-heatmap-donor-id.is-selected-row {
+			// Same inset line as th.is-selected-column below, just on this
+			// cell's own right edge (the side facing into the table body)
+			// instead of its bottom -- keeps the 2 indicators visually
+			// paired as one convention rather than 2 different ones.
+			box-shadow: inset -3px 0 0 0 #2F6FB0;
+
+			&::before {
+				font-family: "Font Awesome 6 Free";
+				font-weight: 900;
+				content: "\f0da";
+				margin-right: 6px;
+				color: #2F6FB0;
+			}
+		}
+
+		// An arrow glyph (`::after`, matching .is-selected-row above) was
+		// tried here first, but inserting *content* into a header cell adds
+		// to its own natural width -- exactly the kind of layout change
+		// this table's sticky-header clone has to re-measure/re-sync (see
+		// MetricHeatmapTable's own scroll-measurement effect), so selecting
+		// a cell visibly shifted its column and everything after it. A
+		// border only ever paints within the cell's existing box (global
+		// `box-sizing: border-box`), so it can't do that.
+		th.is-selected-column {
+			box-shadow: inset 0 -3px 0 0 #2F6FB0;
+		}
+
+		tbody tr:not(:last-of-type) .tissue-heatmap-donor-id,
+		tbody tr:not(:last-of-type) .tissue-heatmap-cell {
+			border-bottom: 1px solid #E7F0F3;
+		}
+
+		// "L-shaped" hover guides -- which row/column a cell belongs to
+		// should be obvious on hover, per explicit request, but an earlier
+		// version of this (the *entire* row and *entire* column, a full
+		// "+" cross through the hovered cell) was confirmed against a real
+		// table to read as a distracting cross rather than a helpful guide
+		// -- narrowed to just the portion of the row at/before the hovered
+		// cell and the portion of the column at/above it instead (see
+		// renderRowCells' own comment for the row/column-index math this
+		// is driven by). `.tissue-heatmap-donor-id` is the one exception
+		// that still uses plain `tbody tr:hover`, no JS index math needed
+		// -- it's always positioned before every data column, so it's
+		// always part of the row segment the instant its own row is
+		// hovered at all, regardless of which specific column triggered
+		// it. `box-shadow: inset ... 9999px` (not `background-color`)
+		// layers a tint on top of whatever a cell already has -- score-band
+		// fill, germ-layer group color -- without replacing it.
+		//
+		// Blue was tried first (matching the app's own accent) and
+		// confirmed, against a real densely-colored table, to basically
+		// disappear: the score-band scale is itself a bright sky-blue (light
+		// -> dark "Sky"), so a blue tint at any reasonable opacity barely
+		// shifts an already-blue cell -- same hue family, too little perceptual
+		// contrast, especially against the darker bands. A thin-edge-line
+		// version (border-like box-shadows instead of a fill) was also
+		// tried and read as broken/disconnected rather than a clean marker.
+		// Amber was tried next -- visible at both ends of the score range,
+		// but read as more of a "status" color (warning/attention) than a
+		// plain hover cue, and stood out more than this page's own soft/
+		// muted visual language elsewhere calls for. A neutral dark
+		// slate-gray tint darkens any hue underneath by roughly the same
+		// amount regardless of its own color, so it still reads clearly
+		// against the lightest and darkest score bands alike, without
+		// implying anything beyond "this is what's currently hovered".
+		//
+		// Written as plain literal rgba(...) calls, not a $variable spread
+		// via the `...` splat operator -- that produced a wildly wrong
+		// rendered color against this project's Sass toolchain, almost
+		// certainly because `rgba()` is plain CSS syntax (not a real Sass
+		// function), and splatting a Sass list into it isn't reliably
+		// supported the way it is for actual Sass functions/mixins. Not
+		// worth re-testing without a real browser to verify against --
+		// literal values sidestep the ambiguity entirely.
+		tbody tr:hover .tissue-heatmap-donor-id {
+			box-shadow: inset 0 0 0 9999px rgba(30, 41, 59, 0.14);
+		}
+
+		// `::after`, not `box-shadow: inset` (tried first) -- box-shadow
+		// paints as part of the <td>'s own background layer, which sits
+		// *behind* its content. A plain cell has no content covering that
+		// background, so it looked fine there, but a diagonal/vertical
+		// split cell's 2 <span> halves (tissue-heatmap-cell-split-half,
+		// each with its own opaque score-band background, absolutely
+		// positioned to fully cover the <td>) sit *in front of* that same
+		// background layer -- completely hiding the box-shadow tint,
+		// confirmed against a real table as the exact cause of highlighting
+		// silently working on ordinary cells but not split ones. A `::after`
+		// overlay is real generated content, painted after (on top of) the
+		// split spans in the same stacking context, so it works identically
+		// either way. Specificity (2 classes beats 1), not source order,
+		// is what makes the combined rule win over either single-state
+		// rule when both apply to the same cell -- unlike box-shadow,
+		// background-color from 2 different rules on the same
+		// pseudo-element can't layer/add together, so this only needs 1
+		// rule to actually take effect per cell, and specificity is what
+		// picks the right one.
+		.is-row-highlight,
+		.is-column-highlight {
+			position: relative;
+		}
+
+		.is-row-highlight::after,
+		.is-column-highlight::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+		}
+
+		.is-row-highlight::after {
+			background-color: rgba(30, 41, 59, 0.14);
+		}
+
+		.is-column-highlight::after {
+			background-color: rgba(30, 41, 59, 0.1);
+		}
+
+		// The exact hovered cell itself -- where the row and column
+		// segments meet -- gets a visibly stronger tint than either alone.
+		.is-row-highlight.is-column-highlight::after {
+			background-color: rgba(30, 41, 59, 0.24);
+		}
+
+		.tissue-heatmap-cell {
+			position: relative;
+			color: #212529;
+			font-weight: 500;
+			// Clicking any cell opens its own detail popover (see
+			// .has-selected-cell/.tissue-heatmap-cell-detail-popover) --
+			// the pointer cursor is the only always-visible hint that's
+			// true, since nothing else about a plain cell looks
+			// interactive.
+			cursor: pointer;
+			// A real (not just white-on-white) vertical grid line between
+			// columns -- without conditional coloring's own background
+			// blocks to visually separate cells, this is what keeps a wide,
+			// data-driven number of tissue-type columns scannable.
+			border-right: 1px solid #E7F0F3;
+
+			&:last-child {
+				border-right: none;
+			}
+
+			// Same real-tissue-type-group boundary the header's own 3rd
+			// row marks (see .tissue-heatmap-subtype-group-boundary's own
+			// comment above) -- carried down through the body so the
+			// heavier divider reads as one continuous line from header to
+			// last row, not just at the top. Source order (after the plain
+			// border-right above) is what makes this win on a cell
+			// carrying both classes, same specificity either way.
+			&.tissue-heatmap-cell-group-boundary {
+				border-right: 1px solid #CBD5DE;
+			}
+
+			// A sequential sky-blue scale (light -> dark), not a green->red
+			// ramp, since that read as a status/alarm signal regardless of
+			// what the metric measured -- "Sky" (#4DCFFF), generated via
+			// buildSequentialPaletteFromHex(baseHex, 5), same as any
+			// HeatmapColorPicker pick. 5 bands, not 4 -- Ischemic Time's own
+			// quantile split and Target Tissue %'s 5 real bands both need a
+			// 5th (see buildRangeScoreClassifier/getTargetTissuePercentageScoreClass);
+			// Autolysis Score's 4 real levels just never reach score-4.
+			//
+			// Each background/text pair also reads a `--heatmap-score-N-bg`/
+			// `-text` custom property first, falling back to these hardcoded
+			// values when unset -- HeatmapColorPicker sets those inline on
+			// .tissue-heatmap-card when a user picks a different palette.
+			&.score-0 {
+				background-color: var(--heatmap-score-0-bg, #DAEBF1);
+				color: var(--heatmap-score-0-text, #28323C);
+			}
+			&.score-1 {
+				background-color: var(--heatmap-score-1-bg, #ADD3E1);
+				color: var(--heatmap-score-1-text, #28323C);
+			}
+			&.score-2 {
+				background-color: var(--heatmap-score-2-bg, #80BBD0);
+				color: var(--heatmap-score-2-text, #28323C);
+			}
+			&.score-3 {
+				background-color: var(--heatmap-score-3-bg, #54A3C0);
+				color: var(--heatmap-score-3-text, #FFFFFF);
+			}
+			&.score-4 {
+				background-color: var(--heatmap-score-4-bg, #3A829C);
+				color: var(--heatmap-score-4-text, #FFFFFF);
+			}
+
+			// Non Target Tissue %'s own fixed orange scale (see
+			// .tissue-heatmap-fixed-legend-swatch's own nt-score-0..3 rules
+			// above for why this isn't tied to the shared score-0..4
+			// custom properties).
+			&.nt-score-0 { background-color: #FFE8CC; color: #5C3D1E; }
+			&.nt-score-1 { background-color: #FFC078; color: #4A2E00; }
+			&.nt-score-2 { background-color: #FF922B; color: #28323C; }
+			&.nt-score-3 { background-color: #D9480F; color: #FFFFFF; }
+
+			&.na,
+			&.is-empty {
+				color: #C7CCD2;
+				font-weight: 400;
+			}
+
+			// A legend swatch/half is selected as a filter (FixedScoreLegend/
+			// SplitCellLegend's activeClassName/activeHalf, applied here via
+			// renderRowCells' activeScoreClass/activeSplitHalf) and this
+			// cell's own band doesn't match it -- its own fill/text hidden
+			// outright (not just faded/desaturated, which still risked
+			// reading as its own color band regardless of how much either
+			// was dialed down), so only the matching cells show any value
+			// at all. Background/text only, not `visibility: hidden` on the
+			// whole cell -- that also hid this cell's own border-right grid
+			// line, leaving the remaining matched cells looking like
+			// borderless boxes floating with no table structure around
+			// them. `!important` since this has to win over whichever
+			// `&.score-N`/`&.na` rule already set this same cell's own
+			// background/text color.
+			&.is-band-dimmed {
+				background-color: transparent !important;
+				color: transparent !important;
+			}
+
+			// The Excel-style corner flag -- more than one real record is
+			// actually competing for this cell's value (see
+			// buildTissueMetricMatrix's pickPrimaryTissueRecord), typically
+			// a Fixed/Frozen pair. The single-record case still shows the
+			// same detail popover on click (MetricHeatmapTable's
+			// selectedCell, rendered elsewhere -- see
+			// .tissue-heatmap-cell-detail-popover below) but doesn't get
+			// flagged.
+			&.has-alt-values {
+				position: relative;
+
+				&::after {
+					content: '';
+					position: absolute;
+					top: 0;
+					right: 0;
+					border-style: solid;
+					border-width: 0 8px 8px 0;
+					border-color: transparent #E8871E transparent transparent;
+					// A flat fill read fine against the lightest score band
+					// but nearly vanished against the darkest (both are
+					// blue, this palette's whole point) -- a soft
+					// drop-shadow (works on a border-triangle's own
+					// rendered shape, not just boxes) keeps just enough
+					// edge definition to stay legible on any band without a
+					// hard outline, which read as a sticker pasted on top
+					// of the cell rather than a corner fold.
+					filter: drop-shadow(-0.5px 0.5px 0.5px rgba(0, 0, 0, 0.45));
+				}
+			}
+		}
+
+		// Diagonal/vertical "split" cell layouts (renderRowCells' isSplitMode) --
+		// an alternative to the plain "/"-joined text .tissue-heatmap-cell
+		// itself shows for a multi-value cell in the default 'inline' display
+		// mode; both only ever apply to a cell with exactly 2 distinct values
+		// (see CELL_VALUE_DISPLAY_MODES' own comment for why 3+ falls back to
+		// the joined-text form instead). The outer <td> here intentionally
+		// carries no score-N class of its own (unlike a plain
+		// .tissue-heatmap-cell) -- each half is colored by its OWN value's
+		// band, not the cell's single primary value, so the split itself reads
+		// as 2 real, independently-colored data points instead of 1 colored
+		// cell with a second number tacked on.
+		.tissue-heatmap-cell-split {
+			position: relative;
+			padding: 0;
+			// A fixed height so the diagonal clip-path below (and the vertical
+			// layout's own 2 flex halves) always divide the same physical box
+			// regardless of how many characters either value happens to have.
+			// A plain .tissue-heatmap-cell's own natural height is already
+			// ~36px here (0.8125rem text + 8px top/bottom padding, see
+			// table.tissue-heatmap-table's own th/td rule) -- matching that
+			// directly (52px, then 40px, both read as visibly taller than
+			// the rest of that row's plain cells) keeps a row mixing split
+			// and plain cells from visibly growing at all.
+			height: 36px;
+			color: #212529;
+			cursor: pointer;
+			border-right: 1px solid #E7F0F3;
+
+			&:last-child {
+				border-right: none;
+			}
+		}
+
+		.tissue-heatmap-cell-split-half {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 500;
+			font-size: 0.8125rem;
+			overflow: hidden;
+
+			// Same 5-band scale .tissue-heatmap-cell's own score-0..4 rules use
+			// (see that block's own comment) -- each half reads its value's band
+			// independently via the same custom-property-first fallback, so a
+			// HeatmapColorPicker pick recolors split cells right along with
+			// every plain one.
+			&.score-0 {
+				background-color: var(--heatmap-score-0-bg, #DAEBF1);
+				color: var(--heatmap-score-0-text, #28323C);
+			}
+			&.score-1 {
+				background-color: var(--heatmap-score-1-bg, #ADD3E1);
+				color: var(--heatmap-score-1-text, #28323C);
+			}
+			&.score-2 {
+				background-color: var(--heatmap-score-2-bg, #80BBD0);
+				color: var(--heatmap-score-2-text, #28323C);
+			}
+			&.score-3 {
+				background-color: var(--heatmap-score-3-bg, #54A3C0);
+				color: var(--heatmap-score-3-text, #FFFFFF);
+			}
+			&.score-4 {
+				background-color: var(--heatmap-score-4-bg, #3A829C);
+				color: var(--heatmap-score-4-text, #FFFFFF);
+			}
+			// The Fixed or Frozen side of a splitByPreservationType cell
+			// (renderRowCells) when that specific preservation_type has no
+			// real value for this donor+tissue_type -- same muted, no-band
+			// treatment as a plain .tissue-heatmap-cell's own `.is-empty`
+			// (grey text, no score-color background), just scoped to 1
+			// half instead of the whole cell.
+			&.is-empty {
+				background-color: transparent;
+				color: #C7CCD2;
+				font-weight: 400;
+			}
+
+			// Same legend-driven filter hide as .tissue-heatmap-cell's own
+			// `.is-band-dimmed` -- lets e.g. clicking "Fixed" in
+			// SplitCellLegend hide only the Frozen half of every split cell,
+			// or a score-band swatch hide only the non-matching half of a
+			// cell whose 2 real values landed in different bands. A half has
+			// no border of its own to preserve (the split cell's outer
+			// border-right, above, isn't part of this element), so there's
+			// no equivalent "keep the grid line" concern here -- still
+			// background/text only (not `visibility: hidden`), just for
+			// consistency with the whole-cell version.
+			&.is-band-dimmed {
+				background-color: transparent !important;
+				color: transparent !important;
+			}
+		}
+
+		// Each half fills the cell's own top-left/bottom-right triangle
+		// (`clip-path`, not an actual rotated/skewed element -- keeps the text
+		// itself upright and readable rather than running diagonally).
+		.tissue-heatmap-cell-split-diagonal {
+			.tissue-heatmap-cell-split-half-a {
+				position: absolute;
+				inset: 0;
+				clip-path: polygon(0 0, 100% 0, 0 100%);
+				align-items: flex-start;
+				justify-content: flex-start;
+				padding: 4px 6px 0 6px;
+			}
+			.tissue-heatmap-cell-split-half-b {
+				position: absolute;
+				inset: 0;
+				clip-path: polygon(100% 0, 100% 100%, 0 100%);
+				align-items: flex-end;
+				justify-content: flex-end;
+				padding: 0 6px 4px 0;
+			}
+		}
+
+		// The dividing line between the 2 halves above -- an actual SVG
+		// `<line>` (rendered inline by renderRowCells, only for `diagonal`
+		// mode), not a CSS gradient hard-stop, and not a `border` on either
+		// half. A `linear-gradient(to bottom right, ...)` hard-stop was
+		// tried first and looked like a mismatched double line/zigzag
+		// against a real (non-square) column width -- root cause: a
+		// "to corner" gradient's hard-stop is a line perpendicular to the
+		// top-left-to-bottom-right AXIS through the box's center, which
+		// only coincides with the box's own literal corner-to-corner
+		// diagonal when the box is a square. A `border` doesn't work
+		// either -- clip-path only clips already-rendered pixels, it
+		// doesn't add a border along the new cut edge it creates. This
+		// SVG's `viewBox="0 0 100 100"` + `preserveAspectRatio="none"`
+		// stretches non-uniformly exactly like the 2 halves' own
+		// percentage-based `clip-path` polygons do, so the line drawn here
+		// traces the literal same diagonal the halves are cut along, at
+		// any column width -- `vector-effect="non-scaling-stroke"` on the
+		// `<line>` itself keeps its stroke a constant screen pixel width
+		// despite that same non-uniform stretch.
+		.tissue-heatmap-cell-split-divider {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+
+			// 2 earlier attempts before this plain, fixed dark line:
+			// - A soft drop-shadow halo around a plain white stroke (to
+			//   stay visible against the lightest band, where plain white
+			//   nearly vanishes) read as a 2nd, offset line right next to
+			//   the real one against a real table -- the "double stripe"
+			//   look this was meant to avoid in the first place.
+			// - `mix-blend-mode: difference` (inverting whatever's behind
+			//   the stroke -- light backdrop -> dark line, dark backdrop ->
+			//   light line) fixed the contrast, but inverting this
+			//   palette's own blue-toned dark bands lands on a reddish-
+			//   orange, not a neutral tone -- confirmed against a real
+			//   table this reads as an actual color, out of place next to
+			//   an otherwise all-blue-grey scale, not just "a line".
+			// A plain, fixed dark line instead: not truly optimal contrast
+			// against the single darkest band, but every band in this
+			// palette is fairly light-to-medium to begin with (even the
+			// darkest, #3A829C, isn't near-black), so one consistent,
+			// on-brand line reads fine everywhere without the previous
+			// approaches' own side effects. First landed at 0.75 opacity,
+			// which read as too heavy/dominant against a real table --
+			// halfway between that and the plain-white line's own
+			// (confirmed too faint) ~0 effective opacity against light
+			// bands is roughly this 0.5.
+			line {
+				stroke: #28323C;
+				stroke-opacity: 0.5;
+				stroke-width: 1.25;
+			}
+		}
+
+		// Plain side-by-side halves -- simpler than the diagonal layout
+		// since there's no diagonal edge to fake a border along, a real
+		// `border-right` on the first half does it. `display: flex` on
+		// `.tissue-heatmap-cell-split` itself (the <td>) was tried first,
+		// reasoning it's simpler than `position: absolute` for a plain
+		// side-by-side split -- against a real table this broke the whole
+		// row's layout (overriding a table cell's own `display` away from
+		// `table-cell` stops it participating in the table's row-height/
+		// column-width algorithm at all, in a way that's easy to miss on
+		// an isolated cell but corrupts the surrounding table visibly).
+		// `position: absolute`, same as the diagonal halves above, leaves
+		// the <td> itself an ordinary table cell -- only its *children* are
+		// taken out of flow.
+		.tissue-heatmap-cell-split-vertical {
+			.tissue-heatmap-cell-split-half {
+				position: absolute;
+				inset: 0;
+				width: 50%;
+			}
+			.tissue-heatmap-cell-split-half-a {
+				border-right: 1px solid rgba(255, 255, 255, 0.7);
+
+				// The white divider above all but disappears against this
+				// half's own transparent fill (see .is-empty, no score-N
+				// background) -- both halves reading "n/a" then had nothing
+				// to show where one stops and the other starts. A dark,
+				// still-subtle divider instead of a light one only for this
+				// case (a colored half keeps the white one, which already
+				// reads fine against its own dark-ish fill).
+				&.is-empty {
+					// Solid, same as every other border on this table --
+					// dashed read as an unrelated, out-of-place style next
+					// to the table's own plain solid lines everywhere else.
+					border-right-color: rgba(0, 0, 0, 0.03);
+				}
+			}
+			.tissue-heatmap-cell-split-half-b {
+				left: 50%;
+			}
+		}
+
+		// Click-to-sort column headers, deliberately not the shared
+		// `.column-sort-icon`/HeadersRow.js machinery, which is scoped to
+		// the URL/context-driven `/browse/` search-results table and
+		// mismatched for this table's plain client-side row sort. Only the
+		// icon-sort-up/icon-sort-down convention is borrowed for consistency.
+		.tissue-heatmap-sort-button {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			background: none;
+			border: none;
+			padding: 0;
+			margin-left: 4px;
+			font: inherit;
+			font-weight: inherit;
+			color: inherit;
+			// Matches .tissue-heatmap-subtype-subrow-label-text's own
+			// vertical-align -- keeps the icon sitting on the same line as
+			// a fixed-width (possibly ellipsis-truncated) label next to it,
+			// not shifted by the label's own inline-block baseline. The
+			// label's own `overflow: hidden` is scoped to its own box (a
+			// separate sibling element, not an ancestor of this button), so
+			// this icon is never at risk of being clipped by it regardless
+			// of how much the label itself truncates.
+			vertical-align: middle;
+			cursor: pointer;
+
+			&:hover .tissue-heatmap-sort-icon {
+				color: #657b95;
+			}
+
+			&.is-active .tissue-heatmap-sort-icon {
+				color: #428bca;
+			}
+		}
+
+		// Same base color as the plain `/browse/` search-results table's own
+		// sort icon ($search-header-icon-color) -- see the button's
+		// hover/is-active overrides above for the rest of this table's own
+		// (unrelated) client-side-sort feedback.
+		.tissue-heatmap-sort-icon {
+			font-size: 0.6875rem;
+			color: $search-header-icon-color;
+		}
+	}
 }
 
 /** FIX FOR BROWSE VIEW SEARCH TABLE WEIRDNESS **/

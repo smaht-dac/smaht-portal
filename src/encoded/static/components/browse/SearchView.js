@@ -63,14 +63,28 @@ export function filterFacet(facet, currentAction) {
     return true;
 }
 
+// Snovault titles ad hoc facets (like sample_summary.sample_names, used by
+// tissue-overview popover links) from the raw last path segment, since its
+// title lookup only checks top-level schema properties, not the nested
+// sample_summary calculated-property schema where this field is titled
+// "Sample ID" (file.py's SAMPLE_SUMMARY_SCHEMA).
+const FACET_FIELD_TITLE_OVERRIDES = {
+    'sample_summary.sample_names': 'Sample ID',
+};
+
 /** Filter the `@type` facet options down to abstract types only (if none selected) for Search. */
 export function transformedFacets(context, currentAction, schemas) {
     // Clone/filter list of facets.
     // We may filter out type facet completely at this step,
     // in which case we can return out of func early.
-    const facets = context.facets.filter(function (facet) {
-        return filterFacet(facet, currentAction);
-    });
+    const facets = context.facets
+        .filter(function (facet) {
+            return filterFacet(facet, currentAction);
+        })
+        .map(function (facet) {
+            const titleOverride = FACET_FIELD_TITLE_OVERRIDES[facet.field];
+            return titleOverride ? { ...facet, title: titleOverride } : facet;
+        });
 
     // Find facet for '@type'
     const searchItemTypes =
@@ -173,6 +187,10 @@ export class SearchViewBody extends React.PureComponent {
                         facets,
                         facetListSortFxns,
                     }}
+                    // WindowNavigationController recomputes facets from context.facets
+                    // and clobbers the `facets` prop above, so title overrides must be
+                    // baked into context.facets itself.
+                    context={{ ...context, facets }}
                     aboveTableComponent={aboveTableComponent}
                     renderDetailPane={null}
                     separateSingleTermFacets={false}

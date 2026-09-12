@@ -1546,7 +1546,8 @@ File, Donor, and Publication Overview Styles
 .item-page-container.type-File,
 .item-page-container.type-ProtectedDonor,
 .item-page-container.type-Donor,
-.item-page-container.type-Publication {
+.item-page-container.type-Publication,
+.item-page-container.type-Tissue {
     font-family: 'Inter';
 
     .view-title {
@@ -3035,6 +3036,1595 @@ File, Donor, and Publication Overview Styles
                 flex-direction: column;
             }
         }
+    }
+}
+
+// Only the legacy per-item /tissues/<uuid>/ "Tissue Overview" tab renders
+// inside .item-page-container.type-Tissue's tabs bar; the type-keyed
+// /tissue-overview/?tissue_type=<value> page (TissueTypeView.js) is a
+// standalone page with no tabs bar, so this rule stays scoped separately
+// from the shared .tissue-view content styling below.
+.item-page-container.type-Tissue {
+    .tabs-bar-outer .tabs-bar .tab-item.active {
+        border-top-color: #1f9f55;
+    }
+}
+
+// Shared by both the legacy /tissues/<uuid>/ "Tissue Overview" tab and the
+// type-keyed /tissue-overview/?tissue_type=<value> page -- both render
+// inside a top-level <div className="tissue-view">. The base .view-title
+// rules are duplicated here rather than widening the shared
+// .item-page-container.type-File/Donor/etc. block above, since that block
+// also carries File/Donor-specific rules (e.g. .data-group) that shouldn't
+// apply to this page.
+.tissue-view {
+    font-family: 'Inter';
+
+    .view-title {
+        background: url('/static/img/polygon-bg-header.svg'),
+            linear-gradient(
+                165deg,
+                rgba(233, 250, 240, 0.92),
+                rgba(212, 238, 222, 0.72)
+            );
+        background-size: cover;
+        border: 1px solid $porcelain;
+        padding-top: 30px;
+        padding-bottom: 20px;
+
+        &-navigation {
+            display: flex;
+            flex-direction: row;
+
+            .breadcrumb-list {
+                list-style-type: none;
+                display: flex;
+                justify-content: center;
+                padding: 0px;
+
+                &-item {
+                    font-size: 0.875rem;
+                    &-link {
+                        color: #428bca;
+
+                        &.no-link {
+                            color: #5b698b;
+
+                            &:hover {
+                                color: #5b698b;
+                                text-decoration: none;
+                            }
+                        }
+
+                        &:hover {
+                            color: #2a6496;
+                        }
+                    }
+                    .icon {
+                        color: $gray-30;
+                        margin: auto;
+                    }
+                }
+            }
+        }
+
+        &-text {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: $gray-70;
+            margin: 5px 0px 0px 0px;
+        }
+    }
+
+    .view-content {
+        padding: 40px 32px 0px;
+
+        .tissue-summary-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 20px 0 0;
+            margin-bottom: 24px;
+
+            &-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 88px;
+                height: 88px;
+                min-width: 88px;
+                border-radius: 50%;
+                // Neutral fill/border -- per-tissue color lives only on the
+                // ring via an inline style override, same treatment as the
+                // Browse-by-Tissue germ-layer bubbles. This is also the
+                // fallback look for tissue_types the color scheme doesn't cover.
+                background-color: #F7F9FB;
+                border: 3px solid #D7E1EA;
+
+                i {
+                    font-size: 2.25rem;
+                    color: #4E6884;
+                }
+
+                // Anatomy-icon SVGs ship with their own fixed fill color
+                // (e.g. #636363), which doesn't match this circle's theme --
+                // masking with the SVG instead of rendering it as an <img>
+                // lets a plain background-color fill it solid, same look as
+                // the FontAwesome icon it replaces.
+                .tissue-icon-mask {
+                    display: inline-block;
+                    width: 60px;
+                    height: 60px;
+                    background-color: #4E6884;
+                    -webkit-mask-repeat: no-repeat;
+                    mask-repeat: no-repeat;
+                    -webkit-mask-position: center;
+                    mask-position: center;
+                    -webkit-mask-size: contain;
+                    mask-size: contain;
+                }
+            }
+
+            &-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-self: stretch;
+
+                h1 {
+                    margin: 0;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid #e7f0f3;
+                    font-size: 1.75rem;
+                }
+            }
+
+            &-notes {
+                display: flex;
+                align-items: baseline;
+                padding-top: 14px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid #e7f0f3;
+                font-size: 0.875rem;
+
+                .notes-label {
+                    font-weight: 600;
+                    color: #4e6884;
+                    padding-right: 10px;
+                    margin-right: 10px;
+                    border-right: 1px solid #e7f0f3;
+                }
+
+                .notes-value {
+                    color: #5b7595;
+                }
+            }
+        }
+
+        .tissue-summary-row {
+            display: flex;
+            // `stretch` (the flex default) -- both cards match the taller
+            // one's height, same equal-height card treatment as
+            // ProtectedDonorViewDataCards's Data Summary/Prior
+            // Diagnosis/Exposures row. Each card is itself a column flexbox
+            // with its own `.body` set to `flex: 1`, so the extra height
+            // lands as breathing room inside the shorter card's body
+            // rather than a hard cutoff.
+            align-items: stretch;
+            gap: 24px;
+            margin-bottom: 24px;
+
+            .tissue-summary-card,
+            .tissue-aliquot-card {
+                background-color: #ffffff;
+                border: 1px solid #e7f0f3;
+                border-radius: 8px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+
+                // Shared green header bar -- .tissue-donor-table-card
+                // (below) no longer has an equivalent one of its own (no
+                // title, its table now styled to match the plain
+                // `/browse/` search-results table instead).
+                > .header {
+                    background-color: #eaf6ed;
+                    padding: 12px 20px;
+                    border-bottom: 1px solid #cdebd8;
+
+                    .header-text {
+                        font-size: 1.0625rem;
+                        font-weight: 600;
+                    }
+                }
+            }
+
+            .tissue-summary-card {
+                flex: 2 1 420px;
+                max-width: 680px;
+
+                .body {
+                    flex: 1;
+                    padding: 20px;
+                }
+
+                // Matches ProtectedDonorViewDataCards's own `.section-title`
+                // styling (donor-overview.js) -- normal case, not the
+                // all-caps treatment this used to have.
+                .tissue-summary-subheader {
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                    color: #5d5e63;
+                    margin-bottom: 10px;
+                }
+
+                .tissue-summary-fields {
+                    border: 1px solid #e7f0f3;
+                    border-radius: 6px;
+                    padding: 4px 16px;
+                    margin-bottom: 24px;
+                }
+
+                .tissue-summary-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    column-gap: 24px;
+
+                    .datum {
+                        display: flex;
+                        flex-direction: row;
+                        align-items: baseline;
+                        gap: 8px;
+                        padding: 10px 0;
+                        border-bottom: 1px solid #eef1f4;
+
+                        &-title {
+                            flex: 0 0 auto;
+                            font-size: 0.8125rem;
+                            font-weight: 600;
+                            color: #212529;
+                            white-space: nowrap;
+                        }
+
+                        &-value {
+                            flex: 1;
+                            font-size: 0.8125rem;
+                            font-weight: 400;
+                            color: #212529;
+
+                            &.coming-soon {
+                                color: #d8d8d8;
+                            }
+                        }
+                    }
+
+                    .datum:nth-last-child(-n + 2) {
+                        border-bottom: none;
+                    }
+                }
+            }
+
+            .tissue-aliquot-card {
+                flex: 3 1 520px;
+                max-width: 900px;
+
+                .body {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 20px 24px 24px;
+                }
+
+                .tissue-aliquot-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+
+                    .aliquot-title {
+                        color: #31465d;
+                        font-size: 1rem;
+                        font-weight: 600;
+
+                        .aliquot-title-info-icon {
+                            margin-left: 6px;
+                            font-size: 0.8125rem;
+                            color: #6c8bab;
+
+                            &:hover {
+                                color: #4e6884;
+                            }
+                        }
+                    }
+                }
+
+                .tissue-aliquot-donor-select {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    flex: 0 0 auto;
+
+                    label {
+                        font-size: 0.8125rem;
+                        font-weight: 600;
+                        color: #212529;
+                        margin-bottom: 0;
+                        white-space: nowrap;
+                    }
+
+                    select {
+                        width: auto;
+                        min-width: 140px;
+                        font-size: 0.875rem;
+
+                        // Draws the eye to the picker itself while nothing is
+                        // selected yet, instead of defaulting to a donor and
+                        // leaving this affordance undiscovered.
+                        &.is-unselected {
+                            border-color: #1f9f55;
+                            box-shadow: 0 0 0 3px rgba(31, 159, 85, 0.15);
+                            animation: tissue-aliquot-select-pulse 1.8s
+                                ease-in-out infinite;
+                        }
+                    }
+                }
+
+                .tissue-aliquot-prompt {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 10px;
+                    color: #97a6b8;
+                    text-align: center;
+                    padding: 0 24px;
+
+                    i {
+                        font-size: 1.5rem;
+                        color: #1f9f55;
+                        animation: tissue-aliquot-prompt-bounce 1.8s ease-in-out
+                            infinite;
+                    }
+
+                    p {
+                        margin: 0;
+                        font-size: 0.875rem;
+                    }
+                }
+
+                @keyframes tissue-aliquot-select-pulse {
+                    0%,
+                    100% {
+                        box-shadow: 0 0 0 3px rgba(31, 159, 85, 0.15);
+                    }
+                    50% {
+                        box-shadow: 0 0 0 6px rgba(31, 159, 85, 0.08);
+                    }
+                }
+
+                @keyframes tissue-aliquot-prompt-bounce {
+                    0%,
+                    100% {
+                        transform: translateY(0);
+                    }
+                    50% {
+                        transform: translateY(-4px);
+                    }
+                }
+
+                .tissue-aliquot-body {
+                    position: relative;
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    // Stable regardless of loading/loaded state or slice
+                    // count, so switching donors (spinner <-> diagram, or
+                    // diagram <-> differently-sized diagram) doesn't reflow
+                    // the page and visibly shift the cards below it.
+                    min-height: 320px;
+
+                    // Re-fetching for an already-shown donor: dim the
+                    // still-mounted previous diagram in place instead of
+                    // swapping to a spinner (which would unmount/remount it).
+                    > * {
+                        transition: opacity 120ms ease;
+                    }
+
+                    &.is-updating > * {
+                        opacity: 0.45;
+                    }
+                }
+
+                // Before any donor is picked, the illustrative demo diagram
+                // still renders underneath the "select a donor" prompt
+                // (see showDonorPrompt in TissueView.js/TissueTypeView.js) --
+                // barely-visible and inert, just enough to hint at what the
+                // panel will show, not a real per-donor layout to interact
+                // with.
+                .tissue-aliquot-diagram {
+                    width: 100%;
+
+                    &.is-placeholder {
+                        opacity: 0.2;
+                        pointer-events: none;
+                        user-select: none;
+                    }
+                }
+
+                // Sits on top of the dimmed placeholder diagram above
+                // (absolutely positioned over the same .tissue-aliquot-body)
+                // instead of replacing it. A white wash spanning the whole
+                // overlay (this element's own previous approach, sized via
+                // `inset: 0`) drowned out the diagram behind it almost
+                // entirely -- this is instead a content-sized pill, centered
+                // over the diagram but no bigger than its own icon+text, so
+                // only the text's own small backdrop needs the contrast
+                // boost and the rest of the diagram stays visible at its
+                // full placeholder opacity.
+                .tissue-aliquot-prompt-overlay {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    // The isometric SVG's own bounding box isn't symmetric
+                    // around the box it draws -- the box's front face sits
+                    // toward the left, with the depth (top+side faces) and
+                    // the height dimension arrow/label extending further
+                    // right past it (see AliquotVisualization.js's
+                    // viewBoxWidth: widthPx + depthX + 180, where only
+                    // `widthPx` is the front face itself). Centering this
+                    // overlay on that full bounding box (a plain 50%/50%)
+                    // put it visibly right of the box's own visual center --
+                    // barely noticeable for a wide diagram (many slices,
+                    // `widthPx` dominates the total), but obvious for a
+                    // narrow one (e.g. Hippocampus's own short strip
+                    // template) where the fixed depthX+180 slack is a much
+                    // bigger share of the total width. This 2nd translateX
+                    // nudges it back toward the front face's own true
+                    // center -- a fixed pixel offset, not a %, since (as the
+                    // math below the fold works out) the actual gap between
+                    // the 2 centers doesn't depend on `widthPx` at all, only
+                    // on this tissue's own depth (72px at the common 1.5cm
+                    // depthScale=1 baseline most tissues, brain included,
+                    // actually use).
+                    transform: translate(-50%, -50%) translateX(-50px);
+                    background: rgba(255, 255, 255, 0.88);
+                    padding: 16px 28px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 16px rgba(31, 46, 61, 0.08);
+                    color: #4e6379;
+
+                    p {
+                        font-weight: 500;
+                    }
+                }
+
+                .tissue-aliquot-loading {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    color: #97a6b8;
+                    font-size: 1.5rem;
+                }
+
+                .aliquot-visualization {
+                    width: 100%;
+                    max-width: 900px;
+                    margin: 0 auto;
+                }
+            }
+        }
+
+        .tissue-donor-table-card {
+            position: relative;
+            background-color: #ffffff;
+            border: 1px solid #e7f0f3;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+
+            // The shared `.tissue-heatmap-tabs.dot-tab-nav` button style
+            // (_search.scss) boxes an active tab in on 3 sides (its own
+            // left/right/bottom borders) to visually separate it from its
+            // *neighboring* tabs -- this card only ever has the 1
+            // ("Donor Details", see TissueTypeView.js/TissueView.js's own
+            // plain static stand-in for DotRouter), so that box read as an
+            // arbitrary outline around nothing in particular. Only the top
+            // accent (the actual "this is the active view" cue) is worth
+            // keeping here. The selector repeats that shared rule's own
+            // full ancestor chain (not just `.tissue-donor-table-card
+            // .dot-tab-nav-list button.active`) so this actually outranks
+            // it on specificity -- a shorter one loses outright regardless
+            // of source order.
+            &.tissue-heatmap-card .tissue-heatmap-tabs.dot-tab-nav .dot-tab-nav-list button.active {
+                border-right-color: transparent;
+                border-left-color: transparent;
+            }
+
+            .body {
+                padding: 0;
+                overflow-x: auto;
+            }
+
+            .tissue-donor-table {
+                width: 100%;
+                margin-bottom: 0;
+
+                th,
+                td {
+                    padding: 8px 20px;
+                    vertical-align: middle;
+                    white-space: nowrap;
+                }
+
+                // Same light-blue header background/dark text/500-weight as
+                // the plain `/browse/` search-results table
+                // ($search-header-* -- _search.scss), matching
+                // BrowseTissueHeatmapTable's own tables for consistency
+                // across this page's tables.
+                thead th {
+                    background-color: $search-header-background-color;
+                    font-weight: 500;
+                    color: $search-header-text-color;
+                    border-bottom: 1px solid #e7f0f3;
+                    // The plain `/browse/` search-results table's own
+                    // header shows a vertical divider between every column
+                    // (its column-resize handle, `.width-adjuster`, colored
+                    // via $search-header-icon-color) -- this table has no
+                    // resizable columns to hang that off of, but a plain
+                    // border-right in the same color reproduces the same
+                    // look. #e7f0f3 (this card's usual border color
+                    // elsewhere) all but disappeared against this header's
+                    // own light-blue background -- too little contrast to
+                    // read as a real divider.
+                    border-right: 1px solid $search-header-icon-color;
+
+                    &:last-child {
+                        border-right: none;
+                    }
+                }
+
+                tbody td {
+                    color: #212529;
+                    // Same subtle column divider the plain `/browse/`
+                    // search-results table's own body cells use
+                    // (`.search-result-column-block`'s border-right,
+                    // rgba(0,0,0,0.05)) -- the header's own divider above is
+                    // deliberately much stronger since it has no zebra
+                    // striping behind it to help separate columns visually;
+                    // a body row already has that, so this only needs to be
+                    // barely-there.
+                    border-right: 1px solid rgba(0, 0, 0, 0.05);
+
+                    &:last-child {
+                        border-right: none;
+                    }
+
+                    a {
+                        color: #428bca;
+                    }
+                }
+
+                // Zebra striping instead of a border between every row --
+                // matches the reference design and reads as more compact
+                // at the tighter row height above. Neutral gray (same
+                // $gray-10 the plain search-results table itself bands its
+                // own alternating rows with), not the earlier green tint --
+                // this table isn't tissue-green-themed anymore either, now
+                // that its title bar is gone.
+                tbody tr:nth-child(even) td {
+                    background-color: $gray-10;
+                }
+
+                // Same default "Sky" light->dark scale as the
+                // Browse-by-Tissue heatmap's own solid-filled score cells
+                // (_search.scss's .tissue-heatmap-cell) -- per explicit
+                // request, so the 2 tables' Autolysis Score cells read as
+                // the same convention out of the box. `td.score-N` beats
+                // the zebra-row rule above since it's more specific (a
+                // class selector vs. `:nth-child`).
+                td.autolysis-score-cell {
+                    font-weight: 600;
+
+                    // Each background/text pair reads a
+                    // `--tissue-donor-score-N-bg`/`-text` custom property
+                    // first, falling back to these hardcoded values when
+                    // unset -- HeatmapColorPicker sets those inline on
+                    // .tissue-donor-table-card when a user picks a
+                    // different palette. Deliberately a separate variable
+                    // namespace from the Browse-by-Tissue heatmap's
+                    // `--heatmap-score-N-*` so the two tables' palettes stay
+                    // independently pickable even though they start out
+                    // showing the same colors.
+                    &.score-0 {
+                        background-color: var(--tissue-donor-score-0-bg, #DAEBF1);
+                        color: var(--tissue-donor-score-0-text, #28323C);
+                    }
+                    &.score-1 {
+                        background-color: var(--tissue-donor-score-1-bg, #ADD3E1);
+                        color: var(--tissue-donor-score-1-text, #28323C);
+                    }
+                    &.score-2 {
+                        background-color: var(--tissue-donor-score-2-bg, #80BBD0);
+                        color: var(--tissue-donor-score-2-text, #28323C);
+                    }
+                    &.score-3 {
+                        background-color: var(--tissue-donor-score-3-bg, #54A3C0);
+                        color: var(--tissue-donor-score-3-text, #FFFFFF);
+                    }
+                }
+
+                // Click-to-sort column headers (BrowseTissueHeatmapTable.js's
+                // exported SortableHeaderLabel, reused here) -- duplicates
+                // _search.scss's `.tissue-heatmap-sort-*` block since these
+                // are two separate page-scoped SCSS partials with no shared
+                // button-styles mixin to hook into.
+                .tissue-heatmap-sort-button {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    margin-left: 4px;
+                    font: inherit;
+                    font-weight: inherit;
+                    color: inherit;
+                    cursor: pointer;
+
+                    &:hover .tissue-heatmap-sort-icon {
+                        color: #657b95;
+                    }
+
+                    &.is-active .tissue-heatmap-sort-icon {
+                        color: #428bca;
+                    }
+                }
+
+                .tissue-heatmap-sort-icon {
+                    font-size: 0.6875rem;
+                    color: $search-header-icon-color;
+                }
+            }
+
+            // The Donor Details heading's own Autolysis Score legend
+            // (FixedScoreLegend, TissueTypeView.js/TissueView.js) -- a
+            // sibling of .tissue-donor-table above, not nested inside it,
+            // since the legend itself sits in the heading row above the
+            // table, not inside it. `.tissue-donor-score-N`, not
+            // FixedScoreLegend's usual `.score-N`, so its swatches read
+            // this table's own `--tissue-donor-score-N-*` custom property
+            // (matching whatever td.autolysis-score-cell above currently
+            // shows, HeatmapColorPicker pick included) instead of the
+            // Browse-by-Tissue heatmap's separate `--heatmap-score-N-*`.
+            .tissue-heatmap-fixed-legend-swatch {
+                &.tissue-donor-score-0 {
+                    background-color: var(--tissue-donor-score-0-bg, #DAEBF1);
+                    color: var(--tissue-donor-score-0-text, #28323C);
+                }
+                &.tissue-donor-score-1 {
+                    background-color: var(--tissue-donor-score-1-bg, #ADD3E1);
+                    color: var(--tissue-donor-score-1-text, #28323C);
+                }
+                &.tissue-donor-score-2 {
+                    background-color: var(--tissue-donor-score-2-bg, #80BBD0);
+                    color: var(--tissue-donor-score-2-text, #28323C);
+                }
+                &.tissue-donor-score-3 {
+                    background-color: var(--tissue-donor-score-3-bg, #54A3C0);
+                    color: var(--tissue-donor-score-3-text, #FFFFFF);
+                }
+            }
+        }
+
+        .tissue-summary-stats,
+        .tissue-statistics {
+            .donor-statistic {
+                flex: 1;
+                min-height: 92px;
+                border-radius: 6px;
+                border: 1px solid #dce3ea;
+                background-color: #f8fbff;
+
+                &-label {
+                    color: #4e6884;
+                    font-size: 1.25rem;
+                    font-weight: 600;
+
+                    i {
+                        margin-right: 8px;
+                    }
+                }
+
+                &-value {
+                    color: #2f3e4c;
+                    font-size: 2.25rem;
+                    line-height: 1;
+                    font-weight: 600;
+                    min-height: 36px;
+                }
+
+                &.tissues {
+                    background-color: #f3fbf5;
+                    border-color: #cdebd8;
+                    .donor-statistic-label {
+                        color: #1f9f55;
+                    }
+                }
+
+                &.donors {
+                    background-color: #f5f1fe;
+                    border-color: #e1d5f8;
+                    .donor-statistic-label {
+                        color: #7c4de0;
+                    }
+                }
+
+                &.assays {
+                    background-color: #fff8ef;
+                    border-color: #f2dac1;
+                    .donor-statistic-label {
+                        color: #e77600;
+                    }
+                }
+
+                &.files {
+                    background-color: #f4f9ff;
+                    border-color: #d5e5f7;
+                    .donor-statistic-label {
+                        color: #4677a9;
+                    }
+                }
+            }
+
+            // Only the Files stat is ever rendered as an <a> (when a
+            // reliable, count-matching Browse link is available) -- other
+            // stats stay plain <div>s, so this only ever touches that one
+            // card.
+            a.donor-statistic.files {
+                text-decoration: none;
+                cursor: pointer;
+                transition: box-shadow 0.15s ease, border-color 0.15s ease;
+
+                &:hover,
+                &:focus-visible {
+                    border-color: #a9c6e6;
+                    box-shadow: 0 0 0 3px rgba(70, 119, 169, 0.15);
+                }
+            }
+        }
+
+        .tabs-container {
+            margin-top: 40px;
+
+            .tab-card {
+                position: relative;
+                display: flex;
+                overflow: hidden;
+                min-width: 300px;
+                flex-direction: column;
+
+                .header {
+                    display: flex;
+                    width: max-content;
+                    border: 1px solid #e7f0f3;
+                    border-top: 4px solid #e99415;
+                    border-bottom: 1px solid white;
+                    border-radius: 4px 4px 0px 0px;
+                    color: #343741;
+                    font-weight: 600;
+                    background-color: white;
+                    z-index: 1;
+
+                    .title {
+                        padding: 10px 15px;
+                        margin-bottom: -2px;
+                        background-color: white;
+                        z-index: 0;
+                    }
+                }
+
+                .body {
+                    position: relative;
+                    overflow: hidden;
+                    display: flex;
+                    flex: 1;
+                    min-height: 560px;
+                    border: 1px solid #e7f0f3;
+                }
+
+                &.matrix-tab {
+                    flex: 3 1 720px;
+
+                    .body {
+                        padding: 20px;
+                    }
+                }
+
+                &.aliquot-tab {
+                    flex: 2 1 520px;
+
+                    .body.aliquot-tab-body {
+                        padding: 20px 24px;
+                        min-height: 460px;
+                        background: linear-gradient(180deg, #ffffff, #fbfdff);
+                    }
+                }
+            }
+        }
+
+        .callout-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            margin: auto;
+            background-color: white;
+            border-radius: 12px;
+            width: 350px;
+            max-width: 70%;
+            height: 220px;
+            z-index: 0;
+            text-align: center;
+            box-shadow: 0 0 8px #d3d9e7;
+
+            i {
+                color: #87b5f0;
+                font-size: 2.5rem;
+            }
+
+            h4 {
+                color: #0e3669;
+                font-weight: 400;
+                font-size: 1.25rem;
+            }
+
+            span {
+                color: #597598;
+                font-size: 0.875rem;
+            }
+        }
+    }
+
+    @include media-breakpoint-down(md) {
+        .view-content {
+            .tissue-summary-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .tissue-summary-row {
+                flex-direction: column;
+
+                .tissue-summary-card,
+                .tissue-aliquot-card {
+                    min-width: 100%;
+                    max-width: 100%;
+                }
+            }
+
+            .tissue-summary-stats,
+            .tissue-statistics {
+                flex-direction: column;
+            }
+
+            .tabs-container {
+                .tab-card {
+                    &.matrix-tab,
+                    &.aliquot-tab {
+                        flex: 1 1 100%;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.aliquot-visualization {
+    width: 100%;
+
+    .aliquot-title {
+        color: #31465d;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .aliquot-canvas-wrap {
+        position: relative;
+        // No border/background of its own -- the .tissue-aliquot-card
+        // already has a border, and nesting a second bordered box directly
+        // inside it (now that the diagram hugs this wrapper closely at its
+        // native size) just reads as a box-in-a-box.
+        padding: 16px 18px 24px;
+        // `text-align: center` centers the canvas when it renders (or
+        // shrinks to) narrower than the wrapper.
+        text-align: center;
+    }
+
+    .aliquot-canvas {
+        display: inline-block;
+        // The svg's `width`/`height` attributes give it an intrinsic
+        // size/aspect-ratio -- `max-width: 100%` with `height: auto` only
+        // ever shrinks it (preserving that ratio) when there isn't room,
+        // the same way a responsive `<img>` behaves. A diagram with few
+        // slices renders at native size; one with many slices scales down
+        // to fit instead of forcing a horizontal scrollbar.
+        max-width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    .aliquot-box-outline polygon {
+        fill: none;
+        stroke: #20242a;
+        stroke-width: 2;
+        // Same acute-corner miter spike as .slice-face below -- this
+        // outline traces the same isometric angles.
+        stroke-linejoin: round;
+    }
+
+    .aliquot-dimension,
+    .aliquot-depth-label {
+        line,
+        polygon {
+            fill: #4e6379;
+            stroke: #4e6379;
+            stroke-width: 1.1;
+        }
+
+        text {
+            fill: #4e6379;
+            font-size: 15px;
+            font-weight: 400;
+        }
+    }
+
+    // "Anterior half"/"Posterior half" labels under a bivalved tissue's two
+    // split box groups (see enableBivalvedSplit) -- this is Fig. 2a's own
+    // fixed layout, not an unverified annotation, so it's captioned plainly
+    // (neutral gray).
+    .aliquot-bivalved-split-caption {
+        fill: #3c4650;
+        font-size: 16px;
+        font-style: italic;
+        font-weight: 700;
+        paint-order: stroke;
+        stroke: #ffffff;
+        stroke-width: 3px;
+    }
+
+    .aliquot-slice {
+        transition: filter 180ms ease;
+
+        .slice-face {
+            transition: transform 180ms ease, filter 180ms ease,
+                opacity 180ms ease, stroke-width 180ms ease;
+            vector-effect: non-scaling-stroke;
+            stroke-width: 1.5;
+            // The top face's acute corners (where the isometric depth
+            // edges meet the front edge) fall under the default miter
+            // join's angle threshold, so a mitered stroke there juts out
+            // past the vertex as a small spike -- most visible at the
+            // shared boundary between two adjacent slices, where each
+            // side's spike reads as a stray "burr" poking outside the
+            // block's silhouette. Round joins can't spike like that.
+            stroke-linejoin: round;
+        }
+
+        &:hover,
+        &.is-selected {
+            .slice-face {
+                filter: brightness(1.04) saturate(1.08);
+                stroke-width: 2.3;
+            }
+        }
+
+        // .slice-top/.slice-side are kept fully opaque: each slice's side
+        // face extends past its right edge and relies on the next slice's
+        // top+front being fully opaque to hide it, so any transparency lets
+        // a real slice's color bleed through a placeholder's paler fill at
+        // the boundary between them.
+
+        // A fixed-template position with no real aliquot submitted yet (see
+        // PLACEHOLDER_SLICE_STYLES/isPlaceholder) is an inert box with no
+        // hover feedback. The sequence number keeps its normal
+        // .slice-inline-label styling -- the muted fill alone already
+        // signals "no data here yet".
+    }
+
+    // A real slice's side face, redrawn in a later pass on top of the
+    // placeholder that would otherwise fully hide it (see
+    // AliquotVisualization.js's markSideCaps/needsSideCap) -- translucent so
+    // it reads as "this is where the real data actually stops" rather than
+    // a second solid wall competing with the placeholder's own fill.
+    .slice-side-cap {
+        opacity: 0.3;
+        vector-effect: non-scaling-stroke;
+        stroke-width: 1.5;
+        stroke-linejoin: round;
+    }
+
+    .aliquot-slice-hitarea {
+        width: 100%;
+        height: 100%;
+        border: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid #0e74d2;
+            outline-offset: -2px;
+        }
+    }
+
+    // A Medial-layer slice's click target (medial/lateral mode -- see
+    // enableMedialLateralLayers) -- its top face is a skewed parallelogram,
+    // not a rectangle a foreignObject/button can cleanly overlay, so this is
+    // a plain polygon with manual button semantics (role/tabIndex/onKeyDown,
+    // set at the render site) instead.
+    .aliquot-slice-hitarea-polygon {
+        fill: transparent;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid #0e74d2;
+            outline-offset: -2px;
+        }
+    }
+
+    .slice-inline-label {
+        fill: #30475f;
+        font-size: 12px;
+        font-weight: 600;
+        text-anchor: middle;
+        pointer-events: none;
+    }
+
+    .aliquot-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        margin-top: 14px;
+        color: #4e6379;
+        font-size: 0.9rem;
+    }
+
+    .aliquot-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+
+        // The type name (e.g. "Fixed"/"Frozen") is the actual key being
+        // defined; the detail that follows it is supplementary, so only
+        // the name itself is bolded.
+        strong {
+            color: #1e2d3d;
+            font-weight: 700;
+        }
+    }
+
+    .legend-swatch {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 1px solid rgba(33, 41, 52, 0.2);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    // Supplementary (no color swatch of its own) -- a divider instead of
+    // the swatch/label gap keeps it reading as "also see" rather than a
+    // third legend key.
+    .aliquot-legend-dimensions {
+        padding-left: 16px;
+        border-left: 1px solid #dbe6ef;
+        color: #7c8ba0;
+    }
+
+    &.nonsolid-aliquot-visualization {
+        .aliquot-canvas-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            // This variant's own viewBox aspect ratio doesn't vary with
+            // content the way the solid-organ slice canvas does, so it keeps
+            // its natural (auto) height instead of the fixed frame used for
+            // that canvas.
+            height: auto;
+            // Unlike the solid-organ canvas, this one doesn't hug a card
+            // border that's already right behind it (the tube sits alone in
+            // open space), so it keeps its own bordered/background frame.
+            border: 1px solid #e4edf5;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .nonsolid-canvas {
+            width: auto;
+            height: auto;
+            max-width: 240px;
+            overflow: visible;
+        }
+
+        .nonsolid-branch-line {
+            stroke: #8fa3b3;
+            stroke-width: 1.3;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .nonsolid-sequence-label {
+            fill: #1e2d3d;
+            font-size: 13px;
+            font-weight: 600;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .nonsolid-gcc-label {
+            fill: #4e6379;
+            font-size: 12px;
+            font-weight: 600;
+            text-anchor: middle;
+            pointer-events: none;
+
+            // A real aliquot whose only submitting record is a TPC (no
+            // files of its own -- see hasOnlyTpcSubmission) -- muted and
+            // not bold, same "honest empty state" treatment as
+            // .aliquot-popover-pathology-empty, distinct from a normal
+            // GCC's own bold label.
+            &.is-empty {
+                fill: #9aa2ab;
+                font-weight: 500;
+                font-style: italic;
+            }
+        }
+
+        .nonsolid-aliquot-hitarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 0;
+            margin: 0;
+            background: transparent;
+            cursor: pointer;
+
+            &:focus-visible {
+                outline: 2px solid #0e74d2;
+                outline-offset: -2px;
+            }
+        }
+    }
+}
+
+// TubeIcon (NonSolidAliquotVisualization.js) renders both inside the main
+// canvas (wrapped in .nonsolid-aliquot-visualization) and inside the detail
+// Popover -- which react-bootstrap portals elsewhere in the DOM, outside
+// that wrapper. These have to stay unscoped so they apply in both places;
+// scoping them under .nonsolid-aliquot-visualization left the popover's tube
+// with no fill/stroke styling at all (an unstyled SVG shape defaults to a
+// solid black fill) and no size constraint on its viewBox.
+.tube-glass {
+    fill: #eef6fc;
+}
+
+.tube-liquid {
+    pointer-events: none;
+}
+
+.tube-liquid-sheen {
+    fill: #ffffff;
+    opacity: 0.16;
+    pointer-events: none;
+}
+
+.tube-ticks line {
+    stroke: #ffffff;
+    stroke-width: 1.1;
+    opacity: 0.55;
+    vector-effect: non-scaling-stroke;
+}
+
+.tube-outline {
+    fill: none;
+    stroke: #7c97ac;
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+}
+
+.tube-cap {
+    fill: #cbe4f6;
+    stroke: #6b93b0;
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+}
+
+.tube-cap-sheen {
+    stroke: #ffffff;
+    stroke-width: 1.5;
+    opacity: 0.6;
+    vector-effect: non-scaling-stroke;
+}
+
+// No custom font-size/color override here -- inherits the default Bootstrap
+// popover-body styling, same as .description-definitions-popover
+// (ProtectedDonorViewDataCards.js's Hardy Scale/age popovers) below, so
+// every info-icon popover across the portal reads consistently.
+#tissue-aliquot-layout-note-popover {
+    max-width: 320px;
+}
+
+.popover.aliquot-popover {
+    max-width: 360px;
+
+    .popover-header {
+        font-weight: 600;
+        background-color: #f4f9ff;
+        // Popover width otherwise auto-sizes to whichever body row is
+        // widest (e.g. the GCC name / id row), which is usually narrower
+        // than "<id> · <Specimen Type> Aliquot" -- wrapping the header mid
+        // phrase ("Fibroblast" / "Aliquot" on separate lines). Forcing
+        // nowrap makes the header's own intrinsic width drive sizing
+        // instead, up to the max-width cap above.
+        white-space: nowrap;
+    }
+
+    .popover-body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .aliquot-popover-visual {
+        display: flex;
+        justify-content: center;
+        padding: 6px 0 4px;
+    }
+
+    .nonsolid-popover-tube-canvas {
+        width: 26px;
+        height: auto;
+        overflow: visible;
+    }
+
+    .aliquot-visual-swatch {
+        display: block;
+        width: 88px;
+        height: 88px;
+        border-radius: 6px;
+        border: 1px solid;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .aliquot-visual-grid-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .aliquot-grid-row-with-labels {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .aliquot-grid-row-labels {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding-top: 8px;
+    }
+
+    .aliquot-grid-row-label {
+        width: 12px;
+        height: 16px;
+        line-height: 16px;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: #4e6379;
+        text-align: right;
+    }
+
+    .aliquot-visual-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px;
+        background-color: #e3f3be;
+        border: 1px solid #b6d978;
+        border-radius: 6px;
+    }
+
+    .aliquot-grid-row {
+        display: flex;
+        gap: 4px;
+    }
+
+    .aliquot-grid-core {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        border: 1px solid #8fa96b;
+
+        &.is-highlighted {
+            background-color: #1e5b4f;
+            border-color: #1e5b4f;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        // Only highlighted dots with a real per-position GCC files link get
+        // this -- an interactive affordance so they don't read as purely
+        // decorative once every other highlighted dot is clickable.
+        &.is-linked {
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+
+            &:hover,
+            &:focus-visible {
+                transform: scale(1.25);
+                // `--aliquot-core-halo` (set inline per-dot, see
+                // AliquotVisualization.js) matches this dot's own
+                // GCC-specific color -- the rgba(30, 91, 79, ...) fallback
+                // only applies to a dot with no inline color at all, which
+                // shouldn't happen in practice (every real is-linked dot
+                // sets it), and keeps the default teal-green look if it did.
+                box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(30, 91, 79, 0.25));
+            }
+        }
+
+        // The same halo, but driven by React state (hoveredCorePosition)
+        // rather than a plain `:hover` pseudo-class -- covers hovering this
+        // position's own row in the list below instead of this dot itself
+        // (see .aliquot-popover-position.is-hovered), and applies to every
+        // highlighted dot, not just is-linked ones (an unlinked dot has
+        // nothing of its own to :hover for, but its row can still be
+        // hovered). Harmless overlap with the :hover rule above when this
+        // dot is the one actually being pointed at -- both set the same
+        // values.
+        &.is-highlighted.is-hovered {
+            transform: scale(1.25);
+            box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(30, 91, 79, 0.25));
+        }
+    }
+
+    .aliquot-grid-col-labels {
+        display: flex;
+        gap: 4px;
+        margin-top: 2px;
+        margin-left: 26px;
+    }
+
+    .aliquot-grid-col-label {
+        width: 16px;
+        line-height: 1;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: #4e6379;
+        text-align: center;
+    }
+
+    .aliquot-popover-caption {
+        margin: 0;
+        text-align: center;
+        color: #5d7288;
+        font-size: 0.8125rem;
+        font-style: italic;
+    }
+
+    .aliquot-popover-cores,
+    .aliquot-popover-pathology-section {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 0;
+        border-top: 1px solid #e4edf5;
+        border-bottom: 1px solid #e4edf5;
+    }
+
+    .aliquot-popover-cores {
+        // Per-group "Show N more" collapsing already keeps this bounded in
+        // the normal case; this max-height is just a generous backstop for
+        // a pathological number of distinct GCCs, so an internal scrollbar
+        // doesn't hide whatever group comes after it.
+        max-height: 320px;
+        overflow-y: auto;
+        // Explicit, not left to default -- per the CSS overflow spec, an
+        // element with only one axis set to a non-`visible` value (just
+        // `overflow-y: auto` here) has the *other* axis silently computed
+        // as `auto` too, not left `visible`. `.aliquot-popover-position`'s
+        // own negative side margins (below) bleed its highlight a few px
+        // past this container's edge on purpose -- without this, that
+        // spec-mandated auto-computed overflow-x turned that harmless bleed
+        // into a real horizontal scrollbar on this whole list.
+        overflow-x: hidden;
+    }
+
+    // One position's own row (+ its assay/platform caption line) -- ties
+    // back to its matching dot in the core grid above (hoveredCorePosition,
+    // set from either direction, see AliquotVisualization.js) with a plain
+    // neutral highlight rather than that dot's own GCC-specific color, since
+    // this row can't always tell which color that was without re-deriving
+    // it (and a neutral highlight already reads clearly against the white
+    // popover background regardless of which GCC it is).
+    .aliquot-popover-position {
+        margin: 0 -8px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        transition: background-color 0.1s ease;
+
+        &.is-hovered {
+            background-color: #eef5fb;
+        }
+    }
+
+    .aliquot-popover-pathology-heading {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #97a6b8;
+    }
+
+    .aliquot-popover-pathology-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        // Caps just the list -- the heading above it stays put so a long
+        // list scrolls without losing the "what is this" context.
+        max-height: 180px;
+        overflow-y: auto;
+
+        li {
+            position: relative;
+            padding-left: 14px;
+            color: #4e6379;
+            font-size: 0.8125rem;
+            // Truncate instead of wrapping -- the whole point of moving to
+            // one line per report is to stop each entry from eating two
+            // lines; the full name is still reachable via the link's title
+            // tooltip.
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            &::before {
+                content: '\2022';
+                position: absolute;
+                left: 2px;
+                color: #97a6b8;
+            }
+        }
+
+        a {
+            color: #2f6fb0;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .aliquot-popover-row {
+        // A grid (not flex) so the `minmax(0, 1fr)` column resolves to a
+        // real pixel width the browser has to honor -- real ids/GCC names
+        // run long enough (e.g. "SMHT012-3S-001A2") that a flex item's
+        // default `min-width: auto` would let the second column overflow
+        // the row silently instead of shrinking to wrap.
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: baseline;
+        gap: 2px 12px;
+        color: #4e6379;
+        // Extra clearance beyond .popover-body's own padding -- the
+        // right-aligned id/GCC-name text (especially the italic
+        // .aliquot-popover-no-files variant, whose slant leans into
+        // whatever's to its right) otherwise reads as visually cramped
+        // against the popover's edge.
+        padding-right: 6px;
+
+        strong,
+        a {
+            min-width: 0;
+            overflow-wrap: break-word;
+            // Applies to <a> too, not just <strong>: a linked position's
+            // second column is the <a> itself (with <strong> nested inside
+            // it), and grid blockifies whichever tag actually sits in the
+            // column, so text-align on <strong> alone has no effect once
+            // <a> is the real grid item.
+            text-align: right;
+        }
+
+        strong {
+            color: #1e2d3d;
+            font-weight: 600;
+        }
+    }
+
+    // A position's own "<Assay> - <Platform>" combos (see TissueView.js's
+    // assayPlatformsBySampleName) -- same short/muted secondary-line
+    // treatment as .aliquot-popover-description, right-aligned under its
+    // own row's id like a caption rather than another data row.
+    .aliquot-popover-assay-platforms {
+        margin: 0 0 2px;
+        text-align: right;
+        color: #97a6b8;
+        font-size: 0.75rem;
+        font-style: italic;
+
+        // A position with real files but none carrying assay/sequencer
+        // metadata yet -- same "honest empty state" tone as
+        // .aliquot-popover-no-files, just a touch lighter since this note
+        // is secondary to the id row above it.
+        &.is-empty {
+            color: #b0b8c1;
+        }
+    }
+
+    // Matches a GCC row's own core-position dot color in the grid above --
+    // ties the two together so the row list doubles as that coloring's
+    // legend instead of needing a separate one.
+    .aliquot-popover-gcc-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+        flex-shrink: 0;
+    }
+
+    .aliquot-popover-toggle {
+        // Resets the <button> defaults it inherits alongside
+        // .aliquot-popover-row's flex layout.
+        appearance: none;
+        background: none;
+        border: none;
+        padding: 0;
+        width: 100%;
+        font: inherit;
+        cursor: pointer;
+        color: #2f6fb0;
+        font-size: 0.8125rem;
+        text-align: left;
+
+        &:hover,
+        &:focus-visible {
+            text-decoration: underline;
+        }
+    }
+
+    .aliquot-popover-description {
+        margin: 4px 0 0;
+        padding-top: 8px;
+        border-top: 1px solid #e4edf5;
+        color: #5d7288;
+        font-size: 0.875rem;
+    }
+
+    .aliquot-popover-pathology-empty {
+        margin: 0;
+        padding: 8px 0;
+        border-top: 1px solid #e4edf5;
+        border-bottom: 1px solid #e4edf5;
+        color: #98a2b3;
+        font-size: 0.8125rem;
+        font-style: italic;
+    }
+
+    // Same muted/italic "honest empty state" treatment as
+    // .aliquot-popover-pathology-empty and non-solid's .nonsolid-gcc-label
+    // .is-empty -- a real GCC/position confirmed (via TissueView.js's
+    // hasFiles) to have no files indexed yet, not just an unlinked label.
+    .aliquot-popover-no-files {
+        color: #98a2b3;
+        font-weight: 500;
+        font-style: italic;
     }
 }
 

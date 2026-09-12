@@ -1,0 +1,3284 @@
+'use strict';
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
+import ReactTooltip from 'react-tooltip';
+import { ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    DotRouter,
+    DotRouterTab,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
+import { GERM_LAYER_COLORS } from '../../util/germ-layer-colors';
+import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
+
+// Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
+// mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
+const TARGET_TISSUE_PERCENTAGE_ORDER = ['0', '[0-10]', '[11-25]', '[26-49]', '[50-100]'];
+
+// Ascending order of Tissue.pathology_summary.non_target_tissue_percentage
+// bands, mirrored from
+// item_utils/pathology_report.py::NON_TARGET_TISSUE_PERCENTAGE_ORDER -- no
+// "0" band, unlike TARGET_TISSUE_PERCENTAGE_ORDER above (a non_target_tissues
+// entry is only ever reported when actually present).
+const NON_TARGET_TISSUE_PERCENTAGE_ORDER = ['[0-10]', '[11-25]', '[26-49]', '[50-100]'];
+
+// The 5 region-specific brain internal codes (see util/data.js's tissue-code
+// table) -- a donor's brain Tissue record sometimes carries the generic
+// "Brain" ontology term instead of one of these, with its own metric values
+// (e.g. ischemic_time) and none on the region-specific columns. See
+// buildTissueMetricMatrix below for how that generic value gets used.
+const BRAIN_REGION_INTERNAL_CODES = ['BRCE', 'BRFL', 'BRHL', 'BRHR', 'BRTL'];
+
+// Column group order, by the same `category` values item_utils/tissue.py's
+// get_category() computes on each Tissue. Colors come from the shared
+// GERM_LAYER_COLORS palette (also used by viz/Matrix/DataMatrix.js) so this
+// table's germ-layer grouping reads as the same palette as that matrix.
+const GERM_LAYER_GROUP_ORDER = ['Ectoderm', 'Mesoderm', 'Endoderm', 'Germ Cells', 'Clinically Accessible'];
+const GERM_LAYER_GROUP_STYLES = GERM_LAYER_GROUP_ORDER.reduce((acc, category, order) => {
+    acc[category] = { order, label: category, ...GERM_LAYER_COLORS[category] };
+    return acc;
+}, {});
+const OTHER_GROUP_STYLE = { order: 99, label: 'Other', backgroundColor: '#E7EDF3', textColor: '#343741' };
+
+// tissueTypes is already sorted into contiguous germ-layer runs by
+// buildTissueMetricMatrix, so a single pass collapsing consecutive same-group
+// columns is enough to get each group's span.
+function buildColumnGroups(tissueTypes, tissueTypeCategories) {
+    const groups = [];
+    tissueTypes.forEach((tissueType) => {
+        const style = GERM_LAYER_GROUP_STYLES[tissueTypeCategories[tissueType]] || OTHER_GROUP_STYLE;
+        const lastGroup = groups[groups.length - 1];
+        if (lastGroup && lastGroup.style === style) {
+            lastGroup.span += 1;
+        } else {
+            groups.push({ style, span: 1 });
+        }
+    });
+    return groups;
+}
+
+// Snovault's canonical_redirect (snovault/renderers.py) 302s a request
+// whenever its query string doesn't literally match the search response's
+// own recomputed '@id' query string -- which Python's urlencode renders
+// with '+' for spaces (application/x-www-form-urlencoded), not
+// encodeURIComponent's '%20'. tissue_type values contain spaces (e.g.
+// "3M - Adrenal Gland, R"), so without this the heatmap's own link would
+// always trigger a visible redirect on click. Mirrors urlencode's default
+// quote_via=quote_plus encoding for exactly that one character class.
+export const formUrlEncode = (value) => encodeURIComponent(value).replace(/%20/g, '+');
+
+// A tissue_type maps back to a single anatomical location, but a donor
+// commonly has *two* Tissue records there -- one Fixed, one Frozen/Snap
+// Frozen, both sharing that same tissue_type (see get_tissue_type's own
+// ontology-term-based resolution, which doesn't distinguish preservation
+// type). Real production data confirms these two records' own ischemic_time
+// values genuinely differ, and not just by noise: for a given donor, the
+// Frozen value is typically identical across every one of that donor's
+// organs (a single donor-level timestamp -- e.g. time to the start of the
+// frozen-collection batch -- duplicated onto each Frozen record), while
+// the Fixed value varies per organ (a real, organ-specific measurement).
+// Fixed is therefore the more informative one to surface when both exist;
+// only falls back to whichever record actually has a value when one
+// doesn't. Exported for unit testing.
+export function pickPrimaryTissueRecord(candidates, getValue) {
+    const withValue = candidates.filter((t) => {
+        const value = getValue(t);
+        return value !== null && typeof value !== 'undefined';
+    });
+    const pool = withValue.length > 0 ? withValue : candidates;
+    return pool.find((t) => t.preservation_type === 'Fixed') || pool[0];
+}
+
+// "Fixed" vs everything else ("Snap Frozen", "Fresh", ...) is the same
+// two-way distinction AliquotVisualization.js's own slice coloring uses.
+function formatPreservationTypeLabel(preservationType) {
+    return preservationType === 'Fixed' ? 'Fixed' : 'Frozen';
+}
+
+// Exported for unit testing. Pivots raw Tissue search results into a
+// donor (external_id) x tissue_type matrix of values (as picked by
+// `getValue`), plus a tissue_type -> Tissue Overview page href map (see the
+// inline comment at its own build site below for that part's own rationale).
+//
+// `distributeGenericBrainValue` -- the generic "Brain" column is always
+// hidden, but copying its value into the region-specific columns first (and
+// merging same-value region columns in the row) is set `true` on all three
+// tabs:
+// - Ischemic Time/Autolysis Score are collection-event-level measurements
+//   (assessed once per whole brain at procurement, not independently per
+//   dissected region), so the generic value is an equally valid stand-in
+//   and same-value regions merge for real.
+// - Target Tissue % has nothing to distribute (BrainPathologyReport has no
+//   target_tissues field at all -- see get_target_tissue_percentage's own
+//   docstring -- so every brain region, generic column included, is
+//   unconditionally null), but `true` still collapses what would otherwise
+//   be 5 repeated "n/a" cells into one.
+// Derives each real tissue_type's own tissue-overview href and germ-layer
+// category from a set of raw Tissue search results -- extracted out of
+// buildTissueMetricMatrix (below) so it can also be called directly on the
+// RAW, pre-subtype-expansion tissueResults by the Autolysis Score/Target
+// Tissue % tabs (see expandTissueResultsBySubtype/buildSubtypeColumnPlan) --
+// buildTissueMetricMatrix's own internal computation of these maps, when fed
+// an *expanded* result set, would only ever see composite subtype column
+// keys, never the real tissue_type itself, for any split tissue type.
+export function buildTissueTypeHrefsAndCategories(tissueResults = []) {
+    const tissueTypeHrefs = {};
+    const tissueTypeCategories = {};
+    tissueResults.forEach((t) => {
+        const tissueType = t?.tissue_type;
+        if (!tissueType) return;
+        if (!tissueTypeHrefs[tissueType]) {
+            // The stable 4-letter internal code (e.g. "HART") reads as a real
+            // identifier and makes a much shorter URL than the full raw
+            // "<TPC code> - <name>" string -- falls back to the raw value
+            // when no code is known (e.g. the generic "Brain" placeholder),
+            // which tissue_overview.py still resolves via the legacy exact
+            // match on `tissue_type`.
+            const urlCode = getTissueInternalCodeFromFacetTerm(tissueType) || tissueType;
+            tissueTypeHrefs[tissueType] = `/tissue-overview/?tissue_type=${formUrlEncode(urlCode)}`;
+        }
+        if (!tissueTypeCategories[tissueType] && t.category) tissueTypeCategories[tissueType] = t.category;
+    });
+    return { tissueTypeHrefs, tissueTypeCategories };
+}
+
+export const buildTissueMetricMatrix = (tissueResults = [], getValue, distributeGenericBrainValue = false) => {
+    const tissueTypes = [];
+    const donors = [];
+    const cellsByDonorAndTissue = {};
+    // Every candidate Tissue record's own {value, label, isPrimary} for a
+    // (donor, tissue_type) key with more than one record -- absent
+    // entirely for the (typical) single-record case, so a cell only pays
+    // for the multi-value indicator/popover (see renderRowCells) when
+    // there's actually something to disambiguate.
+    const cellEntriesByDonorAndTissue = {};
+    // A fixed [Fixed entry | null, Frozen entry | null] pair per (donor,
+    // tissue_type) key with at least 1 real value -- unlike cellEntries
+    // above (only as many entries as there are real, distinct-or-not
+    // values, used for the popover/'inline' display), this always has
+    // exactly 2 slots so a split cell (renderRowCells, splitByPreservationType)
+    // can show "Fixed" and "Frozen" in the same fixed position every time,
+    // one side reading "n/a" rather than the whole cell silently reverting
+    // to a single value whenever only 1 preservation_type is actually
+    // represented -- per explicit request that Fixed/Frozen's own
+    // positions stay visually stable whether or not both sides have data.
+    const cellSlotsByDonorAndTissue = {};
+    const tissuesByKey = {};
+    const { tissueTypeHrefs, tissueTypeCategories } = buildTissueTypeHrefsAndCategories(tissueResults);
+
+    tissueResults.forEach((t) => {
+        const donorId = t?.donor?.external_id;
+        const tissueType = t?.tissue_type;
+        if (!donorId || !tissueType) return;
+        if (!donors.includes(donorId)) donors.push(donorId);
+        if (!tissueTypes.includes(tissueType)) tissueTypes.push(tissueType);
+
+        const key = `${donorId} ${tissueType}`;
+        (tissuesByKey[key] || (tissuesByKey[key] = [])).push(t);
+    });
+
+    Object.entries(tissuesByKey).forEach(([key, candidates]) => {
+        const primary = pickPrimaryTissueRecord(candidates, getValue);
+        cellsByDonorAndTissue[key] = getValue(primary) ?? null;
+        // A record with no value for this metric isn't a real alternative
+        // to disambiguate (just an empty record), so it's dropped here
+        // rather than surfaced as "Frozen: n/a" noise -- but the single-
+        // record case still gets an entry (shown on hover as a detail
+        // popover, just without the corner flag, which is reserved for the
+        // genuinely-competing-values case; see renderRowCells).
+        const entriesWithValue = candidates
+            .map((t) => {
+                return {
+                    value: getValue(t) ?? null,
+                    label: formatPreservationTypeLabel(t.preservation_type),
+                    isPrimary: t === primary,
+                    externalId: t.external_id || null,
+                };
+            })
+            .filter((entry) => entry.value !== null);
+        if (entriesWithValue.length > 0) {
+            // Primary listed first -- the popover otherwise reads in
+            // whatever order these records happened to come back from the
+            // search, not necessarily matching the cell's own shown value.
+            cellEntriesByDonorAndTissue[key] = entriesWithValue.sort(
+                (a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0)
+            );
+            cellSlotsByDonorAndTissue[key] = [
+                entriesWithValue.find((entry) => entry.label === 'Fixed') || null,
+                entriesWithValue.find((entry) => entry.label === 'Frozen') || null,
+            ];
+        }
+    });
+
+    // A generic "Brain" tissue_type carries no region of its own, so its own
+    // column is always hidden here, on every tab. When distributeGenericBrainValue
+    // is true (see the comment above where it's passed in), its value is
+    // copied into whichever of the 5 region-specific columns
+    // (BRCE/BRFL/BRHL/BRHR/BRTL) don't already have their own real value.
+    const genericBrainTissueType = tissueTypes.find((t) => t.trim() === 'Brain');
+    const brainRegionTissueTypes = tissueTypes.filter((t) =>
+        BRAIN_REGION_INTERNAL_CODES.includes(getTissueInternalCodeFromFacetTerm(t))
+    );
+    if (genericBrainTissueType) {
+        if (distributeGenericBrainValue) {
+            donors.forEach((donorId) => {
+                const genericKey = `${donorId} ${genericBrainTissueType}`;
+                const genericValue = cellsByDonorAndTissue[genericKey];
+                if (genericValue === null || typeof genericValue === 'undefined') return;
+                brainRegionTissueTypes.forEach((regionTissueType) => {
+                    const key = `${donorId} ${regionTissueType}`;
+                    if (cellsByDonorAndTissue[key] === null || typeof cellsByDonorAndTissue[key] === 'undefined') {
+                        cellsByDonorAndTissue[key] = genericValue;
+                        if (cellEntriesByDonorAndTissue[genericKey]) {
+                            cellEntriesByDonorAndTissue[key] = cellEntriesByDonorAndTissue[genericKey];
+                        }
+                        if (cellSlotsByDonorAndTissue[genericKey]) {
+                            cellSlotsByDonorAndTissue[key] = cellSlotsByDonorAndTissue[genericKey];
+                        }
+                    }
+                });
+            });
+        }
+        tissueTypes.splice(tissueTypes.indexOf(genericBrainTissueType), 1);
+        delete tissueTypeHrefs[genericBrainTissueType];
+        delete tissueTypeCategories[genericBrainTissueType];
+    }
+
+    donors.sort();
+    // Group by germ layer/category first (Ectoderm, Mesoderm, Endoderm, Germ
+    // Cells, Clinically Accessible), alphabetical by display label within
+    // each group -- matches DataMatrix.js's DEFAULT_ROW_GROUPS_EXTENDED order.
+    tissueTypes.sort((a, b) => {
+        const orderA = (GERM_LAYER_GROUP_STYLES[tissueTypeCategories[a]] || OTHER_GROUP_STYLE).order;
+        const orderB = (GERM_LAYER_GROUP_STYLES[tissueTypeCategories[b]] || OTHER_GROUP_STYLE).order;
+        if (orderA !== orderB) return orderA - orderB;
+        return formatTissueTypeLabel(a).localeCompare(formatTissueTypeLabel(b));
+    });
+
+    const matrix = donors.map((donor) => {
+        return {
+            donor,
+            cells: tissueTypes.map((tissueType) => cellsByDonorAndTissue[`${donor} ${tissueType}`] ?? null),
+            cellEntries: tissueTypes.map(
+                (tissueType) => cellEntriesByDonorAndTissue[`${donor} ${tissueType}`] || null
+            ),
+            // `|| [null, null]`, not `|| null` -- a cell with zero real
+            // values on *either* side (no matching TissueSample at all, or
+            // one that exists but has no value for this metric yet) still
+            // needs the same fixed 2-slot shape a split cell
+            // (splitByPreservationType, renderRowCells) expects, or it
+            // silently collapses back to a single centered "n/a" instead of
+            // keeping the Fixed/Frozen split every other cell in the column
+            // shows -- exactly the "stays visually stable either way" gap
+            // cellSlotsByDonorAndTissue's own comment above already
+            // promises, just not previously covered for the *both* empty
+            // case.
+            cellSlots: tissueTypes.map(
+                (tissueType) => cellSlotsByDonorAndTissue[`${donor} ${tissueType}`] || [null, null]
+            ),
+        };
+    });
+
+    // Whether the brain region columns merge into one value on *every* row,
+    // not just some -- gates whether the header itself collapses into one
+    // "Brain" dropdown cell (BrainRegionHeaderCell) or stays 5 separate,
+    // individually-headed columns (see renderColumnHeaderRows). A single
+    // shared table header can't follow a per-row decision the way body
+    // cells do, so it has to pick one or the other for the whole column
+    // run -- and defaults to NOT merging (leaving every region separately
+    // identifiable) unless every row actually agrees, since a merged
+    // header over even one row of genuinely differing values would hide
+    // which value belongs to which region.
+    const brainColumnIndexes = brainRegionTissueTypes
+        .map((tissueType) => tissueTypes.indexOf(tissueType))
+        .filter((index) => index !== -1);
+    const brainColumnsFullyMergeable =
+        brainColumnIndexes.length > 1 &&
+        matrix.every((row) => {
+            const firstValue = row.cells[brainColumnIndexes[0]] ?? null;
+            return brainColumnIndexes.every((index) => (row.cells[index] ?? null) === firstValue);
+        });
+
+    return {
+        tissueTypes,
+        tissueTypeHrefs,
+        tissueTypeCategories,
+        matrix,
+        // Columns eligible to have consecutive equal-valued cells in the
+        // same row merged into one spanning cell (MetricHeatmapTable) --
+        // just the brain regions the generic "Brain" value above may have
+        // been copied into, so this stays a targeted de-duplication of that
+        // specific distributed-value case rather than a general "collapse
+        // any two adjacent columns that happen to match" behavior (which
+        // would misleadingly merge unrelated tissues that coincidentally
+        // share a value, e.g. two different organs both reading "n/a").
+        // Empty when nothing was actually distributed (distributeGenericBrainValue
+        // false, or there was no generic "Brain" column to begin with).
+        mergeableTissueTypes: distributeGenericBrainValue
+            ? new Set(brainRegionTissueTypes)
+            : EMPTY_MERGEABLE_TISSUE_TYPES,
+        brainColumnsFullyMergeable,
+    };
+};
+
+const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
+const getAutolysisScoreValue = (t) => t?.pathology_summary?.autolysis_score ?? null;
+const getTargetTissuePercentageValue = (t) => t?.pathology_summary?.target_tissue_percentage ?? null;
+const getNonTargetTissuePercentageValue = (t) => t?.pathology_summary?.non_target_tissue_percentage ?? null;
+
+// --- Per-subtype sub-columns (Autolysis Score/Target Tissue % tabs only) ---
+//
+// A NonBrainPathologyReport's own `target_tissues` array can carry several
+// distinct subtypes for one tissue_type (e.g. a Heart report separately
+// recording Endocardium/Myocardium/Epicardium) -- see
+// Tissue.pathology_summary.target_tissues (types/tissue.py). Rather than
+// teaching buildTissueMetricMatrix a 2nd key dimension (which would touch
+// its Fixed/Frozen handling, brain-region distribution, and sorting -- all
+// shared with the untouched Ischemic Time tab), the raw tissueResults are
+// pre-expanded into one synthetic record per subtype, each keyed by a
+// composite tissue_type string, and fed into the otherwise-unmodified
+// buildTissueMetricMatrix. buildTissueMetricMatrix never parses its own
+// tissue_type strings internally -- only a handful of outside call sites do
+// (enumerated where relevant below) -- so it stays 100% generic either way.
+
+// Internal-only separator between a real tissue_type and a synthetic
+// subtype label -- NUL, not a printable character, since real tissue_type
+// strings already contain spaces/hyphens/commas (e.g. "3AM - Brain,
+// Cerebellum") that would make splitting on any printable separator
+// ambiguous. NUL can never appear in a real tissue_type or
+// target_tissue_subtype enum value, so splitting on its first (and only)
+// occurrence is always unambiguous.
+const SUBTYPE_KEY_SEPARATOR = '\u0000';
+
+export function makeSubtypeColumnKey(tissueType, subtypeLabel) {
+    return `${tissueType}${SUBTYPE_KEY_SEPARATOR}${subtypeLabel}`;
+}
+
+// Returns { tissueType, subtypeLabel } -- subtypeLabel is null for a key
+// that was never composite-keyed in the first place (e.g. Ischemic Time's
+// plain tissue_type strings, or any tissue with no target_tissues data).
+export function splitSubtypeColumnKey(key) {
+    const sepIndex = key.indexOf(SUBTYPE_KEY_SEPARATOR);
+    if (sepIndex === -1) return { tissueType: key, subtypeLabel: null };
+    return { tissueType: key.slice(0, sepIndex), subtypeLabel: key.slice(sepIndex + 1) };
+}
+
+// Pre-expansion step, run BEFORE buildTissueMetricMatrix, for the Autolysis
+// Score/Target Tissue % tabs only. For each Tissue record with
+// pathology_summary.target_tissues entries, emits one synthetic "virtual"
+// tissue record per subtype -- its own composite tissue_type key
+// (makeSubtypeColumnKey) and pathology_summary.autolysis_score/
+// target_tissue_percentage overridden to that one subtype's own value -- so
+// buildTissueMetricMatrix pivots one column per real subtype instead of one
+// column per tissue_type. A Tissue with no target_tissues data at all
+// (BrainPathologyReport-backed, or simply no PathologyReport) passes through
+// unchanged, staying a single plain (non-composite-keyed) column -- UNLESS
+// some other donor's Tissue record of that same real tissue_type *does* have
+// subtype data (tissueTypesWithSubtypeData below), in which case this
+// donor's plain record is dropped entirely rather than kept as its own
+// unlabeled sibling column: unlike Ischemic Time's Fixed/Frozen (a fixed,
+// always-both-slots convention), "no pathology report yet" isn't its own
+// subtype, so there's nothing meaningful for it to be a column of -- that
+// donor's row still correctly reads "n/a" in each of the tissue's real
+// subtype columns, since buildTissueMetricMatrix defaults an (donor,
+// column) pair with no entry at all to null.
+//
+// A tissue_type with exactly 1 real subtype still gets composite-keyed here
+// -- it isn't given special "leave it plain" treatment in this function.
+// Making it look identical to an unsplit column (per requirement) is instead
+// handled entirely at the header layer (buildSubColumnGroups' `isSplit`,
+// true only for span > 1), which keeps this expansion a single, uniform
+// transform rather than a "sometimes composite, sometimes not" branch.
+export function expandTissueResultsBySubtype(tissueResults = []) {
+    const tissueTypesWithSubtypeData = new Set();
+    tissueResults.forEach((t) => {
+        if (t?.pathology_summary?.target_tissues?.length) {
+            tissueTypesWithSubtypeData.add(t.tissue_type);
+        }
+    });
+
+    const expanded = [];
+    tissueResults.forEach((t) => {
+        const subtypes = t?.pathology_summary?.target_tissues;
+        if (!subtypes || subtypes.length === 0) {
+            if (!tissueTypesWithSubtypeData.has(t?.tissue_type)) expanded.push(t);
+            return;
+        }
+        subtypes.forEach((entry) => {
+            if (!entry?.subtype) return;
+            expanded.push({
+                ...t,
+                tissue_type: makeSubtypeColumnKey(t.tissue_type, entry.subtype),
+                pathology_summary: {
+                    ...t.pathology_summary,
+                    autolysis_score: entry.autolysis_score ?? null,
+                    target_tissue_percentage: entry.percentage ?? null,
+                },
+            });
+        });
+    });
+    return expanded;
+}
+
+// Built once from buildTissueMetricMatrix's own `tissueTypes` output (for an
+// expanded, subtype-aware tab) plus the REAL tissue_type hrefs/categories
+// (from buildTissueTypeHrefsAndCategories, called on the RAW, pre-expansion
+// tissueResults -- buildTissueMetricMatrix's own internal maps, built from
+// the expanded results, would otherwise only ever have composite-keyed
+// entries, never the real tissue_type itself, for any split tissue type).
+// Returns:
+//  - columnInfo: { [columnKey]: { parentTissueType, subtypeLabel|null } },
+//    used by header/popover/sort-label code to resolve a (possibly
+//    composite) column key back to a real tissue_type + optional subtype
+//    label for display, instead of parsing/showing the raw composite string.
+//  - fixedTissueTypeHrefs/fixedTissueTypeCategories: every column key's own
+//    href/category, always copied from its REAL PARENT's entry (never
+//    re-derived from the composite key itself, which getTissueInternalCodeFromFacetTerm
+//    can't resolve).
+// Same pre-expansion technique as expandTissueResultsBySubtype above, for
+// the Non Target Tissue % tab only, reading pathology_summary.non_target_tissues
+// instead of target_tissues. Kept as its own separate function rather than
+// a parameter on expandTissueResultsBySubtype -- that one overrides 2
+// fields (autolysis_score AND target_tissue_percentage) in lockstep per
+// virtual record, since Autolysis Score/Target Tissue % share 1 expanded
+// dataset pivoted off the same target_tissues array; Non Target Tissue %
+// has no sibling tab sharing non_target_tissues, and a non_target_tissues
+// entry has no autolysis_score field at all to override in the first place
+// (see item_utils/pathology_report.py's get_non_target_tissue_subtypes).
+export function expandTissueResultsByNonTargetSubtype(tissueResults = []) {
+    const tissueTypesWithSubtypeData = new Set();
+    tissueResults.forEach((t) => {
+        if (t?.pathology_summary?.non_target_tissues?.length) {
+            tissueTypesWithSubtypeData.add(t.tissue_type);
+        }
+    });
+
+    const expanded = [];
+    tissueResults.forEach((t) => {
+        const subtypes = t?.pathology_summary?.non_target_tissues;
+        if (!subtypes || subtypes.length === 0) {
+            if (!tissueTypesWithSubtypeData.has(t?.tissue_type)) expanded.push(t);
+            return;
+        }
+        subtypes.forEach((entry) => {
+            if (!entry?.subtype) return;
+            expanded.push({
+                ...t,
+                tissue_type: makeSubtypeColumnKey(t.tissue_type, entry.subtype),
+                pathology_summary: {
+                    ...t.pathology_summary,
+                    non_target_tissue_percentage: entry.percentage ?? null,
+                },
+            });
+        });
+    });
+    return expanded;
+}
+
+export function buildSubtypeColumnPlan(tissueTypes, realTissueTypeHrefs, realTissueTypeCategories) {
+    const columnInfo = {};
+    const fixedTissueTypeHrefs = {};
+    const fixedTissueTypeCategories = {};
+    tissueTypes.forEach((key) => {
+        const { tissueType: parentTissueType, subtypeLabel } = splitSubtypeColumnKey(key);
+        columnInfo[key] = { parentTissueType, subtypeLabel };
+        fixedTissueTypeHrefs[key] = realTissueTypeHrefs[parentTissueType] ?? null;
+        fixedTissueTypeCategories[key] = realTissueTypeCategories[parentTissueType] ?? null;
+    });
+    return { columnInfo, fixedTissueTypeHrefs, fixedTissueTypeCategories };
+}
+
+// Mid-tier grouping: collapses the (possibly composite) tissueTypes array
+// into contiguous runs sharing the same real parent tissue_type, mirroring
+// buildColumnGroups' own span-collapsing technique one tier down. Relies on
+// same-parent columns being contiguous -- true because
+// buildTissueMetricMatrix's own sort (by formatTissueTypeLabel, which strips
+// only the leading "<code> - " prefix) leaves every child of one parent
+// sharing an identical "<name><SUBTYPE_KEY_SEPARATOR>" prefix, so they
+// always sort adjacent to each other (in alphabetical-by-subtype order --
+// the only canonical order available; no per-tissue anatomical subtype
+// ordering exists anywhere in the schema/codebase).
+//
+// `isSplit` (span > 1), not "was this key composite", is what actually
+// decides whether a parent needs its own 3rd header row -- a tissue with
+// exactly 1 real subtype is still composite-keyed (see
+// expandTissueResultsBySubtype) but reads as `isSplit: false` here, which is
+// what makes it render identically to an always-plain column.
+export function buildSubColumnGroups(tissueTypes, columnInfo) {
+    const groups = [];
+    tissueTypes.forEach((key) => {
+        const { parentTissueType, subtypeLabel } = columnInfo[key];
+        const lastGroup = groups[groups.length - 1];
+        if (lastGroup && lastGroup.parentTissueType === parentTissueType) {
+            lastGroup.span += 1;
+            lastGroup.children.push({ key, subtypeLabel });
+        } else {
+            groups.push({ parentTissueType, span: 1, children: [{ key, subtypeLabel }] });
+        }
+    });
+    groups.forEach((g) => {
+        g.isSplit = g.span > 1;
+    });
+    return groups;
+}
+
+
+function formatIschemicTime(value) {
+    if (value === null || typeof value === 'undefined') return 'n/a';
+    return `${value}`;
+}
+
+// Equal-width banding splits whatever Ischemic Time values are actually in
+// this table into `bandCount` equal-width value ranges (not equal-*count*
+// groups -- an earlier quantile-based version of this did that, but was
+// switched away from after real use turned up the obvious complaint: two
+// bands' colors can look identical in "how much darker" terms while one
+// covers a 1-unit range and the other a 6-unit range, reading as an
+// arbitrary/unfair cutoff rather than a real difference). This still keeps
+// the color spread relative to this table's own actual values rather than a
+// fixed, clinical-sounding threshold (real values cluster tightly, so a
+// fixed scale leaves the heatmap showing little variation) -- it's just the
+// *width* of each band, not the count of values in it, that's now equal.
+//
+// The width itself is computed off the `clipFraction`..`1 - clipFraction`
+// quantiles, not the true min/max -- confirmed against real production data
+// that a plain equal-width split has its own opposite failure mode: one
+// genuine outlier (an apparent data-entry anomaly far below the rest) plus
+// one small but genuinely-higher cluster (this table's own brain-region
+// values) between them stretch the *whole* scale wide enough that the
+// entire ordinary middle of the data -- the large majority of real
+// cells -- collapses into a single band, reading as flatter/less
+// informative than the original quantile version it replaced. Clipping the
+// ends means the bulk of ordinary values still spread across the *whole*
+// palette; the outer 2 bands become "below/above the Nth percentile"
+// catch-alls instead of a single band each getting stretched by one
+// far-out value. 5 bands (not 4) -- with only 4, the two darkest of them
+// together always cover half the (clipped) value range by construction,
+// reading as a heavier/darker table than the underlying spread actually
+// warrants; a 5th band spreads that same total darkness across more,
+// individually lighter steps.
+//
+// Exported for unit testing. Returns `classify` (the per-value -> CSS-class
+// function every getScoreClass caller expects) alongside `thresholds` (the
+// band boundary values themselves, ascending, `bandCount - 1` of them, each
+// a clipped-quantile-derived value, not one of the raw data points) and the
+// table's own true (unclipped) `min`/`max` -- not `thresholds`' own first/
+// last entries -- so a caller rendering a legend states each outer band's
+// real extent (down to/up to what's actually in the table), not just where
+// its own clipped boundary happens to fall. Unlike Autolysis Score/Target
+// Tissue %'s own fixed, self-explanatory bands, these are computed fresh
+// from whatever's in the table and would otherwise be opaque.
+export function buildRangeScoreClassifier(values, bandCount = 5, clipFraction = 0.05) {
+    const sorted = values
+        .filter((value) => typeof value === 'number' && Number.isFinite(value))
+        .slice()
+        .sort((a, b) => a - b);
+    if (sorted.length === 0) {
+        return { classify: () => 'na', thresholds: [] };
+    }
+    // Linear-interpolated quantile (same convention as numpy's default) --
+    // exact index most of the time here since Ischemic Time datasets are
+    // small, but avoids picking an arbitrary neighbor on datasets where it
+    // doesn't land on a whole index.
+    const quantile = (p) => {
+        const index = (sorted.length - 1) * p;
+        const lower = Math.floor(index);
+        const upper = Math.ceil(index);
+        if (lower === upper) return sorted[lower];
+        return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
+    };
+    const clippedMin = quantile(clipFraction);
+    const clippedMax = quantile(1 - clipFraction);
+    const span = clippedMax - clippedMin;
+    const thresholds = Array.from(
+        { length: bandCount - 1 },
+        (unused, i) => clippedMin + (span * (i + 1)) / bandCount
+    );
+    const classify = (value) => {
+        if (value === null || typeof value === 'undefined') return 'na';
+        // A value at or below clippedMin (or above every threshold, at or
+        // beyond clippedMax) still lands correctly in the first/last band
+        // here -- no separate clamping needed, since every threshold from
+        // clippedMin up is already >= it, so the very first comparison
+        // already succeeds.
+        const bandIndex = thresholds.findIndex((threshold) => value <= threshold);
+        return `score-${bandIndex === -1 ? bandCount - 1 : bandIndex}`;
+    };
+    return { classify, thresholds, min: sorted[0], max: sorted[sorted.length - 1] };
+}
+
+// Number formatting for legend range labels -- values here are already
+// numbers (unlike the table's own formatValue, which also has to handle
+// n/a), just trimmed to 1 decimal so a float-math threshold like
+// 19.600000000000001 doesn't leak into the UI.
+function formatScoreLegendValue(value) {
+    return Number(value.toFixed(1)).toString();
+}
+
+// One legend entry per band -- {className, label} -- built from
+// buildRangeScoreClassifier's own thresholds/min/max, empty when there
+// were no real values to band in the first place (thresholds.length === 0
+// covers both the "no data at all" and "bandCount <= 1" cases). Bounds
+// each band by the table's own real min/max at the open ends instead of
+// leaving them as "<= X"/"> Y", since a reader has no other way to tell
+// whether that end is a hard cutoff or just wherever this table's data
+// happened to stop.
+function buildScoreLegend(scoring) {
+    const { thresholds, min, max } = scoring;
+    if (!thresholds || thresholds.length === 0) return [];
+    const bounds = [min, ...thresholds, max];
+    return bounds.slice(0, -1).map((lower, i) => {
+        const upper = bounds[i + 1];
+        return {
+            className: `score-${i}`,
+            label:
+                lower === upper
+                    ? formatScoreLegendValue(lower)
+                    : `${formatScoreLegendValue(lower)}–${formatScoreLegendValue(upper)}`,
+        };
+    });
+}
+
+// A color swatch + its own value range per band, for a metric (like
+// Ischemic Time) whose band boundaries are computed from the table's own
+// data rather than a fixed, already-explained scale -- see
+// buildScoreLegend. Renders nothing for a fixed-scale metric that doesn't
+// pass one in.
+export function ScoreLegend({ entries }) {
+    if (!entries || entries.length === 0) return null;
+    return (
+        <div className="tissue-heatmap-score-legend">
+            {entries.map((entry) => (
+                <span className="tissue-heatmap-score-legend-item" key={entry.className}>
+                    <span className={`tissue-heatmap-score-legend-swatch ${entry.className}`} />
+                    {entry.label}
+                </span>
+            ))}
+        </div>
+    );
+}
+
+// A compact swatch-per-band scale for a metric whose bands are a small,
+// fixed, already-self-explanatory set (Autolysis Score's 0=None..3=Severe;
+// Target Tissue %'s own named percentage ranges) rather than data-driven
+// quantiles computed fresh from this table's own values (see ScoreLegend
+// above for that case). `leftCaption`/`rightCaption` label the scale's own
+// two ends (e.g. "Minimal"/"Severe") for a metric whose bare band labels
+// (plain numbers) wouldn't otherwise say which end means what; Target Tissue
+// %'s own labels are already full percentage ranges, so it passes neither.
+//
+// Each swatch also doubles as a filter toggle -- clicking one dims every
+// cell (and split-cell half) elsewhere in the table whose own band doesn't
+// match (see heatmapCellClassName/renderRowCells' `activeScoreClass`),
+// clicking the same swatch again (or `null`-ing activeClassName) clears it.
+// `onEntryClick`/`activeClassName` are optional so this still renders as a
+// plain, inert key when neither is passed.
+export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = null, activeClassName = null, onEntryClick = null }) {
+    if (!entries || entries.length === 0) return null;
+    return (
+        <div className="tissue-heatmap-fixed-legend">
+            {leftCaption ? (
+                <span className="tissue-heatmap-fixed-legend-caption">{leftCaption}</span>
+            ) : null}
+            <div className="tissue-heatmap-fixed-legend-scale">
+                {entries.map((entry) => (
+                    <button
+                        type="button"
+                        key={entry.className}
+                        className={
+                            `tissue-heatmap-fixed-legend-swatch ${entry.className}` +
+                            (activeClassName === entry.className ? ' is-active' : '')
+                        }
+                        aria-pressed={activeClassName === entry.className}
+                        disabled={!onEntryClick}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={onEntryClick ? () => onEntryClick(entry.className) : undefined}>
+                        {entry.label}
+                    </button>
+                ))}
+            </div>
+            {rightCaption ? (
+                <span className="tissue-heatmap-fixed-legend-caption">{rightCaption}</span>
+            ) : null}
+        </div>
+    );
+}
+
+// Ischemic Time's own cells split into a Fixed half and a Frozen half (see
+// splitByPreservationType/cellSlots in renderRowCells) instead of a single
+// value -- unlike FixedScoreLegend below, there's no severity scale to
+// explain here (each half is still colored by its own value's band, same
+// score-0..4 palette as everywhere else), just which half of a split cell
+// is which specimen type, so a reader knows before ever hovering one.
+//
+// Each half also doubles as a filter toggle -- clicking "Fixed" dims every
+// Frozen half table-wide (and vice versa), via the same `activeSplitHalf`/
+// `onHalfClick` wiring FixedScoreLegend's `activeClassName`/`onEntryClick`
+// use for score bands (see renderRowCells). Optional, so this still renders
+// as a plain, inert key when neither is passed.
+function SplitCellLegend({ activeHalf = null, onHalfClick = null }) {
+    return (
+        <div className="tissue-heatmap-split-legend">
+            <table className="tissue-heatmap-split-legend-table">
+                <thead>
+                    <tr>
+                        <th>Left</th>
+                        <th>Right</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <button
+                                type="button"
+                                className={
+                                    'tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-a' +
+                                    (activeHalf === 'a' ? ' is-active' : '')
+                                }
+                                aria-pressed={activeHalf === 'a'}
+                                disabled={!onHalfClick}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onClick={onHalfClick ? () => onHalfClick('a') : undefined}>
+                                Fixed
+                            </button>
+                        </td>
+                        <td>
+                            <button
+                                type="button"
+                                className={
+                                    'tissue-heatmap-split-legend-half tissue-heatmap-split-legend-half-b' +
+                                    (activeHalf === 'b' ? ' is-active' : '')
+                                }
+                                aria-pressed={activeHalf === 'b'}
+                                disabled={!onHalfClick}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onClick={onHalfClick ? () => onHalfClick('b') : undefined}>
+                                Frozen
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+// Same score-0..3 swatch colors getAutolysisScoreClass applies to the cells
+// themselves.
+const AUTOLYSIS_SCORE_LEGEND_ENTRIES = [0, 1, 2, 3].map((value) => {
+    return { className: `score-${value}`, label: String(value) };
+});
+
+// Target Tissue %'s own fixed bands (TARGET_TISSUE_PERCENTAGE_ORDER),
+// reordered lightest-to-darkest to match getTargetTissuePercentageScoreClass's
+// inverted band index -- higher target-tissue presence reads as the
+// lighter, "better" end of the scale, same direction Autolysis Score's
+// 0=None does. Labels match formatTargetTissuePercentage's own formatting
+// exactly, so the legend's swatches read as the same vocabulary as the
+// cells they're explaining.
+const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.map(
+    (label, index) => {
+        return {
+            className: `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`,
+            label: label === '0' ? '0%' : label,
+        };
+    }
+).reverse();
+
+// Non Target Tissue % gets its own orange scale (`nt-score-0..3`, see
+// _search.scss) instead of the shared blue score-0..4 palette the other 3
+// tabs use -- unlike Target Tissue %'s "higher presence is better" framing,
+// a higher non-target-tissue percentage is a worse outcome for the sample,
+// so this runs light->dark in direct band order (no index inversion) with
+// its own fixed, non-customizable colors (HeatmapColorPicker only overrides
+// the shared --heatmap-score-N-bg/text custom properties, which these
+// classes deliberately don't read).
+const NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = NON_TARGET_TISSUE_PERCENTAGE_ORDER.map(
+    (label, index) => {
+        return {
+            className: `nt-score-${index}`,
+            label,
+        };
+    }
+);
+
+function formatAutolysisScore(value) {
+    if (value === null || typeof value === 'undefined') return 'n/a';
+    return String(value);
+}
+
+function getAutolysisScoreClass(value) {
+    if (value === null || typeof value === 'undefined') return 'na';
+    return `score-${Math.min(value, 3)}`;
+}
+
+function formatTargetTissuePercentage(value) {
+    if (value === null || typeof value === 'undefined') return 'n/a';
+    return value === '0' ? '0%' : value;
+}
+
+// `tissue_type` is stored/sorted as "<protocol code> - <name>" (e.g.
+// "3AK - Brain, Frontal Lobe") so the code stays part of the value used for
+// column identity/lookup, but showing that code in the header is meaningless
+// to someone browsing by tissue -- strip it for display only. Also doubles
+// as the sort key (below), so this always stays the full descriptive name,
+// not the short header label (formatTissueTypeHeaderLabel) -- switching
+// *this* one to the 4-letter code would silently reorder columns
+// alphabetically by code instead of by the name a person actually reads.
+function formatTissueTypeLabel(tissueType) {
+    if (!tissueType) return tissueType;
+    return tissueType.replace(/^\S+\s-\s*/, '');
+}
+
+// The header label itself: prefers the stable 4-letter internal code (e.g.
+// "BRFL", via the same tissue-code table the icon/depth lookups elsewhere
+// already use) so columns stay compact, falling back to the full name
+// (formatTissueTypeLabel) for any tissue_type that table doesn't cover. The
+// full "<code> - <name>" string is still the header's `title` tooltip.
+function formatTissueTypeHeaderLabel(tissueType) {
+    if (!tissueType) return tissueType;
+    return getTissueInternalCodeFromFacetTerm(tissueType) || formatTissueTypeLabel(tissueType);
+}
+
+function getTargetTissuePercentageScoreClass(value) {
+    if (value === null || typeof value === 'undefined') return 'na';
+    const index = TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
+    if (index === -1) return 'na';
+    // Higher target-tissue presence is "better", so invert the band index
+    // (highest band -> score-0) to match the Ischemic Time convention.
+    return `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`;
+}
+
+// Target Tissue % cell values are ordered band strings (e.g. "[26-49]"),
+// not numbers -- MetricHeatmapTable's default sort-value extractor
+// (defaultGetSortValue) only handles plain numbers, so this tab needs its
+// own override ranking bands by their real order (not alphabetically).
+function getTargetTissuePercentageSortValue(value) {
+    const index = TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
+    return index === -1 ? null : index;
+}
+
+function formatNonTargetTissuePercentage(value) {
+    if (value === null || typeof value === 'undefined') return 'n/a';
+    return value;
+}
+
+// Opposite direction from getTargetTissuePercentageScoreClass -- a higher
+// non-target-tissue percentage is a *worse* outcome for the sample (more of
+// the tissue is something other than what was targeted), so this runs
+// light->dark in direct band order, same as Autolysis Score's own
+// 0=None..3=Severe. Uses the tab's own dedicated orange `nt-score-0..3`
+// scale (see _search.scss) rather than the shared score-0..4 classes, so
+// it reads as a distinct, non-customizable severity signal.
+function getNonTargetTissuePercentageScoreClass(value) {
+    if (value === null || typeof value === 'undefined') return 'na';
+    const index = NON_TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
+    if (index === -1) return 'na';
+    return `nt-score-${index}`;
+}
+
+// Same reasoning as getTargetTissuePercentageSortValue above -- band
+// strings, not numbers.
+function getNonTargetTissuePercentageSortValue(value) {
+    const index = NON_TARGET_TISSUE_PERCENTAGE_ORDER.indexOf(value);
+    return index === -1 ? null : index;
+}
+
+// --- Experimental: user-customizable conditional-color palette ---------
+// Lets anyone pick a base color (a curated preset or a free color-wheel
+// pick) and generates a 4-step light->dark sequential scale from it.
+// Deliberately not persisted anywhere -- a pick only lasts for the current
+// page view and always starts back at the default on the next load; it's
+// in-memory-only, so it can't affect what other users see. "Reset" clears
+// the override and falls back to the hardcoded default scale in
+// _search.scss.
+
+// Each preset is just a single base hue -- buildSequentialPaletteFromHex
+// below turns it into the actual 4-step scale, same as a free color-wheel
+// pick, so every preset is guaranteed to follow the same light->dark
+// construction (no hand-tuned-then-drifted swatches to keep in sync).
+export const HEATMAP_COLOR_PRESETS = [
+    // Default scale (see _search.scss's .score-0..4 fallback values) --
+    // listed here too so it's reachable by name after picking something else.
+    // "Sky" is RGB(77, 207, 255), converted to hex, per explicit request.
+    // ("Steel", "Indigo", "Teal", "Slate" and "Ocean" were each the default
+    // before this; kept reachable below for anyone who preferred one of them.)
+    { name: 'Sky', hex: '#4DCFFF' },
+    { name: 'Steel', hex: '#4D7C8D' },
+    { name: 'Indigo', hex: '#464AA0' },
+    { name: 'Teal', hex: '#2F8F83' },
+    { name: 'Slate', hex: '#5B6670' },
+    { name: 'Ocean', hex: '#22528E' },
+    { name: 'Purple', hex: '#7C6BA6' },
+    { name: 'Amber', hex: '#C08A2E' },
+    { name: 'Rose', hex: '#B5657A' },
+    { name: 'Forest', hex: '#4F7A5B' },
+];
+
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+}
+
+function hexToRgb(hex) {
+    const clean = String(hex || '').replace('#', '');
+    return [0, 2, 4].map((i) => parseInt(clean.slice(i, i + 2), 16));
+}
+
+function rgbToHex([r, g, b]) {
+    return `#${[r, g, b]
+        .map((v) => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0'))
+        .join('')}`;
+}
+
+function rgbToHsl([r, g, b]) {
+    const rN = r / 255;
+    const gN = g / 255;
+    const bN = b / 255;
+    const max = Math.max(rN, gN, bN);
+    const min = Math.min(rN, gN, bN);
+    const l = (max + min) / 2;
+    let h = 0;
+    let s = 0;
+    const d = max - min;
+    if (d !== 0) {
+        s = d / (1 - Math.abs(2 * l - 1));
+        if (max === rN) h = ((gN - bN) / d) % 6;
+        else if (max === gN) h = (bN - rN) / d + 2;
+        else h = (rN - gN) / d + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+    }
+    return [h, s * 100, l * 100];
+}
+
+function hslToRgb(h, s, l) {
+    const sN = s / 100;
+    const lN = l / 100;
+    const c = (1 - Math.abs(2 * lN - 1)) * sN;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = lN - c / 2;
+    let seg = [0, 0, 0];
+    if (h < 60) seg = [c, x, 0];
+    else if (h < 120) seg = [x, c, 0];
+    else if (h < 180) seg = [0, c, x];
+    else if (h < 240) seg = [0, x, c];
+    else if (h < 300) seg = [x, 0, c];
+    else seg = [c, 0, x];
+    return seg.map((v) => (v + m) * 255);
+}
+
+// Lightness stops per band count -- 4 for a fixed-scale metric (Autolysis
+// Score's own 0-3 levels, and TissueTypeView's identical-shaped Donor
+// Details palette), 5 for Target Tissue %'s 5 real bands (TARGET_TISSUE_
+// PERCENTAGE_ORDER) and Ischemic Time's own quintile split
+// (buildRangeScoreClassifier) -- kept as explicit per-count arrays
+// (not one interpolated formula) so the existing 4-stop palette's exact
+// values -- already the CSS default fallback and every earlier preset pick
+// -- don't shift by rounding error just because a 5-stop caller exists now.
+const LIGHTNESS_STEPS_BY_BAND_COUNT = {
+    4: [88, 72, 50, 32],
+    // Originally 90/75/60/45/30 (uniform 15pt gaps) -- raised to a lighter
+    // floor after real Ischemic Time data showed a table can be genuinely
+    // dominated by values landing in the 2 darkest bands (many tissue
+    // types cluster there for most donors), reading as an overly dark/
+    // heavy table even though the banding itself was working as designed.
+    // An earlier attempt only lightened the last 2 stops (leaving 90/75/60
+    // alone), which uniformly-spaced-eyeball this isn't: it *shrank* the
+    // gap between the 2 darkest bands specifically (down to 10-12pts vs.
+    // 15pt everywhere else), making exactly those 2 -- the ones a skewed
+    // table shows the most of -- the hardest pair to tell apart. Kept
+    // uniform 12pt gaps across all 5 stops instead, so every band-to-band
+    // step reads as an equally perceptible jump; this doesn't change which
+    // band a value falls into, just how dark that band's color reads.
+    5: [90, 78, 66, 54, 42],
+};
+
+// Exported for unit testing. Fixed saturation curve (clamped so a very
+// dull or very neon input hue still lands in a reasonable range) -- only
+// the hue actually comes from `baseHex`, so every generated scale keeps
+// the same light->dark "feel" regardless of which color was picked.
+export function buildSequentialPaletteFromHex(baseHex, bandCount = 4) {
+    const [h, rawSaturation] = rgbToHsl(hexToRgb(baseHex));
+    const saturation = clamp(rawSaturation, 28, 46);
+    const lightnessSteps = LIGHTNESS_STEPS_BY_BAND_COUNT[bandCount] || LIGHTNESS_STEPS_BY_BAND_COUNT[4];
+    return lightnessSteps.map((lightness) => {
+        const bg = rgbToHex(hslToRgb(h, saturation, lightness));
+        // Same threshold direction as the hardcoded default scale (light
+        // bands get dark text, the darkest band or two get white text).
+        const text = lightness > 58 ? '#28323C' : '#FFFFFF';
+        return { bg, text };
+    });
+}
+
+// Presets + native color-wheel + reset -- the actual picker UI, with no
+// button/open-state of its own (the caller renders and owns that, and
+// decides what closing means -- see HeatmapColorPicker below, reused
+// standalone by TissueTypeView.js's own Donor Details table, and
+// HeatmapAdminSettings' combined panel further down, which folds this in
+// alongside the cell-value-display toggle instead of giving it a second,
+// separate toggle button in the same toolbar).
+function ColorPickerPanelBody({ baseHex, onPick, onReset, onDone }) {
+    return (
+        <>
+            <p className="tissue-heatmap-color-picker-note">
+                Experimental -- resets to default on page reload,
+                and doesn&rsquo;t change what other users see.
+            </p>
+            <div className="tissue-heatmap-color-picker-presets">
+                {HEATMAP_COLOR_PRESETS.map((preset) => (
+                    <button
+                        type="button"
+                        key={preset.name}
+                        className={
+                            'tissue-heatmap-color-picker-preset' +
+                            (baseHex === preset.hex ? ' is-active' : '')
+                        }
+                        style={{ backgroundColor: preset.hex }}
+                        title={preset.name}
+                        aria-label={preset.name}
+                        onClick={() => {
+                            onPick(preset.hex);
+                            onDone();
+                        }}
+                    />
+                ))}
+                <label
+                    className="tissue-heatmap-color-picker-preset tissue-heatmap-color-picker-custom"
+                    title="Pick a custom color">
+                    <input
+                        type="color"
+                        value={baseHex || '#4DCFFF'}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onChange={(event) => onPick(event.target.value)}
+                    />
+                </label>
+            </div>
+            <button
+                type="button"
+                className="tissue-heatmap-color-picker-reset"
+                onClick={() => {
+                    onReset();
+                    onDone();
+                }}>
+                Reset to default
+            </button>
+        </>
+    );
+}
+
+// A small button + panel for picking the base color above -- presets on
+// the left, a native color-wheel input for anything else, and a reset back
+// to the built-in default. Closes on an outside click/Escape like any
+// other lightweight dropdown; deliberately not react-bootstrap's Overlay
+// machinery since this doesn't need to track a scrolling anchor.
+export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && containerRef.current?.contains(event.target)) {
+                return;
+            }
+            setIsOpen(false);
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="tissue-heatmap-color-picker" ref={containerRef}>
+            <button
+                type="button"
+                className="tissue-heatmap-color-picker-toggle"
+                onClick={() => setIsOpen((prev) => !prev)}
+                aria-expanded={isOpen}
+                title="Customize conditional color (this browser only)">
+                <span
+                    className="tissue-heatmap-color-picker-swatch"
+                    style={baseHex ? { backgroundColor: baseHex } : undefined}
+                />
+                Colors
+            </button>
+            {isOpen ? (
+                <div className="tissue-heatmap-color-picker-panel">
+                    <ColorPickerPanelBody
+                        baseHex={baseHex}
+                        onPick={onPick}
+                        onReset={onReset}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onDone={() => setIsOpen(false)}
+                    />
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+// The 4 ways a multi-value cell can be shown -- all reachable from the same
+// admin toggle (HeatmapAdminSettings below) so test users can be switched
+// between them to compare, per explicit request after the plain "/"-joined
+// text (`inline`) wasn't well received on its own. `inline` stays the
+// fallback for any cell a split mode (`diagonal`/`vertical`) can't actually
+// render as a split -- see renderRowCells' `isSplitMode` -- so every mode
+// still satisfies the original review requirement (every real value visible
+// with no hover/click) except `hover`, which deliberately opts back into
+// the pre-review corner-flag + popover behavior for whoever prefers it.
+const CELL_VALUE_DISPLAY_MODES = [
+    { key: 'inline', label: 'All values' },
+    { key: 'diagonal', label: 'Diagonal split' },
+    { key: 'vertical', label: 'Vertical split' },
+    { key: 'hover', label: 'On click' },
+];
+
+// BrowseTissueHeatmapTable's own toolbar bundles 2 admin-only, experimental,
+// browser-only display overrides -- which values a multi-record cell shows
+// (CELL_VALUE_DISPLAY_MODES above) and the conditional-color palette
+// (ColorPickerPanelBody/HeatmapColorPicker above). Two separate always-
+// visible toggle rows read as visual clutter in the tab row (see the review
+// screenshot this responds to), so both live behind one gear button/panel
+// instead -- same "icon-gear" FontAwesome glyph DataMatrixConfigurator.js
+// already uses for its own admin-only control.
+function HeatmapAdminSettings({
+    cellValueDisplayMode,
+    onChangeCellValueDisplayMode,
+    baseHex,
+    onPickColor,
+    onResetColor,
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && containerRef.current?.contains(event.target)) {
+                return;
+            }
+            setIsOpen(false);
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="tissue-heatmap-admin-settings" ref={containerRef}>
+            <button
+                type="button"
+                className="tissue-heatmap-admin-settings-toggle"
+                onClick={() => setIsOpen((prev) => !prev)}
+                aria-expanded={isOpen}
+                title="Admin display settings (this browser only)">
+                <i className="icon icon-fw icon-gear fas" />
+            </button>
+            {isOpen ? (
+                <div className="tissue-heatmap-admin-settings-panel">
+                    <div className="tissue-heatmap-admin-settings-section">
+                        <p className="tissue-heatmap-admin-settings-label">Cell values</p>
+                        <div
+                            className="tissue-heatmap-value-display-toggle"
+                            role="group"
+                            aria-label="Multi-value cell display">
+                            {CELL_VALUE_DISPLAY_MODES.map((mode) => (
+                                <button
+                                    type="button"
+                                    key={mode.key}
+                                    className={
+                                        'tissue-heatmap-value-display-toggle-option' +
+                                        (cellValueDisplayMode === mode.key ? ' is-active' : '')
+                                    }
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    onClick={() => onChangeCellValueDisplayMode(mode.key)}>
+                                    {mode.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="tissue-heatmap-admin-settings-divider" />
+                    <div className="tissue-heatmap-admin-settings-section">
+                        <p className="tissue-heatmap-admin-settings-label">Conditional color</p>
+                        <ColorPickerPanelBody
+                            baseHex={baseHex}
+                            onPick={onPickColor}
+                            onReset={onResetColor}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onDone={() => setIsOpen(false)}
+                        />
+                    </div>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+// True only when this cell's entries actually disagree on value -- most
+// multi-record cells turn out to be several physical records (e.g. a Fixed
+// and a Frozen specimen) that just happen to carry the identical number
+// (often a single donor-level constant duplicated per organ). Flagging
+// those too meant the corner indicator lit up on nearly every cell in a
+// real table, which is exactly the "too many things demanding attention at
+// once" complaint it was meant to solve, not help with -- so the flag is
+// reserved for cells where hovering would actually surface a different
+// number, not just a different source record for the same one.
+function hasDistinctAltValues(entries) {
+    if (!entries || entries.length < 2) return false;
+    return entries.some((entry) => entry.value !== entries[0].value);
+}
+
+// De-duplicated entry values, primary-first order preserved (Set keeps
+// first-occurrence order, and entries are already sorted primary-first --
+// see buildTissueMetricMatrix) -- e.g. an organ with a Fixed and a Frozen
+// record that happen to carry the identical number shows once ("23.5"),
+// not as a redundant "23.5 / 23.5". A real, informative disagreement (the
+// donor-level Frozen ischemic_time constant differing from an organ-
+// specific Fixed value) still shows both.
+function distinctEntryValues(entries) {
+    if (!entries) return [];
+    const seen = new Set();
+    const result = [];
+    entries.forEach((entry) => {
+        if (seen.has(entry.value)) return;
+        seen.add(entry.value);
+        result.push(entry.value);
+    });
+    return result;
+}
+
+function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRowSegment, isColumnSegment, entries, activeScoreClass = null) {
+    const scoreClass = enableConditionalColor ? getScoreClass(value) : null;
+    return (
+        'tissue-heatmap-cell' +
+        (scoreClass ? ` ${scoreClass}` : '') +
+        // Muted styling for "no data" cells is plain typography (grey vs.
+        // dark text), not the score-band heatmap coloring
+        // enableConditionalColor gates -- keeps real values legible against
+        // empty ones either way.
+        (value === null || typeof value === 'undefined' ? ' is-empty' : '') +
+        // See renderRowCells' own comment on hoveredCellPosition for what
+        // these 2 mean and why they're 2 separate classes, not 1.
+        (isRowSegment ? ' is-row-highlight' : '') +
+        (isColumnSegment ? ' is-column-highlight' : '') +
+        // Excel-style corner flag -- reserved for cells where the alternate
+        // record(s) actually carry a different value (see
+        // hasDistinctAltValues above), not just any multi-record cell. A
+        // same-value multi-record cell still shows the full detail popover
+        // on click (MetricHeatmapTable's selectedCell) -- it's just not
+        // flagged, since there's nothing there worth drawing the eye to.
+        (hasDistinctAltValues(entries) ? ' has-alt-values' : '') +
+        // A legend swatch is "selected" (FixedScoreLegend's activeClassName,
+        // set by MetricHeatmapTable) -- every cell whose own band doesn't
+        // match fades out so the matching ones stand out. A `null`
+        // scoreClass (enableConditionalColor off) never matches, so this
+        // only ever dims when there's an active filter to honor.
+        (activeScoreClass && scoreClass !== activeScoreClass ? ' is-band-dimmed' : '')
+    );
+}
+
+// A rough upper bound on the popover's own rendered height (header + up to
+// a couple of entry rows in the common case) -- just needs to be generous
+// enough that flipping the decision based on it never lands the popover
+// past the viewport edge it was trying to avoid in the first place; a few
+// px of unused space above/below on an unusually short popover is harmless.
+const DETAIL_POPOVER_ESTIMATED_HEIGHT = 160;
+
+// `position: fixed` inline style for the detail popover, anchored off the
+// clicked cell's own live `getBoundingClientRect()` (see MetricHeatmapTable's
+// handleCellClick) -- opens below-right of the cell by default, flipping
+// to open upward when there isn't estimated room below in the *viewport*
+// (not just the table), same reasoning `.tissue-heatmap-sticky-header`
+// already applies to the header itself. Returns `isFlippedUp` alongside
+// the style so the caller can also flip the popover's own arrow to match.
+function getDetailPopoverStyle(rect) {
+    const isFlippedUp = rect.bottom + DETAIL_POPOVER_ESTIMATED_HEIGHT + 10 > window.innerHeight;
+    return {
+        isFlippedUp,
+        style: {
+            position: 'fixed',
+            right: window.innerWidth - rect.right,
+            ...(isFlippedUp
+                ? { bottom: window.innerHeight - rect.top + 10 }
+                : { top: rect.bottom + 10 }),
+        },
+    };
+}
+
+// Detail popover for the currently-clicked cell (MetricHeatmapTable's
+// selectedCell/handleCellClick) -- `position: fixed`, positioned in JS off
+// the clicked cell's own live `getBoundingClientRect()`, same reasoning as
+// before this became click-triggered: the table's own scroll wrapper needs
+// `overflow-x: auto`, which (same trap `.tissue-heatmap-sticky-header`'s own
+// comment documents) forces `overflow-y: auto` too, clipping anything
+// absolutely-positioned past the wrapper's own bounds. A plain CSS
+// :hover/:focus-revealed descendant of the cell would hit that same trap.
+//
+// Laid out to match viz/Matrix/DataMatrix's own block-click popover format
+// (StackedBlockVisual.js's blockPopover -- a primary-row of label/value
+// pairs, an optional secondary-row for a multi-record breakdown, a
+// footer-row action button) -- per explicit request, so this table's own
+// click-to-inspect popover reads as the same convention used elsewhere in
+// the app rather than a one-off design.
+function renderCellDetailPopover({
+    donor, tissueType, tissueLabel = null, subtypeLabel = null, metricLabel, value, entries, slots, splitByPreservationType,
+    formatValue, tissueOverviewHref, style, isFlippedUp,
+}, popoverRef) {
+    // Ischemic Time's own cells always show a Fixed/Frozen breakdown (see
+    // buildTissueMetricMatrix's cellSlots and the table cell's own always-
+    // split rendering, renderRowCells) whether or not *both* sides actually
+    // have a value -- the popover matches that unconditionally too, rather
+    // than falling back to a single-value view (no Fixed/Frozen distinction
+    // at all) whenever only 1 side happens to have real data. Every other
+    // tab's cells have no such fixed 2-way shape, so they only get a
+    // breakdown when there's an actual multi-record disagreement to show
+    // (`entries.length > 1`).
+    const breakdownEntries = splitByPreservationType
+        ? [
+            { label: 'Fixed', value: slots?.[0]?.value ?? null },
+            { label: 'Frozen', value: slots?.[1]?.value ?? null },
+        ]
+        : (entries && entries.length > 1 ? entries : null);
+    // A real multi-record breakdown (Fixed vs. Frozen, typically) gets its
+    // own secondary-row further down, each entry already labeled with this
+    // metric's own name (e.g. "Fixed Ischemic Time (h)") -- showing the bare
+    // metric value a 2nd time up here as well said nothing the breakdown
+    // didn't already, just with less context (no Fixed/Frozen distinction).
+    // The common single-value case has no such breakdown at all, so this is
+    // its only place to show the value.
+    const hasBreakdown = !!breakdownEntries;
+    return (
+        <div
+            ref={popoverRef}
+            className={'tissue-heatmap-cell-detail-popover' + (isFlippedUp ? ' is-flipped-up' : '')}
+            style={style}>
+            <div className="inner">
+                <div className="primary-row">
+                    <div className="field">
+                        <div className="label">Donor</div>
+                        <div className="value">{donor}</div>
+                    </div>
+                    <div className="field">
+                        <div className="label">Tissue</div>
+                        <div className="value">{tissueLabel ?? formatTissueTypeLabel(tissueType)}</div>
+                    </div>
+                    {subtypeLabel ? (
+                        <div className="field">
+                            <div className="label">Subtype</div>
+                            <div className="value">{subtypeLabel}</div>
+                        </div>
+                    ) : null}
+                </div>
+                {hasBreakdown ? (
+                    <>
+                        {/* The metric name once, as this whole row's own
+                            caption -- repeating it inside every single
+                            column label below ("Fixed Ischemic Time (h)" /
+                            "Frozen Ischemic Time (h)") said it twice for no
+                            reason; a bare "Fixed"/"Frozen" reads fine once
+                            it's clear what they're both values *of*. */}
+                        <div className="secondary-row-heading">{metricLabel}</div>
+                        <div className="secondary-row">
+                            {breakdownEntries.map((entry, i) => (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <div className="field" key={i}>
+                                    <div className="label">{entry.label || 'Value'}</div>
+                                    <div className="value">{formatValue(entry.value)}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    // Same 2-row shape as the breakdown case above (a
+                    // caption row, then the value(s) below it) even for a
+                    // single plain value, per explicit request that Donor/
+                    // Tissue/Subtype always stay together on their own row,
+                    // separate from whatever the actual metric value is.
+                    <>
+                        <div className="secondary-row-heading">{metricLabel}</div>
+                        <div className="secondary-row">
+                            <div className="field">
+                                <div className="value">{formatValue(value)}</div>
+                            </div>
+                        </div>
+                    </>
+                )}
+                {tissueOverviewHref ? (
+                    <div className="footer-row">
+                        <a
+                            href={tissueOverviewHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary">
+                            Tissue Overview
+                        </a>
+                    </div>
+                ) : null}
+            </div>
+        </div>
+    );
+}
+
+// One row's cells, merging a consecutive run of `mergeableTissueTypes`
+// columns that share the exact same value (e.g. the brain regions a
+// generic "Brain" value was distributed into, see buildTissueMetricMatrix)
+// into a single spanning <td> instead of repeating that value once per
+// column -- but ONLY when `brainColumnsFullyMergeable` says *every* row in
+// the whole table agrees, matching the header's own merge condition
+// exactly (renderHeaderCells). An earlier version merged per-row instead
+// (any row whose own values happened to be equal, regardless of whether
+// every other row did too), which -- confirmed against a real donor whose
+// brain regions genuinely differ (e.g. distinct per-region Autolysis
+// Score) -- read as an arbitrary mix of merged and unmerged rows all under
+// the same *unmerged* header, since 1 disagreeing row was enough to keep
+// the header itself split. Gating both on the same table-wide flag means
+// it's now all-or-nothing: either every row's brain columns merge under a
+// merged header, or none of them do and every row shows all 5 regions
+// individually, even a row whose own values happen to coincide.
+//
+// `hoveredColumn`/`hoveredCellPosition`/`onHoverCell` -- "L-shaped" hover
+// guides (per explicit request): hovering a cell highlights only the
+// portion of its row to its left/at it, and the portion of its column
+// above/at it -- not the *entire* row and *entire* column, which read as a
+// distracting "+" cross running through the hovered cell. `hoveredColumn`
+// (a tissue_type, matched via `columnTissueTypes.includes`, unchanged from
+// before) still identifies which column is active at all, including from
+// the *header* itself (which has no row to draw an "L" from -- hovering a
+// header still lights up its whole column, top to bottom, same as always).
+// `hoveredCellPosition` (`{ rowIndex, columnIndex } | null`, set only when
+// the hover actually originates from a *body* cell, see
+// MetricHeatmapTable's handleHoverBodyCell) is what turns that into an L
+// instead of a cross for that case specifically:
+// - Row segment: only cells in `hoveredCellPosition.rowIndex`'s own row,
+//   at or before `hoveredCellPosition.columnIndex`.
+// - Column segment: only cells in the hovered column, at or before
+//   `hoveredCellPosition.rowIndex` -- or every row, when
+//   `hoveredCellPosition` is null (a header hover), preserving that
+//   whole-column behavior.
+// The row's own left "edge" -- .tissue-heatmap-donor-id -- doesn't need
+// any of this: it's always positioned before every data column, so it's
+// always part of the row segment once its own row is hovered at all,
+// which a plain `tbody tr:hover` (_search.scss) already covers with no JS.
+//
+// `cellValueDisplayMode` -- see CELL_VALUE_DISPLAY_MODES/HeatmapAdminSettings.
+// `'inline'` (the default) writes every real value for a multi-record cell
+// inline, "/"-separated (entries are already primary-first, see
+// buildTissueMetricMatrix), no corner flag. `'diagonal'`/`'vertical'` render
+// a genuinely split cell instead -- one half per value. `'hover'` shows
+// only the primary value plus the corner flag instead. In every mode, the
+// detail popover (renderCellDetailPopover, wired up by the caller via
+// selectedCell/onCellClick) opens on *click*, not hover -- with every value
+// already visible without opening it in every mode but `'hover'` itself,
+// this is just an optional way to see which record each value actually
+// came from, not a requirement to see the data.
+//
+// `donor`/`selectedCell`/`onCellClick` -- clicking a cell opens its own
+// detail popover (see MetricHeatmapTable's selectedCell/handleCellClick)
+// and fades every *other* cell in the table (`.tissue-heatmap-table-wrap
+// .has-selected-cell`, _search.scss) so the clicked one stands out --
+// `donor` (this row's own donor id, otherwise not threaded down this far)
+// is only needed so the click payload can identify which row it came from
+// for the popover's own content.
+//
+// `cellSlots`/`splitByPreservationType` -- per explicit request, Ischemic
+// Time's split modes always show a Fixed half and a Frozen half in the
+// same fixed position, even when only 1 of the 2 actually has a value
+// (the other reads "n/a") -- unlike the general case below (distinct
+// *values*, not fixed *slots*), where a cell with only 1 real value can't
+// split at all, and one with 3+ distinct values (e.g. Autolysis Score's
+// own real 3-target-cell-subtype case) has nowhere to put a 3rd half, so
+// both fall back to the same "/"-joined text `'inline'` uses rather than
+// silently dropping a value. `splitByPreservationType` (true only for
+// Ischemic Time, see BrowseTissueHeatmapTable) switches which of those 2
+// rules a `'diagonal'`/`'vertical'` cell follows; `cellSlots` (built by
+// buildTissueMetricMatrix, always exactly
+// `[Fixed entry | null, Frozen entry | null]`) is only read when it does.
+function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTissueTypes, brainColumnsFullyMergeable, formatValue, getScoreClass, enableConditionalColor, rowIndex, donor, hoveredColumn, hoveredCellPosition, onHoverCell, onHoverEnd, selectedCell, onCellClick, cellValueDisplayMode, splitByPreservationType, activeScoreClass = null, activeSplitHalf = null, subtypeColumnInfo = null) {
+    const nodes = [];
+    let i = 0;
+    while (i < cells.length) {
+        const tissueType = tissueTypes[i];
+        const value = cells[i];
+        const entries = cellEntries?.[i] || null;
+        const columnIndex = i;
+        let span = 1;
+        // Merging this row's own run of equal-valued brain columns only
+        // when `brainColumnsFullyMergeable` says *every* row agrees keeps
+        // this consistent with the header's own merge decision
+        // (renderHeaderCells) -- without this gate, a row that happens to
+        // have equal values merges into one wide cell even while the
+        // header (and other rows that disagree, e.g. one donor's real
+        // per-region autolysis scores) stays split into individual
+        // columns, which reads as an inconsistent, seemingly arbitrary mix
+        // of merged and unmerged rows under the same unmerged header.
+        if (brainColumnsFullyMergeable && mergeableTissueTypes.has(tissueType)) {
+            while (
+                i + span < cells.length &&
+                mergeableTissueTypes.has(tissueTypes[i + span]) &&
+                cells[i + span] === value
+            ) {
+                span += 1;
+            }
+        }
+        const columnTissueTypes = tissueTypes.slice(i, i + span);
+        const isHoverMode = cellValueDisplayMode === 'hover';
+        const distinctValues = isHoverMode ? [] : distinctEntryValues(entries);
+        const isSplitLayout = cellValueDisplayMode === 'diagonal' || cellValueDisplayMode === 'vertical';
+        const slots = splitByPreservationType ? cellSlots?.[i] || null : null;
+        const isSplitMode = isSplitLayout && (splitByPreservationType ? slots !== null : distinctValues.length === 2);
+        // Fixed-first, matching cellEntries' own primary-first ordering
+        // (buildTissueMetricMatrix prefers Fixed as primary) -- either
+        // side can be `null` here (shown as "n/a" below) when
+        // splitByPreservationType and only 1 side has a real value.
+        const splitValues = splitByPreservationType
+            ? [slots?.[0]?.value ?? null, slots?.[1]?.value ?? null]
+            : distinctValues;
+        const showsAllValuesInline = !isHoverMode && !isSplitMode && distinctValues.length > 1;
+        const isRowSegment =
+            hoveredCellPosition !== null &&
+            hoveredCellPosition.rowIndex === rowIndex &&
+            columnIndex <= hoveredCellPosition.columnIndex;
+        const isColumnSegment =
+            columnTissueTypes.includes(hoveredColumn) &&
+            (hoveredCellPosition === null || rowIndex <= hoveredCellPosition.rowIndex);
+        // The clicked cell (MetricHeatmapTable's selectedCell) -- matched by
+        // position, same span-aware range check isColumnSegment's own
+        // columnTissueTypes.includes uses, so clicking a merged "Brain"
+        // cell still recognizes itself as selected regardless of which of
+        // its covered columns selectedCell.columnIndex happens to point at.
+        const isSelected =
+            selectedCell !== null &&
+            selectedCell.rowIndex === rowIndex &&
+            selectedCell.columnIndex >= columnIndex &&
+            selectedCell.columnIndex < columnIndex + span;
+
+        // Same real-tissue-type-group boundary the header's own 3rd row
+        // draws a heavier divider at (see renderSubtypeHeaderCells) -- only
+        // meaningful when subtypeColumnInfo is present (a subtype-aware
+        // tab), since that's the only case where more than 1 column can
+        // share a parent tissue type in the first place. Compared off the
+        // LAST column this cell actually covers (not `tissueType`/`i`
+        // itself), since a brain-merge span can cover several real columns
+        // in one <td>.
+        const lastCoveredTissueType = tissueTypes[i + span - 1];
+        const nextTissueType = tissueTypes[i + span];
+        const parentOfColumn = (key) => subtypeColumnInfo?.[key]?.parentTissueType ?? key;
+        // `nextTissueType` must exist -- the table's own very last column
+        // is never treated as a "boundary" (its border-right is already
+        // suppressed entirely via `.tissue-heatmap-cell:last-child`, and
+        // this class must not fight that).
+        const isGroupBoundary =
+            !!subtypeColumnInfo &&
+            !!nextTissueType &&
+            parentOfColumn(lastCoveredTissueType) !== parentOfColumn(nextTissueType);
+
+        const className = (isSplitMode
+            ? 'tissue-heatmap-cell tissue-heatmap-cell-split' +
+              ` tissue-heatmap-cell-split-${cellValueDisplayMode}` +
+              (isRowSegment ? ' is-row-highlight' : '') +
+              (isColumnSegment ? ' is-column-highlight' : '')
+            : heatmapCellClassName(
+                value,
+                getScoreClass,
+                enableConditionalColor,
+                isRowSegment,
+                isColumnSegment,
+                isHoverMode ? entries : null,
+                activeScoreClass
+            )) + (isSelected ? ' is-selected' : '') + (isGroupBoundary ? ' tissue-heatmap-cell-group-boundary' : '');
+
+        // Legend-driven per-half dimming (see FixedScoreLegend/SplitCellLegend's
+        // activeClassName/activeHalf) -- `splitByPreservationType` cells
+        // (Ischemic Time) dim by which specimen type half was clicked;
+        // other split cells (a real value tie, e.g. Autolysis Score's rare
+        // 2-distinct-value case) dim by score band, same as a plain cell.
+        //
+        // A "no value" half is dimmed too whenever ANY filter is active --
+        // for the score-band case this falls out for free (getScoreClass(null)
+        // is never a real score-N class, so it can never equal activeScoreClass);
+        // splitByPreservationType needs it spelled out explicitly, since
+        // "this is the selected specimen type" and "this half actually has
+        // a value" are 2 separate questions there. Without this, selecting
+        // e.g. "Fixed" left every Fixed-but-empty cell showing a plain "n/a"
+        // while Autolysis Score/Target Tissue % correctly went blank for
+        // their own no-value cells under an active filter -- inconsistent
+        // per explicit request; a "no data" cell isn't a real match for any
+        // legend selection, splitByPreservationType included.
+        const isHalfADimmed = splitByPreservationType
+            ? activeSplitHalf === 'b' || (Boolean(activeSplitHalf) && splitValues[0] === null)
+            : Boolean(activeScoreClass) &&
+              enableConditionalColor &&
+              getScoreClass(splitValues[0]) !== activeScoreClass;
+        const isHalfBDimmed = splitByPreservationType
+            ? activeSplitHalf === 'a' || (Boolean(activeSplitHalf) && splitValues[1] === null)
+            : Boolean(activeScoreClass) &&
+              enableConditionalColor &&
+              getScoreClass(splitValues[1]) !== activeScoreClass;
+        nodes.push(
+            <td
+                key={tissueType}
+                colSpan={span > 1 ? span : undefined}
+                className={className}
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseEnter={() => onHoverCell(tissueType, rowIndex, columnIndex)}
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseLeave={onHoverEnd}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={(event) =>
+                    onCellClick(
+                        event.currentTarget, rowIndex, columnIndex, donor, tissueType, value, entries,
+                        slots, splitByPreservationType
+                    )
+                }>
+                {isSplitMode ? (
+                    <>
+                        <span
+                            className={
+                                'tissue-heatmap-cell-split-half tissue-heatmap-cell-split-half-a' +
+                                (splitValues[0] === null
+                                    ? ' is-empty'
+                                    : enableConditionalColor
+                                        ? ` ${getScoreClass(splitValues[0])}`
+                                        : '') +
+                                (isHalfADimmed ? ' is-band-dimmed' : '')
+                            }>
+                            {formatValue(splitValues[0])}
+                        </span>
+                        <span
+                            className={
+                                'tissue-heatmap-cell-split-half tissue-heatmap-cell-split-half-b' +
+                                (splitValues[1] === null
+                                    ? ' is-empty'
+                                    : enableConditionalColor
+                                        ? ` ${getScoreClass(splitValues[1])}`
+                                        : '') +
+                                (isHalfBDimmed ? ' is-band-dimmed' : '')
+                            }>
+                            {formatValue(splitValues[1])}
+                        </span>
+                        {cellValueDisplayMode === 'diagonal' ? (
+                            // A CSS `linear-gradient(to bottom right, ...)`
+                            // hard-stop was tried here first for the
+                            // dividing line -- it looked like a mismatched
+                            // double line/zigzag against a real (non-
+                            // square) column width. Root cause: a "to
+                            // corner" gradient's hard-stop is a line
+                            // perpendicular to the TL->BR axis through the
+                            // box's center, not the literal TL/BR-corner
+                            // diagonal itself -- those 2 lines only
+                            // coincide when the box is a square. The 2
+                            // <span> halves' own `clip-path` polygons don't
+                            // have this problem (percentage vertices
+                            // stretch with the box exactly like this SVG's
+                            // `preserveAspectRatio="none"` viewBox does),
+                            // so this SVG line -- not a gradient -- is what
+                            // actually traces the same diagonal the 2
+                            // halves are cut along, at any column width.
+                            <svg
+                                className="tissue-heatmap-cell-split-divider"
+                                viewBox="0 0 100 100"
+                                preserveAspectRatio="none"
+                                aria-hidden="true">
+                                <line x1="0" y1="100" x2="100" y2="0" vectorEffect="non-scaling-stroke" />
+                            </svg>
+                        ) : null}
+                    </>
+                ) : showsAllValuesInline ? (
+                    distinctValues.map((v) => formatValue(v)).join(' / ')
+                ) : (
+                    formatValue(value)
+                )}
+            </td>
+        );
+        i += span;
+    }
+    return nodes;
+}
+
+// Shared by every individual tissue_type column header -- ordinary columns
+// always, brain regions too whenever they're not merged into one "Brain"
+// header (see renderHeaderCells/BrainRegionHeaderCell) -- so a region still
+// gets this same code+name link and sort button on its own whenever its
+// value can't be safely summarized under the shared label.
+//
+// `columnInfo` (optional, from buildSubtypeColumnPlan) is passed only by the
+// Autolysis Score/Target Tissue % tabs, whose `tissueType` may actually be a
+// subtype-composite key (see makeSubtypeColumnKey) -- when present, the
+// display label always resolves through `info.parentTissueType` (the real
+// tissue_type, code and all) rather than calling formatTissueTypeHeaderLabel
+// directly on `tissueType`, which would show a garbled string for ANY
+// composite key (every tissue with target_tissues data is composite-keyed,
+// even a single-subtype one -- see expandTissueResultsBySubtype).
+// `tissueTypeHrefs[tissueType]` keeps working unchanged either way since
+// callers already pass the "fixed" href map (buildSubtypeColumnPlan's
+// fixedTissueTypeHrefs), correctly resolved per composite key.
+//
+// Always `info.parentTissueType`, never `info.subtypeLabel` -- this
+// component is only ever used for a genuinely 'unsplit' column
+// (renderHeaderCells' own 'split' branch renders a real multi-child
+// group's own parent/subtype labels directly, without going through this
+// component at all), so there's no case where showing the bare subtype
+// name instead of the coded tissue-type label is actually correct. A tissue
+// with no real anatomical subtypes (e.g. Liver, Lung) still gets exactly 1
+// target_tissues entry from pathology data, self-titled with the tissue's
+// own plain name (subtype: "Liver") rather than left empty -- confirmed
+// against real data this is what was silently overriding the code (LIVR)
+// with that raw, uncoded name for exactly those tissue types.
+function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortState, handleHeaderClick, columnInfo = null }) {
+    const info = columnInfo?.[tissueType];
+    const displayLabel = formatTissueTypeHeaderLabel(info ? info.parentTissueType : tissueType);
+    return (
+        <>
+            {tissueTypeHrefs[tissueType] ? (
+                <a href={tissueTypeHrefs[tissueType]}>{displayLabel}</a>
+            ) : (
+                displayLabel
+            )}
+            <SortableHeaderLabel
+                label=""
+                sortDirection={sortState?.key === tissueType ? sortState.direction : null}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={() => handleHeaderClick(tissueType)}
+            />
+        </>
+    );
+}
+
+// Header cell for a run of merged brain-region columns -- only rendered
+// when buildTissueMetricMatrix's brainColumnsFullyMergeable says every
+// row's regions actually agree (see renderHeaderCells); a merged header
+// over even one row of genuinely differing values would hide which value
+// belongs to which region. This is a *synthetic* "Brain" label, distinct
+// from the real (always-hidden) generic "Brain" tissue_type column
+// buildTissueMetricMatrix drops -- there's no single tissue_type this
+// header could link to, so clicking it opens a small picker of the real
+// regions instead of navigating directly, trading one click for still
+// reaching a real tissue-overview page. Same outside-click-to-close
+// pattern as HeatmapColorPicker above.
+function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+    // Every row's regions agree here (that's what made this mergeable), so
+    // sorting by any one of the 5 is equivalent to sorting by "Brain" as a
+    // whole -- the first region is an arbitrary but stable choice.
+    const [sortKey] = regionTissueTypes;
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && containerRef.current?.contains(event.target)) {
+                return;
+            }
+            setIsOpen(false);
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="tissue-heatmap-brain-picker" ref={containerRef}>
+            <button
+                type="button"
+                className="tissue-heatmap-brain-picker-toggle"
+                onClick={() => setIsOpen((prev) => !prev)}
+                aria-expanded={isOpen}
+                title="Brain -- pick a region to view its own Tissue Overview page">
+                {/* A caret here reads as a duplicate of the sort button's own
+                    caret right next to it (see SortableHeaderLabel -- its
+                    default/unsorted icon is now also a plain down-caret, to
+                    match the plain /browse/ search-results table's own
+                    convention). A leading "+" doesn't collide with that
+                    shape, and reads as "expand this into its real regions"
+                    -- this opens a *list to pick from*, not a sort toggle. */}
+                <i className="icon icon-fw fas icon-plus" />
+                Brain
+            </button>
+            <SortableHeaderLabel
+                label=""
+                sortDirection={sortState?.key === sortKey ? sortState.direction : null}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={() => handleHeaderClick(sortKey)}
+            />
+            {isOpen ? (
+                <ul className="tissue-heatmap-brain-picker-panel">
+                    {regionTissueTypes.map((tissueType) => {
+                        // Same 4-letter code convention every other column
+                        // header already shows (formatTissueTypeHeaderLabel) --
+                        // added here too so a region picked from this list
+                        // reads as the same identity as its own (now-hidden,
+                        // merged-away) column would have.
+                        const code = getTissueInternalCodeFromFacetTerm(tissueType);
+                        const label = (
+                            <>
+                                {code ? <span className="tissue-heatmap-brain-picker-code">{code}</span> : null}
+                                {formatTissueTypeLabel(tissueType)}
+                            </>
+                        );
+                        return (
+                            <li key={tissueType}>
+                                {tissueTypeHrefs[tissueType] ? (
+                                    <a href={tissueTypeHrefs[tissueType]}>{label}</a>
+                                ) : (
+                                    label
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
+            ) : null}
+        </div>
+    );
+}
+
+// Header-row counterpart to renderRowCells above. A run of
+// `mergeableTissueTypes` columns (the 5 brain regions) only collapses into
+// one shared "Brain" header (BrainRegionHeaderCell) when
+// `mergeBrainHeader` says every row's regions actually agree (see
+// buildTissueMetricMatrix's brainColumnsFullyMergeable) -- otherwise each
+// region keeps its own individual header (IndividualTissueTypeHeaderLabel),
+// same as any other column, so a value can always be traced back to the
+// region it belongs to.
+function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+    const nodes = [];
+    let i = 0;
+    while (i < tissueTypes.length) {
+        const tissueType = tissueTypes[i];
+        if (mergeableTissueTypes.has(tissueType) && mergeBrainHeader) {
+            const regionTissueTypes = [tissueType];
+            let span = 1;
+            while (
+                i + span < tissueTypes.length &&
+                mergeableTissueTypes.has(tissueTypes[i + span])
+            ) {
+                regionTissueTypes.push(tissueTypes[i + span]);
+                span += 1;
+            }
+            nodes.push(
+                <th
+                    key={tissueType}
+                    colSpan={span > 1 ? span : undefined}
+                    title="Brain"
+                    className={
+                        (regionTissueTypes.includes(hoveredColumn) ? 'is-column-highlight' : '') +
+                        (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
+                    }
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseEnter={() => onHoverColumn(tissueType)}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseLeave={() => onHoverColumn(null)}>
+                    <BrainRegionHeaderCell
+                        regionTissueTypes={regionTissueTypes}
+                        tissueTypeHrefs={tissueTypeHrefs}
+                        sortState={sortState}
+                        handleHeaderClick={handleHeaderClick}
+                    />
+                </th>
+            );
+            i += span;
+            continue;
+        }
+        nodes.push(
+            <th
+                key={tissueType}
+                title={tissueType}
+                className={
+                    (hoveredColumn === tissueType ? 'is-column-highlight' : '') +
+                    (tissueType === selectedTissueType ? ' is-selected-column' : '')
+                }
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseEnter={() => onHoverColumn(tissueType)}
+                // eslint-disable-next-line react/jsx-no-bind
+                onMouseLeave={() => onHoverColumn(null)}>
+                <IndividualTissueTypeHeaderLabel
+                    tissueType={tissueType}
+                    tissueTypeHrefs={tissueTypeHrefs}
+                    sortState={sortState}
+                    handleHeaderClick={handleHeaderClick}
+                />
+            </th>
+        );
+        i += 1;
+    }
+    return nodes;
+}
+
+// Walks buildSubColumnGroups' own output and additionally collapses any
+// consecutive run of unsplit, brain-region-mergeable groups into one
+// "merged-brain" run -- the same collapse renderHeaderCells' 2-row case
+// already does for a plain tab (mergeableTissueTypes.has(tissueType) &&
+// mergeBrainHeader), redone here because renderTissueTypeParentHeaderCells/
+// renderSubtypeHeaderCells (below) replace renderHeaderCells wholesale for a
+// subtype-aware tab whenever ANY tissue type in the table is actually
+// split -- not just the split columns themselves -- so brain's own merge
+// behavior would otherwise silently be lost table-wide the moment e.g. Skin
+// gets a real subtype split. Both row-builder functions iterate this exact
+// same run list, so their colSpans always agree column-for-column.
+function buildSubtypeAwareDisplayRuns(subColumnGroups, mergeableTissueTypes, mergeBrainHeader) {
+    const runs = [];
+    let i = 0;
+    while (i < subColumnGroups.length) {
+        const group = subColumnGroups[i];
+        if (!group.isSplit) {
+            const [{ key, subtypeLabel }] = group.children;
+            if (mergeableTissueTypes.has(key) && mergeBrainHeader) {
+                const regionTissueTypes = [key];
+                let span = 1;
+                while (
+                    i + span < subColumnGroups.length &&
+                    !subColumnGroups[i + span].isSplit &&
+                    mergeableTissueTypes.has(subColumnGroups[i + span].children[0].key)
+                ) {
+                    regionTissueTypes.push(subColumnGroups[i + span].children[0].key);
+                    span += 1;
+                }
+                runs.push({ type: 'merged-brain', regionTissueTypes, span });
+                i += span;
+                continue;
+            }
+            runs.push({
+                type: 'unsplit',
+                key,
+                subtypeLabel,
+                parentTissueType: group.parentTissueType,
+                span: 1,
+            });
+            i += 1;
+            continue;
+        }
+        runs.push({ type: 'split', group, span: group.span });
+        i += 1;
+    }
+    return runs;
+}
+
+// 2nd-tier header row builder for a subtype-aware tab (Autolysis Score/
+// Target Tissue %) -- a sibling to renderHeaderCells above, not a branch
+// inside it, so Ischemic Time's own call (which never has displayRuns)
+// stays byte-for-byte unchanged. One <th> per buildSubtypeAwareDisplayRuns()
+// entry:
+// - 'unsplit' (a single-subtype or no-subtype tissue) renders exactly what
+//   renderHeaderCells renders for a plain column today -- no `rowSpan` down
+//   into the 3rd row, since every column (split or not) gets its own 3rd-row
+//   cell for a uniform 3-row header (see renderSubtypeHeaderCells' own "n/a"
+//   placeholder, per explicit request that a tissue with no real subtype
+//   still show one rather than the row silently skipping that column). Its
+//   own sort button stays right here, same as today.
+// - 'merged-brain' mirrors BrainRegionHeaderCell's usual merged "Brain"
+//   header (renderHeaderCells), just built from this table's own
+//   subColumnGroups instead of a flat tissueTypes array.
+// - 'split' renders one `colSpan` cell naming the parent tissue type --
+//   label only, no sort button of its own, since sorting a merged parent by
+//   "which child" would be ambiguous; sorting stays available per-subtype in
+//   the 3rd row (renderSubtypeHeaderCells).
+function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnInfo, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+    return displayRuns.map((run) => {
+        if (run.type === 'merged-brain') {
+            const { regionTissueTypes, span } = run;
+            return (
+                <th
+                    key={regionTissueTypes[0]}
+                    colSpan={span > 1 ? span : undefined}
+                    title="Brain"
+                    className={
+                        // Row-2's own light-background boundary variant, not
+                        // .tissue-heatmap-subtype-group-boundary (row 3's
+                        // darker, grey-background one) -- same color as this
+                        // row's other 2 header classes below.
+                        'tissue-heatmap-subtype-row2-boundary' +
+                        (regionTissueTypes.includes(hoveredColumn) ? ' is-column-highlight' : '') +
+                        (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
+                    }
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseEnter={() => onHoverColumn(regionTissueTypes[0])}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseLeave={() => onHoverColumn(null)}>
+                    <BrainRegionHeaderCell
+                        regionTissueTypes={regionTissueTypes}
+                        tissueTypeHrefs={tissueTypeHrefs}
+                        sortState={sortState}
+                        handleHeaderClick={handleHeaderClick}
+                    />
+                </th>
+            );
+        }
+        if (run.type === 'unsplit') {
+            const { key } = run;
+            return (
+                <th
+                    key={key}
+                    title={key}
+                    className={
+                        'tissue-heatmap-subtype-unsplit-header' +
+                        (hoveredColumn === key ? ' is-column-highlight' : '') +
+                        (key === selectedTissueType ? ' is-selected-column' : '')
+                    }
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseEnter={() => onHoverColumn(key)}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseLeave={() => onHoverColumn(null)}>
+                    <IndividualTissueTypeHeaderLabel
+                        tissueType={key}
+                        tissueTypeHrefs={tissueTypeHrefs}
+                        sortState={sortState}
+                        handleHeaderClick={handleHeaderClick}
+                        columnInfo={columnInfo}
+                    />
+                </th>
+            );
+        }
+        const { group } = run;
+        const firstChildKey = group.children[0].key;
+        const anyChildHovered = group.children.some((c) => c.key === hoveredColumn);
+        const anyChildSelected = group.children.some((c) => c.key === selectedTissueType);
+        return (
+            <th
+                key={group.parentTissueType}
+                colSpan={group.span}
+                title={group.parentTissueType}
+                className={
+                    'tissue-heatmap-subtype-parent-header' +
+                    (anyChildHovered ? ' is-column-highlight' : '') +
+                    (anyChildSelected ? ' is-selected-column' : '')
+                }>
+                {tissueTypeHrefs[firstChildKey] ? (
+                    <a href={tissueTypeHrefs[firstChildKey]}>{formatTissueTypeHeaderLabel(group.parentTissueType)}</a>
+                ) : (
+                    formatTissueTypeHeaderLabel(group.parentTissueType)
+                )}
+            </th>
+        );
+    });
+}
+
+// 3rd-tier header row builder -- one <th> per run from
+// buildSubtypeAwareDisplayRuns, so the header stays a uniform 3 rows
+// regardless of which columns happen to be split -- a 'split' run's
+// children each get their own sortable subtype label (a real sort button,
+// per explicit request -- otherwise a split tissue type's own subtype
+// columns had no way to sort at all, since the 2nd-row parent header never
+// had a sort control of its own either), but plain text, not a link (a
+// subtype name is a value read off the parent tissue's own column, not a
+// column in its own right the way a plain tissue type is, so it doesn't
+// get its own Tissue Overview page to link to); a 'merged-brain' run, or an
+// 'unsplit' run whose lone subtype is just the tissue's own self-titled
+// placeholder (subtypeLabel === the plain tissue name -- see
+// IndividualTissueTypeHeaderLabel's own comment on this same placeholder
+// convention), gets a single plain "n/a" cell instead (per earlier explicit
+// request -- a tissue with no real subtype data still shows one rather than
+// the row silently having a gap under that column). An 'unsplit' run with a
+// genuine single real subtype (e.g. Non Target Tissue %'s Liver, whose only
+// present entry is "Fibroadipose" -- a real category, not a placeholder)
+// shows that subtype's own name instead -- showing "n/a" there was
+// misleading, since the cell's own detail popover always had the real
+// subtype value available regardless. Every branch stays colSpan-matched to
+// that same run's own 2nd-row cell so the 2 rows always align.
+function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+    const nodes = [];
+    displayRuns.forEach((run) => {
+        if (run.type === 'merged-brain') {
+            const { regionTissueTypes, span } = run;
+            nodes.push(
+                <th
+                    key={regionTissueTypes[0]}
+                    colSpan={span > 1 ? span : undefined}
+                    className={
+                        'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder' +
+                        ' tissue-heatmap-subtype-group-boundary' +
+                        (regionTissueTypes.includes(hoveredColumn) ? ' is-column-highlight' : '') +
+                        (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
+                    }>
+                    <span className="tissue-heatmap-subtype-subrow-label-text">n/a</span>
+                </th>
+            );
+            return;
+        }
+        if (run.type === 'unsplit') {
+            const { key, subtypeLabel, parentTissueType } = run;
+            // A self-titled placeholder (subtype name === the plain tissue
+            // name, e.g. Liver's own target_tissues entry) carries no real
+            // information beyond what the 2nd-row header already shows --
+            // still shown as "n/a" (see this function's own comment above).
+            const isRealSubtype =
+                subtypeLabel && subtypeLabel !== formatTissueTypeLabel(parentTissueType);
+            nodes.push(
+                <th
+                    key={key}
+                    className={
+                        (isRealSubtype
+                            ? 'tissue-heatmap-subtype-subrow-header'
+                            : 'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder') +
+                        ' tissue-heatmap-subtype-group-boundary' +
+                        (hoveredColumn === key ? ' is-column-highlight' : '') +
+                        (key === selectedTissueType ? ' is-selected-column' : '')
+                    }>
+                    <span
+                        className="tissue-heatmap-subtype-subrow-label-text"
+                        title={isRealSubtype ? subtypeLabel : undefined}>
+                        {isRealSubtype ? subtypeLabel : 'n/a'}
+                    </span>
+                </th>
+            );
+            return;
+        }
+        run.group.children.forEach(({ key, subtypeLabel }, childIndex) => {
+            // Only the LAST child's own border-right actually sits at the
+            // real tissue-type-group boundary -- the others are dividers
+            // between sibling subtypes of the SAME tissue type, which stay
+            // the plain, lighter grid line (see .tissue-heatmap-cell-group-
+            // boundary/its subrow-header equivalent in _search.scss) so the
+            // 2 kinds of divider read as visually distinct.
+            const isLastChild = childIndex === run.group.children.length - 1;
+            nodes.push(
+                <th
+                    key={key}
+                    title={key}
+                    className={
+                        'tissue-heatmap-subtype-subrow-header' +
+                        (isLastChild ? ' tissue-heatmap-subtype-group-boundary' : '') +
+                        (hoveredColumn === key ? ' is-column-highlight' : '') +
+                        (key === selectedTissueType ? ' is-selected-column' : '')
+                    }
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseEnter={() => onHoverColumn(key)}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onMouseLeave={() => onHoverColumn(null)}>
+                    <span className="tissue-heatmap-subtype-subrow-label-text" title={subtypeLabel}>
+                        {subtypeLabel}
+                    </span>
+                    <SortableHeaderLabel
+                        label=""
+                        sortDirection={sortState?.key === key ? sortState.direction : null}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => handleHeaderClick(key)}
+                    />
+                </th>
+            );
+        });
+    });
+    return nodes;
+}
+
+// Both/all <thead> rows, factored out so MetricHeatmapTable can render this
+// exact same markup twice -- once as the real, in-flow header, once as the
+// `position: fixed` "stuck" clone shown while scrolled (see
+// MetricHeatmapTable's scroll-measurement effect) -- sharing the same
+// `sortState`/`handleHeaderClick` closures so a sort click on either one
+// updates the same state and can never let the two drift out of sync.
+//
+// `displayRuns`/`columnInfo` (both optional, from buildSubtypeAwareDisplayRuns/
+// buildSubtypeColumnPlan) are passed only by the Autolysis Score/Target
+// Tissue % tabs, and only when at least 1 tissue type in the table actually
+// has multiple real subtypes (`displayRuns` is null otherwise, even for
+// those 2 tabs -- see MetricHeatmapTable's own hasAnySplitColumn gate) --
+// Ischemic Time never passes them, so its own header stays exactly the
+// original 2-row shape.
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null) {
+    const headerRowSpan = displayRuns ? 3 : 2;
+    return (
+        <>
+            <tr className="tissue-heatmap-group-row">
+                <th className="tissue-heatmap-order-header" rowSpan={headerRowSpan} />
+                <th className="tissue-heatmap-donor-header" rowSpan={headerRowSpan}>
+                    <SortableHeaderLabel
+                        label="Donor ID"
+                        sortDirection={sortState?.key === 'donor' ? sortState.direction : null}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => handleHeaderClick('donor')}
+                    />
+                </th>
+                {columnGroups.map((group, i) => (
+                    <th
+                        key={i}
+                        colSpan={group.span}
+                        className="tissue-heatmap-group-label"
+                        title={group.style.label}
+                        style={{
+                            backgroundColor: group.style.backgroundColor,
+                            color: group.style.textColor,
+                        }}>
+                        {group.style.label}
+                    </th>
+                ))}
+            </tr>
+            <tr>
+                {displayRuns
+                    ? renderTissueTypeParentHeaderCells(
+                        displayRuns,
+                        tissueTypeHrefs,
+                        columnInfo,
+                        sortState,
+                        handleHeaderClick,
+                        hoveredColumn,
+                        onHoverColumn,
+                        selectedTissueType
+                    )
+                    : renderHeaderCells(
+                        tissueTypes,
+                        mergeableTissueTypes,
+                        mergeBrainHeader,
+                        tissueTypeHrefs,
+                        sortState,
+                        handleHeaderClick,
+                        hoveredColumn,
+                        onHoverColumn,
+                        selectedTissueType
+                    )}
+            </tr>
+            {displayRuns ? (
+                <tr>
+                    {renderSubtypeHeaderCells(
+                        displayRuns,
+                        sortState,
+                        handleHeaderClick,
+                        hoveredColumn,
+                        onHoverColumn,
+                        selectedTissueType
+                    )}
+                </tr>
+            ) : null}
+        </>
+    );
+}
+
+// Memoized so that clicking between tabs -- which re-renders the whole
+// BrowseTissueHeatmapTable (DotRouterTab's onClick updates the page href,
+// which flows back down as a new `href` prop) -- doesn't also re-render
+// and repaint the two other, currently-hidden tables (all three stay
+// mounted simultaneously via DotRouterTab's `cache` prop, only toggled via a
+// `d-none` class). Each of these tables' props are individually stable
+// (memoized upstream in BrowseTissueHeatmapTable), so shallow prop equality
+// correctly bails out here instead of redoing this work for tables whose
+// tab isn't even visible.
+const EMPTY_MERGEABLE_TISSUE_TYPES = new Set();
+
+// Default value extraction for sorting -- correct as-is for Ischemic Time
+// and Autolysis Score (already plain numbers). Target Tissue % overrides
+// this (see BrowseTissueHeatmapTable's getTargetTissuePercentageSortValue)
+// since its cell values are ordered band strings (e.g. "[26-49]"), not
+// numbers -- a plain numeric check on those would return null for every
+// value and break sorting for that tab entirely.
+const defaultGetSortValue = (value) => (typeof value === 'number' ? value : null);
+
+// null/undefined sort values (n/a cells) always sort to the end, regardless
+// of direction -- standard data-table convention, and avoids NaN-driven
+// comparator inconsistency from comparing a number against null. Handles
+// both numbers (Ischemic Time/Autolysis Score/etc.) and strings (e.g.
+// TissueTypeView.js's Donor ID/Sex columns) so every sortable column in
+// either table can share this one comparator.
+export function compareSortValues(a, b, direction) {
+    const aIsNull = a === null || typeof a === 'undefined';
+    const bIsNull = b === null || typeof b === 'undefined';
+    if (aIsNull && bIsNull) return 0;
+    if (aIsNull) return 1;
+    if (bIsNull) return -1;
+    const cmp =
+        typeof a === 'string' && typeof b === 'string'
+            ? a.localeCompare(b, undefined, { numeric: true })
+            : a - b;
+    return direction === 'asc' ? cmp : -cmp;
+}
+
+// One clickable header label + a FontAwesome sort-direction icon -- mirrors
+// shared-portal-components' HeadersRow.js (ColumnSortIconElement) exactly:
+// icon-sort-up only while actually sorted ascending, icon-sort-down for
+// both descending AND the default/unsorted state (that component's own
+// `descend={!sortMap || descend}` treats "no sort yet" the same as
+// "descending" for icon purposes) -- not a 3rd, visually distinct "neutral"
+// glyph, so this table's sort buttons read as consistent with the plain
+// /browse/ search-results table's own, without pulling in that component's
+// heavier URL/context-driven sort machinery (architecturally mismatched
+// here -- this table sorts already-fetched rows client-side, not a live
+// search grid).
+export function SortableHeaderLabel({ label, sortDirection, onClick }) {
+    return (
+        <button
+            type="button"
+            className={'tissue-heatmap-sort-button' + (sortDirection ? ' is-active' : '')}
+            onClick={onClick}>
+            {label}
+            <i
+                className={
+                    'icon icon-fw fas tissue-heatmap-sort-icon' +
+                    ' ' +
+                    (sortDirection === 'asc' ? 'icon-sort-up' : 'icon-sort-down')
+                }
+            />
+        </button>
+    );
+}
+
+const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
+    tissueTypes,
+    tissueTypeHrefs,
+    tissueTypeCategories,
+    matrix,
+    // This tab's own name (e.g. "Autolysis Score") -- shown as this table's
+    // own heading (see the render below) as well as threaded down to the
+    // cell detail popover (renderCellDetailPopover), which otherwise has no
+    // way to say which metric its own value is.
+    metricLabel,
+    // The same explanatory text the tab's info-circle icon used to carry on
+    // the tab label itself -- now shown on this heading instead (see the
+    // render below), since the reader only sees it once they're already on
+    // this tab and looking at the data it explains.
+    tooltip = null,
+    formatValue,
+    getScoreClass,
+    // Rendered directly under the heading -- a FixedScoreLegend (Autolysis
+    // Score/Target Tissue %'s own fixed, self-explanatory bands), a
+    // SplitCellLegend (Ischemic Time's Fixed/Frozen key), a ScoreLegend
+    // (Ischemic Time's data-driven quantile split, currently passed
+    // null/hidden -- see that tab's own `legend={null}` below), or null for
+    // no legend at all. Pass a function `({ activeScoreClass, onScoreClassClick,
+    // activeSplitHalf, onSplitHalfClick }) => ReactNode` instead of a plain
+    // node to make the legend clickable -- see the render below for how
+    // those get threaded into a FixedScoreLegend/SplitCellLegend, and
+    // renderRowCells for how the resulting activeScoreClass/activeSplitHalf
+    // dim non-matching cells table-wide. A plain node (or null) still works
+    // and just renders inert, same as always.
+    legend = null,
+    // Gates the score-band background coloring (score-0..score-4, applied
+    // below) on each cell -- on by default using a neutral light->dark scale
+    // (_search.scss), not the earlier green->yellow->orange->red ramp that
+    // read as a status/alarm signal regardless of what the metric actually was.
+    enableConditionalColor = true,
+    // See renderRowCells -- which columns are eligible to have consecutive
+    // equal-valued cells in the same row merged into one spanning cell.
+    mergeableTissueTypes = EMPTY_MERGEABLE_TISSUE_TYPES,
+    // See buildTissueMetricMatrix -- whether every row's mergeableTissueTypes
+    // columns actually agree, gating the header's own "Brain" merge
+    // (renderHeaderCells) the same way mergeableTissueTypes gates the body's.
+    brainColumnsFullyMergeable = false,
+    // Extracts a comparable value from a raw cell value for sorting -- see
+    // defaultGetSortValue's comment for why Target Tissue % overrides this.
+    getSortValue = defaultGetSortValue,
+    // See CELL_VALUE_DISPLAY_MODES/HeatmapAdminSettings/renderRowCells.
+    cellValueDisplayMode = 'inline',
+    // See renderRowCells' own comment -- true only for Ischemic Time (the
+    // only tab with real Fixed/Frozen multiplicity; Autolysis Score/Target
+    // Tissue % never have more than 1 real-valued record per cell, so this
+    // would just add an empty, uninformative "Frozen: n/a" half to every
+    // cell there for no reason).
+    splitByPreservationType = false,
+    // Optional -- { [columnKey]: { parentTissueType, subtypeLabel|null } }
+    // from buildSubtypeColumnPlan, passed only by the Autolysis Score/Target
+    // Tissue % tabs (null for Ischemic Time and any other plain tab). When
+    // present, `tissueTypes` may contain subtype-composite keys (see
+    // makeSubtypeColumnKey) instead of bare tissue_type strings -- every new
+    // code path below (3rd header row, parent-vs-leaf header cells, resolved
+    // popover/sort labels) gates on this being non-null, so Ischemic Time's
+    // own rendering is provably untouched.
+    subtypeColumnInfo = null,
+}) {
+    const columnGroups = useMemo(
+        () => buildColumnGroups(tissueTypes, tissueTypeCategories),
+        [tissueTypes, tissueTypeCategories]
+    );
+    const subColumnGroups = useMemo(
+        () => (subtypeColumnInfo ? buildSubColumnGroups(tissueTypes, subtypeColumnInfo) : null),
+        [tissueTypes, subtypeColumnInfo]
+    );
+    // An all-unsplit subColumnGroups (every tissue type in this table has 0
+    // or 1 real subtypes) must not render a 3rd header row at all -- every
+    // column would just show an "n/a" placeholder (see
+    // renderSubtypeHeaderCells) for no reason, since nothing anywhere in
+    // this table actually has a real subtype to show.
+    const hasAnySplitColumn = !!subColumnGroups && subColumnGroups.some((g) => g.isSplit);
+    // Re-collapses consecutive mergeable (brain-region) unsplit groups back
+    // into one "Brain" run -- see buildSubtypeAwareDisplayRuns' own comment
+    // for why this can't just reuse renderHeaderCells' identical logic
+    // as-is: a subtype-aware tab's 2nd/3rd header rows replace
+    // renderHeaderCells wholesale the moment ANY column in the table is
+    // actually split, so brain's own merge behavior has to be rebuilt here
+    // too, not just for the split columns themselves.
+    const displayRuns = useMemo(
+        () => (subColumnGroups ? buildSubtypeAwareDisplayRuns(subColumnGroups, mergeableTissueTypes, brainColumnsFullyMergeable) : null),
+        [subColumnGroups, mergeableTissueTypes, brainColumnsFullyMergeable]
+    );
+
+    // null (default order, today's fixed donor-alphabetical order from
+    // buildTissueMetricMatrix) or { key: 'donor' | <tissueType>, direction }.
+    // Lives locally per MetricHeatmapTable instance -- each of the 4 tabs
+    // renders its own instance (kept mounted simultaneously via
+    // DotRouterTab's `cache` prop), so per-tab independent sort state falls
+    // out naturally with no cross-tab coordination needed. Local state also
+    // isn't a prop, so it doesn't affect this component's own React.memo
+    // comparison above.
+    const [sortState, setSortState] = useState(null);
+
+    // Which legend swatch/half is currently "selected" as a filter -- see
+    // FixedScoreLegend/SplitCellLegend's activeClassName/activeHalf and
+    // renderRowCells' activeScoreClass/activeSplitHalf params. Local state,
+    // same reasoning as sortState above: one independent filter per tab
+    // instance, cleared for free whenever a tab remounts.
+    const [activeScoreClass, setActiveScoreClass] = useState(null);
+    const [activeSplitHalf, setActiveSplitHalf] = useState(null);
+    // Clicking the already-active swatch/half clears the filter instead of
+    // re-selecting it, so the same click toggles the filter on and off.
+    const handleScoreClassClick = (className) =>
+        setActiveScoreClass((prev) => (prev === className ? null : className));
+    const handleSplitHalfClick = (half) =>
+        setActiveSplitHalf((prev) => (prev === half ? null : half));
+
+    // "L-shaped" hover guides -- see renderRowCells' own comment for the
+    // full reasoning. `hoveredColumn` (a tissue_type) is shared by the real
+    // header, the sticky-clone header (renderTableHeaderRows), and every
+    // body row so the whole column stays identifiable even while scrolled/
+    // stuck; `hoveredCellPosition` (`{ rowIndex, columnIndex } | null`)
+    // additionally narrows that to an L instead of a cross when the hover
+    // actually originates from a body cell (handleHoverBodyCell) rather
+    // than the header itself (handleHoverHeaderColumn, which leaves this
+    // null -- a header hover has no row to draw an L from, so it keeps
+    // lighting up its whole column as before).
+    const [hoveredColumn, setHoveredColumn] = useState(null);
+    const [hoveredCellPosition, setHoveredCellPosition] = useState(null);
+    const handleHoverHeaderColumn = (tissueType) => {
+        setHoveredColumn(tissueType);
+        setHoveredCellPosition(null);
+    };
+    const handleHoverBodyCell = (tissueType, rowIndex, columnIndex) => {
+        setHoveredColumn(tissueType);
+        setHoveredCellPosition({ rowIndex, columnIndex });
+    };
+    const handleHoverEnd = () => {
+        setHoveredColumn(null);
+        setHoveredCellPosition(null);
+    };
+
+    // A cell's own detail popover (renderCellDetailPopover) opens on click
+    // now, per explicit request matching viz/Matrix/DataMatrix's own
+    // click-to-inspect + fade-the-rest convention (see .has-selected-cell
+    // below) rather than a hover-revealed one -- a hover popover meant the
+    // detail view flickered open just from moving the mouse across the
+    // table, with no deliberate "I want to inspect this one" action behind
+    // it. `null` or `{ rect, rowIndex, columnIndex, donor, tissueType,
+    // value, entries }`.
+    //
+    // Still `position: fixed`, positioned here in JS off the clicked cell's
+    // live `getBoundingClientRect()`, rather than a plain CSS descendant of
+    // the <td> -- that <td> sits inside .tissue-heatmap-table-wrap, which
+    // needs `overflow-x: auto` for the table's own horizontal scroll and
+    // (per the CSS overflow spec, same trap .tissue-heatmap-sticky-header's
+    // own comment documents) that forces `overflow-y: auto` too. The
+    // wrapper's own height only ever accounts for normal-flow content, not
+    // an absolutely-positioned popover extending past it, so showing one
+    // would otherwise make the wrapper discover overflow it didn't have a
+    // moment ago -- a vertical scrollbar popping in (a visible content
+    // shift) and clipping the popover's own bottom edge against that same,
+    // freshly vertical-scrolling box.
+    const [selectedCell, setSelectedCell] = useState(null);
+    const selectedCellPopoverRef = useRef(null);
+    const handleCellClick = (
+        targetEl, rowIndex, columnIndex, donor, tissueType, value, entries, slots, splitByPreservationType
+    ) => {
+        // A cell with no real data at all -- for a plain cell, `value` is
+        // null; for an Ischemic Time split cell, `value` can be null while
+        // `slots` still isn't (see cellSlots/splitByPreservationType), so
+        // that case needs its own check: BOTH the Fixed and the Frozen slot
+        // have to be empty, not just the primary `value`, before there's
+        // truly nothing to show. Per explicit request, an empty cell isn't
+        // clickable at all -- opening a detail popover onto an "n/a" is
+        // nothing to inspect.
+        const hasRealValue = splitByPreservationType
+            ? Boolean(slots && slots.some((slot) => slot && slot.value !== null))
+            : value !== null;
+        if (!hasRealValue) return;
+        setSelectedCell((prev) => {
+            // Clicking the already-selected cell again closes it -- the
+            // same toggle-off convention every other click-to-open control
+            // in this file (HeatmapColorPicker, BrainRegionHeaderCell) uses.
+            if (prev && prev.rowIndex === rowIndex && prev.columnIndex === columnIndex) return null;
+            return {
+                rect: targetEl.getBoundingClientRect(),
+                rowIndex, columnIndex, donor, tissueType, value, entries, slots, splitByPreservationType,
+            };
+        });
+    };
+    const handleCloseSelectedCell = () => setSelectedCell(null);
+    // The flip decision (open above vs. below the clicked cell) first
+    // renders off DETAIL_POPOVER_ESTIMATED_HEIGHT -- a guess, not this
+    // specific popover's real height (which varies: a breakdown row and
+    // footer button both add to it, and neither is always present) -- so a
+    // guess that undershoots still opens downward into a cell near the
+    // bottom of the viewport and runs the popover's real bottom edge past
+    // it. `measuredPopoverPosition` (set from the popover's own actual
+    // rendered height, see the effect below) supersedes that guess the
+    // instant it's available; the estimate only still matters for the 1
+    // frame before that measurement can happen at all (no popover element
+    // exists to measure until after this same render commits).
+    const [measuredPopoverPosition, setMeasuredPopoverPosition] = useState(null);
+    const detailPopoverPosition = selectedCell
+        ? (measuredPopoverPosition || getDetailPopoverStyle(selectedCell.rect))
+        : null;
+
+    useEffect(() => {
+        if (!selectedCell) {
+            setMeasuredPopoverPosition(null);
+            return;
+        }
+        const popoverEl = selectedCellPopoverRef.current;
+        if (!popoverEl) return;
+        const realHeight = popoverEl.getBoundingClientRect().height;
+        const isFlippedUp = selectedCell.rect.bottom + realHeight + 10 > window.innerHeight;
+        setMeasuredPopoverPosition({
+            isFlippedUp,
+            style: {
+                position: 'fixed',
+                right: window.innerWidth - selectedCell.rect.right,
+                ...(isFlippedUp
+                    ? { bottom: window.innerHeight - selectedCell.rect.top + 10 }
+                    : { top: selectedCell.rect.bottom + 10 }),
+            },
+        });
+        // Only re-measure when a different cell is selected -- the
+        // popover's own height doesn't otherwise change after that (and if
+        // this effect re-ran every time its result changed isFlippedUp, a
+        // popover that measured right at the flip threshold could
+        // oscillate between the 2 positions every render).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedCell?.rowIndex, selectedCell?.columnIndex]);
+
+    // Closes the popover on an outside click/Escape -- same pattern as
+    // HeatmapColorPicker/BrainRegionHeaderCell above, just against a ref on
+    // the popover itself (this table's own body cells aren't behind one
+    // shared container ref the way those dropdowns' toggle+panel are) --
+    // a click that re-selects a *different* cell still works normally: its
+    // own onClick (handleCellClick) fires after this mousedown listener and
+    // overwrites whatever it set, landing on the newly-clicked cell.
+    useEffect(() => {
+        if (!selectedCell) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && selectedCellPopoverRef.current?.contains(event.target)) {
+                return;
+            }
+            handleCloseSelectedCell();
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [selectedCell]);
+
+    const handleHeaderClick = (key) => {
+        setSortState((prev) => {
+            if (!prev || prev.key !== key) return { key, direction: 'asc' };
+            if (prev.direction === 'asc') return { key, direction: 'desc' };
+            return null;
+        });
+    };
+
+    const displayMatrix = useMemo(() => {
+        if (!sortState) return matrix;
+        const { key, direction } = sortState;
+        if (key === 'donor') {
+            return [...matrix].sort((rowA, rowB) =>
+                compareSortValues(rowA.donor, rowB.donor, direction)
+            );
+        }
+        const columnIndex = tissueTypes.indexOf(key);
+        if (columnIndex === -1) return matrix;
+        return [...matrix].sort((rowA, rowB) =>
+            compareSortValues(
+                getSortValue(rowA.cells[columnIndex]),
+                getSortValue(rowB.cells[columnIndex]),
+                direction
+            )
+        );
+    }, [matrix, sortState, tissueTypes, getSortValue]);
+
+    // A sort triggered from the merged "Brain" header (only rendered when
+    // brainColumnsFullyMergeable, see BrainRegionHeaderCell) sets
+    // sortState.key to its first region's own tissueType (there's no single
+    // tissue_type the merged column itself could use as a key) -- label it
+    // "Brain" here too, matching what the user actually clicked, rather
+    // than that region's own code. Doesn't apply when the header isn't
+    // merged -- there, sortState.key really is that one region's own
+    // column, and its own code is the accurate label.
+    // A sort on a subtype sub-column (subtypeColumnInfo set) resolves through
+    // it too, same reasoning as brain's "Brain" special-case above --
+    // sortState.key may be a composite key (see makeSubtypeColumnKey), which
+    // formatTissueTypeHeaderLabel can't parse on its own.
+    const sortKeyColumnInfo = subtypeColumnInfo?.[sortState?.key];
+    const sortKeyLabel =
+        sortState?.key === 'donor'
+            ? 'Donor ID'
+            : brainColumnsFullyMergeable && mergeableTissueTypes.has(sortState?.key)
+                ? 'Brain'
+                : sortKeyColumnInfo
+                    ? sortKeyColumnInfo.subtypeLabel
+                        ? `${formatTissueTypeHeaderLabel(sortKeyColumnInfo.parentTissueType)} — ${sortKeyColumnInfo.subtypeLabel}`
+                        : formatTissueTypeHeaderLabel(sortKeyColumnInfo.parentTissueType)
+                    : formatTissueTypeHeaderLabel(sortState?.key);
+    const orderLabel = !sortState
+        ? 'Donor Distribution Order'
+        : `Sorted by ${sortKeyLabel} (${sortState.direction === 'asc' ? 'ascending' : 'descending'})`;
+
+    // JS-driven sticky header -- see _search.scss's .tissue-heatmap-sticky-header
+    // comment for why `position: sticky` alone can't do this (the wrapper
+    // below needs `overflow-x: auto` for the table's own horizontal scroll,
+    // which per the CSS overflow spec silently traps any sticky descendant
+    // to that wrapper's own -- here, unbounded and therefore
+    // never-actually-scrolling -- box instead of the page). `null` (not
+    // stuck) or `{ left, width, tableWidth, scrollLeft, colWidths }`.
+    const wrapperRef = useRef(null);
+    const tableRef = useRef(null);
+    const [stickyHeader, setStickyHeader] = useState(null);
+
+    useEffect(() => {
+        let rafId = null;
+
+        const measure = () => {
+            rafId = null;
+            const tableEl = tableRef.current;
+            const wrapperEl = wrapperRef.current;
+            if (!tableEl || !wrapperEl) {
+                setStickyHeader(null);
+                return;
+            }
+            const tableRect = tableEl.getBoundingClientRect();
+            const headerEl = tableEl.querySelector('thead');
+            const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 0;
+            // The site's own top nav (NavigationBar.js's #top-nav) is itself
+            // `position: fixed` at the `lg`+ breakpoint (_navbar.scss), so
+            // without this the two fixed headers stack on top of each
+            // other. Reading its live rendered bottom edge (rather than a
+            // hardcoded 80px) self-adjusts for: the TestWarning banner
+            // (which grows the navbar when shown), the sub-`lg` breakpoint
+            // where it's not fixed at all (its rect naturally scrolls to
+            // top <= 0 there, clamped to 0 below), and any future navbar
+            // height change -- no separate breakpoint/banner check needed.
+            const navEl = document.getElementById('top-nav');
+            const navOffset = navEl ? Math.max(0, navEl.getBoundingClientRect().bottom) : 0;
+            // Stuck once the real header has scrolled up to the bottom edge
+            // of the (possibly fixed) top nav, un-stuck again once the
+            // table's own bottom has too (no point pinning a header over a
+            // table that's no longer on screen at all).
+            const isStuck = tableRect.top <= navOffset && tableRect.bottom > navOffset + headerHeight;
+            if (!isStuck) {
+                setStickyHeader((prev) => (prev === null ? prev : null));
+                return;
+            }
+            const wrapperRect = wrapperEl.getBoundingClientRect();
+            // Width source for the clone's <colgroup> -- the header row
+            // itself can have colSpan-merged cells (germ-layer group
+            // labels, the "Brain" sub-group banner) that don't map to one
+            // width per real column, so this reads the
+            // body instead. The order-label cell is excluded (only present
+            // on one row, via rowSpan, and its own width is the fixed
+            // 32px column below regardless of which row carries it) --
+            // whatever's left is always donor-id + one cell per tissueType,
+            // possibly colSpan-merged for the same reason the header can be.
+            // A colSpan cell's measured width is split evenly across the
+            // columns it covers -- an approximation, but a harmless one:
+            // the clone's own header re-merges those same columns back into
+            // one spanning <th> (via renderTableHeaderRows below), so only
+            // their *summed* width (unaffected by how it's subdivided)
+            // ever actually shows.
+            const firstBodyRow = tableEl.querySelector('tbody tr');
+            const bodyColWidths = [];
+            if (firstBodyRow) {
+                Array.from(firstBodyRow.children).forEach((cell) => {
+                    if (cell.classList.contains('tissue-heatmap-order-label')) return;
+                    const span = cell.colSpan || 1;
+                    const perColumnWidth = cell.getBoundingClientRect().width / span;
+                    for (let i = 0; i < span; i += 1) bodyColWidths.push(perColumnWidth);
+                });
+            }
+            setStickyHeader({
+                top: navOffset,
+                left: wrapperRect.left,
+                width: wrapperRect.width,
+                tableWidth: tableRect.width,
+                scrollLeft: wrapperEl.scrollLeft,
+                // Fixed 32px to match .tissue-heatmap-order-header/-label's
+                // own CSS-declared width (_search.scss) -- not measured,
+                // since that cell's rowSpan can put it on any row.
+                colWidths: [32, ...bodyColWidths],
+            });
+        };
+
+        const scheduleMeasure = () => {
+            if (rafId !== null) return;
+            rafId = window.requestAnimationFrame(measure);
+        };
+
+        scheduleMeasure();
+        window.addEventListener('scroll', scheduleMeasure, { passive: true });
+        window.addEventListener('resize', scheduleMeasure);
+        const wrapperEl = wrapperRef.current;
+        // The wrapper's own horizontal scroll -- keeps the stuck clone's
+        // translateX in sync so its columns stay aligned with the real
+        // (currently off-screen-above) table's horizontal scroll position.
+        wrapperEl?.addEventListener('scroll', scheduleMeasure, { passive: true });
+
+        return () => {
+            if (rafId !== null) window.cancelAnimationFrame(rafId);
+            window.removeEventListener('scroll', scheduleMeasure);
+            window.removeEventListener('resize', scheduleMeasure);
+            wrapperEl?.removeEventListener('scroll', scheduleMeasure);
+        };
+    }, []);
+
+    return (
+        <>
+            <div className="tissue-heatmap-metric-heading">
+                {/* The rule (border-bottom, _search.scss) belongs to *this*
+                    inner row specifically, not the outer
+                    .tissue-heatmap-metric-heading -- that outer element's
+                    own left/right padding is what indents the title/legend
+                    away from the card's true edges, so a border on it
+                    directly would sit at its own outer (padding-box) edge,
+                    wider than the title/legend actually are. This inner
+                    row has no padding of its own, so its border-bottom
+                    lands exactly at the title's own left edge and the
+                    legend's own right edge instead. */}
+                <div className="tissue-heatmap-metric-heading-row">
+                    <h2 className="tissue-heatmap-metric-title">
+                        {metricLabel}
+                        {tooltip ? (
+                            <i
+                                className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
+                                data-tip={tooltip}
+                            />
+                        ) : null}
+                    </h2>
+                    {typeof legend === 'function'
+                        ? legend({
+                            activeScoreClass,
+                            onScoreClassClick: handleScoreClassClick,
+                            activeSplitHalf,
+                            onSplitHalfClick: handleSplitHalfClick,
+                        })
+                        : legend}
+                </div>
+            </div>
+            {stickyHeader ? (
+                <div
+                    className="tissue-heatmap-sticky-header"
+                    style={{ top: stickyHeader.top, left: stickyHeader.left, width: stickyHeader.width }}>
+                    <table
+                        className="tissue-heatmap-table"
+                        style={{
+                            width: stickyHeader.tableWidth,
+                            transform: `translateX(${-stickyHeader.scrollLeft}px)`,
+                        }}>
+                        <colgroup>
+                            {stickyHeader.colWidths.map((colWidth, i) => (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <col key={i} style={{ width: colWidth }} />
+                            ))}
+                        </colgroup>
+                        <thead>
+                            {renderTableHeaderRows(
+                                columnGroups,
+                                tissueTypes,
+                                mergeableTissueTypes,
+                                brainColumnsFullyMergeable,
+                                tissueTypeHrefs,
+                                sortState,
+                                handleHeaderClick,
+                                hoveredColumn,
+                                handleHoverHeaderColumn,
+                                selectedCell?.tissueType,
+                                hasAnySplitColumn ? displayRuns : null,
+                                subtypeColumnInfo
+                            )}
+                        </thead>
+                    </table>
+                </div>
+            ) : null}
+            <div
+                className={'tissue-heatmap-table-wrap' + (selectedCell ? ' has-selected-cell' : '')}
+                ref={wrapperRef}>
+                <table className="tissue-heatmap-table" ref={tableRef}>
+                    <thead>
+                        {renderTableHeaderRows(
+                            columnGroups,
+                            tissueTypes,
+                            mergeableTissueTypes,
+                            brainColumnsFullyMergeable,
+                            tissueTypeHrefs,
+                            sortState,
+                            handleHeaderClick,
+                            hoveredColumn,
+                            handleHoverHeaderColumn,
+                            selectedCell?.tissueType,
+                            hasAnySplitColumn ? displayRuns : null,
+                            subtypeColumnInfo
+                        )}
+                    </thead>
+                    <tbody>
+                        {displayMatrix.map(({ donor, cells, cellEntries, cellSlots }, rowIndex) => (
+                            <tr key={donor}>
+                                {rowIndex === 0 ? (
+                                    <td className="tissue-heatmap-order-label" rowSpan={displayMatrix.length}>
+                                        <span>{orderLabel}</span>
+                                    </td>
+                                ) : null}
+                                <td
+                                    className={
+                                        'tissue-heatmap-donor-id' +
+                                        (selectedCell?.rowIndex === rowIndex ? ' is-selected-row' : '')
+                                    }>
+                                    {donor}
+                                </td>
+                                {renderRowCells(
+                                    cells,
+                                    cellEntries,
+                                    cellSlots,
+                                    tissueTypes,
+                                    mergeableTissueTypes,
+                                    brainColumnsFullyMergeable,
+                                    formatValue,
+                                    getScoreClass,
+                                    enableConditionalColor,
+                                    rowIndex,
+                                    donor,
+                                    hoveredColumn,
+                                    hoveredCellPosition,
+                                    handleHoverBodyCell,
+                                    handleHoverEnd,
+                                    selectedCell,
+                                    handleCellClick,
+                                    cellValueDisplayMode,
+                                    splitByPreservationType,
+                                    activeScoreClass,
+                                    activeSplitHalf,
+                                    subtypeColumnInfo
+                                )}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            {selectedCell
+                // A plain child here (position: fixed, per getDetailPopoverStyle)
+                // is only positioned relative to the true viewport as long as
+                // NO ancestor establishes its own containing block for fixed
+                // elements (a `transform`, `filter`, or `will-change: transform`
+                // anywhere above this in the DOM) -- one does, somewhere up this
+                // page's own layout, clipping/mispositioning the popover against
+                // that ancestor's box instead of the viewport once the popover
+                // was tall enough to actually hit that boundary. A portal
+                // straight to the document root sidesteps the whole class of
+                // bug outright, same as CursorComponent.js's identical
+                // `overlaysRoot` pattern elsewhere in this app.
+                ? ReactDOM.createPortal(
+                    renderCellDetailPopover({
+                        donor: selectedCell.donor,
+                        tissueType: selectedCell.tissueType,
+                        // Resolves a subtype-composite key (see
+                        // makeSubtypeColumnKey) into its real parent tissue
+                        // type's own label -- null (falls back to the
+                        // popover's own formatTissueTypeLabel(tissueType))
+                        // for a plain, non-composite key (Ischemic Time, or
+                        // any tab without subtypeColumnInfo at all).
+                        // subtypeLabel is its own separate field (Subtype,
+                        // per explicit request) rather than folded into this
+                        // same string with an em dash -- null whenever this
+                        // column has no real subtype of its own.
+                        tissueLabel: subtypeColumnInfo?.[selectedCell.tissueType]
+                            ? formatTissueTypeLabel(subtypeColumnInfo[selectedCell.tissueType].parentTissueType)
+                            : null,
+                        subtypeLabel: subtypeColumnInfo?.[selectedCell.tissueType]?.subtypeLabel ?? null,
+                        metricLabel,
+                        value: selectedCell.value,
+                        entries: selectedCell.entries,
+                        slots: selectedCell.slots,
+                        splitByPreservationType: selectedCell.splitByPreservationType,
+                        formatValue,
+                        tissueOverviewHref: tissueTypeHrefs[selectedCell.tissueType],
+                        style: detailPopoverPosition.style,
+                        isFlippedUp: detailPopoverPosition.isFlippedUp,
+                    }, selectedCellPopoverRef),
+                    document.getElementById('overlays-root') || document.body
+                )
+                : null}
+        </>
+    );
+});
+
+export const BrowseTissueHeatmapTable = (props) => {
+    // Gates the score-band cell coloring in all 4 tabs' tables -- see
+    // MetricHeatmapTable's identical prop. On by default.
+    const { href, session, enableConditionalColor = true } = props;
+    const [loading, setLoading] = useState(true);
+    const [tissueResults, setTissueResults] = useState([]);
+    // The color picker is an internal dev/data-wrangling tool, not
+    // something a regular viewer needs -- gated to the "admin" JWT group,
+    // same check DataMatrix.js's isAdminUser uses. JWT.getUserGroups() reads
+    // the already-decoded token client-side (no extra request), so this can
+    // just be recomputed with `session` rather than needing its own fetch.
+    const isAdminUser = useMemo(
+        () => (JWT.getUserGroups() || []).includes('admin'),
+        [session]
+    );
+    // Experimental color override -- see HeatmapColorPicker. Plain
+    // in-memory state, not persisted anywhere: a pick only lasts for this
+    // page view, and always starts back at the default (null = "use the
+    // built-in scale") on every fresh page load, per explicit request.
+    const [paletteBaseHex, setPaletteBaseHex] = useState(null);
+    // 5 stops -- matches Ischemic Time's own 5-band equal-width split and
+    // Target Tissue %'s 5 real bands (both scored/colored higher than
+    // Autolysis Score's 4), so a picked color still covers every band any
+    // tab on this page actually uses.
+    const heatmapPalette = useMemo(
+        () => (paletteBaseHex ? buildSequentialPaletteFromHex(paletteBaseHex, 5) : null),
+        [paletteBaseHex]
+    );
+    const handlePickPaletteColor = (hex) => setPaletteBaseHex(hex);
+    const handleResetPaletteColor = () => setPaletteBaseHex(null);
+
+    // Default ('vertical'): a multi-record cell splits into 2 side-by-side
+    // halves, one real value each -- see CELL_VALUE_DISPLAY_MODES for the
+    // other 3 (still satisfies the original review requirement -- every
+    // real value visible with no click needed -- same as 'inline' and
+    // 'diagonal', just laid out differently; only 'hover' itself, the
+    // admin-only 4th option, still needs a click on the detail popover to
+    // see a cell's alternate values). Same in-memory-only, per-page-view,
+    // admin-toggleable pattern as paletteBaseHex above.
+    const [cellValueDisplayMode, setCellValueDisplayMode] = useState('vertical');
+
+    // Each tab's own metric heading carries an info-circle icon (see
+    // MetricHeatmapTable's render) that's a static-attribute react-tooltip
+    // target (data-tip) -- app.js's global <ReactTooltip/> only picks up
+    // nodes present at its own last build, and this component can mount
+    // after that (e.g. scrolled/tabbed into view later), so it needs an
+    // explicit rebuild once mounted, same as BrowseTissueVizWrapper.js's
+    // germ-layer bubbles.
+    useEffect(() => {
+        ReactTooltip.rebuild();
+    }, []);
+
+    // `session` in the dependency array so logging in/out re-fetches --
+    // permission-filtered fields (e.g. protected donor data) can change
+    // without `href` itself changing.
+    useEffect(() => {
+        setLoading(true);
+        ajax.load(
+            // Matches Browse by Donor/Browse by File's donor population
+            // (Production study, has_released_files tag) so this table
+            // doesn't list donors that don't have released files yet (e.g.
+            // benchmarking-only donors) -- see donor.study/donor.tags in
+            // types/tissue.py's embedded_list.
+            '/search/?type=Tissue&donor.study=Production&donor.tags=has_released_files&limit=all',
+            (resp) => {
+                setTissueResults(resp?.['@graph'] || []);
+                setLoading(false);
+            },
+            'GET',
+            () => {
+                setTissueResults([]);
+                setLoading(false);
+            }
+        );
+    }, [session]);
+
+    const ischemicTime = useMemo(
+        () => buildTissueMetricMatrix(tissueResults, getIschemicTimeValue, true),
+        [tissueResults]
+    );
+    // Built from this table's own real values -- see
+    // buildRangeScoreClassifier for why fixed thresholds don't work here.
+    const ischemicTimeScoring = useMemo(
+        () => buildRangeScoreClassifier(ischemicTime.matrix.flatMap((row) => row.cells)),
+        [ischemicTime]
+    );
+    // Each band's own value range, for the color legend below -- unlike
+    // Autolysis Score/Target Tissue %'s fixed, self-explanatory bands,
+    // these boundaries are computed fresh from whatever's actually in the
+    // table (see buildRangeScoreClassifier) and would otherwise be
+    // opaque (a color alone doesn't say "this donor's value was between X
+    // and Y hours").
+    // Legend hidden for now, see the scoreLegend={null} override below;
+    // kept computed so re-enabling it is just restoring that prop.
+    // eslint-disable-next-line no-unused-vars
+    const ischemicTimeScoreLegend = useMemo(
+        () => buildScoreLegend(ischemicTimeScoring),
+        [ischemicTimeScoring]
+    );
+    // FBRO (Fibroblast) is a cultured-cell specimen, not a pathology-report
+    // subject -- it never has target_tissues/non_target_tissues/autolysis
+    // data, so it's excluded from the 3 pathology-derived tabs below
+    // (Autolysis Score, Target Tissue %, Non Target Tissue %) per explicit
+    // request. Ischemic Time above deliberately keeps using the raw,
+    // unfiltered `tissueResults` -- collection timing still applies to it.
+    const tissueResultsExcludingFibroblast = useMemo(
+        () => tissueResults.filter((t) => getTissueInternalCodeFromFacetTerm(t?.tissue_type) !== 'FBRO'),
+        [tissueResults]
+    );
+    // Real tissue_type hrefs/categories, derived from the RAW (pre-subtype-
+    // expansion) results -- needed by buildSubtypeColumnPlan below since
+    // buildTissueMetricMatrix's own internal maps, built from the *expanded*
+    // results, only ever see composite subtype-column keys, never the real
+    // tissue_type itself, for any split tissue type.
+    const realTissueTypeHrefsAndCategories = useMemo(
+        () => buildTissueTypeHrefsAndCategories(tissueResultsExcludingFibroblast),
+        [tissueResultsExcludingFibroblast]
+    );
+    // Pre-expansion for the 2 subtype-aware tabs only -- see
+    // expandTissueResultsBySubtype's own comment. Ischemic Time above
+    // deliberately keeps using the raw, un-expanded `tissueResults`.
+    const expandedForSubtypeTabs = useMemo(
+        () => expandTissueResultsBySubtype(tissueResultsExcludingFibroblast),
+        [tissueResultsExcludingFibroblast]
+    );
+
+    // Autolysis, like ischemic time, is assessed once per whole brain at
+    // procurement, not independently per dissected sub-region, so every
+    // real region column for a given donor carries the same score and this
+    // gets the same distributeGenericBrainValue/merge treatment.
+    const autolysisScore = useMemo(
+        () => buildTissueMetricMatrix(expandedForSubtypeTabs, getAutolysisScoreValue, true),
+        [expandedForSubtypeTabs]
+    );
+    const autolysisSubtypePlan = useMemo(
+        () => buildSubtypeColumnPlan(
+            autolysisScore.tissueTypes,
+            realTissueTypeHrefsAndCategories.tissueTypeHrefs,
+            realTissueTypeHrefsAndCategories.tissueTypeCategories
+        ),
+        [autolysisScore.tissueTypes, realTissueTypeHrefsAndCategories]
+    );
+    // Not for the same reason as Autolysis Score above -- there's no real
+    // value to distribute here (BrainPathologyReport has no target_tissues
+    // field at all, see get_target_tissue_percentage's own docstring, so
+    // every brain region's value is unconditionally null, generic "Brain"
+    // column included). `true` just engages the merge side of the same
+    // flag, collapsing what would otherwise be 5 repeated "n/a" cells into
+    // one.
+    const targetTissuePercentage = useMemo(
+        () => buildTissueMetricMatrix(expandedForSubtypeTabs, getTargetTissuePercentageValue, true),
+        [expandedForSubtypeTabs]
+    );
+    const targetTissueSubtypePlan = useMemo(
+        () => buildSubtypeColumnPlan(
+            targetTissuePercentage.tissueTypes,
+            realTissueTypeHrefsAndCategories.tissueTypeHrefs,
+            realTissueTypeHrefsAndCategories.tissueTypeCategories
+        ),
+        [targetTissuePercentage.tissueTypes, realTissueTypeHrefsAndCategories]
+    );
+
+    // Non Target Tissue % gets its own separate pre-expansion (see
+    // expandTissueResultsByNonTargetSubtype) rather than sharing
+    // expandedForSubtypeTabs above -- that one is pivoted off
+    // pathology_summary.target_tissues, an entirely different array from
+    // non_target_tissues. Same brain-region reasoning as Target Tissue %
+    // above applies here too: BrainPathologyReport has no non_target_tissues
+    // concept at all, so every brain region's value is unconditionally
+    // null; `true` just merges those repeated "n/a" cells into one.
+    const expandedForNonTargetTab = useMemo(
+        () => expandTissueResultsByNonTargetSubtype(tissueResultsExcludingFibroblast),
+        [tissueResultsExcludingFibroblast]
+    );
+    const nonTargetTissuePercentage = useMemo(
+        () => buildTissueMetricMatrix(expandedForNonTargetTab, getNonTargetTissuePercentageValue, true),
+        [expandedForNonTargetTab]
+    );
+    const nonTargetTissueSubtypePlan = useMemo(
+        () => buildSubtypeColumnPlan(
+            nonTargetTissuePercentage.tissueTypes,
+            realTissueTypeHrefsAndCategories.tissueTypeHrefs,
+            realTissueTypeHrefsAndCategories.tissueTypeCategories
+        ),
+        [nonTargetTissuePercentage.tissueTypes, realTissueTypeHrefsAndCategories]
+    );
+
+    // Applied as CSS custom properties on the whole card -- _search.scss's
+    // .score-0..4 rules read these with a `var(--x, <hardcoded-default>)`
+    // fallback, so leaving this undefined (no override picked) reproduces
+    // the exact built-in scale unchanged.
+    const paletteStyle = heatmapPalette
+        ? heatmapPalette.reduce((style, { bg, text }, i) => {
+            style[`--heatmap-score-${i}-bg`] = bg;
+            style[`--heatmap-score-${i}-text`] = text;
+            return style;
+        }, {})
+        : undefined;
+
+    return (
+        <div className="tissue-heatmap-card" style={paletteStyle}>
+            {isAdminUser ? (
+                <div className="tissue-heatmap-toolbar">
+                    <HeatmapAdminSettings
+                        cellValueDisplayMode={cellValueDisplayMode}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onChangeCellValueDisplayMode={setCellValueDisplayMode}
+                        baseHex={paletteBaseHex}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onPickColor={handlePickPaletteColor}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onResetColor={handleResetPaletteColor}
+                    />
+                </div>
+            ) : null}
+            <DotRouter
+                href={href}
+                navClassName="tissue-heatmap-tabs"
+                contentsClassName=""
+                isActive={true}
+                prependDotPath="tissue-heatmap">
+                <DotRouterTab
+                    dotPath=".ischemic-time"
+                    tabTitle="Ischemic Time (h)"
+                    arrowTabs={false}
+                    cache={true}
+                    default>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...ischemicTime}
+                            metricLabel="Ischemic Time (h)"
+                            tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)"
+                            formatValue={formatIschemicTime}
+                            getScoreClass={ischemicTimeScoring.classify}
+                            // The severity-scale legend (ScoreLegend) is
+                            // hidden for now -- ischemicTimeScoreLegend is
+                            // still computed above and
+                            // ScoreLegend/buildScoreLegend stay in place so
+                            // it can come back by rendering both here
+                            // (legend={() => <>
+                            //     <ScoreLegend entries={ischemicTimeScoreLegend} />
+                            //     <SplitCellLegend />
+                            // </>}). SplitCellLegend itself stays on, though
+                            // -- unlike the severity scale, it's not
+                            // data-driven and explains this tab's own
+                            // Fixed/Frozen split cells regardless. Its
+                            // Fixed/Frozen halves double as a filter (see
+                            // SplitCellLegend/renderRowCells' activeSplitHalf),
+                            // wired here via MetricHeatmapTable's own render-prop
+                            // legend call.
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeSplitHalf, onSplitHalfClick }) => (
+                                <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
+                            )}
+                            enableConditionalColor={enableConditionalColor}
+                            cellValueDisplayMode={cellValueDisplayMode}
+                            splitByPreservationType
+                        />
+                    )}
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".autolysis-score"
+                    tabTitle="Autolysis Score"
+                    arrowTabs={false}
+                    cache={true}>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...autolysisScore}
+                            tissueTypeHrefs={autolysisSubtypePlan.fixedTissueTypeHrefs}
+                            tissueTypeCategories={autolysisSubtypePlan.fixedTissueTypeCategories}
+                            subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
+                            metricLabel="Autolysis Score"
+                            tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
+                            formatValue={formatAutolysisScore}
+                            getScoreClass={getAutolysisScoreClass}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeScoreClass, onScoreClassClick }) => (
+                                <FixedScoreLegend
+                                    entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
+                                    leftCaption="Minimal"
+                                    rightCaption="Severe"
+                                    activeClassName={activeScoreClass}
+                                    onEntryClick={onScoreClassClick}
+                                />
+                            )}
+                            enableConditionalColor={enableConditionalColor}
+                            cellValueDisplayMode={cellValueDisplayMode}
+                        />
+                    )}
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".target-tissue"
+                    tabTitle="Target Tissue %"
+                    arrowTabs={false}
+                    cache={true}>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...targetTissuePercentage}
+                            tissueTypeHrefs={targetTissueSubtypePlan.fixedTissueTypeHrefs}
+                            tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
+                            subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
+                            metricLabel="Target Tissue %"
+                            tooltip="Percentage range of the sample that was the target tissue subtype"
+                            formatValue={formatTargetTissuePercentage}
+                            getScoreClass={getTargetTissuePercentageScoreClass}
+                            getSortValue={getTargetTissuePercentageSortValue}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeScoreClass, onScoreClassClick }) => (
+                                <FixedScoreLegend
+                                    entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
+                                    activeClassName={activeScoreClass}
+                                    onEntryClick={onScoreClassClick}
+                                />
+                            )}
+                            enableConditionalColor={enableConditionalColor}
+                            cellValueDisplayMode={cellValueDisplayMode}
+                        />
+                    )}
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".non-target-tissue"
+                    tabTitle="Non Target Tissue %"
+                    arrowTabs={false}
+                    cache={true}>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...nonTargetTissuePercentage}
+                            tissueTypeHrefs={nonTargetTissueSubtypePlan.fixedTissueTypeHrefs}
+                            tissueTypeCategories={nonTargetTissueSubtypePlan.fixedTissueTypeCategories}
+                            subtypeColumnInfo={nonTargetTissueSubtypePlan.columnInfo}
+                            metricLabel="Non Target Tissue %"
+                            tooltip="Percentage range of the sample that was NOT the target tissue subtype"
+                            formatValue={formatNonTargetTissuePercentage}
+                            getScoreClass={getNonTargetTissuePercentageScoreClass}
+                            getSortValue={getNonTargetTissuePercentageSortValue}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeScoreClass, onScoreClassClick }) => (
+                                <FixedScoreLegend
+                                    entries={NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
+                                    activeClassName={activeScoreClass}
+                                    onEntryClick={onScoreClassClick}
+                                />
+                            )}
+                            enableConditionalColor={enableConditionalColor}
+                            cellValueDisplayMode={cellValueDisplayMode}
+                        />
+                    )}
+                </DotRouterTab>
+            </DotRouter>
+        </div>
+    );
+};

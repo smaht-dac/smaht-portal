@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import List, Dict, Any, Union
 
 from snovault import collection, load_schema, calculated_property
 from snovault.util import debug_log, get_item_or_none
@@ -30,6 +30,8 @@ from ..item_utils.constants import tissue_sample as tissue_sample_constants
 
 from ..item_utils.utils import RequestHandler
 
+from ..item_utils.utils import RequestHandler
+
 NDRI_TPC_ID = "ndri_tpc"
 NDRI_TPC_DT = "NDRI TPC"
 
@@ -45,25 +47,42 @@ NDRI_TPC_DT = "NDRI TPC"
 class TissueSample(Sample):
     item_type = "tissue_sample"
     schema = load_schema("encoded:schemas/tissue_sample.json")
-    embedded_list = Sample.embedded_list
+    embedded_list = Sample.embedded_list + [
+        # PathologyReport's auto-embedded display_title resolves to submitted_id, not
+        # accession, so accession is embedded explicitly for the tissue-overview
+        # aliquot popover (AliquotVisualization.js) to show a short accession-based label.
+        "pathology_reports.accession",
+        "associated_pathology_reports.pathology_reports.accession",
+        # Mirrors Tissue's donor.study/donor.tags embeds (types/tissue.py's
+        # _build_tissue_embedded_list) so TissueSample search can filter to the same
+        # released-donor Production population used elsewhere in the app.
+        "sample_sources.donor.study",
+        "sample_sources.donor.tags",
+    ]
 
-    rev = {"pathology_reports": ("PathologyReport", "tissue_samples")}
+    rev = {
+        "pathology_reports": ("PathologyReport", "tissue_samples")
+    }
+
+    class Collection(Item.Collection):
+        pass
 
     @calculated_property(
         schema={
             "title": "Pathology Reports",
+            "description": "Pathology reports referencing this tissue sample",
             "type": "array",
             "items": {
                 "type": "string",
                 "linkTo": "PathologyReport",
-            }
-        }
+            },
+        },
     )
-    def pathology_reports(self, request):
-        return self.rev_link_atids(request, "pathology_reports") or None
-
-    class Collection(Item.Collection):
-        pass
+    def pathology_reports(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "pathology_reports")
+        if result:
+            return result
+        return
 
     @calculated_property(
         schema={
@@ -83,9 +102,9 @@ class TissueSample(Sample):
                     },
                 },
             },
-        }
+        },
     )
-    def associated_pathology_reports(self, request: Request):
+    def associated_pathology_reports(self, request: Request) -> Union[List[Dict[str, Any]], None]:
         request_handler = RequestHandler(request=request)
         result = tissue_sample_utils.get_associated_pathology_reports(
             self.properties, request_handler=request_handler

@@ -23,6 +23,8 @@ from .submitted_item import (
 from .sample_source import SampleSource
 from ..item_utils import (
     tissue as tissue_utils,
+    tissue_sample as tissue_sample_utils,
+    pathology_report as pathology_report_utils,
     donor as donor_utils,
     item as item_utils,
     ontology_term as ot_utils,
@@ -30,13 +32,22 @@ from ..item_utils import (
 
 from ..item_utils.utils import (
     RequestHandler,
+    get_property_value_from_identifier,
+    get_property_values,
 )
 
 def _build_tissue_embedded_list() -> List[str]:
     return [
         "donor.external_id",
+        "donor.sex",
+        "donor.age",
+        "donor.status",
+        "donor.protected_donor",
+        "donor.study",
+        "donor.tags",
         "uberon_id.identifier",
         "uberon_id.grouping_term",
+        "uberon_id.description",
     ]
 
 
@@ -53,8 +64,275 @@ class Tissue(SampleSource):
     schema = load_schema("encoded:schemas/tissue.json")
     embedded_list = _build_tissue_embedded_list()
 
+    rev = {
+        "tissue_samples": ("TissueSample", "sample_sources")
+    }
+
     class Collection(Item.Collection):
         pass
+
+    @calculated_property(
+        schema={
+            "title": "Tissue Samples",
+            "description": "Tissue samples derived from this tissue",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "TissueSample",
+            },
+        },
+    )
+    def tissue_samples(self, request: Request) -> Optional[List[str]]:
+        result = self.rev_link_atids(request, "tissue_samples")
+        if result:
+            return result
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Pathology Summary",
+            "description": (
+                "Findings aggregated from pathology reports covering this tissue's"
+                " samples, via Tissue -> TissueSample -> PathologyReport."
+            ),
+            "type": "object",
+            "properties": {
+                "autolysis_score": {
+                    "title": "Autolysis Score",
+                    "description": "Highest autolysis score across pathology reports for this tissue.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 3,
+                },
+                "non_target_tissue_present": {
+                    "title": "Non-Target Tissue Present",
+                    "type": "boolean",
+                },
+                "pathologic_finding_present": {
+                    "title": "Pathologic Finding Present",
+                    "type": "boolean",
+                },
+                "target_tissue_percentage": {
+                    "title": "Target Tissue Percentage",
+                    "description": "Highest target tissue percentage band across pathology reports for this tissue.",
+                    "type": "string",
+                    "enum": pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER,
+                },
+                "target_tissues": {
+                    "title": "Target Tissues",
+                    "description": (
+                        "Per-subtype target tissue data aggregated across pathology reports for"
+                        " this tissue (e.g. Endocardium/Myocardium/Epicardium for a Heart tissue),"
+                        " one entry per distinct subtype actually reported. Only present for"
+                        " tissues with NonBrainPathologyReport data; BrainPathologyReport has no"
+                        " target_tissues concept."
+                    ),
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "subtype": {
+                                "title": "Target Tissue Subtype",
+                                "type": "string",
+                            },
+                            "percentage": {
+                                "title": "Target Tissue Percentage",
+                                "type": "string",
+                                "enum": pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER,
+                            },
+                            "autolysis_score": {
+                                "title": "Autolysis Score",
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 3,
+                            },
+                        },
+                    },
+                },
+                "non_target_tissue_percentage": {
+                    "title": "Non-Target Tissue Percentage",
+                    "description": "Highest non-target tissue percentage band across pathology reports for this tissue.",
+                    "type": "string",
+                    "enum": pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER,
+                },
+                "non_target_tissues": {
+                    "title": "Non-Target Tissues",
+                    "description": (
+                        "Per-subtype non-target tissue data aggregated across pathology reports for"
+                        " this tissue (e.g. Fibroadipose/Lymphoid/Other), one entry per distinct"
+                        " subtype actually reported. Only present for tissues with"
+                        " NonBrainPathologyReport data; BrainPathologyReport has no non_target_tissues"
+                        " concept. Unlike target_tissues, there's no per-subtype autolysis_score here"
+                        " (non_target_tissues entries don't carry one)."
+                    ),
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "subtype": {
+                                "title": "Non-Target Tissue Subtype",
+                                "type": "string",
+                            },
+                            "percentage": {
+                                "title": "Non-Target Tissue Percentage",
+                                "type": "string",
+                                "enum": pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER,
+                            },
+                        },
+                    },
+                },
+                "histology_images": {
+                    "title": "Histology Images",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "linkTo": "HistologyImage",
+                    },
+                },
+            },
+        },
+    )
+    def pathology_summary(self, request: Request) -> Optional[Dict[str, Any]]:
+        """Roll up pathology report findings for this tissue's samples.
+
+        Walks the Tissue -> TissueSample -> PathologyReport rev-link chain
+        (no forward link exists for this), since PathologyReport data isn't
+        submitted against Tissue directly.
+        """
+        request_handler = RequestHandler(request=request)
+        tissue_sample_atids = self.rev_link_atids(request, "tissue_samples")
+        if not tissue_sample_atids:
+            return None
+        tissue_samples = request_handler.get_items(tissue_sample_atids)
+        pathology_report_atids = get_property_values(
+            tissue_samples, tissue_sample_utils.get_pathology_reports
+        )
+        if not pathology_report_atids:
+            return None
+        pathology_reports = request_handler.get_items(pathology_report_atids)
+        if not pathology_reports:
+            return None
+
+        autolysis_scores = [
+            score
+            for score in (
+                pathology_report_utils.get_tissue_autolysis_score(report)
+                for report in pathology_reports
+            )
+            if score is not None
+        ]
+        non_target_flags = [
+            flag
+            for flag in (
+                pathology_report_utils.has_non_target_tissue_presence(report)
+                for report in pathology_reports
+            )
+            if flag is not None
+        ]
+        finding_flags = [
+            flag
+            for flag in (
+                pathology_report_utils.has_pathologic_finding(report)
+                for report in pathology_reports
+            )
+            if flag is not None
+        ]
+        target_tissue_bands = [
+            band
+            for band in (
+                pathology_report_utils.get_target_tissue_percentage(report)
+                for report in pathology_reports
+            )
+            if band is not None
+        ]
+        non_target_tissue_bands = [
+            band
+            for band in (
+                pathology_report_utils.get_non_target_tissue_percentage(report)
+                for report in pathology_reports
+            )
+            if band is not None
+        ]
+        histology_images = get_property_values(
+            pathology_reports, pathology_report_utils.get_histology_images
+        )
+
+        # Per-subtype breakdown (e.g. Endocardium/Myocardium/Epicardium for a
+        # Heart tissue) -- unlike target_tissue_percentage above, which
+        # collapses every subtype down to one highest band, this keeps each
+        # subtype's own percentage/autolysis_score separate. A Tissue can
+        # rev-link more than 1 TissueSample (e.g. Fixed + Frozen), each with
+        # its own PathologyReport, so the same subtype can appear in more
+        # than one report -- aggregated here by taking the max percentage
+        # band and max autolysis_score per subtype, same convention as the
+        # scalar fields' own max-across-reports collapsing above.
+        target_tissue_subtype_entries = get_property_values(
+            pathology_reports, pathology_report_utils.get_target_tissue_subtypes
+        )
+        target_tissues_by_subtype: Dict[str, Dict[str, Any]] = {}
+        for entry in target_tissue_subtype_entries:
+            subtype = entry.get("subtype")
+            if not subtype:
+                continue
+            bucket = target_tissues_by_subtype.setdefault(
+                subtype, {"subtype": subtype, "percentage": None, "autolysis_score": None}
+            )
+            percentage = entry.get("percentage")
+            if percentage in pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER and (
+                bucket["percentage"] is None
+                or pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER.index(percentage)
+                > pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER.index(bucket["percentage"])
+            ):
+                bucket["percentage"] = percentage
+            autolysis_score = entry.get("autolysis_score")
+            if autolysis_score is not None and (
+                bucket["autolysis_score"] is None or autolysis_score > bucket["autolysis_score"]
+            ):
+                bucket["autolysis_score"] = autolysis_score
+        target_tissues = list(target_tissues_by_subtype.values()) or None
+
+        # Same per-subtype max-band aggregation as target_tissues above, but
+        # for non_target_tissues -- no autolysis_score bucket at all here,
+        # since a non_target_tissues entry has no such field to aggregate
+        # (see get_non_target_tissue_subtypes's own docstring).
+        non_target_tissue_subtype_entries = get_property_values(
+            pathology_reports, pathology_report_utils.get_non_target_tissue_subtypes
+        )
+        non_target_tissues_by_subtype: Dict[str, Dict[str, Any]] = {}
+        for entry in non_target_tissue_subtype_entries:
+            subtype = entry.get("subtype")
+            if not subtype:
+                continue
+            bucket = non_target_tissues_by_subtype.setdefault(
+                subtype, {"subtype": subtype, "percentage": None}
+            )
+            percentage = entry.get("percentage")
+            if percentage in pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER and (
+                bucket["percentage"] is None
+                or pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER.index(percentage)
+                > pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER.index(bucket["percentage"])
+            ):
+                bucket["percentage"] = percentage
+        non_target_tissues = list(non_target_tissues_by_subtype.values()) or None
+
+        return {
+            "autolysis_score": max(autolysis_scores) if autolysis_scores else None,
+            "non_target_tissue_present": any(non_target_flags) if non_target_flags else None,
+            "pathologic_finding_present": any(finding_flags) if finding_flags else None,
+            "target_tissue_percentage": (
+                max(target_tissue_bands, key=pathology_report_utils.TARGET_TISSUE_PERCENTAGE_ORDER.index)
+                if target_tissue_bands
+                else None
+            ),
+            "target_tissues": target_tissues,
+            "non_target_tissue_percentage": (
+                max(non_target_tissue_bands, key=pathology_report_utils.NON_TARGET_TISSUE_PERCENTAGE_ORDER.index)
+                if non_target_tissue_bands
+                else None
+            ),
+            "non_target_tissues": non_target_tissues,
+            "histology_images": histology_images or None,
+        }
 
     @calculated_property(
         schema={
@@ -84,6 +362,20 @@ class Tissue(SampleSource):
         request_handler = RequestHandler(request=request)
         tissue_type = tissue_utils.get_tissue_type(self.properties, request_handler=request_handler)
         return tissue_type or None
+
+    @calculated_property(
+        schema={
+            "title": "Tissue Type Code",
+            "description": "Leading TPC protocol code from tissue_type (e.g. \"3S\" for \"3S - Heart\")",
+            "type": "string"
+        }
+    )
+    def tissue_type_code(self, request: Request):
+        """Get the leading TPC protocol code from tissue_type.
+        """
+        request_handler = RequestHandler(request=request)
+        tissue_type_code = tissue_utils.get_tissue_type_code(self.properties, request_handler=request_handler)
+        return tissue_type_code or None
 
 
 @link_related_validator
