@@ -4482,16 +4482,12 @@ File, Donor, and Publication Overview Styles
 
         li {
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             padding-left: 14px;
             color: #4e6379;
             font-size: 0.8125rem;
-            // Truncate instead of wrapping -- the whole point of moving to
-            // one line per report is to stop each entry from eating two
-            // lines; the full name is still reachable via the link's title
-            // tooltip.
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
 
             &::before {
                 content: '\2022';
@@ -4504,10 +4500,45 @@ File, Donor, and Publication Overview Styles
         a {
             color: #2f6fb0;
             text-decoration: none;
+            min-width: 0;
+            // Truncate instead of wrapping -- the whole point of moving to
+            // one line per report is to stop each entry from eating two
+            // lines; the full name is still reachable via the link's own
+            // title tooltip. Scoped to the link itself (not the whole `li`
+            // as this used to be) so a sibling .aliquot-popover-pathology-outcome
+            // badge stays fully visible instead of being clipped along with
+            // an overlong report name/id.
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
 
             &:hover {
                 text-decoration: underline;
             }
+        }
+    }
+
+    // A required field on every PathologyReport (schemas/pathology_report.json)
+    // -- Acceptable reads as a quiet confirmation (muted green), Unacceptable
+    // as a real flag worth noticing (red), sitting right next to the report's
+    // own link so a reader doesn't have to open it just to see which one it
+    // was.
+    .aliquot-popover-pathology-outcome {
+        flex-shrink: 0;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        white-space: nowrap;
+
+        &.is-acceptable {
+            background-color: #E7F5EC;
+            color: #2E8B57;
+        }
+
+        &.is-unacceptable {
+            background-color: #FBEAEA;
+            color: #C0392B;
         }
     }
 

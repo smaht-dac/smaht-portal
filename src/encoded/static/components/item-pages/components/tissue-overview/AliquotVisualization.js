@@ -79,8 +79,37 @@ const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
     PropTypes.shape({
         '@id': PropTypes.string,
         display_title: PropTypes.string,
+        accession: PropTypes.string,
+        outcome: PropTypes.oneOf(['Acceptable', 'Unacceptable']),
+        unacceptable_description: PropTypes.string,
     }),
 ]);
+
+// A required field on every PathologyReport, brain and non-brain alike (see
+// schemas/pathology_report.json, the shared abstract base both extend), so
+// this badge applies uniformly regardless of which concrete report type a
+// given link points at. `null` (not just absent) for a bare @id-string
+// report -- the @@object frame TissueSample.pathology_reports/
+// associated_pathology_reports resolve to before embedding never carries
+// this field, only the full embedded object does (see TissueSample's own
+// embedded_list, types/tissue_sample.py). `unacceptableDescription` (same
+// embedding, only ever populated when outcome is Unacceptable) surfaces as
+// this badge's own tooltip -- rather than a 2nd, mostly-empty subtext row --
+// so a reader can see *why* without the popover growing every time an
+// Unacceptable report happens to be in the list.
+function PathologyOutcomeBadge({ outcome, unacceptableDescription }) {
+    if (!outcome) return null;
+    return (
+        <span
+            className={
+                'aliquot-popover-pathology-outcome' +
+                (outcome === 'Acceptable' ? ' is-acceptable' : ' is-unacceptable')
+            }
+            title={outcome === 'Unacceptable' ? unacceptableDescription || undefined : undefined}>
+            {outcome}
+        </span>
+    );
+}
 
 // `reports` entries come back as a bare @id string in the @@object frame, or
 // a full embedded object in /search/'s embedded frame -- `display_title`
@@ -101,6 +130,8 @@ function getPathologyReportItems(reports) {
             href: typeof report === 'string' ? report : report?.['@id'],
             title: typeof report === 'object' ? report?.display_title || null : null,
             label: accession || (arr.length > 1 ? `Report ${reportIndex + 1}` : 'View report'),
+            outcome: typeof report === 'object' ? report?.outcome || null : null,
+            unacceptableDescription: typeof report === 'object' ? report?.unacceptable_description || null : null,
         };
     });
 }
@@ -145,6 +176,8 @@ function getSortedPathologyReportItems(entries) {
                     suffix: reports.length > 1 ? ` (${accession || reportIndex + 1})` : '',
                     href: typeof report === 'string' ? report : report?.['@id'],
                     label: typeof report === 'object' ? report?.display_title || 'View' : 'View',
+                    outcome: typeof report === 'object' ? report?.outcome || null : null,
+                    unacceptableDescription: typeof report === 'object' ? report?.unacceptable_description || null : null,
                 };
             });
         });
@@ -1407,17 +1440,6 @@ export default function AliquotVisualization({
                                     </div>
                                 ) : null}
                                 <div className="aliquot-popover-row">
-                                    <span>Order</span>
-                                    <strong>
-                                        {/* `normalizedSlices` items don't carry an `index` field
-                                            (only `geometry`, a separate derived array, does), so
-                                            this reads `selectedSliceIndex` (the actual array
-                                            position) directly instead of `selectedSlice?.index`. */}
-                                        {(selectedSliceIndex ?? 0) + 1} /{' '}
-                                        {normalizedSlices.length}
-                                    </strong>
-                                </div>
-                                <div className="aliquot-popover-row">
                                     <span>{selectedStyles.label} #</span>
                                     <strong>{selectedSlice?.sequenceLabel}</strong>
                                 </div>
@@ -1445,6 +1467,7 @@ export default function AliquotVisualization({
                                                                 title={item.title || undefined}>
                                                                 {item.label}
                                                             </a>
+                                                            <PathologyOutcomeBadge outcome={item.outcome} unacceptableDescription={item.unacceptableDescription} />
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -1485,14 +1508,17 @@ export default function AliquotVisualization({
                                             ).map((item) => (
                                                 <li key={item.key}>
                                                     {item.href ? (
-                                                        <a
-                                                            href={item.href}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            title={item.label}>
-                                                            {item.externalId}
-                                                            {item.suffix}
-                                                        </a>
+                                                        <>
+                                                            <a
+                                                                href={item.href}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={item.label}>
+                                                                {item.externalId}
+                                                                {item.suffix}
+                                                            </a>
+                                                            <PathologyOutcomeBadge outcome={item.outcome} unacceptableDescription={item.unacceptableDescription} />
+                                                        </>
                                                     ) : (
                                                         <span title="No report yet">
                                                             {item.externalId} &ndash; no report yet

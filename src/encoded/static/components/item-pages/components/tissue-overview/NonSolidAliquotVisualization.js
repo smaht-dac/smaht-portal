@@ -449,13 +449,6 @@ export default function NonSolidAliquotVisualization({
                                     <span>Type</span>
                                     <strong>{styles.label}</strong>
                                 </div>
-                                <div className="aliquot-popover-row">
-                                    <span>Order</span>
-                                    <strong>
-                                        {(selectedAliquot?.index || 0) + 1} /{' '}
-                                        {normalizedAliquots.length}
-                                    </strong>
-                                </div>
                             </PopoverBody>
                         </Popover>
                     )}

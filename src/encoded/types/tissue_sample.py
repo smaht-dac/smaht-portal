@@ -51,8 +51,17 @@ class TissueSample(Sample):
         # PathologyReport's auto-embedded display_title resolves to submitted_id, not
         # accession, so accession is embedded explicitly for the tissue-overview
         # aliquot popover (AliquotVisualization.js) to show a short accession-based label.
+        # outcome (Acceptable/Unacceptable, required on every PathologyReport -- see
+        # schemas/pathology_report.json) is embedded alongside it so that same popover
+        # can show each linked report's own outcome next to its link. unacceptable_description
+        # (free text, only ever populated when outcome is Unacceptable) rides along too, so
+        # that popover can surface *why* rather than just the bare Unacceptable flag.
         "pathology_reports.accession",
+        "pathology_reports.outcome",
+        "pathology_reports.unacceptable_description",
         "associated_pathology_reports.pathology_reports.accession",
+        "associated_pathology_reports.pathology_reports.outcome",
+        "associated_pathology_reports.pathology_reports.unacceptable_description",
         # Mirrors Tissue's donor.study/donor.tags embeds (types/tissue.py's
         # _build_tissue_embedded_list) so TissueSample search can filter to the same
         # released-donor Production population used elsewhere in the app.
