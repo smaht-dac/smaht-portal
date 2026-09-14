@@ -72,6 +72,24 @@ def test_parse_prefixed_value_gcc_keyword_only():
     assert result == ("GCC: something", None)
 
 
+def test_parse_prefixed_value_surrounding_whitespace_gcc_tpc():
+    """GCC/TPC format with surrounding whitespace is accepted."""
+    assert parse_prefixed_value("  GCC: gcc notes; TPC: tpc notes  ") == (
+        "gcc notes",
+        "tpc notes",
+    )
+
+
+def test_parse_prefixed_value_surrounding_whitespace_tpc_only():
+    """TPC-only format with surrounding whitespace is accepted."""
+    assert parse_prefixed_value("  TPC: tpc notes  ") == (None, "tpc notes")
+
+
+def test_parse_prefixed_value_surrounding_whitespace_plain():
+    """Plain value with surrounding whitespace is accepted."""
+    assert parse_prefixed_value("  plain notes  ") == ("plain notes", None)
+
+
 # =============================================================================
 # format_prefixed_value tests
 # =============================================================================
@@ -175,6 +193,22 @@ def test_build_patch_description_idempotent_update_tpc():
     assert patch == {"description": "GCC: gcc desc; TPC: new tpc desc"}
 
 
+def test_build_patch_description_update_tpc_only_value():
+    """description: TPC-only value changed → replace with new TPC-only value."""
+    tpc_sample = {"description": "new tpc desc"}
+    target_sample = {"description": "TPC: old tpc desc"}
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch == {"description": "TPC: new tpc desc"}
+
+
+def test_build_patch_processing_notes_update_tpc_only_value():
+    """processing_notes: TPC-only value changed → replace with new TPC-only value."""
+    tpc_sample = {"processing_notes": "new tpc notes"}
+    target_sample = {"processing_notes": "TPC: old tpc notes"}
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch == {"processing_notes": "TPC: new tpc notes"}
+
+
 def test_build_patch_description_malformed_skip():
     """description: malformed prefix → skip field (no update)."""
     tpc_sample = {"description": "tpc desc"}
@@ -241,6 +275,80 @@ def test_build_patch_core_size_mismatch_blocks_all():
     assert patch is None
 
 
+def test_build_patch_core_size_empty_string_treated_as_absent():
+    """Empty string core_size is treated as absent."""
+    tpc_sample = {"core_size": "3.0"}
+    target_sample = {"core_size": ""}
+    patch = build_patch(tpc_sample, target_sample)
+    # Empty string should be treated as absent, so should copy
+    assert patch == {"core_size": "3.0"}
+
+
+def test_build_patch_core_size_none_treated_as_absent():
+    """None core_size is treated as absent."""
+    tpc_sample = {"core_size": "3.0"}
+    target_sample = {"core_size": None}
+    patch = build_patch(tpc_sample, target_sample)
+    # None should be treated as absent, so should copy
+    assert patch == {"core_size": "3.0"}
+
+
+def test_build_patch_preservation_type_empty_string_treated_as_absent():
+    """Empty string preservation_type is treated as absent."""
+    tpc_sample = {"preservation_type": "Frozen"}
+    target_sample = {"preservation_type": ""}
+    patch = build_patch(tpc_sample, target_sample)
+    # Empty string should be treated as absent, so should copy
+    assert patch == {"preservation_type": "Frozen"}
+
+
+def test_build_patch_preservation_type_none_treated_as_absent():
+    """None preservation_type is treated as absent."""
+    tpc_sample = {"preservation_type": "Frozen"}
+    target_sample = {"preservation_type": None}
+    patch = build_patch(tpc_sample, target_sample)
+    # None should be treated as absent, so should copy
+    assert patch == {"preservation_type": "Frozen"}
+
+
+def test_build_patch_malformed_description_other_fields_transfer():
+    """Malformed description is skipped but other fields transfer."""
+    tpc_sample = {
+        "core_size": "3.0",
+        "preservation_type": "Frozen",
+        "description": "tpc desc",
+        "processing_notes": "tpc notes",
+    }
+    target_sample = {
+        "description": "GCC: gcc TPC: malformed",  # Malformed (missing semicolon)
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    # Malformed description is skipped, but other fields should still transfer
+    assert "description" not in patch
+    assert patch["core_size"] == "3.0"
+    assert patch["preservation_type"] == "Frozen"
+    assert patch["processing_notes"] == "TPC: tpc notes"
+
+
+def test_build_patch_malformed_processing_notes_other_fields_transfer():
+    """Malformed processing_notes is skipped but other fields transfer."""
+    tpc_sample = {
+        "core_size": "3.0",
+        "preservation_type": "Frozen",
+        "description": "tpc desc",
+        "processing_notes": "tpc notes",
+    }
+    target_sample = {
+        "processing_notes": "TPC: notes; GCC: wrong order",  # Malformed (wrong order)
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    # Malformed processing_notes is skipped, but other fields should still transfer
+    assert "processing_notes" not in patch
+    assert patch["core_size"] == "3.0"
+    assert patch["preservation_type"] == "Frozen"
+    assert patch["description"] == "TPC: tpc desc"
+
+
 # =============================================================================
 # get_non_tpc_tissue_samples tests
 # =============================================================================
@@ -251,9 +359,9 @@ def test_get_non_tpc_tissue_samples_default(mock_search):
     """Default behavior excludes tpc_metadata_synced tag."""
     mock_search.return_value = [{"uuid": "sample1"}]
     auth_key = {"server": "test"}
-    
+
     result = get_non_tpc_tissue_samples(auth_key)
-    
+
     assert result == [{"uuid": "sample1"}]
     call_query = mock_search.call_args[0][0]
     assert "tags!=tpc_metadata_synced" in call_query
@@ -266,9 +374,9 @@ def test_get_non_tpc_tissue_samples_ignore_tag(mock_search):
     """With ignore_tag=True, tag filter is omitted."""
     mock_search.return_value = [{"uuid": "sample1"}]
     auth_key = {"server": "test"}
-    
+
     result = get_non_tpc_tissue_samples(auth_key, ignore_tag=True)
-    
+
     assert result == [{"uuid": "sample1"}]
     call_query = mock_search.call_args[0][0]
     assert "tags!=" not in call_query
@@ -285,9 +393,9 @@ def test_get_tpc_sample_no_results(mock_search):
     """No TPC sample found returns None."""
     mock_search.return_value = []
     auth_key = {"server": "test"}
-    
+
     result = get_tpc_sample_for_external_id("EXT123", auth_key)
-    
+
     assert result is None
 
 
@@ -296,9 +404,9 @@ def test_get_tpc_sample_single_result(mock_search):
     """Single TPC sample is returned."""
     mock_search.return_value = [{"uuid": "tpc1", "external_id": "EXT123"}]
     auth_key = {"server": "test"}
-    
+
     result = get_tpc_sample_for_external_id("EXT123", auth_key)
-    
+
     assert result == {"uuid": "tpc1", "external_id": "EXT123"}
 
 
@@ -307,14 +415,39 @@ def test_get_tpc_sample_multiple_results(mock_search, caplog):
     """Multiple TPC samples logs warning and returns first."""
     mock_search.return_value = [
         {"uuid": "tpc1", "external_id": "EXT123"},
-        {"uuid": "tpc2", "external_id": "EXT123"},
+        {"uuid": "tpc2", "external_id":"EXT123"},
     ]
     auth_key = {"server": "test"}
-    
+
     result = get_tpc_sample_for_external_id("EXT123", auth_key)
-    
+
     assert result == {"uuid": "tpc1", "external_id": "EXT123"}
     assert "Multiple TPC samples found" in caplog.text
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+def test_get_tpc_sample_url_encodes_special_characters(mock_search):
+    """external_id with special characters is URL-encoded in the query.
+
+    This prevents query injection attacks where special characters like &, =,
+    spaces, +, ?, and # could alter the query structure.
+    """
+    mock_search.return_value = [{"uuid": "tpc1", "external_id": "EXT&123=foo bar+test?baz#qux"}]
+    auth_key = {"server": "test"}
+
+    result = get_tpc_sample_for_external_id("EXT&123=foo bar+test?baz#qux", auth_key)
+
+    assert result == {"uuid": "tpc1", "external_id": "EXT&123=foo bar+test?baz#qux"}
+
+    # Verify the query passed to search_metadata has URL-encoded external_id
+    call_query = mock_search.call_args[0][0]
+    # & should be %26, = should be %3D, space should be %20, + should be %2B,
+    # ? should be %3F, # should be %23
+    assert "external_id=EXT%26123%3Dfoo%20bar%2Btest%3Fbaz%23qux" in call_query
+    # Verify other query parts are still present and correct
+    assert "type=TissueSample" in call_query
+    assert "submission_centers.display_title=NDRI+TPC" in call_query
+    assert "status!=deleted" in call_query
 
 
 # =============================================================================
@@ -337,10 +470,10 @@ def test_main_dry_run_default(
         {"uuid": "target1", "external_id": "EXT1", "tags": []}
     ]
     mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
-    
+
     with patch("sys.argv", ["cmd", "--env", "test"]):
         main()
-    
+
     # No actual patches should be called in dry run
     mock_patch.assert_not_called()
 
@@ -360,10 +493,10 @@ def test_main_execute_patches(
         {"uuid": "target1", "external_id": "EXT1", "tags": []}
     ]
     mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
-    
+
     with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
         main()
-    
+
     # Should have called patch_metadata
     assert mock_patch.call_count == 1
     patch_call = mock_patch.call_args
@@ -387,10 +520,10 @@ def test_main_skip_tagging(
         {"uuid": "target1", "external_id": "EXT1", "tags": []}
     ]
     mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
-    
+
     with patch("sys.argv", ["cmd", "--env", "test", "--execute", "--skip-tagging"]):
         main()
-    
+
     assert mock_patch.call_count == 1
     patch_call = mock_patch.call_args
     patch_data = patch_call[0][0]
@@ -407,10 +540,10 @@ def test_main_ignore_tag(mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_a
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []  # Connection check
     mock_get_non_tpc.return_value = []
-    
+
     with patch("sys.argv", ["cmd", "--env", "test", "--ignore-tag"]):
         main()
-    
+
     # Check that ignore_tag=True was passed
     assert mock_get_non_tpc.call_args[1]["ignore_tag"] is True
 
@@ -430,10 +563,10 @@ def test_main_core_size_mismatch_skipped(
         {"uuid": "target1", "external_id": "EXT1", "core_size": "1.5", "tags": []}
     ]
     mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
-    
+
     with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
         main()
-    
+
     # No patch should be applied due to mismatch
     mock_patch.assert_not_called()
 
@@ -453,19 +586,19 @@ def test_main_mixed_patchable_and_mismatch(
         {"uuid": "target1", "external_id": "EXT1", "core_size": "1.5", "tags": []},
         {"uuid": "target2", "external_id": "EXT2", "tags": []},
     ]
-    
+
     def get_tpc_side_effect(external_id, auth_key):
         if external_id == "EXT1":
             return {"uuid": "tpc1", "core_size": "3.0"}  # Mismatch
         elif external_id == "EXT2":
             return {"uuid": "tpc2", "core_size": "3.0"}  # Patchable
         return None
-    
+
     mock_get_tpc.side_effect = get_tpc_side_effect
-    
+
     with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
         main()
-    
+
     # Only target2 should be patched, target1 skipped due to mismatch
     assert mock_patch.call_count == 1
     assert mock_patch.call_args[1]["obj_id"] == "target2"
@@ -483,10 +616,10 @@ def test_main_no_tpc_match(mock_get_tpc, mock_get_non_tpc, mock_search, mock_get
         {"uuid": "target1", "external_id": "EXT1", "tags": []}
     ]
     mock_get_tpc.return_value = None
-    
+
     with patch("sys.argv", ["cmd", "--env", "test"]):
         main()
-    
+
     # Summary line goes to stderr/stdout, not caplog - just check it ran without error
     assert True
 
@@ -511,10 +644,10 @@ def test_main_no_changes_needed(
         }
     ]
     mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
-    
+
     with patch("sys.argv", ["cmd", "--env", "test", "--execute", "--ignore-tag"]):
         main()
-    
+
     mock_patch.assert_not_called()
     # Summary line goes to stderr/stdout, not caplog
     assert True

@@ -19,11 +19,13 @@ import argparse
 import logging
 import re
 from typing import Optional
+from urllib.parse import quote
 
 from dcicutils import ff_utils
-from dcicutils.creds_utils import SMaHTKeyManager
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
+
+from encoded.commands.utils import get_auth_key
 
 NDRI_TPC_DISPLAY_TITLE = "NDRI TPC"
 PROCESSED_TAG = "tpc_metadata_synced"
@@ -33,10 +35,6 @@ GCC_TPC_PATTERN = re.compile(r"^GCC:\s*(.+?);\s*TPC:\s*(.+)$", re.DOTALL)
 TPC_ONLY_PATTERN = re.compile(r"^TPC:\s*(.+)$", re.DOTALL)
 
 log = logging.getLogger(__name__)
-
-
-def get_auth_key(env: str) -> dict:
-    return SMaHTKeyManager().get_keydict_for_env(env)
 
 
 def get_non_tpc_tissue_samples(auth_key: dict, ignore_tag: bool = False) -> list:
@@ -53,9 +51,16 @@ def get_non_tpc_tissue_samples(auth_key: dict, ignore_tag: bool = False) -> list
 
 
 def get_tpc_sample_for_external_id(external_id: str, auth_key: dict) -> Optional[dict]:
+    """Fetch TPC tissue sample for a given external_id.
+
+    URL-encodes external_id to prevent query injection via special characters.
+    """
+    # URL-encode external_id, preserving unreserved characters but encoding
+    # special query characters like &, =, +, ?, #, and space
+    encoded_external_id = quote(external_id, safe="")
     query = (
         "/search/?type=TissueSample"
-        f"&external_id={external_id}"
+        f"&external_id={encoded_external_id}"
         f"&submission_centers.display_title={NDRI_TPC_DISPLAY_TITLE.replace(' ', '+')}"
         "&status!=deleted"
     )
@@ -71,18 +76,21 @@ def get_tpc_sample_for_external_id(external_id: str, auth_key: dict) -> Optional
 
 def parse_prefixed_value(value: str) -> Optional[tuple[Optional[str], Optional[str]]]:
     """Parse a prefixed value into (gcc_part, tpc_part).
-    
+
     Returns None if the value is malformed.
     Returns (None, tpc_value) for "TPC: <value>" format.
     Returns (gcc_value, tpc_value) for "GCC: <gcc>; TPC: <tpc>" format.
     """
     if not value:
         return ("", None)
-    
+
+    # Strip surrounding whitespace before parsing
+    value = value.strip()
+
     # Check if it contains both GCC: and TPC: keywords
     gcc_count = value.count("GCC:")
     tpc_count = value.count("TPC:")
-    
+
     if gcc_count > 0 and tpc_count > 0:
         # Must match the full GCC: ... ; TPC: ... pattern
         match = GCC_TPC_PATTERN.match(value)
@@ -91,14 +99,14 @@ def parse_prefixed_value(value: str) -> Optional[tuple[Optional[str], Optional[s
         else:
             # Has both keywords but doesn't match pattern - malformed
             return None
-    
+
     # Try TPC: ... only format
     if tpc_count > 0:
         match = TPC_ONLY_PATTERN.match(value)
         if match:
             return (None, match.group(1).strip())
         # Has TPC: but doesn't match - treat as plain value
-    
+
     # Plain value (no prefix or GCC: only) - treat as GCC portion
     return (value.strip(), None)
 
@@ -116,17 +124,21 @@ def format_prefixed_value(gcc_part: Optional[str], tpc_part: Optional[str]) -> s
 
 def build_patch(tpc_sample: dict, target_sample: dict) -> Optional[dict]:
     """Build a patch dict for the target sample.
-    
-    Returns None if there's a core_size mismatch or no changes needed.
-    Returns a dict with keys to patch otherwise.
+
+    Returns None only if there's a core_size mismatch.
+    Returns an empty dict when no changes are needed.
+    Returns a dict with keys to patch when changes are required.
     """
     patch = {}
-    
+
     # Check core_size: copy if target lacks it, warn and skip if mismatch
+    # Treat None and empty string as absent; any other value as present
     tpc_core_size = tpc_sample.get("core_size")
     target_core_size = target_sample.get("core_size")
-    
-    if tpc_core_size and target_core_size and tpc_core_size != target_core_size:
+    tpc_has_core_size = tpc_core_size is not None and tpc_core_size != ""
+    target_has_core_size = target_core_size is not None and target_core_size != ""
+
+    if tpc_has_core_size and target_has_core_size and tpc_core_size != target_core_size:
         log.warning(
             "core_size mismatch for %s: TPC=%s, target=%s — skipping sample",
             target_sample.get("uuid"),
@@ -134,27 +146,30 @@ def build_patch(tpc_sample: dict, target_sample: dict) -> Optional[dict]:
             target_core_size,
         )
         return None  # Signal to skip this sample entirely
-    
-    if tpc_core_size and not target_core_size:
+
+    if tpc_has_core_size and not target_has_core_size:
         patch["core_size"] = tpc_core_size
-    
+
     # preservation_type: copy if target lacks it
+    # Treat None and empty string as absent; any other value as present
     tpc_preservation = tpc_sample.get("preservation_type")
     target_preservation = target_sample.get("preservation_type")
-    if tpc_preservation and not target_preservation:
+    tpc_has_preservation = tpc_preservation is not None and tpc_preservation != ""
+    target_has_preservation = target_preservation is not None and target_preservation != ""
+    if tpc_has_preservation and not target_has_preservation:
         patch["preservation_type"] = tpc_preservation
-    
+
     # description and processing_notes: idempotent prefixed format
     for field in ("description", "processing_notes"):
         tpc_val = tpc_sample.get(field)
         target_val = target_sample.get(field)
-        
+
         if not tpc_val:
             continue
-        
+
         # Parse the existing target value
         parsed = parse_prefixed_value(target_val) if target_val else ("", None)
-        
+
         if parsed is None:
             log.warning(
                 "Malformed prefixed %s in %s: %r — skipping field",
@@ -163,9 +178,9 @@ def build_patch(tpc_sample: dict, target_sample: dict) -> Optional[dict]:
                 target_val,
             )
             continue
-        
+
         gcc_part, existing_tpc_part = parsed
-        
+
         # If TPC value hasn't changed, no update needed
         if existing_tpc_part == tpc_val:
             log.debug(
@@ -174,14 +189,14 @@ def build_patch(tpc_sample: dict, target_sample: dict) -> Optional[dict]:
                 target_sample.get("uuid"),
             )
             continue
-        
+
         # Build the new formatted value
         new_value = format_prefixed_value(gcc_part, tpc_val)
-        
+
         # Only add to patch if it's actually different
         if new_value != target_val:
             patch[field] = new_value
-    
+
     return patch if patch else {}
 
 
@@ -274,12 +289,12 @@ def main() -> None:
                 continue
 
             patch = build_patch(tpc_sample, sample)
-            
+
             if patch is None:
                 # core_size mismatch — already logged warning in build_patch
                 skipped_mismatch += 1
                 continue
-            
+
             # Add tag unless --skip-tagging is set
             if not args.skip_tagging:
                 existing_tags = sample.get("tags", [])
