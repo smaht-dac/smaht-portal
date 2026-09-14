@@ -1,5 +1,5 @@
 from typing import Any, Dict, Union, Optional, List
-from .utils import RequestHandler, get_property_value_from_identifier, get_property_values_from_identifiers
+from .utils import RequestHandler, get_property_value_from_identifier
 from . import (
     donor_specific_assembly as dsa_utils,
     file as file_utils,

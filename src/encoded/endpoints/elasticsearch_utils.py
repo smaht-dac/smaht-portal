@@ -83,7 +83,6 @@ def create_elasticsearch_aggregation_query(fields: List[str],
     This extra bit of cruft, necessary to get the ElasticSearch query to work as expected, manifests itself in
     the query result as well and is dispensed with using the prune_elasticsearch_aggregation_results function below.
     """
-    global AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
 
     if isinstance(fields, str):
         fields = [fields]
@@ -174,7 +173,6 @@ def add_debugging_to_elasticsearch_aggregation_query(aggregation_query: dict) ->
     top_hits_debug = {"aggs": {"top_hits_debug": {"top_hits": {"_source": False,
                                                                "docvalue_fields": ["_id"], "size": 100 }}}}
     def add_debug_query(aggs: dict) -> None:  # noqa
-        nonlocal top_hits_debug
         if "aggs" in aggs:
             for _, agg in aggs["aggs"].items():
                 add_debug_query(agg)
@@ -482,7 +480,7 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict,
                           key: Optional[str] = None, value: Optional[str] = None,
                           additional_properties: Optional[dict] = None) -> dict:
 
-        nonlocal additional_field, remove_empty_items, retain_original_item_count
+        nonlocal additional_field
 
         if not (aggregation_key := get_aggregation_key(aggregation)):
             return {}
@@ -572,7 +570,6 @@ def sort_normalized_aggregation_results(data: dict, sort: Union[bool, str, Calla
             items.sort(key=lambda item: sort(item))
 
     def sort_results(data: dict, level: int = 0) -> None:
-        nonlocal sort
         if isinstance(sort, list) and sort:
             if level < len(sort):
                 sort_level = sort[level]

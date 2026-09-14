@@ -939,6 +939,8 @@
                 text-overflow: ellipsis;
                 color: #999;
                 margin-bottom: 3px;
+                width: 100%;
+
                 &.with-border-bottom {
                     padding-bottom: 7px;
                     margin-bottom: 7px;
@@ -1012,6 +1014,7 @@
                 > a {
                     display: inline-block;
                     vertical-align: middle;
+                    white-space: normal;
                 }
                 > i.icon {
                     position: absolute;
@@ -1087,6 +1090,7 @@
             margin-top: 8px;
             a {
                 border-top: none;
+                width: max-content;
             }
         }
     }
@@ -4176,12 +4180,12 @@ FAQ page styles
                         display: flex;
                         flex: 1;
                         padding: 15px;
+                        margin-right: 60px;
 
                         .parent-link {
                             display: block;
                             font-weight: 600;
                             color: $homepage-card-text-color;
-                            padding-right: 40px;
 
                             &:hover {
                                 color: #173b5d;
@@ -4334,31 +4338,6 @@ FAQ page styles
 
                     a.header:hover {
                         text-decoration: none;
-                    }
-
-                    .quick-link-badge {
-                        display: inline-flex;
-                        align-items: center;
-                        vertical-align: 0.15em;
-                        padding: 4px 8px;
-                        border-radius: 20px;
-                        font-size: 0.75rem;
-                        font-weight: 600;
-                        letter-spacing: 0.03em;
-                        text-transform: uppercase;
-                        white-space: nowrap;
-                        margin-left: 8px;
-                        line-height: 1;
-
-                        &.quick-link-badge-open {
-                            background-color: #d4edda;
-                            color: #1a6630;
-                            border: 1px solid #b8dfc2;
-                        }
-
-                        &.quick-link-badge-protected {
-                            color: #3a5070;
-                        }
                     }
                 }
             }
@@ -4791,5 +4770,30 @@ FAQ page styles
                 }
             }
         }
+    }
+}
+
+// Badge styles
+.quick-link-badge {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: 0.15em;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin-left: 8px;
+    line-height: 1;
+
+    &-open {
+        background-color: #d4edda;
+        color: #1a6630;
+        border: 1px solid #b8dfc2;
+    }
+    &-protected {
+        color: #3a5070;
     }
 }

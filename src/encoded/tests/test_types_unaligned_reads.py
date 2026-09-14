@@ -1,6 +1,5 @@
 from typing import Dict, Any
 
-import re
 import pytest
 from webtest import TestApp
 
@@ -8,7 +7,6 @@ from .utils import (
     post_item,
     patch_item,
     get_item,
-    delete_field,
 )
 
 from ..item_utils import (
@@ -61,7 +59,7 @@ def test_validate_read_pairs_on_patch(
     expected_status: int
 ) -> None:
     """Ensure R2 files are paired with R1 files on PATCH."""
-    r2_file=get_item(
+    r2_file = get_item(
         es_testapp,
         file_insert,
         "UnalignedReads"
@@ -102,7 +100,7 @@ def test_validate_read_pairs_on_post(
     index: int
 ) -> None:
     """Ensure R2 files are paired with R1 files on POST."""
-    r2_file=get_item(
+    r2_file = get_item(
         es_testapp,
         file_insert,
         "UnalignedReads"

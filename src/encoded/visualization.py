@@ -1,8 +1,8 @@
 # import uuid
 #
 # from botocore.exceptions import ClientError
-from copy import copy, deepcopy
-from datetime import datetime, timedelta
+from copy import deepcopy
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 # from dcicutils.misc_utils import print_error_message
 from pyramid.httpexceptions import HTTPBadRequest
@@ -314,7 +314,7 @@ def bar_plot_chart(context, request):
 
         if 'type' in search_param_lists and (
             (isinstance(search_param_lists['type'], list) and 'File' in search_param_lists['type'] and len(search_param_lists['type']) == 1) or
-            (isinstance(search_param_lists['type'], str) and search_param_lists['type'] == 'File')):
+                (isinstance(search_param_lists['type'], str) and search_param_lists['type'] == 'File')):
             isFileTypeSearch = True
     except json.decoder.JSONDecodeError:
         search_param_lists = request.GET.dict_of_lists()

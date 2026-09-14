@@ -30,7 +30,7 @@ def test_study_calc_prop(
     expected: str
 ): 
     """Ensure 'study' calcprop is correct."""
-    donor =get_item(
+    donor = get_item(
         es_testapp,
         submitted_id,
         collection="AbstractDonor"
@@ -49,12 +49,12 @@ def test_study_calc_prop(
     ]
 )
 def test_validate_external_id_on_edit(
-    es_testapp: TestApp,
-    workbook: None,
-    submitted_id: str,
-    patch_body: Dict[str, Any],
-    expected_status: int
-    ) -> None:
+        es_testapp: TestApp,
+        workbook: None,
+        submitted_id: str,
+        patch_body: Dict[str, Any],
+        expected_status: int
+        ) -> None:
     """Ensure external_id validator works for TPC-submitted donors (both Donor and ProtectedDonor)."""
     uuid =  item_utils.get_uuid(
         get_item(
@@ -77,12 +77,12 @@ def test_validate_external_id_on_edit(
     ]
 )
 def test_validate_external_id_on_add(
-    es_testapp: TestApp,
-    workbook: None,
-    patch_body: Dict[str, Any],
-    expected_status: int,
-    index: int
-    ) -> None:
+        es_testapp: TestApp,
+        workbook: None,
+        patch_body: Dict[str, Any],
+        expected_status: int,
+        index: int
+        ) -> None:
     """Ensure external_id validator works for TPC-submitted donors."""
     insert = get_item(
             es_testapp,
