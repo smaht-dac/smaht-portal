@@ -3136,87 +3136,11 @@ export const BrowseTissueHeatmapTable = (props) => {
                 isActive={true}
                 prependDotPath="tissue-heatmap">
                 <DotRouterTab
-                    dotPath=".ischemic-time"
-                    tabTitle="Ischemic Time (h)"
-                    arrowTabs={false}
-                    cache={true}
-                    default>
-                    {loading ? (
-                        <div className="tissue-heatmap-loading">
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        </div>
-                    ) : (
-                        <MetricHeatmapTable
-                            {...ischemicTime}
-                            metricLabel="Ischemic Time (h)"
-                            tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)"
-                            formatValue={formatIschemicTime}
-                            getScoreClass={ischemicTimeScoring.classify}
-                            // The severity-scale legend (ScoreLegend) is
-                            // hidden for now -- ischemicTimeScoreLegend is
-                            // still computed above and
-                            // ScoreLegend/buildScoreLegend stay in place so
-                            // it can come back by rendering both here
-                            // (legend={() => <>
-                            //     <ScoreLegend entries={ischemicTimeScoreLegend} />
-                            //     <SplitCellLegend />
-                            // </>}). SplitCellLegend itself stays on, though
-                            // -- unlike the severity scale, it's not
-                            // data-driven and explains this tab's own
-                            // Fixed/Frozen split cells regardless. Its
-                            // Fixed/Frozen halves double as a filter (see
-                            // SplitCellLegend/renderRowCells' activeSplitHalf),
-                            // wired here via MetricHeatmapTable's own render-prop
-                            // legend call.
-                            // eslint-disable-next-line react/jsx-no-bind
-                            legend={({ activeSplitHalf, onSplitHalfClick }) => (
-                                <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
-                            )}
-                            enableConditionalColor={enableConditionalColor}
-                            cellValueDisplayMode={cellValueDisplayMode}
-                            splitByPreservationType
-                        />
-                    )}
-                </DotRouterTab>
-                <DotRouterTab
-                    dotPath=".autolysis-score"
-                    tabTitle="Autolysis Score"
-                    arrowTabs={false}
-                    cache={true}>
-                    {loading ? (
-                        <div className="tissue-heatmap-loading">
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        </div>
-                    ) : (
-                        <MetricHeatmapTable
-                            {...autolysisScore}
-                            tissueTypeHrefs={autolysisSubtypePlan.fixedTissueTypeHrefs}
-                            tissueTypeCategories={autolysisSubtypePlan.fixedTissueTypeCategories}
-                            subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
-                            metricLabel="Autolysis Score"
-                            tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
-                            formatValue={formatAutolysisScore}
-                            getScoreClass={getAutolysisScoreClass}
-                            // eslint-disable-next-line react/jsx-no-bind
-                            legend={({ activeScoreClass, onScoreClassClick }) => (
-                                <FixedScoreLegend
-                                    entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
-                                    leftCaption="Minimal"
-                                    rightCaption="Severe"
-                                    activeClassName={activeScoreClass}
-                                    onEntryClick={onScoreClassClick}
-                                />
-                            )}
-                            enableConditionalColor={enableConditionalColor}
-                            cellValueDisplayMode={cellValueDisplayMode}
-                        />
-                    )}
-                </DotRouterTab>
-                <DotRouterTab
                     dotPath=".target-tissue"
                     tabTitle="Target Tissue %"
                     arrowTabs={false}
-                    cache={true}>
+                    cache={true}
+                    default>
                     {loading ? (
                         <div className="tissue-heatmap-loading">
                             <i className="icon icon-circle-notch icon-spin fas" />
@@ -3275,6 +3199,82 @@ export const BrowseTissueHeatmapTable = (props) => {
                             )}
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
+                        />
+                    )}
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".autolysis-score"
+                    tabTitle="Autolysis Score"
+                    arrowTabs={false}
+                    cache={true}>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...autolysisScore}
+                            tissueTypeHrefs={autolysisSubtypePlan.fixedTissueTypeHrefs}
+                            tissueTypeCategories={autolysisSubtypePlan.fixedTissueTypeCategories}
+                            subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
+                            metricLabel="Autolysis Score"
+                            tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
+                            formatValue={formatAutolysisScore}
+                            getScoreClass={getAutolysisScoreClass}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeScoreClass, onScoreClassClick }) => (
+                                <FixedScoreLegend
+                                    entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
+                                    leftCaption="Minimal"
+                                    rightCaption="Severe"
+                                    activeClassName={activeScoreClass}
+                                    onEntryClick={onScoreClassClick}
+                                />
+                            )}
+                            enableConditionalColor={enableConditionalColor}
+                            cellValueDisplayMode={cellValueDisplayMode}
+                        />
+                    )}
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".ischemic-time"
+                    tabTitle="Ischemic Time (h)"
+                    arrowTabs={false}
+                    cache={true}>
+                    {loading ? (
+                        <div className="tissue-heatmap-loading">
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        </div>
+                    ) : (
+                        <MetricHeatmapTable
+                            {...ischemicTime}
+                            metricLabel="Ischemic Time (h)"
+                            tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)"
+                            formatValue={formatIschemicTime}
+                            getScoreClass={ischemicTimeScoring.classify}
+                            // The severity-scale legend (ScoreLegend) is
+                            // hidden for now -- ischemicTimeScoreLegend is
+                            // still computed above and
+                            // ScoreLegend/buildScoreLegend stay in place so
+                            // it can come back by rendering both here
+                            // (legend={() => <>
+                            //     <ScoreLegend entries={ischemicTimeScoreLegend} />
+                            //     <SplitCellLegend />
+                            // </>}). SplitCellLegend itself stays on, though
+                            // -- unlike the severity scale, it's not
+                            // data-driven and explains this tab's own
+                            // Fixed/Frozen split cells regardless. Its
+                            // Fixed/Frozen halves double as a filter (see
+                            // SplitCellLegend/renderRowCells' activeSplitHalf),
+                            // wired here via MetricHeatmapTable's own render-prop
+                            // legend call.
+                            // eslint-disable-next-line react/jsx-no-bind
+                            legend={({ activeSplitHalf, onSplitHalfClick }) => (
+                                <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
+                            )}
+                            enableConditionalColor={enableConditionalColor}
+                            cellValueDisplayMode={cellValueDisplayMode}
+                            splitByPreservationType
                         />
                     )}
                 </DotRouterTab>
