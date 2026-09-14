@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactTooltip from 'react-tooltip';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
-import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { BrowseTissueVizWrapper } from './BrowseTissueVizWrapper';
 import { BrowseTissueHeatmapTable } from './BrowseTissueHeatmapTable';
 
@@ -47,27 +46,57 @@ export const BrowseTissueBody = (props) => {
             <div className="browse-summary-header-row">
                 <h2 className="browse-summary-header">SMaHT Tissue Summary</h2>
                 {toggleViewIndex === 0 ? (
-                    <IconToggle
-                        options={[
-                            {
-                                title: <i className="icon fas icon-fas icon-compress" />,
-                                dataTip: 'Basic View',
-                                btnCls: 'btn-sm',
-                                onClick: () => setTissueDetailModeIndex(0),
-                            },
-                            {
-                                title: <i className="icon fas icon-fas icon-expand" />,
-                                dataTip: 'Advanced View',
-                                btnCls: 'btn-sm',
-                                onClick: () => setTissueDetailModeIndex(1),
-                            },
-                        ]}
-                        activeIdx={tissueDetailModeIndex}
-                        divCls={
-                            'tissue-detail-mode-toggle' +
+                    // Hand-rolled rather than the shared IconToggle
+                    // component -- same rendered markup/classes IconToggle
+                    // itself produces (icon-toggle > .flex-grow-1[data-tip] >
+                    // button), but IconToggle doesn't forward a `data-class`
+                    // per option, which is what's needed here to scope the
+                    // .tissue-detail-mode-toggle-tooltip nowrap override
+                    // below to just these 2 tooltips (react-tooltip reads
+                    // `data-class` off the hovered trigger and merges it
+                    // into its own shared tooltip element's class list) --
+                    // see that class in _search.scss for why: this short,
+                    // 2-word tooltip was wrapping onto 2 lines even though
+                    // its own box had plenty of room, and a global nowrap
+                    // on every tooltip would've broken the several other,
+                    // genuinely long, sentence-length tooltips elsewhere in
+                    // the app that need to wrap.
+                    <div
+                        className={
+                            'icon-toggle tissue-detail-mode-toggle' +
                             (showIntroHighlight ? ' tissue-detail-mode-toggle--intro' : '')
-                        }
-                    />
+                        }>
+                        <div
+                            className="flex-grow-1"
+                            data-tip="Basic View"
+                            data-class="tissue-detail-mode-toggle-tooltip">
+                            <button
+                                type="button"
+                                onClick={() => setTissueDetailModeIndex(0)}
+                                aria-pressed={tissueDetailModeIndex === 0}
+                                className={
+                                    'btn btn-sm btn-' +
+                                    (tissueDetailModeIndex === 0 ? 'primary-dark active pe-none' : 'link')
+                                }>
+                                <i className="icon fas icon-fas icon-compress" />
+                            </button>
+                        </div>
+                        <div
+                            className="flex-grow-1"
+                            data-tip="Advanced View"
+                            data-class="tissue-detail-mode-toggle-tooltip">
+                            <button
+                                type="button"
+                                onClick={() => setTissueDetailModeIndex(1)}
+                                aria-pressed={tissueDetailModeIndex === 1}
+                                className={
+                                    'btn btn-sm btn-' +
+                                    (tissueDetailModeIndex === 1 ? 'primary-dark active pe-none' : 'link')
+                                }>
+                                <i className="icon fas icon-fas icon-expand" />
+                            </button>
+                        </div>
+                    </div>
                 ) : null}
             </div>
             <Alerts alerts={alerts} className="mt-2" />

@@ -1766,6 +1766,17 @@ h2.browse-summary-header {
     }
 }
 
+// Scoped to just this toggle's own 2 tooltips (see BrowseTissue.js's
+// data-class="tissue-detail-mode-toggle-tooltip", read by react-tooltip off
+// the hovered trigger) -- "Basic View"/"Advanced View" were wrapping onto 2
+// lines despite easily fitting the tooltip's own default max-width on one.
+// Not a change to the shared `.__react_component_tooltip` rule itself,
+// which several other, genuinely long/sentence-length tooltips elsewhere in
+// the app still rely on wrapping.
+.__react_component_tooltip.tissue-detail-mode-toggle-tooltip {
+    white-space: nowrap;
+}
+
 @keyframes tissue-detail-mode-toggle-intro-flash {
     0%,
     100% {
