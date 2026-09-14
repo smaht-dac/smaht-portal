@@ -10,6 +10,10 @@ const escapeElementWithNumericId = function (selector) {
     return /^#\d/.test(selector) ? `[id="${selector.substring(1)}"]` : selector;
 };
 
+const normalizeForLooseTextMatch = function (text) {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+};
+
 /** Role capability matrix */
 const ROLE_MATRIX = {
     UNAUTH: {
@@ -554,15 +558,21 @@ function stepAnalysisPipelineDocs() {
             cy.get("#pipeline_docs .nav-group").should("have.length.greaterThan", 1);
             cy.get("#pipeline_docs .dropdown").should("have.length.greaterThan", 2);
 
-            cy.get("#pipeline_docs .dropdown").each(($dropdown) => {
-                cy.wrap($dropdown)
-                    .find(".header .toggle")
-                    .then(($toggle) => {
-                        const isExpanded = $toggle.attr("aria-expanded") === "true";
-                        if (!isExpanded) {
-                            cy.wrap($toggle).click();
-                            cy.wrap($dropdown).find(".body").should("have.class", "open");
+            cy.get("#pipeline_docs .dropdown .header .toggle").each(($toggle, index) => {
+                cy.wrap($toggle)
+                    .invoke("attr", "aria-expanded")
+                    .then((ariaExpanded) => {
+                        if (ariaExpanded !== "true") {
+                            // Click icon, not title link, to avoid navigation.
+                            cy.wrap($toggle).find("i.icon").first().click({ force: true });
                         }
+
+                        cy.get("#pipeline_docs .dropdown .header .toggle")
+                            .eq(index)
+                            .should("have.attr", "aria-expanded", "true");
+                        cy.get("#pipeline_docs .dropdown .body")
+                            .eq(index)
+                            .should("have.class", "open");
                     });
             });
 
@@ -605,9 +615,9 @@ function stepAnalysisPipelineDocs() {
                             const titleText = $title.text().trim();
                             expect(titleText).to.not.equal("");
                             if (link.type === "page") {
-                                expect(titleText.toLowerCase()).to.include(
-                                    link.label.toLowerCase()
-                                );
+                                const normalizedTitle = normalizeForLooseTextMatch(titleText);
+                                const normalizedLabel = normalizeForLooseTextMatch(link.label);
+                                expect(normalizedTitle).to.include(normalizedLabel);
                             }
                         });
 
@@ -616,8 +626,11 @@ function stepAnalysisPipelineDocs() {
                         cy.get(escapeElementWithNumericId(`#${hash}`))
                             .should("be.visible")
                             .and(($section) => {
-                                const sectionText = $section.text().trim().toLowerCase();
-                                expect(sectionText).to.include(link.label.toLowerCase());
+                                const sectionText = normalizeForLooseTextMatch(
+                                    $section.text().trim()
+                                );
+                                const expectedLabel = normalizeForLooseTextMatch(link.label);
+                                expect(sectionText).to.include(expectedLabel);
                             });
                     }
 

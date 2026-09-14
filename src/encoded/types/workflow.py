@@ -15,4 +15,7 @@ from .base import Item
 class Workflow(Item, CoreWorkflow):
     item_type = 'workflow'
     schema = load_schema("encoded:schemas/workflow.json")
+    # Workflow definitions carry explicit version metadata; retaining every
+    # Postgres revision adds storage growth without useful audit value.
+    track_revisions = False
     embedded_list = []

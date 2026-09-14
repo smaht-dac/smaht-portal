@@ -1533,6 +1533,8 @@ body[data-path="/statistics"] {
         gap: 0.55rem;
         width: auto;
         max-width: 100%;
+        flex: 1 1 auto;
+        min-width: 0;
         padding: 0;
         background: transparent;
         border: none;
@@ -1567,6 +1569,24 @@ body[data-path="/statistics"] {
                 border-color: #3d6a8f;
                 box-shadow: none;
             }
+
+            // The 3 mode tabs' 270px min-width (~830px+ combined) plus the full-size Export/
+            // Refresh controls (~250px) plus gaps need roughly 1090px of one-line room - shrink
+            // the tabs themselves here (rather than letting the row wrap the export controls
+            // above/below them) comfortably before that point, so everything stays on one line.
+            // A container query (not a viewport media query) because the sidebar's width doesn't
+            // scale with viewport width, so "is there enough room for this row" can't be inferred
+            // from viewport size alone. Nested at the same `.matrix-mode-tabs .matrix-mode-tab`
+            // depth as the min-width:270px rule above so this actually out-specifies it instead
+            // of losing to it regardless of query match.
+            @container matrix-mode-tabs-row (max-width: 1200px) {
+                min-width: 0;
+                flex: 1 1 0;
+                padding: 0.5rem 0.5rem;
+                font-size: 0.85rem;
+                white-space: normal;
+                line-height: 1.2;
+            }
         }
     }
 
@@ -1579,15 +1599,55 @@ body[data-path="/statistics"] {
     }
 
     .matrix-visual-metric-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
         margin-left: 0;
         margin-bottom: 0.5rem;
+    }
+
+    .matrix-inline-refresh-indicator {
+        color: #6f8093;
+        font-size: 1.15rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.15rem;
     }
 
     .matrix-mode-body {
         align-items: flex-start;
         width: 100%;
         overflow: visible;
+
+        // Side-by-side facets + matrix stops being workable once the facets column (190-320px)
+        // plus the matrix's own minimum content (3 tabs at 270px min-width alone need ~830px)
+        // no longer both fit - stack them instead of continuing to squeeze the matrix panel.
+        @media (max-width: 991px) {
+            flex-direction: column;
+            // `align-items: flex-start` (above) is a cross-axis rule; once the axis flips to
+            // column, "cross axis" becomes horizontal, so left unset it'd shrink both panels to
+            // their content width instead of letting them fill the row.
+            align-items: stretch;
+
+            .matrix-counts-panel {
+                width: 100%;
+                min-width: 0;
+                max-width: none;
+                // Breathing room between the stacked facets panel and the matrix's tabs row
+                // below it - otherwise they sit flush against each other.
+                margin-bottom: 1.25rem;
+
+                &.has-facets-panel {
+                    width: 100%;
+                    min-width: 0;
+                    max-width: none;
+                }
+            }
+        }
     }
+
 
     .matrix-mode-tabs-row {
         border-bottom: 1px solid #c7d5e4;
@@ -1596,6 +1656,148 @@ body[data-path="/statistics"] {
         top: 48px;
         z-index: 8;
         background-color: #ffffff;
+        // Fall back to wrapping onto a second line only as a last resort (e.g. extremely narrow
+        // phone widths where even the compacted tabs below don't fit) - the container query
+        // below handles the more common narrow-panel case by shrinking the tabs instead, so the
+        // export/refresh controls don't end up wrapping above/below them.
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
+        // `.matrix-mode-tabs` grows to fill all leftover row width (so its own tabs can flex to
+        // fill it when compacted), which otherwise leaves zero space between it and the controls
+        // - a fixed gap guarantees breathing room between the two regardless of how much the
+        // tabs group ends up growing.
+        column-gap: 0.75rem;
+        container-type: inline-size;
+        container-name: matrix-mode-tabs-row;
+
+        // Tabs sit flush against the row's border-bottom by design (their own border-bottom is
+        // "none" so they visually merge with the panel body below) - that border is what gives
+        // the tab strip its baseline. With no tabs (e.g. benchmarking's export-only row) there's
+        // no tab strip for it to complete, and this row's box height (driven by the export/
+        // refresh buttons' own padding) doesn't match the adjacent counts panel's unrelated
+        // `.matrix-total-files-count` box height, so the border-bottom lands at a different y
+        // than that panel's own border-bottom - the two independent flex columns have no shared
+        // row to equalize against. Rather than chase pixel-exact alignment between two unrelated
+        // boxes, drop the border here; it isn't load-bearing without a tab strip above it.
+        &.no-tabs {
+            border-bottom: none;
+            padding: 0.5rem 0.25rem;
+        }
+    }
+
+
+    .matrix-export-controls {
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    // Shared look for the toolbar buttons (Export dropdown toggle, Refresh) - matches the mode
+    // tabs' own color/font language (border #b7c9dc, text #4e6781, hover #e9f2fb) instead of
+    // generic Bootstrap btn-outline-secondary gray, so the toolbar reads as one cohesive unit
+    // with the tabs next to it.
+    .matrix-toolbar-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid #b7c9dc;
+        background: #ffffff;
+        color: #4e6781;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        transition: background-color 160ms ease, color 160ms ease;
+
+        .icon {
+            font-size: 0.85rem;
+        }
+
+        &:hover:not(:disabled) {
+            background: #e9f2fb;
+            color: #4e6781;
+            border-color: #b7c9dc;
+        }
+
+        &:disabled {
+            opacity: 0.55;
+            cursor: default;
+        }
+
+        // Bootstrap's borders-only-triangle `::after` caret assumes normal inline flow
+        // (positioned via `vertical-align`), which has no effect once this button is
+        // `inline-flex` - it end up sized/positioned unpredictably. Suppress it and use a real
+        // icon (`.matrix-toolbar-caret` below) instead, which behaves like any other flex item.
+        &::after {
+            display: none !important;
+        }
+    }
+
+    .matrix-toolbar-caret {
+        font-size: 0.7rem;
+    }
+
+    // Match the dropdown menu itself to the toolbar buttons' palette instead of leaving it in
+    // Bootstrap's generic default styling, which reads as visually disconnected from the button
+    // that opens it.
+    .matrix-export-dropdown {
+        .dropdown-menu {
+            border: 1px solid #b7c9dc;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(23, 43, 66, 0.12);
+            padding: 0.35rem;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            color: #4e6781;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none !important;
+            border-radius: 4px;
+            padding: 0.45rem 0.75rem;
+
+            .icon {
+                width: 1.1rem;
+                text-align: center;
+                font-size: 0.85rem;
+            }
+
+            &:hover:not(.disabled):not(:disabled),
+            &:focus:not(.disabled):not(:disabled) {
+                background-color: #e9f2fb;
+                color: #4e6781;
+            }
+
+            &.disabled,
+            &:disabled {
+                color: #a9b6c4;
+            }
+        }
+    }
+
+    // Same breakpoint as the mode-tab compacting above: once the panel is this narrow, drop the
+    // Export/Refresh button labels too and keep only their icons, so the controls take up as
+    // little width as possible alongside the (now-compacted) tabs.
+    @container matrix-mode-tabs-row (max-width: 1200px) {
+        .matrix-export-dropdown .dropdown-toggle,
+        .matrix-mode-refresh-btn {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+
+            .btn-label {
+                display: none;
+            }
+
+            .icon {
+                margin-right: 0 !important;
+            }
+        }
+
+        .matrix-toolbar-caret {
+            display: none;
+        }
     }
 
     .matrix-counts-panel {
@@ -1804,6 +2006,54 @@ body[data-path="/statistics"] {
         padding-left: 10px;
         border-left: 1px solid #e2e8ef;
 
+        &.is-loading {
+            display: block;
+            width: 100%;
+            min-height: 420px;
+            position: relative;
+        }
+
+        &.is-refreshing-grid {
+            // Leave headers/toggles readable, but visibly mute stale cells until the refreshed counts arrive.
+            .grouping.header-section-upper .header-summary,
+            .grouping.header-section-upper .column-group-header .stacked-block,
+            > .grouping.depth-0.open,
+            .vertical-container-label {
+                opacity: 0.28;
+                filter: saturate(0.55);
+                transition: opacity 140ms ease, filter 140ms ease;
+            }
+
+            .stacked-block {
+                pointer-events: none;
+            }
+        }
+
+        .matrix-loading-indicator {
+            width: 100%;
+            min-height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .matrix-loading-header-controls {
+            position: relative;
+            z-index: 2;
+            width: 240px;
+            margin-left: 12px;
+            margin-top: 16px;
+            margin-bottom: -10px;
+
+            .matrix-top-controls,
+            .matrix-visual-metric-controls {
+                margin-left: 0 !important;
+                margin-bottom: 0 !important;
+                justify-content: flex-start;
+                width: 100%;
+            }
+        }
+
         .grouping.header-section-upper {
             position: relative;
             z-index: 7;
@@ -1888,6 +2138,7 @@ body[data-path="/statistics"] {
                         width: 320px;
                         max-width: 320px;
                     }
+
                 }
             }
 
@@ -2412,8 +2663,9 @@ body[data-path="/statistics"] {
             }
 
             .stacked-block.is-open-block {
+                // Keep semantic fill color from JS (do not force white), otherwise
+                // valid coverage cells can look empty when selected/open.
                 opacity: 1 !important;
-                background-color: #fff !important;
                 font-weight: 600 !important;
                 border-width: 2px !important;
                 border-style: solid !important;
@@ -2656,6 +2908,63 @@ body[data-path="/statistics"] {
     }
 
     &.matrix-mode-donor-tissue {
+        .stacked-block-viz-container {
+            .header-for-viz {
+                .header-group-text {
+                    .header-group-controls-inline {
+                        width: 300px;
+                        max-width: 300px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.35rem;
+                        justify-content: center;
+                        align-items: center;
+                        transform: translateY(-70%);
+
+                        .matrix-donor-tissue-controls-stack {
+                            width: 300px;
+                            max-width: 300px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.55rem;
+                            margin-bottom: 0.65rem;
+
+                            .matrix-assay-select-control,
+                            .matrix-visual-metric-controls { margin: 0 !important; }
+
+                            .matrix-assay-select-control {
+                                width: 300px;
+                                max-width: 300px;
+                            }
+
+                            .matrix-assay-select-inline {
+                                min-width: 280px;
+                                max-width: 280px;
+                            }
+
+                            .matrix-visual-metric-controls {
+                                .matrix-counts-toggle-inline {
+                                    .view-toggle {
+                                        width: auto;
+                                        display: inline-flex;
+                                        column-gap: 0.25rem;
+                                        justify-content: initial;
+
+                                        .btn {
+                                            width: auto;
+                                            min-width: 0;
+                                            justify-content: center;
+                                            text-align: center;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         .matrix-counts-panel {
             .matrix-facet-terms-panel.search-view-controls-and-results {
                 .facets-container .facets-header.row {
@@ -2749,8 +3058,12 @@ body[data-path="/statistics"] {
     }
 }
 
-// hide page title for /data-matrix
-body[data-path="/data-matrix"] {
+// hide page title for /data-matrix and /recent-releases
+// Uses `data-pathname` (path only), not `data-path` (path+querystring):
+// RecentReleasesTimelineMatrix keeps view/date state in the query string via
+// history.replaceState, so a `data-path` selector stops matching as soon as
+// a query string is present.
+body[data-pathname="/data-matrix"], body[data-pathname="/recent-releases"] {
     .static-page {
         margin-top: 0px !important;
         

@@ -18,6 +18,161 @@ const FALLBACK_GROUP_NAME = 'N/A';
 const DEFAULT_MATRIX_BLOCK_WIDTH = 35;
 const DEFAULT_MATRIX_BLOCK_HORIZONTAL_EXTEND = 5;
 
+function getCountValueFromItem(item, countField) {
+    if (!item) return 0;
+    if (countField === 'donors') {
+        const donorsVal = Number(item?.counts?.donors);
+        if (Number.isFinite(donorsVal)) return donorsVal;
+        const donorCountVal = Number(item?.counts?.donor_count);
+        return Number.isFinite(donorCountVal) ? donorCountVal : 0;
+    }
+    const valueFromCounts = Number(item?.counts?.[countField]);
+    if (Number.isFinite(valueFromCounts)) return valueFromCounts;
+    const valueFromRoot = Number(item?.[countField]);
+    if (Number.isFinite(valueFromRoot)) return valueFromRoot;
+    // Coverage payloads are not perfectly uniform across transformed rows;
+    // guard both nested and root aliases so valid values don't render as empty.
+    if (countField === 'total_coverage') {
+        const fallbackCoverage = Number(item?.counts?.total_coverage ?? item?.total_coverage);
+        return Number.isFinite(fallbackCoverage) ? fallbackCoverage : 0;
+    }
+    return 0;
+}
+
+function getUniqueDonorCountFromItems(items) {
+    if (!Array.isArray(items)) return null;
+    const donorSet = new Set();
+    const donorCountCandidates = [];
+
+    const addDonorValue = (value) => {
+        if (Array.isArray(value)) {
+            value.forEach(addDonorValue);
+            return;
+        }
+        if (value == null) return;
+        if (typeof value === 'object') {
+            addDonorValue(value.display_title ?? value.accession ?? value.title ?? value.uuid);
+            return;
+        }
+        donorSet.add(String(value));
+    };
+
+    const addDonorCountCandidate = (value) => {
+        const numericValue = Number(value);
+        if (Number.isFinite(numericValue)) {
+            donorCountCandidates.push(numericValue);
+        }
+    };
+
+    items.forEach((item) => {
+        if (!item) return;
+        addDonorValue(item.donor);
+        addDonorValue(item.donors);
+        addDonorCountCandidate(item?.counts?.donors);
+        addDonorCountCandidate(item?.counts?.donor_count);
+    });
+
+    if (donorSet.size > 0) return donorSet.size;
+    if (donorCountCandidates.length > 0) return Math.max(...donorCountCandidates);
+    return null;
+}
+
+function formatLocalizedNumber(value, options = undefined) {
+    const normalizedValue = Number(value) || 0;
+    const {
+        minimumFractionDigits = 0,
+        maximumFractionDigits = 3
+    } = options || {};
+    const fixedValue = normalizedValue.toFixed(maximumFractionDigits);
+    let [integerPart, fractionPart = ''] = fixedValue.split('.');
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+    if (maximumFractionDigits === 0) {
+        return integerPart;
+    }
+
+    fractionPart = fractionPart.replace(/0+$/, '');
+    if (fractionPart.length < minimumFractionDigits) {
+        fractionPart = fractionPart.padEnd(minimumFractionDigits, '0');
+    }
+
+    return fractionPart.length > 0 ? `${integerPart}.${fractionPart}` : integerPart;
+}
+
+function formatCompactedNumericValue(value, {
+    decimalsByThreshold = null,
+    units = [
+        { threshold: 1e9, suffix: 'B' },
+        { threshold: 1e6, suffix: 'M' },
+        { threshold: 1e3, suffix: 'K' }
+    ]
+} = {}) {
+    const normalizedValue = Number(value) || 0;
+    if (normalizedValue === 0) {
+        return {
+            display: '0',
+            tooltipValue: '0',
+            isCompacted: false
+        };
+    }
+
+    const absValue = Math.abs(normalizedValue);
+    const matchingUnit = units.find(({ threshold }) => absValue >= threshold) || null;
+    if (!matchingUnit) {
+        return {
+            display: formatLocalizedNumber(normalizedValue),
+            tooltipValue: formatLocalizedNumber(normalizedValue),
+            isCompacted: false
+        };
+    }
+
+    const scaledValue = normalizedValue / matchingUnit.threshold;
+    const decimals = typeof decimalsByThreshold === 'function'
+        ? decimalsByThreshold(scaledValue, matchingUnit)
+        : (scaledValue >= 100 ? 0 : 1);
+    const formattedValue = `${formatLocalizedNumber(parseFloat(scaledValue.toFixed(decimals)), {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals
+    })}${matchingUnit.suffix}`;
+
+    return {
+        display: formattedValue,
+        tooltipValue: formatLocalizedNumber(normalizedValue),
+        isCompacted: !!matchingUnit
+    };
+}
+
+function formatCoverageDisplayValue(value, compact = false) {
+    const normalizedValue = Number(value) || 0;
+    if (normalizedValue <= 0) {
+        return {
+            display: '0X',
+            tooltipValue: '0',
+            isCompacted: false
+        };
+    }
+
+    const compactedValue = formatCompactedNumericValue(normalizedValue, {
+        decimalsByThreshold: (scaledValue) => (scaledValue >= 100 ? 0 : 1)
+    });
+
+    if (compactedValue.isCompacted) {
+        return {
+            ...compactedValue,
+            display: `${compactedValue.display}X`
+        };
+    }
+
+    const roundedValue = compact
+        ? Math.round(normalizedValue)
+        : (normalizedValue < 100 ? Math.round(normalizedValue * 10) / 10 : Math.round(normalizedValue));
+    return {
+        display: `${formatLocalizedNumber(roundedValue)}X`,
+        tooltipValue: formatLocalizedNumber(normalizedValue),
+        isCompacted: false
+    };
+}
+
 function renderVerticalRowGroupsExtended({
     rowGroupsExtended,
     rowGroupsExtendedKeys,
@@ -88,67 +243,467 @@ export function extendListObjectsWithIndex(objList){
     });
 }
 
+// Reduces the currently-visible matrix (same data/countFor state the grid renders from) into a
+// flat, JSON-serializable table: one row per leaf row-group (donor, donor+tissue, or tissue),
+// one field per visible column, plus row/column/grand totals sourced the same way the on-screen
+// summary cells are (from rowTotals/columnTotals, not by re-summing `data`).
+// Example: buildMatrixExportData({ data, rowTotals, columnTotals, groupingProperties: ['donor','tissue'], columnGrouping: 'assay', countFor: 'files' })
+const EXPORT_FALLBACK_GROUP_KEY = 'N/A';
+
+export function buildMatrixExportData({
+    data = [],
+    rowTotals = [],
+    columnTotals = [],
+    groupingProperties = [],
+    columnGrouping = null,
+    countFor = 'files',
+    overallCounts = null,
+    matrixMode = null,
+    rowAxisLabel = null,
+    columnAxisLabel = null,
+    rowGroups = null,
+    showRowGroups = false,
+    columnGroups = null,
+    showColumnGroups = false,
+    rawRegularCountOverrides = null,
+    dedupeBenchmarkingDsaAcrossTissues = false
+} = {}) {
+    const countField = countFor === 'tissue_files' ? 'files' : countFor;
+
+    const computeValueForField = (items, field) => {
+        if (!Array.isArray(items) || items.length === 0) return 0;
+        if (field === 'donors') {
+            const uniqueDonorCount = getUniqueDonorCountFromItems(items);
+            if (uniqueDonorCount !== null) return uniqueDonorCount;
+            return _.reduce(items, (max, item) => Math.max(max, getCountValueFromItem(item, field)), 0);
+        }
+        return _.reduce(items, (sum, item) => sum + getCountValueFromItem(item, field), 0);
+    };
+    const computeCellValue = (items) => computeValueForField(items, countField);
+
+    // The grid always shows a secondary summary band counting distinct *rows* of the primary
+    // grouping entity - "Total Donors" for Donor x Assay/Donor x Tissue, but "Total Tissues" for
+    // Tissue x Assay (see rowGroupsSummary's `primarySummaryEntity` / renderSummaryBlocks'
+    // `getPrimaryGroupCountFromGroupedRows`, which key off `groupingProperties[0]`, not a fixed
+    // "donor" field) - regardless of what the Files/Coverage/Donors toggle is currently on. Mirror
+    // that here instead of hardcoding "donors", which would silently mislabel this as a donor
+    // count in Tissue x Assay when it's actually counting tissues.
+    const primaryEntityField = groupingProperties[0] || null;
+    const PRIMARY_ENTITY_LABELS = { donor: 'Donors', tissue: 'Tissues' };
+    const primaryEntityLabel = primaryEntityField
+        ? (PRIMARY_ENTITY_LABELS[primaryEntityField] || `${primaryEntityField.charAt(0).toUpperCase()}${primaryEntityField.slice(1)}s`)
+        : 'Entities';
+    const computePrimaryEntityCount = (items) => {
+        if (!primaryEntityField || !Array.isArray(items)) return 0;
+        const valueSet = new Set();
+        items.forEach((item) => {
+            const value = item && item[primaryEntityField];
+            if (Array.isArray(value)) {
+                value.forEach((v) => { if (v != null) valueSet.add(String(v)); });
+            } else if (value != null) {
+                valueSet.add(String(value));
+            }
+        });
+        return valueSet.size;
+    };
+
+    // A benchmarking DSA-like file can be linked to more than one tissue for the same donor
+    // (see DataMatrix.buildRawRegularCountOverrides's depth-0 case), so the backend reports the
+    // same file count on every one of that donor's tissue rows rather than splitting it - naively
+    // summing the "DSA" column across those rows (as computeCellValue does) counts that file once
+    // per linked tissue. The on-screen grid corrects for this in its collapsed per-donor summary
+    // band; this reproduces the same correction (max per donor, not sum) for the export's
+    // aggregate totals - `columnFiles`/`sectionFiles` here - which read straight off `data`/
+    // `sectionItems` and would otherwise silently over-count "DSA" the same way. Per-row leaf
+    // values (buildLeafRow) are unaffected: each tissue's own row is supposed to show that file's
+    // full count.
+    const dedupeDsaTotalByPrimaryEntity = (items) => {
+        if (!dedupeBenchmarkingDsaAcrossTissues || !primaryEntityField || countField !== 'files') return null;
+        const maxByEntity = {};
+        (items || []).forEach((item) => {
+            const entityValue = item?.[primaryEntityField];
+            if (entityValue == null) return;
+            const key = String(entityValue);
+            const value = Number(item?.counts?.files) || 0;
+            maxByEntity[key] = Math.max(maxByEntity[key] || 0, value);
+        });
+        return _.reduce(maxByEntity, (sum, value) => sum + value, 0);
+    };
+    const dsaColumnDedupExcess = (items) => {
+        const dsaItems = _.filter(items, (item) => item?.[columnGrouping] === 'DSA');
+        if (!dsaItems.length) return 0;
+        const dedupedTotal = dedupeDsaTotalByPrimaryEntity(dsaItems);
+        if (dedupedTotal == null) return 0;
+        return Math.max(0, computeCellValue(dsaItems) - dedupedTotal);
+    };
+
+    // Name the count fields after the metric they actually hold (columnFiles/columnCoverage/
+    // columnDonors) instead of a generic "columnTotals" whose meaning would otherwise only be
+    // discoverable by cross-referencing the top-level `countFor` field.
+    const countFieldLabel = countField === 'total_coverage' ? 'Coverage' : (countField === 'donors' ? 'Donors' : 'Files');
+    const columnMetricKey = `column${countFieldLabel}`;
+    const totalMetricKey = `total${countFieldLabel}`;
+    const sectionMetricKey = `section${countFieldLabel}`;
+    // Same idea for each row's own per-column breakdown/total (was the generic "counts"/
+    // "rowTotal").
+    const rowCountsKey = countFieldLabel.toLowerCase();
+    const rowMetricKey = `row${countFieldLabel}`;
+    const columnEntityKey = `column${primaryEntityLabel}`;
+    const totalEntityKey = `total${primaryEntityLabel}`;
+    const sectionEntityKey = `section${primaryEntityLabel}`;
+    // The always-shown entity count is only a true duplicate of the toggle-driven metric when
+    // they're both literally "distinct donors" (Donor x Assay/Donor x Tissue with the Donors
+    // toggle on) - in Tissue x Assay, toggling to "Donors" counts donors while this band still
+    // counts tissues, so both are meaningful and neither should be dropped.
+    const includeEntityCountAlias = !(primaryEntityField === 'donor' && countField === 'donors');
+
+    const safeData = Array.isArray(data) ? data : [];
+    const nestedData = groupByMultiple(safeData, groupingProperties);
+    const groupedByColumn = typeof columnGrouping === 'string' ? _.groupBy(safeData, columnGrouping) : {};
+    // `_.groupBy` preserves first-occurrence order, matching the grid's own `groupedDataIndices`.
+    // The grid then reorders these via `columnGroups` (assay-family bands for Donor/Tissue x
+    // Assay, auto-populated germLayer bands for Donor x Tissue - see
+    // DataMatrix.getNextStateForMatrixMode's `effectiveAutoPopulateColumnGroupsMapFields`) using
+    // the exact same sortByArray/mergeValues pair reused here, so this must NOT alphabetize
+    // independently - that would visibly scramble the on-screen grouped order.
+    const unorderedColumns = _.keys(groupedByColumn);
+    const hasColumnGroups = !!(showColumnGroups && columnGroups && _.keys(columnGroups).length > 0);
+    const columns = hasColumnGroups
+        ? StackedBlockGroupedRow.sortByArray(unorderedColumns, StackedBlockGroupedRow.mergeValues(columnGroups))
+        : unorderedColumns;
+
+    // germLayer (Ectoderm/Mesoderm/Endoderm/Germline) is intrinsic to a *tissue*, so when the
+    // columns are tissues (e.g. Donor x Tissue) it's the columns - not the rows - that map
+    // cleanly onto a single germLayer each; expose that mapping so it isn't lost on export just
+    // because it isn't one of the explicit row/column grouping fields.
+    const columnGermLayers = {};
+    columns.forEach((col) => {
+        const germLayerValues = _.chain(groupedByColumn[col] || [])
+            .map((item) => item?.germLayer)
+            .compact()
+            .uniq()
+            .value();
+        if (germLayerValues.length === 1) {
+            columnGermLayers[col] = germLayerValues[0];
+        }
+    });
+
+    // The same `columnGroups` band shown on-screen above the column headers (e.g. "Bulk WGS" /
+    // "RNA-seq" / "Duplex-seq" for Donor x Assay, Tissue x Assay, and Benchmarking) - expose which
+    // band each column belongs to, since that grouping is otherwise only implied by column order.
+    // Donor x Tissue's columns are tissues, already covered by `columnGermLayers` above (its
+    // `columnGroups` bands ARE germLayers) - only add this for the assay-family case so the two
+    // fields don't just duplicate each other.
+    const isTissueColumnGrouping = columnGrouping === 'tissue';
+    const columnAssayGroups = {};
+    if (hasColumnGroups && !isTissueColumnGrouping) {
+        _.each(columnGroups, (groupConfig, groupKey) => {
+            _.each(groupConfig?.values || [], (col) => {
+                if (unorderedColumns.includes(col)) {
+                    columnAssayGroups[col] = groupKey;
+                }
+            });
+        });
+    }
+
+    // Row/column totals come from the backend-aggregated totals arrays (same source the
+    // row-summary/col-summary blocks use), keyed by the same grouping-property values.
+    const rowTotalsByPath = _.groupBy(
+        Array.isArray(rowTotals) ? rowTotals : [],
+        (row) => JSON.stringify(groupingProperties.map((prop) => row?.[prop]))
+    );
+    const columnTotalsByKey = _.groupBy(Array.isArray(columnTotals) ? columnTotals : [], columnGrouping);
+
+    // Same lookup the grid's regular blocks use (see StackedBlockGroupedRow.
+    // getRawRegularOverrideForColumn) - a row/column value present here means that column's raw
+    // file count before some of its rows got relabeled onto a synthetic "Variant Call
+    // Sets"/"DSA" column (resultTransformedPostProcessFuncs.analysisDerivedColumns), which would
+    // otherwise make this export silently undercount the original assay the same way summing
+    // `data` naively would.
+    const overrideDepth = groupingProperties.length - 1;
+    const getRawRegularOverride = (pathValues, col) => {
+        if (!rawRegularCountOverrides || countField !== 'files' || overrideDepth < 0) return null;
+        const pathKey = pathValues.map((value) => String(value)).join('||');
+        const overrideValue = rawRegularCountOverrides?.[overrideDepth]?.[pathKey]?.[String(col)];
+        return typeof overrideValue === 'number' ? overrideValue : null;
+    };
+
+    // Sum of the same per-row overrides above, one level up: the backend's `columnTotals`
+    // aggregation buckets purely by the raw assay/platform key, with no `data_type` awareness, so
+    // a DSA-like (DSA/Chain File/Sequence Interval) file tagged with e.g. "Fiber-Seq" is still
+    // counted in that bucket even though `getRawRegularOverride` above (and the on-screen grid)
+    // excludes that same row from ever appearing under "Fiber-Seq" - leaving the backend bucket's
+    // total higher than what the column's own exported rows actually sum to. Reuse the override
+    // map wholesale here so every column's total always equals the sum of its rows, instead of
+    // only patching the one column (Fiber-Seq) this happened to surface on.
+    const overrideColumnTotals = {};
+    if (rawRegularCountOverrides && countField === 'files' && overrideDepth >= 0) {
+        _.each(rawRegularCountOverrides[overrideDepth] || {}, (colValues) => {
+            _.each(colValues, (value, col) => {
+                overrideColumnTotals[col] = (overrideColumnTotals[col] || 0) + (Number(value) || 0);
+            });
+        });
+    }
+
+    const buildLeafRow = (items, pathValues) => {
+        const rowKeyFields = _.object(groupingProperties, pathValues);
+        const byColumn = _.groupBy(items, columnGrouping);
+        const counts = {};
+        columns.forEach((col) => {
+            const overrideValue = getRawRegularOverride(pathValues, col);
+            counts[col] = overrideValue != null ? overrideValue : computeCellValue(byColumn[col] || []);
+        });
+        const matchingRowTotals = rowTotalsByPath[JSON.stringify(pathValues)];
+        // Prefer the backend-aggregated row-totals value, but backend `row_totals` rows aren't
+        // guaranteed to carry every metric - e.g. benchmarking's donor+tissue row_totals track
+        // `files`/`donors` but not `total_coverage`, so computeCellValue(matchingRowTotals) comes
+        // back 0 for every row under the Coverage toggle even though the row's own cells (summed
+        // from `items` below) are clearly non-zero. Falling back to `items` only when the
+        // row-totals figure is 0 keeps the backend total authoritative whenever it actually has
+        // this metric, without resurrecting a genuine 0 as if it were missing data.
+        const rowTotalsValue = matchingRowTotals && matchingRowTotals.length ? computeCellValue(matchingRowTotals) : null;
+        const itemsValue = computeCellValue(items);
+        const rowMetricValue = (rowTotalsValue != null && rowTotalsValue !== 0) ? rowTotalsValue : itemsValue;
+        // germLayer (e.g. Ectoderm/Mesoderm/Endoderm/Germline) is shown on-screen as a colored
+        // vertical row-group label when a row represents a single tissue (e.g. Donor x Assay's
+        // donor+tissue rows). Only surface it here when every underlying item actually shares one
+        // germLayer - for views where a row spans multiple tissues (e.g. Donor x Tissue's
+        // donor-only rows), picking one item's value would misrepresent the row as a whole.
+        const rowGermLayerValues = _.chain(items).map((item) => item?.germLayer).compact().uniq().value();
+        const germLayerValue = rowGermLayerValues.length === 1 ? rowGermLayerValues[0] : null;
+        return {
+            ...rowKeyFields,
+            ...(germLayerValue != null ? { germLayer: germLayerValue } : {}),
+            [rowCountsKey]: counts,
+            [rowMetricKey]: rowMetricValue
+        };
+    };
+
+    // Columns are already sorted alphabetically (above); sort rows the same way so the export
+    // reads consistently rather than in whatever order rows first appeared in the raw data.
+    const sortRowsAlphabetically = (rows) => _.sortBy(rows, (row) => groupingProperties.map((prop) => String(row?.[prop] ?? '')).join(' '));
+
+    const collectLeafRowsInto = (node, pathValues, depth, out) => {
+        if (depth >= groupingProperties.length) {
+            out.push(buildLeafRow(Array.isArray(node) ? node : [], pathValues));
+            return;
+        }
+        _.each(node, (childNode, key) => collectLeafRowsInto(childNode, [...pathValues, key], depth + 1, out));
+    };
+
+    const flattenGroupItems = (node) => {
+        if (Array.isArray(node)) return node;
+        return _.reduce(_.values(node || {}), (memo, child) => memo.concat(flattenGroupItems(child)), []);
+    };
+
+    const columnTotalsMap = {};
+    const columnEntityCounts = {};
+    columns.forEach((col) => {
+        const matchingColumnTotals = columnTotalsByKey[col];
+        const columnItems = matchingColumnTotals && matchingColumnTotals.length ? matchingColumnTotals : (groupedByColumn[col] || []);
+        // DSA's cross-tissue duplication (see dedupeDsaTotalByPrimaryEntity above) affects the raw
+        // per-item rows regardless of which source `columnItems` came from, so recompute from
+        // `groupedByColumn` - the raw rows - rather than `matchingColumnTotals`, which may already
+        // be a backend pre-aggregate without a usable `primaryEntityField` to dedupe by.
+        const dedupedDsaTotal = col === 'DSA' ? dedupeDsaTotalByPrimaryEntity(groupedByColumn[col] || []) : null;
+        columnTotalsMap[col] = dedupedDsaTotal != null
+            ? dedupedDsaTotal
+            : (overrideColumnTotals[col] != null ? overrideColumnTotals[col] : computeCellValue(columnItems));
+        // Mirrors the always-visible "Total Donors"/"Total Tissues" band shown above "Total
+        // Files"/"Total Coverage" on screen - computed the same way regardless of `countFor` so
+        // it doesn't just repeat columnTotals when the toggle happens to already match. Uses the
+        // raw per-item rows (`groupedByColumn`), NOT the backend-aggregated `columnTotals` entries
+        // used above for the metric value - those are already summed across donors/tissues and
+        // carry no raw `donor`/`tissue` field to count unique values from, which would silently
+        // compute 0 whenever a backend column-total row happened to be available.
+        columnEntityCounts[col] = computePrimaryEntityCount(groupedByColumn[col] || []);
+    });
+
+    const grandTotal = overallCounts && Number.isFinite(Number(overallCounts?.[countField]))
+        ? Number(overallCounts[countField])
+        : computeCellValue(Array.isArray(columnTotals) && columnTotals.length ? columnTotals : safeData);
+
+    // The backend-provided overall shortcut is specifically a donor count, so it only applies
+    // when the primary entity actually is "donor" - Tissue x Assay's tissue count has no
+    // equivalent backend field and must always be derived from the data. Always derive from the
+    // raw `safeData` (not the aggregated `columnTotals`) for the same reason as columnEntityCounts
+    // above.
+    const overallEntityCount = primaryEntityField === 'donor' ? (overallCounts?.donors ?? overallCounts?.donor_count) : null;
+    // `Number(null)` is `0`, and `Number.isFinite(0)` is `true` - so checking finiteness alone
+    // silently treats "no backend shortcut available" (null) as a real, valid count of zero
+    // instead of falling through to the raw-data derivation below. That's exactly what happened
+    // for Tissue x Assay: `overallEntityCount` is intentionally null there, `Number.isFinite(0)`
+    // still passed, and every export reported "totalTissues": 0 instead of the real count.
+    const totalEntityCount = overallEntityCount != null && Number.isFinite(Number(overallEntityCount))
+        ? Number(overallEntityCount)
+        : computePrimaryEntityCount(safeData);
+
+    const baseExport = {
+        matrixMode,
+        countFor,
+        rowFields: groupingProperties,
+        columnField: columnGrouping,
+        rowAxisLabel,
+        columnAxisLabel,
+        columns,
+        ...(_.keys(columnGermLayers).length > 0 ? { columnGermLayers } : {}),
+        ...(_.keys(columnAssayGroups).length > 0 ? { columnAssayGroups } : {}),
+        [columnMetricKey]: columnTotalsMap,
+        ...(includeEntityCountAlias ? { [columnEntityKey]: columnEntityCounts } : {}),
+        [totalMetricKey]: grandTotal,
+        ...(includeEntityCountAlias ? { [totalEntityKey]: totalEntityCount } : {}),
+        generatedAt: new Date().toISOString()
+    };
+
+    const hasRowGroups = !!(showRowGroups && rowGroups && Object.keys(rowGroups).length > 0);
+    if (!hasRowGroups) {
+        const rows = [];
+        collectLeafRowsInto(nestedData, [], 0, rows);
+        return { ...baseExport, rows: sortRowsAlphabetically(rows) };
+    }
+
+    // Some views (e.g. benchmarking) split the top-level row axis into named sections
+    // (e.g. "Cell Lines" vs "Benchmarking Donors"), each with its own subtotal row on-screen.
+    // Reproduce that same section split/order/subtotals here instead of flattening rows,
+    // reusing the exact ordering/matching helpers the grid itself renders with.
+    const topLevelKeys = _.keys(nestedData);
+    const orderedTopLevelKeys = StackedBlockGroupedRow.sortByArray(topLevelKeys, StackedBlockGroupedRow.mergeValues(rowGroups));
+    const allGroupedValues = StackedBlockGroupedRow.mergeValues(rowGroups);
+    const rowGroupKeysInOrder = [..._.keys(rowGroups), EXPORT_FALLBACK_GROUP_KEY];
+
+    const rowGroupSections = _.compact(_.map(rowGroupKeysInOrder, (groupKey) => {
+        const matchedTopLevelKeys = groupKey === EXPORT_FALLBACK_GROUP_KEY
+            ? StackedBlockGroupedRow.difference(orderedTopLevelKeys, allGroupedValues)
+            : StackedBlockGroupedRow.intersection(orderedTopLevelKeys, (rowGroups[groupKey] || {}).values || []);
+        if (!matchedTopLevelKeys.length) return null;
+
+        const sectionRows = [];
+        matchedTopLevelKeys.forEach((topKey) => {
+            collectLeafRowsInto(nestedData[topKey], [topKey], 1, sectionRows);
+        });
+
+        const sectionItems = _.chain(matchedTopLevelKeys)
+            .map((topKey) => flattenGroupItems(nestedData[topKey]))
+            .flatten()
+            .value();
+        const sectionByColumn = _.groupBy(sectionItems, columnGrouping);
+        const sectionColumnTotals = {};
+        const sectionColumnEntityCounts = {};
+        columns.forEach((col) => {
+            const sectionColumnItems = sectionByColumn[col] || [];
+            const dedupedDsaTotal = col === 'DSA' ? dedupeDsaTotalByPrimaryEntity(sectionColumnItems) : null;
+            sectionColumnTotals[col] = dedupedDsaTotal != null ? dedupedDsaTotal : computeCellValue(sectionColumnItems);
+            sectionColumnEntityCounts[col] = computePrimaryEntityCount(sectionColumnItems);
+        });
+        // computeCellValue(sectionItems) below sums every item including "DSA"'s raw
+        // (undeduped) rows - subtract exactly the excess those contributed so the section total
+        // still matches sum(sectionColumnTotals) instead of double-counting the same fix twice.
+        const sectionDsaDedupExcess = dsaColumnDedupExcess(sectionItems);
+
+        return {
+            key: groupKey,
+            label: groupKey === EXPORT_FALLBACK_GROUP_KEY ? EXPORT_FALLBACK_GROUP_KEY : `Total ${StackedBlockVisual.pluralize(groupKey)}`,
+            entityCount: matchedTopLevelKeys.length,
+            rows: sectionRows,
+            [columnMetricKey]: sectionColumnTotals,
+            ...(includeEntityCountAlias ? { [columnEntityKey]: sectionColumnEntityCounts } : {}),
+            [sectionMetricKey]: computeCellValue(sectionItems) - sectionDsaDedupExcess,
+            ...(includeEntityCountAlias ? { [sectionEntityKey]: computePrimaryEntityCount(sectionItems) } : {})
+        };
+    }));
+
+    return { ...baseExport, rowGroups: rowGroupSections };
+}
+
 // VisualBody renders the matrix wrapper with popovers and count formatting.
 // Example: <VisualBody results={{ all: data, row_totals: totals }} groupingProperties={['donor','tissue']} columnGrouping="assay" />
 export class VisualBody extends React.PureComponent {
+
+    constructor(props){
+        super(props);
+        this.blockPopover = this.blockPopover.bind(this);
+        this.loadingContainerRef = null;
+        this.state = {
+            loadingIndicatorLayout: null
+        };
+        this.updateLoadingIndicatorLayout = this.updateLoadingIndicatorLayout.bind(this);
+    }
+
+    componentDidMount() {
+        const { isLoading } = this.props;
+        if (isLoading) {
+            this.updateLoadingIndicatorLayout();
+        }
+        window.addEventListener('resize', this.updateLoadingIndicatorLayout, { passive: true });
+    }
+
+    componentDidUpdate(prevProps) {
+        const { isLoading, xAxisLabel, yAxisLabel, showAxisLabels } = this.props;
+        const { loadingIndicatorLayout } = this.state;
+        if (isLoading) {
+            const loadingStateChanged = prevProps.isLoading !== isLoading;
+            if (loadingStateChanged) {
+                this.updateLoadingIndicatorLayout();
+                return;
+            }
+            if (
+                prevProps.xAxisLabel !== xAxisLabel ||
+                prevProps.yAxisLabel !== yAxisLabel ||
+                prevProps.showAxisLabels !== showAxisLabels
+            ) {
+                this.updateLoadingIndicatorLayout();
+            }
+        } else if (prevProps.isLoading) {
+            if (loadingIndicatorLayout !== null) {
+                this.setState({ loadingIndicatorLayout: null });
+            }
+        }
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.updateLoadingIndicatorLayout);
+    }
 
     static blockRenderedContents(data, blockProps){
         const countFor = blockProps && blockProps.countFor ? blockProps.countFor : 'files';
         const blockType = blockProps && blockProps.blockType ? blockProps.blockType : 'regular';
         const countField = countFor === 'tissue_files' ? 'files' : countFor;
-        const getCountValue = (item) => {
-            if (!item || !item.counts) return 0;
-            if (countField === 'donors') {
-                const donorsVal = item.counts.donors;
-                if (typeof donorsVal === 'number') return donorsVal;
-                const donorCountVal = item.counts.donor_count;
-                return typeof donorCountVal === 'number' ? donorCountVal : 0;
-            }
-            const value = item.counts[countField];
-            return typeof value === 'number' ? value : 0;
-        };
-        const getUniqueDonorCountFromItems = (items) => {
-            if (!Array.isArray(items)) return null;
-            const donorSet = new Set();
-            items.forEach((item) => {
-                if (!item) return;
-                const donorValue = item.donor;
-                if (Array.isArray(donorValue)) {
-                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
-                } else if (donorValue != null) {
-                    donorSet.add(String(donorValue));
-                }
-            });
-            return donorSet.size > 0 ? donorSet.size : null;
-        };
-        const blockSum = Array.isArray(data)
+        const blockSum = typeof blockProps?.computedBlockValue === 'number'
+            ? blockProps.computedBlockValue
+            : (Array.isArray(data)
             ? (countField === 'donors'
                 ? (() => {
                     const uniqueDonorCount = getUniqueDonorCountFromItems(data);
                     if (uniqueDonorCount !== null) return uniqueDonorCount;
                     return _.reduce(data, function (maxValue, item) {
-                        return Math.max(maxValue, getCountValue(item));
+                        return Math.max(maxValue, getCountValueFromItem(item, countField));
                     }, 0);
                 })()
-                : _.reduce(data, function (sum, item) { return sum + getCountValue(item); }, 0))
-            : (data ? getCountValue(data) : 0);
+                : _.reduce(data, function (sum, item) { return sum + getCountValueFromItem(item, countField); }, 0))
+            : (data ? getCountValueFromItem(data, countField) : 0));
 
         // For total_coverage, we want to display the value with "X" and
         // use a different formatting logic. For other count types, we display the raw count with standard formatting.
         if (countFor === 'total_coverage') {
-            if (blockType === 'col-summary') {
+            const shouldShowCoverageSummary = !!blockProps?.showCoverageSummaries;
+            if (!shouldShowCoverageSummary && (blockType === 'col-summary' || blockType === 'row-summary' || blockType === 'col-secondary-summary')) {
                 return <span data-count={blockSum}>&nbsp;</span>;
             }
-            if (blockType === 'row-summary') {
-                return <span data-count={blockSum}>-</span>;
-            }
             if (blockSum <= 0) return <span data-count={blockSum}>0</span>;
-            const rounded = blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum);
-            const tooltipValue = rounded.toLocaleString();
-            const display = `${rounded.toLocaleString()}X`;
-            const fontSize = display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem');
+            // Summary cells are narrower than the regular coverage tiles, so
+            // prefer the compact formatter there unless a caller overrides it.
+            const compactCoverageText = typeof blockProps?.compactCoverageText === 'boolean'
+                ? blockProps.compactCoverageText
+                : (blockType === 'col-summary' || blockType === 'row-summary' || blockType === 'col-secondary-summary');
+            const { display, tooltipValue, isCompacted } = formatCoverageDisplayValue(blockSum, compactCoverageText);
+            const fontSize = compactCoverageText
+                ? (display.length > 6 ? '0.60rem' : (display.length > 4 ? '0.66rem' : '0.72rem'))
+                : (display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem'));
             return (
-                <span style={{ fontSize }} data-count={blockSum} data-tip={tooltipValue}>
+                <span
+                    style={{ fontSize }}
+                    data-count={blockSum}
+                    {...(isCompacted ? { 'data-tip': `${tooltipValue}X` } : {})}>
                     {display}
                 </span>
             );
@@ -156,9 +711,12 @@ export class VisualBody extends React.PureComponent {
 
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
+            const compactedValue = formatCompactedNumericValue(blockSum, {
+                decimalsByThreshold: (scaledValue) => (scaledValue >= 10 ? 0 : decimal)
+            });
             return (
-                <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum} data-tip={blockSum}>
-                    { roundLargeNumber(blockSum, decimal) }
+                <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum}>
+                    { compactedValue.isCompacted ? compactedValue.display : roundLargeNumber(blockSum, decimal) }
                 </span>
             );
         }
@@ -222,9 +780,28 @@ export class VisualBody extends React.PureComponent {
         return null;
     }
 
-    constructor(props){
-        super(props);
-        this.blockPopover = this.blockPopover.bind(this);
+    updateLoadingIndicatorLayout() {
+        if (!this.loadingContainerRef) return;
+        const matrixPanelContent = this.loadingContainerRef.closest('.matrix-panel-content');
+        const tabsEl = matrixPanelContent ? matrixPanelContent.querySelector('.matrix-mode-tabs') : null;
+        const { loadingIndicatorLayout } = this.state;
+        if (!tabsEl) {
+            if (loadingIndicatorLayout !== null) {
+                this.setState({ loadingIndicatorLayout: null });
+            }
+            return;
+        }
+        const containerRect = this.loadingContainerRef.getBoundingClientRect();
+        const tabsRect = tabsEl.getBoundingClientRect();
+        // Center the loading spinner to the inner mode-tab strip instead of the full viewport width.
+        const nextLayout = {
+            width: Math.round(tabsRect.width),
+            marginLeft: Math.max(0, Math.round(tabsRect.left - containerRect.left))
+        };
+        const prevLayout = loadingIndicatorLayout;
+        if (!prevLayout || prevLayout.width !== nextLayout.width || prevLayout.marginLeft !== nextLayout.marginLeft) {
+            this.setState({ loadingIndicatorLayout: nextLayout });
+        }
     }
 
     findKeyByValue(obj, value) {
@@ -264,7 +841,7 @@ export class VisualBody extends React.PureComponent {
             rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath,
             browseFilteringTransformFunc, activeFacetHref
         } = this.props;
-        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey, summaryCounts = null } = blockProps;
+        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey, summaryCounts = null, countFor = 'files', computedBlockValue = null } = blockProps;
         const effectiveBlockType = blockType === 'col-secondary-summary' ? 'col-summary' : blockType;
         let isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
@@ -329,8 +906,19 @@ export class VisualBody extends React.PureComponent {
         // Title area values
         const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
         const yAxisGroupingValue = aggrData[columnGrouping] || (isGroup ? data[0][columnGrouping] : data[columnGrouping]) || columnKey;
+        const groupedItems = Array.isArray(data) ? data : (data ? [data] : []);
+        const groupedGermLayers = _.chain(groupedItems)
+            .map((item) => item?.germLayer)
+            .flatten()
+            .compact()
+            .filter((value) => value !== 'No value')
+            .map((value) => String(value))
+            .uniq()
+            .value();
         // e.g. Germ Layer (Ectoderm, Mesoderm, Endoderm ...etc) if available
-        let secondaryGrpPropCategoryValue = aggrData.germLayer || null;
+        let secondaryGrpPropCategoryValue = groupedGermLayers.length > 1
+            ? 'Multiple'
+            : (groupedGermLayers[0] || aggrData.germLayer || null);
         if (!secondaryGrpPropCategoryValue && rowGroupsExtended) {
             const rowGroupSourceValues = _.uniq(_.compact([secondaryGrpPropValue, primaryGrpPropValue, yAxisGroupingValue]));
             for (const rowGroupSourceValue of rowGroupSourceValues) {
@@ -373,7 +961,7 @@ export class VisualBody extends React.PureComponent {
                 );
                 //2. traverse rowAggFields to see if facetField exists there
                 if (!compositeFacetPairs && Array.isArray(rowAggFields)) {
-                    for (let field in rowAggFields) {
+                    for (const field of rowAggFields) {
                         compositeFacetPairs = VisualBody.getFacetPairs(
                             facetField,
                             facetTerm,
@@ -479,18 +1067,9 @@ export class VisualBody extends React.PureComponent {
             return primaryGroupingField === 'sample_summary.tissues';
         })();
 
-        const getUniqueDonorCountFromItems = (items) => {
-            const donorSet = new Set();
-            (items || []).forEach((item) => {
-                if (!item) return;
-                const donorValue = item.donor;
-                if (Array.isArray(donorValue)) {
-                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
-                } else if (donorValue != null) {
-                    donorSet.add(String(donorValue));
-                }
-            });
-            if (donorSet.size > 0) return donorSet.size;
+        const getResolvedDonorCountFromItems = (items) => {
+            const uniqueDonorCount = getUniqueDonorCountFromItems(items);
+            if (uniqueDonorCount !== null) return uniqueDonorCount;
 
             // Tissue x Assay file summaries can be backed by aggregated rows that do not
             // carry donor identifiers, so fall back to the aggregate donor totals.
@@ -542,13 +1121,41 @@ export class VisualBody extends React.PureComponent {
                 totalCoverage: sum.totalCoverage + getTotalCoverageFromItem(item)
             };
         }, { fileCount: 0, totalCoverage: 0 });
-        const donorCount = getUniqueDonorCountFromItems(dataForCounts);
+        const rowSummaryFilesFromItems = _.reduce(rowSummaryItems, function(sum, item) {
+            return sum + getFilesCountFromItem(item);
+        }, 0);
+        const shouldUseComputedSummaryValue = (
+            (effectiveBlockType === 'col-summary' || effectiveBlockType === 'row-summary') &&
+            typeof computedBlockValue === 'number'
+        );
+        const effectiveFileCount = ((countFor === 'files' || countFor === 'tissue_files') && shouldUseComputedSummaryValue)
+            ? computedBlockValue
+            : (effectiveBlockType === 'row-summary' && countFor === 'donors' && rowSummaryFilesFromItems > 0)
+                ? rowSummaryFilesFromItems
+                : (typeof summaryCounts?.files === 'number'
+                    ? summaryCounts.files
+                    : fileCount);
+        const effectiveTotalCoverage = (countFor === 'total_coverage' && shouldUseComputedSummaryValue)
+            ? computedBlockValue
+            : (typeof summaryCounts?.total_coverage === 'number'
+                ? summaryCounts.total_coverage
+                : totalCoverage);
+        const donorCount = getResolvedDonorCountFromItems(dataForCounts);
         const isTissueColumnGrouping = (fieldChangeMap?.[columnGrouping] || columnGrouping) === 'sample_summary.tissues';
+        const assayCount = getUniqueValueCountFromItems(dataForCounts, 'assay');
         const tissueCount = isTissueColumnGrouping
             ? getUniqueValueCountFromItems(effectiveBlockType === 'row-summary' ? rowSummaryItems : dataForCounts, columnGrouping)
             : 0;
+        const effectiveSecondaryGrpPropUniqueCount = (effectiveBlockType === 'row-summary' && secondaryGrpProp)
+            ? (getUniqueValueCountFromItems(rowSummaryItems, secondaryGrpProp) || secondaryGrpPropUniqueCount)
+            : secondaryGrpPropUniqueCount;
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
-        const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
+        const roundedTotalCoverage = effectiveTotalCoverage > 0 ? Math.round(effectiveTotalCoverage * 100) / 100 : 0;
+        const totalCoverageDisplay = roundedTotalCoverage > 0 ? `${formatLocalizedNumber(roundedTotalCoverage, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        })}X` : '--';
+        const formattedFileCount = typeof effectiveFileCount === 'number' ? formatLocalizedNumber(effectiveFileCount) : effectiveFileCount;
         const formatGermLayerValue = (value) => (value && value !== 'No value' ? value : '--');
 
         // Render
@@ -564,12 +1171,17 @@ export class VisualBody extends React.PureComponent {
                                         <div className="value">{primaryGrpPropValue || '--'}</div>
                                     </div>
                                     <div className="col-4">
-                                        {depth > 0 || additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ? (
+                                        {isTissueGrouping || isTissueColumnGrouping ? (
+                                            <React.Fragment>
+                                                <div className="label">{yAxisGroupingTitle}</div>
+                                                <div className="value">{yAxisGroupingValue || '--'}</div>
+                                            </React.Fragment>
+                                        ) : (depth > 0 || additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ? (
                                             <React.Fragment>
                                                 <div className="label">{secondaryGrpPropTitle}</div>
                                                 <div className="value">{additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] || secondaryGrpPropValue}</div>
                                             </React.Fragment>
-                                        ) : null}
+                                        ) : null)}
                                     </div>
                                     <div className="col-4">
                                         <div className="label me-05">{'Germ Layer'}</div>
@@ -601,34 +1213,44 @@ export class VisualBody extends React.PureComponent {
                             {effectiveBlockType === 'regular' ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
-                                        <div className="label me-05">{yAxisGroupingTitle}</div>
-                                        <div className="value">{yAxisGroupingValue || '--'}</div>
+                                        <div className="label me-05">{isTissueGrouping ? 'Total Donors' : (isTissueColumnGrouping ? 'Total Assays' : yAxisGroupingTitle)}</div>
+                                        <div className="value">{isTissueGrouping ? (donorCount || '--') : (isTissueColumnGrouping ? (assayCount || '--') : (yAxisGroupingValue || '--'))}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Coverage</div>
-                                        <div className="value">{roundedTotalCoverage > 0 ? roundedTotalCoverage + 'X' : '--'}</div>
+                                        <div className="value">{totalCoverageDisplay}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
-                                        <div className="value">{fileCount}</div>
+                                        <div className="value">{formattedFileCount}</div>
                                     </div>
                                 </div>
                             ) : null}
                             {effectiveBlockType === 'col-summary' ? (
-                                <div className="row secondary-row pb-1 mt-1">
-                                    <div className="col-4">
-                                        <div className="label me-05">{StackedBlockVisual.pluralize(primaryGrpPropTitle)}</div>
-                                        <div className="value">{primaryGrpPropUniqueCount || '--'}</div>
+                                <React.Fragment>
+                                    <div className="row secondary-row pb-1 mt-1">
+                                        <div className="col-4">
+                                            <div className="label me-05">
+                                                {
+                                                    primaryGrpProp === 'donor'
+                                                        ? 'Total Donors'
+                                                        : (primaryGrpProp === 'tissue'
+                                                            ? 'Total Tissues'
+                                                            : StackedBlockVisual.pluralize(primaryGrpPropTitle))
+                                                }
+                                            </div>
+                                            <div className="value">{primaryGrpPropUniqueCount || '--'}</div>
+                                        </div>
+                                        <div className="col-4">
+                                            <div className="label">{secondaryGrpPropCategoryValue ? 'Germ Layer' : (isTissueGrouping ? 'Total Donors' : StackedBlockVisual.pluralize(secondaryGrpPropTitle))}</div>
+                                            <div className="value">{secondaryGrpPropCategoryValue ? formatGermLayerValue(secondaryGrpPropCategoryValue) : (isTissueGrouping ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--'))}</div>
+                                        </div>
+                                        <div className="col-4">
+                                            <div className="label">{countFor === 'total_coverage' ? 'Total Coverage' : 'Total Files'}</div>
+                                            <div className="value">{countFor === 'total_coverage' ? totalCoverageDisplay : formattedFileCount}</div>
+                                        </div>
                                     </div>
-                                    <div className="col-4">
-                                        <div className="label">{secondaryGrpPropCategoryValue ? 'Germ Layer' : (isTissueGrouping ? 'Total Donors' : StackedBlockVisual.pluralize(secondaryGrpPropTitle))}</div>
-                                        <div className="value">{secondaryGrpPropCategoryValue ? formatGermLayerValue(secondaryGrpPropCategoryValue) : (isTissueGrouping ? (donorCount || '--') : (secondaryGrpPropUniqueCount || '--'))}</div>
-                                    </div>
-                                    <div className="col-4">
-                                        <div className="label">Total Files</div>
-                                        <div className="value">{fileCount}</div>
-                                    </div>
-                                </div>
+                                </React.Fragment>
                             ) : null}
                             {effectiveBlockType === 'row-summary' && depth === 0 ? (
                                 <div className="row secondary-row pb-1 mt-1">
@@ -644,7 +1266,7 @@ export class VisualBody extends React.PureComponent {
                                             {isTissueGrouping
                                                 ? (donorCount || '--')
                                                 : (isTissueColumnGrouping ? (tissueCount || '--')
-                                                    : (secondaryGrpPropUniqueCount || additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || '--'))}
+                                                    : (effectiveSecondaryGrpPropUniqueCount || additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || '--'))}
                                         </div>
                                     </div>
                                     {additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ?
@@ -658,7 +1280,7 @@ export class VisualBody extends React.PureComponent {
                                     }
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
-                                        <div className="value">{fileCount}</div>
+                                        <div className="value">{formattedFileCount}</div>
                                     </div>
                                 </div>
                             ) : null}
@@ -674,12 +1296,12 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
-                                        <div className="value">{fileCount}</div>
+                                        <div className="value">{formattedFileCount}</div>
                                     </div>
                                 </div>
                             ) : null}
                             <div className="row footer-row p-1">
-                                {makeSearchButton(browseUrl, fileCount <= 0)}
+                                {makeSearchButton(browseUrl, effectiveFileCount <= 0)}
                             </div>
                         </div>
                         :
@@ -696,19 +1318,52 @@ export class VisualBody extends React.PureComponent {
     }
 
     render(){
-        const { results: { all, row_totals, column_totals } } = this.props;
+        const {
+            disableRowExpand = false,
+            isLoading = false,
+            showAxisLabels = false,
+            xAxisLabel,
+            yAxisLabel,
+            headerLeftControls = null,
+            showLoadingHeaderLeftControls = false,
+            results = { all: [], row_totals: [], column_totals: [] }
+        } = this.props;
+        const { all, row_totals, column_totals } = results;
+        if (isLoading) {
+            const { loadingIndicatorLayout } = this.state;
+            const loadingIndicatorStyle = loadingIndicatorLayout || undefined;
+            return (
+                <div className="stacked-block-viz-container is-loading" ref={(el) => { this.loadingContainerRef = el; }}>
+                    {showAxisLabels ? (
+                        <div className="axis-container flex-grow-1" style={{ position: 'relative', minHeight: '120px' }}>
+                            <div className="x-axis">{xAxisLabel || 'X'}</div>
+                            <div className="y-axis">{yAxisLabel || 'Y'}</div>
+                        </div>
+                    ) : null}
+                    {showLoadingHeaderLeftControls && headerLeftControls ? (
+                        <div className="matrix-loading-header-controls">
+                            {headerLeftControls}
+                        </div>
+                    ) : null}
+                    <div className="matrix-loading-indicator text-center" style={{ fontSize: '2rem', opacity: 0.5, ...loadingIndicatorStyle }}>
+                        <i className="mt-3 icon icon-spin icon-circle-notch fas" />
+                    </div>
+                </div>
+            );
+        }
         return (
-            <StackedBlockVisual data={all} rowTotals={row_totals} columnTotals={column_totals} checkCollapsibility
+            <StackedBlockVisual data={all} rowTotals={row_totals} columnTotals={column_totals} checkCollapsibility={!disableRowExpand}
                 {..._.pick(this.props,
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
-                    'columnSubGrouping', 'defaultDepthsOpen',
+                    'columnSubGrouping', 'defaultDepthsOpen', 'defaultExpandedRowIndices',
                     'columnSubGroupingOrder', 'colorRanges',
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
                     'countFor', 'overallCounts', 'showUniqueDonorsAssayBand', 'shrinkEmptyColumns',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing', 'rowSummaryCountsByGroup',
-                    'headerLeftControls')}
+                    'rawRegularCountOverrides', 'dedupeBenchmarkingDsaAcrossTissues', 'compactCoverageText', 'showCoverageSummaries', 'disableRowExpand', 'disableBlockOpen',
+                    'headerLeftControls', 'hideFallbackColumnGroupHeader', 'hideFallbackRowGroupHeader', 'isGridRefreshing')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -906,13 +1561,14 @@ export class StackedBlockVisual extends React.PureComponent {
 
     componentDidUpdate(prevProps) {
         const { activeBlock, openBlock } = this.state;
+        const { columnGrouping, groupingProperties, countFor, data, rowTotals, columnTotals } = this.props;
         const layoutChanged =
-            prevProps.columnGrouping !== this.props.columnGrouping ||
-            !_.isEqual(prevProps.groupingProperties, this.props.groupingProperties) ||
-            prevProps.countFor !== this.props.countFor ||
-            prevProps.data !== this.props.data ||
-            prevProps.rowTotals !== this.props.rowTotals ||
-            prevProps.columnTotals !== this.props.columnTotals;
+            prevProps.columnGrouping !== columnGrouping ||
+            !_.isEqual(prevProps.groupingProperties, groupingProperties) ||
+            prevProps.countFor !== countFor ||
+            prevProps.data !== data ||
+            prevProps.rowTotals !== rowTotals ||
+            prevProps.columnTotals !== columnTotals;
 
         if (layoutChanged && (activeBlock || openBlock)) {
             this.setState({ activeBlock: null, openBlock: null });
@@ -1121,8 +1777,17 @@ export class StackedBlockVisual extends React.PureComponent {
         columnsAndHeaderProps,
         columnToRowsMappingFunc
     }) {
-        const { rowGroups, showColumnSummary, showColumnGroups, columnGroups, columnGrouping } = this.props;
-        const { activeBlock, openBlock } = this.state;
+        const {
+            rowGroups,
+            showColumnSummary,
+            showColumnGroups,
+            columnGroups,
+            columnGrouping,
+            blockWidth,
+            blockHorizontalSpacing,
+            blockHorizontalExtend
+        } = this.props;
+        const { activeBlock, openBlock, sorting, sortField } = this.state;
 
         // Resolve row keys for a group (including the fallback N/A group).
         const getRowKeysForGroup = (groupKey, values) => {
@@ -1165,7 +1830,7 @@ export class StackedBlockVisual extends React.PureComponent {
                         const containerSectionStyle = getContainerSectionStyle(backgroundColor, textColor, groupKeyIdx);
                         const labelSectionStyle = {};
                         const columnKeys = getColumnKeys();
-                        const columnWidth = (this.props.blockWidth + (this.props.blockHorizontalSpacing * 2)) + this.props.blockHorizontalExtend;
+                        const columnWidth = (blockWidth + (blockHorizontalSpacing * 2)) + blockHorizontalExtend;
                         const headerItemStyle = {};
 
                         return _.map(rowKeys, (k, idx) => {
@@ -1197,11 +1862,12 @@ export class StackedBlockVisual extends React.PureComponent {
                                         rowTotals={nestedRowTotals[k]}
                                         key={k}
                                         group={k}
+                                        groupPath={[]}
                                         depth={0}
                                         index={outerIdx}
                                         onSorterClick={this.handleSorterClick}
-                                        sorting={this.state.sorting}
-                                        sortField={this.state.sortField}
+                                        sorting={sorting}
+                                        sortField={sortField}
                                         handleBlockMouseEnter={this.handleBlockMouseEnter}
                                         handleBlockMouseLeave={this.handleBlockMouseLeave}
                                         handleBlockClick={this.handleBlockClick}
@@ -1219,7 +1885,7 @@ export class StackedBlockVisual extends React.PureComponent {
     }
 
     renderContents(){
-        const { data : propData, rowTotals: propRowTotals, columnTotals: propColumnTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, showColumnSummary, blockHeight, blockVerticalSpacing, shrinkEmptyColumns = true } = this.props;
+        const { data : propData, rowTotals: propRowTotals, columnTotals: propColumnTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, showColumnSummary, blockHeight, blockVerticalSpacing, shrinkEmptyColumns = true, hideFallbackRowGroupHeader = false } = this.props;
         const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
         if (!mounted) return null;
         // prepare data
@@ -1279,13 +1945,17 @@ export class StackedBlockVisual extends React.PureComponent {
 
         const leftAxisKeys = sortLeftAxisKeys(_.keys(nestedData));
         const hasRowGroups = showRowGroups && rowGroups && _.keys(rowGroups).length > 0;
-        const rowGroupsKeys = hasRowGroups ? [..._.keys(rowGroups), FALLBACK_GROUP_NAME] : null;
+        const rowGroupsKeys = hasRowGroups
+            ? [..._.keys(rowGroups), ...(hideFallbackRowGroupHeader ? [] : [FALLBACK_GROUP_NAME])]
+            : null;
         const hasRowGroupsExtendedTopLevel = Array.isArray(groupingProperties) &&
             groupingProperties.length === 1 &&
             showRowGroupsExtended &&
             rowGroupsExtended &&
             _.keys(rowGroupsExtended).length > 0;
-        const rowGroupsExtendedKeys = hasRowGroupsExtendedTopLevel ? [..._.keys(rowGroupsExtended), FALLBACK_GROUP_NAME] : null;
+        const rowGroupsExtendedKeys = hasRowGroupsExtendedTopLevel
+            ? [..._.keys(rowGroupsExtended), ...(hideFallbackRowGroupHeader ? [] : [FALLBACK_GROUP_NAME])]
+            : null;
 
         // convert to { columnGrouping: [groupingProperties] }
         // Example: rows=[{ assay:'WGS', donor:'D1' },{ assay:'WGS', donor:'D2' },{ assay:'RNA', donor:'D1' }]
@@ -1377,6 +2047,7 @@ export class StackedBlockVisual extends React.PureComponent {
                                             rowTotals={nestedRowTotals[k]}
                                             key={k}
                                             group={k}
+                                            groupPath={[]}
                                             index={outerIdx}
                                         />
                                     );
@@ -1407,12 +2078,13 @@ export class StackedBlockVisual extends React.PureComponent {
                     {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
                     {
                         _.map(leftAxisKeys, (k, idx) =>
-                            <StackedBlockGroupedRow 
+                            <StackedBlockGroupedRow
                                 {...sharedRowProps}
                                 data={nestedData[k]}
                                 rowTotals={nestedRowTotals[k]}
                                 key={k}
                                 group={k}
+                                groupPath={[]}
                                 index={idx}
                             />
                         )
@@ -1425,12 +2097,13 @@ export class StackedBlockVisual extends React.PureComponent {
 
     render() {
         const { openBlock, activeBlock } = this.state;
+        const { countFor, yAxisLabel, isGridRefreshing } = this.props;
         let className = "stacked-block-viz-container";
-        if (this.props.countFor) {
-            className += ` count-for-${this.props.countFor}`;
+        if (countFor) {
+            className += ` count-for-${countFor}`;
         }
-        if (this.props.yAxisLabel) {
-            const yAxisClass = String(this.props.yAxisLabel).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        if (yAxisLabel) {
+            const yAxisClass = String(yAxisLabel).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
             if (yAxisClass) {
                 className += ` matrix-yaxis-${yAxisClass}`;
             }
@@ -1440,6 +2113,9 @@ export class StackedBlockVisual extends React.PureComponent {
         }
         if (openBlock) {
             className += ' has-open-block';
+        }
+        if (isGridRefreshing) {
+            className += ' is-refreshing-grid';
         }
         return (
             <div
@@ -1550,17 +2226,65 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return props.fieldChangeMap?.[props.columnGrouping] || props.columnGrouping;
     }
 
-    static getColumnTotalsEntry(columnKey, props) {
-        if (!Array.isArray(props.columnTotals)) return null;
+    static getColumnTotalsEntries(columnKey, props) {
+        if (!Array.isArray(props.columnTotals)) return [];
 
-        // DataMatrix normalizes column_totals to the UI grouping alias (e.g. assay),
-        // but some callers may still pass raw backend-shaped totals. Prefer the UI key
-        // and fall back to the original backend field for safety.
         const transformedField = props.columnGrouping;
         const resolvedColumnGroupingField = StackedBlockGroupedRow.getResolvedColumnGroupingField(props);
 
-        return _.findWhere(props.columnTotals, { [transformedField]: columnKey })
-            || _.findWhere(props.columnTotals, { [resolvedColumnGroupingField]: columnKey });
+        return _.filter(props.columnTotals, (columnTotal) => (
+            columnTotal?.[transformedField] === columnKey
+            || columnTotal?.[resolvedColumnGroupingField] === columnKey
+        ));
+    }
+
+    static getColumnTotalsEntry(columnKey, props) {
+        const matchingEntries = StackedBlockGroupedRow.getColumnTotalsEntries(columnKey, props);
+        if (matchingEntries.length === 0) return null;
+
+        const transformedField = props.columnGrouping;
+        const resolvedColumnGroupingField = StackedBlockGroupedRow.getResolvedColumnGroupingField(props);
+        const groupedRows = Array.isArray(props.groupedDataIndices?.[columnKey]) ? props.groupedDataIndices[columnKey] : [];
+        const uniqueDonors = _.chain(groupedRows)
+            .map((row) => row?.donor)
+            .flatten()
+            .compact()
+            .map((value) => String(value))
+            .uniq()
+            .value();
+        const groupedRowDonorCount = _.reduce(groupedRows, (maxCount, row) => {
+            const rowDonorCount = row?.counts?.donors ?? row?.counts?.donor_count ?? 0;
+            return Math.max(maxCount, rowDonorCount);
+        }, 0);
+        const donorCount = uniqueDonors.length > 0
+            ? uniqueDonors.length
+            : Math.max(
+                groupedRowDonorCount,
+                _.reduce(matchingEntries, (maxCount, entry) => {
+                    const entryDonorCount = entry?.counts?.donors ?? entry?.counts?.donor_count ?? 0;
+                    return Math.max(maxCount, entryDonorCount);
+                }, 0)
+            );
+
+        return _.reduce(matchingEntries, (memo, entry, index) => {
+            if (index === 0) {
+                memo = {
+                    ...entry,
+                    [transformedField]: columnKey,
+                    [resolvedColumnGroupingField]: columnKey,
+                    counts: {
+                        ...(entry?.counts || {}),
+                        files: 0,
+                        total_coverage: 0,
+                        donors: donorCount,
+                        donor_count: donorCount
+                    }
+                };
+            }
+            memo.counts.files += Number(entry?.counts?.files) || 0;
+            memo.counts.total_coverage += Number(entry?.counts?.total_coverage) || 0;
+            return memo;
+        }, null);
     }
 
     static getColumnHasCoverage(columnKey, props) {
@@ -1598,12 +2322,19 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
     // Returns the override field (e.g. donor, tissue) that is both configured in
     // rowSummaryCountsByGroup and present on the provided rows.
-    static resolveOverrideFieldForRows(rows, props) {
+    static getRowSummaryOverridesForContext(props) {
         const overridesByField = props.rowSummaryCountsByGroup;
         if (!overridesByField || typeof overridesByField !== 'object') return null;
-        return _.find(_.keys(overridesByField), (field) => {
-            return _.some(rows || [], (row) => row && row[field] != null);
-        });
+        if (props.rowGroupKey && overridesByField[props.rowGroupKey] && typeof overridesByField[props.rowGroupKey] === 'object') {
+            return overridesByField[props.rowGroupKey];
+        }
+        return overridesByField;
+    }
+
+    static resolveOverrideFieldForRows(rows, props) {
+        const overridesByField = StackedBlockGroupedRow.getRowSummaryOverridesForContext(props);
+        if (!overridesByField || typeof overridesByField !== 'object') return null;
+        return _.find(_.keys(overridesByField), (field) => _.some(rows || [], (row) => row && row[field] != null));
     }
 
     // Computes the overall files count from row summary overrides by summing one
@@ -1611,7 +2342,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     static getOverallFilesFromRowSummaryOverrides(rows, props) {
         const overrideField = StackedBlockGroupedRow.resolveOverrideFieldForRows(rows, props);
         if (!overrideField) return null;
-        const overridesForField = props.rowSummaryCountsByGroup?.[overrideField];
+        const overridesForField = StackedBlockGroupedRow.getRowSummaryOverridesForContext(props)?.[overrideField];
         if (!overridesForField) return null;
         const groupValues = _.chain(rows || [])
             .map((row) => row?.[overrideField])
@@ -1639,7 +2370,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         if (!Array.isArray(rows) || rows.length === 0) return null;
         const overrideField = StackedBlockGroupedRow.resolveOverrideFieldForRows(rows, props);
         if (!overrideField) return null;
-        const overridesForField = props.rowSummaryCountsByGroup?.[overrideField];
+        const overridesForField = StackedBlockGroupedRow.getRowSummaryOverridesForContext(props)?.[overrideField];
         if (!overridesForField) return null;
         const columnField = props.columnGrouping;
         let foundGroup = false;
@@ -1668,6 +2399,43 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return foundGroup ? total : null;
     }
 
+    static getRawRegularOverrideForColumn(columnKey, props) {
+        const { rawRegularCountOverrides, depth, group, groupPath = [] } = props;
+        if (!rawRegularCountOverrides || columnKey == null || typeof depth !== 'number') return null;
+        const pathValues = [...groupPath, group].filter((value) => value != null && value !== '');
+        if (pathValues.length === 0) return null;
+        const pathKey = pathValues.map((value) => String(value)).join('||');
+        const overrideValue = rawRegularCountOverrides?.[depth]?.[pathKey]?.[String(columnKey)];
+        return typeof overrideValue === 'number' ? overrideValue : null;
+    }
+
+    static getRawRegularOverrideTotalForColumn(rows, columnKey, props) {
+        const primaryGroupingField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : null;
+        if (!primaryGroupingField || !props.rawRegularCountOverrides || columnKey == null) return null;
+
+        const primaryGroups = _.chain(rows || [])
+            .map((row) => row?.[primaryGroupingField])
+            .flatten()
+            .compact()
+            .map((value) => String(value))
+            .uniq()
+            .value();
+
+        if (primaryGroups.length === 0) return null;
+
+        let foundOverride = false;
+        const total = _.reduce(primaryGroups, (memo, groupValue) => {
+            const overrideValue = props.rawRegularCountOverrides?.[0]?.[groupValue]?.[String(columnKey)];
+            if (typeof overrideValue === 'number') {
+                foundOverride = true;
+                return memo + overrideValue;
+            }
+            return memo;
+        }, 0);
+
+        return foundOverride ? total : null;
+    }
+
     /** @todo Convert to functional memoized React component */
     static collapsedChildBlocks = memoize(function(data, rowTotals, props){
 
@@ -1687,7 +2455,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle',
             // Generic summary overrides keyed by grouping field and row value.
-            'countFor', 'rowSummaryCountsByGroup');
+            'countFor', 'rowSummaryCountsByGroup', 'rawRegularCountOverrides', 'dedupeBenchmarkingDsaAcrossTissues',
+            'compactCoverageText', 'showCoverageSummaries');
         const getContainerGroupStyle = function(columnKey = 'overall-summary') {
             const width = StackedBlockGroupedRow.getColumnWidthForKey(columnKey, props);
             return {
@@ -1770,13 +2539,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 const rowSummaryFiles = (props.countFor === 'files' || props.countFor === 'tissue_files')
                     ? props.rowSummaryCountsByGroup?.[currentGroupingField]?.[props.group]?.files
                     : null;
+                const shouldUseBenchmarkingDsaCollapsedSummaryOverride = !!props.dedupeBenchmarkingDsaAcrossTissues && columnKeys.indexOf('DSA') > -1;
+                const sumFilesForColumn = (columnKey) => _.reduce(blocksByColumnGroup[columnKey] || [], (sum, row) => sum + (Number(row?.counts?.files) || 0), 0);
                 const derivedCollapsedCellOverrides = {};
-                if (typeof rowSummaryFiles === 'number' && columnKeys.indexOf('DSA') > -1) {
+                if (shouldUseBenchmarkingDsaCollapsedSummaryOverride && typeof rowSummaryFiles === 'number') {
                     // For collapsed rows, derive DSA as:
                     // row summary files - sum(non-DSA column files).
-                    const sumFilesForColumn = (columnKey) => _.reduce(blocksByColumnGroup[columnKey] || [], (sum, row) => {
-                        return sum + (Number(row?.counts?.files) || 0);
-                    }, 0);
                     const sumNonDsaFiles = _.reduce(columnKeys, (sum, columnKey) => {
                         if (columnKey === 'DSA') return sum;
                         return sum + sumFilesForColumn(columnKey);
@@ -1810,21 +2578,39 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     // We have columnSubGrouping so these are -pairs- of (0) columnSubGrouping val, (1) blocks
                                     blockData = blockData[1];
                                 }
-                                const explicitOverrideFiles = derivedCollapsedCellOverrides[k];
+                                const rawOverrideFiles = (props.countFor === 'files' || props.countFor === 'tissue_files')
+                                    ? StackedBlockGroupedRow.getRawRegularOverrideForColumn(k, props)
+                                    : null;
+                                const explicitOverrideFiles = typeof rawOverrideFiles === 'number' ? rawOverrideFiles : derivedCollapsedCellOverrides[k];
                                 const blockDataForRender = typeof explicitOverrideFiles === 'number'
-                                    ? [{
-                                        ...(blockData[0] || {}),
+                                    ? (blockData || []).map((item, itemIdx) => ({
+                                        ...item,
                                         counts: {
-                                            ...(blockData[0]?.counts || {}),
-                                            files: explicitOverrideFiles
+                                            ...(item?.counts || {}),
+                                            // Preserve the full grouped row set for popover metadata
+                                            // (e.g. multiple germ layers), while still rendering the
+                                            // overridden collapsed total by assigning it to the first
+                                            // row and zeroing the rest.
+                                            files: itemIdx === 0 ? explicitOverrideFiles : 0
                                         }
-                                    }]
+                                    }))
                                     : blockData;
                                 return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockDataForRender} indexInGroup={i} rowIndex={props.index} colIndex={colIdx} blockType="regular" />;
                             }) }
                         </div>
                     );
                 });
+                const effectiveCollapsedRowSummaryFiles = shouldUseBenchmarkingDsaCollapsedSummaryOverride && (props.countFor === 'files' || props.countFor === 'tissue_files')
+                    ? _.reduce(columnKeys, (sum, columnKey) => {
+                        const rawOverrideFiles = StackedBlockGroupedRow.getRawRegularOverrideForColumn(columnKey, props);
+                        const explicitOverrideFiles = typeof rawOverrideFiles === 'number'
+                            ? rawOverrideFiles
+                            : derivedCollapsedCellOverrides[columnKey];
+                        return sum + (typeof explicitOverrideFiles === 'number'
+                            ? explicitOverrideFiles
+                            : sumFilesForColumn(columnKey));
+                    }, 0)
+                    : null;
                 // add summary column block
                 let rowSummaryBlock = null;
                 const totalRowCount = _.reduce(_.map(blocksByColumnGroup, function(b){ return b.length; }), function(m, n){ return m + n; }, 0);
@@ -1845,9 +2631,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             counts: { ...(filteredRowTotalChildBlocks[0]?.counts || {}), ...overrideCounts }
                         }]
                         : filteredRowTotalChildBlocks;
-                    const summaryCounts = (typeof overrideFiles === 'number')
+                    const summaryCountsBase = (typeof overrideFiles === 'number')
                         ? { ...(filteredRowTotalChildBlocks[0]?.counts || {}), ...overrideCounts }
                         : (filteredRowTotalChildBlocks[0]?.counts || null);
+                    const summaryCounts = typeof effectiveCollapsedRowSummaryFiles === 'number'
+                        ? { ...(summaryCountsBase || {}), files: effectiveCollapsedRowSummaryFiles }
+                        : summaryCountsBase;
                     rowSummaryBlock = (
                         <div className="block-container-group" style={getContainerGroupStyle('overall-summary')}
                             key={'total'} data-block-count={totalRowCount} data-group-key={'row-summary'}>
@@ -1858,6 +2647,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 rowTotals={rowTotalsForBlock}
                                 rowIndex={props.index}
                                 blockType="row-summary"
+                                computedBlockValue={effectiveCollapsedRowSummaryFiles}
                                 summaryCounts={summaryCounts}
                             />
                         </div>
@@ -1879,7 +2669,13 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     constructor(props){
         super(props);
         this.toggleOpen = _.throttle(this.toggleOpen.bind(this), 250);
-        var initOpen = (Array.isArray(props.defaultDepthsOpen) && props.defaultDepthsOpen[props.depth]) || false;
+        const shouldExpandByIndex = (
+            props.depth === 0 &&
+            typeof props.index === 'number' &&
+            Array.isArray(props.defaultExpandedRowIndices) &&
+            props.defaultExpandedRowIndices.includes(props.index)
+        );
+        var initOpen = shouldExpandByIndex || ((Array.isArray(props.defaultDepthsOpen) && props.defaultDepthsOpen[props.depth]) || false);
         this.state = { 'open' : initOpen };
     }
 
@@ -1897,8 +2693,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
     /**
      * renders the column headers and axis labels
-     * @param {*} props 
-     * @returns 
+     * @param {*} props
+     * @returns
      */
     static columnsAndHeader(props) {
         const {
@@ -1906,7 +2702,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             sorting, sortField, onSorterClick, groupedDataIndices, openBlock, activeBlock,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
-            overallCounts, countFor, headerLeftControls
+            overallCounts, countFor, headerLeftControls, hideFallbackColumnGroupHeader = false, hideFallbackRowGroupHeader = false
         } = props;
 
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
@@ -1916,7 +2712,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
         const hasColumnGroupsExtended = showColumnGroupsExtended && columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
-        const columnGroupsKeys = hasColumnGroups ? [..._.keys(columnGroups), FALLBACK_GROUP_NAME] : null;
+        const columnGroupsKeys = hasColumnGroups
+            ? [..._.keys(columnGroups), ...(hideFallbackColumnGroupHeader ? [] : [FALLBACK_GROUP_NAME])]
+            : null;
 
         const extPadding = 60 + (hasColumnGroups ? 26 : 0) + (hasColumnGroupsExtended ? 30 : 0);
         const labelSectionStyle = {
@@ -2139,17 +2937,49 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         };
         const groupingBandLabel = secondarySummaryBandLabelByMetric[props.countFor] || `Total ${label}`;
 
+        const parseCustomUrlParams = (customUrlParams) => {
+            if (!customUrlParams || typeof customUrlParams !== 'string') return {};
+            try {
+                return queryString.parse(customUrlParams);
+            } catch (e) {
+                return {};
+            }
+        };
+
+        const rowMatchesCustomUrlParams = (row, customUrlParams) => {
+            const parsedParams = parseCustomUrlParams(customUrlParams);
+            const paramKeys = Object.keys(parsedParams);
+            if (paramKeys.length === 0) return true;
+
+            return paramKeys.every((key) => {
+                const isNegative = key.endsWith('!');
+                const fieldName = isNegative ? key.slice(0, -1) : key;
+                const expectedValues = Array.isArray(parsedParams[key]) ? parsedParams[key] : [parsedParams[key]];
+                const rowValue = row?.[fieldName];
+                const rowValues = Array.isArray(rowValue)
+                    ? rowValue.map((value) => String(value))
+                    : [String(rowValue)];
+
+                if (isNegative) {
+                    return rowValues.every((value) => !expectedValues.map(String).includes(value));
+                }
+
+                return rowValues.some((value) => expectedValues.map(String).includes(value));
+            });
+        };
+
+        const currentRowGroupCustomUrlParams = props.rowGroups?.[props.rowGroupKey]?.customUrlParams || null;
+
         const getColumnSummaryData = (columnKey) => {
-            const result = [];
             const values = props.groupedDataIndices[columnKey] || [];
-            values.forEach((val) => result.push(val));
-            return result;
+            return values.filter((row) => rowMatchesCustomUrlParams(row, currentRowGroupCustomUrlParams));
         };
 
         const getAllSectionRows = () => {
             const rowsById = {};
             Object.keys(props.groupedDataIndices || {}).forEach((ck) => {
                 (props.groupedDataIndices[ck] || []).forEach((row, idx) => {
+                    if (!rowMatchesCustomUrlParams(row, currentRowGroupCustomUrlParams)) return;
                     const rowKey = row && typeof row.index !== 'undefined' ? `idx-${row.index}` : `fallback-${ck}-${idx}`;
                     rowsById[rowKey] = row;
                 });
@@ -2158,7 +2988,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         };
 
         const getPrimaryGroupCountFromGroupedRows = (columnKey) => {
-            const rows = props.groupedDataIndices[columnKey] || [];
+            const rows = getColumnSummaryData(columnKey);
             const primaryGroupField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
             const primaryGroupSet = new Set();
             rows.forEach((row) => {
@@ -2172,11 +3002,33 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             return primaryGroupSet.size;
         };
 
+        const getDonorCountFromGroupedRows = (columnKey) => {
+            const rows = getColumnSummaryData(columnKey);
+            const donorSet = new Set();
+            let maxRowDonorCount = 0;
+
+            rows.forEach((row) => {
+                const donorValue = row && row.donor;
+                if (Array.isArray(donorValue)) {
+                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
+                } else if (donorValue != null) {
+                    donorSet.add(String(donorValue));
+                }
+                const rowDonorCount = row?.counts?.donors ?? row?.counts?.donor_count ?? 0;
+                if (rowDonorCount > maxRowDonorCount) {
+                    maxRowDonorCount = rowDonorCount;
+                }
+            });
+
+            return donorSet.size > 0 ? donorSet.size : maxRowDonorCount;
+        };
+
         const getOverallPrimaryGroupCountFromRows = () => {
             const primaryGroupField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
             const primaryGroupSet = new Set();
             Object.keys(props.groupedDataIndices || {}).forEach((ck) => {
                 (props.groupedDataIndices[ck] || []).forEach((row) => {
+                    if (!rowMatchesCustomUrlParams(row, currentRowGroupCustomUrlParams)) return;
                     const primaryGroupValue = row && row[primaryGroupField];
                     if (Array.isArray(primaryGroupValue)) {
                         primaryGroupValue.forEach((d) => { if (d != null) primaryGroupSet.add(String(d)); });
@@ -2217,35 +3069,70 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             <div className="blocks-container d-flex header-summary">
                 {columnKeys.map(function (columnKey, colIndex) {
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
-                    const totalsCounts = StackedBlockGroupedRow.getColumnTotalsEntry(columnKey, props)?.counts;
+                    const sectionColumnRows = getColumnSummaryData(columnKey);
                     const sectionRows = getAllSectionRows();
+                    const derivedCoverageTotal = summaryCountFor === 'total_coverage'
+                        ? _.reduce(sectionColumnRows, function(sum, item) {
+                            return sum + getCountValueFromItem(item, 'total_coverage');
+                        }, 0)
+                        : null;
+                    const summedSectionFilesTotal = _.reduce(sectionColumnRows, function(sum, item) {
+                        return sum + getCountValueFromItem(item, 'files');
+                    }, 0);
+                    const rawOverrideSectionFilesTotal = (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
+                        ? StackedBlockGroupedRow.getRawRegularOverrideTotalForColumn(sectionRows, columnKey, props)
+                        : null;
+                    const sectionFilesTotal = typeof rawOverrideSectionFilesTotal === 'number'
+                        ? rawOverrideSectionFilesTotal
+                        : summedSectionFilesTotal;
                     // Apply derived fallback only for DSA column summary files.
                     // Other columns continue using backend/standard summary paths.
-                    const shouldDeriveDsaFiles = (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
+                    const shouldDeriveDsaFiles = summaryCountFor === 'files'
                         && summaryBlockType === 'col-summary'
                         && columnKey === 'DSA'
+                        && (!props.dedupeBenchmarkingDsaAcrossTissues || typeof rawOverrideSectionFilesTotal !== 'number')
                         && !!props.rowSummaryCountsByGroup;
                     const derivedDsaFiles = shouldDeriveDsaFiles
                         ? StackedBlockGroupedRow.getDerivedColumnFilesFromRowSummary(sectionRows, columnKey, props)
                         : null;
+                    const groupedRowsDonorCount = getDonorCountFromGroupedRows(columnKey);
                     const donorsCount = isPrimarySummaryBand
                         ? getPrimaryGroupCountFromGroupedRows(columnKey)
-                        : (totalsCounts?.donors ?? totalsCounts?.donor_count ?? getPrimaryGroupCountFromGroupedRows(columnKey));
-                    const summaryCounts = isPrimarySummaryBand
-                        ? { donors: donorsCount }
-                        : {
-                            ...(totalsCounts || {}),
-                            donors: donorsCount,
-                            ...((typeof derivedDsaFiles === 'number') ? { files: derivedDsaFiles } : null)
-                        };
+                        : (groupedRowsDonorCount || getPrimaryGroupCountFromGroupedRows(columnKey));
+                    const totalsCounts = {
+                        files: sectionFilesTotal,
+                        total_coverage: derivedCoverageTotal ?? 0,
+                        donors: donorsCount,
+                        donor_count: donorsCount
+                    };
+                    const rawColumnTotalEntry = sectionColumnRows.length > 0
+                        ? {
+                            ...sectionColumnRows[0],
+                            counts: {
+                                ...(sectionColumnRows[0]?.counts || {}),
+                                ...totalsCounts
+                            }
+                        }
+                        : null;
+                    const summaryCounts = {
+                        ...(totalsCounts || {}),
+                        donors: donorsCount,
+                        ...(summaryCountFor === 'total_coverage' ? { total_coverage: totalsCounts?.total_coverage ?? derivedCoverageTotal ?? 0 } : null),
+                        ...((typeof derivedDsaFiles === 'number') ? { files: derivedDsaFiles } : null)
+                    };
+                    const useRawColumnTotal = rawColumnTotalEntry && (summaryCountFor === 'files' || summaryCountFor === 'tissue_files');
                     const columnSummaryData = summaryCountFor === 'donors'
                         ? [{ counts: { donors: donorsCount } }]
                         : summaryCountFor === 'total_coverage'
-                            ? []
-                            : (typeof derivedDsaFiles === 'number'
-                                ? [{ counts: { files: derivedDsaFiles } }]
-                                : getColumnSummaryData(columnKey));
-                    const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
+                            ? (props.showCoverageSummaries
+                                ? [{ counts: { total_coverage: summaryCounts?.total_coverage || 0 } }]
+                                : [])
+                            : (useRawColumnTotal
+                                ? rawColumnTotalEntry
+                                : (typeof derivedDsaFiles === 'number'
+                                    ? [{ counts: { files: derivedDsaFiles } }]
+                                    : sectionColumnRows));
+                    const columnTotal = sectionColumnRows.length || 0;
                     const hasOpenBlock = props.openBlock?.columnIdx === colIndex && props.openBlock?.summaryRowType === summaryBlockType;
                     const hasActiveBlock = props.activeBlock?.columnIdx === colIndex && props.activeBlock?.summaryRowType === summaryBlockType;
                     const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
@@ -2272,7 +3159,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     );
                 })}
                 {(() => {
-                    if (summaryCountFor === 'total_coverage') return null;
+                    if (summaryCountFor === 'total_coverage' && !props.showCoverageSummaries) return null;
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
                     const sectionRows = getAllSectionRows();
                     // If row summary overrides exist for this grouping field, use them for the
@@ -2282,15 +3169,19 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         ? (isPrimarySummaryBand
                             ? getOverallPrimaryGroupCountFromRows()
                             : (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? getUniqueDonorCountFromRows(sectionRows)))
+                        : summaryCountFor === 'total_coverage'
+                            ? (props.overallCounts?.total_coverage ?? _.reduce(sectionRows, function(sum, item) {
+                                return sum + getCountValueFromItem(item, 'total_coverage');
+                            }, 0))
                         : summaryCountFor === 'tissue_files'
                             ? (props.overallCounts?.files ?? overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
                                 return sum + (Number(item?.counts?.files) || 0);
                             }, 0))
-                        : summaryCountFor === 'files'
-                            ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
-                                return sum + (Number(item?.counts?.files) || 0);
-                            }, 0))
-                            : props.overallCounts?.[summaryCountFor];
+                            : summaryCountFor === 'files'
+                                ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
+                                    return sum + (Number(item?.counts?.files) || 0);
+                                }, 0))
+                                : props.overallCounts?.[summaryCountFor];
                     if (overallValue == null) return null;
                     const overallHeaderItemStyle = StackedBlockGroupedRow.getHeaderItemStyleForKey('overall-summary', props);
                     const overallSummaryBlockStyle = getSummaryBlockStyle('overall-summary');
@@ -2299,39 +3190,40 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     const hasActiveBlock = props.activeBlock?.columnIdx === columnKeys.length
                         && props.activeBlock?.summaryRowType === summaryBlockType;
                     return (
-                    <div
-                        key={`col-summary-overall-${summaryCountFor}`}
-                        className={`column-group-header overall-summary ${summaryBlockType === 'col-secondary-summary' ? 'col-secondary-summary' : ''}${hasOpenBlock ? ' open-block-column' : ''}${hasActiveBlock ? ' active-block-column' : ''}`}
-                        style={overallHeaderItemStyle}>
                         <div
-                            className="block-container-group"
-                            style={overallSummaryBlockStyle}
-                            data-block-count={1}
-                            data-group-key="overall-summary">
-                            <Block
-                                {..._.omit(props, 'group')}
-                                key={`overall-summary-block-${summaryCountFor}`}
-                                data={{ counts: summaryCountFor === 'donors'
-                                    ? { ...props.overallCounts, donors: overallValue }
-                                    : (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
-                                        ? { ...props.overallCounts, files: overallValue }
-                                    : props.overallCounts
-                                }}
-                                colIndex={columnKeys.length}
-                                blockType={summaryBlockType === 'col-secondary-summary' ? 'col-summary' : summaryBlockType}
-                                popoverPrimaryTitle={props.rowGroupKey}
-                                columnKey="overall-summary"
-                                countFor={summaryCountFor}
-                                summaryCounts={summaryCountFor === 'donors'
-                                    ? { ...props.overallCounts, donors: overallValue }
-                                    : (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
-                                        ? { ...props.overallCounts, files: overallValue }
-                                        : props.overallCounts
-                                }
-                                summaryRowType={summaryBlockType}
-                            />
+                            key={`col-summary-overall-${summaryCountFor}`}
+                            className={`column-group-header overall-summary ${summaryBlockType === 'col-secondary-summary' ? 'col-secondary-summary' : ''}${hasOpenBlock ? ' open-block-column' : ''}${hasActiveBlock ? ' active-block-column' : ''}`}
+                            style={overallHeaderItemStyle}>
+                            <div
+                                className="block-container-group"
+                                style={overallSummaryBlockStyle}
+                                data-block-count={1}
+                                data-group-key="overall-summary">
+                                <Block
+                                    {..._.omit(props, 'group')}
+                                    key={`overall-summary-block-${summaryCountFor}`}
+                                    data={{
+                                        counts: summaryCountFor === 'donors'
+                                            ? { ...props.overallCounts, donors: overallValue }
+                                            : (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
+                                                ? { ...props.overallCounts, files: overallValue }
+                                                : props.overallCounts
+                                    }}
+                                    colIndex={columnKeys.length}
+                                    blockType={summaryBlockType === 'col-secondary-summary' ? 'col-summary' : summaryBlockType}
+                                    popoverPrimaryTitle={props.rowGroupKey}
+                                    columnKey="overall-summary"
+                                    countFor={summaryCountFor}
+                                    summaryCounts={summaryCountFor === 'donors'
+                                        ? { ...props.overallCounts, donors: overallValue }
+                                        : (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
+                                            ? { ...props.overallCounts, files: overallValue }
+                                            : props.overallCounts
+                                    }
+                                    summaryRowType={summaryBlockType}
+                                />
+                            </div>
                         </div>
-                    </div>
                     );
                 })()}
             </div>
@@ -2371,7 +3263,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing,
             data, rowTotals, index, showGroupingPropertyTitles, checkCollapsibility,
             activeBlock, openBlock,
-            rowGroupsExtended, showRowGroupsExtended } = this.props;
+            rowGroupsExtended, showRowGroupsExtended, hideFallbackRowGroupHeader = false, fallbackNameForBlankField = 'None' } = this.props;
         const { open: stateOpen } = this.state;
 
         const getGroupingPropertyTitle = () => {
@@ -2381,7 +3273,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const getChildRowsKeys = () => (!Array.isArray(data) ? _.keys(data).sort() : null);
         const getHasIdentifiableChildren = (childRowsKeys) => {
-            if (!checkCollapsibility) return true;
+            if (!checkCollapsibility) return false;
             return (depth + 2 >= groupingProperties.length) &&
                 childRowsKeys && childRowsKeys.length > 0 &&
                 !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');
@@ -2409,7 +3301,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             ((!Array.isArray(data) && data && hasIdentifiableChildren) ? ' may-collapse' : '');
 
         const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
-        const rowGroupsExtendedKeys = hasRowGroupsExtended ? [..._.keys(rowGroupsExtended), FALLBACK_GROUP_NAME] : null;
+        const rowGroupsExtendedKeys = hasRowGroupsExtended
+            ? [..._.keys(rowGroupsExtended), ...(hideFallbackRowGroupHeader ? [] : [FALLBACK_GROUP_NAME])]
+            : null;
         const rowGroupsExtendedByLowerKey = hasRowGroupsExtended ? _.reduce(_.keys(rowGroupsExtended), (memo, k) => {
             const lk = k.toLowerCase();
             if (memo[lk] == null) memo[lk] = k;
@@ -2425,6 +3319,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const labelContainerClassName = 'label-container' + (hasOpenBlock ? ' open-block-row' : '') + (hasActiveBlock ? ' active-block-row' : '');
         const groupingPropertyTitle = getGroupingPropertyTitle();
         const toggleIcon = getToggleIcon();
+        const displayGroup = (typeof group === 'undefined' || group === null || group === '' || group === 'undefined' || group === 'null' || group === fallbackNameForBlankField)
+            ? ''
+            : group;
 
         const renderRowGroupsExtended = () => renderVerticalRowGroupsExtended({
             rowGroupsExtended,
@@ -2433,14 +3330,14 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             rowHeight,
             rowGroupsExtendedByLowerKey,
             renderRow: (k) => (
-                <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
+                <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} groupPath={[...(this.props.groupPath || []), group]} depth={depth + 1} />
             )
         });
 
         const renderChildRows = () => (
             <div className="child-blocks">
                 {open && childRowsKeys && _.map(childRowsKeys, (k) =>
-                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
+                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} groupPath={[...(this.props.groupPath || []), group]} depth={depth + 1} />
                 )}
             </div>
         );
@@ -2454,8 +3351,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     <small className="text-400 mb-0 mt-0">{groupingPropertyTitle}</small>
                                     : null}
                                 <h4 className="text-truncate"
-                                    data-tip={group && typeof group === 'string' && group.length > 20 ? group : null}>
-                                    {toggleIcon}<span className="inner">{group}</span>
+                                    data-tip={displayGroup && typeof displayGroup === 'string' && displayGroup.length > 20 ? displayGroup : null}>
+                                    {toggleIcon}<span className="inner">{displayGroup}</span>
                                 </h4>
                             </div>
                         </div>
@@ -2518,51 +3415,46 @@ const Block = React.memo(function Block(props){
         contents = blockRenderedContents.apply(blockRenderedContents, blockFxnArguments);
     }
 
-    // Build optional popover
-    let popover = null;
-    if (typeof blockPopover === 'function'){
-        popover = blockPopover.apply(blockPopover, blockFxnArguments);
-    }
-
     const countFor = props.countFor || 'files';
     const effectiveCountFor = countFor === 'tissue_files' ? 'files' : countFor;
-    const getCountValue = (item) => {
-        if (!item || !item.counts) return 0;
-        if (effectiveCountFor === 'donors') {
-            const donorsVal = item.counts.donors;
-            if (typeof donorsVal === 'number') return donorsVal;
-            const donorCountVal = item.counts.donor_count;
-            return typeof donorCountVal === 'number' ? donorCountVal : 0;
-        }
-        const value = item.counts[effectiveCountFor];
-        return typeof value === 'number' ? value : 0;
-    };
-    const getUniqueDonorCountFromItems = (items) => {
-        if (!Array.isArray(items)) return null;
-        const donorSet = new Set();
-        items.forEach((item) => {
-            if (!item) return;
-            const donorValue = item.donor;
-            if (Array.isArray(donorValue)) {
-                donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
-            } else if (donorValue != null) {
-                donorSet.add(String(donorValue));
-            }
-        });
-        return donorSet.size > 0 ? donorSet.size : null;
-    };
     const blockValue = Array.isArray(argData)
         ? (effectiveCountFor === 'donors'
             ? (() => {
                 const uniqueDonorCount = getUniqueDonorCountFromItems(argData);
                 if (uniqueDonorCount !== null) return uniqueDonorCount;
-                return _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValue(item)); }, 0);
+                return _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValueFromItem(item, effectiveCountFor)); }, 0);
             })()
-            : _.reduce(argData, function (sum, item) { return sum + getCountValue(item); }, 0))
-        : (argData ? getCountValue(argData) : 0);
+            : _.reduce(argData, function (sum, item) { return sum + getCountValueFromItem(item, effectiveCountFor); }, 0))
+        : (argData ? getCountValueFromItem(argData, effectiveCountFor) : 0);
+    const shouldShowCoverageSummary = !!props.showCoverageSummaries;
+    const shouldShowCompactCoverageTooltip = (() => {
+        if (countFor !== 'total_coverage') return false;
+        if (!(blockType === 'col-summary' || blockType === 'row-summary' || blockType === 'col-secondary-summary')) return false;
+        if (!shouldShowCoverageSummary) return false;
+        const compactCoverageText = typeof props.compactCoverageText === 'boolean'
+            ? props.compactCoverageText
+            : true;
+        return formatCoverageDisplayValue(blockValue, compactCoverageText).isCompacted;
+    })();
+    const compactedCountTooltip = (() => {
+        if (countFor === 'total_coverage') {
+            return shouldShowCompactCoverageTooltip ? `${formatLocalizedNumber(blockValue)}X` : null;
+        }
+        return blockValue >= 1000 ? formatLocalizedNumber(blockValue) : null;
+    })();
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
-    const hideCoverageSummaryBlock = countFor === 'total_coverage' && blockType === 'col-summary';
-    if (hideCoverageBlock || hideCoverageSummaryBlock) {
+
+    // Build optional popover after blockValue is known so summary popovers can
+    // use the exact rendered count instead of re-deriving from grouped rows.
+    let popover = null;
+    if (typeof blockPopover === 'function'){
+        popover = blockPopover.apply(blockPopover, [argData, {
+            ...props,
+            computedBlockValue: typeof props?.computedBlockValue === 'number' ? props.computedBlockValue : blockValue
+        }, parentGrouping]);
+    }
+
+    if (hideCoverageBlock) {
         popover = null;
     }
 
@@ -2581,7 +3473,12 @@ const Block = React.memo(function Block(props){
         return range ? range.color : null;
     };
 
-    const color = getColor(blockValue, blockType);
+    let color = getColor(blockValue, blockType);
+    // Safety fallback: if a positive value misses a color bucket, still paint it so
+    // value-present cells never appear as blank white boxes.
+    if (!color && blockType === 'regular' && blockValue > 0 && Array.isArray(colorRanges) && colorRanges.length > 0) {
+        color = colorRanges[0].color || null;
+    }
 
     const isOpenBlock = openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
         ((blockType === 'col-summary' || blockType === 'col-secondary-summary')
@@ -2589,13 +3486,20 @@ const Block = React.memo(function Block(props){
             : (openBlock?.rowKey === group));
 
     // Apply open/active styles
-    if (hideCoverageBlock || hideCoverageSummaryBlock) {
+    if (hideCoverageBlock) {
         style['backgroundColor'] = 'transparent';
         style['borderColor'] = 'transparent';
         style['pointerEvents'] = 'none';
     } else if (isOpenBlock) {
-        style['color'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
-        style['borderColor'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
+        if (isSummaryBlock(blockType)) {
+            style['color'] = '#8a8aaa';
+            style['borderColor'] = '#8a8aaa';
+        } else {
+            // Keep valid data blocks visually filled while "open" so they don't look empty.
+            style['backgroundColor'] = color;
+            style['color'] = '#ffffff';
+            style['borderColor'] = color;
+        }
         style['pointerEvents'] = 'none'; // disable pointer events when block is open
         className += ' is-open-block';
     } else {
@@ -2616,9 +3520,10 @@ const Block = React.memo(function Block(props){
             data-place="bottom"
             data-block-value={blockValue}
             data-block-type={blockType || 'regular'}
+            {...(compactedCountTooltip ? { 'data-tip': compactedCountTooltip } : {})}
             onMouseEnter={() => typeof handleBlockMouseEnter === 'function' && handleBlockMouseEnter(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}
             onMouseLeave={handleBlockMouseLeave}
-            onClick={()=> !(hideCoverageBlock || hideCoverageSummaryBlock) && popover && handleBlockClick(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}>
+            onClick={()=> !hideCoverageBlock && popover && handleBlockClick(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}>
             {contents}
         </div>
     );

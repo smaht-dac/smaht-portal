@@ -41,3 +41,10 @@ def test_identifier_pattern(
     """Test 'identifier' regex for URL pattern."""
     patch_body = {"identifier": identifier}
     patch_item(testapp, patch_body, page["uuid"], status=expected_status)
+
+
+def test_page_revision_history_not_tracked(
+    testapp: TestApp, page: Dict[str, Any]
+) -> None:
+    """Page opts out of Postgres revision-history tracking."""
+    testapp.get(f'/{page["uuid"]}/@@revision-history', status=404)

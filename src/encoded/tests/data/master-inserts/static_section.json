@@ -637,6 +637,25 @@
         ]
     },
     {
+        "identifier": "renamed-files",
+        "title": "List of Renamed Files",
+        "file": "/docs/public/renamed_files.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "70f3ade6-2741-4e1d-b96e-d052b66f0981",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "data_matrix_comparison",
         "title": "SMaHT Data Matrix",
         "file": "/docs/public/data_matrix_comparison.jsx",
@@ -651,6 +670,25 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "uuid": "2851ec1b-ecdb-479a-b88e-deedaa1886ef",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "recent_releases",
+        "title": "Recent Releases",
+        "file": "/docs/public/recent_releases.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "8ad6252d-6c17-4a34-9259-82734ebcca1c",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
@@ -813,8 +851,25 @@
     },
     {
         "identifier": "smaht-snv-calling",
-        "title": "Somatic: SMaHT SNV Pipeline",
+        "title": "Somatic: SMaHT SNV Pipeline v1.0.0",
         "uuid": "607beb40-d109-46c5-b38d-f4008c296a16",
+        "section_type": "Page Section",
+        "status": "open",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "smaht-snv-calling-v2",
+        "title": "Somatic: SMaHT SNV Pipeline v2.0.0",
+        "uuid": "1a5368a7-a3af-4310-b5b4-38abb65593b1",
         "section_type": "Page Section",
         "status": "open",
         "options": {
@@ -966,6 +1021,97 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "uuid": "f8b1b363-5530-4109-83c2-7b94acbc0e18",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "consortium_hub",
+        "title": "SMaHT Consortium Member Hub",
+        "file": "/docs/public/consortium_hub.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "f3d05813-e6a9-413d-8218-8c52eb754882",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "publication_collections",
+        "file": "/docs/public/publication_collections.jsx",
+        "status": "open",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "ccbf17aa-90ea-42d6-a53a-543504df5440",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking_collection",
+        "file": "/docs/public/benchmarking_collection.jsx",
+        "status": "open",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "1f109810-48ed-40ff-a3fc-b4a971717e4e",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "p25_collection",
+        "file": "/docs/public/p25_collection.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "22c42c17-3260-4521-a329-9b95ea4e8dc2",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "p150_collection",
+        "file": "/docs/public/p150_collection.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "b60f1121-6bdd-4dc0-816b-e983a945646f",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]

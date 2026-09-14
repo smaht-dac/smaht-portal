@@ -8,6 +8,7 @@ export const Dropdown = ({
     parentLink,
     subLinks,
     overview,
+    badge,
     expanded = false,
 }) => {
     const [isExpanded, setIsExpanded] = useState(expanded);
@@ -32,6 +33,7 @@ export const Dropdown = ({
                     <a className="parent-link" href={parentLink}>
                         {parentTitle}
                     </a>
+                    {badge}
                 </div>
                 <a className="header-link" href={parentLink}>
                     <RightArrowIcon />
@@ -59,6 +61,18 @@ export const Dropdown = ({
 export const PipelineDocsNavigation = (props) => {
     return (
         <div>
+            <div className="callout data-available mb-3">
+                <span className="callout-text">
+                    <b>Note</b>: The latest pipeline documentation is available
+                    in the{' '}
+                    <a
+                        href="https://smaht-dac.github.io/pipelines-docs/"
+                        target="_blank">
+                        SMaHT Pipeline Documentation GitHub Repository
+                    </a>
+                    .
+                </span>
+            </div>
             <p className="introduction">
                 Welcome to the documentation for SMaHT analysis pipelines and
                 associated resources. SMaHT runs a set of standardized workflows
@@ -381,7 +395,64 @@ export const PipelineDocsNavigation = (props) => {
                         }
                     />
                     <Dropdown
-                        parentTitle="Somatic: SMaHT SNV Pipeline"
+                        parentTitle="Somatic: SMaHT SNV Pipeline v2.0.0"
+                        badge={
+                            <span className="quick-link-badge quick-link-badge-open">
+                                Latest
+                            </span>
+                        }
+                        parentLink="/docs/additional-resources/pipeline-docs/smaht-snv-calling-v2"
+                        subLinks={[
+                            {
+                                title: 'Updates in SmahtSNV 2.0.0',
+                                href: '#updates-in-smahtsnv-200',
+                            },
+                            {
+                                title: 'Overview',
+                                href: '#overview',
+                            },
+                            {
+                                title: 'Somatic SNV Callers',
+                                href: '#somatic-snv-callers',
+                            },
+                            {
+                                title: 'Short-Read Based Filtering',
+                                href: '#short-read-based-filtering',
+                            },
+                            {
+                                title: 'Long-Read Based Filtering',
+                                href: '#long-read-based-filtering',
+                            },
+                            {
+                                title: 'Cross-Evidence Classification',
+                                href: '#cross-evidence-classification',
+                            },
+                            {
+                                title: 'Final Confidence Designation',
+                                href: '#final-confidence-designation',
+                            },
+                        ]}
+                        overview={
+                            <p>
+                                The SMaHT mosaic SNV pipeline (SmahtSNV 2.0.0)
+                                integrates four somatic SNV callers — three
+                                short-read-based and one long-read-based —
+                                followed by hierarchical filtering and
+                                multi-axis cross-evidence validation to generate
+                                high-confidence mosaic SNV calls. Both merged
+                                sequencing libraries from multiple genome
+                                centers (GCCs) as well as core-specific
+                                libraries for each donor are provided as
+                                high-depth input (~300x combined, or ~150x
+                                core-specific short-read coverage) to each
+                                caller. Starting in v2.0.0, each sequencing core
+                                is tracked independently, and the final output
+                                is a multi-sample VCF with one column per core.
+                            </p>
+                        }
+                    />
+                    <Dropdown
+                        parentTitle="Somatic: SMaHT SNV Pipeline v1.0.0"
                         parentLink="/docs/additional-resources/pipeline-docs/smaht-snv-calling"
                         subLinks={[
                             {

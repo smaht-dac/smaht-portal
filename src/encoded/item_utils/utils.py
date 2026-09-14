@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -153,6 +154,41 @@ def unravel_lists(values: List[Any]) -> List[Any]:
         else:
             result.append(value)
     return result
+
+
+def dedupe_identifiers(values: List[Any]) -> List[Any]:
+    """Dedupe a list of identifiers that may contain either strings or dicts.
+
+    Replaces the `list(set(values))` pattern that several file.py helpers
+    use. Plain `set()` blows up with `TypeError: unhashable type: 'dict'`
+    the moment a dict slips through — that happens any time an upstream
+    @@object view ends up carrying an embedded sub-object where a bare
+    linkTo path was expected (e.g. a stale ES doc, or a cache-mutation
+    bug like the one fixed in snovault 11.30.1).
+
+    Dedup key:
+      - str value → the string itself
+      - dict value → its `uuid`, falling back to `@id`
+      - anything else → skipped
+
+    Preserves first-occurrence order, which is what the previous `list(set())`
+    pattern did not, but is a strict improvement for downstream code that
+    formerly relied on arbitrary set iteration order.
+    """
+    seen = set()
+    deduped = []
+    for value in values:
+        if isinstance(value, str):
+            key = value
+        elif isinstance(value, Mapping):
+            key = value.get('uuid') or value.get('@id')
+        else:
+            continue
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(value)
+    return deduped
 
 
 def get_property_values_from_identifiers(

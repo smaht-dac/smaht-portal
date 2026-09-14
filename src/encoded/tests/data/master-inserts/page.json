@@ -472,7 +472,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/smaht-snv-calling",
-        "title": "Somatic: SMaHT SNV Pipeline",
+        "title": "Somatic: SMaHT SNV Pipeline v1.0.0",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -482,6 +482,25 @@
         ],
         "status": "open",
         "uuid": "6d703cf9-9369-4efa-b754-c6097218ac3a",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/smaht-snv-calling-v2",
+        "title": "Somatic: SMaHT SNV Pipeline v2.0.0",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "1a5368a7-a3af-4310-b5b4-38abb65593b1"
+        ],
+        "status": "open",
+        "uuid": "0fe075df-7e2e-42e5-9ff5-4e7de55bdc04",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -1463,7 +1482,8 @@
         "uuid": "c39ea4df-22c5-4d81-a495-6694c3360447",
         "status": "protected-network",
         "content": [
-            "d523e166-89bf-439d-9770-ee92e4bcb72b"
+            "d523e166-89bf-439d-9770-ee92e4bcb72b",
+            "70f3ade6-2741-4e1d-b96e-d052b66f0981"
         ],
         "table-of-contents": {
             "enabled": false
@@ -1487,6 +1507,114 @@
             "enabled": false
         },
         "title": "Data Matrix",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "consortium-hub",
+        "uuid": "6f2eec8f-6a11-4baf-93ad-66942fd7c8c7",
+        "status": "protected-network",
+        "content": [
+            "f3d05813-e6a9-413d-8218-8c52eb754882"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Consortium Hub",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "recent-releases",
+        "uuid": "ec8d344b-9ca0-41a4-aa95-0c6acdcfe7b2",
+        "status": "protected-network",
+        "content": [
+            "8ad6252d-6c17-4a34-9259-82734ebcca1c"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Recent Releases",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "publication-collections",
+        "uuid": "9a725a22-9992-4cc9-90d7-29d2c085c379",
+        "status": "open",
+        "content": [
+            "ccbf17aa-90ea-42d6-a53a-543504df5440"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Publication Collections",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "publication-collections/benchmarking",
+        "uuid": "e019d7d4-37c5-4443-8a80-0aa92cd38567",
+        "status": "open",
+        "content": [
+            "1f109810-48ed-40ff-a3fc-b4a971717e4e"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Benchmarking Publications",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "publication-collections/p25",
+        "uuid": "7454f1b6-040c-48bc-a0cb-3b900de6fcca",
+        "status": "in review",
+        "content": [
+            "22c42c17-3260-4521-a329-9b95ea4e8dc2"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "P25 Publications",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "publication-collections/p150",
+        "uuid": "f0a1ab45-17e8-49bf-9340-b9676c13b018",
+        "status": "in review",
+        "content": [
+            "b60f1121-6bdd-4dc0-816b-e983a945646f"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "P150 Publications",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

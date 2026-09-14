@@ -1,10 +1,14 @@
 #!/bin/bash
 
+set -e
+
 echo "Running a SMAHT deployment on the given environment"
 
 # Run assume_identity.py to access the desired deployment configuration from
 # secrets manager - this builds production.ini
 poetry run python -m assume_identity
+
+poetry run delete-revision-history production.ini --app-name app --prod
 
 # Clear db/es on smaht-devtest eventually if we run an "initial" deploy
 # Do nothing on other environments
@@ -15,7 +19,13 @@ fi
 
 # Create mapping
 # Force wipe of ES
-poetry run create-mapping-on-deploy production.ini --app-name app --wipe-es
+# create-mapping-on-deploy-verbose delegates argument parsing, mapping
+# comparison, index deletion/recreation, reindex selection, and queueing
+# unchanged to create-mapping-on-deploy; it only raises this command's own
+# decision-narration loggers to INFO first, since create-mapping-on-deploy's
+# own set_logging() call never reaches them (see the module docstring in
+# encoded/commands/create_mapping_on_deploy_verbose.py).
+poetry run create-mapping-on-deploy-verbose production.ini --app-name app --selective-reindex
 
 # Load Data (based on development.ini, for now just master-inserts)
 # Not necessary after first deploy

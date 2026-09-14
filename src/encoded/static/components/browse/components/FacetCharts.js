@@ -10,38 +10,49 @@ import { ChartDataController } from './../../viz/chart-data-controller';
 import * as BarPlot from './../../viz/BarPlot';
 import { termTransformFxnWithOverrides } from './../SearchView';
 
-function termTransformFxnWithChartAliases(facets = null){
+function getCandidateFields(field, fieldList) {
+    if (typeof field !== 'string') return [];
+
+    // Bar plot aggregation fields do not always match the browse facet field exactly
+    // (e.g. `sequencing.*` in the chart vs `file_sets.sequencing.*` in facets). Match
+    // by equivalent trailing path so chart labels can still use facet label_overrides.
+    const matchingFields = fieldList
+        .filter((facetField) => {
+            if (typeof facetField !== 'string') return false;
+            return (
+                facetField === field ||
+                facetField.endsWith(`.${field}`) ||
+                field.endsWith(`.${facetField}`)
+            );
+        })
+        .sort((a, b) => {
+            if (a === field) return -1;
+            if (b === field) return 1;
+            return a.length - b.length;
+        });
+
+    return matchingFields.length > 0 ? matchingFields : [field];
+}
+
+function termTransformFxnWithChartAliases(facets = null, schemas = null){
     const baseTransform = termTransformFxnWithOverrides(facets);
 
-    const getCandidateFields = (field) => {
-        if (typeof field !== 'string') return [];
+    const contextFacetFields = facets
+        .map(({ field: facetField }) => facetField)
+        .filter((facetField) => typeof facetField === 'string');
 
-        // Bar plot aggregation fields do not always match the browse facet field exactly
-        // (e.g. `sequencing.*` in the chart vs `file_sets.sequencing.*` in facets). Match
-        // by equivalent trailing path so chart labels can still use facet label_overrides.
-        const matchingFields = facets
-            .map(({ field: facetField }) => facetField)
-            .filter((facetField) => {
-                if (typeof facetField !== 'string') return false;
-                return (
-                    facetField === field ||
-                    facetField.endsWith(`.${field}`) ||
-                    field.endsWith(`.${facetField}`)
-                );
-            })
-            .sort((a, b) => {
-                if (a === field) return -1;
-                if (b === field) return 1;
-                return a.length - b.length;
-            });
-
-        return matchingFields.length > 0 ? matchingFields : [field];
-    };
+    // The chart's aggregated fields (tissues, sequencers, assays, etc.) are always
+    // File-related, even on Donor/ProtectedDonor browse pages where `context.facets`
+    // is the Donor/ProtectedDonor search context and has no such fields at all. Fall
+    // back to the File schema's own facets (which is where these label_overrides are
+    // actually authored) so charts on those pages can resolve them too.
+    const fileSchemaFacets = (schemas && schemas.File && schemas.File.facets) || {};
+    const fileSchemaFacetFields = Object.keys(fileSchemaFacets);
 
     return function(field, key){
-        const candidateFields = getCandidateFields(field);
-        for (let i = 0; i < candidateFields.length; i++) {
-            const candidateField = candidateFields[i];
+        const contextCandidates = getCandidateFields(field, contextFacetFields);
+        for (let i = 0; i < contextCandidates.length; i++) {
+            const candidateField = contextCandidates[i];
             // Read label overrides directly here so this stays scoped to facet charts and
             // does not broaden behavior of the shared browse/search term transformer.
             const override = facets.find(
@@ -51,6 +62,15 @@ function termTransformFxnWithChartAliases(facets = null){
                 return override;
             }
         }
+
+        const schemaCandidates = getCandidateFields(field, fileSchemaFacetFields);
+        for (let i = 0; i < schemaCandidates.length; i++) {
+            const override = fileSchemaFacets[schemaCandidates[i]]?.label_overrides?.[key];
+            if (typeof override !== 'undefined') {
+                return override;
+            }
+        }
+
         return baseTransform(field, key);
     };
 }
@@ -288,7 +308,7 @@ export class FacetCharts extends React.PureComponent {
         const donorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters, browseBaseParams);
         // Use a chart-local term resolver so facet label_overrides are applied in chart bars,
         // popovers, and legend even when chart aggregation fields use an alias of the facet field.
-        const termLabelTransform = termTransformFxnWithChartAliases((context && context.facets) || []);
+        const termLabelTransform = termTransformFxnWithChartAliases((context && context.facets) || [], schemas);
         let height = show === 'small' ? (mapping === 'all' ? 330 : 370) : 370;
         let width;
 

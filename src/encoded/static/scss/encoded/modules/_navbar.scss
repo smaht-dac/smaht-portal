@@ -1168,8 +1168,8 @@ body[data-current-action="multiselect"] {
                 }
 
                 @media screen and (min-width: 1600px) {
-                    padding-left: 85px;
-                    transition: padding-left $navbar-transition-length $navbar-transition-easing;
+                    // padding-left: 85px;
+                    // transition: padding-left $navbar-transition-length $navbar-transition-easing;
                     .intro-section,
                     .big-link {
                         .icon-beside-column {
@@ -1254,7 +1254,6 @@ body[data-current-action="multiselect"] {
 
 //}
 
-
 body.scrolled-past-top {
     div.navbar-fixed-top {
 
@@ -1313,6 +1312,19 @@ body.scrolled-past-top {
                     }
                 }
             }
+        }
+    }
+}
+
+
+@include media-breakpoint-between(xl, xxxl) {
+    .big-dropdown-menu-background .big-dropdown-menu > .container {
+        max-width: 95%;
+        padding-left: 0px;
+
+        .intro-section  .icon-beside-column,
+        .big-link .icon-beside-column {
+            width: auto;
         }
     }
 }

@@ -100,6 +100,17 @@
                 "3.0 Donut"
             ]
         },
+        "linked_fixed_samples": {
+            "title": "Linked Fixed Samples",
+            "description": "Fixed TissueSamples from the same tissue block as this fresh/frozen sample.",
+            "type": "array",
+            "uniqueItems": true,
+            "permission": "restricted_fields",
+            "items": {
+                "type": "string",
+                "linkTo": "TissueSample"
+            }
+        },
         "processing_date": {
             "title": "Processing Date",
             "description": "Date the sample was processed",

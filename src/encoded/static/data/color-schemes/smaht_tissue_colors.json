@@ -1,0 +1,146 @@
+{
+  "3A": {
+    "smaht_code": "BLOO",
+    "full_name": "Whole blood",
+    "tissue_color_hex": "FF382E",
+    "tissue_color_rgb": "255,56,46"
+  },
+  "3B": {
+    "smaht_code": "BUCC",
+    "full_name": "Buccal swab",
+    "tissue_color_hex": "75001F",
+    "tissue_color_rgb": "117,0,31"
+  },
+  "3C": {
+    "smaht_code": "ESOP",
+    "full_name": "Esophagus",
+    "tissue_color_hex": "FFB161",
+    "tissue_color_rgb": "255,177,97"
+  },
+  "3E": {
+    "smaht_code": "COAS",
+    "full_name": "Colon-Ascending",
+    "tissue_color_hex": "C0B5E7",
+    "tissue_color_rgb": "192,181,231"
+  },
+  "3G": {
+    "smaht_code": "CODS",
+    "full_name": "Colon-Descending",
+    "tissue_color_hex": "9D4BBF",
+    "tissue_color_rgb": "157,75,191"
+  },
+  "3I": {
+    "smaht_code": "LIVR",
+    "full_name": "Liver",
+    "tissue_color_hex": "FF4AA9",
+    "tissue_color_rgb": "255,74,169"
+  },
+  "3K": {
+    "smaht_code": "ADGL",
+    "full_name": "Adrenal gland, L",
+    "tissue_color_hex": "EA7A00",
+    "tissue_color_rgb": "234,122,0"
+  },
+  "3M": {
+    "smaht_code": "ADGR",
+    "full_name": "Adrenal gland, R",
+    "tissue_color_hex": "EA7A00",
+    "tissue_color_rgb": "234,122,0"
+  },
+  "3O": {
+    "smaht_code": "AORT",
+    "full_name": "Aorta",
+    "tissue_color_hex": "F99B9B",
+    "tissue_color_rgb": "249,155,155"
+  },
+  "3Q": {
+    "smaht_code": "LUNG",
+    "full_name": "Lung",
+    "tissue_color_hex": "1DDD30",
+    "tissue_color_rgb": "29,221,48"
+  },
+  "3S": {
+    "smaht_code": "HART",
+    "full_name": "Heart",
+    "tissue_color_hex": "DDD824",
+    "tissue_color_rgb": "221,216,36"
+  },
+  "3U": {
+    "smaht_code": "TESL",
+    "full_name": "Testis, L",
+    "tissue_color_hex": "AAF8B4",
+    "tissue_color_rgb": "170,248,180"
+  },
+  "3W": {
+    "smaht_code": "TESR",
+    "full_name": "Testis, R",
+    "tissue_color_hex": "AAF8B4",
+    "tissue_color_rgb": "170,248,180"
+  },
+  "3Y": {
+    "smaht_code": "OVAL",
+    "full_name": "Ovary, L",
+    "tissue_color_hex": "FFAFD4",
+    "tissue_color_rgb": "255,175,212"
+  },
+  "3AA": {
+    "smaht_code": "OVAR",
+    "full_name": "Ovary, R",
+    "tissue_color_hex": "FFAFD4",
+    "tissue_color_rgb": "255,175,212"
+  },
+  "3AC": {
+    "smaht_code": "FBRO",
+    "full_name": "Fibroblast",
+    "tissue_color_hex": "FFE98D",
+    "tissue_color_rgb": "255,233,141"
+  },
+  "3AD": {
+    "smaht_code": "SKSE",
+    "full_name": "Skin-Calf",
+    "tissue_color_hex": "0EC1B8",
+    "tissue_color_rgb": "14,193,184"
+  },
+  "3AF": {
+    "smaht_code": "SKNE",
+    "full_name": "Skin-Abdomen",
+    "tissue_color_hex": "91E5DB",
+    "tissue_color_rgb": "145,229,219"
+  },
+  "3AH": {
+    "smaht_code": "MUSC",
+    "full_name": "Skeletal muscle",
+    "tissue_color_hex": "AA9A41",
+    "tissue_color_rgb": "170,154,65"
+  },
+  "3AK": {
+    "smaht_code": "BRFL",
+    "full_name": "Brain-Frontal lobe",
+    "tissue_color_hex": "BBE7FF",
+    "tissue_color_rgb": "187,231,255"
+  },
+  "3AL": {
+    "smaht_code": "BRTL",
+    "full_name": "Brain-Temporal lobe",
+    "tissue_color_hex": "76AEFF",
+    "tissue_color_rgb": "118,174,255"
+  },
+  "3AM": {
+    "smaht_code": "BRCE",
+    "full_name": "Brain-Cerebellum",
+    "tissue_color_hex": "1655C4",
+    "tissue_color_rgb": "22,85,196"
+  },
+  "3AN": {
+    "smaht_code": "BRHL",
+    "full_name": "Brain-Hippocampus, L",
+    "tissue_color_hex": "002A66",
+    "tissue_color_rgb": "0,42,102"
+  },
+  "3AO": {
+    "smaht_code": "BRHR",
+    "full_name": "Brain-Hippocampus, R",
+    "tissue_color_hex": "002A66",
+    "tissue_color_rgb": "0,42,102"
+  }
+}

@@ -256,10 +256,6 @@ const getDateString = (string) => {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/New_York',
-        timeZoneName: 'short',
     };
 
     return date.toLocaleString('en-US', options);
@@ -308,8 +304,8 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
         <div className="container timeline-container">
             <div id="timeline" className={`tier-${currentTier}`}>
                 <span className="latest-release">
-                    <b>Latest Official Release: </b> October 11, 2025
-                    {/* {data.release_date ?? (
+                    <b>Latest Official Release:</b>
+                    {data?.release_date ?? (
                         <>
                             {isLoading && (
                                 <span className="spinner">
@@ -323,7 +319,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 />
                             )}
                         </>
-                    )} */}
+                    )}
                 </span>
 
                 {data.timeline_content.map((d, i) => {

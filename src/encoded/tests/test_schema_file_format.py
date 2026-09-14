@@ -38,3 +38,10 @@ def test_identifier_unique(testapp: TestApp, file_format: Dict[str, Any]) -> Non
         testapp, item_with_duplicate_identifier, "FileFormat", status=409
     )
     assert_keys_conflict(response)
+
+
+def test_file_format_revision_history_not_tracked(
+    testapp: TestApp, file_format: Dict[str, Any]
+) -> None:
+    """FileFormat opts out of Postgres revision-history tracking."""
+    testapp.get(f'/{file_format["uuid"]}/@@revision-history', status=404)

@@ -1,5 +1,19 @@
 version: 0.2
 
+# The Dockerfile is a multi-stage build that relies on BuildKit features
+# (the `# syntax=` directive and `RUN --mount=type=cache` mounts), so BuildKit
+# must be enabled for `docker build`.
+env:
+  variables:
+    DOCKER_BUILDKIT: "1"
+
+# Reuse the Docker layer cache across builds when CodeBuild reuses a build host.
+# Requires the CodeBuild project's cache type to be set to LOCAL (and privileged mode,
+# already required for docker builds).
+cache:
+  modes:
+    - LOCAL_DOCKER_LAYER_CACHE
+
 phases:
   pre_build:
     commands:

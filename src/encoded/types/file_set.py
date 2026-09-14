@@ -21,8 +21,6 @@ from ..item_utils import (
     library as library_utils,
     sequencing as sequencing_utils,
     analyte as analyte_utils,
-    sample as sample_utils,
-    tissue_sample as tissue_sample_utils,
     tissue as tissue_utils,
 )
 from ..item_utils.utils import (
@@ -115,6 +113,7 @@ def _build_file_set_embedded_list():
         "libraries.analytes.samples.sample_sources.uberon_id",
         "libraries.analytes.samples.sample_sources.cell_line.code",
         "libraries.analytes.samples.sample_sources.uberon_id",
+        "libraries.analytes.samples.sample_sources.tissue_type",
         "libraries.analytes.samples.sample_sources.donor.display_title",
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group

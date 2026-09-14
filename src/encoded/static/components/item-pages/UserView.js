@@ -29,6 +29,7 @@ import {
     pageTitleViews,
 } from './../PageTitleSection';
 import { Term } from './../util/Schemas';
+import UserAdminControls from './components/user/UserAdminControls';
 
 // eslint-disable-next-line no-unused-vars
 import { Item } from './../util/typedefs';
@@ -523,6 +524,24 @@ export default class UserView extends React.Component {
         }),
     };
 
+    constructor(props) {
+        super(props);
+        // `isAdmin` gates the cosmetic admin control panel only. It is resolved
+        // after mount (JWT groups live in localStorage, absent during SSR) so
+        // the first client render matches the server render for everyone and
+        // the panel appears on the following commit — avoiding a structural
+        // hydration mismatch. Backend `restricted_fields` permissions are the
+        // real authorization for any edit made through the panel.
+        this.state = { isAdmin: false };
+    }
+
+    componentDidMount() {
+        const groups = JWT.getUserGroups() || [];
+        if (groups.indexOf('admin') >= 0) {
+            this.setState({ isAdmin: true });
+        }
+    }
+
     mayEdit() {
         const { context } = this.props;
         return _.any((context && context.actions) || [], function (action) {
@@ -539,7 +558,19 @@ export default class UserView extends React.Component {
             alerts = [],
         } = this.props;
         const { email, project } = user;
+        const { isAdmin } = this.state;
         const mayEdit = this.mayEdit();
+
+        // Non-admin column classes are kept byte-identical to the pre-feature
+        // layout so the non-admin render tree is unchanged. When admin, the two
+        // existing cards shrink and an Admin Controls panel is added as a third
+        // sibling column (5 + 4 + 3 = 12).
+        const infoColCls = isAdmin
+            ? 'col-12 col-xl-5 mb-2 mb-xl-0'
+            : 'col-12 col-lg-6 col-xl-7 mb-2 mb-lg-0';
+        const workColCls = isAdmin
+            ? 'col-12 col-xl-4 mb-2 mb-xl-0'
+            : 'col-12 col-lg-6 col-xl-5';
         // Todo: remove
         const ifCurrentlyEditingClass =
             this.state && this.state.currentlyEditing
@@ -567,7 +598,7 @@ export default class UserView extends React.Component {
                             />
                         </div>
                         <div className="row">
-                            <div className="col-12 col-lg-6 col-xl-7 mb-2 mb-lg-0">
+                            <div className={infoColCls}>
                                 <div className="user-info card h-100">
                                     <div className="card-header">
                                         <div className="row title-row align-items-center py-2">
@@ -627,9 +658,19 @@ export default class UserView extends React.Component {
                                     </div>
                                 </div>
                             </div>
-                            <div className="col-12 col-lg-6 col-xl-5">
+                            <div className={workColCls}>
                                 <ProfileWorkFields user={user} />
                             </div>
+                            {isAdmin ? (
+                                <div className="col-12 col-xl-3">
+                                    <UserAdminControls
+                                        user={user}
+                                        schemas={schemas}
+                                        mayEdit={mayEdit}
+                                        onUpdated={UserView.onEditableFieldSave}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
 
                         <SyncedAccessKeyTable {...{ user }} />

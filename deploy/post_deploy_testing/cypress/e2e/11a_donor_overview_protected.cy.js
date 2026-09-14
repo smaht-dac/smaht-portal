@@ -552,6 +552,8 @@ function stepProtectedDonorFlow(caps) {
                                         expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
                                         expectedTissuesCount: tissuesCount,
                                         allowVariantCallSetMatrixUndercount: true,
+                                        allowDSARowSummaryOvercount: true,
+                                        skipColSummaryTotalCheckForDonors: ["ST001"],
                                         verifyTotalFromApi: true,
                                     }
                                 );

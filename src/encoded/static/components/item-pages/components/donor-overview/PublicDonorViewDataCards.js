@@ -8,7 +8,11 @@ import {
     PopoverBody,
     PopoverHeader,
 } from 'react-bootstrap';
-import { renderHardyScaleDescriptionPopover } from '../donor-overview/ProtectedDonorViewDataCards';
+import {
+    formatDonorAge,
+    renderAgeDescriptionPopover,
+    renderHardyScaleDescriptionPopover,
+} from '../donor-overview/ProtectedDonorViewDataCards';
 
 const default_donor_information = [
     {
@@ -17,7 +21,9 @@ const default_donor_information = [
     },
     {
         title: 'Age',
-        getProp: (context = {}) => context?.age,
+        getProp: (context = {}) => formatDonorAge(context?.age),
+        titlePopover: (handleShowPopover) =>
+            renderAgeDescriptionPopover(handleShowPopover),
     },
     {
         title: 'Sex',

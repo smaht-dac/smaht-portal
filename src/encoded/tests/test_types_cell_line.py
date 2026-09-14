@@ -14,13 +14,13 @@ from ..item_utils import item as item_utils
 )
 @pytest.mark.workbook
 def test_source_donor_calc_prop(
-    es_testapp: TestApp,
-    workbook: None,
-    submitted_id: str,
-    expected: str
-    ) -> None:
+        es_testapp: TestApp,
+        workbook: None,
+        submitted_id: str,
+        expected: str
+        ) -> None:
     """Ensure donor calc prop works as expected."""
-    item=get_item(
+    item = get_item(
         es_testapp,
         submitted_id,
         collection='CellLine'

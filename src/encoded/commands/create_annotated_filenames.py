@@ -23,7 +23,6 @@ from encoded.item_utils import (
     file_format as file_format_utils,
     file_set as file_set_utils,
     item as item_utils,
-    meta_workflow_run as mwfr_utils,
     sample as sample_utils,
     sample_source as sample_source_utils,
     supplementary_file as supp_file_utils,
@@ -31,7 +30,7 @@ from encoded.item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
     donor_specific_assembly as dsa_utils,
-    external_output_file as eof_utils
+    external_output_file as eof_utils,
 )
 from encoded.item_utils.constants import (
     file as file_constants,
@@ -47,6 +46,7 @@ ANALYSIS_INFO_SEPARATOR = "_"
 CHAIN_FILE_INFO_SEPARATOR = "To"
 DSA_INFO_VALUE = "DSA"
 
+QC_DATA_CATEGORY = "Quality Control"
 RNA_DATA_CATEGORY = "RNA Quantification"
 GENE_DATA_TYPE = "Gene Expression"
 ISOFORM_DATA_TYPE = "Transcript Expression"
@@ -57,6 +57,7 @@ TRANSCRIPT_SEQUENCE_DATA_TYPE = "Transcript Sequence"
 TRANSCRIPT_MODEL_DATA_TYPE = "Transcript Model"
 SEQUENCING_READS_DATA_CATEGORY = "Sequencing Reads"
 ALIGNED_READS_DATA_TYPE = "Aligned Reads"
+SEQUENCING_SUPPLEMENT_DATA_CATEGORY = "Sequencing Supplement"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -307,9 +308,9 @@ def get_source_assembly(
 
 
 def get_reference_genome_search(
-        value: str,
-        request_handler: RequestHandler
-    ) -> List[Dict[str, Any]]:
+            value: str,
+            request_handler: RequestHandler
+        ) -> List[Dict[str, Any]]:
     """
     Search Reference Genomes by code and title and return unique code for chain file output.
     
@@ -803,9 +804,9 @@ def get_protocol_id(
 
 
 def get_protocol_id_from_tissues(
-        tissues: List[Dict[str, Any]],
-        file: Dict[str, Any]
-    ) -> FilenamePart:
+            tissues: List[Dict[str, Any]],
+            file: Dict[str, Any]
+        ) -> FilenamePart:
     """Get protocol ID from tissue items.
     
     If file is a DSA file, allow multiple protocol IDs
@@ -1175,11 +1176,11 @@ def get_analysis(
     software_and_versions = get_software_and_versions(software)
     reference_genome_code = get_reference_genome_value(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
-    transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
+    transcript_info_code = get_transcript_analysis_value(file, assay)
     dsa_code = get_dsa_value(file, file_extension, donor_specific_assembly)
-    kinnex_info_code = get_kinnex_value(file, assay)
     consensus_read_flag = get_consensus_value(file, assay)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
+    metadata_code = get_metadata_value(file)
     value = get_analysis_value(
         software_and_versions,
         reference_genome_code,
@@ -1188,7 +1189,7 @@ def get_analysis(
         chain_code,
         dsa_code,
         consensus_read_flag,
-        kinnex_info_code
+        metadata_code
     )
     errors = get_analysis_errors(
         file,
@@ -1231,10 +1232,12 @@ def get_analysis_errors(
         if not reference_genome_code:
             errors.append("No reference genome code found")
     if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
-        if not gene_annotation_code and KINNEX_ASSAY_ID not in get_assay_ids(assays):
+        if not reference_genome_code:
+            errors.append("No reference genome code found")
+        if not gene_annotation_code:
             errors.append("No gene annotation code found")
-        elif file_format_utils.is_tsv_file(file_extension) and not transcript_info_code:
-            errors.append("No gene or isoform code found")
+        if not transcript_info_code and QC_DATA_CATEGORY not in file_utils.get_data_category(file):
+            errors.append("No transcript information code found")
     if file_format_utils.is_chain_file(file_extension):
         if not chain_code:
             errors.append("No chain code found")
@@ -1254,12 +1257,16 @@ def get_analysis_value(
     chain_code: str,
     dsa_code: str,
     consensus_read_flag: str,
-    kinnex_info_code: str
+    metadata_code: str
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, dsa_code, consensus_read_flag, kinnex_info_code]
+        for string in [
+            software_and_versions, reference_genome_code, gene_annotation_code,
+            transcript_info_code, chain_code, dsa_code, consensus_read_flag,
+            metadata_code
+        ]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -1350,8 +1357,8 @@ def get_software_with_versions(
 
 
 def get_software_and_versions_string(
-        software_items: List[Dict[str, Any]]
-    ) -> str:
+            software_items: List[Dict[str, Any]]
+        ) -> str:
     """Get string representation of software and versions."""
     sorted_software_items = sorted(software_items, key=item_utils.get_code)
     return ANALYSIS_INFO_SEPARATOR.join(
@@ -1383,11 +1390,11 @@ def get_reference_genome_value(reference_genome: Dict[str, Any]):
 
 
 def get_chain_file_value(
-        file: Dict[str, Any],
-        target_assembly: Union[str, None],
-        source_assembly: Union[str, None],
-        file_extension: Dict[str, Any]
-    ) -> str:
+            file: Dict[str, Any],
+            target_assembly: Union[str, None],
+            source_assembly: Union[str, None],
+            file_extension: Dict[str, Any]
+        ) -> str:
     """Get genome conversion direction for chain files."""
     if file_format_utils.is_chain_file(file_extension):
         if target_assembly and source_assembly:
@@ -1396,10 +1403,10 @@ def get_chain_file_value(
 
 
 def get_dsa_value(
-        file: Dict[str, Any],
-        file_extension: Dict[str, Any],
-        donor_specific_assembly: Union[Dict[str, Any], None]
-    ):
+            file: Dict[str, Any],
+            file_extension: Dict[str, Any],
+            donor_specific_assembly: Union[Dict[str, Any], None]
+        ):
     """Get DSA version and haplotype values for fasta file."""
     if donor_specific_assembly:
         dsa_value = ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(donor_specific_assembly)])
@@ -1410,15 +1417,35 @@ def get_dsa_value(
     return ""
 
 
-def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) -> str:
-    """Get isoform or gene from data type for RNA-seq tsv files."""
-    if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
-        if GENE_DATA_TYPE in file_utils.get_data_type(file):
-            return "gene"
-        elif ISOFORM_DATA_TYPE in file_utils.get_data_type(file):
+def get_transcript_analysis_value(
+    file: Dict[str, Any], assays: List[Dict[str, Any]]
+) -> str:
+    """Get gene/isoform/junction/flnc suffix for RNA-seq, Kinnex, and scRNA-Seq files.
+
+    Kinnex-specific suffixes are handled first, and more general RNA-Seq suffixes are
+    handled next.
+    """
+    data_types = file_utils.get_data_type(file)
+    data_categories = file_utils.get_data_category(file)
+
+    if KINNEX_ASSAY_ID in get_assay_ids(assays):
+        if TRANSCRIPT_SEQUENCE_DATA_TYPE in data_types:
             return "isoform"
-    else:
-        return ""
+        if TRANSCRIPT_MODEL_DATA_TYPE in data_types:
+            return "junction"
+        if (
+            SEQUENCING_READS_DATA_CATEGORY in data_categories
+            and ALIGNED_READS_DATA_TYPE in data_types
+        ):
+            return "flnc"
+    
+    if RNA_DATA_CATEGORY in data_categories:
+        if GENE_DATA_TYPE in data_types:
+            return "gene"
+        if ISOFORM_DATA_TYPE in data_types:
+            return "isoform"
+    
+    return ""
 
 
 def get_assay_categories(assays: List[Dict[str, Any]]) -> List[str]:
@@ -1441,20 +1468,10 @@ def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> s
         return ""
 
 
-def get_kinnex_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> str:
-    "Get suffixes for Kinnex files"
-    assay_ids = get_assay_ids(assays)
-    if KINNEX_ASSAY_ID in assay_ids:
-        data_categories = file_utils.get_data_category(file)
-        data_types = file_utils.get_data_type(file)
-
-        if TRANSCRIPT_SEQUENCE_DATA_TYPE in data_types:
-            return "isoform"
-        elif TRANSCRIPT_MODEL_DATA_TYPE in data_types:
-            return "junction"
-        elif SEQUENCING_READS_DATA_CATEGORY in data_categories and ALIGNED_READS_DATA_TYPE in data_types:
-            return "flnc"
-    
+def get_metadata_value(file: Dict[str, Any]) -> str:
+    """Get metadata value for Sequencing Supplement files."""
+    if SEQUENCING_SUPPLEMENT_DATA_CATEGORY in file_utils.get_data_category(file):
+        return "metadata"
     return ""
 
 
@@ -1475,7 +1492,7 @@ def get_file_extension(
     if file_utils.is_germline(file):
         result += [GERMLINE_EXTENSION]
     if file_utils.is_variant_calls(file) and (variant_type := get_variant_type(file)):
-        result +=[variant_type]
+        result += [variant_type]
     result += [file_extension]
     if file_extension:
         return get_filename_part(value=".".join(result))

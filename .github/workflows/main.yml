@@ -12,7 +12,9 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
+permissions: #Needed for OIDC authentication
+  id-token: write
+  contents: read   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -53,10 +55,9 @@ jobs:
           make build
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: QA (UNIT)
@@ -66,6 +67,7 @@ jobs:
           # # The need for this old environment variable name will go away soon.
           # TRAVIS_JOB_ID: sno-x-test-${{ github.run_number }}-
           # This will be the new environment variable name.
+          S3_UPLOAD_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           TEST_JOB_ID: smaht-test-indexing-${{ github.run_number }}-${{ matrix.python_version }}-
         run: |
           make remote-test

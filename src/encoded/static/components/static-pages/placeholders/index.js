@@ -17,6 +17,7 @@ import {
     SearchTableTitle,
 } from './../../item-pages/components/EmbeddedItemSearchTable';
 import { YoutubeVideoEmbed } from '../components/YoutubeVideoEmbed';
+import { ClickableImage } from '../components/ClickableImage';
 import {
     BenchmarkingUI,
     COLO829Data,
@@ -31,10 +32,15 @@ import { DownloadAllFilesFromSearchHrefButton } from '../components/challenges/D
 import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables';
 import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
+import RenamedFilesTable from '../components/RenamedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
+import { PublicationCollectionsNavigation } from '../PublicationCollectionsNavigation';
+import { PublicationCollection } from '../PublicationCollection';
+import { RecentReleasesTimelineMatrix } from '../components/RecentReleasesTimelineMatrix';
+import { ConsortiumHub } from '../ConsortiumHub';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -44,6 +50,7 @@ const placeholders = {
     EmbeddedItemSearchTable,
     SearchTableTitle,
     YoutubeVideoEmbed,
+    ClickableImage,
     ConsortiumMap,
     Alluvial,
     QualityMetricVisualizations,
@@ -62,11 +69,16 @@ const placeholders = {
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
     RetractedFilesTable,
+    RenamedFilesTable,
     DataMatrixComparisonTabs,
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
     PipelineDocsNavigation,
+    PublicationCollectionsNavigation,
+    PublicationCollection,
+    RecentReleasesTimelineMatrix,
+    ConsortiumHub,
 };
 
 export const replaceString = memoize(

@@ -22,6 +22,11 @@ from .user_content import UserContent
 class StaticSection(UserContent, CoreStaticSection):
     item_type = "static_section"
     schema = load_schema("encoded:schemas/static_section.json")
+    # Set directly on StaticSection, not on the shared abstract UserContent
+    # base - scoping the opt-out here only. Static content is edited by
+    # admins and rendered from current content only; retaining every
+    # Postgres revision adds storage growth without useful audit value.
+    track_revisions = False
     embedded_list = []
 
     @calculated_property(schema={

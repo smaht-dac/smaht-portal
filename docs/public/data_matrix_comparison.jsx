@@ -47,6 +47,7 @@
                 "showMatrixModeTabs": false,
                 "showColumnSummary": false,
                 "showFacetTermsPanel": true,
+                "dedupeBenchmarkingDsaAcrossTissues": true,
                 "idLabel": "benchmarking",
                 "baseBrowseFilesPath": "/search/"
             }
