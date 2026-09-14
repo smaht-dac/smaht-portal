@@ -345,6 +345,23 @@ export const buildDonorCountByInternalCode = (terms = {}) => {
     return counts;
 };
 
+// Darkens a hex color toward black by `amount` (0-1) -- smaht_tissue_colors.json's
+// palette includes several pastel/light hues (pale yellow, light pink, ...)
+// that are the correct, intentional color for a light background tint
+// (TissueAdvancedGermLayerPanel's own --tissue-advanced-card-bg below still
+// uses the original, undarkened hex for that) but read as low-contrast and
+// hard to read at that same brightness for small header/icon text/fill use,
+// per explicit request -- this only ever feeds that foreground use.
+const darkenHexForText = (hex, amount = 0.32) => {
+    const match = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    if (!match) return hex;
+    const num = parseInt(match[1], 16);
+    const channel = (shift) => Math.round(((num >> shift) & 255) * (1 - amount));
+    return `#${[channel(16), channel(8), channel(0)]
+        .map((c) => c.toString(16).padStart(2, '0'))
+        .join('')}`;
+};
+
 const TissueAdvancedGermLayerPanel = ({ fileFilters, session }) => {
     const [loading, setLoading] = useState(true);
     const [donorCountByInternalCode, setDonorCountByInternalCode] = useState({});
@@ -389,6 +406,37 @@ const TissueAdvancedGermLayerPanel = ({ fileFilters, session }) => {
                                     // only 0 donors *after* loading finishes counts.
                                     const isDisabled = !loading && donorCount === 0;
                                     const iconSrc = getTissueIconSrc(tissueType.facetTermValue);
+                                    // Same official per-tissue color
+                                    // (smaht_tissue_colors.json) the compact
+                                    // germ-layer bubble panel/tissue-overview
+                                    // header use elsewhere -- exposed as a CSS
+                                    // custom property so _search.scss can tint
+                                    // this card's header/icon/donor-count
+                                    // footer with it (falling back to the
+                                    // plain neutral colors below for the
+                                    // handful of tissue types that scheme
+                                    // doesn't cover).
+                                    const tissueColorHex = getTissueColorHex(tissueType.facetTermValue);
+                                    const cardStyle = tissueColorHex
+                                        ? {
+                                            // Darkened for the header/icon
+                                            // text-and-fill use (see
+                                            // darkenHexForText) -- the raw
+                                            // palette hex alone read as too
+                                            // pale/low-contrast for several
+                                            // tissue types.
+                                            '--tissue-advanced-card-color': darkenHexForText(tissueColorHex),
+                                            // A light background tint for the
+                                            // donor-count footer -- computed
+                                            // here (not via CSS color-mix(),
+                                            // for wider browser support)
+                                            // from the ORIGINAL, undarkened
+                                            // hex, since it needs the real
+                                            // per-tissue color at reduced
+                                            // opacity, not a fixed shade.
+                                            '--tissue-advanced-card-bg': hexToRgba(tissueColorHex, 0.14),
+                                        }
+                                        : undefined;
 
                                     const cardContent = (
                                         <React.Fragment>
@@ -420,6 +468,7 @@ const TissueAdvancedGermLayerPanel = ({ fileFilters, session }) => {
                                         <div
                                             className="tissue-advanced-card is-disabled"
                                             key={tissueType.internalCode}
+                                            style={cardStyle}
                                             aria-disabled="true">
                                             {cardContent}
                                         </div>
@@ -427,6 +476,7 @@ const TissueAdvancedGermLayerPanel = ({ fileFilters, session }) => {
                                         <a
                                             className="tissue-advanced-card"
                                             key={tissueType.internalCode}
+                                            style={cardStyle}
                                             href={`/tissue-overview/?tissue_type=${formUrlEncode(getTissueTypeUrlCode(tissueType.facetTermValue))}`}>
                                             {cardContent}
                                         </a>

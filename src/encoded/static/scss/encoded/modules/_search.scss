@@ -2283,12 +2283,19 @@ div.browse-link-icon {
 		}
 	}
 
+	// Each card's header/icon/footer below reads its color from
+	// --tissue-advanced-card-color (the tissue's own official color, set
+	// inline per card in TissueAdvancedGermLayerPanel from
+	// smaht_tissue_colors.json -- same source the compact germ-layer bubble
+	// panel and tissue-overview header already use) instead of one flat
+	// green for every tissue -- falls back to that same green for the
+	// handful of tissue types that scheme doesn't cover.
 	.tissue-advanced-card-header {
 		width: 100%;
 		padding: 0.3125rem 0.25rem 0;
 		font-size: 0.6875rem;
 		font-weight: 600;
-		color: #30975E;
+		color: var(--tissue-advanced-card-color, #30975E);
 	}
 
 	.tissue-advanced-card-icon {
@@ -2296,7 +2303,7 @@ div.browse-link-icon {
 		width: 30px;
 		height: 30px;
 		margin: 0.3125rem 0;
-		background-color: #4E6884;
+		background-color: var(--tissue-advanced-card-color, #4E6884);
 		-webkit-mask-repeat: no-repeat;
 		mask-repeat: no-repeat;
 		-webkit-mask-position: center;
@@ -2317,8 +2324,13 @@ div.browse-link-icon {
 		padding: 0.3125rem;
 		font-size: 0.6875rem;
 		font-weight: 500;
-		color: #30975E;
-		background-color: #EAF5EF;
+		// Plain dark text, not the tissue's own accent color -- a light
+		// tinted background (--tissue-advanced-card-bg) still needs to
+		// contrast with SOME accent-colored text elsewhere on the card
+		// (the header above), but using that same color here too often
+		// read as low-contrast/hard to read against its own light tint.
+		color: #28323C;
+		background-color: var(--tissue-advanced-card-bg, #EAF5EF);
 	}
 
 	@include media-breakpoint-down(md) {
