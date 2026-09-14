@@ -1746,13 +1746,15 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
             selectedCell.columnIndex < columnIndex + span;
 
         // Same real-tissue-type-group boundary the header's own 3rd row
-        // draws a heavier divider at (see renderSubtypeHeaderCells) -- only
-        // meaningful when subtypeColumnInfo is present (a subtype-aware
-        // tab), since that's the only case where more than 1 column can
-        // share a parent tissue type in the first place. Compared off the
-        // LAST column this cell actually covers (not `tissueType`/`i`
-        // itself), since a brain-merge span can cover several real columns
-        // in one <td>.
+        // draws a heavier divider at (see renderSubtypeHeaderCells).
+        // Compared off the LAST column this cell actually covers (not
+        // `tissueType`/`i` itself), since a brain-merge span can cover
+        // several real columns in one <td>. `parentOfColumn` falls back to
+        // the column key itself when subtypeColumnInfo is absent (a plain,
+        // non-subtype-aware tab like Ischemic Time, which has no columnInfo
+        // at all) -- every column there is already its own "group" of 1, so
+        // any 2 different columns are always a real boundary, same as a
+        // genuine cross-tissue-type boundary on a subtype-aware tab.
         const lastCoveredTissueType = tissueTypes[i + span - 1];
         const nextTissueType = tissueTypes[i + span];
         const parentOfColumn = (key) => subtypeColumnInfo?.[key]?.parentTissueType ?? key;
@@ -1761,7 +1763,6 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
         // suppressed entirely via `.tissue-heatmap-cell:last-child`, and
         // this class must not fight that).
         const isGroupBoundary =
-            !!subtypeColumnInfo &&
             !!nextTissueType &&
             parentOfColumn(lastCoveredTissueType) !== parentOfColumn(nextTissueType);
 

@@ -3424,8 +3424,16 @@ div.browse-link-icon {
 		// group-label row already marks its own boundaries via background
 		// color, and the order/donor headers' divider is their own sticky
 		// box-shadow, not this border).
+		// Same darker tissue-type-group-boundary color the subtype-aware
+		// tabs' own row-2 header cells use (.tissue-heatmap-subtype-parent-
+		// header/-unsplit-header/-row2-boundary above) -- Ischemic Time
+		// never has a subtype split at all (every column is already its own
+		// "group" of 1, per renderRowCells' own isGroupBoundary comment), so
+		// this plain header path is the ONLY one it ever renders through,
+		// and needs the same visible boundary treatment rather than the
+		// much lighter default.
 		thead tr:last-child th {
-			border-right: 1px solid #DFEAEE;
+			border-right: 1px solid #CBD5DE;
 
 			&:last-child {
 				border-right: none;
@@ -3932,6 +3940,19 @@ div.browse-link-icon {
 
 			&:last-child {
 				border-right: none;
+			}
+
+			// Same real-tissue-type-group boundary as .tissue-heatmap-cell's
+			// own identical override above -- needs its own copy (2 classes,
+			// so it always wins over the plain border-right just above
+			// regardless of source order) since Ischemic Time's cells are
+			// always this split form, not plain .tissue-heatmap-cell ones,
+			// and its column boundaries were reading exactly as faint as
+			// the (much lighter) Fixed/Frozen divider inside one cell,
+			// making it hard to tell where one tissue type's own pair ended
+			// and the next began.
+			&.tissue-heatmap-cell-group-boundary {
+				border-right: 1px solid #CBD5DE;
 			}
 		}
 
