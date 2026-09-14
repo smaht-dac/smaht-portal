@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from snovault import collection, load_schema, calculated_property
 from snovault.util import debug_log, get_item_or_none
