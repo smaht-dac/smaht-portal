@@ -4797,3 +4797,32 @@ FAQ page styles
         color: #3a5070;
     }
 }
+
+// Notification Status — email composer
+.ns-editor-pane {
+    height: calc(100vh - 160px);
+}
+.ns-textarea {
+    resize: none;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+.ns-email-preview {
+    max-width: 640px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+}
+.ns-email-header {
+    border-bottom: 1px solid #dee2e6;
+    padding: 12px 20px;
+}
+.ns-email-body {
+    padding: 24px 20px;
+}
+.ns-email-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 12px 20px;
+    font-size: 0.75rem;
+    color: #6c757d;
+}

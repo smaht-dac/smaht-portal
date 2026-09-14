@@ -1,0 +1,88 @@
+{
+    "title": "Email Notification",
+    "description": "Record of an email notification sent to subscribed portal users, including its markdown content and metadata.",
+    "$id": "/profiles/email_notification.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "subject",
+        "body",
+        "notification_type"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "EN"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "subject": {
+            "title": "Subject",
+            "description": "Email subject line.",
+            "type": "string",
+            "minLength": 1
+        },
+        "body": {
+            "title": "Body",
+            "description": "Markdown content of the email notification.",
+            "type": "string",
+            "minLength": 1
+        },
+        "notification_type": {
+            "title": "Notification Type",
+            "description": "Category of the email notification.",
+            "type": "string",
+            "enum": [
+                "data_release",
+                "maintenance",
+                "general_update"
+            ]
+        },
+        "date_sent": {
+            "title": "Date Sent",
+            "description": "Date and time when the notification was sent.",
+            "type": "string",
+            "format": "date-time"
+        },
+        "sent_by": {
+            "title": "Sent By",
+            "description": "The user who sent this notification.",
+            "type": "string",
+            "linkTo": "User"
+        }
+    }
+}

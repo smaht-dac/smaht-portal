@@ -1448,6 +1448,21 @@
         "uuid": "1c4da032-cadf-4461-adef-6d4238ee08d9"
     },
     {
+        "title": "Email notifications",
+        "status": "in review",
+        "content": [
+            "45e92890-c82a-4d58-80a7-6a1726c49a13"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "notification-status",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "50addc40-9f8d-43ac-89cc-8446e0c52283"
+    },
+    {
         "title": "Analysis Runs",
         "status": "in review",
         "content": [
