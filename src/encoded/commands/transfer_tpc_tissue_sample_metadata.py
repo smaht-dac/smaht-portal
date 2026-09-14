@@ -79,21 +79,27 @@ def parse_prefixed_value(value: str) -> Optional[tuple[Optional[str], Optional[s
     if not value:
         return ("", None)
     
-    # Try full GCC: ... ; TPC: ... format first
-    match = GCC_TPC_PATTERN.match(value)
-    if match:
-        return (match.group(1).strip(), match.group(2).strip())
+    # Check if it contains both GCC: and TPC: keywords
+    gcc_count = value.count("GCC:")
+    tpc_count = value.count("TPC:")
+    
+    if gcc_count > 0 and tpc_count > 0:
+        # Must match the full GCC: ... ; TPC: ... pattern
+        match = GCC_TPC_PATTERN.match(value)
+        if match:
+            return (match.group(1).strip(), match.group(2).strip())
+        else:
+            # Has both keywords but doesn't match pattern - malformed
+            return None
     
     # Try TPC: ... only format
-    match = TPC_ONLY_PATTERN.match(value)
-    if match:
-        return (None, match.group(1).strip())
+    if tpc_count > 0:
+        match = TPC_ONLY_PATTERN.match(value)
+        if match:
+            return (None, match.group(1).strip())
+        # Has TPC: but doesn't match - treat as plain value
     
-    # If it contains both GCC: and TPC: but doesn't match the pattern, it's malformed
-    if "GCC:" in value and "TPC:" in value:
-        return None
-    
-    # Plain value (no prefix) - treat as GCC portion
+    # Plain value (no prefix or GCC: only) - treat as GCC portion
     return (value.strip(), None)
 
 
