@@ -367,6 +367,8 @@ def test_get_non_tpc_tissue_samples_default(mock_search):
     assert "tags!=tpc_metadata_synced" in call_query
     assert "submission_centers.display_title!=NDRI+TPC" in call_query
     assert "status!=deleted" in call_query
+    # Regression: ensure page_limit=50 to avoid InvalidChunkLength with limit=all
+    assert mock_search.call_args[1]["page_limit"] == 50
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
@@ -381,6 +383,8 @@ def test_get_non_tpc_tissue_samples_ignore_tag(mock_search):
     call_query = mock_search.call_args[0][0]
     assert "tags!=" not in call_query
     assert "submission_centers.display_title!=NDRI+TPC" in call_query
+    # Regression: ensure page_limit=50 to avoid InvalidChunkLength with limit=all
+    assert mock_search.call_args[1]["page_limit"] == 50
 
 
 # =============================================================================

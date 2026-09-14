@@ -47,7 +47,7 @@ def get_non_tpc_tissue_samples(auth_key: dict, ignore_tag: bool = False) -> list
     if not ignore_tag:
         query_parts.append(f"tags!={PROCESSED_TAG}")
     query = "&".join(query_parts)
-    return ff_utils.search_metadata(query, key=auth_key, page_limit="all")
+    return ff_utils.search_metadata(query, key=auth_key, page_limit=50)
 
 
 def get_tpc_sample_for_external_id(external_id: str, auth_key: dict) -> Optional[dict]:
