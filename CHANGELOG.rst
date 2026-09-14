@@ -8,7 +8,7 @@ Change Log
 ----------
 
 2.14.0
-=====
+======
 
 `PR #716: Add data-release email notification enrollment <https://github.com/smaht-dac/smaht-portal/pull/716>`_
 
@@ -23,7 +23,6 @@ Change Log
   task role needs ``sns:Subscribe``, ``sns:Unsubscribe``, and
   ``sns:ListSubscriptionsByTopic`` on that topic
 
-  
 2.13.3
 ======
 

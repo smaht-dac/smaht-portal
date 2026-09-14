@@ -243,7 +243,7 @@ def test_store_dispatch_action_types_are_handled_by_reducers():
         f" (silent no-ops): {unhandled}"
     )
 
-    
+
 # ---------------------------------------------------------------------------
 # Docker base-image contract
 #
@@ -325,6 +325,9 @@ def test_user_view_notification_enrollment_updates_store_context():
     assert dispatched_types == ["SET_CONTEXT"]
     assert "...user" in handler_source
     assert "[DATA_RELEASE_NOTIFICATION_ENROLLED]: enrolled" in handler_source
+
+
+@pytest.mark.static
 def test_nginx_install_script_matches_base_image_release():
     """The nginx script's apt suite must match the base image's Debian release."""
     dockerfile = _dockerfile_text()
