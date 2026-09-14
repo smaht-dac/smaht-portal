@@ -3012,6 +3012,109 @@ div.browse-link-icon {
 		}
 	}
 
+	// Wraps Target Tissue %'s own "Show Non-Target Tissue %" toggle next to
+	// its FixedScoreLegend (see that tab's own `legend` render-prop in
+	// BrowseTissueHeatmapTable.js) -- every other tab's `legend` still
+	// renders just the bare legend element directly, unaffected by this
+	// wrapper existing.
+	.tissue-heatmap-metric-heading-controls {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+	}
+
+	// Stacks Target Tissue %'s own FixedScoreLegend over Non Target Tissue
+	// %'s (the latter only rendered once the "Show Non-Target Tissue %"
+	// toggle is actually on) -- 2 different color scales are live on the
+	// table at once in that state (blue score-0..4 vs orange nt-score-0..3),
+	// so each needs its own labeled row rather than 1 legend silently
+	// explaining only half the colors on screen.
+	.tissue-heatmap-dual-legend {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+
+		// A fixed-width, right-aligned caption column -- "Target" and
+		// "Non-Target" are different lengths, and Target Tissue %'s own 5
+		// bands vs Non Target Tissue %'s own 4 don't total the same width
+		// either, so without this each row's own swatch scale started at a
+		// different x position (however the 2 rows' own content widths
+		// happened to differ) instead of lining up into a clean 2-column
+		// grid.
+		.tissue-heatmap-fixed-legend-caption {
+			min-width: 66px;
+			text-align: right;
+		}
+	}
+
+	// A plain checkbox styled as a pill switch -- an ORANGE thumb (per
+	// explicit request), not the shared vendor Toggle component's own
+	// opposite convention (a colored track behind an always-white thumb;
+	// see NonTargetTissueToggle's own comment in BrowseTissueHeatmapTable.js
+	// for why that one wasn't reused here).
+	.tissue-heatmap-nt-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		cursor: pointer;
+		user-select: none;
+		margin: 0;
+
+		input[type='checkbox'] {
+			// Not display:none -- stays keyboard-focusable/screen-reader
+			// operable, just visually replaced by the track/thumb below.
+			position: absolute;
+			opacity: 0;
+			width: 1px;
+			height: 1px;
+
+			&:focus-visible + .tissue-heatmap-nt-toggle-track {
+				outline: 2px solid #428bca;
+				outline-offset: 2px;
+			}
+
+			&:checked + .tissue-heatmap-nt-toggle-track::after {
+				left: 18px;
+				background-color: #F2994A;
+			}
+		}
+
+		&-track {
+			position: relative;
+			display: inline-block;
+			width: 34px;
+			height: 18px;
+			background-color: #FFFFFF;
+			border: 1px solid #C7CCD2;
+			border-radius: 10px;
+			transition: border-color 0.15s ease;
+			flex-shrink: 0;
+
+			// The thumb -- always visible, orange only once checked (a grey
+			// thumb at rest keeps "on" the one state that actually draws the
+			// eye, rather than orange reading as this toggle's permanent,
+			// unchanging color regardless of state).
+			&::after {
+				content: '';
+				position: absolute;
+				top: 1px;
+				left: 1px;
+				width: 14px;
+				height: 14px;
+				border-radius: 50%;
+				background-color: #A9B7C5;
+				transition: left 0.15s ease, background-color 0.15s ease;
+			}
+		}
+
+		&-label {
+			font-size: 0.8125rem;
+			font-weight: 500;
+			color: #4E6884;
+		}
+	}
+
 	// A compact swatch-per-band scale for a fixed, already-self-explanatory
 	// metric (Autolysis Score/Target Tissue %) -- see
 	// BrowseTissueHeatmapTable.js's FixedScoreLegend. `entry` swatches reuse

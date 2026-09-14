@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import ReactTooltip from 'react-tooltip';
 import { ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -323,7 +323,6 @@ export const buildTissueMetricMatrix = (tissueResults = [], getValue, distribute
 
 const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
 const getAutolysisScoreValue = (t) => t?.pathology_summary?.autolysis_score ?? null;
-const getTargetTissuePercentageValue = (t) => t?.pathology_summary?.target_tissue_percentage ?? null;
 const getNonTargetTissuePercentageValue = (t) => t?.pathology_summary?.non_target_tissue_percentage ?? null;
 
 // --- Per-subtype sub-columns (Autolysis Score/Target Tissue % tabs only) ---
@@ -473,6 +472,154 @@ export function expandTissueResultsByNonTargetSubtype(tissueResults = []) {
         });
     });
     return expanded;
+}
+
+// Target Tissue %'s own "Show Non-Target Tissue %" toggle (MetricHeatmapTable's
+// Target Tissue % tab only) -- a 3rd pre-expansion alongside
+// expandTissueResultsBySubtype/expandTissueResultsByNonTargetSubtype above,
+// pivoted off BOTH target_tissues and (when `includeNonTarget`) non_target_tissues
+// at once, so a tissue type's non-target subtype columns (e.g. "Fibroadipose")
+// render as siblings right next to its target subtype columns (e.g.
+// "Epicardium") under the same parent header, rather than only ever being
+// reachable from the separate Non Target Tissue % tab. Every virtual record
+// this produces carries exactly 1 of target_tissue_percentage/
+// non_target_tissue_percentage (the other explicitly nulled out, not just
+// left unset), so a single shared value getter
+// (getCombinedTargetOrNonTargetValue) can read whichever one applies without
+// needing to know which kind of column it's looking at.
+//
+// Returns `{ expanded, nonTargetColumnKeys }` -- nonTargetColumnKeys (a Set
+// of composite column keys) is what lets the combined tab's own
+// getScoreClass/getSortValue tell a non-target column apart from a target
+// one at render/sort time, since both kinds of column share the exact same
+// composite-key shape (makeSubtypeColumnKey) and sit in the same flat
+// `tissueTypes` list.
+export function expandTissueResultsForTargetWithNonTarget(tissueResults = [], includeNonTarget = false) {
+    const targetTissueTypesWithSubtypeData = new Set();
+    tissueResults.forEach((t) => {
+        if (t?.pathology_summary?.target_tissues?.length) {
+            targetTissueTypesWithSubtypeData.add(t.tissue_type);
+        }
+    });
+
+    const nonTargetColumnKeys = new Set();
+    const expanded = [];
+
+    tissueResults.forEach((t) => {
+        const targetSubtypes = t?.pathology_summary?.target_tissues;
+        if (!targetSubtypes || targetSubtypes.length === 0) {
+            if (!targetTissueTypesWithSubtypeData.has(t?.tissue_type)) {
+                expanded.push({
+                    ...t,
+                    pathology_summary: {
+                        ...t.pathology_summary,
+                        non_target_tissue_percentage: null,
+                    },
+                });
+            }
+        } else {
+            targetSubtypes.forEach((entry) => {
+                if (!entry?.subtype) return;
+                expanded.push({
+                    ...t,
+                    tissue_type: makeSubtypeColumnKey(t.tissue_type, entry.subtype),
+                    pathology_summary: {
+                        ...t.pathology_summary,
+                        target_tissue_percentage: entry.percentage ?? null,
+                        non_target_tissue_percentage: null,
+                    },
+                });
+            });
+        }
+
+        if (!includeNonTarget) return;
+        const nonTargetSubtypes = t?.pathology_summary?.non_target_tissues;
+        (nonTargetSubtypes || []).forEach((entry) => {
+            if (!entry?.subtype) return;
+            const key = makeSubtypeColumnKey(t.tissue_type, entry.subtype);
+            nonTargetColumnKeys.add(key);
+            expanded.push({
+                ...t,
+                tissue_type: key,
+                pathology_summary: {
+                    ...t.pathology_summary,
+                    target_tissue_percentage: null,
+                    non_target_tissue_percentage: entry.percentage ?? null,
+                },
+            });
+        });
+    });
+
+    return { expanded, nonTargetColumnKeys };
+}
+
+// Single shared value getter for expandTissueResultsForTargetWithNonTarget's
+// output -- exactly 1 of the 2 fields is ever non-null on a given virtual
+// record (see that function's own comment), so reading target first and
+// falling back to non-target is safe regardless of which kind of column a
+// cell belongs to.
+const getCombinedTargetOrNonTargetValue = (t) =>
+    t?.pathology_summary?.target_tissue_percentage ?? t?.pathology_summary?.non_target_tissue_percentage ?? null;
+
+// Target Tissue %'s combined view (see expandTissueResultsForTargetWithNonTarget
+// above) inherits buildTissueMetricMatrix's own plain alphabetical column
+// order, which interleaves target and non-target subtypes of the same
+// tissue type together (e.g. "Cortex, Fibroadipose, Medulla") rather than
+// keeping them visually separated -- per explicit request, every non-target
+// subtype column should sit AFTER all of that tissue type's own target
+// subtype columns instead. Re-sorts within each already-contiguous same-
+// parent run (buildTissueMetricMatrix's own sort already groups same-parent
+// columns together, this only reorders *within* one such run, never across
+// runs) via a stable partition -- target columns first (their own relative
+// order unchanged), non-target columns after (same). `matrix`'s own rows
+// need the identical column permutation applied to their `cells`/
+// `cellEntries`/`cellSlots` arrays (all positionally matched to
+// `tissueTypes`), or a row's values would silently point at the wrong
+// column after this reorders `tissueTypes` itself.
+function reorderNonTargetColumnsLast(matrixResult, nonTargetColumnKeys) {
+    if (!nonTargetColumnKeys || nonTargetColumnKeys.size === 0) return matrixResult;
+    const { tissueTypes, matrix } = matrixResult;
+
+    const newOrder = [];
+    let i = 0;
+    while (i < tissueTypes.length) {
+        const parent = splitSubtypeColumnKey(tissueTypes[i]).tissueType;
+        let j = i;
+        while (j < tissueTypes.length && splitSubtypeColumnKey(tissueTypes[j]).tissueType === parent) {
+            j += 1;
+        }
+        const group = tissueTypes.slice(i, j);
+        const targetCols = group.filter((key) => !nonTargetColumnKeys.has(key));
+        const nonTargetCols = group.filter((key) => nonTargetColumnKeys.has(key));
+        newOrder.push(...targetCols, ...nonTargetCols);
+        i = j;
+    }
+
+    const sourceIndexByNewPosition = newOrder.map((key) => tissueTypes.indexOf(key));
+    return {
+        // Spreads every other field through unchanged (tissueTypeHrefs/
+        // tissueTypeCategories are plain key->value maps, order-independent;
+        // mergeableTissueTypes/brainColumnsFullyMergeable are derived from
+        // the ORIGINAL column order but describe the brain-region columns
+        // specifically, which this reorder never touches -- a run with no
+        // non-target siblings in it passes straight through with its
+        // relative order unchanged, brain regions included) -- only
+        // tissueTypes/matrix actually need overriding here.
+        ...matrixResult,
+        tissueTypes: newOrder,
+        matrix: matrix.map((row) => {
+            return {
+                ...row,
+                cells: sourceIndexByNewPosition.map((idx) => row.cells[idx]),
+                cellEntries: row.cellEntries
+                    ? sourceIndexByNewPosition.map((idx) => row.cellEntries[idx])
+                    : row.cellEntries,
+                cellSlots: row.cellSlots
+                    ? sourceIndexByNewPosition.map((idx) => row.cellSlots[idx])
+                    : row.cellSlots,
+            };
+        }),
+    };
 }
 
 export function buildSubtypeColumnPlan(tissueTypes, realTissueTypeHrefs, realTissueTypeCategories) {
@@ -701,6 +848,27 @@ export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = n
                 <span className="tissue-heatmap-fixed-legend-caption">{rightCaption}</span>
             ) : null}
         </div>
+    );
+}
+
+// Target Tissue %'s own "Show Non-Target Tissue %" switch -- a plain
+// checkbox styled as a pill toggle rather than the shared vendor `Toggle`
+// component (@hms-dbmi-bgm/shared-portal-components), whose own onoffswitch
+// convention colors the TRACK when on and always keeps a plain white thumb;
+// this one needs the opposite (an orange THUMB, per explicit request, on a
+// plain light track) with no existing override to build on.
+function NonTargetTissueToggle({ checked, onChange }) {
+    return (
+        <label className="tissue-heatmap-nt-toggle">
+            <input
+                type="checkbox"
+                checked={checked}
+                // eslint-disable-next-line react/jsx-no-bind
+                onChange={(event) => onChange(event.target.checked)}
+            />
+            <span className="tissue-heatmap-nt-toggle-track" aria-hidden="true" />
+            <span className="tissue-heatmap-nt-toggle-label">Show Non-Target Tissue %</span>
+        </label>
     );
 }
 
@@ -1272,8 +1440,8 @@ function distinctEntryValues(entries) {
     return result;
 }
 
-function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRowSegment, isColumnSegment, entries, activeScoreClass = null) {
-    const scoreClass = enableConditionalColor ? getScoreClass(value) : null;
+function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRowSegment, isColumnSegment, entries, activeScoreClass = null, tissueType = null) {
+    const scoreClass = enableConditionalColor ? getScoreClass(value, tissueType) : null;
     return (
         'tissue-heatmap-cell' +
         (scoreClass ? ` ${scoreClass}` : '') +
@@ -1609,7 +1777,8 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                 isRowSegment,
                 isColumnSegment,
                 isHoverMode ? entries : null,
-                activeScoreClass
+                activeScoreClass,
+                tissueType
             )) + (isSelected ? ' is-selected' : '') + (isGroupBoundary ? ' tissue-heatmap-cell-group-boundary' : '');
 
         // Legend-driven per-half dimming (see FixedScoreLegend/SplitCellLegend's
@@ -1633,12 +1802,12 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
             ? activeSplitHalf === 'b' || (Boolean(activeSplitHalf) && splitValues[0] === null)
             : Boolean(activeScoreClass) &&
               enableConditionalColor &&
-              getScoreClass(splitValues[0]) !== activeScoreClass;
+              getScoreClass(splitValues[0], tissueType) !== activeScoreClass;
         const isHalfBDimmed = splitByPreservationType
             ? activeSplitHalf === 'a' || (Boolean(activeSplitHalf) && splitValues[1] === null)
             : Boolean(activeScoreClass) &&
               enableConditionalColor &&
-              getScoreClass(splitValues[1]) !== activeScoreClass;
+              getScoreClass(splitValues[1], tissueType) !== activeScoreClass;
         nodes.push(
             <td
                 key={tissueType}
@@ -1663,7 +1832,7 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                                 (splitValues[0] === null
                                     ? ' is-empty'
                                     : enableConditionalColor
-                                        ? ` ${getScoreClass(splitValues[0])}`
+                                        ? ` ${getScoreClass(splitValues[0], tissueType)}`
                                         : '') +
                                 (isHalfADimmed ? ' is-band-dimmed' : '')
                             }>
@@ -1675,7 +1844,7 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
                                 (splitValues[1] === null
                                     ? ' is-empty'
                                     : enableConditionalColor
-                                        ? ` ${getScoreClass(splitValues[1])}`
+                                        ? ` ${getScoreClass(splitValues[1], tissueType)}`
                                         : '') +
                                 (isHalfBDimmed ? ' is-band-dimmed' : '')
                             }>
@@ -2347,6 +2516,13 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // cell detail popover (renderCellDetailPopover), which otherwise has no
     // way to say which metric its own value is.
     metricLabel,
+    // Optional per-cell override of the popover's own metricLabel above --
+    // only Target Tissue %'s own "Show Non-Target Tissue %" combined view
+    // needs this (a non-target column sitting next to a target one should
+    // say "Non Target Tissue %" in its own popover, not the tab's generic
+    // "Target Tissue %" title); every other tab leaves this unset and the
+    // popover falls back to the plain, always-the-same metricLabel above.
+    getMetricLabel = null,
     // The same explanatory text the tab's info-circle icon used to carry on
     // the tab label itself -- now shown on this heading instead (see the
     // render below), since the reader only sees it once they're already on
@@ -2612,8 +2788,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         if (columnIndex === -1) return matrix;
         return [...matrix].sort((rowA, rowB) =>
             compareSortValues(
-                getSortValue(rowA.cells[columnIndex]),
-                getSortValue(rowB.cells[columnIndex]),
+                getSortValue(rowA.cells[columnIndex], key),
+                getSortValue(rowB.cells[columnIndex], key),
                 direction
             )
         );
@@ -2914,7 +3090,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             ? formatTissueTypeLabel(subtypeColumnInfo[selectedCell.tissueType].parentTissueType)
                             : null,
                         subtypeLabel: subtypeColumnInfo?.[selectedCell.tissueType]?.subtypeLabel ?? null,
-                        metricLabel,
+                        metricLabel: typeof getMetricLabel === 'function'
+                            ? getMetricLabel(selectedCell.tissueType)
+                            : metricLabel,
                         value: selectedCell.value,
                         entries: selectedCell.entries,
                         slots: selectedCell.slots,
@@ -2971,6 +3149,12 @@ export const BrowseTissueHeatmapTable = (props) => {
     // see a cell's alternate values). Same in-memory-only, per-page-view,
     // admin-toggleable pattern as paletteBaseHex above.
     const [cellValueDisplayMode, setCellValueDisplayMode] = useState('vertical');
+
+    // Target Tissue %'s own "Show Non-Target Tissue %" toggle -- off by
+    // default (unchanged, existing Target Tissue %-only view), per-page-
+    // view only (not persisted), same convention as cellValueDisplayMode
+    // above.
+    const [showNonTargetInTargetTab, setShowNonTargetInTargetTab] = useState(false);
 
     // Each tab's own metric heading carries an info-circle icon (see
     // MetricHeatmapTable's render) that's a static-attribute react-tooltip
@@ -3080,9 +3264,24 @@ export const BrowseTissueHeatmapTable = (props) => {
     // column included). `true` just engages the merge side of the same
     // flag, collapsing what would otherwise be 5 repeated "n/a" cells into
     // one.
+    //
+    // Target Tissue % gets its OWN pre-expansion (expandTissueResultsForTargetWithNonTarget),
+    // not the shared expandedForSubtypeTabs Autolysis Score above also uses
+    // -- showNonTargetInTargetTab needs non-target subtype columns folded
+    // in right alongside the target ones, which that shared one has no
+    // concept of (and Autolysis Score must stay unaffected by this toggle
+    // regardless). Behaviorally identical to the old
+    // expandedForSubtypeTabs-based version when the toggle is off.
+    const targetWithNonTargetExpansion = useMemo(
+        () => expandTissueResultsForTargetWithNonTarget(tissueResultsExcludingFibroblast, showNonTargetInTargetTab),
+        [tissueResultsExcludingFibroblast, showNonTargetInTargetTab]
+    );
     const targetTissuePercentage = useMemo(
-        () => buildTissueMetricMatrix(expandedForSubtypeTabs, getTargetTissuePercentageValue, true),
-        [expandedForSubtypeTabs]
+        () => reorderNonTargetColumnsLast(
+            buildTissueMetricMatrix(targetWithNonTargetExpansion.expanded, getCombinedTargetOrNonTargetValue, true),
+            targetWithNonTargetExpansion.nonTargetColumnKeys
+        ),
+        [targetWithNonTargetExpansion]
     );
     const targetTissueSubtypePlan = useMemo(
         () => buildSubtypeColumnPlan(
@@ -3091,6 +3290,34 @@ export const BrowseTissueHeatmapTable = (props) => {
             realTissueTypeHrefsAndCategories.tissueTypeCategories
         ),
         [targetTissuePercentage.tissueTypes, realTissueTypeHrefsAndCategories]
+    );
+    // Dispatches per-column, off targetWithNonTargetExpansion's own
+    // nonTargetColumnKeys -- a non-target column (e.g. "Fibroadipose" sitting
+    // next to a target subtype like "Epicardium" under the same tissue type)
+    // needs the Non Target Tissue % tab's own orange, non-inverted scale
+    // (getNonTargetTissuePercentageScoreClass), not Target Tissue %'s own
+    // blue, inverted one -- the 2 band orders even share several of the same
+    // literal band strings (e.g. "[11-25]"), so this can't be decided from
+    // the value alone. formatValue doesn't need the same treatment: every
+    // non-target value is a plain band string that already prints correctly
+    // through formatTargetTissuePercentage's own "0" special case (which a
+    // non-target column's value can never actually hit, since "0" isn't a
+    // band NON_TARGET_TISSUE_PERCENTAGE_ORDER has).
+    const getTargetOrNonTargetScoreClass = useCallback(
+        (value, tissueType) => (
+            targetWithNonTargetExpansion.nonTargetColumnKeys.has(tissueType)
+                ? getNonTargetTissuePercentageScoreClass(value)
+                : getTargetTissuePercentageScoreClass(value)
+        ),
+        [targetWithNonTargetExpansion]
+    );
+    const getTargetOrNonTargetSortValue = useCallback(
+        (value, tissueType) => (
+            targetWithNonTargetExpansion.nonTargetColumnKeys.has(tissueType)
+                ? getNonTargetTissuePercentageSortValue(value)
+                : getTargetTissuePercentageSortValue(value)
+        ),
+        [targetWithNonTargetExpansion]
     );
 
     // Non Target Tissue % gets its own separate pre-expansion (see
@@ -3169,17 +3396,47 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
                             metricLabel="Target Tissue %"
+                            // eslint-disable-next-line react/jsx-no-bind
+                            getMetricLabel={(tissueType) => (
+                                targetWithNonTargetExpansion.nonTargetColumnKeys.has(tissueType)
+                                    ? 'Non Target Tissue %'
+                                    : 'Target Tissue %'
+                            )}
                             tooltip="Percentage range of the sample that was the target tissue subtype"
                             formatValue={formatTargetTissuePercentage}
-                            getScoreClass={getTargetTissuePercentageScoreClass}
-                            getSortValue={getTargetTissuePercentageSortValue}
+                            getScoreClass={getTargetOrNonTargetScoreClass}
+                            getSortValue={getTargetOrNonTargetSortValue}
                             // eslint-disable-next-line react/jsx-no-bind
                             legend={({ activeScoreClass, onScoreClassClick }) => (
-                                <FixedScoreLegend
-                                    entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
-                                    activeClassName={activeScoreClass}
-                                    onEntryClick={onScoreClassClick}
-                                />
+                                <div className="tissue-heatmap-metric-heading-controls">
+                                    <NonTargetTissueToggle
+                                        checked={showNonTargetInTargetTab}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onChange={setShowNonTargetInTargetTab}
+                                    />
+                                    <div className="tissue-heatmap-dual-legend">
+                                        <FixedScoreLegend
+                                            entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
+                                            leftCaption="Target"
+                                            activeClassName={activeScoreClass}
+                                            onEntryClick={onScoreClassClick}
+                                        />
+                                        {/* Only shown once there's actually a 2nd
+                                            (orange) scale on the table to explain --
+                                            with the toggle off every cell is Target
+                                            Tissue %'s own blue scale alone, so a 2nd,
+                                            always-present legend row would explain a
+                                            color nothing on the table was using. */}
+                                        {showNonTargetInTargetTab ? (
+                                            <FixedScoreLegend
+                                                entries={NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
+                                                leftCaption="Non-Target"
+                                                activeClassName={activeScoreClass}
+                                                onEntryClick={onScoreClassClick}
+                                            />
+                                        ) : null}
+                                    </div>
+                                </div>
                             )}
                             enableConditionalColor={enableConditionalColor}
                             cellValueDisplayMode={cellValueDisplayMode}
