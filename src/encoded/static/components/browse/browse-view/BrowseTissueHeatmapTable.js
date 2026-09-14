@@ -833,11 +833,28 @@ function formatTissueTypeLabel(tissueType) {
 // The header label itself: prefers the stable 4-letter internal code (e.g.
 // "BRFL", via the same tissue-code table the icon/depth lookups elsewhere
 // already use) so columns stay compact, falling back to the full name
-// (formatTissueTypeLabel) for any tissue_type that table doesn't cover. The
-// full "<code> - <name>" string is still the header's `title` tooltip.
+// (formatTissueTypeLabel) for any tissue_type that table doesn't cover. See
+// formatTissueTypeTitle below for this same code's own `title` tooltip use.
 function formatTissueTypeHeaderLabel(tissueType) {
     if (!tissueType) return tissueType;
     return getTissueInternalCodeFromFacetTerm(tissueType) || formatTissueTypeLabel(tissueType);
+}
+
+// A column header's own `title` tooltip text, e.g. "SKNE - Skin, Abdomen" --
+// built from the same stable 4-letter internal code the visible header
+// label itself uses (formatTissueTypeHeaderLabel above), not tissueType's
+// own raw "<TPC submission code> - <name>" string (e.g. "3AF - Skin,
+// Abdomen") directly -- showing that raw TPC code in the tooltip read as a
+// confusing mismatch against the different, 4-letter code the header text
+// next to it actually displays. Must always be called with a real
+// (non-composite) tissueType/parentTissueType -- a raw composite subtype-
+// column key (see makeSubtypeColumnKey) has no meaning here, and passing
+// one directly would silently truncate the tooltip at its own embedded
+// SUBTYPE_KEY_SEPARATOR (a null character, which most browsers treat as a
+// string terminator when rendering `title`).
+function formatTissueTypeTitle(tissueType) {
+    if (!tissueType) return tissueType;
+    return `${formatTissueTypeHeaderLabel(tissueType)} - ${formatTissueTypeLabel(tissueType)}`;
 }
 
 function getTargetTissuePercentageScoreClass(value) {
@@ -1893,7 +1910,7 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
         nodes.push(
             <th
                 key={tissueType}
-                title={tissueType}
+                title={formatTissueTypeTitle(tissueType)}
                 className={
                     (hoveredColumn === tissueType ? 'is-column-highlight' : '') +
                     (tissueType === selectedTissueType ? ' is-selected-column' : '')
@@ -2019,7 +2036,7 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
             return (
                 <th
                     key={key}
-                    title={key}
+                    title={formatTissueTypeTitle(columnInfo?.[key]?.parentTissueType ?? key)}
                     className={
                         'tissue-heatmap-subtype-unsplit-header' +
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
@@ -2047,7 +2064,7 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
             <th
                 key={group.parentTissueType}
                 colSpan={group.span}
-                title={group.parentTissueType}
+                title={formatTissueTypeTitle(group.parentTissueType)}
                 className={
                     'tissue-heatmap-subtype-parent-header' +
                     (anyChildHovered ? ' is-column-highlight' : '') +
@@ -2144,7 +2161,7 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
             nodes.push(
                 <th
                     key={key}
-                    title={key}
+                    title={`${formatTissueTypeTitle(run.group.parentTissueType)} - ${subtypeLabel}`}
                     className={
                         'tissue-heatmap-subtype-subrow-header' +
                         (isLastChild ? ' tissue-heatmap-subtype-group-boundary' : '') +
