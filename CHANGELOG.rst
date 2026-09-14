@@ -7,6 +7,30 @@ smaht-portal
 Change Log
 ----------
 
+2.13.3
+======
+
+`PR 748: Pathology manifest backend <https://github.com/smaht-dac/smaht-portal/pull/748>`_
+
+* Adds SAMPLE_PATHOLOGY metadata manifest backend functionality to smaht-portal.
+* Adds to document describing the pathology manifest generation and download process to ``docs/source/manifest.rst``.
+* Added unit tests
+* NOTE: UI updates will be needed to support the new pathology manifest download functionality.
+
+
+2.13.2
+======
+
+`PR 755: Publication updates <https://github.com/smaht-dac/smaht-portal/pull/755>`_
+
+* Added Coming Soon styling and disabled publication title links for publications
+  tagged with ``suppress_links``.
+* Hide data analyzed statistics and the supplementary file table for publications
+  tagged with ``suppress_data_banner``.
+* Added clickable images with an enlarged modal view for static content.
+* Updated publication citations, navigation, supplementary data labels, and page styling.
+* Refreshed the publication collection header image and Benchmarking page layout.
+
 2.13.1
 ======
 
