@@ -313,6 +313,15 @@ def test_deregister_notification_unsubscribes_and_updates_profile(monkeypatch):
                 "SubscriptionArn": notifications.PENDING_CONFIRMATION,
             }
         ],
+        # Cancelled through the AWS unsubscribe link: SNS reports the literal
+        # "Deleted" instead of an ARN, and Unsubscribe rejects that string.
+        [
+            {
+                "Protocol": "email",
+                "Endpoint": "user@example.org",
+                "SubscriptionArn": notifications.DELETED,
+            }
+        ],
     ],
 )
 def test_deregister_notification_without_active_subscription_is_idempotent(

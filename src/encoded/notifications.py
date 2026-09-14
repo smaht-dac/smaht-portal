@@ -29,6 +29,11 @@ SNS_TOPIC_REGISTRY_KEY = "sns_topic"
 DATA_RELEASE_NOTIFICATION_ENROLLED = "data_release_notification_enrolled"
 NOTIFICATION_AVAILABLE = "data_release_notifications_available"
 PENDING_CONFIRMATION = "PendingConfirmation"
+DELETED = "Deleted"
+# SNS reports these literals in place of a real ARN: a subscription still
+# awaiting email confirmation, and one already cancelled through the AWS
+# unsubscribe link. Neither can be passed to Unsubscribe.
+NON_ARN_SUBSCRIPTION_STATES = (PENDING_CONFIRMATION, DELETED)
 
 
 def includeme(config) -> None:
@@ -186,7 +191,10 @@ def find_subscription_arn(sns_client, topic: str, email: str) -> Optional[str]:
                 and endpoint.casefold() == email.casefold()
             ):
                 subscription_arn = subscription.get("SubscriptionArn")
-                if subscription_arn and subscription_arn != PENDING_CONFIRMATION:
+                if (
+                    subscription_arn
+                    and subscription_arn not in NON_ARN_SUBSCRIPTION_STATES
+                ):
                     return subscription_arn
         next_token = response.get("NextToken")
         if not next_token:
@@ -216,6 +224,7 @@ def deregister_notification(context, request) -> Dict[str, Any]:
         raise sns_error("unsubscribe", error) from error
 
     # No confirmed subscription is an idempotent success (including a request
-    # still awaiting confirmation); there is then no active delivery to stop.
+    # still awaiting confirmation, or one already cancelled through the AWS
+    # unsubscribe link); there is then no active delivery to stop.
     update_enrollment_state(user, request, enrolled=False)
     return enrollment_response(enrolled=False, changed=True)
