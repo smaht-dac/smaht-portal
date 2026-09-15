@@ -49,6 +49,7 @@ def static_section_schema():
             "schema_version": {"type": "string"},
             "submission_centers": {"type": "array", "serverDefault": "user_submission_centers"},
             "content": {"type": "string", "calculatedProperty": True},
+            "description": {"title": "Description", "type": "string"},
             "options": {
                 "type": "object",
                 "properties": {
@@ -60,6 +61,15 @@ def static_section_schema():
                     "collapsible": {
                         "title": "Collapsible",
                         "type": "boolean",
+                    },
+                    "default_open": {"title": "Default Open", "type": "boolean"},
+                    "title_icon": {"title": "Title Icon", "type": "string"},
+                    "link": {"title": "Link", "type": "string"},
+                    "image": {"title": "Image", "type": "string"},
+                    "convert_ext_links": {"title": "Convert Links", "type": "boolean"},
+                    "initial_header_level": {
+                        "title": "Initial Header Level",
+                        "type": "integer",
                     },
                 },
             },
@@ -98,9 +108,19 @@ def test_default_rows_and_blank_entry_columns(static_section_schema):
         "consortia",
         "title",
         "body",
+        "section_type",
+        "description",
+        "options.filetype",
+        "options.collapsible",
+        "options.default_open",
+        "options.title_icon",
+        "options.link",
+        "options.image",
+        "options.convert_ext_links",
+        "options.initial_header_level",
     ]
     assert worksheet.max_row == 2
-    assert [cell.value for cell in worksheet[2]] == [None, None, None, None]
+    assert all(cell.value is None for cell in worksheet[2])
 
 
 def test_configured_values_repeat_and_number_of_rows_is_not_a_column(static_section_schema):
@@ -121,6 +141,8 @@ def test_configured_values_repeat_and_number_of_rows_is_not_a_column(static_sect
     assert all(row["section_type"] == "Page Section" for row in values)
     assert all(row["options.filetype"] == "jsx" for row in values)
     assert all(row["options.collapsible"] is False for row in values)
+    assert all(row["options.default_open"] is None for row in values)
+    assert all(row["description"] is None for row in values)
 
 
 def test_array_values_use_submitr_pipe_delimiter(static_section_schema):
@@ -136,12 +158,10 @@ def test_file_mode_is_explicit_and_exclusive(static_section_schema):
         {"file": "/docs/public/section.md"},
         schema=static_section_schema,
     )
-    assert [cell.value for cell in workbook.active[1]] == [
-        "identifier",
-        "consortia",
-        "title",
-        "file",
-    ]
+    headers = [cell.value for cell in workbook.active[1]]
+    assert headers[:4] == ["identifier", "consortia", "title", "file"]
+    assert "body" not in headers
+    assert "section_type" in headers
     assert workbook.active["D2"].value == "/docs/public/section.md"
 
     with pytest.raises(StaticSectionWorkbookError, match="mutually exclusive"):
@@ -196,4 +216,14 @@ def test_workbook_structure_comments_and_output_naming(tmp_path, static_section_
         "consortia",
         "title",
         "body",
+        "section_type",
+        "description",
+        "options.filetype",
+        "options.collapsible",
+        "options.default_open",
+        "options.title_icon",
+        "options.link",
+        "options.image",
+        "options.convert_ext_links",
+        "options.initial_header_level",
     ]

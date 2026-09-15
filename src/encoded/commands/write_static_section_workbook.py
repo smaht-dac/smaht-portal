@@ -217,14 +217,24 @@ def get_static_section_columns(
     config: Mapping[str, Any],
     schema: Optional[Mapping[str, Any]] = None,
 ) -> List[str]:
-    """Return columns in entry-form order for a validated configuration."""
+    """Return schema-supported editable columns in entry-form order.
+
+    The default entry fields remain first, while the rest of the editable
+    fields come from the schema rather than from the configured keys.  This
+    keeps optional fields available for users to fill in directly in the
+    workbook, even when no fixed value was supplied in the configuration.
+    """
     config = validate_config(config, schema)
+    schema = schema or get_static_section_schema()
+    property_schemas = get_static_section_property_schemas(schema)
     columns = list(DEFAULT_ENTRY_COLUMNS)
     if "file" in config:
         columns.remove("body")
         columns.append("file")
-    for name in config:
-        if name != NUMBER_OF_ROWS and name not in columns:
+    for name, property_schema in property_schemas.items():
+        if name == NUMBER_OF_ROWS or name in columns:
+            continue
+        if not _is_read_only_property(name, property_schema):
             columns.append(name)
     return columns
 
