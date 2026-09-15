@@ -1,0 +1,114 @@
+'use strict';
+
+import React, { useState, useEffect, useRef } from 'react';
+import ReactTooltip from 'react-tooltip';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+import { BrowseTissueVizWrapper } from './BrowseTissueVizWrapper';
+import { BrowseTissueHeatmapTable } from './BrowseTissueHeatmapTable';
+
+// How long the one-time border-flash intro (see .tissue-detail-mode-toggle--intro
+// in _search.scss) plays before this toggle settles back into its normal,
+// deliberately understated look.
+const INTRO_HIGHLIGHT_DURATION_MS = 2200;
+
+// Browse Tissue Body Component
+export const BrowseTissueBody = (props) => {
+    const { alerts, href, session } = props;
+    // Lifted up from BrowseTissueVizWrapper so the Basic/Advanced sub-toggle
+    // can sit next to this header's own title instead of inside the
+    // tissue/cohort content below -- toggleViewIndex is still passed down
+    // since Basic/Advanced only makes sense while Tissue View is active.
+    const [toggleViewIndex, setToggleViewIndex] = useState(1);
+    const [tissueDetailModeIndex, setTissueDetailModeIndex] = useState(0);
+    const [showIntroHighlight, setShowIntroHighlight] = useState(false);
+    // Guards the flash to the very first time Tissue View activates -- it
+    // stays this minimal/borderless the rest of the session, so it should
+    // only ever call attention to itself once, not every time someone
+    // toggles back to Tissue View.
+    const hasPlayedIntroHighlight = useRef(false);
+
+    // The toggle's data-tip attributes (react-tooltip's static-attribute
+    // API) only take effect on nodes present at the tooltip's last build --
+    // since this toggle only exists in the DOM once toggleViewIndex flips to
+    // Tissue View, its two buttons need an explicit rebuild once they mount.
+    useEffect(() => {
+        if (toggleViewIndex !== 0) return;
+        ReactTooltip.rebuild();
+        if (hasPlayedIntroHighlight.current) return;
+        hasPlayedIntroHighlight.current = true;
+        setShowIntroHighlight(true);
+        const timer = setTimeout(() => setShowIntroHighlight(false), INTRO_HIGHLIGHT_DURATION_MS);
+        return () => clearTimeout(timer);
+    }, [toggleViewIndex]);
+
+    return (
+        <>
+            <div className="browse-summary-header-row">
+                <h2 className="browse-summary-header">SMaHT Tissue Summary</h2>
+                {toggleViewIndex === 0 ? (
+                    // Hand-rolled rather than the shared IconToggle
+                    // component -- same rendered markup/classes IconToggle
+                    // itself produces (icon-toggle > .flex-grow-1[data-tip] >
+                    // button), but IconToggle doesn't forward a `data-class`
+                    // per option, which is what's needed here to scope the
+                    // .tissue-detail-mode-toggle-tooltip nowrap override
+                    // below to just these 2 tooltips (react-tooltip reads
+                    // `data-class` off the hovered trigger and merges it
+                    // into its own shared tooltip element's class list) --
+                    // see that class in _search.scss for why: this short,
+                    // 2-word tooltip was wrapping onto 2 lines even though
+                    // its own box had plenty of room, and a global nowrap
+                    // on every tooltip would've broken the several other,
+                    // genuinely long, sentence-length tooltips elsewhere in
+                    // the app that need to wrap.
+                    <div
+                        className={
+                            'icon-toggle tissue-detail-mode-toggle' +
+                            (showIntroHighlight ? ' tissue-detail-mode-toggle--intro' : '')
+                        }>
+                        <div
+                            className="flex-grow-1"
+                            data-tip="Basic View"
+                            data-class="tissue-detail-mode-toggle-tooltip">
+                            <button
+                                type="button"
+                                onClick={() => setTissueDetailModeIndex(0)}
+                                aria-pressed={tissueDetailModeIndex === 0}
+                                className={
+                                    'btn btn-sm btn-' +
+                                    (tissueDetailModeIndex === 0 ? 'primary-dark active pe-none' : 'link')
+                                }>
+                                <i className="icon fas icon-fas icon-compress" />
+                            </button>
+                        </div>
+                        <div
+                            className="flex-grow-1"
+                            data-tip="Advanced View"
+                            data-class="tissue-detail-mode-toggle-tooltip">
+                            <button
+                                type="button"
+                                onClick={() => setTissueDetailModeIndex(1)}
+                                aria-pressed={tissueDetailModeIndex === 1}
+                                className={
+                                    'btn btn-sm btn-' +
+                                    (tissueDetailModeIndex === 1 ? 'primary-dark active pe-none' : 'link')
+                                }>
+                                <i className="icon fas icon-fas icon-expand" />
+                            </button>
+                        </div>
+                    </div>
+                ) : null}
+            </div>
+            <Alerts alerts={alerts} className="mt-2" />
+            <BrowseTissueVizWrapper
+                {...props}
+                mapping="tissue"
+                toggleViewIndex={toggleViewIndex}
+                setToggleViewIndex={setToggleViewIndex}
+                tissueDetailModeIndex={tissueDetailModeIndex}
+            />
+            <hr />
+            <BrowseTissueHeatmapTable href={href} session={session} />
+        </>
+    );
+};

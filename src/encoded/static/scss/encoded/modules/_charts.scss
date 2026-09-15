@@ -3227,6 +3227,119 @@ body[data-pathname="/data-matrix"], body[data-pathname="/recent-releases"] {
         }
     }
 
+    // Non-interactive stand-in for a real per-tissue aliquot diagram (see
+    // BrowseTissueVizWrapper.js's TissueSampleCollectionViz) -- drawn with
+    // plain CSS instead of the d3-painted <rect> the other 2 charts share
+    // (THEME.panel), since this one has no SVG of its own to paint that
+    // background onto; same radius/stroke/fill values so the 3 cards still
+    // read as one set.
+    &.tissue-collection-viz-chart {
+        // A fixed height (not min-height) to actually match the sibling
+        // charts' own `style={{height: chartHeight}}` (420, set at the
+        // call site) -- `overflow: hidden` is a safety net so this card can
+        // never render visibly taller than that if its own content (this
+        // isn't a fixed/measured layout like the siblings' d3 charts) ever
+        // runs long, rather than spilling out past its own bottom border.
+        box-sizing: border-box;
+        height: 420px;
+        overflow: hidden;
+        padding: 25px 20px 20px;
+        border-radius: 14px;
+        border: 1px solid #A3C4ED;
+        background: #FFFFFF;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        // Kept in normal flow (not the siblings' `position: absolute`,
+        // which assumes an SVG chart filling the full card height behind
+        // it) but at the same top offset/font as their own title, so all 3
+        // cards' titles still land on the same line.
+        .chart-title-container {
+            position: static;
+            margin-bottom: 20px;
+        }
+
+        .tissue-collection-viz-diagram {
+            width: 100%;
+            max-width: 500px;
+            // Purely illustrative (not scoped to any one tissue's real
+            // layout) -- no per-slice popover makes sense here, so this
+            // blocks the clicks/hover AliquotVisualization would otherwise
+            // wire up rather than exposing a prop just to suppress them.
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .tissue-collection-viz-summary {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+
+            .tissue-collection-viz-summary-item {
+                flex: 1 1 0;
+                padding: 10px 14px;
+                border: 1px solid #DCE6F0;
+                border-radius: 10px;
+                text-align: center;
+
+                &-heading {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    margin-bottom: 6px;
+                }
+
+                .swatch {
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 3px;
+                    flex: 0 0 auto;
+                }
+                .label {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #31465D;
+                }
+                .count {
+                    text-align: center;
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #212529;
+                }
+                &-bullets {
+                    // Centered as a block within the card (text-align on
+                    // the parent + inline-block here), while each bullet's
+                    // own marker/text stays left-aligned relative to the
+                    // others -- text-align: center directly on a <ul> would
+                    // instead center each line independently, misaligning
+                    // the bullet markers line to line.
+                    display: inline-block;
+                    text-align: left;
+                    list-style: disc;
+                    margin: 6px 0 0;
+                    padding-left: 18px;
+                    font-size: 12px;
+                    color: #657B95;
+
+                    li {
+                        line-height: 1.5;
+                    }
+                }
+                &.is-fixed .swatch {
+                    background: #F2C4A8;
+                }
+                &.is-frozen .swatch {
+                    background: #CFE89B;
+                }
+            }
+        }
+    }
+
     &.donor-sequencing-progress {
         min-height: 420px;
         display: inline-block;

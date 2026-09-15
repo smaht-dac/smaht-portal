@@ -233,6 +233,7 @@ export {
     germLayerTissueMapping,
     tissueCategoryOrder,
     tissueToCategory,
+    tissueCategoryByTpcCode,
     compareTissueFacetTerms,
     getTissueInternalCodeFromFacetTerm,
     getTissueCategoryFromFacetTerm,
