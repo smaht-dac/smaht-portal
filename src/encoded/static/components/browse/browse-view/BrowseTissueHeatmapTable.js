@@ -2967,7 +2967,10 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                     className="tissue-heatmap-sticky-header"
                     style={{ top: stickyHeader.top, left: stickyHeader.left, width: stickyHeader.width }}>
                     <table
-                        className="tissue-heatmap-table"
+                        className={
+                            'tissue-heatmap-table' +
+                            (splitByPreservationType ? ' tissue-heatmap-table--wide-padding' : '')
+                        }
                         style={{
                             width: stickyHeader.tableWidth,
                             transform: `translateX(${-stickyHeader.scrollLeft}px)`,
@@ -3000,7 +3003,12 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
             <div
                 className={'tissue-heatmap-table-wrap' + (selectedCell ? ' has-selected-cell' : '')}
                 ref={wrapperRef}>
-                <table className="tissue-heatmap-table" ref={tableRef}>
+                <table
+                    className={
+                        'tissue-heatmap-table' +
+                        (splitByPreservationType ? ' tissue-heatmap-table--wide-padding' : '')
+                    }
+                    ref={tableRef}>
                     <thead>
                         {renderTableHeaderRows(
                             columnGroups,

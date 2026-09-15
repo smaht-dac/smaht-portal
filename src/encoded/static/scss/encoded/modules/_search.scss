@@ -3389,7 +3389,20 @@ div.browse-link-icon {
 	}
 
 	table.tissue-heatmap-table {
-		width: 100%;
+		// Deliberately NOT `width: 100%`, and NOT just left unset either --
+		// a <table> with the (default) automatic table-layout algorithm
+		// fills its containing block's width by default, same as any plain
+		// block box with `width: auto` would, whenever the real columns'
+		// combined natural content width falls short of it (a small local
+		// dataset with few donors/tissue types, say) -- simply omitting a
+		// `width` declaration here still leaves that same default in
+		// effect, stretching every column to fill the leftover space for
+		// reasons that have nothing to do with `th`/`td`'s own padding.
+		// `max-content` opts out of that fill behavior and sizes the table
+		// to its own content instead -- a real, wide, data-driven column
+		// count still overflows normally (`.tissue-heatmap-table-wrap`'s
+		// own `overflow-x: auto` above still scrolls it exactly as before).
+		width: max-content;
 		// `border-collapse: collapse` breaks `position: sticky` on td/th in
 		// WebKit/Safari (a long-standing browser bug) -- `separate` with no
 		// spacing renders the same single-sided cell borders used below.
@@ -3400,7 +3413,29 @@ div.browse-link-icon {
 		th, td {
 			white-space: nowrap;
 			text-align: center;
-			padding: 8px 20px;
+			// Halved from 20px -- with a wide, data-driven number of tissue-
+			// type/subtype columns (long labels already truncate with an
+			// ellipsis, see .tissue-heatmap-subtype-subrow-label-text), that
+			// much horizontal padding around a short value like "[50-100]"
+			// added real, avoidable width to every single column, pushing
+			// the table's own total width -- and how far right someone has
+			// to scroll to reach the last columns -- out much further than
+			// the actual content needed.
+			padding: 8px 8px;
+		}
+
+		// Ischemic Time only (see MetricHeatmapTable's own
+		// splitByPreservationType-gated className) -- its columns don't
+		// have the same narrowing problem the 3 subtype-aware tabs above
+		// had (no .tissue-heatmap-subtype-subrow-label-text floor at all,
+		// no fixed-width label span), and its own Fixed/Frozen split-cell
+		// halves read as cramped at the narrower padding, so this restores
+		// the original, wider spacing for this tab specifically rather
+		// than applying the narrower default table-wide.
+		&.tissue-heatmap-table--wide-padding {
+			th, td {
+				padding: 8px 20px;
+			}
 		}
 
 		// Was the same light-blue header background/dark text/500-weight
@@ -3569,7 +3604,16 @@ div.browse-link-icon {
 		// rather than baseline-aligning against its icon's own box.
 		.tissue-heatmap-subtype-subrow-label-text {
 			display: inline-block;
-			width: 96px;
+			// Since every column in a table sizes to the widest cell
+			// anywhere in it (header row included), this fixed box is the
+			// actual floor under EVERY subtype-aware column's width, even
+			// ones whose own values are a short band string like
+			// "[50-100]" -- a short label (e.g. "Dermis") still reserves
+			// this same box, so keeping it narrow (rather than wide enough
+			// to rarely truncate) is what keeps the whole table compact;
+			// per explicit request, more labels truncating with an
+			// ellipsis is an acceptable tradeoff for that.
+			width: 48px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
