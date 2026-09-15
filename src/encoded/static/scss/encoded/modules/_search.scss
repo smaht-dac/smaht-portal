@@ -3012,12 +3012,12 @@ div.browse-link-icon {
 		}
 	}
 
-	// Wraps Target Tissue %'s own "Show Non-Target Tissue %" toggle next to
-	// its FixedScoreLegend (see that tab's own `legend` render-prop in
-	// BrowseTissueHeatmapTable.js) -- every other tab's `legend` still
-	// renders just the bare legend element directly, unaffected by this
-	// wrapper existing.
-	.tissue-heatmap-metric-heading-controls {
+	// Groups the title with its own optional `titleAccessory` (only Target
+	// Tissue %'s "Show Non-Target Tissue %" toggle uses this) into one flex
+	// item -- `.tissue-heatmap-metric-heading-row`'s own space-between still
+	// pushes the legend to the opposite end, but the toggle now sits right
+	// next to the heading it actually affects instead of out by the legend.
+	.tissue-heatmap-metric-title-group {
 		display: flex;
 		align-items: center;
 		gap: 16px;
@@ -3587,6 +3587,25 @@ div.browse-link-icon {
 			font-weight: 400;
 			color: #343741;
 			background-color: #DADDE3;
+
+			// Only set on Target Tissue %'s own combined "Show Non-Target
+			// Tissue %" view (see renderSubtypeHeaderCells' own
+			// `columnKind` -- every other tab's columns are all one kind,
+			// nothing to distinguish) -- tags each subtype column with the
+			// SAME blue/orange family its own body cells below already use
+			// (score-N vs nt-score-N's own lightest band), so the target/
+			// non-target split reads clearly at the header itself instead
+			// of only showing up once you look at real cell values. Wins
+			// over the plain background-color above via source order +
+			// the 2-class specificity below (same either way, but explicit
+			// beats implicit).
+			&.tissue-heatmap-subtype-subrow-header--target {
+				background-color: #DAEBF1;
+			}
+
+			&.tissue-heatmap-subtype-subrow-header--non-target {
+				background-color: #FFE8CC;
+			}
 		}
 
 		// A fixed-width, ellipsis-truncated box around every 3rd-row
