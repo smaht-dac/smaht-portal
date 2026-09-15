@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+2.13.4
+======
+
+`PR 762: Add tissue sample metadata transfer command <https://github.com/smaht-dac/smaht-portal/pull/762>`_
+
+* Added a command to transfer selected metadata from NDRI TPC tissue samples to matching non-TPC samples.
+
 2.13.3
 ======
 
