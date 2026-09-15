@@ -228,11 +228,16 @@ def get_static_section_columns(
     schema = schema or get_static_section_schema()
     property_schemas = get_static_section_property_schemas(schema)
     columns = list(DEFAULT_ENTRY_COLUMNS)
+    # body/file are mutually exclusive: whichever one is not in use here must
+    # also be skipped by the schema-driven loop below, or it would be added
+    # back as a second, unconfigured entry column.
+    excluded_column = "file"
     if "file" in config:
         columns.remove("body")
         columns.append("file")
+        excluded_column = "body"
     for name, property_schema in property_schemas.items():
-        if name == NUMBER_OF_ROWS or name in columns:
+        if name == NUMBER_OF_ROWS or name in columns or name == excluded_column:
             continue
         if not _is_read_only_property(name, property_schema):
             columns.append(name)
