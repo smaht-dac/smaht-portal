@@ -251,7 +251,7 @@
         },
         "citation_addon": {
             "title": "Add On",
-            "description": "Text that can be added to the end of the citationn e.g. accepted in Cell",
+            "description": "Text that can be added to the end of the citation e.g. accepted in Cell",
             "type": "string",
             "permission": "restricted_fields"
         }
