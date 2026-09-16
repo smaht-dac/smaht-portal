@@ -90,7 +90,7 @@
         },
         "authors": {
             "title": "Authors",
-            "description": "All authors, with format Bernstein BE, Birney E, Dunham I,...",
+            "description": "All authors of publication",
             "type": "array",
             "items": {
                 "title": "Author",
@@ -199,6 +199,22 @@
             },
             "permission": "restricted_fields"
         },
+        "publication_categories": {
+            "title": "Categories",
+            "description": "Categories of the publication",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "Data / Methods",
+                    "Review",
+                    "News & Views",
+                    "Perspective",
+                    "Resource"
+                ]
+            },
+            "permission": "restricted_fields"
+        },
         "publication_groups": {
             "title": "Publication Group(s)",
             "description": "Field to specify this publication as belonging to specific group(s).",
@@ -232,6 +248,12 @@
                 "Single-cell",
                 "Functional"
             ]
+        },
+        "citation_addon": {
+            "title": "Add On",
+            "description": "Text that can be added to the end of the citationn e.g. accepted in Cell",
+            "type": "string",
+            "permission": "restricted_fields"
         }
     },
     "facets": {
@@ -243,6 +265,12 @@
         },
         "date_published": {
             "title": "Year"
+        },
+        "publication_categories": {
+            "title": "Category"
+        },
+        "scope": {
+            "title": "Scope"
         }
     },
     "columns": {
@@ -257,6 +285,10 @@
         },
         "journal": {
             "title": "Journal"
+        },
+        "publication_categories": {
+            "title": "Category",
+            "default_hidden": true
         }
     }
 }
