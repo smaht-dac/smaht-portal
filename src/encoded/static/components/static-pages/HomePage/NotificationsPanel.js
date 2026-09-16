@@ -51,7 +51,7 @@ export const NotificationsPanel = (props) => {
                 </div>
             )}
             <DataReleaseTracker session={session} />
-            <AnnouncementsSection />
+            <AnnouncementsSection session={session} />
             <div className="about-consortium section">
                 <h3 className="section-header">Data Overview</h3>
                 <div className="section-body">

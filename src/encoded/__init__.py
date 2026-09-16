@@ -65,6 +65,7 @@ def include_encoded(config):
         For detailed explanation see: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html
     """
     config.include('encoded.authentication')
+    config.include('encoded.notifications')
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.metadata')
@@ -73,6 +74,7 @@ def include_encoded(config):
     config.include('encoded.debugging')
     config.include('encoded.upgrade')
     config.include('encoded.submission_status')
+    config.include('encoded.notification_status')
     config.include('encoded.analysis_runs')
     config.include('encoded.qc_overview')
     config.include('encoded.ingestion.ingestion_status')
