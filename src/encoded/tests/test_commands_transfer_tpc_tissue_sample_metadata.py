@@ -910,23 +910,23 @@ def test_build_patch_processing_notes_tpc_clears_from_tpc_only_format():
     assert patch["tags"] == [PROCESSED_TAG]
 
 
-def test_build_patch_core_size_not_cleared_when_tpc_clears():
-    """Core size is not cleared when TPC clears it (copy-once semantics)."""
+def test_build_patch_core_size_cleared_when_tpc_clears():
+    """Core size is cleared when TPC clears it (consistent with description/processing_notes)."""
     tpc_sample = {"core_size": None}
     target_sample = {"core_size": "3.0", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    # Core size should not be cleared, only tag added
-    assert "core_size" not in patch
+    # Core size should be cleared to None
+    assert patch["core_size"] is None
     assert patch["tags"] == [PROCESSED_TAG]
 
 
-def test_build_patch_preservation_type_not_cleared_when_tpc_clears():
-    """Preservation type is not cleared when TPC clears it (copy-once semantics)."""
+def test_build_patch_preservation_type_cleared_when_tpc_clears():
+    """Preservation type is cleared when TPC clears it (consistent with description/processing_notes)."""
     tpc_sample = {"preservation_type": ""}
     target_sample = {"preservation_type": "Frozen", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    # Preservation type should not be cleared, only tag added
-    assert "preservation_type" not in patch
+    # Preservation type should be cleared to None
+    assert patch["preservation_type"] is None
     assert patch["tags"] == [PROCESSED_TAG]
 
 
@@ -946,6 +946,84 @@ def test_build_patch_clearing_with_other_changes():
     assert patch["core_size"] == "3.0"
     assert patch["description"] == ""  # Cleared
     assert patch["processing_notes"] == "GCC: gcc notes; TPC: new notes"  # Updated
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_core_size_cleared_with_empty_string():
+    """Core size is cleared when TPC has empty string."""
+    tpc_sample = {"core_size": ""}
+    target_sample = {"core_size": "2.5", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch["core_size"] is None
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_preservation_type_cleared_with_none():
+    """Preservation type is cleared when TPC has None."""
+    tpc_sample = {"preservation_type": None}
+    target_sample = {"preservation_type": "FFPE", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch["preservation_type"] is None
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_core_size_mismatch_still_skips():
+    """Core size mismatch still causes sample to be skipped entirely."""
+    tpc_sample = {"core_size": "3.0"}
+    target_sample = {"core_size": "2.0", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    # Should return None to signal skip
+    assert patch is None
+
+
+def test_build_patch_all_fields_cleared():
+    """All clearable fields can be cleared simultaneously."""
+    tpc_sample = {
+        "core_size": None,
+        "preservation_type": "",
+        "description": None,
+        "processing_notes": "",
+    }
+    target_sample = {
+        "core_size": "3.0",
+        "preservation_type": "Frozen",
+        "description": "TPC: old desc",
+        "processing_notes": "GCC: gcc; TPC: old notes",
+        "tags": [],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch["core_size"] is None
+    assert patch["preservation_type"] is None
+    assert patch["description"] == ""
+    # format_prefixed_value("gcc", None) returns "gcc" (no GCC: prefix when no TPC portion)
+    assert patch["processing_notes"] == "gcc"
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_core_size_clearing_with_description_update():
+    """Core size clearing works alongside description updates."""
+    tpc_sample = {
+        "core_size": None,  # Clearing
+        "description": "new tpc desc",  # Updating
+    }
+    target_sample = {
+        "core_size": "2.5",
+        "description": "GCC: gcc desc; TPC: old desc",
+        "tags": [],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch["core_size"] is None
+    assert patch["description"] == "GCC: gcc desc; TPC: new tpc desc"
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_preservation_type_not_cleared_when_target_empty():
+    """Preservation type not cleared if target already empty."""
+    tpc_sample = {"preservation_type": None}
+    target_sample = {"tags": []}  # No preservation_type
+    patch = build_patch(tpc_sample, target_sample)
+    # Should not include preservation_type in patch
+    assert "preservation_type" not in patch
     assert patch["tags"] == [PROCESSED_TAG]
 
 

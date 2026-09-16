@@ -4,8 +4,8 @@ TPC-submitted tissue_sample items to non-TPC tissue_sample items sharing the sam
 external_id.
 
 Rules:
-  - core_size: copied from TPC only if the target item lacks it; mismatch → warn + skip
-  - preservation_type: copied from TPC only if the target item lacks it
+  - core_size: copied from TPC if target lacks it; cleared if TPC clears it; mismatch → warn + skip
+  - preservation_type: copied from TPC if target lacks it; cleared if TPC clears it
   - description / processing_notes: prefixed format "GCC: <gcc>; TPC: <tpc>" is parsed
     and made idempotent; GCC portion is preserved, TPC portion is replaced if changed.
     TPC values may contain semicolons; the parser uses '; TPC:' as the separator.
@@ -23,6 +23,7 @@ Rules:
   - Parse failures flag the record for resolution and are not tagged as synced
   - When TPC clears description or processing_notes, the TPC portion is removed from target
     (GCC portion is preserved)
+  - When TPC clears core_size or preservation_type, the portal value is cleared to match
   - Connection, reconciliation, or patch failures return nonzero exit code
   - Use --limit N to process at most N samples
   - Use --identifiers UUID [UUID ...] to process only specific samples
@@ -180,13 +181,14 @@ def build_patch(
     patch = {}
     skip_tagging_this_record = skip_tagging  # May be set True if parse fails
 
-    # Check core_size: copy if target lacks it, warn and skip if mismatch
+    # Check core_size: copy if target lacks it, clear if TPC clears it, warn and skip if mismatch
     # Treat None and empty string as absent; any other value as present
     tpc_core_size = tpc_sample.get("core_size")
     target_core_size = target_sample.get("core_size")
     tpc_has_core_size = tpc_core_size is not None and tpc_core_size != ""
     target_has_core_size = target_core_size is not None and target_core_size != ""
 
+    # Mismatch check: if both have non-empty values that differ, skip the entire sample
     if tpc_has_core_size and target_has_core_size and tpc_core_size != target_core_size:
         log.warning(
             "core_size mismatch for %s: TPC=%s, target=%s — skipping sample",
@@ -196,17 +198,26 @@ def build_patch(
         )
         return None  # Signal to skip this sample entirely
 
+    # Copy if TPC has value and target lacks it
     if tpc_has_core_size and not target_has_core_size:
         patch["core_size"] = tpc_core_size
+    # Clear if TPC cleared value and target has it
+    elif not tpc_has_core_size and target_has_core_size:
+        patch["core_size"] = None
 
-    # preservation_type: copy if target lacks it
+    # preservation_type: copy if target lacks it, clear if TPC clears it
     # Treat None and empty string as absent; any other value as present
     tpc_preservation = tpc_sample.get("preservation_type")
     target_preservation = target_sample.get("preservation_type")
     tpc_has_preservation = tpc_preservation is not None and tpc_preservation != ""
     target_has_preservation = target_preservation is not None and target_preservation != ""
+    
+    # Copy if TPC has value and target lacks it
     if tpc_has_preservation and not target_has_preservation:
         patch["preservation_type"] = tpc_preservation
+    # Clear if TPC cleared value and target has it
+    elif not tpc_has_preservation and target_has_preservation:
+        patch["preservation_type"] = None
 
     # description and processing_notes: idempotent prefixed format WITH CLEARING
     for field in ("description", "processing_notes"):
