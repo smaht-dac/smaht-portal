@@ -73,7 +73,8 @@
         "pubmed_id":{
             "title": "Publication Identifier",
             "description": "PMID for the publication (if available).",
-            "type": "string"
+            "type": "string",
+            "permission": "restricted_fields"
         },
         "title": {
             "title": "Title",
@@ -212,8 +213,7 @@
                     "Perspective",
                     "Resource"
                 ]
-            },
-            "permission": "restricted_fields"
+            }
         },
         "publication_groups": {
             "title": "Publication Group(s)",
@@ -226,8 +226,7 @@
                     "Production",
                     "P25"
                 ]
-            },
-            "permission": "restricted_fields"
+            }
         },
         "scope": {
             "title": "Scope",
