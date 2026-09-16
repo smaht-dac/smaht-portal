@@ -14,9 +14,15 @@ Rules:
   - By default, only non-TPC samples lacking the tpc_metadata_synced tag are selected
   - Use --ignore-tag to include already-tagged samples
   - Use --skip-tagging to suppress automatic tag addition
-  - Records examined receive the tpc_metadata_synced tag when modified (tag-only changes
-    are not sent to the server)
+  - Records examined receive the tpc_metadata_synced tag unless:
+    • --skip-tagging is set
+    • The tag is already present
+    • A core_size mismatch occurred (sample is skipped)
+    • A parse error occurred (record needs human intervention)
+  - Tag-only changes ARE sent to the server but counted separately from metadata changes
   - Parse failures flag the record for resolution and are not tagged as synced
+  - When TPC clears description or processing_notes, the TPC portion is removed from target
+    (GCC portion is preserved)
   - Connection, reconciliation, or patch failures return nonzero exit code
   - Use --limit N to process at most N samples
   - Use --identifiers UUID [UUID ...] to process only specific samples
@@ -151,16 +157,28 @@ def format_prefixed_value(gcc_part: Optional[str], tpc_part: Optional[str]) -> s
     return ""
 
 
+def has_metadata_changes(patch: dict) -> bool:
+    """Check if patch has any changes besides tags.
+    
+    Returns True if patch contains fields other than 'tags'.
+    Returns False for empty patches or patches with only tags.
+    """
+    if not patch:
+        return False
+    return any(key != "tags" for key in patch.keys())
+
+
 def build_patch(
     tpc_sample: dict, target_sample: dict, skip_tagging: bool = False
 ) -> Optional[dict]:
     """Build a patch dict for the target sample.
 
-    Returns None only if there's a core_size mismatch.
-    Returns an empty dict when no changes are needed.
-    Returns a dict with keys to patch when changes are required.
+    Returns None only if there's a core_size mismatch or other skip condition.
+    Returns a dict (possibly empty) for successful examination.
+    The dict may contain only tags (for records with no metadata changes).
     """
     patch = {}
+    skip_tagging_this_record = skip_tagging  # May be set True if parse fails
 
     # Check core_size: copy if target lacks it, warn and skip if mismatch
     # Treat None and empty string as absent; any other value as present
@@ -190,30 +208,40 @@ def build_patch(
     if tpc_has_preservation and not target_has_preservation:
         patch["preservation_type"] = tpc_preservation
 
-    # description and processing_notes: idempotent prefixed format
+    # description and processing_notes: idempotent prefixed format WITH CLEARING
     for field in ("description", "processing_notes"):
         tpc_val = tpc_sample.get(field)
         target_val = target_sample.get(field)
-
-        if not tpc_val:
-            continue
 
         # Parse the existing target value
         parsed = parse_prefixed_value(target_val) if target_val else ("", None)
 
         if parsed is None:
             log.warning(
-                "Malformed prefixed %s in %s: %r — skipping field",
+                "Malformed prefixed %s in %s: %r — skipping field and not tagging",
                 field,
                 target_sample.get("uuid"),
                 target_val,
             )
+            skip_tagging_this_record = True  # Don't tag if we couldn't process
             continue
 
         gcc_part, existing_tpc_part = parsed
 
+        # Convert empty string or whitespace-only to None for consistency
+        tpc_val_normalized = tpc_val if (tpc_val and tpc_val.strip()) else None
+
+        # If TPC has cleared the field, remove TPC portion from target
+        if not tpc_val_normalized:
+            if existing_tpc_part:  # Target has TPC portion that needs clearing
+                new_value = format_prefixed_value(gcc_part, None)
+                if new_value != target_val:
+                    patch[field] = new_value
+            continue  # TPC has no value, either cleared or never set
+
+        # TPC has a value - proceed with normal sync logic
         # If TPC value hasn't changed, no update needed
-        if existing_tpc_part == tpc_val:
+        if existing_tpc_part == tpc_val_normalized:
             log.debug(
                 "TPC %s already up-to-date for %s — skipping field",
                 field,
@@ -222,20 +250,21 @@ def build_patch(
             continue
 
         # Build the new formatted value
-        new_value = format_prefixed_value(gcc_part, tpc_val)
+        new_value = format_prefixed_value(gcc_part, tpc_val_normalized)
 
         # Only add to patch if it's actually different
         if new_value != target_val:
             patch[field] = new_value
 
-    # Add tag for successfully examined records unless --skip-tagging is set
-    # Tag is only added if there are actual metadata changes (not tag-only)
-    if not skip_tagging and patch:
+    # Add tag for successfully examined records
+    # Tag is added AFTER metadata processing, and ONLY if no parse errors
+    if not skip_tagging_this_record:
         existing_tags = target_sample.get("tags", [])
         if PROCESSED_TAG not in existing_tags:
             patch["tags"] = existing_tags + [PROCESSED_TAG]
 
-    return patch if patch else {}
+    # Return the patch (may be empty dict if tag is already present and no changes)
+    return patch
 
 
 def main() -> None:
@@ -347,9 +376,10 @@ def main() -> None:
         log.error("Failed to load TPC samples: %s", exc)
         sys.exit(1)
 
-    patched = 0
+    patched = 0  # Records with metadata changes
+    tagged_only = 0  # Records with only tag added (no metadata changes)
     skipped_no_tpc = 0
-    skipped_no_changes = 0
+    skipped_no_changes = 0  # Records that didn't need any changes (even tag)
     skipped_mismatch = 0
     errors = 0
     
@@ -393,6 +423,7 @@ def main() -> None:
                 continue
 
             if not patch:
+                # Empty patch = already tagged and no changes needed
                 log.debug(
                     "No changes needed for %s (external_id: %s)", uuid, external_id
                 )
@@ -442,34 +473,53 @@ def main() -> None:
             for uuid, external_id, patch, fresh_sample in tqdm(
                 patches_to_apply, desc="Applying patches", unit="patch"
             ):
+                has_metadata = has_metadata_changes(patch)
+                
                 if not args.execute:
-                    log.info(
-                        "[DRY RUN] Would patch %s (external_id: %s): %s",
-                        uuid,
-                        external_id,
-                        patch,
-                    )
-                    patched += 1
+                    if has_metadata:
+                        log.info(
+                            "[DRY RUN] Would patch %s (external_id: %s): %s",
+                            uuid,
+                            external_id,
+                            patch,
+                        )
+                        patched += 1
+                    else:
+                        log.info(
+                            "[DRY RUN] Would add tag to %s (external_id: %s)",
+                            uuid,
+                            external_id,
+                        )
+                        tagged_only += 1
                 else:
                     try:
                         ff_utils.patch_metadata(patch, obj_id=uuid, key=auth_key)
-                        log.info(
-                            "Patched %s (external_id: %s): %s",
-                            uuid,
-                            external_id,
-                            list(patch.keys()),
-                        )
-                        patched += 1
+                        if has_metadata:
+                            log.info(
+                                "Patched %s (external_id: %s): %s",
+                                uuid,
+                                external_id,
+                                list(patch.keys()),
+                            )
+                            patched += 1
+                        else:
+                            log.info(
+                                "Tagged %s (external_id: %s)",
+                                uuid,
+                                external_id,
+                            )
+                            tagged_only += 1
                     except Exception as exc:
                         log.error("Failed to patch %s: %s", uuid, exc)
                         errors += 1
 
     action = "Patched" if args.execute else "Would patch"
     log.info(
-        "Done. %s: %d | Skipped (no TPC match): %d | Skipped (no changes): %d | "
-        "Skipped (core_size mismatch): %d | Errors: %d",
+        "Done. %s: %d | Tagged only: %d | Skipped (no TPC match): %d | "
+        "Skipped (no changes): %d | Skipped (core_size mismatch): %d | Errors: %d",
         action,
         patched,
+        tagged_only,
         skipped_no_tpc,
         skipped_no_changes,
         skipped_mismatch,

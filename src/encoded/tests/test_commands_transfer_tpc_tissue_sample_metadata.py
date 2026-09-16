@@ -8,6 +8,7 @@ from encoded.commands.transfer_tpc_tissue_sample_metadata import (
     format_prefixed_value,
     get_all_tpc_samples,
     get_non_tpc_tissue_samples,
+    has_metadata_changes,
     main,
     parse_prefixed_value,
 )
@@ -143,11 +144,11 @@ def test_build_patch_core_size_copy():
 
 
 def test_build_patch_core_size_match():
-    """core_size match is OK, no update needed."""
+    """core_size match is OK, tag is added if not present."""
     tpc_sample = {"core_size": "3.0"}
-    target_sample = {"core_size": "3.0"}
+    target_sample = {"core_size": "3.0", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {}
+    assert patch == {"tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_core_size_mismatch():
@@ -167,11 +168,11 @@ def test_build_patch_preservation_type_copy():
 
 
 def test_build_patch_preservation_type_exists():
-    """preservation_type is not overwritten if target already has one."""
+    """preservation_type is not overwritten if target already has one, but tag is added."""
     tpc_sample = {"preservation_type": "Frozen"}
-    target_sample = {"preservation_type": "Fixed"}
+    target_sample = {"preservation_type": "Fixed", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {}
+    assert patch == {"tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_description_tpc_only():
@@ -191,11 +192,11 @@ def test_build_patch_description_gcc_exists():
 
 
 def test_build_patch_description_idempotent_same_tpc():
-    """description: TPC value unchanged → no update."""
+    """description: TPC value unchanged → tag is added if not present."""
     tpc_sample = {"description": "tpc desc"}
-    target_sample = {"description": "GCC: gcc desc; TPC: tpc desc"}
+    target_sample = {"description": "GCC: gcc desc; TPC: tpc desc", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {}
+    assert patch == {"tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_description_idempotent_update_tpc():
@@ -240,11 +241,11 @@ def test_build_patch_processing_notes_same_logic():
 
 
 def test_build_patch_processing_notes_idempotent():
-    """processing_notes: idempotent when TPC value unchanged."""
+    """processing_notes: idempotent when TPC value unchanged, but tag is added."""
     tpc_sample = {"processing_notes": "tpc notes"}
-    target_sample = {"processing_notes": "GCC: gcc notes; TPC: tpc notes"}
+    target_sample = {"processing_notes": "GCC: gcc notes; TPC: tpc notes", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {}
+    assert patch == {"tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_all_fields():
@@ -267,11 +268,11 @@ def test_build_patch_all_fields():
 
 
 def test_build_patch_no_changes_needed():
-    """When no changes are needed, patch is empty dict."""
+    """When no changes are needed, tag is added if not present."""
     tpc_sample = {"preservation_type": "Frozen"}
-    target_sample = {"preservation_type": "Frozen"}
+    target_sample = {"preservation_type": "Frozen", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {}
+    assert patch == {"tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_core_size_mismatch_blocks_all():
@@ -326,7 +327,7 @@ def test_build_patch_preservation_type_none_treated_as_absent():
 
 
 def test_build_patch_malformed_description_other_fields_transfer():
-    """Malformed description is skipped but other fields transfer."""
+    """Malformed description is skipped but other fields transfer, no tag added."""
     tpc_sample = {
         "core_size": "3.0",
         "preservation_type": "Frozen",
@@ -335,18 +336,20 @@ def test_build_patch_malformed_description_other_fields_transfer():
     }
     target_sample = {
         "description": "GCC: gcc TPC: malformed",  # Malformed (missing semicolon)
+        "tags": [],
     }
     patch = build_patch(tpc_sample, target_sample)
     # Malformed description is skipped, but other fields should still transfer
+    # Parse failure prevents tagging
     assert "description" not in patch
     assert patch["core_size"] == "3.0"
     assert patch["preservation_type"] == "Frozen"
     assert patch["processing_notes"] == "TPC: tpc notes"
-    assert patch["tags"] == [PROCESSED_TAG]
+    assert "tags" not in patch  # Parse failure prevents tagging
 
 
 def test_build_patch_malformed_processing_notes_other_fields_transfer():
-    """Malformed processing_notes is skipped but other fields transfer."""
+    """Malformed processing_notes is skipped but other fields transfer, no tag added."""
     tpc_sample = {
         "core_size": "3.0",
         "preservation_type": "Frozen",
@@ -355,14 +358,16 @@ def test_build_patch_malformed_processing_notes_other_fields_transfer():
     }
     target_sample = {
         "processing_notes": "TPC: notes; GCC: wrong order",  # Malformed (wrong order)
+        "tags": [],
     }
     patch = build_patch(tpc_sample, target_sample)
     # Malformed processing_notes is skipped, but other fields should still transfer
+    # Parse failure prevents tagging
     assert "processing_notes" not in patch
     assert patch["core_size"] == "3.0"
     assert patch["preservation_type"] == "Frozen"
     assert patch["description"] == "TPC: tpc desc"
-    assert patch["tags"] == [PROCESSED_TAG]
+    assert "tags" not in patch  # Parse failure prevents tagging
 
 
 def test_build_patch_skip_tagging():
@@ -375,12 +380,12 @@ def test_build_patch_skip_tagging():
 
 
 def test_build_patch_tag_not_added_to_empty_patch():
-    """Tag is not added when there are no metadata changes (Fix #5)."""
+    """Tag IS added even when there are no metadata changes (Fix #1)."""
     tpc_sample = {"preservation_type": "Frozen"}
-    target_sample = {"preservation_type": "Frozen"}
+    target_sample = {"preservation_type": "Frozen", "tags": []}
     patch = build_patch(tpc_sample, target_sample, skip_tagging=False)
-    # No changes, so no tag should be added (empty patch)
-    assert patch == {}
+    # No metadata changes, but tag should be added
+    assert patch == {"tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_tag_not_duplicated():
@@ -745,3 +750,295 @@ def test_main_patch_failure_exits_nonzero(
             assert False, "Should have raised SystemExit"
         except SystemExit as e:
             assert e.code == 1
+
+
+# =============================================================================
+# has_metadata_changes tests
+# =============================================================================
+
+
+def test_has_metadata_changes_true_with_fields():
+    """Patch with metadata fields returns True."""
+    patch = {"core_size": "3.0", "tags": [PROCESSED_TAG]}
+    assert has_metadata_changes(patch) is True
+
+
+def test_has_metadata_changes_false_with_only_tags():
+    """Patch with only tags field returns False."""
+    patch = {"tags": [PROCESSED_TAG]}
+    assert has_metadata_changes(patch) is False
+
+
+def test_has_metadata_changes_false_empty_patch():
+    """Empty patch returns False."""
+    assert has_metadata_changes({}) is False
+
+
+def test_has_metadata_changes_true_with_description():
+    """Patch with description and tags returns True."""
+    patch = {"description": "TPC: new", "tags": [PROCESSED_TAG]}
+    assert has_metadata_changes(patch) is True
+
+
+# =============================================================================
+# Tag behavior tests (Fix #1: every examined record gets tagged)
+# =============================================================================
+
+
+def test_build_patch_tag_added_to_unchanged_record():
+    """Tag is added even when metadata matches perfectly."""
+    tpc_sample = {"preservation_type": "Frozen"}
+    target_sample = {"preservation_type": "Frozen", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    # No metadata changes, but tag should be added
+    assert patch == {"tags": [PROCESSED_TAG]}
+
+
+def test_build_patch_no_patch_when_tag_already_present():
+    """No patch returned when tag already present and no changes needed."""
+    tpc_sample = {"preservation_type": "Frozen"}
+    target_sample = {"preservation_type": "Frozen", "tags": [PROCESSED_TAG]}
+    patch = build_patch(tpc_sample, target_sample)
+    # Tag already present, no changes needed
+    assert patch == {}
+
+
+def test_build_patch_tag_not_added_on_parse_failure():
+    """Parse failure prevents tagging even if other fields would change."""
+    tpc_sample = {
+        "core_size": "3.0",
+        "description": "tpc desc",
+    }
+    target_sample = {
+        "description": "GCC: gcc TPC: malformed",  # Missing semicolon
+        "tags": [],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    # Malformed description prevents tagging, but core_size still transfers
+    assert "tags" not in patch
+    assert patch["core_size"] == "3.0"
+
+
+def test_build_patch_tag_added_with_metadata_changes():
+    """Tag is added along with metadata changes."""
+    tpc_sample = {"core_size": "3.0"}
+    target_sample = {"tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch == {"core_size": "3.0", "tags": [PROCESSED_TAG]}
+
+
+def test_build_patch_tag_not_duplicated_with_changes():
+    """Tag is not duplicated when already present and metadata changes."""
+    tpc_sample = {"core_size": "3.0"}
+    target_sample = {"tags": [PROCESSED_TAG, "other_tag"]}
+    patch = build_patch(tpc_sample, target_sample)
+    # Tag already present, so only metadata change
+    assert patch == {"core_size": "3.0"}
+    assert "tags" not in patch
+
+
+# =============================================================================
+# Field clearing tests (Fix #2: when TPC clears a field)
+# =============================================================================
+
+
+def test_build_patch_description_tpc_clears_from_gcc_tpc_format():
+    """TPC clearing description removes TPC portion, keeps GCC portion."""
+    tpc_sample = {"description": None}
+    target_sample = {"description": "GCC: gcc notes; TPC: tpc notes", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    # When TPC portion is removed, only GCC part remains (without prefix)
+    assert patch["description"] == "gcc notes"
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_description_tpc_clears_from_tpc_only_format():
+    """TPC clearing description removes entire value when only TPC portion exists."""
+    tpc_sample = {"description": None}
+    target_sample = {"description": "TPC: tpc notes", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch["description"] == ""
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_description_tpc_clears_from_plain_format():
+    """TPC clearing description with plain text target doesn't change it (GCC portion)."""
+    tpc_sample = {"description": None}
+    target_sample = {"description": "plain text notes", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    # Plain text is treated as GCC portion, no TPC to clear
+    assert "description" not in patch
+    # But tag is still added
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_description_tpc_empty_string_treated_as_clear():
+    """Empty string TPC value clears TPC portion."""
+    tpc_sample = {"description": ""}
+    target_sample = {"description": "TPC: tpc notes", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch["description"] == ""
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_description_tpc_whitespace_only_treated_as_clear():
+    """Whitespace-only TPC value clears TPC portion."""
+    tpc_sample = {"description": "   "}
+    target_sample = {"description": "GCC: gcc; TPC: tpc notes", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    # When TPC portion is removed, only GCC part remains (without prefix)
+    assert patch["description"] == "gcc"
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_processing_notes_tpc_clears_from_gcc_tpc_format():
+    """TPC clearing processing_notes removes TPC portion, keeps GCC portion."""
+    tpc_sample = {"processing_notes": None}
+    target_sample = {"processing_notes": "GCC: gcc notes; TPC: tpc notes", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    # When TPC portion is removed, only GCC part remains (without prefix)
+    assert patch["processing_notes"] == "gcc notes"
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_processing_notes_tpc_clears_from_tpc_only_format():
+    """TPC clearing processing_notes removes entire value when only TPC portion exists."""
+    tpc_sample = {"processing_notes": ""}
+    target_sample = {"processing_notes": "TPC: tpc notes", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch["processing_notes"] == ""
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_core_size_not_cleared_when_tpc_clears():
+    """Core size is not cleared when TPC clears it (copy-once semantics)."""
+    tpc_sample = {"core_size": None}
+    target_sample = {"core_size": "3.0", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    # Core size should not be cleared, only tag added
+    assert "core_size" not in patch
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_preservation_type_not_cleared_when_tpc_clears():
+    """Preservation type is not cleared when TPC clears it (copy-once semantics)."""
+    tpc_sample = {"preservation_type": ""}
+    target_sample = {"preservation_type": "Frozen", "tags": []}
+    patch = build_patch(tpc_sample, target_sample)
+    # Preservation type should not be cleared, only tag added
+    assert "preservation_type" not in patch
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_clearing_with_other_changes():
+    """Field clearing works alongside other field updates."""
+    tpc_sample = {
+        "core_size": "3.0",
+        "description": None,  # Clearing
+        "processing_notes": "new notes",  # Setting
+    }
+    target_sample = {
+        "description": "TPC: old desc",
+        "processing_notes": "GCC: gcc notes; TPC: old notes",
+        "tags": [],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch["core_size"] == "3.0"
+    assert patch["description"] == ""  # Cleared
+    assert patch["processing_notes"] == "GCC: gcc notes; TPC: new notes"  # Updated
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+# =============================================================================
+# Integration tests for counting behavior
+# =============================================================================
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+def test_main_tag_only_updates_counted_separately(
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+):
+    """Tag-only updates are counted separately from metadata changes."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []  # Connection check
+    mock_get_non_tpc.return_value = [
+        {"uuid": "target1", "external_id": "EXT1", "tags": []},
+        {"uuid": "target2", "external_id": "EXT2", "tags": []},
+    ]
+    mock_get_all_tpc.return_value = {
+        "EXT1": {"uuid": "tpc1", "core_size": "3.0"},  # Will have metadata change
+        "EXT2": {"uuid": "tpc2", "preservation_type": "Frozen"},  # Will have metadata change
+    }
+    # First fetch returns sample needing core_size, second returns sample already matching
+    mock_get_metadata.side_effect = [
+        {"uuid": "target1", "external_id": "EXT1", "tags": []},
+        {"uuid": "target2", "external_id": "EXT2", "preservation_type": "Frozen", "tags": []},
+    ]
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
+        main()
+
+    # First patch: validation + execution for target1 (metadata change)
+    # Second patch: validation + execution for target2 (tag only)
+    assert mock_patch.call_count == 4
+    
+    # Check the execution calls (not validation calls)
+    exec_calls = [call for call in mock_patch.call_args_list if not call[1].get("check_only")]
+    assert len(exec_calls) == 2
+    
+    # First execution: has core_size (metadata change)
+    first_patch = exec_calls[0][0][0]
+    assert "core_size" in first_patch
+    assert "tags" in first_patch
+    
+    # Second execution: only tags (no metadata change)
+    second_patch = exec_calls[1][0][0]
+    assert "core_size" not in second_patch
+    assert "preservation_type" not in second_patch
+    assert "tags" in second_patch
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+def test_main_tag_only_updates_sent_to_server(
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+):
+    """Tag-only updates are sent to the server."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [
+        {"uuid": "target1", "external_id": "EXT1", "tags": []}
+    ]
+    mock_get_all_tpc.return_value = {
+        "EXT1": {"uuid": "tpc1", "preservation_type": "Frozen"}
+    }
+    # Target already has matching preservation_type, but no tag
+    mock_get_metadata.return_value = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "preservation_type": "Frozen",
+        "tags": [],
+    }
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
+        main()
+
+    # Should have validation call + execution call
+    assert mock_patch.call_count == 2
+    
+    # Check the execution call
+    exec_call = [call for call in mock_patch.call_args_list if not call[1].get("check_only")][0]
+    patch_data = exec_call[0][0]
+    
+    # Should only have tags
+    assert patch_data == {"tags": [PROCESSED_TAG]}
+    assert exec_call[1]["obj_id"] == "target1"
