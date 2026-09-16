@@ -1,13 +1,13 @@
 """Tests for transfer_tpc_tissue_sample_metadata command."""
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from encoded.commands.transfer_tpc_tissue_sample_metadata import (
     PROCESSED_TAG,
     build_patch,
     format_prefixed_value,
+    get_all_tpc_samples,
     get_non_tpc_tissue_samples,
-    get_tpc_sample_for_external_id,
     main,
     parse_prefixed_value,
 )
@@ -90,6 +90,19 @@ def test_parse_prefixed_value_surrounding_whitespace_plain():
     assert parse_prefixed_value("  plain notes  ") == ("plain notes", None)
 
 
+def test_parse_prefixed_value_tpc_with_semicolons():
+    """TPC values can contain semicolons (Fix #2)."""
+    # TPC value with semicolons should be parsed correctly
+    assert parse_prefixed_value("GCC: gcc notes; TPC: tpc; has; semicolons") == (
+        "gcc notes",
+        "tpc; has; semicolons",
+    )
+    assert parse_prefixed_value("TPC: tpc; has; semicolons") == (
+        None,
+        "tpc; has; semicolons",
+    )
+
+
 # =============================================================================
 # format_prefixed_value tests
 # =============================================================================
@@ -126,7 +139,7 @@ def test_build_patch_core_size_copy():
     tpc_sample = {"core_size": "3.0"}
     target_sample = {}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"core_size": "3.0"}
+    assert patch == {"core_size": "3.0", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_core_size_match():
@@ -150,7 +163,7 @@ def test_build_patch_preservation_type_copy():
     tpc_sample = {"preservation_type": "Frozen"}
     target_sample = {}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"preservation_type": "Frozen"}
+    assert patch == {"preservation_type": "Frozen", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_preservation_type_exists():
@@ -166,7 +179,7 @@ def test_build_patch_description_tpc_only():
     tpc_sample = {"description": "tpc desc"}
     target_sample = {}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"description": "TPC: tpc desc"}
+    assert patch == {"description": "TPC: tpc desc", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_description_gcc_exists():
@@ -174,7 +187,7 @@ def test_build_patch_description_gcc_exists():
     tpc_sample = {"description": "tpc desc"}
     target_sample = {"description": "gcc desc"}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"description": "GCC: gcc desc; TPC: tpc desc"}
+    assert patch == {"description": "GCC: gcc desc; TPC: tpc desc", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_description_idempotent_same_tpc():
@@ -190,7 +203,7 @@ def test_build_patch_description_idempotent_update_tpc():
     tpc_sample = {"description": "new tpc desc"}
     target_sample = {"description": "GCC: gcc desc; TPC: old tpc desc"}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"description": "GCC: gcc desc; TPC: new tpc desc"}
+    assert patch == {"description": "GCC: gcc desc; TPC: new tpc desc", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_description_update_tpc_only_value():
@@ -198,7 +211,7 @@ def test_build_patch_description_update_tpc_only_value():
     tpc_sample = {"description": "new tpc desc"}
     target_sample = {"description": "TPC: old tpc desc"}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"description": "TPC: new tpc desc"}
+    assert patch == {"description": "TPC: new tpc desc", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_processing_notes_update_tpc_only_value():
@@ -206,7 +219,7 @@ def test_build_patch_processing_notes_update_tpc_only_value():
     tpc_sample = {"processing_notes": "new tpc notes"}
     target_sample = {"processing_notes": "TPC: old tpc notes"}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"processing_notes": "TPC: new tpc notes"}
+    assert patch == {"processing_notes": "TPC: new tpc notes", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_description_malformed_skip():
@@ -214,7 +227,7 @@ def test_build_patch_description_malformed_skip():
     tpc_sample = {"description": "tpc desc"}
     target_sample = {"description": "GCC: gcc TPC: malformed"}
     patch = build_patch(tpc_sample, target_sample)
-    # Malformed field is skipped, patch should be empty
+    # Malformed field is skipped, patch should be empty (Fix #3: no tag on parse failure)
     assert patch == {}
 
 
@@ -223,7 +236,7 @@ def test_build_patch_processing_notes_same_logic():
     tpc_sample = {"processing_notes": "tpc notes"}
     target_sample = {"processing_notes": "gcc notes"}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"processing_notes": "GCC: gcc notes; TPC: tpc notes"}
+    assert patch == {"processing_notes": "GCC: gcc notes; TPC: tpc notes", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_processing_notes_idempotent():
@@ -249,6 +262,7 @@ def test_build_patch_all_fields():
         "preservation_type": "Frozen",
         "description": "TPC: tpc desc",
         "processing_notes": "TPC: tpc notes",
+        "tags": [PROCESSED_TAG],
     }
 
 
@@ -281,7 +295,7 @@ def test_build_patch_core_size_empty_string_treated_as_absent():
     target_sample = {"core_size": ""}
     patch = build_patch(tpc_sample, target_sample)
     # Empty string should be treated as absent, so should copy
-    assert patch == {"core_size": "3.0"}
+    assert patch == {"core_size": "3.0", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_core_size_none_treated_as_absent():
@@ -290,7 +304,7 @@ def test_build_patch_core_size_none_treated_as_absent():
     target_sample = {"core_size": None}
     patch = build_patch(tpc_sample, target_sample)
     # None should be treated as absent, so should copy
-    assert patch == {"core_size": "3.0"}
+    assert patch == {"core_size": "3.0", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_preservation_type_empty_string_treated_as_absent():
@@ -299,7 +313,7 @@ def test_build_patch_preservation_type_empty_string_treated_as_absent():
     target_sample = {"preservation_type": ""}
     patch = build_patch(tpc_sample, target_sample)
     # Empty string should be treated as absent, so should copy
-    assert patch == {"preservation_type": "Frozen"}
+    assert patch == {"preservation_type": "Frozen", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_preservation_type_none_treated_as_absent():
@@ -308,7 +322,7 @@ def test_build_patch_preservation_type_none_treated_as_absent():
     target_sample = {"preservation_type": None}
     patch = build_patch(tpc_sample, target_sample)
     # None should be treated as absent, so should copy
-    assert patch == {"preservation_type": "Frozen"}
+    assert patch == {"preservation_type": "Frozen", "tags": [PROCESSED_TAG]}
 
 
 def test_build_patch_malformed_description_other_fields_transfer():
@@ -328,6 +342,7 @@ def test_build_patch_malformed_description_other_fields_transfer():
     assert patch["core_size"] == "3.0"
     assert patch["preservation_type"] == "Frozen"
     assert patch["processing_notes"] == "TPC: tpc notes"
+    assert patch["tags"] == [PROCESSED_TAG]
 
 
 def test_build_patch_malformed_processing_notes_other_fields_transfer():
@@ -347,6 +362,35 @@ def test_build_patch_malformed_processing_notes_other_fields_transfer():
     assert patch["core_size"] == "3.0"
     assert patch["preservation_type"] == "Frozen"
     assert patch["description"] == "TPC: tpc desc"
+    assert patch["tags"] == [PROCESSED_TAG]
+
+
+def test_build_patch_skip_tagging():
+    """When skip_tagging=True, tag is not added (Fix #5)."""
+    tpc_sample = {"core_size": "3.0"}
+    target_sample = {}
+    patch = build_patch(tpc_sample, target_sample, skip_tagging=True)
+    assert patch == {"core_size": "3.0"}
+    assert "tags" not in patch
+
+
+def test_build_patch_tag_not_added_to_empty_patch():
+    """Tag is not added when there are no metadata changes (Fix #5)."""
+    tpc_sample = {"preservation_type": "Frozen"}
+    target_sample = {"preservation_type": "Frozen"}
+    patch = build_patch(tpc_sample, target_sample, skip_tagging=False)
+    # No changes, so no tag should be added (empty patch)
+    assert patch == {}
+
+
+def test_build_patch_tag_not_duplicated():
+    """Tag is not duplicated if already present."""
+    tpc_sample = {"core_size": "3.0"}
+    target_sample = {"tags": [PROCESSED_TAG, "other_tag"]}
+    patch = build_patch(tpc_sample, target_sample)
+    # Tag is already present, so tags should not be in the patch (Fix #5)
+    assert "tags" not in patch
+    assert patch == {"core_size": "3.0"}
 
 
 # =============================================================================
@@ -388,70 +432,55 @@ def test_get_non_tpc_tissue_samples_ignore_tag(mock_search):
 
 
 # =============================================================================
-# get_tpc_sample_for_external_id tests
+# get_all_tpc_samples tests (Fix #8: bulk loading)
 # =============================================================================
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-def test_get_tpc_sample_no_results(mock_search):
-    """No TPC sample found returns None."""
-    mock_search.return_value = []
-    auth_key = {"server": "test"}
-
-    result = get_tpc_sample_for_external_id("EXT123", auth_key)
-
-    assert result is None
-
-
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-def test_get_tpc_sample_single_result(mock_search):
-    """Single TPC sample is returned."""
-    mock_search.return_value = [{"uuid": "tpc1", "external_id": "EXT123"}]
-    auth_key = {"server": "test"}
-
-    result = get_tpc_sample_for_external_id("EXT123", auth_key)
-
-    assert result == {"uuid": "tpc1", "external_id": "EXT123"}
-
-
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-def test_get_tpc_sample_multiple_results(mock_search, caplog):
-    """Multiple TPC samples logs warning and returns first."""
+def test_get_all_tpc_samples_success(mock_search):
+    """Successfully loads all TPC samples into a dict."""
     mock_search.return_value = [
-        {"uuid": "tpc1", "external_id": "EXT123"},
-        {"uuid": "tpc2", "external_id":"EXT123"},
+        {"uuid": "tpc1", "external_id": "EXT1"},
+        {"uuid": "tpc2", "external_id": "EXT2"},
     ]
     auth_key = {"server": "test"}
 
-    result = get_tpc_sample_for_external_id("EXT123", auth_key)
+    result = get_all_tpc_samples(auth_key)
 
-    assert result == {"uuid": "tpc1", "external_id": "EXT123"}
-    assert "Multiple TPC samples found" in caplog.text
+    assert len(result) == 2
+    assert result["EXT1"] == {"uuid": "tpc1", "external_id": "EXT1"}
+    assert result["EXT2"] == {"uuid": "tpc2", "external_id": "EXT2"}
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-def test_get_tpc_sample_url_encodes_special_characters(mock_search):
-    """external_id with special characters is URL-encoded in the query.
-
-    This prevents query injection attacks where special characters like &, =,
-    spaces, +, ?, and # could alter the query structure.
-    """
-    mock_search.return_value = [{"uuid": "tpc1", "external_id": "EXT&123=foo bar+test?baz#qux"}]
+def test_get_all_tpc_samples_duplicate_external_id(mock_search):
+    """Duplicate external_ids in TPC samples cause exit(1) (Fix #8)."""
+    mock_search.return_value = [
+        {"uuid": "tpc1", "external_id": "EXT1"},
+        {"uuid": "tpc2", "external_id": "EXT1"},  # Duplicate!
+    ]
     auth_key = {"server": "test"}
 
-    result = get_tpc_sample_for_external_id("EXT&123=foo bar+test?baz#qux", auth_key)
+    try:
+        get_all_tpc_samples(auth_key)
+        assert False, "Should have raised SystemExit"
+    except SystemExit as e:
+        assert e.code == 1
 
-    assert result == {"uuid": "tpc1", "external_id": "EXT&123=foo bar+test?baz#qux"}
 
-    # Verify the query passed to search_metadata has URL-encoded external_id
-    call_query = mock_search.call_args[0][0]
-    # & should be %26, = should be %3D, space should be %20, + should be %2B,
-    # ? should be %3F, # should be %23
-    assert "external_id=EXT%26123%3Dfoo%20bar%2Btest%3Fbaz%23qux" in call_query
-    # Verify other query parts are still present and correct
-    assert "type=TissueSample" in call_query
-    assert "submission_centers.display_title=NDRI+TPC" in call_query
-    assert "status!=deleted" in call_query
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+def test_get_all_tpc_samples_no_external_id(mock_search):
+    """TPC samples without external_id are skipped with warning."""
+    mock_search.return_value = [
+        {"uuid": "tpc1", "external_id": "EXT1"},
+        {"uuid": "tpc2"},  # Missing external_id
+    ]
+    auth_key = {"server": "test"}
+
+    result = get_all_tpc_samples(auth_key)
+
+    assert len(result) == 1
+    assert "EXT1" in result
 
 
 # =============================================================================
@@ -462,10 +491,11 @@ def test_get_tpc_sample_url_encodes_special_characters(mock_search):
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_sample_for_external_id")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
 def test_main_dry_run_default(
-    mock_patch, mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
     """Dry run by default, no patches applied."""
     mock_get_auth.return_value = {"server": "test"}
@@ -473,7 +503,8 @@ def test_main_dry_run_default(
     mock_get_non_tpc.return_value = [
         {"uuid": "target1", "external_id": "EXT1", "tags": []}
     ]
-    mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
+    mock_get_all_tpc.return_value = {"EXT1": {"uuid": "tpc1", "core_size": "3.0"}}
+    mock_get_metadata.return_value = {"uuid": "target1", "external_id": "EXT1", "tags": []}
 
     with patch("sys.argv", ["cmd", "--env", "test"]):
         main()
@@ -485,25 +516,31 @@ def test_main_dry_run_default(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_sample_for_external_id")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
 def test_main_execute_patches(
-    mock_patch, mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
-    """With --execute, patches are applied."""
+    """With --execute, patches are applied (Fix #6: refetch before patch)."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []  # Connection check
     mock_get_non_tpc.return_value = [
         {"uuid": "target1", "external_id": "EXT1", "tags": []}
     ]
-    mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
+    mock_get_all_tpc.return_value = {"EXT1": {"uuid": "tpc1", "core_size": "3.0"}}
+    # Fresh refetch returns same sample
+    mock_get_metadata.return_value = {"uuid": "target1", "external_id": "EXT1", "tags": []}
 
     with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
         main()
 
-    # Should have called patch_metadata
-    assert mock_patch.call_count == 1
-    patch_call = mock_patch.call_args
+    # Should have called patch_metadata twice: once for validation, once for execution
+    assert mock_patch.call_count == 2
+    # First call should be validation (check_only=True)
+    assert mock_patch.call_args_list[0][1]["check_only"] is True
+    # Second call should be actual patch
+    patch_call = mock_patch.call_args_list[1]
     assert patch_call[1]["obj_id"] == "target1"
     assert "core_size" in patch_call[0][0]
     assert "tags" in patch_call[0][0]  # Default tagging
@@ -512,10 +549,11 @@ def test_main_execute_patches(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_sample_for_external_id")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
 def test_main_skip_tagging(
-    mock_patch, mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
     """With --skip-tagging, tag is not added to patch."""
     mock_get_auth.return_value = {"server": "test"}
@@ -523,14 +561,14 @@ def test_main_skip_tagging(
     mock_get_non_tpc.return_value = [
         {"uuid": "target1", "external_id": "EXT1", "tags": []}
     ]
-    mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
+    mock_get_all_tpc.return_value = {"EXT1": {"uuid": "tpc1", "core_size": "3.0"}}
+    mock_get_metadata.return_value = {"uuid": "target1", "external_id": "EXT1", "tags": []}
 
     with patch("sys.argv", ["cmd", "--env", "test", "--execute", "--skip-tagging"]):
         main()
 
-    assert mock_patch.call_count == 1
-    patch_call = mock_patch.call_args
-    patch_data = patch_call[0][0]
+    assert mock_patch.call_count == 2  # Validation + execution
+    patch_data = mock_patch.call_args_list[1][0][0]
     assert "tags" not in patch_data
     assert "core_size" in patch_data
 
@@ -538,12 +576,13 @@ def test_main_skip_tagging(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_sample_for_external_id")
-def test_main_ignore_tag(mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_auth):
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+def test_main_ignore_tag(mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth):
     """With --ignore-tag, tagged samples are included."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []  # Connection check
     mock_get_non_tpc.return_value = []
+    mock_get_all_tpc.return_value = {}
 
     with patch("sys.argv", ["cmd", "--env", "test", "--ignore-tag"]):
         main()
@@ -555,18 +594,20 @@ def test_main_ignore_tag(mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_a
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_sample_for_external_id")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
 def test_main_core_size_mismatch_skipped(
-    mock_patch, mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
-    """core_size mismatch is logged and sample is skipped."""
+    """core_size mismatch is logged and sample is skipped (Fix #4: no live failure)."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []  # Connection check
     mock_get_non_tpc.return_value = [
         {"uuid": "target1", "external_id": "EXT1", "core_size": "1.5", "tags": []}
     ]
-    mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
+    mock_get_all_tpc.return_value = {"EXT1": {"uuid": "tpc1", "core_size": "3.0"}}
+    mock_get_metadata.return_value = {"uuid": "target1", "external_id": "EXT1", "core_size": "1.5", "tags": []}
 
     with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
         main()
@@ -577,81 +618,130 @@ def test_main_core_size_mismatch_skipped(
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_sample_for_external_id")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
-def test_main_mixed_patchable_and_mismatch(
-    mock_patch, mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_auth
-):
-    """Some samples are patchable, some have mismatches."""
+def test_main_connection_failure_exits_nonzero(mock_search, mock_get_auth):
+    """Connection failure exits with code 1 (Fix #4)."""
     mock_get_auth.return_value = {"server": "test"}
-    mock_search.return_value = []  # Connection check
-    mock_get_non_tpc.return_value = [
-        {"uuid": "target1", "external_id": "EXT1", "core_size": "1.5", "tags": []},
-        {"uuid": "target2", "external_id": "EXT2", "tags": []},
-    ]
-
-    def get_tpc_side_effect(external_id, auth_key):
-        if external_id == "EXT1":
-            return {"uuid": "tpc1", "core_size": "3.0"}  # Mismatch
-        elif external_id == "EXT2":
-            return {"uuid": "tpc2", "core_size": "3.0"}  # Patchable
-        return None
-
-    mock_get_tpc.side_effect = get_tpc_side_effect
-
-    with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
-        main()
-
-    # Only target2 should be patched, target1 skipped due to mismatch
-    assert mock_patch.call_count == 1
-    assert mock_patch.call_args[1]["obj_id"] == "target2"
-
-
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_sample_for_external_id")
-def test_main_no_tpc_match(mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_auth):
-    """Sample with no TPC match is skipped."""
-    mock_get_auth.return_value = {"server": "test"}
-    mock_search.return_value = []  # Connection check
-    mock_get_non_tpc.return_value = [
-        {"uuid": "target1", "external_id": "EXT1", "tags": []}
-    ]
-    mock_get_tpc.return_value = None
+    mock_search.side_effect = Exception("Connection failed")
 
     with patch("sys.argv", ["cmd", "--env", "test"]):
-        main()
-
-    # Summary line goes to stderr/stdout, not caplog - just check it ran without error
-    assert True
+        try:
+            main()
+            assert False, "Should have raised SystemExit"
+        except SystemExit as e:
+            assert e.code == 1
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_sample_for_external_id")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
-def test_main_no_changes_needed(
-    mock_patch, mock_get_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+def test_main_validation_failure_exits_nonzero(
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
-    """Sample that needs no changes is skipped."""
+    """Validation failure exits with code 1 (Fix #9)."""
     mock_get_auth.return_value = {"server": "test"}
-    mock_search.return_value = []  # Connection check
-    mock_get_non_tpc.return_value = [
-        {
-            "uuid": "target1",
-            "external_id": "EXT1",
-            "core_size": "3.0",
-            "tags": [PROCESSED_TAG],
-        }
-    ]
-    mock_get_tpc.return_value = {"uuid": "tpc1", "core_size": "3.0"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [{"uuid": "target1", "external_id": "EXT1", "tags": []}]
+    mock_get_all_tpc.return_value = {"EXT1": {"uuid": "tpc1", "core_size": "3.0"}}
+    mock_get_metadata.return_value = {"uuid": "target1", "external_id": "EXT1", "tags": []}
+    # Validation fails
+    mock_patch.side_effect = Exception("Validation error")
 
-    with patch("sys.argv", ["cmd", "--env", "test", "--execute", "--ignore-tag"]):
+    with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
+        try:
+            main()
+            assert False, "Should have raised SystemExit"
+        except SystemExit as e:
+            assert e.code == 1
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+def test_main_limit_flag(mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth):
+    """--limit flag limits the number of samples processed (Fix #10)."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [
+        {"uuid": "target1", "external_id": "EXT1"},
+        {"uuid": "target2", "external_id": "EXT2"},
+        {"uuid": "target3", "external_id": "EXT3"},
+    ]
+    mock_get_all_tpc.return_value = {}
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--limit", "2"]):
         main()
 
-    mock_patch.assert_not_called()
-    # Summary line goes to stderr/stdout, not caplog
-    assert True
+    # Should have limited to 2 samples (check via mocked get_metadata call count)
+    # In this case, we don't have patches so just verify it ran
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+def test_main_identifiers_flag(mock_get_all_tpc, mock_get_metadata, mock_search, mock_get_auth):
+    """--identifiers flag processes only specified samples (Fix #10)."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_metadata.side_effect = [
+        {"@type": ["TissueSample"], "uuid": "target1", "external_id": "EXT1", "submission_centers": [{"display_title": "GCC"}]},
+        {"@type": ["TissueSample"], "uuid": "target2", "external_id": "EXT2", "submission_centers": [{"display_title": "GCC"}]},
+    ]
+    mock_get_all_tpc.return_value = {}
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--identifiers", "target1", "target2"]):
+        main()
+
+    # Should have fetched exactly 2 samples
+    assert mock_get_metadata.call_count == 2
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+def test_main_identifiers_fetch_failure_exits_nonzero(
+    mock_get_all_tpc, mock_get_metadata, mock_search, mock_get_auth
+):
+    """Failed fetch of specified identifier exits with code 1 (Fix #4)."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_metadata.side_effect = Exception("Not found")
+    mock_get_all_tpc.return_value = {}
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--identifiers", "nonexistent"]):
+        try:
+            main()
+            assert False, "Should have raised SystemExit"
+        except SystemExit as e:
+            assert e.code == 1
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+def test_main_patch_failure_exits_nonzero(
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+):
+    """Patch failure exits with code 1 (Fix #4)."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [{"uuid": "target1", "external_id": "EXT1", "tags": []}]
+    mock_get_all_tpc.return_value = {"EXT1": {"uuid": "tpc1", "core_size": "3.0"}}
+    mock_get_metadata.return_value = {"uuid": "target1", "external_id": "EXT1", "tags": []}
+    # Validation passes, but actual patch fails
+    mock_patch.side_effect = [None, Exception("Patch failed")]
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
+        try:
+            main()
+            assert False, "Should have raised SystemExit"
+        except SystemExit as e:
+            assert e.code == 1

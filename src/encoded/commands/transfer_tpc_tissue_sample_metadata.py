@@ -7,17 +7,25 @@ Rules:
   - core_size: copied from TPC only if the target item lacks it; mismatch → warn + skip
   - preservation_type: copied from TPC only if the target item lacks it
   - description / processing_notes: prefixed format "GCC: <gcc>; TPC: <tpc>" is parsed
-    and made idempotent; GCC portion is preserved, TPC portion is replaced if changed
+    and made idempotent; GCC portion is preserved, TPC portion is replaced if changed.
+    TPC values may contain semicolons; the parser uses '; TPC:' as the separator.
   - TPC items are never modified
   - Non-TPC items with no matching TPC external_id are skipped
   - By default, only non-TPC samples lacking the tpc_metadata_synced tag are selected
   - Use --ignore-tag to include already-tagged samples
   - Use --skip-tagging to suppress automatic tag addition
+  - Records examined receive the tpc_metadata_synced tag when modified (tag-only changes
+    are not sent to the server)
+  - Parse failures flag the record for resolution and are not tagged as synced
+  - Connection, reconciliation, or patch failures return nonzero exit code
+  - Use --limit N to process at most N samples
+  - Use --identifiers UUID [UUID ...] to process only specific samples
 """
 
 import argparse
 import logging
 import re
+import sys
 from typing import Optional
 from urllib.parse import quote
 
@@ -31,6 +39,8 @@ NDRI_TPC_DISPLAY_TITLE = "NDRI TPC"
 PROCESSED_TAG = "tpc_metadata_synced"
 
 # Regex patterns for parsing prefixed values
+# These patterns use non-greedy matching for the GCC part and greedy matching for the TPC part.
+# The separator '; TPC:' is matched explicitly to allow semicolons within the TPC value.
 GCC_TPC_PATTERN = re.compile(r"^GCC:\s*(.+?);\s*TPC:\s*(.+)$", re.DOTALL)
 TPC_ONLY_PATTERN = re.compile(r"^TPC:\s*(.+)$", re.DOTALL)
 
@@ -50,28 +60,47 @@ def get_non_tpc_tissue_samples(auth_key: dict, ignore_tag: bool = False) -> list
     return ff_utils.search_metadata(query, key=auth_key, page_limit=50)
 
 
-def get_tpc_sample_for_external_id(external_id: str, auth_key: dict) -> Optional[dict]:
-    """Fetch TPC tissue sample for a given external_id.
-
-    URL-encodes external_id to prevent query injection via special characters.
+def get_all_tpc_samples(auth_key: dict) -> dict[str, dict]:
+    """Fetch all TPC tissue samples and return a dict keyed by external_id.
+    
+    Raises SystemExit if duplicate external_ids are found in TPC samples.
     """
-    # URL-encode external_id, preserving unreserved characters but encoding
-    # special query characters like &, =, +, ?, #, and space
-    encoded_external_id = quote(external_id, safe="")
     query = (
         "/search/?type=TissueSample"
-        f"&external_id={encoded_external_id}"
         f"&submission_centers.display_title={NDRI_TPC_DISPLAY_TITLE.replace(' ', '+')}"
         "&status!=deleted"
     )
-    results = ff_utils.search_metadata(query, key=auth_key)
-    if not results:
-        return None
-    if len(results) > 1:
-        log.warning(
-            "Multiple TPC samples found for external_id %s — using first", external_id
+    results = ff_utils.search_metadata(query, key=auth_key, page_limit=50)
+    
+    tpc_by_external_id = {}
+    duplicates = set()
+    
+    for sample in results:
+        external_id = sample.get("external_id")
+        if not external_id:
+            log.warning("TPC sample %s has no external_id — skipping", sample.get("uuid"))
+            continue
+        
+        if external_id in tpc_by_external_id:
+            duplicates.add(external_id)
+            log.error(
+                "Duplicate TPC external_id found: %s (UUIDs: %s, %s)",
+                external_id,
+                tpc_by_external_id[external_id].get("uuid"),
+                sample.get("uuid"),
+            )
+        else:
+            tpc_by_external_id[external_id] = sample
+    
+    if duplicates:
+        log.error(
+            "Found %d duplicate TPC external_id(s): %s. Cannot proceed safely.",
+            len(duplicates),
+            ", ".join(sorted(duplicates)),
         )
-    return results[0]
+        sys.exit(1)
+    
+    return tpc_by_external_id
 
 
 def parse_prefixed_value(value: str) -> Optional[tuple[Optional[str], Optional[str]]]:
@@ -122,7 +151,9 @@ def format_prefixed_value(gcc_part: Optional[str], tpc_part: Optional[str]) -> s
     return ""
 
 
-def build_patch(tpc_sample: dict, target_sample: dict) -> Optional[dict]:
+def build_patch(
+    tpc_sample: dict, target_sample: dict, skip_tagging: bool = False
+) -> Optional[dict]:
     """Build a patch dict for the target sample.
 
     Returns None only if there's a core_size mismatch.
@@ -197,6 +228,13 @@ def build_patch(tpc_sample: dict, target_sample: dict) -> Optional[dict]:
         if new_value != target_val:
             patch[field] = new_value
 
+    # Add tag for successfully examined records unless --skip-tagging is set
+    # Tag is only added if there are actual metadata changes (not tag-only)
+    if not skip_tagging and patch:
+        existing_tags = target_sample.get("tags", [])
+        if PROCESSED_TAG not in existing_tags:
+            patch["tags"] = existing_tags + [PROCESSED_TAG]
+
     return patch if patch else {}
 
 
@@ -231,6 +269,18 @@ def main() -> None:
         help="Do not add the tpc_metadata_synced tag to patched samples",
     )
     parser.add_argument(
+        "--limit",
+        type=int,
+        metavar="N",
+        help="Process at most N samples (for rehearsal or testing)",
+    )
+    parser.add_argument(
+        "--identifiers",
+        nargs="+",
+        metavar="UUID",
+        help="Process only the specified sample UUIDs or aliases",
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Log each sample outcome including skips",
@@ -255,20 +305,59 @@ def main() -> None:
         log.info("Connected successfully")
     except Exception as exc:
         log.error("Could not connect to %s: %s", auth_key.get("server"), exc)
-        return
+        sys.exit(1)
 
-    log.info("Fetching non-TPC tissue samples%s...", " (including tagged)" if args.ignore_tag else "")
-    non_tpc_samples = get_non_tpc_tissue_samples(auth_key, ignore_tag=args.ignore_tag)
-    log.info("Found %d non-TPC tissue samples", len(non_tpc_samples))
+    # Fetch non-TPC samples, optionally filtered by identifiers or limit
+    if args.identifiers:
+        log.info("Fetching specified samples: %s", ", ".join(args.identifiers))
+        non_tpc_samples = []
+        for identifier in args.identifiers:
+            try:
+                sample = ff_utils.get_metadata(identifier, key=auth_key)
+                # Verify it's a TissueSample and not from TPC
+                if sample.get("@type", [None])[0] != "TissueSample":
+                    log.warning("Identifier %s is not a TissueSample — skipping", identifier)
+                    continue
+                submission_center = sample.get("submission_centers", [{}])[0]
+                if submission_center.get("display_title") == NDRI_TPC_DISPLAY_TITLE:
+                    log.warning("Identifier %s is a TPC sample — skipping", identifier)
+                    continue
+                non_tpc_samples.append(sample)
+            except Exception as exc:
+                log.error("Failed to fetch %s: %s", identifier, exc)
+                sys.exit(1)
+        log.info("Found %d specified non-TPC tissue samples", len(non_tpc_samples))
+    else:
+        log.info("Fetching non-TPC tissue samples%s...", " (including tagged)" if args.ignore_tag else "")
+        non_tpc_samples = get_non_tpc_tissue_samples(auth_key, ignore_tag=args.ignore_tag)
+        log.info("Found %d non-TPC tissue samples", len(non_tpc_samples))
+        
+        if args.limit:
+            non_tpc_samples = non_tpc_samples[:args.limit]
+            log.info("Limited to first %d samples", len(non_tpc_samples))
+    
+    # Bulk-load all TPC samples to avoid N+1 queries and detect duplicates
+    log.info("Loading all TPC tissue samples...")
+    try:
+        tpc_samples_by_external_id = get_all_tpc_samples(auth_key)
+        log.info("Loaded %d TPC tissue samples", len(tpc_samples_by_external_id))
+    except SystemExit:
+        raise  # Re-raise to preserve exit code
+    except Exception as exc:
+        log.error("Failed to load TPC samples: %s", exc)
+        sys.exit(1)
 
     patched = 0
     skipped_no_tpc = 0
     skipped_no_changes = 0
     skipped_mismatch = 0
     errors = 0
-
+    
+    # Phase 1: Build all patches and collect them for validation
+    patches_to_apply = []  # List of (uuid, external_id, patch, fresh_sample)
+    
     with logging_redirect_tqdm():
-        for sample in tqdm(non_tpc_samples, desc="Processing samples", unit="sample"):
+        for sample in tqdm(non_tpc_samples, desc="Building patches", unit="sample"):
             external_id = sample.get("external_id")
             uuid = sample.get("uuid")
 
@@ -278,7 +367,7 @@ def main() -> None:
                 continue
 
             log.debug("Looking up TPC sample for external_id %s", external_id)
-            tpc_sample = get_tpc_sample_for_external_id(external_id, auth_key)
+            tpc_sample = tpc_samples_by_external_id.get(external_id)
             if not tpc_sample:
                 log.debug(
                     "No TPC sample for external_id %s (uuid: %s) — skipping",
@@ -287,19 +376,21 @@ def main() -> None:
                 )
                 skipped_no_tpc += 1
                 continue
+            
+            # Freshly fetch the target sample to avoid concurrent edit issues
+            try:
+                fresh_sample = ff_utils.get_metadata(uuid, key=auth_key)
+            except Exception as exc:
+                log.error("Failed to fetch %s: %s", uuid, exc)
+                errors += 1
+                continue
 
-            patch = build_patch(tpc_sample, sample)
+            patch = build_patch(tpc_sample, fresh_sample, skip_tagging=args.skip_tagging)
 
             if patch is None:
                 # core_size mismatch — already logged warning in build_patch
                 skipped_mismatch += 1
                 continue
-
-            # Add tag unless --skip-tagging is set
-            if not args.skip_tagging:
-                existing_tags = sample.get("tags", [])
-                if PROCESSED_TAG not in existing_tags:
-                    patch["tags"] = existing_tags + [PROCESSED_TAG]
 
             if not patch:
                 log.debug(
@@ -307,28 +398,71 @@ def main() -> None:
                 )
                 skipped_no_changes += 1
                 continue
-
-            if not args.execute:
-                log.info(
-                    "[DRY RUN] Would patch %s (external_id: %s): %s",
-                    uuid,
-                    external_id,
-                    patch,
-                )
-                patched += 1
-            else:
+            
+            patches_to_apply.append((uuid, external_id, patch, fresh_sample))
+    
+    # Phase 2: Validate all patches before applying any
+    if patches_to_apply and args.execute:
+        log.info("Validating %d patches before applying...", len(patches_to_apply))
+        validation_errors = []
+        
+        with logging_redirect_tqdm():
+            for uuid, external_id, patch, fresh_sample in tqdm(
+                patches_to_apply, desc="Validating patches", unit="patch"
+            ):
                 try:
-                    ff_utils.patch_metadata(patch, obj_id=uuid, key=auth_key)
-                    log.info(
-                        "Patched %s (external_id: %s): %s",
+                    ff_utils.patch_metadata(
+                        patch, obj_id=uuid, key=auth_key, check_only=True
+                    )
+                except Exception as exc:
+                    log.error(
+                        "Validation failed for %s (external_id: %s): %s",
                         uuid,
                         external_id,
-                        list(patch.keys()),
+                        exc,
+                    )
+                    validation_errors.append((uuid, external_id, exc))
+        
+        if validation_errors:
+            log.error(
+                "Validation failed for %d sample(s). Cannot proceed safely.",
+                len(validation_errors),
+            )
+            for uuid, external_id, exc in validation_errors:
+                log.error("  - %s (external_id: %s): %s", uuid, external_id, exc)
+            sys.exit(1)
+        
+        log.info("All patches validated successfully")
+    
+    # Phase 3: Apply patches
+    if not patches_to_apply:
+        log.info("No patches to apply")
+    else:
+        with logging_redirect_tqdm():
+            for uuid, external_id, patch, fresh_sample in tqdm(
+                patches_to_apply, desc="Applying patches", unit="patch"
+            ):
+                if not args.execute:
+                    log.info(
+                        "[DRY RUN] Would patch %s (external_id: %s): %s",
+                        uuid,
+                        external_id,
+                        patch,
                     )
                     patched += 1
-                except Exception as exc:
-                    log.error("Failed to patch %s: %s", uuid, exc)
-                    errors += 1
+                else:
+                    try:
+                        ff_utils.patch_metadata(patch, obj_id=uuid, key=auth_key)
+                        log.info(
+                            "Patched %s (external_id: %s): %s",
+                            uuid,
+                            external_id,
+                            list(patch.keys()),
+                        )
+                        patched += 1
+                    except Exception as exc:
+                        log.error("Failed to patch %s: %s", uuid, exc)
+                        errors += 1
 
     action = "Patched" if args.execute else "Would patch"
     log.info(
@@ -341,6 +475,10 @@ def main() -> None:
         skipped_mismatch,
         errors,
     )
+    
+    # Exit with nonzero status if there were any errors
+    if errors > 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
