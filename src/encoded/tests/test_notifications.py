@@ -99,6 +99,21 @@ def test_is_sns_topic_arn(value, expected):
     assert notifications.is_sns_topic_arn(value) is expected
 
 
+@pytest.mark.parametrize(
+    "topic",
+    [
+        TOPIC_ARN,
+        "arn:aws-us-gov:sns:us-gov-west-1:123456789012:releases",
+    ],
+)
+def test_dry_run_topic_arn(topic):
+    derived = notifications.dry_run_topic_arn(topic)
+    assert derived == topic + "-dryrun"
+    # The suffix lands on the topic name, so the result is still a topic ARN
+    # rather than something with an extra colon-separated part.
+    assert notifications.is_sns_topic_arn(derived) is True
+
+
 def test_includeme_registers_notification_routes(monkeypatch):
     config = Mock()
     monkeypatch.setattr(notifications, "configure_sns_topic", Mock())
@@ -398,6 +413,53 @@ def test_find_subscription_arn_follows_pagination():
         call(TopicArn=TOPIC_ARN),
         call(TopicArn=TOPIC_ARN, NextToken="page-two"),
     ]
+
+
+def test_iter_topic_subscriptions_follows_pagination():
+    sns_client = Mock()
+    sns_client.list_subscriptions_by_topic.side_effect = [
+        {"Subscriptions": [{"Endpoint": "one@example.org"}], "NextToken": "page-two"},
+        {"Subscriptions": [{"Endpoint": "two@example.org"}]},
+    ]
+
+    result = list(notifications.iter_topic_subscriptions(sns_client, TOPIC_ARN))
+
+    assert [item["Endpoint"] for item in result] == [
+        "one@example.org",
+        "two@example.org",
+    ]
+    # Exactly two calls: a page without a NextToken is the last one.
+    assert sns_client.list_subscriptions_by_topic.call_args_list == [
+        call(TopicArn=TOPIC_ARN),
+        call(TopicArn=TOPIC_ARN, NextToken="page-two"),
+    ]
+
+
+def test_iter_topic_subscriptions_is_lazy():
+    # Nothing reaches AWS until the caller iterates, which is why a caller that
+    # maps boto errors to its own message must consume this inside its `try`
+    # rather than merely constructing it there.
+    sns_client = Mock()
+
+    notifications.iter_topic_subscriptions(sns_client, TOPIC_ARN)
+
+    sns_client.list_subscriptions_by_topic.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "subscription_arn,expected",
+    [
+        (SUBSCRIPTION_ARN, True),
+        (notifications.PENDING_CONFIRMATION, False),
+        (notifications.DELETED, False),
+        ("", False),
+        (None, False),
+    ],
+)
+def test_is_confirmed_subscription(subscription_arn, expected):
+    subscription = {"Protocol": "email", "SubscriptionArn": subscription_arn}
+
+    assert notifications.is_confirmed_subscription(subscription) is expected
 
 
 # Router-level tests: requests pass through a real Pyramid router so that

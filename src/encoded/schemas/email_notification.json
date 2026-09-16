@@ -1,6 +1,6 @@
 {
     "title": "Email Notification",
-    "description": "Record of an email notification sent to subscribed portal users, including its markdown content and metadata.",
+    "description": "Record of an email notification sent to subscribed portal users, including its plain-text content and metadata.",
     "$id": "/profiles/email_notification.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -52,13 +52,15 @@
         },
         "subject": {
             "title": "Subject",
-            "description": "Email subject line.",
+            "description": "Email subject line. Delivered as the SNS Subject.",
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[!-~][ -~]{0,99}$"
         },
         "body": {
             "title": "Body",
-            "description": "Markdown content of the email notification.",
+            "description": "Plain-text content of the email notification.",
             "type": "string",
             "minLength": 1
         },
@@ -74,15 +76,9 @@
         },
         "date_sent": {
             "title": "Date Sent",
-            "description": "Date and time when the notification was sent.",
+            "description": "Date and time when the notification was published to the SNS topic.",
             "type": "string",
             "format": "date-time"
-        },
-        "sent_by": {
-            "title": "Sent By",
-            "description": "The user who sent this notification.",
-            "type": "string",
-            "linkTo": "User"
         }
     }
 }

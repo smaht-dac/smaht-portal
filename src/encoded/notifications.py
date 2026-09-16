@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterator, Optional
 
 from boto3 import client as boto_client
 from botocore.exceptions import BotoCoreError, ClientError
@@ -26,6 +26,10 @@ log = logging.getLogger(__name__)
 # registry key matches Pyramid's settings/registry conventions in this project.
 SNS_TOPIC_GAC_KEY = "SNS_TOPIC"
 SNS_TOPIC_REGISTRY_KEY = "sns_topic"
+# The dry-run topic is a sibling of the configured one, subscribed to a few
+# admins. Derived rather than configured separately, so a second key cannot
+# drift out of sync with the first or be left pointing at the real topic.
+DRY_RUN_TOPIC_SUFFIX = "-dryrun"
 DATA_RELEASE_NOTIFICATION_ENROLLED = "data_release_notification_enrolled"
 NOTIFICATION_AVAILABLE = "data_release_notifications_available"
 PENDING_CONFIRMATION = "PendingConfirmation"
@@ -75,6 +79,14 @@ def is_sns_topic_arn(value: Any) -> bool:
         and len(parts[4]) == 12
         and bool(parts[5])
     )
+
+
+def dry_run_topic_arn(topic: str) -> str:
+    """Return the dry-run sibling of a topic ARN."""
+    # A topic ARN's last of six colon-separated parts is the topic name, and
+    # `configure_sns_topic` stores nothing that fails `is_sns_topic_arn`, so
+    # appending to the ARN appends to the name and stays well-formed.
+    return topic + DRY_RUN_TOPIC_SUFFIX
 
 
 def notification_topic_available(registry) -> bool:
@@ -175,30 +187,50 @@ def enrollment_response(*, enrolled: bool, changed: bool) -> Dict[str, Any]:
     }
 
 
-def find_subscription_arn(sns_client, topic: str, email: str) -> Optional[str]:
-    """Find the confirmed subscription ARN for an email, following pagination."""
+def iter_topic_subscriptions(sns_client, topic: str) -> Iterator[Dict[str, Any]]:
+    """Yield every subscription on a topic, following SNS pagination.
+
+    ListSubscriptionsByTopic returns at most 100 per call and reports a
+    `NextToken` when more remain, so not following it silently truncates once
+    a topic outgrows one page.
+
+    Lazy: nothing is requested until the caller iterates, so a caller mapping
+    BotoCoreError/ClientError to its own message must consume this inside its
+    own `try`, not merely construct it there.
+    """
     next_token = None
     while True:
         request: Dict[str, str] = {"TopicArn": topic}
         if next_token:
             request["NextToken"] = next_token
         response = sns_client.list_subscriptions_by_topic(**request)
-        for subscription in response.get("Subscriptions", []):
-            endpoint = subscription.get("Endpoint")
-            if (
-                subscription.get("Protocol") == "email"
-                and isinstance(endpoint, str)
-                and endpoint.casefold() == email.casefold()
-            ):
-                subscription_arn = subscription.get("SubscriptionArn")
-                if (
-                    subscription_arn
-                    and subscription_arn not in NON_ARN_SUBSCRIPTION_STATES
-                ):
-                    return subscription_arn
+        yield from response.get("Subscriptions", [])
         next_token = response.get("NextToken")
         if not next_token:
-            return None
+            return
+
+
+def is_confirmed_subscription(subscription: Dict[str, Any]) -> bool:
+    """Return whether a subscription names a real ARN rather than a state."""
+    # SNS puts the NON_ARN_SUBSCRIPTION_STATES literals where an ARN would go;
+    # anything else is confirmed. Shared by the profile and admin pages so the
+    # two cannot disagree about who counts as subscribed.
+    subscription_arn = subscription.get("SubscriptionArn")
+    return bool(subscription_arn) and subscription_arn not in NON_ARN_SUBSCRIPTION_STATES
+
+
+def find_subscription_arn(sns_client, topic: str, email: str) -> Optional[str]:
+    """Find the confirmed subscription ARN for an email, following pagination."""
+    for subscription in iter_topic_subscriptions(sns_client, topic):
+        endpoint = subscription.get("Endpoint")
+        if (
+            subscription.get("Protocol") == "email"
+            and isinstance(endpoint, str)
+            and endpoint.casefold() == email.casefold()
+            and is_confirmed_subscription(subscription)
+        ):
+            return subscription["SubscriptionArn"]
+    return None
 
 
 @view_config(
