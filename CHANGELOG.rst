@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+2.13.4
+======
+
+`PR 765: Update donor browse test limits and align Data Matrix button heights <https://github.com/smaht-dac/smaht-portal/pull/765>`_
+
+* Increased the maximum expected count from 25 to 150 for three tissue-sequencer
+  pairs in the donor browse Cypress tests.
+* Matched the Data Matrix Refresh button height to Export using a shared line-height.
+
+
 2.13.3
 ======
 
