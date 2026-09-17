@@ -27,6 +27,12 @@ Rules:
   - Connection, reconciliation, or patch failures return nonzero exit code
   - Use --limit N to process at most N samples
   - Use --identifiers UUID [UUID ...] to process only specific samples
+  - Patches are built from the initial candidate listing (the default search's
+    embedded frame, or the per-identifier fetch), which already carries every
+    field a patch needs; the sole additional authoritative database read
+    happens immediately before each write and is compared against those same
+    original values, so a concurrent change is detected and the stale patch
+    is not applied (counted as a conflict; nonzero exit)
 """
 
 import argparse
@@ -43,6 +49,13 @@ from encoded.commands.utils import get_auth_key
 
 NDRI_TPC_DISPLAY_TITLE = "NDRI TPC"
 PROCESSED_TAG = "tpc_metadata_synced"
+# Every one of these is a plain scalar/array property on TissueSample (none is
+# a linkTo), so the default search's embedded frame and the per-identifier
+# fetch both already return the true stored value for each. That is what lets
+# build_patch() work directly off the initial candidate listing (see main()'s
+# Phase 1) instead of an extra authoritative fetch, while the sole additional
+# database read immediately before each write (Phase 3) still compares against
+# these same fields to catch a concurrent change before applying a stale patch.
 RELEVANT_TARGET_FIELDS = (
     "external_id",
     "core_size",
@@ -444,20 +457,14 @@ def main() -> None:
         for sample in tqdm(non_tpc_samples, desc="Building patches", unit="sample"):
             uuid = sample.get("uuid")
 
-            # Read from PostgreSQL before resolving the TPC counterpart or
-            # constructing the write. Search results only select candidate UUIDs.
-            try:
-                fresh_sample = ff_utils.get_metadata(
-                    uuid,
-                    key=auth_key,
-                    add_on="frame=object&datastore=database",
-                )
-            except Exception as exc:
-                log.error("Failed to fetch %s: %s", uuid, exc)
-                errors += 1
-                continue
-
-            external_id = fresh_sample.get("external_id")
+            # The candidate listing (the default search's embedded frame, or the
+            # per-identifier fetch under --identifiers) already carries every
+            # RELEVANT_TARGET_FIELDS value build_patch needs, so it is used
+            # directly here rather than issuing a redundant authoritative fetch.
+            # The one authoritative database read this command performs happens
+            # immediately before each write, in Phase 3 below, where it is
+            # compared against this same snapshot to detect a concurrent change.
+            external_id = sample.get("external_id")
             if not external_id:
                 log.debug("Sample %s has no external_id — skipping", uuid)
                 skipped_no_tpc += 1
@@ -474,7 +481,7 @@ def main() -> None:
                 skipped_no_tpc += 1
                 continue
 
-            patch = build_patch(tpc_sample, fresh_sample, skip_tagging=args.skip_tagging)
+            patch = build_patch(tpc_sample, sample, skip_tagging=args.skip_tagging)
 
             if patch is None:
                 # core_size mismatch — already logged warning in build_patch
@@ -500,7 +507,7 @@ def main() -> None:
                 skipped_no_changes += 1
                 continue
             
-            patches_to_apply.append((uuid, external_id, patch, fresh_sample))
+            patches_to_apply.append((uuid, external_id, patch, sample))
     
     # Phase 2: Validate all patches before applying any
     if patches_to_apply and args.execute:
@@ -508,7 +515,7 @@ def main() -> None:
         validation_errors = []
         
         with logging_redirect_tqdm():
-            for uuid, external_id, patch, fresh_sample in tqdm(
+            for uuid, external_id, patch, original_sample in tqdm(
                 patches_to_apply, desc="Validating patches", unit="patch"
             ):
                 try:
@@ -543,7 +550,7 @@ def main() -> None:
         log.info("No patches to apply")
     else:
         with logging_redirect_tqdm():
-            for uuid, external_id, patch, fresh_sample in tqdm(
+            for uuid, external_id, patch, original_sample in tqdm(
                 patches_to_apply, desc="Applying patches", unit="patch"
             ):
                 has_metadata = has_metadata_changes(patch)
@@ -572,7 +579,7 @@ def main() -> None:
                             add_on="frame=object&datastore=database",
                         )
                         changed_fields = changed_relevant_fields(
-                            fresh_sample, current_sample
+                            original_sample, current_sample
                         )
                         if changed_fields:
                             log.error(

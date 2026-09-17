@@ -535,14 +535,16 @@ def test_main_dry_run_default(
 def test_main_execute_patches(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
-    """An unchanged authoritative refetch permits the validated write."""
+    """The patch is built directly from the search result; an unchanged
+    authoritative pre-write refetch is the sole additional read and permits
+    the validated write."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []  # Connection check
     mock_get_non_tpc.return_value = [
         {"uuid": "target1", "external_id": "EXT1", "tags": []}
     ]
     mock_get_all_tpc.return_value = {"EXT1": {"uuid": "tpc1", "core_size": "3.0"}}
-    # Fresh refetch returns same sample
+    # Pre-write refetch returns the same values as the search result
     mock_get_metadata.return_value = {"uuid": "target1", "external_id": "EXT1", "tags": []}
 
     with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
@@ -557,13 +559,15 @@ def test_main_execute_patches(
     assert patch_call[1]["obj_id"] == "target1"
     assert "core_size" in patch_call[0][0]
     assert "tags" in patch_call[0][0]  # Default tagging
-    assert mock_get_metadata.call_count == 2
-    for call in mock_get_metadata.call_args_list:
-        assert call.args == ("target1",)
-        assert call.kwargs == {
-            "key": {"server": "test"},
-            "add_on": "frame=object&datastore=database",
-        }
+    # Only one authoritative database read per write: immediately before
+    # applying it. Patch construction used the search result directly.
+    assert mock_get_metadata.call_count == 1
+    call = mock_get_metadata.call_args_list[0]
+    assert call.args == ("target1",)
+    assert call.kwargs == {
+        "key": {"server": "test"},
+        "add_on": "frame=object&datastore=database",
+    }
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
@@ -697,6 +701,7 @@ def test_main_limit_flag(
     mock_get_non_tpc,
     mock_search,
     mock_get_auth,
+    capsys,
 ):
     """--limit flag limits the number of samples processed (Fix #10)."""
     mock_get_auth.return_value = {"server": "test"}
@@ -707,16 +712,15 @@ def test_main_limit_flag(
         {"uuid": "target3", "external_id": "EXT3"},
     ]
     mock_get_all_tpc.return_value = {}
-    mock_get_metadata.side_effect = [
-        {"uuid": "target1", "external_id": "EXT1"},
-        {"uuid": "target2", "external_id": "EXT2"},
-    ]
 
     with patch("sys.argv", ["cmd", "--env", "test", "--limit", "2"]):
         main()
 
-    # Should have limited to 2 samples (check via mocked get_metadata call count)
-    # In this case, we don't have patches so just verify it ran
+    assert "Limited to first 2 samples" in capsys.readouterr().err
+    # No TPC matches, and dry run never reaches the pre-write authoritative
+    # read, so get_metadata is not called; --limit is exercised purely via
+    # get_non_tpc's returned list being truncated to 2 before Phase 1.
+    mock_get_metadata.assert_not_called()
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
@@ -724,22 +728,23 @@ def test_main_limit_flag(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 def test_main_identifiers_flag(mock_get_all_tpc, mock_get_metadata, mock_search, mock_get_auth):
-    """--identifiers flag processes only specified samples (Fix #10)."""
+    """--identifiers flag processes only specified samples (Fix #10). Each
+    identifier is resolved once; that resolved record already carries every
+    RELEVANT_TARGET_FIELDS value, so (with no TPC match and no --execute
+    here) no further get_metadata call is needed to build or write a patch."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []
     mock_get_metadata.side_effect = [
         {"@type": ["TissueSample"], "uuid": "target1", "external_id": "EXT1", "submission_centers": [{"display_title": "GCC"}]},
         {"@type": ["TissueSample"], "uuid": "target2", "external_id": "EXT2", "submission_centers": [{"display_title": "GCC"}]},
-        {"uuid": "target1", "external_id": "EXT1"},
-        {"uuid": "target2", "external_id": "EXT2"},
     ]
     mock_get_all_tpc.return_value = {}
 
     with patch("sys.argv", ["cmd", "--env", "test", "--identifiers", "target1", "target2"]):
         main()
 
-    # Should have fetched exactly 2 samples
-    assert mock_get_metadata.call_count == 4
+    # One resolution fetch per identifier; no extra Phase 1 authoritative read.
+    assert mock_get_metadata.call_count == 2
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
@@ -1093,16 +1098,16 @@ def test_main_tag_only_updates_counted_separately(
     mock_search.return_value = []  # Connection check
     mock_get_non_tpc.return_value = [
         {"uuid": "target1", "external_id": "EXT1", "tags": []},
-        {"uuid": "target2", "external_id": "EXT2", "tags": []},
+        # Already matches TPC's preservation_type, so this is tag-only.
+        {"uuid": "target2", "external_id": "EXT2", "preservation_type": "Frozen", "tags": []},
     ]
     mock_get_all_tpc.return_value = {
         "EXT1": {"uuid": "tpc1", "core_size": "3.0"},  # Will have metadata change
         "EXT2": {"uuid": "tpc2", "preservation_type": "Frozen"},  # Will have metadata change
     }
-    # First fetch returns sample needing core_size, second returns sample already matching
+    # Sole pre-write authoritative reads (one per patch), unchanged from the
+    # search result used to build each patch.
     mock_get_metadata.side_effect = [
-        {"uuid": "target1", "external_id": "EXT1", "tags": []},
-        {"uuid": "target2", "external_id": "EXT2", "preservation_type": "Frozen", "tags": []},
         {"uuid": "target1", "external_id": "EXT1", "tags": []},
         {"uuid": "target2", "external_id": "EXT2", "preservation_type": "Frozen", "tags": []},
     ]
@@ -1149,13 +1154,19 @@ def test_main_tag_only_updates_sent_to_server(
     """Tag-only updates are sent to the server."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []
+    # Target already has matching preservation_type, but no tag
     mock_get_non_tpc.return_value = [
-        {"uuid": "target1", "external_id": "EXT1", "tags": []}
+        {
+            "uuid": "target1",
+            "external_id": "EXT1",
+            "preservation_type": "Frozen",
+            "tags": [],
+        }
     ]
     mock_get_all_tpc.return_value = {
         "EXT1": {"uuid": "tpc1", "preservation_type": "Frozen"}
     }
-    # Target already has matching preservation_type, but no tag
+    # Sole pre-write authoritative read, unchanged from the search result.
     mock_get_metadata.return_value = {
         "uuid": "target1",
         "external_id": "EXT1",
@@ -1203,11 +1214,18 @@ def test_main_clears_scalar_fields_with_delete_fields(
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []
     mock_get_non_tpc.return_value = [
-        {"uuid": "target1", "external_id": "EXT1", "tags": []}
+        {
+            "uuid": "target1",
+            "external_id": "EXT1",
+            "core_size": "3.0",
+            "preservation_type": "Frozen",
+            "tags": [],
+        }
     ]
     mock_get_all_tpc.return_value = {
         "EXT1": {"uuid": "tpc1", "core_size": None, "preservation_type": None}
     }
+    # Sole pre-write authoritative read, unchanged from the search result.
     mock_get_metadata.return_value = {
         "uuid": "target1",
         "external_id": "EXT1",
@@ -1247,17 +1265,18 @@ def test_main_reports_malformed_values_as_unresolved(
     """Malformed prefixed values are a failing unresolved outcome, not no-change."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []
+    # Dry run never reaches the pre-write authoritative read, so the malformed
+    # value must be present directly in the search result build_patch uses.
     mock_get_non_tpc.return_value = [
-        {"uuid": "target1", "external_id": "EXT1", "tags": []}
+        {
+            "uuid": "target1",
+            "external_id": "EXT1",
+            "description": "GCC: missing separator TPC: ambiguous",
+            "tags": [],
+        }
     ]
     mock_get_all_tpc.return_value = {
         "EXT1": {"uuid": "tpc1", "description": "new TPC text"}
-    }
-    mock_get_metadata.return_value = {
-        "uuid": "target1",
-        "external_id": "EXT1",
-        "description": "GCC: missing separator TPC: ambiguous",
-        "tags": [],
     }
 
     with patch("sys.argv", ["cmd", "--env", "test"]):
@@ -1267,6 +1286,7 @@ def test_main_reports_malformed_values_as_unresolved(
         except SystemExit as exc:
             assert exc.code == 1
 
+    mock_get_metadata.assert_not_called()
     stderr = capsys.readouterr().err
     assert "Unresolved prefixed metadata for target1" in stderr
     assert "Unresolved: 1" in stderr
@@ -1321,29 +1341,31 @@ def test_main_detects_conflict_and_prevents_stale_write(
     mock_get_auth,
     capsys,
 ):
-    """A post-validation concurrent edit is counted and never overwritten."""
+    """A post-validation concurrent edit is counted and never overwritten.
+
+    The patch is built directly from the search result (the "original"
+    values); the sole additional authoritative read happens immediately
+    before the write and, finding a changed value, blocks the stale patch.
+    """
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []
     mock_get_non_tpc.return_value = [
-        {"uuid": "target1", "external_id": "EXT1", "tags": []}
-    ]
-    mock_get_all_tpc.return_value = {
-        "EXT1": {"uuid": "tpc1", "description": "TPC description"}
-    }
-    mock_get_metadata.side_effect = [
         {
             "uuid": "target1",
             "external_id": "EXT1",
             "description": "original GCC description",
             "tags": [],
-        },
-        {
-            "uuid": "target1",
-            "external_id": "EXT1",
-            "description": "concurrent GCC edit",
-            "tags": [],
-        },
+        }
     ]
+    mock_get_all_tpc.return_value = {
+        "EXT1": {"uuid": "tpc1", "description": "TPC description"}
+    }
+    mock_get_metadata.return_value = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "description": "concurrent GCC edit",
+        "tags": [],
+    }
 
     with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
         try:
@@ -1355,8 +1377,105 @@ def test_main_detects_conflict_and_prevents_stale_write(
     # The only PATCH is check-only pre-validation; no write follows the conflict.
     mock_patch.assert_called_once()
     assert mock_patch.call_args.kwargs["add_on"] == "?check_only=true"
+    # Exactly one authoritative read: the pre-write conflict check.
+    mock_get_metadata.assert_called_once()
     stderr = capsys.readouterr().err
     assert "Concurrent change detected for target1" in stderr
     assert "stale patch not applied" in stderr
     assert "Conflicts: 1" in stderr
     assert "Errors: 0" in stderr
+
+
+# =============================================================================
+# Search-frame completeness: the default search's embedded frame and the
+# per-identifier fetch both already carry every RELEVANT_TARGET_FIELDS value,
+# so build_patch works directly off the initial candidate listing and the
+# pre-write authoritative read (Phase 3) is the only additional database read.
+# =============================================================================
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
+def test_main_default_search_result_has_every_field_build_patch_needs(
+    mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
+):
+    """The default search result alone (no extra Phase 1 fetch) carries every
+    RELEVANT_TARGET_FIELDS value build_patch needs, including a value TPC is
+    clearing. Only the sole pre-write authoritative read follows."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [
+        {
+            "uuid": "target1",
+            "external_id": "EXT1",
+            "core_size": "3.0",
+            "preservation_type": "Frozen",
+            "description": "GCC: gcc text; TPC: old tpc text",
+            "processing_notes": "GCC: gcc notes",
+            "tags": [],
+        }
+    ]
+    # TPC clears core_size and updates description's TPC portion.
+    mock_get_all_tpc.return_value = {
+        "EXT1": {
+            "uuid": "tpc1",
+            "core_size": None,
+            "preservation_type": "Frozen",
+            "description": "new tpc text",
+            "processing_notes": None,
+        }
+    }
+    mock_get_metadata.return_value = dict(mock_get_non_tpc.return_value[0])
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
+        main()
+
+    assert mock_patch.call_count == 2
+    execution = mock_patch.call_args_list[1]
+    assert execution.args[0]["description"] == "GCC: gcc text; TPC: new tpc text"
+    assert execution.kwargs["add_on"] == "?delete_fields=core_size"
+    # Exactly one authoritative read for the single write: no Phase 1 fetch
+    # was needed because the search result already had every field.
+    assert mock_get_metadata.call_count == 1
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
+def test_main_identifiers_resolution_has_every_field_build_patch_needs(
+    mock_patch, mock_get_all_tpc, mock_get_metadata, mock_search, mock_get_auth
+):
+    """Under --identifiers, the per-identifier resolution fetch alone
+    carries every RELEVANT_TARGET_FIELDS value needed; the only later
+    get_metadata call is the sole pre-write authoritative read."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_all_tpc.return_value = {"EXT1": {"uuid": "tpc1", "core_size": "3.0"}}
+    resolved = {
+        "@type": ["TissueSample"],
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "submission_centers": [{"display_title": "GCC"}],
+        "tags": [],
+    }
+    mock_get_metadata.side_effect = [resolved, dict(resolved)]
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--identifiers", "target1", "--execute"]):
+        main()
+
+    assert mock_patch.call_count == 2
+    assert "core_size" in mock_patch.call_args_list[1].args[0]
+    # One resolution fetch plus the sole pre-write authoritative read.
+    assert mock_get_metadata.call_count == 2
