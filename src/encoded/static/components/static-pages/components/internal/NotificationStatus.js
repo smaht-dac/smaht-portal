@@ -10,6 +10,12 @@ import { fallbackCallback, formatDate, getLink } from './utils';
 // characters on one line.
 const SUBJECT_MAX_LENGTH = 100;
 
+// The EmailNotification item is written before the send response returns, but
+// Previous Messages is read from OpenSearch, which indexes it a few seconds
+// later. Retry on a widening delay instead of betting the refresh on a single
+// guess at how long indexing takes.
+const HISTORY_REFRESH_DELAYS_MS = [3000, 3000, 5000, 8000];
+
 function subjectCounterClass(length) {
     if (length >= SUBJECT_MAX_LENGTH) {
         return 'text-danger';
@@ -52,7 +58,7 @@ function PlainTextEmailPreview({ subject, body, className = '' }) {
                 <div className="ns-email-header-row">
                     <span className="ns-email-header-name">From</span>
                     <span className="ns-email-header-value">
-                        AWS Notifications &lt;no-reply@sns.amazonaws.com&gt;
+                        SMaHT New Data Releases &lt;no-reply@sns.amazonaws.com&gt;
                     </span>
                 </div>
                 {typeof subject === 'string' ? (
@@ -385,13 +391,6 @@ function SendConfirmModal({ target, subject, onConfirm, onClose }) {
                         )}
                     </div>
                 ) : null}
-
-                {loaded ? (
-                    <small className="text-secondary">
-                        Read from AWS when this dialog opened. Close and reopen
-                        to refresh.
-                    </small>
-                ) : null}
             </Modal.Body>
             <Modal.Footer>
                 <button
@@ -441,7 +440,12 @@ class NotificationStatusComponent extends React.PureComponent {
         this.getData();
     }
 
-    getData = () => {
+    componentWillUnmount() {
+        // Or a pending retry calls setState on an unmounted page.
+        clearTimeout(this.historyRefreshTimer);
+    }
+
+    getData = (onLoaded) => {
         this.setState({ refreshing: true });
         ajax.load(
             '/get_notification_status/',
@@ -464,6 +468,9 @@ class NotificationStatusComponent extends React.PureComponent {
                     emailNotifications: resp.email_notifications ?? [],
                     canNotifyAll: resp.can_notify_all === true,
                 });
+                if (typeof onLoaded === 'function') {
+                    onLoaded(resp.email_notifications ?? []);
+                }
             },
             'POST',
             (errResp, xhr) => {
@@ -520,14 +527,13 @@ class NotificationStatusComponent extends React.PureComponent {
                 // never records, and partial failure for 'all', which should.
                 if (target !== 'all') {
                     // Keeps the draft: a test send exists to be read,
-                    // corrected and sent again. Nothing was recorded either,
-                    // so there is nothing to refresh.
+                    // corrected and sent again. 
                     this.setState({
                         sendingMode: null,
                         sendResult: {
                             success: true,
                             message:
-                                'Test email sent to the dry-run topic subscribers. Nothing was recorded.',
+                                'Test email sent.',
                         },
                     });
                     return;
@@ -555,7 +561,7 @@ class NotificationStatusComponent extends React.PureComponent {
                     subject: '',
                     bodyText: '',
                 });
-                setTimeout(this.getData, 3000);
+                this.refreshHistoryUntilPresent(resp.uuid);
             },
             'POST',
             (errResp, xhr) => {
@@ -574,6 +580,25 @@ class NotificationStatusComponent extends React.PureComponent {
                 target,
             })
         );
+    };
+
+    // Stops as soon as the new message appears rather than after a fixed wait:
+    // the delay needed is however long OpenSearch takes to index the item just
+    // written, which is not a constant.
+    refreshHistoryUntilPresent = (uuid, attempt = 0) => {
+        if (attempt >= HISTORY_REFRESH_DELAYS_MS.length) {
+            return;
+        }
+        this.historyRefreshTimer = setTimeout(() => {
+            this.getData((notifications) => {
+                // Without a uuid to look for -- a response that did not carry
+                // one -- the single refresh above is all we do.
+                if (!uuid || notifications.some((n) => n.uuid === uuid)) {
+                    return;
+                }
+                this.refreshHistoryUntilPresent(uuid, attempt + 1);
+            });
+        }, HISTORY_REFRESH_DELAYS_MS[attempt]);
     };
 
     openReleasedFilesModal = () => {
@@ -762,7 +787,7 @@ class NotificationStatusComponent extends React.PureComponent {
                             {!canNotifyAll ? (
                                 <div className="text-secondary small mt-2">
                                     Your account can send test emails only.
-                                    Contact the data wranglers to send an
+                                    Contact the project manager to send an
                                     announcement to all subscribers.
                                 </div>
                             ) : null}
