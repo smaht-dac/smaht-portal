@@ -252,6 +252,12 @@ function CustomStaticLinks({ pathName, href, session }) {
                             <h4 className="text-large">Browse By Donor</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
+                            href={BROWSE_LINKS.tissue}
+                            titleIcon="lungs fas"
+                            className="primary-big-link is-fa-icon">
+                            <h4 className="text-large">Browse By Tissue</h4>
+                        </BigDropdownBigLink>
+                        {/* <BigDropdownBigLink
                             disabled
                             href=""
                             titleIcon="lungs fas mb-03"
@@ -263,7 +269,7 @@ function CustomStaticLinks({ pathName, href, session }) {
                                     - Coming Soon
                                 </span>
                             </h4>
-                        </BigDropdownBigLink>
+                        </BigDropdownBigLink> */}
                     </div>
                     <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">
