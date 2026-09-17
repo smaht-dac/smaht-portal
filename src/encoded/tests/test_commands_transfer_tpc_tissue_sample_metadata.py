@@ -1,6 +1,6 @@
 """Tests for transfer_tpc_tissue_sample_metadata command."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from encoded.commands.transfer_tpc_tissue_sample_metadata import (
     PROCESSED_TAG,
@@ -346,6 +346,7 @@ def test_build_patch_malformed_description_other_fields_transfer():
     assert patch["preservation_type"] == "Frozen"
     assert patch["processing_notes"] == "TPC: tpc notes"
     assert "tags" not in patch  # Parse failure prevents tagging
+    assert patch.unresolved_fields == ["description"]
 
 
 def test_build_patch_malformed_processing_notes_other_fields_transfer():
@@ -498,7 +499,10 @@ def test_get_all_tpc_samples_no_external_id(mock_search):
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
 def test_main_dry_run_default(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
@@ -523,7 +527,10 @@ def test_main_dry_run_default(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
 def test_main_execute_patches(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
@@ -542,13 +549,18 @@ def test_main_execute_patches(
 
     # Should have called patch_metadata twice: once for validation, once for execution
     assert mock_patch.call_count == 2
-    # First call should be validation (check_only=True)
-    assert mock_patch.call_args_list[0][1]["check_only"] is True
+    # First call uses the locked dcicutils signature and query-string validation.
+    assert mock_patch.call_args_list[0].kwargs["add_on"] == "?check_only=true"
     # Second call should be actual patch
     patch_call = mock_patch.call_args_list[1]
     assert patch_call[1]["obj_id"] == "target1"
     assert "core_size" in patch_call[0][0]
     assert "tags" in patch_call[0][0]  # Default tagging
+    mock_get_metadata.assert_called_once_with(
+        "target1",
+        key={"server": "test"},
+        add_on="frame=object&datastore=database",
+    )
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
@@ -556,7 +568,10 @@ def test_main_execute_patches(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
 def test_main_skip_tagging(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
@@ -601,7 +616,10 @@ def test_main_ignore_tag(mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_g
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
 def test_main_core_size_mismatch_skipped(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
@@ -641,7 +659,10 @@ def test_main_connection_failure_exits_nonzero(mock_search, mock_get_auth):
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
 def test_main_validation_failure_exits_nonzero(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
@@ -731,7 +752,10 @@ def test_main_identifiers_fetch_failure_exits_nonzero(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
 def test_main_patch_failure_exits_nonzero(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
@@ -915,8 +939,8 @@ def test_build_patch_core_size_cleared_when_tpc_clears():
     tpc_sample = {"core_size": None}
     target_sample = {"core_size": "3.0", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    # Core size should be cleared to None
-    assert patch["core_size"] is None
+    assert "core_size" not in patch
+    assert patch.delete_fields == ["core_size"]
     assert patch["tags"] == [PROCESSED_TAG]
 
 
@@ -925,8 +949,8 @@ def test_build_patch_preservation_type_cleared_when_tpc_clears():
     tpc_sample = {"preservation_type": ""}
     target_sample = {"preservation_type": "Frozen", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    # Preservation type should be cleared to None
-    assert patch["preservation_type"] is None
+    assert "preservation_type" not in patch
+    assert patch.delete_fields == ["preservation_type"]
     assert patch["tags"] == [PROCESSED_TAG]
 
 
@@ -954,7 +978,8 @@ def test_build_patch_core_size_cleared_with_empty_string():
     tpc_sample = {"core_size": ""}
     target_sample = {"core_size": "2.5", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch["core_size"] is None
+    assert "core_size" not in patch
+    assert patch.delete_fields == ["core_size"]
     assert patch["tags"] == [PROCESSED_TAG]
 
 
@@ -963,7 +988,8 @@ def test_build_patch_preservation_type_cleared_with_none():
     tpc_sample = {"preservation_type": None}
     target_sample = {"preservation_type": "FFPE", "tags": []}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch["preservation_type"] is None
+    assert "preservation_type" not in patch
+    assert patch.delete_fields == ["preservation_type"]
     assert patch["tags"] == [PROCESSED_TAG]
 
 
@@ -992,8 +1018,9 @@ def test_build_patch_all_fields_cleared():
         "tags": [],
     }
     patch = build_patch(tpc_sample, target_sample)
-    assert patch["core_size"] is None
-    assert patch["preservation_type"] is None
+    assert "core_size" not in patch
+    assert "preservation_type" not in patch
+    assert patch.delete_fields == ["core_size", "preservation_type"]
     assert patch["description"] == ""
     # format_prefixed_value("gcc", None) returns "gcc" (no GCC: prefix when no TPC portion)
     assert patch["processing_notes"] == "gcc"
@@ -1012,7 +1039,8 @@ def test_build_patch_core_size_clearing_with_description_update():
         "tags": [],
     }
     patch = build_patch(tpc_sample, target_sample)
-    assert patch["core_size"] is None
+    assert "core_size" not in patch
+    assert patch.delete_fields == ["core_size"]
     assert patch["description"] == "GCC: gcc desc; TPC: new tpc desc"
     assert patch["tags"] == [PROCESSED_TAG]
 
@@ -1037,7 +1065,10 @@ def test_build_patch_preservation_type_not_cleared_when_target_empty():
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
 def test_main_tag_only_updates_counted_separately(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
@@ -1066,7 +1097,11 @@ def test_main_tag_only_updates_counted_separately(
     assert mock_patch.call_count == 4
     
     # Check the execution calls (not validation calls)
-    exec_calls = [call for call in mock_patch.call_args_list if not call[1].get("check_only")]
+    exec_calls = [
+        call
+        for call in mock_patch.call_args_list
+        if "check_only=true" not in call.kwargs["add_on"]
+    ]
     assert len(exec_calls) == 2
     
     # First execution: has core_size (metadata change)
@@ -1086,7 +1121,10 @@ def test_main_tag_only_updates_counted_separately(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
 def test_main_tag_only_updates_sent_to_server(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
@@ -1114,9 +1152,104 @@ def test_main_tag_only_updates_sent_to_server(
     assert mock_patch.call_count == 2
     
     # Check the execution call
-    exec_call = [call for call in mock_patch.call_args_list if not call[1].get("check_only")][0]
+    exec_call = [
+        call
+        for call in mock_patch.call_args_list
+        if "check_only=true" not in call.kwargs["add_on"]
+    ][0]
     patch_data = exec_call[0][0]
     
     # Should only have tags
     assert patch_data == {"tags": [PROCESSED_TAG]}
     assert exec_call[1]["obj_id"] == "target1"
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
+def test_main_clears_scalar_fields_with_delete_fields(
+    mock_patch,
+    mock_get_metadata,
+    mock_get_all_tpc,
+    mock_get_non_tpc,
+    mock_search,
+    mock_get_auth,
+):
+    """Schema-constrained scalar fields are deleted, never patched as null."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [
+        {"uuid": "target1", "external_id": "EXT1", "tags": []}
+    ]
+    mock_get_all_tpc.return_value = {
+        "EXT1": {"uuid": "tpc1", "core_size": None, "preservation_type": None}
+    }
+    mock_get_metadata.return_value = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "core_size": "3.0",
+        "preservation_type": "Frozen",
+        "tags": [],
+    }
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
+        main()
+
+    assert mock_patch.call_count == 2
+    validation, execution = mock_patch.call_args_list
+    assert validation.args[0] == {"tags": [PROCESSED_TAG]}
+    assert execution.args[0] == {"tags": [PROCESSED_TAG]}
+    assert validation.kwargs["add_on"] == (
+        "?check_only=true&delete_fields=core_size,preservation_type"
+    )
+    assert execution.kwargs["add_on"] == (
+        "?delete_fields=core_size,preservation_type"
+    )
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+def test_main_reports_malformed_values_as_unresolved(
+    mock_get_metadata,
+    mock_get_all_tpc,
+    mock_get_non_tpc,
+    mock_search,
+    mock_get_auth,
+    capsys,
+):
+    """Malformed prefixed values are a failing unresolved outcome, not no-change."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [
+        {"uuid": "target1", "external_id": "EXT1", "tags": []}
+    ]
+    mock_get_all_tpc.return_value = {
+        "EXT1": {"uuid": "tpc1", "description": "new TPC text"}
+    }
+    mock_get_metadata.return_value = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "description": "GCC: missing separator TPC: ambiguous",
+        "tags": [],
+    }
+
+    with patch("sys.argv", ["cmd", "--env", "test"]):
+        try:
+            main()
+            assert False, "Should have raised SystemExit"
+        except SystemExit as exc:
+            assert exc.code == 1
+
+    stderr = capsys.readouterr().err
+    assert "Unresolved prefixed metadata for target1" in stderr
+    assert "Unresolved: 1" in stderr
+    assert "Skipped (no changes): 0" in stderr

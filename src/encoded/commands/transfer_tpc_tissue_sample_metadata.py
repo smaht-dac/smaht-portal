@@ -34,7 +34,6 @@ import logging
 import re
 import sys
 from typing import Optional
-from urllib.parse import quote
 
 from dcicutils import ff_utils
 from tqdm import tqdm
@@ -52,6 +51,29 @@ GCC_TPC_PATTERN = re.compile(r"^GCC:\s*(.+?);\s*TPC:\s*(.+)$", re.DOTALL)
 TPC_ONLY_PATTERN = re.compile(r"^TPC:\s*(.+)$", re.DOTALL)
 
 log = logging.getLogger(__name__)
+
+
+class PatchPlan(dict):
+    """Patch body plus write parameters that must not be serialized as JSON."""
+
+    def __init__(
+        self,
+        *args,
+        delete_fields: Optional[list[str]] = None,
+        unresolved_fields: Optional[list[str]] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.delete_fields = delete_fields or []
+        self.unresolved_fields = unresolved_fields or []
+
+    def add_on(self, check_only: bool = False) -> str:
+        parameters = []
+        if check_only:
+            parameters.append("check_only=true")
+        if self.delete_fields:
+            parameters.append(f"delete_fields={','.join(self.delete_fields)}")
+        return f"?{'&'.join(parameters)}" if parameters else ""
 
 
 def get_non_tpc_tissue_samples(auth_key: dict, ignore_tag: bool = False) -> list:
@@ -164,9 +186,8 @@ def has_metadata_changes(patch: dict) -> bool:
     Returns True if patch contains fields other than 'tags'.
     Returns False for empty patches or patches with only tags.
     """
-    if not patch:
-        return False
-    return any(key != "tags" for key in patch.keys())
+    delete_fields = getattr(patch, "delete_fields", [])
+    return bool(delete_fields) or any(key != "tags" for key in patch)
 
 
 def build_patch(
@@ -175,10 +196,11 @@ def build_patch(
     """Build a patch dict for the target sample.
 
     Returns None only if there's a core_size mismatch or other skip condition.
-    Returns a dict (possibly empty) for successful examination.
-    The dict may contain only tags (for records with no metadata changes).
+    Returns a PatchPlan (possibly with an empty JSON body) for successful
+    examination. Fields to remove and malformed fields are carried separately
+    in ``delete_fields`` and ``unresolved_fields``.
     """
-    patch = {}
+    patch = PatchPlan()
     skip_tagging_this_record = skip_tagging  # May be set True if parse fails
 
     # Check core_size: copy if target lacks it, clear if TPC clears it, warn and skip if mismatch
@@ -203,7 +225,7 @@ def build_patch(
         patch["core_size"] = tpc_core_size
     # Clear if TPC cleared value and target has it
     elif not tpc_has_core_size and target_has_core_size:
-        patch["core_size"] = None
+        patch.delete_fields.append("core_size")
 
     # preservation_type: copy if target lacks it, clear if TPC clears it
     # Treat None and empty string as absent; any other value as present
@@ -217,7 +239,7 @@ def build_patch(
         patch["preservation_type"] = tpc_preservation
     # Clear if TPC cleared value and target has it
     elif not tpc_has_preservation and target_has_preservation:
-        patch["preservation_type"] = None
+        patch.delete_fields.append("preservation_type")
 
     # description and processing_notes: idempotent prefixed format WITH CLEARING
     for field in ("description", "processing_notes"):
@@ -235,6 +257,7 @@ def build_patch(
                 target_val,
             )
             skip_tagging_this_record = True  # Don't tag if we couldn't process
+            patch.unresolved_fields.append(field)
             continue
 
         gcc_part, existing_tpc_part = parsed
@@ -392,6 +415,7 @@ def main() -> None:
     skipped_no_tpc = 0
     skipped_no_changes = 0  # Records that didn't need any changes (even tag)
     skipped_mismatch = 0
+    unresolved = 0
     errors = 0
     
     # Phase 1: Build all patches and collect them for validation
@@ -418,9 +442,14 @@ def main() -> None:
                 skipped_no_tpc += 1
                 continue
             
-            # Freshly fetch the target sample to avoid concurrent edit issues
+            # Read from PostgreSQL immediately before constructing the write so
+            # an Elasticsearch indexing delay cannot overwrite current data.
             try:
-                fresh_sample = ff_utils.get_metadata(uuid, key=auth_key)
+                fresh_sample = ff_utils.get_metadata(
+                    uuid,
+                    key=auth_key,
+                    add_on="frame=object&datastore=database",
+                )
             except Exception as exc:
                 log.error("Failed to fetch %s: %s", uuid, exc)
                 errors += 1
@@ -433,7 +462,18 @@ def main() -> None:
                 skipped_mismatch += 1
                 continue
 
-            if not patch:
+            if patch.unresolved_fields:
+                unresolved += 1
+                log.warning(
+                    "Unresolved prefixed metadata for %s (external_id: %s): %s",
+                    uuid,
+                    external_id,
+                    ", ".join(patch.unresolved_fields),
+                )
+                if not patch and not patch.delete_fields:
+                    continue
+
+            if not patch and not patch.delete_fields:
                 # Empty patch = already tagged and no changes needed
                 log.debug(
                     "No changes needed for %s (external_id: %s)", uuid, external_id
@@ -454,7 +494,10 @@ def main() -> None:
             ):
                 try:
                     ff_utils.patch_metadata(
-                        patch, obj_id=uuid, key=auth_key, check_only=True
+                        patch,
+                        obj_id=uuid,
+                        key=auth_key,
+                        add_on=patch.add_on(check_only=True),
                     )
                 except Exception as exc:
                     log.error(
@@ -504,7 +547,12 @@ def main() -> None:
                         tagged_only += 1
                 else:
                     try:
-                        ff_utils.patch_metadata(patch, obj_id=uuid, key=auth_key)
+                        ff_utils.patch_metadata(
+                            patch,
+                            obj_id=uuid,
+                            key=auth_key,
+                            add_on=patch.add_on(),
+                        )
                         if has_metadata:
                             log.info(
                                 "Patched %s (external_id: %s): %s",
@@ -527,18 +575,20 @@ def main() -> None:
     action = "Patched" if args.execute else "Would patch"
     log.info(
         "Done. %s: %d | Tagged only: %d | Skipped (no TPC match): %d | "
-        "Skipped (no changes): %d | Skipped (core_size mismatch): %d | Errors: %d",
+        "Skipped (no changes): %d | Skipped (core_size mismatch): %d | "
+        "Unresolved: %d | Errors: %d",
         action,
         patched,
         tagged_only,
         skipped_no_tpc,
         skipped_no_changes,
         skipped_mismatch,
+        unresolved,
         errors,
     )
     
-    # Exit with nonzero status if there were any errors
-    if errors > 0:
+    # Unresolved prefixed values require operator attention just like errors.
+    if errors > 0 or unresolved > 0:
         sys.exit(1)
 
 
