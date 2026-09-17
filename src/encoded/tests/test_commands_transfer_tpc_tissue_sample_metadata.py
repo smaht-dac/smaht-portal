@@ -5,6 +5,7 @@ from unittest.mock import patch
 from encoded.commands.transfer_tpc_tissue_sample_metadata import (
     PROCESSED_TAG,
     build_patch,
+    changed_relevant_fields,
     format_prefixed_value,
     get_all_tpc_samples,
     get_non_tpc_tissue_samples,
@@ -534,7 +535,7 @@ def test_main_dry_run_default(
 def test_main_execute_patches(
     mock_patch, mock_get_metadata, mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth
 ):
-    """With --execute, patches are applied (Fix #6: refetch before patch)."""
+    """An unchanged authoritative refetch permits the validated write."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []  # Connection check
     mock_get_non_tpc.return_value = [
@@ -556,11 +557,13 @@ def test_main_execute_patches(
     assert patch_call[1]["obj_id"] == "target1"
     assert "core_size" in patch_call[0][0]
     assert "tags" in patch_call[0][0]  # Default tagging
-    mock_get_metadata.assert_called_once_with(
-        "target1",
-        key={"server": "test"},
-        add_on="frame=object&datastore=database",
-    )
+    assert mock_get_metadata.call_count == 2
+    for call in mock_get_metadata.call_args_list:
+        assert call.args == ("target1",)
+        assert call.kwargs == {
+            "key": {"server": "test"},
+            "add_on": "frame=object&datastore=database",
+        }
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
@@ -687,7 +690,14 @@ def test_main_validation_failure_exits_nonzero(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
-def test_main_limit_flag(mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth):
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+def test_main_limit_flag(
+    mock_get_metadata,
+    mock_get_all_tpc,
+    mock_get_non_tpc,
+    mock_search,
+    mock_get_auth,
+):
     """--limit flag limits the number of samples processed (Fix #10)."""
     mock_get_auth.return_value = {"server": "test"}
     mock_search.return_value = []
@@ -697,6 +707,10 @@ def test_main_limit_flag(mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_g
         {"uuid": "target3", "external_id": "EXT3"},
     ]
     mock_get_all_tpc.return_value = {}
+    mock_get_metadata.side_effect = [
+        {"uuid": "target1", "external_id": "EXT1"},
+        {"uuid": "target2", "external_id": "EXT2"},
+    ]
 
     with patch("sys.argv", ["cmd", "--env", "test", "--limit", "2"]):
         main()
@@ -716,6 +730,8 @@ def test_main_identifiers_flag(mock_get_all_tpc, mock_get_metadata, mock_search,
     mock_get_metadata.side_effect = [
         {"@type": ["TissueSample"], "uuid": "target1", "external_id": "EXT1", "submission_centers": [{"display_title": "GCC"}]},
         {"@type": ["TissueSample"], "uuid": "target2", "external_id": "EXT2", "submission_centers": [{"display_title": "GCC"}]},
+        {"uuid": "target1", "external_id": "EXT1"},
+        {"uuid": "target2", "external_id": "EXT2"},
     ]
     mock_get_all_tpc.return_value = {}
 
@@ -723,7 +739,7 @@ def test_main_identifiers_flag(mock_get_all_tpc, mock_get_metadata, mock_search,
         main()
 
     # Should have fetched exactly 2 samples
-    assert mock_get_metadata.call_count == 2
+    assert mock_get_metadata.call_count == 4
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
@@ -1087,6 +1103,8 @@ def test_main_tag_only_updates_counted_separately(
     mock_get_metadata.side_effect = [
         {"uuid": "target1", "external_id": "EXT1", "tags": []},
         {"uuid": "target2", "external_id": "EXT2", "preservation_type": "Frozen", "tags": []},
+        {"uuid": "target1", "external_id": "EXT1", "tags": []},
+        {"uuid": "target2", "external_id": "EXT2", "preservation_type": "Frozen", "tags": []},
     ]
 
     with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
@@ -1253,3 +1271,92 @@ def test_main_reports_malformed_values_as_unresolved(
     assert "Unresolved prefixed metadata for target1" in stderr
     assert "Unresolved: 1" in stderr
     assert "Skipped (no changes): 0" in stderr
+
+
+def test_changed_relevant_fields_ignores_unrelated_changes():
+    """Only values used to construct a write plan participate in the guard."""
+    original = {
+        "external_id": "EXT1",
+        "core_size": "3.0",
+        "preservation_type": "Frozen",
+        "description": "description",
+        "processing_notes": "notes",
+        "tags": ["tag"],
+        "last_modified": {"date_modified": "before"},
+    }
+    current = {
+        **original,
+        "last_modified": {"date_modified": "after"},
+    }
+
+    assert changed_relevant_fields(original, current) == []
+
+    for field in (
+        "external_id",
+        "core_size",
+        "preservation_type",
+        "description",
+        "processing_notes",
+        "tags",
+    ):
+        changed = {**current, field: "changed"}
+        assert changed_relevant_fields(original, changed) == [field]
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+@patch(
+    "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
+    autospec=True,
+)
+def test_main_detects_conflict_and_prevents_stale_write(
+    mock_patch,
+    mock_get_metadata,
+    mock_get_all_tpc,
+    mock_get_non_tpc,
+    mock_search,
+    mock_get_auth,
+    capsys,
+):
+    """A post-validation concurrent edit is counted and never overwritten."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [
+        {"uuid": "target1", "external_id": "EXT1", "tags": []}
+    ]
+    mock_get_all_tpc.return_value = {
+        "EXT1": {"uuid": "tpc1", "description": "TPC description"}
+    }
+    mock_get_metadata.side_effect = [
+        {
+            "uuid": "target1",
+            "external_id": "EXT1",
+            "description": "original GCC description",
+            "tags": [],
+        },
+        {
+            "uuid": "target1",
+            "external_id": "EXT1",
+            "description": "concurrent GCC edit",
+            "tags": [],
+        },
+    ]
+
+    with patch("sys.argv", ["cmd", "--env", "test", "--execute"]):
+        try:
+            main()
+            assert False, "Should have raised SystemExit"
+        except SystemExit as exc:
+            assert exc.code == 1
+
+    # The only PATCH is check-only pre-validation; no write follows the conflict.
+    mock_patch.assert_called_once()
+    assert mock_patch.call_args.kwargs["add_on"] == "?check_only=true"
+    stderr = capsys.readouterr().err
+    assert "Concurrent change detected for target1" in stderr
+    assert "stale patch not applied" in stderr
+    assert "Conflicts: 1" in stderr
+    assert "Errors: 0" in stderr

@@ -43,6 +43,14 @@ from encoded.commands.utils import get_auth_key
 
 NDRI_TPC_DISPLAY_TITLE = "NDRI TPC"
 PROCESSED_TAG = "tpc_metadata_synced"
+RELEVANT_TARGET_FIELDS = (
+    "external_id",
+    "core_size",
+    "preservation_type",
+    "description",
+    "processing_notes",
+    "tags",
+)
 
 # Regex patterns for parsing prefixed values
 # These patterns use non-greedy matching for the GCC part and greedy matching for the TPC part.
@@ -188,6 +196,16 @@ def has_metadata_changes(patch: dict) -> bool:
     """
     delete_fields = getattr(patch, "delete_fields", [])
     return bool(delete_fields) or any(key != "tags" for key in patch)
+
+
+def changed_relevant_fields(original: dict, current: dict) -> list[str]:
+    """Return fields whose current values would change the cached write plan."""
+    changed = []
+    for field in RELEVANT_TARGET_FIELDS:
+        default = [] if field == "tags" else None
+        if original.get(field, default) != current.get(field, default):
+            changed.append(field)
+    return changed
 
 
 def build_patch(
@@ -416,16 +434,30 @@ def main() -> None:
     skipped_no_changes = 0  # Records that didn't need any changes (even tag)
     skipped_mismatch = 0
     unresolved = 0
+    conflicts = 0
     errors = 0
     
     # Phase 1: Build all patches and collect them for validation
-    patches_to_apply = []  # List of (uuid, external_id, patch, fresh_sample)
+    patches_to_apply = []  # (uuid, external_id, patch, authoritative snapshot)
     
     with logging_redirect_tqdm():
         for sample in tqdm(non_tpc_samples, desc="Building patches", unit="sample"):
-            external_id = sample.get("external_id")
             uuid = sample.get("uuid")
 
+            # Read from PostgreSQL before resolving the TPC counterpart or
+            # constructing the write. Search results only select candidate UUIDs.
+            try:
+                fresh_sample = ff_utils.get_metadata(
+                    uuid,
+                    key=auth_key,
+                    add_on="frame=object&datastore=database",
+                )
+            except Exception as exc:
+                log.error("Failed to fetch %s: %s", uuid, exc)
+                errors += 1
+                continue
+
+            external_id = fresh_sample.get("external_id")
             if not external_id:
                 log.debug("Sample %s has no external_id — skipping", uuid)
                 skipped_no_tpc += 1
@@ -440,19 +472,6 @@ def main() -> None:
                     uuid,
                 )
                 skipped_no_tpc += 1
-                continue
-            
-            # Read from PostgreSQL immediately before constructing the write so
-            # an Elasticsearch indexing delay cannot overwrite current data.
-            try:
-                fresh_sample = ff_utils.get_metadata(
-                    uuid,
-                    key=auth_key,
-                    add_on="frame=object&datastore=database",
-                )
-            except Exception as exc:
-                log.error("Failed to fetch %s: %s", uuid, exc)
-                errors += 1
                 continue
 
             patch = build_patch(tpc_sample, fresh_sample, skip_tagging=args.skip_tagging)
@@ -547,6 +566,24 @@ def main() -> None:
                         tagged_only += 1
                 else:
                     try:
+                        current_sample = ff_utils.get_metadata(
+                            uuid,
+                            key=auth_key,
+                            add_on="frame=object&datastore=database",
+                        )
+                        changed_fields = changed_relevant_fields(
+                            fresh_sample, current_sample
+                        )
+                        if changed_fields:
+                            log.error(
+                                "Concurrent change detected for %s "
+                                "(external_id: %s) in %s — stale patch not applied",
+                                uuid,
+                                external_id,
+                                ", ".join(changed_fields),
+                            )
+                            conflicts += 1
+                            continue
                         ff_utils.patch_metadata(
                             patch,
                             obj_id=uuid,
@@ -576,7 +613,7 @@ def main() -> None:
     log.info(
         "Done. %s: %d | Tagged only: %d | Skipped (no TPC match): %d | "
         "Skipped (no changes): %d | Skipped (core_size mismatch): %d | "
-        "Unresolved: %d | Errors: %d",
+        "Unresolved: %d | Conflicts: %d | Errors: %d",
         action,
         patched,
         tagged_only,
@@ -584,11 +621,12 @@ def main() -> None:
         skipped_no_changes,
         skipped_mismatch,
         unresolved,
+        conflicts,
         errors,
     )
     
     # Unresolved prefixed values require operator attention just like errors.
-    if errors > 0 or unresolved > 0:
+    if errors > 0 or unresolved > 0 or conflicts > 0:
         sys.exit(1)
 
 
