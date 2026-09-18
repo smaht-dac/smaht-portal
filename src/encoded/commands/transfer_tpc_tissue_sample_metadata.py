@@ -485,8 +485,7 @@ def main() -> None:
         else 0
     )
     log.info(
-        "Loading TPC tissue samples matching %d external_id(s) in %d batch(es) of up to %d "
-        "(previous approach fetched every TPC sample unconditionally)...",
+        "Loading TPC tissue samples matching %d external_id(s) in %d batch(es) of up to %d...",
         len(set(gcc_external_ids)),
         num_batches,
         EXTERNAL_ID_BATCH_SIZE,
