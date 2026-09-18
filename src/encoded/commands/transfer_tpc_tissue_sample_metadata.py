@@ -250,6 +250,33 @@ def format_prefixed_value(gcc_part: Optional[str], tpc_part: Optional[str]) -> s
     return ""
 
 
+def requires_manual_review(
+    target_sample: dict,
+    field_name: str,
+    parsed_value: Optional[tuple[Optional[str], Optional[str]]],
+) -> bool:
+    """Guard against overwriting a possible manual edit.
+
+    Parsing a target's prefixed value into (gcc_part, tpc_part) is tag-independent:
+    it happens the same way regardless of whether PROCESSED_TAG is present. Whether
+    that parsed result is safe to act on, however, is tag-dependent: a TPC portion
+    (``parsed_value[1]`` is not None) with PROCESSED_TAG absent means the target was
+    never actually synced by this script, so the existing "TPC:" text may be a
+    legitimate manual edit rather than this script's own prior output.
+
+    Returns True when ``field_name``'s parsed target value already carries a TPC
+    portion but ``target_sample`` lacks PROCESSED_TAG in its tags. Callers combine
+    this with their own check of whether the incoming TPC value would actually
+    change that portion before treating the field as needing manual review.
+    """
+    if parsed_value is None:
+        return False
+    _, existing_tpc_part = parsed_value
+    return existing_tpc_part is not None and PROCESSED_TAG not in target_sample.get(
+        "tags", []
+    )
+
+
 def has_metadata_changes(patch: dict) -> bool:
     """Check if patch has any changes besides tags.
     
@@ -277,8 +304,9 @@ def build_patch(
 
     Returns None only if there's a core_size mismatch or other skip condition.
     Returns a PatchPlan (possibly with an empty JSON body) for successful
-    examination. Fields to remove and malformed fields are carried separately
-    in ``delete_fields`` and ``unresolved_fields``.
+    examination. Fields to remove, malformed fields, and fields requiring
+    manual review are carried separately in ``delete_fields``,
+    ``unresolved_fields``, and ``needs_review_fields``.
     """
     patch = PatchPlan()
     skip_tagging_this_record = skip_tagging  # May be set True if parse fails
@@ -345,18 +373,16 @@ def build_patch(
         # Convert empty string or whitespace-only to None for consistency
         tpc_val_normalized = tpc_val if (tpc_val and tpc_val.strip()) else None
 
-        # Manual-edit protection: the target already carries a "TPC:" portion,
-        # but was never tagged as synced by this script, and the TPC sample
-        # holds a value that would actually change that portion. The existing
-        # TPC-prefixed text may be a manual edit rather than this script's
-        # prior output, so flag the record for review instead of overwriting it.
-        if (
-            existing_tpc_part is not None
-            and PROCESSED_TAG not in target_sample.get("tags", [])
-            and tpc_val_normalized is not None
-            and tpc_val_normalized != existing_tpc_part
+        # Manual-edit protection: parsing the target's value is tag-independent
+        # (it happens above regardless of PROCESSED_TAG), but acting on it is
+        # tag-dependent. requires_manual_review() flags an untagged target that
+        # already carries a TPC portion; combined here with a check that the
+        # incoming TPC value would actually change that portion, this guards
+        # against silently overwriting what may be a legitimate manual edit.
+        if requires_manual_review(target_sample, field, parsed) and (
+            tpc_val_normalized is not None and tpc_val_normalized != existing_tpc_part
         ):
-            log.warning(
+            log.info(
                 "Manual-edit protection: %s (external_id: %s) has TPC-prefixed "
                 "%s without the %s tag, and TPC has a differing value — "
                 "flagging for manual review instead of patching",

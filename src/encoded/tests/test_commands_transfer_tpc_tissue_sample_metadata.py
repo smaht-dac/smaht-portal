@@ -12,6 +12,7 @@ from encoded.commands.transfer_tpc_tissue_sample_metadata import (
     has_metadata_changes,
     main,
     parse_prefixed_value,
+    requires_manual_review,
 )
 
 
@@ -402,6 +403,46 @@ def test_build_patch_tag_not_duplicated():
     # Tag is already present, so tags should not be in the patch (Fix #5)
     assert "tags" not in patch
     assert patch == {"core_size": "3.0"}
+
+
+# =============================================================================
+# requires_manual_review guard tests
+# =============================================================================
+
+
+def test_requires_manual_review_true_when_tpc_content_and_no_tag():
+    """TPC portion present, PROCESSED_TAG absent → guard returns True."""
+    target_sample = {"tags": []}
+    parsed = ("gcc desc", "tpc desc")
+    assert requires_manual_review(target_sample, "description", parsed) is True
+
+
+def test_requires_manual_review_false_when_tagged():
+    """TPC portion present, but PROCESSED_TAG already present → guard returns False."""
+    target_sample = {"tags": [PROCESSED_TAG]}
+    parsed = ("gcc desc", "tpc desc")
+    assert requires_manual_review(target_sample, "description", parsed) is False
+
+
+def test_requires_manual_review_false_when_no_tpc_portion():
+    """No TPC portion in the parsed value → guard returns False regardless of tag."""
+    target_sample = {"tags": []}
+    parsed = ("plain gcc value", None)
+    assert requires_manual_review(target_sample, "description", parsed) is False
+
+
+def test_requires_manual_review_false_when_parsed_is_none():
+    """Malformed (unparseable) values are handled by the unresolved-field path,
+    not the manual-review guard, so the guard returns False."""
+    target_sample = {"tags": []}
+    assert requires_manual_review(target_sample, "description", None) is False
+
+
+def test_requires_manual_review_missing_tags_key_treated_as_untagged():
+    """A target with no 'tags' key at all is treated the same as an empty tag list."""
+    target_sample = {}
+    parsed = (None, "tpc desc")
+    assert requires_manual_review(target_sample, "processing_notes", parsed) is True
 
 
 # =============================================================================
