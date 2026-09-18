@@ -201,27 +201,31 @@ def test_build_patch_description_idempotent_same_tpc():
 
 
 def test_build_patch_description_idempotent_update_tpc():
-    """description: TPC value changed → replace TPC part only."""
+    """description: TPC value changed, target already tagged → replace TPC part only."""
     tpc_sample = {"description": "new tpc desc"}
-    target_sample = {"description": "GCC: gcc desc; TPC: old tpc desc"}
+    target_sample = {
+        "description": "GCC: gcc desc; TPC: old tpc desc",
+        "tags": [PROCESSED_TAG],
+    }
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"description": "GCC: gcc desc; TPC: new tpc desc", "tags": [PROCESSED_TAG]}
+    # Target is already tagged, so no redundant "tags" key is added.
+    assert patch == {"description": "GCC: gcc desc; TPC: new tpc desc"}
 
 
 def test_build_patch_description_update_tpc_only_value():
-    """description: TPC-only value changed → replace with new TPC-only value."""
+    """description: TPC-only value changed, target already tagged → replace with new value."""
     tpc_sample = {"description": "new tpc desc"}
-    target_sample = {"description": "TPC: old tpc desc"}
+    target_sample = {"description": "TPC: old tpc desc", "tags": [PROCESSED_TAG]}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"description": "TPC: new tpc desc", "tags": [PROCESSED_TAG]}
+    assert patch == {"description": "TPC: new tpc desc"}
 
 
 def test_build_patch_processing_notes_update_tpc_only_value():
-    """processing_notes: TPC-only value changed → replace with new TPC-only value."""
+    """processing_notes: TPC-only value changed, target already tagged → replace with new value."""
     tpc_sample = {"processing_notes": "new tpc notes"}
-    target_sample = {"processing_notes": "TPC: old tpc notes"}
+    target_sample = {"processing_notes": "TPC: old tpc notes", "tags": [PROCESSED_TAG]}
     patch = build_patch(tpc_sample, target_sample)
-    assert patch == {"processing_notes": "TPC: new tpc notes", "tags": [PROCESSED_TAG]}
+    assert patch == {"processing_notes": "TPC: new tpc notes"}
 
 
 def test_build_patch_description_malformed_skip():
@@ -398,6 +402,92 @@ def test_build_patch_tag_not_duplicated():
     # Tag is already present, so tags should not be in the patch (Fix #5)
     assert "tags" not in patch
     assert patch == {"core_size": "3.0"}
+
+
+# =============================================================================
+# build_patch manual-edit protection tests
+# =============================================================================
+
+
+def test_build_patch_manual_edit_flagged_without_tag():
+    """Target has TPC-prefixed content but no PROCESSED_TAG, and the TPC sample
+    holds a differing value that would be transferred → flag for manual review
+    instead of patching."""
+    tpc_sample = {"description": "new tpc desc"}
+    target_sample = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "description": "GCC: gcc desc; TPC: old tpc desc",
+        "tags": [],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch.needs_review_fields == ["description"]
+    # Nothing is applied for the flagged field, and no tag is added either.
+    assert "description" not in patch
+    assert "tags" not in patch
+
+
+def test_build_patch_manual_edit_not_flagged_with_tag():
+    """Same TPC-prefixed content, but the target already carries PROCESSED_TAG →
+    patch normally, no manual-review flag."""
+    tpc_sample = {"description": "new tpc desc"}
+    target_sample = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "description": "GCC: gcc desc; TPC: old tpc desc",
+        "tags": [PROCESSED_TAG],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch.needs_review_fields == []
+    assert patch == {"description": "GCC: gcc desc; TPC: new tpc desc"}
+
+
+def test_build_patch_no_tpc_content_not_flagged():
+    """Target has no existing TPC-prefixed content → patch normally, regardless
+    of tag state, no manual-review flag."""
+    tpc_sample = {"description": "tpc desc"}
+    target_sample = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "description": "plain gcc description",
+        "tags": [],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch.needs_review_fields == []
+    assert patch == {
+        "description": "GCC: plain gcc description; TPC: tpc desc",
+        "tags": [PROCESSED_TAG],
+    }
+
+
+def test_build_patch_manual_edit_not_flagged_when_tpc_value_unchanged():
+    """Target has TPC-prefixed content without the tag, but TPC's value matches
+    what's already there — nothing would actually be transferred, so this is
+    not flagged (only tag is added)."""
+    tpc_sample = {"description": "tpc desc"}
+    target_sample = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "description": "GCC: gcc desc; TPC: tpc desc",
+        "tags": [],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch.needs_review_fields == []
+    assert patch == {"tags": [PROCESSED_TAG]}
+
+
+def test_build_patch_manual_edit_not_flagged_when_tpc_has_no_value():
+    """Target has TPC-prefixed content without the tag, but the TPC sample has
+    no value for the field to transfer — not flagged."""
+    tpc_sample = {"description": ""}
+    target_sample = {
+        "uuid": "target1",
+        "external_id": "EXT1",
+        "description": "GCC: gcc desc; TPC: old tpc desc",
+        "tags": [],
+    }
+    patch = build_patch(tpc_sample, target_sample)
+    assert patch.needs_review_fields == []
 
 
 # =============================================================================
@@ -1069,13 +1159,13 @@ def test_build_patch_clearing_with_other_changes():
     target_sample = {
         "description": "TPC: old desc",
         "processing_notes": "GCC: gcc notes; TPC: old notes",
-        "tags": [],
+        "tags": [PROCESSED_TAG],
     }
     patch = build_patch(tpc_sample, target_sample)
     assert patch["core_size"] == "3.0"
     assert patch["description"] == ""  # Cleared
     assert patch["processing_notes"] == "GCC: gcc notes; TPC: new notes"  # Updated
-    assert patch["tags"] == [PROCESSED_TAG]
+    assert "tags" not in patch  # Already tagged, no redundant write
 
 
 def test_build_patch_core_size_cleared_with_empty_string():
@@ -1141,13 +1231,13 @@ def test_build_patch_core_size_clearing_with_description_update():
     target_sample = {
         "core_size": "2.5",
         "description": "GCC: gcc desc; TPC: old desc",
-        "tags": [],
+        "tags": [PROCESSED_TAG],
     }
     patch = build_patch(tpc_sample, target_sample)
     assert "core_size" not in patch
     assert patch.delete_fields == ["core_size"]
     assert patch["description"] == "GCC: gcc desc; TPC: new tpc desc"
-    assert patch["tags"] == [PROCESSED_TAG]
+    assert "tags" not in patch  # Already tagged, no redundant write
 
 
 def test_build_patch_preservation_type_not_cleared_when_target_empty():
@@ -1377,6 +1467,52 @@ def test_main_reports_malformed_values_as_unresolved(
     assert "Skipped (no changes): 0" in stderr
 
 
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
+def test_main_reports_manual_edit_records_as_needs_review(
+    mock_get_metadata,
+    mock_get_all_tpc,
+    mock_get_non_tpc,
+    mock_search,
+    mock_get_auth,
+    capsys,
+):
+    """A target with TPC-prefixed content but no PROCESSED_TAG, matched against
+    a TPC sample with a differing value, is flagged for manual review, excluded
+    from the automatic patch phase, and causes a nonzero exit."""
+    mock_get_auth.return_value = {"server": "test"}
+    mock_search.return_value = []
+    mock_get_non_tpc.return_value = [
+        {
+            "uuid": "target1",
+            "external_id": "EXT1",
+            "description": "GCC: gcc desc; TPC: old tpc desc",
+            "tags": [],
+        }
+    ]
+    mock_get_all_tpc.return_value = {
+        "EXT1": {"uuid": "tpc1", "description": "new tpc desc"}
+    }
+
+    with patch("sys.argv", ["cmd", "--env", "test"]):
+        try:
+            main()
+            assert False, "Should have raised SystemExit"
+        except SystemExit as exc:
+            assert exc.code == 1
+
+    # Not part of the automatic patch phase: no pre-write authoritative read.
+    mock_get_metadata.assert_not_called()
+    stderr = capsys.readouterr().err
+    assert "Needs review: 1" in stderr
+    assert "need manual review" in stderr
+    assert "uuid=target1 external_id=EXT1 fields=description" in stderr
+    assert "Would patch: 0" in stderr
+
+
 def test_changed_relevant_fields_ignores_unrelated_changes():
     """Only values used to construct a write plan participate in the guard."""
     original = {
@@ -1503,7 +1639,7 @@ def test_main_default_search_result_has_every_field_build_patch_needs(
             "preservation_type": "Frozen",
             "description": "GCC: gcc text; TPC: old tpc text",
             "processing_notes": "GCC: gcc notes",
-            "tags": [],
+            "tags": [PROCESSED_TAG],
         }
     ]
     # TPC clears core_size and updates description's TPC portion.

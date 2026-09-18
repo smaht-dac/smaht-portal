@@ -24,6 +24,11 @@ Rules:
   - When TPC clears description or processing_notes, the TPC portion is removed from target
     (GCC portion is preserved)
   - When TPC clears core_size or preservation_type, the portal value is cleared to match
+  - If a target's description or processing_notes already carries a "TPC:" portion but the
+    target lacks the tpc_metadata_synced tag, and the TPC sample holds a value that would
+    actually change that portion, the record is flagged for manual review instead of being
+    patched: the existing TPC-prefixed text may be a manual edit, not this script's prior
+    output, so it is left untouched rather than silently overwritten
   - Connection, reconciliation, or patch failures return nonzero exit code
   - Use --limit N to process at most N samples
   - Use --identifiers UUID [UUID ...] to process only specific samples
@@ -98,11 +103,13 @@ class PatchPlan(dict):
         *args,
         delete_fields: Optional[list[str]] = None,
         unresolved_fields: Optional[list[str]] = None,
+        needs_review_fields: Optional[list[str]] = None,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.delete_fields = delete_fields or []
         self.unresolved_fields = unresolved_fields or []
+        self.needs_review_fields = needs_review_fields or []
 
     def add_on(self, check_only: bool = False) -> str:
         parameters = []
@@ -338,6 +345,30 @@ def build_patch(
         # Convert empty string or whitespace-only to None for consistency
         tpc_val_normalized = tpc_val if (tpc_val and tpc_val.strip()) else None
 
+        # Manual-edit protection: the target already carries a "TPC:" portion,
+        # but was never tagged as synced by this script, and the TPC sample
+        # holds a value that would actually change that portion. The existing
+        # TPC-prefixed text may be a manual edit rather than this script's
+        # prior output, so flag the record for review instead of overwriting it.
+        if (
+            existing_tpc_part is not None
+            and PROCESSED_TAG not in target_sample.get("tags", [])
+            and tpc_val_normalized is not None
+            and tpc_val_normalized != existing_tpc_part
+        ):
+            log.warning(
+                "Manual-edit protection: %s (external_id: %s) has TPC-prefixed "
+                "%s without the %s tag, and TPC has a differing value — "
+                "flagging for manual review instead of patching",
+                target_sample.get("uuid"),
+                target_sample.get("external_id"),
+                field,
+                PROCESSED_TAG,
+            )
+            patch.needs_review_fields.append(field)
+            skip_tagging_this_record = True  # Don't tag a record pending review
+            continue
+
         # If TPC has cleared the field, remove TPC portion from target
         if not tpc_val_normalized:
             if existing_tpc_part:  # Target has TPC portion that needs clearing
@@ -516,9 +547,11 @@ def main() -> None:
     skipped_no_changes = 0  # Records that didn't need any changes (even tag)
     skipped_mismatch = 0
     unresolved = 0
+    needs_review = 0
     conflicts = 0
     errors = 0
-    
+    needs_review_records = []  # (uuid, external_id, fields flagged for review)
+
     # Phase 1: Build all patches and collect them for validation
     patches_to_apply = []  # (uuid, external_id, patch, authoritative snapshot)
     
@@ -555,6 +588,15 @@ def main() -> None:
             if patch is None:
                 # core_size mismatch — already logged warning in build_patch
                 skipped_mismatch += 1
+                continue
+
+            if patch.needs_review_fields:
+                # Possible manual edit — exclude entirely from the automatic
+                # patch phase and surface it for human inspection instead.
+                needs_review += 1
+                needs_review_records.append(
+                    (uuid, external_id, list(patch.needs_review_fields))
+                )
                 continue
 
             if patch.unresolved_fields:
@@ -689,7 +731,7 @@ def main() -> None:
     log.info(
         "Done. %s: %d | Tagged only: %d | Skipped (no TPC match): %d | "
         "Skipped (no changes): %d | Skipped (core_size mismatch): %d | "
-        "Unresolved: %d | Conflicts: %d | Errors: %d",
+        "Unresolved: %d | Needs review: %d | Conflicts: %d | Errors: %d",
         action,
         patched,
         tagged_only,
@@ -697,12 +739,30 @@ def main() -> None:
         skipped_no_changes,
         skipped_mismatch,
         unresolved,
+        needs_review,
         conflicts,
         errors,
     )
-    
-    # Unresolved prefixed values require operator attention just like errors.
-    if errors > 0 or unresolved > 0 or conflicts > 0:
+
+    if needs_review_records:
+        log.warning(
+            "The following %d record(s) need manual review: existing TPC-prefixed "
+            "content without the %s tag, where TPC holds a differing value that "
+            "was NOT applied. Inspect and resolve manually:",
+            len(needs_review_records),
+            PROCESSED_TAG,
+        )
+        for uuid, external_id, fields in needs_review_records:
+            log.warning(
+                "  - uuid=%s external_id=%s fields=%s",
+                uuid,
+                external_id,
+                ", ".join(fields),
+            )
+
+    # Unresolved prefixed values and records needing manual review require
+    # operator attention just like errors.
+    if errors > 0 or unresolved > 0 or needs_review > 0 or conflicts > 0:
         sys.exit(1)
 
 
