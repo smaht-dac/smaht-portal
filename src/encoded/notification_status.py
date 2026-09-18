@@ -242,10 +242,12 @@ def collect_release_counts(
     return totals
 
 
-def format_release_summary(totals: Dict[Tuple[str, str], int], date_from: str) -> str:
+def format_release_summary(
+    totals: Dict[Tuple[str, str], int], date_from: str, date_to: str
+) -> str:
     """Render the grouped counts as the plain text the composer inserts."""
     if not totals:
-        return f"No files were released since {date_from}."
+        return f"No files were released between {date_from} and {date_to}."
 
     by_title: Dict[str, Dict[str, int]] = {}
     for (title, description), count in totals.items():
@@ -254,7 +256,7 @@ def format_release_summary(totals: Dict[Tuple[str, str], int], date_from: str) -
     # The headline is the sum of what is printed below it, so the two can never
     # disagree -- the tree's own top-level count is a separate figure.
     total = sum(totals.values())
-    heading = f"Files Released Since {date_from}"
+    heading = f"Files Released Between {date_from} and {date_to}"
     lines = [heading, "-" * len(heading), "", f"{total} files released.", ""]
 
     # Count descending, then name, so the text is stable enough to assert on.
@@ -287,13 +289,18 @@ def get_released_files_summary(context, request):
         date_from = request.json_body.get("date_from")
         if not date_from:
             return {"error": "date_from is required"}
+        # Older clients send only date_from and mean "through today".
+        date_to = (
+            request.json_body.get("date_to")
+            or datetime.now(timezone.utc).date().isoformat()
+        )
 
         # Both dates, always: `recent_files_summary` defaults `nmonths` to 3 and
         # would otherwise cap the window at date_from + 3 months, silently
         # dropping everything released after that.
         query = create_query_string({
             "from_date": date_from,
-            "thru_date": datetime.now(timezone.utc).date().isoformat(),
+            "thru_date": date_to,
             "exclude_tissue_info": "true",
         })
         # A subrequest, never `request` itself: recent_files_summary sets
@@ -303,7 +310,7 @@ def get_released_files_summary(context, request):
         )
         results = recent_files_summary(subreq)
         totals = collect_release_counts(results or {})
-        return {"text": format_release_summary(totals, date_from)}
+        return {"text": format_release_summary(totals, date_from, date_to)}
     except Exception:
         log.exception("get_released_files_summary failed")
         return {"error": RELEASE_SUMMARY_ERROR}

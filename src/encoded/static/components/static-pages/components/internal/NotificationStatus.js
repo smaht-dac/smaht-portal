@@ -115,17 +115,27 @@ function EmailPreviewModal({ notification, onClose }) {
     );
 }
 
+// The first of the month `monthOffset` months from now, as YYYY-MM-DD. Built
+// from the local calendar components rather than by mutating a Date: `setMonth`
+// clamps badly on month ends (Mar 31 minus a month is Mar 3), and toISOString()
+// would shift the day across the UTC boundary for anyone west of Greenwich.
+function monthStart(monthOffset) {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
 function ReleasedFilesModal({ onClose, onLoad }) {
-    const [date, setDate] = React.useState(() => {
-        const d = new Date();
-        d.setMonth(d.getMonth() - 1);
-        return d.toISOString().slice(0, 10);
-    });
+    // Defaults to the whole of the previous calendar month.
+    const [dateFrom, setDateFrom] = React.useState(() => monthStart(-1));
+    const [dateTo, setDateTo] = React.useState(() => monthStart(0));
     const [loading, setLoading] = React.useState(false);
     const [result, setResult] = React.useState(null);
     const [error, setError] = React.useState(null);
+    // Plain string compare: YYYY-MM-DD is fixed-width and sorts lexically.
+    const invalidRange = !!dateFrom && !!dateTo && dateFrom > dateTo;
     const handleLoad = () => {
-        if (!date) return;
+        if (!dateFrom || !dateTo || invalidRange) return;
         setLoading(true);
         setResult(null);
         setError(null);
@@ -148,7 +158,7 @@ function ReleasedFilesModal({ onClose, onLoad }) {
                 );
                 fallbackCallback(errResp, xhr);
             },
-            JSON.stringify({ date_from: date })
+            JSON.stringify({ date_from: dateFrom, date_to: dateTo })
         );
     };
 
@@ -163,34 +173,64 @@ function ReleasedFilesModal({ onClose, onLoad }) {
                 <Modal.Title as="h5">Load Release Summary</Modal.Title>
             </Modal.Header>
             <Modal.Body className="d-flex flex-column gap-3">
-                <div className="d-flex align-items-center gap-2">
-                    <label
-                        className="form-label mb-0 text-nowrap"
-                        htmlFor="rf-date-from">
-                        Summarize files released since
-                    </label>
-                    <input
-                        id="rf-date-from"
-                        type="date"
-                        className="form-control form-control-sm"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        required
-                    />
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-primary text-nowrap"
-                        onClick={handleLoad}
-                        disabled={!date || loading}>
-                        {loading ? (
-                            <>
-                                <i className="icon icon-fw fas icon-spinner icon-spin me-1" />
-                                Loading…
-                            </>
-                        ) : (
-                            'Load'
-                        )}
-                    </button>
+                <div>
+                    <div className="d-flex flex-wrap align-items-center gap-2">
+                        <span className="text-nowrap">
+                            Summarize files released
+                        </span>
+                        <label
+                            className="form-label mb-0 text-nowrap"
+                            htmlFor="rf-date-from">
+                            from
+                        </label>
+                        <input
+                            id="rf-date-from"
+                            type="date"
+                            className="form-control form-control-sm w-auto"
+                            value={dateFrom}
+                            onChange={(e) => setDateFrom(e.target.value)}
+                            required
+                        />
+                        <label
+                            className="form-label mb-0 text-nowrap"
+                            htmlFor="rf-date-to">
+                            to
+                        </label>
+                        <input
+                            id="rf-date-to"
+                            type="date"
+                            className="form-control form-control-sm w-auto"
+                            value={dateTo}
+                            onChange={(e) => setDateTo(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-primary text-nowrap"
+                            onClick={handleLoad}
+                            disabled={
+                                !dateFrom || !dateTo || invalidRange || loading
+                            }>
+                            {loading ? (
+                                <>
+                                    <i className="icon icon-fw fas icon-spinner icon-spin me-1" />
+                                    Loading…
+                                </>
+                            ) : (
+                                'Load'
+                            )}
+                        </button>
+                    </div>
+                    <small className="text-secondary d-block mt-1">
+                        Both ends are inclusive and in UTC: files released from
+                        00:00 on the “from” date through 23:59 on the “to”
+                        date.
+                    </small>
+                    {invalidRange ? (
+                        <small className="text-danger d-block mt-1">
+                            The “from” date must not be after the “to” date.
+                        </small>
+                    ) : null}
                 </div>
 
                 {error ? (
@@ -527,7 +567,7 @@ class NotificationStatusComponent extends React.PureComponent {
                 // never records, and partial failure for 'all', which should.
                 if (target !== 'all') {
                     // Keeps the draft: a test send exists to be read,
-                    // corrected and sent again. 
+                    // corrected and sent again.
                     this.setState({
                         sendingMode: null,
                         sendResult: {

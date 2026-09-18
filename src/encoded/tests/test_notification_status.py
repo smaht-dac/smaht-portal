@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import Mock, call
 
@@ -1005,9 +1006,10 @@ def test_format_release_summary_orders_by_count():
         ("COLO829T", "RNA-seq Illumina NovaSeq X bam"): 3,
     }
 
-    text = notification_status.format_release_summary(totals, "2026-08-01")
+    text = notification_status.format_release_summary(
+        totals, "2026-08-01", "2026-09-01")
 
-    heading = "Files Released Since 2026-08-01"
+    heading = "Files Released Between 2026-08-01 and 2026-09-01"
     assert text == (
         f"{heading}\n{'-' * len(heading)}\n"
         "\n"
@@ -1029,7 +1031,8 @@ def test_format_release_summary_headline_matches_the_breakdown():
     # the total is the sum of what is printed, never a separately sourced count.
     totals = {("ST001", "a bam"): 4, ("ST002", "b bam"): 7}
 
-    text = notification_status.format_release_summary(totals, "2026-08-01")
+    text = notification_status.format_release_summary(
+        totals, "2026-08-01", "2026-09-01")
 
     assert "11 files released." in text
     assert sum(int(line.split()[1]) for line in text.splitlines()
@@ -1050,10 +1053,12 @@ def test_get_released_files_summary_builds_text(monkeypatch):
     mock_release_summary(monkeypatch, {"items": [month_bucket(
         "2026-09", title_bucket("ST001", ("WGS Illumina NovaSeq X bam", 3)),
         day="2026-09-02")]})
-    request = fake_request(json_body={"date_from": "2026-08-01"})
+    request = fake_request(
+        json_body={"date_from": "2026-08-01", "date_to": "2026-10-01"})
 
     response = notification_status.get_released_files_summary(None, request)
 
+    assert "Files Released Between 2026-08-01 and 2026-10-01" in response["text"]
     assert "3 files released." in response["text"]
     assert "  - 3 WGS Illumina NovaSeq X bam" in response["text"]
 
@@ -1064,23 +1069,40 @@ def test_get_released_files_summary_queries_a_bounded_window(monkeypatch):
     # silently drops every file released after that.
     mock_release_summary(monkeypatch, {})
     make_search_subreq = notification_status.make_search_subreq
-    request = fake_request(json_body={"date_from": "2020-01-01"})
+    request = fake_request(
+        json_body={"date_from": "2020-01-01", "date_to": "2020-02-01"})
 
     notification_status.get_released_files_summary(None, request)
 
     path = make_search_subreq.call_args.args[1]
     assert "from_date=2020-01-01" in path
-    assert "thru_date=" in path
+    # The caller's end date, not "today": the whole point of the second picker
+    # is being able to summarize a month that has already ended.
+    assert "thru_date=2020-02-01" in path
+
+
+def test_get_released_files_summary_without_date_to_runs_through_today(
+        monkeypatch):
+    # Back-compat for a client that still sends only date_from.
+    mock_release_summary(monkeypatch, {})
+    make_search_subreq = notification_status.make_search_subreq
+    request = fake_request(json_body={"date_from": "2020-01-01"})
+
+    notification_status.get_released_files_summary(None, request)
+
+    today = datetime.now(timezone.utc).date().isoformat()
+    assert f"thru_date={today}" in make_search_subreq.call_args.args[1]
 
 
 def test_get_released_files_summary_handles_empty_result(monkeypatch):
     mock_release_summary(monkeypatch, {})
-    request = fake_request(json_body={"date_from": "2026-08-01"})
+    request = fake_request(
+        json_body={"date_from": "2026-08-01", "date_to": "2026-09-01"})
 
     response = notification_status.get_released_files_summary(None, request)
 
     assert response == {
-        "text": "No files were released since 2026-08-01."
+        "text": "No files were released between 2026-08-01 and 2026-09-01."
     }
 
 
