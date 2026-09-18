@@ -33,13 +33,18 @@ Rules:
     happens immediately before each write and is compared against those same
     original values, so a concurrent change is detected and the stale patch
     is not applied (counted as a conflict; nonzero exit)
+  - TPC samples are fetched in batches filtered by the non-TPC candidates'
+    external_ids (see EXTERNAL_ID_BATCH_SIZE), rather than loading every TPC
+    sample, since only TPC samples that can match a candidate are ever used
 """
 
 import argparse
 import logging
 import re
 import sys
-from typing import Optional
+import time
+from typing import Iterator, Optional
+from urllib.parse import quote
 
 from dcicutils import ff_utils
 from tqdm import tqdm
@@ -49,6 +54,17 @@ from encoded.commands.utils import get_auth_key
 
 NDRI_TPC_DISPLAY_TITLE = "NDRI TPC"
 PROCESSED_TAG = "tpc_metadata_synced"
+# Snovault collapses repeated same-field query params (e.g. many
+# `external_id=` terms) into a single OpenSearch `terms` filter
+# (dcicsnovault's lucene_builder.py), not one boolean clause per value, so
+# ES's clause-count limit isn't the binding constraint. The practical limit
+# is request-line size: production nginx caps it via
+# `large_client_header_buffers 4 32k` (deploy/docker/production/nginx.conf).
+# 50 external_ids per batch keeps every request's query string far under
+# that 32KB ceiling — half of the 100-per-chunk precedent already used for
+# batched accession lookups in create_qc_overview_json.py — while still
+# cutting round trips by ~50-100x relative to fetching every TPC sample.
+EXTERNAL_ID_BATCH_SIZE = 50
 # Every one of these is a plain scalar/array property on TissueSample (none is
 # a linkTo), so the default search's embedded frame and the per-identifier
 # fetch both already return the true stored value for each. That is what lets
@@ -110,38 +126,64 @@ def get_non_tpc_tissue_samples(auth_key: dict, ignore_tag: bool = False) -> list
     return ff_utils.search_metadata(query, key=auth_key, page_limit=50)
 
 
-def get_all_tpc_samples(auth_key: dict) -> dict[str, dict]:
-    """Fetch all TPC tissue samples and return a dict keyed by external_id.
-    
+def _batch(items: list, batch_size: int) -> Iterator[list]:
+    """Yield successive batches of at most batch_size items from a list."""
+    for start in range(0, len(items), batch_size):
+        yield items[start : start + batch_size]
+
+
+def get_tpc_samples_by_external_ids(
+    auth_key: dict,
+    external_ids: list[str],
+    batch_size: int = EXTERNAL_ID_BATCH_SIZE,
+) -> dict[str, dict]:
+    """Fetch TPC tissue samples matching the given external_ids, in batches,
+    and return a dict keyed by external_id.
+
+    Only TPC samples whose external_id appears in ``external_ids`` are
+    fetched, rather than every TPC sample, since only those can ever match a
+    non-TPC candidate. Duplicate detection runs across all batches together,
+    exactly as it did over the single unfiltered result set.
+
     Raises SystemExit if duplicate external_ids are found in TPC samples.
     """
-    query = (
-        "/search/?type=TissueSample"
-        f"&submission_centers.display_title={NDRI_TPC_DISPLAY_TITLE.replace(' ', '+')}"
-        "&status!=deleted"
-    )
-    results = ff_utils.search_metadata(query, key=auth_key, page_limit=50)
-    
     tpc_by_external_id = {}
     duplicates = set()
-    
-    for sample in results:
-        external_id = sample.get("external_id")
-        if not external_id:
-            log.warning("TPC sample %s has no external_id — skipping", sample.get("uuid"))
-            continue
-        
-        if external_id in tpc_by_external_id:
-            duplicates.add(external_id)
-            log.error(
-                "Duplicate TPC external_id found: %s (UUIDs: %s, %s)",
-                external_id,
-                tpc_by_external_id[external_id].get("uuid"),
-                sample.get("uuid"),
-            )
-        else:
-            tpc_by_external_id[external_id] = sample
-    
+
+    if not external_ids:
+        return tpc_by_external_id
+
+    # Query order doesn't matter and de-duplicating shrinks the batch count
+    # when the same external_id appears on multiple non-TPC candidates.
+    unique_external_ids = sorted(set(external_ids))
+
+    for batch in _batch(unique_external_ids, batch_size):
+        query_parts = [
+            "/search/?type=TissueSample",
+            f"submission_centers.display_title={NDRI_TPC_DISPLAY_TITLE.replace(' ', '+')}",
+            "status!=deleted",
+        ]
+        query_parts.extend(f"external_id={quote(eid, safe='')}" for eid in batch)
+        query = "&".join(query_parts)
+        results = ff_utils.search_metadata(query, key=auth_key, page_limit=batch_size)
+
+        for sample in results:
+            external_id = sample.get("external_id")
+            if not external_id:
+                log.warning("TPC sample %s has no external_id — skipping", sample.get("uuid"))
+                continue
+
+            if external_id in tpc_by_external_id:
+                duplicates.add(external_id)
+                log.error(
+                    "Duplicate TPC external_id found: %s (UUIDs: %s, %s)",
+                    external_id,
+                    tpc_by_external_id[external_id].get("uuid"),
+                    sample.get("uuid"),
+                )
+            else:
+                tpc_by_external_id[external_id] = sample
+
     if duplicates:
         log.error(
             "Found %d duplicate TPC external_id(s): %s. Cannot proceed safely.",
@@ -149,7 +191,7 @@ def get_all_tpc_samples(auth_key: dict) -> dict[str, dict]:
             ", ".join(sorted(duplicates)),
         )
         sys.exit(1)
-    
+
     return tpc_by_external_id
 
 
@@ -430,11 +472,38 @@ def main() -> None:
             non_tpc_samples = non_tpc_samples[:args.limit]
             log.info("Limited to first %d samples", len(non_tpc_samples))
     
-    # Bulk-load all TPC samples to avoid N+1 queries and detect duplicates
-    log.info("Loading all TPC tissue samples...")
+    # Collect the GCC-side external_ids first, then fetch only the matching
+    # TPC samples in batches, instead of loading every TPC sample (which was
+    # slow: previously the smallest possible query was "fetch ALL TPC
+    # samples" regardless of how many non-TPC candidates needed matching).
+    gcc_external_ids = [
+        sample["external_id"] for sample in non_tpc_samples if sample.get("external_id")
+    ]
+    num_batches = (
+        (len(set(gcc_external_ids)) + EXTERNAL_ID_BATCH_SIZE - 1) // EXTERNAL_ID_BATCH_SIZE
+        if gcc_external_ids
+        else 0
+    )
+    log.info(
+        "Loading TPC tissue samples matching %d external_id(s) in %d batch(es) of up to %d...",
+        len(set(gcc_external_ids)),
+        num_batches,
+        EXTERNAL_ID_BATCH_SIZE,
+    )
+    start_time = time.monotonic()
     try:
-        tpc_samples_by_external_id = get_all_tpc_samples(auth_key)
-        log.info("Loaded %d TPC tissue samples", len(tpc_samples_by_external_id))
+        tpc_samples_by_external_id = get_tpc_samples_by_external_ids(
+            auth_key, gcc_external_ids
+        )
+        elapsed = time.monotonic() - start_time
+        log.info(
+            "Loaded %d TPC tissue samples in %d batched quer%s (%.2fs) — "
+            "batching by external_id avoids fetching the full TPC dataset",
+            len(tpc_samples_by_external_id),
+            num_batches,
+            "y" if num_batches == 1 else "ies",
+            elapsed,
+        )
     except SystemExit:
         raise  # Re-raise to preserve exit code
     except Exception as exc:
