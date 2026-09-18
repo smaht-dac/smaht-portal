@@ -7,7 +7,7 @@ from encoded.commands.transfer_tpc_tissue_sample_metadata import (
     build_patch,
     changed_relevant_fields,
     format_prefixed_value,
-    get_all_tpc_samples,
+    get_tpc_samples_by_external_ids,
     get_non_tpc_tissue_samples,
     has_metadata_changes,
     main,
@@ -439,29 +439,34 @@ def test_get_non_tpc_tissue_samples_ignore_tag(mock_search):
 
 
 # =============================================================================
-# get_all_tpc_samples tests (Fix #8: bulk loading)
+# get_tpc_samples_by_external_ids tests (batched external_id queries)
 # =============================================================================
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-def test_get_all_tpc_samples_success(mock_search):
-    """Successfully loads all TPC samples into a dict."""
+def test_get_tpc_samples_by_external_ids_success(mock_search):
+    """Successfully loads matching TPC samples into a dict, in a single batch."""
     mock_search.return_value = [
         {"uuid": "tpc1", "external_id": "EXT1"},
         {"uuid": "tpc2", "external_id": "EXT2"},
     ]
     auth_key = {"server": "test"}
 
-    result = get_all_tpc_samples(auth_key)
+    result = get_tpc_samples_by_external_ids(auth_key, ["EXT1", "EXT2"])
 
     assert len(result) == 2
     assert result["EXT1"] == {"uuid": "tpc1", "external_id": "EXT1"}
     assert result["EXT2"] == {"uuid": "tpc2", "external_id": "EXT2"}
+    assert mock_search.call_count == 1
+    query = mock_search.call_args[0][0]
+    assert "type=TissueSample" in query
+    assert "external_id=EXT1" in query
+    assert "external_id=EXT2" in query
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-def test_get_all_tpc_samples_duplicate_external_id(mock_search):
-    """Duplicate external_ids in TPC samples cause exit(1) (Fix #8)."""
+def test_get_tpc_samples_by_external_ids_duplicate_external_id(mock_search):
+    """Duplicate external_ids in TPC samples cause exit(1)."""
     mock_search.return_value = [
         {"uuid": "tpc1", "external_id": "EXT1"},
         {"uuid": "tpc2", "external_id": "EXT1"},  # Duplicate!
@@ -469,14 +474,14 @@ def test_get_all_tpc_samples_duplicate_external_id(mock_search):
     auth_key = {"server": "test"}
 
     try:
-        get_all_tpc_samples(auth_key)
+        get_tpc_samples_by_external_ids(auth_key, ["EXT1"])
         assert False, "Should have raised SystemExit"
     except SystemExit as e:
         assert e.code == 1
 
 
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
-def test_get_all_tpc_samples_no_external_id(mock_search):
+def test_get_tpc_samples_by_external_ids_no_external_id(mock_search):
     """TPC samples without external_id are skipped with warning."""
     mock_search.return_value = [
         {"uuid": "tpc1", "external_id": "EXT1"},
@@ -484,10 +489,89 @@ def test_get_all_tpc_samples_no_external_id(mock_search):
     ]
     auth_key = {"server": "test"}
 
-    result = get_all_tpc_samples(auth_key)
+    result = get_tpc_samples_by_external_ids(auth_key, ["EXT1"])
 
     assert len(result) == 1
     assert "EXT1" in result
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+def test_get_tpc_samples_by_external_ids_empty_input(mock_search):
+    """An empty external_ids list returns an empty dict without querying."""
+    auth_key = {"server": "test"}
+
+    result = get_tpc_samples_by_external_ids(auth_key, [])
+
+    assert result == {}
+    mock_search.assert_not_called()
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+def test_get_tpc_samples_by_external_ids_multi_batch(mock_search):
+    """More external_ids than the batch size are split across multiple queries."""
+    # 3 unique external_ids with a batch size of 2 -> two batches.
+    mock_search.side_effect = [
+        [
+            {"uuid": "tpc1", "external_id": "EXT1"},
+            {"uuid": "tpc2", "external_id": "EXT2"},
+        ],
+        [
+            {"uuid": "tpc3", "external_id": "EXT3"},
+        ],
+    ]
+    auth_key = {"server": "test"}
+
+    result = get_tpc_samples_by_external_ids(
+        auth_key, ["EXT1", "EXT2", "EXT3"], batch_size=2
+    )
+
+    assert mock_search.call_count == 2
+    assert len(result) == 3
+    assert set(result) == {"EXT1", "EXT2", "EXT3"}
+    first_query = mock_search.call_args_list[0][0][0]
+    second_query = mock_search.call_args_list[1][0][0]
+    assert first_query.count("external_id=") == 2
+    assert second_query.count("external_id=") == 1
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+def test_get_tpc_samples_by_external_ids_duplicate_external_id_across_batches(mock_search):
+    """Duplicate external_ids found in different batches are still detected."""
+    mock_search.side_effect = [
+        [{"uuid": "tpc1", "external_id": "EXT1"}],
+        [{"uuid": "tpc2", "external_id": "EXT1"}],  # Duplicate found in a later batch
+    ]
+    auth_key = {"server": "test"}
+
+    try:
+        get_tpc_samples_by_external_ids(auth_key, ["EXT1", "EXT2"], batch_size=1)
+        assert False, "Should have raised SystemExit"
+    except SystemExit as e:
+        assert e.code == 1
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+def test_get_tpc_samples_by_external_ids_deduplicates_input(mock_search):
+    """Repeated external_ids in the input are only queried once."""
+    mock_search.return_value = [{"uuid": "tpc1", "external_id": "EXT1"}]
+    auth_key = {"server": "test"}
+
+    result = get_tpc_samples_by_external_ids(auth_key, ["EXT1", "EXT1", "EXT1"])
+
+    assert mock_search.call_count == 1
+    assert mock_search.call_args[0][0].count("external_id=") == 1
+    assert len(result) == 1
+
+
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
+def test_get_tpc_samples_by_external_ids_no_results_for_batch(mock_search):
+    """A batch that matches no TPC samples contributes nothing (empty results)."""
+    mock_search.return_value = []
+    auth_key = {"server": "test"}
+
+    result = get_tpc_samples_by_external_ids(auth_key, ["EXT1", "EXT2"])
+
+    assert result == {}
 
 
 # =============================================================================
@@ -498,7 +582,7 @@ def test_get_all_tpc_samples_no_external_id(mock_search):
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -526,7 +610,7 @@ def test_main_dry_run_default(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -573,7 +657,7 @@ def test_main_execute_patches(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -603,7 +687,7 @@ def test_main_skip_tagging(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 def test_main_ignore_tag(mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_get_auth):
     """With --ignore-tag, tagged samples are included."""
     mock_get_auth.return_value = {"server": "test"}
@@ -621,7 +705,7 @@ def test_main_ignore_tag(mock_get_all_tpc, mock_get_non_tpc, mock_search, mock_g
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -664,7 +748,7 @@ def test_main_connection_failure_exits_nonzero(mock_search, mock_get_auth):
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -693,7 +777,7 @@ def test_main_validation_failure_exits_nonzero(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 def test_main_limit_flag(
     mock_get_metadata,
@@ -726,7 +810,7 @@ def test_main_limit_flag(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 def test_main_identifiers_flag(mock_get_all_tpc, mock_get_metadata, mock_search, mock_get_auth):
     """--identifiers flag processes only specified samples (Fix #10). Each
     identifier is resolved once; that resolved record already carries every
@@ -750,7 +834,7 @@ def test_main_identifiers_flag(mock_get_all_tpc, mock_get_metadata, mock_search,
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 def test_main_identifiers_fetch_failure_exits_nonzero(
     mock_get_all_tpc, mock_get_metadata, mock_search, mock_get_auth
 ):
@@ -771,7 +855,7 @@ def test_main_identifiers_fetch_failure_exits_nonzero(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -1084,7 +1168,7 @@ def test_build_patch_preservation_type_not_cleared_when_target_empty():
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -1142,7 +1226,7 @@ def test_main_tag_only_updates_counted_separately(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -1196,7 +1280,7 @@ def test_main_tag_only_updates_sent_to_server(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -1252,7 +1336,7 @@ def test_main_clears_scalar_fields_with_delete_fields(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 def test_main_reports_malformed_values_as_unresolved(
     mock_get_metadata,
@@ -1326,7 +1410,7 @@ def test_changed_relevant_fields_ignores_unrelated_changes():
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -1397,7 +1481,7 @@ def test_main_detects_conflict_and_prevents_stale_write(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
@@ -1449,7 +1533,7 @@ def test_main_default_search_result_has_every_field_build_patch_needs(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch(
     "encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.patch_metadata",
     autospec=True,
