@@ -7,6 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+2.13.5
+======
+
+`PR 764: Publication schema updates <https://github.com/smaht-dac/smaht-portal/pull/764>`_
+
+* Properties
+  - publication_categories - an array of categories with a suggested enum of 5 values
+  - citation_addon - a string for text that can be added to end of citation in overview page - eg. accepted in Cell
+* Adjusted facets - added categories and scope
+* Adjusted columns - added categories as hidden. 
+
+
 2.13.4
 ======
 
