@@ -4,6 +4,9 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
+import { AliquotInfoCard } from './helpers';
+import AliquotCoreTable, { formatCenterName } from './AliquotCoreTable';
+import { CORE_DOT_DEFAULT_COLOR } from './FrozenAliquotPopoverBody';
 
 // liquidColor renders as an actual filled tube -- unlike the categorical
 // colors used for icons/bubbles elsewhere (chosen only to be mutually
@@ -44,15 +47,17 @@ const SPECIMEN_TYPE_STYLES = {
     },
 };
 
-const MAIN_TUBE = { width: 32, bodyHeight: 78, capHeight: 11, capOverhang: 5 };
-const SUB_TUBE = { width: 20, bodyHeight: 46, capHeight: 8, capOverhang: 4 };
+// One tube per aliquot: a non-solid specimen (blood, buccal swab,
+// fibroblasts) isn't sliced -- the material in that single tube is divided up
+// and sent to different GCCs, so what used to be drawn as separate "sub-tubes"
+// are really samples of it, listed in the popover instead (see the table
+// below), not drawn as tubes of their own. Not called "cores" in the UI: a
+// core is a physical piece of solid tissue at a plate position.
+const MAIN_TUBE = { width: 44, bodyHeight: 108, capHeight: 15, capOverhang: 7 };
 const POPOVER_TUBE = { width: 26, bodyHeight: 58, capHeight: 9, capOverhang: 4 };
-
-const COLUMN_GAP = 58;
-const BRANCH_HEIGHT = 36;
-const SEQUENCE_LABEL_GAP = 20;
-const GCC_BRANCH_HEIGHT = 26;
-const GCC_LABEL_GAP = 16;
+const CANVAS_WIDTH = 200;
+const LABEL_GAP = 22;
+const SUBLABEL_GAP = 18;
 
 // Flat top, rounded bottom corners -- an actual test-tube silhouette
 // rather than a pill (uniform border-radius would round the top too).
@@ -154,23 +159,24 @@ export default function NonSolidAliquotVisualization({
     // combos its own indexed Files carry -- same map (and the same
     // AliquotVisualization.js-derived convention) the solid popover already
     // reads, just keyed here off `aliquot.description` (this component's own
-    // real external_id field, see selectedFullAliquotId below) instead of a
-    // core position's own id.
+    // real external_id field) instead of a core position's own id.
     assayPlatformsBySampleName = {},
+    // Shown in the popover's info card -- this component itself only knows
+    // its own aliquots, not which donor/tissue they belong to.
+    donorLabel = null,
+    tissueLabel = null,
 }) {
-    const [selectedAliquotIndex, setSelectedAliquotIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
     const popoverId = useId();
     function handleHidePopover() {
-        setSelectedAliquotIndex(null);
         setSelectedTarget(null);
     }
 
     // See AliquotVisualization.js's equivalent effect: `aliquots` can swap
-    // from the illustrative fallback to real data mid-session, and a held
-    // index would then point at an unrelated entry in the new array. Skips
-    // the initial mount firing so a fast first click isn't clobbered by this
-    // effect running (deferred, after commit) right afterward.
+    // from the illustrative fallback to real data mid-session, and a popover
+    // left open would then show a table for data that's no longer on screen.
+    // Skips the initial mount firing so a fast first click isn't clobbered by
+    // this effect running (deferred, after commit) right afterward.
     const isFirstAliquotsRender = useRef(true);
     useEffect(() => {
         if (isFirstAliquotsRender.current) {
@@ -182,87 +188,64 @@ export default function NonSolidAliquotVisualization({
 
     const styles = SPECIMEN_TYPE_STYLES[specimenType] || SPECIMEN_TYPE_STYLES.blood;
     const resolvedIdPrefix = idPrefix || styles.idPrefix;
+    const tissueName = tissueLabel && tissueLabel !== '-' ? tissueLabel : styles.label;
 
-    const normalizedAliquots = aliquots.map((aliquot, index) => {
-        // `hasFiles` (see TissueView.js's nonSolidAliquots) is ground truth
-        // from this donor+tissue's actual indexed Files, not just an
-        // inference from having a real (non-TPC) submission_centers value
-        // -- a sample can be submitted to a real GCC well before that GCC's
-        // files for it actually exist, so showing the GCC name there would
-        // read as a working link that resolves to 0 results. Only real
-        // aliquots carry `hasFiles` at all (`undefined` on the
-        // illustrative demo fallback, which has neither field set), so
-        // that's what distinguishes "no files yet" from the demo-only
-        // "GCCN" placeholder below.
-        const displayCenterLabel =
-            aliquot.hasFiles === undefined
-                ? `GCC${index + 1}`
-                : aliquot.hasFiles
-                    ? aliquot.submissionCenter
-                    : 'No files yet';
-        return {
-            ...aliquot,
-            index,
-            sequenceLabel: String(index + 1).padStart(3, '0'),
-            displayCenterLabel,
-        };
-    });
+    // One row per real sample -- each one a share of this tube's material sent
+    // to one GCC, named by its own id: the part of the real external_id after
+    // the donor/tissue kit ("SMHT005-3A-001X" -> "001X"), falling back to its
+    // position in the list for the illustrative demo set.
+    const sampleRows = aliquots
+        .map((aliquot, index) => {
+            // `hasFiles` (see TissueView.js's nonSolidAliquots) is ground
+            // truth from this donor+tissue's actual indexed Files, not just
+            // an inference from having a real (non-TPC) submission_centers
+            // value -- a sample can be submitted to a real GCC well before
+            // that GCC's files for it actually exist, so showing the GCC
+            // name there would read as a working link that resolves to 0
+            // results. Only real aliquots carry `hasFiles` at all
+            // (`undefined` on the illustrative demo fallback), which is what
+            // distinguishes "no files yet" from the demo-only "GCCN"
+            // placeholder.
+            const { hasFiles } = aliquot;
+            const sampleLabel =
+                aliquot.description?.split('-').slice(2).join('-') ||
+                String(index + 1).padStart(3, '0');
+            const centerLabel =
+                hasFiles === undefined
+                    ? `GCC${index + 1}`
+                    : hasFiles && aliquot.submissionCenter
+                        ? formatCenterName(aliquot.submissionCenter)
+                        : 'No files yet';
+            return {
+                key: aliquot.id || index,
+                coreLabel: sampleLabel,
+                coreColor: CORE_DOT_DEFAULT_COLOR,
+                coreHref: aliquot.filesHref,
+                coreTitle: aliquot.filesHref
+                    ? `View ${aliquot.description}'s own files`
+                    : 'No files yet for this sample',
+                // Only looked up off the real external_id (`description`),
+                // never a synthetic fallback -- a demo aliquot has no real
+                // sample behind it and no matching Files either, so it
+                // should read as "no data", not coincidentally match some
+                // other sample's assay/platform combo.
+                dataLabels: aliquot.description
+                    ? assayPlatformsBySampleName[aliquot.description] || []
+                    : [],
+                centerLabel,
+                centerHref: aliquot.gccFilesHref,
+                centerTitle: "View this GCC's files for this donor & tissue",
+                centerIsEmpty: hasFiles === false,
+            };
+        })
+        .sort((a, b) => a.coreLabel.localeCompare(b.coreLabel, undefined, { numeric: true }));
+    const sampleCount = sampleRows.length;
 
-    const columnWidth = SUB_TUBE.width + COLUMN_GAP;
-    // viewBox height is fixed regardless of aliquot count (tube/branch/label
-    // heights don't vary), so a real tissue with just 1-2 samples -- the
-    // common case for blood/buccal -- would otherwise get a much narrower
-    // canvas than the demo data while keeping the same height, distorting
-    // the aspect ratio and making the tube look oversized. Flooring at 2
-    // columns keeps proportions stable regardless of real aliquot count.
-    const totalWidth = Math.max(normalizedAliquots.length * columnWidth, 2 * columnWidth);
-    // Centers the actual column group when it's narrower than the width
-    // floor above (e.g. a single real aliquot in a 2-column-wide frame) --
-    // otherwise the lone tube would sit at the first column's slot instead
-    // of the canvas center.
-    const columnsGroupOffsetX =
-        (totalWidth - normalizedAliquots.length * columnWidth) / 2;
-    const mainTubeX = totalWidth / 2 - MAIN_TUBE.width / 2;
-    const mainTubeY = 0;
-    const mainTubeBottomY = mainTubeY + MAIN_TUBE.capHeight + MAIN_TUBE.bodyHeight;
-
-    const subTubeY = mainTubeBottomY + BRANCH_HEIGHT;
-    const subTubeBottomY = subTubeY + SUB_TUBE.capHeight + SUB_TUBE.bodyHeight;
-    const sequenceLabelY = subTubeBottomY + SEQUENCE_LABEL_GAP;
-    const gccLabelY = sequenceLabelY + GCC_BRANCH_HEIGHT + GCC_LABEL_GAP;
-
-    const viewBoxHeight = gccLabelY + 12;
-
-    const selectedAliquot =
-        selectedAliquotIndex === null ? null : normalizedAliquots[selectedAliquotIndex];
-    // Synthetic idPrefix+sequenceLabel, same convention
-    // AliquotVisualization.js's own selectedAliquotId uses for the solid
-    // popover title -- kept synthetic here too (rather than the sample's
-    // real external_id) so the two popovers' header layout stays
-    // consistent; the real external_id (selectedAliquot.description) is
-    // shown instead where AliquotVisualization.js's row itself shows a
-    // fuller/more specific id than its own header (see the "own files" row
-    // below), which is also where it lines up with the file-link filter.
-    const selectedAliquotId = selectedAliquot
-        ? `${resolvedIdPrefix}-${selectedAliquot.sequenceLabel}`
-        : null;
-    // The sample's own real external_id (e.g. "SMHT005-3A-001X") -- shown
-    // for the "own files" row/link instead of the synthetic
-    // selectedAliquotId above, since that's what actually matches the
-    // file-link filter (sample_summary.sample_names). Demo/illustrative
-    // aliquots have no real sample behind them, so this falls back to the
-    // same synthetic id used for the header in that case.
-    const selectedFullAliquotId = selectedAliquot
-        ? selectedAliquot.description || selectedAliquotId
-        : null;
-    // Only looked up off the real external_id (selectedAliquot.description),
-    // never the synthetic selectedAliquotId fallback -- a demo/illustrative
-    // aliquot (no real sample behind it) has no real external_id and no
-    // matching Files either, so it should read as "no data", not
-    // coincidentally match some other sample's assay/platform combo.
-    const selectedAssayPlatforms = selectedAliquot?.description
-        ? assayPlatformsBySampleName[selectedAliquot.description] || []
-        : [];
+    const tubeX = CANVAS_WIDTH / 2 - MAIN_TUBE.width / 2;
+    const tubeBottomY = MAIN_TUBE.capHeight + MAIN_TUBE.bodyHeight;
+    const labelY = tubeBottomY + LABEL_GAP;
+    const sublabelY = labelY + SUBLABEL_GAP;
+    const viewBoxHeight = sublabelY + 8;
 
     return (
         <div
@@ -277,94 +260,43 @@ export default function NonSolidAliquotVisualization({
                     // Explicit width/height (1 viewBox unit = 1px), same
                     // convention AliquotVisualization.js's own <svg> uses --
                     // without these the browser has no intrinsic size to work
-                    // from and stretches the SVG to fill its container's
-                    // width regardless of totalWidth, rendering fewer tubes
-                    // visibly larger than more tubes. .aliquot-canvas's
-                    // `max-width:100%; height:auto` then only ever shrinks
-                    // this native size down when there isn't room, never
-                    // stretches it up.
-                    width={totalWidth}
+                    // from and stretches the SVG to fill its container.
+                    width={CANVAS_WIDTH}
                     height={viewBoxHeight}
-                    viewBox={`0 -6 ${totalWidth} ${viewBoxHeight}`}
+                    viewBox={`0 -6 ${CANVAS_WIDTH} ${viewBoxHeight}`}
                     role="img"
                     aria-label="Non-solid tissue aliquot visualization">
                     <TubeIcon
-                        x={mainTubeX}
-                        y={mainTubeY}
+                        x={tubeX}
+                        y={0}
                         {...MAIN_TUBE}
                         clipId={`${popoverId}-main-tube-clip`}
                         liquidColor={styles.liquidColor}
                         fillLevel={0.72}
                     />
-                    {normalizedAliquots.map((aliquot) => {
-                        const subTubeX =
-                            columnsGroupOffsetX +
-                            aliquot.index * columnWidth +
-                            columnWidth / 2 -
-                            SUB_TUBE.width / 2;
-                        const subTubeCenterX = subTubeX + SUB_TUBE.width / 2;
-                        return (
-                            <g className="nonsolid-branch-group" key={aliquot.id || aliquot.index}>
-                                <line
-                                    className="nonsolid-branch-line"
-                                    x1={mainTubeX + MAIN_TUBE.width / 2}
-                                    y1={mainTubeBottomY}
-                                    x2={subTubeCenterX}
-                                    y2={subTubeY}
-                                />
-                                <TubeIcon
-                                    x={subTubeX}
-                                    y={subTubeY}
-                                    {...SUB_TUBE}
-                                    clipId={`${popoverId}-tube-clip-${aliquot.index}`}
-                                    liquidColor={styles.liquidColor}
-                                />
-                                <foreignObject
-                                    x={subTubeX - 6}
-                                    y={subTubeY - 4}
-                                    width={SUB_TUBE.width + 12}
-                                    height={SUB_TUBE.capHeight + SUB_TUBE.bodyHeight + 8}>
-                                    <button
-                                        type="button"
-                                        className="nonsolid-aliquot-hitarea"
-                                        onClick={(event) => {
-                                            setSelectedAliquotIndex(aliquot.index);
-                                            setSelectedTarget(event.currentTarget);
-                                        }}
-                                        aria-label={`View details for ${styles.label} aliquot ${aliquot.sequenceLabel}`}>
-                                        <span className="visually-hidden">
-                                            {styles.label} aliquot {aliquot.sequenceLabel}
-                                        </span>
-                                    </button>
-                                </foreignObject>
-                                <text
-                                    className="nonsolid-sequence-label"
-                                    x={subTubeCenterX}
-                                    y={sequenceLabelY}>
-                                    {aliquot.sequenceLabel}
-                                </text>
-                                <line
-                                    className="nonsolid-branch-line"
-                                    x1={subTubeCenterX}
-                                    y1={sequenceLabelY + 4}
-                                    x2={subTubeCenterX}
-                                    y2={sequenceLabelY + 4 + GCC_BRANCH_HEIGHT}
-                                />
-                                <text
-                                    className={
-                                        'nonsolid-gcc-label' +
-                                        (aliquot.hasFiles === false ? ' is-empty' : '')
-                                    }
-                                    x={subTubeCenterX}
-                                    y={gccLabelY}>
-                                    {aliquot.displayCenterLabel}
-                                </text>
-                            </g>
-                        );
-                    })}
+                    <foreignObject
+                        x={tubeX - MAIN_TUBE.capOverhang - 4}
+                        y={-4}
+                        width={MAIN_TUBE.width + MAIN_TUBE.capOverhang * 2 + 8}
+                        height={tubeBottomY + 8}>
+                        <button
+                            type="button"
+                            className="nonsolid-aliquot-hitarea"
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onClick={(event) => setSelectedTarget(event.currentTarget)}
+                            aria-label={`View details for this ${styles.label} aliquot`}>
+                            <span className="visually-hidden">{styles.label} aliquot</span>
+                        </button>
+                    </foreignObject>
+                    <text className="nonsolid-sequence-label" x={CANVAS_WIDTH / 2} y={labelY}>
+                        {resolvedIdPrefix}
+                    </text>
+                    <text className="nonsolid-gcc-label" x={CANVAS_WIDTH / 2} y={sublabelY}>
+                        {sampleCount} {sampleCount === 1 ? 'sample' : 'samples'}
+                    </text>
                 </svg>
                 <Overlay
-                    show={!!selectedAliquot && !!selectedTarget}
+                    show={!!selectedTarget}
                     target={selectedTarget}
                     placement="right"
                     rootClose
@@ -377,77 +309,44 @@ export default function NonSolidAliquotVisualization({
                         <Popover
                             {...overlayProps}
                             id={`${popoverId}-aliquot-popover`}
-                            className="aliquot-popover">
+                            className="aliquot-popover aliquot-popover--wide">
                             <PopoverHeader as="h3">
-                                {selectedAliquotId} &middot; {styles.label} Aliquot
+                                {resolvedIdPrefix} - {tissueName}
                             </PopoverHeader>
                             <PopoverBody>
-                                <div className="aliquot-popover-visual">
-                                    <svg
-                                        className="nonsolid-popover-tube-canvas"
-                                        viewBox={`0 0 ${POPOVER_TUBE.width + 12} ${
-                                            POPOVER_TUBE.capHeight + POPOVER_TUBE.bodyHeight + 6
-                                        }`}>
-                                        <TubeIcon
-                                            x={6}
-                                            y={0}
-                                            {...POPOVER_TUBE}
-                                            clipId={`${popoverId}-detail-tube-clip`}
-                                            liquidColor={styles.liquidColor}
-                                            fillLevel={0.68}
+                                <div className="aliquot-detail-layout">
+                                    <div className="aliquot-detail-left">
+                                        <div className="aliquot-popover-visual">
+                                            <svg
+                                                className="nonsolid-popover-tube-canvas"
+                                                viewBox={`0 0 ${POPOVER_TUBE.width + 12} ${
+                                                    POPOVER_TUBE.capHeight + POPOVER_TUBE.bodyHeight + 6
+                                                }`}>
+                                                <TubeIcon
+                                                    x={6}
+                                                    y={0}
+                                                    {...POPOVER_TUBE}
+                                                    clipId={`${popoverId}-detail-tube-clip`}
+                                                    liquidColor={styles.liquidColor}
+                                                    fillLevel={0.68}
+                                                />
+                                            </svg>
+                                        </div>
+                                        <AliquotInfoCard
+                                            donorLabel={donorLabel}
+                                            tissueLabel={tissueName}
+                                            aliquotTitle="Samples"
+                                            aliquotLabel={sampleCount}
                                         />
-                                    </svg>
-                                </div>
-                                <p className="aliquot-popover-caption">{styles.caption}</p>
-                                <div className="aliquot-popover-cores">
-                                    <div className="aliquot-popover-row">
-                                        {selectedAliquot?.gccFilesHref ? (
-                                            <a
-                                                href={selectedAliquot.gccFilesHref}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                title="View this GCC's files for this donor & tissue">
-                                                {selectedAliquot.displayCenterLabel}
-                                            </a>
-                                        ) : (
-                                            <span
-                                                className={
-                                                    selectedAliquot?.hasFiles === false
-                                                        ? 'aliquot-popover-pathology-empty'
-                                                        : undefined
-                                                }>
-                                                {selectedAliquot?.displayCenterLabel}
-                                            </span>
-                                        )}
-                                        {selectedAliquot?.filesHref ? (
-                                            <a
-                                                href={selectedAliquot.filesHref}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                title={`View ${selectedFullAliquotId}'s own files`}>
-                                                <strong>{selectedFullAliquotId}</strong>
-                                            </a>
-                                        ) : (
-                                            <strong>{selectedFullAliquotId}</strong>
-                                        )}
                                     </div>
-                                    {selectedAssayPlatforms.length > 0 ? (
-                                        <div className="aliquot-popover-assay-platforms">
-                                            {selectedAssayPlatforms.join(', ')}
-                                        </div>
-                                    ) : selectedAliquot?.filesHref ? (
-                                        // Has its own files (linked above), just none of
-                                        // them carry assay/sequencer metadata yet -- same
-                                        // distinction AliquotVisualization.js's own core
-                                        // rows make.
-                                        <div className="aliquot-popover-assay-platforms is-empty">
-                                            No sequencer/assay data yet
-                                        </div>
-                                    ) : null}
-                                </div>
-                                <div className="aliquot-popover-row">
-                                    <span>Type</span>
-                                    <strong>{styles.label}</strong>
+                                    <div className="aliquot-detail-right">
+                                        <section className="aliquot-detail-section">
+                                            <h4 className="aliquot-detail-section-title">
+                                                Sequencing Data
+                                            </h4>
+                                            <AliquotCoreTable rows={sampleRows} rowLabel="Sample" />
+                                        </section>
+                                    </div>
                                 </div>
                             </PopoverBody>
                         </Popover>
@@ -460,7 +359,9 @@ export default function NonSolidAliquotVisualization({
                         className="legend-swatch"
                         style={{ backgroundColor: styles.liquidColor }}
                     />
-                    <span>{styles.label} aliquot, one tube per collection</span>
+                    <span>
+                        {styles.label} aliquot &ndash; one tube, its samples sent to each GCC
+                    </span>
                 </div>
             </div>
         </div>
@@ -485,5 +386,7 @@ NonSolidAliquotVisualization.propTypes = {
         })
     ).isRequired,
     assayPlatformsBySampleName: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
+    donorLabel: PropTypes.string,
+    tissueLabel: PropTypes.string,
 };
 

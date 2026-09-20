@@ -4144,17 +4144,11 @@ File, Donor, and Publication Overview Styles
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
         }
 
+        // One tube, always drawn at its native size.
         .nonsolid-canvas {
             width: auto;
             height: auto;
-            max-width: 240px;
             overflow: visible;
-        }
-
-        .nonsolid-branch-line {
-            stroke: #8fa3b3;
-            stroke-width: 1.3;
-            vector-effect: non-scaling-stroke;
         }
 
         .nonsolid-sequence-label {
@@ -4165,23 +4159,13 @@ File, Donor, and Publication Overview Styles
             pointer-events: none;
         }
 
+        // The "N cores" line under the tube's id.
         .nonsolid-gcc-label {
-            fill: #4e6379;
+            fill: #7c8ba0;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 500;
             text-anchor: middle;
             pointer-events: none;
-
-            // A real aliquot whose only submitting record is a TPC (no
-            // files of its own -- see hasOnlyTpcSubmission) -- muted and
-            // not bold, same "honest empty state" treatment as
-            // .aliquot-popover-pathology-empty, distinct from a normal
-            // GCC's own bold label.
-            &.is-empty {
-                fill: #9aa2ab;
-                font-weight: 500;
-                font-style: italic;
-            }
         }
 
         .nonsolid-aliquot-hitarea {
@@ -4261,6 +4245,26 @@ File, Donor, and Publication Overview Styles
 .popover.aliquot-popover {
     max-width: 360px;
 
+    // A Frozen slice's popover (see FrozenAliquotPopoverBody.js) is a
+    // two-column layout -- core plate on the left, sequencing/pathology
+    // tables on the right -- so it needs far more room than the narrow
+    // Fixed one. Capped to the viewport so it never spills off a small screen.
+    &.aliquot-popover--wide {
+        --aliquot-detail-width: min(760px, calc(100vw - 32px));
+
+        width: var(--aliquot-detail-width);
+        max-width: var(--aliquot-detail-width);
+
+        .popover-header {
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+        }
+
+        .popover-body {
+            padding: 1.25rem;
+        }
+    }
+
     .popover-header {
         font-weight: 600;
         background-color: #f4f9ff;
@@ -4286,7 +4290,7 @@ File, Donor, and Publication Overview Styles
     }
 
     .nonsolid-popover-tube-canvas {
-        width: 26px;
+        width: 44px;
         height: auto;
         overflow: visible;
     }
@@ -4380,8 +4384,8 @@ File, Donor, and Publication Overview Styles
 
         // The same halo, but driven by React state (hoveredCorePosition)
         // rather than a plain `:hover` pseudo-class -- covers hovering this
-        // position's own row in the list below instead of this dot itself
-        // (see .aliquot-popover-position.is-hovered), and applies to every
+        // position's own row in the core table instead of this dot itself
+        // (see FrozenAliquotPopoverBody.js), and applies to every
         // highlighted dot, not just is-linked ones (an unlinked dot has
         // nothing of its own to :hover for, but its row can still be
         // hovered). Harmless overlap with the :hover rule above when this
@@ -4417,105 +4421,24 @@ File, Donor, and Publication Overview Styles
         font-style: italic;
     }
 
-    .aliquot-popover-cores,
-    .aliquot-popover-pathology-section {
+    // Only Non-Solid's popover (NonSolidAliquotVisualization.js) uses this
+    // now -- solid-tissue slices (Fixed and Frozen) have their own table
+    // layout, see .aliquot-detail-layout below.
+    .aliquot-popover-cores {
         display: flex;
         flex-direction: column;
         gap: 4px;
         padding: 8px 0;
         border-top: 1px solid #e4edf5;
         border-bottom: 1px solid #e4edf5;
-    }
-
-    .aliquot-popover-cores {
-        // Per-group "Show N more" collapsing already keeps this bounded in
-        // the normal case; this max-height is just a generous backstop for
-        // a pathological number of distinct GCCs, so an internal scrollbar
-        // doesn't hide whatever group comes after it.
+        // A generous backstop for a pathological number of distinct GCCs,
+        // so an internal scrollbar doesn't hide whatever group comes after
+        // it. `overflow-x` is set explicitly too -- per the CSS overflow
+        // spec, setting only `overflow-y` would silently compute the other
+        // axis as `auto` as well.
         max-height: 320px;
         overflow-y: auto;
-        // Explicit, not left to default -- per the CSS overflow spec, an
-        // element with only one axis set to a non-`visible` value (just
-        // `overflow-y: auto` here) has the *other* axis silently computed
-        // as `auto` too, not left `visible`. `.aliquot-popover-position`'s
-        // own negative side margins (below) bleed its highlight a few px
-        // past this container's edge on purpose -- without this, that
-        // spec-mandated auto-computed overflow-x turned that harmless bleed
-        // into a real horizontal scrollbar on this whole list.
         overflow-x: hidden;
-    }
-
-    // One position's own row (+ its assay/platform caption line) -- ties
-    // back to its matching dot in the core grid above (hoveredCorePosition,
-    // set from either direction, see AliquotVisualization.js) with a plain
-    // neutral highlight rather than that dot's own GCC-specific color, since
-    // this row can't always tell which color that was without re-deriving
-    // it (and a neutral highlight already reads clearly against the white
-    // popover background regardless of which GCC it is).
-    .aliquot-popover-position {
-        margin: 0 -8px;
-        padding: 2px 8px;
-        border-radius: 4px;
-        transition: background-color 0.1s ease;
-
-        &.is-hovered {
-            background-color: #eef5fb;
-        }
-    }
-
-    .aliquot-popover-pathology-heading {
-        font-size: 0.6875rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        color: #97a6b8;
-    }
-
-    .aliquot-popover-pathology-list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        // Caps just the list -- the heading above it stays put so a long
-        // list scrolls without losing the "what is this" context.
-        max-height: 180px;
-        overflow-y: auto;
-
-        li {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding-left: 14px;
-            color: #4e6379;
-            font-size: 0.8125rem;
-
-            &::before {
-                content: '\2022';
-                position: absolute;
-                left: 2px;
-                color: #97a6b8;
-            }
-        }
-
-        a {
-            color: #2f6fb0;
-            text-decoration: none;
-            min-width: 0;
-            // Truncate instead of wrapping -- the whole point of moving to
-            // one line per report is to stop each entry from eating two
-            // lines; the full name is still reachable via the link's own
-            // title tooltip. Scoped to the link itself (not the whole `li`
-            // as this used to be) so a sibling .aliquot-popover-pathology-outcome
-            // badge stays fully visible instead of being clipped along with
-            // an overlong report name/id.
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-
-            &:hover {
-                text-decoration: underline;
-            }
-        }
     }
 
     // A required field on every PathologyReport (schemas/pathology_report.json)
@@ -4554,10 +4477,8 @@ File, Donor, and Publication Overview Styles
         gap: 2px 12px;
         color: #4e6379;
         // Extra clearance beyond .popover-body's own padding -- the
-        // right-aligned id/GCC-name text (especially the italic
-        // .aliquot-popover-no-files variant, whose slant leans into
-        // whatever's to its right) otherwise reads as visually cramped
-        // against the popover's edge.
+        // right-aligned id/GCC-name text otherwise reads as visually
+        // cramped against the popover's edge.
         padding-right: 6px;
 
         strong,
@@ -4578,10 +4499,204 @@ File, Donor, and Publication Overview Styles
         }
     }
 
-    // A position's own "<Assay> - <Platform>" combos (see TissueView.js's
-    // assayPlatformsBySampleName) -- same short/muted secondary-line
-    // treatment as .aliquot-popover-description, right-aligned under its
-    // own row's id like a caption rather than another data row.
+    // --- Frozen slice popover body (FrozenAliquotPopoverBody.js) ---
+
+    .aliquot-detail-layout {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 1.5rem;
+        align-items: start;
+
+        @include media-breakpoint-down(md) {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        // The plate reuses the same .aliquot-grid-* markup/classes as
+        // before, just scaled up here -- these custom properties keep the
+        // row/column labels lined up with the wells if the size changes.
+        --aliquot-well-size: 20px;
+        --aliquot-well-gap: 5px;
+        --aliquot-plate-padding: 9px;
+        --aliquot-row-label-width: 14px;
+        --aliquot-row-label-gap: 6px;
+
+        .aliquot-visual-grid {
+            gap: var(--aliquot-well-gap);
+            padding: var(--aliquot-plate-padding);
+            border-radius: 8px;
+        }
+
+        .aliquot-grid-row {
+            gap: var(--aliquot-well-gap);
+        }
+
+        .aliquot-grid-core {
+            width: var(--aliquot-well-size);
+            height: var(--aliquot-well-size);
+            border-width: 1.5px;
+        }
+
+        .aliquot-grid-row-with-labels {
+            gap: var(--aliquot-row-label-gap);
+        }
+
+        .aliquot-grid-row-labels {
+            gap: var(--aliquot-well-gap);
+            padding-top: calc(var(--aliquot-plate-padding) + 1px);
+        }
+
+        .aliquot-grid-row-label {
+            width: var(--aliquot-row-label-width);
+            height: var(--aliquot-well-size);
+            line-height: var(--aliquot-well-size);
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        .aliquot-grid-col-labels {
+            gap: var(--aliquot-well-gap);
+            margin-top: 6px;
+            // Row-label column + its gap + the plate's own border/padding,
+            // so column 1's number sits right under column 1's wells.
+            margin-left: calc(
+                var(--aliquot-row-label-width) + var(--aliquot-row-label-gap) + var(--aliquot-plate-padding) + 1px
+            );
+        }
+
+        .aliquot-grid-col-label {
+            width: var(--aliquot-well-size);
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+    }
+
+    .aliquot-detail-left {
+        display: flex;
+        flex-direction: column;
+        gap: 1.125rem;
+    }
+
+    // Donor / Tissue / Aliquot -- a small label/value card under the plate.
+    .aliquot-detail-info {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 0.5rem 1rem;
+        align-items: baseline;
+        margin: 0;
+        padding: 0.75rem 1rem;
+        border: 1px solid #dfe8ef;
+        border-radius: 8px;
+
+        dt {
+            margin: 0;
+            color: #7f8f6f;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        dd {
+            margin: 0;
+            color: #1e2d3d;
+            font-size: 0.875rem;
+        }
+    }
+
+    .aliquot-detail-right {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        min-width: 0;
+    }
+
+    .aliquot-detail-section-title {
+        margin: 0 0 0.5rem;
+        color: #5d6b7a;
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+
+    // A long list of cores/reports scrolls inside its own box (header row
+    // stays pinned, see thead th below) instead of stretching the popover
+    // past the screen.
+    .aliquot-detail-table-scroll {
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid #d9e0e6;
+        border-radius: 4px;
+    }
+
+    .aliquot-detail-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.8125rem;
+        color: #1e2d3d;
+
+        th,
+        td {
+            padding: 0.375rem 0.75rem;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            font-weight: 600;
+            color: #28323c;
+        }
+
+        // Header tint follows the slice type the section is about --
+        // Frozen's green for sequencing, Fixed's peach for the linked
+        // histology/pathology samples.
+        &.is-frozen thead th {
+            background-color: #f0fbd3;
+        }
+
+        &.is-fixed thead th {
+            background-color: #fae9dd;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f6f7f8;
+        }
+
+        tbody tr.is-hovered {
+            background-color: #eef5fb;
+        }
+
+        a {
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    // The first column of the core table is the position label, colored to
+    // match its plate dot -- the table doubles as the plate's legend.
+    .aliquot-detail-core-cell {
+        width: 64px;
+        font-weight: 600;
+    }
+
+    .aliquot-detail-na {
+        color: #b8c0c9;
+    }
+
+    .aliquot-detail-table-empty {
+        padding: 0.875rem 0.75rem;
+        color: #98a2b3;
+        font-style: italic;
+        text-align: center;
+    }
+
+    // A core's own "<Assay> - <Platform>" combos (see TissueView.js's
+    // assayPlatformsBySampleName) -- short/muted secondary line,
+    // right-aligned under its own row's id like a caption rather than
+    // another data row.
     .aliquot-popover-assay-platforms {
         margin: 0 0 2px;
         text-align: right;
@@ -4589,53 +4704,9 @@ File, Donor, and Publication Overview Styles
         font-size: 0.75rem;
         font-style: italic;
 
-        // A position with real files but none carrying assay/sequencer
-        // metadata yet -- same "honest empty state" tone as
-        // .aliquot-popover-no-files, just a touch lighter since this note
-        // is secondary to the id row above it.
         &.is-empty {
             color: #b0b8c1;
         }
-    }
-
-    // Matches a GCC row's own core-position dot color in the grid above --
-    // ties the two together so the row list doubles as that coloring's
-    // legend instead of needing a separate one.
-    .aliquot-popover-gcc-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 6px;
-        flex-shrink: 0;
-    }
-
-    .aliquot-popover-toggle {
-        // Resets the <button> defaults it inherits alongside
-        // .aliquot-popover-row's flex layout.
-        appearance: none;
-        background: none;
-        border: none;
-        padding: 0;
-        width: 100%;
-        font: inherit;
-        cursor: pointer;
-        color: #2f6fb0;
-        font-size: 0.8125rem;
-        text-align: left;
-
-        &:hover,
-        &:focus-visible {
-            text-decoration: underline;
-        }
-    }
-
-    .aliquot-popover-description {
-        margin: 4px 0 0;
-        padding-top: 8px;
-        border-top: 1px solid #e4edf5;
-        color: #5d7288;
-        font-size: 0.875rem;
     }
 
     .aliquot-popover-pathology-empty {
@@ -4648,15 +4719,6 @@ File, Donor, and Publication Overview Styles
         font-style: italic;
     }
 
-    // Same muted/italic "honest empty state" treatment as
-    // .aliquot-popover-pathology-empty and non-solid's .nonsolid-gcc-label
-    // .is-empty -- a real GCC/position confirmed (via TissueView.js's
-    // hasFiles) to have no files indexed yet, not just an unlinked label.
-    .aliquot-popover-no-files {
-        color: #98a2b3;
-        font-weight: 500;
-        font-style: italic;
-    }
 }
 
 .callout-card {

@@ -50,6 +50,7 @@ import {
     buildStripTemplateSlices,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
+    getTissueNameFromFacetTerm,
     getTissueColorHex,
     hexToRgba,
 } from '../item-pages/components/tissue-overview/helpers';
@@ -1026,6 +1027,8 @@ export default function TissueTypeView({
                                                 specimenType={nonSolidSpecimenType}
                                                 idPrefix={aliquotIdPrefix}
                                                 assayPlatformsBySampleName={assayPlatformsBySampleName}
+                                                donorLabel={selectedDonorDisplayTitle}
+                                                tissueLabel={getTissueNameFromFacetTerm(targetTissueValue)}
                                             />
                                         ) : (
                                             <AliquotVisualization
@@ -1041,6 +1044,8 @@ export default function TissueTypeView({
                                                 enableMedialLateralLayers={enableMedialLateralLayers}
                                                 enableBivalvedSplit={enableBivalvedSplit}
                                                 assayPlatformsBySampleName={assayPlatformsBySampleName}
+                                                donorLabel={selectedDonorDisplayTitle}
+                                                tissueLabel={getTissueNameFromFacetTerm(targetTissueValue)}
                                             />
                                         )}
                                     </div>

@@ -40,6 +40,7 @@ import {
     buildStripTemplateSlices,
     dedupePathologyReportEntries,
     getTissueDisplayLabel,
+    getTissueNameFromFacetTerm,
     getTissueColorHex,
     hexToRgba,
 } from './components/tissue-overview/helpers';
@@ -1077,6 +1078,8 @@ const TissueView = React.memo(function TissueView({
                                                 specimenType={nonSolidSpecimenType}
                                                 idPrefix={aliquotIdPrefix}
                                                 assayPlatformsBySampleName={assayPlatformsBySampleName}
+                                                donorLabel={selectedDonorDisplayTitle}
+                                                tissueLabel={getTissueNameFromFacetTerm(targetTissueValue)}
                                             />
                                         ) : (
                                             <AliquotVisualization
@@ -1092,6 +1095,8 @@ const TissueView = React.memo(function TissueView({
                                                 enableMedialLateralLayers={enableMedialLateralLayers}
                                                 enableBivalvedSplit={enableBivalvedSplit}
                                                 assayPlatformsBySampleName={assayPlatformsBySampleName}
+                                                donorLabel={selectedDonorDisplayTitle}
+                                                tissueLabel={getTissueNameFromFacetTerm(targetTissueValue)}
                                             />
                                         )}
                                     </div>

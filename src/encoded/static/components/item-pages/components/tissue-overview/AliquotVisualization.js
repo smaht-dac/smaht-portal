@@ -4,7 +4,9 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
-import { isTpcSubmissionCenter, hexToRgba } from './helpers';
+import { isTpcSubmissionCenter } from './helpers';
+import FixedAliquotPopoverBody from './FixedAliquotPopoverBody';
+import FrozenAliquotPopoverBody, { CORE_DOT_COLOR_PALETTE } from './FrozenAliquotPopoverBody';
 
 // Exported so other views can reference the same Fixed/Frozen colors
 // (e.g. BrowseTissueVizWrapper.js's cohort charts) without redeclaring them
@@ -53,26 +55,7 @@ const PLACEHOLDER_SLICE_STYLES = {
     },
 };
 
-const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
-const FROZEN_GRID_COLS = [1, 2, 3, 4, 5, 6];
 const DEFAULT_FROZEN_CORE_POSITIONS = ['A1', 'C2'];
-// How many core positions a single GCC group shows before collapsing the
-// rest behind a "Show N more" toggle (real data has seen 10+ positions
-// under one center) -- see the render site for why this replaced an
-// internal scrollbar.
-const CORE_POSITIONS_COLLAPSE_THRESHOLD = 3;
-// Distinct, colorblind-considerate hues (not just lightness steps of one
-// base color) so cores submitted by different centers are visually
-// distinguishable at a glance in the grid, not just via tooltip/click.
-const CORE_DOT_COLOR_PALETTE = [
-    '#1e5b4f', // dark teal-green (matches the default single-GCC highlight)
-    '#c99a2e', // amber/gold
-    '#5b5fc4', // indigo
-    '#c0524a', // brick red
-    '#2f8fa6', // teal-blue
-    '#8a4fae', // violet
-];
-const [CORE_DOT_DEFAULT_COLOR] = CORE_DOT_COLOR_PALETTE;
 
 const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
     PropTypes.string,
@@ -84,104 +67,6 @@ const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
         unacceptable_description: PropTypes.string,
     }),
 ]);
-
-// A required field on every PathologyReport, brain and non-brain alike (see
-// schemas/pathology_report.json, the shared abstract base both extend), so
-// this badge applies uniformly regardless of which concrete report type a
-// given link points at. `null` (not just absent) for a bare @id-string
-// report -- the @@object frame TissueSample.pathology_reports/
-// associated_pathology_reports resolve to before embedding never carries
-// this field, only the full embedded object does (see TissueSample's own
-// embedded_list, types/tissue_sample.py). `unacceptableDescription` (same
-// embedding, only ever populated when outcome is Unacceptable) surfaces as
-// this badge's own tooltip -- rather than a 2nd, mostly-empty subtext row --
-// so a reader can see *why* without the popover growing every time an
-// Unacceptable report happens to be in the list.
-function PathologyOutcomeBadge({ outcome, unacceptableDescription }) {
-    if (!outcome) return null;
-    return (
-        <span
-            className={
-                'aliquot-popover-pathology-outcome' +
-                (outcome === 'Acceptable' ? ' is-acceptable' : ' is-unacceptable')
-            }
-            title={outcome === 'Unacceptable' ? unacceptableDescription || undefined : undefined}>
-            {outcome}
-        </span>
-    );
-}
-
-// `reports` entries come back as a bare @id string in the @@object frame, or
-// a full embedded object in /search/'s embedded frame -- `display_title`
-// (auto-embedded for any linkTo) is always long for a PathologyReport (e.g.
-// "NDRI_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-3T-003": encoded's shared
-// Item.display_title override checks submitted_id, always present, before
-// accession), so it's kept only as the link's title tooltip. `accession`
-// (explicitly embedded via TissueSample.embedded_list, see
-// types/tissue_sample.py) is short and used as the visible label instead
-// when present; falls back to "View report"/"Report N" only for the rarer
-// cases without one yet (not-yet-accessioned report, or the @@object frame,
-// which carries neither field).
-function getPathologyReportItems(reports) {
-    return (reports || []).map((report, reportIndex, arr) => {
-        const accession = typeof report === 'object' ? report?.accession : null;
-        return {
-            key: typeof report === 'string' ? report : report?.['@id'] || reportIndex,
-            href: typeof report === 'string' ? report : report?.['@id'],
-            title: typeof report === 'object' ? report?.display_title || null : null,
-            label: accession || (arr.length > 1 ? `Report ${reportIndex + 1}` : 'View report'),
-            outcome: typeof report === 'object' ? report?.outcome || null : null,
-            unacceptableDescription: typeof report === 'object' ? report?.unacceptable_description || null : null,
-        };
-    });
-}
-
-// Flattens associatedPathologyReports (one entry per linked Fixed sample,
-// each with its own pathology_reports array) into one row per report --
-// sorted by the Fixed sample's external_id so the list reads in a stable,
-// predictable order instead of whatever order the samples happened to
-// merge in. The full report name is long (e.g.
-// "NDRI_NON-BRAIN-PATHOLOGY-REPORT_SMHT004-3T-003") -- keep the visible
-// label to the short, already-distinguishing external_id and put the full
-// name in the link's `title` tooltip instead of spending a second line on
-// it.
-function getSortedPathologyReportItems(entries) {
-    return (entries || [])
-        .slice()
-        .sort((a, b) =>
-            String(a?.fixed_sample_external_id || '').localeCompare(
-                String(b?.fixed_sample_external_id || ''),
-                undefined,
-                { numeric: true }
-            )
-        )
-        .flatMap((entry) => {
-            const externalId = entry?.fixed_sample_external_id;
-            const reports = entry?.pathology_reports;
-            if (!reports || reports.length === 0) {
-                return [
-                    { key: externalId, externalId, suffix: '', href: null, label: null },
-                ];
-            }
-            return reports.map((report, reportIndex) => {
-                const accession = typeof report === 'object' ? report?.accession : null;
-                return {
-                    key: `${externalId}-${reportIndex}`,
-                    externalId,
-                    // Disambiguates the rare case of more than one report
-                    // for the same Fixed sample (nothing in the schema
-                    // prevents it) -- without this, multiple rows would
-                    // show the exact same externalId text with no visible
-                    // difference beyond their tooltips.
-                    suffix: reports.length > 1 ? ` (${accession || reportIndex + 1})` : '',
-                    href: typeof report === 'string' ? report : report?.['@id'],
-                    label: typeof report === 'object' ? report?.display_title || 'View' : 'View',
-                    outcome: typeof report === 'object' ? report?.outcome || null : null,
-                    unacceptableDescription: typeof report === 'object' ? report?.unacceptable_description || null : null,
-                };
-            });
-        });
-}
 
 function buildSliceGeometry({
     heightPx,
@@ -369,21 +254,20 @@ export default function AliquotVisualization({
     // same label convention the Donor x Assay DataMatrix's own column
     // headers use.
     assayPlatformsBySampleName = {},
+    // Shown on a slice's popover (see FrozenAliquotPopoverBody.js/
+    // FixedAliquotPopoverBody.js) --
+    // this component itself only knows the slices' own ids, not which
+    // donor/tissue they belong to.
+    donorLabel = null,
+    tissueLabel = null,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
-    // Which GCC groups (by index) have been expanded past
-    // CORE_POSITIONS_COLLAPSE_THRESHOLD in the currently open popover -- see
-    // that constant for why this exists. Reset whenever the popover targets
-    // a different slice (below) so re-opening it, or opening a different
-    // one, always starts collapsed again.
-    const [expandedGroupIndexes, setExpandedGroupIndexes] = useState(() => new Set());
     // Which core position (e.g. "A1") the pointer is currently over, in
-    // either direction -- the grid dot or its matching row in the position
-    // list below (see the grid's onMouseEnter/onMouseLeave and each
-    // .aliquot-popover-position's own `is-hovered` class) -- so hovering
-    // either one highlights both, letting a reader trace a dot to its own
-    // row (or a row back to its own dot) without hunting for it.
+    // either direction -- the plate dot or its matching row in the core
+    // table (see FrozenAliquotPopoverBody.js) -- so hovering either one
+    // highlights both, letting a reader trace a dot to its own row (or a row
+    // back to its own dot) without hunting for it.
     const [hoveredCorePosition, setHoveredCorePosition] = useState(null);
     const popoverId = useId();
     function handleHidePopover() {
@@ -409,14 +293,10 @@ export default function AliquotVisualization({
         handleHidePopover();
     }, [slices]);
 
-    // A newly opened (or newly switched-to) slice's GCC groups should
-    // always start collapsed, not carry over whichever groups happened to
-    // be expanded for the previously selected slice. Same for any hovered
-    // core position -- a stale one held over from the previous slice would
+    // A hovered core position held over from the previous slice would
     // otherwise highlight a same-named row/dot pair in a popover it no
     // longer belongs to.
     useEffect(() => {
-        setExpandedGroupIndexes(new Set());
         setHoveredCorePosition(null);
     }, [selectedSliceIndex]);
 
@@ -652,6 +532,7 @@ export default function AliquotVisualization({
     const selectedAliquotId = selectedSlice
         ? `${selectedSlice.idPrefix || idPrefix || selectedStyles.idPrefix}-${selectedSlice.sequenceLabel}`
         : null;
+    const isSelectedSliceFrozen = selectedSlice?.type === 'yellow';
     const selectedFrozenCorePositions =
         selectedSlice?.frozenCorePositions || DEFAULT_FROZEN_CORE_POSITIONS;
     // Only reachable for real data -- demo/illustrative slices never set
@@ -662,8 +543,7 @@ export default function AliquotVisualization({
     // getCorePositionFromExternalId) -- i.e. it hasn't been split into
     // individual sequencing cores by a GCC yet, not a rendering problem --
     // shown so a blank grid doesn't read as broken.
-    const showNoCorePositionsNote =
-        selectedSlice?.type === 'yellow' && selectedFrozenCorePositions.length === 0;
+    const showNoCorePositionsNote = isSelectedSliceFrozen && selectedFrozenCorePositions.length === 0;
     // Every core position submitted by the same GCC (the common case -- one
     // physical aliquot is usually processed by a single center) collapses
     // into one group instead of repeating that GCC's name once per
@@ -1040,495 +920,38 @@ export default function AliquotVisualization({
                         <Popover
                             {...overlayProps}
                             id={`${popoverId}-slice-popover`}
-                            className="aliquot-popover">
+                            className="aliquot-popover aliquot-popover--wide">
                             <PopoverHeader as="h3">
-                                {selectedAliquotId} &middot; {selectedStyles.label}{' '}
-                                Slice
+                                {selectedAliquotId} - {selectedStyles.label} Tissue
                             </PopoverHeader>
                             <PopoverBody>
-                                <div className="aliquot-popover-visual">
-                                    {selectedSlice?.type === 'pink' ? (
-                                        <span
-                                            className="aliquot-visual-swatch"
-                                            style={{
-                                                backgroundColor: selectedStyles.front,
-                                                borderColor: selectedStyles.border,
-                                            }}
-                                        />
-                                    ) : (
-                                        <span className="aliquot-visual-grid-wrap">
-                                            <span className="aliquot-grid-row-with-labels">
-                                                <span className="aliquot-grid-row-labels">
-                                                    {FROZEN_GRID_ROWS.map((row) => (
-                                                        <span
-                                                            className="aliquot-grid-row-label"
-                                                            key={row}>
-                                                            {row}
-                                                        </span>
-                                                    ))}
-                                                </span>
-                                                <span className="aliquot-visual-grid">
-                                                    {FROZEN_GRID_ROWS.map((row) => (
-                                                        <span
-                                                            className="aliquot-grid-row"
-                                                            key={row}>
-                                                            {FROZEN_GRID_COLS.map((col) => {
-                                                                const corePosition = `${row}${col}`;
-                                                                const rawSubmissionCenters =
-                                                                    selectedSlice
-                                                                        ?.frozenCorePositionSubmissionCenters?.[
-                                                                            corePosition
-                                                                        ] || [];
-                                                                const rawFilesHrefs =
-                                                                    selectedSlice
-                                                                        ?.frozenCorePositionFilesHrefs?.[
-                                                                            corePosition
-                                                                        ] || [];
-                                                                // A position whose only known submitting
-                                                                // center(s) are TPCs (procurement records,
-                                                                // no files of their own -- see
-                                                                // isTpcSubmissionCenter) doesn't get
-                                                                // marked at all, same as a position with no
-                                                                // data. Illustrative/demo data (no center
-                                                                // info at all yet) isn't affected.
-                                                                const hasOnlyTpcCenters =
-                                                                    rawSubmissionCenters.length > 0 &&
-                                                                    rawSubmissionCenters.every(
-                                                                        isTpcSubmissionCenter
-                                                                    );
-                                                                const isHighlighted =
-                                                                    selectedFrozenCorePositions.includes(
-                                                                        corePosition
-                                                                    ) && !hasOnlyTpcCenters;
-                                                                if (!isHighlighted) {
-                                                                    return (
-                                                                        <span
-                                                                            key={corePosition}
-                                                                            className="aliquot-grid-core"
-                                                                        />
-                                                                    );
-                                                                }
-                                                                // A position can have more than one real
-                                                                // submitting center (see the grouping
-                                                                // comment above selectedFrozenCorePositionGroups)
-                                                                // -- list every distinct GCC one in the
-                                                                // tooltip (TPC entries excluded, see
-                                                                // isTpcSubmissionCenter), and link/color by
-                                                                // whichever has a real files href (prefer
-                                                                // the first GCC one that does).
-                                                                const linkedIndex = rawFilesHrefs.findIndex(
-                                                                    (href, i) =>
-                                                                        Boolean(href) &&
-                                                                        !isTpcSubmissionCenter(
-                                                                            rawSubmissionCenters[i]
-                                                                        )
-                                                                );
-                                                                const positionFilesHref =
-                                                                    linkedIndex >= 0
-                                                                        ? rawFilesHrefs[linkedIndex]
-                                                                        : null;
-                                                                const positionSubmissionCenters =
-                                                                    rawSubmissionCenters.filter(
-                                                                        (center) =>
-                                                                            Boolean(center) &&
-                                                                            !isTpcSubmissionCenter(center)
-                                                                    );
-                                                                const primaryCenter =
-                                                                    (linkedIndex >= 0
-                                                                        ? rawSubmissionCenters[linkedIndex]
-                                                                        : null) || positionSubmissionCenters[0];
-                                                                // Different GCCs get visually distinct dot
-                                                                // colors, not just distinct tooltips/links
-                                                                // -- see submissionCenterColors above.
-                                                                const dotColor =
-                                                                    (primaryCenter &&
-                                                                        submissionCenterColors.get(
-                                                                            primaryCenter
-                                                                        )) ||
-                                                                    CORE_DOT_DEFAULT_COLOR;
-                                                                const positionId = `${selectedAliquotId}${corePosition}`;
-                                                                const positionTitle =
-                                                                    positionSubmissionCenters.length > 0
-                                                                        ? `${positionId} (${positionSubmissionCenters.join(
-                                                                            ', '
-                                                                        )})`
-                                                                        : positionId;
-                                                                // Every highlighted dot reflects a real
-                                                                // Core TissueSample -- link it to that
-                                                                // position's own GCC files (same target
-                                                                // as clicking its row below) when one is
-                                                                // available, instead of leaving it a
-                                                                // dead-end visual.
-                                                                // Hovering this dot also highlights its
-                                                                // matching row in the position list below
-                                                                // (see hoveredCorePosition/.is-hovered) --
-                                                                // cleared on leave rather than only on the
-                                                                // next hover so it doesn't stick once the
-                                                                // pointer moves off the grid entirely.
-                                                                const handleHoverPosition = () =>
-                                                                    setHoveredCorePosition(corePosition);
-                                                                const handleUnhoverPosition = () =>
-                                                                    setHoveredCorePosition(null);
-                                                                // Read by both the hover/focus halo below
-                                                                // (_item-pages.scss) -- a hardcoded halo
-                                                                // color there would only ever match the
-                                                                // default teal-green dot, not a
-                                                                // GCC-specific color from
-                                                                // CORE_DOT_COLOR_PALETTE -- and by
-                                                                // `.is-hovered` (set whenever this position's
-                                                                // own row below is hovered instead of this
-                                                                // dot directly, see .aliquot-popover-position).
-                                                                const dotStyle = {
-                                                                    backgroundColor: dotColor,
-                                                                    borderColor: dotColor,
-                                                                    '--aliquot-core-halo': hexToRgba(
-                                                                        dotColor,
-                                                                        0.3
-                                                                    ),
-                                                                };
-                                                                const isRowHovered =
-                                                                    corePosition === hoveredCorePosition;
-                                                                return positionFilesHref ? (
-                                                                    <a
-                                                                        key={corePosition}
-                                                                        href={positionFilesHref}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        title={`View ${positionTitle}'s files`}
-                                                                        style={dotStyle}
-                                                                        className={
-                                                                            'aliquot-grid-core is-highlighted is-linked' +
-                                                                            (isRowHovered ? ' is-hovered' : '')
-                                                                        }
-                                                                        // eslint-disable-next-line react/jsx-no-bind
-                                                                        onMouseEnter={handleHoverPosition}
-                                                                        // eslint-disable-next-line react/jsx-no-bind
-                                                                        onMouseLeave={handleUnhoverPosition}
-                                                                        // eslint-disable-next-line react/jsx-no-bind
-                                                                        onFocus={handleHoverPosition}
-                                                                        // eslint-disable-next-line react/jsx-no-bind
-                                                                        onBlur={handleUnhoverPosition}
-                                                                    />
-                                                                ) : (
-                                                                    <span
-                                                                        key={corePosition}
-                                                                        title={positionTitle}
-                                                                        style={dotStyle}
-                                                                        className={
-                                                                            'aliquot-grid-core is-highlighted' +
-                                                                            (isRowHovered ? ' is-hovered' : '')
-                                                                        }
-                                                                        // eslint-disable-next-line react/jsx-no-bind
-                                                                        onMouseEnter={handleHoverPosition}
-                                                                        // eslint-disable-next-line react/jsx-no-bind
-                                                                        onMouseLeave={handleUnhoverPosition}
-                                                                    />
-                                                                );
-                                                            })}
-                                                        </span>
-                                                    ))}
-                                                </span>
-                                            </span>
-                                            <span className="aliquot-grid-col-labels">
-                                                {FROZEN_GRID_COLS.map((col) => (
-                                                    <span
-                                                        className="aliquot-grid-col-label"
-                                                        key={col}>
-                                                        {col}
-                                                    </span>
-                                                ))}
-                                            </span>
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="aliquot-popover-caption">
-                                    {selectedStyles.caption}
-                                </p>
-                                {showNoCorePositionsNote ? (
-                                    <p className="aliquot-popover-pathology-empty">
-                                        No core positions assigned yet -- this
-                                        aliquot hasn&apos;t been split into
-                                        individual sequencing cores.
-                                    </p>
-                                ) : null}
-                                {selectedSlice?.type === 'yellow' && selectedFrozenCorePositions.length > 0 ? (
-                                    <div className="aliquot-popover-cores">
-                                        {selectedFrozenCorePositionGroups.flatMap((group, groupIndex) => {
-                                            const isExpanded = expandedGroupIndexes.has(groupIndex);
-                                            const visiblePositions =
-                                                isExpanded ||
-                                                group.positions.length <=
-                                                    CORE_POSITIONS_COLLAPSE_THRESHOLD
-                                                    ? group.positions
-                                                    : group.positions.slice(
-                                                        0,
-                                                        CORE_POSITIONS_COLLAPSE_THRESHOLD
-                                                    );
-                                            const hiddenCount =
-                                                group.positions.length - visiblePositions.length;
-                                            // Same color this group's positions are dotted
-                                            // with in the grid above -- makes this list
-                                            // double as that color coding's legend.
-                                            const groupColor =
-                                                (group.submissionCenter &&
-                                                    submissionCenterColors.get(
-                                                        group.submissionCenter
-                                                    )) ||
-                                                CORE_DOT_DEFAULT_COLOR;
-                                            const rows = visiblePositions.map(
-                                                (corePosition, positionIndexInGroup) => {
-                                                    const assayPlatforms =
-                                                    assayPlatformsBySampleName[
-                                                        group.positionExternalIds[corePosition]
-                                                    ] || [];
-                                                    return (
-                                                        <div
-                                                            className={
-                                                                'aliquot-popover-position' +
-                                                                (corePosition === hoveredCorePosition
-                                                                    ? ' is-hovered'
-                                                                    : '')
-                                                            }
-                                                            key={corePosition}
-                                                            // Same idea in reverse -- hovering this row
-                                                            // highlights its own dot up in the grid too
-                                                            // (see the grid's identical onMouseEnter/
-                                                            // onMouseLeave pair).
-                                                            // eslint-disable-next-line react/jsx-no-bind
-                                                            onMouseEnter={() =>
-                                                                setHoveredCorePosition(corePosition)
-                                                            }
-                                                            // eslint-disable-next-line react/jsx-no-bind
-                                                            onMouseLeave={() => setHoveredCorePosition(null)}>
-                                                            <div className="aliquot-popover-row">
-                                                                <span>
-                                                                    {positionIndexInGroup === 0 ? (
-                                                                        <>
-                                                                            <span
-                                                                                className="aliquot-popover-gcc-dot"
-                                                                                style={{
-                                                                                    backgroundColor: groupColor,
-                                                                                }}
-                                                                            />
-                                                                            {group.filesHref ? (
-                                                                                <a
-                                                                                    href={group.filesHref}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    title="View this GCC's files for this donor & tissue">
-                                                                                    {group.submissionCenter ||
-                                                                                `GCC${groupIndex + 1}`}
-                                                                                </a>
-                                                                            ) : group.submissionCenter ? (
-                                                                            // A real GCC (grouped
-                                                                            // here means it isn't
-                                                                            // a TPC, and demo/
-                                                                            // illustrative slices
-                                                                            // never set a real
-                                                                            // submissionCenter at
-                                                                            // all -- see below),
-                                                                            // just no files
-                                                                            // indexed yet for any
-                                                                            // of its positions
-                                                                            // (TissueView.js's
-                                                                            // hasFiles).
-                                                                                <span
-                                                                                    className="aliquot-popover-no-files"
-                                                                                    title="No files yet for this GCC">
-                                                                                    {group.submissionCenter}
-                                                                                </span>
-                                                                            ) : (
-                                                                                `GCC${groupIndex + 1}`
-                                                                            )}
-                                                                        </>
-                                                                    ) : null}
-                                                                </span>
-                                                                {group.positionFilesHrefs[corePosition] ? (
-                                                                    <a
-                                                                        href={group.positionFilesHrefs[corePosition]}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        title={`View ${selectedAliquotId}${corePosition}'s own files`}>
-                                                                        <strong>
-                                                                            {selectedAliquotId}
-                                                                            {corePosition}
-                                                                        </strong>
-                                                                    </a>
-                                                                ) : group.submissionCenter ? (
-                                                                // Same real-vs-demo
-                                                                // distinction as the GCC
-                                                                // name above.
-                                                                    <strong
-                                                                        className="aliquot-popover-no-files"
-                                                                        title="No files yet for this position">
-                                                                        {selectedAliquotId}
-                                                                        {corePosition}
-                                                                    </strong>
-                                                                ) : (
-                                                                    <strong>
-                                                                        {selectedAliquotId}
-                                                                        {corePosition}
-                                                                    </strong>
-                                                                )}
-                                                            </div>
-                                                            {assayPlatforms.length > 0 ? (
-                                                                <div className="aliquot-popover-assay-platforms">
-                                                                    {assayPlatforms.join(', ')}
-                                                                </div>
-                                                            ) : group.positionFilesHrefs[corePosition] ? (
-                                                                // This position has files (it's
-                                                                // linked above), but none of them
-                                                                // carry assay/sequencer metadata
-                                                                // yet -- distinct from the no-files
-                                                                // case, which already reads as
-                                                                // empty via the id's own "no files
-                                                                // yet" styling and needs no second
-                                                                // note here.
-                                                                <div className="aliquot-popover-assay-platforms is-empty">
-                                                                    No sequencer/assay data yet
-                                                                </div>
-                                                            ) : null}
-                                                        </div>
-                                                    );
-                                                }
-                                            );
-                                            // A "Show N more" toggle rather than an
-                                            // internal scrollbar -- a scrollbar would hide
-                                            // whatever comes after it (e.g. a second GCC's
-                                            // rows) with no hint there's more; this way
-                                            // every group stays visible, only its own
-                                            // overflow is tucked away.
-                                            if (hiddenCount > 0) {
-                                                rows.push(
-                                                    <button
-                                                        type="button"
-                                                        key={`${groupIndex}-toggle`}
-                                                        className="aliquot-popover-row aliquot-popover-toggle"
-                                                        onClick={() =>
-                                                            setExpandedGroupIndexes((prev) => {
-                                                                const next = new Set(prev);
-                                                                next.add(groupIndex);
-                                                                return next;
-                                                            })
-                                                        }>
-                                                        Show {hiddenCount} more
-                                                    </button>
-                                                );
-                                            } else if (
-                                                isExpanded &&
-                                                group.positions.length >
-                                                    CORE_POSITIONS_COLLAPSE_THRESHOLD
-                                            ) {
-                                                rows.push(
-                                                    <button
-                                                        type="button"
-                                                        key={`${groupIndex}-toggle`}
-                                                        className="aliquot-popover-row aliquot-popover-toggle"
-                                                        onClick={() =>
-                                                            setExpandedGroupIndexes((prev) => {
-                                                                const next = new Set(prev);
-                                                                next.delete(groupIndex);
-                                                                return next;
-                                                            })
-                                                        }>
-                                                        Show less
-                                                    </button>
-                                                );
-                                            }
-                                            return rows;
-                                        })}
-                                    </div>
-                                ) : null}
-                                <div className="aliquot-popover-row">
-                                    <span>{selectedStyles.label} #</span>
-                                    <strong>{selectedSlice?.sequenceLabel}</strong>
-                                </div>
-                                {selectedSlice?.description ? (
-                                    <p className="aliquot-popover-description">
-                                        {selectedSlice.description}
-                                    </p>
-                                ) : null}
-                                {selectedSlice?.type === 'pink' &&
-                                selectedSlice?.pathologyReports ? (
-                                        selectedSlice.pathologyReports.length > 0 ? (
-                                            <div className="aliquot-popover-pathology-section">
-                                                <span className="aliquot-popover-pathology-heading">
-                                                    Pathology
-                                                </span>
-                                                <ul className="aliquot-popover-pathology-list">
-                                                    {getPathologyReportItems(
-                                                        selectedSlice.pathologyReports
-                                                    ).map((item) => (
-                                                        <li key={item.key}>
-                                                            <a
-                                                                href={item.href}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                title={item.title || undefined}>
-                                                                {item.label}
-                                                            </a>
-                                                            <PathologyOutcomeBadge outcome={item.outcome} unacceptableDescription={item.unacceptableDescription} />
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        ) : (
-                                            <p className="aliquot-popover-pathology-empty">
-                                                Pathology: no report yet.
-                                            </p>
-                                        )
-                                    ) : null}
-                                {selectedSlice?.type === 'yellow' &&
-                                selectedSlice?.associatedPathologyReports &&
-                                selectedSlice.associatedPathologyReports.length ===
-                                    0 ? (
-                                    // Field is present (real sample) but empty --
-                                    // no Fixed counterpart has been linked for
-                                    // this tissue block yet. Distinct from demo/
-                                    // illustrative slices, where the field is
-                                    // absent entirely and nothing is shown.
-                                        <p className="aliquot-popover-pathology-empty">
-                                            Pathology: no linked Fixed sample yet.
-                                        </p>
-                                    ) : null}
-                                {selectedSlice?.associatedPathologyReports?.length > 0 ? (
-                                    <div className="aliquot-popover-pathology-section">
-                                        {/* Sits directly under this slice's own
-                                            id (aliquot-popover-description above)
-                                            -- both are "SMHT###-##-###"-shaped
-                                            ids, so labelling this one avoids it
-                                            reading as an accidental repeat of
-                                            the slice's own id. */}
-                                        <span className="aliquot-popover-pathology-heading">
-                                            Linked Fixed sample pathology
-                                        </span>
-                                        <ul className="aliquot-popover-pathology-list">
-                                            {getSortedPathologyReportItems(
-                                                selectedSlice.associatedPathologyReports
-                                            ).map((item) => (
-                                                <li key={item.key}>
-                                                    {item.href ? (
-                                                        <>
-                                                            <a
-                                                                href={item.href}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                title={item.label}>
-                                                                {item.externalId}
-                                                                {item.suffix}
-                                                            </a>
-                                                            <PathologyOutcomeBadge outcome={item.outcome} unacceptableDescription={item.unacceptableDescription} />
-                                                        </>
-                                                    ) : (
-                                                        <span title="No report yet">
-                                                            {item.externalId} &ndash; no report yet
-                                                        </span>
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ) : null}
+                                {isSelectedSliceFrozen ? (
+                                    <FrozenAliquotPopoverBody
+                                        slice={selectedSlice}
+                                        aliquotId={selectedAliquotId}
+                                        sequenceLabel={selectedSlice?.sequenceLabel}
+                                        donorLabel={donorLabel}
+                                        tissueLabel={tissueLabel}
+                                        highlightedPositions={selectedFrozenCorePositions}
+                                        groups={selectedFrozenCorePositionGroups}
+                                        centerColors={submissionCenterColors}
+                                        showNoCorePositionsNote={showNoCorePositionsNote}
+                                        assayPlatformsBySampleName={assayPlatformsBySampleName}
+                                        hoveredPosition={hoveredCorePosition}
+                                        onHoverPosition={setHoveredCorePosition}
+                                    />
+                                ) : (
+                                    <FixedAliquotPopoverBody
+                                        slice={selectedSlice}
+                                        sequenceLabel={selectedSlice?.sequenceLabel}
+                                        swatchStyle={{
+                                            backgroundColor: selectedStyles.front,
+                                            borderColor: selectedStyles.border,
+                                        }}
+                                        donorLabel={donorLabel}
+                                        tissueLabel={tissueLabel}
+                                    />
+                                )}
                             </PopoverBody>
                         </Popover>
                     )}
@@ -1574,6 +997,8 @@ AliquotVisualization.propTypes = {
     enableBivalvedSplit: PropTypes.bool,
     enableMedialLateralLayers: PropTypes.bool,
     assayPlatformsBySampleName: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
+    donorLabel: PropTypes.string,
+    tissueLabel: PropTypes.string,
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,

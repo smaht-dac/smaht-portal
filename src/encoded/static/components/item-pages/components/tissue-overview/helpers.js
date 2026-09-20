@@ -132,6 +132,12 @@ export const getTissueDisplayLabel = (value) => {
     return text.replace(/^\S+(?=\s-\s)/, internalCode);
 };
 
+// Just the descriptive name from a "<TPC code> - <name>" tissue_type string
+// (e.g. "3Q - Lung" -> "Lung"), for places that show the tissue in plain
+// words without any code. A value with no "<code> - " prefix passes through
+// unchanged, and an empty one stays "-" (see getDisplayText).
+export const getTissueNameFromFacetTerm = (value) => getDisplayText(value).replace(/^\S+\s-\s*/, '');
+
 // The stable 4-letter internal code alone (e.g. "HART" for "3S - Heart"),
 // used as the /tissue-overview/?tissue_type=<code> URL value instead of the
 // full raw "<TPC code> - <name>" string -- shorter, and (unlike the TPC
@@ -658,6 +664,58 @@ export const dedupeTissuesByDonor = (tissueResults = []) => {
         return aLabel.localeCompare(bLabel, undefined, { numeric: true });
     });
 };
+
+// A required field on every PathologyReport, brain and non-brain alike (see
+// schemas/pathology_report.json, the shared abstract base both extend), so
+// this badge applies uniformly regardless of which concrete report type a
+// given link points at. `null` (not just absent) for a bare @id-string
+// report -- the @@object frame TissueSample.pathology_reports/
+// associated_pathology_reports resolve to before embedding never carries
+// this field, only the full embedded object does (see TissueSample's own
+// embedded_list, types/tissue_sample.py). `unacceptableDescription` (same
+// embedding, only ever populated when outcome is Unacceptable) surfaces as
+// this badge's own tooltip -- rather than a 2nd, mostly-empty subtext row --
+// so a reader can see *why* without the popover growing every time an
+// Unacceptable report happens to be in the list.
+export function PathologyOutcomeBadge({ outcome, unacceptableDescription }) {
+    if (!outcome) return null;
+    return (
+        <span
+            className={
+                'aliquot-popover-pathology-outcome' +
+                (outcome === 'Acceptable' ? ' is-acceptable' : ' is-unacceptable')
+            }
+            title={outcome === 'Unacceptable' ? unacceptableDescription || undefined : undefined}>
+            {outcome}
+        </span>
+    );
+}
+
+// The small Donor / Tissue / Aliquot label-value card the aliquot popovers
+// share (FixedAliquotPopoverBody.js/FrozenAliquotPopoverBody.js/
+// NonSolidAliquotVisualization.js). `specimenLabel` ("Fixed"/"Frozen") is
+// prefixed to the tissue name for solid tissue and omitted for non-solid;
+// `tissueLabel` is the plain tissue name ("-" when unknown); `aliquotTitle`
+// names the last row ("Aliquot", or "Core" for a non-solid tube).
+export function AliquotInfoCard({
+    donorLabel,
+    specimenLabel = null,
+    tissueLabel,
+    aliquotLabel,
+    aliquotTitle = 'Aliquot',
+}) {
+    const tissueName = tissueLabel && tissueLabel !== '-' ? tissueLabel : 'Tissue';
+    return (
+        <dl className="aliquot-detail-info">
+            <dt>Donor</dt>
+            <dd>{donorLabel || '-'}</dd>
+            <dt>Tissue</dt>
+            <dd>{specimenLabel ? `${specimenLabel} ${tissueName}` : tissueName}</dd>
+            <dt>{aliquotTitle}</dt>
+            <dd>{aliquotLabel}</dd>
+        </dl>
+    );
+}
 
 export const TissueDatum = ({ title, value, unit = null, href = null }) => {
     const text = getDisplayText(value);
