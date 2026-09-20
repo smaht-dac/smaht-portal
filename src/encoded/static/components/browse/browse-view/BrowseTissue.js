@@ -11,6 +11,44 @@ import { BrowseTissueHeatmapTable } from './BrowseTissueHeatmapTable';
 // deliberately understated look.
 const INTRO_HIGHLIGHT_DURATION_MS = 2200;
 
+// The TPC-code/4-letter-code sort toggle next to the Basic/Advanced one is
+// built and working but hidden for now -- flip this to bring it back.
+// tissueSortModeIndex stays 0 (TPC code order) while it's hidden.
+const SHOW_TISSUE_SORT_TOGGLE = false;
+
+// Hand-rolled rather than the shared IconToggle component -- same rendered
+// markup/classes IconToggle itself produces (icon-toggle > .flex-grow-1[data-tip]
+// > button), but IconToggle doesn't forward a `data-class` per option, which
+// is what's needed here to scope the .tissue-detail-mode-toggle-tooltip
+// nowrap override to just these toggles' tooltips (react-tooltip reads
+// `data-class` off the hovered trigger and merges it into its own shared
+// tooltip element's class list) -- see that class in _search.scss for why:
+// these short tooltips were wrapping onto 2 lines even though their own box
+// had plenty of room, and a global nowrap on every tooltip would've broken
+// the several other, genuinely long, sentence-length tooltips elsewhere in
+// the app that need to wrap.
+const TissueHeaderToggle = ({ options, activeIndex, onChange, highlight = false }) => (
+    <div className={'icon-toggle tissue-detail-mode-toggle' + (highlight ? ' tissue-detail-mode-toggle--intro' : '')}>
+        {options.map(({ tip, icon }, index) => (
+            <div
+                className="flex-grow-1"
+                key={tip}
+                data-tip={tip}
+                data-class="tissue-detail-mode-toggle-tooltip">
+                <button
+                    type="button"
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={() => onChange(index)}
+                    aria-pressed={activeIndex === index}
+                    aria-label={tip}
+                    className={'btn btn-sm btn-' + (activeIndex === index ? 'primary-dark active pe-none' : 'link')}>
+                    <i className={`icon fas icon-fas ${icon}`} />
+                </button>
+            </div>
+        ))}
+    </div>
+);
+
 // Browse Tissue Body Component
 export const BrowseTissueBody = (props) => {
     const { alerts, href, session } = props;
@@ -20,6 +58,7 @@ export const BrowseTissueBody = (props) => {
     // since Basic/Advanced only makes sense while Tissue View is active.
     const [toggleViewIndex, setToggleViewIndex] = useState(1);
     const [tissueDetailModeIndex, setTissueDetailModeIndex] = useState(0);
+    const [tissueSortModeIndex, setTissueSortModeIndex] = useState(0);
     const [showIntroHighlight, setShowIntroHighlight] = useState(false);
     // Guards the flash to the very first time Tissue View activates -- it
     // stays this minimal/borderless the rest of the session, so it should
@@ -46,56 +85,26 @@ export const BrowseTissueBody = (props) => {
             <div className="browse-summary-header-row">
                 <h2 className="browse-summary-header">SMaHT Tissue Summary</h2>
                 {toggleViewIndex === 0 ? (
-                    // Hand-rolled rather than the shared IconToggle
-                    // component -- same rendered markup/classes IconToggle
-                    // itself produces (icon-toggle > .flex-grow-1[data-tip] >
-                    // button), but IconToggle doesn't forward a `data-class`
-                    // per option, which is what's needed here to scope the
-                    // .tissue-detail-mode-toggle-tooltip nowrap override
-                    // below to just these 2 tooltips (react-tooltip reads
-                    // `data-class` off the hovered trigger and merges it
-                    // into its own shared tooltip element's class list) --
-                    // see that class in _search.scss for why: this short,
-                    // 2-word tooltip was wrapping onto 2 lines even though
-                    // its own box had plenty of room, and a global nowrap
-                    // on every tooltip would've broken the several other,
-                    // genuinely long, sentence-length tooltips elsewhere in
-                    // the app that need to wrap.
-                    <div
-                        className={
-                            'icon-toggle tissue-detail-mode-toggle' +
-                            (showIntroHighlight ? ' tissue-detail-mode-toggle--intro' : '')
-                        }>
-                        <div
-                            className="flex-grow-1"
-                            data-tip="Basic View"
-                            data-class="tissue-detail-mode-toggle-tooltip">
-                            <button
-                                type="button"
-                                onClick={() => setTissueDetailModeIndex(0)}
-                                aria-pressed={tissueDetailModeIndex === 0}
-                                className={
-                                    'btn btn-sm btn-' +
-                                    (tissueDetailModeIndex === 0 ? 'primary-dark active pe-none' : 'link')
-                                }>
-                                <i className="icon fas icon-fas icon-compress" />
-                            </button>
-                        </div>
-                        <div
-                            className="flex-grow-1"
-                            data-tip="Advanced View"
-                            data-class="tissue-detail-mode-toggle-tooltip">
-                            <button
-                                type="button"
-                                onClick={() => setTissueDetailModeIndex(1)}
-                                aria-pressed={tissueDetailModeIndex === 1}
-                                className={
-                                    'btn btn-sm btn-' +
-                                    (tissueDetailModeIndex === 1 ? 'primary-dark active pe-none' : 'link')
-                                }>
-                                <i className="icon fas icon-fas icon-expand" />
-                            </button>
-                        </div>
+                    <div className="tissue-header-toggles">
+                        <TissueHeaderToggle
+                            highlight={showIntroHighlight}
+                            activeIndex={tissueDetailModeIndex}
+                            onChange={setTissueDetailModeIndex}
+                            options={[
+                                { tip: 'Basic View', icon: 'icon-compress' },
+                                { tip: 'Advanced View', icon: 'icon-expand' },
+                            ]}
+                        />
+                        {SHOW_TISSUE_SORT_TOGGLE ? (
+                            <TissueHeaderToggle
+                                activeIndex={tissueSortModeIndex}
+                                onChange={setTissueSortModeIndex}
+                                options={[
+                                    { tip: 'Sort by TPC code (3A, 3B…)', icon: 'icon-arrow-down-1-9' },
+                                    { tip: 'Sort by 4-letter code (ADGL, ADGR…)', icon: 'icon-arrow-down-a-z' },
+                                ]}
+                            />
+                        ) : null}
                     </div>
                 ) : null}
             </div>
@@ -106,6 +115,7 @@ export const BrowseTissueBody = (props) => {
                 toggleViewIndex={toggleViewIndex}
                 setToggleViewIndex={setToggleViewIndex}
                 tissueDetailModeIndex={tissueDetailModeIndex}
+                tissueSortModeIndex={tissueSortModeIndex}
             />
             <hr />
             <BrowseTissueHeatmapTable href={href} session={session} />

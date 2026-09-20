@@ -18,30 +18,16 @@ import AliquotVisualization, {
 } from '../../item-pages/components/tissue-overview/AliquotVisualization';
 import {
     getTissueIconSrc,
-    getTissueDisplayLabel,
     getTissueTypeUrlCode,
     getTissueColorHex,
     hexToRgba,
 } from '../../item-pages/components/tissue-overview/helpers';
-import { tissueCategoryByTpcCode, getTissueInternalCodeFromFacetTerm } from '../../util/data';
+import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
 import smahtTissueColors from '../../../data/color-schemes/smaht_tissue_colors.json';
 
-// Groups the categories returned by item_utils/tissue.py::get_category() into
-// the 5 display rows the germ-layer panel shows -- Germ Cells and Clinically
-// Accessible each get their own row now, rather than sharing one "GERM/CLIN"
-// row.
-const GERM_LAYER_LABELS = [
-    { key: 'ecto', label: 'ECTO', categories: ['Ectoderm'] },
-    { key: 'meso', label: 'MESO', categories: ['Mesoderm'] },
-    { key: 'endo', label: 'ENDO', categories: ['Endoderm'] },
-    { key: 'germ', label: 'GERM', categories: ['Germ Cells'] },
-    { key: 'clin', label: 'CLIN', categories: ['Clinically Accessible'] },
-];
-
 // Fixed display order for the 5 raw categories item_utils/tissue.py's
-// get_category() returns -- used (unlike GERM_LAYER_LABELS above) by the
-// Cohort View charts, which chart each category on its own rather than
-// folding Germ Cells/Clinically Accessible into one row.
+// get_category() returns -- used by the Cohort View charts, which chart each
+// category on its own.
 const TISSUE_CATEGORY_ORDER = ['Ectoderm', 'Mesoderm', 'Endoderm', 'Germ Cells', 'Clinically Accessible'];
 
 // Same population filter Browse by Donor/Browse by File use, mirrored from
@@ -132,203 +118,46 @@ export const renderSubmissionCenterPopover = (customId) => (
     </Popover>
 );
 
-// Exported for unit testing. `tissueCategoryByTerm` keys are the actual
-// tissue_type term strings (e.g. "Liver") -- keeping the terms (not just a
-// count per germ layer) lets each bubble below link to its own
-// /tissue-overview/ page.
-export const countTissueTypesByGermLayer = (tissueCategoryByTerm = {}) => {
-    const termsByCategory = {};
-    Object.entries(tissueCategoryByTerm).forEach(([term, category]) => {
-        if (!termsByCategory[category]) termsByCategory[category] = [];
-        termsByCategory[category].push(term);
-    });
-    return GERM_LAYER_LABELS.map(({ key, label, categories }) => {
-        const tissueTypes = categories
-            .reduce((terms, c) => terms.concat(termsByCategory[c] || []), [])
-            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-        return { key, label, tissueTypes };
-    });
-};
-
-const TissueGermLayerPanel = ({ fileFilters, session }) => {
-    const [loading, setLoading] = useState(true);
-    const [germLayerGroups, setGermLayerGroups] = useState(
-        GERM_LAYER_LABELS.map(({ key, label }) => {
-            return { key, label, tissueTypes: [] };
-        })
-    );
-
-    // data-tip is react-tooltip's static-attribute API (see app.js's global
-    // <ReactTooltip/> mount) -- it only picks up nodes present at its last
-    // build, so newly rendered bubbles need an explicit rebuild once loaded.
-    useEffect(() => {
-        if (!loading) ReactTooltip.rebuild();
-    }, [loading, germLayerGroups]);
-
-    useEffect(() => {
-        setLoading(true);
-
-        const requestBody = {
-            search_query_params: fileFilters,
-            fields_to_aggregate_for: ['sample_summary.tissues'],
-            include_meta_tissue_categories: true,
-        };
-
-        ajax.load(
-            '/bar_plot_aggregations/',
-            (resp) => {
-                setGermLayerGroups(countTissueTypesByGermLayer(resp?.meta?.tissue_category_by_term));
-                setLoading(false);
-            },
-            'POST',
-            () => setLoading(false),
-            JSON.stringify(requestBody),
-            {},
-            null
-        );
-    }, [fileFilters, session]);
-
-    return (
-        <div className="tissue-germ-layer-panel">
-            {germLayerGroups.map(({ key, label, tissueTypes }) => (
-                <div className="tissue-germ-layer-row" key={key}>
-                    <div className="tissue-germ-layer-label">
-                        {label.split('/').map((part, i, arr) => (
-                            <React.Fragment key={part}>
-                                {part}
-                                {i < arr.length - 1 ? (
-                                    <>
-                                        /<br />
-                                    </>
-                                ) : null}
-                            </React.Fragment>
-                        ))}
-                    </div>
-                    <div className="tissue-germ-layer-bubbles">
-                        {!loading &&
-                            tissueTypes.map((tissueType) => {
-                                // Same per-tissue anatomy icon and 4-letter
-                                // code label used on the Tissue Overview
-                                // header and Browse-by-Tissue table headers
-                                // (getTissueIconSrc/getTissueDisplayLabel).
-                                const bubbleIconSrc = getTissueIconSrc(tissueType);
-                                const bubbleLabel = getTissueDisplayLabel(tissueType);
-                                // Official per-tissue color (smaht_tissue_colors.json),
-                                // same one used to fill the anatomy icon here as the
-                                // rest of the app uses for this tissue elsewhere --
-                                // falls back to the panel's neutral default color (set
-                                // in SCSS) for the handful of tissue_type values that
-                                // scheme doesn't cover.
-                                const bubbleColorHex = getTissueColorHex(tissueType);
-                                // Color lives only on the ring -- tinting the
-                                // bubble background/icon fill too reads as
-                                // too much color competing with the rest of
-                                // the page. The icon keeps the panel's plain
-                                // neutral fill; only the border carries the
-                                // tissue's own color, a bit thicker than the
-                                // uncovered fallback ring so it still reads
-                                // clearly.
-                                const bubbleStyle = bubbleColorHex
-                                    ? {
-                                        borderColor: hexToRgba(bubbleColorHex, 0.85),
-                                        borderStyle: 'solid',
-                                        borderWidth: '2.5px',
-                                    }
-                                    : undefined;
-                                return (
-                                    <a
-                                        className="tissue-germ-layer-bubble"
-                                        key={tissueType}
-                                        href={`/tissue-overview/?tissue_type=${formUrlEncode(getTissueTypeUrlCode(tissueType))}`}
-                                        data-tip={bubbleLabel}
-                                        aria-label={bubbleLabel}
-                                        style={bubbleStyle}>
-                                        {bubbleIconSrc ? (
-                                            <i
-                                                className="tissue-germ-layer-bubble-icon"
-                                                style={{
-                                                    WebkitMaskImage: `url(${bubbleIconSrc})`,
-                                                    maskImage: `url(${bubbleIconSrc})`,
-                                                }}
-                                            />
-                                        ) : null}
-                                    </a>
-                                );
-                            })}
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-};
-
-// Advanced Tissue View's own display name for each of item_utils/tissue.py's
-// 5 raw categories -- unlike GERM_LAYER_LABELS above (which folds Germ
-// Cells/Clinically Accessible into one "GERM/CLIN" row for the compact
-// bubble panel), Advanced view gives every category its own column, so each
-// gets its own readable title-cased name instead.
-const ADVANCED_GERM_LAYER_CATEGORY_DISPLAY_NAME = {
-    Ectoderm: 'Ectoderm',
-    Mesoderm: 'Mesoderm',
-    Endoderm: 'Endoderm',
-    'Germ cells': 'Germ Cells',
-    'Clinically accessible': 'Clinically Accessible',
-};
-// Germ Cells and Clinically Accessible each have very few tissue types (2
-// apiece), so giving them their own full-width column like Ectoderm/
-// Mesoderm/Endoderm leaves that column mostly empty -- stacking the two
-// inside one shared column instead keeps every column's width consistent
-// without wasting horizontal space.
-//
-// Ectoderm has the most tissue types (7), which at the shared 2-per-row card
-// width made it visibly taller than every other column -- `cardColumns: 3`
-// widens just that column's own flex-basis and card grid so it stays
-// roughly as tall as its neighbors instead of forcing every column to a
-// wider (mostly empty) 3-column grid.
-const ADVANCED_GERM_LAYER_COLUMNS = [
-    { key: 'ectoderm', germLayers: ['Ectoderm'], cardColumns: 3 },
-    { key: 'mesoderm', germLayers: ['Mesoderm'], cardColumns: 2 },
-    { key: 'endoderm', germLayers: ['Endoderm'], cardColumns: 2 },
-    { key: 'germ-clin', germLayers: ['Germ Cells', 'Clinically Accessible'], cardColumns: 2 },
-];
-
 // smaht_tissue_colors.json's full_name uses a bare hyphen for the handful of
 // tissues with a sub-region (e.g. "Brain-Cerebellum", "Colon-Ascending") but
 // already uses ", " for the L/R-suffixed ones (e.g. "Testis, L") -- only
 // rewrite the former so both read the same "Brain, Cerebellum" way.
-const formatAdvancedTissueFullName = (fullName) =>
+const formatTissueFullName = (fullName) =>
     fullName.includes(',') ? fullName : fullName.replace('-', ', ');
 
-// Every tissue type SMaHT tracks, regardless of whether any donor currently
-// has data for it -- Advanced view (unlike TissueGermLayerPanel above, which
-// only shows tissue types the live aggregation actually returned) always
-// shows the complete set, so a tissue with 0 donors still renders as a
-// disabled card instead of being silently absent. Built from the same two
-// static sources TissueGermLayerPanel and helpers.js already rely on
-// (smaht_tissue_colors.json for the code/name, data.js's
-// tissueCategoryByTpcCode for the germ-layer category) rather than a new
-// third list to keep in sync.
-const ALL_TISSUE_TYPES = Object.entries(smahtTissueColors).map(([tpcCode, entry]) => {
-    const fullName = formatAdvancedTissueFullName(entry.full_name);
-    const rawCategory = tissueCategoryByTpcCode[tpcCode];
-    return {
-        tpcCode,
-        internalCode: entry.smaht_code,
-        fullName,
-        category: ADVANCED_GERM_LAYER_CATEGORY_DISPLAY_NAME[rawCategory] || rawCategory,
-        // Same "<TPC code> - <name>" shape real tissue_type facet values
-        // use, so getTissueIconSrc/getTissueColorHex/getTissueTypeUrlCode
-        // (which all parse that shape via getTissueInternalCodeFromFacetTerm)
-        // resolve this tissue's icon/color/URL code the same way they do
-        // for a real facet term.
-        facetTermValue: `${tpcCode} - ${fullName}`,
-    };
-});
+// TPC codes run 3A, 3B, ... 3Y, then 3AA, 3AC, ... -- shorter codes first,
+// since a plain alphabetical sort would put "3AA" ahead of "3B".
+const compareTpcCodes = (a, b) => a.length - b.length || a.localeCompare(b);
 
-const getAdvancedTissueTypesForGermLayer = (germLayer) =>
-    ALL_TISSUE_TYPES.filter((tissueType) => tissueType.category === germLayer).sort((a, b) =>
-        a.fullName.localeCompare(b.fullName, undefined, { numeric: true })
-    );
+// Index into this list is BrowseTissue.js's tissueSortModeIndex (its header
+// toggle) -- how both Tissue View modes order their tiles.
+export const TISSUE_SORT_MODES = [
+    { key: 'tpc-code', compare: (a, b) => compareTpcCodes(a.tpcCode, b.tpcCode) },
+    { key: 'internal-code', compare: (a, b) => a.internalCode.localeCompare(b.internalCode) },
+];
+
+// Every tissue type SMaHT tracks, regardless of whether
+// any donor currently has data for it -- both Tissue View modes (Basic
+// bubbles, Advanced cards) always show the complete set, so a tissue with 0
+// donors still renders as a disabled tile instead of being silently absent.
+// Built from the static smaht_tissue_colors.json (which getTissueIconSrc/
+// getTissueColorHex already rely on) rather than a new list to keep in sync.
+const ALL_TISSUE_TYPES = Object.entries(smahtTissueColors)
+    .map(([tpcCode, entry]) => {
+        const fullName = formatTissueFullName(entry.full_name);
+        return {
+            tpcCode,
+            internalCode: entry.smaht_code,
+            fullName,
+            // Same "<TPC code> - <name>" shape real tissue_type facet values
+            // use, so getTissueIconSrc/getTissueColorHex/getTissueTypeUrlCode
+            // (which all parse that shape via getTissueInternalCodeFromFacetTerm)
+            // resolve this tissue's icon/color/URL code the same way they do
+            // for a real facet term.
+            facetTermValue: `${tpcCode} - ${fullName}`,
+        };
+    })
+    .sort(TISSUE_SORT_MODES[0].compare);
 
 // Re-keys a `/bar_plot_aggregations/` response's `resp.terms` (raw
 // tissue_type term string -> {donors, files, doc_count}, same shape
@@ -345,24 +174,10 @@ export const buildDonorCountByInternalCode = (terms = {}) => {
     return counts;
 };
 
-// Darkens a hex color toward black by `amount` (0-1) -- smaht_tissue_colors.json's
-// palette includes several pastel/light hues (pale yellow, light pink, ...)
-// that are the correct, intentional color for a light background tint
-// (TissueAdvancedGermLayerPanel's own --tissue-advanced-card-bg below still
-// uses the original, undarkened hex for that) but read as low-contrast and
-// hard to read at that same brightness for small header/icon text/fill use,
-// per explicit request -- this only ever feeds that foreground use.
-const darkenHexForText = (hex, amount = 0.32) => {
-    const match = /^#?([0-9a-f]{6})$/i.exec(hex || '');
-    if (!match) return hex;
-    const num = parseInt(match[1], 16);
-    const channel = (shift) => Math.round(((num >> shift) & 255) * (1 - amount));
-    return `#${[channel(16), channel(8), channel(0)]
-        .map((c) => c.toString(16).padStart(2, '0'))
-        .join('')}`;
-};
-
-const TissueAdvancedGermLayerPanel = ({ fileFilters, session }) => {
+// Donors-with-released-files count per tissue type, shared by both Tissue
+// View modes below (Basic and Advanced stay mounted together, see
+// BrowseTissueVizWrapper) so they need one fetch, not one each.
+const useTissueDonorCounts = (fileFilters, session) => {
     const [loading, setLoading] = useState(true);
     const [donorCountByInternalCode, setDonorCountByInternalCode] = useState({});
 
@@ -388,108 +203,180 @@ const TissueAdvancedGermLayerPanel = ({ fileFilters, session }) => {
         );
     }, [fileFilters, session]);
 
+    return { loading, donorCountByInternalCode };
+};
+
+// Basic Tissue View: every tissue type as a compact, icon-only bubble in one
+// 8-column grid (3 rows for the 24 tracked tissues), in `tissueTypes` order.
+const TissueBasicPanel = ({ loading, donorCountByInternalCode, tissueTypes }) => {
+    // data-tip is react-tooltip's static-attribute API (see app.js's global
+    // <ReactTooltip/> mount) -- it only picks up nodes present at its last
+    // build, so newly rendered bubbles need an explicit rebuild once loaded.
+    useEffect(() => {
+        if (!loading) ReactTooltip.rebuild();
+    }, [loading, donorCountByInternalCode]);
+
     return (
-        <div className="tissue-advanced-germ-layer-panel">
-            {ADVANCED_GERM_LAYER_COLUMNS.map(({ key, germLayers, cardColumns }) => (
-                <div
-                    className={`tissue-advanced-germ-layer-column tissue-advanced-germ-layer-column--cols-${cardColumns}`}
-                    key={key}>
-                    {germLayers.map((germLayer) => (
-                        <div className="tissue-advanced-germ-layer-section" key={germLayer}>
-                            <h4 className="tissue-advanced-germ-layer-title">{germLayer} Tissues</h4>
-                            <div
-                                className={`tissue-advanced-germ-layer-cards tissue-advanced-germ-layer-cards--cols-${cardColumns}`}>
-                                {getAdvancedTissueTypesForGermLayer(germLayer).map((tissueType) => {
-                                    const donorCount = donorCountByInternalCode[tissueType.internalCode] || 0;
-                                    // Disabled while a count hasn't loaded yet would
-                                    // incorrectly flash every card as disabled, so
-                                    // only 0 donors *after* loading finishes counts.
-                                    const isDisabled = !loading && donorCount === 0;
-                                    const iconSrc = getTissueIconSrc(tissueType.facetTermValue);
-                                    // Same official per-tissue color
-                                    // (smaht_tissue_colors.json) the compact
-                                    // germ-layer bubble panel/tissue-overview
-                                    // header use elsewhere -- exposed as a CSS
-                                    // custom property so _search.scss can tint
-                                    // this card's header/icon/donor-count
-                                    // footer with it (falling back to the
-                                    // plain neutral colors below for the
-                                    // handful of tissue types that scheme
-                                    // doesn't cover).
-                                    const tissueColorHex = getTissueColorHex(tissueType.facetTermValue);
-                                    const cardStyle = tissueColorHex
-                                        ? {
-                                            // Darkened for the header/icon
-                                            // text-and-fill use (see
-                                            // darkenHexForText) -- the raw
-                                            // palette hex alone read as too
-                                            // pale/low-contrast for several
-                                            // tissue types.
-                                            '--tissue-advanced-card-color': darkenHexForText(tissueColorHex),
-                                            // A light background tint for the
-                                            // donor-count footer -- computed
-                                            // here (not via CSS color-mix(),
-                                            // for wider browser support)
-                                            // from the ORIGINAL, undarkened
-                                            // hex, since it needs the real
-                                            // per-tissue color at reduced
-                                            // opacity, not a fixed shade.
-                                            '--tissue-advanced-card-bg': hexToRgba(tissueColorHex, 0.14),
-                                        }
-                                        : undefined;
+        <div className="tissue-basic-panel">
+            {tissueTypes.map((tissueType) => {
+                // Same per-tissue anatomy icon used on the Tissue Overview
+                // header and Browse-by-Tissue table headers
+                // (getTissueIconSrc). The tooltip leads with the TPC code,
+                // matching Advanced view's own "<TPC code> - <4-letter code>"
+                // card header, followed by the tissue's full name.
+                const bubbleIconSrc = getTissueIconSrc(tissueType.facetTermValue);
+                const bubbleLabel = `${tissueType.tpcCode} - ${tissueType.internalCode} - ${tissueType.fullName}`;
+                // Official per-tissue color (smaht_tissue_colors.json),
+                // same one used to fill the anatomy icon here as the
+                // rest of the app uses for this tissue elsewhere --
+                // falls back to the panel's neutral default color (set
+                // in SCSS) for the handful of tissue_type values that
+                // scheme doesn't cover.
+                const bubbleColorHex = getTissueColorHex(tissueType.facetTermValue);
+                // Color lives only on the ring -- tinting the
+                // bubble background/icon fill too reads as
+                // too much color competing with the rest of
+                // the page. The icon keeps the panel's plain
+                // neutral fill; only the border carries the
+                // tissue's own color, a bit thicker than the
+                // uncovered fallback ring so it still reads
+                // clearly.
+                const bubbleStyle = bubbleColorHex
+                    ? {
+                        borderColor: hexToRgba(bubbleColorHex, 0.85),
+                        borderStyle: 'solid',
+                        borderWidth: '2.5px',
+                    }
+                    : undefined;
+                const bubbleContent = bubbleIconSrc ? (
+                    <i
+                        className="tissue-basic-bubble-icon"
+                        style={{
+                            WebkitMaskImage: `url(${bubbleIconSrc})`,
+                            maskImage: `url(${bubbleIconSrc})`,
+                        }}
+                    />
+                ) : null;
+                // Same disabled treatment as Advanced view's cards: 0 donors
+                // (only once loaded, so nothing flashes disabled while
+                // counts are still coming in) has nothing to link to.
+                const isDisabled = !loading && !donorCountByInternalCode[tissueType.internalCode];
 
-                                    const cardContent = (
-                                        <React.Fragment>
-                                            <div className="tissue-advanced-card-header">
-                                                {tissueType.tpcCode} - {tissueType.internalCode}
-                                            </div>
-                                            {iconSrc ? (
-                                                <i
-                                                    className="tissue-advanced-card-icon"
-                                                    style={{
-                                                        WebkitMaskImage: `url(${iconSrc})`,
-                                                        maskImage: `url(${iconSrc})`,
-                                                    }}
-                                                />
-                                            ) : null}
-                                            <div className="tissue-advanced-card-name">{tissueType.fullName}</div>
-                                            <div className="tissue-advanced-card-donors">
-                                                {loading
-                                                    ? '–'
-                                                    : `${donorCount.toLocaleString()} Donor${donorCount === 1 ? '' : 's'}`}
-                                            </div>
-                                        </React.Fragment>
-                                    );
-
-                                    // A disabled card (0 donors) has nothing to link
-                                    // to -- render as a plain, non-interactive div
-                                    // instead of an <a> with a dead/misleading href.
-                                    return isDisabled ? (
-                                        <div
-                                            className="tissue-advanced-card is-disabled"
-                                            key={tissueType.internalCode}
-                                            style={cardStyle}
-                                            aria-disabled="true">
-                                            {cardContent}
-                                        </div>
-                                    ) : (
-                                        <a
-                                            className="tissue-advanced-card"
-                                            key={tissueType.internalCode}
-                                            style={cardStyle}
-                                            href={`/tissue-overview/?tissue_type=${formUrlEncode(getTissueTypeUrlCode(tissueType.facetTermValue))}`}>
-                                            {cardContent}
-                                        </a>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ))}
+                return isDisabled ? (
+                    <div
+                        className="tissue-basic-bubble is-disabled"
+                        key={tissueType.internalCode}
+                        data-tip={bubbleLabel}
+                        aria-label={bubbleLabel}
+                        aria-disabled="true"
+                        style={bubbleStyle}>
+                        {bubbleContent}
+                    </div>
+                ) : (
+                    <a
+                        className="tissue-basic-bubble"
+                        key={tissueType.internalCode}
+                        href={`/tissue-overview/?tissue_type=${formUrlEncode(getTissueTypeUrlCode(tissueType.facetTermValue))}`}
+                        data-tip={bubbleLabel}
+                        aria-label={bubbleLabel}
+                        style={bubbleStyle}>
+                        {bubbleContent}
+                    </a>
+                );
+            })}
         </div>
     );
 };
+
+// Advanced Tissue View: every tissue type as a card (icon + TPC/internal
+// code + full name + donor count) in one 8-column grid (3 rows for the 24
+// tracked tissues), in `tissueTypes` order. Cards for tissues with 0 donors are
+// disabled, not hidden.
+const TissueAdvancedPanel = ({ loading, donorCountByInternalCode, tissueTypes }) => (
+    <div className="tissue-advanced-panel">
+        {tissueTypes.map((tissueType) => {
+            const donorCount = donorCountByInternalCode[tissueType.internalCode] || 0;
+            // Disabled while a count hasn't loaded yet would
+            // incorrectly flash every card as disabled, so
+            // only 0 donors *after* loading finishes counts.
+            const isDisabled = !loading && donorCount === 0;
+            const iconSrc = getTissueIconSrc(tissueType.facetTermValue);
+            // Same official per-tissue color
+            // (smaht_tissue_colors.json) the compact
+            // bubble panel/tissue-overview
+            // header use elsewhere -- exposed as a CSS
+            // custom property so _search.scss can tint
+            // this card's header/border/donor-count
+            // footer with it (falling back to the
+            // plain neutral colors below for the
+            // handful of tissue types that scheme
+            // doesn't cover).
+            const tissueColorHex = getTissueColorHex(tissueType.facetTermValue);
+            const cardStyle = tissueColorHex
+                ? {
+                    // The palette hex as-is, for the
+                    // header text.
+                    '--tissue-advanced-card-color': tissueColorHex,
+                    // The card's outline -- same ring
+                    // color/opacity Basic view's bubbles
+                    // use, so both views read alike.
+                    '--tissue-advanced-card-border': hexToRgba(tissueColorHex, 0.85),
+                    // A light background tint for the
+                    // donor-count footer -- computed
+                    // here (not via CSS color-mix(),
+                    // for wider browser support)
+                    // from the same hex at reduced
+                    // opacity, not a fixed shade.
+                    '--tissue-advanced-card-bg': hexToRgba(tissueColorHex, 0.14),
+                }
+                : undefined;
+
+            const cardContent = (
+                <React.Fragment>
+                    <div className="tissue-advanced-card-header">
+                        {tissueType.tpcCode} - {tissueType.internalCode}
+                    </div>
+                    {iconSrc ? (
+                        <i
+                            className="tissue-advanced-card-icon"
+                            style={{
+                                WebkitMaskImage: `url(${iconSrc})`,
+                                maskImage: `url(${iconSrc})`,
+                            }}
+                        />
+                    ) : null}
+                    <div className="tissue-advanced-card-name">{tissueType.fullName}</div>
+                    <div className="tissue-advanced-card-donors">
+                        {loading
+                            ? '–'
+                            : `${donorCount.toLocaleString()} Donor${donorCount === 1 ? '' : 's'}`}
+                    </div>
+                </React.Fragment>
+            );
+
+            // A disabled card (0 donors) has nothing to link
+            // to -- render as a plain, non-interactive div
+            // instead of an <a> with a dead/misleading href.
+            return isDisabled ? (
+                <div
+                    className="tissue-advanced-card is-disabled"
+                    key={tissueType.internalCode}
+                    style={cardStyle}
+                    aria-disabled="true">
+                    {cardContent}
+                </div>
+            ) : (
+                <a
+                    className="tissue-advanced-card"
+                    key={tissueType.internalCode}
+                    style={cardStyle}
+                    href={`/tissue-overview/?tissue_type=${formUrlEncode(getTissueTypeUrlCode(tissueType.facetTermValue))}`}>
+                    {cardContent}
+                </a>
+            );
+        })}
+    </div>
+);
 
 // Builds the fixed-order, 5-category chart data array the three Cohort View
 // charts below share -- same shape DonorCohortViewChart already expects from
@@ -877,7 +764,15 @@ const TissueCohortCharts = ({ fileFilters, session }) => {
 };
 
 export const BrowseTissueVizWrapper = (props) => {
-    const { href, session, windowWidth, toggleViewIndex, setToggleViewIndex, tissueDetailModeIndex } = props;
+    const {
+        href,
+        session,
+        windowWidth,
+        toggleViewIndex,
+        setToggleViewIndex,
+        tissueDetailModeIndex,
+        tissueSortModeIndex = 0,
+    } = props;
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
     // The Ischemic Time/Autolysis Score/Target Tissue % tabs below this
@@ -891,7 +786,7 @@ export const BrowseTissueVizWrapper = (props) => {
     // query-string portion (search) skips that.
     const hrefSearch = useMemo(() => url.parse(href).search || '', [href]);
 
-    // Shared by TissueGermLayerPanel and TissueCohortCharts -- both need the
+    // Shared by useTissueDonorCounts and TissueCohortCharts -- both need the
     // same File-mapped, tissue-population-filtered query params.
     const fileFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);
@@ -902,6 +797,18 @@ export const BrowseTissueVizWrapper = (props) => {
         return hrefQuery;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hrefSearch, session]);
+
+    const { loading: tissueCountsLoading, donorCountByInternalCode } = useTissueDonorCounts(fileFilters, session);
+    const tissuePanelProps = useMemo(
+        () => {
+            return {
+                loading: tissueCountsLoading,
+                donorCountByInternalCode,
+                tissueTypes: [...ALL_TISSUE_TYPES].sort(TISSUE_SORT_MODES[tissueSortModeIndex].compare),
+            };
+        },
+        [tissueCountsLoading, donorCountByInternalCode, tissueSortModeIndex]
+    );
 
     return (
         <div className="row browse-viz-container tissue-viz-container">
@@ -950,10 +857,10 @@ export const BrowseTissueVizWrapper = (props) => {
                         already-loaded-data reasoning as toggleViewIndex
                         above. */}
                     <div className={tissueDetailModeIndex === 0 ? '' : 'd-none'}>
-                        <TissueGermLayerPanel fileFilters={fileFilters} session={session} />
+                        <TissueBasicPanel {...tissuePanelProps} />
                     </div>
                     <div className={tissueDetailModeIndex === 1 ? '' : 'd-none'}>
-                        <TissueAdvancedGermLayerPanel fileFilters={fileFilters} session={session} />
+                        <TissueAdvancedPanel {...tissuePanelProps} />
                     </div>
                 </div>
                 <div className={toggleViewIndex === 1 ? '' : 'd-none'}>

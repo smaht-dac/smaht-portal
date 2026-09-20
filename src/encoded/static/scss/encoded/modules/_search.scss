@@ -1711,6 +1711,21 @@ h2.browse-summary-header {
     }
 }
 
+// The Basic/Advanced toggle and the sort-order toggle next to it (both
+// .tissue-detail-mode-toggle, see BrowseTissue.js) -- a thin divider between
+// them keeps the two controls from reading as one 4-button group.
+.tissue-header-toggles {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .tissue-detail-mode-toggle + .tissue-detail-mode-toggle {
+        padding-left: 0.75rem;
+        border-left: 1px solid #d7e1ea;
+        border-radius: 0;
+    }
+}
+
 // Icon-only Basic/Advanced toggle (see BrowseTissue.js) -- no frame/background
 // at all (unlike the stats column's boxed Tissue View/Cohort View
 // .view-toggle), just two bare icon buttons whose color alone marks which
@@ -2102,42 +2117,29 @@ div.browse-link-icon {
     }
 }
 
-.tissue-germ-layer-panel {
+// Basic Tissue View: every tissue type as a compact, icon-only bubble, laid
+// out as one 8-column grid (3 rows for the 24 tracked tissues) that spans the
+// panel's full width -- bubbles scale with their column (capped so they don't
+// balloon on very wide screens) rather than sitting at a fixed size.
+.tissue-basic-panel {
 	background-color: #FFFFFF;
 	border: 1px solid #E7F0F3;
 	border-radius: 15px;
 	padding: 1.5rem 2rem;
-	display: flex;
-	flex-direction: column;
-	gap: 1.75rem;
+	display: grid;
+	grid-template-columns: repeat(8, minmax(0, 1fr));
+	gap: 1.5rem 1rem;
+	justify-items: center;
+	align-content: space-evenly;
 	height: 100%;
 
-	.tissue-germ-layer-row {
-		display: flex;
-		align-items: center;
-		gap: 1.5rem;
-	}
-
-	.tissue-germ-layer-label {
-		flex: 0 0 60px;
-		font-size: 0.8125rem;
-		font-weight: 600;
-		color: #4E6884;
-		line-height: 1.2;
-	}
-
-	.tissue-germ-layer-bubbles {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 14px;
-	}
-
-	.tissue-germ-layer-bubble {
+	.tissue-basic-bubble {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 56px;
-		height: 56px;
+		width: 100%;
+		max-width: 84px;
+		aspect-ratio: 1;
 		border-radius: 50%;
 		border: 2px dashed #D7E1EA;
 		background-color: #FBFCFE;
@@ -2152,16 +2154,30 @@ div.browse-link-icon {
 			transform: scale(1.08);
 			box-shadow: 0 2px 8px rgba(30, 38, 50, 0.18);
 		}
+
+		// Tissue types with 0 donors render as a plain <div>, not a link (see
+		// TissueBasicPanel) -- muted and inert rather than removed, so the
+		// full tissue catalog still reads as complete.
+		&.is-disabled {
+			opacity: 0.45;
+			cursor: default;
+
+			&:hover,
+			&:focus {
+				transform: none;
+				box-shadow: none;
+			}
+		}
 	}
 
 	// Same masking technique as .tissue-icon-mask on the Tissue Overview
 	// header -- masking the SVG (instead of an <img>) lets a plain
 	// background-color fill it. Always this one neutral color, regardless
 	// of tissue; per-tissue color lives on the bubble's border instead.
-	.tissue-germ-layer-bubble-icon {
+	.tissue-basic-bubble-icon {
 		display: inline-block;
-		width: 34px;
-		height: 34px;
+		width: 58%;
+		height: 58%;
 		background-color: #4E6884;
 		-webkit-mask-repeat: no-repeat;
 		mask-repeat: no-repeat;
@@ -2190,85 +2206,35 @@ div.browse-link-icon {
 	}
 
 	@include media-breakpoint-down(md) {
-		.tissue-germ-layer-bubble {
-			width: 42px;
-			height: 42px;
-		}
-
-		.tissue-germ-layer-bubble-icon {
-			width: 26px;
-			height: 26px;
-		}
+		padding: 1rem;
+		gap: 1rem 0.5rem;
 	}
 }
 
 // Advanced Tissue View: every tissue type SMaHT tracks, as a card (icon +
-// TPC/internal code + full name + donor count), grouped into one column per
-// germ layer -- unlike .tissue-germ-layer-panel's compact icon-only bubbles
-// above, this always shows the complete tissue-type list, disabling (not
-// hiding) any tissue with 0 donors.
-.tissue-advanced-germ-layer-panel {
-	display: flex;
-	flex-wrap: wrap;
-	// Flex's own default (stretch), made explicit -- the Germ Cells/
-	// Clinically Accessible column (2 stacked sections) is naturally the
-	// tallest, so every column stretches to match it instead of each only
-	// being as tall as its own content.
-	align-items: stretch;
-	gap: 1rem;
-
-	.tissue-advanced-germ-layer-column {
-		flex: 1 1 200px;
-		background-color: #FFFFFF;
-		border: 1px solid #E7F0F3;
-		border-radius: 15px;
-		padding: 0.75rem;
-
-		// Ectoderm's 3-per-row card grid (see ADVANCED_GERM_LAYER_COLUMNS'
-		// cardColumns) needs a wider column than the other 2-per-row ones
-		// to keep individual cards from getting cramped.
-		&--cols-3 {
-			flex-basis: 290px;
-		}
-	}
-
-	.tissue-advanced-germ-layer-title {
-		text-align: center;
-		font-size: 0.875rem;
-		font-weight: 600;
-		color: #4E6884;
-		margin-bottom: 0.625rem;
-	}
-
-	// Germ Cells and Clinically Accessible share one column (see
-	// ADVANCED_GERM_LAYER_COLUMNS) as two stacked sections rather than each
-	// getting a full column of their own.
-	.tissue-advanced-germ-layer-section + .tissue-advanced-germ-layer-section {
-		margin-top: 1.25rem;
-	}
-
-	.tissue-advanced-germ-layer-cards {
-		display: grid;
-		gap: 0.375rem;
-
-		// Card count per row (see ADVANCED_GERM_LAYER_COLUMNS' cardColumns) --
-		// Ectoderm's own column gets 3 to keep it from running much taller
-		// than its 2-per-row neighbors.
-		&--cols-2 {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-
-		&--cols-3 {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
-	}
+// TPC/internal code + full name + donor count) in one 8-column grid (3 rows
+// for the 24 tracked tissues) -- unlike .tissue-basic-panel's compact
+// icon-only bubbles above, this shows each tissue's name and donor count,
+// disabling (not hiding) any tissue with 0 donors.
+.tissue-advanced-panel {
+	display: grid;
+	grid-template-columns: repeat(8, minmax(0, 1fr));
+	gap: 0.75rem;
+	background-color: #FFFFFF;
+	border: 1px solid #E7F0F3;
+	border-radius: 15px;
+	padding: 1rem;
 
 	.tissue-advanced-card {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		border: 1px solid #E7F0F3;
+		// Colored outline in the tissue's own color (set inline per card in
+		// TissueAdvancedPanel), same as Basic view's bubble ring -- falls
+		// back to the plain neutral border for tissue types the palette
+		// doesn't cover.
+		border: 1px solid var(--tissue-advanced-card-border, #E7F0F3);
 		border-radius: 8px;
 		overflow: hidden;
 		background-color: #FBFCFE;
@@ -2285,7 +2251,7 @@ div.browse-link-icon {
 		}
 
 		// Cards for tissue types with 0 donors render as a plain <div>
-		// (see TissueAdvancedGermLayerPanel), not a real link -- muted and
+		// (see TissueAdvancedPanel), not a real link -- muted and
 		// inert rather than removed, so the full tissue catalog still reads
 		// as complete.
 		&.is-disabled {
@@ -2294,10 +2260,10 @@ div.browse-link-icon {
 		}
 	}
 
-	// Each card's header/icon/footer below reads its color from
-	// --tissue-advanced-card-color (the tissue's own official color, set
-	// inline per card in TissueAdvancedGermLayerPanel from
-	// smaht_tissue_colors.json -- same source the compact germ-layer bubble
+	// Each card's header/footer below reads its color from
+	// --tissue-advanced-card-color/--tissue-advanced-card-bg (the tissue's
+	// own official color, set inline per card in TissueAdvancedPanel from
+	// smaht_tissue_colors.json -- same source the compact bubble
 	// panel and tissue-overview header already use) instead of one flat
 	// green for every tissue -- falls back to that same green for the
 	// handful of tissue types that scheme doesn't cover.
@@ -2314,7 +2280,9 @@ div.browse-link-icon {
 		width: 30px;
 		height: 30px;
 		margin: 0.3125rem 0;
-		background-color: var(--tissue-advanced-card-color, #4E6884);
+		// Always this one neutral color, same as Basic view's bubble icon --
+		// per-tissue color lives on the card's outline instead.
+		background-color: #4E6884;
 		-webkit-mask-repeat: no-repeat;
 		mask-repeat: no-repeat;
 		-webkit-mask-position: center;
@@ -2328,10 +2296,17 @@ div.browse-link-icon {
 		font-size: 0.75rem;
 		line-height: 1.2;
 		padding: 0 0.1875rem 0.5rem;
+		// Names are short enough to fit an 8-across card, but a long
+		// single word (e.g. "Hippocampus") would otherwise push the
+		// column wider than its `minmax(0, 1fr)` track.
+		overflow-wrap: anywhere;
 	}
 
+	// Pinned to the card's bottom edge so every card's footer lines up
+	// across a row even when a neighbor's name wraps onto a 2nd line.
 	.tissue-advanced-card-donors {
 		width: 100%;
+		margin-top: auto;
 		padding: 0.3125rem;
 		font-size: 0.6875rem;
 		font-weight: 500;
@@ -2344,10 +2319,14 @@ div.browse-link-icon {
 		background-color: var(--tissue-advanced-card-bg, #EAF5EF);
 	}
 
-	@include media-breakpoint-down(md) {
-		.tissue-advanced-germ-layer-cards {
-			grid-template-columns: 1fr;
-		}
+	// 8 cards across needs roughly a full-size desktop panel -- narrower
+	// widths fall back to fewer columns instead of squeezing card text.
+	@include media-breakpoint-down(lg) {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
@@ -3414,8 +3393,8 @@ div.browse-link-icon {
 			white-space: nowrap;
 			text-align: center;
 			// Halved from 20px -- with a wide, data-driven number of tissue-
-			// type/subtype columns (long labels already truncate with an
-			// ellipsis, see .tissue-heatmap-subtype-subrow-label-text), that
+			// type/subtype columns (long labels already wrap onto
+			// extra lines, see .tissue-heatmap-subtype-subrow-label-text), that
 			// much horizontal padding around a short value like "[50-100]"
 			// added real, avoidable width to every single column, pushing
 			// the table's own total width -- and how far right someone has
@@ -3590,64 +3569,42 @@ div.browse-link-icon {
 
 			// Only set on Target Tissue %'s own combined "Show Non-Target
 			// Tissue %" view (see renderSubtypeHeaderCells' own
-			// `columnKind` -- every other tab's columns are all one kind,
-			// nothing to distinguish) -- tags each subtype column with the
-			// SAME blue/orange family its own body cells below already use
-			// (score-N vs nt-score-N's own lightest band), so the target/
-			// non-target split reads clearly at the header itself instead
-			// of only showing up once you look at real cell values. Wins
-			// over the plain background-color above via source order +
-			// the 2-class specificity below (same either way, but explicit
-			// beats implicit).
-			&.tissue-heatmap-subtype-subrow-header--target {
-				background-color: #DAEBF1;
-			}
-
+			// `isNonTargetColumn`) -- tints just the non-target subtype
+			// headers so they read apart from the plain grey target ones.
+			// A darker, hue-free slate rather than any color: the body
+			// cells beneath already carry the blue (target) and orange
+			// (non-target) scales, and a warm or colorful header on top
+			// of those read as one more score band (a sand tint looked
+			// orange next to the non-target cells). Wins over the plain
+			// background-color above via source order + the 2-class
+			// specificity below.
 			&.tissue-heatmap-subtype-subrow-header--non-target {
-				background-color: #FFE8CC;
+				background-color: #C4CAD4;
 			}
 		}
 
-		// A fixed-width, ellipsis-truncated box around every 3rd-row
-		// label (real subtype name, self-titled placeholder's "n/a", and
-		// merged-brain's own "n/a") -- column width used to just follow
-		// whichever subtype name happened to be longest (e.g. "Muscularis
-		// propria"), leaving some tissue-type columns much wider than
-		// others with nothing to explain why. Every 3rd-row cell now
-		// requests this same box's width regardless of its own text
-		// length, so table-layout: auto settles on one uniform width for
-		// every subtype-aware column instead; a `title` alongside this
-		// (see renderSubtypeHeaderCells) surfaces the untruncated text on
-		// hover. `vertical-align: middle` keeps this aligned with the sort
-		// button/icon next to it (a split column's own <SortableHeaderLabel>)
-		// rather than baseline-aligning against its icon's own box.
+		// A fixed-width box around every 3rd-row label (real subtype name,
+		// or the tissue's own name for a tissue with no subtypes) -- column
+		// width used to just follow whichever subtype name happened to be
+		// longest (e.g. "Muscularis propria"), leaving some tissue-type
+		// columns much wider than others with nothing to explain why. Every
+		// 3rd-row cell now requests this same box's width regardless of its
+		// own text length, so table-layout: auto settles on one uniform width
+		// for every subtype-aware column instead. Long labels wrap onto
+		// further lines (per explicit request -- a truncated name couldn't be
+		// read in full), so the width has to fit the longest single word
+		// ("Seminiferous") since `overflow-wrap` only breaks mid-word as a
+		// last resort. `vertical-align: middle` keeps this aligned with the
+		// sort button/icon next to it (a split column's own
+		// <SortableHeaderLabel>) rather than baseline-aligning against its
+		// icon's own box.
 		.tissue-heatmap-subtype-subrow-label-text {
 			display: inline-block;
-			// Since every column in a table sizes to the widest cell
-			// anywhere in it (header row included), this fixed box is the
-			// actual floor under EVERY subtype-aware column's width, even
-			// ones whose own values are a short band string like
-			// "[50-100]" -- a short label (e.g. "Dermis") still reserves
-			// this same box, so keeping it narrow (rather than wide enough
-			// to rarely truncate) is what keeps the whole table compact;
-			// per explicit request, more labels truncating with an
-			// ellipsis is an acceptable tradeoff for that.
-			width: 48px;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
+			width: 5.75rem;
+			line-height: 1.2;
+			white-space: normal;
+			overflow-wrap: break-word;
 			vertical-align: middle;
-		}
-
-		// An unsplit column's own 3rd-row cell (renderSubtypeHeaderCells) --
-		// plain "n/a", not a real subtype, so it's muted like any other
-		// empty value elsewhere in this table (.tissue-heatmap-cell's own
-		// .na/.is-empty) rather than reading as a real (if oddly-named)
-		// subtype column.
-		.tissue-heatmap-subtype-subrow-placeholder {
-			color: #93A0B0;
-			font-weight: 400;
-			text-align: center;
 		}
 
 		// Column count is data-driven and unbounded (one per distinct
@@ -3916,9 +3873,13 @@ div.browse-link-icon {
 			&.nt-score-2 { background-color: #FF922B; color: #28323C; }
 			&.nt-score-3 { background-color: #D9480F; color: #FFFFFF; }
 
+			// Light grey fill (not just muted text) so an n/a cell reads as
+			// "no value here" at a glance against both the white table body
+			// and the colored score bands around it.
 			&.na,
 			&.is-empty {
-				color: #C7CCD2;
+				background-color: #F6F7F9;
+				color: #A3ADB8;
 				font-weight: 400;
 			}
 
@@ -4059,8 +4020,8 @@ div.browse-link-icon {
 			// (grey text, no score-color background), just scoped to 1
 			// half instead of the whole cell.
 			&.is-empty {
-				background-color: transparent;
-				color: #C7CCD2;
+				background-color: #F6F7F9;
+				color: #A3ADB8;
 				font-weight: 400;
 			}
 
@@ -4181,17 +4142,16 @@ div.browse-link-icon {
 				border-right: 1px solid rgba(255, 255, 255, 0.7);
 
 				// The white divider above all but disappears against this
-				// half's own transparent fill (see .is-empty, no score-N
-				// background) -- both halves reading "n/a" then had nothing
-				// to show where one stops and the other starts. A dark,
-				// still-subtle divider instead of a light one only for this
-				// case (a colored half keeps the white one, which already
-				// reads fine against its own dark-ish fill).
+				// half's own light grey fill (see .is-empty) -- both halves
+				// reading "n/a" then had nothing to show where one stops and
+				// the other starts. A dark, still-subtle divider instead of a
+				// light one only for this case (a colored half keeps the white
+				// one, which already reads fine against its own dark-ish fill).
 				&.is-empty {
 					// Solid, same as every other border on this table --
 					// dashed read as an unrelated, out-of-place style next
 					// to the table's own plain solid lines everywhere else.
-					border-right-color: rgba(0, 0, 0, 0.03);
+					border-right-color: rgba(0, 0, 0, 0.08);
 				}
 			}
 			.tissue-heatmap-cell-split-half-b {
@@ -4217,7 +4177,7 @@ div.browse-link-icon {
 			color: inherit;
 			// Matches .tissue-heatmap-subtype-subrow-label-text's own
 			// vertical-align -- keeps the icon sitting on the same line as
-			// a fixed-width (possibly ellipsis-truncated) label next to it,
+			// a fixed-width (possibly multi-line) label next to it,
 			// not shifted by the label's own inline-block baseline. The
 			// label's own `overflow: hidden` is scoped to its own box (a
 			// separate sibling element, not an ancestor of this button), so

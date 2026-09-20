@@ -622,146 +622,25 @@ function reorderNonTargetColumnsLast(matrixResult, nonTargetColumnKeys) {
     };
 }
 
-// A synthetic subtypeLabel prefix marking a data-independent PADDING
-// column -- inserted (see padSubtypeColumnsPerGroup below) so every
-// (non-brain-region) tissue type always shows the same fixed number of
-// subtype-region columns regardless of how many real ones actually exist
-// for it in the data, per explicit request. Distinguished from a real
-// subtype name so header rendering (renderSubtypeHeaderCells) can show it
-// as a plain "n/a" placeholder instead of a garbage label -- see
-// isPlaceholderSubtypeLabel below, which every "is this a real subtype"
-// check in this file now goes through.
-const PADDING_SUBTYPE_MARKER = 'pad:';
-
-// True for a subtypeLabel that carries no real information: either a
-// synthetic padding column (see PADDING_SUBTYPE_MARKER above) or a
-// self-titled placeholder (the subtype name === the plain tissue name
-// itself, e.g. Liver's own single target_tissues entry, "subtype": "Liver"
-// -- see expandTissueResultsBySubtype's own comment on why that happens).
-// Both read as "n/a" in the header rather than showing a name that's
-// either meaningless or just repeats the tissue's own name.
+// True for a subtypeLabel that carries no real information: a self-titled
+// placeholder (the subtype name === the plain tissue name itself, e.g.
+// Liver's own single target_tissues entry, "subtype": "Liver" -- see
+// expandTissueResultsBySubtype's own comment on why that happens). Its
+// header shows the tissue's own name (see getSubtypeHeaderLabel) rather than
+// repeating it as if it were a distinct subtype.
 function isPlaceholderSubtypeLabel(subtypeLabel, parentTissueType) {
     if (!subtypeLabel) return true;
-    if (subtypeLabel.startsWith(PADDING_SUBTYPE_MARKER)) return true;
     return subtypeLabel === formatTissueTypeLabel(parentTissueType);
 }
 
-// Pads each contiguous same-parent column run (see buildSubColumnGroups'
-// own identical contiguity assumption -- buildTissueMetricMatrix's sort
-// always leaves one parent's columns adjacent) up to `minCount` columns
-// using synthetic, always-"n/a" placeholder columns -- per explicit
-// request, every tissue type always shows the same fixed number of
-// subtype-region columns, rather than a tissue type with fewer real
-// subtypes reading as narrower/less-detailed than one with more.
-// `isPaddableTissueType(parentTissueType)` gates which real tissue types
-// get this at all -- brain regions have no target_tissues/non_target_tissues
-// concept whatsoever (already collapsed into one merged "+Brain" column
-// elsewhere), so padding each of the 5 individually to 3 would just be
-// noise, not a real placeholder for missing data. `classifyColumn(key)`
-// (defaults to one shared bucket) lets a caller pad 2 independent
-// sub-runs within the same parent group separately -- Target Tissue %'s
-// own "Show Non-Target Tissue %" combined view needs its target subtypes
-// and non-target subtypes each padded to their own `minCount`, not the
-// whole group padded once as if they were undifferentiated (this must run
-// AFTER reorderNonTargetColumnsLast, which is what puts each bucket into
-// its own contiguous sub-run within the group in the first place).
-// `requiredBuckets` (optional array, e.g. `['target', 'non-target']`)
-// forces those buckets to exist -- and get padded up to `minCount` -- in
-// EVERY paddable group, even one with zero real members in that bucket at
-// all (a tissue type with no non-target data submitted for it anywhere,
-// say). Without this, a bucket only appearing when `classifyColumn` had
-// at least 1 real member to seed it meant a tissue type could have its
-// non-target columns silently missing instead of reading as 3 "n/a"s like
-// every other tissue type once the toggle is on -- exactly the
-// inconsistency `minCount` padding exists to avoid in the first place.
-// Returns `{ matrixResult, insertedKeysByBucket }` -- the latter a
-// `Map<key, bucket>` of every synthetic column this inserted, so a caller
-// needing bucket-specific behavior elsewhere (e.g. Target Tissue %'s own
-// nonTargetColumnKeys, used to color a cell) can fold the new keys into
-// its own bucket-tracking Set.
-function padSubtypeColumnsPerGroup(matrixResult, minCount, isPaddableTissueType, classifyColumn = () => 'default', requiredBuckets = null) {
-    const { tissueTypes, matrix } = matrixResult;
-    const newTissueTypes = [];
-    const insertedKeysByBucket = new Map();
-
-    let i = 0;
-    while (i < tissueTypes.length) {
-        const parent = splitSubtypeColumnKey(tissueTypes[i]).tissueType;
-        let j = i;
-        while (j < tissueTypes.length && splitSubtypeColumnKey(tissueTypes[j]).tissueType === parent) {
-            j += 1;
-        }
-        const group = tissueTypes.slice(i, j);
-        if (!isPaddableTissueType(parent)) {
-            newTissueTypes.push(...group);
-            i = j;
-            continue;
-        }
-        const bucketOrder = requiredBuckets ? [...requiredBuckets] : [];
-        const bucketMembers = {};
-        bucketOrder.forEach((bucket) => {
-            bucketMembers[bucket] = [];
-        });
-        group.forEach((key) => {
-            const bucket = classifyColumn(key);
-            if (!bucketMembers[bucket]) {
-                bucketMembers[bucket] = [];
-                bucketOrder.push(bucket);
-            }
-            bucketMembers[bucket].push(key);
-        });
-        bucketOrder.forEach((bucket) => {
-            const members = bucketMembers[bucket];
-            newTissueTypes.push(...members);
-            for (let p = members.length; p < minCount; p += 1) {
-                const key = makeSubtypeColumnKey(parent, `${PADDING_SUBTYPE_MARKER}${bucket}:${p}`);
-                newTissueTypes.push(key);
-                insertedKeysByBucket.set(key, bucket);
-            }
-        });
-        i = j;
-    }
-
-    if (insertedKeysByBucket.size === 0) {
-        return { matrixResult, insertedKeysByBucket };
-    }
-
-    return {
-        matrixResult: {
-            ...matrixResult,
-            tissueTypes: newTissueTypes,
-            matrix: matrix.map((row) => {
-                const cells = [];
-                const cellEntries = [];
-                const cellSlots = [];
-                let srcIdx = 0;
-                newTissueTypes.forEach((key) => {
-                    if (insertedKeysByBucket.has(key)) {
-                        cells.push(null);
-                        cellEntries.push(null);
-                        cellSlots.push([null, null]);
-                    } else {
-                        cells.push(row.cells[srcIdx]);
-                        cellEntries.push(row.cellEntries ? row.cellEntries[srcIdx] : null);
-                        cellSlots.push(row.cellSlots ? row.cellSlots[srcIdx] : [null, null]);
-                        srcIdx += 1;
-                    }
-                });
-                return { ...row, cells, cellEntries, cellSlots };
-            }),
-        },
-        insertedKeysByBucket,
-    };
+// What a 3rd-row header cell reads: the real subtype's own name, or -- for a
+// tissue with no real subtypes of its own (e.g. Lung, Liver) -- the tissue's
+// own name, never a bare "n/a".
+function getSubtypeHeaderLabel(subtypeLabel, parentTissueType) {
+    return isPlaceholderSubtypeLabel(subtypeLabel, parentTissueType)
+        ? formatTissueTypeLabel(parentTissueType)
+        : subtypeLabel;
 }
-
-// Excludes the 5 individually-coded brain regions (already collapsed into
-// one merged "+Brain" column elsewhere, see mergeableTissueTypes) from
-// padSubtypeColumnsPerGroup's own per-tissue-type padding -- brain has no
-// target_tissues/non_target_tissues concept at all, so 3 (or 6) "n/a"
-// placeholder columns per region would be pure noise, not a stand-in for
-// missing-but-expected data the way it is for every other tissue type.
-const isPaddableNonBrainTissueType = (tissueType) =>
-    !BRAIN_REGION_INTERNAL_CODES.includes(getTissueInternalCodeFromFacetTerm(tissueType));
 
 export function buildSubtypeColumnPlan(tissueTypes, realTissueTypeHrefs, realTissueTypeCategories) {
     const columnInfo = {};
@@ -2300,9 +2179,10 @@ function buildSubtypeAwareDisplayRuns(subColumnGroups, mergeableTissueTypes, mer
 // - 'unsplit' (a single-subtype or no-subtype tissue) renders exactly what
 //   renderHeaderCells renders for a plain column today -- no `rowSpan` down
 //   into the 3rd row, since every column (split or not) gets its own 3rd-row
-//   cell for a uniform 3-row header (see renderSubtypeHeaderCells' own "n/a"
-//   placeholder, per explicit request that a tissue with no real subtype
-//   still show one rather than the row silently skipping that column). Its
+//   cell for a uniform 3-row header (see renderSubtypeHeaderCells' own
+//   tissue-name label, per explicit request that a tissue with no real
+//   subtype still show one rather than the row silently skipping that
+//   column). Its
 //   own sort button stays right here, same as today.
 // - 'merged-brain' mirrors BrainRegionHeaderCell's usual merged "Brain"
 //   header (renderHeaderCells), just built from this table's own
@@ -2404,16 +2284,16 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
 // 'unsplit' run whose lone subtype is just the tissue's own self-titled
 // placeholder (subtypeLabel === the plain tissue name -- see
 // IndividualTissueTypeHeaderLabel's own comment on this same placeholder
-// convention), gets a single plain "n/a" cell instead (per earlier explicit
-// request -- a tissue with no real subtype data still shows one rather than
-// the row silently having a gap under that column). An 'unsplit' run with a
+// convention), gets a single cell labeled with the tissue's own name instead
+// (per explicit request -- never a bare "n/a", and never the row silently
+// having a gap under that column). An 'unsplit' run with a
 // genuine single real subtype (e.g. Non Target Tissue %'s Liver, whose only
 // present entry is "Fibroadipose" -- a real category, not a placeholder)
 // shows that subtype's own name instead -- showing "n/a" there was
 // misleading, since the cell's own detail popover always had the real
 // subtype value available regardless. Every branch stays colSpan-matched to
 // that same run's own 2nd-row cell so the 2 rows always align.
-function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, nonTargetColumnKeys = null) {
+function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, nonTargetColumnKeys = null, blankPlaceholderLabels = false) {
     const nodes = [];
     displayRuns.forEach((run) => {
         if (run.type === 'merged-brain') {
@@ -2423,12 +2303,11 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                     key={regionTissueTypes[0]}
                     colSpan={span > 1 ? span : undefined}
                     className={
-                        'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder' +
-                        ' tissue-heatmap-subtype-group-boundary' +
+                        'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-group-boundary' +
                         (regionTissueTypes.includes(hoveredColumn) ? ' is-column-highlight' : '') +
                         (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
                     }>
-                    <span className="tissue-heatmap-subtype-subrow-label-text">n/a</span>
+                    <span className="tissue-heatmap-subtype-subrow-label-text">{blankPlaceholderLabels ? null : 'Brain'}</span>
                 </th>
             );
             return;
@@ -2436,26 +2315,23 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
         if (run.type === 'unsplit') {
             const { key, subtypeLabel, parentTissueType } = run;
             // A self-titled placeholder (subtype name === the plain tissue
-            // name, e.g. Liver's own target_tissues entry) carries no real
-            // information beyond what the 2nd-row header already shows --
-            // still shown as "n/a" (see isPlaceholderSubtypeLabel's own
-            // comment above).
-            const isRealSubtype = !isPlaceholderSubtypeLabel(subtypeLabel, parentTissueType);
+            // name, e.g. Liver's own target_tissues entry) or a tissue with
+            // no subtype at all reads as the tissue's own name (see
+            // getSubtypeHeaderLabel) instead of "n/a" -- or stays blank on
+            // a tab where that name would mislead (blankPlaceholderLabels).
+            const headerLabel = blankPlaceholderLabels && isPlaceholderSubtypeLabel(subtypeLabel, parentTissueType)
+                ? ''
+                : getSubtypeHeaderLabel(subtypeLabel, parentTissueType);
             nodes.push(
                 <th
                     key={key}
                     className={
-                        (isRealSubtype
-                            ? 'tissue-heatmap-subtype-subrow-header'
-                            : 'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder') +
-                        ' tissue-heatmap-subtype-group-boundary' +
+                        'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-group-boundary' +
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }>
-                    <span
-                        className="tissue-heatmap-subtype-subrow-label-text"
-                        title={isRealSubtype ? subtypeLabel : undefined}>
-                        {isRealSubtype ? subtypeLabel : 'n/a'}
+                    <span className="tissue-heatmap-subtype-subrow-label-text" title={headerLabel || undefined}>
+                        {headerLabel}
                     </span>
                 </th>
             );
@@ -2470,24 +2346,19 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
             // 2 kinds of divider read as visually distinct.
             const isLastChild = childIndex === run.group.children.length - 1;
             // A genuine multi-child split group can still carry a
-            // placeholder child -- either a data-independent padding
-            // column (padSubtypeColumnsPerGroup, once a tissue type's real
-            // subtype count is padded up to the fixed minimum) or a
-            // self-titled one (see isPlaceholderSubtypeLabel) -- shown the
-            // same muted "n/a", no sort control, as the 'unsplit' branch's
-            // own identical case above, rather than a raw padding-marker
-            // string or a redundant repeat of the tissue's own name.
+            // self-titled placeholder child (see isPlaceholderSubtypeLabel)
+            // -- shown as the tissue's own name with no sort control, same
+            // as the 'unsplit' branch's own identical case above.
             const isRealSubtype = !isPlaceholderSubtypeLabel(subtypeLabel, run.group.parentTissueType);
-            // Only ever non-null on Target Tissue %'s own combined "Show
-            // Non-Target Tissue %" view (every other tab's own columns are
-            // all one kind or the other, nothing to tag) -- tints this
-            // header cell to match the SAME blue/orange family its own
-            // body cells below it already use (score-N vs nt-score-N), so
-            // the header visually groups with its column's real color
-            // instead of both kinds sharing one neutral grey.
-            const columnKind = nonTargetColumnKeys
-                ? (nonTargetColumnKeys.has(key) ? 'non-target' : 'target')
-                : null;
+            const headerLabel = blankPlaceholderLabels && !isRealSubtype
+                ? ''
+                : getSubtypeHeaderLabel(subtypeLabel, run.group.parentTissueType);
+            // Only ever true on Target Tissue %'s own combined "Show
+            // Non-Target Tissue %" view (every other tab, and that tab
+            // with the toggle off, has no non-target columns at all) --
+            // tints just the non-target headers so they read apart from the
+            // plain grey target ones. Target headers keep the ordinary grey.
+            const isNonTargetColumn = Boolean(nonTargetColumnKeys?.has(key));
             nodes.push(
                 <th
                     key={key}
@@ -2497,10 +2368,8 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                             : formatTissueTypeTitle(run.group.parentTissueType)
                     }
                     className={
-                        (isRealSubtype
-                            ? 'tissue-heatmap-subtype-subrow-header'
-                            : 'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-subrow-placeholder') +
-                        (columnKind ? ` tissue-heatmap-subtype-subrow-header--${columnKind}` : '') +
+                        'tissue-heatmap-subtype-subrow-header' +
+                        (isNonTargetColumn ? ' tissue-heatmap-subtype-subrow-header--non-target' : '') +
                         (isLastChild ? ' tissue-heatmap-subtype-group-boundary' : '') +
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
@@ -2509,10 +2378,8 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                     onMouseEnter={() => onHoverColumn(key)}
                     // eslint-disable-next-line react/jsx-no-bind
                     onMouseLeave={() => onHoverColumn(null)}>
-                    <span
-                        className="tissue-heatmap-subtype-subrow-label-text"
-                        title={isRealSubtype ? subtypeLabel : undefined}>
-                        {isRealSubtype ? subtypeLabel : 'n/a'}
+                    <span className="tissue-heatmap-subtype-subrow-label-text" title={headerLabel || undefined}>
+                        {headerLabel}
                     </span>
                     {isRealSubtype ? (
                         <SortableHeaderLabel
@@ -2543,7 +2410,7 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
 // those 2 tabs -- see MetricHeatmapTable's own hasAnySplitColumn gate) --
 // Ischemic Time never passes them, so its own header stays exactly the
 // original 2-row shape.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null) {
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null, blankPlaceholderLabels = false) {
     const headerRowSpan = displayRuns ? 3 : 2;
     return (
         <>
@@ -2604,7 +2471,8 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                         hoveredColumn,
                         onHoverColumn,
                         selectedTissueType,
-                        nonTargetColumnKeys
+                        nonTargetColumnKeys,
+                        blankPlaceholderLabels
                     )}
                 </tr>
             ) : null}
@@ -2754,13 +2622,18 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // own rendering is provably untouched.
     subtypeColumnInfo = null,
     // Optional -- a Set of column keys that should read as "non-target"
-    // rather than "target" in the 3rd header row (see
-    // renderSubtypeHeaderCells' own tissue-heatmap-subtype-subrow-header--
-    // target/--non-target classes). Only Target Tissue %'s own "Show
-    // Non-Target Tissue %" combined view passes this (nonTargetColumnKeysForScoring);
+    // in the 3rd header row (see renderSubtypeHeaderCells' own
+    // tissue-heatmap-subtype-subrow-header--non-target class). Only Target
+    // Tissue %'s own "Show Non-Target Tissue %" combined view passes this;
     // every other tab leaves it null, since they're never a mix of both
     // kinds of column in the first place.
     nonTargetColumnKeys = null,
+    // Optional -- leaves the 3rd header row blank (instead of repeating the
+    // tissue's own name) for a tissue with no real subtype. Only Non Target
+    // Tissue % passes this: there, a bare "Heart" under the HART header
+    // would read as a non-target subtype named Heart, when it really means
+    // that tissue has no non-target subtype at all.
+    blankPlaceholderLabels = false,
 }) {
     const columnGroups = useMemo(
         () => buildColumnGroups(tissueTypes, tissueTypeCategories),
@@ -2772,7 +2645,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     );
     // An all-unsplit subColumnGroups (every tissue type in this table has 0
     // or 1 real subtypes) must not render a 3rd header row at all -- every
-    // column would just show an "n/a" placeholder (see
+    // column would just repeat its own tissue name (see
     // renderSubtypeHeaderCells) for no reason, since nothing anywhere in
     // this table actually has a real subtype to show.
     const hasAnySplitColumn = !!subColumnGroups && subColumnGroups.some((g) => g.isSplit);
@@ -3183,7 +3056,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 selectedCell?.tissueType,
                                 hasAnySplitColumn ? displayRuns : null,
                                 subtypeColumnInfo,
-                                nonTargetColumnKeys
+                                nonTargetColumnKeys,
+                                blankPlaceholderLabels
                             )}
                         </thead>
                     </table>
@@ -3212,7 +3086,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             selectedCell?.tissueType,
                             hasAnySplitColumn ? displayRuns : null,
                             subtypeColumnInfo,
-                            nonTargetColumnKeys
+                            nonTargetColumnKeys,
+                            blankPlaceholderLabels
                         )}
                     </thead>
                     <tbody>
@@ -3444,23 +3319,9 @@ export const BrowseTissueHeatmapTable = (props) => {
     // procurement, not independently per dissected sub-region, so every
     // real region column for a given donor carries the same score and this
     // gets the same distributeGenericBrainValue/merge treatment.
-    const autolysisScoreUnpadded = useMemo(
+    const autolysisScore = useMemo(
         () => buildTissueMetricMatrix(expandedForSubtypeTabs, getAutolysisScoreValue, true),
         [expandedForSubtypeTabs]
-    );
-    // Always exactly 3 subregions per tissue type here too -- same
-    // request/reasoning as Target Tissue %/Non Target Tissue %'s own
-    // padding (see padSubtypeColumnsPerGroup), just off the target-subtype
-    // expansion this tab shares with Target Tissue % (expandedForSubtypeTabs
-    // above) rather than a combined target/non-target one -- a single
-    // shared bucket, no non-target concept on this tab at all.
-    const autolysisScore = useMemo(
-        () => padSubtypeColumnsPerGroup(
-            autolysisScoreUnpadded,
-            3,
-            isPaddableNonBrainTissueType
-        ).matrixResult,
-        [autolysisScoreUnpadded]
     );
     const autolysisSubtypePlan = useMemo(
         () => buildSubtypeColumnPlan(
@@ -3489,38 +3350,13 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => expandTissueResultsForTargetWithNonTarget(tissueResultsExcludingFibroblast, showNonTargetInTargetTab),
         [tissueResultsExcludingFibroblast, showNonTargetInTargetTab]
     );
-    const targetTissuePercentageUnpadded = useMemo(
+    const targetTissuePercentage = useMemo(
         () => reorderNonTargetColumnsLast(
             buildTissueMetricMatrix(targetWithNonTargetExpansion.expanded, getCombinedTargetOrNonTargetValue, true),
             targetWithNonTargetExpansion.nonTargetColumnKeys
         ),
         [targetWithNonTargetExpansion]
     );
-    // Pads each tissue type's target subtype columns, and (only once the
-    // toggle is on and real non-target columns actually exist for it) its
-    // non-target subtype columns, up to 3 each -- 2 independent buckets
-    // within the same group (reorderNonTargetColumnsLast above already put
-    // each bucket into its own contiguous sub-run), per explicit request:
-    // always exactly 3 target subregions, +3 more (6 total) once "Show
-    // Non-Target Tissue %" is on. See padSubtypeColumnsPerGroup's own
-    // comment for why this must run after the reorder above, not before.
-    const targetTissuePadding = useMemo(
-        () => padSubtypeColumnsPerGroup(
-            targetTissuePercentageUnpadded,
-            3,
-            isPaddableNonBrainTissueType,
-            (key) => (targetWithNonTargetExpansion.nonTargetColumnKeys.has(key) ? 'non-target' : 'target'),
-            // Forces the non-target bucket to exist (padded to 3 "n/a"s)
-            // on EVERY tissue type once the toggle is on, even one with
-            // zero real non-target data submitted for it anywhere -- per
-            // explicit request, "Show Non-Target Tissue %" always means 3
-            // more columns, not "3 more, except on tissue types that
-            // happen to have no non-target data at all".
-            showNonTargetInTargetTab ? ['target', 'non-target'] : ['target']
-        ),
-        [targetTissuePercentageUnpadded, targetWithNonTargetExpansion, showNonTargetInTargetTab]
-    );
-    const targetTissuePercentage = targetTissuePadding.matrixResult;
     const targetTissueSubtypePlan = useMemo(
         () => buildSubtypeColumnPlan(
             targetTissuePercentage.tissueTypes,
@@ -3529,24 +3365,10 @@ export const BrowseTissueHeatmapTable = (props) => {
         ),
         [targetTissuePercentage.tissueTypes, realTissueTypeHrefsAndCategories]
     );
-    // Every column that should score/sort as "non-target" -- the ones real
-    // non-target subtype expansion produced, plus any synthetic non-target-
-    // bucket padding columns targetTissuePadding just added (a padding
-    // column's own value is always null regardless of which bucket it's
-    // counted under, so this only actually matters if a real value is ever
-    // threaded onto one later -- kept correct now rather than left to
-    // silently drift).
-    const nonTargetColumnKeysForScoring = useMemo(() => {
-        const merged = new Set(targetWithNonTargetExpansion.nonTargetColumnKeys);
-        targetTissuePadding.insertedKeysByBucket.forEach((bucket, key) => {
-            if (bucket === 'non-target') merged.add(key);
-        });
-        return merged;
-    }, [targetWithNonTargetExpansion, targetTissuePadding]);
-    // Dispatches per-column, off nonTargetColumnKeysForScoring above -- a
-    // non-target column (e.g. "Fibroadipose" sitting next to a target
-    // subtype like "Epicardium" under the same tissue type) needs the Non
-    // Target Tissue % tab's own orange, non-inverted scale
+    // Dispatches per-column, off nonTargetColumnKeys -- a non-target column
+    // (e.g. "Fibroadipose" sitting next to a target subtype like
+    // "Epicardium" under the same tissue type) needs the Non Target Tissue
+    // % tab's own orange, non-inverted scale
     // (getNonTargetTissuePercentageScoreClass), not Target Tissue %'s own
     // blue, inverted one -- the 2 band orders even share several of the same
     // literal band strings (e.g. "[11-25]"), so this can't be decided from
@@ -3557,19 +3379,19 @@ export const BrowseTissueHeatmapTable = (props) => {
     // band NON_TARGET_TISSUE_PERCENTAGE_ORDER has).
     const getTargetOrNonTargetScoreClass = useCallback(
         (value, tissueType) => (
-            nonTargetColumnKeysForScoring.has(tissueType)
+            targetWithNonTargetExpansion.nonTargetColumnKeys.has(tissueType)
                 ? getNonTargetTissuePercentageScoreClass(value)
                 : getTargetTissuePercentageScoreClass(value)
         ),
-        [nonTargetColumnKeysForScoring]
+        [targetWithNonTargetExpansion.nonTargetColumnKeys]
     );
     const getTargetOrNonTargetSortValue = useCallback(
         (value, tissueType) => (
-            nonTargetColumnKeysForScoring.has(tissueType)
+            targetWithNonTargetExpansion.nonTargetColumnKeys.has(tissueType)
                 ? getNonTargetTissuePercentageSortValue(value)
                 : getTargetTissuePercentageSortValue(value)
         ),
-        [nonTargetColumnKeysForScoring]
+        [targetWithNonTargetExpansion.nonTargetColumnKeys]
     );
 
     // Non Target Tissue % gets its own separate pre-expansion (see
@@ -3584,21 +3406,9 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => expandTissueResultsByNonTargetSubtype(tissueResultsExcludingFibroblast),
         [tissueResultsExcludingFibroblast]
     );
-    const nonTargetTissuePercentageUnpadded = useMemo(
+    const nonTargetTissuePercentage = useMemo(
         () => buildTissueMetricMatrix(expandedForNonTargetTab, getNonTargetTissuePercentageValue, true),
         [expandedForNonTargetTab]
-    );
-    // Always exactly 3 non-target subregions per tissue type here too, same
-    // reasoning/request as Target Tissue %'s own padding above -- a single
-    // shared bucket (no target/non-target split needed, this whole tab is
-    // non-target already).
-    const nonTargetTissuePercentage = useMemo(
-        () => padSubtypeColumnsPerGroup(
-            nonTargetTissuePercentageUnpadded,
-            3,
-            isPaddableNonBrainTissueType
-        ).matrixResult,
-        [nonTargetTissuePercentageUnpadded]
     );
     const nonTargetTissueSubtypePlan = useMemo(
         () => buildSubtypeColumnPlan(
@@ -3659,7 +3469,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeHrefs={targetTissueSubtypePlan.fixedTissueTypeHrefs}
                             tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
-                            nonTargetColumnKeys={nonTargetColumnKeysForScoring}
+                            nonTargetColumnKeys={targetWithNonTargetExpansion.nonTargetColumnKeys}
                             // Reflects the toggle right in the heading itself --
                             // not just the row of cells below it -- so it's
                             // clear at a glance that non-target data is folded
@@ -3731,6 +3541,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeHrefs={nonTargetTissueSubtypePlan.fixedTissueTypeHrefs}
                             tissueTypeCategories={nonTargetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={nonTargetTissueSubtypePlan.columnInfo}
+                            blankPlaceholderLabels
                             metricLabel="Non Target Tissue %"
                             tooltip="Percentage range of the sample that was NOT the target tissue subtype"
                             formatValue={formatNonTargetTissuePercentage}
