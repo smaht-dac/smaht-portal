@@ -1511,7 +1511,7 @@ def test_main_reports_malformed_values_as_unresolved(
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_auth_key")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.search_metadata")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_non_tpc_tissue_samples")
-@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_all_tpc_samples")
+@patch("encoded.commands.transfer_tpc_tissue_sample_metadata.get_tpc_samples_by_external_ids")
 @patch("encoded.commands.transfer_tpc_tissue_sample_metadata.ff_utils.get_metadata")
 def test_main_reports_manual_edit_records_as_needs_review(
     mock_get_metadata,
