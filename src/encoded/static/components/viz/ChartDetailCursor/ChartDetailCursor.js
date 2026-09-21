@@ -6,6 +6,7 @@ import { barplot_color_cycler } from './../ColorCycler';
 import { console, object, isServerSide, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 // `Schemas` kept for project-specific transforms
 import { Schemas } from './../../util';
+import { getRecordedTerms } from './../BarPlot/merge-terms';
 import CursorComponent from './CursorComponent';
 import { navigate } from './../../util';
 
@@ -95,7 +96,8 @@ class Body extends React.PureComponent {
                 const baseParams = navigate.getBrowseBaseParams(null, 'all');
                 _.forEach(props.path, (p) => {
                     if (p.field && p.term) {
-                        baseParams[p.field] = p.term;
+                        // Every recorded term a merged one stands for (Frozen -> Frozen + Snap Frozen).
+                        baseParams[p.field] = getRecordedTerms(p.field, p.term);
                     }
                 });
                 const last = props?.path?.at?.(-1) ?? cursorProps?.path?.[cursorProps.path.length - 1];

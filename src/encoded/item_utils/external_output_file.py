@@ -74,6 +74,18 @@ def get_tissue_category(
     return []
 
 
+def get_preservation_type(
+    properties: Dict[str, Any],
+    request_handler: RequestHandler
+) -> List[str]:
+    """Get preservation type(s) of the tissues associated with external output file, as recorded."""
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(properties),
+        tissue_utils.get_preservation_type,
+    )
+
+
 def get_tissue_type(
     properties: Dict[str, Any],
     request_handler: RequestHandler

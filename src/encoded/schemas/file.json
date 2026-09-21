@@ -402,6 +402,12 @@
             "title": "Tissue",
             "group_by_field": "sample_summary.category"
         },
+        "sample_summary.preservation_types": {
+            "title": "Sample Type",
+            "label_overrides": {
+                "No value": "Not specified"
+            }
+        },
         "assays.display_title": {
             "title": "Experimental Assay",
             "search_type": "basic",

@@ -7,8 +7,20 @@ import { object, layout, ajax, console, isServerSide, analytics, searchFilters, 
 
 import { navigate } from './../../util';
 import { ChartDataController } from './../../viz/chart-data-controller';
+import { getRecordedTerms } from './../../viz/BarPlot/merge-terms';
 import * as BarPlot from './../../viz/BarPlot';
 import { termTransformFxnWithOverrides } from './../SearchView';
+
+// What the chart's "Group By" menu offers on Browse by Tissue (besides the
+// built-in "None") -- unlike Browse by File/Donor, which group by
+// sequencer/assay/tissue, files here are split by what kind of sample they came
+// from (its preservation type: Fixed, Frozen, ...) or the center that
+// sequenced them ("Sequencing Center", the File schema's own title for this
+// field).
+const TISSUE_SUBDIVISION_FIELDS = [
+    { title: 'Sample Type', field: 'sample_summary.preservation_types' },
+    { title: 'Sequencing Center', field: 'sequencing_center.display_title' },
+];
 
 function getCandidateFields(field, fieldList) {
     if (typeof field !== 'string') return [];
@@ -202,23 +214,31 @@ export class FacetCharts extends React.PureComponent {
         'all' : 'Explore Files',
         'donor' : 'Explore Donors',
         'protected-donor' : 'Explore Donors',
+        'tissue' : 'Explore Files',
         'file' : 'Explore Files'
     };
 
     /** Defines buttons/actions to be shown in onHover popover. */
     cursorDetailActions(){
         const { href, browseBaseState, context, mapping = 'all' } = this.props;
+        // The chart on Browse by Tissue counts *files* per tissue/assay/
+        // sequencer, and Tissue has no assay/sequencer fields to filter on
+        // -- so a bar there opens the matching File list ('all'), starting
+        // from just the clicked bar's own filters, rather than trying to
+        // narrow the Tissue list itself.
+        const actionMapping = mapping === 'tissue' ? 'all' : mapping;
         const isBrowseHref = navigate.isBrowseHref(href);
         const currDonorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
         return [
             {
                 'title' : isBrowseHref && this.titleMapping[mapping] ? this.titleMapping[mapping] : 'Browse',
                 'function' : function(cursorProps, mouseEvt){
-                    var baseParams = navigate.getBrowseBaseParams(browseBaseState, mapping),
-                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, mapping);
+                    var baseParams = navigate.getBrowseBaseParams(browseBaseState, actionMapping),
+                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, actionMapping);
 
                     // Reset existing filters if selecting from 'all' view. Preserve if from filtered view.
-                    var currentDonorFilters = browseBaseState === 'all' ? {} : currDonorFilters;
+                    // (The tissue mapping's own filters are Tissue fields, meaningless on the File list it opens.)
+                    var currentDonorFilters = (browseBaseState === 'all' || mapping === 'tissue') ? {} : currDonorFilters;
 
                     var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
@@ -230,7 +250,10 @@ export class FacetCharts extends React.PureComponent {
                         if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
                             return donorFilters;
                         }
-                        return searchFilters.changeFilter(node.field, node.term, donorFilters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
+                        // A merged term (Frozen) filters on every recorded term it stands for (Frozen + Snap Frozen).
+                        return getRecordedTerms(node.field, node.term).reduce(function(filters, recordedTerm){
+                            return searchFilters.changeFilter(node.field, recordedTerm, filters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
+                        }, donorFilters);
                     }, currentDonorFilters);
 
                     // very hacky - since Donor and ProtectedDonor lack tissues/sequencers/assays that are associated with released files,
@@ -243,7 +266,7 @@ export class FacetCharts extends React.PureComponent {
                         'sequencers.display_title',
                     ];
 
-                    if (mapping !== 'all' && keysToClear.some((k) => newDonorFilters[k])) {
+                    if (actionMapping !== 'all' && keysToClear.some((k) => newDonorFilters[k])) {
                         const last = cursorProps?.path?.at?.(-1) ?? cursorProps?.path?.[cursorProps.path.length - 1];
                         newDonorFilters.external_id = last?.all_donor_ids ?? [];
                         keysToClear.forEach((k) => delete newDonorFilters[k]);
@@ -260,6 +283,24 @@ export class FacetCharts extends React.PureComponent {
                             'filters'     : analytics.getStringifiedCurrentFilters(currDonorFilters), // 'Existing' filters, or filters at time of action, go here.
                         });
                     });
+
+                    // filtersToHref/saveChangedFilters only carry `type` and `q` over from
+                    // the base href, so the rest of the File list's own base filters
+                    // (status, dataset, study) have to be passed explicitly or the list
+                    // would include files the chart never counted.
+                    const requiredQs = mapping === 'tissue' ? _.omit(baseParams, 'type') : {};
+
+                    if (mapping === 'tissue') {
+                        // Open the File list in a new tab so the Tissue page (and its
+                        // chart/toggle state) stays where it is -- same as the popover's
+                        // own "N Files" link.
+                        window.open(
+                            searchFilters.filtersToHref(newDonorFilters, browseBaseHref, null, false, null, requiredQs),
+                            '_blank',
+                            'noopener'
+                        );
+                        return;
+                    }
 
                     searchFilters.saveChangedFilters(newDonorFilters, browseBaseHref, () => {
                         // Scroll to top of browse page container after navigation is complete.
@@ -347,7 +388,12 @@ export class FacetCharts extends React.PureComponent {
         return (
             <div className={"facet-charts show-" + show} key="facet-charts">
                 <ChartDataController.Provider id={"barplot-" + mapping}>
-                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
+                    <BarPlot.UIControlsWrapper
+                        legend
+                        chartHeight={height}
+                        // undefined falls back to UIControlsWrapper's own default list.
+                        availableFields_Subdivision={mapping === 'tissue' ? TISSUE_SUBDIVISION_FIELDS : undefined}
+                        {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
                         <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context, termLabelTransform }} />
                     </BarPlot.UIControlsWrapper>
                 </ChartDataController.Provider>

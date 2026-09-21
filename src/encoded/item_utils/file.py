@@ -547,6 +547,18 @@ def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -
     )
 
 
+def get_preservation_type(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get preservation type(s) ("Fixed", "Fresh", "Frozen", "Snap Frozen") of the
+    tissues associated with file, as recorded.
+    """
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(file, request_handler),
+        tissue.get_preservation_type,
+    )
+
+
 def get_meta_workflow_run_outputs(file: Dict[str, Any]) -> Union[List[str], List[Dict[str, Any]]]:
     """Get output metaworkflow_run from file."""
     return file.get("meta_workflow_run_outputs",[])

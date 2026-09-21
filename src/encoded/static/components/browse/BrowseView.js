@@ -70,6 +70,8 @@ export const FILE_BROWSE_HIDE_FACETS = [
     'validation_errors.name',
     'version',
     'sample_summary.studies',
+    // Only there for its label_overrides -- Cohort View's facet chart groups by it.
+    'sample_summary.preservation_types',
     'submission_centers.display_title',
     'donors.tags',
 ];

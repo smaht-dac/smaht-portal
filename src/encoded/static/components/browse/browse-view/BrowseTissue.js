@@ -56,9 +56,13 @@ export const BrowseTissueBody = (props) => {
     // can sit next to this header's own title instead of inside the
     // tissue/cohort content below -- toggleViewIndex is still passed down
     // since Basic/Advanced only makes sense while Tissue View is active.
-    const [toggleViewIndex, setToggleViewIndex] = useState(1);
-    const [tissueDetailModeIndex, setTissueDetailModeIndex] = useState(0);
+    // 0 = Tissue View (the default), 1 = Cohort View.
+    const [toggleViewIndex, setToggleViewIndex] = useState(0);
+    // Tissue View: 0 = Basic, 1 = Advanced (the default).
+    const [tissueDetailModeIndex, setTissueDetailModeIndex] = useState(1);
     const [tissueSortModeIndex, setTissueSortModeIndex] = useState(0);
+    // Cohort View: 0 = the summary charts, 1 = the facet chart (the default).
+    const [cohortModeIndex, setCohortModeIndex] = useState(1);
     const [showIntroHighlight, setShowIntroHighlight] = useState(false);
     // Guards the flash to the very first time Tissue View activates -- it
     // stays this minimal/borderless the rest of the session, so it should
@@ -66,14 +70,14 @@ export const BrowseTissueBody = (props) => {
     // toggles back to Tissue View.
     const hasPlayedIntroHighlight = useRef(false);
 
-    // The toggle's data-tip attributes (react-tooltip's static-attribute
+    // The toggles' data-tip attributes (react-tooltip's static-attribute
     // API) only take effect on nodes present at the tooltip's last build --
-    // since this toggle only exists in the DOM once toggleViewIndex flips to
-    // Tissue View, its two buttons need an explicit rebuild once they mount.
+    // each view has its own toggle(s) that only exist in the DOM while that
+    // view is active (Tissue View's Basic/Advanced, Cohort View's charts
+    // switch), so their buttons need an explicit rebuild once they mount.
     useEffect(() => {
-        if (toggleViewIndex !== 0) return;
         ReactTooltip.rebuild();
-        if (hasPlayedIntroHighlight.current) return;
+        if (toggleViewIndex !== 0 || hasPlayedIntroHighlight.current) return undefined;
         hasPlayedIntroHighlight.current = true;
         setShowIntroHighlight(true);
         const timer = setTimeout(() => setShowIntroHighlight(false), INTRO_HIGHLIGHT_DURATION_MS);
@@ -106,7 +110,18 @@ export const BrowseTissueBody = (props) => {
                             />
                         ) : null}
                     </div>
-                ) : null}
+                ) : (
+                    <div className="tissue-header-toggles">
+                        <TissueHeaderToggle
+                            activeIndex={cohortModeIndex}
+                            onChange={setCohortModeIndex}
+                            options={[
+                                { tip: 'Summary Charts', icon: 'icon-chart-pie' },
+                                { tip: 'Facet Chart', icon: 'icon-chart-column' },
+                            ]}
+                        />
+                    </div>
+                )}
             </div>
             <Alerts alerts={alerts} className="mt-2" />
             <BrowseTissueVizWrapper
@@ -116,6 +131,7 @@ export const BrowseTissueBody = (props) => {
                 setToggleViewIndex={setToggleViewIndex}
                 tissueDetailModeIndex={tissueDetailModeIndex}
                 tissueSortModeIndex={tissueSortModeIndex}
+                cohortModeIndex={cohortModeIndex}
             />
             <hr />
             <BrowseTissueHeatmapTable href={href} session={session} />

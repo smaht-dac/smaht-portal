@@ -12,6 +12,7 @@ import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
 import { Legend } from './../components';
+import { mergeTermsInBarplotData } from './merge-terms';
 
 /**
  * Component which wraps BarPlot.Chart and provides some UI buttons and stuff.
@@ -33,6 +34,15 @@ export class UIControlsWrapper extends React.PureComponent {
         'clinically accessible': 'Clinically accessible',
         'unknown': UIControlsWrapper.TISSUE_CATEGORY_UNKNOWN
     };
+
+    /**
+     * Whether the Y axis counts files (Browse by File's 'all' mapping, and
+     * Browse by Tissue's 'tissue' one -- whose files, not donors, are the
+     * interesting count per tissue) instead of donors.
+     */
+    static mappingCountsFiles(mapping) {
+        return mapping === 'all' || mapping === 'tissue';
+    }
 
     static canShowChart(chartData) {
         if (!chartData) return false;
@@ -120,7 +130,7 @@ export class UIControlsWrapper extends React.PureComponent {
         this.handleFieldSelect = _.throttle(this.handleFieldSelect.bind(this), 300);
 
         this.state = {
-            'aggregateType': props.mapping === 'all' ? 'files' : 'donors',
+            'aggregateType': UIControlsWrapper.mappingCountsFiles(props.mapping) ? 'files' : 'donors',
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.donors === 0) ? 'all' : 'filtered',
             'openDropdown': null,
             'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL
@@ -220,7 +230,11 @@ export class UIControlsWrapper extends React.PureComponent {
     }
 
     getBarplotDataForTissueCategory() {
-        const { barplot_data_unfiltered, barplot_data_filtered, barplot_data_fields } = this.props;
+        const { barplot_data_fields } = this.props;
+        // Terms shown as one (e.g. Snap Frozen under Frozen) are merged before
+        // anything else reads the data -- see viz/BarPlot/merge-terms.js.
+        const barplot_data_unfiltered = mergeTermsInBarplotData(this.props.barplot_data_unfiltered);
+        const barplot_data_filtered = mergeTermsInBarplotData(this.props.barplot_data_filtered);
         const { tissueCategoryFilter } = this.state;
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
         if (!isTissueXAxis || tissueCategoryFilter === UIControlsWrapper.TISSUE_CATEGORY_ALL) {
@@ -543,7 +557,7 @@ export class UIControlsWrapper extends React.PureComponent {
                         <div className="row" style={{ 'maxWidth': 210, 'float': 'right' }}>
                             <div className="col-3" style={{ 'width': 51 }}>
                                 {/* <h6 className="dropdown-heading">Y Axis</h6> */}
-                                <h6 className="dropdown-heading">{mapping === 'all' ? '# of Files' : '# of Donors'}</h6>
+                                <h6 className="dropdown-heading">{UIControlsWrapper.mappingCountsFiles(mapping) ? '# of Files' : '# of Donors'}</h6>
                             </div>
                             <div className="col-9" style={{ 'width': 100, 'textAlign': 'left', visibility: 'hidden' }}>
                                 <DropdownButton

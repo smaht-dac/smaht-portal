@@ -12,6 +12,7 @@ import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
 import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import { formUrlEncode } from './BrowseTissueHeatmapTable';
+import { FacetCharts } from '../components/FacetCharts';
 import { BROWSE_STATUS_FILTERS } from '../BrowseView';
 import AliquotVisualization, {
     SLICE_TYPE_STYLES,
@@ -35,6 +36,10 @@ const TISSUE_CATEGORY_ORDER = ['Ectoderm', 'Mesoderm', 'Endoderm', 'Germ Cells',
 // fetch consistent with the rest of the page's population instead of
 // counting every File regardless of release status.
 const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('status');
+
+// What the Cohort View's facet chart starts out aggregating: files per tissue,
+// split by sample type (preservation type).
+const FACET_CHART_INITIAL_FIELDS = ['sample_summary.tissues', 'sample_summary.preservation_types'];
 
 // pathology_summary.autolysis_score is an integer 0-3 (see
 // item-pages/components/tissue-overview/helpers.js's getAutolysisScoreCellClass
@@ -768,10 +773,14 @@ export const BrowseTissueVizWrapper = (props) => {
         href,
         session,
         windowWidth,
+        windowHeight,
+        navigate,
+        isFullscreen,
         toggleViewIndex,
         setToggleViewIndex,
         tissueDetailModeIndex,
         tissueSortModeIndex = 0,
+        cohortModeIndex = 1,
     } = props;
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
@@ -797,6 +806,15 @@ export const BrowseTissueVizWrapper = (props) => {
         return hrefQuery;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hrefSearch, session]);
+
+    // FacetCharts initializes ChartDataController and fetches on mount, so it
+    // isn't mounted until someone opens it -- but stays mounted after that
+    // (toggled via d-none, like the other views here) so switching back
+    // doesn't refetch.
+    const [facetChartOpened, setFacetChartOpened] = useState(toggleViewIndex === 1 && cohortModeIndex === 1);
+    useEffect(() => {
+        if (toggleViewIndex === 1 && cohortModeIndex === 1) setFacetChartOpened(true);
+    }, [toggleViewIndex, cohortModeIndex]);
 
     const { loading: tissueCountsLoading, donorCountByInternalCode } = useTissueDonorCounts(fileFilters, session);
     const tissuePanelProps = useMemo(
@@ -864,7 +882,32 @@ export const BrowseTissueVizWrapper = (props) => {
                     </div>
                 </div>
                 <div className={toggleViewIndex === 1 ? '' : 'd-none'}>
-                    <TissueCohortCharts fileFilters={fileFilters} session={session} />
+                    {/* Both Cohort View modes stay mounted once shown (toggled
+                        via d-none), same reasoning as the views above. */}
+                    <div className={cohortModeIndex === 0 ? '' : 'd-none'}>
+                        <TissueCohortCharts fileFilters={fileFilters} session={session} />
+                    </div>
+                    {facetChartOpened ? (
+                        <div className={cohortModeIndex === 1 ? '' : 'd-none'}>
+                            {/* The same chart Browse by File/Donor show (X Axis /
+                                Group By / germ-layer tabs, bars link to the
+                                filtered File list), here aggregating this
+                                page's released files by tissue. */}
+                            <div id="facet-charts-container" className="container ps-0 ps-xl-4">
+                                <FacetCharts
+                                    {..._.pick(props, 'context', 'href', 'session', 'schemas', 'browseBaseState')}
+                                    {...{
+                                        windowWidth,
+                                        windowHeight,
+                                        navigate,
+                                        isFullscreen,
+                                        initialFields: FACET_CHART_INITIAL_FIELDS,
+                                        mapping: 'tissue',
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
             </div>
         </div>
