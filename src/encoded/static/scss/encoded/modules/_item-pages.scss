@@ -4583,6 +4583,17 @@ File, Donor, and Publication Overview Styles
         gap: 1.125rem;
     }
 
+    // Caption under the core plate saying the 6x6 grid is a maximum, not the
+    // actual layout of every aliquot.
+    .aliquot-detail-plate-note {
+        margin: -0.5rem 0 0;
+        color: #7c8ba0;
+        font-size: 0.75rem;
+        font-style: italic;
+        line-height: 1.35;
+        text-align: center;
+    }
+
     // Donor / Tissue / Aliquot -- a small label/value card under the plate.
     .aliquot-detail-info {
         display: grid;

@@ -261,6 +261,13 @@ export default function FrozenAliquotPopoverBody({
                         onHoverPosition={onHoverPosition}
                     />
                 </div>
+                {/* The plate always draws the full 6x6 grid, but that's only the
+                    most cores an aliquot can be cut into -- a real one can have
+                    fewer (e.g. a 3x3 arrangement), so say so rather than let the
+                    empty wells read as missing data. */}
+                <p className="aliquot-detail-plate-note">
+                    6&times;6 is the maximum possible arrangement; an aliquot may have fewer cores.
+                </p>
                 <AliquotInfoCard
                     donorLabel={donorLabel}
                     specimenLabel="Frozen"
