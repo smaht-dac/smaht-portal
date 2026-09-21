@@ -691,6 +691,22 @@ export function PathologyOutcomeBadge({ outcome, unacceptableDescription }) {
     );
 }
 
+// Popper settings shared by the aliquot popovers' <Overlay>s (Fixed, Frozen,
+// non-solid). These popovers are wide, so Popper's defaults -- which only
+// flip to the opposite side when it happens to fit, and otherwise stay
+// tethered to the slice/tube -- left them running off the edge of the page.
+// Prefers the right (set on each <Overlay>), then flips to the left, then
+// below/above; `tether: false` lets the popover slide along the edge to stay
+// inside the viewport even if that means sitting over the slice it belongs
+// to, and `altAxis` does the same vertically for a popover taller than the
+// room above/below its target.
+export const ALIQUOT_POPOVER_POPPER_CONFIG = {
+    modifiers: [
+        { name: 'flip', options: { fallbackPlacements: ['left', 'bottom', 'top'] } },
+        { name: 'preventOverflow', options: { tether: false, altAxis: true, padding: 8 } },
+    ],
+};
+
 // The small Donor / Tissue / Aliquot label-value card the aliquot popovers
 // share (FixedAliquotPopoverBody.js/FrozenAliquotPopoverBody.js/
 // NonSolidAliquotVisualization.js). `specimenLabel` ("Fixed"/"Frozen") is

@@ -4,7 +4,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
-import { isTpcSubmissionCenter } from './helpers';
+import { ALIQUOT_POPOVER_POPPER_CONFIG, isTpcSubmissionCenter } from './helpers';
 import FixedAliquotPopoverBody from './FixedAliquotPopoverBody';
 import FrozenAliquotPopoverBody, { CORE_DOT_COLOR_PALETTE } from './FrozenAliquotPopoverBody';
 
@@ -576,16 +576,19 @@ export default function AliquotVisualization({
         ] || [null];
         const filesHrefs = selectedSlice?.frozenCorePositionFilesHrefs?.[corePosition] || [];
         const externalIds = selectedSlice?.frozenCorePositionExternalIds?.[corePosition] || [];
+        const coreSizes = selectedSlice?.frozenCorePositionCoreSizes?.[corePosition] || [];
         submissionCenters.forEach((submissionCenter, centerIndex) => {
             if (isTpcSubmissionCenter(submissionCenter)) return;
             const filesHref = filesHrefs[centerIndex] || null;
             const externalId = externalIds[centerIndex] || null;
+            const coreSize = coreSizes[centerIndex] || null;
             const key = submissionCenter || '';
             if (groupIndexByKey.has(key)) {
                 const group = selectedFrozenCorePositionGroups[groupIndexByKey.get(key)];
                 group.positions.push(corePosition);
                 group.positionFilesHrefs[corePosition] = filesHref;
                 group.positionExternalIds[corePosition] = externalId;
+                group.positionCoreSizes[corePosition] = coreSize;
             } else {
                 groupIndexByKey.set(key, selectedFrozenCorePositionGroups.length);
                 selectedFrozenCorePositionGroups.push({
@@ -602,6 +605,10 @@ export default function AliquotVisualization({
                     // separate from `selectedAliquotId+corePosition` (a
                     // synthetic label, not always identical to the real id).
                     positionExternalIds: { [corePosition]: externalId },
+                    // Each position's own `core_size` (mm), parallel to
+                    // positionExternalIds -- shown in the popover's core
+                    // table.
+                    positionCoreSizes: { [corePosition]: coreSize },
                 });
             }
         });
@@ -910,6 +917,7 @@ export default function AliquotVisualization({
                     show={!!selectedSlice && !!selectedTarget}
                     target={selectedTarget}
                     placement="right"
+                    popperConfig={ALIQUOT_POPOVER_POPPER_CONFIG}
                     rootClose
                     rootCloseEvent="mousedown"
                     // eslint-disable-next-line react/jsx-no-bind
@@ -920,7 +928,10 @@ export default function AliquotVisualization({
                         <Popover
                             {...overlayProps}
                             id={`${popoverId}-slice-popover`}
-                            className="aliquot-popover aliquot-popover--wide">
+                            className={
+                                'aliquot-popover aliquot-popover--wide' +
+                                (isSelectedSliceFrozen ? '' : ' aliquot-popover--compact')
+                            }>
                             <PopoverHeader as="h3">
                                 {selectedAliquotId} - {selectedStyles.label} Tissue
                             </PopoverHeader>

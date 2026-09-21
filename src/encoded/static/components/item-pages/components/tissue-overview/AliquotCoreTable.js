@@ -14,8 +14,11 @@ export const formatCenterName = (center) => (center ? center.replace(/\s*GCC$/, 
 // (a physical core at a plate position), "Sample" for non-solid, where a row
 // is a share of one tube's material sent to a GCC, not a core.
 //
-// Each row: { key, coreLabel, coreColor?, coreHref?, coreTitle?, dataLabels[],
-// centerLabel, centerHref?, centerTitle?, centerIsEmpty? } -- `hoverKey`
+// Each row: { key, coreLabel, coreColor?, coreHref?, coreTitle?, sizeLabel?,
+// dataLabels[], centerLabel, centerHref?, centerTitle?, centerIsEmpty? } --
+// a "Size" column (the core's `core_size`) only appears once at least one
+// row has a `sizeLabel`, so tables whose rows have none (non-solid) don't
+// get an empty column. `hoverKey`
 // (defaults to `key`) is what onHoverKey reports for the two-way hover with
 // the plate dots in the Frozen popover.
 export default function AliquotCoreTable({
@@ -25,12 +28,14 @@ export default function AliquotCoreTable({
     emptyMessage = null,
     rowLabel = 'Core',
 }) {
+    const showSize = rows.some((row) => row.sizeLabel);
     return (
         <div className="aliquot-detail-table-scroll">
             <table className="aliquot-detail-table is-frozen">
                 <thead>
                     <tr>
                         <th>{rowLabel}</th>
+                        {showSize ? <th>Size</th> : null}
                         <th>Data</th>
                         <th>Data Gen.</th>
                     </tr>
@@ -38,7 +43,7 @@ export default function AliquotCoreTable({
                 <tbody>
                     {emptyMessage ? (
                         <tr>
-                            <td className="aliquot-detail-table-empty" colSpan={3}>
+                            <td className="aliquot-detail-table-empty" colSpan={showSize ? 4 : 3}>
                                 {emptyMessage}
                             </td>
                         </tr>
@@ -68,6 +73,11 @@ export default function AliquotCoreTable({
                                         <span title={row.coreTitle}>{row.coreLabel}</span>
                                     )}
                                 </td>
+                                {showSize ? (
+                                    <td className="aliquot-detail-size-cell">
+                                        {row.sizeLabel || <span className="aliquot-detail-na">N/A</span>}
+                                    </td>
+                                ) : null}
                                 <td>
                                     {row.dataLabels.length > 0 ? (
                                         row.dataLabels.join(', ')

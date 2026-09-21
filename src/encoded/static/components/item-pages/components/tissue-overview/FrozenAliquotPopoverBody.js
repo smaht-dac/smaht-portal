@@ -59,6 +59,16 @@ function getSortedPathologyReportItems(entries) {
         });
 }
 
+// core_size enum values ("1.5", "3.0", "3.0 Donut") are millimetres -- "3.0
+// Donut" is a 3.0 mm donut-shaped core -- so this reads "1.5 mm" / "3.0 mm
+// Donut". null when the sample has no core_size (only Core samples carry
+// one).
+const formatCoreSize = (coreSize) => {
+    if (!coreSize) return null;
+    const [size, ...rest] = coreSize.split(' ');
+    return [`${size} mm`, ...rest].join(' ');
+};
+
 // The well-plate grid: every core position (A1-F6) as a ring, with the
 // positions this Frozen aliquot actually has cores for filled in the color of
 // their submitting center.
@@ -229,6 +239,7 @@ export default function FrozenAliquotPopoverBody({
             coreTitle: positionFilesHref
                 ? `View ${aliquotId}${corePosition}'s own files`
                 : 'No files yet for this position',
+            sizeLabel: formatCoreSize(group.positionCoreSizes[corePosition]),
             dataLabels: assayPlatformsBySampleName[group.positionExternalIds[corePosition]] || [],
             centerLabel: formatCenterName(group.submissionCenter) || `GCC${groupIndex + 1}`,
             centerHref: group.filesHref,

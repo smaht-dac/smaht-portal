@@ -4,7 +4,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { Overlay } from 'react-bootstrap';
-import { AliquotInfoCard } from './helpers';
+import { ALIQUOT_POPOVER_POPPER_CONFIG, AliquotInfoCard } from './helpers';
 import AliquotCoreTable, { formatCenterName } from './AliquotCoreTable';
 import { CORE_DOT_DEFAULT_COLOR } from './FrozenAliquotPopoverBody';
 
@@ -299,6 +299,7 @@ export default function NonSolidAliquotVisualization({
                     show={!!selectedTarget}
                     target={selectedTarget}
                     placement="right"
+                    popperConfig={ALIQUOT_POPOVER_POPPER_CONFIG}
                     rootClose
                     rootCloseEvent="mousedown"
                     // eslint-disable-next-line react/jsx-no-bind

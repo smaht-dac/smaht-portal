@@ -377,6 +377,9 @@ const TissueView = React.memo(function TissueView({
                             existing.frozenCorePositionExternalIds[corePosition] = (
                                 existing.frozenCorePositionExternalIds[corePosition] || []
                             ).concat([sample.external_id || null]);
+                            existing.frozenCorePositionCoreSizes[corePosition] = (
+                                existing.frozenCorePositionCoreSizes[corePosition] || []
+                            ).concat([sample.core_size || null]);
                         }
                     }
                     return;
@@ -429,6 +432,12 @@ const TissueView = React.memo(function TissueView({
                     // that field's comment).
                     frozenCorePositionExternalIds: corePosition
                         ? { [corePosition]: [sample.external_id || null] }
+                        : {},
+                    // This record's own `core_size` (mm: "1.5", "3.0" or "3.0
+                    // Donut"; only Core samples have one) per position --
+                    // parallel array to the two above, same reasoning.
+                    frozenCorePositionCoreSizes: corePosition
+                        ? { [corePosition]: [sample.core_size || null] }
                         : {},
                 };
                 realSlices.push(slice);

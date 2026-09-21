@@ -4250,7 +4250,14 @@ File, Donor, and Publication Overview Styles
     // tables on the right -- so it needs far more room than the narrow
     // Fixed one. Capped to the viewport so it never spills off a small screen.
     &.aliquot-popover--wide {
-        --aliquot-detail-width: min(760px, calc(100vw - 32px));
+        --aliquot-detail-width: min(800px, calc(100vw - 32px));
+
+        // A Fixed slice's table is just Pathology Report / Outcome, so it
+        // doesn't need the width Frozen's 3-column core table does -- at the
+        // full width it left most of the right half empty.
+        &.aliquot-popover--compact {
+            --aliquot-detail-width: min(620px, calc(100vw - 32px));
+        }
 
         width: var(--aliquot-detail-width);
         max-width: var(--aliquot-detail-width);
@@ -4503,7 +4510,7 @@ File, Donor, and Publication Overview Styles
 
     .aliquot-detail-layout {
         display: grid;
-        grid-template-columns: 240px minmax(0, 1fr);
+        grid-template-columns: 260px minmax(0, 1fr);
         gap: 1.5rem;
         align-items: start;
 
@@ -4580,7 +4587,7 @@ File, Donor, and Publication Overview Styles
     .aliquot-detail-info {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr);
-        gap: 0.5rem 1rem;
+        gap: 0.5rem 0.75rem;
         align-items: baseline;
         margin: 0;
         padding: 0.75rem 1rem;
@@ -4662,8 +4669,12 @@ File, Donor, and Publication Overview Styles
             background-color: #f6f7f8;
         }
 
+        // Set from either direction (hovering the plate dot or this row) --
+        // has to stand out from the zebra striping above, so a tint plus a
+        // left accent bar rather than another near-white shade.
         tbody tr.is-hovered {
-            background-color: #eef5fb;
+            background-color: #d7e8f8;
+            box-shadow: inset 3px 0 0 #2f6fb0;
         }
 
         a {
@@ -4680,6 +4691,10 @@ File, Donor, and Publication Overview Styles
     .aliquot-detail-core-cell {
         width: 64px;
         font-weight: 600;
+    }
+
+    .aliquot-detail-size-cell {
+        white-space: nowrap;
     }
 
     .aliquot-detail-na {
