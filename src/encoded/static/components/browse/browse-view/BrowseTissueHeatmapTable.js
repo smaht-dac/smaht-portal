@@ -2503,10 +2503,15 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
 // (never merged across a *different* run, via the `runIndex` check) since
 // every child there already shares the same parent tissue type.
 function renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys) {
+    // Defaults to "every column is TARGET" -- e.g. Target Tissue % with
+    // its own "Show Non-Target Tissue %" toggle off, where the row still
+    // renders (per showTargetNonTargetRow) but nothing is actually
+    // non-target.
+    const effectiveNonTargetColumnKeys = nonTargetColumnKeys || new Set();
     const bars = [];
     displayRuns.forEach((run, runIndex) => {
         if (run.type === 'merged-brain') {
-            const isNonTarget = run.regionTissueTypes.every((key) => nonTargetColumnKeys.has(key));
+            const isNonTarget = run.regionTissueTypes.every((key) => effectiveNonTargetColumnKeys.has(key));
             // A synthetic parent id (not a real tissue_type) -- only used
             // below to detect a real tissue-type-group boundary, and every
             // "Brain" run is already its own distinct group by construction.
@@ -2516,14 +2521,14 @@ function renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys) {
         if (run.type === 'unsplit') {
             bars.push({
                 key: run.key,
-                isNonTarget: nonTargetColumnKeys.has(run.key),
+                isNonTarget: effectiveNonTargetColumnKeys.has(run.key),
                 span: 1,
                 parentTissueType: run.parentTissueType,
             });
             return;
         }
         run.group.children.forEach(({ key }) => {
-            const isNonTarget = nonTargetColumnKeys.has(key);
+            const isNonTarget = effectiveNonTargetColumnKeys.has(key);
             const last = bars[bars.length - 1];
             if (last && last.runIndex === runIndex && last.isNonTarget === isNonTarget) {
                 last.span += 1;
@@ -2574,8 +2579,8 @@ function renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys) {
 // those 2 tabs -- see MetricHeatmapTable's own hasAnySplitColumn gate) --
 // Ischemic Time never passes them, so its own header stays exactly the
 // original 2-row shape.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null, blankPlaceholderLabels = false) {
-    const hasTargetNonTargetRow = !!displayRuns && !!nonTargetColumnKeys && nonTargetColumnKeys.size > 0;
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null, blankPlaceholderLabels = false, showTargetNonTargetRow = false) {
+    const hasTargetNonTargetRow = !!displayRuns && showTargetNonTargetRow;
     const headerRowSpan = displayRuns ? (hasTargetNonTargetRow ? 4 : 3) : 2;
     return (
         <>
@@ -2814,6 +2819,16 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // every other tab leaves it null, since they're never a mix of both
     // kinds of column in the first place.
     nonTargetColumnKeys = null,
+    // Optional -- renders the 4th TARGET/NON-TARGET header row (see
+    // renderTargetNonTargetHeaderRow) unconditionally, per explicit
+    // request, rather than only whenever `nonTargetColumnKeys` actually
+    // has something non-target in it (the "Show Non-Target Tissue %"
+    // toggle off leaves that Set empty, which used to hide the row
+    // entirely instead of showing it as one solid "TARGET" bar). Passed
+    // by both Target Tissue % (always) and Non Target Tissue % (whose own
+    // `nonTargetColumnKeys` is every one of its own columns, since that
+    // whole tab has no "target" columns of its own to contrast against).
+    showTargetNonTargetRow = false,
     // Optional -- leaves the 3rd header row blank (instead of repeating the
     // tissue's own name) for a tissue with no real subtype. Only Non Target
     // Tissue % passes this: there, a bare "Heart" under the HART header
@@ -3243,7 +3258,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 hasAnySplitColumn ? displayRuns : null,
                                 subtypeColumnInfo,
                                 nonTargetColumnKeys,
-                                blankPlaceholderLabels
+                                blankPlaceholderLabels,
+                                showTargetNonTargetRow
                             )}
                         </thead>
                     </table>
@@ -3273,7 +3289,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             hasAnySplitColumn ? displayRuns : null,
                             subtypeColumnInfo,
                             nonTargetColumnKeys,
-                            blankPlaceholderLabels
+                            blankPlaceholderLabels,
+                            showTargetNonTargetRow
                         )}
                     </thead>
                     <tbody>
@@ -3596,6 +3613,14 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => buildTissueMetricMatrix(expandedForNonTargetTab, getNonTargetTissuePercentageValue, true),
         [expandedForNonTargetTab]
     );
+    // Every one of this tab's own columns reads as "NON-TARGET" in the
+    // TARGET/NON-TARGET header row (see showTargetNonTargetRow below) --
+    // this whole tab has no "target" columns of its own to contrast
+    // against, unlike Target Tissue %'s own combined view.
+    const allNonTargetColumnKeys = useMemo(
+        () => new Set(nonTargetTissuePercentage.tissueTypes),
+        [nonTargetTissuePercentage.tissueTypes]
+    );
     const nonTargetTissueSubtypePlan = useMemo(
         () => buildSubtypeColumnPlan(
             nonTargetTissuePercentage.tissueTypes,
@@ -3656,6 +3681,11 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
                             nonTargetColumnKeys={targetWithNonTargetExpansion.nonTargetColumnKeys}
+                            // Always shown, per explicit request -- toggle
+                            // off just means the row renders as one solid
+                            // "TARGET" bar (nonTargetColumnKeys is empty
+                            // then, not null).
+                            showTargetNonTargetRow
                             // Reflects the toggle right in the heading itself --
                             // not just the row of cells below it -- so it's
                             // clear at a glance that non-target data is folded
@@ -3727,6 +3757,8 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeHrefs={nonTargetTissueSubtypePlan.fixedTissueTypeHrefs}
                             tissueTypeCategories={nonTargetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={nonTargetTissueSubtypePlan.columnInfo}
+                            nonTargetColumnKeys={allNonTargetColumnKeys}
+                            showTargetNonTargetRow
                             blankPlaceholderLabels
                             metricLabel="Non Target Tissue %"
                             tooltip="Percentage range of the sample that was NOT the target tissue subtype"

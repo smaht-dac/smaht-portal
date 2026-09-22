@@ -4336,8 +4336,23 @@ div.browse-link-icon {
 					border-right-color: rgba(0, 0, 0, 0.08);
 				}
 			}
+			// `width: calc(50% - 4px)`, not the base rule's plain `width:
+			// 50%` -- reserves a 4px strip at the very right edge of the
+			// <td> that this absolutely-positioned span's own background
+			// never paints into, so the parent <td>'s own box-shadow
+			// group-boundary gap (up to 4px, see .tissue-heatmap-cell-
+			// group-boundary) can actually show through it. Without this,
+			// `inset: 0`'s implicit `right: 0` (from the base rule) had
+			// this span's background flush against the <td>'s true right
+			// edge, completely covering that box-shadow -- box-shadow
+			// paints on the <td> itself, UNDER any child content, so it
+			// can never win against an opaque child covering the same
+			// pixels. Only reserved on this (right-hand) half -- half-a's
+			// own right edge sits at the cell's MIDDLE, not a real column
+			// boundary, so it has nothing to reveal there.
 			.tissue-heatmap-cell-split-half-b {
 				left: 50%;
+				width: calc(50% - 4px);
 			}
 		}
 
