@@ -35,4 +35,5 @@ def map_warn_to_flagged(flag: str) -> str:
     """Map QC status 'Warn' to 'Flagged' for public display."""
     return "Flagged" if flag == "Warn" else flag
 
+
 exported(get_item)

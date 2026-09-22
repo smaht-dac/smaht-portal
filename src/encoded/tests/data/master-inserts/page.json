@@ -472,7 +472,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/smaht-snv-calling",
-        "title": "Somatic: SMaHT SNV Pipeline",
+        "title": "Somatic: SMaHT SNV Pipeline v1.0.0",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -482,6 +482,25 @@
         ],
         "status": "open",
         "uuid": "6d703cf9-9369-4efa-b754-c6097218ac3a",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/smaht-snv-calling-v2",
+        "title": "Somatic: SMaHT SNV Pipeline v2.0.0",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "1a5368a7-a3af-4310-b5b4-38abb65593b1"
+        ],
+        "status": "open",
+        "uuid": "0fe075df-7e2e-42e5-9ff5-4e7de55bdc04",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

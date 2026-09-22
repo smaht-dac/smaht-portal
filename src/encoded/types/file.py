@@ -1,5 +1,3 @@
-import datetime
-import os
 import pytz
 import structlog
 from typing import Any, Dict, List, Optional, Union
@@ -9,13 +7,10 @@ from pyramid.httpexceptions import (
     HTTPNotFound,
 )
 from boto3 import client as boto_client
-from botocore.config import Config
 from datetime import datetime
 import functools
 from pyramid.request import Request
 from botocore.exceptions import ClientError
-from dcicutils.secrets_utils import assume_identity
-from dcicutils.misc_utils import override_environ
 from encoded_core.types.file import (
     HREF_SCHEMA,
     UNMAPPED_OBJECT_SCHEMA,
@@ -41,15 +36,12 @@ from snovault import (
     load_schema,
     abstract_collection,
 )
-from snovault.util import get_item_or_none
 from snovault.server_defaults import add_last_modified
 
 from . import acl
 from .base import (
     Item,
-    collection_add,
-    item_edit,
-    validate_user_submission_consistency
+    validate_user_submission_consistency,
 )
 from ..item_utils import (
     analyte as analyte_utils,
@@ -88,7 +80,7 @@ from urllib.parse import (
 )
 from snovault.authentication import session_properties
 from snovault.search.search import make_search_subreq
-from snovault.util import check_user_is_logged_in, make_s3_client
+from snovault.util import check_user_is_logged_in
 from snovault.types.base import (
     get_item_or_none,
     collection_add,
@@ -325,7 +317,6 @@ class CalcPropConstants:
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
     SAMPLE_SUMMARY_ANALYTES = "analytes"
     SAMPLE_SUMMARY_STUDIES = "studies"
-    SAMPLE_SUMMARY_CELL_LINES = "cell_lines"
     SAMPLE_SUMMARY_SCHEMA = {
         "title": "Sample Summary",
         "type": "object",
@@ -388,13 +379,6 @@ class CalcPropConstants:
             },
             SAMPLE_SUMMARY_STUDIES: {
                 "title": "Study",
-                "type": "array",
-                "items": {
-                    "type": "string",
-                },
-            },
-            SAMPLE_SUMMARY_CELL_LINES: {
-                "title": "Cell Lines",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -1306,11 +1290,6 @@ class File(Item, CoreFile):
                 file_utils.get_analytes(file_properties, request_handler),
                 analyte_utils.get_molecule,
             ),
-            constants.SAMPLE_SUMMARY_CELL_LINES: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_cell_lines(file_properties, request_handler),
-                item_utils.get_code,
-            ),
         }
         return {key: value for key, value in to_include.items() if value}
 
@@ -1351,10 +1330,10 @@ class File(Item, CoreFile):
         return {key: value for key, value in to_include.items() if value}
 
     def _get_release_tracker_title(
-            self,
-            request_handler: RequestHandler,
-            file_properties: Dict[str, Any],
-        ) -> Union[str, None]:
+                self,
+                request_handler: RequestHandler,
+                file_properties: Dict[str, Any],
+            ) -> Union[str, None]:
         """Get release tracker title for display on the home page."""
         to_include = None
         if "file_sets" in file_properties:
@@ -1377,10 +1356,10 @@ class File(Item, CoreFile):
         return to_include
 
     def _get_release_tracker_description(
-            self,
-            request_handler: RequestHandler,
-            file_properties: Dict[str, Any],
-        ) -> Union[str, None]:
+                self,
+                request_handler: RequestHandler,
+                file_properties: Dict[str, Any],
+            ) -> Union[str, None]:
         """Get release tracker description for display on the home page."""
         to_include = None
         file_format_title = get_property_value_from_identifier(
@@ -1499,7 +1478,7 @@ class File(Item, CoreFile):
         # Check the bucket/key
         try:
             self._head_s3(s3_client, open_data_bucket, open_data_key)
-        except ClientError as e:
+        except ClientError:
             return None  # not there yet
         location = 'https://{open_data_bucket}.s3.amazonaws.com/{open_data_key}'.format(
             open_data_bucket=open_data_bucket, open_data_key=open_data_key
