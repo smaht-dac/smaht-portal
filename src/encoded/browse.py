@@ -1,9 +1,7 @@
-from pyramid.httpexceptions import HTTPForbidden, HTTPFound
-from pyramid.security import Authenticated, NO_PERMISSION_REQUIRED
+from pyramid.httpexceptions import HTTPForbidden
+from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.view import view_config
 import structlog
-from webob.multidict import MultiDict
-from urllib.parse import urlencode
 from snovault import AbstractCollection
 from snovault.search.search import search
 from snovault.util import debug_log

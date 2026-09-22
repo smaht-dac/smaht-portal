@@ -1,6 +1,5 @@
 import argparse
 import pprint
-import re
 from collections import Counter
 from dataclasses import dataclass
 from functools import cached_property, partial

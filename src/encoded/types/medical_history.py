@@ -15,11 +15,6 @@ from .submitted_item import (
     SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
 )
 from .acl import ONLY_DBGAP_VIEW_ACL, ONLY_PUBLIC_DBGAP_VIEW_ACL
-from ..item_utils.utils import (
-    get_property_value_from_identifier,
-    RequestHandler,
-)
-from ..item_utils import exposure as exposure_utils
 
 
 def _build_medical_history_embedded_list():

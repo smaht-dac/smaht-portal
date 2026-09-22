@@ -109,7 +109,8 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   coverage starts can make import-time lines appear missed.
 - `make test` runs both marker groups. Despite legacy target names, `make test-unit` means
   `-m "not workbook"` and `make test-npm` means `-m workbook`; trust the recipes in `Makefile`.
-  `make test-static` runs static pytest checks plus Python lint; `npm run lint` checks frontend code.
+  `make test-static` runs static pytest checks plus `make lint`, which runs Python flake8 on both
+  `deploy/` and `src/encoded/` and propagates failures. Frontend lint is `npm run lint`.
   `make remote-test` uses the shared AWS-authenticated OpenSearch test service and is the CI path,
   not a credential-free local check.
 - React/Jest tests live in `src/encoded/static/components/__tests__/`; Cypress specifications and

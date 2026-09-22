@@ -345,19 +345,19 @@ const tissueSequencerPairs = [
         ],
         sequencer: 'Illumina NovaSeq X Plus',
         min: 3,
-        max: 25,
+        max: 150,
     },
     {
         tissueTerms: ['3A - Whole Blood', 'Whole Blood', 'Blood'],
         sequencer: 'ONT PromethION 24',
         min: 2,
-        max: 25,
+        max: 150,
     },
     {
         tissueTerms: ['3I - Liver', 'Liver'],
         sequencer: 'PacBio Revio',
         min: 2,
-        max: 25,
+        max: 150,
     },
 ];
 
