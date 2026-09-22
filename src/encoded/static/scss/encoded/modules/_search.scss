@@ -3165,10 +3165,10 @@ div.browse-link-icon {
 		// band order, darkest at "[50-100]" since that's the worst outcome
 		// for the tissue. Not custom-property-driven like score-0..4 above;
 		// HeatmapColorPicker doesn't touch this tab.
-		&.nt-score-0 { background-color: #FFE8CC; color: #5C3D1E; }
-		&.nt-score-1 { background-color: #FFC078; color: #4A2E00; }
-		&.nt-score-2 { background-color: #FF922B; color: #28323C; }
-		&.nt-score-3 { background-color: #D9480F; color: #FFFFFF; }
+		&.nt-score-0 { background-color: #EFDCD2; color: #28323C; }
+		&.nt-score-1 { background-color: #D8AE97; color: #28323C; }
+		&.nt-score-2 { background-color: #BA6E45; color: #FFFFFF; }
+		&.nt-score-3 { background-color: #77462C; color: #FFFFFF; }
 	}
 
 	// Ischemic Time's own legend (SplitCellLegend, BrowseTissueHeatmapTable.js)
@@ -3868,10 +3868,10 @@ div.browse-link-icon {
 			// .tissue-heatmap-fixed-legend-swatch's own nt-score-0..3 rules
 			// above for why this isn't tied to the shared score-0..4
 			// custom properties).
-			&.nt-score-0 { background-color: #FFE8CC; color: #5C3D1E; }
-			&.nt-score-1 { background-color: #FFC078; color: #4A2E00; }
-			&.nt-score-2 { background-color: #FF922B; color: #28323C; }
-			&.nt-score-3 { background-color: #D9480F; color: #FFFFFF; }
+			&.nt-score-0 { background-color: #EFDCD2; color: #28323C; }
+			&.nt-score-1 { background-color: #D8AE97; color: #28323C; }
+			&.nt-score-2 { background-color: #BA6E45; color: #FFFFFF; }
+			&.nt-score-3 { background-color: #77462C; color: #FFFFFF; }
 
 			// Light grey fill (not just muted text) so an n/a cell reads as
 			// "no value here" at a glance against both the white table body
