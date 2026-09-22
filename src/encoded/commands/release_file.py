@@ -1283,7 +1283,7 @@ class FileRelease:
             "colo829blt_50to1",
             "colo829blt_in_silico",
             "colo829_snv_indel_challenge_data",
-            "colo829_WU",
+            "colo829_VAI",
             "hapmap_snv_indel_challenge_data",
             "mei_detection_challenge_data",
             "hapmap",
