@@ -7,6 +7,84 @@ smaht-portal
 Change Log
 ----------
 
+2.13.6
+======
+
+`PR 762: Add tissue sample metadata transfer command <https://github.com/smaht-dac/smaht-portal/pull/762>`_
+
+* Added a command to transfer selected metadata from NDRI TPC tissue samples to matching non-TPC samples.
+
+2.13.5
+======
+
+`PR 764: Publication schema updates <https://github.com/smaht-dac/smaht-portal/pull/764>`_
+
+* Properties
+  - publication_categories - an array of categories with a suggested enum of 5 values
+  - citation_addon - a string for text that can be added to end of citation in overview page - eg. accepted in Cell
+* Adjusted facets - added categories and scope
+* Adjusted columns - added categories as hidden. 
+
+
+2.13.4
+======
+
+`PR 765: Update donor browse test limits and align Data Matrix button heights <https://github.com/smaht-dac/smaht-portal/pull/765>`_
+
+* Increased the maximum expected count from 25 to 150 for three tissue-sequencer
+  pairs in the donor browse Cypress tests.
+* Matched the Data Matrix Refresh button height to Export using a shared line-height.
+
+
+2.13.3
+======
+
+`PR 748: Pathology manifest backend <https://github.com/smaht-dac/smaht-portal/pull/748>`_
+
+* Adds SAMPLE_PATHOLOGY metadata manifest backend functionality to smaht-portal.
+* Adds to document describing the pathology manifest generation and download process to ``docs/source/manifest.rst``.
+* Added unit tests
+* NOTE: UI updates will be needed to support the new pathology manifest download functionality.
+
+
+2.13.2
+======
+
+`PR 755: Publication updates <https://github.com/smaht-dac/smaht-portal/pull/755>`_
+
+* Added Coming Soon styling and disabled publication title links for publications
+  tagged with ``suppress_links``.
+* Hide data analyzed statistics and the supplementary file table for publications
+  tagged with ``suppress_data_banner``.
+* Added clickable images with an enlarged modal view for static content.
+* Updated publication citations, navigation, supplementary data labels, and page styling.
+* Refreshed the publication collection header image and Benchmarking page layout.
+
+2.13.1
+======
+
+`PR 760: Add user subscription property <https://github.com/smaht-dac/smaht-portal/pull/760>`_
+
+* Added boolean property to User schema to indicate if the user has enrolled in the data release subscription service - default=false.
+
+2.13.0
+======
+
+`PR 757: Harden OC user loading <https://github.com/smaht-dac/smaht-portal/pull/757>`_
+
+* Hardened OC user loading with explicit create, update-changed, update-all,
+  and validation-only modes.
+* Added duplicate-email detection, safe link normalization, fresh database-backed
+  reads, and idempotent update behavior.
+* Preserved existing values for blank spreadsheet flags and protected DAC
+ submission access during updates.
+* Removed unsafe write retries to prevent accidental duplicate updates.
+* Added comprehensive loader and safety tests and restored enforcement of the
+ repository lint gate.
+* Hardened manifest filename assertions and resolved the related Checkmarx
+ unchecked-input finding.
+
+
 2.12.3
 ======
 

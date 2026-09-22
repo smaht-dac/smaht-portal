@@ -784,7 +784,7 @@ def test_tissue_ontology_term(
         ],
         "grouping_term": test_germ_layer_ontology_term["uuid"],
         "preferred_name": "Lung",
-         "tags": [
+        "tags": [
             "tissue_type"
         ]
     }
@@ -987,10 +987,10 @@ def test_library(
 
 @pytest.fixture
 def test_fileset(
-    testapp,
-    test_library,
-    test_sequencing,
-    test_submission_center):
+        testapp,
+        test_library,
+        test_sequencing,
+        test_submission_center):
     item = {
         "libraries": [test_library["uuid"]],
         "sequencing": test_sequencing["uuid"],
@@ -1160,7 +1160,7 @@ def test_sequence_file(
         "file_sets": [
             test_fileset["uuid"]
         ],
-         "submission_centers": [
+        "submission_centers": [
             test_submission_center["uuid"]
         ],
         "software": [

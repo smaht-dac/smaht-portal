@@ -4,7 +4,6 @@ import pytest
 from webtest import TestApp
 
 from .utils import (
-    patch_item,
     delete_field,
     get_insert_identifier_for_item_type,
 )
