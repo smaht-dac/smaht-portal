@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+2.13.7
+======
+
+`PR 766: VAI COLO cell lines dataset and access status  <https://github.com/smaht-dac/smaht-portal/pull/766>`_
+
+* Added new dataset for VAI COLO cell lines to the release_file command and dataset schema mixin.
+* Added new access status mapping for sequencing supplement files for STORM-seq
+
+
 2.13.6
 ======
 
