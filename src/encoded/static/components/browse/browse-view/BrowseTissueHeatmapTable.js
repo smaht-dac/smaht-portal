@@ -10,6 +10,7 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 import { GERM_LAYER_COLORS } from '../../util/germ-layer-colors';
 import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
+import { getTissueColorHex } from '../../item-pages/components/tissue-overview/helpers';
 
 // Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
 // mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
@@ -1215,6 +1216,86 @@ export function buildSequentialPaletteFromHex(baseHex, bandCount = 4) {
     });
 }
 
+// Flattens a hex color at a given alpha onto a solid white backdrop (same
+// visual result as CSS's hexToRgba(hex, alpha) over a white card, per
+// helpers.js's own TissueAdvancedPanel usage) but as a solid hex, so the
+// result can still be fed through darkenHex below for the sort arrow's
+// own color -- an actual rgba() string can't be relightened that way.
+function mixHexWithWhite(hex, alpha) {
+    const [r, g, b] = hexToRgb(hex);
+    const mix = (channel) => Math.round(channel * alpha + 255 * (1 - alpha));
+    return rgbToHex([mix(r), mix(g), mix(b)]);
+}
+
+// Sass darken()'s equivalent for a runtime hex value computed in JS (this
+// table already picks per-tissue colors at render time, so a Sass mixin
+// can't reach them) -- same "reduce HSL lightness by N points, keep hue/
+// saturation" semantics, reusing this file's own rgbToHsl/hslToRgb pair.
+function darkenHex(hex, points) {
+    const [h, s, l] = rgbToHsl(hexToRgb(hex));
+    return rgbToHex(hslToRgb(h, s, clamp(l - points, 0, 100)));
+}
+
+// Simple perceived-brightness heuristic (not full WCAG contrast) -- good
+// enough to decide, per explicit request, whether a header cell tinted
+// with an arbitrary official tissue color reads better with white or with
+// this table's usual dark-navy text.
+function getReadableTextColor(hex) {
+    const [r, g, b] = hexToRgb(hex);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.5 ? '#FFFFFF' : '#28323C';
+}
+
+// Tissue-type ("SKNE") header row's own color, per explicit request: the
+// same light tint the Tissue Overview "advanced view" card
+// (BrowseTissueVizWrapper's TissueAdvancedPanel) uses for its "# donors"
+// footer -- a 14%-strength wash of the tissue's own official color over
+// white. That footer always pairs its tint with fixed dark-navy text (an
+// accent-colored footer over its own light tint reads as low contrast --
+// see _search.scss's .tissue-advanced-card-donors comment), but this
+// table's own tissue colors aren't curated the way that footer's single
+// hand-picked accent per card is, so a couple of them still stay dark
+// enough at 14% strength to need white text -- getReadableTextColor,
+// rather than that footer's own hardcoded #28323C, covers that per
+// explicit request. Returns null (so callers fall back to the existing
+// plain grey CSS classes) for any tissue_type the official SMaHT color
+// scheme doesn't cover.
+function getTissueLevelHeaderStyle(tissueType) {
+    const hex = getTissueColorHex(tissueType);
+    if (!hex) return null;
+    const backgroundColor = mixHexWithWhite(hex, 0.14);
+    return {
+        backgroundColor,
+        color: getReadableTextColor(backgroundColor),
+        '--tissue-heatmap-arrow-color': darkenHex(backgroundColor, 20),
+    };
+}
+
+// Subtype ("Dermis") header row's own color -- the SAME hue/tissue color
+// family as its parent tissue-type header row directly above
+// (getTissueLevelHeaderStyle), but a visibly stronger tint of it, not an
+// identical copy -- mirrors the Tissue Overview "advanced view" card's own
+// 2-tone relationship (a strong ~85%-alpha border vs. its much lighter
+// ~14%-alpha "# donors" fill, per explicit request/comparison against that
+// card), just as a solid fill here instead of a thin border, so the whole
+// column reads as one strong tissue-colored band -- a raw full-strength
+// hex fill (an earlier version of this) read as an unrelated, much more
+// saturated color next to its own tissue-type header instead of "the same
+// tissue, a stronger shade". Target vs. non-target no longer needs its
+// own additional tint difference here -- that distinction now lives in
+// the dedicated TARGET/NON-TARGET bar row below this one (see
+// renderTargetNonTargetHeaderRow).
+function getTissueSubtypeHeaderStyle(tissueType) {
+    const hex = getTissueColorHex(tissueType);
+    if (!hex) return null;
+    const backgroundColor = mixHexWithWhite(hex, 0.42);
+    return {
+        backgroundColor,
+        color: getReadableTextColor(backgroundColor),
+        '--tissue-heatmap-arrow-color': darkenHex(backgroundColor, 20),
+    };
+}
+
 // Presets + native color-wheel + reset -- the actual picker UI, with no
 // button/open-state of its own (the caller renders and owns that, and
 // decides what closing means -- see HeatmapColorPicker below, reused
@@ -2224,15 +2305,17 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
         }
         if (run.type === 'unsplit') {
             const { key } = run;
+            const realTissueType = columnInfo?.[key]?.parentTissueType ?? key;
             return (
                 <th
                     key={key}
-                    title={formatTissueTypeTitle(columnInfo?.[key]?.parentTissueType ?? key)}
+                    title={formatTissueTypeTitle(realTissueType)}
                     className={
                         'tissue-heatmap-subtype-unsplit-header' +
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }
+                    style={getTissueLevelHeaderStyle(realTissueType) || undefined}
                     // eslint-disable-next-line react/jsx-no-bind
                     onMouseEnter={() => onHoverColumn(key)}
                     // eslint-disable-next-line react/jsx-no-bind
@@ -2260,7 +2343,8 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
                     'tissue-heatmap-subtype-parent-header' +
                     (anyChildHovered ? ' is-column-highlight' : '') +
                     (anyChildSelected ? ' is-selected-column' : '')
-                }>
+                }
+                style={getTissueLevelHeaderStyle(group.parentTissueType) || undefined}>
                 {tissueTypeHrefs[firstChildKey] ? (
                     <a href={tissueTypeHrefs[firstChildKey]}>{formatTissueTypeHeaderLabel(group.parentTissueType)}</a>
                 ) : (
@@ -2322,14 +2406,17 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
             const headerLabel = blankPlaceholderLabels && isPlaceholderSubtypeLabel(subtypeLabel, parentTissueType)
                 ? ''
                 : getSubtypeHeaderLabel(subtypeLabel, parentTissueType);
+            const isNonTargetColumn = Boolean(nonTargetColumnKeys?.has(key));
             nodes.push(
                 <th
                     key={key}
                     className={
                         'tissue-heatmap-subtype-subrow-header tissue-heatmap-subtype-group-boundary' +
+                        (isNonTargetColumn ? ' tissue-heatmap-subtype-subrow-header--non-target' : '') +
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
-                    }>
+                    }
+                    style={getTissueSubtypeHeaderStyle(parentTissueType, isNonTargetColumn) || undefined}>
                     <span className="tissue-heatmap-subtype-subrow-label-text" title={headerLabel || undefined}>
                         {headerLabel}
                     </span>
@@ -2374,6 +2461,7 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }
+                    style={getTissueSubtypeHeaderStyle(run.group.parentTissueType, isNonTargetColumn) || undefined}
                     // eslint-disable-next-line react/jsx-no-bind
                     onMouseEnter={() => onHoverColumn(key)}
                     // eslint-disable-next-line react/jsx-no-bind
@@ -2396,6 +2484,82 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
     return nodes;
 }
 
+// 4th (bottom-most) header row, only rendered on Target Tissue %'s own
+// combined "Show Non-Target Tissue %" view (nonTargetColumnKeys non-empty --
+// every other tab/state never mixes both kinds of column, so there's
+// nothing to group here). Walks `displayRuns` -- the exact same run list
+// rows 2/3 (renderTissueTypeParentHeaderCells/renderSubtypeHeaderCells)
+// already build off -- rather than re-deriving tissue-type-group
+// boundaries from the flat tissueTypes array, so a 'merged-brain' run
+// collapses into one bar here too (mirroring its own single colSpan cell
+// 2 rows up), instead of one tiny bar per individual brain region. An
+// 'unsplit' run is always its own single bar (no merge check against the
+// previous run) -- 2 adjacent all-target tissue types still get 2 separate
+// "TARGET" bars, not 1 spanning both, since this row's own bar is this
+// table's ONLY remaining visual cue for where one tissue type ends now
+// that the subtype row right above it reads as the same tinted color as
+// its own tissue-type header rather than a plain grey/orange pair. A
+// 'split' run's own children are run-length-encoded by isNonTarget only
+// (never merged across a *different* run, via the `runIndex` check) since
+// every child there already shares the same parent tissue type.
+function renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys) {
+    const bars = [];
+    displayRuns.forEach((run, runIndex) => {
+        if (run.type === 'merged-brain') {
+            const isNonTarget = run.regionTissueTypes.every((key) => nonTargetColumnKeys.has(key));
+            // A synthetic parent id (not a real tissue_type) -- only used
+            // below to detect a real tissue-type-group boundary, and every
+            // "Brain" run is already its own distinct group by construction.
+            bars.push({ key: `brain-${runIndex}`, isNonTarget, span: run.span, parentTissueType: `brain-${runIndex}` });
+            return;
+        }
+        if (run.type === 'unsplit') {
+            bars.push({
+                key: run.key,
+                isNonTarget: nonTargetColumnKeys.has(run.key),
+                span: 1,
+                parentTissueType: run.parentTissueType,
+            });
+            return;
+        }
+        run.group.children.forEach(({ key }) => {
+            const isNonTarget = nonTargetColumnKeys.has(key);
+            const last = bars[bars.length - 1];
+            if (last && last.runIndex === runIndex && last.isNonTarget === isNonTarget) {
+                last.span += 1;
+            } else {
+                bars.push({ key, isNonTarget, span: 1, runIndex, parentTissueType: run.group.parentTissueType });
+            }
+        });
+    });
+    return bars.map((bar, i) => {
+        const nextBar = bars[i + 1];
+        // A real tissue-type-group boundary (2 different tissue types,
+        // e.g. Brain | SKNE) reads as the SAME wide 4px gap row 3's own
+        // group boundary uses directly above it, for visual continuity --
+        // a flag-transition WITHIN the same tissue type (e.g. Epidermis'
+        // own TARGET | Fibroadipose's own NON-TARGET, both still SKNE)
+        // stays the thinner hairline (see .tissue-heatmap-target-
+        // nontarget-header's own comment), since the strong color change
+        // there is already an unambiguous divider on its own.
+        const isRealBoundary = !!nextBar && nextBar.parentTissueType !== bar.parentTissueType;
+        return (
+            <th
+                key={bar.key}
+                colSpan={bar.span > 1 ? bar.span : undefined}
+                className={
+                    'tissue-heatmap-target-nontarget-header' +
+                    (bar.isNonTarget
+                        ? ' tissue-heatmap-target-nontarget-header--non-target'
+                        : ' tissue-heatmap-target-nontarget-header--target') +
+                    (isRealBoundary ? ' tissue-heatmap-target-nontarget-header--group-boundary' : '')
+                }>
+                {bar.isNonTarget ? 'NON-TARGET' : 'TARGET'}
+            </th>
+        );
+    });
+}
+
 // Both/all <thead> rows, factored out so MetricHeatmapTable can render this
 // exact same markup twice -- once as the real, in-flow header, once as the
 // `position: fixed` "stuck" clone shown while scrolled (see
@@ -2411,7 +2575,8 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
 // Ischemic Time never passes them, so its own header stays exactly the
 // original 2-row shape.
 function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null, blankPlaceholderLabels = false) {
-    const headerRowSpan = displayRuns ? 3 : 2;
+    const hasTargetNonTargetRow = !!displayRuns && !!nonTargetColumnKeys && nonTargetColumnKeys.size > 0;
+    const headerRowSpan = displayRuns ? (hasTargetNonTargetRow ? 4 : 3) : 2;
     return (
         <>
             <tr className="tissue-heatmap-group-row">
@@ -2428,7 +2593,23 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                     <th
                         key={i}
                         colSpan={group.span}
-                        className="tissue-heatmap-group-label"
+                        className={
+                            'tissue-heatmap-group-label' +
+                            // Marks every group EXCEPT the LAST one (not
+                            // "except the first" -- an earlier version of
+                            // this did that, painting the boundary shadow
+                            // on the STARTING group's own left edge, which
+                            // put this row's white gap on the opposite side
+                            // of the real column boundary from every other
+                            // row's own group-boundary convention below
+                            // (their box-shadow always eats into the ENDING
+                            // group's own right edge, not the next group's
+                            // left edge) -- 2 gaps 4px apart but centered on
+                            // opposite sides of the same real boundary read
+                            // as visibly offset from each other even though
+                            // neither one is actually misplaced on its own).
+                            (i < columnGroups.length - 1 ? ' tissue-heatmap-group-label--boundary' : '')
+                        }
                         title={group.style.label}
                         style={{
                             backgroundColor: group.style.backgroundColor,
@@ -2474,6 +2655,11 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                         nonTargetColumnKeys,
                         blankPlaceholderLabels
                     )}
+                </tr>
+            ) : null}
+            {hasTargetNonTargetRow ? (
+                <tr className="tissue-heatmap-target-nontarget-row">
+                    {renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys)}
                 </tr>
             ) : null}
         </>

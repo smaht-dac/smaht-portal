@@ -3422,11 +3422,23 @@ div.browse-link-icon {
 		// above) -- switched to a neutral light grey per explicit request
 		// (the blue read as too close to the table's own blue score-band
 		// palette/donor-id link color to stay a plain neutral header).
+		// An inset `box-shadow`, not a real `border-bottom` -- a real
+		// border always paints on TOP of any box-shadow (inset or not),
+		// which was covering up every one of this table's own vertical
+		// group-boundary gaps (also all `box-shadow`, see e.g.
+		// .tissue-heatmap-group-label--boundary below) wherever the 2
+		// crossed -- the horizontal grey line kept showing straight
+		// through the vertical white gap instead of the gap "winning" at
+		// that corner. Every class below that also needs a vertical gap
+		// repeats this exact value as a 2nd, combined box-shadow (box-
+		// shadow doesn't merge across separate rules the way 2 different
+		// border properties can) with the vertical one listed FIRST, so
+		// it paints on top of this horizontal one at their shared corner.
 		thead th {
 			background-color: #F2F3F5;
 			font-weight: 500;
 			color: $search-header-text-color;
-			border-bottom: 1px solid #C3D8DE;
+			box-shadow: inset 0 -1px 0 #C3D8DE;
 		}
 
 		// The body's own column divider (.tissue-heatmap-cell's border-right,
@@ -3446,11 +3458,31 @@ div.browse-link-icon {
 		// this plain header path is the ONLY one it ever renders through,
 		// and needs the same visible boundary treatment rather than the
 		// much lighter default.
-		thead tr:last-child th {
-			border-right: 1px solid #CBD5DE;
-
-			&:last-child {
-				border-right: none;
+		// An inset `box-shadow`, not a real `border-right` -- see
+		// .tissue-heatmap-group-label's own identical comment above on why
+		// a real border here would add to this cell's rendered width and
+		// misalign this boundary against every other row's own version of
+		// the same tissue-type-group boundary.
+		//
+		// Excludes row 3's/row 4's own classes -- Ischemic Time's plain
+		// header (renderHeaderCells) is the only path with NO class of its
+		// own marking a boundary, which is what this rule exists for
+		// ("this plain header path is the ONLY one it ever renders
+		// through" below still holds for THAT case). But `thead tr:
+		// last-child` matches whichever `<tr>` happens to be physically
+		// last -- on any OTHER tab where row 3 (the subtype row) has no
+		// row 4 after it (no "Show Non-Target Tissue %" toggle), row 3
+		// becomes that literal last row too, and this rule's higher
+		// specificity (3 type selectors + 2 pseudo-classes) was beating
+		// .tissue-heatmap-subtype-subrow-header's own -2px sibling-vs.
+		// -4px-real-boundary distinction outright, flattening every
+		// sibling gap in that row (e.g. Fibroadipose | Lymphoid, same
+		// tissue type) to this rule's own blanket 4px instead.
+		thead tr:last-child th:not(.tissue-heatmap-subtype-subrow-header):not(.tissue-heatmap-target-nontarget-header) {
+			// Combined with `thead th`'s own horizontal box-shadow -- see
+			// that rule's own comment on why (and why listed second here).
+			&:not(:last-child) {
+				box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
 			}
 		}
 
@@ -3463,12 +3495,41 @@ div.browse-link-icon {
 			font-weight: 700;
 			letter-spacing: 0.03em;
 			text-transform: uppercase;
-			border-left: 1px solid #FFFFFF;
 			padding-top: 6px;
 			padding-bottom: 6px;
 
-			&:first-child {
-				border-left: none;
+			// Widened from a hairline `border-left: 1px` per explicit
+			// request, to read as the same real group-gap the tissue-type-
+			// group boundaries elsewhere in this table use. An inset
+			// `box-shadow`, not a real `border-left`/`border-right` -- a
+			// real border adds to this cell's own rendered width in the
+			// table's border-spacing:separate model, which then has to be
+			// reconciled against the (unrelated) column widths every row
+			// below shares with it, and can visibly shift/misalign a
+			// boundary that isn't the same width in every row (see the
+			// TARGET/NON-TARGET row's own identical fix below). `box-
+			// shadow` paints inside the existing box instead, so it never
+			// changes layout.
+			//
+			// `--boundary` (a class the JS sets on every group EXCEPT the
+			// LAST, see BrowseTissueHeatmapTable.js) with a NEGATIVE
+			// offset -- eats into THIS (ending) group's own right edge,
+			// not the plain `border-left`-style positive offset an
+			// earlier version of this used on the group AFTER it. Every
+			// other group-boundary rule in this table (row 2/3/4, body
+			// cells) already eats into the ENDING group's own right edge;
+			// this row eating into the STARTING group's left edge instead
+			// put its own 4px gap on the opposite side of the real column
+			// boundary from every other row's gap -- 2 gaps of the same
+			// width, each correctly touching the real boundary on their
+			// own, still read as visibly offset from each other since
+			// they don't overlap.
+			// Combined with `thead th`'s own horizontal box-shadow (see
+			// its comment) -- listed first so it wins at their shared
+			// corner instead of that horizontal line showing straight
+			// through this vertical gap.
+			&.tissue-heatmap-group-label--boundary {
+				box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
 			}
 		}
 
@@ -3492,13 +3553,19 @@ div.browse-link-icon {
 		// background is near-white, where that darker color read as too
 		// heavy/attention-grabbing; row 3's grey background needs the
 		// darker one just to register at all (see below).
+		// Widened to a solid white gap (from a hairline #CBD5DE rule) per
+		// explicit request -- a real tissue-type-group boundary should read
+		// as actual breathing room between tissues, not just a slightly
+		// darker grid line.
+		// An inset `box-shadow`, not a real `border-right` -- same
+		// layout-safety reasoning as .tissue-heatmap-group-label above.
 		.tissue-heatmap-subtype-parent-header,
 		.tissue-heatmap-subtype-unsplit-header,
 		.tissue-heatmap-subtype-row2-boundary {
-			border-right: 1px solid #CBD5DE;
-
-			&:last-child {
-				border-right: none;
+			// Combined with `thead th`'s own horizontal box-shadow -- see
+			// that rule's own comment on why (and why listed second here).
+			&:not(:last-child) {
+				box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
 			}
 		}
 
@@ -3507,11 +3574,13 @@ div.browse-link-icon {
 		// than the generic #E7F0F3 grid line used elsewhere in this table,
 		// since this row's own background (#DADDE3 below) is itself darker
 		// than #E7F0F3, which made that line invisible here specifically.
+		// An inset `box-shadow`, not a real `border-right` -- same
+		// layout-safety reasoning as .tissue-heatmap-group-label above.
 		.tissue-heatmap-subtype-subrow-header {
-			border-right: 1px solid #AEB7C0;
-
-			&:last-child {
-				border-right: none;
+			// Combined with `thead th`'s own horizontal box-shadow -- see
+			// that rule's own comment on why (and why listed second here).
+			&:not(:last-child) {
+				box-shadow: inset -2px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
 			}
 		}
 
@@ -3526,11 +3595,18 @@ div.browse-link-icon {
 		// in this (grey-background) row only -- row 2's own merged-brain
 		// cell uses the lighter .tissue-heatmap-subtype-row2-boundary
 		// above instead, since its background isn't this row's grey.
+		// An inset `box-shadow`, not a real `border-right` -- same
+		// layout-safety reasoning as .tissue-heatmap-group-label above.
+		// Wins over .tissue-heatmap-subtype-subrow-header's own -2px
+		// shadow via source order + the 2-class specificity below (a
+		// `box-shadow` doesn't itself stack/add with an earlier
+		// declaration the way border colors could -- the later, more
+		// specific rule fully replaces it).
 		.tissue-heatmap-subtype-group-boundary {
-			border-right: 1px solid #8698A8;
-
-			&:last-child {
-				border-right: none;
+			// Combined with `thead th`'s own horizontal box-shadow -- see
+			// that rule's own comment on why (and why listed second here).
+			&:not(:last-child) {
+				box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
 			}
 		}
 
@@ -3580,6 +3656,75 @@ div.browse-link-icon {
 			// specificity below.
 			&.tissue-heatmap-subtype-subrow-header--non-target {
 				background-color: #C4CAD4;
+			}
+		}
+
+		// 4th (bottom-most) header row, only rendered on Target Tissue %'s
+		// own combined "Show Non-Target Tissue %" view (see
+		// renderTargetNonTargetHeaderRow) -- one strong-contrast bar per
+		// contiguous run of target/non-target columns, so the grouping
+		// reads at a glance even though the per-column subtype headers
+		// right above it are now tinted per-tissue-color (see
+		// getTissueSubtypeHeaderStyle) rather than a plain grey/orange pair.
+		.tissue-heatmap-target-nontarget-header {
+			font-size: 0.5rem;
+			font-weight: 500;
+			letter-spacing: 0.02em;
+			text-transform: uppercase;
+			text-align: center;
+			padding-top: 1.5px;
+			padding-bottom: 1.5px;
+			line-height: 1.4;
+			// An inset `box-shadow`, not a real `border-right` -- a real
+			// border (even at 0.5px, tried and dropped) adds to this
+			// cell's own rendered width in the table's border-spacing:
+			// separate model. This row's own <th>s can be colSpan cells
+			// (see renderTargetNonTargetHeaderRow) covering exactly the
+			// same columns the subtype row's own per-column cells above
+			// them do -- any WIDTH difference between the two (which a
+			// real border here, on top of that row's own different
+			// border widths, introduces) is what was actually causing the
+			// divider to look both thicker than intended AND visibly
+			// offset from the real column boundary. `box-shadow` paints
+			// inside the existing box instead, so this can be exactly the
+			// right width without ever perturbing layout. Combined with
+			// `thead th`'s own horizontal box-shadow -- see that rule's
+			// own comment on why (and why listed second here).
+			//
+			// -2px, not -1px -- matches row 3's own sibling-subtype gap
+			// directly above (.tissue-heatmap-subtype-subrow-header) so
+			// the 2 stack into one straight, uniform-width gap running
+			// through both rows; -1px read as a visible narrowing/jog at
+			// this row instead of a clean continuation of that same gap.
+			&:not(:last-child) {
+				box-shadow: inset -2px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
+			}
+
+			// A REAL tissue-type-group boundary (e.g. "Brain" | "SKNE",
+			// 2 different tissue types -- see renderTargetNonTargetHeaderRow's
+			// own `isRealBoundary`) widens to the same 4px gap row 3's own
+			// group boundary uses directly above it, for visual continuity
+			// running all the way down the table -- the plain 1px hairline
+			// above is reserved for a flag change WITHIN the same tissue
+			// type (e.g. Epidermis' TARGET | Fibroadipose's NON-TARGET,
+			// both still SKNE), where the strong color change alone is
+			// already an unambiguous divider.
+			&.tissue-heatmap-target-nontarget-header--group-boundary:not(:last-child) {
+				box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
+			}
+
+			&.tissue-heatmap-target-nontarget-header--target {
+				background-color: #28323C;
+				color: #FFFFFF;
+			}
+
+			// Same dark, fixed-scale brown as this metric's own darkest
+			// nt-score-3 band (see the fixed orange scale above) -- one
+			// consistent "non-target" brand color across the legend, the
+			// data cells, and this grouping bar.
+			&.tissue-heatmap-target-nontarget-header--non-target {
+				background-color: #77462C;
+				color: #FFFFFF;
 			}
 		}
 
@@ -3702,9 +3847,33 @@ div.browse-link-icon {
 			box-shadow: inset 0 -3px 0 0 #2F6FB0;
 		}
 
-		tbody tr:not(:last-of-type) .tissue-heatmap-donor-id,
+		// An inset `box-shadow`, not a real `border-bottom` -- same
+		// reasoning as `thead th`'s own identical comment further up: a
+		// real border always paints on top of any box-shadow, which was
+		// covering up this table's own vertical group-boundary gaps
+		// (.tissue-heatmap-cell-group-boundary below) wherever the 2
+		// crossed.
+		tbody tr:not(:last-of-type) .tissue-heatmap-donor-id {
+			box-shadow: inset 0 -1px 0 #E7F0F3;
+		}
+
+		// Combined with .tissue-heatmap-cell's own plain -1px vertical
+		// divider (its base rule below) -- a cell can't just inherit that
+		// alongside this rule's own horizontal one the way 2 different
+		// border properties could coexist; box-shadow fully replaces, so
+		// every combination that needs more than 1 of these dividers has
+		// to spell out the full combined list.
 		tbody tr:not(:last-of-type) .tissue-heatmap-cell {
-			border-bottom: 1px solid #E7F0F3;
+			box-shadow: inset -1px 0 0 #E7F0F3, inset 0 -1px 0 #E7F0F3;
+		}
+
+		// Combines the vertical group-boundary gap with this row's own
+		// horizontal divider above (a plain, single-selector `.tissue-
+		// heatmap-cell-group-boundary` rule would just replace it wholesale
+		// instead of adding to it) -- the vertical one listed first so it
+		// wins at their shared corner.
+		tbody tr:not(:last-of-type) .tissue-heatmap-cell.tissue-heatmap-cell-group-boundary {
+			box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #E7F0F3;
 		}
 
 		// "L-shaped" hover guides -- which row/column a cell belongs to
@@ -3812,22 +3981,29 @@ div.browse-link-icon {
 			// A real (not just white-on-white) vertical grid line between
 			// columns -- without conditional coloring's own background
 			// blocks to visually separate cells, this is what keeps a wide,
-			// data-driven number of tissue-type columns scannable.
-			border-right: 1px solid #E7F0F3;
+			// data-driven number of tissue-type columns scannable. An
+			// inset `box-shadow`, not a real `border-right` -- a real
+			// border always paints ON TOP of any box-shadow (an earlier
+			// comment here had this backwards), so this plain 1px line
+			// was still showing through the very edge of the wider
+			// group-boundary gap below even after that gap became a
+			// box-shadow, since the 2 were 2 different CSS properties
+			// that don't override each other at all.
+			box-shadow: inset -1px 0 0 #E7F0F3;
 
 			&:last-child {
-				border-right: none;
+				box-shadow: none;
 			}
 
 			// Same real-tissue-type-group boundary the header's own 3rd
 			// row marks (see .tissue-heatmap-subtype-group-boundary's own
 			// comment above) -- carried down through the body so the
 			// heavier divider reads as one continuous line from header to
-			// last row, not just at the top. Source order (after the plain
-			// border-right above) is what makes this win on a cell
-			// carrying both classes, same specificity either way.
+			// last row, not just at the top. Fully replaces the plain
+			// -1px box-shadow above (same property, more specific
+			// selector) rather than competing with it.
 			&.tissue-heatmap-cell-group-boundary {
-				border-right: 1px solid #CBD5DE;
+				box-shadow: inset -4px 0 0 #FFFFFF;
 			}
 
 			// A sequential sky-blue scale (light -> dark), not a green->red
@@ -3960,23 +4136,29 @@ div.browse-link-icon {
 			height: 36px;
 			color: #212529;
 			cursor: pointer;
-			border-right: 1px solid #E7F0F3;
+			// An inset `box-shadow`, not a real `border-right` -- a real
+			// border always paints ON TOP of any box-shadow, so this plain
+			// line would otherwise still show through the very edge of
+			// the group-boundary gap below (2 different CSS properties
+			// don't override each other; see .tissue-heatmap-cell's own
+			// identical fix above).
+			box-shadow: inset -1px 0 0 #E7F0F3;
 
 			&:last-child {
-				border-right: none;
+				box-shadow: none;
 			}
 
 			// Same real-tissue-type-group boundary as .tissue-heatmap-cell's
-			// own identical override above -- needs its own copy (2 classes,
-			// so it always wins over the plain border-right just above
-			// regardless of source order) since Ischemic Time's cells are
-			// always this split form, not plain .tissue-heatmap-cell ones,
-			// and its column boundaries were reading exactly as faint as
-			// the (much lighter) Fixed/Frozen divider inside one cell,
-			// making it hard to tell where one tissue type's own pair ended
-			// and the next began.
+			// own identical override above -- needs its own copy since
+			// Ischemic Time's cells are always this split form, not plain
+			// .tissue-heatmap-cell ones, and its column boundaries were
+			// reading exactly as faint as the (much lighter) Fixed/Frozen
+			// divider inside one cell, making it hard to tell where one
+			// tissue type's own pair ended and the next began. Fully
+			// replaces the plain -1px box-shadow above (same property,
+			// more specific selector).
 			&.tissue-heatmap-cell-group-boundary {
-				border-right: 1px solid #CBD5DE;
+				box-shadow: inset -4px 0 0 #FFFFFF;
 			}
 		}
 
@@ -4195,13 +4377,20 @@ div.browse-link-icon {
 			}
 		}
 
-		// Same base color as the plain `/browse/` search-results table's own
-		// sort icon ($search-header-icon-color) -- see the button's
-		// hover/is-active overrides above for the rest of this table's own
-		// (unrelated) client-side-sort feedback.
+		// Per explicit request, the arrow reads as a darker shade of
+		// whatever header cell it sits in (a `--tissue-heatmap-arrow-color`
+		// custom property, set inline alongside that cell's own
+		// background -- see getTissueLevelHeaderStyle/getTissueSubtypeHeaderStyle
+		// in BrowseTissueHeatmapTable.js -- and inherited down to this icon
+		// since custom properties cascade through plain descendants) so
+		// the sort control stays visible against a colorful tissue-tinted
+		// header instead of this table's old fixed base color
+		// ($search-header-icon-color), which is kept only as the fallback
+		// for any header this table doesn't tint (e.g. no official SMaHT
+		// color for that tissue_type).
 		.tissue-heatmap-sort-icon {
 			font-size: 0.6875rem;
-			color: $search-header-icon-color;
+			color: var(--tissue-heatmap-arrow-color, $search-header-icon-color);
 		}
 	}
 }
