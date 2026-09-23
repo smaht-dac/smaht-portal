@@ -367,7 +367,7 @@ def get_accepted_file_extensions(
                 get_file_format(properties),
                 file_format.get_standard_file_extension,
             )
-                + get_property_value_from_identifier(
+            + get_property_value_from_identifier(
                     request_handler,
                     get_file_format(properties),
                     file_format.get_other_allowed_extensions,

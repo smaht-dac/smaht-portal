@@ -1,6 +1,5 @@
 import argparse
 import pprint
-import re
 from collections import Counter
 from dataclasses import dataclass
 from functools import cached_property, partial
@@ -1284,7 +1283,7 @@ class FileRelease:
             "colo829blt_50to1",
             "colo829blt_in_silico",
             "colo829_snv_indel_challenge_data",
-            "colo829_WU",
+            "colo829_vai",
             "hapmap_snv_indel_challenge_data",
             "mei_detection_challenge_data",
             "hapmap",

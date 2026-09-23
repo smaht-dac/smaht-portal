@@ -1,7 +1,6 @@
 import pytest
 from dcicutils.structured_data import Portal, StructuredDataSet
 from encoded.ingestion.ingestion_processors import get_no_diff_items
-from webtest.app import TestApp
 
 
 def add_items(data: dict, structured_data: StructuredDataSet) -> StructuredDataSet:
