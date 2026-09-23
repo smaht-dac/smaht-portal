@@ -80,6 +80,18 @@ Table 1. Donor identifiers for SMaHT benchmark cell lines.
                     <td>Admixture of COLO829 and COLO829BL cell lines at a 1:49 mixture ratio, respectively, created by the University of Washington and used in the benchmark studies by the SMaHT Network</td>
                 </tr>
                 <tr>
+                    <td class="font-monospace">SMHTCOLO829TVAI</td>
+                    <td>COLO829 tumor cell line from ATCC, used for STORM-Seq at Washington University in St. Louis</td>
+                </tr>
+                <tr>
+                    <td class="font-monospace">SMHTCOLO829BLVAI</td>
+                    <td>COLO829BL normal lymphoblast cell line from ATCC, used for STORM-Seq at Washington University in St. Louis</td>
+                </tr>
+                <tr>
+                    <td class="font-monospace">SMHTCOLO829BLTVAI</td>
+                    <td>Admixture of COLO829 and COLO829BL cell lines at a 1:1 mixture ratio, respectively, created by WashU-VAI</td>
+                </tr>
+                <tr>
                     <td class="font-monospace">SMHTHAPMAP6</td>
                     <td>Admixture of six HapMap cell lines, created for the Network at Coriell (see the SMaHT Data Portal for more details)</td>
                 </tr>
