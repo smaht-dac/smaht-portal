@@ -1271,24 +1271,20 @@ function getTissueLevelHeaderStyle(tissueType) {
     };
 }
 
-// Subtype ("Dermis") header row's own color -- the SAME hue/tissue color
-// family as its parent tissue-type header row directly above
-// (getTissueLevelHeaderStyle), but a visibly stronger tint of it, not an
-// identical copy -- mirrors the Tissue Overview "advanced view" card's own
-// 2-tone relationship (a strong ~85%-alpha border vs. its much lighter
-// ~14%-alpha "# donors" fill, per explicit request/comparison against that
-// card), just as a solid fill here instead of a thin border, so the whole
-// column reads as one strong tissue-colored band -- a raw full-strength
-// hex fill (an earlier version of this) read as an unrelated, much more
-// saturated color next to its own tissue-type header instead of "the same
-// tissue, a stronger shade". Target vs. non-target no longer needs its
-// own additional tint difference here -- that distinction now lives in
-// the dedicated TARGET/NON-TARGET bar row below this one (see
-// renderTargetNonTargetHeaderRow).
+// Subtype ("Dermis") header row's own color -- the exact, un-tinted
+// official SMaHT tissue color (smaht_tissue_colors.json), per explicit
+// request: people compare this portal's tissue colors against the SAME
+// palette they use for their own figures, and a diluted tint (an earlier
+// version of this mixed it 42% toward white -- see getTissueLevelHeaderStyle's
+// own still-tinted comment for that reasoning) doesn't read as visibly "the
+// same color" next to those figures, even though it's mathematically
+// derived from it. The tissue-type header row above THIS one still uses a
+// deliberate tint (see getTissueLevelHeaderStyle) -- only this row's own
+// full-strength fill was flagged as inconsistent with the shared palette.
 function getTissueSubtypeHeaderStyle(tissueType) {
     const hex = getTissueColorHex(tissueType);
     if (!hex) return null;
-    const backgroundColor = mixHexWithWhite(hex, 0.42);
+    const backgroundColor = hex;
     return {
         backgroundColor,
         color: getReadableTextColor(backgroundColor),
