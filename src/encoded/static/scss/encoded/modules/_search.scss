@@ -3164,10 +3164,23 @@ div.browse-link-icon {
 		// band order, darkest at "[50-100]" since that's the worst outcome
 		// for the tissue. Not custom-property-driven like score-0..4 above;
 		// HeatmapColorPicker doesn't touch this tab.
-		&.nt-score-0 { background-color: #EFDCD2; color: #28323C; }
-		&.nt-score-1 { background-color: #D8AE97; color: #28323C; }
-		&.nt-score-2 { background-color: #BA6E45; color: #FFFFFF; }
-		&.nt-score-3 { background-color: #77462C; color: #FFFFFF; }
+		// nt-score-3 is the EXACT picked color (#C06755), not a recomputed
+		// approximation of it -- an earlier version of this ran it through
+		// buildSequentialPaletteFromHex's own fixed lightness/saturation
+		// steps (tuned for a much darker, more saturated input), which
+		// changed the darkest band into a visibly different color instead
+		// of reproducing the pick. The lighter bands are that same exact
+		// hex mixed toward white (25/50/75% strength), not re-derived via
+		// HSL, so the whole scale stays anchored to the one color actually
+		// picked.
+		&.nt-score-0 { background-color: #EFD9D5; color: #28323C; }
+		&.nt-score-1 { background-color: #E0B3AA; color: #28323C; }
+		&.nt-score-2 { background-color: #D08D80; color: #FFFFFF; }
+		// This one's luminance lands right at the dark/light text
+		// threshold (~0.50) -- the formula's own cutoff rounds it to dark
+		// text, but that reads as low-contrast in practice, per explicit
+		// feedback.
+		&.nt-score-3 { background-color: #C06755; color: #FFFFFF; }
 	}
 
 	// Ischemic Time's own legend (SplitCellLegend, BrowseTissueHeatmapTable.js)
@@ -4041,10 +4054,14 @@ div.browse-link-icon {
 			// .tissue-heatmap-fixed-legend-swatch's own nt-score-0..3 rules
 			// above for why this isn't tied to the shared score-0..4
 			// custom properties).
-			&.nt-score-0 { background-color: #EFDCD2; color: #28323C; }
-			&.nt-score-1 { background-color: #D8AE97; color: #28323C; }
-			&.nt-score-2 { background-color: #BA6E45; color: #FFFFFF; }
-			&.nt-score-3 { background-color: #77462C; color: #FFFFFF; }
+			&.nt-score-0 { background-color: #EFD9D5; color: #28323C; }
+			&.nt-score-1 { background-color: #E0B3AA; color: #28323C; }
+			&.nt-score-2 { background-color: #D08D80; color: #FFFFFF; }
+			// This one's luminance lands right at the dark/light text
+			// threshold (~0.50) -- the formula's own cutoff rounds it to dark
+			// text, but that reads as low-contrast in practice, per explicit
+			// feedback.
+			&.nt-score-3 { background-color: #C06755; color: #FFFFFF; }
 
 			// Light grey fill (not just muted text) so an n/a cell reads as
 			// "no value here" at a glance against both the white table body
