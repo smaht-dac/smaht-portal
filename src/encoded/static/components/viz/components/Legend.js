@@ -210,7 +210,8 @@ export class Legend extends React.PureComponent {
                     'field' : field.field
                 }),
                 'files' : p[1].files,
-                'donors' : p[1].donors
+                'donors' : p[1].donors,
+                'samples' : p[1].samples
             };
         });
 

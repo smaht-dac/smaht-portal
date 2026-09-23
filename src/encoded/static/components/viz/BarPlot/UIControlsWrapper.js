@@ -36,12 +36,26 @@ export class UIControlsWrapper extends React.PureComponent {
     };
 
     /**
-     * Whether the Y axis counts files (Browse by File's 'all' mapping, and
-     * Browse by Tissue's 'tissue' one -- whose files, not donors, are the
-     * interesting count per tissue) instead of donors.
+     * The Y axis' aggregate type per mapping -- 'samples' (distinct tissue/
+     * cell samples, not Files; see visualization.py's own `total_samples`
+     * cardinality aggregation on `sample_summary.sample_names`, each File's
+     * own sample's external_id) for Browse by Tissue's 'tissue' mapping,
+     * 'files' for Browse by File's 'all' mapping (files ARE the interesting
+     * count there), 'donors' for every other (Browse by Donor/Protected
+     * Donor) mapping. A tissue commonly has several files, so counting
+     * files there (as this used to, sharing 'all' mapping's own branch)
+     * overstated how many distinct samples a tissue actually represents.
      */
-    static mappingCountsFiles(mapping) {
-        return mapping === 'all' || mapping === 'tissue';
+    static aggregateTypeForMapping(mapping) {
+        if (mapping === 'tissue') return 'samples';
+        if (mapping === 'all') return 'files';
+        return 'donors';
+    }
+
+    /** The Y-axis dropdown heading text -- mirrors aggregateTypeForMapping's own 3-way split. */
+    static yAxisHeadingForMapping(mapping) {
+        const aggregateType = UIControlsWrapper.aggregateTypeForMapping(mapping);
+        return aggregateType === 'samples' ? '# of Tissue Samples' : (aggregateType === 'files' ? '# of Files' : '# of Donors');
     }
 
     static canShowChart(chartData) {
@@ -71,6 +85,7 @@ export class UIControlsWrapper extends React.PureComponent {
             // Aggr type
             files: 'Files',
             donors: 'Donors',
+            samples: 'Tissue Samples',
 
             // Show state
             all: 'All',
@@ -130,7 +145,7 @@ export class UIControlsWrapper extends React.PureComponent {
         this.handleFieldSelect = _.throttle(this.handleFieldSelect.bind(this), 300);
 
         this.state = {
-            'aggregateType': UIControlsWrapper.mappingCountsFiles(props.mapping) ? 'files' : 'donors',
+            'aggregateType': UIControlsWrapper.aggregateTypeForMapping(props.mapping),
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.donors === 0) ? 'all' : 'filtered',
             'openDropdown': null,
             'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL
@@ -209,6 +224,7 @@ export class UIControlsWrapper extends React.PureComponent {
         const filteredTerms = {};
         let totalFiles = 0;
         let totalDonors = 0;
+        let totalSamples = 0;
 
         _.forEach(_.keys(barplotData.terms), (termKey) => {
             const termObj = barplotData.terms[termKey];
@@ -216,6 +232,7 @@ export class UIControlsWrapper extends React.PureComponent {
             filteredTerms[termKey] = termObj;
             totalFiles += UIControlsWrapper.getTermTotal(termObj, 'files');
             totalDonors += UIControlsWrapper.getTermTotal(termObj, 'donors');
+            totalSamples += UIControlsWrapper.getTermTotal(termObj, 'samples');
         });
 
         return {
@@ -224,7 +241,8 @@ export class UIControlsWrapper extends React.PureComponent {
             total: {
                 ...(barplotData.total || {}),
                 files: totalFiles,
-                donors: totalDonors
+                donors: totalDonors,
+                samples: totalSamples
             }
         };
     }
@@ -557,7 +575,7 @@ export class UIControlsWrapper extends React.PureComponent {
                         <div className="row" style={{ 'maxWidth': 210, 'float': 'right' }}>
                             <div className="col-3" style={{ 'width': 51 }}>
                                 {/* <h6 className="dropdown-heading">Y Axis</h6> */}
-                                <h6 className="dropdown-heading">{UIControlsWrapper.mappingCountsFiles(mapping) ? '# of Files' : '# of Donors'}</h6>
+                                <h6 className="dropdown-heading">{UIControlsWrapper.yAxisHeadingForMapping(mapping)}</h6>
                             </div>
                             <div className="col-9" style={{ 'width': 100, 'textAlign': 'left', visibility: 'hidden' }}>
                                 <DropdownButton
@@ -566,7 +584,7 @@ export class UIControlsWrapper extends React.PureComponent {
                                     onSelect={this.handleAggregateTypeSelect}
                                     title={this.titleMap(aggregateType)}
                                     onToggle={this.handleDropDownYAxisFieldToggle}>
-                                    {this.renderDropDownMenuItems(['files'], aggregateType)}
+                                    {this.renderDropDownMenuItems([UIControlsWrapper.aggregateTypeForMapping(mapping)], aggregateType)}
                                 </DropdownButton>
                             </div>
                         </div>
@@ -634,7 +652,8 @@ export class AggregatedLegend extends React.Component {
             'terms': {},
             'total': {
                 'donors': 0,
-                'files': 0
+                'files': 0,
+                'samples': 0
             }
         };
 
@@ -646,13 +665,16 @@ export class AggregatedLegend extends React.Component {
                 if (typeof retField.terms[t] === 'undefined') {
                     retField.terms[t] = {
                         'files': 0,
-                        'donors': 0
+                        'donors': 0,
+                        'samples': 0
                     };
                 }
                 retField.terms[t].donors += childField.terms[t].donors;
                 retField.terms[t].files += childField.terms[t].files;
+                retField.terms[t].samples += childField.terms[t].samples || 0;
                 retField.total.donors += childField.terms[t].donors;
                 retField.total.files += childField.terms[t].files;
+                retField.total.samples += childField.terms[t].samples || 0;
             });
         });
 

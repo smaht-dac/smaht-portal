@@ -31,7 +31,7 @@ export function getRecordedTerms(field, term) {
     return _.uniq([term].concat(recorded));
 }
 
-const SUMMED_COUNTS = ['doc_count', 'files'];
+const SUMMED_COUNTS = ['doc_count', 'files', 'samples'];
 
 /** Adds up two buckets' counts. Donors are unioned, not summed, when their ids are known. */
 function mergeCounts(a, b) {

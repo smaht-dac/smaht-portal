@@ -22,7 +22,7 @@ import { PopoverViewContainer } from './ViewContainer';
  * @param {number} [availWidth=400] - Available width, in pixels, for chart.
  * @param {number} [availHeight=400] - Available width, in pixels, for chart.
  * @param {Object} [styleOpts=Chart.getDefaultStyleOpts()] - Style settings for chart which may contain chart offsets (for axes).
- * @param {string} [aggregateType="files"] - Type of value to count up. Should be one of ["donors", "files"].
+ * @param {string} [aggregateType="files"] - Type of value to count up. Should be one of ["donors", "files", "samples"].
  * @param {boolean} [useOnlyPopulatedFields=false] - Determine which fields to show via checking for which fields have multiple terms present.
  * @param {?number} [fullHeightCount=null] - 100% Y-Axis count value. Overrides height of bars.
  * @return {Object} Object containing bar dimensions for first field which has more than 1 possible term, index of field used, and all fields passed originally.
@@ -92,6 +92,7 @@ export function genChartBarDims(
                     },
                     'donors' : termObj.donors,
                     'files'  : termObj.files,
+                    'samples' : termObj.samples,
                     'all_donor_ids' : termObj.all_donors_ids || []
                 };
                 if (typeof termObj.field === 'string') {
@@ -260,7 +261,7 @@ export class Chart extends React.PureComponent {
         'xAxisTermLabelMapper': PropTypes.func,
         'useOnlyPopulatedFields' : PropTypes.bool,
         'showType'      : PropTypes.oneOf(['all', 'filtered', 'both']),
-        'aggregateType' : PropTypes.oneOf(['donors', 'files']),
+        'aggregateType' : PropTypes.oneOf(['donors', 'files', 'samples']),
         'windowWidth'   : PropTypes.number,
         'href'          : PropTypes.string,
         'cursorDetailActions' : PopoverViewContainer.propTypes.cursorDetailActions

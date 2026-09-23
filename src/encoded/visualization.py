@@ -277,6 +277,18 @@ def bar_plot_chart(context, request):
                 "precision_threshold": 10000
             }
         },
+        # Distinct tissue/cell *samples* (not Files) represented by the matched
+        # File documents -- `sample_summary.sample_names` is each File's own
+        # sample's external_id (see CalcPropConstants.SAMPLE_SUMMARY_SAMPLE_NAMES/
+        # get_sample_names in types/file.py, item_utils/sample.py), a stable
+        # per-sample identifier, unlike `doc_count`/`total_files` which count
+        # File records -- one sample commonly has several files.
+        "total_samples": {
+            "cardinality": {
+                "field": "embedded.sample_summary.sample_names.raw",
+                "precision_threshold": 10000
+            }
+        },
         "total_assays": {
             "cardinality": {
                 "field": "embedded.assays.display_title.raw",
@@ -296,13 +308,15 @@ def bar_plot_chart(context, request):
             }
         }
     }
-    # Per-bucket aggregations only ever read `total_donors` and `all_donors_ids`
-    # (see format_bucket_result); `total_tissues`/`total_assays`/`total_file_size`
-    # are consumed only at the top-level total. Computing the full definition at
-    # every bucket at every nesting depth wastes ES work, so nest this slim subset.
+    # Per-bucket aggregations only ever read `total_donors`, `all_donors_ids`,
+    # and `total_samples` (see format_bucket_result); `total_tissues`/
+    # `total_assays`/`total_file_size` are consumed only at the top-level
+    # total. Computing the full definition at every bucket at every nesting
+    # depth wastes ES work, so nest this slim subset.
     PER_BUCKET_AGGREGATION_DEFINITION = {
         "total_donors": SUM_AGGREGATION_DEFINITION["total_donors"],
         "all_donors_ids": SUM_AGGREGATION_DEFINITION["all_donors_ids"],
+        "total_samples": SUM_AGGREGATION_DEFINITION["total_samples"],
     }
 
     isFileTypeSearch = False
@@ -381,6 +395,7 @@ def bar_plot_chart(context, request):
         "total": {
             "doc_count": search_result['total'],
             "files": search_result['total'] if isFileTypeSearch else 0,
+            "samples": search_result['aggregations']['total_samples']['value'],
             "donors": search_result['aggregations']['total_donors']['value'],
             "assays": search_result['aggregations']['total_assays']['value'],
             "tissues": search_result['aggregations']['total_tissues']['value'],
@@ -401,6 +416,7 @@ def bar_plot_chart(context, request):
         curr_bucket_totals = {
             'doc_count': doc_count,
             "files": doc_count if isFileTypeSearch else 0,
+            "samples": int(bucket_result['total_samples']['value']),
             'donors': int(bucket_result['total_donors']['value']),
             'all_donors_ids': [b['key'] for b in bucket_result['all_donors_ids']['buckets']]
         }
