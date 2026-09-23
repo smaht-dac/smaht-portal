@@ -205,7 +205,7 @@ export class Legend extends React.PureComponent {
                     ? (termLabelTransform(field.field, p[0]) || Schemas.Term.toName(field.field, p[0]))
                     : Schemas.Term.toName(field.field, p[0])),
                 'term' : p[0],
-                'color' : barplot_color_cycler.colorForNode({
+                'color' : colorCycler.colorForNode({
                     'term' : p[0],
                     'field' : field.field
                 }),

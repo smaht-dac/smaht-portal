@@ -418,6 +418,25 @@
 
 }
 
+// Browse by Tissue's own line-chart rendering (ViewContainer.js's
+// LineChartViewContainer) -- the bar version's hover-fade-others effect
+// (Legend.Term's own vizUtil.highlightTerm, called on legend hover
+// regardless of chart type) works by toggling a `.highlight` class on
+// whichever DOM elements carry a matching `[data-term]` attribute; each
+// `.line-chart-series` <g> carries its own (see that component's own
+// comment on why it deliberately has no `[data-field]`, unlike the bar
+// version's 2-tier field/term split), so this is the SVG-side counterpart
+// to `.chart-bar.highlight > .bar-part:not(.highlight)` above.
+.line-chart-series {
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.line-chart-svg:has(.line-chart-series.highlight) .line-chart-series:not(.highlight) {
+    opacity: 0.25;
+    filter: saturate(0%);
+}
+
 @include media-breakpoint-down(md){
     .bar-plot-chart {
         position: relative;

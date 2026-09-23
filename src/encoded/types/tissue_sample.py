@@ -67,6 +67,16 @@ class TissueSample(Sample):
         # released-donor Production population used elsewhere in the app.
         "sample_sources.donor.study",
         "sample_sources.donor.tags",
+        # tissue_type is a Tissue-level @calculated_property (types/tissue.py),
+        # so it only becomes filterable/searchable here because it's listed
+        # explicitly -- same reasoning FileSet already embeds it under its own
+        # (different) traversal path for ("libraries.analytes.samples.
+        # sample_sources.tissue_type", types/file_set.py) File search. Lets
+        # a TissueSample search (e.g. FacetCharts.js's "Explore Tissue Samples"
+        # popover action on Browse by Tissue) filter by the same tissue_type
+        # terms that chart's own X axis uses.
+        "sample_sources.tissue_type",
+        "sample_sources.tissue_type_code",
     ]
 
     rev = {

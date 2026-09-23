@@ -84,13 +84,34 @@ navigate.getBrowseBaseParams.mappings = {
             'donor.study': ['Production'],
             'donor.tags': ['has_released_files']
         }
+    },
+    'tissue-sample' : {
+        // Only ever used to build a single href (FacetCharts.js's own
+        // "Explore Tissue Samples" popover action on Browse by Tissue),
+        // never as an actual browse-page tab -- so this doesn't need to
+        // match a BROWSE_LINKS entry the way the others above do.
+        // TissueSample links its own donor 2 hops down, through
+        // `sample_sources` (its own Tissue), hence the extra prefix vs.
+        // Tissue's own plain 'donor.' above.
+        'parameters': {
+            'type': ['TissueSample'],
+            'sample_sources.donor.study': ['Production'],
+            'sample_sources.donor.tags': ['has_released_files']
+        }
     }
 };
 
-navigate.getBrowseBaseHref = function(browseBaseParams = null, mapping = 'all'){
+// `basePath` defaults to '/browse/' (every existing caller's own tab is a
+// real /browse/ page), but FacetCharts.js's own 'tissue-sample' mapping
+// isn't one -- there's no Browse-by-TissueSample tab, just a single
+// "Explore Tissue Samples" popover link -- and /browse/?type=TissueSample
+// doesn't render a result list the way /search/?type=TissueSample does
+// (confirmed against the real, reindexed site), so that one caller passes
+// '/search/' explicitly instead.
+navigate.getBrowseBaseHref = function(browseBaseParams = null, mapping = 'all', basePath = '/browse/'){
     if (!browseBaseParams) browseBaseParams = navigate.getBrowseBaseParams(null, mapping);
     else if (typeof browseBaseParams === 'string') browseBaseParams = navigate.getBrowseBaseParams(browseBaseParams, mapping);
-    return '/browse/?' + queryString.stringify(browseBaseParams);
+    return basePath + '?' + queryString.stringify(browseBaseParams);
 };
 
 /** Utility function to check if we are on a browse page. */

@@ -82,11 +82,35 @@ class Body extends React.PureComponent {
         if (props.path.length === 0) return null;
         var currentCounts = this.getCurrentCounts(props.path);
         if (!currentCounts) return null;
-        var countsToShow = _.omit(currentCounts, this.props.primaryCount, 'all_donor_ids');
+        // 'samples' is only ever meaningful as Browse by Tissue's own
+        // primaryCount (already omitted via the line below in that case);
+        // for every other mapping it's still a real number (the bar_plot_
+        // aggregations endpoint always computes it now) but not one this
+        // secondary-stats row has a label for, so it's always excluded
+        // here rather than showing up unlabeled.
+        var countsToShow = _.omit(currentCounts, this.props.primaryCount, 'all_donor_ids', 'samples');
+        var countPairs = _.pairs(countsToShow);
+        // The 10 (+ a leading empty col-2, below) sizing was tuned for
+        // exactly 1 secondary count -- true for 'files'/'donors' as the
+        // primaryCount (the other one is always the lone leftover here),
+        // but 'samples' as primaryCount (Browse by Tissue) leaves BOTH
+        // donors and files as secondary counts at once; 10+10 (+ the
+        // leading col-2) added up to 22 of a 12-column row, wrapping
+        // "Files" onto its own line instead of sitting beside "Donors".
+        var multipleCounts = countPairs.length > 1;
 
-        countsToShow = _.pairs(countsToShow).map(function(countPair, i){
-            var colSize = countPair[0] === 'donors' ?
-                10 : countPair[0] === 'files' ? 10 : 2;
+        countsToShow = countPairs.map(function(countPair, i){
+            var colSize = multipleCounts ? Math.floor(12 / countPairs.length) : (countPair[0] === 'donors' ?
+                10 : countPair[0] === 'files' ? 10 : 2);
+            // `text-end` (right-align) on EVERY item, including the first,
+            // is what a single item was tuned for (right-aligned within
+            // its own col-10, floating near the row's right edge) -- with
+            // 2+ items side by side now (see multipleCounts above), that
+            // same class on the FIRST one right-aligns it against the
+            // midpoint of ITS OWN half-width column instead of the row's
+            // actual left edge, reading as centered rather than left-
+            // aligned. Only the LAST item should still hug the right edge.
+            var alignClass = (multipleCounts && i < countPairs.length - 1) ? 'text-start' : 'text-end';
             var name = null;
             if (countPair[0] === 'donors') name = "Donors";
             if (countPair[0] === 'files') name = "Files";
@@ -105,7 +129,7 @@ class Body extends React.PureComponent {
                 const browseBaseHref = navigate.getBrowseBaseHref(baseParams, 'all');
 
                 return (
-                    <div key={countPair[0] || i} className={"text-end col-" + colSize}>
+                    <div key={countPair[0] || i} className={alignClass + " col-" + colSize}>
                         <a href={browseBaseHref} target="_blank" rel="noreferrer noopener">
                             {countPair[1]}<small> {name}</small>
                         </a>
@@ -113,7 +137,7 @@ class Body extends React.PureComponent {
                 );
             } else {
                 return (
-                    <div key={countPair[0] || i} className={"text-end col-" + colSize}>
+                    <div key={countPair[0] || i} className={alignClass + " col-" + colSize}>
                         { countPair[1] }<small> { name }</small>
                     </div>
                 );
@@ -122,7 +146,7 @@ class Body extends React.PureComponent {
 
         return (
             <div className="row">
-                { this.props.primaryCount !== 'files' ? <div className="col-2"></div> : null }
+                { (this.props.primaryCount !== 'files' && !multipleCounts) ? <div className="col-2"></div> : null }
                 { countsToShow }
             </div>
         );
@@ -140,6 +164,7 @@ class Body extends React.PureComponent {
         var name = null;
         if (this.props.primaryCount === 'files') name = "Files";
         if (this.props.primaryCount === 'donors') name = "# of Donors";
+        if (this.props.primaryCount === 'samples') name = "# of Tissue Samples";
         return (
             <small className="sets-label">{ name }</small>
         );
@@ -256,6 +281,7 @@ export default class ChartDetailCursor extends React.PureComponent {
         return {
             'donors'              : d.donors || 0,
             'files'               : d.files || 0,
+            'samples'             : d.samples || 0,
             'all_donor_ids'       : d.all_donor_ids || [],
         };
     }

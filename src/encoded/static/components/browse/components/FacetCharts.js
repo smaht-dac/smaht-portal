@@ -214,19 +214,20 @@ export class FacetCharts extends React.PureComponent {
         'all' : 'Explore Files',
         'donor' : 'Explore Donors',
         'protected-donor' : 'Explore Donors',
-        'tissue' : 'Explore Files',
+        'tissue' : 'Explore Tissue Samples',
         'file' : 'Explore Files'
     };
 
     /** Defines buttons/actions to be shown in onHover popover. */
     cursorDetailActions(){
         const { href, browseBaseState, context, mapping = 'all' } = this.props;
-        // The chart on Browse by Tissue counts *files* per tissue/assay/
-        // sequencer, and Tissue has no assay/sequencer fields to filter on
-        // -- so a bar there opens the matching File list ('all'), starting
-        // from just the clicked bar's own filters, rather than trying to
-        // narrow the Tissue list itself.
-        const actionMapping = mapping === 'tissue' ? 'all' : mapping;
+        // The chart on Browse by Tissue counts distinct tissue samples per
+        // tissue/sample-type -- opens the matching TissueSample list
+        // ('tissue-sample', navigate.js's own base params for it), not the
+        // Tissue list itself, since "explore the samples this dot counted"
+        // is the more useful destination than re-narrowing the Tissue list
+        // to 1 row.
+        const actionMapping = mapping === 'tissue' ? 'tissue-sample' : mapping;
         const isBrowseHref = navigate.isBrowseHref(href);
         const currDonorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
         return [
@@ -234,7 +235,10 @@ export class FacetCharts extends React.PureComponent {
                 'title' : isBrowseHref && this.titleMapping[mapping] ? this.titleMapping[mapping] : 'Browse',
                 'function' : function(cursorProps, mouseEvt){
                     var baseParams = navigate.getBrowseBaseParams(browseBaseState, actionMapping),
-                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, actionMapping);
+                        // TissueSample has no /browse/ tab of its own --
+                        // /search/ is the generic results page every item
+                        // type (incl. TissueSample) actually renders through.
+                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, actionMapping, mapping === 'tissue' ? '/search/' : '/browse/');
 
                     // Reset existing filters if selecting from 'all' view. Preserve if from filtered view.
                     // (The tissue mapping's own filters are Tissue fields, meaningless on the File list it opens.)
@@ -242,16 +246,38 @@ export class FacetCharts extends React.PureComponent {
 
                     var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
+                        // getRecordedTerms below is keyed off the ORIGINAL
+                        // (pre-rename) field -- TERM_MERGES_BY_FIELD (merge-
+                        // terms.js) only knows 'sample_summary.preservation_types',
+                        // never the TissueSample-specific 'preservation_type'
+                        // this renames to below, so looking it up AFTER
+                        // renaming would silently drop the "Frozen" ->
+                        // "Frozen" + "Snap Frozen" expansion for tissue
+                        // mapping specifically.
+                        const originalField = node.field;
                         if(node.field === 'sample_summary.tissues'){
                             if (mapping === 'donor') node.field = 'tissues.tissue_type';
                             if (mapping === 'protected-donor') node.field = 'donor.tissues.tissue_type';
+                            // TissueSample's own tissue_type is embedded from
+                            // its Tissue (sample_sources), unlike File's
+                            // sample_summary.tissues -- see types/
+                            // tissue_sample.py's own embedded_list.
+                            if (mapping === 'tissue') node.field = 'sample_sources.tissue_type';
+                        }
+                        // The "Group By: Sample Type" field -- TissueSample
+                        // carries its own preservation_type directly (no
+                        // sample_summary prefix; see Sample.embedded_list
+                        // in types/sample.py), unlike File's own
+                        // sample_summary.preservation_types.
+                        if (node.field === 'sample_summary.preservation_types' && mapping === 'tissue') {
+                            node.field = 'preservation_type';
                         }
 
                         if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
                             return donorFilters;
                         }
                         // A merged term (Frozen) filters on every recorded term it stands for (Frozen + Snap Frozen).
-                        return getRecordedTerms(node.field, node.term).reduce(function(filters, recordedTerm){
+                        return getRecordedTerms(originalField, node.term).reduce(function(filters, recordedTerm){
                             return searchFilters.changeFilter(node.field, recordedTerm, filters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
                         }, donorFilters);
                     }, currentDonorFilters);
@@ -285,15 +311,16 @@ export class FacetCharts extends React.PureComponent {
                     });
 
                     // filtersToHref/saveChangedFilters only carry `type` and `q` over from
-                    // the base href, so the rest of the File list's own base filters
-                    // (status, dataset, study) have to be passed explicitly or the list
-                    // would include files the chart never counted.
+                    // the base href, so the rest of the TissueSample list's own base
+                    // filters (donor study/tags) have to be passed explicitly or the
+                    // list would include samples the chart never counted.
                     const requiredQs = mapping === 'tissue' ? _.omit(baseParams, 'type') : {};
 
                     if (mapping === 'tissue') {
-                        // Open the File list in a new tab so the Tissue page (and its
-                        // chart/toggle state) stays where it is -- same as the popover's
-                        // own "N Files" link.
+                        // Open the TissueSample list in a new tab so the Tissue page
+                        // (and its chart/toggle state) stays where it is -- same as
+                        // the popover's own "N Files" link (that one still targets
+                        // Files specifically, per explicit request).
                         window.open(
                             searchFilters.filtersToHref(newDonorFilters, browseBaseHref, null, false, null, requiredQs),
                             '_blank',

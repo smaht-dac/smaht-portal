@@ -10,7 +10,7 @@ import { console, isServerSide } from '@hms-dbmi-bgm/shared-portal-components/es
 import { Schemas } from './../../util';
 import { barplot_color_cycler } from './../ColorCycler';
 import { RotatedLabel } from './../components';
-import { PopoverViewContainer } from './ViewContainer';
+import { PopoverViewContainer, PopoverLineChartViewContainer } from './ViewContainer';
 
 
 /**
@@ -426,12 +426,21 @@ export class Chart extends React.PureComponent {
             xAxisTermLabelMapper
         );
 
+        // Browse by Tissue's own "Sample Type" chart draws as a line chart
+        // instead of stacked bars (per explicit request) -- every other
+        // mapping keeps rendering through the original PopoverViewContainer,
+        // completely unchanged. `fullHeightCount` (the shared Y-axis' own
+        // 100%-height value, already computed by genChartBarDims for the
+        // bar version's own scale) is passed through so the line chart's
+        // dots land on that exact same scale.
+        const ViewContainerComponent = mapping === 'tissue' ? PopoverLineChartViewContainer : PopoverViewContainer;
+
         return (
-            <PopoverViewContainer {...{ width, height, styleOptions, showType, aggregateType, href, schemas, context, mapping, subBarLayout }}
+            <ViewContainerComponent {...{ width, height, styleOptions, showType, aggregateType, href, schemas, context, mapping, subBarLayout }}
                 actions={cursorDetailActions}
                 leftAxis={this.renderParts.leftAxis(width, height, barData, styleOptions)}
                 bottomAxis={this.renderParts.bottomXAxis(width, height, barData.bars, styleOptions)}
-                topLevelField={barData.field} bars={barData.bars} />
+                topLevelField={barData.field} bars={barData.bars} fullHeightCount={barData.fullHeightCount} />
         );
 
     }

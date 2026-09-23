@@ -13,6 +13,7 @@ import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
 import { Legend } from './../components';
 import { mergeTermsInBarplotData } from './merge-terms';
+import { tissueSampleTypeColorCycler } from './tissue-sample-type-colors';
 
 /**
  * Component which wraps BarPlot.Chart and provides some UI buttons and stuff.
@@ -620,7 +621,7 @@ export class UIControlsWrapper extends React.PureComponent {
                         {/* {this.renderShowTypeDropdown()} */}
                         {this.renderGroupByFieldDropdown()}
                         <div className="legend-container" style={{ 'height': legendContainerHeight }}>
-                            <AggregatedLegend {...{ cursorDetailActions, aggregateType, schemas }}
+                            <AggregatedLegend {...{ cursorDetailActions, aggregateType, schemas, mapping }}
                                 height={legendContainerHeight}
                                 barplot_data_filtered={barplotDataFiltered}
                                 barplot_data_unfiltered={barplotDataUnfiltered}
@@ -702,17 +703,30 @@ export class AggregatedLegend extends React.Component {
     }
 
     getFieldForLegend() {
-        const { field, barplot_data_unfiltered, barplot_data_filtered, aggregateType, showType, termLabelTransform } = this.props;
-        return Legend.barPlotFieldDataToLegendFieldsData(
+        const { field, barplot_data_unfiltered, barplot_data_filtered, aggregateType, showType, termLabelTransform, mapping } = this.props;
+        const legendField = Legend.barPlotFieldDataToLegendFieldsData(
             AggregatedLegend.collectSubDivisionFieldTermCounts(
                 showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered || barplot_data_unfiltered,
                 aggregateType || 'files',
                 field
             ),
             function (term) { return typeof term[aggregateType] === 'number' ? -term[aggregateType] : 'term'; },
-            undefined,
+            // Browse by Tissue's own fixed sample-type colors (see
+            // LineChartViewContainer, which uses this same lookup for the
+            // line/dots themselves) instead of the generic cycler, so the
+            // legend's swatches match the chart term-for-term.
+            mapping === 'tissue' ? tissueSampleTypeColorCycler : undefined,
             termLabelTransform
         );
+        // Browse by Tissue's own line chart already excludes a term whose
+        // count is 0 for EVERY tissue (see LineChartViewContainer's own
+        // identical filter/comment) -- mirrored here so the legend doesn't
+        // list an entry (e.g. "Not specified") for a line that was never
+        // actually drawn.
+        if (mapping === 'tissue' && legendField && Array.isArray(legendField.terms)) {
+            legendField.terms = legendField.terms.filter((t) => t[aggregateType] > 0);
+        }
+        return legendField;
     }
 
     /**
