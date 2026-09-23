@@ -3712,17 +3712,15 @@ div.browse-link-icon {
 				box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
 			}
 
+			// Per explicit request (design feedback) -- not the dark navy/
+			// nt-score-3 brown these used before.
 			&.tissue-heatmap-target-nontarget-header--target {
-				background-color: #28323C;
+				background-color: #377288;
 				color: #FFFFFF;
 			}
 
-			// Same dark, fixed-scale brown as this metric's own darkest
-			// nt-score-3 band (see the fixed orange scale above) -- one
-			// consistent "non-target" brand color across the legend, the
-			// data cells, and this grouping bar.
 			&.tissue-heatmap-target-nontarget-header--non-target {
-				background-color: #77462C;
+				background-color: #781D09;
 				color: #FFFFFF;
 			}
 		}
@@ -4054,7 +4052,7 @@ div.browse-link-icon {
 			&.na,
 			&.is-empty {
 				background-color: #F6F7F9;
-				color: #A3ADB8;
+				color: #C9D1DA;
 				font-weight: 400;
 			}
 
@@ -4202,7 +4200,7 @@ div.browse-link-icon {
 			// half instead of the whole cell.
 			&.is-empty {
 				background-color: #F6F7F9;
-				color: #A3ADB8;
+				color: #C9D1DA;
 				font-weight: 400;
 			}
 

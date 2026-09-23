@@ -2016,7 +2016,18 @@ function renderRowCells(cells, cellEntries, cellSlots, tissueTypes, mergeableTis
 // own plain name (subtype: "Liver") rather than left empty -- confirmed
 // against real data this is what was silently overriding the code (LIVR)
 // with that raw, uncoded name for exactly those tissue types.
-function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortState, handleHeaderClick, columnInfo = null }) {
+// `showSort` (default true) is only ever false when this is rendered
+// inside renderTissueTypeParentHeaderCells' own 'unsplit' branch -- a
+// subtype-aware tab's row-2 header for a tissue with just 1 real subtype
+// (or none) -- per explicit request: that tissue's row-3 cell right below
+// still gets its own sort control (renderSubtypeHeaderCells' own 'unsplit'
+// branch, sorting the exact same column key), so the arrow should live
+// there instead, keeping every tab's sort arrow consistently on the
+// subtype row rather than sometimes-row-2/sometimes-row-3 depending on
+// whether that particular tissue happens to have >1 subtype. Ischemic
+// Time's own plain (non-subtype-aware) usage via renderHeaderCells has no
+// row 3 at all, so it always keeps the default (true) here.
+function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortState, handleHeaderClick, columnInfo = null, showSort = true }) {
     const info = columnInfo?.[tissueType];
     const displayLabel = formatTissueTypeHeaderLabel(info ? info.parentTissueType : tissueType);
     return (
@@ -2026,12 +2037,14 @@ function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortStat
             ) : (
                 displayLabel
             )}
-            <SortableHeaderLabel
-                label=""
-                sortDirection={sortState?.key === tissueType ? sortState.direction : null}
-                // eslint-disable-next-line react/jsx-no-bind
-                onClick={() => handleHeaderClick(tissueType)}
-            />
+            {showSort ? (
+                <SortableHeaderLabel
+                    label=""
+                    sortDirection={sortState?.key === tissueType ? sortState.direction : null}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={() => handleHeaderClick(tissueType)}
+                />
+            ) : null}
         </>
     );
 }
@@ -2047,7 +2060,12 @@ function IndividualTissueTypeHeaderLabel({ tissueType, tissueTypeHrefs, sortStat
 // regions instead of navigating directly, trading one click for still
 // reaching a real tissue-overview page. Same outside-click-to-close
 // pattern as HeatmapColorPicker above.
-function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick }) {
+// `showSort` (default true) is only ever false in the same subtype-aware
+// row-2 context IndividualTissueTypeHeaderLabel's own `showSort` covers --
+// its own sort control moves to row 3 there instead (renderSubtypeHeaderCells'
+// merged-brain branch), per the same "sort arrow always lives on the
+// subtype row" request.
+function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, handleHeaderClick, showSort = true }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
     // Every row's regions agree here (that's what made this mergeable), so
@@ -2090,12 +2108,14 @@ function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, 
                 <i className="icon icon-fw fas icon-plus" />
                 Brain
             </button>
-            <SortableHeaderLabel
-                label=""
-                sortDirection={sortState?.key === sortKey ? sortState.direction : null}
-                // eslint-disable-next-line react/jsx-no-bind
-                onClick={() => handleHeaderClick(sortKey)}
-            />
+            {showSort ? (
+                <SortableHeaderLabel
+                    label=""
+                    sortDirection={sortState?.key === sortKey ? sortState.direction : null}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={() => handleHeaderClick(sortKey)}
+                />
+            ) : null}
             {isOpen ? (
                 <ul className="tissue-heatmap-brain-picker-panel">
                     {regionTissueTypes.map((tissueType) => {
@@ -2295,6 +2315,7 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
                         tissueTypeHrefs={tissueTypeHrefs}
                         sortState={sortState}
                         handleHeaderClick={handleHeaderClick}
+                        showSort={false}
                     />
                 </th>
             );
@@ -2322,6 +2343,7 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
                         sortState={sortState}
                         handleHeaderClick={handleHeaderClick}
                         columnInfo={columnInfo}
+                        showSort={false}
                     />
                 </th>
             );
@@ -2378,6 +2400,12 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
     displayRuns.forEach((run) => {
         if (run.type === 'merged-brain') {
             const { regionTissueTypes, span } = run;
+            // Same arbitrary-but-stable sort key BrainRegionHeaderCell's
+            // own (now-suppressed, showSort={false}) row-2 sort button
+            // used -- moved down here per the same "sort arrow always
+            // lives on the subtype row" request the 'unsplit' branch
+            // below follows too.
+            const [sortKey] = regionTissueTypes;
             nodes.push(
                 <th
                     key={regionTissueTypes[0]}
@@ -2388,6 +2416,12 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                         (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
                     }>
                     <span className="tissue-heatmap-subtype-subrow-label-text">{blankPlaceholderLabels ? null : 'Brain'}</span>
+                    <SortableHeaderLabel
+                        label=""
+                        sortDirection={sortState?.key === sortKey ? sortState.direction : null}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => handleHeaderClick(sortKey)}
+                    />
                 </th>
             );
             return;
@@ -2416,6 +2450,12 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                     <span className="tissue-heatmap-subtype-subrow-label-text" title={headerLabel || undefined}>
                         {headerLabel}
                     </span>
+                    <SortableHeaderLabel
+                        label=""
+                        sortDirection={sortState?.key === key ? sortState.direction : null}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => handleHeaderClick(key)}
+                    />
                 </th>
             );
             return;
