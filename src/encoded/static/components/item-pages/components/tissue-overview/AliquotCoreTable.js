@@ -16,9 +16,11 @@ export const formatCenterName = (center) => (center ? center.replace(/\s*GCC$/, 
 //
 // Each row: { key, coreLabel, coreColor?, coreHref?, coreTitle?, sizeLabel?,
 // dataLabels[], centerLabel, centerHref?, centerTitle?, centerIsEmpty? } --
-// a "Size" column (the core's `core_size`) only appears once at least one
-// row has a `sizeLabel`, so tables whose rows have none (non-solid) don't
-// get an empty column. `hoverKey`
+// the "Size" column (the core's `core_size`) always renders (falling back
+// to "N/A" per row, same as the "Data" column already did), even for a
+// table where every row happens to be missing it, so the column set stays
+// consistent across every aliquot instead of shifting depending on which
+// happen to have that data yet. `hoverKey`
 // (defaults to `key`) is what onHoverKey reports for the two-way hover with
 // the plate dots in the Frozen popover.
 export default function AliquotCoreTable({
@@ -28,14 +30,13 @@ export default function AliquotCoreTable({
     emptyMessage = null,
     rowLabel = 'Core',
 }) {
-    const showSize = rows.some((row) => row.sizeLabel);
     return (
         <div className="aliquot-detail-table-scroll">
             <table className="aliquot-detail-table is-frozen">
                 <thead>
                     <tr>
                         <th>{rowLabel}</th>
-                        {showSize ? <th>Size</th> : null}
+                        <th>Size</th>
                         <th>Data</th>
                         <th>Data Gen.</th>
                     </tr>
@@ -43,7 +44,7 @@ export default function AliquotCoreTable({
                 <tbody>
                     {emptyMessage ? (
                         <tr>
-                            <td className="aliquot-detail-table-empty" colSpan={showSize ? 4 : 3}>
+                            <td className="aliquot-detail-table-empty" colSpan={4}>
                                 {emptyMessage}
                             </td>
                         </tr>
@@ -51,10 +52,29 @@ export default function AliquotCoreTable({
                     {rows.map((row) => {
                         const hoverKey = row.hoverKey || row.key;
                         const coreStyle = row.coreColor ? { color: row.coreColor } : undefined;
+                        // The row's own primary destination -- same
+                        // core-files link its own coreLabel cell already
+                        // links to. Clicking anywhere else in the row (not
+                        // inside the Data Gen. cell's own, different link)
+                        // opens it too, per explicit request -- the row
+                        // already looks/feels clickable (hover highlight,
+                        // pointer cursor via is-clickable below), and only
+                        // the small label text actually being clickable
+                        // read as misleading.
+                        const handleRowClick = row.coreHref
+                            ? (event) => {
+                                if (event.target.closest('a')) return;
+                                window.open(row.coreHref, '_blank', 'noopener,noreferrer');
+                            }
+                            : undefined;
                         return (
                             <tr
                                 key={row.key}
-                                className={hoverKey === hoveredKey ? 'is-hovered' : undefined}
+                                className={
+                                    (hoverKey === hoveredKey ? 'is-hovered' : '') +
+                                    (row.coreHref ? ' is-clickable' : '')
+                                }
+                                onClick={handleRowClick}
                                 // eslint-disable-next-line react/jsx-no-bind
                                 onMouseEnter={onHoverKey ? () => onHoverKey(hoverKey) : undefined}
                                 // eslint-disable-next-line react/jsx-no-bind
@@ -73,11 +93,9 @@ export default function AliquotCoreTable({
                                         <span title={row.coreTitle}>{row.coreLabel}</span>
                                     )}
                                 </td>
-                                {showSize ? (
-                                    <td className="aliquot-detail-size-cell">
-                                        {row.sizeLabel || <span className="aliquot-detail-na">N/A</span>}
-                                    </td>
-                                ) : null}
+                                <td className="aliquot-detail-size-cell">
+                                    {row.sizeLabel || <span className="aliquot-detail-na">N/A</span>}
+                                </td>
                                 <td>
                                     {row.dataLabels.length > 0 ? (
                                         row.dataLabels.join(', ')

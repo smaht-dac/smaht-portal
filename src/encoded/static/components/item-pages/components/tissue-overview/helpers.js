@@ -673,21 +673,27 @@ export const dedupeTissuesByDonor = (tissueResults = []) => {
 // associated_pathology_reports resolve to before embedding never carries
 // this field, only the full embedded object does (see TissueSample's own
 // embedded_list, types/tissue_sample.py). `unacceptableDescription` (same
-// embedding, only ever populated when outcome is Unacceptable) surfaces as
-// this badge's own tooltip -- rather than a 2nd, mostly-empty subtext row --
-// so a reader can see *why* without the popover growing every time an
-// Unacceptable report happens to be in the list.
+// embedding, only ever populated when outcome is Unacceptable) is shown
+// directly under the badge -- not just as a hover-only tooltip, per
+// explicit request that a reader can see *why* without having to hover.
 export function PathologyOutcomeBadge({ outcome, unacceptableDescription }) {
     if (!outcome) return null;
+    const isUnacceptable = outcome === 'Unacceptable';
     return (
-        <span
-            className={
-                'aliquot-popover-pathology-outcome' +
-                (outcome === 'Acceptable' ? ' is-acceptable' : ' is-unacceptable')
-            }
-            title={outcome === 'Unacceptable' ? unacceptableDescription || undefined : undefined}>
-            {outcome}
-        </span>
+        <>
+            <span
+                className={
+                    'aliquot-popover-pathology-outcome' +
+                    (isUnacceptable ? ' is-unacceptable' : ' is-acceptable')
+                }>
+                {outcome}
+            </span>
+            {isUnacceptable && unacceptableDescription ? (
+                <div className="aliquot-popover-pathology-outcome-description">
+                    {unacceptableDescription}
+                </div>
+            ) : null}
+        </>
     );
 }
 

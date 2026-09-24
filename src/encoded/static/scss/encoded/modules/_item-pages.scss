@@ -4472,6 +4472,17 @@ File, Donor, and Publication Overview Styles
         }
     }
 
+    // Shown directly under an Unacceptable badge (PathologyOutcomeBadge) --
+    // was a hover-only `title` tooltip; per explicit request, the reason
+    // should be visible without hovering.
+    .aliquot-popover-pathology-outcome-description {
+        margin-top: 3px;
+        font-size: 0.6875rem;
+        font-weight: 400;
+        color: #6B7785;
+        white-space: normal;
+    }
+
     .aliquot-popover-row {
         // A grid (not flex) so the `minmax(0, 1fr)` column resolves to a
         // real pixel width the browser has to honor -- real ids/GCC names
@@ -4654,7 +4665,14 @@ File, Donor, and Publication Overview Styles
         td {
             padding: 0.375rem 0.75rem;
             text-align: left;
-            vertical-align: middle;
+            // `top`, not `middle` -- an Outcome cell's own unacceptable-
+            // description text (PathologyOutcomeBadge) can wrap onto
+            // several lines and grow much taller than its row's other,
+            // single-line cells; middle-aligning those against it left
+            // them floating with an odd, uneven gap above and below
+            // instead of sitting flush with the row's own top edge like
+            // every other row.
+            vertical-align: top;
         }
 
         thead th {
@@ -4686,6 +4704,14 @@ File, Donor, and Publication Overview Styles
         tbody tr.is-hovered {
             background-color: #d7e8f8;
             box-shadow: inset 3px 0 0 #2f6fb0;
+        }
+
+        // The whole row opens its own primary link (core/report), not just
+        // the small label text inside it -- a pointer cursor over any of
+        // it, not just that one link, so the row doesn't read as clickable
+        // in a way only a small part of it actually honors.
+        tbody tr.is-clickable {
+            cursor: pointer;
         }
 
         a {

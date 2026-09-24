@@ -74,7 +74,14 @@ export default function FixedAliquotPopoverBody({
                                     </tr>
                                 ) : (
                                     reportItems.map((item) => (
-                                        <tr key={item.key}>
+                                        <tr
+                                            key={item.key}
+                                            className={item.href ? 'is-clickable' : undefined}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={item.href ? (event) => {
+                                                if (event.target.closest('a')) return;
+                                                window.open(item.href, '_blank', 'noopener,noreferrer');
+                                            } : undefined}>
                                             <td>
                                                 <a
                                                     href={item.href}

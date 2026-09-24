@@ -311,7 +311,14 @@ export default function FrozenAliquotPopoverBody({
                                     </tr>
                                 ) : (
                                     pathologyItems.map((item) => (
-                                        <tr key={item.key}>
+                                        <tr
+                                            key={item.key}
+                                            className={item.href ? 'is-clickable' : undefined}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={item.href ? (event) => {
+                                                if (event.target.closest('a')) return;
+                                                window.open(item.href, '_blank', 'noopener,noreferrer');
+                                            } : undefined}>
                                             <td>{item.externalId}</td>
                                             <td>
                                                 {item.href ? (
