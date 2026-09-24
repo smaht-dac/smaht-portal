@@ -3189,12 +3189,18 @@ div.browse-link-icon {
 	.tissue-heatmap-split-legend-table {
 		border-collapse: collapse;
 
+		// _tables.scss's own global `table > thead > tr > th` rule gives
+		// every <th> on the site a grey (#f0f1f5) background by default --
+		// this table never opted into that (no severity/status meaning to
+		// convey the way the real header row's own grey does), so it's
+		// reset back to transparent here, per explicit request.
 		th {
 			padding: 0 0 3px;
 			font-size: 0.6875rem;
 			font-weight: 400;
 			color: #97A6B8;
 			text-align: center;
+			background-color: transparent;
 		}
 
 		td {
