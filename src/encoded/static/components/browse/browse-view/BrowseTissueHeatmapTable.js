@@ -11,6 +11,7 @@ import {
 import { GERM_LAYER_COLORS } from '../../util/germ-layer-colors';
 import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
 import { getTissueColorHex } from '../../item-pages/components/tissue-overview/helpers';
+import { BrainFindingsTable, BrainStagingTable, BrainDiagnosisTable } from './BrowseBrainPathologyTable';
 
 // Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
 // mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
@@ -1448,6 +1449,8 @@ function HeatmapAdminSettings({
     onResetNtColor,
     subtypeTintPercent,
     onSubtypeTintChange,
+    showBrainTabs,
+    onShowBrainTabsChange,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -1518,6 +1521,17 @@ function HeatmapAdminSettings({
                             // eslint-disable-next-line react/jsx-no-bind
                             onChange={(event) => onSubtypeTintChange(Number(event.target.value))}
                         />
+                    </div>
+                    <div className="tissue-heatmap-admin-settings-section">
+                        <label className="tissue-heatmap-admin-settings-checkbox-row">
+                            <input
+                                type="checkbox"
+                                checked={showBrainTabs}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onChange={(event) => onShowBrainTabsChange(event.target.checked)}
+                            />
+                            Show Brain tabs
+                        </label>
                     </div>
                 </div>
             ) : null}
@@ -3408,6 +3422,26 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     );
 });
 
+// "Neuropathology Findings" tab's own tabTitle -- a real DOM label (not a
+// CSS ::before/::after) reading "Brain", attached to the top-left of the
+// crown bracket _search.scss draws over the 3 brain-specific tabs (see
+// that file's own ".tissue-heatmap-tabs .dot-tab-nav-list button" rules).
+// Only needs to render once, on the group's leftmost tab -- CSS positions
+// it outside-left of that tab, which is also the group's own left edge.
+// A real element (not a pseudo-element) because a button can only carry 2
+// pseudo-elements (::before/::after) and this tab already needs both of
+// those for the crown's own top line + left corner hook. Defined once at
+// module scope (not inline in the render below) so this stays a stable
+// object reference across re-renders -- DotRouterTab is a React.memo with
+// its own shallow prop-equality check on `tabTitle`, which a freshly-
+// recreated-every-render JSX literal would defeat.
+const BRAIN_FINDINGS_TAB_TITLE = (
+    <React.Fragment>
+        Neuropathology Findings
+        <span className="tissue-heatmap-brain-group-label" aria-hidden="true">Brain</span>
+    </React.Fragment>
+);
+
 export const BrowseTissueHeatmapTable = (props) => {
     // Gates the score-band cell coloring in all 4 tabs' tables -- see
     // MetricHeatmapTable's identical prop. On by default.
@@ -3492,6 +3526,12 @@ export const BrowseTissueHeatmapTable = (props) => {
     // now adjustable instead of hardcoded either way.
     const [subtypeTintPercent, setSubtypeTintPercent] = useState(42);
 
+    // The 3 Brain-specific tabs (Neuropathology Findings/Neurodegenerative
+    // Staging/Diagnosis Summary) stay hidden by default for now, per
+    // explicit request -- not ready to show to a regular viewer yet, but
+    // still reachable for review via this admin-only switch.
+    const [showBrainTabs, setShowBrainTabs] = useState(false);
+
     // Which tab is currently active -- same hash-based dot-path lookup
     // DotRouter itself uses internally (DotRouter.getCurrentTab), so this
     // stays in sync with clicking between tabs without needing its own
@@ -3516,10 +3556,14 @@ export const BrowseTissueHeatmapTable = (props) => {
     // nodes present at its own last build, and this component can mount
     // after that (e.g. scrolled/tabbed into view later), so it needs an
     // explicit rebuild once mounted, same as BrowseTissueVizWrapper.js's
-    // germ-layer bubbles.
+    // germ-layer bubbles. `showBrainTabs` in the dependency array too --
+    // its own 3 tabs' data-tip nodes (BrowseBrainPathologyTable.js's
+    // ColumnHeaderInfo icons, cell description dots) don't exist in the DOM
+    // at all until that switch flips true, well after this first mount-time
+    // rebuild already ran, so without this they'd never get picked up.
     useEffect(() => {
         ReactTooltip.rebuild();
-    }, []);
+    }, [showBrainTabs]);
 
     // `session` in the dependency array so logging in/out re-fetches --
     // permission-filtered fields (e.g. protected donor data) can change
@@ -3797,6 +3841,9 @@ export const BrowseTissueHeatmapTable = (props) => {
                         subtypeTintPercent={subtypeTintPercent}
                         // eslint-disable-next-line react/jsx-no-bind
                         onSubtypeTintChange={setSubtypeTintPercent}
+                        showBrainTabs={showBrainTabs}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onShowBrainTabsChange={setShowBrainTabs}
                     />
                 </div>
             ) : null}
@@ -3806,7 +3853,22 @@ export const BrowseTissueHeatmapTable = (props) => {
                 contentsClassName=""
                 isActive={true}
                 prependDotPath="tissue-heatmap">
+                {/* A single flat array, not individual JSX-expression
+                    siblings -- DotRouter's own getCurrentTab (node_modules'
+                    DotRouter.js) indexes `this.props.children` directly by
+                    position with no flattening, so if any one sibling slot
+                    here evaluated to something other than a single valid
+                    element (a raw `null`, or an array like the conditional
+                    Brain tabs below), that slot would stay exactly that
+                    shape inside `props.children` -- `currChild.props` then
+                    throws on the null, or on the array (arrays have no
+                    `.props`) -- instead of just being skipped. Building the
+                    whole set as 1 array up front, with `...spread` (not
+                    nesting) for the conditional group, keeps every entry a
+                    real element regardless of showBrainTabs. */}
+                {[
                 <DotRouterTab
+                    key="target-tissue"
                     dotPath=".target-tissue"
                     tabTitle="Target Tissue %"
                     arrowTabs={false}
@@ -3887,8 +3949,9 @@ export const BrowseTissueHeatmapTable = (props) => {
                             enableConditionalColor={enableConditionalColor}
                         />
                     )}
-                </DotRouterTab>
+                </DotRouterTab>,
                 <DotRouterTab
+                    key="non-target-tissue"
                     dotPath=".non-target-tissue"
                     tabTitle="Non Target Tissue %"
                     arrowTabs={false}
@@ -3928,8 +3991,9 @@ export const BrowseTissueHeatmapTable = (props) => {
                             enableConditionalColor={enableConditionalColor}
                         />
                     )}
-                </DotRouterTab>
+                </DotRouterTab>,
                 <DotRouterTab
+                    key="autolysis-score"
                     dotPath=".autolysis-score"
                     tabTitle="Autolysis Score"
                     arrowTabs={false}
@@ -3963,8 +4027,9 @@ export const BrowseTissueHeatmapTable = (props) => {
                             enableConditionalColor={enableConditionalColor}
                         />
                     )}
-                </DotRouterTab>
+                </DotRouterTab>,
                 <DotRouterTab
+                    key="ischemic-time"
                     dotPath=".ischemic-time"
                     tabTitle="Ischemic Time (h)"
                     arrowTabs={false}
@@ -4005,7 +4070,83 @@ export const BrowseTissueHeatmapTable = (props) => {
                             splitByPreservationType
                         />
                     )}
-                </DotRouterTab>
+                </DotRouterTab>,
+                /* Brain-specific pathology data -- see brain_pathology_report.json.
+                    Grouped into 3 tabs by kind (present/absent findings,
+                    numeric/ordinal staging scores, free-text diagnosis/notes)
+                    rather than 1 tab per field (~20+ of them), per explicit
+                    request. A 4th, per-subregion presence/autolysis-score
+                    tab was tried and dropped -- that data (BrainPathologyReport's
+                    own brain_subregions array) turned out to mostly duplicate
+                    what the existing Autolysis Score tab (tissue_type-axis,
+                    above) already shows, just at finer per-subregion
+                    resolution, and wasn't distinct enough to earn its own
+                    tab. All 3 read directly off the same raw `tissueResults`
+                    this component already fetched -- none needs the FBRO
+                    exclusion, subtype expansion, or brain-region distribution
+                    the other 4 tabs' tissue_type-axis matrices do, since
+                    these 3 tables pivot on donor x finding/score/diagnosis
+                    category instead (see BrowseBrainPathologyTable.js).
+
+                    Hidden by default for now, per explicit request -- not
+                    ready to show to a regular viewer yet -- behind
+                    showBrainTabs (HeatmapAdminSettings' own "Show Brain
+                    tabs" switch, admin-only). An empty array (not `null`)
+                    when hidden -- DotRouter's own render (node_modules'
+                    DotRouter.js) destructures every raw child's `.props`
+                    via a bare `React.Children.map` with no null guard, so
+                    a `null`/`false` JSX child in this position crashes it
+                    outright ("Cannot read properties of null (reading
+                    'props')") instead of just being skipped the way a
+                    plain DOM child would be. An array contributes exactly
+                    as many real children as it has elements -- 0 when
+                    empty -- so each <DotRouterTab> here needs its own
+                    `key` too, same as any other array-rendered JSX. */
+                ...(showBrainTabs ? [
+                    <DotRouterTab
+                        key="brain-findings"
+                        dotPath=".brain-findings"
+                        tabTitle={BRAIN_FINDINGS_TAB_TITLE}
+                        arrowTabs={false}
+                        cache={true}>
+                        {loading ? (
+                            <div className="tissue-heatmap-loading">
+                                <i className="icon icon-circle-notch icon-spin fas" />
+                            </div>
+                        ) : (
+                            <BrainFindingsTable tissueResults={tissueResults} />
+                        )}
+                    </DotRouterTab>,
+                    <DotRouterTab
+                        key="brain-staging"
+                        dotPath=".brain-staging"
+                        tabTitle="Neurodegenerative Staging"
+                        arrowTabs={false}
+                        cache={true}>
+                        {loading ? (
+                            <div className="tissue-heatmap-loading">
+                                <i className="icon icon-circle-notch icon-spin fas" />
+                            </div>
+                        ) : (
+                            <BrainStagingTable tissueResults={tissueResults} />
+                        )}
+                    </DotRouterTab>,
+                    <DotRouterTab
+                        key="brain-diagnosis"
+                        dotPath=".brain-diagnosis"
+                        tabTitle="Diagnosis Summary"
+                        arrowTabs={false}
+                        cache={true}>
+                        {loading ? (
+                            <div className="tissue-heatmap-loading">
+                                <i className="icon icon-circle-notch icon-spin fas" />
+                            </div>
+                        ) : (
+                            <BrainDiagnosisTable tissueResults={tissueResults} />
+                        )}
+                    </DotRouterTab>,
+                ] : []),
+                ]}
             </DotRouter>
         </div>
     );

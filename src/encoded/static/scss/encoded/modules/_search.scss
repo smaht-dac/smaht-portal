@@ -2394,6 +2394,20 @@ div.browse-link-icon {
 	margin: 0;
 }
 
+.tissue-heatmap-admin-settings-checkbox-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: #4E6884;
+	cursor: pointer;
+
+	input[type="checkbox"] {
+		margin: 0;
+	}
+}
+
 // HeatmapColorPicker (BrowseTissueHeatmapTable.js) is a shared component
 // also reused by TissueTypeView.js's Donor Details table (own independent
 // --tissue-donor-score-N-* palette, see _item-pages.scss). These rules are
@@ -2862,6 +2876,16 @@ div.browse-link-icon {
 		z-index: 4;
 	}
 
+	// Brain's own color from smaht_tissue_colors.json (its 5 subregions run
+	// BBE7FF..002A66, all blue) -- not an arbitrary hue, and not the green
+	// germ-layer-colors.js already uses for Ectoderm (a different, broader
+	// grouping concept: Brain is one of several Ectoderm tissue types, not
+	// a stand-in for the whole category). Picked from the middle of that
+	// real range (Cerebellum's own #1655C4) for a strong-enough, legible
+	// mid-tone rather than the palette's near-white or near-black ends.
+	$brain-accent: #1655C4;
+	$brain-accent-tint: #DCE8FA;
+
 	.tissue-heatmap-tabs.dot-tab-nav {
 		border-bottom: 1px solid #E7F0F3;
 
@@ -2869,8 +2893,17 @@ div.browse-link-icon {
 			display: flex;
 			height: 39px;
 			margin-bottom: -1px;
+			// Reserves room above the row for the brain-group "crown"
+			// bracket and its "Brain" corner label (button rules below) --
+			// both are `position: absolute`, so they don't affect this
+			// row's own height/alignment (the earlier version's bug was a
+			// stray text-height assumption in that positioning math, not
+			// reserving space via margin/padding itself -- this redo
+			// double-checks every offset below against this exact value).
+			margin-top: 34px;
 
 			button {
+				position: relative;
 				appearance: none;
 				height: 100%;
 				background-color: transparent;
@@ -2897,9 +2930,139 @@ div.browse-link-icon {
 					font-weight: 600;
 				}
 
+				// One of the 3 brain tabs' own active-state top accent
+				// matches the crown bracket above it ($brain-accent, below)
+				// instead of the plain green every other tab's active
+				// state uses -- the mismatched green-vs-crown-blue read as
+				// 2 unrelated color systems arguing with each other right
+				// where they touch, per explicit feedback.
+				&:nth-child(n+5).active {
+					border-top-color: $brain-accent;
+				}
+
 				&.disabled {
 					color: #B7C3D0;
 					cursor: not-allowed;
+				}
+
+				// The 3 brain-specific tabs (Neuropathology Findings/
+				// Neurodegenerative Staging/Diagnosis Summary) get a
+				// "crown" bracket over the group instead of any per-tab
+				// background/color (both tried and reverted -- see git
+				// history) -- a thin line spanning the group's own width,
+				// with a short downward hook at each of its 2 outer ends,
+				// so it reads as a bracket wrapping the group from above
+				// rather than a stray rule floating over it. Built from 3
+				// buttons' own matching-offset ::after segments (below) --
+				// since nth-child(5)/(6)/(7) are contiguous flex siblings
+				// with no gap between them, their 3 separate top-line
+				// segments render as one continuous line, with no need for
+				// (and no way to cleanly add, since DotRouter renders each
+				// tab as its own flat sibling button, not wrapped in a
+				// shared container) a single element spanning all 3.
+				// `left: -1px; right: -1px` (not `0`), because the crown
+				// line is `position: absolute` against THIS button (its
+				// nearest `position: relative` ancestor) -- an absolutely
+				// positioned element's containing block is its ancestor's
+				// PADDING box, not its full border box, so a plain `left:
+				// 0; right: 0` stops 1px short on each side (this button's
+				// own `border: 1px solid transparent` above). 2 adjacent
+				// buttons' segments each inset by 1px left a visible 2px
+				// gap at every seam -- exactly the "kesikler" (breaks) in
+				// the line the plain-0 version had.
+				&:nth-child(n+5)::after {
+					content: '';
+					position: absolute;
+					top: -12px;
+					left: -1px;
+					right: -1px;
+					height: 2px;
+					background-color: $brain-accent;
+				}
+
+				// Left hook -- closes the bracket's own left (outer) end,
+				// dropping from the crown line down toward (not quite
+				// touching, per the hand-drawn mockup this follows) this
+				// tab's own top edge. Same -1px reasoning as the line
+				// above, so this hook's own left edge lines up with the
+				// crown line's true (border-box) left end, not 1px short
+				// of it.
+				&:nth-child(5)::before {
+					content: '';
+					position: absolute;
+					top: -12px;
+					left: -1px;
+					width: 2px;
+					height: 8px;
+					background-color: $brain-accent;
+				}
+
+				// Right hook -- same as the left one above, mirrored onto
+				// the group's other (right/outer) end.
+				&:nth-child(7)::before {
+					content: '';
+					position: absolute;
+					top: -12px;
+					right: -1px;
+					width: 2px;
+					height: 8px;
+					background-color: $brain-accent;
+				}
+
+				// Small gap before the bracket's own left edge, separating
+				// it from "Ischemic Time (h)" -- independent of the
+				// bracket/label positioning above, which are all `position:
+				// absolute` and don't need this gap to render correctly
+				// themselves; this is purely about the visible space
+				// between the last tissue-wide tab and the bracket's own
+				// left hook.
+				&:nth-child(5) {
+					margin-left: 16px;
+				}
+
+				// "Brain" label (a real element inside this tab's own
+				// tabTitle, see BrowseTissueHeatmapTable.js's
+				// BRAIN_FINDINGS_TAB_TITLE -- a button can only carry 2
+				// generated-content pseudo-elements, and this one already
+				// needs both ::before/::after above for the bracket's own
+				// line/hook) -- attached to the bracket's top-left corner,
+				// outside it. `top: -32px` sits fully above the crown
+				// line's own -12px, inside the 34px this row's own
+				// margin-top (above) reserves -- re-verify both numbers
+				// together if either one ever changes.
+				.tissue-heatmap-brain-group-label {
+					position: absolute;
+					top: -32px;
+					left: 0;
+					font-size: 0.6875rem;
+					font-weight: 700;
+					letter-spacing: 0.04em;
+					text-transform: uppercase;
+					color: $brain-accent;
+					background-color: $brain-accent-tint;
+					padding: 3px 7px;
+					border-radius: 4px;
+					white-space: nowrap;
+					pointer-events: none;
+				}
+			}
+
+			// Dims the crown bracket (not the "Brain" label itself, which
+			// stays legible the same way the rest of this page's own
+			// status badges always do) whenever one of the 3 tabs it
+			// brackets is the active tab -- its own white background +
+			// green top accent already stand out plenty; the bracket
+			// staying at full strength on top of that read as too busy,
+			// per explicit feedback ("çok patlak durmamış olur" -- so it
+			// doesn't look too flashy). `:has()` needs no JS/extra React
+			// state to know which tab is currently active -- it reads
+			// that straight off the already-rendered `.active` class
+			// DotRouterTab itself sets.
+			&:has(> button:nth-child(n+5):nth-child(-n+7).active) {
+				> button:nth-child(n+5)::after,
+				> button:nth-child(5)::before,
+				> button:nth-child(7)::before {
+					opacity: 0.35;
 				}
 			}
 		}
@@ -2957,6 +3120,28 @@ div.browse-link-icon {
 
 	.tissue-heatmap-metric-title-info {
 		font-size: 0.8125rem;
+		color: #97A6B8;
+
+		&:hover {
+			color: #5A6B7D;
+		}
+	}
+
+	// Same info icon, per column header instead of per-tab title -- the
+	// Brain sub-tabs' own tables (BrowseBrainPathologyTable.js) put one next
+	// to every column whose meaning isn't self-evident from its short label
+	// alone, tooltipping the real schema field's own description.
+	.tissue-heatmap-column-header-info {
+		margin-left: 4px;
+		font-size: 0.75rem;
+		// NOT font-weight: 400 -- FontAwesome Free only ships this icon's
+		// glyph at weight 900 (the .fas rule's own font-weight), and this
+		// class's own equal specificity + later source order was silently
+		// overriding that back down to 400, which has no matching glyph in
+		// the bundled font at all, so the browser fell back to rendering
+		// the icon's raw content codepoint (a small "missing glyph" box)
+		// instead of the actual circled-i picture.
+		font-weight: 900;
 		color: #97A6B8;
 
 		&:hover {
@@ -4331,6 +4516,187 @@ div.browse-link-icon {
 			font-size: 0.6875rem;
 			color: var(--tissue-heatmap-arrow-color, $search-header-icon-color);
 		}
+	}
+}
+
+// A Present finding cell's own free-text description (BrainFindingsTable)
+// is only reachable via hover (data-tip) -- this small corner dot is the
+// visual cue that there's more to see there. Deliberately not the same
+// orange triangle .has-alt-values (above) uses -- that flags a genuinely
+// competing 2nd value, a different situation from "this one value has an
+// extra text note attached", so a differently-shaped, neutral-colored
+// marker keeps the 2 from reading as the same kind of affordance.
+.tissue-heatmap-finding-description-dot {
+	position: absolute;
+	top: 3px;
+	right: 3px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	// A solid dark fill (not tied to the cell's own score-N/na background)
+	// with a soft shadow for edge definition -- same reasoning as
+	// .has-alt-values' own drop-shadow above, needs to read against both
+	// the lightest and darkest score bands without a hard outline.
+	background-color: #28323C;
+	box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+}
+
+table.tissue-heatmap-table td.tissue-heatmap-cell {
+	position: relative;
+}
+
+// Neuropathology Findings/Neurodegenerative Staging tabs
+// (BrowseBrainPathologyTable.js) -- unlike the other 4 tabs, whose own
+// table.tissue-heatmap-table { width: max-content } (above) deliberately
+// keeps a data-driven, potentially very wide column count from being
+// artificially stretched, these 2 tables have a small, fixed column count
+// (9-12) that easily fits most viewports with room to spare -- letting
+// them size to bare content-width left a wide empty gap on the right of
+// the page instead of using that space. `width: 100%` here just removes
+// the cap; a table whose real content is still wider than the viewport
+// (e.g. a very narrow window) still scrolls normally via the shared
+// .tissue-heatmap-table-wrap's own overflow-x.
+table.tissue-heatmap-table.tissue-heatmap-metric-table {
+	width: 100%;
+}
+
+// Neuropathology Findings/Neurodegenerative Staging tabs
+// (BrowseBrainPathologyTable.js's BrainFindingsTable/BrainStagingTable) --
+// both reuse table.tissue-heatmap-table's short-value styling (nowrap,
+// centered, score-0..4 palette), which is fine, but NOT its donor column:
+// .tissue-heatmap-donor-id (above) is `position: sticky; left: 32px`,
+// tuned for the other 4 tabs' own leading 32px `.tissue-heatmap-order-label`
+// column, which these 2 tables don't have (donor ID is their own 1st
+// column). Reusing that class there put the donor cell 32px to the right
+// of its actual column on load, overlapping into the next column, since a
+// sticky element whose natural position already violates its own `left`
+// offset snaps to that offset immediately -- no scrolling needed. This is
+// the same sticky donor-column behavior, just anchored at `left: 0` to
+// match where the column actually starts.
+// Nested under `table.tissue-heatmap-table` (not a bare top-level class) so
+// this compiles with that same prefix -- matching table.tissue-heatmap-table's
+// own `.tissue-heatmap-donor-id` nesting convention above, needed here for
+// the same reason: 2 classes (.tissue-heatmap-table + this one) outrank
+// that rule's own `table.tissue-heatmap-table th, table.tissue-heatmap-table td`
+// selector (1 class + 2 types) on specificity, so text-align: left actually
+// wins over its centered default instead of losing to it.
+table.tissue-heatmap-table {
+	.tissue-heatmap-metric-donor-header,
+	.tissue-heatmap-metric-donor-id {
+		position: sticky;
+		left: 0;
+		z-index: 2;
+		background-color: #FFFFFF;
+	}
+
+	.tissue-heatmap-metric-donor-header {
+		background-color: #F2F3F5;
+		z-index: 3;
+	}
+
+	.tissue-heatmap-metric-donor-id {
+		text-align: left;
+		font-weight: 600;
+		color: #428bca;
+		border-right: 1px solid #E7F0F3;
+		box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.12);
+	}
+}
+
+// Diagnosis Summary tab (BrowseBrainPathologyTable.js's BrainDiagnosisTable)
+// -- long free-text prose, unlike every other tissue-heatmap-table's short,
+// banded values, so this is a fully standalone table (not a
+// table.tissue-heatmap-table instance, and its donor cell is NOT
+// .tissue-heatmap-donor-id) rather than an override on top of that shared
+// table -- that one's own th/td rules (centered/nowrap, sized for short
+// heatmap values) are declared with a `table.tissue-heatmap-table` element+
+// class selector, which outranks a plain class-only override here and left
+// this table's long text overflowing its cell (nowrap + default
+// overflow: visible) and visually overlapping the next column instead of
+// wrapping.
+table.tissue-heatmap-diagnosis-table {
+	width: 100%;
+	table-layout: fixed;
+	border-collapse: separate;
+	border-spacing: 0;
+	font-size: 0.8125rem;
+	// Outer frame -- th/td below only draw a bottom/right edge each (the
+	// usual "shared interior grid line" table trick, no double-thickness
+	// borders where 2 cells touch), which left the whole table's own
+	// top/left edge and the last row/column with no border at all.
+	border: 1px solid #E7F0F3;
+
+	th, td {
+		white-space: normal;
+		text-align: left;
+		vertical-align: top;
+		padding: 8px 12px;
+		border-bottom: 1px solid #E7F0F3;
+		border-right: 1px solid #E7F0F3;
+		overflow-wrap: break-word;
+
+		&:last-child {
+			border-right: none;
+		}
+	}
+
+	tbody tr:last-child td {
+		border-bottom: none;
+	}
+
+	thead th {
+		background-color: #F2F3F5;
+		font-weight: 500;
+		color: $search-header-text-color;
+		border-bottom: 1px solid #C3D8DE;
+		text-align: left;
+	}
+
+	// Donor/Outcome stay narrow (a short id and a short badge); Final
+	// Diagnosis/Additional Notes split the rest of the table's width
+	// between them -- `table-layout: fixed` (above) makes every column
+	// actually honor these widths instead of growing to fit content.
+	th:nth-child(1), td:nth-child(1) { width: 120px; }
+	th:nth-child(2), td:nth-child(2) { width: 110px; }
+	th:nth-child(3), td:nth-child(3),
+	th:nth-child(4), td:nth-child(4) { width: 32%; }
+
+	.tissue-heatmap-diagnosis-donor {
+		font-weight: 600;
+		color: #428bca;
+	}
+
+	// unacceptable_description (BrainDiagnosisTable) -- rare, only ever
+	// present alongside an Unacceptable outcome, so it's visually flagged
+	// (same red family as .tissue-heatmap-outcome-badge's own
+	// .is-unacceptable below) rather than blending into the plain
+	// Additional Notes text above it.
+	.tissue-heatmap-unacceptable-note {
+		margin-top: 4px;
+		color: #8C2E2E;
+
+		strong {
+			font-weight: 600;
+		}
+	}
+}
+
+// Acceptable/Unacceptable review outcome badge (BrainDiagnosisTable) -- same
+// light-fill/dark-text pill convention as the rest of the portal's status
+// badges, not the score-0..4 heatmap palette (this isn't a severity band).
+.tissue-heatmap-outcome-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	&.is-acceptable {
+		background-color: #DCEEE3;
+		color: #1E6B45;
+	}
+	&.is-unacceptable {
+		background-color: #F7DADA;
+		color: #8C2E2E;
 	}
 }
 

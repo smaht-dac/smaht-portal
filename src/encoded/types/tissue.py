@@ -189,6 +189,102 @@ class Tissue(SampleSource):
                         "linkTo": "HistologyImage",
                     },
                 },
+                "brain_findings": {
+                    "title": "Brain Neuropathology Findings",
+                    "description": (
+                        "Per-category neuropathology finding presence/description aggregated"
+                        " across pathology reports for this tissue (e.g. Vascular,"
+                        " Neurodegenerative). Only present for tissues with BrainPathologyReport"
+                        " data; NonBrainPathologyReport's equivalent concept is"
+                        " pathologic_finding_present."
+                    ),
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "title": "Finding Category",
+                                "type": "string",
+                            },
+                            "present": {
+                                "title": "Present",
+                                "type": "boolean",
+                            },
+                            "description": {
+                                "title": "Description",
+                                "type": "string",
+                            },
+                        },
+                    },
+                },
+                "brain_staging": {
+                    "title": "Brain Neurodegenerative Staging",
+                    "description": (
+                        "Neurodegenerative disease staging/severity scores, aggregated (max per"
+                        " field) across pathology reports for this tissue. Only present for"
+                        " tissues with BrainPathologyReport data."
+                    ),
+                    "type": "object",
+                    "properties": {
+                        "abc_score_A": {"title": "ABC Score A", "type": "integer"},
+                        "abc_score_B": {"title": "ABC Score B", "type": "integer"},
+                        "abc_score_C": {"title": "ABC Score C", "type": "integer"},
+                        "cerad_score": {"title": "CERAD", "type": "integer"},
+                        "ad_neuropathologic_change_level": {
+                            "title": "AD Neuropathologic Change",
+                            "type": "string",
+                            "enum": pathology_report_utils.BRAIN_STAGING_ORDINAL_ORDERS[
+                                "ad_neuropathologic_change_level"
+                            ],
+                        },
+                        "braak_pd": {"title": "Braak PD", "type": "integer"},
+                        "small_vessel_disease": {
+                            "title": "Small Vessel Disease",
+                            "type": "string",
+                            "enum": pathology_report_utils.BRAIN_STAGING_ORDINAL_ORDERS["small_vessel_disease"],
+                        },
+                        "braak_and_braak_ad": {
+                            "title": "Braak & Braak AD",
+                            "type": "string",
+                            "enum": pathology_report_utils.BRAIN_STAGING_ORDINAL_ORDERS["braak_and_braak_ad"],
+                        },
+                        "thal": {"title": "Thal", "type": "integer"},
+                        "caa_vonsattel": {"title": "CAA VonSattel", "type": "integer"},
+                        "mckeith": {"title": "McKeith", "type": "integer"},
+                        "vonsattel_hd": {"title": "VonSattel HD", "type": "integer"},
+                    },
+                },
+                "brain_diagnosis": {
+                    "title": "Brain Diagnosis Summary",
+                    "description": (
+                        "Review outcome and free-text diagnosis/notes from each pathology report"
+                        " covering this tissue. Only present for tissues with BrainPathologyReport"
+                        " data."
+                    ),
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "outcome": {
+                                "title": "Outcome",
+                                "type": "string",
+                                "enum": ["Acceptable", "Unacceptable"],
+                            },
+                            "final_neuropathological_diagnosis": {
+                                "title": "Final Neuropathological Diagnosis",
+                                "type": "string",
+                            },
+                            "additional_notes": {
+                                "title": "Additional Notes",
+                                "type": "string",
+                            },
+                            "unacceptable_description": {
+                                "title": "Unacceptable Description",
+                                "type": "string",
+                            },
+                        },
+                    },
+                },
             },
         },
     )
@@ -315,6 +411,25 @@ class Tissue(SampleSource):
                 bucket["percentage"] = percentage
         non_target_tissues = list(non_target_tissues_by_subtype.values()) or None
 
+        # Brain-specific rollups -- both [] on every non-brain tissue (their
+        # reports carry none of these fields, see get_brain_findings/
+        # get_brain_staging_scores's own docstrings), collapsed the same
+        # max-/OR-across-reports way as autolysis_score/target_tissues above.
+        brain_findings = pathology_report_utils.get_merged_brain_findings(
+            [pathology_report_utils.get_brain_findings(report) for report in pathology_reports]
+        ) or None
+        brain_staging = pathology_report_utils.get_max_brain_staging_scores(
+            [pathology_report_utils.get_brain_staging_scores(report) for report in pathology_reports]
+        ) or None
+        brain_diagnosis = [
+            summary
+            for summary in (
+                pathology_report_utils.get_brain_diagnosis_summary(report)
+                for report in pathology_reports
+            )
+            if summary is not None
+        ] or None
+
         return {
             "autolysis_score": max(autolysis_scores) if autolysis_scores else None,
             "non_target_tissue_present": any(non_target_flags) if non_target_flags else None,
@@ -332,6 +447,9 @@ class Tissue(SampleSource):
             ),
             "non_target_tissues": non_target_tissues,
             "histology_images": histology_images or None,
+            "brain_findings": brain_findings,
+            "brain_staging": brain_staging,
+            "brain_diagnosis": brain_diagnosis,
         }
 
     @calculated_property(
