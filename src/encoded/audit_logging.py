@@ -548,6 +548,27 @@ def identity_fields(request, user_id=None):
     return fields
 
 
+def claims_identity_fields(request):
+    """Actor fields that need no database lookup, from verified claims only.
+
+    Used where a lookup would be unsafe - notably after the request's
+    transaction has closed - so an event can still name the provider and
+    session it observed without reopening the database.
+    """
+    claims = verified_claims(request)
+    fields = {}
+    if claims.get("iss"):
+        fields["user_id_provider"] = claims["iss"]
+    if claims.get("federated_source"):
+        fields["user_federated_source"] = claims["federated_source"]
+    session_id = claims.get("sid") or claims.get("jti")
+    if session_id:
+        fields["session_id"] = session_id
+    if claims.get("email"):
+        fields["user_email"] = claims["email"]
+    return fields
+
+
 def constant_fields():
     """Return the application-wide CADR constants."""
     return {"app": APP_NAME, "nih_ico": NIH_ICO, "cadr_name": CADR_NAME}

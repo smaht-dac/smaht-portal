@@ -16,10 +16,12 @@ Two rules are enforced in code and asserted in
 * **Truthful or absent.** A field appears only when the application can derive
   it from authoritative state. The single omission convention is that the key
   is left out; `null` is never substituted and a value is never guessed.
-* **No secrets.** Tokens, cookies, raw `Authorization` headers, passwords,
-  reCAPTCHA secrets, upload credentials and presigned-URL query parameters are
-  never logged. `url` is `request.path_url`, which excludes the query string
-  and fragment.
+* **No secrets.** No *audit event* carries a token, cookie, raw `Authorization`
+  header, password, reCAPTCHA secret, upload credential, annotated filename or
+  presigned-URL query parameter. `url` is `request.path_url`, which excludes
+  the query string and fragment. This rule governs audit events only; the
+  separately authorized Splunk forwarder export of request query strings and
+  `Referer` values is unchanged by this work and is out of its scope.
 
 ## Event families
 
@@ -104,7 +106,7 @@ are neither a deletion, an archival nor a destruction.
 | 4 | `dest_port` | Implemented, conditional | From `X-Forwarded-Port`, and only when `audit.trusted_proxy_hops >= 2` declares an edge proxy that sets rather than appends it. With a single trusted hop the header is client-controlled and is ignored. |
 | 5 | `user_name` | Implemented | `first_name` + `last_name` from the resolved portal User. Omitted when the User has not supplied them. |
 | 6 | `user_id` | Implemented | The portal User UUID, from the verified `userid.` principal only. |
-| 7 | `user_id_provider` | Implemented | The verified token issuer (`iss`). `user_federated_source` additionally carries the upstream IdP when the token asserts one - the `idp` claim, or the legacy Auth0 subject prefix such as `google-oauth2`. The provider is never hardcoded; when RAS arrives its `federated_source` populates the same field. |
+| 7 | `user_id_provider` | Implemented | The verified token issuer (`iss`). `user_federated_source` additionally carries the upstream IdP when the token asserts one. On the Okta path that is the `idp` claim, which is Okta's own opaque IdP identifier (`0oa…`) rather than a provider name such as "Google" - map it to a readable name with a Splunk lookup rather than guessing in application code. On the legacy Auth0 path it is the subject prefix, such as `google-oauth2`. The provider is never hardcoded; when RAS arrives its `federated_source` populates the same field. |
 | 8 | `session_id` | Implemented, conditional | The verified `sid` claim, or the token's `jti` when the provider asserts no `sid`. Never the cookie value or a hash of it; omitted when the token carries neither claim. |
 | 9 | `url` | Implemented | `request.path_url` - scheme, host and path. The query string and fragment are excluded so authorization codes, presigned parameters and search terms cannot leak. |
 | 10 | `app` | Implemented | Constant `smaht-portal`. |
@@ -143,6 +145,10 @@ rather than being logged.
 * Without the tween - a management command, or a view called directly in a unit
   test - events are emitted immediately and simply omit the four
   response-level fields.
+* The tween's own events resolve their actor inside a fresh transaction, or
+  from verified claims alone. `DBSession` is registered with
+  `zope.sqlalchemy`, so reading the User after `pyramid_tm` has closed would
+  otherwise leave a connection idle-in-transaction.
 * The audit tween is the outermost tween, outside `pyramid_tm` and snovault's
   renderers, so `status` reflects a transaction abort or a session-expiry
   rewrite rather than what a view believed it was returning.

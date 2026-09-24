@@ -27,7 +27,9 @@ from .audit_logging import (
     EVENT_TYPE_AUTHORIZATION,
     auth_failure_reason,
     build_audit_event,
+    claims_identity_fields,
     emit_audit_event,
+    identity_fields,
 )
 
 
@@ -80,8 +82,36 @@ def _presented_credential(request):
         return False
 
 
+def _identity_after_commit(request):
+    """Resolve actor identity for a tween-generated event, safely.
+
+    This tween runs outside ``pyramid_tm``, and resolving an identity reads the
+    database twice - snovault's groupfinder loads the User to compute
+    principals, and the audit builder reads its properties. ``DBSession`` is
+    registered with ``zope.sqlalchemy``, so doing that after the request's
+    transaction has closed would open an implicit transaction that nothing
+    commits and leave the connection idle-in-transaction. Events queued by a
+    view are unaffected: they resolved their identity while the request's own
+    transaction was still open.
+    """
+    transaction_manager = getattr(request, "tm", None)
+    if transaction_manager is None:
+        return identity_fields(request)
+    try:
+        with transaction_manager:
+            return identity_fields(request)
+    except Exception:
+        log.exception("Failed to resolve audit identity after commit")
+        return claims_identity_fields(request)
+
+
 def _session_expiry_event(request):
-    """Build the automatic-logout event when a session credential lapsed."""
+    """Build the automatic-logout event when a session credential lapsed.
+
+    A lapsed credential authenticates nobody, so there is no portal User to
+    resolve; the verified claims the token left behind are all this event can
+    honestly name, and reading them costs no database access.
+    """
     if not getattr(request, "auth0_expired", False):
         return None
     if not _presented_credential(request):
@@ -92,6 +122,7 @@ def _session_expiry_event(request):
         EVENT_TYPE_AUTHENTICATION,
         "session_expired",
         "expired",
+        identity=claims_identity_fields(request),
         reason=auth_failure_reason(request) or AUTH_FAILURE_TOKEN_EXPIRED,
     )
 
@@ -113,6 +144,7 @@ def _denial_event(request, response, already_recorded):
         EVENT_TYPE_AUTHORIZATION,
         "access_denied",
         "denied",
+        identity=_identity_after_commit(request),
         reason=auth_failure_reason(request),
     )
 

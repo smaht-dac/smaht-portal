@@ -413,6 +413,46 @@ def test_queued_event_is_completed_with_response_only_fields(tween_app):
     assert_no_secrets(stream)
 
 
+def test_denial_identity_is_resolved_inside_a_transaction(tween_app):
+    """A lookup after pyramid_tm has closed would leak an open transaction."""
+    app, stream = tween_app
+    entered = []
+
+    class SyntheticManager:
+        def __enter__(self):
+            entered.append("begin")
+            return self
+
+        def __exit__(self, *exc_info):
+            entered.append("commit")
+            return False
+
+    def add_manager(event):
+        event.request.tm = SyntheticManager()
+
+    from pyramid.events import NewRequest
+    app.app.registry.registerHandler(add_manager, (NewRequest,))
+    try:
+        app.get("/denied", headers=CREDENTIAL_HEADERS, status=403)
+    finally:
+        app.app.registry.unregisterHandler(add_manager, (NewRequest,))
+
+    assert entered == ["begin", "commit"]
+    record, = records(stream)
+    assert record["action"] == "access_denied"
+
+
+def test_expiry_event_needs_no_database_lookup(tween_app):
+    """An expired credential authenticates nobody, so nothing is looked up."""
+    app, stream = tween_app
+    with patch("encoded.audit_tween.identity_fields",
+               side_effect=AssertionError("must not resolve an identity")):
+        app.get("/expired", headers=CREDENTIAL_HEADERS, status=401)
+    record, = records(stream)
+    assert record["action"] == "session_expired"
+    assert "user_id" not in record
+
+
 def test_credentialed_denial_is_recorded_when_no_view_recorded_one(tween_app):
     app, stream = tween_app
     app.get("/denied", headers=CREDENTIAL_HEADERS, status=403)
