@@ -2380,12 +2380,18 @@ div.browse-link-icon {
 	color: #4E6884;
 }
 
-// Separates the "Conditional color" and "Non-Target color" sections
-// (HeatmapAdminSettings) -- 2 independent pickers now, not 1.
+// Separates the "Conditional color"/"Non-Target color"/"Subtype tint"
+// sections (HeatmapAdminSettings) -- independent controls, not 1.
 .tissue-heatmap-admin-settings-section + .tissue-heatmap-admin-settings-section {
 	margin-top: 12px;
 	padding-top: 12px;
 	border-top: 1px solid #E7EDF2;
+}
+
+.tissue-heatmap-admin-settings-slider {
+	display: block;
+	width: 100%;
+	margin: 0;
 }
 
 // HeatmapColorPicker (BrowseTissueHeatmapTable.js) is a shared component

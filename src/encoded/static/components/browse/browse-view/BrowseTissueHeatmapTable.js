@@ -1283,20 +1283,22 @@ function getTissueLevelHeaderStyle(tissueType) {
     };
 }
 
-// Subtype ("Dermis") header row's own color -- the exact, un-tinted
-// official SMaHT tissue color (smaht_tissue_colors.json), per explicit
-// request: people compare this portal's tissue colors against the SAME
-// palette they use for their own figures, and a diluted tint (an earlier
-// version of this mixed it 42% toward white -- see getTissueLevelHeaderStyle's
-// own still-tinted comment for that reasoning) doesn't read as visibly "the
-// same color" next to those figures, even though it's mathematically
-// derived from it. The tissue-type header row above THIS one still uses a
-// deliberate tint (see getTissueLevelHeaderStyle) -- only this row's own
-// full-strength fill was flagged as inconsistent with the shared palette.
-function getTissueSubtypeHeaderStyle(tissueType) {
+// Subtype ("Dermis") header row's own color -- a tint of the official SMaHT
+// tissue color (smaht_tissue_colors.json), same as the tissue-type row
+// above it (getTissueLevelHeaderStyle), just its own separately adjustable
+// strength (`tintPercent`, 0 = full-strength/un-tinted color, 100 = fully
+// white) -- brought back per explicit request, with a slider in the admin
+// panel (HeatmapAdminSettings' "Subtype tint") to dial it in live, after an
+// earlier version of this went to the opposite extreme (the exact,
+// un-tinted color, no tint at all) over concerns that a diluted tint didn't
+// read as visibly "the same color" people compare against their own
+// figures -- the slider lets that tradeoff be tuned instead of picked once
+// and hardcoded either way. Default (42%) matches this row's own earlier
+// tinted version, before that un-tinted change.
+function getTissueSubtypeHeaderStyle(tissueType, tintPercent = 42) {
     const hex = getTissueColorHex(tissueType);
     if (!hex) return null;
-    const backgroundColor = hex;
+    const backgroundColor = mixHexWithWhite(hex, 1 - tintPercent / 100);
     return {
         backgroundColor,
         color: getReadableTextColor(backgroundColor),
@@ -1444,6 +1446,8 @@ function HeatmapAdminSettings({
     ntBaseHex,
     onPickNtColor,
     onResetNtColor,
+    subtypeTintPercent,
+    onSubtypeTintChange,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -1501,6 +1505,20 @@ function HeatmapAdminSettings({
                         />
                     </div>
                     ) : null}
+                    <div className="tissue-heatmap-admin-settings-section">
+                        <p className="tissue-heatmap-admin-settings-label">
+                            Subtype tint ({subtypeTintPercent}%)
+                        </p>
+                        <input
+                            type="range"
+                            className="tissue-heatmap-admin-settings-slider"
+                            min={0}
+                            max={100}
+                            value={subtypeTintPercent}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onChange={(event) => onSubtypeTintChange(Number(event.target.value))}
+                        />
+                    </div>
                 </div>
             ) : null}
         </div>
@@ -2356,7 +2374,7 @@ function renderTissueTypeParentHeaderCells(displayRuns, tissueTypeHrefs, columnI
 // misleading, since the cell's own detail popover always had the real
 // subtype value available regardless. Every branch stays colSpan-matched to
 // that same run's own 2nd-row cell so the 2 rows always align.
-function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, nonTargetColumnKeys = null, blankPlaceholderLabels = false) {
+function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, nonTargetColumnKeys = null, blankPlaceholderLabels = false, subtypeTintPercent = 42) {
     const nodes = [];
     displayRuns.forEach((run) => {
         if (run.type === 'merged-brain') {
@@ -2407,7 +2425,7 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }
-                    style={getTissueSubtypeHeaderStyle(parentTissueType, isNonTargetColumn) || undefined}>
+                    style={getTissueSubtypeHeaderStyle(parentTissueType, subtypeTintPercent) || undefined}>
                     <span className="tissue-heatmap-subtype-subrow-label-text" title={headerLabel || undefined}>
                         {headerLabel}
                     </span>
@@ -2458,7 +2476,7 @@ function renderSubtypeHeaderCells(displayRuns, sortState, handleHeaderClick, hov
                         (hoveredColumn === key ? ' is-column-highlight' : '') +
                         (key === selectedTissueType ? ' is-selected-column' : '')
                     }
-                    style={getTissueSubtypeHeaderStyle(run.group.parentTissueType, isNonTargetColumn) || undefined}
+                    style={getTissueSubtypeHeaderStyle(run.group.parentTissueType, subtypeTintPercent) || undefined}
                     // eslint-disable-next-line react/jsx-no-bind
                     onMouseEnter={() => onHoverColumn(key)}
                     // eslint-disable-next-line react/jsx-no-bind
@@ -2576,7 +2594,7 @@ function renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys) {
 // those 2 tabs -- see MetricHeatmapTable's own hasAnySplitColumn gate) --
 // Ischemic Time never passes them, so its own header stays exactly the
 // original 2-row shape.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null, blankPlaceholderLabels = false, showTargetNonTargetRow = false) {
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null, blankPlaceholderLabels = false, showTargetNonTargetRow = false, subtypeTintPercent = 42) {
     const hasTargetNonTargetRow = !!displayRuns && showTargetNonTargetRow;
     const headerRowSpan = displayRuns ? (hasTargetNonTargetRow ? 4 : 3) : 2;
     return (
@@ -2655,7 +2673,8 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                         onHoverColumn,
                         selectedTissueType,
                         nonTargetColumnKeys,
-                        blankPlaceholderLabels
+                        blankPlaceholderLabels,
+                        subtypeTintPercent
                     )}
                 </tr>
             ) : null}
@@ -2823,6 +2842,14 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // distracting, per explicit feedback. Only earns its place once both
     // TARGET and NON-TARGET columns are genuinely showing side by side.
     showTargetNonTargetRow = false,
+    // How strongly the 3rd (subtype) header row's own official tissue color
+    // is tinted toward white -- see getTissueSubtypeHeaderStyle's own
+    // comment. Shared across every subtype-aware tab (Target Tissue %/
+    // Non Target Tissue %/Autolysis Score, whichever is actually showing
+    // this row) via the same admin-panel slider, not per-tab like the
+    // score-color pickers -- it's a typographic knob, not a color choice
+    // tied to any one metric's own scale.
+    subtypeTintPercent = 42,
     // Optional -- leaves the 3rd header row blank (instead of repeating the
     // tissue's own name) for a tissue with no real subtype. Only Non Target
     // Tissue % passes this: there, a bare "Heart" under the HART header
@@ -3253,7 +3280,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 subtypeColumnInfo,
                                 nonTargetColumnKeys,
                                 blankPlaceholderLabels,
-                                showTargetNonTargetRow
+                                showTargetNonTargetRow,
+                                subtypeTintPercent
                             )}
                         </thead>
                     </table>
@@ -3284,7 +3312,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             subtypeColumnInfo,
                             nonTargetColumnKeys,
                             blankPlaceholderLabels,
-                            showTargetNonTargetRow
+                            showTargetNonTargetRow,
+                            subtypeTintPercent
                         )}
                     </thead>
                     <tbody>
@@ -3453,6 +3482,15 @@ export const BrowseTissueHeatmapTable = (props) => {
     const handleResetIschemicPaletteColor = () => setIschemicPaletteBaseHex(null);
     const handlePickNtPaletteColor = (hex) => setNtPaletteBaseHex(hex);
     const handleResetNtPaletteColor = () => setNtPaletteBaseHex(null);
+
+    // How strongly the subtype header row's own tissue color is tinted
+    // toward white (see getTissueSubtypeHeaderStyle) -- shared across every
+    // subtype-aware tab (not per-tab like the score pickers above), since
+    // it's a typographic knob, not a color tied to any one metric's own
+    // scale. 42 matches this row's own original tinted default, before an
+    // earlier version went un-tinted; brought back per explicit request,
+    // now adjustable instead of hardcoded either way.
+    const [subtypeTintPercent, setSubtypeTintPercent] = useState(42);
 
     // Which tab is currently active -- same hash-based dot-path lookup
     // DotRouter itself uses internally (DotRouter.getCurrentTab), so this
@@ -3756,6 +3794,9 @@ export const BrowseTissueHeatmapTable = (props) => {
                         onPickNtColor={handlePickNtPaletteColor}
                         // eslint-disable-next-line react/jsx-no-bind
                         onResetNtColor={handleResetNtPaletteColor}
+                        subtypeTintPercent={subtypeTintPercent}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onSubtypeTintChange={setSubtypeTintPercent}
                     />
                 </div>
             ) : null}
@@ -3781,6 +3822,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeHrefs={targetTissueSubtypePlan.fixedTissueTypeHrefs}
                             tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
+                            subtypeTintPercent={subtypeTintPercent}
                             nonTargetColumnKeys={targetWithNonTargetExpansion.nonTargetColumnKeys}
                             // Only while the toggle is on -- with it off,
                             // every column is Target Tissue % alone, and a
@@ -3861,6 +3903,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeHrefs={nonTargetTissueSubtypePlan.fixedTissueTypeHrefs}
                             tissueTypeCategories={nonTargetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={nonTargetTissueSubtypePlan.columnInfo}
+                            subtypeTintPercent={subtypeTintPercent}
                             nonTargetColumnKeys={allNonTargetColumnKeys}
                             // Never shown -- every column on this standalone
                             // tab is already NON-TARGET alone (never TARGET
@@ -3902,6 +3945,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeHrefs={autolysisSubtypePlan.fixedTissueTypeHrefs}
                             tissueTypeCategories={autolysisSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
+                            subtypeTintPercent={subtypeTintPercent}
                             metricLabel="Autolysis Score"
                             tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
                             formatValue={formatAutolysisScore}
