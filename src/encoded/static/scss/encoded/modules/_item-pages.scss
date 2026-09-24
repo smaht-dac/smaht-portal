@@ -4144,11 +4144,28 @@ File, Donor, and Publication Overview Styles
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
         }
 
-        // One tube, always drawn at its native size.
+        // The main tube plus a branching sub-tube per real sample, so this
+        // no longer draws at 1 fixed native size -- back to scaling with
+        // however many samples there are, same as before the single-tube
+        // "N samples" version. No `max-width` of its own -- that artificially
+        // squeezed every tube down to fit a fixed 240px regardless of how
+        // wide its actual container was, so a handful of samples already
+        // rendered small. Falls through to `.aliquot-canvas`'s own shared
+        // `max-width: 100%` above instead, same "native size for few, scales
+        // down only once it doesn't fit its real container" behavior the
+        // solid-tissue slice canvas already uses -- so tubes stay at a
+        // readable size until there are genuinely enough samples to fill
+        // the actual space available, not before.
         .nonsolid-canvas {
             width: auto;
             height: auto;
             overflow: visible;
+        }
+
+        .nonsolid-branch-line {
+            stroke: #8fa3b3;
+            stroke-width: 1.3;
+            vector-effect: non-scaling-stroke;
         }
 
         .nonsolid-sequence-label {
@@ -4159,13 +4176,23 @@ File, Donor, and Publication Overview Styles
             pointer-events: none;
         }
 
-        // The "N cores" line under the tube's id.
+        // Each sub-tube's own submitting-center label underneath it.
         .nonsolid-gcc-label {
-            fill: #7c8ba0;
+            fill: #4e6379;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             text-anchor: middle;
             pointer-events: none;
+
+            // A real aliquot whose only submitting record is a TPC (no
+            // files of its own) -- muted and not bold, same "honest empty
+            // state" treatment as .aliquot-popover-pathology-empty,
+            // distinct from a normal GCC's own bold label.
+            &.is-empty {
+                fill: #9aa2ab;
+                font-weight: 500;
+                font-style: italic;
+            }
         }
 
         .nonsolid-aliquot-hitarea {
