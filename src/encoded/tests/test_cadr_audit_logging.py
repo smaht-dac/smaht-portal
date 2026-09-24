@@ -531,6 +531,40 @@ def test_failed_upload_initiation_is_audited_as_a_failure(encoded_log_stream):  
     assert (record["action"], record["outcome"]) == ("file_upload_initiate", "failure")
 
 
+def test_delete_override_registers_alongside_snovaults_without_conflict():
+    """The audited DELETE view must win for portal items and still commit."""
+    from snovault.crud_views import item_delete_full as sno_item_delete_full
+    from ..types.base import Item, item_delete_full
+
+    config = Configurator(settings={"testing": True})
+    for module in (
+        "snovault.calculated",
+        "snovault.config",
+        "snovault.typeinfo",
+        "snovault.resources",
+        "snovault.util",
+        "snovault.server_defaults",
+        "snovault.validation",
+        "snovault.predicates",
+    ):
+        config.include(module)
+    config.scan("snovault.crud_views")
+    config.scan("encoded.types.base")
+    config.commit()
+
+    views = [dict(item["introspectable"]) for item in config.introspector.get_category("views")]
+    deletes = [
+        view for view in views
+        if view.get("request_methods") == "DELETE"
+        and view.get("callable") in (item_delete_full, sno_item_delete_full)
+    ]
+    ours = [view for view in deletes if view.get("callable") is item_delete_full]
+    assert len(ours) == 1
+    # Ours is registered for the portal Item, which is more specific than the
+    # snovault Item the upstream view is registered for, so it wins.
+    assert ours[0]["context"] is Item
+
+
 def test_purge_is_audited_as_destruction_and_delete_is_not_double_counted(
         encoded_log_stream):  # noqa: F811
     from ..types.base import item_delete_full
