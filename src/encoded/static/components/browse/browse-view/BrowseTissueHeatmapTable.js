@@ -2147,6 +2147,14 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
                     (hoveredColumn === tissueType ? 'is-column-highlight' : '') +
                     (tissueType === selectedTissueType ? ' is-selected-column' : '')
                 }
+                // Same per-tissue-type tint the subtype-aware tabs' own
+                // 'unsplit' row-2 cell uses (renderTissueTypeParentHeaderCells
+                // above) -- Ischemic Time (the only tab that still goes
+                // through this plain, non-subtype-aware path) was missing
+                // it entirely, leaving every one of its own tissue-type
+                // headers on the table's plain grey `thead th` default
+                // instead of its own tissue's color.
+                style={getTissueLevelHeaderStyle(tissueType) || undefined}
                 // eslint-disable-next-line react/jsx-no-bind
                 onMouseEnter={() => onHoverColumn(tissueType)}
                 // eslint-disable-next-line react/jsx-no-bind

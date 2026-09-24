@@ -3766,13 +3766,28 @@ div.browse-link-icon {
 			background-color: #FFFFFF;
 		}
 
-		.tissue-heatmap-donor-header,
 		.tissue-heatmap-donor-id {
 			position: sticky;
 			left: 32px;
 			z-index: 2;
 			background-color: #FFFFFF;
 			box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.12);
+		}
+
+		// Split from .tissue-heatmap-donor-id above -- a plain, single-
+		// selector version of this rule was replacing `thead th`'s own
+		// bottom-border box-shadow wholesale (box-shadow doesn't merge
+		// across separate rules the way 2 different border properties
+		// could), leaving this one header cell with no bottom border at
+		// all. Same #C3D8DE color `thead th` uses, combined into the same
+		// declaration as this cell's own sticky-column shadow so both
+		// actually show.
+		.tissue-heatmap-donor-header {
+			position: sticky;
+			left: 32px;
+			z-index: 2;
+			background-color: #FFFFFF;
+			box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.12), inset 0 -1px 0 #C3D8DE;
 		}
 
 		// Frozen top-left corner -- these two rowSpan={2} cells are already
