@@ -137,3 +137,6 @@ rather than being logged.
 * Without the tween - a management command, or a view called directly in a unit
   test - events are emitted immediately and simply omit the four
   response-level fields.
+* The audit tween is the outermost tween, outside `pyramid_tm` and snovault's
+  renderers, so `status` reflects a transaction abort or a session-expiry
+  rewrite rather than what a view believed it was returning.

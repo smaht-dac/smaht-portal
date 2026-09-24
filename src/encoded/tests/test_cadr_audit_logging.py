@@ -317,6 +317,28 @@ CREDENTIAL_HEADERS = {
 }
 
 
+def test_audit_tween_wraps_the_transaction_and_renderer_tweens():
+    """The audit tween must see the response the client actually receives.
+
+    Sitting outside pyramid_tm and snovault's renderers means the recorded
+    status reflects a transaction abort or a session-expiry rewrite, rather
+    than what a view believed it was returning.
+    """
+    from pyramid.interfaces import ITweens
+
+    config = Configurator(settings={})
+    config.include("pyramid_tm")
+    config.include("snovault.stats")
+    config.include("snovault.renderers")
+    config.include("encoded.audit_tween")
+    config.commit()
+    order = [name for name, _ in config.registry.queryUtility(ITweens).implicit()]
+    assert order[0] == "encoded.audit_tween.audit_tween_factory"
+    assert order.index("encoded.audit_tween.audit_tween_factory") < order.index(
+        "pyramid_tm.tm_tween_factory"
+    )
+
+
 def test_queued_event_is_completed_with_response_only_fields(tween_app):
     app, stream = tween_app
     response = app.get("/audited?secret=synthetic-recaptcha-secret",
