@@ -48,6 +48,12 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
 - Application console logging is configured by `src/encoded/logging_config.py` through structlog's
   standard-library `ProcessorFormatter`; its bounded exception shape and single-line JSON contract
   are covered by `src/encoded/tests/test_logging_config.py`.
+- NIH CADR audit events are built only by `record_audit_event` in `src/encoded/audit_logging.py`,
+  which owns the field whitelist (anything outside it raises), the application constants and the
+  verified actor identity; `src/encoded/audit_tween.py` adds the response-level fields. Add an
+  event at an authoritative transition through that helper rather than with an ad hoc `log` call.
+  `docs/operations/cadr_audit_logging.md` is the reviewable coverage matrix, including the fields
+  and event families this portal deliberately cannot supply.
 - Ingestion submissions flow through `src/encoded/ingestion/` into Snovault's listener/message
   infrastructure. Production runs portal, indexer, ingester, and deployment entrypoint roles from
   `deploy/docker/production/`; do not assume every role executes the same startup path.
