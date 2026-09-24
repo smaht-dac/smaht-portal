@@ -64,7 +64,8 @@ def test_broad_search_preserves_permission_checks_and_audits(types, encoded_log_
 
 @pytest.mark.parametrize('allowed', [True, False])
 @pytest.mark.parametrize('query', ['', '?type=File'])
-def test_abstract_collection_dispatch_preserves_list_permission(allowed, query, encoded_log_stream):
+def test_abstract_collection_dispatch_preserves_list_permission(allowed, query,
+                                                                encoded_log_stream):  # noqa: F811
     registry_types = request_for().registry[TYPES]
     config = Configurator()
     collection = AbstractCollection(

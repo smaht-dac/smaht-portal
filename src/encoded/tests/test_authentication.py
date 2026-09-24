@@ -475,13 +475,13 @@ def test_create_unauthorized_user_accepts_multi_label_domain(mock_recaptcha, dum
 # is stubbed - so they exercise the real routing decision, not a mock of it.
 # ---------------------------------------------------------------------------
 
-import datetime as _datetime
+import datetime as _datetime  # noqa: E402 - kept with the section it serves
 
-import jwt as _jwt
-import requests
-from cryptography.hazmat.primitives.asymmetric import rsa as _rsa
+import jwt as _jwt  # noqa: E402
+import requests  # noqa: E402
+from cryptography.hazmat.primitives.asymmetric import rsa as _rsa  # noqa: E402
 
-from ..authentication import SMAHTAuth0AuthenticationPolicy
+from ..authentication import SMAHTAuth0AuthenticationPolicy  # noqa: E402
 
 
 _OKTA_ISSUER = "https://example.okta.com/oauth2/default"

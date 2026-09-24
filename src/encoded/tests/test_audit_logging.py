@@ -284,6 +284,7 @@ def test_user_security_field_changes_have_safe_deltas_and_group_semantics(encode
         "submission_centers": [new_center],
         "email": "synthetic-updated@example.invalid",
     }
+
     def persist(properties, sheets):
         user.model.properties = dict(properties)
 
