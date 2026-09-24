@@ -2380,6 +2380,14 @@ div.browse-link-icon {
 	color: #4E6884;
 }
 
+// Separates the "Conditional color" and "Non-Target color" sections
+// (HeatmapAdminSettings) -- 2 independent pickers now, not 1.
+.tissue-heatmap-admin-settings-section + .tissue-heatmap-admin-settings-section {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #E7EDF2;
+}
+
 // HeatmapColorPicker (BrowseTissueHeatmapTable.js) is a shared component
 // also reused by TissueTypeView.js's Donor Details table (own independent
 // --tissue-donor-score-N-* palette, see _item-pages.scss). These rules are
@@ -2793,19 +2801,39 @@ div.browse-link-icon {
 	gap: 6px;
 }
 
+// Only ever rendered for Ischemic Time (see the comment above), so these
+// read --heatmap-ischemic-score-N-bg directly -- its own custom property,
+// not shared with any other tab's scale, per explicit request that each
+// tab's own admin picker stay responsible for only that tab.
 .tissue-heatmap-score-legend-swatch {
 	display: inline-block;
 	width: 14px;
 	height: 14px;
 	border-radius: 3px;
-	// Same custom-property-first fallback the real cells read (see
-	// .tissue-heatmap-cell's own score-0..4 rules) -- a picked palette
-	// (HeatmapColorPicker) recolors the legend right along with the table.
-	&.score-0 { background-color: var(--heatmap-score-0-bg, #DAEBF1); }
-	&.score-1 { background-color: var(--heatmap-score-1-bg, #ADD3E1); }
-	&.score-2 { background-color: var(--heatmap-score-2-bg, #80BBD0); }
-	&.score-3 { background-color: var(--heatmap-score-3-bg, #54A3C0); }
-	&.score-4 { background-color: var(--heatmap-score-4-bg, #3A829C); }
+	&.score-0 { background-color: var(--heatmap-ischemic-score-0-bg, #DBDCF0); }
+	&.score-1 { background-color: var(--heatmap-ischemic-score-1-bg, #B1B3DD); }
+	&.score-2 { background-color: var(--heatmap-ischemic-score-2-bg, #868ACA); }
+	&.score-3 { background-color: var(--heatmap-ischemic-score-3-bg, #5C60B8); }
+	&.score-4 { background-color: var(--heatmap-ischemic-score-4-bg, #414595); }
+}
+
+// Autolysis Score's own default cell scale -- pink (#B36176), 4 bands (its
+// own 4 real levels never reach score-4), on its own
+// --heatmap-autolysis-score-N-bg custom property (not shared with Target
+// Tissue %'s plain .tissue-heatmap-cell rule below, even though both use
+// the exact same class names -- see that rule's own comment). Ischemic
+// Time's cells are always the split form further down, never this plain
+// form, so only Autolysis needs an override here. A full descendant chain,
+// not `&` nesting, since .tissue-heatmap-autolysis-tab (the tab's own
+// content wrapper, see DotRouterTab's contentsClassName) is an ANCESTOR of
+// .tissue-heatmap-cell, not nested inside the same rule as it in this
+// stylesheet -- matches .tissue-heatmap-card's own 4-class specificity for
+// these rules plus one, so it always wins regardless of source order.
+.tissue-heatmap-card .tissue-heatmap-autolysis-tab .tissue-heatmap-table-wrap .tissue-heatmap-cell {
+	&.score-0 { background-color: var(--heatmap-autolysis-score-0-bg, #EBD6DB); color: var(--heatmap-autolysis-score-0-text, #28323C); }
+	&.score-1 { background-color: var(--heatmap-autolysis-score-1-bg, #D19FAB); color: var(--heatmap-autolysis-score-1-text, #28323C); }
+	&.score-2 { background-color: var(--heatmap-autolysis-score-2-bg, #AC536A); color: var(--heatmap-autolysis-score-2-text, #FFFFFF); }
+	&.score-3 { background-color: var(--heatmap-autolysis-score-3-bg, #6E3544); color: var(--heatmap-autolysis-score-3-text, #FFFFFF); }
 }
 
 .tissue-heatmap-card {
@@ -3092,34 +3120,54 @@ div.browse-link-icon {
 			box-shadow: inset 0 0 0 2px #28323C;
 		}
 
-		&.score-0 { background-color: var(--heatmap-score-0-bg, #DAEBF1); color: var(--heatmap-score-0-text, #28323C); }
-		&.score-1 { background-color: var(--heatmap-score-1-bg, #ADD3E1); color: var(--heatmap-score-1-text, #28323C); }
-		&.score-2 { background-color: var(--heatmap-score-2-bg, #80BBD0); color: var(--heatmap-score-2-text, #28323C); }
-		&.score-3 { background-color: var(--heatmap-score-3-bg, #54A3C0); color: var(--heatmap-score-3-text, #FFFFFF); }
-		&.score-4 { background-color: var(--heatmap-score-4-bg, #3A829C); color: var(--heatmap-score-4-text, #FFFFFF); }
+		// Target Tissue %'s own default scale -- its own
+		// --heatmap-target-score-N-bg/-text custom property, not shared
+		// with Autolysis Score's own override further down (even though
+		// both use this exact same class), per explicit request that each
+		// tab's own admin picker stay responsible for only that tab.
+		&.score-0 { background-color: var(--heatmap-target-score-0-bg, #DAEBF1); color: var(--heatmap-target-score-0-text, #28323C); }
+		&.score-1 { background-color: var(--heatmap-target-score-1-bg, #ADD3E1); color: var(--heatmap-target-score-1-text, #28323C); }
+		&.score-2 { background-color: var(--heatmap-target-score-2-bg, #80BBD0); color: var(--heatmap-target-score-2-text, #28323C); }
+		&.score-3 { background-color: var(--heatmap-target-score-3-bg, #54A3C0); color: var(--heatmap-target-score-3-text, #FFFFFF); }
+		&.score-4 { background-color: var(--heatmap-target-score-4-bg, #3A829C); color: var(--heatmap-target-score-4-text, #FFFFFF); }
 
-		// Non Target Tissue %'s own fixed orange scale (see
+		// Non Target Tissue %'s own default orange scale (see
 		// getNonTargetTissuePercentageScoreClass) -- light->dark in direct
 		// band order, darkest at "[50-100]" since that's the worst outcome
-		// for the tissue. Not custom-property-driven like score-0..4 above;
-		// HeatmapColorPicker doesn't touch this tab.
-		// nt-score-3 is the EXACT picked color (#C06755), not a recomputed
-		// approximation of it -- an earlier version of this ran it through
-		// buildSequentialPaletteFromHex's own fixed lightness/saturation
-		// steps (tuned for a much darker, more saturated input), which
-		// changed the darkest band into a visibly different color instead
-		// of reproducing the pick. The lighter bands are that same exact
-		// hex mixed toward white (25/50/75% strength), not re-derived via
-		// HSL, so the whole scale stays anchored to the one color actually
-		// picked.
-		&.nt-score-0 { background-color: #EFD9D5; color: #28323C; }
-		&.nt-score-1 { background-color: #E0B3AA; color: #28323C; }
-		&.nt-score-2 { background-color: #D08D80; color: #FFFFFF; }
+		// for the tissue. Custom-property-first, but its OWN
+		// --heatmap-ntscore-N-bg/-text properties (BrowseTissueHeatmapTable.js's
+		// ntScorePalette), not score-0..4's -- both happen to index 0-3, so
+		// sharing the same properties would make picking a color from either
+		// tab silently recolor the other's unrelated scale too. Still driven
+		// by the one shared pick underneath (ntScorePalette is derived from
+		// the same paletteBaseHex), just computed and exposed separately.
+		// The hardcoded fallback's nt-score-3 is the EXACT picked color
+		// (#C06755), not a recomputed approximation of it -- an earlier
+		// version of this ran it through buildSequentialPaletteFromHex's own
+		// fixed lightness/saturation steps (tuned for a much darker, more
+		// saturated input), which changed the darkest band into a visibly
+		// different color instead of reproducing the pick. The lighter
+		// bands are that same exact hex mixed toward white (25/50/75%
+		// strength), not re-derived via HSL, so the built-in default stays
+		// anchored to the one color actually picked.
+		&.nt-score-0 { background-color: var(--heatmap-ntscore-0-bg, #EFD9D5); color: var(--heatmap-ntscore-0-text, #28323C); }
+		&.nt-score-1 { background-color: var(--heatmap-ntscore-1-bg, #E0B3AA); color: var(--heatmap-ntscore-1-text, #28323C); }
+		&.nt-score-2 { background-color: var(--heatmap-ntscore-2-bg, #D08D80); color: var(--heatmap-ntscore-2-text, #FFFFFF); }
 		// This one's luminance lands right at the dark/light text
 		// threshold (~0.50) -- the formula's own cutoff rounds it to dark
 		// text, but that reads as low-contrast in practice, per explicit
 		// feedback.
-		&.nt-score-3 { background-color: #C06755; color: #FFFFFF; }
+		&.nt-score-3 { background-color: var(--heatmap-ntscore-3-bg, #C06755); color: var(--heatmap-ntscore-3-text, #FFFFFF); }
+	}
+
+	// Autolysis Score's own default scale -- pink (#B36176), 4 bands (not
+	// 5 -- Autolysis Score's own 4 real levels never reach score-4), on its
+	// own --heatmap-autolysis-score-N-bg custom property.
+	.tissue-heatmap-autolysis-tab .tissue-heatmap-fixed-legend-swatch {
+		&.score-0 { background-color: var(--heatmap-autolysis-score-0-bg, #EBD6DB); color: var(--heatmap-autolysis-score-0-text, #28323C); }
+		&.score-1 { background-color: var(--heatmap-autolysis-score-1-bg, #D19FAB); color: var(--heatmap-autolysis-score-1-text, #28323C); }
+		&.score-2 { background-color: var(--heatmap-autolysis-score-2-bg, #AC536A); color: var(--heatmap-autolysis-score-2-text, #FFFFFF); }
+		&.score-3 { background-color: var(--heatmap-autolysis-score-3-bg, #6E3544); color: var(--heatmap-autolysis-score-3-text, #FFFFFF); }
 	}
 
 	// Ischemic Time's own legend (SplitCellLegend, BrowseTissueHeatmapTable.js)
@@ -3665,7 +3713,10 @@ div.browse-link-icon {
 			}
 
 			// Per explicit request (design feedback) -- not the dark navy/
-			// nt-score-3 brown these used before.
+			// nt-score-3 brown these used before. Fixed, not tied to the
+			// score-0..4 HeatmapColorPicker -- TARGET/NON-TARGET is a
+			// categorical distinction, not a point on that severity scale,
+			// so it has no counterpart there to pick from.
 			&.tissue-heatmap-target-nontarget-header--target {
 				background-color: #377288;
 				color: #FFFFFF;
@@ -3959,48 +4010,50 @@ div.browse-link-icon {
 			// ramp, since that read as a status/alarm signal regardless of
 			// what the metric measured -- "Sky" (#4DCFFF), generated via
 			// buildSequentialPaletteFromHex(baseHex, 5), same as any
-			// HeatmapColorPicker pick. 5 bands, not 4 -- Ischemic Time's own
-			// quantile split and Target Tissue %'s 5 real bands both need a
-			// 5th (see buildRangeScoreClassifier/getTargetTissuePercentageScoreClass);
-			// Autolysis Score's 4 real levels just never reach score-4.
-			//
-			// Each background/text pair also reads a `--heatmap-score-N-bg`/
-			// `-text` custom property first, falling back to these hardcoded
-			// values when unset -- HeatmapColorPicker sets those inline on
-			// .tissue-heatmap-card when a user picks a different palette.
+			// HeatmapColorPicker pick. 5 bands -- Target Tissue %'s own 5
+			// real bands need it (see
+			// buildRangeScoreClassifier/getTargetTissuePercentageScoreClass).
+			// This plain (not split) cell form is only ever Target Tissue %
+			// in practice -- Autolysis Score has its own override above
+			// (also a plain cell, but scoped under .tissue-heatmap-autolysis-tab,
+			// which always wins on specificity), and Ischemic Time's cells
+			// are always the split form further below. Its own
+			// --heatmap-target-score-N-bg/-text custom property, not shared
+			// with Autolysis/Ischemic's own, per explicit request that each
+			// tab's own admin picker stay responsible for only that tab.
 			&.score-0 {
-				background-color: var(--heatmap-score-0-bg, #DAEBF1);
-				color: var(--heatmap-score-0-text, #28323C);
+				background-color: var(--heatmap-target-score-0-bg, #DAEBF1);
+				color: var(--heatmap-target-score-0-text, #28323C);
 			}
 			&.score-1 {
-				background-color: var(--heatmap-score-1-bg, #ADD3E1);
-				color: var(--heatmap-score-1-text, #28323C);
+				background-color: var(--heatmap-target-score-1-bg, #ADD3E1);
+				color: var(--heatmap-target-score-1-text, #28323C);
 			}
 			&.score-2 {
-				background-color: var(--heatmap-score-2-bg, #80BBD0);
-				color: var(--heatmap-score-2-text, #28323C);
+				background-color: var(--heatmap-target-score-2-bg, #80BBD0);
+				color: var(--heatmap-target-score-2-text, #28323C);
 			}
 			&.score-3 {
-				background-color: var(--heatmap-score-3-bg, #54A3C0);
-				color: var(--heatmap-score-3-text, #FFFFFF);
+				background-color: var(--heatmap-target-score-3-bg, #54A3C0);
+				color: var(--heatmap-target-score-3-text, #FFFFFF);
 			}
 			&.score-4 {
-				background-color: var(--heatmap-score-4-bg, #3A829C);
-				color: var(--heatmap-score-4-text, #FFFFFF);
+				background-color: var(--heatmap-target-score-4-bg, #3A829C);
+				color: var(--heatmap-target-score-4-text, #FFFFFF);
 			}
 
-			// Non Target Tissue %'s own fixed orange scale (see
-			// .tissue-heatmap-fixed-legend-swatch's own nt-score-0..3 rules
-			// above for why this isn't tied to the shared score-0..4
-			// custom properties).
-			&.nt-score-0 { background-color: #EFD9D5; color: #28323C; }
-			&.nt-score-1 { background-color: #E0B3AA; color: #28323C; }
-			&.nt-score-2 { background-color: #D08D80; color: #FFFFFF; }
+			// Non Target Tissue %'s own default orange scale -- see
+			// .tissue-heatmap-fixed-legend-swatch's own identical nt-score-0..3
+			// rules above for why these read their own --heatmap-ntscore-N-bg/-text,
+			// not score-0..4's --heatmap-target-score-N-bg/-text.
+			&.nt-score-0 { background-color: var(--heatmap-ntscore-0-bg, #EFD9D5); color: var(--heatmap-ntscore-0-text, #28323C); }
+			&.nt-score-1 { background-color: var(--heatmap-ntscore-1-bg, #E0B3AA); color: var(--heatmap-ntscore-1-text, #28323C); }
+			&.nt-score-2 { background-color: var(--heatmap-ntscore-2-bg, #D08D80); color: var(--heatmap-ntscore-2-text, #FFFFFF); }
 			// This one's luminance lands right at the dark/light text
 			// threshold (~0.50) -- the formula's own cutoff rounds it to dark
 			// text, but that reads as low-contrast in practice, per explicit
 			// feedback.
-			&.nt-score-3 { background-color: #C06755; color: #FFFFFF; }
+			&.nt-score-3 { background-color: var(--heatmap-ntscore-3-bg, #C06755); color: var(--heatmap-ntscore-3-text, #FFFFFF); }
 
 			// Light grey fill (not just muted text) so an n/a cell reads as
 			// "no value here" at a glance against both the white table body
@@ -4093,30 +4146,31 @@ div.browse-link-icon {
 			font-size: 0.8125rem;
 			overflow: hidden;
 
-			// Same 5-band scale .tissue-heatmap-cell's own score-0..4 rules use
-			// (see that block's own comment) -- each half reads its value's band
-			// independently via the same custom-property-first fallback, so a
-			// HeatmapColorPicker pick recolors split cells right along with
-			// every plain one.
+			// This split-cell form is only ever Ischemic Time in practice --
+			// splitByPreservationType is only passed for that tab -- so
+			// these read its own --heatmap-ischemic-score-N-bg/-text custom
+			// property directly (purple, #414595 default), not a shared
+			// one, per explicit request that each tab's own admin picker
+			// stay responsible for only that tab.
 			&.score-0 {
-				background-color: var(--heatmap-score-0-bg, #DAEBF1);
-				color: var(--heatmap-score-0-text, #28323C);
+				background-color: var(--heatmap-ischemic-score-0-bg, #DBDCF0);
+				color: var(--heatmap-ischemic-score-0-text, #28323C);
 			}
 			&.score-1 {
-				background-color: var(--heatmap-score-1-bg, #ADD3E1);
-				color: var(--heatmap-score-1-text, #28323C);
+				background-color: var(--heatmap-ischemic-score-1-bg, #B1B3DD);
+				color: var(--heatmap-ischemic-score-1-text, #28323C);
 			}
 			&.score-2 {
-				background-color: var(--heatmap-score-2-bg, #80BBD0);
-				color: var(--heatmap-score-2-text, #28323C);
+				background-color: var(--heatmap-ischemic-score-2-bg, #868ACA);
+				color: var(--heatmap-ischemic-score-2-text, #28323C);
 			}
 			&.score-3 {
-				background-color: var(--heatmap-score-3-bg, #54A3C0);
-				color: var(--heatmap-score-3-text, #FFFFFF);
+				background-color: var(--heatmap-ischemic-score-3-bg, #5C60B8);
+				color: var(--heatmap-ischemic-score-3-text, #FFFFFF);
 			}
 			&.score-4 {
-				background-color: var(--heatmap-score-4-bg, #3A829C);
-				color: var(--heatmap-score-4-text, #FFFFFF);
+				background-color: var(--heatmap-ischemic-score-4-bg, #414595);
+				color: var(--heatmap-ischemic-score-4-text, #FFFFFF);
 			}
 			// The Fixed or Frozen side of a splitByPreservationType cell
 			// (renderRowCells) when that specific preservation_type has no

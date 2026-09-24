@@ -978,10 +978,14 @@ const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.m
 // _search.scss) instead of the shared blue score-0..4 palette the other 3
 // tabs use -- unlike Target Tissue %'s "higher presence is better" framing,
 // a higher non-target-tissue percentage is a worse outcome for the sample,
-// so this runs light->dark in direct band order (no index inversion) with
-// its own fixed, non-customizable colors (HeatmapColorPicker only overrides
-// the shared --heatmap-score-N-bg/text custom properties, which these
-// classes deliberately don't read).
+// so this runs light->dark in direct band order (no index inversion). Its
+// own default colors, its own --heatmap-ntscore-N-bg/text custom properties,
+// and its own admin picker ("Non-Target color", separate from "Conditional
+// color") -- see ntScorePalette/ntPaletteBaseHex below. Kept fully
+// independent from score-0..4, not just on separate custom properties,
+// since Target Tissue %'s own "Show Non-Target Tissue %" toggle displays
+// both scales side by side, and sharing one pick made them visually
+// indistinguishable there.
 const NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = NON_TARGET_TISSUE_PERCENTAGE_ORDER.map(
     (label, index) => {
         return {
@@ -1299,7 +1303,7 @@ function getTissueSubtypeHeaderStyle(tissueType) {
 // HeatmapAdminSettings' combined panel further down, which folds this in
 // alongside the cell-value-display toggle instead of giving it a second,
 // separate toggle button in the same toolbar).
-function ColorPickerPanelBody({ baseHex, onPick, onReset, onDone }) {
+function ColorPickerPanelBody({ baseHex, onPick, onReset, onDone, defaultHex = '#4DCFFF' }) {
     return (
         <>
             <p className="tissue-heatmap-color-picker-note">
@@ -1329,7 +1333,7 @@ function ColorPickerPanelBody({ baseHex, onPick, onReset, onDone }) {
                     title="Pick a custom color">
                     <input
                         type="color"
-                        value={baseHex || '#4DCFFF'}
+                        value={baseHex || defaultHex}
                         // eslint-disable-next-line react/jsx-no-bind
                         onChange={(event) => onPick(event.target.value)}
                     />
@@ -1412,10 +1416,26 @@ export function HeatmapColorPicker({ baseHex, onPick, onReset }) {
 // value display mode a cell used -- removed per explicit request, no
 // longer needed now that every multi-value cell always renders the same
 // way; see renderRowCells' own comment.)
+//
+// `baseHex`/`onPickColor`/`onResetColor`/`defaultHex` are re-bound by the
+// caller (BrowseTissueHeatmapTable) to whichever tab is currently active --
+// this component itself has no notion of "which tab", it's just handed
+// that tab's own state each render, so "Conditional color" always edits
+// only the tab actually on screen and never bleeds into another one, per
+// explicit request. `showNonTargetSection` (+ its own ntBaseHex/on*NtColor)
+// additionally renders a 2nd, separate section -- only true for Target
+// Tissue %'s own panel, and only while its "Show Non-Target Tissue %"
+// toggle is on, since that's the only place 2 scales are ever visible at
+// once.
 function HeatmapAdminSettings({
     baseHex,
     onPickColor,
     onResetColor,
+    defaultHex,
+    showNonTargetSection = false,
+    ntBaseHex,
+    onPickNtColor,
+    onResetNtColor,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -1455,10 +1475,24 @@ function HeatmapAdminSettings({
                             baseHex={baseHex}
                             onPick={onPickColor}
                             onReset={onResetColor}
+                            defaultHex={defaultHex}
                             // eslint-disable-next-line react/jsx-no-bind
                             onDone={() => setIsOpen(false)}
                         />
                     </div>
+                    {showNonTargetSection ? (
+                    <div className="tissue-heatmap-admin-settings-section">
+                        <p className="tissue-heatmap-admin-settings-label">Non-Target color</p>
+                        <ColorPickerPanelBody
+                            baseHex={ntBaseHex}
+                            onPick={onPickNtColor}
+                            onReset={onResetNtColor}
+                            defaultHex="#C06755"
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onDone={() => setIsOpen(false)}
+                        />
+                    </div>
+                    ) : null}
                 </div>
             ) : null}
         </div>
@@ -3345,21 +3379,78 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => (JWT.getUserGroups() || []).includes('admin'),
         [session]
     );
-    // Experimental color override -- see HeatmapColorPicker. Plain
+    // Experimental color overrides -- see HeatmapColorPicker. Plain
     // in-memory state, not persisted anywhere: a pick only lasts for this
     // page view, and always starts back at the default (null = "use the
     // built-in scale") on every fresh page load, per explicit request.
-    const [paletteBaseHex, setPaletteBaseHex] = useState(null);
-    // 5 stops -- matches Ischemic Time's own 5-band equal-width split and
-    // Target Tissue %'s 5 real bands (both scored/colored higher than
-    // Autolysis Score's 4), so a picked color still covers every band any
-    // tab on this page actually uses.
-    const heatmapPalette = useMemo(
-        () => (paletteBaseHex ? buildSequentialPaletteFromHex(paletteBaseHex, 5) : null),
-        [paletteBaseHex]
+    //
+    // 4 fully independent picks, one per tab (plus Target Tissue % and Non
+    // Target Tissue % additionally sharing the *same* pick where they
+    // actually show the *same* scale -- see ntPaletteBaseHex below) --
+    // each tab's own admin picker is responsible only for that tab, and
+    // must never recolor another one, per explicit request. Each gets its
+    // own custom-property namespace in _search.scss (--heatmap-target-score-,
+    // --heatmap-autolysis-score-, --heatmap-ischemic-score-,
+    // --heatmap-ntscore-) so there's no shared property name 2 tabs could
+    // accidentally both read.
+    const [targetPaletteBaseHex, setTargetPaletteBaseHex] = useState(null);
+    const [autolysisPaletteBaseHex, setAutolysisPaletteBaseHex] = useState(null);
+    const [ischemicPaletteBaseHex, setIschemicPaletteBaseHex] = useState(null);
+    const targetPalette = useMemo(
+        () => (targetPaletteBaseHex ? buildSequentialPaletteFromHex(targetPaletteBaseHex, 5) : null),
+        [targetPaletteBaseHex]
     );
-    const handlePickPaletteColor = (hex) => setPaletteBaseHex(hex);
-    const handleResetPaletteColor = () => setPaletteBaseHex(null);
+    const autolysisPalette = useMemo(
+        () => (autolysisPaletteBaseHex ? buildSequentialPaletteFromHex(autolysisPaletteBaseHex, 4) : null),
+        [autolysisPaletteBaseHex]
+    );
+    const ischemicPalette = useMemo(
+        () => (ischemicPaletteBaseHex ? buildSequentialPaletteFromHex(ischemicPaletteBaseHex, 5) : null),
+        [ischemicPaletteBaseHex]
+    );
+    // Non Target Tissue %'s own pick -- shared between the Non Target
+    // Tissue % tab's own "Conditional color" section (its only section,
+    // since it has no separate "Non-Target color" one of its own) and
+    // Target Tissue %'s own "Non-Target color" section (only shown there
+    // while its "Show Non-Target Tissue %" toggle is on) -- both control
+    // the exact same nt-score-0..3 scale, just surfaced in 2 different
+    // places (see isTargetTab/showNonTargetColorSection below), so 1 shared
+    // pick for both is correct here, unlike target/autolysis/ischemic above.
+    const [ntPaletteBaseHex, setNtPaletteBaseHex] = useState(null);
+    // Reproduces the pick exactly (25/50/75/100% strength mixed toward
+    // white, darkest = the pick itself), not run through
+    // buildSequentialPaletteFromHex's own fixed lightness/saturation steps
+    // (see nt-score-0..3's own comment in _search.scss for why).
+    const ntScorePalette = useMemo(
+        () => (ntPaletteBaseHex
+            ? [0.25, 0.5, 0.75, 1].map((alpha) => {
+                const bg = mixHexWithWhite(ntPaletteBaseHex, alpha);
+                return { bg, text: getReadableTextColor(bg) };
+            })
+            : null),
+        [ntPaletteBaseHex]
+    );
+    const handlePickTargetPaletteColor = (hex) => setTargetPaletteBaseHex(hex);
+    const handleResetTargetPaletteColor = () => setTargetPaletteBaseHex(null);
+    const handlePickAutolysisPaletteColor = (hex) => setAutolysisPaletteBaseHex(hex);
+    const handleResetAutolysisPaletteColor = () => setAutolysisPaletteBaseHex(null);
+    const handlePickIschemicPaletteColor = (hex) => setIschemicPaletteBaseHex(hex);
+    const handleResetIschemicPaletteColor = () => setIschemicPaletteBaseHex(null);
+    const handlePickNtPaletteColor = (hex) => setNtPaletteBaseHex(hex);
+    const handleResetNtPaletteColor = () => setNtPaletteBaseHex(null);
+
+    // Which tab is currently active -- same hash-based dot-path lookup
+    // DotRouter itself uses internally (DotRouter.getCurrentTab), so this
+    // stays in sync with clicking between tabs without needing its own
+    // separate router/state. Falls back to Target Tissue % (the first,
+    // default tab -- see the 4 <DotRouterTab>s below, none marked
+    // `default`) when the URL hash doesn't name a tab. Drives which
+    // section(s) the admin gear panel shows (see isAdminUser's JSX below).
+    const activeTabDotPath = DotRouter.getDotPath(href) || '.target-tissue';
+    const isTargetTabActive = activeTabDotPath === '.target-tissue';
+    const isNonTargetTabActive = activeTabDotPath === '.non-target-tissue';
+    const isAutolysisTabActive = activeTabDotPath === '.autolysis-score';
+    const isIschemicTabActive = activeTabDotPath === '.ischemic-time';
 
     // Target Tissue %'s own "Show Non-Target Tissue %" toggle -- off by
     // default (unchanged, existing Target Tissue %-only view), per-page-
@@ -3564,27 +3655,92 @@ export const BrowseTissueHeatmapTable = (props) => {
     );
 
     // Applied as CSS custom properties on the whole card -- _search.scss's
-    // .score-0..4 rules read these with a `var(--x, <hardcoded-default>)`
-    // fallback, so leaving this undefined (no override picked) reproduces
-    // the exact built-in scale unchanged.
-    const paletteStyle = heatmapPalette
-        ? heatmapPalette.reduce((style, { bg, text }, i) => {
-            style[`--heatmap-score-${i}-bg`] = bg;
-            style[`--heatmap-score-${i}-text`] = text;
-            return style;
-        }, {})
+    // .score-0..4/nt-score-0..3 rules read these with a
+    // `var(--x, <hardcoded-default>)` fallback, so leaving any one palette
+    // unset (no override picked for that tab) reproduces that scale's own
+    // built-in default unchanged. All 4 are fully independent picks (see
+    // targetPaletteBaseHex etc. above), each on its own custom-property
+    // namespace, so this object only ever carries the properties for
+    // whichever tab(s) actually have a pick active.
+    const paletteStyle = (targetPalette || autolysisPalette || ischemicPalette || ntScorePalette)
+        ? {}
         : undefined;
+    if (targetPalette) {
+        targetPalette.forEach(({ bg, text }, i) => {
+            paletteStyle[`--heatmap-target-score-${i}-bg`] = bg;
+            paletteStyle[`--heatmap-target-score-${i}-text`] = text;
+        });
+    }
+    if (autolysisPalette) {
+        autolysisPalette.forEach(({ bg, text }, i) => {
+            paletteStyle[`--heatmap-autolysis-score-${i}-bg`] = bg;
+            paletteStyle[`--heatmap-autolysis-score-${i}-text`] = text;
+        });
+    }
+    if (ischemicPalette) {
+        ischemicPalette.forEach(({ bg, text }, i) => {
+            paletteStyle[`--heatmap-ischemic-score-${i}-bg`] = bg;
+            paletteStyle[`--heatmap-ischemic-score-${i}-text`] = text;
+        });
+    }
+    if (ntScorePalette) {
+        ntScorePalette.forEach(({ bg, text }, i) => {
+            paletteStyle[`--heatmap-ntscore-${i}-bg`] = bg;
+            paletteStyle[`--heatmap-ntscore-${i}-text`] = text;
+        });
+    }
+
+    // Re-binds the shared HeatmapAdminSettings panel's "Conditional color"
+    // section to whichever tab is actually active (see activeTabDotPath
+    // above), so it only ever edits that one tab's own scale. Non Target
+    // Tissue % has no separate "Non-Target color" section of its own (there's
+    // nothing else visible on that tab to separate it from), so its own
+    // pick surfaces here, under "Conditional color", instead.
+    let activeBaseHex, activePickColor, activeResetColor, activeDefaultHex;
+    if (isNonTargetTabActive) {
+        activeBaseHex = ntPaletteBaseHex;
+        activePickColor = handlePickNtPaletteColor;
+        activeResetColor = handleResetNtPaletteColor;
+        activeDefaultHex = '#C06755';
+    } else if (isAutolysisTabActive) {
+        activeBaseHex = autolysisPaletteBaseHex;
+        activePickColor = handlePickAutolysisPaletteColor;
+        activeResetColor = handleResetAutolysisPaletteColor;
+        activeDefaultHex = '#B36176';
+    } else if (isIschemicTabActive) {
+        activeBaseHex = ischemicPaletteBaseHex;
+        activePickColor = handlePickIschemicPaletteColor;
+        activeResetColor = handleResetIschemicPaletteColor;
+        activeDefaultHex = '#414595';
+    } else {
+        // Target Tissue % (isTargetTabActive), and the initial-render
+        // fallback before activeTabDotPath resolves to a real tab.
+        activeBaseHex = targetPaletteBaseHex;
+        activePickColor = handlePickTargetPaletteColor;
+        activeResetColor = handleResetTargetPaletteColor;
+        activeDefaultHex = '#4DCFFF';
+    }
+    // The extra "Non-Target color" section only makes sense where 2 scales
+    // are ever visible together -- Target Tissue %'s own toggle.
+    const showNonTargetSection = isTargetTabActive && showNonTargetInTargetTab;
 
     return (
         <div className="tissue-heatmap-card" style={paletteStyle}>
             {isAdminUser ? (
                 <div className="tissue-heatmap-toolbar">
                     <HeatmapAdminSettings
-                        baseHex={paletteBaseHex}
+                        baseHex={activeBaseHex}
                         // eslint-disable-next-line react/jsx-no-bind
-                        onPickColor={handlePickPaletteColor}
+                        onPickColor={activePickColor}
                         // eslint-disable-next-line react/jsx-no-bind
-                        onResetColor={handleResetPaletteColor}
+                        onResetColor={activeResetColor}
+                        defaultHex={activeDefaultHex}
+                        showNonTargetSection={showNonTargetSection}
+                        ntBaseHex={ntPaletteBaseHex}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onPickNtColor={handlePickNtPaletteColor}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onResetNtColor={handleResetNtPaletteColor}
                     />
                 </div>
             ) : null}
@@ -3710,7 +3866,8 @@ export const BrowseTissueHeatmapTable = (props) => {
                     dotPath=".autolysis-score"
                     tabTitle="Autolysis Score"
                     arrowTabs={false}
-                    cache={true}>
+                    cache={true}
+                    contentsClassName="tissue-heatmap-autolysis-tab">
                     {loading ? (
                         <div className="tissue-heatmap-loading">
                             <i className="icon icon-circle-notch icon-spin fas" />
@@ -3743,7 +3900,8 @@ export const BrowseTissueHeatmapTable = (props) => {
                     dotPath=".ischemic-time"
                     tabTitle="Ischemic Time (h)"
                     arrowTabs={false}
-                    cache={true}>
+                    cache={true}
+                    contentsClassName="tissue-heatmap-ischemic-tab">
                     {loading ? (
                         <div className="tissue-heatmap-loading">
                             <i className="icon icon-circle-notch icon-spin fas" />
