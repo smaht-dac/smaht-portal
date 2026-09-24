@@ -10,6 +10,7 @@ from boto3 import client as boto_client
 from datetime import datetime
 import functools
 from pyramid.request import Request
+from pyramid.threadlocal import get_current_request
 from botocore.exceptions import ClientError
 from encoded_core.types.file import (
     HREF_SCHEMA,
@@ -39,7 +40,14 @@ from snovault import (
 from snovault.server_defaults import add_last_modified
 
 from . import acl
-from ..audit_logging import authenticated_actor_fields
+from ..audit_logging import (
+    EVENT_TYPE_ARCHIVAL,
+    EVENT_TYPE_DELETION,
+    EVENT_TYPE_DOWNLOAD,
+    EVENT_TYPE_UPLOAD,
+    file_resource_fields,
+    record_audit_event,
+)
 from .base import (
     Item,
     validate_user_submission_consistency,
@@ -95,6 +103,17 @@ log = structlog.getLogger(__name__)
 # Item types (snake_case) that explicitly embed file_status_tracking and must
 # always compute it even when the File appears as a sub-embedded item.
 FILE_STATUS_TRACKING_REQUIRED_TYPES = frozenset(['file_set'])
+
+
+# File status values that are themselves a CADR-reportable lifecycle event.
+# Statuses that only change visibility or release state are deliberately not
+# mapped: they are neither a deletion, an archival, nor a destruction.
+FILE_STATUS_AUDIT_EVENTS = {
+    "uploaded": (EVENT_TYPE_UPLOAD, "file_upload_complete"),
+    "upload failed": (EVENT_TYPE_UPLOAD, "file_upload_failed"),
+    "archived": (EVENT_TYPE_ARCHIVAL, "file_archive"),
+    "deleted": (EVENT_TYPE_DELETION, "file_delete"),
+}
 
 
 class CalcPropConstants:
@@ -492,6 +511,8 @@ def _build_file_embedded_list() -> List[str]:
 class File(Item, CoreFile):
     OPEN = 'Open'
     PROTECTED = 'Protected'
+    # File.update audits its own status transitions, including deletion.
+    AUDITS_OWN_DELETION = True
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = _build_file_embedded_list()
@@ -561,6 +582,31 @@ class File(Item, CoreFile):
     ) -> None:
         add_last_modified(properties)
         return CoreFile._update(self, properties, sheets=sheets)
+
+    def update(self, properties, sheets=None):
+        """Audit the File lifecycle transitions CADR asks this portal to report.
+
+        Only the persisted status transition is audited, after it succeeds.
+        Deletion here means the portal record's status - the S3 object itself
+        is managed by bucket lifecycle policy, which this application does not
+        observe and therefore never claims to.
+        """
+        before_status = (self.properties or {}).get("status")
+        result = super().update(properties, sheets)
+        after_status = (self.properties or {}).get("status")
+        if before_status != after_status:
+            audited = FILE_STATUS_AUDIT_EVENTS.get(after_status)
+            if audited is not None:
+                event_type, action = audited
+                record_audit_event(
+                    get_current_request(),
+                    "File lifecycle transition",
+                    event_type,
+                    action,
+                    "success",
+                    **file_resource_fields(self),
+                )
+        return result
 
     @classmethod
     def get_bucket(cls, registry):
@@ -1512,14 +1558,28 @@ def drs(context, request):
              permission='edit')
 @debug_log
 def get_upload(context, request):
-    return CoreGetUpload(context, request)
+    """Read existing upload credentials for a File, audited as an upload event."""
+    try:
+        result = CoreGetUpload(context, request)
+    except Exception:
+        _log_upload_event("file_upload_credentials_read", "failure", request, context)
+        raise
+    _log_upload_event("file_upload_credentials_read", "success", request, context)
+    return result
 
 
 @view_config(name='upload', context=File, request_method='POST',
              permission='edit', validators=[schema_validator({"type": "object"})])
 @debug_log
 def post_upload(context, request):
-    return CorePostUpload(context, request)
+    """Issue new upload credentials for a File. The credentials are never logged."""
+    try:
+        result = CorePostUpload(context, request)
+    except Exception:
+        _log_upload_event("file_upload_initiate", "failure", request, context)
+        raise
+    _log_upload_event("file_upload_initiate", "success", request, context)
+    return result
 
 
 def validate_user_has_protected_access(request):
@@ -1542,14 +1602,42 @@ def validate_user_has_public_protected_access(request):
     return False
 
 
-def _log_download_event(action, outcome, request):
-    """Emit a bounded download audit event without resource or raw user details."""
-    log.warning(
+# The portal authorizes a download and issues a redirect; the object itself is
+# transferred directly between the client and S3. ``bytes`` and ``duration`` on
+# these events therefore describe this application's own response, never the
+# object transfer, which it cannot observe.
+DOWNLOAD_DELIVERY_REDIRECT = "presigned_redirect"
+
+
+def _log_download_event(action, outcome, request, context=None,
+                        delivery=DOWNLOAD_DELIVERY_REDIRECT):
+    """Audit a download authorization decision and any URL actually issued.
+
+    The signed location is deliberately absent: its query string carries the
+    S3 signature and expiry.
+    """
+    resource_fields = file_resource_fields(context) if context is not None else {}
+    record_audit_event(
+        request,
         "File download",
-        action=action,
-        outcome=outcome,
-        event_type="file_download",
-        **authenticated_actor_fields(request),
+        EVENT_TYPE_DOWNLOAD,
+        action,
+        outcome,
+        delivery=delivery if outcome == "success" else None,
+        **resource_fields,
+    )
+
+
+def _log_upload_event(action, outcome, request, context=None):
+    """Audit issuance of upload credentials, without the credentials."""
+    resource_fields = file_resource_fields(context) if context is not None else {}
+    record_audit_event(
+        request,
+        "File upload",
+        EVENT_TYPE_UPLOAD,
+        action,
+        outcome,
+        **resource_fields,
     )
 
 
@@ -1559,21 +1647,21 @@ def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
     # Download restriction for restricted status
     if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
-        _log_download_event("file_download_cli", "failure", request)
+        _log_download_event("file_download_cli", "failure", request, context)
         raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     # Download restriction for protected
     if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        _log_download_event("file_download_cli", "failure", request)
+        _log_download_event("file_download_cli", "failure", request, context)
         raise HTTPForbidden('This is a protected file and is not available through download_cli without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
     try:
         result = CoreDownloadCli(context, request)
     except Exception:
-        _log_download_event("file_download_cli", "failure", request)
+        _log_download_event("file_download_cli", "failure", request, context)
         raise
-    _log_download_event("file_download_cli", "success", request)
+    _log_download_event("file_download_cli", "success", request, context)
     return result
 
 
@@ -1582,13 +1670,13 @@ def download_cli(context, request):
 def download(context, request):
     # Download restriction for protected
     if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
-        _log_download_event("file_download", "failure", request)
+        _log_download_event("file_download", "failure", request, context)
         raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     # Download restriction for protected
     if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        _log_download_event("file_download", "failure", request)
+        _log_download_event("file_download", "failure", request, context)
         raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
 
@@ -1596,7 +1684,7 @@ def download(context, request):
     try:
         check_user_is_logged_in(request)
     except Exception:
-        _log_download_event("file_download", "failure", request)
+        _log_download_event("file_download", "failure", request, context)
         raise
 
     # first check for restricted status
@@ -1678,7 +1766,7 @@ def download(context, request):
 
     # The signed URL is now available, but the audit event deliberately omits
     # it, the file identifier/name, and all request/user details.
-    _log_download_event("file_download", "success", request)
+    _log_download_event("file_download", "success", request, context)
 
     # Analytics Stuff
     ga_config = request.registry.settings.get('ga_config')

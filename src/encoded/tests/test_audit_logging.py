@@ -77,7 +77,7 @@ def test_actor_uuid_requires_one_canonical_uuid_principal():
     actor_uuid = "00000000-0000-4000-8000-000000000001"
     assert authenticated_actor_fields(SimpleNamespace(
         effective_principals=["system.Everyone", f"userid.{actor_uuid}"]
-    )) == {"user_uuid": actor_uuid}
+    )) == {"user_id": actor_uuid}
     assert authenticated_actor_fields(SimpleNamespace(
         effective_principals=["system.Everyone", "userid.not-a-uuid"]
     )) == {}
@@ -151,8 +151,8 @@ def test_access_key_audit_events_include_actor_uuid_without_secrets(encoded_log_
         ("access_key_reset", "success"),
         ("access_key_revoke", "success"),
     ]
-    assert all(record["event_type"] == "access_key" for record in records)
-    assert all(record["user_uuid"] == actor_uuid for record in records)
+    assert all(record["event_type"] == "authorization" for record in records)
+    assert all(record["user_id"] == actor_uuid for record in records)
     output = encoded_log_stream.getvalue()
     assert "synthetic-access-key-id" not in output
     assert "synthetic-create-secret" not in output
@@ -188,8 +188,8 @@ def test_protected_donor_search_audit_omits_query_and_filter_values(encoded_log_
         ("protected_donor_search", "allowed", 2),
         ("protected_donor_search", "allowed", 3),
     ]
-    assert all(record["event_type"] == "protected_donor_access" for record in records)
-    assert all(record["user_uuid"] == actor_uuid for record in records)
+    assert all(record["event_type"] == "authorization" for record in records)
+    assert all(record["user_id"] == actor_uuid for record in records)
     output = encoded_log_stream.getvalue()
     assert "synthetic-filter-value" not in output
     assert "synthetic-status-filter" not in output
@@ -221,7 +221,7 @@ def test_protected_donor_search_and_record_denials_are_audited(encoded_log_strea
     ]
     assert records[0]["result_count"] == 0
     assert records[1]["target_uuid"] == record_uuid
-    assert all(record["user_uuid"] == actor_uuid for record in records)
+    assert all(record["user_id"] == actor_uuid for record in records)
 
 
 def test_protected_donor_allowed_record_access_has_target_uuid(encoded_log_stream):
@@ -237,7 +237,7 @@ def test_protected_donor_allowed_record_access_has_target_uuid(encoded_log_strea
     assert record["action"] == "protected_donor_record_access"
     assert record["outcome"] == "allowed"
     assert record["target_uuid"] == record_uuid
-    assert record["user_uuid"] == actor_uuid
+    assert record["user_id"] == actor_uuid
 
 
 def test_user_account_creation_distinguishes_actor_and_subject(encoded_log_stream):
@@ -253,7 +253,7 @@ def test_user_account_creation_distinguishes_actor_and_subject(encoded_log_strea
     record = _records(encoded_log_stream)[0]
     assert record["action"] == "user_account_create"
     assert record["outcome"] == "success"
-    assert record["user_uuid"] == actor_uuid
+    assert record["user_id"] == actor_uuid
     assert record["subject_uuid"] == subject_uuid
     assert "synthetic-user@example.invalid" not in encoded_log_stream.getvalue()
 
@@ -298,7 +298,7 @@ def test_user_security_field_changes_have_safe_deltas_and_group_semantics(encode
         "user_group_revoke",
     ]
     record = records[0]
-    assert record["user_uuid"] == actor_uuid
+    assert record["user_id"] == actor_uuid
     assert record["subject_uuid"] == subject_uuid
     assert record["changed_fields"] == [
         "status", "groups", "submits_for", "submission_centers", "email"
@@ -315,7 +315,7 @@ def test_user_security_field_changes_have_safe_deltas_and_group_semantics(encode
     }
     assert records[1]["granted_groups"] == ["group.admin"]
     assert records[2]["revoked_groups"] == ["group.viewer"]
-    assert all(record["user_uuid"] == actor_uuid for record in records)
+    assert all(record["user_id"] == actor_uuid for record in records)
     assert all(record["subject_uuid"] == subject_uuid for record in records)
     output = encoded_log_stream.getvalue()
     assert "synthetic-subject@example.invalid" not in output
@@ -372,10 +372,10 @@ def test_download_audit_events_cover_signed_and_denied_paths(encoded_log_stream)
     assert (records[0]["action"], records[0]["outcome"]) == ("file_download", "success")
     assert (records[1]["action"], records[1]["outcome"]) == ("file_download_cli", "success")
     assert (records[2]["action"], records[2]["outcome"]) == ("file_download_cli", "failure")
-    assert all(record["event_type"] == "file_download" for record in records)
-    assert records[0]["user_uuid"] == "00000000-0000-4000-8000-000000000003"
-    assert records[1]["user_uuid"] == "00000000-0000-4000-8000-000000000003"
-    assert "user_uuid" not in records[2]
+    assert all(record["event_type"] == "download" for record in records)
+    assert records[0]["user_id"] == "00000000-0000-4000-8000-000000000003"
+    assert records[1]["user_id"] == "00000000-0000-4000-8000-000000000003"
+    assert "user_id" not in records[2]
     output = encoded_log_stream.getvalue()
     for protected_value in [
         "synthetic-download-token",

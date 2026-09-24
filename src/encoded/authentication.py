@@ -26,7 +26,17 @@ from urllib.parse import urlencode
 import re
 
 from snovault.validation import ValidationFailure
-from .audit_logging import authenticated_actor_fields, result_subject_uuid, subject_uuid_fields
+from .audit_logging import (
+    AUTH_FAILURE_PROVIDER_UNCONFIGURED,
+    AUTH_FAILURE_TOKEN_EXPIRED,
+    AUTH_FAILURE_TOKEN_REJECTED,
+    EVENT_TYPE_AUTHORIZATION,
+    record_audit_event,
+    record_auth_failure_reason,
+    record_verified_claims,
+    result_subject_uuid,
+    subject_uuid_fields,
+)
 from .okta import (
     OktaConfigurationError,
     decode_okta_id_token,
@@ -174,15 +184,27 @@ class SMAHTAuth0AuthenticationPolicy(Auth0AuthenticationPolicy):
 
             Overrides `Auth0AuthenticationPolicy.get_token_info`, which is invoked
             as `self.get_token_info(...)` by snovault and so dispatches here.
+
+            Audit note: the *verified* claims that identify the session and the
+            asserting provider are stashed on the request for later audit
+            events. The token itself is never stored or logged, and nothing is
+            stashed on a verification failure - an unverified token makes no
+            trustworthy statement about anybody.
         """
         if not token_is_asymmetrically_signed(token):
-            return Auth0AuthenticationPolicy.get_token_info(token, request)
+            payload = Auth0AuthenticationPolicy.get_token_info(token, request)
+            if payload:
+                record_verified_claims(request, payload)
+            else:
+                record_auth_failure_reason(request, AUTH_FAILURE_TOKEN_REJECTED)
+            return payload
 
         if not okta_is_configured(request.registry.settings):
             # An asymmetrically signed token cannot be checked without an issuer
             # to check it against. Refuse rather than fall through to a
             # shared-secret decode that would treat the key as opaque bytes.
             log.warning("Received an asymmetrically signed token but Okta is not configured")
+            record_auth_failure_reason(request, AUTH_FAILURE_PROVIDER_UNCONFIGURED)
             request.set_property(lambda r: True, 'auth0_expired')
             return None
 
@@ -190,6 +212,7 @@ class SMAHTAuth0AuthenticationPolicy(Auth0AuthenticationPolicy):
             payload = decode_okta_id_token(token, request.registry)
         except jwt_exceptions.ExpiredSignatureError:
             # Normal/expected expiration - lets renderers unset the cookie.
+            record_auth_failure_reason(request, AUTH_FAILURE_TOKEN_EXPIRED)
             request.set_property(lambda r: True, 'auth0_expired')
             return None
         # PyJWTError is the base for every rejection reason worth catching here,
@@ -198,9 +221,11 @@ class SMAHTAuth0AuthenticationPolicy(Auth0AuthenticationPolicy):
         except (jwt_exceptions.PyJWTError, OktaConfigurationError,
                 requests.RequestException, ValueError) as e:
             log.warning("Rejected Okta ID token", error=str(e))
+            record_auth_failure_reason(request, AUTH_FAILURE_TOKEN_REJECTED)
             request.set_property(lambda r: True, 'auth0_expired')
             return None
 
+        record_verified_claims(request, payload)
         request.set_property(lambda r: False, 'auth0_expired')
         return payload
 
@@ -363,12 +388,12 @@ def smaht_create_unauthorized_user(context, request):
     if recap_res['success']:
         sno_res = sno_collection_add(user_coll, request, False)  # POST User
         if sno_res.get('status') == 'success':
-            log.warning(
+            record_audit_event(
+                request,
                 "User account created",
-                event_type="user_account",
-                action="user_account_create",
-                outcome="success",
-                **authenticated_actor_fields(request),
+                EVENT_TYPE_AUTHORIZATION,
+                "user_account_create",
+                "success",
                 **subject_uuid_fields(result_subject_uuid(sno_res)),
             )
             return sno_res

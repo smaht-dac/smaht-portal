@@ -118,7 +118,7 @@ def test_creation_audits_initial_persisted_grants(groups, encoded_log_stream):  
         assert len(records) == 1
         assert records[0]["action"] == "user_group_grant"
         assert records[0]["granted_groups"] == groups
-        assert records[0]["user_uuid"] == ACTOR
+        assert records[0]["user_id"] == ACTOR
         assert records[0]["subject_uuid"] == SUBJECT
     else:
         assert not records
@@ -147,7 +147,7 @@ def test_omitted_or_empty_groups_revoke_all_on_replacement(replacement, encoded_
     assert record["action"] == "user_group_revoke"
     assert record["revoked_groups"] == ["admin"]
     assert record["changes"] == {"groups": {"before": ["admin"], "after": []}}
-    assert record["user_uuid"] == ACTOR
+    assert record["user_id"] == ACTOR
     assert record["subject_uuid"] == SUBJECT
 
 

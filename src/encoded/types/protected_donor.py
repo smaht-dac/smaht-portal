@@ -10,7 +10,11 @@ from snovault import TYPES, calculated_property, collection, load_schema
 from snovault.resource_views import item_view as sno_item_view
 from snovault.util import debug_log
 
-from ..audit_logging import authenticated_actor_fields, canonical_uuid
+from ..audit_logging import (
+    EVENT_TYPE_AUTHORIZATION,
+    canonical_uuid,
+    record_audit_event,
+)
 from .acl import ONLY_DBGAP_VIEW_ACL, ONLY_PUBLIC_DBGAP_VIEW_ACL
 
 from .abstract_donor import AbstractDonor
@@ -60,13 +64,14 @@ def _protected_donor_result_count(result):
 
 def log_protected_donor_search(request, result, outcome="allowed"):
     """Log a ProtectedDonor search without query, filter, or returned-record data."""
-    log.warning(
+    record_audit_event(
+        request,
         "ProtectedDonor search accessed",
-        event_type="protected_donor_access",
-        action="protected_donor_search",
-        outcome=outcome,
+        EVENT_TYPE_AUTHORIZATION,
+        "protected_donor_search",
+        outcome,
+        resource_type="protected_donor",
         result_count=_protected_donor_result_count(result),
-        **authenticated_actor_fields(request),
     )
 
 
@@ -299,22 +304,24 @@ def protected_donor_item_view(context, request):
         target_fields["target_uuid"] = target_uuid
 
     if not request.has_permission("view", context):
-        log.warning(
+        record_audit_event(
+            request,
             "ProtectedDonor record access denied",
-            event_type="protected_donor_access",
-            action="protected_donor_record_access",
-            outcome="denied",
+            EVENT_TYPE_AUTHORIZATION,
+            "protected_donor_record_access",
+            "denied",
+            resource_type="protected_donor",
             **target_fields,
-            **authenticated_actor_fields(request),
         )
         raise HTTPForbidden()
 
-    log.warning(
+    record_audit_event(
+        request,
         "ProtectedDonor record accessed",
-        event_type="protected_donor_access",
-        action="protected_donor_record_access",
-        outcome="allowed",
+        EVENT_TYPE_AUTHORIZATION,
+        "protected_donor_record_access",
+        "allowed",
+        resource_type="protected_donor",
         **target_fields,
-        **authenticated_actor_fields(request),
     )
     return sno_item_view(context, request)

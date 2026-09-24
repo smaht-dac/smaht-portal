@@ -209,18 +209,32 @@ def test_login_audit_authenticates_presented_credential(algorithm, credential, o
         handler.close()
 
     record, = [json.loads(line) for line in stream.getvalue().splitlines()
-               if json.loads(line).get('event_type') == 'user_login']
+               if json.loads(line).get('action') == 'login']
     assert result == {'saved_cookie': True}
     assert token in request.response.headers['Set-Cookie']
-    assert record['logger'] == 'encoded.project.authentication'
+    assert record['logger'] == 'encoded.audit_logging'
     assert record['action'] == 'login'
+    assert record['event_type'] == 'authentication'
     assert record['outcome'] == outcome
+    assert record['app'] == 'smaht-portal'
+    assert record['nih_ico'] == 'NIDA'
+    assert record['cadr_name'] == 'SMaHT'
     if outcome == 'success':
-        assert record['user_uuid'] == actor
+        assert record['user_id'] == actor
+        assert 'reason' not in record
     else:
-        assert 'user_uuid' not in record
+        # An unverified or unmatched credential names nobody.
+        assert 'user_id' not in record
+        assert record['reason']
     assert token not in stream.getvalue()
-    assert email not in stream.getvalue()
+    assert previous_token not in stream.getvalue()
+    # The identity is taken from the presented credential, never from the
+    # unrelated jwtToken cookie the request also carries.
+    assert 'previous@example.invalid' not in stream.getvalue()
+    if outcome == 'success':
+        assert record['user_email'] == email
+    else:
+        assert record.get('user_email') != email
 
 
 def test_login_failure_emits_identity_free_structured_audit_event():
@@ -254,12 +268,12 @@ def test_login_failure_emits_identity_free_structured_audit_event():
         handler.close()
 
     record = json.loads(stream.getvalue())
-    assert record['logger'] == 'encoded.project.authentication'
+    assert record['logger'] == 'encoded.audit_logging'
     assert record['message'] == 'User login failed'
-    assert record['event_type'] == 'user_login'
+    assert record['event_type'] == 'authentication'
     assert record['action'] == 'login'
     assert record['outcome'] == 'failure'
-    assert 'user_uuid' not in record
+    assert 'user_id' not in record
     assert 'synthetic-login-token' not in stream.getvalue()
     assert 'synthetic-login@example.invalid' not in stream.getvalue()
 

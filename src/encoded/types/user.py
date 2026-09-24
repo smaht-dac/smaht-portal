@@ -12,7 +12,8 @@ from snovault.util import debug_log
 from .acl import ONLY_ADMIN_VIEW_ACL, ONLY_OWNER_VIEW_PROFILE_ACL, DELETED_USER_ACL
 from .base import Item
 from ..audit_logging import (
-    authenticated_actor_fields,
+    EVENT_TYPE_AUTHORIZATION,
+    record_audit_event,
     result_subject_uuid,
     safe_user_field_value,
     subject_uuid_fields,
@@ -22,6 +23,9 @@ from ..audit_logging import (
 log = structlog.getLogger(__name__)
 AUDITED_USER_FIELDS = ("status", "groups", "submits_for", "submission_centers")
 USER_ARRAY_FIELDS = frozenset(AUDITED_USER_FIELDS) - {"status"}
+# Statuses that end an account's ability to authorize anything, so the
+# transition into one is an access revocation in its own right.
+ACCESS_ENDING_USER_STATUSES = frozenset({"deleted", "revoked", "inactive"})
 
 
 def _user_audit_snapshot(properties):
@@ -33,16 +37,17 @@ def _user_audit_snapshot(properties):
     }
 
 
-def _log_user_record_event(action, actor_fields, subject_fields, changed_fields, changes,
+def _log_user_record_event(action, request, subject_fields, changed_fields, changes,
                            **extra_fields):
-    log.warning(
+    """Audit one authoritative change to a User's security-relevant state."""
+    record_audit_event(
+        request,
         "User record audit event",
-        event_type="user_account",
-        action=action,
-        outcome="success",
+        EVENT_TYPE_AUTHORIZATION,
+        action,
+        "success",
         changed_fields=changed_fields,
         changes=changes,
-        **actor_fields,
         **subject_fields,
         **extra_fields,
     )
@@ -122,7 +127,7 @@ class User(Item, SnovaultUser):
         if groups:
             _log_user_record_event(
                 "user_group_grant",
-                authenticated_actor_fields(get_current_request()),
+                get_current_request(),
                 subject_uuid_fields(item.uuid),
                 ["groups"],
                 {"groups": {"before": [], "after": groups}},
@@ -158,16 +163,29 @@ class User(Item, SnovaultUser):
         if not changed_fields:
             return result
 
-        actor_fields = authenticated_actor_fields(get_current_request())
+        request = get_current_request()
         subject_fields = subject_uuid_fields(getattr(self, "uuid", None))
         if set(changed_fields) - {"groups"}:
             _log_user_record_event(
                 "user_record_change",
-                actor_fields,
+                request,
                 subject_fields,
                 changed_fields,
                 changes,
             )
+
+        if "status" in changes:
+            before_status = changes["status"]["before"]
+            after_status = changes["status"]["after"]
+            if (after_status in ACCESS_ENDING_USER_STATUSES
+                    and before_status not in ACCESS_ENDING_USER_STATUSES):
+                _log_user_record_event(
+                    "user_account_disable",
+                    request,
+                    subject_fields,
+                    ["status"],
+                    {"status": changes["status"]},
+                )
 
         if "groups" in changes:
             before_groups = set(before_snapshot["groups"])
@@ -177,7 +195,7 @@ class User(Item, SnovaultUser):
             if granted_groups:
                 _log_user_record_event(
                     "user_group_grant",
-                    actor_fields,
+                    request,
                     subject_fields,
                     ["groups"],
                     {"groups": changes["groups"]},
@@ -186,7 +204,7 @@ class User(Item, SnovaultUser):
             if revoked_groups:
                 _log_user_record_event(
                     "user_group_revoke",
-                    actor_fields,
+                    request,
                     subject_fields,
                     ["groups"],
                     {"groups": changes["groups"]},
@@ -210,25 +228,24 @@ def user_page_view(context, request, user_page_view_attributes=USER_PAGE_VIEW_AT
              physical_path="/users")
 @debug_log
 def user_add(context, request):
-    actor_fields = authenticated_actor_fields(request)
     try:
         result = SnoUserAdd(context, request)
     except Exception:
-        log.warning(
+        record_audit_event(
+            request,
             "User account creation failed",
-            event_type="user_account",
-            action="user_account_create",
-            outcome="failure",
-            **actor_fields,
+            EVENT_TYPE_AUTHORIZATION,
+            "user_account_create",
+            "failure",
         )
         raise
     if isinstance(result, dict) and result.get("status") == "success":
-        log.warning(
+        record_audit_event(
+            request,
             "User account created",
-            event_type="user_account",
-            action="user_account_create",
-            outcome="success",
-            **actor_fields,
+            EVENT_TYPE_AUTHORIZATION,
+            "user_account_create",
+            "success",
             **subject_uuid_fields(result_subject_uuid(result)),
         )
     return result

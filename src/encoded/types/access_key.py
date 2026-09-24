@@ -14,13 +14,23 @@ from snovault.types.access_key import (
 from snovault.util import debug_log
 from snovault.validators import validate_item_content_post
 
-from ..audit_logging import authenticated_actor_fields
+from ..audit_logging import (
+    EVENT_TYPE_AUTHORIZATION,
+    record_audit_event,
+    result_subject_uuid,
+    subject_uuid_fields,
+)
 from .acl import ALLOW_AUTHENTICATED_CREATE_ACL, ONLY_ADMIN_VIEW_ACL
 from .base import DELETED_ACL
 from .base import Item
 
 
 log = structlog.getLogger(__name__)
+
+
+def _access_key_subject_fields(context):
+    """Identify the audited access key itself, never its secret or key id."""
+    return subject_uuid_fields(getattr(context, "uuid", None))
 
 
 @collection(
@@ -68,29 +78,28 @@ class AccessKey(Item, SnovaultAccessKey):
             self.properties.get("status") == "current"
             and properties.get("status") == "deleted"
         )
-        actor_fields = (
-            authenticated_actor_fields(get_current_request())
-            if revoke_requested else {}
-        )
+        request = get_current_request() if revoke_requested else None
         try:
             result = super().update(properties, sheets)
         except Exception:
             if revoke_requested:
-                log.warning(
+                record_audit_event(
+                    request,
                     "Access key revocation failed",
-                    action="access_key_revoke",
-                    outcome="failure",
-                    event_type="access_key",
-                    **actor_fields,
+                    EVENT_TYPE_AUTHORIZATION,
+                    "access_key_revoke",
+                    "failure",
+                    **_access_key_subject_fields(self),
                 )
             raise
         if revoke_requested:
-            log.warning(
+            record_audit_event(
+                request,
                 "Access key revoked",
-                action="access_key_revoke",
-                outcome="success",
-                event_type="access_key",
-                **actor_fields,
+                EVENT_TYPE_AUTHORIZATION,
+                "access_key_revoke",
+                "success",
+                **_access_key_subject_fields(self),
             )
         return result
 
@@ -103,20 +112,21 @@ def access_key_add(context, request):
     try:
         result = sno_access_key_add(context, request)
     except Exception:
-        log.warning(
+        record_audit_event(
+            request,
             "Access key creation failed",
-            action="access_key_create",
-            outcome="failure",
-            event_type="access_key",
-            **authenticated_actor_fields(request),
+            EVENT_TYPE_AUTHORIZATION,
+            "access_key_create",
+            "failure",
         )
         raise
-    log.warning(
+    record_audit_event(
+        request,
         "Access key created",
-        action="access_key_create",
-        outcome="success",
-        event_type="access_key",
-        **authenticated_actor_fields(request),
+        EVENT_TYPE_AUTHORIZATION,
+        "access_key_create",
+        "success",
+        **subject_uuid_fields(result_subject_uuid(result)),
     )
     return result
 
@@ -129,20 +139,22 @@ def access_key_reset_secret(context, request):
     try:
         result = sno_access_key_reset_secret(context, request)
     except Exception:
-        log.warning(
+        record_audit_event(
+            request,
             "Access key reset failed",
-            action="access_key_reset",
-            outcome="failure",
-            event_type="access_key",
-            **authenticated_actor_fields(request),
+            EVENT_TYPE_AUTHORIZATION,
+            "access_key_reset",
+            "failure",
+            **_access_key_subject_fields(context),
         )
         raise
-    log.warning(
+    record_audit_event(
+        request,
         "Access key reset",
-        action="access_key_reset",
-        outcome="success",
-        event_type="access_key",
-        **authenticated_actor_fields(request),
+        EVENT_TYPE_AUTHORIZATION,
+        "access_key_reset",
+        "success",
+        **_access_key_subject_fields(context),
     )
     return result
 

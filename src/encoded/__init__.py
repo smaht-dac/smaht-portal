@@ -67,6 +67,7 @@ def include_encoded(config):
     """
     config.include('encoded.authentication')
     config.include('encoded.okta')
+    config.include('encoded.audit_tween')
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.metadata')
