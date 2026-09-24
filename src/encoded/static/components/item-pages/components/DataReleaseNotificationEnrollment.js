@@ -226,6 +226,10 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             <br />
                             click the "confirm subscription" link to begin
                             receiving data updates.
+                            <br />
+                            <br />
+                            To unsubscribe, use the "unsubscribe" button on this
+                            page, not the link provided in the email.
                         </span>
                     </div>
                 </Modal.Body>
