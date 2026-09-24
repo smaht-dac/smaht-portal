@@ -304,31 +304,15 @@ function stepNoResultsModal(caps) {
                     $loginBtn.length > 0 &&
                     $loginBtn.text().replace(/\s+/g, ' ').trim().includes('Login / Register');
                 if (hasLoginText) {
-                    cy.wrap($loginBtn).click({ force: true });
-                    cy.get('[id^="auth0-lock-container"], .auth0-lock')
-                        .should('be.visible')
-                        .then(($lock) => {
-                            const lockZIndex = parseInt($lock.css('z-index') || '0', 10);
-                            const modalZIndex = parseInt(
-                                $body
-                                    .find('#download-access-required-modal')
-                                    .closest('.modal')
-                                    .css('z-index') || '0',
-                                10
-                            );
-                            if (!Number.isNaN(lockZIndex) && !Number.isNaN(modalZIndex)) {
-                                expect(lockZIndex).to.be.greaterThan(modalZIndex);
-                            }
-                        });
-                    cy.get('body').then(($auth0Body) => {
-                        if ($auth0Body.find('.auth0-lock-close-button').length > 0) {
-                            cy.get('.auth0-lock-close-button').click({ force: true });
-                        } else if ($auth0Body.find('.auth0-lock-overlay').length > 0) {
-                            cy.get('.auth0-lock-overlay').click({ force: true });
-                        }
-                    });
+                    // Login is now an Okta Authorization Code + PKCE redirect, not
+                    // an in-page widget, so there is no login modal to stack above
+                    // this one. Assert the affordance an unauthenticated visitor
+                    // needs is present and enabled; the redirect itself leaves this
+                    // origin and belongs to Okta.
+                    cy.wrap($loginBtn).should('not.have.class', 'disabled');
+                    cy.wrap($loginBtn).should('not.have.attr', 'disabled');
                 } else {
-                    cy.log('Skipping Auth0 login popup check; login button not present or not labeled "Login / Register".');
+                    cy.log('Skipping login affordance check; login button not present or not labeled "Login / Register".');
                 }
             });
         } else {

@@ -1,4 +1,7 @@
 from typing import Optional, Union
+
+import structlog
+from pyramid.threadlocal import get_current_request
 from pyramid.view import view_config
 from snovault import calculated_property, collection, display_title_schema, load_schema
 from snovault.types.user import User as SnovaultUser
@@ -8,6 +11,46 @@ from snovault.util import debug_log
 
 from .acl import ONLY_ADMIN_VIEW_ACL, ONLY_OWNER_VIEW_PROFILE_ACL, DELETED_USER_ACL
 from .base import Item
+from ..audit_logging import (
+    EVENT_TYPE_AUTHORIZATION,
+    record_audit_event,
+    result_subject_uuid,
+    safe_user_field_value,
+    subject_uuid_fields,
+)
+
+
+log = structlog.getLogger(__name__)
+AUDITED_USER_FIELDS = ("status", "groups", "submits_for", "submission_centers")
+USER_ARRAY_FIELDS = frozenset(AUDITED_USER_FIELDS) - {"status"}
+# Statuses that end an account's ability to authorize anything, so the
+# transition into one is an access revocation in its own right.
+ACCESS_ENDING_USER_STATUSES = frozenset({"deleted", "revoked", "inactive"})
+
+
+def _user_audit_snapshot(properties):
+    return {
+        field_name: safe_user_field_value(field_name, properties.get(
+            field_name, [] if field_name in USER_ARRAY_FIELDS else None
+        ))
+        for field_name in AUDITED_USER_FIELDS
+    }
+
+
+def _log_user_record_event(action, request, subject_fields, changed_fields, changes,
+                           **extra_fields):
+    """Audit one authoritative change to a User's security-relevant state."""
+    record_audit_event(
+        request,
+        "User record audit event",
+        EVENT_TYPE_AUTHORIZATION,
+        action,
+        "success",
+        changed_fields=changed_fields,
+        changes=changes,
+        **subject_fields,
+        **extra_fields,
+    )
 
 
 @collection(
@@ -76,6 +119,99 @@ class User(Item, SnovaultUser):
         roles[owner] = 'role.owner'
         return roles
 
+    @classmethod
+    def create(cls, registry, uuid, properties, sheets=None):
+        """Creation bypasses update(), so audit initial group grants here too."""
+        item = super().create(registry, uuid, properties, sheets)
+        groups = _user_audit_snapshot(item.properties)["groups"]
+        if groups:
+            _log_user_record_event(
+                "user_group_grant",
+                get_current_request(),
+                subject_uuid_fields(item.uuid),
+                ["groups"],
+                {"groups": {"before": [], "after": groups}},
+                granted_groups=groups,
+            )
+        return item
+
+    def update(self, properties, sheets=None):
+        """Audit security-relevant User changes after the persistence update succeeds."""
+        before = dict(self.properties or {})
+        before_snapshot = _user_audit_snapshot(before)
+        result = super().update(properties, sheets)
+        # Snovault persists a replacement document (PATCH is merged before
+        # this method). Omitted fields in PUT/JSON Patch removals are revoked,
+        # not retained. Read the actual persisted state, including defaults.
+        after = dict(self.properties or {})
+        after_snapshot = _user_audit_snapshot(after)
+
+        changes = {
+            field_name: {
+                "before": before_snapshot[field_name],
+                "after": after_snapshot[field_name],
+            }
+            for field_name in AUDITED_USER_FIELDS
+            if before_snapshot[field_name] != after_snapshot[field_name]
+        }
+        changed_fields = list(changes)
+        for field_name in sorted(set(before) | set(after)):
+            if field_name in AUDITED_USER_FIELDS or field_name == "uuid":
+                continue
+            if before.get(field_name) != after.get(field_name):
+                changed_fields.append(field_name)
+        if not changed_fields:
+            return result
+
+        request = get_current_request()
+        subject_fields = subject_uuid_fields(getattr(self, "uuid", None))
+        if set(changed_fields) - {"groups"}:
+            _log_user_record_event(
+                "user_record_change",
+                request,
+                subject_fields,
+                changed_fields,
+                changes,
+            )
+
+        if "status" in changes:
+            before_status = changes["status"]["before"]
+            after_status = changes["status"]["after"]
+            if (after_status in ACCESS_ENDING_USER_STATUSES
+                    and before_status not in ACCESS_ENDING_USER_STATUSES):
+                _log_user_record_event(
+                    "user_account_disable",
+                    request,
+                    subject_fields,
+                    ["status"],
+                    {"status": changes["status"]},
+                )
+
+        if "groups" in changes:
+            before_groups = set(before_snapshot["groups"])
+            after_groups = set(after_snapshot["groups"])
+            granted_groups = sorted(after_groups - before_groups)
+            revoked_groups = sorted(before_groups - after_groups)
+            if granted_groups:
+                _log_user_record_event(
+                    "user_group_grant",
+                    request,
+                    subject_fields,
+                    ["groups"],
+                    {"groups": changes["groups"]},
+                    granted_groups=granted_groups,
+                )
+            if revoked_groups:
+                _log_user_record_event(
+                    "user_group_revoke",
+                    request,
+                    subject_fields,
+                    ["groups"],
+                    {"groups": changes["groups"]},
+                    revoked_groups=revoked_groups,
+                )
+        return result
+
 
 USER_PAGE_VIEW_ATTRIBUTES = ['@id', '@type', 'uuid', 'title', 'display_title', 'email', 'consortia',
                              'submission_centers']
@@ -92,7 +228,27 @@ def user_page_view(context, request, user_page_view_attributes=USER_PAGE_VIEW_AT
              physical_path="/users")
 @debug_log
 def user_add(context, request):
-    return SnoUserAdd(context, request)
+    try:
+        result = SnoUserAdd(context, request)
+    except Exception:
+        record_audit_event(
+            request,
+            "User account creation failed",
+            EVENT_TYPE_AUTHORIZATION,
+            "user_account_create",
+            "failure",
+        )
+        raise
+    if isinstance(result, dict) and result.get("status") == "success":
+        record_audit_event(
+            request,
+            "User account created",
+            EVENT_TYPE_AUTHORIZATION,
+            "user_account_create",
+            "success",
+            **subject_uuid_fields(result_subject_uuid(result)),
+        )
+    return result
 
 
 @calculated_property(context=User, category='user_action')

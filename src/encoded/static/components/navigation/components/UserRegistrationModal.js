@@ -9,9 +9,7 @@ import { analytics } from '@hms-dbmi-bgm/shared-portal-components/es/components/
 import UserRegistrationForm from './../../forms/UserRegistrationForm';
 
 // TO REMOVE AFTER PORTAL REOPENS --
-import {
-    performLogout,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/navigation/components/LoginController';
+import { performPortalLogout } from './../../auth/oktaSession';
 // TO REMOVE AFTER PORTAL REOPENS --
 
 
@@ -89,7 +87,11 @@ export const PortalShutdownWarningModal = React.memo(function (props) {
         location.reload();
     };
 
-    performLogout();
+    // Portal-side logout only: this shutdown notice should not bounce the
+    // browser through Okta's end-session redirect.
+    performPortalLogout().catch(() => {
+        /* Already logged out locally; nothing useful to do here. */
+    });
 
     // since this component is to be removed after portal reopens, the css styles are kept inline for easier removal
     const formHeadingDuringShutdown = (

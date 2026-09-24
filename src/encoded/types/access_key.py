@@ -1,6 +1,8 @@
 from typing import Dict, List, Tuple
 
+import structlog
 from pyramid.authorization import Allow
+from pyramid.threadlocal import get_current_request
 from pyramid.view import view_config
 from snovault import collection, load_schema
 from snovault.types.access_key import (
@@ -12,9 +14,23 @@ from snovault.types.access_key import (
 from snovault.util import debug_log
 from snovault.validators import validate_item_content_post
 
+from ..audit_logging import (
+    EVENT_TYPE_AUTHORIZATION,
+    record_audit_event,
+    result_subject_uuid,
+    subject_uuid_fields,
+)
 from .acl import ALLOW_AUTHENTICATED_CREATE_ACL, ONLY_ADMIN_VIEW_ACL
 from .base import DELETED_ACL
 from .base import Item
+
+
+log = structlog.getLogger(__name__)
+
+
+def _access_key_subject_fields(context):
+    """Identify the audited access key itself, never its secret or key id."""
+    return subject_uuid_fields(getattr(context, "uuid", None))
 
 
 @collection(
@@ -57,13 +73,62 @@ class AccessKey(Item, SnovaultAccessKey):
     def __ac_local_roles__(self) -> Dict[str, str]:
         return SnovaultAccessKey.__ac_local_roles__(self)
 
+    def update(self, properties, sheets=None):
+        revoke_requested = (
+            self.properties.get("status") == "current"
+            and properties.get("status") == "deleted"
+        )
+        request = get_current_request() if revoke_requested else None
+        try:
+            result = super().update(properties, sheets)
+        except Exception:
+            if revoke_requested:
+                record_audit_event(
+                    request,
+                    "Access key revocation failed",
+                    EVENT_TYPE_AUTHORIZATION,
+                    "access_key_revoke",
+                    "failure",
+                    **_access_key_subject_fields(self),
+                )
+            raise
+        if revoke_requested:
+            record_audit_event(
+                request,
+                "Access key revoked",
+                EVENT_TYPE_AUTHORIZATION,
+                "access_key_revoke",
+                "success",
+                **_access_key_subject_fields(self),
+            )
+        return result
+
 
 @view_config(context=AccessKey.Collection, request_method="POST",
              permission="add",
              validators=[validate_item_content_post])
 @debug_log
 def access_key_add(context, request):
-    return sno_access_key_add(context, request)
+    try:
+        result = sno_access_key_add(context, request)
+    except Exception:
+        record_audit_event(
+            request,
+            "Access key creation failed",
+            EVENT_TYPE_AUTHORIZATION,
+            "access_key_create",
+            "failure",
+        )
+        raise
+    record_audit_event(
+        request,
+        "Access key created",
+        EVENT_TYPE_AUTHORIZATION,
+        "access_key_create",
+        "success",
+        **subject_uuid_fields(result_subject_uuid(result)),
+    )
+    return result
 
 
 @view_config(name="reset-secret", context=AccessKey,
@@ -71,7 +136,27 @@ def access_key_add(context, request):
              request_method="POST", subpath_segments=0)
 @debug_log
 def access_key_reset_secret(context, request):
-    return sno_access_key_reset_secret(context, request)
+    try:
+        result = sno_access_key_reset_secret(context, request)
+    except Exception:
+        record_audit_event(
+            request,
+            "Access key reset failed",
+            EVENT_TYPE_AUTHORIZATION,
+            "access_key_reset",
+            "failure",
+            **_access_key_subject_fields(context),
+        )
+        raise
+    record_audit_event(
+        request,
+        "Access key reset",
+        EVENT_TYPE_AUTHORIZATION,
+        "access_key_reset",
+        "success",
+        **_access_key_subject_fields(context),
+    )
+    return result
 
 
 @view_config(context=AccessKey, permission="view_raw", request_method="GET",

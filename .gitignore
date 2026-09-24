@@ -6,6 +6,7 @@ beanstalk.cfg
 /.installed.cfg
 /.mr.developer.cfg
 /.cache/
+/.firstmate-local/
 /.sass-cache/
 .vscode
 /src/encoded/static/docs/

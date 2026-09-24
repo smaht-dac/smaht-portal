@@ -45,6 +45,15 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   hydrates and calls JSON endpoints. Follow `webpack.config.js` aliases and bundle entries when
   tracing frontend imports. Shared UI dependencies include `@hms-dbmi-bgm/shared-portal-components`
   and `@hms-dbmi-bgm/react-workflow-viz` (see `package.json` and their Gulp build steps).
+- Application console logging is configured by `src/encoded/logging_config.py` through structlog's
+  standard-library `ProcessorFormatter`; its bounded exception shape and single-line JSON contract
+  are covered by `src/encoded/tests/test_logging_config.py`.
+- NIH CADR audit events are built only by `record_audit_event` in `src/encoded/audit_logging.py`,
+  which owns the field whitelist (anything outside it raises), the application constants and the
+  verified actor identity; `src/encoded/audit_tween.py` adds the response-level fields. Add an
+  event at an authoritative transition through that helper rather than with an ad hoc `log` call.
+  `docs/operations/cadr_audit_logging.md` is the reviewable coverage matrix, including the fields
+  and event families this portal deliberately cannot supply.
 - Ingestion submissions flow through `src/encoded/ingestion/` into Snovault's listener/message
   infrastructure. Production runs portal, indexer, ingester, and deployment entrypoint roles from
   `deploy/docker/production/`; do not assume every role executes the same startup path.
@@ -63,6 +72,10 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   image build needs `touch deploy/docker/local/docker_development.ini` first because the ignored file
   is copied into the image; `.github/workflows/main.yml` and `buildspec.yml` do the same. Build with
   `DOCKER_BUILDKIT=1 docker build .` when BuildKit is not already the default.
+- `Dockerfile` owns production base-image and nginx package selection; private-base CI access
+  is documented in `docs/operations/ci_private_base.md`. `supervisord.conf` runs nginx and multiple
+  non-root Pyramid processes; role entrypoints build runtime configuration before serving,
+  indexing, ingesting, or deploying.
 - The production image installs the pinned nginx.org build via
   `deploy/docker/production/install_nginx_bookworm.sh`, rather than Debian nginx. `supervisord.conf`
   runs nginx and multiple non-root Pyramid processes; role entrypoints build runtime configuration
@@ -145,6 +158,76 @@ rejects. For queries already filtered to `type=File`, read the response's top-le
 The authoritative implementation and regression coverage are in `src/encoded/metadata.py`,
 `src/encoded/static/components/browse/browse-view/BrowseDonorPeekMetadata.js`, and
 `src/encoded/static/components/__tests__/BrowseDonorPeekMetadata.test.js`.
+
+## Splunk Universal Forwarder — ECS sidecar (NOT in the app image)
+
+`deploy/docker/splunk/README.md` owns the sidecar architecture, non-interactive
+first-boot license requirement, bounded shutdown, log-volume contract, and
+external ECS task-definition handoff. Use its test and lint commands when
+changing the forwarder; do not add it to the app image or supervisord.
+
+## nginx LB→ECS TLS (encryption in transit)
+
+`deploy/docker/production/setup_nginx_tls.sh` (run by `entrypoint_portal.sh`
+before supervisord) materializes the nginx cert/key from the ECS-injected
+`NGINX_SSL_CERTIFICATE[_KEY]` env vars (Secrets Manager via the ECS `secrets:`
+path) into owner-only files and generates the server blocks into
+`/etc/nginx/conf.d/smaht_http.conf` + `smaht_tls.conf` (both `include`d by
+`nginx.conf`; server body shared via `nginx/smaht_server_common.conf` so they
+can't drift). Opt-in via `NGINX_TLS_ENABLED=true`. **Fail closed:** enabled →
+`listen 8443 ssl` **and the plaintext `:8000` listener is removed**; disabled →
+plain `:8000` only. It then runs the authoritative `nginx -t` (the real gate —
+catches malformed/mismatched material even without `openssl`) and only logs
+`HEALTHY` if it passes; any failure exits non-zero (ECS restarts). The raw secret
+is never logged and is `unset` before `assume_identity`/`exec supervisord` (the
+entrypoints use an `exec` dispatch chain so PID 1 keeps a scrubbed environment).
+Secret shape, rotation, the fail-closed port table, ALB behavior, and the
+LB-listener/ECS-`secrets:`/health-check **infrastructure handoff** (not in this
+repo), along with test commands and coverage boundaries, are in
+`deploy/docker/production/nginx/README.md`.
+
+## Okta login is a public SPA PKCE flow; the portal session contract is unchanged
+
+Login is Okta OIDC Authorization Code + PKCE run entirely in the browser
+(`src/encoded/static/components/auth/`), replacing the `auth0-lock` widget that
+lived in shared-portal-components' `LoginController`. The SPA exchanges the code
+itself and POSTs the resulting **ID token** to `/login`; the httpOnly `jwtToken`
+cookie plus `/session-properties` remain the portal session, so item/permission
+code is unaffected. There is no client secret in React source, `/okta_config`,
+or the bundle - `oktaConfig.js` asserts that rather than assuming it.
+
+Two sharp edges that are easy to undo by accident:
+
+- `SMAHTAuth0AuthenticationPolicy.get_token_info` routes on the token's `alg`:
+  RS256 goes to JWKS verification (`encoded/okta.py`), HS256 stays on snovault's
+  shared-secret path, which the admin *impersonate user* feature and the Cypress
+  `login` command still use. Removing either branch breaks one of them.
+- Nothing may import
+  `@hms-dbmi-bgm/shared-portal-components/es/components/navigation/components/LoginController`,
+  not even for `LogoutController`/`performLogout`: that module carries the
+  `auth0-lock` dynamic import, so importing it puts the dependency back in the
+  bundle. Local replacements are `OktaLogoutController.js` / `oktaSession.js`.
+
+`set_okta_config` reads the `okta.*` settings from the started ini file and
+from nowhere else - no Secrets Manager or environment lookup at runtime. In a
+container they reach `production.ini` through the four `${OKTA_*}` placeholders
+in `deploy/docker/production/smaht_any_alpha.ini`, expanded once per boot by
+`python -m assume_identity`. That is why `dcicutils` is pinned exactly (not
+caret-ranged) to `8.19.0.1b1`, the release that binds those substitutions.
+`OKTA_REQUIRE_EMAIL_VERIFIED` expands to the empty string for anything that is
+not a boolean, which drops the assignment line entirely so the portal's secure
+default (require a verified email) holds - do not "fix" that by adding an
+environment fallback.
+
+Okta settings, the Okta app registration (redirect + sign-out URIs per origin),
+the CSP allowance, and the reason `react-router-dom` is installed are all in
+`docs/operations/okta_authentication.md`. Tests: `src/encoded/tests/test_okta.py`,
+`src/encoded/tests/test_authentication.py`,
+`deploy/docker/production/tests/test_container_contracts.py` (the pin plus the
+template rendering/omission contract), and
+`src/encoded/static/components/__tests__/oktaAuth.test.js` (Jest here has no
+config and no jsdom - follow the existing `jest.mock` + `renderToStaticMarkup`
+pattern).
 
 ## Maintaining this file
 
