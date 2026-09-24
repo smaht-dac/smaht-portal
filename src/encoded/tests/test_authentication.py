@@ -231,10 +231,16 @@ def test_login_audit_authenticates_presented_credential(algorithm, credential, o
     # The identity is taken from the presented credential, never from the
     # unrelated jwtToken cookie the request also carries.
     assert 'previous@example.invalid' not in stream.getvalue()
-    if outcome == 'success':
-        assert record['user_email'] == email
+    if credential in ('invalid', 'expired'):
+        # The credential proved nothing, so it names nobody at all.
+        assert 'user_email' not in record
+    elif credential == 'unknown':
+        # Verified, but for an address this portal has no account for.
+        assert record['user_email'] == 'unknown@example.invalid'
     else:
-        assert record.get('user_email') != email
+        # Verified for this address, whether or not it resolved to a usable
+        # account - a verified claim is authoritative enough to record.
+        assert record['user_email'] == email
 
 
 def test_login_failure_emits_identity_free_structured_audit_event():

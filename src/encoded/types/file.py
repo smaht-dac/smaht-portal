@@ -1602,11 +1602,12 @@ def validate_user_has_public_protected_access(request):
     return False
 
 
-# The portal authorizes a download and issues a redirect; the object itself is
-# transferred directly between the client and S3. ``bytes`` and ``duration`` on
-# these events therefore describe this application's own response, never the
-# object transfer, which it cannot observe.
+# How the portal handed the data over. In both cases the object itself is
+# transferred directly between the client and S3, so ``bytes`` and ``duration``
+# on these events describe this application's own response, never the object
+# transfer, which it cannot observe.
 DOWNLOAD_DELIVERY_REDIRECT = "presigned_redirect"
+DOWNLOAD_DELIVERY_CREDENTIALS = "temporary_credentials"
 
 
 def _log_download_event(action, outcome, request, context=None,
@@ -1661,7 +1662,8 @@ def download_cli(context, request):
     except Exception:
         _log_download_event("file_download_cli", "failure", request, context)
         raise
-    _log_download_event("file_download_cli", "success", request, context)
+    _log_download_event("file_download_cli", "success", request, context,
+                        delivery=DOWNLOAD_DELIVERY_CREDENTIALS)
     return result
 
 

@@ -27,6 +27,7 @@ import re
 
 from snovault.validation import ValidationFailure
 from .audit_logging import (
+    AUTH_FAILURE_EMAIL_RESTRICTED,
     AUTH_FAILURE_PROVIDER_UNCONFIGURED,
     AUTH_FAILURE_TOKEN_EXPIRED,
     AUTH_FAILURE_TOKEN_REJECTED,
@@ -109,7 +110,7 @@ def session_properties(context, request):
     namespace, userid = principal.split('.', 1)
     properties = get_basic_properties_for_user(request, userid)
     email = properties.get('details', {}).get('email')
-    email_is_not_restricted(request.registry, None, email)
+    email_is_not_restricted(request.registry, None, email, request=request)
     return properties
 
 
@@ -135,8 +136,13 @@ def email_matches_blocked_country(email: str) -> bool:
     return bool(COUNTRY_DOMAIN_PATTERN.search(email))
 
 
-def email_is_not_restricted(registry, jwt_info, email=None):
-    """ Raises HTTPForbidden if email address is restricted, no-op otherwise """
+def email_is_not_restricted(registry, jwt_info, email=None, request=None):
+    """ Raises HTTPForbidden if email address is restricted, no-op otherwise
+
+        The refusal is the portal's most CADR-specific denial, so it records
+        why before raising; the response-level audit event then names the
+        reason instead of reporting an unexplained 403.
+    """
     restricted_domains = registry['RESTRICTED_DOMAINS']
     restricted_emails = registry['RESTRICTED_EMAILS']
     if email is None:  # if no email passed, check jwt
@@ -154,6 +160,7 @@ def email_is_not_restricted(registry, jwt_info, email=None):
     if (email_matches_blocked_country(email) or
             email in restricted_emails or email_domain in restricted_emails or
             email_domain in restricted_domains):
+        record_auth_failure_reason(request, AUTH_FAILURE_EMAIL_RESTRICTED)
         raise HTTPForbidden(
             title=f"Email address {email} restricted due to NIH CADR Security Guidelines",
         )
@@ -250,7 +257,7 @@ class SMAHTAuth0AuthenticationPolicy(Auth0AuthenticationPolicy):
             return None
 
         # Check email against domains
-        email_is_not_restricted(request.registry, jwt_info)
+        email_is_not_restricted(request.registry, jwt_info, request=request)
 
         # duplicates a small amount of effort but not meaningfully
         return super().unauthenticated_userid(request)
@@ -353,7 +360,7 @@ def smaht_create_unauthorized_user(context, request):
             headers={
                 'WWW-Authenticate': "Bearer realm=\"{}\"; Basic realm=\"{}\"".format(request.domain, request.domain)}
         )
-    email_is_not_restricted(request.registry, None, email)
+    email_is_not_restricted(request.registry, None, email, request=request)
 
     # set user insert props
     del user_props['g-recaptcha-response']

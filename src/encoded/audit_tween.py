@@ -31,6 +31,12 @@ from .audit_logging import (
 )
 
 
+# A request whose transaction never committed did not do what its view
+# believed it did, so a queued success is downgraded rather than published.
+REQUEST_FAILED_REASON = "request_failed"
+UNCOMMITTED_OUTCOMES = frozenset({"success", "allowed"})
+
+
 log = structlog.getLogger(__name__)
 
 AUDIT_TWEEN_NAME = "encoded.audit_tween.audit_tween_factory"
@@ -91,7 +97,7 @@ def _session_expiry_event(request):
 
 
 def _denial_event(request, response, already_recorded):
-    """Build a generic denial event when no view recorded a more specific one."""
+    """Build a generic denial event when no event already explains the refusal."""
     status_code = getattr(response, "status_code", None)
     if status_code not in DENIED_STATUS_CODES:
         return None
@@ -111,19 +117,53 @@ def _denial_event(request, response, already_recorded):
     )
 
 
-def _flush(request, response, duration_seconds):
+def _downgrade_uncommitted(events, response, request_failed):
+    """Never publish a success the request did not actually complete.
+
+    A commit failure in ``pyramid_tm`` raises past every view, so a queued
+    "group revoked" or "file deleted" describes a change that was rolled back.
+    A 401 is not such a case - an explicit logout deliberately returns one -
+    so only a missing response or a server error downgrades an outcome.
+    """
+    status_code = getattr(response, "status_code", None)
+    server_error = isinstance(status_code, int) and status_code >= 500
+    if not (request_failed or server_error):
+        return
+    for event in events:
+        fields = event["fields"]
+        if fields.get("outcome") in UNCOMMITTED_OUTCOMES:
+            fields["outcome"] = "failure"
+            fields.setdefault("reason", REQUEST_FAILED_REASON)
+
+
+def _explains_the_refusal(event):
+    """True when an event already accounts for a 401/403 response."""
+    fields = event["fields"]
+    return (
+        fields.get("outcome") in ("denied", "failure")
+        # An explicit logout and an expiry both answer with 401 by design.
+        or fields.get("event_type") == EVENT_TYPE_AUTHENTICATION
+    )
+
+
+def _flush(request, response, duration_seconds, request_failed=False):
     """Attach response fields to every queued event and write them out."""
     queue = getattr(request, AUDIT_EVENT_QUEUE_ATTR, None)
     events = list(queue) if isinstance(queue, list) else []
     if isinstance(queue, list):
         del queue[:]
 
-    already_denied = any(
-        event["fields"].get("outcome") in ("denied", "failure") for event in events
+    _downgrade_uncommitted(events, response, request_failed)
+
+    expiry = _session_expiry_event(request)
+    if expiry is not None:
+        events.append(expiry)
+
+    denial = _denial_event(
+        request, response, any(_explains_the_refusal(event) for event in events)
     )
-    for extra in (_session_expiry_event(request), _denial_event(request, response, already_denied)):
-        if extra is not None:
-            events.append(extra)
+    if denial is not None:
+        events.append(denial)
 
     if not events:
         return
@@ -144,18 +184,24 @@ def audit_tween_factory(handler, registry):
             return handler(request)
         started = time.perf_counter()
         response = None
+        request_failed = False
         try:
             response = handler(request)
             return response
         except Exception as caught:
             # An HTTPException that escapes the exception view is still the
-            # response the client receives, so audit it as such.
+            # response the client receives, so audit it as such. Anything else
+            # - a failed commit, for instance - means the request did not
+            # complete, and any queued success must not stand.
             if getattr(caught, "status_code", None) is not None:
                 response = caught
+            else:
+                request_failed = True
             raise
         finally:
             try:
-                _flush(request, response, time.perf_counter() - started)
+                _flush(request, response, time.perf_counter() - started,
+                       request_failed=request_failed)
             except Exception:
                 log.exception("Failed to emit queued audit events")
 

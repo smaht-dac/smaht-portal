@@ -40,7 +40,7 @@ from ..audit_logging import (
     identity_fields,
     record_audit_event,
     record_verified_claims,
-    study_accession_for_dataset,
+    study_accession_for_file,
 )
 from ..logging_config import _configure_structlog, make_console_formatter
 from ..types.file import FILE_STATUS_AUDIT_EVENTS, File, get_upload, post_upload
@@ -248,21 +248,28 @@ def test_legacy_subject_supplies_the_federated_source_without_hardcoding_it():
 # associated_study
 # --------------------------------------------------------------------------
 
-@pytest.mark.parametrize("dataset,expected", [
-    ("colo829bl", "phs004193"),
-    ("hg002", "phs004193"),
-    ("lb_ipsc_1", "phs004193"),
-    # A tissue dataset belongs to either study depending on its donor, which
-    # the stored File properties do not record, so nothing is claimed.
-    ("tissue", None),
-    (None, None),
-    ("unrecognized_dataset", None),
+@pytest.mark.parametrize("properties,expected", [
+    # A controlled-access file whose annotated filename names its TPC project.
+    ({"status": "protected", "annotated_filename": "ST001-1A-X-X-X-X-SMAFI1-x.bam"},
+     "phs004193"),
+    ({"status": "protected-network",
+      "annotated_filename": "SMHT001-1A-X-X-X-X-SMAFI1-x.bam"}, "phs004194"),
+    ({"status": "protected-early",
+      "annotated_filename": "SMHT001-1A-X-X-X-X-SMAFI1-x.bam"}, "phs004194"),
+    # Open and public files are not distributed under a dbGaP authorization,
+    # so naming a study would assert an approval that did not happen.
+    ({"status": "open", "annotated_filename": "ST001-1A-X-X-X-X-SMAFI1-x.bam"}, None),
+    ({"status": "released", "annotated_filename": "SMHT001-1A-X.bam"}, None),
+    # No annotated filename means no project ID to read.
+    ({"status": "protected"}, None),
+    ({"status": "protected", "annotated_filename": "unannotated.bam"}, None),
+    ({}, None),
 ])
-def test_associated_study_only_when_the_resource_determines_one(dataset, expected):
-    assert study_accession_for_dataset(dataset) == expected
+def test_associated_study_only_when_the_resource_determines_one(properties, expected):
+    assert study_accession_for_file(properties) == expected
     context = SimpleNamespace(
         uuid=RESOURCE,
-        properties={"accession": "SMAFI1", "status": "open", "dataset": dataset},
+        properties={"accession": "SMAFI1", **properties},
         type_info=SimpleNamespace(item_type="file"),
     )
     fields = file_resource_fields(context)
@@ -272,6 +279,19 @@ def test_associated_study_only_when_the_resource_determines_one(dataset, expecte
         assert fields["associated_study"] == expected
     assert fields["resource_accession"] == "SMAFI1"
     assert fields["resource_uuid"] == RESOURCE
+
+
+def test_annotated_filename_itself_is_never_logged():
+    """It is the controlled metadata the filename was designed to carry."""
+    context = SimpleNamespace(
+        uuid=RESOURCE,
+        properties={"status": "protected",
+                    "annotated_filename": "ST001-1A-X-X-X-X-SMAFI1-x.bam"},
+        type_info=SimpleNamespace(item_type="file"),
+    )
+    fields = file_resource_fields(context)
+    assert "ST001-1A" not in json.dumps(fields)
+    assert fields["associated_study"] == "phs004193"
 
 
 # --------------------------------------------------------------------------
@@ -297,17 +317,54 @@ def tween_app(encoded_log_stream):  # noqa: F811
         raise HTTPForbidden("synthetic denial")
 
     def expired_view(request):
+        # snovault's security tween rewrites an expired session to 401 and
+        # clears the cookie; reproduce that status here.
         request.set_property(lambda r: True, "auth0_expired")
-        return Response(json_body={"expired": True}, content_type="application/json")
+        return Response(json_body={"expired": True},
+                        content_type="application/json", status=401)
+
+    def logout_view(request):
+        from ..project.authentication import SMAHTProjectAuthentication
+
+        SMAHTProjectAuthentication().logout(None, request)
+        return request.response
+
+    def rolled_back_view(request):
+        record_audit_event(
+            request,
+            "Audited write",
+            EVENT_TYPE_AUTHORIZATION,
+            "user_group_revoke",
+            "success",
+            revoked_groups=["dbgap"],
+        )
+        raise RuntimeError("synthetic commit failure")
+
+    def server_error_view(request):
+        record_audit_event(
+            request,
+            "Audited write",
+            EVENT_TYPE_AUTHORIZATION,
+            "user_group_revoke",
+            "success",
+            revoked_groups=["dbgap"],
+        )
+        return Response(status=500)
 
     config = Configurator(settings={})
     config.include("encoded.audit_tween")
     config.add_route("audited", "/audited")
     config.add_route("denied", "/denied")
     config.add_route("expired", "/expired")
+    config.add_route("logout", "/logout")
+    config.add_route("rolled-back", "/rolled-back")
+    config.add_route("server-error", "/server-error")
     config.add_view(audited_view, route_name="audited")
     config.add_view(denied_view, route_name="denied")
     config.add_view(expired_view, route_name="expired")
+    config.add_view(logout_view, route_name="logout")
+    config.add_view(rolled_back_view, route_name="rolled-back")
+    config.add_view(server_error_view, route_name="server-error")
     return webtest.TestApp(config.make_wsgi_app()), encoded_log_stream
 
 
@@ -375,7 +432,7 @@ def test_anonymous_login_prompt_is_not_recorded_as_a_denied_attempt(tween_app):
 
 def test_expired_session_is_recorded_as_an_automatic_logout(tween_app):
     app, stream = tween_app
-    app.get("/expired", headers=CREDENTIAL_HEADERS)
+    app.get("/expired", headers=CREDENTIAL_HEADERS, status=401)
     record, = records(stream)
     assert record["event_type"] == "authentication"
     assert record["action"] == "session_expired"
@@ -386,8 +443,44 @@ def test_expired_session_is_recorded_as_an_automatic_logout(tween_app):
 
 def test_expiry_without_a_presented_credential_is_not_invented(tween_app):
     app, stream = tween_app
-    app.get("/expired")
+    app.get("/expired", status=401)
     assert records(stream) == []
+
+
+def test_explicit_logout_is_not_also_recorded_as_a_denial(tween_app):
+    """Logout answers 401 by design; that is not a denied attempt."""
+    app, stream = tween_app
+    app.get("/logout", headers=CREDENTIAL_HEADERS, status=401)
+    record, = records(stream)
+    assert (record["event_type"], record["action"]) == ("authentication", "logout")
+    assert record["status"] == 401
+
+
+def test_session_expiry_401_is_not_also_recorded_as_a_denial(tween_app):
+    app, stream = tween_app
+    app.get("/expired", headers=CREDENTIAL_HEADERS, status=401)
+    record, = records(stream)
+    assert record["action"] == "session_expired"
+    assert record["status"] == 401
+
+
+def test_a_rolled_back_write_is_never_published_as_a_success(tween_app):
+    """A commit failure raises past every view, so its queued success is false."""
+    app, stream = tween_app
+    with pytest.raises(RuntimeError, match="synthetic commit failure"):
+        app.get("/rolled-back", headers=CREDENTIAL_HEADERS)
+    record, = records(stream)
+    assert record["action"] == "user_group_revoke"
+    assert record["outcome"] == "failure"
+    assert record["reason"] == "request_failed"
+
+
+def test_a_server_error_downgrades_a_queued_success(tween_app):
+    app, stream = tween_app
+    app.get("/server-error", headers=CREDENTIAL_HEADERS, status=500)
+    record, = records(stream)
+    assert (record["outcome"], record["reason"]) == ("failure", "request_failed")
+    assert record["status"] == 500
 
 
 def test_a_failing_audit_flush_never_breaks_the_response(tween_app):
@@ -413,10 +506,14 @@ def test_events_are_emitted_immediately_without_the_tween(encoded_log_stream):  
 # Data-access lifecycle
 # --------------------------------------------------------------------------
 
-def file_context(status="uploading", dataset="colo829bl"):
+ANNOTATED = "SMHT001-1A-X-X-X-X-SMAFI1-x.bam"
+
+
+def file_context(status="uploading"):
     item = object.__new__(File)
     item.model = SimpleNamespace(
-        properties={"status": status, "accession": "SMAFI1", "dataset": dataset},
+        properties={"status": status, "accession": "SMAFI1",
+                    "annotated_filename": ANNOTATED},
         uuid=RESOURCE,
     )
     return item
@@ -437,13 +534,16 @@ def test_file_lifecycle_transitions_map_to_cadr_families(status, event_type, act
 
     with patch.object(SnovaultItem, "update", side_effect=persist), \
             patch("encoded.types.file.get_current_request", return_value=request_for()):
-        item.update({"status": status, "accession": "SMAFI1", "dataset": "colo829bl"})
+        item.update({"status": status, "accession": "SMAFI1",
+                     "annotated_filename": ANNOTATED})
 
     record, = records(encoded_log_stream)
     assert (record["event_type"], record["action"]) == (event_type, action)
     assert record["resource_status"] == status
     assert record["resource_uuid"] == RESOURCE
-    assert record["associated_study"] == "phs004193"
+    # None of these statuses is controlled-access, so no dbGaP study governed
+    # the transition and none is claimed.
+    assert "associated_study" not in record
 
 
 def test_release_status_change_is_not_claimed_as_a_lifecycle_event(encoded_log_stream):  # noqa: F811
@@ -497,7 +597,8 @@ def test_download_records_authorization_and_issuance_not_the_transfer(
 
     context = MagicMock()
     context.uuid = RESOURCE
-    context.properties = {"status": "open", "accession": "SMAFI1", "dataset": "colo829bl"}
+    context.properties = {"status": "open", "accession": "SMAFI1",
+                          "annotated_filename": ANNOTATED}
     context.type_info.item_type = "file"
     context.upgrade_properties.return_value = {
         "filename": "synthetic.bam", "file_size": 123456789,
@@ -521,7 +622,8 @@ def test_download_records_authorization_and_issuance_not_the_transfer(
     assert record["delivery"] == "presigned_redirect"
     assert record["resource_uuid"] == RESOURCE
     assert record["resource_status"] == "open"
-    assert record["associated_study"] == "phs004193"
+    # An open file is not distributed under a dbGaP authorization.
+    assert "associated_study" not in record
     # The file's own size is never reported as transferred bytes.
     assert record.get("bytes") != 123456789
     assert_no_secrets(encoded_log_stream)
@@ -534,7 +636,7 @@ def test_denied_download_records_no_delivery(encoded_log_stream):  # noqa: F811
     context = MagicMock()
     context.uuid = RESOURCE
     context.properties = {"status": "protected", "accession": "SMAFI1",
-                          "dataset": "colo829bl"}
+                          "annotated_filename": ANNOTATED}
     context.type_info.item_type = "file"
     with pytest.raises(HTTPForbidden):
         download_cli.__wrapped__(context, request_for(principals=[]))
@@ -542,6 +644,32 @@ def test_denied_download_records_no_delivery(encoded_log_stream):  # noqa: F811
     assert (record["action"], record["outcome"]) == ("file_download_cli", "failure")
     assert "delivery" not in record
     assert record["resource_status"] == "protected"
+    # A controlled-access file names the dbGaP study that governs it.
+    assert record["associated_study"] == "phs004194"
+
+
+def test_cli_download_reports_credentials_not_a_redirect(encoded_log_stream):  # noqa: F811
+    """download_cli hands out temporary STS credentials, not a presigned URL."""
+    from ..types.file import download_cli
+
+    context = MagicMock()
+    context.uuid = RESOURCE
+    context.properties = {"status": "protected", "accession": "SMAFI1",
+                          "annotated_filename": ANNOTATED}
+    context.type_info.item_type = "file"
+    request = request_for(principals=["group.dbgap", f"userid.{ACTOR}"])
+    request.registry = MagicMock()
+    request.registry.settings = {}
+    request.registry.__getitem__.return_value = {"user": {}}
+    with patch("encoded.types.file.CoreDownloadCli", return_value={
+        "download_credentials": {"SecretAccessKey": "synthetic-secret-access-key"}
+    }):
+        download_cli.__wrapped__(context, request)
+    record, = records(encoded_log_stream)
+    assert (record["action"], record["outcome"]) == ("file_download_cli", "success")
+    assert record["delivery"] == "temporary_credentials"
+    assert record["associated_study"] == "phs004194"
+    assert_no_secrets(encoded_log_stream)
 
 
 def test_failed_upload_initiation_is_audited_as_a_failure(encoded_log_stream):  # noqa: F811

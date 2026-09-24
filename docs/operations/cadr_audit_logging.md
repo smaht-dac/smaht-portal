@@ -46,11 +46,17 @@ request that carries only that token - an unrelated `jwtToken` cookie already
 on the incoming request can never supply the identity. A failure records a
 `reason` (`token_rejected`, `token_expired`,
 `identity_provider_not_configured`, `user_not_found`, `no_credential_presented`
-or `cookie_not_saved`) and no actor.
+or `cookie_not_saved`) and no actor. A refusal by the restricted-email check
+records `reason=email_restricted`, which is the portal's most CADR-specific
+denial. A legacy HS256 token that has expired is reported as `token_rejected`
+rather than `token_expired`: snovault's shared-secret path returns no reason of
+its own, and inventing one would be a guess.
 
 An anonymous 401/403 is the ordinary "please log in" response, not a denied
 attempt by an identified actor, so the generic denial event is emitted only
-when the request actually presented a credential.
+when the request actually presented a credential. It is also suppressed
+whenever another event already explains the refusal - an explicit logout and a
+session expiry both answer 401 by design, and neither is a denied attempt.
 
 ### 2. Data Access Requests
 
@@ -71,7 +77,7 @@ synthesized, because the portal does not observe one.
 | Transition | `event_type` / `action` | Status |
 |---|---|---|
 | Download authorized and redirect issued | `download` / `file_download` (`delivery=presigned_redirect`) | Implemented, tested |
-| CLI download credentials issued | `download` / `file_download_cli` | Implemented, tested |
+| CLI download credentials issued | `download` / `file_download_cli` (`delivery=temporary_credentials`) | Implemented, tested |
 | Download denied for want of dbGaP access | `download` / `file_download`, `file_download_cli` (`outcome=failure`) | Implemented, tested |
 | Upload initiated / credentials issued | `upload` / `file_upload_initiate` | Implemented, tested |
 | Existing upload credentials read | `upload` / `file_upload_credentials_read` | Implemented, tested |
@@ -103,7 +109,7 @@ are neither a deletion, an archival nor a destruction.
 | 9 | `url` | Implemented | `request.path_url` - scheme, host and path. The query string and fragment are excluded so authorization codes, presigned parameters and search terms cannot leak. |
 | 10 | `app` | Implemented | Constant `smaht-portal`. |
 | 11 | `http_user_agent` | Implemented | `request.user_agent`. |
-| 12 | `status` | Implemented | The HTTP status code, attached by the tween. The semantic result is the separate `outcome` field (`success`, `failure`, `denied`, `allowed`, `expired`). |
+| 12 | `status` | Implemented | The HTTP status code, attached by the tween. The semantic result is the separate `outcome` field (`success`, `failure`, `denied`, `allowed`, `expired`). A queued `success`/`allowed` is downgraded to `failure` with `reason=request_failed` when the request never completed - a `pyramid_tm` commit failure raises past every view, so the change the view believed it made was rolled back. A 401 alone does not downgrade anything, because an explicit logout returns one by design. |
 | 13 | `http_content_type` | Implemented | The response content type. |
 | 14 | `bytes` | Implemented, scoped | The declared length of *this application's* response. Never a file size, a `Range` calculation or an S3 transfer, none of which the portal observes. |
 | 15 | `duration` | Implemented | Wall-clock seconds for the request, measured by the tween. |
@@ -112,7 +118,7 @@ are neither a deletion, an archival nor a destruction.
 | 18 | `user_country_name` | **Not available** | No country is stored on User and the current identity provider asserts none. It is deliberately not inferred from an email TLD or an IP geolocation the portal does not perform. (The restricted-country check in `encoded.authentication` tests an address against a blocklist; it does not establish where a user is.) |
 | 19 | `user_org` | Implemented | The User's `institution`. Self-supplied and informational, per `src/encoded/schemas/user.json`; omitted when unset. |
 | 20 | `user_email` | Implemented | The resolved User's `email`, or the verified token's `email` claim when the credential verified but matched no portal User. Never an unverified address. |
-| 21 | `associated_study` | Implemented, partial | `phs004193` (Benchmarking) or `phs004194` (Production), per `docs/source/getting_dbgap_access.rst`. Derived from a File's stored `dataset` when that value determines the study on its own - the cell-line and challenge datasets are benchmarking material. **Gap:** `dataset = tissue` belongs to either study depending on the donor's external ID, which the stored File properties do not record, so nothing is claimed for tissue files. Resolving that would require a donor traversal on the download path. |
+| 21 | `associated_study` | Implemented, scoped | `phs004193` (Benchmarking) or `phs004194` (Production), per `docs/source/getting_dbgap_access.rst`. Emitted for a File only when **both** conditions hold: the File is under a controlled-access status (`protected`, `protected-network`, `protected-early`), so a dbGaP authorization is what the request exercised; and its stored `annotated_filename` opens with the TPC project ID (`ST` or `SMHT`), which is how the rest of the application identifies a file's study. **Scope:** open and public files carry no accession, because they are not distributed under a dbGaP approval and claiming one would misdescribe the authorization; a controlled file with no annotated filename also carries none. The annotated filename itself is controlled metadata and is never logged. |
 | 22 | `eRA_commons_id` | **Not applicable yet** | RAS-only. The portal has no RAS integration, so no eRA Commons identity reaches it. |
 | 23 | `user_permission_group` | Implemented | The `group.*` principals the request is actually authorized under (for example `dbgap`, `public-dbgap`, `admin`). When RAS arrives, dbGaP access derived from `ga4gh_visa_v1` populates the same field. |
 | 24 | `event_type` | Implemented | One of `authentication`, `authorization`, `data_request`, `download`, `upload`, `deletion`, `archival`, `destruction`. The specific transition is in `action`. `data_request` is reserved and currently unused - see the DAR section. |

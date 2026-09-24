@@ -31,6 +31,8 @@ from uuid import UUID
 import structlog
 from snovault import COLLECTIONS
 
+from .item_utils.constants import BENCHMARKING_PREFIX, PRODUCTION_PREFIX
+
 
 log = structlog.getLogger(__name__)
 
@@ -134,6 +136,7 @@ AUTH_FAILURE_TOKEN_EXPIRED = "token_expired"
 AUTH_FAILURE_TOKEN_REJECTED = "token_rejected"
 AUTH_FAILURE_PROVIDER_UNCONFIGURED = "identity_provider_not_configured"
 AUTH_FAILURE_USER_NOT_FOUND = "user_not_found"
+AUTH_FAILURE_EMAIL_RESTRICTED = "email_restricted"
 
 # Default number of proxies that append to X-Forwarded-For before the app sees
 # it. The shipped container always has its own nginx (1). A deployment behind an
@@ -147,36 +150,27 @@ TRUSTED_PROXY_HOPS_SETTING = "audit.trusted_proxy_hops"
 BENCHMARKING_STUDY_ACCESSION = "phs004193"
 PRODUCTION_STUDY_ACCESSION = "phs004194"
 
-# File ``dataset`` values that identify the study on their own. The cell-line
-# and challenge datasets are benchmarking material (see
-# ``encoded.item_utils.sample_source.get_study``, which treats a coded cell
-# culture as benchmarking, and the same partition in
-# ``encoded.commands.release_file``). ``tissue`` is deliberately absent: a
-# tissue dataset belongs to either study depending on its donor's external ID,
-# which the stored File properties do not record.
-DATASET_STUDY_ACCESSIONS = {
-    "colo829bl": BENCHMARKING_STUDY_ACCESSION,
-    "colo829t": BENCHMARKING_STUDY_ACCESSION,
-    "colo829blt_50to1": BENCHMARKING_STUDY_ACCESSION,
-    "colo829blt_in_silico": BENCHMARKING_STUDY_ACCESSION,
-    "colo829_snv_indel_challenge_data": BENCHMARKING_STUDY_ACCESSION,
-    "hapmap": BENCHMARKING_STUDY_ACCESSION,
-    "hapmap_snv_indel_challenge_data": BENCHMARKING_STUDY_ACCESSION,
-    "mei_detection_challenge_data": BENCHMARKING_STUDY_ACCESSION,
-    "hg002": BENCHMARKING_STUDY_ACCESSION,
-    "hg005": BENCHMARKING_STUDY_ACCESSION,
-    "hg00438": BENCHMARKING_STUDY_ACCESSION,
-    "hg02257": BENCHMARKING_STUDY_ACCESSION,
-    "hg02486": BENCHMARKING_STUDY_ACCESSION,
-    "hg02622": BENCHMARKING_STUDY_ACCESSION,
-    "lb_fibroblast": BENCHMARKING_STUDY_ACCESSION,
-    "lb_ipsc_1": BENCHMARKING_STUDY_ACCESSION,
-    "lb_ipsc_2": BENCHMARKING_STUDY_ACCESSION,
-    "lb_ipsc_4": BENCHMARKING_STUDY_ACCESSION,
-    "lb_ipsc_52": BENCHMARKING_STUDY_ACCESSION,
-    "lb_ipsc_60": BENCHMARKING_STUDY_ACCESSION,
-    "ipsc_snv_indel_challenge_data": BENCHMARKING_STUDY_ACCESSION,
-}
+# A File's annotated filename opens with the TPC project ID - "ST" for
+# Benchmarking, "SMHT" for Production - which is how the rest of the
+# application already identifies a file's study (see
+# ``encoded.commands.create_annotated_filenames.get_project_id`` and
+# ``encoded.item_utils.tissue.get_project_id``). It is a stored File property,
+# so no traversal is needed on a request path.
+ANNOTATED_FILENAME_SEPARATOR = "-"
+PROJECT_PREFIX_STUDY_ACCESSIONS = (
+    (PRODUCTION_PREFIX, PRODUCTION_STUDY_ACCESSION),
+    (BENCHMARKING_PREFIX, BENCHMARKING_STUDY_ACCESSION),
+)
+
+# Statuses under which access to a File is actually governed by its dbGaP
+# study. Open and public files are distributed without a dbGaP authorization,
+# so naming a study accession on those events would assert an approval that is
+# not what let the request through.
+CONTROLLED_ACCESS_FILE_STATUSES = frozenset({
+    "protected",
+    "protected-network",
+    "protected-early",
+})
 
 
 class AuditFieldError(ValueError):
@@ -259,11 +253,28 @@ def safe_user_field_value(field_name, value):
     return sorted(set(normalized))
 
 
-def study_accession_for_dataset(dataset):
-    """Return the dbGaP accession a File ``dataset`` establishes on its own."""
-    if not isinstance(dataset, str):
+def study_accession_for_file(properties):
+    """Return the dbGaP accession that governs access to this File, if any.
+
+    Both conditions must hold for an accession to be truthful here: the File
+    must be under a controlled-access status, so that a dbGaP authorization is
+    what the request exercised, and its annotated filename must name the TPC
+    project the data was submitted under. Anything else yields nothing.
+    """
+    if not isinstance(properties, dict):
         return None
-    return DATASET_STUDY_ACCESSIONS.get(dataset)
+    if properties.get("status") not in CONTROLLED_ACCESS_FILE_STATUSES:
+        return None
+    annotated_filename = properties.get("annotated_filename")
+    if not isinstance(annotated_filename, str) or not annotated_filename:
+        return None
+    project_and_sample_source = annotated_filename.split(
+        ANNOTATED_FILENAME_SEPARATOR, 1
+    )[0]
+    for prefix, accession in PROJECT_PREFIX_STUDY_ACCESSIONS:
+        if project_and_sample_source.startswith(prefix):
+            return accession
+    return None
 
 
 def file_resource_fields(context):
@@ -284,7 +295,7 @@ def file_resource_fields(context):
     item_type = getattr(getattr(context, "type_info", None), "item_type", None)
     if isinstance(item_type, str) and item_type:
         fields["resource_type"] = item_type
-    associated_study = study_accession_for_dataset(properties.get("dataset"))
+    associated_study = study_accession_for_file(properties)
     if associated_study is not None:
         fields["associated_study"] = associated_study
     return fields
@@ -524,9 +535,11 @@ def identity_fields(request, user_id=None):
     session_id = claims.get("sid") or claims.get("jti")
     if session_id:
         fields["session_id"] = session_id
-    if "user_email" not in fields and user_id and claims.get("email"):
+    if "user_email" not in fields and claims.get("email"):
         # A verified token whose User could not be resolved still identifies a
-        # real, verified address; that is authoritative enough to record.
+        # real, verified address; that is authoritative enough to record. The
+        # claim is only ever stashed after full verification, so this can never
+        # promote an address the application did not check.
         fields["user_email"] = claims["email"]
 
     groups = permission_groups(request)
