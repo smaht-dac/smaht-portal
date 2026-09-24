@@ -888,7 +888,9 @@ function NonTargetTissueToggle({ checked, onChange }) {
                 onChange={(event) => onChange(event.target.checked)}
             />
             <span className="tissue-heatmap-nt-toggle-track" aria-hidden="true" />
-            <span className="tissue-heatmap-nt-toggle-label">Show Non-Target Tissue %</span>
+            <span className="tissue-heatmap-nt-toggle-label">
+                {checked ? 'Hide Non-Target Tissue %' : 'Show Non-Target Tissue %'}
+            </span>
         </label>
     );
 }
@@ -969,7 +971,7 @@ const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.m
     (label, index) => {
         return {
             className: `score-${TARGET_TISSUE_PERCENTAGE_ORDER.length - 1 - index}`,
-            label: label === '0' ? '0%' : label,
+            label: label === '0' ? '0%' : label.replace(/^\[|\]$/g, ''),
         };
     }
 ).reverse();
@@ -990,7 +992,7 @@ const NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = NON_TARGET_TISSUE_PERCENTAGE
     (label, index) => {
         return {
             className: `nt-score-${index}`,
-            label,
+            label: label.replace(/^\[|\]$/g, ''),
         };
     }
 );
@@ -1005,9 +1007,14 @@ function getAutolysisScoreClass(value) {
     return `score-${Math.min(value, 3)}`;
 }
 
+// Display only -- TARGET_TISSUE_PERCENTAGE_ORDER/getTargetTissuePercentageScoreClass
+// etc. still key off the real "[26-49]"-style band strings (they have to
+// match the backend's own literal values exactly), just not what's actually
+// shown on screen -- per explicit request, the brackets themselves add
+// nothing a reader needs.
 function formatTargetTissuePercentage(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
-    return value === '0' ? '0%' : value;
+    return value === '0' ? '0%' : value.replace(/^\[|\]$/g, '');
 }
 
 // `tissue_type` is stored/sorted as "<protocol code> - <name>" (e.g.
@@ -1068,9 +1075,10 @@ function getTargetTissuePercentageSortValue(value) {
     return index === -1 ? null : index;
 }
 
+// Display only -- see formatTargetTissuePercentage's own identical comment.
 function formatNonTargetTissuePercentage(value) {
     if (value === null || typeof value === 'undefined') return 'n/a';
-    return value;
+    return value.replace(/^\[|\]$/g, '');
 }
 
 // Opposite direction from getTargetTissuePercentageScoreClass -- a higher
@@ -2807,14 +2815,13 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // kinds of column in the first place.
     nonTargetColumnKeys = null,
     // Optional -- renders the 4th TARGET/NON-TARGET header row (see
-    // renderTargetNonTargetHeaderRow) unconditionally, per explicit
-    // request, rather than only whenever `nonTargetColumnKeys` actually
-    // has something non-target in it (the "Show Non-Target Tissue %"
-    // toggle off leaves that Set empty, which used to hide the row
-    // entirely instead of showing it as one solid "TARGET" bar). Passed
-    // by both Target Tissue % (always) and Non Target Tissue % (whose own
-    // `nonTargetColumnKeys` is every one of its own columns, since that
-    // whole tab has no "target" columns of its own to contrast against).
+    // renderTargetNonTargetHeaderRow). Only Target Tissue % passes this,
+    // and only while its own "Show Non-Target Tissue %" toggle is on -- a
+    // row of solid "TARGET" bars (or, on Non Target Tissue %'s own
+    // standalone tab, solid "NON-TARGET" bars) explaining a distinction
+    // that isn't actually mixed into the table anywhere read as redundant/
+    // distracting, per explicit feedback. Only earns its place once both
+    // TARGET and NON-TARGET columns are genuinely showing side by side.
     showTargetNonTargetRow = false,
     // Optional -- leaves the 3rd header row blank (instead of repeating the
     // tissue's own name) for a tissue with no real subtype. Only Non Target
@@ -3775,11 +3782,15 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
                             nonTargetColumnKeys={targetWithNonTargetExpansion.nonTargetColumnKeys}
-                            // Always shown, per explicit request -- toggle
-                            // off just means the row renders as one solid
-                            // "TARGET" bar (nonTargetColumnKeys is empty
-                            // then, not null).
-                            showTargetNonTargetRow
+                            // Only while the toggle is on -- with it off,
+                            // every column is Target Tissue % alone, and a
+                            // row of solid "TARGET" bars explaining a
+                            // distinction that isn't actually on the table
+                            // anywhere read as redundant/distracting, per
+                            // explicit feedback. Only useful once both
+                            // TARGET and NON-TARGET columns are actually
+                            // showing side by side.
+                            showTargetNonTargetRow={showNonTargetInTargetTab}
                             // Reflects the toggle right in the heading itself --
                             // not just the row of cells below it -- so it's
                             // clear at a glance that non-target data is folded
@@ -3851,7 +3862,12 @@ export const BrowseTissueHeatmapTable = (props) => {
                             tissueTypeCategories={nonTargetTissueSubtypePlan.fixedTissueTypeCategories}
                             subtypeColumnInfo={nonTargetTissueSubtypePlan.columnInfo}
                             nonTargetColumnKeys={allNonTargetColumnKeys}
-                            showTargetNonTargetRow
+                            // Never shown -- every column on this standalone
+                            // tab is already NON-TARGET alone (never TARGET
+                            // too), so labeling every one of them "NON-TARGET"
+                            // explains a distinction that isn't actually
+                            // visible here, same reasoning as Target Tissue
+                            // %'s own toggle-gated row above.
                             blankPlaceholderLabels
                             metricLabel="Non Target Tissue %"
                             tooltip="Percentage range of the sample that was NOT the target tissue subtype"
