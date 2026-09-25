@@ -264,13 +264,20 @@ export class FacetCharts extends React.PureComponent {
                             // tissue_sample.py's own embedded_list.
                             if (mapping === 'tissue') node.field = 'sample_sources.tissue_type';
                         }
-                        // The "Group By: Sample Type" field -- TissueSample
-                        // carries its own preservation_type directly (no
-                        // sample_summary prefix; see Sample.embedded_list
-                        // in types/sample.py), unlike File's own
-                        // sample_summary.preservation_types.
+                        // The "Group By: Sample Type" field -- File's own
+                        // sample_summary.preservation_types (item_utils/
+                        // file.py's get_preservation_type) reads the parent
+                        // TISSUE's preservation_type, not TissueSample's own
+                        // same-named-but-unrelated top-level property (how
+                        // that specific cut/aliquot was itself processed --
+                        // commonly a different value, e.g. most real
+                        // TissueSamples are "Snap Frozen"/"Fixed"/"Frozen"
+                        // regardless of their source tissue's own value).
+                        // Has to go through sample_sources (its own Tissue)
+                        // to match what the chart actually counted -- see
+                        // types/tissue_sample.py's own embedded_list.
                         if (node.field === 'sample_summary.preservation_types' && mapping === 'tissue') {
-                            node.field = 'preservation_type';
+                            node.field = 'sample_sources.preservation_type';
                         }
 
                         if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
@@ -310,19 +317,32 @@ export class FacetCharts extends React.PureComponent {
                         });
                     });
 
-                    // filtersToHref/saveChangedFilters only carry `type` and `q` over from
-                    // the base href, so the rest of the TissueSample list's own base
-                    // filters (donor study/tags) have to be passed explicitly or the
-                    // list would include samples the chart never counted.
-                    const requiredQs = mapping === 'tissue' ? _.omit(baseParams, 'type') : {};
-
                     if (mapping === 'tissue') {
+                        // filtersToHref's own `requiredQs` param (the arg
+                        // below used to pass) only actually survives into
+                        // the final href when that href's own path contains
+                        // "/browse/" (see shared-portal-components'
+                        // search-filters.js's getBaseHref) -- browseBaseHref
+                        // here is deliberately "/search/" (TissueSample has
+                        // no /browse/ tab of its own, see above), so those
+                        // base filters (donor study/tags) were silently
+                        // dropped from the resulting URL, letting the list
+                        // include samples from other donors/studies the
+                        // chart never counted. Folding them into
+                        // newDonorFilters itself instead -- the same
+                        // mechanism every other filter on this URL already
+                        // goes through -- works regardless of path.
+                        _.forEach(_.omit(baseParams, 'type'), function (values, field) {
+                            _.forEach(values, function (value) {
+                                newDonorFilters = searchFilters.changeFilter(field, value, newDonorFilters, null, true);
+                            });
+                        });
                         // Open the TissueSample list in a new tab so the Tissue page
                         // (and its chart/toggle state) stays where it is -- same as
                         // the popover's own "N Files" link (that one still targets
                         // Files specifically, per explicit request).
                         window.open(
-                            searchFilters.filtersToHref(newDonorFilters, browseBaseHref, null, false, null, requiredQs),
+                            searchFilters.filtersToHref(newDonorFilters, browseBaseHref, null, false, null, null),
                             '_blank',
                             'noopener'
                         );

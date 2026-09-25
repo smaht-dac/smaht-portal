@@ -77,6 +77,19 @@ class TissueSample(Sample):
         # terms that chart's own X axis uses.
         "sample_sources.tissue_type",
         "sample_sources.tissue_type_code",
+        # preservation_type here is the parent Tissue's own field
+        # (item_utils/tissue.py's get_preservation_type) -- NOT the same
+        # thing as this TissueSample's own top-level preservation_type
+        # property (how this specific cut/aliquot was itself processed,
+        # which commonly differs from the whole tissue's, e.g. most real
+        # TissueSamples end up "Snap Frozen"/"Fixed"/"Frozen" regardless of
+        # their source tissue's own value). File.sample_summary.
+        # preservation_types (item_utils/file.py's get_preservation_type)
+        # reads the TISSUE's value, so FacetCharts.js's "Explore Tissue
+        # Samples" popover action (Browse by Tissue chart) has to filter on
+        # this same sample_sources-side field to match what that chart
+        # itself counted, not this item's own unrelated preservation_type.
+        "sample_sources.preservation_type",
     ]
 
     rev = {
