@@ -98,7 +98,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=colo829_WU&sort=-file_status_tracking.release_dates.initial_release',
+                    '&dataset=colo829_vai&sort=-file_status_tracking.release_dates.initial_release',
             },
         ],
     },
