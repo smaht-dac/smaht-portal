@@ -22,6 +22,18 @@ const TISSUE_SUBDIVISION_FIELDS = [
     { title: 'Sequencing Center', field: 'sequencing_center.display_title' },
 ];
 
+// Browse by Tissue's own X Axis options -- the default list
+// (UIControlsWrapper.js's own availableFields_XAxis) also offers "Assay
+// Type"/"Sequencer", which read as valid axis choices elsewhere (Browse by
+// File/Donor, real File-level fields there) but give wrong/meaningless
+// counts here: this chart counts distinct tissue samples per tissue (see
+// aggregateTypeForMapping's own 'samples' case), not files, and a tissue
+// sample has no single assay/sequencer of its own to bucket by the way a
+// File does, per explicit request.
+const TISSUE_XAXIS_FIELDS = [
+    { title: 'Tissue', field: 'sample_summary.tissues' },
+];
+
 function getCandidateFields(field, fieldList) {
     if (typeof field !== 'string') return [];
 
@@ -439,6 +451,7 @@ export class FacetCharts extends React.PureComponent {
                         legend
                         chartHeight={height}
                         // undefined falls back to UIControlsWrapper's own default list.
+                        availableFields_XAxis={mapping === 'tissue' ? TISSUE_XAXIS_FIELDS : undefined}
                         availableFields_Subdivision={mapping === 'tissue' ? TISSUE_SUBDIVISION_FIELDS : undefined}
                         {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
                         <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context, termLabelTransform }} />
