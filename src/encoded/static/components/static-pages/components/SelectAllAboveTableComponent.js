@@ -109,6 +109,7 @@ const manifest_enum_map = [
     'experiment',
     'analyte',
     'sequencing',
+    'pathology',
 ];
 
 export class SelectAllFilesButton extends React.PureComponent {
@@ -1064,6 +1065,44 @@ const SelectedItemsDownloadModal = function (props) {
                                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                                     <i className="icon icon-fw icon-download fas me-1" />
                                     Sequencing
+                                </button>
+                            </form>
+
+                            {/* Pathology manifest download */}
+                            <form
+                                method="POST"
+                                action={action}
+                                className="d-inline-block d-block-xs-only">
+                                <input
+                                    type="hidden"
+                                    name="accessions"
+                                    value={JSON.stringify(accessionArray)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="download_file_name"
+                                    value={JSON.stringify(
+                                        suggestedFilename.split('.tsv')[0] +
+                                            `_${manifest_enum_map[6]}.tsv`
+                                    )}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="include_extra_files"
+                                    value={JSON.stringify(false)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="manifest_enum"
+                                    value={6}
+                                />
+                                <button
+                                    type="submit"
+                                    name="Download"
+                                    className="btn btn-outline-secondary mt-0"
+                                    data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
+                                    <i className="icon icon-fw icon-download fas me-1" />
+                                    Pathology
                                 </button>
                             </form>
                         </div>
