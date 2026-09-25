@@ -40,6 +40,7 @@ import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAbov
 import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
+import { BrowseTissueBody } from './browse-view/BrowseTissue';
 import { BrowsePublicationBody } from './browse-view/BrowsePublication';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
@@ -58,6 +59,7 @@ export const BROWSE_LINKS = {
     protected_donor:
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
         BROWSE_STATUS_FILTERS,
+    tissue: '/browse/?type=Tissue&donor.study=Production&donor.tags=has_released_files&' + BROWSE_STATUS_FILTERS,
     publication: '/browse/?type=Publication&status=open',
 };
 
@@ -68,6 +70,8 @@ export const FILE_BROWSE_HIDE_FACETS = [
     'validation_errors.name',
     'version',
     'sample_summary.studies',
+    // Only there for its label_overrides -- Cohort View's facet chart groups by it.
+    'sample_summary.preservation_types',
     'submission_centers.display_title',
     'donors.tags',
 ];
@@ -255,6 +259,8 @@ const renderBrowseBody = (props) => {
             return <BrowseDonorBody {...props} />;
         case 'ProtectedDonorSearchResults':
             return <BrowseProtectedDonorBody {...props} />;
+        case 'TissueSearchResults':
+            return <BrowseTissueBody {...props} />;
         case 'PublicationSearchResults':
             return <BrowsePublicationBody {...props} />;
         // case 'TissueSearchResults':
@@ -306,7 +312,7 @@ const BrowseViewContent = (props) => {
                         userDownloadAccess={userDownloadAccess}
                         session={session}
                     />
-                    <BrowseLink type="Tissue" disabled />
+                    <BrowseLink type="Tissue" />
                     <BrowseLink type="Assay" disabled />
                 </div>
             </div>
@@ -410,6 +416,10 @@ export const BrowseFileSearchTable = (props) => {
                 columns,
                 hideFacets,
             }}
+            // WindowNavigationController recomputes facets from context.facets
+            // and clobbers the `facets` prop above, so title overrides must be
+            // baked into context.facets itself (see SearchView.js's transformedFacets).
+            context={{ ...context, facets }}
             useCustomSelectionController
             hideStickyFooter
             isFullscreen={false}
@@ -456,6 +466,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
             break;
         case 'DonorSearchResults':
             BrowseType = 'Donor';
+            break;
+        case 'TissueSearchResults':
+            BrowseType = 'Tissue';
             break;
         case 'PublicationSearchResults':
             BrowseType = 'Publication';

@@ -251,6 +251,17 @@ export const Field = {
         'sample_summary.tissues': 'Tissue',
         'assays.display_title': 'Assay Type',
         'sequencers.display_title': 'Sequencer',
+        'sequencing_center.display_title': 'Sequencing Center',
+        'sample_summary.preservation_types': 'Sample Type',
+        // FacetCharts.js's own cursorDetailActions renames these 2 in place
+        // (on the live chart-hover node, for mapping === 'tissue') to match
+        // the field TissueSample search actually filters on -- same
+        // semantic field as the 2 renamed-from entries above, just under a
+        // different name for that 1 mapping, so it needs its own nameMap
+        // entry too or the popover's header falls through to showing the
+        // raw field string verbatim.
+        'sample_sources.tissue_type': 'Tissue',
+        'sample_sources.preservation_type': 'Sample Type',
         'donors.display_title': 'Donor',
         data_type: 'Data Type',
         'file_format.display_title': 'File Format',

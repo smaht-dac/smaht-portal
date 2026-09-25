@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import List, Dict, Any, Union
 
 from snovault import collection, load_schema, calculated_property
 from snovault.util import debug_log, get_item_or_none
@@ -30,6 +30,8 @@ from ..item_utils.constants import tissue_sample as tissue_sample_constants
 
 from ..item_utils.utils import RequestHandler
 
+from ..item_utils.utils import RequestHandler
+
 NDRI_TPC_ID = "ndri_tpc"
 NDRI_TPC_DT = "NDRI TPC"
 
@@ -45,25 +47,74 @@ NDRI_TPC_DT = "NDRI TPC"
 class TissueSample(Sample):
     item_type = "tissue_sample"
     schema = load_schema("encoded:schemas/tissue_sample.json")
-    embedded_list = Sample.embedded_list
+    embedded_list = Sample.embedded_list + [
+        # PathologyReport's auto-embedded display_title resolves to submitted_id, not
+        # accession, so accession is embedded explicitly for the tissue-overview
+        # aliquot popover (AliquotVisualization.js) to show a short accession-based label.
+        # outcome (Acceptable/Unacceptable, required on every PathologyReport -- see
+        # schemas/pathology_report.json) is embedded alongside it so that same popover
+        # can show each linked report's own outcome next to its link. unacceptable_description
+        # (free text, only ever populated when outcome is Unacceptable) rides along too, so
+        # that popover can surface *why* rather than just the bare Unacceptable flag.
+        "pathology_reports.accession",
+        "pathology_reports.outcome",
+        "pathology_reports.unacceptable_description",
+        "associated_pathology_reports.pathology_reports.accession",
+        "associated_pathology_reports.pathology_reports.outcome",
+        "associated_pathology_reports.pathology_reports.unacceptable_description",
+        # Mirrors Tissue's donor.study/donor.tags embeds (types/tissue.py's
+        # _build_tissue_embedded_list) so TissueSample search can filter to the same
+        # released-donor Production population used elsewhere in the app.
+        "sample_sources.donor.study",
+        "sample_sources.donor.tags",
+        # tissue_type is a Tissue-level @calculated_property (types/tissue.py),
+        # so it only becomes filterable/searchable here because it's listed
+        # explicitly -- same reasoning FileSet already embeds it under its own
+        # (different) traversal path for ("libraries.analytes.samples.
+        # sample_sources.tissue_type", types/file_set.py) File search. Lets
+        # a TissueSample search (e.g. FacetCharts.js's "Explore Tissue Samples"
+        # popover action on Browse by Tissue) filter by the same tissue_type
+        # terms that chart's own X axis uses.
+        "sample_sources.tissue_type",
+        "sample_sources.tissue_type_code",
+        # preservation_type here is the parent Tissue's own field
+        # (item_utils/tissue.py's get_preservation_type) -- NOT the same
+        # thing as this TissueSample's own top-level preservation_type
+        # property (how this specific cut/aliquot was itself processed,
+        # which commonly differs from the whole tissue's, e.g. most real
+        # TissueSamples end up "Snap Frozen"/"Fixed"/"Frozen" regardless of
+        # their source tissue's own value). File.sample_summary.
+        # preservation_types (item_utils/file.py's get_preservation_type)
+        # reads the TISSUE's value, so FacetCharts.js's "Explore Tissue
+        # Samples" popover action (Browse by Tissue chart) has to filter on
+        # this same sample_sources-side field to match what that chart
+        # itself counted, not this item's own unrelated preservation_type.
+        "sample_sources.preservation_type",
+    ]
 
-    rev = {"pathology_reports": ("PathologyReport", "tissue_samples")}
+    rev = {
+        "pathology_reports": ("PathologyReport", "tissue_samples")
+    }
+
+    class Collection(Item.Collection):
+        pass
 
     @calculated_property(
         schema={
             "title": "Pathology Reports",
+            "description": "Pathology reports referencing this tissue sample",
             "type": "array",
             "items": {
                 "type": "string",
                 "linkTo": "PathologyReport",
-            }
-        }
+            },
+        },
     )
-    def pathology_reports(self, request):
-        return self.rev_link_atids(request, "pathology_reports") or None
-
-    class Collection(Item.Collection):
-        pass
+    def pathology_reports(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "pathology_reports")
+        if result:
+            return result
+        return
 
     @calculated_property(
         schema={
@@ -83,9 +134,9 @@ class TissueSample(Sample):
                     },
                 },
             },
-        }
+        },
     )
-    def associated_pathology_reports(self, request: Request):
+    def associated_pathology_reports(self, request: Request) -> Union[List[Dict[str, Any]], None]:
         request_handler = RequestHandler(request=request)
         result = tissue_sample_utils.get_associated_pathology_reports(
             self.properties, request_handler=request_handler
