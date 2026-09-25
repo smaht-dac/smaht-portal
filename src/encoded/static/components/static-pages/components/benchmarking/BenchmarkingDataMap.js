@@ -94,7 +94,7 @@ export const BenchmarkingDataMap = {
             },
             {
                 eventKey: '#washu',
-                title: 'COLO829 WashU',
+                title: 'COLO829 VAI',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
