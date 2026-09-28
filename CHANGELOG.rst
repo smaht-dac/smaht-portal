@@ -23,6 +23,69 @@ Change Log
   task role needs ``sns:Subscribe``, ``sns:Unsubscribe``, and
   ``sns:ListSubscriptionsByTopic`` on that topic
 
+
+2.13.9
+======
+
+`PR 768: feat: add colo829 vai tab on benchmarking table <https://github.com/smaht-dac/smaht-portal/pull/768>`_
+
+* Add new benchmarking tab for colo829 vai
+
+
+2.13.8
+======
+
+`PR 744: Add sample_summary.cell_lines to File calculated properties <https://github.com/smaht-dac/smaht-portal/pull/744>`_
+
+* Adds ``sample_summary.cell_lines`` to File calculated properties, reporting resolved CellLine
+  ``code`` values for files linked through direct ``CellCulture`` sample sources or
+  ``CellCultureMixture`` component cultures.
+* Refactors File cell culture/cell line item utility traversal to compute sample sources once and
+  avoid redundant CellCultureMixture-to-CellLine expansion.
+* Adds focused non-workbook unit coverage for tissue-only, direct CellCulture, and
+  CellCultureMixture cell-line traversal paths.
+* Documents testing guidance in ``AGENTS.md`` to prefer targeted non-workbook tests for new behavior
+  and avoid mutating workbook items unless mutation is explicitly under test.
+
+
+2.13.7
+======
+
+`PR 766: VAI COLO cell lines dataset and access status  <https://github.com/smaht-dac/smaht-portal/pull/766>`_
+
+* Added new dataset for VAI COLO cell lines to the release_file command and dataset schema mixin.
+* Added new access status mapping for sequencing supplement files for STORM-seq
+
+
+2.13.6
+======
+
+`PR 762: Add tissue sample metadata transfer command <https://github.com/smaht-dac/smaht-portal/pull/762>`_
+
+* Added a command to transfer selected metadata from NDRI TPC tissue samples to matching non-TPC samples.
+
+2.13.5
+======
+
+`PR 764: Publication schema updates <https://github.com/smaht-dac/smaht-portal/pull/764>`_
+
+* Properties
+  - publication_categories - an array of categories with a suggested enum of 5 values
+  - citation_addon - a string for text that can be added to end of citation in overview page - eg. accepted in Cell
+* Adjusted facets - added categories and scope
+* Adjusted columns - added categories as hidden. 
+
+
+2.13.4
+======
+
+`PR 765: Update donor browse test limits and align Data Matrix button heights <https://github.com/smaht-dac/smaht-portal/pull/765>`_
+
+* Increased the maximum expected count from 25 to 150 for three tissue-sequencer
+  pairs in the donor browse Cypress tests.
+* Matched the Data Matrix Refresh button height to Export using a shared line-height.
+
+
 2.13.3
 ======
 
