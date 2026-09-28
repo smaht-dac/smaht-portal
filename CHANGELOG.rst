@@ -10,7 +10,7 @@ Change Log
 2.13.9
 ======
 
-`PR 768: Add sample_summary.cell_lines to File calculated properties <https://github.com/smaht-dac/smaht-portal/pull/768>`_
+`PR 768: feat: add colo829 vai tab on benchmarking table <https://github.com/smaht-dac/smaht-portal/pull/768>`_
 
 * Add new benchmarking tab for colo829 vai
 
