@@ -242,8 +242,7 @@ deploy-docker-local-daemon:
 	docker-compose up -d -V
 
 lint:
-	@flake8 deploy/ || echo "flake8 failed for deploy/"
-	@flake8 src/encoded/ || echo "flake8 failed for src/encoded"
+	flake8 deploy/ src/encoded/
 
 publish:
 	poetry run publish-to-pypi

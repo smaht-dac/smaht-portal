@@ -51,10 +51,10 @@ class SupplementaryFile(SubmittedFile):
         return result
 
     def _get_release_tracker_description(
-            self,
-            request_handler: RequestHandler,
-            file_properties: Dict[str, Any],
-        ) -> Union[str, None]:
+                self,
+                request_handler: RequestHandler,
+                file_properties: Dict[str, Any],
+            ) -> Union[str, None]:
         """Get release tracker description for display on the home page."""
         to_include = None
         file_format_title = get_property_value_from_identifier(

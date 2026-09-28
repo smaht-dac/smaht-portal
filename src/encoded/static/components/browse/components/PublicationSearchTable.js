@@ -19,15 +19,26 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
         journal_url = '',
         doi = '',
         key_image_link = '',
+        tags = [],
     } = result || {};
+
+    const isSuppressed = tags && tags.includes('suppress_links');
 
     const pubYear = Schemas.getPublicationYear(date_published);
 
     return (
-        <div className="search-result-row publication-search-result-row">
+        <div
+            className={`search-result-row publication-search-result-row ${
+                isSuppressed ? 'suppressed' : ''
+            }`}>
             <div className="thumbnail-title">
                 <div className="thumbnail">
-                    {key_image_link ? (
+                    {isSuppressed ? (
+                        <img
+                            src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                            alt={display_title}
+                        />
+                    ) : key_image_link ? (
                         <img src={key_image_link} alt={display_title} />
                     ) : (
                         <div className="thumbnail-placeholder">
@@ -37,12 +48,16 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
                 </div>
                 <div className="title">
                     <h4 className="value text-start fw-semibold">
-                        <a
-                            href={atId}
-                            target="_blank"
-                            rel="noreferrer noopener">
-                            {display_title}
-                        </a>
+                        {isSuppressed ? (
+                            display_title
+                        ) : (
+                            <a
+                                href={atId}
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                {display_title}
+                            </a>
+                        )}
                     </h4>
                     <div className="author-info">
                         {(authors.length > 0 || short_citation) && (
@@ -54,11 +69,17 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
                                 )}
                             </span>
                         )}
-                        {result?.scope && (
+                        {(result?.scope || isSuppressed) && (
                             <div className="scope">
                                 <span>
-                                    {result?.working_group_name ?? ''}{' '}
-                                    {capitalizeSentence(result.scope)}
+                                    {isSuppressed ? (
+                                        'Coming Soon'
+                                    ) : (
+                                        <>
+                                            {result?.working_group_name ?? ''}{' '}
+                                            {capitalizeSentence(result.scope)}
+                                        </>
+                                    )}
                                 </span>
                             </div>
                         )}

@@ -1,7 +1,7 @@
 import pytest
 from webtest.app import TestApp
 
-from .utils import get_insert_identifier_for_item_type, get_item
+from .utils import get_item
 
 QUALITY_METRIC_UUID = "c2fda3d3-6330-4a97-acfc-abb443440681"
 
@@ -35,7 +35,7 @@ def test_qc_href(quality_metric_generic) -> None:
 @pytest.mark.workbook
 def test_coverage_calc_prop(es_testapp: TestApp, workbook: None) -> None:
     """Ensure the coverage calc prop works."""
-    qm=get_item(
+    qm = get_item(
         es_testapp,
         "a975fc4b-c149-449f-891a-496e24767e42",
         collection='QualityMetric',
@@ -47,7 +47,7 @@ def test_coverage_calc_prop(es_testapp: TestApp, workbook: None) -> None:
 @pytest.mark.workbook
 def test_qc_notes_calc_prop(es_testapp: TestApp, workbook: None) -> None:
     """Ensure the coverage calc prop works."""
-    qm=get_item(
+    qm = get_item(
         es_testapp,
         "a034802c-0bcf-4df9-97dd-dbab5c62a375",
         collection='QualityMetric',
