@@ -100,7 +100,7 @@ export const BenchmarkingDataMap = {
                     '&dataset=colo829blt_in_silico&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
-                eventKey: '#washu',
+                eventKey: '#colo829-vai',
                 title: 'COLO829 VAI',
                 searchHref:
                     '/search/?type=File&' +
