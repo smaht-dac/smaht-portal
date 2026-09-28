@@ -141,6 +141,15 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                     </h3>
                 </div>
                 <div className="card-body">
+                    {subscribed && (
+                        <div className="mb-2">
+                            <b className="text-danger">Important:</b>{' '}
+                            <i>
+                                To unsubscribe, use the "Unsubscribe" button on
+                                this page, not the link provided in the email.
+                            </i>
+                        </div>
+                    )}
                     <div
                         className={`subscription-text ${
                             subscribed ? 'subscribed' : ''
@@ -162,11 +171,6 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                                         <span>HelpDesk</span>
                                     </a>
                                     .
-                                    <br />
-                                    <br />
-                                    <b>Important</b>: To unsubscribe, use the
-                                    "Unsubscribe" button on this page, not the
-                                    link provided in the email.
                                 </>
                             ) : (
                                 <>
