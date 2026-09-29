@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "2.13.9"
+version = "2.13.10.1b1"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -43,7 +43,8 @@ chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
 dcicsnovault = "^11.36.0"
-dcicutils = "^8.18.3"
+# dcicutils = "^8.18.3"
+dcicutils = "8.19.0.1b2"
 docutils = ">=0.16,<1"
 encoded-core = "^1.0.0"
 elasticsearch = "7.13.4"
