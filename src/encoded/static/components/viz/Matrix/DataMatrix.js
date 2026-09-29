@@ -133,13 +133,13 @@ export default class DataMatrix extends React.PureComponent {
     };
     static DEFAULT_COLUMN_GROUPS = {
         "Bulk WGS": {
-            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'Fiber-Seq'],
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'Fiber-seq'],
             "backgroundColor": "#e04141",
             "textColor": "#ffffff",
             "shortName": "WGS"
         },
         "RNA-seq": {
-            "values": ['RNA-Seq - Illumina', 'Kinnex'],
+            "values": ['RNA-seq - Illumina', 'Kinnex'],
             "backgroundColor": "#ad48ad",
             "textColor": "#ffffff",
             "shortName": "RNA"
@@ -218,34 +218,16 @@ export default class DataMatrix extends React.PureComponent {
         },
         "valueChangeMap": {
             "assay": {
-                "scDip-C - Illumina": "scDip-C",
                 "CompDuplex-seq - Illumina": "CompDuplex-Seq",
-                "Kinnex - PacBio": "Kinnex",
-                "Fiber-seq - PacBio": "Fiber-Seq",
-                "Fiber-seq - Illumina": "Fiber-Seq",
-                "Fiber-seq - ONT": "Fiber-Seq",
-                "RNA-seq - Illumina": "RNA-Seq - Illumina",
-                "NanoSeq - Illumina": "NanoSeq",
-                "ATAC-seq - Illumina": "ATAC-Seq",
-                "varCUT&Tag - Illumina": "varCUT&Tag",
-                "META-VISTA-seq - Illumina": "META-VISTA-seq",
                 "scMETA-VISTA-seq - Illumina": "META-VISTA-seq",
                 "Microbulk META-VISTA-seq - Illumina": "META-VISTA-seq",
-                "CODEC - Illumina": "CODEC",
                 "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
                 "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
                 "Single-cell PTA WGS - ONT": "PTA-amplified WGS",
                 "Single-cell PTA WGS - Illumina": "PTA-amplified WGS",
-                "STORM-Seq - Illumina": "STORM-Seq",
-                "TEnCATS - ONT": "TEnCATS",
                 "WGS - ONT": "WGS - Standard ONT",
                 "WGS - Element": "WGS - Element AVITI",
                 "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
-                "HiDEF-seq - Illumina": "HiDEF-seq",
-                "HiDEF-seq - PacBio": "HiDEF-seq",
-                "Hi-C - Illumina": "Hi-C",
-                "Hi-C - PacBio": "Hi-C",
-                "Hi-C - ONT": "Hi-C",
             },
             "tissue": {
                 "endocrine pancreas": "Endocrine pancreas",
