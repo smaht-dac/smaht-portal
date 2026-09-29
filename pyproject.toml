@@ -1,10 +1,6 @@
 [tool.poetry]
 name = "encoded"
-<<<<<<< HEAD
-version = "2.11.2.1b1"
-=======
-version = "2.13.8"
->>>>>>> main
+version = "2.13.10.1b1"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -48,8 +44,7 @@ codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
 dcicsnovault = "^11.36.0"
 # dcicutils = "^8.18.3"
-dcicutils = { git = "https://github.com/4dn-dcic/utils.git", branch = "fm/protected-donor-dcicutils", rev = "a61b3ac4abcfd08e7d72815897d5cefa0b1f41a7" }
-docutils = ">=0.16,<1"
+dcicutils = 8.19.0.1b2
 encoded-core = "^1.0.0"
 elasticsearch = "7.13.4"
 execnet = "1.4.1"
