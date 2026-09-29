@@ -47,7 +47,7 @@ macpoetry-install:  # Same as 'poetry install' except that on OSX Catalina, an e
 configure:  # does any pre-requisite installs
 	pip install --upgrade pip==24.1.2
 	pip install poetry==1.8.5
-	poetry config virtualenvs.create false --local # do not create a virtualenv - the user should have already done this -wrr 20-Sept-2021
+	poetry config virtualenvs.create false --local #
 	curl https://gist.githubusercontent.com/ammarshah/f5c2624d767f91a7cbdc4e54db8dd0bf/raw > restricted_domains.txt
 
 check-awscli:
