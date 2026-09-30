@@ -34,6 +34,18 @@ const TISSUE_XAXIS_FIELDS = [
     { title: 'Tissue', field: 'sample_summary.tissues' },
 ];
 
+// "Explore Tissue Samples" (Browse by Tissue) leaves out TPC-submitted
+// TissueSample records -- see cursorDetailActions' own comment on it.
+// Snovault filters have no wildcard/suffix match, so the TPCs are looked up
+// from SubmissionCenter itself (componentDidMount) and each one excluded with
+// a negated (`field!`) filter -- any TPC added later is picked up without a
+// code change, and any GCC still shows. The "TPC" name suffix is the same
+// role convention BrowseTissueVizWrapper.js's GCC chart relies on
+// (`endsWith('GCC')`).
+const EXCLUDED_TPC_FILTER_FIELD = 'submission_centers.display_title!';
+const SUBMISSION_CENTERS_SEARCH_HREF = '/search/?type=SubmissionCenter&limit=all&field=display_title';
+const isTpcCenterTitle = (title) => typeof title === 'string' && title.trim().endsWith('TPC');
+
 function getCandidateFields(field, fieldList) {
     if (typeof field !== 'string') return [];
 
@@ -149,7 +161,7 @@ export class FacetCharts extends React.PureComponent {
     constructor(props){
         super(props);
         this.show = this.show.bind(this);
-        this.state = { 'mounted' : false };
+        this.state = { 'mounted' : false, 'tpcCenterTitles' : [] };
     }
 
     /**
@@ -158,6 +170,18 @@ export class FacetCharts extends React.PureComponent {
      */
     componentDidMount(){
         var { debug, browseBaseState, initialFields, mapping } = this.props;
+
+        if (mapping === 'tissue') {
+            ajax.load(SUBMISSION_CENTERS_SEARCH_HREF, (resp) => {
+                const tpcCenterTitles = _.uniq(
+                    _.pluck(resp?.['@graph'] || [], 'display_title').filter(isTpcCenterTitle)
+                );
+                this.setState({ tpcCenterTitles });
+            }, 'GET', () => {
+                // Non-fatal: the link then just includes TPC records too.
+                console.warn('FacetCharts: could not load submission centers for TPC exclusion.');
+            });
+        }
 
         if (!ChartDataController.isInitialized(mapping)){
             ChartDataController.initialize(
@@ -233,6 +257,9 @@ export class FacetCharts extends React.PureComponent {
     /** Defines buttons/actions to be shown in onHover popover. */
     cursorDetailActions(){
         const { href, browseBaseState, context, mapping = 'all' } = this.props;
+        // Read at click time (inside the action below), not now -- the TPC
+        // list may still be loading when the actions are first built.
+        const getTpcCenterTitles = () => this.state.tpcCenterTitles;
         // The chart on Browse by Tissue counts distinct tissue samples per
         // tissue/sample-type -- opens the matching TissueSample list
         // ('tissue-sample', navigate.js's own base params for it), not the
@@ -349,6 +376,15 @@ export class FacetCharts extends React.PureComponent {
                                 newDonorFilters = searchFilters.changeFilter(field, value, newDonorFilters, null, true);
                             });
                         });
+                        // A TPC registers its own TissueSample record for
+                        // every aliquot it procures, alongside the GCC's
+                        // record of that same aliquot (same external_id) --
+                        // listing both showed each sample twice. Only the
+                        // GCC-side records are shown, per explicit request.
+                        const tpcCenterTitles = getTpcCenterTitles();
+                        if (tpcCenterTitles.length > 0) {
+                            newDonorFilters[EXCLUDED_TPC_FILTER_FIELD] = new Set(tpcCenterTitles);
+                        }
                         // Open the TissueSample list in a new tab so the Tissue page
                         // (and its chart/toggle state) stays where it is -- same as
                         // the popover's own "N Files" link (that one still targets
