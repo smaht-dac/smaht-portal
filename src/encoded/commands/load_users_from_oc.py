@@ -32,7 +32,7 @@ User = namedtuple('User', ['first_name', 'last_name', 'dua_status', 'email', 'su
 
 # Revoked=Yes removes consortium membership: these properties are deleted outright.
 REVOKED_CLEAR_FIELDS = ('groups', 'consortia', 'submission_centers', 'submits_for')
-# Portal statuses a revoked row may clear; portal status itself is never changed.
+# Portal statuses this script never touches; portal status itself is never changed.
 IGNORED_STATUSES = ('deleted',)
 
 
@@ -373,7 +373,7 @@ class UserCSVProcessor:
                 status = existing.get('status', 'current') if existing is not None else None
                 if user.revoked:
                     # Deleted accounts are out of scope; never create a missing user.
-                    if status in IGNORED_STATUSES:
+                    if existing is None or status in IGNORED_STATUSES:
                         PRINT(f'User {user.email} is missing or deleted - skipping')
                         number_unchanged += 1
                     elif self._revoke_user(user, existing, only_if_changed):
