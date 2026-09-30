@@ -953,7 +953,7 @@ const SelectedItemsDownloadModal = function (props) {
                             Download Additional Metadata Files
                         </h2>
                         <hr className="my-2" />
-                        <div className="additonal-manifest-buttons d-flex gap-2 flex-wrap">
+                        <div className="additional-manifest-buttons gap-2">
                             {/* Biosample manifest download */}
                             <form
                                 method="POST"
@@ -1102,7 +1102,7 @@ const SelectedItemsDownloadModal = function (props) {
                                     className="btn btn-outline-secondary mt-0"
                                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                                     <i className="icon icon-fw icon-download fas me-1" />
-                                    Pathology
+                                    Tissue Pathology
                                 </button>
                             </form>
                         </div>

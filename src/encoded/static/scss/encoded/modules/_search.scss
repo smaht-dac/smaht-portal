@@ -727,41 +727,16 @@ body[data-pathname='/search/']:not([data-current-action='add']) {
                     padding-right: 10px;
                 }
 
-                .manifest-selection {
-                    label {
-                        background-color: #fcfdff;
-                        border: 1px solid #dee2e6;
-                        padding: 0.5rem 1rem;
-                        user-select: none;
-                        cursor: pointer;
+                .additional-manifest-buttons {
+                    display: flex;
+                    flex: 1;
+                    flex-wrap: wrap;
 
-                        input {
-                            cursor: pointer;
-                        }
+                    form {
+                        width: 200px;
 
-                        &.selected {
-                            background-color: #e5f4ff;
-                            border-color: #4292e2;
-                        }
-
-                        &.disabled {
-                            background-color: #ebf4fb;
-                            border-color: #9aadc0;
-
-                            input {
-                                cursor: auto;
-                            }
-
-                            &:hover {
-                                cursor: auto;
-                            }
-                        }
-
-                        &:first-of-type {
-                            border-radius: 5px 0 0 5px;
-                        }
-                        &:last-of-type {
-                            border-radius: 0 5px 5px 0;
+                        button {
+                            width: 100%;
                         }
                     }
                 }
