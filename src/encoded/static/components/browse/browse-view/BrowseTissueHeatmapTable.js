@@ -1587,24 +1587,57 @@ function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRo
 // past the viewport edge it was trying to avoid in the first place; a few
 // px of unused space above/below on an unusually short popover is harmless.
 const DETAIL_POPOVER_ESTIMATED_HEIGHT = 160;
+// Matches `.tissue-heatmap-cell-detail-popover`'s own CSS `width` -- only
+// used for the 1 frame before the real rendered width can be measured.
+const DETAIL_POPOVER_ESTIMATED_WIDTH = 320;
+// Minimum gap kept between the popover and the viewport's own edges.
+const DETAIL_POPOVER_VIEWPORT_MARGIN = 12;
 
 // `position: fixed` inline style for the detail popover, anchored off the
 // clicked cell's own live `getBoundingClientRect()` (see MetricHeatmapTable's
-// handleCellClick) -- opens below-right of the cell by default, flipping
-// to open upward when there isn't estimated room below in the *viewport*
-// (not just the table), same reasoning `.tissue-heatmap-sticky-header`
-// already applies to the header itself. Returns `isFlippedUp` alongside
-// the style so the caller can also flip the popover's own arrow to match.
-function getDetailPopoverStyle(rect) {
-    const isFlippedUp = rect.bottom + DETAIL_POPOVER_ESTIMATED_HEIGHT + 10 > window.innerHeight;
+// handleCellClick) -- opens below the cell, extending leftward from its right
+// edge by default, flipping to open upward when there isn't room below in
+// the *viewport* (not just the table), same reasoning
+// `.tissue-heatmap-sticky-header` already applies to the header itself --
+// and to extend rightward from the cell's left edge instead when extending
+// leftward would run past the viewport's left edge (the table's leftmost
+// columns). Returns `isFlippedUp`/`isFlippedRight` alongside the style so
+// the caller can also move the popover's own arrow to match.
+function getDetailPopoverStyle(
+    rect,
+    height = DETAIL_POPOVER_ESTIMATED_HEIGHT,
+    width = DETAIL_POPOVER_ESTIMATED_WIDTH,
+) {
+    const margin = DETAIL_POPOVER_VIEWPORT_MARGIN;
+    const roomBelow = window.innerHeight - rect.bottom - 10 - margin;
+    const roomAbove = rect.top - 10 - margin;
+    const fitsBelow = height <= roomBelow;
+    const fitsAbove = height <= roomAbove;
+    // Below by default; above only when it fits there but not below. When
+    // it fits on neither side (short viewport), take whichever side has more
+    // room and clamp it inside the viewport -- it then overlaps the cell a
+    // little, rather than running off-screen.
+    const isFlippedUp = !fitsBelow && (fitsAbove || roomAbove > roomBelow);
+    const isFlippedRight = rect.right - width < margin;
+    let verticalStyle;
+    if (fitsBelow || fitsAbove) {
+        verticalStyle = isFlippedUp
+            ? { bottom: window.innerHeight - rect.top + 10 }
+            : { top: rect.bottom + 10 };
+    } else {
+        verticalStyle = isFlippedUp
+            ? { top: margin }
+            : { top: Math.max(margin, window.innerHeight - height - margin) };
+    }
     return {
         isFlippedUp,
+        isFlippedRight,
         style: {
             position: 'fixed',
-            right: window.innerWidth - rect.right,
-            ...(isFlippedUp
-                ? { bottom: window.innerHeight - rect.top + 10 }
-                : { top: rect.bottom + 10 }),
+            ...(isFlippedRight
+                ? { left: Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin)) }
+                : { right: window.innerWidth - rect.right }),
+            ...verticalStyle,
         },
     };
 }
@@ -1626,7 +1659,7 @@ function getDetailPopoverStyle(rect) {
 // the app rather than a one-off design.
 function renderCellDetailPopover({
     donor, tissueType, tissueLabel = null, subtypeLabel = null, metricLabel, value, entries, slots, splitByPreservationType,
-    formatValue, tissueOverviewHref, style, isFlippedUp,
+    formatValue, tissueOverviewHref, style, isFlippedUp, isFlippedRight,
 }, popoverRef) {
     // Ischemic Time's own cells always show a Fixed/Frozen breakdown (see
     // buildTissueMetricMatrix's cellSlots and the table cell's own always-
@@ -1654,7 +1687,11 @@ function renderCellDetailPopover({
     return (
         <div
             ref={popoverRef}
-            className={'tissue-heatmap-cell-detail-popover' + (isFlippedUp ? ' is-flipped-up' : '')}
+            className={
+                'tissue-heatmap-cell-detail-popover' +
+                (isFlippedUp ? ' is-flipped-up' : '') +
+                (isFlippedRight ? ' is-flipped-right' : '')
+            }
             style={style}>
             <div className="inner">
                 <div className="primary-row">
@@ -3019,18 +3056,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         }
         const popoverEl = selectedCellPopoverRef.current;
         if (!popoverEl) return;
-        const realHeight = popoverEl.getBoundingClientRect().height;
-        const isFlippedUp = selectedCell.rect.bottom + realHeight + 10 > window.innerHeight;
-        setMeasuredPopoverPosition({
-            isFlippedUp,
-            style: {
-                position: 'fixed',
-                right: window.innerWidth - selectedCell.rect.right,
-                ...(isFlippedUp
-                    ? { bottom: window.innerHeight - selectedCell.rect.top + 10 }
-                    : { top: selectedCell.rect.bottom + 10 }),
-            },
-        });
+        const { height, width } = popoverEl.getBoundingClientRect();
+        setMeasuredPopoverPosition(getDetailPopoverStyle(selectedCell.rect, height, width));
         // Only re-measure when a different cell is selected -- the
         // popover's own height doesn't otherwise change after that (and if
         // this effect re-ran every time its result changed isFlippedUp, a
@@ -3414,6 +3441,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         tissueOverviewHref: tissueTypeHrefs[selectedCell.tissueType],
                         style: detailPopoverPosition.style,
                         isFlippedUp: detailPopoverPosition.isFlippedUp,
+                        isFlippedRight: detailPopoverPosition.isFlippedRight,
                     }, selectedCellPopoverRef),
                     document.getElementById('overlays-root') || document.body
                 )

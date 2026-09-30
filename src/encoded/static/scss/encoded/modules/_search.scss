@@ -2667,7 +2667,10 @@ div.browse-link-icon {
 	// arrow off too; `.inner`'s own children (below) instead stay properly
 	// contained via plain flex layout, not by cropping whatever leaks out.
 	position: fixed;
-	z-index: 30;
+	// Above #page-footer and the fixed navbar (both z-index 200) --
+	// otherwise the footer paints over this whenever a short table leaves
+	// the popover extending past the page content's own bottom edge.
+	z-index: 210;
 	width: 320px;
 	max-width: calc(100vw - 24px);
 	border-radius: 8px;
@@ -2708,6 +2711,19 @@ div.browse-link-icon {
 		}
 		&::after {
 			border-top-color: #FFFFFF;
+		}
+	}
+
+	// Opened rightward from the cell's left edge (leftmost columns, see
+	// getDetailPopoverStyle's `isFlippedRight`) -- arrow moves to the left.
+	&.is-flipped-right {
+		&::before {
+			right: auto;
+			left: 12px;
+		}
+		&::after {
+			right: auto;
+			left: 13px;
 		}
 	}
 
