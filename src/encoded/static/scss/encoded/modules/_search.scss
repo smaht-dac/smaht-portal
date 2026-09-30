@@ -737,12 +737,17 @@ body[data-pathname='/search/']:not([data-current-action='add']) {
 
                         button {
                             width: 100%;
+                            padding: 6px 8px;
                         }
                     }
                 }
             }
             > .modal-footer {
                 background-color: #f8f8f8;
+
+                button[type='reset'] {
+                    padding: 6px 8px;
+                }
 
                 form {
                     button[type='submit'] {
