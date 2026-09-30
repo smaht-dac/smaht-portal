@@ -14,6 +14,7 @@ import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/v
 import { Legend } from './../components';
 import { mergeTermsInBarplotData } from './merge-terms';
 import { tissueSampleTypeColorCycler } from './tissue-sample-type-colors';
+import { Chart } from './Chart';
 
 /**
  * Component which wraps BarPlot.Chart and provides some UI buttons and stuff.
@@ -536,7 +537,7 @@ export class UIControlsWrapper extends React.PureComponent {
     render() {
         const {
             barplot_data_filtered, barplot_data_unfiltered, barplot_data_fields, isLoadingChartData, href, btnVariant,
-            availableFields_XAxis, availableFields_Subdivision, schemas, chartHeight, windowWidth, cursorDetailActions,
+            availableFields_XAxis, availableFields_Subdivision, schemas, chartHeight, windowWidth, cursorDetailActions, children,
             mapping = 'all'
         } = this.props;
         const { aggregateType, showState } = this.state;
@@ -552,6 +553,11 @@ export class UIControlsWrapper extends React.PureComponent {
 
         const legendContainerHeight = windowGridSize === 'xs' ? null
             : chartHeight - (49 * (contextualView === 'home' ? 1 : 2)) - 49;
+
+        // Same offsets the child chart lays its plot area out with (see Chart.defaultStyleOpts).
+        const { styleOptions: childStyleOptions } = children?.props || {};
+        const chartOffset = { ...Chart.defaultStyleOpts.offset, ...(childStyleOptions?.offset || {}) };
+        const yAxisLabelHeight = 22; // == .y-axis-top-label .dropdown-heading line-height
 
         vizUtil.unhighlightTerms();
 
@@ -569,26 +575,22 @@ export class UIControlsWrapper extends React.PureComponent {
                     width: (windowGridSize !== 'xs' ? (layout.gridContainerWidth(windowWidth) * (9 / 12) - 15) : null)
                 }}>
 
+                    {/*
+                        Rotated -90deg around its bottom-left corner, so once rotated it spans
+                        the full chart height (its left edge = chart bottom). Padding by the
+                        chart's own bottom/top offsets centers the heading on the plot area
+                        itself, independent of chartHeight or the heading's text length.
+                    */}
                     <div className="y-axis-top-label" style={{
                         width: chartHeight,
-                        top: chartHeight - 4
+                        height: yAxisLabelHeight,
+                        top: chartHeight - yAxisLabelHeight,
+                        paddingLeft: chartOffset.bottom,
+                        paddingRight: chartOffset.top
                     }}>
-                        <div className="row" style={{ 'maxWidth': 210, 'float': 'right' }}>
-                            <div className="col-3" style={{ 'width': 51 }}>
-                                {/* <h6 className="dropdown-heading">Y Axis</h6> */}
-                                <h6 className="dropdown-heading">{UIControlsWrapper.yAxisHeadingForMapping(mapping)}</h6>
-                            </div>
-                            <div className="col-9" style={{ 'width': 100, 'textAlign': 'left', visibility: 'hidden' }}>
-                                <DropdownButton
-                                    id="select-barplot-aggregate-type"
-                                    size="xs" variant={btnVariant}
-                                    onSelect={this.handleAggregateTypeSelect}
-                                    title={this.titleMap(aggregateType)}
-                                    onToggle={this.handleDropDownYAxisFieldToggle}>
-                                    {this.renderDropDownMenuItems([UIControlsWrapper.aggregateTypeForMapping(mapping)], aggregateType)}
-                                </DropdownButton>
-                            </div>
-                        </div>
+                        <h6 className="dropdown-heading" style={{ textAlign: 'center' }}>
+                            {UIControlsWrapper.yAxisHeadingForMapping(mapping)}
+                        </h6>
                     </div>
 
                 </div>
