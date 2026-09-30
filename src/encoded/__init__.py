@@ -79,6 +79,7 @@ def include_encoded(config):
     config.include('encoded.ingestion.metadata_template')
     config.include('encoded.validators')
     config.include('encoded.visualization')
+    config.include('encoded.schema_explorer')
     config.commit()
 
 

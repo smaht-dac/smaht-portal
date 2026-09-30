@@ -127,3 +127,10 @@ def profile(context, request):
 #         'title': 'Submissions',
 #         'href': '/submissions',
 #     }
+
+
+@calculated_property(context=User, category='user_action')
+def schema_explorer(context, request):
+    if 'group.admin' in request.effective_principals:
+        return {'id': 'schema-explorer', 'title': 'Schema Explorer',
+                'href': '/schema-explorer'}
