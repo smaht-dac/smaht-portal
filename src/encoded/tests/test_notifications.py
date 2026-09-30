@@ -29,11 +29,13 @@ class FakeRegistry(dict):
 
 
 class FakeUser:
-    def __init__(self, *, enrolled=False, email="User@Example.org"):
+    def __init__(self, *, enrolled=False, email="User@Example.org", groups=("dbgap",)):
         self.properties = {
             "email": email,
             notifications.DATA_RELEASE_NOTIFICATION_ENROLLED: enrolled,
         }
+        if groups is not None:
+            self.properties["groups"] = list(groups)
 
     def upgrade_properties(self):
         return self.properties
@@ -484,8 +486,10 @@ def notification_router_app(monkeypatch, *, topic=TOPIC_ARN, userid=None, user=N
     return webtest.TestApp(config.make_wsgi_app())
 
 
-def authenticated_router_app(monkeypatch, *, topic=TOPIC_ARN, enrolled=False):
-    user = FakeUser(enrolled=enrolled)
+def authenticated_router_app(
+    monkeypatch, *, topic=TOPIC_ARN, enrolled=False, groups=("dbgap",)
+):
+    user = FakeUser(enrolled=enrolled, groups=groups)
     testapp = notification_router_app(
         monkeypatch, topic=topic, userid=f"userid.{USER_UUID}", user=user
     )
@@ -551,8 +555,9 @@ def test_router_notification_availability(topic, expected, monkeypatch):
     assert "public" in response.headers["Cache-Control"]
 
 
-def test_router_register_notification_subscribes_and_updates_profile(monkeypatch):
-    testapp, user = authenticated_router_app(monkeypatch)
+@pytest.mark.parametrize("groups", [["dbgap"], ["admin", "dbgap"]])
+def test_router_register_notification_subscribes_and_updates_profile(groups, monkeypatch):
+    testapp, user = authenticated_router_app(monkeypatch, groups=groups)
     update_item = mock_profile_update(monkeypatch)
     _, sns_client = mock_sns(monkeypatch)
 
@@ -578,10 +583,62 @@ def test_router_register_notification_subscribes_and_updates_profile(monkeypatch
     sns_client.subscribe.assert_called_once()
 
 
+@pytest.mark.parametrize(
+    "groups", [None, [], ["public-dbgap"], ["admin"], ["DBGaP"], ["dbgap-extra"]]
+)
+@pytest.mark.parametrize("enrolled", [False, True])
+def test_router_register_notification_requires_dbgap_group(groups, enrolled, monkeypatch):
+    testapp, user = authenticated_router_app(
+        monkeypatch, groups=groups, enrolled=enrolled
+    )
+    original_properties = user.properties.copy()
+    update_item = mock_profile_update(monkeypatch)
+    boto_client, sns_client = mock_sns(monkeypatch)
+
+    testapp.post_json("/register_notification", {}, status=403)
+
+    assert user.properties == original_properties
+    boto_client.assert_not_called()
+    sns_client.subscribe.assert_not_called()
+    update_item.assert_not_called()
+
+
+def test_router_register_notification_cannot_spoof_eligible_user(monkeypatch):
+    user = FakeUser(groups=[])
+    other_uuid = "22222222-2222-4222-8222-222222222222"
+    other_user = FakeUser(email="other@example.org")
+    testapp = notification_router_app(
+        monkeypatch, userid=f"userid.{USER_UUID}", user=user
+    )
+    testapp.app.registry[COLLECTIONS]["user"][other_uuid] = other_user
+    original_properties = user.properties.copy()
+    other_properties = other_user.properties.copy()
+    update_item = mock_profile_update(monkeypatch)
+    boto_client, sns_client = mock_sns(monkeypatch)
+
+    testapp.post_json(
+        "/register_notification",
+        {
+            "groups": ["dbgap"],
+            "user": f"/users/{other_uuid}/",
+            "uuid": other_uuid,
+            "email": "other@example.org",
+        },
+        status=403,
+    )
+
+    assert user.properties == original_properties
+    assert other_user.properties == other_properties
+    boto_client.assert_not_called()
+    sns_client.subscribe.assert_not_called()
+    update_item.assert_not_called()
+
+
+@pytest.mark.parametrize("groups", [None, [], ["public-dbgap"]])
 def test_router_deregister_notification_unsubscribes_and_updates_profile(
-    monkeypatch,
+    groups, monkeypatch,
 ):
-    testapp, user = authenticated_router_app(monkeypatch, enrolled=True)
+    testapp, user = authenticated_router_app(monkeypatch, enrolled=True, groups=groups)
     update_item = mock_profile_update(monkeypatch)
     _, sns_client = mock_sns(monkeypatch)
     sns_client.list_subscriptions_by_topic.return_value = {

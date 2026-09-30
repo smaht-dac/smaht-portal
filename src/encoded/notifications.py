@@ -9,6 +9,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from dcicutils.secrets_utils import assume_identity
 from pyramid.httpexceptions import (
     HTTPBadGateway,
+    HTTPForbidden,
     HTTPServiceUnavailable,
     HTTPUnauthorized,
     HTTPUnprocessableEntity,
@@ -161,6 +162,10 @@ def register_notification(context, request) -> Dict[str, Any]:
     topic = get_topic_or_raise(request)
     user = authenticated_user(request)
     properties = user.upgrade_properties()
+    if "dbgap" not in (properties.get("groups") or []):
+        raise HTTPForbidden(
+            title="Data-release email notification registration requires the dbgap group"
+        )
     if properties.get(DATA_RELEASE_NOTIFICATION_ENROLLED) is True:
         return enrollment_response(enrolled=True, changed=False)
 
