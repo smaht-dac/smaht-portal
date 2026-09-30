@@ -2769,6 +2769,13 @@ div.browse-link-icon {
 		color: #1E2D3D;
 	}
 
+	// Free-text values (a brain finding's own description) -- regular
+	// weight, since a whole sentence in semibold reads as shouting.
+	.value.is-text {
+		font-weight: 400;
+		line-height: 1.4;
+	}
+
 	.primary-row,
 	.secondary-row {
 		display: flex;
@@ -4535,26 +4542,33 @@ div.browse-link-icon {
 	}
 }
 
-// A Present finding cell's own free-text description (BrainFindingsTable)
-// is only reachable via hover (data-tip) -- this small corner dot is the
-// visual cue that there's more to see there. Deliberately not the same
-// orange triangle .has-alt-values (above) uses -- that flags a genuinely
-// competing 2nd value, a different situation from "this one value has an
-// extra text note attached", so a differently-shaped, neutral-colored
-// marker keeps the 2 from reading as the same kind of affordance.
-.tissue-heatmap-finding-description-dot {
-	position: absolute;
-	top: 3px;
-	right: 3px;
-	width: 6px;
-	height: 6px;
-	border-radius: 50%;
-	// A solid dark fill (not tied to the cell's own score-N/na background)
-	// with a soft shadow for edge definition -- same reasoning as
-	// .has-alt-values' own drop-shadow above, needs to read against both
-	// the lightest and darkest score bands without a hard outline.
-	background-color: #28323C;
-	box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+// A Present finding cell with a reported free-text description
+// (BrainFindingsTable) -- a small info icon inline after "Present", the same
+// icon the column headers use for their own descriptions, marking the
+// cell as clickable (its description opens in the shared
+// .tissue-heatmap-cell-detail-popover). Inherits the cell's own text color,
+// slightly muted, so it reads on both the light and dark score bands.
+.tissue-heatmap-finding-description-icon {
+	margin-left: 4px;
+	font-size: 0.75rem;
+	opacity: 0.75;
+	vertical-align: baseline;
+}
+
+// Only description-bearing finding cells are clickable on the brain
+// pathology tables -- every other cell there keeps the default cursor,
+// rather than the shared .tissue-heatmap-cell's pointer (which assumes
+// MetricHeatmapTable's click-anything detail popover).
+table.tissue-heatmap-table.tissue-heatmap-metric-table td.tissue-heatmap-cell {
+	cursor: default;
+
+	&.has-finding-description {
+		cursor: pointer;
+
+		&:hover .tissue-heatmap-finding-description-icon {
+			opacity: 1;
+		}
+	}
 }
 
 table.tissue-heatmap-table td.tissue-heatmap-cell {

@@ -1,7 +1,12 @@
 'use strict';
 
 import React, { useMemo, useState } from 'react';
-import { FixedScoreLegend, buildRangeScoreClassifier } from './BrowseTissueHeatmapTable';
+import {
+    FixedScoreLegend,
+    buildRangeScoreClassifier,
+    useCellDetailPopover,
+    portalCellDetailPopover,
+} from './BrowseTissueHeatmapTable';
 import { Schemas } from '../../util';
 
 // Per explicit request -- every column header across these 3 tabs' tables
@@ -167,6 +172,42 @@ const BRAIN_FINDING_LEGEND_ENTRIES = [
     { className: 'score-3', label: 'Present' },
 ];
 
+// Detail popover for a clicked Present finding cell (BrainFindingsTable) --
+// the same card (.tissue-heatmap-cell-detail-popover) and positioning the
+// other tabs' click-to-inspect cells use, so a finding's free-text
+// description reads the same way any other cell's details do.
+function renderFindingDetailPopover({ donor, category, description, style, isFlippedUp, isFlippedRight }, popoverRef) {
+    return (
+        <div
+            ref={popoverRef}
+            className={
+                'tissue-heatmap-cell-detail-popover' +
+                (isFlippedUp ? ' is-flipped-up' : '') +
+                (isFlippedRight ? ' is-flipped-right' : '')
+            }
+            style={style}>
+            <div className="inner">
+                <div className="primary-row">
+                    <div className="field">
+                        <div className="label">Donor</div>
+                        <div className="value">{donor}</div>
+                    </div>
+                    <div className="field">
+                        <div className="label">Finding</div>
+                        <div className="value">{category}</div>
+                    </div>
+                </div>
+                <div className="secondary-row-heading">Description</div>
+                <div className="secondary-row">
+                    <div className="field">
+                        <div className="value is-text">{description}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function BrainPathologyEmptyState() {
     return (
         <div className="tissue-heatmap-loading">
@@ -193,6 +234,7 @@ export function BrainFindingsTable({ tissueResults = [] }) {
     const [activeClass, setActiveClass] = useState(null);
     const handleEntryClick = (className) =>
         setActiveClass((prev) => (prev === className ? null : className));
+    const { selectedCell, selectCell, popoverRef, position } = useCellDetailPopover();
 
     if (donors.length === 0) return <BrainPathologyEmptyState />;
 
@@ -205,7 +247,7 @@ export function BrainFindingsTable({ tissueResults = [] }) {
                             Neuropathology Findings
                             <i
                                 className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                                data-tip="Presence of each neuropathology finding category, aggregated across a donor's brain pathology report(s). Hover a Present cell for its reported description."
+                                data-tip="Presence of each neuropathology finding category, aggregated across a donor's brain pathology report(s). Click a Present cell marked with an info icon for its reported description."
                             />
                         </h2>
                     </div>
@@ -217,7 +259,7 @@ export function BrainFindingsTable({ tissueResults = [] }) {
                     />
                 </div>
             </div>
-            <div className="tissue-heatmap-table-wrap">
+            <div className={'tissue-heatmap-table-wrap' + (selectedCell ? ' has-selected-cell' : '')}>
                 <table className="tissue-heatmap-table tissue-heatmap-metric-table">
                     <thead>
                         <tr>
@@ -231,36 +273,45 @@ export function BrainFindingsTable({ tissueResults = [] }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {donors.map((donorId) => {
+                        {donors.map((donorId, rowIndex) => {
                             const byCategory = donorFindings[donorId];
                             return (
                                 <tr key={donorId}>
                                     <td className="tissue-heatmap-metric-donor-id">{donorId}</td>
-                                    {BRAIN_FINDING_CATEGORIES.map((category) => {
+                                    {BRAIN_FINDING_CATEGORIES.map((category, columnIndex) => {
                                         const entry = byCategory.get(category) || null;
                                         const value = entry ? entry.present : null;
                                         const scoreClass = getBrainFindingScoreClass(value);
                                         const isDimmed = activeClass && scoreClass !== activeClass;
                                         const hasDescription = !!(entry?.present && entry.description);
+                                        const isSelected =
+                                            selectedCell?.rowIndex === rowIndex &&
+                                            selectedCell?.columnIndex === columnIndex;
                                         return (
                                             <td
                                                 key={category}
                                                 className={
                                                     `tissue-heatmap-cell ${scoreClass}` +
                                                     (value === null ? ' is-empty' : '') +
-                                                    (isDimmed ? ' is-band-dimmed' : '')
+                                                    (isDimmed ? ' is-band-dimmed' : '') +
+                                                    (hasDescription ? ' has-finding-description' : '') +
+                                                    (isSelected ? ' is-selected' : '')
                                                 }
-                                                data-tip={hasDescription ? entry.description : undefined}>
+                                                onClick={hasDescription
+                                                    ? (event) => selectCell(event.currentTarget, {
+                                                        rowIndex, columnIndex,
+                                                        donor: donorId, category, description: entry.description,
+                                                    })
+                                                    : undefined}>
                                                 {formatBrainFinding(value)}
-                                                {/* A Present cell's own free-text description is only
-                                                    reachable via hover (data-tip above) -- this dot is
-                                                    the visual cue that there's more to see there,
-                                                    without it a description-bearing cell looks
-                                                    identical to a plain "Present" with nothing behind
-                                                    it. */}
+                                                {/* Only cells with a reported description are
+                                                    clickable -- this info icon is what tells them
+                                                    apart from a plain "Present" with nothing behind
+                                                    it, the same icon the column headers use for
+                                                    their own descriptions. */}
                                                 {hasDescription ? (
-                                                    <span
-                                                        className="tissue-heatmap-finding-description-dot"
+                                                    <i
+                                                        className="icon icon-fw icon-info-circle fas tissue-heatmap-finding-description-icon"
                                                         aria-hidden="true"
                                                     />
                                                 ) : null}
@@ -273,6 +324,18 @@ export function BrainFindingsTable({ tissueResults = [] }) {
                     </tbody>
                 </table>
             </div>
+            {selectedCell
+                ? portalCellDetailPopover(
+                    renderFindingDetailPopover({
+                        donor: selectedCell.donor,
+                        category: selectedCell.category,
+                        description: selectedCell.description,
+                        style: position.style,
+                        isFlippedUp: position.isFlippedUp,
+                        isFlippedRight: position.isFlippedRight,
+                    }, popoverRef)
+                )
+                : null}
         </div>
     );
 }

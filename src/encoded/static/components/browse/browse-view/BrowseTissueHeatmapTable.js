@@ -1642,6 +1642,108 @@ function getDetailPopoverStyle(
     };
 }
 
+// Click-to-inspect cell selection shared by MetricHeatmapTable and the brain
+// pathology tables (BrowseBrainPathologyTable.js): the selected cell's state,
+// a ref for the popover element, the popover's viewport position, and
+// outside-click/Escape closing. `selectedCell` is `null` or whatever
+// `selectCell` was given plus the clicked element's `rect`; cells are
+// identified by `rowIndex`/`columnIndex`, which the caller must include.
+//
+// Still `position: fixed`, positioned here in JS off the clicked cell's
+// live `getBoundingClientRect()`, rather than a plain CSS descendant of
+// the <td> -- that <td> sits inside .tissue-heatmap-table-wrap, which
+// needs `overflow-x: auto` for the table's own horizontal scroll and
+// (per the CSS overflow spec, same trap .tissue-heatmap-sticky-header's
+// own comment documents) that forces `overflow-y: auto` too, which would
+// clip the popover against that box.
+export function useCellDetailPopover() {
+    const [selectedCell, setSelectedCell] = useState(null);
+    const popoverRef = useRef(null);
+    const selectCell = (targetEl, cell) => {
+        setSelectedCell((prev) => {
+            // Clicking the already-selected cell again closes it -- the
+            // same toggle-off convention every other click-to-open control
+            // in this file (HeatmapColorPicker, BrainRegionHeaderCell) uses.
+            if (prev && prev.rowIndex === cell.rowIndex && prev.columnIndex === cell.columnIndex) return null;
+            return { ...cell, rect: targetEl.getBoundingClientRect() };
+        });
+    };
+    const closeCell = () => setSelectedCell(null);
+
+    // The flip decision (open above vs. below the clicked cell) first
+    // renders off DETAIL_POPOVER_ESTIMATED_HEIGHT -- a guess, not this
+    // specific popover's real height (which varies: a breakdown row and
+    // footer button both add to it, and neither is always present) -- so a
+    // guess that undershoots still opens downward into a cell near the
+    // bottom of the viewport and runs the popover's real bottom edge past
+    // it. `measuredPosition` (set from the popover's own actual rendered
+    // size, see the effect below) supersedes that guess the instant it's
+    // available; the estimate only still matters for the 1 frame before
+    // that measurement can happen at all (no popover element exists to
+    // measure until after this same render commits).
+    const [measuredPosition, setMeasuredPosition] = useState(null);
+    const position = selectedCell
+        ? (measuredPosition || getDetailPopoverStyle(selectedCell.rect))
+        : null;
+
+    useEffect(() => {
+        if (!selectedCell) {
+            setMeasuredPosition(null);
+            return;
+        }
+        const popoverEl = popoverRef.current;
+        if (!popoverEl) return;
+        const { height, width } = popoverEl.getBoundingClientRect();
+        setMeasuredPosition(getDetailPopoverStyle(selectedCell.rect, height, width));
+        // Only re-measure when a different cell is selected -- the
+        // popover's own height doesn't otherwise change after that (and if
+        // this effect re-ran every time its result changed isFlippedUp, a
+        // popover that measured right at the flip threshold could
+        // oscillate between the 2 positions every render).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedCell?.rowIndex, selectedCell?.columnIndex]);
+
+    // Closes the popover on an outside click/Escape -- same pattern as
+    // HeatmapColorPicker/BrainRegionHeaderCell above, just against a ref on
+    // the popover itself (the table's own body cells aren't behind one
+    // shared container ref the way those dropdowns' toggle+panel are) --
+    // a click that re-selects a *different* cell still works normally: its
+    // own onClick (selectCell) fires after this mousedown listener and
+    // overwrites whatever it set, landing on the newly-clicked cell.
+    useEffect(() => {
+        if (!selectedCell) return undefined;
+        function handleOutsideEvent(event) {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'mousedown' && popoverRef.current?.contains(event.target)) {
+                return;
+            }
+            closeCell();
+        }
+        document.addEventListener('mousedown', handleOutsideEvent);
+        document.addEventListener('keydown', handleOutsideEvent);
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideEvent);
+            document.removeEventListener('keydown', handleOutsideEvent);
+        };
+    }, [selectedCell]);
+
+    return { selectedCell, selectCell, closeCell, popoverRef, position };
+}
+
+// Renders `popover` into the app's overlays root rather than in place.
+// A plain child (position: fixed, per getDetailPopoverStyle) is only
+// positioned relative to the true viewport as long as NO ancestor
+// establishes its own containing block for fixed elements (a `transform`,
+// `filter`, or `will-change: transform` anywhere above it in the DOM) --
+// one does, somewhere up this page's own layout, clipping/mispositioning
+// the popover against that ancestor's box instead of the viewport once the
+// popover was tall enough to actually hit that boundary. A portal straight
+// to the document root sidesteps the whole class of bug outright, same as
+// CursorComponent.js's identical `overlaysRoot` pattern elsewhere in this app.
+export function portalCellDetailPopover(popover) {
+    return ReactDOM.createPortal(popover, document.getElementById('overlays-root') || document.body);
+}
+
 // Detail popover for the currently-clicked cell (MetricHeatmapTable's
 // selectedCell/handleCellClick) -- `position: fixed`, positioned in JS off
 // the clicked cell's own live `getBoundingClientRect()`, same reasoning as
@@ -2990,22 +3092,13 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     // detail view flickered open just from moving the mouse across the
     // table, with no deliberate "I want to inspect this one" action behind
     // it. `null` or `{ rect, rowIndex, columnIndex, donor, tissueType,
-    // value, entries }`.
-    //
-    // Still `position: fixed`, positioned here in JS off the clicked cell's
-    // live `getBoundingClientRect()`, rather than a plain CSS descendant of
-    // the <td> -- that <td> sits inside .tissue-heatmap-table-wrap, which
-    // needs `overflow-x: auto` for the table's own horizontal scroll and
-    // (per the CSS overflow spec, same trap .tissue-heatmap-sticky-header's
-    // own comment documents) that forces `overflow-y: auto` too. The
-    // wrapper's own height only ever accounts for normal-flow content, not
-    // an absolutely-positioned popover extending past it, so showing one
-    // would otherwise make the wrapper discover overflow it didn't have a
-    // moment ago -- a vertical scrollbar popping in (a visible content
-    // shift) and clipping the popover's own bottom edge against that same,
-    // freshly vertical-scrolling box.
-    const [selectedCell, setSelectedCell] = useState(null);
-    const selectedCellPopoverRef = useRef(null);
+    // value, entries, slots, splitByPreservationType }`.
+    const {
+        selectedCell,
+        selectCell,
+        popoverRef: selectedCellPopoverRef,
+        position: detailPopoverPosition,
+    } = useCellDetailPopover();
     const handleCellClick = (
         targetEl, rowIndex, columnIndex, donor, tissueType, value, entries, slots, splitByPreservationType
     ) => {
@@ -3021,74 +3114,10 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
             ? Boolean(slots && slots.some((slot) => slot && slot.value !== null))
             : value !== null;
         if (!hasRealValue) return;
-        setSelectedCell((prev) => {
-            // Clicking the already-selected cell again closes it -- the
-            // same toggle-off convention every other click-to-open control
-            // in this file (HeatmapColorPicker, BrainRegionHeaderCell) uses.
-            if (prev && prev.rowIndex === rowIndex && prev.columnIndex === columnIndex) return null;
-            return {
-                rect: targetEl.getBoundingClientRect(),
-                rowIndex, columnIndex, donor, tissueType, value, entries, slots, splitByPreservationType,
-            };
+        selectCell(targetEl, {
+            rowIndex, columnIndex, donor, tissueType, value, entries, slots, splitByPreservationType,
         });
     };
-    const handleCloseSelectedCell = () => setSelectedCell(null);
-    // The flip decision (open above vs. below the clicked cell) first
-    // renders off DETAIL_POPOVER_ESTIMATED_HEIGHT -- a guess, not this
-    // specific popover's real height (which varies: a breakdown row and
-    // footer button both add to it, and neither is always present) -- so a
-    // guess that undershoots still opens downward into a cell near the
-    // bottom of the viewport and runs the popover's real bottom edge past
-    // it. `measuredPopoverPosition` (set from the popover's own actual
-    // rendered height, see the effect below) supersedes that guess the
-    // instant it's available; the estimate only still matters for the 1
-    // frame before that measurement can happen at all (no popover element
-    // exists to measure until after this same render commits).
-    const [measuredPopoverPosition, setMeasuredPopoverPosition] = useState(null);
-    const detailPopoverPosition = selectedCell
-        ? (measuredPopoverPosition || getDetailPopoverStyle(selectedCell.rect))
-        : null;
-
-    useEffect(() => {
-        if (!selectedCell) {
-            setMeasuredPopoverPosition(null);
-            return;
-        }
-        const popoverEl = selectedCellPopoverRef.current;
-        if (!popoverEl) return;
-        const { height, width } = popoverEl.getBoundingClientRect();
-        setMeasuredPopoverPosition(getDetailPopoverStyle(selectedCell.rect, height, width));
-        // Only re-measure when a different cell is selected -- the
-        // popover's own height doesn't otherwise change after that (and if
-        // this effect re-ran every time its result changed isFlippedUp, a
-        // popover that measured right at the flip threshold could
-        // oscillate between the 2 positions every render).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedCell?.rowIndex, selectedCell?.columnIndex]);
-
-    // Closes the popover on an outside click/Escape -- same pattern as
-    // HeatmapColorPicker/BrainRegionHeaderCell above, just against a ref on
-    // the popover itself (this table's own body cells aren't behind one
-    // shared container ref the way those dropdowns' toggle+panel are) --
-    // a click that re-selects a *different* cell still works normally: its
-    // own onClick (handleCellClick) fires after this mousedown listener and
-    // overwrites whatever it set, landing on the newly-clicked cell.
-    useEffect(() => {
-        if (!selectedCell) return undefined;
-        function handleOutsideEvent(event) {
-            if (event.type === 'keydown' && event.key !== 'Escape') return;
-            if (event.type === 'mousedown' && selectedCellPopoverRef.current?.contains(event.target)) {
-                return;
-            }
-            handleCloseSelectedCell();
-        }
-        document.addEventListener('mousedown', handleOutsideEvent);
-        document.addEventListener('keydown', handleOutsideEvent);
-        return () => {
-            document.removeEventListener('mousedown', handleOutsideEvent);
-            document.removeEventListener('keydown', handleOutsideEvent);
-        };
-    }, [selectedCell]);
 
     const handleHeaderClick = (key) => {
         setSortState((prev) => {
@@ -3401,18 +3430,8 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                 </table>
             </div>
             {selectedCell
-                // A plain child here (position: fixed, per getDetailPopoverStyle)
-                // is only positioned relative to the true viewport as long as
-                // NO ancestor establishes its own containing block for fixed
-                // elements (a `transform`, `filter`, or `will-change: transform`
-                // anywhere above this in the DOM) -- one does, somewhere up this
-                // page's own layout, clipping/mispositioning the popover against
-                // that ancestor's box instead of the viewport once the popover
-                // was tall enough to actually hit that boundary. A portal
-                // straight to the document root sidesteps the whole class of
-                // bug outright, same as CursorComponent.js's identical
-                // `overlaysRoot` pattern elsewhere in this app.
-                ? ReactDOM.createPortal(
+                // Portaled -- see portalCellDetailPopover.
+                ? portalCellDetailPopover(
                     renderCellDetailPopover({
                         donor: selectedCell.donor,
                         tissueType: selectedCell.tissueType,
@@ -3442,8 +3461,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         style: detailPopoverPosition.style,
                         isFlippedUp: detailPopoverPosition.isFlippedUp,
                         isFlippedRight: detailPopoverPosition.isFlippedRight,
-                    }, selectedCellPopoverRef),
-                    document.getElementById('overlays-root') || document.body
+                    }, selectedCellPopoverRef)
                 )
                 : null}
         </>
