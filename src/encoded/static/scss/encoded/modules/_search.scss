@@ -2314,7 +2314,9 @@ div.browse-link-icon {
 		// contrast with SOME accent-colored text elsewhere on the card
 		// (the header above), but using that same color here too often
 		// read as low-contrast/hard to read against its own light tint.
-		color: #28323C;
+		// Flips to white (--tissue-advanced-card-donors-text) when the
+		// admin tint setting makes this footer dark.
+		color: var(--tissue-advanced-card-donors-text, #28323C);
 		background-color: var(--tissue-advanced-card-bg, #EAF5EF);
 	}
 
@@ -3886,8 +3888,9 @@ div.browse-link-icon {
 		// right above it are now tinted per-tissue-color (see
 		// getTissueSubtypeHeaderStyle) rather than a plain grey/orange pair.
 		.tissue-heatmap-target-nontarget-header {
-			font-size: 0.5rem;
-			font-weight: 500;
+			// 0.625rem/600, up from 0.5rem/500 -- read as too small.
+			font-size: 0.625rem;
+			font-weight: 600;
 			letter-spacing: 0.02em;
 			text-transform: uppercase;
 			text-align: center;

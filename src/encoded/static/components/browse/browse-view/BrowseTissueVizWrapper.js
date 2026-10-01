@@ -211,9 +211,33 @@ const useTissueDonorCounts = (fileFilters, session) => {
     return { loading, donorCountByInternalCode };
 };
 
+// Text color for the Advanced card's donor-count footer, whose background is
+// `hex` at `alpha` over the card's near-white base -- dark text by default,
+// white once an admin dials the tint low enough that the footer turns dark
+// (e.g. Buccal swab, Hippocampus). Same perceived-brightness heuristic as
+// BrowseTissueHeatmapTable.js's getReadableTextColor.
+const getDonorsFooterTextColor = (hex, alpha) => {
+    const match = String(hex || '').trim().match(/^#?([0-9a-f]{6})$/i);
+    if (!match) return null;
+    const value = parseInt(match[1], 16);
+    const blend = (channel) => alpha * channel + (1 - alpha) * 255;
+    const r = blend((value >> 16) & 255);
+    const g = blend((value >> 8) & 255);
+    const b = blend(value & 255);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.5 ? '#FFFFFF' : '#28323C';
+};
+
 // Basic Tissue View: every tissue type as a compact, icon-only bubble in one
 // 8-column grid (3 rows for the 24 tracked tissues), in `tissueTypes` order.
-const TissueBasicPanel = ({ loading, donorCountByInternalCode, tissueTypes }) => {
+const TissueBasicPanel = ({
+    loading,
+    donorCountByInternalCode,
+    tissueTypes,
+    // 0 = full-strength tissue color, 100 = fully faded -- see
+    // BrowseTissue.js's admin TissueTintSettings.
+    ringTintPercent = 15,
+}) => {
     // data-tip is react-tooltip's static-attribute API (see app.js's global
     // <ReactTooltip/> mount) -- it only picks up nodes present at its last
     // build, so newly rendered bubbles need an explicit rebuild once loaded.
@@ -248,7 +272,7 @@ const TissueBasicPanel = ({ loading, donorCountByInternalCode, tissueTypes }) =>
                 // clearly.
                 const bubbleStyle = bubbleColorHex
                     ? {
-                        borderColor: hexToRgba(bubbleColorHex, 0.85),
+                        borderColor: hexToRgba(bubbleColorHex, 1 - ringTintPercent / 100),
                         borderStyle: 'solid',
                         borderWidth: '2.5px',
                     }
@@ -297,7 +321,15 @@ const TissueBasicPanel = ({ loading, donorCountByInternalCode, tissueTypes }) =>
 // code + full name + donor count) in one 8-column grid (3 rows for the 24
 // tracked tissues), in `tissueTypes` order. Cards for tissues with 0 donors are
 // disabled, not hidden.
-const TissueAdvancedPanel = ({ loading, donorCountByInternalCode, tissueTypes }) => (
+const TissueAdvancedPanel = ({
+    loading,
+    donorCountByInternalCode,
+    tissueTypes,
+    // 0 = full-strength tissue color, 100 = fully faded -- see
+    // BrowseTissue.js's admin TissueTintSettings.
+    borderTintPercent = 15,
+    donorsBgTintPercent = 86,
+}) => (
     <div className="tissue-advanced-panel">
         {tissueTypes.map((tissueType) => {
             const donorCount = donorCountByInternalCode[tissueType.internalCode] || 0;
@@ -324,15 +356,19 @@ const TissueAdvancedPanel = ({ loading, donorCountByInternalCode, tissueTypes })
                     '--tissue-advanced-card-color': tissueColorHex,
                     // The card's outline -- same ring
                     // color/opacity Basic view's bubbles
-                    // use, so both views read alike.
-                    '--tissue-advanced-card-border': hexToRgba(tissueColorHex, 0.85),
+                    // use by default, so both views read alike.
+                    '--tissue-advanced-card-border': hexToRgba(tissueColorHex, 1 - borderTintPercent / 100),
                     // A light background tint for the
                     // donor-count footer -- computed
                     // here (not via CSS color-mix(),
                     // for wider browser support)
                     // from the same hex at reduced
                     // opacity, not a fixed shade.
-                    '--tissue-advanced-card-bg': hexToRgba(tissueColorHex, 0.14),
+                    '--tissue-advanced-card-bg': hexToRgba(tissueColorHex, 1 - donorsBgTintPercent / 100),
+                    '--tissue-advanced-card-donors-text': getDonorsFooterTextColor(
+                        tissueColorHex,
+                        1 - donorsBgTintPercent / 100
+                    ),
                 }
                 : undefined;
 
@@ -781,6 +817,9 @@ export const BrowseTissueVizWrapper = (props) => {
         tissueDetailModeIndex,
         tissueSortModeIndex = 0,
         cohortModeIndex = 1,
+        bubbleRingTintPercent = 15,
+        cardBorderTintPercent = 15,
+        cardDonorsBgTintPercent = 86,
     } = props;
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
@@ -875,10 +914,14 @@ export const BrowseTissueVizWrapper = (props) => {
                         already-loaded-data reasoning as toggleViewIndex
                         above. */}
                     <div className={tissueDetailModeIndex === 0 ? '' : 'd-none'}>
-                        <TissueBasicPanel {...tissuePanelProps} />
+                        <TissueBasicPanel {...tissuePanelProps} ringTintPercent={bubbleRingTintPercent} />
                     </div>
                     <div className={tissueDetailModeIndex === 1 ? '' : 'd-none'}>
-                        <TissueAdvancedPanel {...tissuePanelProps} />
+                        <TissueAdvancedPanel
+                            {...tissuePanelProps}
+                            borderTintPercent={cardBorderTintPercent}
+                            donorsBgTintPercent={cardDonorsBgTintPercent}
+                        />
                     </div>
                 </div>
                 <div className={toggleViewIndex === 1 ? '' : 'd-none'}>
