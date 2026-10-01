@@ -1,9 +1,11 @@
 """Generate a StaticSection entry workbook for administrative ingestion.
 
 This command deliberately does not share the submission-schema lookup used by
-``write_submission_spreadsheets``.  StaticSection is an admin-only item and
-this template is generated from the portal's checked-in, locally resolved
-schema so that it remains useful without portal credentials.
+``write_submission_spreadsheets``.  StaticSection is an admin-only item, so
+the template is generated from its full profile schema.  By default that
+schema is fetched from a live portal (``--env``, default ``data``); ``--local``
+uses the checked-in, locally resolved schema instead so that the command
+remains useful without portal credentials.
 """
 
 from __future__ import annotations
@@ -15,13 +17,18 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Union
 
 import openpyxl
+from dcicutils.creds_utils import SMaHTKeyManager
 from jsonschema import Draft202012Validator
 from openpyxl.comments import Comment
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
 from snovault import load_schema
 
+from encoded.item_utils.utils import RequestHandler
+
 STATIC_SECTION_SCHEMA = "encoded:schemas/static_section.json"
+STATIC_SECTION_PROFILE = "/profiles/static_section.json"
+DEFAULT_ENV = "data"
 STATIC_SECTION_SHEET_NAME = "StaticSection"
 STATIC_SECTION_WORKBOOK_FILENAME = "static_section_workbook.xlsx"
 NUMBER_OF_ROWS = "number_of_rows"
@@ -49,6 +56,8 @@ READ_ONLY_FIELDS = frozenset(
         "uuid",
     }
 )
+
+INHERITED_READ_ONLY_MARKERS = ("calculatedProperty", "permission", "exclude_from")
 
 ConfigValue = Union[str, Path, Mapping[str, Any], None]
 
@@ -89,34 +98,72 @@ def load_config(config: ConfigValue) -> Dict[str, Any]:
 
 
 def get_static_section_schema() -> Dict[str, Any]:
-    """Return the resolved local StaticSection schema."""
+    """Return the resolved local (checked-in) StaticSection schema.
+
+    This is the fallback for the library functions when no schema is passed;
+    the command line uses the portal schema unless ``--local`` is given.
+    """
     return load_schema(STATIC_SECTION_SCHEMA)
 
 
+def get_request_handler(env: str) -> RequestHandler:
+    """Return a request handler authenticated for the given portal env."""
+    return RequestHandler(auth_key=SMaHTKeyManager().get_keydict_for_env(env))
+
+
+def get_portal_static_section_schema(request_handler: RequestHandler) -> Dict[str, Any]:
+    """Return the full StaticSection profile schema from a live portal.
+
+    The portal serves profiles with ``$merge`` references already resolved.
+    """
+    schema = request_handler.get_item(STATIC_SECTION_PROFILE)
+    # An empty result must not reach the builders, which would silently fall
+    # back to the local schema when given a falsy schema.
+    if not isinstance(schema, Mapping) or not schema.get("properties"):
+        raise StaticSectionWorkbookError(
+            f"No StaticSection schema properties returned from {STATIC_SECTION_PROFILE}"
+        )
+    return dict(schema)
+
+
 def _flatten_schema_properties(
-    properties: Mapping[str, Any], prefix: str = ""
+    properties: Mapping[str, Any],
+    prefix: str = "",
+    inherited: Optional[Mapping[str, Any]] = None,
 ) -> Iterable[tuple[str, Dict[str, Any]]]:
-    """Yield scalar and array schema properties using dotted object paths."""
+    """Yield scalar and array schema properties using dotted object paths.
+
+    Read-only markers on an object (e.g. ``calculatedProperty`` on the portal
+    profile's ``principals_allowed``) are passed down to its nested fields so
+    they are excluded along with their parent.
+    """
+    inherited = inherited or {}
     for name, property_schema in properties.items():
         if name.startswith("$") or not isinstance(property_schema, Mapping):
             continue
         path = f"{prefix}.{name}" if prefix else name
+        property_schema = {**inherited, **property_schema}
         nested_properties = property_schema.get("properties")
         if nested_properties and isinstance(nested_properties, Mapping):
-            yield from _flatten_schema_properties(nested_properties, path)
+            markers = {
+                key: property_schema[key]
+                for key in INHERITED_READ_ONLY_MARKERS
+                if key in property_schema
+            }
+            yield from _flatten_schema_properties(nested_properties, path, markers)
         else:
-            yield path, dict(property_schema)
+            yield path, property_schema
 
 
 def get_static_section_property_schemas(
     schema: Optional[Mapping[str, Any]] = None,
 ) -> Dict[str, Dict[str, Any]]:
-    """Return local schema properties addressable by workbook/config keys."""
+    """Return schema properties addressable by workbook/config keys."""
     schema = schema or get_static_section_schema()
     properties = schema.get("properties")
     if not isinstance(properties, Mapping):
         raise StaticSectionWorkbookError(
-            "The local StaticSection schema does not define properties"
+            "The StaticSection schema does not define properties"
         )
     property_schemas = dict(_flatten_schema_properties(properties))
     unresolved = [
@@ -124,7 +171,7 @@ def get_static_section_property_schemas(
     ]
     if unresolved:
         raise StaticSectionWorkbookError(
-            "The local StaticSection schema contains unresolved properties: "
+            "The StaticSection schema contains unresolved properties: "
             + ", ".join(sorted(unresolved))
         )
     return property_schemas
@@ -153,7 +200,7 @@ def _is_read_only_property(name: str, property_schema: Mapping[str, Any]) -> boo
 def _validate_property_value(
     name: str, value: Any, property_schema: Mapping[str, Any]
 ) -> None:
-    """Validate one configured value against its local property schema."""
+    """Validate one configured value against its property schema."""
     validator = Draft202012Validator(dict(property_schema))
     error = next(iter(validator.iter_errors(value)), None)
     if error is not None:
@@ -382,12 +429,41 @@ def main(argv: Optional[List[str]] = None) -> None:
         "--config",
         help="Optional JSON object or path to a JSON configuration file",
     )
+    schema_source = parser.add_mutually_exclusive_group()
+    schema_source.add_argument(
+        "--env",
+        default=DEFAULT_ENV,
+        help=(
+            "Portal environment to fetch the StaticSection schema from "
+            f"(default: {DEFAULT_ENV})"
+        ),
+    )
+    schema_source.add_argument(
+        "--local",
+        action="store_true",
+        help=(
+            "Use the checked-in local schema instead of fetching it from a "
+            "portal; no credentials needed"
+        ),
+    )
     args = parser.parse_args(argv)
+    if args.local:
+        schema = get_static_section_schema()
+        source = "local schema"
+    else:
+        source = f"portal env '{args.env}'"
+        try:
+            schema = get_portal_static_section_schema(get_request_handler(args.env))
+        except Exception as error:
+            parser.error(
+                f"Could not fetch the StaticSection schema from {source}: {str(error).rstrip('.')}. "
+                "Use --local to generate from the checked-in schema instead."
+            )
     try:
-        path = write_static_section_workbook(args.output, args.config)
+        path = write_static_section_workbook(args.output, args.config, schema=schema)
     except (OSError, StaticSectionWorkbookError) as error:
         parser.error(str(error))
-    print(f"StaticSection workbook written to: {path}")
+    print(f"StaticSection workbook written to: {path} (schema from {source})")
 
 
 if __name__ == "__main__":

@@ -4,12 +4,15 @@ from pathlib import Path
 import openpyxl
 import pytest
 
+from ..commands import write_static_section_workbook as workbook_command
 from ..commands.write_static_section_workbook import (
+    STATIC_SECTION_PROFILE,
     STATIC_SECTION_SHEET_NAME,
     STATIC_SECTION_WORKBOOK_FILENAME,
     StaticSectionWorkbookError,
     generate_workbook,
     get_output_path,
+    get_portal_static_section_schema,
     get_static_section_columns,
     get_static_section_property_schemas,
     get_static_section_schema,
@@ -227,3 +230,97 @@ def test_workbook_structure_comments_and_output_naming(tmp_path, static_section_
         "options.convert_ext_links",
         "options.initial_header_level",
     ]
+
+
+class FakeRequestHandler:
+    def __init__(self, schema):
+        self.schema = schema
+        self.requested = []
+
+    def get_item(self, identifier):
+        self.requested.append(identifier)
+        return self.schema
+
+
+def test_portal_schema_is_fetched_from_profile(static_section_schema):
+    request_handler = FakeRequestHandler(static_section_schema)
+    assert get_portal_static_section_schema(request_handler) == static_section_schema
+    assert request_handler.requested == [STATIC_SECTION_PROFILE]
+
+
+@pytest.mark.parametrize("returned", [{}, None, {"properties": {}}])
+def test_empty_portal_schema_is_rejected(returned):
+    with pytest.raises(StaticSectionWorkbookError, match="No StaticSection schema"):
+        get_portal_static_section_schema(FakeRequestHandler(returned))
+
+
+@pytest.fixture
+def portal_calls(monkeypatch, static_section_schema):
+    calls = {"envs": [], "local": 0}
+
+    def fake_get_request_handler(env):
+        calls["envs"].append(env)
+        return FakeRequestHandler(static_section_schema)
+
+    def fake_local_schema():
+        calls["local"] += 1
+        return static_section_schema
+
+    monkeypatch.setattr(workbook_command, "get_request_handler", fake_get_request_handler)
+    monkeypatch.setattr(workbook_command, "get_static_section_schema", fake_local_schema)
+    return calls
+
+
+def test_main_defaults_to_data_portal_schema(tmp_path, portal_calls, capsys):
+    workbook_command.main(["--output", str(tmp_path)])
+    assert portal_calls == {"envs": ["data"], "local": 0}
+    assert "portal env 'data'" in capsys.readouterr().out
+    assert (tmp_path / STATIC_SECTION_WORKBOOK_FILENAME).is_file()
+
+
+def test_main_uses_given_env(tmp_path, portal_calls):
+    workbook_command.main(["--output", str(tmp_path), "--env", "staging"])
+    assert portal_calls == {"envs": ["staging"], "local": 0}
+
+
+def test_main_local_skips_portal(tmp_path, portal_calls, capsys):
+    workbook_command.main(["--output", str(tmp_path), "--local"])
+    assert portal_calls == {"envs": [], "local": 1}
+    assert "local schema" in capsys.readouterr().out
+    assert (tmp_path / STATIC_SECTION_WORKBOOK_FILENAME).is_file()
+
+
+def test_main_env_and_local_are_mutually_exclusive(tmp_path, portal_calls):
+    with pytest.raises(SystemExit):
+        workbook_command.main(["--output", str(tmp_path), "--env", "data", "--local"])
+    assert portal_calls == {"envs": [], "local": 0}
+
+
+def test_main_portal_failure_suggests_local(tmp_path, monkeypatch, capsys):
+    def failing_get_request_handler(env):
+        raise RuntimeError("no keys")
+
+    monkeypatch.setattr(workbook_command, "get_request_handler", failing_get_request_handler)
+    with pytest.raises(SystemExit):
+        workbook_command.main(["--output", str(tmp_path)])
+    error = capsys.readouterr().err
+    assert "no keys" in error
+    assert "--local" in error
+
+
+def test_nested_fields_of_calculated_objects_are_read_only(static_section_schema):
+    # The portal profile includes calculated objects such as principals_allowed
+    # whose nested fields carry no read-only marker of their own.
+    schema = json.loads(json.dumps(static_section_schema))
+    schema["properties"]["principals_allowed"] = {
+        "type": "object",
+        "calculatedProperty": True,
+        "properties": {
+            "view": {"type": "array", "items": {"type": "string"}},
+            "edit": {"type": "array", "items": {"type": "string"}},
+        },
+    }
+    columns = get_static_section_columns({}, schema)
+    assert not any(column.startswith("principals_allowed") for column in columns)
+    with pytest.raises(StaticSectionWorkbookError, match="read-only"):
+        validate_config({"principals_allowed.view": ["x"]}, schema)
