@@ -430,9 +430,12 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Optional JSON object or path to a JSON configuration file",
     )
     schema_source = parser.add_mutually_exclusive_group()
+    # No argparse default for --env: before Python 3.12, argparse detects a
+    # mutually exclusive conflict by identity with the default, so an explicit
+    # "--env data" (an interned string equal to the default) would slip past
+    # --local.
     schema_source.add_argument(
         "--env",
-        default=DEFAULT_ENV,
         help=(
             "Portal environment to fetch the StaticSection schema from "
             f"(default: {DEFAULT_ENV})"
@@ -451,9 +454,10 @@ def main(argv: Optional[List[str]] = None) -> None:
         schema = get_static_section_schema()
         source = "local schema"
     else:
-        source = f"portal env '{args.env}'"
+        env = args.env or DEFAULT_ENV
+        source = f"portal env '{env}'"
         try:
-            schema = get_portal_static_section_schema(get_request_handler(args.env))
+            schema = get_portal_static_section_schema(get_request_handler(env))
         except Exception as error:
             parser.error(
                 f"Could not fetch the StaticSection schema from {source}: {str(error).rstrip('.')}. "
