@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+2.13.11
+=======
+
+`PR 770: Update User management script <https://github.com/smaht-dac/smaht-portal/pull/770>`_
+
+* include submission_center updating functionality
+* if user is revoked=Yes in sheet their groups, submission_centers and consortia are removed
+* updated warnings/logging
+
+
 2.13.10
 =======
 
