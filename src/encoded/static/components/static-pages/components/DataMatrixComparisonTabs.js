@@ -2,7 +2,27 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import DataMatrix, { isLocalEnv } from '../../viz/Matrix/DataMatrix';
+
+/**
+ * Builds a lightweight `/search/` URL that counts the files a tab's matrix would show with no facet
+ * filters applied. Mirrors the search params DataMatrix sends to /data_matrix_aggregations/, whose
+ * `counts.files` is the same search `total`.
+ */
+function getTabBaseCountHref(matrixProps) {
+    const { query: { url: requestUrl, columnAggFields } = {}, excludePrimaryColumnNoValue = true } = matrixProps || {};
+    if (typeof requestUrl !== 'string' || !requestUrl) return null;
+    const params = new URLSearchParams(requestUrl.split('?')[1] || '');
+    if (!params.has('type')) params.set('type', 'File');
+    const primaryColumnField = Array.isArray(columnAggFields) ? columnAggFields[0] : columnAggFields;
+    if (excludePrimaryColumnNoValue && primaryColumnField && !params.has(primaryColumnField)) {
+        params.append(`${primaryColumnField}!`, 'No value');
+    }
+    params.set('limit', '0');
+    params.set('skip_default_facets', 'true');
+    return `/search/?${params.toString()}`;
+}
 
 export function DataMatrixComparisonTabs({ session, tabs }) {
     const tabConfigs = useMemo(() => tabs || [], [tabs]);
@@ -137,38 +157,43 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         return () => window.removeEventListener('hashchange', onHashChange);
     }, [getHashKey, tabConfigs, resolveTabKey]);
 
-    const handleDataLoaded = useCallback((tabKey) => (payload = {}) => {
-        const totalFiles = typeof payload.totalFiles === 'number' ? payload.totalFiles : 0;
-        const hasData = typeof payload.hasData === 'boolean' ? payload.hasData : totalFiles > 0;
-        setTabDataState((prev) => {
-            return {
-                ...prev,
-                [tabKey]: { hasData, totalFiles, loaded: true }
+    // Tab visibility comes from each tab's unfiltered file count, fetched up front for every tab.
+    // Only the selected tab mounts a DataMatrix, and its results reflect the user's facet filters, so
+    // they can't decide visibility: a tab would disappear after being visited or filtered down to zero.
+    // A failed count leaves hasData null (unknown), which keeps the tab visible.
+    useEffect(() => {
+        let canceled = false;
+        tabConfigs.forEach((tab) => {
+            const commit = (totalFiles) => {
+                if (canceled) return;
+                const hasData = typeof totalFiles === 'number' ? totalFiles > 0 : null;
+                setTabDataState((prev) => {
+                    return { ...prev, [tab.key]: { hasData, totalFiles, loaded: true } };
+                });
             };
+            const href = getTabBaseCountHref(tab.matrixProps);
+            if (!href) {
+                commit(null);
+                return;
+            }
+            const readTotal = (resp) => {
+                const total = Number(resp?.total);
+                return Number.isFinite(total) ? total : null;
+            };
+            ajax.load(
+                href,
+                (resp) => commit(readTotal(resp)),
+                'GET',
+                // Snovault answers an empty search with 404 and `total: 0`; other errors carry no total.
+                (resp) => commit(readTotal(resp))
+            );
         });
-    }, []);
+        return () => { canceled = true; };
+    }, [tabConfigs, session]);
 
     const hasAnyLoaded = tabConfigs.some((tab) => tabDataState[tab.key]?.loaded);
     const allLoaded = tabConfigs.length > 0 && tabConfigs.every((tab) => tabDataState[tab.key]?.loaded);
     const isLoading = tabConfigs.length > 0 && !hasAnyLoaded;
-
-    useEffect(() => {
-        if (hasAnyLoaded || !tabConfigs.length) return;
-        const timeout = setTimeout(() => {
-            setTabDataState((prev) => {
-                let changed = false;
-                const next = { ...prev };
-                tabConfigs.forEach((tab) => {
-                    if (!next[tab.key]?.loaded) {
-                        next[tab.key] = { hasData: false, totalFiles: 0, loaded: true };
-                        changed = true;
-                    }
-                });
-                return changed ? next : prev;
-            });
-        }, 10000);
-        return () => clearTimeout(timeout);
-    }, [hasAnyLoaded, tabConfigs, session]);
 
     if (!tabConfigs.length) return null;
 
@@ -269,7 +294,6 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                                 debugLoadingDelayMs={isLocalEnv() ? 2500 : 0}
                                                 key={(selectedTab.matrixProps && selectedTab.matrixProps.key) || selectedTab.key}
                                                 session={session}
-                                                onDataLoaded={handleDataLoaded(selectedTab.key)}
                                             />
                                         </div>
                                     </div>
