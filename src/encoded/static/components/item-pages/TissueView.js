@@ -468,7 +468,7 @@ const TissueView = React.memo(function TissueView({
             // submissionCenter -- see nonSolidAliquots' identical hasFiles
             // for the full rationale. `sampleNamesWithFiles === null`
             // (still loading) intentionally reads as "yes" so the popover
-            // doesn't flash "No files yet" and then correct itself.
+            // doesn't flash "No data" and then correct itself.
             const centersWithFiles = new Set();
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
                 ([corePosition, submissionCenters]) => {
@@ -614,7 +614,7 @@ const TissueView = React.memo(function TissueView({
             // before that GCC's files for it actually exist/are indexed
             // (see sampleNamesWithFiles above). `sampleNamesWithFiles ===
             // null` (still loading) intentionally reads as "yes" here
-            // rather than flashing "No files yet" and then correcting
+            // rather than flashing "No data" and then correcting
             // itself once the fetch resolves.
             const hasFiles =
                 !hasOnlyTpcSubmission &&

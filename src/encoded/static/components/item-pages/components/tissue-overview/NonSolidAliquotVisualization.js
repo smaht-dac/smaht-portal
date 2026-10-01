@@ -224,7 +224,7 @@ export default function NonSolidAliquotVisualization({
                 ? `GCC${index + 1}`
                 : hasFiles && aliquot.submissionCenter
                     ? formatCenterName(aliquot.submissionCenter)
-                    : 'No files yet';
+                    : 'No data';
         return {
             ...aliquot,
             index,
@@ -274,7 +274,7 @@ export default function NonSolidAliquotVisualization({
             coreHref: selectedAliquot.filesHref,
             coreTitle: selectedAliquot.filesHref
                 ? `View ${selectedAliquot.description}'s own files`
-                : 'No files yet for this sample',
+                : 'No data for this sample',
             // Only looked up off the real external_id (`description`),
             // never a synthetic fallback -- a demo aliquot has no real
             // sample behind it and no matching Files either, so it
@@ -443,6 +443,7 @@ export default function NonSolidAliquotVisualization({
                                             <AliquotCoreTable
                                                 rows={selectedSampleRow ? [selectedSampleRow] : []}
                                                 rowLabel="Sample"
+                                                showSize={false}
                                             />
                                         </section>
                                     </div>

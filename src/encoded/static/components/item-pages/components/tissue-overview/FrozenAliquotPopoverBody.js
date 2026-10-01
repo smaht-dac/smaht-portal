@@ -238,7 +238,7 @@ export default function FrozenAliquotPopoverBody({
             coreHref: positionFilesHref,
             coreTitle: positionFilesHref
                 ? `View ${aliquotId}${corePosition}'s own files`
-                : 'No files yet for this position',
+                : 'No data for this position',
             sizeLabel: formatCoreSize(group.positionCoreSizes[corePosition]),
             dataLabels: assayPlatformsBySampleName[group.positionExternalIds[corePosition]] || [],
             centerLabel: formatCenterName(group.submissionCenter) || `GCC${groupIndex + 1}`,
