@@ -461,7 +461,8 @@ def test_update_submits_for_only_if_changed_treats_already_cleared_as_unchanged(
     }, key={})
 
     def fake_get_metadata(path, key=None):
-        return {'groups': [], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}]}
+        return {'groups': [], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}],
+                'submission_centers': [{'identifier': 'sc1'}]}
 
     patched = []
     monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
@@ -685,7 +686,8 @@ def test_update_submits_for_only_if_changed_skips_matching_user(monkeypatch):
 
     def fake_get_metadata(path, key=None):
         return {'groups': ['dbgap'], 'submits_for': [{'identifier': 'smaht_dac'}],
-                'consortia': [{'identifier': 'smaht'}]}
+                'consortia': [{'identifier': 'smaht'}],
+                'submission_centers': [{'identifier': 'smaht_dac'}]}
 
     patched = []
     monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
