@@ -166,7 +166,7 @@ export default class DataMatrix extends React.PureComponent {
             "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
             "backgroundColor": "#e1d567",
             "textColor": "#ffffff",
-            "shortName": "Tgtd"
+            "shortName": "Target"
         },
         "Other": {
             "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
