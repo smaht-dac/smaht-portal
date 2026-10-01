@@ -8,7 +8,7 @@ Change Log
 ----------
 
 2.13.12
-======
+=======
 
 `PR 763 Generate static section workbooks <https://github.com/smaht-dac/smaht-portal/pull/763>`_
 
