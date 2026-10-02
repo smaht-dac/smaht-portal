@@ -6,7 +6,7 @@ Loading OC users
 column 5 must be Email; the first ten columns are required. The associate column
 is optional. UTF-8 CSVs with a BOM, blank rows, and mixed-case Yes/No values are
 supported. Invalid names, emails, flags, or short rows abort preflight before
-writes. All rows for a duplicate email are excluded, including active/revoked
+writes, as does an old-format Yes/No value in the Data submitter column. All rows for a duplicate email are excluded, including active/revoked
 conflicts; each is warned about as it is read and listed again in the final
 summary. Duplicates do not stop the run or change the exit status. Revoked rows are never created; in update modes they remove
 membership (see `Revoked rows`_).
@@ -51,14 +51,16 @@ consortia, submits_for, and dbgap membership; they do not change names.
   associate membership never removes centers by itself. Associates who end up
   with submission centers are printed as ``MANUAL REVIEW`` lines and in the
   final summary, because that combination is unusual and access-sensitive.
-* Data submitter Yes grants the listed centers; No removes submission rights,
-  **except that DAC members always retain the historical smaht_dac grant**.
+* The Data submitter column lists the center codes the user may submit for,
+  parsed and validated like the center column. It is the source of truth for
+  submits_for: listed codes replace the user's submits_for, and a blank or
+  NIH-only cell removes it (``delete_fields``). The codes need not appear in the
+  center column. **DAC members (``dac`` in the center column) always retain the
+  historical smaht_dac grant**, even when Data submitter is blank.
 * DUA signed Yes adds ``dbgap``; No removes it without removing other groups.
-* Blank flags (including an absent associate column) preserve existing managed
-  values during updates. A missing center with submitter Yes or blank also
-  preserves existing submission rights (but still removes submission_centers).
-  Use explicit No for deliberate removal, rather than relying on incomplete
-  spreadsheet data.
+* Blank DUA and associate flags (including an absent associate column)
+  preserve existing values during updates. Use explicit No for deliberate
+  removal, rather than relying on incomplete spreadsheet data.
 
 Revoked rows
 ------------
