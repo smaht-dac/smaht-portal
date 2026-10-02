@@ -419,9 +419,7 @@ export default class App extends React.PureComponent {
             // Set Alert if not on homepage and not logged in. This 'if' logic will likely change later
             // especially if have multiple 'for-public' pages like blog posts, news, documentation, etc.
             if (!session && pathname != '/') {
-                // MAYBE TODO next time are working on shared-portal-components (SPC) repository:
-                // Put this Alert into SPC as a predefined/constant export, then cancel/remove it (if active) in the callback function
-                // upon login success ( https://github.com/4dn-dcic/shared-portal-components/blob/master/src/components/navigation/components/LoginController.js#L111 )
+                // Cancelled on login success by `updateAppSessionState` below.
                 Alerts.queue(NotLoggedInAlert);
             }
         });
@@ -1454,12 +1452,15 @@ export default class App extends React.PureComponent {
             'child-src blob:',
             // Allowing unsafe-eval temporarily re: 'box-intersect' dependency of some HiGlass tracks.
             'frame-src https://www.google.com/recaptcha/ https://www.youtube.com',
-            // Allow anything on https://*.auth0.com domain to allow customization of Auth0 - Will Jan 31 2023
-            "script-src 'self' www.google-analytics.com www.googletagmanager.com https://*.auth0.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
+            "script-src 'self' www.google-analytics.com www.googletagmanager.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com  https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
             "worker-src 'self' blob:",
-            "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com",
+            // Okta is reached directly by the browser: the PKCE token exchange,
+            // token revocation on logout, and the issuer's JWKS/discovery
+            // documents are all fetch()es from this page. Without these the
+            // login flow fails only on a deployed origin, never locally.
+            "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com https://*.okta.com https://*.oktapreview.com",
         ].join('; ');
         // In future consider adding: object-src 'none'; require-trusted-types-for 'script';
         // (from google csp eval -- Will says what we have is fine for now, though)

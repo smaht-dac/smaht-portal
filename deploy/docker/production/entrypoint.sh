@@ -24,21 +24,24 @@ cat /dev/urandom | head -c 256 | base64 >> session-secret.b64
 
 echo "Resolving which entrypoint is desired"
 
+# Dispatch with `exec` so the selected role script REPLACES this shell as PID 1
+# (B5). That gives the role's final process (e.g. supervisord) proper container
+# signal delivery, and means no long-lived parent shell lingers holding the
+# original ECS-injected environment (which includes the TLS secret) for other
+# same-uid processes to read.
 # shellcheck disable=SC2154
 if [ "$application_type" = $deployment ]; then
   exec sh entrypoint_deployment.sh
 elif [ "$application_type" = $ingester ]; then
-  sh entrypoint_ingester.sh
+  exec sh entrypoint_ingester.sh
 elif [ "$application_type" = $indexer ]; then
-  sh entrypoint_indexer.sh
+  exec sh entrypoint_indexer.sh
 elif [ "$application_type" = $portal ]; then
-  sh entrypoint_portal.sh
+  exec sh entrypoint_portal.sh
 elif [ "$application_type" = $local ]; then
-  sh entrypoint_local.sh
+  exec sh entrypoint_local.sh
 else
   echo "Could not resolve entrypoint! Check that \$application_type is set."
   exit 1
 fi
-
-exit 0
 
