@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+2.13.13
+=======
+
+`PR 774 Another User management script update <https://github.com/smaht-dac/smaht-portal/pull/774>`_
+
+* submits_for is set from submission-center code(s) in OC spreadsheet (used to be Yes or blank). 
+* On update they replace the existing value; a change in order alone is not treated as a change.
+* A blank or NIH-only cell removes submits_for (delete_fields).
+
+
 2.13.12
 =======
 
