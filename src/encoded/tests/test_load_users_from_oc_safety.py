@@ -86,13 +86,14 @@ def _run(rows, tmp_path, monkeypatch, mode='--update-changed', extra=()):
     return _processor(key={}).main(args)
 
 
-@pytest.mark.parametrize('flag', ['Yes', 'No', ''])
+@pytest.mark.parametrize('codes,expected', [('', ['smaht_dac']), (' NIH ', ['smaht_dac']),
+                                            ('sc1', ['sc1', 'smaht_dac']), ('dac', ['smaht_dac'])])
 @pytest.mark.parametrize('mode', ['--create-new', '--update-changed', '--update-all'])
-def test_dac_always_has_historical_submission_grant(flag, mode, portal, tmp_path, monkeypatch):
+def test_dac_always_has_historical_submission_grant(codes, expected, mode, portal, tmp_path, monkeypatch):
     if mode != '--create-new':
-        portal.users[EMAIL] = {'consortia': ['smaht']}
-    assert _run([_row(EMAIL, sc=' DAC ', submitter=flag)], tmp_path, monkeypatch, mode) == 0
-    assert portal.users[EMAIL]['submits_for'] == ['smaht_dac']
+        portal.users[EMAIL] = {'consortia': ['smaht'], 'submits_for': ['other']}
+    assert _run([_row(EMAIL, sc=' DAC ', submitter=codes)], tmp_path, monkeypatch, mode) == 0
+    assert portal.users[EMAIL]['submits_for'] == expected
 
 
 @pytest.mark.parametrize('centers,expected', [
@@ -101,7 +102,7 @@ def test_dac_always_has_historical_submission_grant(flag, mode, portal, tmp_path
     ('', []), (' NIH ', []), (' , , ', []),
 ])
 def test_creation_normalizes_and_validates_exact_links(centers, expected, portal, tmp_path, monkeypatch):
-    assert _run([_row(EMAIL, sc=centers, submitter='Yes')], tmp_path, monkeypatch, '--create-new') == 0
+    assert _run([_row(EMAIL, sc=centers, submitter=centers)], tmp_path, monkeypatch, '--create-new') == 0
     created = portal.users[EMAIL]
     if expected:
         assert created['submission_centers'] == created['submits_for'] == expected
@@ -120,7 +121,7 @@ def test_duplicate_and_revoked_rows_do_not_validate_unused_centers(portal, tmp_p
     assert list(portal.users) == ['valid@example.org']
 
 
-@pytest.mark.parametrize('column,value', [(3, 'perhaps'), (8, 'maybe'), (9, 'N/A'), (10, 'true'),
+@pytest.mark.parametrize('column,value', [(3, 'perhaps'), (8, 'Yes'), (8, ' no '), (9, 'N/A'), (10, 'true'),
                                          (4, ''), (4, 'not an email'), (1, ''), (2, ' ')])
 def test_malformed_row_aborts_all_preflight(column, value, portal, tmp_path, monkeypatch):
     bad = _row('bad@example.org')
@@ -204,7 +205,7 @@ def test_compound_invalid_link_stops_before_writes(portal, tmp_path, monkeypatch
 
     monkeypatch.setattr(command, 'get_metadata', get)
     with pytest.raises(HTTPError):
-        _run([_row(EMAIL, sc='sc1,bad', submitter='Yes')], tmp_path, monkeypatch, '--create-new')
+        _run([_row(EMAIL, sc='sc1,bad', submitter='sc1')], tmp_path, monkeypatch, '--create-new')
     assert '/submission-centers/sc1' in portal.gets
     assert portal.posts == portal.patches == []
 
@@ -218,24 +219,23 @@ def test_update_modes_skip_missing_and_noncurrent_users(status, mode, portal, tm
     assert portal.posts == portal.patches == []
 
 
-@pytest.mark.parametrize('flag,expected', [('', ['sc1']), ('Yes', ['sc1']), ('No', [])])
-def test_blank_center_does_not_imply_removal(flag, expected, portal, tmp_path, monkeypatch, capsys):
+@pytest.mark.parametrize('codes,expected', [('sc1', ['sc1']), ('', []), (' NIH ', [])])
+def test_blank_center_column_does_not_drive_submits_for(codes, expected, portal, tmp_path, monkeypatch, capsys):
     portal.users[EMAIL] = {'consortia': ['smaht'], 'submits_for': ['sc1']}
-    assert _run([_row(EMAIL, sc='', submitter=flag)], tmp_path, monkeypatch,
+    assert _run([_row(EMAIL, sc='', submitter=codes)], tmp_path, monkeypatch,
                 extra=['--verbose']) == 0
     assert portal.users[EMAIL].get('submits_for', []) == expected
-    out = capsys.readouterr().out
-    assert 'updating without submission_centers/submits_for' not in out
-    if flag == 'No':
-        assert 'delete_fields=submits_for' in out
-    else:
+    if expected:
         assert portal.patches == []
+    else:
+        assert portal.patches == [({}, '?delete_fields=submits_for')]
+        assert '"submits_for": []' not in capsys.readouterr().out
 
 
 def test_blank_flags_and_missing_associate_column_preserve_managed_values(portal, tmp_path, monkeypatch):
     portal.users[EMAIL] = {'consortia': ['other', 'smaht', 'smaht_associate'], 'submits_for': ['sc1'],
                            'groups': ['admin', 'dbgap'], 'submission_centers': ['sc1']}
-    row = _row(EMAIL, dua='', sc='sc1', submitter='')[:10]
+    row = _row(EMAIL, dua='', sc='sc1', submitter='sc1')[:10]
     assert _run([row], tmp_path, monkeypatch) == 0
     assert portal.patches == []
 
@@ -243,7 +243,7 @@ def test_blank_flags_and_missing_associate_column_preserve_managed_values(portal
 def test_deliberate_removals_are_idempotent_and_preserve_unmanaged_values(portal, tmp_path, monkeypatch):
     portal.users[EMAIL] = {'consortia': ['other', 'smaht_associate', 'smaht'], 'groups': ['admin', 'dbgap'],
                            'submits_for': ['sc1'], 'submission_centers': ['original'], 'first_name': 'Original'}
-    rows = [_row(EMAIL, sc='sc2', submitter=' no ', dua='NO', associate='nO')]
+    rows = [_row(EMAIL, sc='sc2', submitter='', dua='NO', associate='nO')]
     assert _run(rows, tmp_path, monkeypatch) == 0
     assert len(portal.patches) == 1
     updated = portal.users[EMAIL]
@@ -259,7 +259,7 @@ def test_deliberate_removals_are_idempotent_and_preserve_unmanaged_values(portal
 
 
 def test_create_then_change_then_no_change_is_bounded(portal, tmp_path, monkeypatch):
-    rows = [_row(EMAIL, sc='sc1', dua=' yes ', submitter='YES', associate='Yes')]
+    rows = [_row(EMAIL, sc='sc1', dua=' yes ', submitter='SC1', associate='Yes')]
     assert _run(rows, tmp_path, monkeypatch, '--create-new') == 0
     assert _run(rows, tmp_path, monkeypatch, '--create-new') == 0
     assert len(portal.posts) == 1
@@ -313,7 +313,7 @@ def test_uuid_only_links_resolve_once_and_do_not_trigger_false_updates(portal, t
         portal.users[email] = {'consortia': [{'@id': '/consortia/smaht/'}],
                                'submits_for': [{'@id': f'/submission-centers/{uuid}/'}],
                                'submission_centers': [uuid]}
-    rows = [_row(email, sc='sc1', submitter='Yes') for email in portal.users]
+    rows = [_row(email, sc='sc1', submitter='sc1') for email in portal.users]
     assert _run(rows, tmp_path, monkeypatch) == 0
     assert portal.patches == []
     assert portal.gets.count(f'/submission-centers/{uuid}') == 1
@@ -398,7 +398,8 @@ def test_alias_and_uuid_spreadsheet_links_compare_as_identifiers(portal, tmp_pat
     portal.links['/submission-centers/old_alias'] = {'identifier': 'sc1'}
     portal.users[EMAIL] = {'consortia': ['smaht'], 'submits_for': [{'identifier': 'sc1'}],
                            'submission_centers': [{'@id': '/submission-centers/sc1/'}]}
-    assert _run([_row(EMAIL, sc=f'{uuid},old_alias', submitter='Yes')], tmp_path, monkeypatch) == 0
+    assert _run([_row(EMAIL, sc=f'{uuid},old_alias', submitter=f'{uuid},old_alias')], tmp_path,
+                monkeypatch) == 0
     assert portal.patches == []
     assert portal.gets.count(f'/submission-centers/{uuid}') == 1
 
@@ -407,7 +408,7 @@ def test_uuid_without_identifier_fails_closed(portal, tmp_path, monkeypatch):
     uuid = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
     portal.links[f'/submission-centers/{uuid}'] = {'@id': f'/submission-centers/{uuid}/'}
     portal.users[EMAIL] = {'consortia': ['smaht'], 'submits_for': [uuid]}
-    assert _run([_row(EMAIL, sc='sc1', submitter='Yes')], tmp_path, monkeypatch) == 1
+    assert _run([_row(EMAIL, sc='sc1', submitter='sc1')], tmp_path, monkeypatch) == 1
     assert portal.patches == []
 
 
@@ -428,7 +429,7 @@ def test_link_cache_initializes_for_direct_processor_use():
 def test_update_all_omits_unchanged_fields(portal, tmp_path, monkeypatch):
     portal.users[EMAIL] = {'consortia': ['smaht'], 'submits_for': ['sc1'], 'groups': ['admin', 'dbgap'],
                            'submission_centers': ['sc1']}
-    row = _row(EMAIL, sc='sc1', submitter='', dua='', associate='')
+    row = _row(EMAIL, sc='sc1', submitter='sc1', dua='', associate='')
     assert _run([row], tmp_path, monkeypatch, '--update-all') == 0
     assert portal.patches == [({}, '')]
     row[3] = 'No'
@@ -532,18 +533,19 @@ def test_malformed_existing_centers_fail_before_patch(value, portal, tmp_path, m
     assert portal.patches == []
 
 
-@pytest.mark.parametrize('flag,expected_submits_for', [('No', None), ('', ['old']), ('Yes', ['sc1'])])
-def test_center_affiliation_is_independent_of_submitter(flag, expected_submits_for, portal, tmp_path, monkeypatch):
+@pytest.mark.parametrize('codes,expected_submits_for', [('', None), ('old', ['old']), ('sc2', ['sc2']),
+                                                        ('sc1,sc2', ['sc1', 'sc2'])])
+def test_center_affiliation_is_independent_of_submitter(codes, expected_submits_for, portal, tmp_path, monkeypatch):
     portal.users[EMAIL] = {'consortia': ['smaht'], 'submits_for': ['old']}
-    assert _run([_row(EMAIL, sc='sc1', submitter=flag)], tmp_path, monkeypatch) == 0
+    assert _run([_row(EMAIL, sc='sc1', submitter=codes)], tmp_path, monkeypatch) == 0
     updated = portal.users[EMAIL]
     assert updated['submission_centers'] == ['sc1']
     assert updated.get('submits_for') == expected_submits_for
 
 
-def test_blank_center_with_submitter_no_clears_both_in_one_patch(portal, tmp_path, monkeypatch):
+def test_blank_center_and_submitter_clear_both_in_one_patch(portal, tmp_path, monkeypatch):
     portal.users[EMAIL] = {'consortia': ['smaht'], 'submits_for': ['sc1'], 'submission_centers': ['sc1']}
-    assert _run([_row(EMAIL, sc='', submitter='No')], tmp_path, monkeypatch) == 0
+    assert _run([_row(EMAIL, sc='', submitter='')], tmp_path, monkeypatch) == 0
     assert portal.patches == [({}, '?delete_fields=submits_for,submission_centers')]
 
 
@@ -601,7 +603,7 @@ def _member(**extra):
 @pytest.mark.parametrize('status', ['current', 'inactive', 'revoked'])
 def test_revoked_row_clears_everything_in_one_patch_without_status_change(status, portal, tmp_path, monkeypatch):
     portal.users[EMAIL] = _member(status=status)
-    rows = [_row(EMAIL, sc='bogus', dua='Yes', submitter='Yes', revoked='Yes', associate='Yes')]
+    rows = [_row(EMAIL, sc='bogus', dua='Yes', submitter='bogus2', revoked='Yes', associate='Yes')]
     assert _run(rows, tmp_path, monkeypatch) == 0
     assert portal.patches == [({}, '?delete_fields=groups,consortia,submission_centers,submits_for')]
     assert portal.users[EMAIL] == {'status': status, 'first_name': 'Original'}
@@ -682,3 +684,51 @@ def test_duplicate_summary_printed_when_every_row_is_a_duplicate(portal, tmp_pat
     assert _run([_row(EMAIL), _row(EMAIL)], tmp_path, monkeypatch) == 0
     assert f'1 duplicate emails were excluded (all rows skipped): {EMAIL}' in capsys.readouterr().out
     assert portal.gets == portal.patches == []
+
+
+# ---------------------------------------------------------------------------------
+# Data submitter column holds the centers the user submits for
+# ---------------------------------------------------------------------------------
+
+def test_submitter_codes_replace_submits_for_and_are_idempotent(portal, tmp_path, monkeypatch):
+    portal.users[EMAIL] = {'consortia': ['smaht'], 'submission_centers': ['sc1'], 'submits_for': ['old']}
+    rows = [_row(EMAIL, sc='sc1', submitter=' SC2, sc3 ,sc2')]
+    assert _run(rows, tmp_path, monkeypatch) == 0
+    assert portal.patches == [({'submits_for': ['sc2', 'sc3']}, '')]
+    assert _run(rows, tmp_path, monkeypatch) == 0
+    rows[0][8] = 'sc3,sc2'  # ordering is not a permission change
+    assert _run(rows, tmp_path, monkeypatch) == 0
+    assert len(portal.patches) == 1
+
+
+def test_submitter_codes_need_not_match_center_column(portal, tmp_path, monkeypatch, capsys):
+    assert _run([_row(EMAIL, sc='sc1', submitter='sc2')], tmp_path, monkeypatch, '--create-new') == 0
+    created = portal.users[EMAIL]
+    assert created['submission_centers'] == ['sc1'] and created['submits_for'] == ['sc2']
+    assert 'WARNING' not in capsys.readouterr().out
+
+
+def test_bogus_submitter_code_aborts_before_any_write(portal, tmp_path, monkeypatch):
+    portal.users[EMAIL] = {'consortia': ['smaht']}
+    original_get = portal.get
+
+    def get(path, key):
+        if path == '/submission-centers/bogus':
+            raise _http_error(404)
+        return original_get(path, key)
+
+    monkeypatch.setattr(command, 'get_metadata', get)
+    with pytest.raises(HTTPError):
+        _run([_row(EMAIL, sc='sc1', submitter='sc1,bogus')], tmp_path, monkeypatch)
+    assert portal.posts == portal.patches == []
+    assert f'/users/{EMAIL}' not in portal.gets
+
+
+def test_submitter_alias_resolves_once_in_preflight(portal, tmp_path, monkeypatch):
+    portal.links['/submission-centers/old_alias'] = {'identifier': 'sc2'}
+    for email in [EMAIL, 'bob@example.org']:
+        portal.users[email] = {'consortia': ['smaht'], 'submission_centers': ['sc1'], 'submits_for': ['sc2']}
+    rows = [_row(email, sc='sc1', submitter='old_alias') for email in portal.users]
+    assert _run(rows, tmp_path, monkeypatch) == 0
+    assert portal.patches == []
+    assert portal.gets.count('/submission-centers/old_alias') == 1
