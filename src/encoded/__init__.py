@@ -400,6 +400,7 @@ def main(global_config, **local_config):
         config.include('snovault.elasticsearch')
         config.include('snovault.search.search')
         config.include('encoded.browse')
+        config.include('encoded.tissue_overview')
         config.include('snovault.search.compound_search')
 
     # this contains fall back url, so make sure it comes just before static_resoruces

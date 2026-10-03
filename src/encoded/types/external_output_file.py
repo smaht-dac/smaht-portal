@@ -79,6 +79,7 @@ class ExternalOutputFile(SubmittedFile):
             ),
             CalcPropConstants.SAMPLE_SUMMARY_CATEGORY: eof_utils.get_tissue_category(file_properties, request_handler),
             CalcPropConstants.SAMPLE_SUMMARY_TISSUES: eof_utils.get_tissue_type(file_properties, request_handler),
+            CalcPropConstants.SAMPLE_SUMMARY_PRESERVATION_TYPES: eof_utils.get_preservation_type(file_properties, request_handler),
             CalcPropConstants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
                 request_handler,
                 eof_utils.get_uberon_ids(file_properties, request_handler),

@@ -161,7 +161,10 @@ function FileTableWithSelectedFilesCheckboxes(props) {
 
     const passProps = {
         href,
-        context,
+        // WindowNavigationController recomputes facets from context.facets
+        // and clobbers `facets` below, so title overrides must be baked into
+        // context.facets itself (see SearchView.js's transformedFacets).
+        context: { ...context, facets },
         facets,
         session,
         schemas,
