@@ -74,7 +74,8 @@ RELEASE_SUMMARY_AUDIENCE = (
     "* For the SMaHT Network members with Data Use Agreements established "
     "for data access *"
 )
-RETRACTED_FILES_URL = "https://data.smaht.org/retracted-files"
+PORTAL_URL = "https://data.smaht.org"
+RETRACTED_FILES_URL = f"{PORTAL_URL}/retracted-files"
 
 DONOR_SEX_ABBREVIATIONS = {"Male": "M", "Female": "F"}
 # Donor ages above 89 are stored as 89 (see abstract_donor.json).
@@ -339,6 +340,15 @@ def get_title_donor_labels(
     return labels
 
 
+def recent_releases_url(date_from: str) -> str:
+    """The Recent Releases page, opened on the month of `date_from`."""
+    month = date_from[:7]
+    query = urlencode(
+        [("view", "monthly"), ("date", f"{month}-01"), ("month", month)]
+    )
+    return f"{PORTAL_URL}/recent-releases?{query}"
+
+
 def format_release_summary(
     totals: Dict[Tuple[str, str], int], date_from: str, date_to: str,
     retracted_count: int, title_labels: Optional[Dict[str, str]] = None,
@@ -355,7 +365,13 @@ def format_release_summary(
         f"Data Files Released Between {date_from} and {date_to} "
         "on the SMaHT Data Portal"
     )
-    lines += [RELEASE_SUMMARY_AUDIENCE, "", f"NEW DATA - {count_files(total)} released.", ""]
+    lines += [
+        RELEASE_SUMMARY_AUDIENCE,
+        "",
+        f"NEW DATA - {count_files(total)} released.",
+        f"{recent_releases_url(date_from)}",
+        "",
+    ]
 
     # Count descending, then name, so the text is stable enough to assert on.
     def by_count_then_name(item):

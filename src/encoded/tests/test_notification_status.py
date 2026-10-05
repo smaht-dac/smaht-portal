@@ -1027,6 +1027,8 @@ def test_format_release_summary_orders_by_count():
         " established for data access *\n"
         "\n"
         "NEW DATA - 9 files released.\n"
+        "* See the details here: https://data.smaht.org/recent-releases"
+        "?view=monthly&date=2026-08-01&month=2026-08\n"
         "\n"
         "ST001\n"
         "  - 4 WGS Illumina NovaSeq X BAM\n"
@@ -1092,6 +1094,15 @@ def test_format_release_summary_appends_donor_labels():
     assert "SMHT023-3Q (M57)" in lines
     # No label, no parentheses.
     assert "COLO829T" in lines
+
+
+def test_format_release_summary_links_the_from_month():
+    # A window that starts mid-month still opens that whole month.
+    text = notification_status.format_release_summary(
+        {}, "2026-09-15", "2026-10-05", 0)
+
+    assert ("https://data.smaht.org/recent-releases"
+            "?view=monthly&date=2026-09-01&month=2026-09") in text
 
 
 def donor_hit(title, *donors):
