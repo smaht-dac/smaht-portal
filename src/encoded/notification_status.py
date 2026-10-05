@@ -369,7 +369,7 @@ def format_release_summary(
         RELEASE_SUMMARY_AUDIENCE,
         "",
         f"NEW DATA - {count_files(total)} released.",
-        f"{recent_releases_url(date_from)}",
+        recent_releases_url(date_from),
         "",
     ]
 

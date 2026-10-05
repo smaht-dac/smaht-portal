@@ -1027,7 +1027,7 @@ def test_format_release_summary_orders_by_count():
         " established for data access *\n"
         "\n"
         "NEW DATA - 9 files released.\n"
-        "* See the details here: https://data.smaht.org/recent-releases"
+        "https://data.smaht.org/recent-releases"
         "?view=monthly&date=2026-08-01&month=2026-08\n"
         "\n"
         "ST001\n"
