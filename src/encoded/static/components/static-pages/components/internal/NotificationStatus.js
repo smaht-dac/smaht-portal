@@ -36,6 +36,23 @@ function sendResultClass(result) {
     return result.success ? 'alert-info' : 'alert-danger';
 }
 
+// Prefilled at the end of every new draft, above the SNS footer, so it can be
+// edited per message. Points subscribers at the portal's own unsubscribe:
+// the SNS link would drop them from the topic but leave the profile opted in.
+export const UNSUBSCRIBE_NOTICE = [
+    'If you would like to stop receiving this message, please unsubscribe by clicking the ‘Unsubscribe’ button on your Profile page in the SMaHT Data Portal, ***not by clicking the AWS link below***.\n',
+    'In case of any issues, please contact the SMaHT Data Analysis Center by submitting a HelpDesk ticket from the SMaHT Data Portal (https://data.smaht.org).',
+].join('\n');
+
+// What a new draft starts with: empty lines to write in, then the notice.
+const DEFAULT_BODY = '\n\n\n\n' + UNSUBSCRIBE_NOTICE;
+
+// True once the body holds something beyond the prefilled notice.
+function hasBodyContent(bodyText) {
+    const trimmed = bodyText.trim();
+    return !!trimmed && trimmed !== UNSUBSCRIBE_NOTICE;
+}
+
 // Appended by SNS to every `Protocol="email"` delivery. Reproduced so the
 // preview shows what subscribers receive; correct it here if AWS changes it.
 export const AWS_SNS_FOOTER = [
@@ -125,10 +142,18 @@ function monthStart(monthOffset) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
+// The last day of the month `monthOffset` months from now, as YYYY-MM-DD. Day 0
+// of the following month is the last day of this one.
+function monthEnd(monthOffset) {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth() + monthOffset + 1, 0);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function ReleasedFilesModal({ onClose, onLoad }) {
     // Defaults to the whole of the previous calendar month.
     const [dateFrom, setDateFrom] = React.useState(() => monthStart(-1));
-    const [dateTo, setDateTo] = React.useState(() => monthStart(0));
+    const [dateTo, setDateTo] = React.useState(() => monthEnd(-1));
     const [loading, setLoading] = React.useState(false);
     const [result, setResult] = React.useState(null);
     const [error, setError] = React.useState(null);
@@ -222,7 +247,7 @@ function ReleasedFilesModal({ onClose, onLoad }) {
                         </button>
                     </div>
                     <small className="text-secondary d-block mt-1">
-                        Both ends are inclusive and in UTC: files released from
+                        Both ends are inclusive: files released from
                         00:00 on the “from” date through 23:59 on the “to”
                         date.
                     </small>
@@ -460,7 +485,7 @@ class NotificationStatusComponent extends React.PureComponent {
             loadError: null,
             subject: '',
             subjectSanitized: false,
-            bodyText: '',
+            bodyText: DEFAULT_BODY,
             notificationType: 'data_release',
             sendingMode: null,
             sendResult: null,
@@ -599,7 +624,7 @@ class NotificationStatusComponent extends React.PureComponent {
                         message: 'Email sent to all subscribers.',
                     },
                     subject: '',
-                    bodyText: '',
+                    bodyText: DEFAULT_BODY,
                 });
                 this.refreshHistoryUntilPresent(resp.uuid);
             },
@@ -671,9 +696,24 @@ class NotificationStatusComponent extends React.PureComponent {
 
     appendToBody = (text) => {
         this.setState((prev) => {
+            // Keep the notice last: insert above it while it still closes
+            // the body, otherwise append as before.
+            const body = prev.bodyText.trimEnd();
+            if (body.endsWith(UNSUBSCRIBE_NOTICE)) {
+                const head = body
+                    .slice(0, -UNSUBSCRIBE_NOTICE.length)
+                    .trimEnd();
+                return {
+                    bodyText:
+                        (head ? head + '\n\n' : '') +
+                        text +
+                        '\n\n\n' +
+                        UNSUBSCRIBE_NOTICE,
+                };
+            }
             return {
                 bodyText: prev.bodyText
-                    ? prev.bodyText + '\n\n' + text
+                    ? prev.bodyText + '\n\n\n' + text
                     : text,
             };
         });
@@ -792,7 +832,7 @@ class NotificationStatusComponent extends React.PureComponent {
                                     onClick={this.openTestConfirm}
                                     disabled={
                                         !subject ||
-                                        !bodyText ||
+                                        !hasBodyContent(bodyText) ||
                                         sendingMode !== null
                                     }>
                                     {sendingMode === 'test' ? (
@@ -810,7 +850,7 @@ class NotificationStatusComponent extends React.PureComponent {
                                     onClick={this.openAllConfirm}
                                     disabled={
                                         !subject ||
-                                        !bodyText ||
+                                        !hasBodyContent(bodyText) ||
                                         sendingMode !== null ||
                                         !canNotifyAll
                                     }>

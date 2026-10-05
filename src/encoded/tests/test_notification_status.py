@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import Mock, call
+from urllib.parse import parse_qs
 
 import pytest
 import webtest
@@ -961,11 +962,18 @@ def month_bucket(month, *titles, day=None):
         month, count, inner)
 
 
-def mock_release_summary(monkeypatch, tree):
+def mock_release_summary(monkeypatch, tree, retracted_total=0, donor_graph=()):
     summary = Mock(return_value=tree)
     monkeypatch.setattr(notification_status, "recent_files_summary", summary)
     monkeypatch.setattr(
         notification_status, "make_search_subreq", Mock(return_value=Mock())
+    )
+    # One response serves both plain searches: the donor-label search reads
+    # only `@graph`, the retracted-files count only `total`.
+    monkeypatch.setattr(
+        notification_status, "search",
+        Mock(return_value={
+            "total": retracted_total, "@graph": list(donor_graph)}),
     )
     return summary
 
@@ -1007,20 +1015,30 @@ def test_format_release_summary_orders_by_count():
     }
 
     text = notification_status.format_release_summary(
-        totals, "2026-08-01", "2026-09-01")
+        totals, "2026-08-01", "2026-09-01", 5)
 
-    heading = "Files Released Between 2026-08-01 and 2026-09-01"
+    released = ("Data Files Released Between 2026-08-01 and 2026-09-01"
+                " on the SMaHT Data Portal")
+    retracted = ("Data Files Retracted / Replaced Between 2026-08-01"
+                 " and 2026-09-01")
     assert text == (
-        f"{heading}\n{'-' * len(heading)}\n"
+        f"{'-' * len(released)}\n{released}\n{'-' * len(released)}\n"
+        "* For the SMaHT Network members with Data Use Agreements"
+        " established for data access *\n"
         "\n"
-        "9 files released.\n"
+        "NEW DATA - 9 files released.\n"
         "\n"
         "ST001\n"
-        "  - 4 WGS Illumina NovaSeq X bam\n"
-        "  - 2 Fiber-seq PacBio Revio bam\n"
+        "  - 4 WGS Illumina NovaSeq X BAM\n"
+        "  - 2 Fiber-seq PacBio Revio BAM\n"
         "\n"
         "COLO829T\n"
-        "  - 3 RNA-seq Illumina NovaSeq X bam"
+        "  - 3 RNA-seq Illumina NovaSeq X BAM\n"
+        "\n"
+        "\n"
+        f"{'-' * len(retracted)}\n{retracted}\n{'-' * len(retracted)}\n"
+        "5 files retracted\n"
+        "* See the complete list here: https://data.smaht.org/retracted-files"
     )
     # No trailing newline: the composer appends this with '\n\n' + text.
     assert not text.endswith("\n")
@@ -1032,11 +1050,104 @@ def test_format_release_summary_headline_matches_the_breakdown():
     totals = {("ST001", "a bam"): 4, ("ST002", "b bam"): 7}
 
     text = notification_status.format_release_summary(
-        totals, "2026-08-01", "2026-09-01")
+        totals, "2026-08-01", "2026-09-01", 0)
 
-    assert "11 files released." in text
+    assert "NEW DATA - 11 files released." in text
     assert sum(int(line.split()[1]) for line in text.splitlines()
                if line.startswith("  - ")) == 11
+
+
+def test_format_release_summary_keeps_retracted_section_without_releases():
+    text = notification_status.format_release_summary(
+        {}, "2026-08-01", "2026-09-01", 2)
+
+    assert "NEW DATA - 0 files released." in text
+    assert "  - " not in text
+    assert "2 files retracted" in text
+
+
+@pytest.mark.parametrize("count,expected", [
+    (0, "0 files"), (1, "1 file"), (2, "2 files"),
+])
+def test_count_files_pluralizes(count, expected):
+    assert notification_status.count_files(count) == expected
+
+
+def test_format_release_summary_uses_singular_for_one():
+    text = notification_status.format_release_summary(
+        {("ST001", "a bam"): 1}, "2026-08-01", "2026-09-01", 1)
+
+    assert "NEW DATA - 1 file released." in text
+    assert "1 file retracted" in text
+    assert "1 files" not in text
+
+
+def test_format_release_summary_appends_donor_labels():
+    totals = {("SMHT023-3Q", "CompDuplex-seq bam"): 2, ("COLO829T", "WGS bam"): 1}
+
+    text = notification_status.format_release_summary(
+        totals, "2026-09-01", "2026-09-30", 0, {"SMHT023-3Q": "M57"})
+
+    lines = text.splitlines()
+    assert "SMHT023-3Q (M57)" in lines
+    # No label, no parentheses.
+    assert "COLO829T" in lines
+
+
+def donor_hit(title, *donors):
+    return {
+        "release_tracker_title": title,
+        "donors": [{"sex": sex, "age": age} for sex, age in donors],
+    }
+
+
+@pytest.mark.parametrize("hits,expected", [
+    ([donor_hit("T1", ("Male", 57))], {"T1": "M57"}),
+    # The schema stores every age above 89 as 89.
+    ([donor_hit("T1", ("Female", 89))], {"T1": "F89+"}),
+    # Every file of a title agreeing on one donor still gives one label.
+    ([donor_hit("T1", ("Male", 57)), donor_hit("T1", ("Male", 57))],
+     {"T1": "M57"}),
+    # Two donors under one title: no guessing.
+    ([donor_hit("T1", ("Male", 57)), donor_hit("T1", ("Female", 40))], {}),
+    ([donor_hit("T1", ("Male", 57), ("Female", 40))], {}),
+    ([donor_hit("T1", ("Unknown", 57))], {}),
+    ([donor_hit("T1", ("Male", None))], {}),
+    ([donor_hit("COLO829T")], {}),
+    ([{"donors": [{"sex": "Male", "age": 57}]}], {}),
+])
+def test_get_title_donor_labels(hits, expected, monkeypatch):
+    mock_search(monkeypatch, hits)
+
+    labels = notification_status.get_title_donor_labels(
+        None, fake_request(), "2026-09-01", "2026-09-30")
+
+    assert labels == expected
+
+
+def test_get_title_donor_labels_queries_released_files_in_window(monkeypatch):
+    mock_search(monkeypatch, [])
+
+    notification_status.get_title_donor_labels(
+        None, fake_request(), "2026-09-01", "2026-09-30")
+
+    path = notification_status.make_search_subreq.call_args.args[1]
+    query = parse_qs(path.split("?", 1)[1])
+    assert query["type"] == ["File"]
+    assert set(query["status"]) == set(
+        notification_status.QUERY_FILE_STATUSES)
+    assert query["file_status_tracking.release_dates.initial_release.from"] \
+        == ["2026-09-01"]
+    assert query["file_status_tracking.release_dates.initial_release.to"] \
+        == ["2026-09-30"]
+    assert query["release_tracker_title!"] == ["No value"]
+    assert query["field"] == ["release_tracker_title", "donors.sex", "donors.age"]
+    # The summary's own exclusions, so labels come from the files it counts.
+    assert query["sample_summary.studies"] == ["Production"]
+    assert query["data_category!"] == ["Quality Control"]
+    assert query["tags!"] == ["exclude_from_release_tracker"]
+    assert query["dataset!"] == ["No value"]
+    assert query["release_tracker_description!"] == ["No value"]
 
 
 def test_get_released_files_summary_requires_date_from(monkeypatch):
@@ -1058,9 +1169,46 @@ def test_get_released_files_summary_builds_text(monkeypatch):
 
     response = notification_status.get_released_files_summary(None, request)
 
-    assert "Files Released Between 2026-08-01 and 2026-10-01" in response["text"]
-    assert "3 files released." in response["text"]
-    assert "  - 3 WGS Illumina NovaSeq X bam" in response["text"]
+    assert "Released Between 2026-08-01 and 2026-10-01" in response["text"]
+    assert "NEW DATA - 3 files released." in response["text"]
+    assert "  - 3 WGS Illumina NovaSeq X BAM" in response["text"]
+
+
+def test_get_released_files_summary_labels_titles(monkeypatch):
+    mock_release_summary(
+        monkeypatch,
+        {"items": [month_bucket("2026-09", title_bucket(
+            "SMHT023-3Q", ("CompDuplex-seq Illumina NovaSeq X Plus bam", 2)))]},
+        donor_graph=[donor_hit("SMHT023-3Q", ("Male", 57))])
+    request = fake_request(
+        json_body={"date_from": "2026-09-01", "date_to": "2026-09-30"})
+
+    response = notification_status.get_released_files_summary(None, request)
+
+    assert "SMHT023-3Q (M57)\n  - 2 CompDuplex-seq Illumina NovaSeq X Plus BAM" \
+        in response["text"]
+
+
+def test_get_released_files_summary_counts_retracted_in_window(monkeypatch):
+    mock_release_summary(monkeypatch, {}, retracted_total=4)
+    request = fake_request(
+        json_body={"date_from": "2026-08-01", "date_to": "2026-09-30"})
+
+    response = notification_status.get_released_files_summary(None, request)
+
+    assert "4 files retracted" in response["text"]
+    # The same set the Retracted Files page lists, bounded to the window.
+    path = notification_status.make_search_subreq.call_args.args[1]
+    query = parse_qs(path.split("?", 1)[1])
+    assert query["type"] == ["File"]
+    assert query["status"] == ["retracted"]
+    assert query[
+        "file_status_tracking.release_dates.initial_release_date!"
+    ] == ["No value"]
+    assert query[
+        "file_status_tracking.status_tracking.retracted.from"] == ["2026-08-01"]
+    assert query[
+        "file_status_tracking.status_tracking.retracted.to"] == ["2026-09-30"]
 
 
 def test_get_released_files_summary_queries_a_bounded_window(monkeypatch):
@@ -1074,7 +1222,7 @@ def test_get_released_files_summary_queries_a_bounded_window(monkeypatch):
 
     notification_status.get_released_files_summary(None, request)
 
-    path = make_search_subreq.call_args.args[1]
+    path = make_search_subreq.call_args_list[0].args[1]
     assert "from_date=2020-01-01" in path
     # The caller's end date, not "today": the whole point of the second picker
     # is being able to summarize a month that has already ended.
@@ -1091,7 +1239,7 @@ def test_get_released_files_summary_without_date_to_runs_through_today(
     notification_status.get_released_files_summary(None, request)
 
     today = datetime.now(timezone.utc).date().isoformat()
-    assert f"thru_date={today}" in make_search_subreq.call_args.args[1]
+    assert f"thru_date={today}" in make_search_subreq.call_args_list[0].args[1]
 
 
 def test_get_released_files_summary_handles_empty_result(monkeypatch):
@@ -1101,9 +1249,8 @@ def test_get_released_files_summary_handles_empty_result(monkeypatch):
 
     response = notification_status.get_released_files_summary(None, request)
 
-    assert response == {
-        "text": "No files were released between 2026-08-01 and 2026-09-01."
-    }
+    assert "NEW DATA - 0 files released." in response["text"]
+    assert "0 files retracted" in response["text"]
 
 
 def test_get_released_files_summary_reports_failure(monkeypatch):

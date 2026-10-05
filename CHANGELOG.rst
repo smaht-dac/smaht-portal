@@ -10,18 +10,16 @@ Change Log
 2.14.0
 ======
 
-`PR #716: Add data-release email notification enrollment <https://github.com/smaht-dac/smaht-portal/pull/716>`_
+`PR #716: Data-release email notifications <https://github.com/smaht-dac/smaht-portal/pull/716>`_
 
-* Users can enroll their profile email in data-release email notifications from their
-  profile page; enrollment subscribes the email to an SNS topic and records the state
-  on the ``User`` item (``data_release_notification_enrolled``)
-* New endpoints: ``POST /register_notification``, ``POST /deregister_notification``
-  (authenticated users only), and ``GET /health/data-release-notifications``
-  (topic availability)
-* Deployment prerequisite: the feature stays hidden unless an SNS topic ARN is
-  configured (``sns_topic`` in settings or the ``SNS_TOPIC`` GAC key), and the portal
-  task role needs ``sns:Subscribe``, ``sns:Unsubscribe``, and
-  ``sns:ListSubscriptionsByTopic`` on that topic
+* Users with dbGaP access can subscribe to data-release emails from their profile page
+* New admin-only Notification Status page to compose plain-text announcements, preview
+  them, insert a summary of released and retracted files, and send a test email or an email
+  to all subscribers (sending to all is limited to named accounts)
+* New ``EmailNotification`` item type recording sent announcements
+* Deployment prerequisite: an SNS topic (``SNS_TOPIC``) and a ``<topic>-dryrun`` topic for
+  test sends, both with ``DisplayName`` set; the portal task role needs ``sns:Subscribe``,
+  ``sns:Unsubscribe``, ``sns:Publish`` and ``sns:ListSubscriptionsByTopic`` on them
 
 
 2.13.9

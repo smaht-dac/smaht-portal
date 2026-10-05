@@ -17,12 +17,19 @@ from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
 from urllib.parse import urlencode
 
+from .endpoints.elasticsearch_utils import AGGREGATION_NO_VALUE
 from .endpoints.endpoint_utils import create_query_string
 from .endpoints.recent_files_summary.recent_files_summary import (
+    QUERY_FILE_CATEGORIES,
+    QUERY_FILE_DATASET,
+    QUERY_FILE_STATUSES,
+    QUERY_FILE_TAGS,
+    QUERY_FILE_TYPES,
     recent_files_summary,
 )
 from .endpoints.recent_files_summary.recent_files_summary_fields import (
     AGGREGATION_FIELD_FILE_DESCRIPTOR,
+    AGGREGATION_FIELD_RELEASE_DATE,
     AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
 )
 from .notifications import (
@@ -62,6 +69,16 @@ UNNAMED_FILE = "(unnamed file)"
 RELEASE_SUMMARY_ERROR = (
     "Could not load the release summary. Please try again."
 )
+
+RELEASE_SUMMARY_AUDIENCE = (
+    "* For the SMaHT Network members with Data Use Agreements established "
+    "for data access *"
+)
+RETRACTED_FILES_URL = "https://data.smaht.org/retracted-files"
+
+DONOR_SEX_ABBREVIATIONS = {"Male": "M", "Female": "F"}
+# Donor ages above 89 are stored as 89 (see abstract_donor.json).
+DONOR_AGE_CAP = 89
 
 TARGET_TEST = "test"
 TARGET_ALL = "all"
@@ -242,13 +259,91 @@ def collect_release_counts(
     return totals
 
 
+def framed_heading(heading: str) -> List[str]:
+    """A heading between two dash rules of its own length."""
+    rule = "-" * len(heading)
+    return [rule, heading, rule]
+
+
+def uppercase_file_format(description: str) -> str:
+    """Uppercase the trailing file format: "... NovaSeq X bam" -> "... BAM".
+
+    `release_tracker_description` always ends with the file format's display
+    title (see File._get_release_tracker_description).
+    """
+    head, _, file_format = description.rpartition(" ")
+    return f"{head} {file_format.upper()}" if head else file_format.upper()
+
+
+def count_files(count: int) -> str:
+    """ "1 file", "2 files", "0 files"."""
+    return f"{count} file" if count == 1 else f"{count} files"
+
+
+def donor_label(sex: Optional[str], age: Optional[int]) -> Optional[str]:
+    """ "M57" for a 57-year-old male donor; "F89+" at the age cap."""
+    abbreviation = DONOR_SEX_ABBREVIATIONS.get(sex)
+    if not abbreviation or not isinstance(age, int):
+        return None
+    return f"{abbreviation}{age}+" if age >= DONOR_AGE_CAP else f"{abbreviation}{age}"
+
+
+def get_title_donor_labels(
+    context, request, date_from: str, date_to: str
+) -> Dict[str, str]:
+    """Map each release-tracker title to its donor's sex and age, e.g. "M57".
+
+    Read from the released files themselves. A title gets a label only when
+    all its files agree on a single donor with known sex and age, so cell
+    lines, mixtures and multi-donor titles stay unlabeled.
+    """
+    # The same filters as recent_files_summary's base query, so labels are read
+    # from exactly the files the summary counts -- not also from QC or
+    # tracker-excluded files, which would only enlarge this `limit=all` search.
+    # create_query_string turns each "!value" into "field!=value".
+    query = create_query_string({
+        "type": QUERY_FILE_TYPES,
+        "status": QUERY_FILE_STATUSES,
+        "data_category": QUERY_FILE_CATEGORIES,
+        "sample_summary.studies": ["Production"],
+        "dataset": QUERY_FILE_DATASET,
+        "tags": QUERY_FILE_TAGS,
+        f"{AGGREGATION_FIELD_RELEASE_DATE}.from": date_from,
+        f"{AGGREGATION_FIELD_RELEASE_DATE}.to": date_to,
+        AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE: f"!{AGGREGATION_NO_VALUE}",
+        AGGREGATION_FIELD_FILE_DESCRIPTOR: f"!{AGGREGATION_NO_VALUE}",
+        # Only what the label needs: snovault limits _source to these.
+        "field": [
+            AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
+            "donors.sex",
+            "donors.age",
+        ],
+        "limit": "all",
+    })
+    subreq = make_search_subreq(
+        request, f"/search?{query}", inherit_user=True
+    )
+    donors_by_title: Dict[str, set] = {}
+    for hit in search(context, subreq).get("@graph") or []:
+        title = hit.get(AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE)
+        if not title:
+            continue
+        pairs = donors_by_title.setdefault(title, set())
+        for donor in hit.get("donors") or []:
+            pairs.add((donor.get("sex"), donor.get("age")))
+
+    labels = {}
+    for title, pairs in donors_by_title.items():
+        if len(pairs) == 1 and (label := donor_label(*next(iter(pairs)))):
+            labels[title] = label
+    return labels
+
+
 def format_release_summary(
-    totals: Dict[Tuple[str, str], int], date_from: str, date_to: str
+    totals: Dict[Tuple[str, str], int], date_from: str, date_to: str,
+    retracted_count: int, title_labels: Optional[Dict[str, str]] = None,
 ) -> str:
     """Render the grouped counts as the plain text the composer inserts."""
-    if not totals:
-        return f"No files were released between {date_from} and {date_to}."
-
     by_title: Dict[str, Dict[str, int]] = {}
     for (title, description), count in totals.items():
         by_title.setdefault(title, {})[description] = count
@@ -256,8 +351,11 @@ def format_release_summary(
     # The headline is the sum of what is printed below it, so the two can never
     # disagree -- the tree's own top-level count is a separate figure.
     total = sum(totals.values())
-    heading = f"Files Released Between {date_from} and {date_to}"
-    lines = [heading, "-" * len(heading), "", f"{total} files released.", ""]
+    lines = framed_heading(
+        f"Data Files Released Between {date_from} and {date_to} "
+        "on the SMaHT Data Portal"
+    )
+    lines += [RELEASE_SUMMARY_AUDIENCE, "", f"NEW DATA - {count_files(total)} released.", ""]
 
     # Count descending, then name, so the text is stable enough to assert on.
     def by_count_then_name(item):
@@ -267,16 +365,44 @@ def format_release_summary(
         ((title, sum(rows.values())) for title, rows in by_title.items()),
         key=by_count_then_name,
     )
+    title_labels = title_labels or {}
     for title, _ in titles:
-        lines.append(title)
+        label = title_labels.get(title)
+        lines.append(f"{title} ({label})" if label else title)
         for description, count in sorted(
             by_title[title].items(), key=by_count_then_name
         ):
-            lines.append(f"  - {count} {description}")
+            lines.append(f"  - {count} {uppercase_file_format(description)}")
         lines.append("")
 
+    lines.append("")
+    lines += framed_heading(
+        f"Data Files Retracted / Replaced Between {date_from} and {date_to}"
+    )
+    lines += [
+        f"{count_files(retracted_count)} retracted",
+        f"* See the complete list here: {RETRACTED_FILES_URL}",
+    ]
+
     # No trailing newline: the composer appends this with '\n\n' + text.
-    return "\n".join(lines).rstrip("\n")
+    return "\n".join(lines)
+
+
+def count_retracted_files(context, request, date_from: str, date_to: str) -> int:
+    """Count files retracted in the window, as the Retracted Files page lists them."""
+    # Same set as RetractedFilesTable.js: retracted after having been released.
+    search_params = [
+        ("type", "File"),
+        ("status", "retracted"),
+        ("file_status_tracking.release_dates.initial_release_date!", "No value"),
+        ("file_status_tracking.status_tracking.retracted.from", date_from),
+        ("file_status_tracking.status_tracking.retracted.to", date_to),
+        ("limit", "1"),
+    ]
+    subreq = make_search_subreq(
+        request, f"/search?{urlencode(search_params)}", inherit_user=True
+    )
+    return search(context, subreq).get("total") or 0
 
 
 @view_config(route_name="get_released_files_summary", request_method="POST")
@@ -310,7 +436,15 @@ def get_released_files_summary(context, request):
         )
         results = recent_files_summary(subreq)
         totals = collect_release_counts(results or {})
-        return {"text": format_release_summary(totals, date_from, date_to)}
+        title_labels = get_title_donor_labels(
+            context, request, date_from, date_to
+        )
+        retracted_count = count_retracted_files(
+            context, request, date_from, date_to
+        )
+        return {"text": format_release_summary(
+            totals, date_from, date_to, retracted_count, title_labels
+        )}
     except Exception:
         log.exception("get_released_files_summary failed")
         return {"error": RELEASE_SUMMARY_ERROR}
