@@ -7,6 +7,34 @@ smaht-portal
 Change Log
 ----------
 
+2.13.13
+=======
+
+`PR 774 Another User management script update <https://github.com/smaht-dac/smaht-portal/pull/774>`_
+
+* submits_for is set from submission-center code(s) in OC spreadsheet (used to be Yes or blank). 
+* On update they replace the existing value; a change in order alone is not treated as a change.
+* A blank or NIH-only cell removes submits_for (delete_fields).
+
+
+2.13.12
+=======
+
+`PR 763 Generate static section workbooks <https://github.com/smaht-dac/smaht-portal/pull/763>`_
+
+* Add new command for generating StaticSection workbook for publication static sections
+
+
+2.13.11
+=======
+
+`PR 770: Update User management script <https://github.com/smaht-dac/smaht-portal/pull/770>`_
+
+* include submission_center updating functionality
+* if user is revoked=Yes in sheet their groups, submission_centers and consortia are removed
+* updated warnings/logging
+
+
 2.13.10
 =======
 
