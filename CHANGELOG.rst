@@ -7,6 +7,52 @@ smaht-portal
 Change Log
 ----------
 
+2.13.13
+=======
+
+`PR 774 Another User management script update <https://github.com/smaht-dac/smaht-portal/pull/774>`_
+
+* submits_for is set from submission-center code(s) in OC spreadsheet (used to be Yes or blank). 
+* On update they replace the existing value; a change in order alone is not treated as a change.
+* A blank or NIH-only cell removes submits_for (delete_fields).
+
+
+2.13.12
+=======
+
+`PR 763 Generate static section workbooks <https://github.com/smaht-dac/smaht-portal/pull/763>`_
+
+* Add new command for generating StaticSection workbook for publication static sections
+
+
+2.13.11
+=======
+
+`PR 770: Update User management script <https://github.com/smaht-dac/smaht-portal/pull/770>`_
+
+* include submission_center updating functionality
+* if user is revoked=Yes in sheet their groups, submission_centers and consortia are removed
+* updated warnings/logging
+
+
+2.13.10
+=======
+
+`PR 767: Data matrix: case-insensitive assay mapping, auto row grouping, and reliable Benchmarking tab visibility <https://github.com/smaht-dac/smaht-portal/pull/767>`_
+
+* Fix the Benchmarking tab sometimes being hidden or never loading: tab visibility now comes from an
+  up-front ``/search/`` file count per tab instead of a 10s fallback timer and the selected matrix's
+  (facet-filtered) results. Failed counts keep the tab visible.
+* Make DataMatrix ``valueChangeMap`` lookups case-insensitive and align default column groups with
+  backend spelling (e.g. ``Fiber-seq``, ``RNA-seq - Illumina``); remove redundant assay mappings.
+* Resolve unknown composite assay values (e.g. ``Hi-C - NewSequencer``) onto their base column group
+  and use the resolved map for browse links.
+* Keep all raw assay/platform values mapping to one display value when filtering Donor x Tissue browse links.
+* Assign row values not listed in any row group (e.g. new cell lines) to the single group whose
+  ``customUrlParams`` they satisfy.
+* Add ``COLO829VAI`` to the Benchmarking "Cell Line" row group.
+
+
 2.13.9
 ======
 

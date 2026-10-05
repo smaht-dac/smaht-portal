@@ -17,7 +17,7 @@ from ..commands.load_users_from_oc import User, UserCSVProcessor
 pytestmark = [pytest.mark.unit, pytest.mark.working]
 
 
-def _row(email, last='Last', first='First', dua='No', sc='dac', submitter='No', revoked='No', associate='No'):
+def _row(email, last='Last', first='First', dua='No', sc='dac', submitter='', revoked='No', associate='No'):
     """ Builds an 11-column CSV row matching the format documented at the top of
         load_users_from_oc.py (indices 0-10). """
     return ['affiliation', last, first, dua, email, 'pi', 'grant', sc, submitter, revoked, associate]
@@ -145,7 +145,7 @@ def test_generate_submission_center_list_ignores_blank_dac_code():
 # post_users_to_portal - failure isolation, URL fix, validate-only
 # ---------------------------------------------------------------------------------
 
-def _user(email, submission_center='dac', is_associate='No', submits_for='No'):
+def _user(email, submission_center='dac', is_associate='No', submits_for=''):
     return User(first_name='First', last_name='Last', dua_status='No', email=email,
                 submission_center=submission_center, submits_for=submits_for, is_associate=is_associate)
 
@@ -233,9 +233,9 @@ def test_post_users_to_portal_still_sets_submission_centers_when_present(monkeyp
     assert captured[0]['submission_centers'] == ['smaht_dac']
 
 
-def test_post_users_to_portal_sets_submits_for_only_when_data_submitter_yes(monkeypatch):
+def test_post_users_to_portal_sets_submits_for_from_data_submitter_codes(monkeypatch):
     processor = _processor(
-        user_dict={'alice@x.com': _user('alice@x.com', submission_center='dac', submits_for='Yes')}, key={})
+        user_dict={'alice@x.com': _user('alice@x.com', submission_center='dac', submits_for='dac')}, key={})
     captured = []
 
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
@@ -248,9 +248,9 @@ def test_post_users_to_portal_sets_submits_for_only_when_data_submitter_yes(monk
     assert captured[0]['submits_for'] == ['smaht_dac']
 
 
-def test_post_users_to_portal_omits_submits_for_when_non_dac_data_submitter_not_yes(monkeypatch):
+def test_post_users_to_portal_omits_submits_for_when_non_dac_data_submitter_blank(monkeypatch):
     processor = _processor(
-        user_dict={'alice@x.com': _user('alice@x.com', submission_center='sc1', submits_for='No')}, key={})
+        user_dict={'alice@x.com': _user('alice@x.com', submission_center='sc1', submits_for='')}, key={})
     captured = []
 
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
@@ -265,7 +265,7 @@ def test_post_users_to_portal_omits_submits_for_when_non_dac_data_submitter_not_
 
 def test_post_users_to_portal_submits_for_matches_split_compound_centers(monkeypatch):
     processor = _processor(
-        user_dict={'alice@x.com': _user('alice@x.com', submission_center='sc1,sc2', submits_for='Yes')}, key={})
+        user_dict={'alice@x.com': _user('alice@x.com', submission_center='sc1,sc2', submits_for='sc1,sc2')}, key={})
     captured = []
 
     def fake_post_metadata(post_body, schema_name, key=None, add_on=''):
@@ -336,7 +336,7 @@ def test_post_users_to_portal_not_verbose_omits_body(monkeypatch, capsys):
 
 def test_update_submits_for_omits_submits_for_for_blank_dac_code(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', '', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', '', ''),
     }, key={})
     captured = []
 
@@ -355,9 +355,9 @@ def test_update_submits_for_omits_submits_for_for_blank_dac_code(monkeypatch):
     assert 'submits_for' not in captured[0]
 
 
-def test_update_submits_for_sets_submits_for_only_when_data_submitter_yes(monkeypatch):
+def test_update_submits_for_sets_submits_for_from_data_submitter_codes(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'dac', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'dac', 'dac'),
     }, key={})
     captured = []
 
@@ -375,7 +375,7 @@ def test_update_submits_for_sets_submits_for_only_when_data_submitter_yes(monkey
 
 def test_update_submits_for_submits_for_matches_split_compound_centers(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1,sc2', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1,sc2', 'sc1,sc2'),
     }, key={})
     captured = []
 
@@ -393,7 +393,7 @@ def test_update_submits_for_submits_for_matches_split_compound_centers(monkeypat
 
 def test_update_submits_for_deletes_stale_submits_for_via_add_on(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', ''),
     }, key={})
     add_ons = []
     bodies = []
@@ -416,7 +416,7 @@ def test_update_submits_for_deletes_stale_submits_for_via_add_on(monkeypatch):
 
 def test_update_submits_for_validate_only_combines_check_only_and_delete_fields(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', ''),
     }, key={}, validate_only=True)
     add_ons = []
 
@@ -437,7 +437,7 @@ def test_update_submits_for_validate_only_combines_check_only_and_delete_fields(
 
 def test_update_submits_for_add_on_omits_delete_fields_when_already_empty(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'dac', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'dac', ''),
     }, key={})
     add_ons = []
 
@@ -457,11 +457,12 @@ def test_update_submits_for_add_on_omits_delete_fields_when_already_empty(monkey
 
 def test_update_submits_for_only_if_changed_treats_already_cleared_as_unchanged(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', ''),
     }, key={})
 
     def fake_get_metadata(path, key=None):
-        return {'groups': [], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}]}
+        return {'groups': [], 'submits_for': [], 'consortia': [{'identifier': 'smaht'}],
+                'submission_centers': [{'identifier': 'sc1'}]}
 
     patched = []
     monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
@@ -476,7 +477,7 @@ def test_update_submits_for_only_if_changed_treats_already_cleared_as_unchanged(
 
 def test_update_submits_for_adds_dbgap_when_dua_yes_and_absent(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', '', 'No'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', '', ''),
     }, key={})
     captured = []
 
@@ -494,7 +495,7 @@ def test_update_submits_for_adds_dbgap_when_dua_yes_and_absent(monkeypatch):
 
 def test_update_submits_for_removes_only_dbgap_preserving_other_groups(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', '', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', '', ''),
     }, key={})
     captured = []
     add_ons = []
@@ -517,7 +518,7 @@ def test_update_submits_for_removes_only_dbgap_preserving_other_groups(monkeypat
 
 def test_update_submits_for_deletes_groups_field_when_dbgap_was_sole_group(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', '', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', '', ''),
     }, key={})
     captured = []
     add_ons = []
@@ -541,7 +542,7 @@ def test_update_submits_for_deletes_groups_field_when_dbgap_was_sole_group(monke
 def test_update_submits_for_leaves_groups_untouched_when_dbgap_state_matches(monkeypatch):
     def run_case(existing_groups, dua_status):
         processor = _processor(user_dict={
-            'alice@x.com': User('First', 'Last', dua_status, 'alice@x.com', '', 'No'),
+            'alice@x.com': User('First', 'Last', dua_status, 'alice@x.com', '', ''),
         }, key={})
         captured = []
         add_ons = []
@@ -567,7 +568,7 @@ def test_update_submits_for_leaves_groups_untouched_when_dbgap_state_matches(mon
 
 def test_update_submits_for_only_if_changed_detects_dbgap_addition_needed(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', '', 'No'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', '', ''),
     }, key={})
 
     def fake_get_metadata(path, key=None):
@@ -586,7 +587,7 @@ def test_update_submits_for_only_if_changed_detects_dbgap_addition_needed(monkey
 
 def test_update_submits_for_combines_submits_for_and_groups_delete_fields(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', 'No'),
+        'alice@x.com': User('First', 'Last', 'No', 'alice@x.com', 'sc1', ''),
     }, key={})
     add_ons = []
 
@@ -607,8 +608,8 @@ def test_update_submits_for_combines_submits_for_and_groups_delete_fields(monkey
 
 def test_update_submits_for_continues_past_failed_user(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes'),
-        'bob@x.com': User('First', 'Last', 'Yes', 'bob@x.com', 'dac', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'dac'),
+        'bob@x.com': User('First', 'Last', 'Yes', 'bob@x.com', 'dac', 'dac'),
     }, key={})
     attempted = []
 
@@ -643,7 +644,7 @@ def test_normalize_linked_item_handles_dict_and_path_and_bare_string():
 
 def test_update_submits_for_patches_consortia_for_associate_members(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'dac', 'Yes'),
     }, key={})
     captured = []
 
@@ -662,7 +663,7 @@ def test_update_submits_for_patches_consortia_for_associate_members(monkeypatch)
 
 def test_update_submits_for_verbose_prints_body(monkeypatch, capsys):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'dac'),
     }, key={}, verbose=True)
 
     def fake_get_metadata(path, key=None):
@@ -680,12 +681,13 @@ def test_update_submits_for_verbose_prints_body(monkeypatch, capsys):
 
 def test_update_submits_for_only_if_changed_skips_matching_user(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'dac'),
     }, key={})
 
     def fake_get_metadata(path, key=None):
         return {'groups': ['dbgap'], 'submits_for': [{'identifier': 'smaht_dac'}],
-                'consortia': [{'identifier': 'smaht'}]}
+                'consortia': [{'identifier': 'smaht'}],
+                'submission_centers': [{'identifier': 'smaht_dac'}]}
 
     patched = []
     monkeypatch.setattr(load_users_from_oc_command, 'get_metadata', fake_get_metadata)
@@ -700,7 +702,7 @@ def test_update_submits_for_only_if_changed_skips_matching_user(monkeypatch):
 
 def test_update_submits_for_only_if_changed_patches_when_submits_for_differs(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'dac'),
     }, key={})
 
     def fake_get_metadata(path, key=None):
@@ -720,7 +722,7 @@ def test_update_submits_for_only_if_changed_patches_when_submits_for_differs(mon
 
 def test_update_submits_for_only_if_changed_patches_when_groups_differ(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'dac'),
     }, key={})
 
     def fake_get_metadata(path, key=None):
@@ -740,7 +742,7 @@ def test_update_submits_for_only_if_changed_patches_when_groups_differ(monkeypat
 
 def test_update_submits_for_only_if_changed_patches_when_only_consortia_differs(monkeypatch):
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'dac', 'Yes'),
     }, key={})
 
     def fake_get_metadata(path, key=None):
@@ -761,7 +763,7 @@ def test_update_submits_for_only_if_changed_patches_when_only_consortia_differs(
 def test_update_submits_for_default_still_patches_unconditionally(monkeypatch):
     """ --update-all (only_if_changed=False) must keep patching even when nothing changed. """
     processor = _processor(user_dict={
-        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'Yes'),
+        'alice@x.com': User('First', 'Last', 'Yes', 'alice@x.com', 'dac', 'dac'),
     }, key={})
 
     def fake_get_metadata(path, key=None):
