@@ -3761,6 +3761,15 @@ div.browse-link-icon {
 			min-width: 40px;
 		}
 
+		// Ischemic Time's tissue-type headers (renderHeaderCells) sit on the
+		// more vibrant subtype-strength tint, where the default blue link
+		// color read as unreadable against e.g. BUCC's dark mauve -- the
+		// link takes the cell's own readable text color instead (dark navy
+		// or white, from getTissueSubtypeHeaderStyle).
+		.tissue-heatmap-vibrant-header a {
+			color: inherit;
+		}
+
 		// Row-2 header cells (parent-header/unsplit-header/merged-brain,
 		// via its own .tissue-heatmap-subtype-row2-boundary) are each
 		// already a whole tissue-type-group's own single cell by
@@ -3962,18 +3971,23 @@ div.browse-link-icon {
 		// own text length, so table-layout: auto settles on one uniform width
 		// for every subtype-aware column instead. Long labels wrap onto
 		// further lines (per explicit request -- a truncated name couldn't be
-		// read in full), so the width has to fit the longest single word
-		// ("Seminiferous") since `overflow-wrap` only breaks mid-word as a
-		// last resort. `vertical-align: middle` keeps this aligned with the
-		// sort button/icon next to it (a split column's own
-		// <SortableHeaderLabel>) rather than baseline-aligning against its
-		// icon's own box.
+		// read in full). Narrowed from 5.75rem (which fit the longest single
+		// word, "Seminiferous") per explicit request, so more columns fit on
+		// screen at once -- multi-word labels wrap at their spaces, but a
+		// single word is never split mid-word (an earlier `overflow-wrap:
+		// anywhere` version broke e.g. "Fibroadipose" into "Fibroadipo/se"):
+		// `width: min-content` lets the box grow just enough for a word
+		// longer than the 4.25rem floor, widening only that one column.
+		// `vertical-align: middle` keeps this aligned with the sort
+		// button/icon next to it (a split column's own <SortableHeaderLabel>)
+		// rather than baseline-aligning against its icon's own box.
 		.tissue-heatmap-subtype-subrow-label-text {
 			display: inline-block;
-			width: 5.75rem;
+			width: min-content;
+			min-width: 4.25rem;
 			line-height: 1.2;
 			white-space: normal;
-			overflow-wrap: break-word;
+			overflow-wrap: normal;
 			vertical-align: middle;
 		}
 

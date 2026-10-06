@@ -1447,8 +1447,12 @@ function HeatmapAdminSettings({
     ntBaseHex,
     onPickNtColor,
     onResetNtColor,
-    subtypeTintPercent,
-    onSubtypeTintChange,
+    // The active tab's header tint -- "Subtype tint" on the subtype-aware
+    // tabs, "Tissue tint" on Ischemic Time (which has no subtype row), see
+    // tintLabel at this panel's call site.
+    tintLabel = 'Subtype tint',
+    tintPercent,
+    onTintChange,
     showBrainTabs,
     onShowBrainTabsChange,
 }) {
@@ -1510,16 +1514,16 @@ function HeatmapAdminSettings({
                     ) : null}
                     <div className="tissue-heatmap-admin-settings-section">
                         <p className="tissue-heatmap-admin-settings-label">
-                            Subtype tint ({subtypeTintPercent}%)
+                            {tintLabel} ({tintPercent}%)
                         </p>
                         <input
                             type="range"
                             className="tissue-heatmap-admin-settings-slider"
                             min={0}
                             max={100}
-                            value={subtypeTintPercent}
+                            value={tintPercent}
                             // eslint-disable-next-line react/jsx-no-bind
-                            onChange={(event) => onSubtypeTintChange(Number(event.target.value))}
+                            onChange={(event) => onTintChange(Number(event.target.value))}
                         />
                     </div>
                     <div className="tissue-heatmap-admin-settings-section">
@@ -2279,7 +2283,7 @@ function BrainRegionHeaderCell({ regionTissueTypes, tissueTypeHrefs, sortState, 
 // region keeps its own individual header (IndividualTissueTypeHeaderLabel),
 // same as any other column, so a value can always be traced back to the
 // region it belongs to.
-function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType) {
+function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, tintPercent = 42) {
     const nodes = [];
     let i = 0;
     while (i < tissueTypes.length) {
@@ -2323,17 +2327,17 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
                 key={tissueType}
                 title={formatTissueTypeTitle(tissueType)}
                 className={
-                    (hoveredColumn === tissueType ? 'is-column-highlight' : '') +
+                    'tissue-heatmap-vibrant-header' +
+                    (hoveredColumn === tissueType ? ' is-column-highlight' : '') +
                     (tissueType === selectedTissueType ? ' is-selected-column' : '')
                 }
-                // Same per-tissue-type tint the subtype-aware tabs' own
-                // 'unsplit' row-2 cell uses (renderTissueTypeParentHeaderCells
-                // above) -- Ischemic Time (the only tab that still goes
-                // through this plain, non-subtype-aware path) was missing
-                // it entirely, leaving every one of its own tissue-type
-                // headers on the table's plain grey `thead th` default
-                // instead of its own tissue's color.
-                style={getTissueLevelHeaderStyle(tissueType) || undefined}
+                // Ischemic Time (the only tab that still goes through this
+                // plain, non-subtype-aware path) has no subtype row under
+                // these headers, so per explicit request they take the
+                // subtype row's own, more vibrant tint strength (its own
+                // admin "Tissue tint" slider, 42% by default) rather than the pale
+                // tissue-type-row wash the subtype-aware tabs use above it.
+                style={getTissueSubtypeHeaderStyle(tissueType, tintPercent) || undefined}
                 // eslint-disable-next-line react/jsx-no-bind
                 onMouseEnter={() => onHoverColumn(tissueType)}
                 // eslint-disable-next-line react/jsx-no-bind
@@ -2813,7 +2817,8 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                         handleHeaderClick,
                         hoveredColumn,
                         onHoverColumn,
-                        selectedTissueType
+                        selectedTissueType,
+                        subtypeTintPercent
                     )}
             </tr>
             {displayRuns ? (
@@ -3571,6 +3576,10 @@ export const BrowseTissueHeatmapTable = (props) => {
     // earlier version went un-tinted; brought back per explicit request,
     // now adjustable instead of hardcoded either way.
     const [subtypeTintPercent, setSubtypeTintPercent] = useState(42);
+    // Ischemic Time's own tissue-type header tint -- same scale, but kept
+    // separate from subtypeTintPercent per explicit request: that tab has
+    // no subtype row, so its gear panel adjusts this instead.
+    const [ischemicTissueTintPercent, setIschemicTissueTintPercent] = useState(42);
 
     // The 3 Brain-specific tabs (Neuropathology Findings/Neurodegenerative
     // Staging/Diagnosis Summary) stay hidden by default for now, per
@@ -3884,9 +3893,10 @@ export const BrowseTissueHeatmapTable = (props) => {
                         onPickNtColor={handlePickNtPaletteColor}
                         // eslint-disable-next-line react/jsx-no-bind
                         onResetNtColor={handleResetNtPaletteColor}
-                        subtypeTintPercent={subtypeTintPercent}
+                        tintLabel={isIschemicTabActive ? 'Tissue tint' : 'Subtype tint'}
+                        tintPercent={isIschemicTabActive ? ischemicTissueTintPercent : subtypeTintPercent}
                         // eslint-disable-next-line react/jsx-no-bind
-                        onSubtypeTintChange={setSubtypeTintPercent}
+                        onTintChange={isIschemicTabActive ? setIschemicTissueTintPercent : setSubtypeTintPercent}
                         showBrainTabs={showBrainTabs}
                         // eslint-disable-next-line react/jsx-no-bind
                         onShowBrainTabsChange={setShowBrainTabs}
@@ -4113,6 +4123,9 @@ export const BrowseTissueHeatmapTable = (props) => {
                                 <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
                             )}
                             enableConditionalColor={enableConditionalColor}
+                            // Drives this tab's tissue-type header tint (its
+                            // only header row -- see renderHeaderCells).
+                            subtypeTintPercent={ischemicTissueTintPercent}
                             splitByPreservationType
                         />
                     )}
