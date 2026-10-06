@@ -11,8 +11,21 @@ import {
 import { GERM_LAYER_COLORS } from '../../util/germ-layer-colors';
 import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
 import { getTissueColorHex } from '../../item-pages/components/tissue-overview/helpers';
-import { BrainFindingsTable, BrainStagingTable, BrainDiagnosisTable } from './BrowseBrainPathologyTable';
-import { buildDonorHrefs, DonorIdLink } from './heatmap-donor-links';
+import {
+    BrainFindingsTable,
+    BrainStagingTable,
+    BrainDiagnosisTable,
+    buildDonorBrainDiagnosis,
+    DonorSummaryHeaderCell,
+    DonorSummaryCell,
+} from './BrowseBrainPathologyTable';
+import {
+    buildDonorHrefs,
+    buildDonorDemographics,
+    DonorIdLink,
+    DonorDemographicsHeaderCells,
+    DonorDemographicsCells,
+} from './heatmap-donor-links';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 // Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
@@ -1467,8 +1480,6 @@ function HeatmapAdminSettings({
     tintLabel = 'Subtype tint',
     tintPercent,
     onTintChange,
-    showBrainTabs,
-    onShowBrainTabsChange,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -1539,17 +1550,6 @@ function HeatmapAdminSettings({
                             // eslint-disable-next-line react/jsx-no-bind
                             onChange={(event) => onTintChange(Number(event.target.value))}
                         />
-                    </div>
-                    <div className="tissue-heatmap-admin-settings-section">
-                        <label className="tissue-heatmap-admin-settings-checkbox-row">
-                            <input
-                                type="checkbox"
-                                checked={showBrainTabs}
-                                // eslint-disable-next-line react/jsx-no-bind
-                                onChange={(event) => onShowBrainTabsChange(event.target.checked)}
-                            />
-                            Show Brain tabs
-                        </label>
                     </div>
                 </div>
             ) : null}
@@ -2765,12 +2765,38 @@ function renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys) {
 // those 2 tabs -- see MetricHeatmapTable's own hasAnySplitColumn gate) --
 // Ischemic Time never passes them, so its own header stays exactly the
 // original 2-row shape.
-function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null, blankPlaceholderLabels = false, showTargetNonTargetRow = false, subtypeTintPercent = 42) {
+function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, mergeBrainHeader, tissueTypeHrefs, sortState, handleHeaderClick, hoveredColumn, onHoverColumn, selectedTissueType, displayRuns = null, columnInfo = null, nonTargetColumnKeys = null, blankPlaceholderLabels = false, showTargetNonTargetRow = false, subtypeTintPercent = 42, showDonorDetails = false, hideGroupRow = false) {
     const hasTargetNonTargetRow = !!displayRuns && showTargetNonTargetRow;
-    const headerRowSpan = displayRuns ? (hasTargetNonTargetRow ? 4 : 3) : 2;
+    // `hideGroupRow` (brain tables, where every column is the same germ
+    // layer) drops the germ-layer group row, moving the tissue-type header
+    // cells up into the 1st row in its place.
+    const headerRowSpan = (displayRuns ? (hasTargetNonTargetRow ? 4 : 3) : 2) - (hideGroupRow ? 1 : 0);
+    const tissueTypeHeaderCells = displayRuns
+        ? renderTissueTypeParentHeaderCells(
+            displayRuns,
+            tissueTypeHrefs,
+            columnInfo,
+            sortState,
+            handleHeaderClick,
+            hoveredColumn,
+            onHoverColumn,
+            selectedTissueType
+        )
+        : renderHeaderCells(
+            tissueTypes,
+            mergeableTissueTypes,
+            mergeBrainHeader,
+            tissueTypeHrefs,
+            sortState,
+            handleHeaderClick,
+            hoveredColumn,
+            onHoverColumn,
+            selectedTissueType,
+            subtypeTintPercent
+        );
     return (
         <>
-            <tr className="tissue-heatmap-group-row">
+            <tr className={hideGroupRow ? undefined : 'tissue-heatmap-group-row'}>
                 <th className="tissue-heatmap-order-header" rowSpan={headerRowSpan} />
                 <th className="tissue-heatmap-donor-header" rowSpan={headerRowSpan}>
                     <SortableHeaderLabel
@@ -2780,7 +2806,15 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                         onClick={() => handleHeaderClick('donor')}
                     />
                 </th>
-                {columnGroups.map((group, i) => (
+                {/* Brain tables only -- see MetricHeatmapTable's
+                    donorDemographics/donorDiagnosis. */}
+                {showDonorDetails ? (
+                    <>
+                        <DonorDemographicsHeaderCells rowSpan={headerRowSpan} />
+                        <DonorSummaryHeaderCell rowSpan={headerRowSpan} />
+                    </>
+                ) : null}
+                {hideGroupRow ? tissueTypeHeaderCells : columnGroups.map((group, i) => (
                     <th
                         key={i}
                         colSpan={group.span}
@@ -2810,31 +2844,7 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                     </th>
                 ))}
             </tr>
-            <tr>
-                {displayRuns
-                    ? renderTissueTypeParentHeaderCells(
-                        displayRuns,
-                        tissueTypeHrefs,
-                        columnInfo,
-                        sortState,
-                        handleHeaderClick,
-                        hoveredColumn,
-                        onHoverColumn,
-                        selectedTissueType
-                    )
-                    : renderHeaderCells(
-                        tissueTypes,
-                        mergeableTissueTypes,
-                        mergeBrainHeader,
-                        tissueTypeHrefs,
-                        sortState,
-                        handleHeaderClick,
-                        hoveredColumn,
-                        onHoverColumn,
-                        selectedTissueType,
-                        subtypeTintPercent
-                    )}
-            </tr>
+            {hideGroupRow ? null : <tr>{tissueTypeHeaderCells}</tr>}
             {displayRuns ? (
                 <tr>
                     {renderSubtypeHeaderCells(
@@ -2930,6 +2940,14 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     tissueTypes,
     // Donor external_id -> donor page href, see buildDonorHrefs.
     donorHrefs = null,
+    // Brain tables only, per explicit request: each donor's Age/Sex
+    // (buildDonorDemographics) and a click-to-open pathology summary
+    // (buildDonorBrainDiagnosis) in their own columns right after Donor ID.
+    donorDemographics = null,
+    donorDiagnosis = null,
+    // Drops the germ-layer group row (see renderTableHeaderRows) -- the
+    // brain tables' columns are all one germ layer, so it adds nothing there.
+    hideGroupRow = false,
     tissueTypeHrefs,
     tissueTypeCategories,
     matrix,
@@ -3372,7 +3390,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                 nonTargetColumnKeys,
                                 blankPlaceholderLabels,
                                 showTargetNonTargetRow,
-                                subtypeTintPercent
+                                subtypeTintPercent,
+                                !!donorDemographics,
+                                hideGroupRow
                             )}
                         </thead>
                     </table>
@@ -3404,7 +3424,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                             nonTargetColumnKeys,
                             blankPlaceholderLabels,
                             showTargetNonTargetRow,
-                            subtypeTintPercent
+                            subtypeTintPercent,
+                            !!donorDemographics,
+                            hideGroupRow
                         )}
                     </thead>
                     <tbody>
@@ -3422,6 +3444,12 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                     }>
                                     <DonorIdLink donorId={donor} donorHrefs={donorHrefs} />
                                 </td>
+                                {donorDemographics ? (
+                                    <>
+                                        <DonorDemographicsCells demographics={donorDemographics[donor]} />
+                                        <DonorSummaryCell donorId={donor} donorDiagnosis={donorDiagnosis} />
+                                    </>
+                                ) : null}
                                 {renderRowCells(
                                     cells,
                                     cellEntries,
@@ -3489,32 +3517,47 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     );
 });
 
-// Brain "Autolysis Score" tab's own tabTitle (the first brain tab) -- a
-// real DOM label (not a CSS ::before/::after) reading "Brain", attached to
-// the top-left of the crown bracket _search.scss draws over the brain tabs (see
-// that file's own ".tissue-heatmap-tabs .dot-tab-nav-list button" rules).
-// Only needs to render once, on the group's leftmost tab -- CSS positions
-// it outside-left of that tab, which is also the group's own left edge.
-// A real element (not a pseudo-element) because a button can only carry 2
-// pseudo-elements (::before/::after) and this tab already needs both of
-// those for the crown's own top line + left corner hook. Defined once at
-// module scope (not inline in the render below) so this stays a stable
-// object reference across re-renders -- DotRouterTab is a React.memo with
-// its own shallow prop-equality check on `tabTitle`, which a freshly-
-// recreated-every-render JSX literal would defeat.
 // Keeps the brain-only tabs' 5 region columns separate (no merged "Brain"
-// header, no merged equal-valued cells) -- see brainAutolysisScore.
+// header, no merged equal-valued cells) -- see brainAutolysisScore -- and
+// drops their germ-layer group row (all 5 are Ectoderm).
 const BRAIN_ONLY_TABLE_OVERRIDES = {
     mergeableTissueTypes: EMPTY_MERGEABLE_TISSUE_TYPES,
     brainColumnsFullyMergeable: false,
+    hideGroupRow: true,
 };
 
-const BRAIN_AUTOLYSIS_TAB_TITLE = (
-    <React.Fragment>
-        Autolysis Score
-        <span className="tissue-heatmap-brain-group-label" aria-hidden="true">Brain</span>
-    </React.Fragment>
-);
+// The 2 top-level sections (HeatmapSectionTabs) -- per explicit request,
+// large Data Matrix-style tabs (DataMatrixComparisonTabs' Benchmarking/
+// Production) splitting the tissue-wide tables from the brain-only ones.
+const HEATMAP_SECTIONS = [
+    { key: 'non-brain', title: 'Non-Brain Tissues', iconCls: 'icon-lungs' },
+    { key: 'brain', title: 'Brain Tissues', iconCls: 'icon-brain' },
+];
+
+const isBrainTabDotPath = (dotPath) => !!dotPath && dotPath.startsWith('.brain-');
+
+function HeatmapSectionTabs({ activeKey, onChange }) {
+    return (
+        <div className="tissue-heatmap-section-tabs" role="tablist">
+            {HEATMAP_SECTIONS.map(({ key, title, iconCls }) => {
+                const isActive = key === activeKey;
+                return (
+                    <button
+                        key={key}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        className={`tissue-heatmap-section-tab tissue-heatmap-section-tab--${key}` + (isActive ? ' is-active' : '')}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => onChange(key)}>
+                        <i className={`icon fas ${iconCls}`} aria-hidden="true" />
+                        {title}
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
 
 export const BrowseTissueHeatmapTable = (props) => {
     // Gates the score-band cell coloring in all 4 tabs' tables -- see
@@ -3608,11 +3651,16 @@ export const BrowseTissueHeatmapTable = (props) => {
     // no subtype row, so its gear panel adjusts this instead.
     const [ischemicTissueTintPercent, setIschemicTissueTintPercent] = useState(42);
 
-    // The 3 Brain-specific tabs (Neuropathology Findings/Neurodegenerative
-    // Staging/Diagnosis Summary) stay hidden by default for now, per
-    // explicit request -- not ready to show to a regular viewer yet, but
-    // still reachable for review via this admin-only switch.
-    const [showBrainTabs, setShowBrainTabs] = useState(false);
+    // 'non-brain' | 'brain' -- starts on whichever section the URL hash's
+    // own tab belongs to (every brain tab's dotPath starts with ".brain-"),
+    // so a shared link to a brain tab opens straight into it.
+    const hashDotPath = DotRouter.getDotPath(href);
+    const [activeSection, setActiveSection] = useState(
+        () => (isBrainTabDotPath(hashDotPath) ? 'brain' : 'non-brain')
+    );
+    useEffect(() => {
+        if (isBrainTabDotPath(hashDotPath)) setActiveSection('brain');
+    }, [hashDotPath]);
 
     // Which tab is currently active -- same hash-based dot-path lookup
     // DotRouter itself uses internally (DotRouter.getCurrentTab), so this
@@ -3621,7 +3669,15 @@ export const BrowseTissueHeatmapTable = (props) => {
     // default tab -- see the 4 <DotRouterTab>s below, none marked
     // `default`) when the URL hash doesn't name a tab. Drives which
     // section(s) the admin gear panel shows (see isAdminUser's JSX below).
-    const activeTabDotPath = DotRouter.getDotPath(href) || '.target-tissue';
+    // Each section has its own DotRouter (see the render below), both reading
+    // the same URL hash -- a hash naming the OTHER section's tab just leaves
+    // this one on its own default tab, mirrored here.
+    let activeTabDotPath;
+    if (activeSection === 'brain') {
+        activeTabDotPath = isBrainTabDotPath(hashDotPath) ? hashDotPath : '.brain-autolysis-score';
+    } else {
+        activeTabDotPath = hashDotPath && !isBrainTabDotPath(hashDotPath) ? hashDotPath : '.target-tissue';
+    }
     const isTargetTabActive = activeTabDotPath === '.target-tissue';
     const isNonTargetTabActive = activeTabDotPath === '.non-target-tissue';
     // The brain tabs share their tissue-wide counterpart's color scale and
@@ -3640,14 +3696,12 @@ export const BrowseTissueHeatmapTable = (props) => {
     // nodes present at its own last build, and this component can mount
     // after that (e.g. scrolled/tabbed into view later), so it needs an
     // explicit rebuild once mounted, same as BrowseTissueVizWrapper.js's
-    // germ-layer bubbles. `showBrainTabs` in the dependency array too --
-    // its own 3 tabs' data-tip nodes (BrowseBrainPathologyTable.js's
-    // ColumnHeaderInfo icons, cell description dots) don't exist in the DOM
-    // at all until that switch flips true, well after this first mount-time
-    // rebuild already ran, so without this they'd never get picked up.
+    // germ-layer bubbles. `activeSection` in the dependency array too --
+    // switching sections reveals tables (and their data-tip nodes) that
+    // weren't visible at the last rebuild.
     useEffect(() => {
         ReactTooltip.rebuild();
-    }, [showBrainTabs]);
+    }, [activeSection]);
 
     // `session` in the dependency array so logging in/out re-fetches --
     // permission-filtered fields (e.g. protected donor data) can change
@@ -3853,6 +3907,19 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => buildTissueMetricMatrix(brainTissueResults, getIschemicTimeValue, true),
         [brainTissueResults]
     );
+    // Age/Sex and the click-to-open pathology summary every brain table
+    // shows next to Donor ID (MetricHeatmapTable's donorDemographics/
+    // donorDiagnosis). Diagnosis reads off ALL results, not just
+    // brainTissueResults -- the pathology report can sit on any of a
+    // donor's Tissue records, same as BrowseBrainPathologyTable.js's tabs.
+    const brainDonorDemographics = useMemo(
+        () => buildDonorDemographics(brainTissueResults),
+        [brainTissueResults]
+    );
+    const brainDonorDiagnosis = useMemo(
+        () => buildDonorBrainDiagnosis(tissueResults),
+        [tissueResults]
+    );
     // Its own data-driven bands, from just the brain values -- see
     // buildRangeScoreClassifier.
     const brainIschemicTimeScoring = useMemo(
@@ -3932,410 +3999,411 @@ export const BrowseTissueHeatmapTable = (props) => {
 
     return (
         <div className="tissue-heatmap-card" style={paletteStyle}>
-            {isAdminUser ? (
-                <div className="tissue-heatmap-toolbar">
-                    <HeatmapAdminSettings
-                        baseHex={activeBaseHex}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onPickColor={activePickColor}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onResetColor={activeResetColor}
-                        defaultHex={activeDefaultHex}
-                        showNonTargetSection={showNonTargetSection}
-                        ntBaseHex={ntPaletteBaseHex}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onPickNtColor={handlePickNtPaletteColor}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onResetNtColor={handleResetNtPaletteColor}
-                        tintLabel={isIschemicTabActive ? 'Tissue tint' : 'Subtype tint'}
-                        tintPercent={isIschemicTabActive ? ischemicTissueTintPercent : subtypeTintPercent}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onTintChange={isIschemicTabActive ? setIschemicTissueTintPercent : setSubtypeTintPercent}
-                        showBrainTabs={showBrainTabs}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onShowBrainTabsChange={setShowBrainTabs}
-                    />
-                </div>
-            ) : null}
-            <DotRouter
-                href={href}
-                navClassName="tissue-heatmap-tabs"
-                contentsClassName=""
-                isActive={true}
-                prependDotPath="tissue-heatmap">
-                {/* A single flat array, not individual JSX-expression
-                    siblings -- DotRouter's own getCurrentTab (node_modules'
-                    DotRouter.js) indexes `this.props.children` directly by
-                    position with no flattening, so if any one sibling slot
-                    here evaluated to something other than a single valid
-                    element (a raw `null`, or an array like the conditional
-                    Brain tabs below), that slot would stay exactly that
-                    shape inside `props.children` -- `currChild.props` then
-                    throws on the null, or on the array (arrays have no
-                    `.props`) -- instead of just being skipped. Building the
-                    whole set as 1 array up front, with `...spread` (not
-                    nesting) for the conditional group, keeps every entry a
-                    real element regardless of showBrainTabs. */}
-                {[
-                <DotRouterTab
-                    key="target-tissue"
-                    dotPath=".target-tissue"
-                    tabTitle="Target Tissue %"
-                    arrowTabs={false}
-                    cache={true}
-                    default>
-                    {loading ? (
-                        <div className="tissue-heatmap-loading">
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        </div>
-                    ) : (
-                        <MetricHeatmapTable
-                            {...targetTissuePercentage}
-                            tissueTypeHrefs={targetTissueSubtypePlan.fixedTissueTypeHrefs}
-                            tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
-                            subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
-                            subtypeTintPercent={subtypeTintPercent}
-                            nonTargetColumnKeys={targetWithNonTargetExpansion.nonTargetColumnKeys}
-                            // Only while the toggle is on -- with it off,
-                            // every column is Target Tissue % alone, and a
-                            // row of solid "TARGET" bars explaining a
-                            // distinction that isn't actually on the table
-                            // anywhere read as redundant/distracting, per
-                            // explicit feedback. Only useful once both
-                            // TARGET and NON-TARGET columns are actually
-                            // showing side by side.
-                            showTargetNonTargetRow={showNonTargetInTargetTab}
-                            // Reflects the toggle right in the heading itself --
-                            // not just the row of cells below it -- so it's
-                            // clear at a glance that non-target data is folded
-                            // in, even before noticing the extra orange columns.
-                            metricLabel={
-                                showNonTargetInTargetTab
-                                    ? 'Target & Non-Target Tissue %'
-                                    : 'Target Tissue %'
-                            }
+            <HeatmapSectionTabs activeKey={activeSection} onChange={setActiveSection} />
+            {/* Positioning context for the admin gear (.tissue-heatmap-toolbar),
+                which sits at the right end of the active section's own sub-tab
+                row rather than over the section tabs above. */}
+            <div className="tissue-heatmap-section-body">
+                {isAdminUser ? (
+                    <div className="tissue-heatmap-toolbar">
+                        <HeatmapAdminSettings
+                            baseHex={activeBaseHex}
                             // eslint-disable-next-line react/jsx-no-bind
-                            getMetricLabel={(tissueType) => (
-                                targetWithNonTargetExpansion.nonTargetColumnKeys.has(tissueType)
-                                    ? 'Non Target Tissue %'
-                                    : 'Target Tissue %'
-                            )}
-                            tooltip="Percentage range of the sample that was the target tissue subtype"
-                            titleAccessory={(
-                                <NonTargetTissueToggle
-                                    checked={showNonTargetInTargetTab}
+                            onPickColor={activePickColor}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onResetColor={activeResetColor}
+                            defaultHex={activeDefaultHex}
+                            showNonTargetSection={showNonTargetSection}
+                            ntBaseHex={ntPaletteBaseHex}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onPickNtColor={handlePickNtPaletteColor}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onResetNtColor={handleResetNtPaletteColor}
+                            tintLabel={isIschemicTabActive ? 'Tissue tint' : 'Subtype tint'}
+                            tintPercent={isIschemicTabActive ? ischemicTissueTintPercent : subtypeTintPercent}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onTintChange={isIschemicTabActive ? setIschemicTissueTintPercent : setSubtypeTintPercent}
+                        />
+                    </div>
+                ) : null}
+                {/* Both sections stay mounted (toggled via d-none), same
+                    already-loaded-data reasoning as each tab's own `cache`. */}
+                <div className={activeSection === 'non-brain' ? '' : 'd-none'}>
+                    <DotRouter
+                        href={href}
+                        navClassName="tissue-heatmap-tabs"
+                        contentsClassName=""
+                        isActive={true}
+                        prependDotPath="tissue-heatmap"
+                        elementID="tissue-heatmap-router">
+                        {/* A single flat array, not individual JSX-expression
+                            siblings -- DotRouter's own getCurrentTab (node_modules'
+                            DotRouter.js) indexes `this.props.children` directly by
+                            position with no flattening, so if any one sibling slot
+                            here evaluated to something other than a single valid
+                            element (a raw `null`, or a nested array), that slot
+                            would stay exactly that shape inside `props.children` --
+                            `currChild.props` then throws on the null, or on the
+                            array (arrays have no `.props`) -- instead of just being
+                            skipped. Building the whole set as 1 flat array keeps
+                            every entry a real element (same for the Brain section's
+                            own DotRouter below). */}
+                        {[
+                        <DotRouterTab
+                            key="target-tissue"
+                            dotPath=".target-tissue"
+                            tabTitle="Target Tissue %"
+                            arrowTabs={false}
+                            cache={true}
+                            default>
+                            {loading ? (
+                                <div className="tissue-heatmap-loading">
+                                    <i className="icon icon-circle-notch icon-spin fas" />
+                                </div>
+                            ) : (
+                                <MetricHeatmapTable
+                                    {...targetTissuePercentage}
+                                    tissueTypeHrefs={targetTissueSubtypePlan.fixedTissueTypeHrefs}
+                                    tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
+                                    subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
+                                    subtypeTintPercent={subtypeTintPercent}
+                                    nonTargetColumnKeys={targetWithNonTargetExpansion.nonTargetColumnKeys}
+                                    // Only while the toggle is on -- with it off,
+                                    // every column is Target Tissue % alone, and a
+                                    // row of solid "TARGET" bars explaining a
+                                    // distinction that isn't actually on the table
+                                    // anywhere read as redundant/distracting, per
+                                    // explicit feedback. Only useful once both
+                                    // TARGET and NON-TARGET columns are actually
+                                    // showing side by side.
+                                    showTargetNonTargetRow={showNonTargetInTargetTab}
+                                    // Reflects the toggle right in the heading itself --
+                                    // not just the row of cells below it -- so it's
+                                    // clear at a glance that non-target data is folded
+                                    // in, even before noticing the extra orange columns.
+                                    metricLabel={
+                                        showNonTargetInTargetTab
+                                            ? 'Target & Non-Target Tissue %'
+                                            : 'Target Tissue %'
+                                    }
                                     // eslint-disable-next-line react/jsx-no-bind
-                                    onChange={setShowNonTargetInTargetTab}
+                                    getMetricLabel={(tissueType) => (
+                                        targetWithNonTargetExpansion.nonTargetColumnKeys.has(tissueType)
+                                            ? 'Non Target Tissue %'
+                                            : 'Target Tissue %'
+                                    )}
+                                    tooltip="Percentage range of the sample that was the target tissue subtype"
+                                    titleAccessory={(
+                                        <NonTargetTissueToggle
+                                            checked={showNonTargetInTargetTab}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onChange={setShowNonTargetInTargetTab}
+                                        />
+                                    )}
+                                    formatValue={formatTargetTissuePercentage}
+                                    getScoreClass={getTargetOrNonTargetScoreClass}
+                                    getSortValue={getTargetOrNonTargetSortValue}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    legend={({ activeScoreClass, onScoreClassClick }) => (
+                                        <div className="tissue-heatmap-dual-legend">
+                                            <FixedScoreLegend
+                                                entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
+                                                leftCaption="Target"
+                                                activeClassName={activeScoreClass}
+                                                onEntryClick={onScoreClassClick}
+                                            />
+                                            {/* Only shown once there's actually a 2nd
+                                                (orange) scale on the table to explain --
+                                                with the toggle off every cell is Target
+                                                Tissue %'s own blue scale alone, so a 2nd,
+                                                always-present legend row would explain a
+                                                color nothing on the table was using. */}
+                                            {showNonTargetInTargetTab ? (
+                                                <FixedScoreLegend
+                                                    entries={NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
+                                                    leftCaption="Non-Target"
+                                                    activeClassName={activeScoreClass}
+                                                    onEntryClick={onScoreClassClick}
+                                                />
+                                            ) : null}
+                                        </div>
+                                    )}
+                                    enableConditionalColor={enableConditionalColor}
+                                    donorHrefs={donorHrefs}
                                 />
                             )}
-                            formatValue={formatTargetTissuePercentage}
-                            getScoreClass={getTargetOrNonTargetScoreClass}
-                            getSortValue={getTargetOrNonTargetSortValue}
-                            // eslint-disable-next-line react/jsx-no-bind
-                            legend={({ activeScoreClass, onScoreClassClick }) => (
-                                <div className="tissue-heatmap-dual-legend">
-                                    <FixedScoreLegend
-                                        entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
-                                        leftCaption="Target"
-                                        activeClassName={activeScoreClass}
-                                        onEntryClick={onScoreClassClick}
-                                    />
-                                    {/* Only shown once there's actually a 2nd
-                                        (orange) scale on the table to explain --
-                                        with the toggle off every cell is Target
-                                        Tissue %'s own blue scale alone, so a 2nd,
-                                        always-present legend row would explain a
-                                        color nothing on the table was using. */}
-                                    {showNonTargetInTargetTab ? (
+                        </DotRouterTab>,
+                        <DotRouterTab
+                            key="non-target-tissue"
+                            dotPath=".non-target-tissue"
+                            tabTitle="Non Target Tissue %"
+                            arrowTabs={false}
+                            cache={true}>
+                            {loading ? (
+                                <div className="tissue-heatmap-loading">
+                                    <i className="icon icon-circle-notch icon-spin fas" />
+                                </div>
+                            ) : (
+                                <MetricHeatmapTable
+                                    {...nonTargetTissuePercentage}
+                                    tissueTypeHrefs={nonTargetTissueSubtypePlan.fixedTissueTypeHrefs}
+                                    tissueTypeCategories={nonTargetTissueSubtypePlan.fixedTissueTypeCategories}
+                                    subtypeColumnInfo={nonTargetTissueSubtypePlan.columnInfo}
+                                    subtypeTintPercent={subtypeTintPercent}
+                                    nonTargetColumnKeys={allNonTargetColumnKeys}
+                                    // Never shown -- every column on this standalone
+                                    // tab is already NON-TARGET alone (never TARGET
+                                    // too), so labeling every one of them "NON-TARGET"
+                                    // explains a distinction that isn't actually
+                                    // visible here, same reasoning as Target Tissue
+                                    // %'s own toggle-gated row above.
+                                    blankPlaceholderLabels
+                                    metricLabel="Non Target Tissue %"
+                                    tooltip="Percentage range of the sample that was NOT the target tissue subtype"
+                                    formatValue={formatNonTargetTissuePercentage}
+                                    getScoreClass={getNonTargetTissuePercentageScoreClass}
+                                    getSortValue={getNonTargetTissuePercentageSortValue}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    legend={({ activeScoreClass, onScoreClassClick }) => (
                                         <FixedScoreLegend
                                             entries={NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
-                                            leftCaption="Non-Target"
                                             activeClassName={activeScoreClass}
                                             onEntryClick={onScoreClassClick}
                                         />
-                                    ) : null}
+                                    )}
+                                    enableConditionalColor={enableConditionalColor}
+                                    donorHrefs={donorHrefs}
+                                />
+                            )}
+                        </DotRouterTab>,
+                        <DotRouterTab
+                            key="autolysis-score"
+                            dotPath=".autolysis-score"
+                            tabTitle="Autolysis Score"
+                            arrowTabs={false}
+                            cache={true}
+                            contentsClassName="tissue-heatmap-autolysis-tab">
+                            {loading ? (
+                                <div className="tissue-heatmap-loading">
+                                    <i className="icon icon-circle-notch icon-spin fas" />
                                 </div>
-                            )}
-                            enableConditionalColor={enableConditionalColor}
-                            donorHrefs={donorHrefs}
-                        />
-                    )}
-                </DotRouterTab>,
-                <DotRouterTab
-                    key="non-target-tissue"
-                    dotPath=".non-target-tissue"
-                    tabTitle="Non Target Tissue %"
-                    arrowTabs={false}
-                    cache={true}>
-                    {loading ? (
-                        <div className="tissue-heatmap-loading">
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        </div>
-                    ) : (
-                        <MetricHeatmapTable
-                            {...nonTargetTissuePercentage}
-                            tissueTypeHrefs={nonTargetTissueSubtypePlan.fixedTissueTypeHrefs}
-                            tissueTypeCategories={nonTargetTissueSubtypePlan.fixedTissueTypeCategories}
-                            subtypeColumnInfo={nonTargetTissueSubtypePlan.columnInfo}
-                            subtypeTintPercent={subtypeTintPercent}
-                            nonTargetColumnKeys={allNonTargetColumnKeys}
-                            // Never shown -- every column on this standalone
-                            // tab is already NON-TARGET alone (never TARGET
-                            // too), so labeling every one of them "NON-TARGET"
-                            // explains a distinction that isn't actually
-                            // visible here, same reasoning as Target Tissue
-                            // %'s own toggle-gated row above.
-                            blankPlaceholderLabels
-                            metricLabel="Non Target Tissue %"
-                            tooltip="Percentage range of the sample that was NOT the target tissue subtype"
-                            formatValue={formatNonTargetTissuePercentage}
-                            getScoreClass={getNonTargetTissuePercentageScoreClass}
-                            getSortValue={getNonTargetTissuePercentageSortValue}
-                            // eslint-disable-next-line react/jsx-no-bind
-                            legend={({ activeScoreClass, onScoreClassClick }) => (
-                                <FixedScoreLegend
-                                    entries={NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
-                                    activeClassName={activeScoreClass}
-                                    onEntryClick={onScoreClassClick}
+                            ) : (
+                                <MetricHeatmapTable
+                                    {...autolysisScore}
+                                    tissueTypeHrefs={autolysisSubtypePlan.fixedTissueTypeHrefs}
+                                    tissueTypeCategories={autolysisSubtypePlan.fixedTissueTypeCategories}
+                                    subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
+                                    subtypeTintPercent={subtypeTintPercent}
+                                    metricLabel="Autolysis Score"
+                                    tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
+                                    formatValue={formatAutolysisScore}
+                                    getScoreClass={getAutolysisScoreClass}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    legend={({ activeScoreClass, onScoreClassClick }) => (
+                                        <FixedScoreLegend
+                                            entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
+                                            leftCaption="Minimal"
+                                            rightCaption="Severe"
+                                            activeClassName={activeScoreClass}
+                                            onEntryClick={onScoreClassClick}
+                                        />
+                                    )}
+                                    enableConditionalColor={enableConditionalColor}
+                                    donorHrefs={donorHrefs}
                                 />
                             )}
-                            enableConditionalColor={enableConditionalColor}
-                            donorHrefs={donorHrefs}
-                        />
-                    )}
-                </DotRouterTab>,
-                <DotRouterTab
-                    key="autolysis-score"
-                    dotPath=".autolysis-score"
-                    tabTitle="Autolysis Score"
-                    arrowTabs={false}
-                    cache={true}
-                    contentsClassName="tissue-heatmap-autolysis-tab">
-                    {loading ? (
-                        <div className="tissue-heatmap-loading">
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        </div>
-                    ) : (
-                        <MetricHeatmapTable
-                            {...autolysisScore}
-                            tissueTypeHrefs={autolysisSubtypePlan.fixedTissueTypeHrefs}
-                            tissueTypeCategories={autolysisSubtypePlan.fixedTissueTypeCategories}
-                            subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
-                            subtypeTintPercent={subtypeTintPercent}
-                            metricLabel="Autolysis Score"
-                            tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
-                            formatValue={formatAutolysisScore}
-                            getScoreClass={getAutolysisScoreClass}
-                            // eslint-disable-next-line react/jsx-no-bind
-                            legend={({ activeScoreClass, onScoreClassClick }) => (
-                                <FixedScoreLegend
-                                    entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
-                                    leftCaption="Minimal"
-                                    rightCaption="Severe"
-                                    activeClassName={activeScoreClass}
-                                    onEntryClick={onScoreClassClick}
+                        </DotRouterTab>,
+                        <DotRouterTab
+                            key="ischemic-time"
+                            dotPath=".ischemic-time"
+                            tabTitle="Ischemic Time (h)"
+                            arrowTabs={false}
+                            cache={true}
+                            contentsClassName="tissue-heatmap-ischemic-tab">
+                            {loading ? (
+                                <div className="tissue-heatmap-loading">
+                                    <i className="icon icon-circle-notch icon-spin fas" />
+                                </div>
+                            ) : (
+                                <MetricHeatmapTable
+                                    {...ischemicTime}
+                                    metricLabel="Ischemic Time (h)"
+                                    tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)"
+                                    formatValue={formatIschemicTime}
+                                    getScoreClass={ischemicTimeScoring.classify}
+                                    // The severity-scale legend (ScoreLegend) is
+                                    // hidden for now -- ischemicTimeScoreLegend is
+                                    // still computed above and
+                                    // ScoreLegend/buildScoreLegend stay in place so
+                                    // it can come back by rendering both here
+                                    // (legend={() => <>
+                                    //     <ScoreLegend entries={ischemicTimeScoreLegend} />
+                                    //     <SplitCellLegend />
+                                    // </>}). SplitCellLegend itself stays on, though
+                                    // -- unlike the severity scale, it's not
+                                    // data-driven and explains this tab's own
+                                    // Fixed/Frozen split cells regardless. Its
+                                    // Fixed/Frozen halves double as a filter (see
+                                    // SplitCellLegend/renderRowCells' activeSplitHalf),
+                                    // wired here via MetricHeatmapTable's own render-prop
+                                    // legend call.
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    legend={({ activeSplitHalf, onSplitHalfClick }) => (
+                                        <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
+                                    )}
+                                    enableConditionalColor={enableConditionalColor}
+                                    donorHrefs={donorHrefs}
+                                    // Drives this tab's tissue-type header tint (its
+                                    // only header row -- see renderHeaderCells).
+                                    subtypeTintPercent={ischemicTissueTintPercent}
+                                    splitByPreservationType
                                 />
                             )}
-                            enableConditionalColor={enableConditionalColor}
-                            donorHrefs={donorHrefs}
-                        />
-                    )}
-                </DotRouterTab>,
-                <DotRouterTab
-                    key="ischemic-time"
-                    dotPath=".ischemic-time"
-                    tabTitle="Ischemic Time (h)"
-                    arrowTabs={false}
-                    cache={true}
-                    contentsClassName="tissue-heatmap-ischemic-tab">
-                    {loading ? (
-                        <div className="tissue-heatmap-loading">
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        </div>
-                    ) : (
-                        <MetricHeatmapTable
-                            {...ischemicTime}
-                            metricLabel="Ischemic Time (h)"
-                            tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)"
-                            formatValue={formatIschemicTime}
-                            getScoreClass={ischemicTimeScoring.classify}
-                            // The severity-scale legend (ScoreLegend) is
-                            // hidden for now -- ischemicTimeScoreLegend is
-                            // still computed above and
-                            // ScoreLegend/buildScoreLegend stay in place so
-                            // it can come back by rendering both here
-                            // (legend={() => <>
-                            //     <ScoreLegend entries={ischemicTimeScoreLegend} />
-                            //     <SplitCellLegend />
-                            // </>}). SplitCellLegend itself stays on, though
-                            // -- unlike the severity scale, it's not
-                            // data-driven and explains this tab's own
-                            // Fixed/Frozen split cells regardless. Its
-                            // Fixed/Frozen halves double as a filter (see
-                            // SplitCellLegend/renderRowCells' activeSplitHalf),
-                            // wired here via MetricHeatmapTable's own render-prop
-                            // legend call.
-                            // eslint-disable-next-line react/jsx-no-bind
-                            legend={({ activeSplitHalf, onSplitHalfClick }) => (
-                                <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
-                            )}
-                            enableConditionalColor={enableConditionalColor}
-                            donorHrefs={donorHrefs}
-                            // Drives this tab's tissue-type header tint (its
-                            // only header row -- see renderHeaderCells).
-                            subtypeTintPercent={ischemicTissueTintPercent}
-                            splitByPreservationType
-                        />
-                    )}
-                </DotRouterTab>,
-                // Brain's own Autolysis Score/Ischemic Time tabs -- hidden
-                // behind the same admin "Show Brain tabs" switch as the 3
-                // brain pathology tabs below (per explicit request), so brain
-                // data is only on the page while that switch is on.
-                ...(showBrainTabs ? [
-                    <DotRouterTab
-                        key="brain-autolysis-score"
-                        dotPath=".brain-autolysis-score"
-                        tabTitle={BRAIN_AUTOLYSIS_TAB_TITLE}
-                        arrowTabs={false}
-                        cache={true}
-                        contentsClassName="tissue-heatmap-autolysis-tab">
-                        {loading ? (
-                            <div className="tissue-heatmap-loading">
-                                <i className="icon icon-circle-notch icon-spin fas" />
-                            </div>
-                        ) : (
-                            <MetricHeatmapTable
-                                {...brainAutolysisScore}
-                                {...BRAIN_ONLY_TABLE_OVERRIDES}
-                                subtypeTintPercent={subtypeTintPercent}
-                                metricLabel="Brain Autolysis Score"
-                                tooltip="Tissue autolysis score of the brain region: 0=None, 1=mild, 2=moderate, 3=severe"
-                                formatValue={formatAutolysisScore}
-                                getScoreClass={getAutolysisScoreClass}
-                                // eslint-disable-next-line react/jsx-no-bind
-                                legend={({ activeScoreClass, onScoreClassClick }) => (
-                                    <FixedScoreLegend
-                                        entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
-                                        leftCaption="Minimal"
-                                        rightCaption="Severe"
-                                        activeClassName={activeScoreClass}
-                                        onEntryClick={onScoreClassClick}
+                        </DotRouterTab>,
+                        ]}
+                    </DotRouter>
+                </div>
+                <div className={activeSection === 'brain' ? '' : 'd-none'}>
+                    <DotRouter
+                        href={href}
+                        navClassName="tissue-heatmap-tabs tissue-heatmap-tabs--brain"
+                        contentsClassName=""
+                        isActive={true}
+                        prependDotPath="tissue-heatmap"
+                        elementID="tissue-heatmap-brain-router">
+                        {[
+                            <DotRouterTab
+                                key="brain-autolysis-score"
+                                dotPath=".brain-autolysis-score"
+                                default
+                                tabTitle="Autolysis Score"
+                                arrowTabs={false}
+                                cache={true}
+                                contentsClassName="tissue-heatmap-autolysis-tab">
+                                {loading ? (
+                                    <div className="tissue-heatmap-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : (
+                                    <MetricHeatmapTable
+                                        {...brainAutolysisScore}
+                                        {...BRAIN_ONLY_TABLE_OVERRIDES}
+                                        donorDemographics={brainDonorDemographics}
+                                        donorDiagnosis={brainDonorDiagnosis}
+                                        subtypeTintPercent={subtypeTintPercent}
+                                        metricLabel="Brain Autolysis Score"
+                                        tooltip="Tissue autolysis score of the brain region: 0=None, 1=mild, 2=moderate, 3=severe"
+                                        formatValue={formatAutolysisScore}
+                                        getScoreClass={getAutolysisScoreClass}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        legend={({ activeScoreClass, onScoreClassClick }) => (
+                                            <FixedScoreLegend
+                                                entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
+                                                leftCaption="Minimal"
+                                                rightCaption="Severe"
+                                                activeClassName={activeScoreClass}
+                                                onEntryClick={onScoreClassClick}
+                                            />
+                                        )}
+                                        enableConditionalColor={enableConditionalColor}
+                                        donorHrefs={donorHrefs}
                                     />
                                 )}
-                                enableConditionalColor={enableConditionalColor}
-                                donorHrefs={donorHrefs}
-                            />
-                        )}
-                    </DotRouterTab>,
-                    <DotRouterTab
-                        key="brain-ischemic-time"
-                        dotPath=".brain-ischemic-time"
-                        tabTitle="Ischemic Time (h)"
-                        arrowTabs={false}
-                        cache={true}
-                        contentsClassName="tissue-heatmap-ischemic-tab">
-                        {loading ? (
-                            <div className="tissue-heatmap-loading">
-                                <i className="icon icon-circle-notch icon-spin fas" />
-                            </div>
-                        ) : (
-                            <MetricHeatmapTable
-                                {...brainIschemicTime}
-                                {...BRAIN_ONLY_TABLE_OVERRIDES}
-                                metricLabel="Brain Ischemic Time (h)"
-                                tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of brain collection (hours)"
-                                formatValue={formatIschemicTime}
-                                getScoreClass={brainIschemicTimeScoring.classify}
-                                // eslint-disable-next-line react/jsx-no-bind
-                                legend={({ activeSplitHalf, onSplitHalfClick }) => (
-                                    <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
+                            </DotRouterTab>,
+                            <DotRouterTab
+                                key="brain-ischemic-time"
+                                dotPath=".brain-ischemic-time"
+                                tabTitle="Ischemic Time (h)"
+                                arrowTabs={false}
+                                cache={true}
+                                contentsClassName="tissue-heatmap-ischemic-tab">
+                                {loading ? (
+                                    <div className="tissue-heatmap-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : (
+                                    <MetricHeatmapTable
+                                        {...brainIschemicTime}
+                                        {...BRAIN_ONLY_TABLE_OVERRIDES}
+                                        donorDemographics={brainDonorDemographics}
+                                        donorDiagnosis={brainDonorDiagnosis}
+                                        metricLabel="Brain Ischemic Time (h)"
+                                        tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of brain collection (hours)"
+                                        formatValue={formatIschemicTime}
+                                        getScoreClass={brainIschemicTimeScoring.classify}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        legend={({ activeSplitHalf, onSplitHalfClick }) => (
+                                            <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
+                                        )}
+                                        enableConditionalColor={enableConditionalColor}
+                                        donorHrefs={donorHrefs}
+                                        subtypeTintPercent={ischemicTissueTintPercent}
+                                        splitByPreservationType
+                                    />
                                 )}
-                                enableConditionalColor={enableConditionalColor}
-                                donorHrefs={donorHrefs}
-                                subtypeTintPercent={ischemicTissueTintPercent}
-                                splitByPreservationType
-                            />
-                        )}
-                    </DotRouterTab>,
-                ] : []),
-                /* Brain-specific pathology data -- see brain_pathology_report.json.
-                    Grouped into 3 tabs by kind (present/absent findings,
-                    numeric/ordinal staging scores, free-text diagnosis/notes)
-                    rather than 1 tab per field (~20+ of them), per explicit
-                    request. A 4th, per-subregion presence/autolysis-score
-                    tab was tried and dropped -- that data (BrainPathologyReport's
-                    own brain_subregions array) turned out to mostly duplicate
-                    what the existing Autolysis Score tab (tissue_type-axis,
-                    above) already shows, just at finer per-subregion
-                    resolution, and wasn't distinct enough to earn its own
-                    tab. All 3 read directly off the same raw `tissueResults`
-                    this component already fetched -- none needs the FBRO
-                    exclusion, subtype expansion, or brain-region distribution
-                    the other 4 tabs' tissue_type-axis matrices do, since
-                    these 3 tables pivot on donor x finding/score/diagnosis
-                    category instead (see BrowseBrainPathologyTable.js).
-
-                    Hidden by default for now, per explicit request -- not
-                    ready to show to a regular viewer yet -- behind
-                    showBrainTabs (HeatmapAdminSettings' own "Show Brain
-                    tabs" switch, admin-only). An empty array (not `null`)
-                    when hidden -- DotRouter's own render (node_modules'
-                    DotRouter.js) destructures every raw child's `.props`
-                    via a bare `React.Children.map` with no null guard, so
-                    a `null`/`false` JSX child in this position crashes it
-                    outright ("Cannot read properties of null (reading
-                    'props')") instead of just being skipped the way a
-                    plain DOM child would be. An array contributes exactly
-                    as many real children as it has elements -- 0 when
-                    empty -- so each <DotRouterTab> here needs its own
-                    `key` too, same as any other array-rendered JSX. */
-                ...(showBrainTabs ? [
-                    <DotRouterTab
-                        key="brain-findings"
-                        dotPath=".brain-findings"
-                        tabTitle="Neuropathology Findings"
-                        arrowTabs={false}
-                        cache={true}>
-                        {loading ? (
-                            <div className="tissue-heatmap-loading">
-                                <i className="icon icon-circle-notch icon-spin fas" />
-                            </div>
-                        ) : (
-                            <BrainFindingsTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
-                        )}
-                    </DotRouterTab>,
-                    <DotRouterTab
-                        key="brain-staging"
-                        dotPath=".brain-staging"
-                        tabTitle="Neurodegenerative Staging"
-                        arrowTabs={false}
-                        cache={true}>
-                        {loading ? (
-                            <div className="tissue-heatmap-loading">
-                                <i className="icon icon-circle-notch icon-spin fas" />
-                            </div>
-                        ) : (
-                            <BrainStagingTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
-                        )}
-                    </DotRouterTab>,
-                    <DotRouterTab
-                        key="brain-diagnosis"
-                        dotPath=".brain-diagnosis"
-                        tabTitle="Diagnosis Summary"
-                        arrowTabs={false}
-                        cache={true}>
-                        {loading ? (
-                            <div className="tissue-heatmap-loading">
-                                <i className="icon icon-circle-notch icon-spin fas" />
-                            </div>
-                        ) : (
-                            <BrainDiagnosisTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
-                        )}
-                    </DotRouterTab>,
-                ] : []),
-                ]}
-            </DotRouter>
+                            </DotRouterTab>,
+                        /* Brain-specific pathology data -- see brain_pathology_report.json.
+                            Grouped into 3 tabs by kind (present/absent findings,
+                            numeric/ordinal staging scores, free-text diagnosis/notes)
+                            rather than 1 tab per field (~20+ of them), per explicit
+                            request. A 4th, per-subregion presence/autolysis-score
+                            tab was tried and dropped -- that data (BrainPathologyReport's
+                            own brain_subregions array) turned out to mostly duplicate
+                            what the existing Autolysis Score tab (tissue_type-axis,
+                            above) already shows, just at finer per-subregion
+                            resolution, and wasn't distinct enough to earn its own
+                            tab. All 3 read directly off the same raw `tissueResults`
+                            this component already fetched -- none needs the FBRO
+                            exclusion, subtype expansion, or brain-region distribution
+                            the other 4 tabs' tissue_type-axis matrices do, since
+                            these 3 tables pivot on donor x finding/score/diagnosis
+                            category instead (see BrowseBrainPathologyTable.js). */
+                            <DotRouterTab
+                                key="brain-findings"
+                                dotPath=".brain-findings"
+                                tabTitle="Neuropathology Findings"
+                                arrowTabs={false}
+                                cache={true}>
+                                {loading ? (
+                                    <div className="tissue-heatmap-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : (
+                                    <BrainFindingsTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
+                                )}
+                            </DotRouterTab>,
+                            <DotRouterTab
+                                key="brain-staging"
+                                dotPath=".brain-staging"
+                                tabTitle="Neurodegenerative Staging"
+                                arrowTabs={false}
+                                cache={true}>
+                                {loading ? (
+                                    <div className="tissue-heatmap-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : (
+                                    <BrainStagingTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
+                                )}
+                            </DotRouterTab>,
+                            <DotRouterTab
+                                key="brain-diagnosis"
+                                dotPath=".brain-diagnosis"
+                                tabTitle="Diagnosis Summary"
+                                arrowTabs={false}
+                                cache={true}>
+                                {loading ? (
+                                    <div className="tissue-heatmap-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : (
+                                    <BrainDiagnosisTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
+                                )}
+                            </DotRouterTab>,
+                        ]}
+                    </DotRouter>
+                </div>
+            </div>
         </div>
     );
 };

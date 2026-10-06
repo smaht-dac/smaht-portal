@@ -8,7 +8,12 @@ import {
     portalCellDetailPopover,
 } from './BrowseTissueHeatmapTable';
 import { Schemas } from '../../util';
-import { DonorIdLink } from './heatmap-donor-links';
+import {
+    DonorIdLink,
+    buildDonorDemographics,
+    DonorDemographicsHeaderCells,
+    DonorDemographicsCells,
+} from './heatmap-donor-links';
 
 // Per explicit request -- every column header across these 3 tabs' tables
 // gets an info icon whose tooltip is the underlying BrainPathologyReport
@@ -209,6 +214,129 @@ function renderFindingDetailPopover({ donor, category, description, style, isFli
     );
 }
 
+// Detail popover for a donor's brain pathology summary (DonorSummaryButton)
+// -- the same outcome/final diagnosis/notes the Diagnosis Summary tab shows
+// as a full table, in the same card the finding descriptions above use.
+function renderDonorSummaryPopover({ donor, entries, style, isFlippedUp, isFlippedRight }, popoverRef) {
+    return (
+        <div
+            ref={popoverRef}
+            className={
+                'tissue-heatmap-cell-detail-popover tissue-heatmap-donor-summary-popover' +
+                (isFlippedUp ? ' is-flipped-up' : '') +
+                (isFlippedRight ? ' is-flipped-right' : '')
+            }
+            style={style}>
+            <div className="inner">
+                <div className="primary-row">
+                    <div className="field">
+                        <div className="label">Donor</div>
+                        <div className="value">{donor}</div>
+                    </div>
+                </div>
+                {entries.map((entry, i) => (
+                    // eslint-disable-next-line react/no-array-index-key
+                    <React.Fragment key={i}>
+                        <div className="secondary-row-heading">
+                            Pathology Summary{entries.length > 1 ? ` (${i + 1} of ${entries.length})` : ''}
+                        </div>
+                        <div className="secondary-row">
+                            <div className="field">
+                                <div className="label">Outcome</div>
+                                <div className="value">
+                                    {entry.outcome ? (
+                                        <span
+                                            className={
+                                                'tissue-heatmap-outcome-badge' +
+                                                (entry.outcome === 'Unacceptable' ? ' is-unacceptable' : ' is-acceptable')
+                                            }>
+                                            {entry.outcome}
+                                        </span>
+                                    ) : 'n/a'}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="secondary-row">
+                            <div className="field">
+                                <div className="label">Final Neuropathological Diagnosis</div>
+                                <div className="value is-text">{entry.final_neuropathological_diagnosis || 'n/a'}</div>
+                            </div>
+                        </div>
+                        {entry.additional_notes || entry.unacceptable_description ? (
+                            <div className="secondary-row">
+                                <div className="field">
+                                    <div className="label">Additional Notes</div>
+                                    <div className="value is-text">
+                                        {entry.additional_notes}
+                                        {entry.unacceptable_description ? (
+                                            <div className="tissue-heatmap-unacceptable-note">
+                                                <strong>Unacceptable: </strong>
+                                                {entry.unacceptable_description}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : null}
+                    </React.Fragment>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// Per explicit request, every brain table carries each donor's pathology
+// summary (the Diagnosis Summary tab's content), hidden until clicked --
+// same click-to-open card as a finding cell's description. Its own popover
+// state per button, so it never interferes with the table's cell popover.
+function DonorSummaryButton({ donorId, entries }) {
+    const { selectedCell, selectCell, popoverRef, position } = useCellDetailPopover();
+    if (!entries || entries.length === 0) return <span className="tissue-heatmap-donor-summary-empty">n/a</span>;
+    return (
+        <>
+            <button
+                type="button"
+                className={'tissue-heatmap-donor-summary-button' + (selectedCell ? ' is-open' : '')}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={(event) => selectCell(event.currentTarget, { rowIndex: 0, columnIndex: 0 })}
+                aria-expanded={!!selectedCell}
+                aria-label={`Show pathology summary for ${donorId}`}
+                title="Show pathology summary">
+                <i className="icon icon-fw icon-info-circle fas" aria-hidden="true" />
+            </button>
+            {selectedCell
+                ? portalCellDetailPopover(
+                    renderDonorSummaryPopover({
+                        donor: donorId,
+                        entries,
+                        style: position.style,
+                        isFlippedUp: position.isFlippedUp,
+                        isFlippedRight: position.isFlippedRight,
+                    }, popoverRef)
+                )
+                : null}
+        </>
+    );
+}
+
+/** "Summary" header cell -- `rowSpan` matches the table's own header rows. */
+export function DonorSummaryHeaderCell({ rowSpan }) {
+    return (
+        <th className="tissue-heatmap-demographic-header" rowSpan={rowSpan}>
+            Summary
+        </th>
+    );
+}
+
+/** One donor row's Summary cell, see DonorSummaryButton. */
+export function DonorSummaryCell({ donorId, donorDiagnosis }) {
+    return (
+        <td className="tissue-heatmap-demographic">
+            <DonorSummaryButton donorId={donorId} entries={donorDiagnosis?.[donorId]} />
+        </td>
+    );
+}
+
 function BrainPathologyEmptyState() {
     return (
         <div className="tissue-heatmap-loading">
@@ -227,6 +355,8 @@ function BrainPathologyEmptyState() {
 // other 4 tabs.
 export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
     const donorFindings = useMemo(() => buildDonorBrainFindings(tissueResults), [tissueResults]);
+    const donorDemographics = useMemo(() => buildDonorDemographics(tissueResults), [tissueResults]);
+    const donorDiagnosis = useMemo(() => buildDonorBrainDiagnosis(tissueResults), [tissueResults]);
     const donors = useMemo(() => Object.keys(donorFindings).sort(), [donorFindings]);
     // Same click-a-swatch-to-dim-non-matching-cells filter FixedScoreLegend
     // already supports for the other tabs (see BrowseTissueHeatmapTable.js's
@@ -248,7 +378,7 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                             Neuropathology Findings
                             <i
                                 className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                                data-tip="Presence of each neuropathology finding category, aggregated across a donor's brain pathology report(s). Click a Present cell marked with an info icon for its reported description."
+                                data-tip="Presence of each neuropathology finding category, aggregated across a donor's brain pathology report(s). Click a Present cell marked with a note icon to read the reported reason."
                             />
                         </h2>
                     </div>
@@ -265,6 +395,8 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                     <thead>
                         <tr>
                             <th className="tissue-heatmap-metric-donor-header">Donor ID</th>
+                            <DonorDemographicsHeaderCells />
+                            <DonorSummaryHeaderCell />
                             {BRAIN_FINDING_CATEGORIES.map((category) => (
                                 <th key={category} title={category}>
                                     {category}
@@ -279,6 +411,8 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                             return (
                                 <tr key={donorId}>
                                     <td className="tissue-heatmap-metric-donor-id"><DonorIdLink donorId={donorId} donorHrefs={donorHrefs} /></td>
+                                    <DonorDemographicsCells demographics={donorDemographics[donorId]} />
+                                    <DonorSummaryCell donorId={donorId} donorDiagnosis={donorDiagnosis} />
                                     {BRAIN_FINDING_CATEGORIES.map((category, columnIndex) => {
                                         const entry = byCategory.get(category) || null;
                                         const value = entry ? entry.present : null;
@@ -306,14 +440,16 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                                                     : undefined}>
                                                 {formatBrainFinding(value)}
                                                 {/* Only cells with a reported description are
-                                                    clickable -- this info icon is what tells them
-                                                    apart from a plain "Present" with nothing behind
-                                                    it, the same icon the column headers use for
-                                                    their own descriptions. */}
+                                                    clickable -- per explicit request, marked with a
+                                                    "note to read" icon (a speech bubble) rather than
+                                                    the column headers' generic info icon, so it reads
+                                                    as "click for the reason this is Present", not
+                                                    just general info. */}
                                                 {hasDescription ? (
                                                     <i
-                                                        className="icon icon-fw icon-info-circle fas tissue-heatmap-finding-description-icon"
+                                                        className="icon icon-fw icon-comment-medical fas tissue-heatmap-finding-description-icon"
                                                         aria-hidden="true"
+                                                        title="Click to read why this finding is present"
                                                     />
                                                 ) : null}
                                             </td>
@@ -353,6 +489,8 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
 // score-0..4 scale).
 export function BrainStagingTable({ tissueResults = [], donorHrefs = null }) {
     const donorStaging = useMemo(() => buildDonorBrainStaging(tissueResults), [tissueResults]);
+    const donorDemographics = useMemo(() => buildDonorDemographics(tissueResults), [tissueResults]);
+    const donorDiagnosis = useMemo(() => buildDonorBrainDiagnosis(tissueResults), [tissueResults]);
     const donors = useMemo(() => Object.keys(donorStaging).sort(), [donorStaging]);
 
     const classifiers = useMemo(() => {
@@ -398,6 +536,8 @@ export function BrainStagingTable({ tissueResults = [], donorHrefs = null }) {
                     <thead>
                         <tr>
                             <th className="tissue-heatmap-metric-donor-header">Donor ID</th>
+                            <DonorDemographicsHeaderCells />
+                            <DonorSummaryHeaderCell />
                             {BRAIN_STAGING_FIELDS.map((field) => (
                                 <th key={field.key} title={field.label}>
                                     {field.label}
@@ -412,6 +552,8 @@ export function BrainStagingTable({ tissueResults = [], donorHrefs = null }) {
                             return (
                                 <tr key={donorId}>
                                     <td className="tissue-heatmap-metric-donor-id"><DonorIdLink donorId={donorId} donorHrefs={donorHrefs} /></td>
+                                    <DonorDemographicsCells demographics={donorDemographics[donorId]} />
+                                    <DonorSummaryCell donorId={donorId} donorDiagnosis={donorDiagnosis} />
                                     {BRAIN_STAGING_FIELDS.map((field) => {
                                         const value = staging[field.key];
                                         const hasValue = value !== null && typeof value !== 'undefined';
@@ -480,6 +622,7 @@ export function buildDonorBrainDiagnosis(tissueResults = []) {
 export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null }) {
     const donorDiagnosis = useMemo(() => buildDonorBrainDiagnosis(tissueResults), [tissueResults]);
     const donors = useMemo(() => Object.keys(donorDiagnosis).sort(), [donorDiagnosis]);
+    const donorDemographics = useMemo(() => buildDonorDemographics(tissueResults), [tissueResults]);
 
     if (donors.length === 0) return <BrainPathologyEmptyState />;
 
@@ -503,6 +646,8 @@ export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null }) {
                     <thead>
                         <tr>
                             <th>Donor ID</th>
+                            <th>Age</th>
+                            <th>Sex</th>
                             <th>
                                 Outcome
                                 <ColumnHeaderInfo field="outcome" />
@@ -529,6 +674,16 @@ export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null }) {
                                     {entryIndex === 0 ? (
                                         <td className="tissue-heatmap-diagnosis-donor" rowSpan={entries.length}>
                                             <DonorIdLink donorId={donorId} donorHrefs={donorHrefs} />
+                                        </td>
+                                    ) : null}
+                                    {entryIndex === 0 ? (
+                                        <td className="tissue-heatmap-diagnosis-demographic" rowSpan={entries.length}>
+                                            {donorDemographics[donorId]?.age === 89 ? '89+' : (donorDemographics[donorId]?.age ?? 'n/a')}
+                                        </td>
+                                    ) : null}
+                                    {entryIndex === 0 ? (
+                                        <td className="tissue-heatmap-diagnosis-demographic" rowSpan={entries.length}>
+                                            {donorDemographics[donorId]?.sex || 'n/a'}
                                         </td>
                                     ) : null}
                                     <td>

@@ -34,3 +34,46 @@ export function DonorIdLink({ donorId, donorHrefs }) {
         </a>
     );
 }
+
+/**
+ * Donor external_id -> { age, sex }, off the same embedded donor as
+ * buildDonorHrefs above (`donor.age`/`donor.sex`, see types/tissue.py's
+ * embedded_list). Shown next to Donor ID on the brain tables.
+ */
+export function buildDonorDemographics(tissueResults = []) {
+    const demographics = {};
+    tissueResults.forEach((t) => {
+        const donor = t?.donor;
+        const donorId = donor?.external_id;
+        if (!donorId || demographics[donorId]) return;
+        demographics[donorId] = { age: donor.age ?? null, sex: donor.sex || null };
+    });
+    return demographics;
+}
+
+// Same "89+" convention the donor pages use (ProtectedDonorViewDataCards.js's
+// formatDonorAge) -- ages above 89 are reported as 89.
+function formatDemographicAge(age) {
+    if (age === null || typeof age === 'undefined') return 'n/a';
+    return age === 89 ? '89+' : age;
+}
+
+/** Age/Sex header cells -- `rowSpan` matches the table's own header rows. */
+export function DonorDemographicsHeaderCells({ rowSpan }) {
+    return (
+        <>
+            <th className="tissue-heatmap-demographic-header" rowSpan={rowSpan}>Age</th>
+            <th className="tissue-heatmap-demographic-header" rowSpan={rowSpan}>Sex</th>
+        </>
+    );
+}
+
+/** One donor row's Age/Sex cells (see buildDonorDemographics). */
+export function DonorDemographicsCells({ demographics }) {
+    return (
+        <>
+            <td className="tissue-heatmap-demographic">{formatDemographicAge(demographics?.age)}</td>
+            <td className="tissue-heatmap-demographic">{demographics?.sex || 'n/a'}</td>
+        </>
+    );
+}
