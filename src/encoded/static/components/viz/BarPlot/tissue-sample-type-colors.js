@@ -21,6 +21,10 @@ export const TISSUE_SAMPLE_TYPE_COLORS = {
     // prominent of aliquot viz's own 3 Frozen shades.
     'Frozen': { fill: '#CFE89B', stroke: '#CFE89B' },
     'Fresh': { fill: '#9B9BF9', stroke: '#9B9BF9' },
+    // TissueSample-counted Fixed series (tissue-fixed-samples.js) -- same
+    // idea as Frozen above: AliquotVisualization.js's own Fixed shade
+    // (SLICE_TYPE_STYLES.pink.front).
+    'Fixed': { fill: '#F2C4A8', stroke: '#F2C4A8' },
     'Not specified': { fill: '#D3D7DB', stroke: '#868E96' },
 };
 

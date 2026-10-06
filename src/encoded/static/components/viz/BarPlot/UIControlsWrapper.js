@@ -13,6 +13,11 @@ import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
 import { Legend } from './../components';
 import { mergeTermsInBarplotData } from './merge-terms';
+import {
+    SHOW_FIXED_TISSUE_SAMPLES,
+    loadFixedTissueSampleCounts,
+    addFixedTissueSamples,
+} from './tissue-fixed-samples';
 import { tissueSampleTypeColorCycler } from './tissue-sample-type-colors';
 import { Chart } from './Chart';
 
@@ -150,8 +155,28 @@ export class UIControlsWrapper extends React.PureComponent {
             'aggregateType': UIControlsWrapper.aggregateTypeForMapping(props.mapping),
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.donors === 0) ? 'all' : 'filtered',
             'openDropdown': null,
-            'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL
+            'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL,
+            // Browse by Tissue only -- see tissue-fixed-samples.js.
+            'fixedTissueSampleCounts': null
         };
+    }
+
+    componentDidMount() {
+        // React 18's StrictMode (app.js) mounts, unmounts and re-mounts the
+        // SAME instance in development -- reset the flag the simulated
+        // unmount set, or the response below would be dropped as if this
+        // were still unmounted.
+        this.unmounted = false;
+        const { mapping } = this.props;
+        if (mapping !== 'tissue' || !SHOW_FIXED_TISSUE_SAMPLES) return;
+        loadFixedTissueSampleCounts().then((fixedTissueSampleCounts) => {
+            if (this.unmounted) return;
+            this.setState({ fixedTissueSampleCounts });
+        });
+    }
+
+    componentWillUnmount() {
+        this.unmounted = true;
     }
 
     componentDidUpdate({ barplot_data_filtered: pastFilteredData }) {
@@ -253,10 +278,16 @@ export class UIControlsWrapper extends React.PureComponent {
         const { barplot_data_fields } = this.props;
         // Terms shown as one (e.g. Snap Frozen under Frozen) are merged before
         // anything else reads the data -- see viz/BarPlot/merge-terms.js.
-        const barplot_data_unfiltered = mergeTermsInBarplotData(this.props.barplot_data_unfiltered);
-        const barplot_data_filtered = mergeTermsInBarplotData(this.props.barplot_data_filtered);
-        const { tissueCategoryFilter } = this.state;
+        let barplot_data_unfiltered = mergeTermsInBarplotData(this.props.barplot_data_unfiltered);
+        let barplot_data_filtered = mergeTermsInBarplotData(this.props.barplot_data_filtered);
+        const { tissueCategoryFilter, fixedTissueSampleCounts } = this.state;
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
+        // Browse by Tissue's "Group By: Sample Type" only -- adds the
+        // TissueSample-counted Fixed series (see tissue-fixed-samples.js).
+        if (fixedTissueSampleCounts && isTissueXAxis && barplot_data_fields[1] === 'sample_summary.preservation_types') {
+            barplot_data_unfiltered = addFixedTissueSamples(barplot_data_unfiltered, fixedTissueSampleCounts);
+            barplot_data_filtered = addFixedTissueSamples(barplot_data_filtered, fixedTissueSampleCounts);
+        }
         if (!isTissueXAxis || tissueCategoryFilter === UIControlsWrapper.TISSUE_CATEGORY_ALL) {
             return { barplot_data_unfiltered, barplot_data_filtered };
         }

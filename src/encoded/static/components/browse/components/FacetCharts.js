@@ -8,6 +8,7 @@ import { object, layout, ajax, console, isServerSide, analytics, searchFilters, 
 import { navigate } from './../../util';
 import { ChartDataController } from './../../viz/chart-data-controller';
 import { getRecordedTerms } from './../../viz/BarPlot/merge-terms';
+import { FIXED_TERM } from './../../viz/BarPlot/tissue-fixed-samples';
 import * as BarPlot from './../../viz/BarPlot';
 import { termTransformFxnWithOverrides } from './../SearchView';
 
@@ -315,8 +316,12 @@ export class FacetCharts extends React.PureComponent {
                         // Has to go through sample_sources (its own Tissue)
                         // to match what the chart actually counted -- see
                         // types/tissue_sample.py's own embedded_list.
+                        // Except the Fixed series, which is counted off each
+                        // TissueSample's OWN preservation_type instead (see
+                        // viz/BarPlot/tissue-fixed-samples.js), so its link
+                        // filters on that same field.
                         if (node.field === 'sample_summary.preservation_types' && mapping === 'tissue') {
-                            node.field = 'sample_sources.preservation_type';
+                            node.field = node.term === FIXED_TERM ? 'preservation_type' : 'sample_sources.preservation_type';
                         }
 
                         if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
