@@ -2236,7 +2236,9 @@ div.browse-link-icon {
 		border: 1px solid var(--tissue-advanced-card-border, #E7F0F3);
 		border-radius: 8px;
 		overflow: hidden;
-		background-color: #FBFCFE;
+		// The tissue's own color faded nearly to white (set inline per card
+		// in TissueAdvancedPanel), falling back to plain off-white.
+		background-color: var(--tissue-advanced-card-surface, #FBFCFE);
 		color: inherit;
 		text-decoration: none;
 		transition: box-shadow 0.15s ease, transform 0.15s ease;

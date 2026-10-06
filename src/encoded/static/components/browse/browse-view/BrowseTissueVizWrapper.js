@@ -327,8 +327,9 @@ const TissueAdvancedPanel = ({
     tissueTypes,
     // 0 = full-strength tissue color, 100 = fully faded -- see
     // BrowseTissue.js's admin TissueTintSettings.
-    borderTintPercent = 15,
-    donorsBgTintPercent = 86,
+    borderTintPercent = 0,
+    donorsBgTintPercent = 0,
+    cardBgTintPercent = 93,
 }) => (
     <div className="tissue-advanced-panel">
         {tissueTypes.map((tissueType) => {
@@ -354,9 +355,8 @@ const TissueAdvancedPanel = ({
                     // The palette hex as-is, for the
                     // header text.
                     '--tissue-advanced-card-color': tissueColorHex,
-                    // The card's outline -- same ring
-                    // color/opacity Basic view's bubbles
-                    // use by default, so both views read alike.
+                    // The card's outline in the tissue's
+                    // own color.
                     '--tissue-advanced-card-border': hexToRgba(tissueColorHex, 1 - borderTintPercent / 100),
                     // A light background tint for the
                     // donor-count footer -- computed
@@ -365,6 +365,9 @@ const TissueAdvancedPanel = ({
                     // from the same hex at reduced
                     // opacity, not a fixed shade.
                     '--tissue-advanced-card-bg': hexToRgba(tissueColorHex, 1 - donorsBgTintPercent / 100),
+                    // The whole card's own background -- the
+                    // same hex faded nearly to white.
+                    '--tissue-advanced-card-surface': hexToRgba(tissueColorHex, 1 - cardBgTintPercent / 100),
                     '--tissue-advanced-card-donors-text': getDonorsFooterTextColor(
                         tissueColorHex,
                         1 - donorsBgTintPercent / 100
@@ -818,8 +821,9 @@ export const BrowseTissueVizWrapper = (props) => {
         tissueSortModeIndex = 0,
         cohortModeIndex = 1,
         bubbleRingTintPercent = 15,
-        cardBorderTintPercent = 15,
-        cardDonorsBgTintPercent = 86,
+        cardBorderTintPercent = 0,
+        cardDonorsBgTintPercent = 0,
+        cardBgTintPercent = 93,
     } = props;
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
@@ -921,6 +925,7 @@ export const BrowseTissueVizWrapper = (props) => {
                             {...tissuePanelProps}
                             borderTintPercent={cardBorderTintPercent}
                             donorsBgTintPercent={cardDonorsBgTintPercent}
+                            cardBgTintPercent={cardBgTintPercent}
                         />
                     </div>
                 </div>

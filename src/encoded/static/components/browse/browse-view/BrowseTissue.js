@@ -52,11 +52,13 @@ const TissueHeaderToggle = ({ options, activeIndex, onChange, highlight = false 
 
 // Tissue View tint defaults -- 0 = the tissue's full-strength color,
 // 100 = fully faded out, same scale as the heatmap's "Subtype tint". These
-// reproduce the original look (Basic bubble ring and Advanced card border at
-// 0.85 opacity, Advanced donor-count footer at 0.14).
+// keep Basic's bubble ring at 0.85 opacity; Advanced cards use the
+// full-strength color for their border and donor-count footer, over a card
+// background tinted nearly to white.
 export const DEFAULT_BUBBLE_RING_TINT_PERCENT = 15;
-export const DEFAULT_CARD_BORDER_TINT_PERCENT = 15;
-export const DEFAULT_CARD_DONORS_BG_TINT_PERCENT = 86;
+export const DEFAULT_CARD_BORDER_TINT_PERCENT = 0;
+export const DEFAULT_CARD_DONORS_BG_TINT_PERCENT = 0;
+export const DEFAULT_CARD_BG_TINT_PERCENT = 93;
 
 // Admin-only gear next to the Basic/Advanced toggle for dialing in the
 // active view's tint live (`sliders`: { label, value, onChange }) -- same look and outside-click/Escape
@@ -136,6 +138,7 @@ export const BrowseTissueBody = (props) => {
     const [bubbleRingTintPercent, setBubbleRingTintPercent] = useState(DEFAULT_BUBBLE_RING_TINT_PERCENT);
     const [cardBorderTintPercent, setCardBorderTintPercent] = useState(DEFAULT_CARD_BORDER_TINT_PERCENT);
     const [cardDonorsBgTintPercent, setCardDonorsBgTintPercent] = useState(DEFAULT_CARD_DONORS_BG_TINT_PERCENT);
+    const [cardBgTintPercent, setCardBgTintPercent] = useState(DEFAULT_CARD_BG_TINT_PERCENT);
     // Same admin gate as the heatmap's own gear (BrowseTissueHeatmapTable.js).
     const isAdminUser = useMemo(
         () => (JWT.getUserGroups() || []).includes('admin'),
@@ -200,6 +203,7 @@ export const BrowseTissueBody = (props) => {
                                                 value: cardDonorsBgTintPercent,
                                                 onChange: setCardDonorsBgTintPercent,
                                             },
+                                            { label: 'Card background tint', value: cardBgTintPercent, onChange: setCardBgTintPercent },
                                         ]
                                 }
                             />
@@ -229,6 +233,7 @@ export const BrowseTissueBody = (props) => {
                 bubbleRingTintPercent={bubbleRingTintPercent}
                 cardBorderTintPercent={cardBorderTintPercent}
                 cardDonorsBgTintPercent={cardDonorsBgTintPercent}
+                cardBgTintPercent={cardBgTintPercent}
                 cohortModeIndex={cohortModeIndex}
             />
             <hr />
