@@ -9,9 +9,11 @@ import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/co
 import { FILE_BROWSE_HIDE_FACETS } from '../../browse/BrowseView';
 
 // Renamed Files query, with an extra accession facet so users can look up
-// specific files in a search box
+// specific files in a search box. `sort=-tags` lists newest renames first, since a
+// descending sort uses each file's last tag (`renamed_on|YYYY-MM-DD`); ascending
+// would compare `rename` instead, so the column itself stays unsortable
 const RENAMED_FILES_QUERY =
-    '/search/?type=File&tags=rename&additional_facet=accession';
+    '/search/?type=File&tags=rename&additional_facet=accession&sort=-tags';
 
 // Hide the same facets as the file browse page, plus `tags`
 const RENAMED_FILES_HIDE_FACETS = [...FILE_BROWSE_HIDE_FACETS, 'tags'];
