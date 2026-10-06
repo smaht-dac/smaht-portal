@@ -36,5 +36,7 @@ details.bridge-card{padding:0;margin:8px 0}details.bridge-card>summary{padding:1
 .bridge-summary::marker,.bridge-notes>summary::marker{color:var(--muted)}.bridge-summary>*{margin-right:10px}.bridge-summary .bridge-path{overflow-wrap:anywhere;white-space:normal}.bridge-summary .badge{display:inline-block;margin-top:4px}.bridge-summary:focus-visible,.bridge-notes>summary:focus-visible{outline:2px solid var(--vscode-focusBorder,#5aa5ff);outline-offset:2px}
 .bridge-notes{margin-top:18px;color:var(--muted);line-height:1.5}.bridge-notes>summary{cursor:pointer;padding:8px 0}.bridge-chain> .badge{align-self:flex-start}
 
-/* Portal theme; the iframe keeps explorer selectors out of the portal DOM. */
+/* Portal theme; the native mount scopes these styles to its shadow root. */
 :root{color-scheme:light;--vscode-editor-background:#fff;--vscode-editor-foreground:#20252b;--vscode-panel-border:#d8dee4;--vscode-descriptionForeground:#59636e;--vscode-input-background:#f6f8fa;--vscode-sideBar-background:#f6f8fa;--vscode-textCodeBlock-background:#f6f8fa;--blue:#2368aa;--purple:#7952a3;--green:#137a66;--orange:#986019}
+
+:host{display:block;font-family:inherit}.explorer-root{padding:0 24px 24px;font-family:inherit}.explorer-root>header{justify-content:flex-end}body.entity-fullscreen #entity-panel{z-index:2000}

@@ -32,7 +32,7 @@ class ExplorerTests(unittest.TestCase):
     def test_every_endpoint_requires_admin(self):
         for url in ['/schema-explorer', '/schema-explorer/ui', '/schema-explorer/model',
                     '/schema-explorer/source?file=encoded/types/example.py',
-                    '/schema-explorer/assets/app.js']:
+                    '/schema-explorer/assets/app.js', '/schema-explorer/assets/native.js']:
             self.app.get(url, status=403)
 
     def test_model_is_private_and_read_only(self):
@@ -42,15 +42,8 @@ class ExplorerTests(unittest.TestCase):
         self.app.post('/schema-explorer/model', headers=self.headers, status=404)
 
     def test_ui_and_asset_allowlist(self):
-        response = self.app.get('/schema-explorer/ui', headers=self.headers)
-        self.assertEqual(response.content_type, 'text/html')
-        self.assertEqual(response.charset.lower(), 'utf-8')
-        self.assertNotIn('{{', response.text)
-        self.assertIn('/schema-explorer/assets/portal.js', response.text)
-        self.assertIn("connect-src 'self'", response.headers['Content-Security-Policy'])
-        self.assertIn("frame-ancestors 'self'", response.headers['Content-Security-Policy'])
         for name in ['portal.js', 'app.js', 'entity-diagram.js', 'item.js',
-                     'path-analysis.js', 'path-finder.js', 'provenance.js', 'style.css']:
+                     'path-analysis.js', 'path-finder.js', 'provenance.js', 'style.css', 'native.js']:
             asset = self.app.get('/schema-explorer/assets/' + name,
                                  headers=self.headers, status=200)
             self.assertEqual(asset.content_type,
@@ -58,6 +51,21 @@ class ExplorerTests(unittest.TestCase):
             self.assertEqual(asset.charset.lower(), 'utf-8')
             self.assertEqual(asset.headers['X-Content-Type-Options'], 'nosniff')
         self.app.get('/schema-explorer/assets/analyzer.py', headers=self.headers, status=404)
+
+    def test_direct_ui_navigation_returns_to_portal_shell(self):
+        response = self.app.get('/schema-explorer/ui',
+                                headers={**self.headers, 'Sec-Fetch-Dest': 'document'}, status=302)
+        self.assertTrue(response.location.endswith('/schema-explorer'))
+        self.assertIn('no-store', response.headers['Cache-Control'])
+        self.app.get('/schema-explorer/ui', headers=self.headers, status=302)
+
+    def test_native_module_is_scoped_and_complete(self):
+        result = self.app.get('/schema-explorer/assets/native.js', headers=self.headers)
+        self.assertIn('export function mount(host)', result.text)
+        self.assertNotIn('/* EXPLORER_', result.text)
+        self.assertNotIn('<iframe', result.text)
+        self.assertIn('lifetime.abort()', result.text)
+        self.assertIn('no-store', result.headers['Cache-Control'])
 
     def test_source_is_an_index_lookup_not_a_filesystem_path(self):
         response = self.app.get('/schema-explorer/source',

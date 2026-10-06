@@ -1,10 +1,12 @@
 # Portal Schema Explorer
 
 Open `/schema-explorer`, or choose **Schema Explorer** in an admin's account menu.
-The page, iframe, model, source viewer and assets require `group.admin`. Item API
+The page, model, source viewer and assets require `group.admin`. Item API
 requests use the current browser session and retain normal portal permissions.
 
-The small React page embeds a same-origin application. SVG rendering, filtering,
+The React page mounts the explorer directly in the portal document, without an
+iframe. A shadow root isolates its CSS and IDs while the portal owns navigation
+and page scrolling. The old `/schema-explorer/ui` URL redirects to the portal page. SVG rendering, filtering,
 relationship planning, item provenance and PNG export are adapted from the local
 extension (0.4.5). The asset scripts and CSS are loaded only on this page, outside
 the main webpack bundle. There are no new npm dependencies. Assets are served from
@@ -39,15 +41,19 @@ public static directory. No deployment entrypoints are changed by this feature.
   data is reported, not bypassed. Optional page/columns/expand frames are supported.
 - Source links are allowlisted identifiers such as `encoded/types/tissue.py`,
   not arbitrary filesystem paths. Only indexed Python/JSON files can be viewed.
-- Model and source responses use private, no-store caching. The iframe applies
-  same-origin network and framing restrictions plus nonce-based script loading.
+- Model, source and asset responses use private, no-store caching. The native ES
+  module follows the portal CSP and uses no eval. Requests enforce same-origin
+  access. Each mount has isolated state/events; unmount aborts pending requests
+  and clears its DOM and timers. Shadow DOM is style isolation, not a security boundary.
 - Static analysis and provenance remain approximations: review diagnostics and
   validate subtype conditions, domain meaning and calculated-property behavior.
 
 ## Maintenance and validation
 
 The assets/analyzer are a vendored baseline with a browser adapter (`portal.js`),
-portal source paths, a light theme and message-origin checks. Do not blindly copy
+portal source paths, a light theme and mount-local events. `native.js` wraps the
+packaged scripts in a mount/dispose lifecycle; the backend assembles this trusted
+code and markup on demand, without adding it to the main webpack bundle. Do not blindly copy
 new extension releases over these adaptations. Upstream fixes should be reviewed
 and ported to both consumers; future shared packaging can eliminate duplication.
 

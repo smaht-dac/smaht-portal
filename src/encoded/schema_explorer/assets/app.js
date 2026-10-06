@@ -287,6 +287,7 @@ async function exportDiagram(svg, name, control) {
   let url;
   try {
     await document.fonts?.ready;
+    if (lifetime.signal.aborted) return;
     const clone = svg.cloneNode(true);
     const originals = [svg, ...svg.querySelectorAll('*')];
     const copies = [clone, ...clone.querySelectorAll('*')];
@@ -315,9 +316,11 @@ async function exportDiagram(svg, name, control) {
     url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], {type:'image/svg+xml;charset=utf-8'}));
     const img = new Image();
     await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = () => reject(new Error('Could not render the diagram.')); img.src = url; });
+    if (lifetime.signal.aborted) return;
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     vscode.postMessage({type:'exportPng', name, data:canvas.toDataURL('image/png')});
   } catch (error) {
+    if (lifetime.signal.aborted) return;
     showDetail('PNG export failed', {message:error.message}, []);
   } finally {
     if (url) URL.revokeObjectURL(url);

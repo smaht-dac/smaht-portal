@@ -71,7 +71,7 @@
   }
   function render() {
     if (!bundle || !index) return;
-    provenance = SmahtProvenance.describe(bundle, index);
+    provenance = window.SmahtProvenance.describe(bundle, index);
     const heading = get('item-heading'); heading.replaceChildren(el('h3', bundle.object.display_title || bundle.id));
     const info = el('div', undefined, 'counts');
     info.append(badge(bundle.environment), badge(bundle.types[0]), badge(bundle.id)); heading.append(info);
@@ -152,7 +152,7 @@
       get('item-status').textContent = `Loaded ${new Date(bundle.fetchedAt).toLocaleString()} · ${bundle.frame || (bundle.embedded ? 'embedded' : 'object')} view · ${kilobytes} KB JSON`;
       get('item-status').title = `${bytes.toLocaleString('en-US')} bytes · UTF-8 JSON for the displayed frame (1 KB = 1,000 bytes), excluding whitespace and HTTP/compression overhead.`;
       if (index) {
-        const model = SmahtProvenance.modelFor(index, bundle.types);
+        const model = window.SmahtProvenance.modelFor(index, bundle.types);
         if (model) { select(model.name); setTabToFields(); }
       }
       render();

@@ -1,16 +1,15 @@
 """Admin-only schema explorer backed by the deployed package sources.
 
-The UI is loaded on demand in a same-origin frame, outside the main JS bundle.
+The UI mounts directly in the portal DOM and is loaded on demand.
 No credentials file, proxy request, application-code execution or write API is used.
 """
 import copy
 from importlib.util import find_spec
 import json
 from pathlib import Path
-import secrets
 from threading import Lock
 
-from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound
+from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.response import Response
 from pyramid.view import view_config
 
@@ -20,7 +19,7 @@ from .analyzer import Index
 ASSETS = Path(__file__).parent / 'assets'
 ASSET_NAMES = frozenset({
     'app.js', 'entity-diagram.js', 'item.js', 'path-analysis.js',
-    'path-finder.js', 'provenance.js', 'portal.js', 'style.css',
+    'path-finder.js', 'provenance.js', 'portal.js', 'style.css', 'native.js',
 })
 STORE = 'encoded.schema_explorer.store'
 
@@ -152,25 +151,25 @@ def asset(request):
     name = request.matchdict['name']
     if name not in ASSET_NAMES:
         raise HTTPNotFound()
-    return private_response((ASSETS / name).read_text(),
+    body = native_module() if name == 'native.js' else (ASSETS / name).read_text()
+    return private_response(body,
                             'text/css' if name.endswith('.css') else 'application/javascript')
+
+
+def native_module():
+    """Compose trusted, packaged UI code as a lazy ES module (no eval)."""
+    html = (ASSETS / 'index.html').read_text().split('<body>', 1)[1].split('<script', 1)[0]
+    css = (ASSETS / 'style.css').read_text().replace(':root', ':host')
+    css = css.replace('body', '.explorer-root')
+    scripts = ['portal.js', 'provenance.js', 'app.js', 'entity-diagram.js',
+               'path-analysis.js', 'path-finder.js', 'item.js']
+    return ((ASSETS / 'native.js').read_text()
+            .replace('/* EXPLORER_HTML */', json.dumps(html))
+            .replace('/* EXPLORER_CSS */', json.dumps(css))
+            .replace('/* EXPLORER_SCRIPTS */', '\n'.join((ASSETS / name).read_text() for name in scripts)))
 
 
 @view_config(route_name='schema_explorer_ui', request_method='GET')
 def ui(request):
     authorize(request)
-    nonce = secrets.token_hex(20)
-    html = (ASSETS / 'index.html').read_text()
-    files = {'style': 'style.css', 'script': 'app.js', 'entityScript': 'entity-diagram.js',
-             'itemScript': 'item.js', 'provenance': 'provenance.js',
-             'pathAnalysis': 'path-analysis.js', 'pathFinder': 'path-finder.js', 'portal': 'portal.js'}
-    for token, filename in files.items():
-        html = html.replace('{{' + token + '}}', '/schema-explorer/assets/' + filename)
-    response = private_response(html.replace('{{nonce}}', nonce), 'text/html')
-    response.headers['Content-Security-Policy'] = (
-        "default-src 'none'; script-src 'nonce-" + nonce + "'; "
-        "style-src 'self' 'unsafe-inline'; img-src blob: data:; connect-src 'self'; "
-        "frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
-    )
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    return response
+    return HTTPFound(location='/schema-explorer', headers={'Cache-Control': 'private, no-store'})

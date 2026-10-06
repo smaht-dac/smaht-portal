@@ -5,7 +5,7 @@
   function targetFields() {
     const model=index?.models.find(m=>m.name===get('path-target').value);
     const previous=get('path-field').value;
-    get('path-field').replaceChildren(...SmahtPathAnalysis.fields(model).map(f=>{
+    get('path-field').replaceChildren(...window.SmahtPathAnalysis.fields(model).map(f=>{
       const option=el('option',`${f.path} · ${f.field.calculated?'calculated':f.link?'stored link':'stored schema field'}`);
       option.value=f.path;return option;
     }));
@@ -37,7 +37,7 @@
     event?.preventDefault();
     const results=get('path-results');results.replaceChildren();
     try {
-      const report=SmahtPathAnalysis.analyze(index,{source:get('path-source').value,target:get('path-target').value,field:get('path-field').value,
+      const report=window.SmahtPathAnalysis.analyze(index,{source:get('path-source').value,target:get('path-target').value,field:get('path-field').value,
         depth:get('path-depth').value,storedOnly:get('path-stored').checked,subtypes:get('path-subtypes').checked});
       const heading=el('div',undefined,'bridge-results-heading');
       heading.append(el('h3',`${report.target}.${report.targetField.path}`),

@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="{{style}}"><title>SMaHT Schema Explorer</title></head>
 <body>
-<header><div><span class="eyebrow">SMaHT / MODEL EXPLORER</span><h1>Schema Explorer</h1></div><div class="header-actions"><button id="open-path-finder" type="button" disabled>Find embed path</button><button id="open-entity" type="button" aria-pressed="false" disabled>All schemas</button><button id="refresh" title="Reload the deployed snapshot. Source changes require a server restart or a rebuilt artifact.">Refresh ↻</button></div></header>
+<header><div class="header-actions"><button id="open-path-finder" type="button" disabled>Find embed path</button><button id="open-entity" type="button" aria-pressed="false" disabled>All schemas</button><button id="refresh" title="Reload the deployed snapshot. Source changes require a server restart or a rebuilt artifact.">Refresh ↻</button></div></header>
 <div class="toolbar"><label>Item type <select id="types" aria-label="Item type"></select></label><input id="search" placeholder="Search fields, relationships or embeds…" aria-label="Search fields"><span id="status" role="status">Waiting for analysis…</span></div>
 <div id="error" role="alert" hidden></div>
 <section id="entity-panel" hidden aria-label="All schema relationships">

@@ -2,7 +2,7 @@
 (() => {
   let state = {}, selection, modelTicket = 0, itemTicket = 0, itemController;
   const environment = location.host;
-  const send = data => window.dispatchEvent(new MessageEvent('message', {
+  const send = data => window.dispatchEvent(Object.assign(new Event('message'), {
     data, source: window, origin: location.origin
   }));
   const itemURL = identifier => {
@@ -15,7 +15,7 @@
   async function json(url, signal) {
     // mode=same-origin also rejects redirects to other origins; cookies never go there.
     const response = await fetch(url, {method:'GET', mode:'same-origin', credentials:'same-origin',
-      cache:'no-store', headers:{Accept:'application/json'}, signal});
+      cache:'no-store', headers:{Accept:'application/json'}, signal:AbortSignal.any([signal, lifetime.signal].filter(Boolean))});
     if (!response.ok) throw new Error(`Portal returned HTTP ${response.status}.`);
     const reader = response.body.getReader();
     const decoder = new TextDecoder(); let size = 0, text = '';
@@ -90,6 +90,7 @@
       const url = new URL('/schema-explorer/source', location.origin);
       url.searchParams.set('file', message.file);
       const result = await json(url, AbortSignal.timeout(20000));
+      if (lifetime.signal.aborted) return;
       const lines = result.text.split('\n');
       const line = Math.max(1, Math.min(lines.length, Number(message.line) || 1));
       const start = Math.max(0, line - 12), end = Math.min(lines.length, line + 28);
@@ -99,7 +100,7 @@
       const full = document.createElement('details'), label = document.createElement('summary'), code = document.createElement('pre');
       label.textContent = 'Full source'; code.textContent = result.text;
       full.append(label,code); document.getElementById('detail-content').append(full);
-    } catch (error) { showDetail('Source unavailable', {message:error.message}, []); }
+    } catch (error) { if (lifetime.signal.aborted) return; showDetail('Source unavailable', {message:error.message}, []); }
   }
   window.acquireVsCodeApi = () => ({
     getState: () => state,
@@ -122,5 +123,5 @@
       }
     }
   });
-  window.addEventListener('pagehide', () => { ++itemTicket; itemController?.abort(); state = {}; });
+  window.addEventListener('pagehide', () => { ++modelTicket; ++itemTicket; itemController?.abort(); state = {}; });
 })();
