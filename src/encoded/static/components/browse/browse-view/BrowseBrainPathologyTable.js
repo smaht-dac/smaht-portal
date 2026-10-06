@@ -8,6 +8,7 @@ import {
     portalCellDetailPopover,
 } from './BrowseTissueHeatmapTable';
 import { Schemas } from '../../util';
+import { DonorIdLink } from './heatmap-donor-links';
 
 // Per explicit request -- every column header across these 3 tabs' tables
 // gets an info icon whose tooltip is the underlying BrainPathologyReport
@@ -224,7 +225,7 @@ function BrainPathologyEmptyState() {
 // apply here) reusing just the shared tissue-heatmap-card/-table/-cell CSS
 // and FixedScoreLegend, so it still reads as the same visual family as the
 // other 4 tabs.
-export function BrainFindingsTable({ tissueResults = [] }) {
+export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
     const donorFindings = useMemo(() => buildDonorBrainFindings(tissueResults), [tissueResults]);
     const donors = useMemo(() => Object.keys(donorFindings).sort(), [donorFindings]);
     // Same click-a-swatch-to-dim-non-matching-cells filter FixedScoreLegend
@@ -277,7 +278,7 @@ export function BrainFindingsTable({ tissueResults = [] }) {
                             const byCategory = donorFindings[donorId];
                             return (
                                 <tr key={donorId}>
-                                    <td className="tissue-heatmap-metric-donor-id">{donorId}</td>
+                                    <td className="tissue-heatmap-metric-donor-id"><DonorIdLink donorId={donorId} donorHrefs={donorHrefs} /></td>
                                     {BRAIN_FINDING_CATEGORIES.map((category, columnIndex) => {
                                         const entry = byCategory.get(category) || null;
                                         const value = entry ? entry.present : null;
@@ -350,7 +351,7 @@ export function BrainFindingsTable({ tissueResults = [] }) {
 // uses table-wide, just scoped to 1 column; the 3 ordinal fields via their
 // own fixed enum position instead, evenly mapped onto the same 5-band
 // score-0..4 scale).
-export function BrainStagingTable({ tissueResults = [] }) {
+export function BrainStagingTable({ tissueResults = [], donorHrefs = null }) {
     const donorStaging = useMemo(() => buildDonorBrainStaging(tissueResults), [tissueResults]);
     const donors = useMemo(() => Object.keys(donorStaging).sort(), [donorStaging]);
 
@@ -410,7 +411,7 @@ export function BrainStagingTable({ tissueResults = [] }) {
                             const staging = donorStaging[donorId];
                             return (
                                 <tr key={donorId}>
-                                    <td className="tissue-heatmap-metric-donor-id">{donorId}</td>
+                                    <td className="tissue-heatmap-metric-donor-id"><DonorIdLink donorId={donorId} donorHrefs={donorHrefs} /></td>
                                     {BRAIN_STAGING_FIELDS.map((field) => {
                                         const value = staging[field.key];
                                         const hasValue = value !== null && typeof value !== 'undefined';
@@ -476,7 +477,7 @@ export function buildDonorBrainDiagnosis(tissueResults = []) {
 // order-label column this table has neither of; reusing it here left long
 // diagnosis text overflowing its cell with nowrap+visible-overflow and
 // visually overlapping the next column instead of wrapping.
-export function BrainDiagnosisTable({ tissueResults = [] }) {
+export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null }) {
     const donorDiagnosis = useMemo(() => buildDonorBrainDiagnosis(tissueResults), [tissueResults]);
     const donors = useMemo(() => Object.keys(donorDiagnosis).sort(), [donorDiagnosis]);
 
@@ -527,7 +528,7 @@ export function BrainDiagnosisTable({ tissueResults = [] }) {
                                 <tr key={`${donorId}-${entryIndex}`}>
                                     {entryIndex === 0 ? (
                                         <td className="tissue-heatmap-diagnosis-donor" rowSpan={entries.length}>
-                                            {donorId}
+                                            <DonorIdLink donorId={donorId} donorHrefs={donorHrefs} />
                                         </td>
                                     ) : null}
                                     <td>

@@ -12,6 +12,8 @@ import { GERM_LAYER_COLORS } from '../../util/germ-layer-colors';
 import { getTissueInternalCodeFromFacetTerm } from '../../util/data';
 import { getTissueColorHex } from '../../item-pages/components/tissue-overview/helpers';
 import { BrainFindingsTable, BrainStagingTable, BrainDiagnosisTable } from './BrowseBrainPathologyTable';
+import { buildDonorHrefs, DonorIdLink } from './heatmap-donor-links';
+import { useUserDownloadAccess } from '../../util/hooks';
 
 // Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
 // mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
@@ -2926,6 +2928,8 @@ export function SortableHeaderLabel({ label, sortDirection, onClick }) {
 
 const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     tissueTypes,
+    // Donor external_id -> donor page href, see buildDonorHrefs.
+    donorHrefs = null,
     tissueTypeHrefs,
     tissueTypeCategories,
     matrix,
@@ -3416,7 +3420,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                                         'tissue-heatmap-donor-id' +
                                         (selectedCell?.rowIndex === rowIndex ? ' is-selected-row' : '')
                                     }>
-                                    {donor}
+                                    <DonorIdLink donorId={donor} donorHrefs={donorHrefs} />
                                 </td>
                                 {renderRowCells(
                                     cells,
@@ -3516,6 +3520,10 @@ export const BrowseTissueHeatmapTable = (props) => {
     // Gates the score-band cell coloring in all 4 tabs' tables -- see
     // MetricHeatmapTable's identical prop. On by default.
     const { href, session, enableConditionalColor = true } = props;
+    // Every table's Donor ID links to the ProtectedDonor page for a user with
+    // protected access, the plain Donor page otherwise (buildDonorHrefs).
+    const { userDownloadAccess } = useUserDownloadAccess(session);
+    const hasProtectedAccess = !!userDownloadAccess?.protected;
     const [loading, setLoading] = useState(true);
     const [tissueResults, setTissueResults] = useState([]);
     // The color picker is an internal dev/data-wrangling tool, not
@@ -3675,6 +3683,11 @@ export const BrowseTissueHeatmapTable = (props) => {
     const brainTissueResults = useMemo(
         () => tissueResults.filter(isBrainTissueResult),
         [tissueResults]
+    );
+
+    const donorHrefs = useMemo(
+        () => buildDonorHrefs(tissueResults, hasProtectedAccess),
+        [tissueResults, hasProtectedAccess]
     );
 
     const ischemicTime = useMemo(
@@ -4044,6 +4057,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                 </div>
                             )}
                             enableConditionalColor={enableConditionalColor}
+                            donorHrefs={donorHrefs}
                         />
                     )}
                 </DotRouterTab>,
@@ -4086,6 +4100,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                 />
                             )}
                             enableConditionalColor={enableConditionalColor}
+                            donorHrefs={donorHrefs}
                         />
                     )}
                 </DotRouterTab>,
@@ -4122,6 +4137,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                 />
                             )}
                             enableConditionalColor={enableConditionalColor}
+                            donorHrefs={donorHrefs}
                         />
                     )}
                 </DotRouterTab>,
@@ -4164,6 +4180,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                 <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
                             )}
                             enableConditionalColor={enableConditionalColor}
+                            donorHrefs={donorHrefs}
                             // Drives this tab's tissue-type header tint (its
                             // only header row -- see renderHeaderCells).
                             subtypeTintPercent={ischemicTissueTintPercent}
@@ -4207,6 +4224,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                     />
                                 )}
                                 enableConditionalColor={enableConditionalColor}
+                                donorHrefs={donorHrefs}
                             />
                         )}
                     </DotRouterTab>,
@@ -4234,6 +4252,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                     <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
                                 )}
                                 enableConditionalColor={enableConditionalColor}
+                                donorHrefs={donorHrefs}
                                 subtypeTintPercent={ischemicTissueTintPercent}
                                 splitByPreservationType
                             />
@@ -4283,7 +4302,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                 <i className="icon icon-circle-notch icon-spin fas" />
                             </div>
                         ) : (
-                            <BrainFindingsTable tissueResults={tissueResults} />
+                            <BrainFindingsTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
                         )}
                     </DotRouterTab>,
                     <DotRouterTab
@@ -4297,7 +4316,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                 <i className="icon icon-circle-notch icon-spin fas" />
                             </div>
                         ) : (
-                            <BrainStagingTable tissueResults={tissueResults} />
+                            <BrainStagingTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
                         )}
                     </DotRouterTab>,
                     <DotRouterTab
@@ -4311,7 +4330,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                 <i className="icon icon-circle-notch icon-spin fas" />
                             </div>
                         ) : (
-                            <BrainDiagnosisTable tissueResults={tissueResults} />
+                            <BrainDiagnosisTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
                         )}
                     </DotRouterTab>,
                 ] : []),

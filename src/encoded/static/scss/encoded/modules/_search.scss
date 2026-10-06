@@ -4797,3 +4797,18 @@ body.scrolled-past-80.scrolled-past-460[data-path^='/browse']
     margin-top: 5px;
     top: 50%;
 }
+
+// Donor ID cells across the tissue heatmap tables (heatmap-donor-links.js's
+// DonorIdLink) -- keeps the cell's own blue/weight instead of the global
+// link styling, underlining only on hover so the column doesn't read as a
+// wall of underlined links.
+.tissue-heatmap-donor-link {
+	color: inherit;
+	text-decoration: none;
+
+	&:hover,
+	&:focus {
+		color: inherit;
+		text-decoration: underline;
+	}
+}
