@@ -16,6 +16,11 @@ const RENAMED_FILES_QUERY =
 // Hide the same facets as the file browse page, plus `tags`
 const RENAMED_FILES_HIDE_FACETS = [...FILE_BROWSE_HIDE_FACETS, 'tags'];
 
+// The facet column's header/padding is ~36px taller than the results header
+// row, so the results body is taller to make both columns end at the same line
+const FACETS_BODY_HEIGHT = 600;
+const RESULTS_BODY_HEIGHT = FACETS_BODY_HEIGHT + 36;
+
 // Renamed Files header component containing total count
 function RenamedFilesTableHeader({ context, href }) {
     return context?.total > 0 ? (
@@ -189,7 +194,8 @@ export default function RenamedFilesTable(props) {
                 session={session}
                 hideFacets={RENAMED_FILES_HIDE_FACETS}
                 rowHeight={31}
-                maxFacetsBodyHeight={600}
+                maxFacetsBodyHeight={FACETS_BODY_HEIGHT}
+                maxResultsBodyHeight={RESULTS_BODY_HEIGHT}
                 columns={RenamedFilesColumns}
                 columnExtensionMap={RenamedFilesColumnExtensionMap}
                 embeddedTableHeader={<RenamedFilesTableHeader />}
