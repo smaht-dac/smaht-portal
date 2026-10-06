@@ -9,7 +9,7 @@ import { console, isServerSide, logger } from '@hms-dbmi-bgm/shared-portal-compo
 import { barplot_color_cycler } from './../ColorCycler';
 import { CursorViewBounds } from './../ChartDetailCursor';
 import { Schemas } from './../../util';
-import { getTissueSampleTypeColor, TISSUE_SAMPLE_TYPE_ZERO_COLOR } from './tissue-sample-type-colors';
+import { getTissueSampleTypeColor, TISSUE_SAMPLE_TYPE_ZERO_COLOR, getTissueLineDotFill } from './tissue-sample-type-colors';
 
 
 
@@ -618,7 +618,8 @@ class LineChartViewContainer extends React.PureComponent {
                                         // eslint-disable-next-line react/no-array-index-key
                                         <circle key={i} cx={p.x} cy={p.y}
                                             r={isHighlighted ? 6 : 4.5}
-                                            fill={swatch.fill} stroke={swatch.stroke}
+                                            fill={getTissueLineDotFill(swatch.fill)}
+                                            stroke={swatch.stroke}
                                             strokeWidth={isHighlighted ? 2.5 : 1.5}
                                             style={{ cursor: 'pointer' }}
                                             onMouseEnter={(evt) => onNodeMouseEnter(p.node, evt)}
