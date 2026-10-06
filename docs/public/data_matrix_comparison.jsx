@@ -26,7 +26,7 @@
                 "browseFilteringTransformFuncKey": "analysisDerivedColumns",
                 "rowGroups": {
                     "Cell Line": {
-                        "values": ["COLO829T", "COLO829BL", "COLO829BLT50", "In silico BLT50", "Truth Set", "HapMap Mixture", "Downsampled", "LB-LA2 Fibroblast", "LB-LA2 iPSC-1", "LB-LA2 iPSC-2", "LB-LA2 iPSC-4", "LB-LA2 iPSC-52", "LB-LA2 iPSC-60"],
+                        "values": ["COLO829T", "COLO829BL", "COLO829BLT50", "In silico BLT50", "COLO829VAI", "Truth Set", "HapMap Mixture", "Downsampled", "LB-LA2 Fibroblast", "LB-LA2 iPSC-1", "LB-LA2 iPSC-2", "LB-LA2 iPSC-4", "LB-LA2 iPSC-52", "LB-LA2 iPSC-60"],
                         "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
                         "shortName": "Cell Line",
