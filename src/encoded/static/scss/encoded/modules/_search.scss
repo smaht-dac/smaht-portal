@@ -2252,12 +2252,24 @@ div.browse-link-icon {
 		}
 
 		// Cards for tissue types with 0 donors render as a plain <div>
-		// (see TissueAdvancedPanel), not a real link -- muted and
-		// inert rather than removed, so the full tissue catalog still reads
-		// as complete.
+		// (see TissueAdvancedPanel), not a real link -- inert rather than
+		// removed, so the full tissue catalog still reads as complete.
+		// Fully greyed out (grayscale + faded), per explicit feedback: an
+		// earlier version only faded them, which left each tissue's own
+		// pastel border/background/footer color showing and still read as
+		// an active card, drawing attention to exactly the tissues with
+		// nothing to show. No hover lift/shadow either, since there's
+		// nothing to click.
 		&.is-disabled {
-			opacity: 0.45;
+			filter: grayscale(100%);
+			opacity: 0.5;
 			cursor: default;
+
+			&:hover,
+			&:focus {
+				box-shadow: none;
+				transform: none;
+			}
 		}
 	}
 
