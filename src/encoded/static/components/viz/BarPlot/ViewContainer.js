@@ -9,7 +9,7 @@ import { console, isServerSide, logger } from '@hms-dbmi-bgm/shared-portal-compo
 import { barplot_color_cycler } from './../ColorCycler';
 import { CursorViewBounds } from './../ChartDetailCursor';
 import { Schemas } from './../../util';
-import { getTissueSampleTypeColor, TISSUE_SAMPLE_TYPE_ZERO_COLOR, getTissueLineDotFill } from './tissue-sample-type-colors';
+import { getTissueSampleTypeColor, getTissueLineDotFill } from './tissue-sample-type-colors';
 
 
 
@@ -601,8 +601,10 @@ class LineChartViewContainer extends React.PureComponent {
                             <g key={s.term} className="line-chart-series" data-term={s.term}>
                                 <polyline points={pointsAttr} fill="none" stroke={stroke} strokeWidth={2} />
                                 { _.map(s.points, function (p, i) {
-                                    const isZero = !p.count;
-                                    const swatch = isZero ? TISSUE_SAMPLE_TYPE_ZERO_COLOR : getTissueSampleTypeColor(s.term);
+                                    // A 0-count point keeps its series' own color too,
+                                    // per explicit request -- it used to switch to a
+                                    // muted grey.
+                                    const swatch = getTissueSampleTypeColor(s.term);
                                     // Popover's own swatch (ChartDetailCursor's
                                     // Body) prefers `leafNode.color`, falling
                                     // back to the generic cycler otherwise --

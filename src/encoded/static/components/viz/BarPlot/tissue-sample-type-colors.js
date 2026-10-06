@@ -44,15 +44,6 @@ const TISSUE_GROUP_PALETTE = [
 // up separately, always agree on the same term's color.
 const assignedGroupColors = new Map();
 
-/**
- * The muted marker color for a data point whose own count is 0 (a tissue
- * with no samples of that particular sample type) -- per explicit request,
- * still drawn (not hidden/blank), but deliberately never this term's own
- * color, so a real 0 doesn't visually compete with genuine data points for
- * attention on the line.
- */
-export const TISSUE_SAMPLE_TYPE_ZERO_COLOR = { fill: '#ECEEF0', stroke: '#C2C7CC' };
-
 export function getTissueSampleTypeColor(term) {
     if (TISSUE_SAMPLE_TYPE_COLORS[term]) return TISSUE_SAMPLE_TYPE_COLORS[term];
     if (term === undefined || term === null) return TISSUE_SAMPLE_TYPE_DEFAULT_COLOR;
