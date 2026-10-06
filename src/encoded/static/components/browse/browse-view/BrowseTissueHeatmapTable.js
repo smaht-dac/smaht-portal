@@ -327,6 +327,18 @@ const getIschemicTimeValue = (t) => t?.ischemic_time ?? null;
 const getAutolysisScoreValue = (t) => t?.pathology_summary?.autolysis_score ?? null;
 const getNonTargetTissuePercentageValue = (t) => t?.pathology_summary?.non_target_tissue_percentage ?? null;
 
+// A Tissue record for one of the 5 brain regions, or the generic "Brain"
+// tissue_type (whose value buildTissueMetricMatrix distributes into those
+// regions). Per explicit request, brain is split out of the tissue-wide
+// tabs (Target/Non Target Tissue %, Autolysis Score, Ischemic Time) into
+// its own Autolysis Score/Ischemic Time tabs.
+const isBrainTissueResult = (t) => {
+    const tissueType = t?.tissue_type;
+    if (!tissueType) return false;
+    return tissueType.trim() === 'Brain' ||
+        BRAIN_REGION_INTERNAL_CODES.includes(getTissueInternalCodeFromFacetTerm(tissueType));
+};
+
 // --- Per-subtype sub-columns (Autolysis Score/Target Tissue % tabs only) ---
 //
 // A NonBrainPathologyReport's own `target_tissues` array can carry several
@@ -3473,9 +3485,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     );
 });
 
-// "Neuropathology Findings" tab's own tabTitle -- a real DOM label (not a
-// CSS ::before/::after) reading "Brain", attached to the top-left of the
-// crown bracket _search.scss draws over the 3 brain-specific tabs (see
+// Brain "Autolysis Score" tab's own tabTitle (the first brain tab) -- a
+// real DOM label (not a CSS ::before/::after) reading "Brain", attached to
+// the top-left of the crown bracket _search.scss draws over the brain tabs (see
 // that file's own ".tissue-heatmap-tabs .dot-tab-nav-list button" rules).
 // Only needs to render once, on the group's leftmost tab -- CSS positions
 // it outside-left of that tab, which is also the group's own left edge.
@@ -3486,9 +3498,16 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
 // object reference across re-renders -- DotRouterTab is a React.memo with
 // its own shallow prop-equality check on `tabTitle`, which a freshly-
 // recreated-every-render JSX literal would defeat.
-const BRAIN_FINDINGS_TAB_TITLE = (
+// Keeps the brain-only tabs' 5 region columns separate (no merged "Brain"
+// header, no merged equal-valued cells) -- see brainAutolysisScore.
+const BRAIN_ONLY_TABLE_OVERRIDES = {
+    mergeableTissueTypes: EMPTY_MERGEABLE_TISSUE_TYPES,
+    brainColumnsFullyMergeable: false,
+};
+
+const BRAIN_AUTOLYSIS_TAB_TITLE = (
     <React.Fragment>
-        Neuropathology Findings
+        Autolysis Score
         <span className="tissue-heatmap-brain-group-label" aria-hidden="true">Brain</span>
     </React.Fragment>
 );
@@ -3597,8 +3616,10 @@ export const BrowseTissueHeatmapTable = (props) => {
     const activeTabDotPath = DotRouter.getDotPath(href) || '.target-tissue';
     const isTargetTabActive = activeTabDotPath === '.target-tissue';
     const isNonTargetTabActive = activeTabDotPath === '.non-target-tissue';
-    const isAutolysisTabActive = activeTabDotPath === '.autolysis-score';
-    const isIschemicTabActive = activeTabDotPath === '.ischemic-time';
+    // The brain tabs share their tissue-wide counterpart's color scale and
+    // tint setting.
+    const isAutolysisTabActive = activeTabDotPath === '.autolysis-score' || activeTabDotPath === '.brain-autolysis-score';
+    const isIschemicTabActive = activeTabDotPath === '.ischemic-time' || activeTabDotPath === '.brain-ischemic-time';
 
     // Target Tissue %'s own "Show Non-Target Tissue %" toggle -- off by
     // default (unchanged, existing Target Tissue %-only view), per-page-
@@ -3644,9 +3665,21 @@ export const BrowseTissueHeatmapTable = (props) => {
         );
     }, [session]);
 
-    const ischemicTime = useMemo(
-        () => buildTissueMetricMatrix(tissueResults, getIschemicTimeValue, true),
+    // Brain vs. everything else -- see isBrainTissueResult. The tissue-wide
+    // tabs below all build from tissueResultsExcludingBrain; the 2 brain tabs
+    // from brainTissueResults.
+    const tissueResultsExcludingBrain = useMemo(
+        () => tissueResults.filter((t) => !isBrainTissueResult(t)),
         [tissueResults]
+    );
+    const brainTissueResults = useMemo(
+        () => tissueResults.filter(isBrainTissueResult),
+        [tissueResults]
+    );
+
+    const ischemicTime = useMemo(
+        () => buildTissueMetricMatrix(tissueResultsExcludingBrain, getIschemicTimeValue),
+        [tissueResultsExcludingBrain]
     );
     // Built from this table's own real values -- see
     // buildRangeScoreClassifier for why fixed thresholds don't work here.
@@ -3671,11 +3704,12 @@ export const BrowseTissueHeatmapTable = (props) => {
     // subject -- it never has target_tissues/non_target_tissues/autolysis
     // data, so it's excluded from the 3 pathology-derived tabs below
     // (Autolysis Score, Target Tissue %, Non Target Tissue %) per explicit
-    // request. Ischemic Time above deliberately keeps using the raw,
-    // unfiltered `tissueResults` -- collection timing still applies to it.
+    // request. Ischemic Time above deliberately keeps FBRO -- collection
+    // timing still applies to it. Brain is already excluded too (see
+    // tissueResultsExcludingBrain).
     const tissueResultsExcludingFibroblast = useMemo(
-        () => tissueResults.filter((t) => getTissueInternalCodeFromFacetTerm(t?.tissue_type) !== 'FBRO'),
-        [tissueResults]
+        () => tissueResultsExcludingBrain.filter((t) => getTissueInternalCodeFromFacetTerm(t?.tissue_type) !== 'FBRO'),
+        [tissueResultsExcludingBrain]
     );
     // Real tissue_type hrefs/categories, derived from the RAW (pre-subtype-
     // expansion) results -- needed by buildSubtypeColumnPlan below since
@@ -3694,12 +3728,8 @@ export const BrowseTissueHeatmapTable = (props) => {
         [tissueResultsExcludingFibroblast]
     );
 
-    // Autolysis, like ischemic time, is assessed once per whole brain at
-    // procurement, not independently per dissected sub-region, so every
-    // real region column for a given donor carries the same score and this
-    // gets the same distributeGenericBrainValue/merge treatment.
     const autolysisScore = useMemo(
-        () => buildTissueMetricMatrix(expandedForSubtypeTabs, getAutolysisScoreValue, true),
+        () => buildTissueMetricMatrix(expandedForSubtypeTabs, getAutolysisScoreValue),
         [expandedForSubtypeTabs]
     );
     const autolysisSubtypePlan = useMemo(
@@ -3710,14 +3740,6 @@ export const BrowseTissueHeatmapTable = (props) => {
         ),
         [autolysisScore.tissueTypes, realTissueTypeHrefsAndCategories]
     );
-    // Not for the same reason as Autolysis Score above -- there's no real
-    // value to distribute here (BrainPathologyReport has no target_tissues
-    // field at all, see get_target_tissue_percentage's own docstring, so
-    // every brain region's value is unconditionally null, generic "Brain"
-    // column included). `true` just engages the merge side of the same
-    // flag, collapsing what would otherwise be 5 repeated "n/a" cells into
-    // one.
-    //
     // Target Tissue % gets its OWN pre-expansion (expandTissueResultsForTargetWithNonTarget),
     // not the shared expandedForSubtypeTabs Autolysis Score above also uses
     // -- showNonTargetInTargetTab needs non-target subtype columns folded
@@ -3731,7 +3753,7 @@ export const BrowseTissueHeatmapTable = (props) => {
     );
     const targetTissuePercentage = useMemo(
         () => reorderNonTargetColumnsLast(
-            buildTissueMetricMatrix(targetWithNonTargetExpansion.expanded, getCombinedTargetOrNonTargetValue, true),
+            buildTissueMetricMatrix(targetWithNonTargetExpansion.expanded, getCombinedTargetOrNonTargetValue),
             targetWithNonTargetExpansion.nonTargetColumnKeys
         ),
         [targetWithNonTargetExpansion]
@@ -3777,16 +3799,13 @@ export const BrowseTissueHeatmapTable = (props) => {
     // expandTissueResultsByNonTargetSubtype) rather than sharing
     // expandedForSubtypeTabs above -- that one is pivoted off
     // pathology_summary.target_tissues, an entirely different array from
-    // non_target_tissues. Same brain-region reasoning as Target Tissue %
-    // above applies here too: BrainPathologyReport has no non_target_tissues
-    // concept at all, so every brain region's value is unconditionally
-    // null; `true` just merges those repeated "n/a" cells into one.
+    // non_target_tissues.
     const expandedForNonTargetTab = useMemo(
         () => expandTissueResultsByNonTargetSubtype(tissueResultsExcludingFibroblast),
         [tissueResultsExcludingFibroblast]
     );
     const nonTargetTissuePercentage = useMemo(
-        () => buildTissueMetricMatrix(expandedForNonTargetTab, getNonTargetTissuePercentageValue, true),
+        () => buildTissueMetricMatrix(expandedForNonTargetTab, getNonTargetTissuePercentageValue),
         [expandedForNonTargetTab]
     );
     // Every one of this tab's own columns reads as "NON-TARGET" in the
@@ -3804,6 +3823,28 @@ export const BrowseTissueHeatmapTable = (props) => {
             realTissueTypeHrefsAndCategories.tissueTypeCategories
         ),
         [nonTargetTissuePercentage.tissueTypes, realTissueTypeHrefsAndCategories]
+    );
+
+    // The 2 brain-only tabs -- just the 5 brain regions. Autolysis and
+    // ischemic time are both assessed once per whole brain, so a generic
+    // "Brain" record's value still fills any region without its own
+    // (distributeGenericBrainValue), but the 5 regions always stay 5
+    // separate columns here (BRAIN_ONLY_TABLE_OVERRIDES below) rather than
+    // collapsing into one merged "Brain" column -- the whole point of these
+    // tabs is to show each region.
+    const brainAutolysisScore = useMemo(
+        () => buildTissueMetricMatrix(brainTissueResults, getAutolysisScoreValue, true),
+        [brainTissueResults]
+    );
+    const brainIschemicTime = useMemo(
+        () => buildTissueMetricMatrix(brainTissueResults, getIschemicTimeValue, true),
+        [brainTissueResults]
+    );
+    // Its own data-driven bands, from just the brain values -- see
+    // buildRangeScoreClassifier.
+    const brainIschemicTimeScoring = useMemo(
+        () => buildRangeScoreClassifier(brainIschemicTime.matrix.flatMap((row) => row.cells)),
+        [brainIschemicTime]
     );
 
     // Applied as CSS custom properties on the whole card -- _search.scss's
@@ -4130,6 +4171,75 @@ export const BrowseTissueHeatmapTable = (props) => {
                         />
                     )}
                 </DotRouterTab>,
+                // Brain's own Autolysis Score/Ischemic Time tabs -- hidden
+                // behind the same admin "Show Brain tabs" switch as the 3
+                // brain pathology tabs below (per explicit request), so brain
+                // data is only on the page while that switch is on.
+                ...(showBrainTabs ? [
+                    <DotRouterTab
+                        key="brain-autolysis-score"
+                        dotPath=".brain-autolysis-score"
+                        tabTitle={BRAIN_AUTOLYSIS_TAB_TITLE}
+                        arrowTabs={false}
+                        cache={true}
+                        contentsClassName="tissue-heatmap-autolysis-tab">
+                        {loading ? (
+                            <div className="tissue-heatmap-loading">
+                                <i className="icon icon-circle-notch icon-spin fas" />
+                            </div>
+                        ) : (
+                            <MetricHeatmapTable
+                                {...brainAutolysisScore}
+                                {...BRAIN_ONLY_TABLE_OVERRIDES}
+                                subtypeTintPercent={subtypeTintPercent}
+                                metricLabel="Brain Autolysis Score"
+                                tooltip="Tissue autolysis score of the brain region: 0=None, 1=mild, 2=moderate, 3=severe"
+                                formatValue={formatAutolysisScore}
+                                getScoreClass={getAutolysisScoreClass}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                legend={({ activeScoreClass, onScoreClassClick }) => (
+                                    <FixedScoreLegend
+                                        entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES}
+                                        leftCaption="Minimal"
+                                        rightCaption="Severe"
+                                        activeClassName={activeScoreClass}
+                                        onEntryClick={onScoreClassClick}
+                                    />
+                                )}
+                                enableConditionalColor={enableConditionalColor}
+                            />
+                        )}
+                    </DotRouterTab>,
+                    <DotRouterTab
+                        key="brain-ischemic-time"
+                        dotPath=".brain-ischemic-time"
+                        tabTitle="Ischemic Time (h)"
+                        arrowTabs={false}
+                        cache={true}
+                        contentsClassName="tissue-heatmap-ischemic-tab">
+                        {loading ? (
+                            <div className="tissue-heatmap-loading">
+                                <i className="icon icon-circle-notch icon-spin fas" />
+                            </div>
+                        ) : (
+                            <MetricHeatmapTable
+                                {...brainIschemicTime}
+                                {...BRAIN_ONLY_TABLE_OVERRIDES}
+                                metricLabel="Brain Ischemic Time (h)"
+                                tooltip="Time interval between death, presumed death, or cross-clamp application and beginning of brain collection (hours)"
+                                formatValue={formatIschemicTime}
+                                getScoreClass={brainIschemicTimeScoring.classify}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                legend={({ activeSplitHalf, onSplitHalfClick }) => (
+                                    <SplitCellLegend activeHalf={activeSplitHalf} onHalfClick={onSplitHalfClick} />
+                                )}
+                                enableConditionalColor={enableConditionalColor}
+                                subtypeTintPercent={ischemicTissueTintPercent}
+                                splitByPreservationType
+                            />
+                        )}
+                    </DotRouterTab>,
+                ] : []),
                 /* Brain-specific pathology data -- see brain_pathology_report.json.
                     Grouped into 3 tabs by kind (present/absent findings,
                     numeric/ordinal staging scores, free-text diagnosis/notes)
@@ -4165,7 +4275,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                     <DotRouterTab
                         key="brain-findings"
                         dotPath=".brain-findings"
-                        tabTitle={BRAIN_FINDINGS_TAB_TITLE}
+                        tabTitle="Neuropathology Findings"
                         arrowTabs={false}
                         cache={true}>
                         {loading ? (
