@@ -6,9 +6,22 @@ import {
     SearchTableTitle,
 } from '../../item-pages/components/EmbeddedItemSearchTable';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+import { FILE_BROWSE_HIDE_FACETS } from '../../browse/BrowseView';
 
-// Renamed Files query
-const RENAMED_FILES_QUERY = '/search/?type=File&tags=rename';
+// Renamed Files query, with an extra accession facet so users can look up
+// specific files in a search box. `sort=-tags` lists newest renames first, since a
+// descending sort uses each file's last tag (`renamed_on|YYYY-MM-DD`); ascending
+// would compare `rename` instead, so the column itself stays unsortable
+const RENAMED_FILES_QUERY =
+    '/search/?type=File&tags=rename&additional_facet=accession&sort=-tags';
+
+// Hide the same facets as the file browse page, plus `tags`
+const RENAMED_FILES_HIDE_FACETS = [...FILE_BROWSE_HIDE_FACETS, 'tags'];
+
+// The facet column's header/padding is ~36px taller than the results header
+// row, so the results body is taller to make both columns end at the same line
+const FACETS_BODY_HEIGHT = 600;
+const RESULTS_BODY_HEIGHT = FACETS_BODY_HEIGHT + 36;
 
 // Renamed Files header component containing total count
 function RenamedFilesTableHeader({ context, href }) {
@@ -181,8 +194,10 @@ export default function RenamedFilesTable(props) {
                 searchHref={RENAMED_FILES_QUERY}
                 schemas={schemas}
                 session={session}
-                facets={null}
+                hideFacets={RENAMED_FILES_HIDE_FACETS}
                 rowHeight={31}
+                maxFacetsBodyHeight={FACETS_BODY_HEIGHT}
+                maxResultsBodyHeight={RESULTS_BODY_HEIGHT}
                 columns={RenamedFilesColumns}
                 columnExtensionMap={RenamedFilesColumnExtensionMap}
                 embeddedTableHeader={<RenamedFilesTableHeader />}
