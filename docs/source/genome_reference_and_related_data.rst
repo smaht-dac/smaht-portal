@@ -92,7 +92,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2 text-end">12-13-2023</td>
-                    <td class="px-2 text-end">2.89 GB</td>
+                    <td class="px-2 text-end">19.73 MB</td>
                 </tr>
                 <tr class="sticky-first-column">
                     <td class="px-2">
@@ -108,7 +108,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2">
-                        STAR genome index file for 145bp-long RNA-Seq reads (+1 base overhang). Generated from the Genome version GRCh38 GCA_000001405.15, after removing ALT and HLA contigs, and used GENCODE v47.
+                        GRCh38 Human genome reference sequence in FASTA format used to generate the STAR genome index files for short-read RNA-Seq alignment. This genome reference is identical to the one used by GTEx, to allow compatibility between SMaHT and GTEx data.
                         <br/>
                         <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Software_Specific/1_STAR_Index.html" rel="noreferrer noopener" target="_blank">
                             (View Source)
@@ -131,7 +131,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2">
-                        STAR genome index. Version GCA_000001405.15 for build hg38/GRCh38. Does NOT include ALT contigs. Does NOT include HLA contigs. Generated using GENCODE v47. Overhang for 100bp reads.
+                        STAR genome index file for 99bp-long RNA-Seq reads (+1 base overhang). Generated from the Genome version GRCh38 GCA_000001405.15, after removing ALT and HLA contigs, and used GENCODE v47.
                         <br/>
                         <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Software_Specific/1_STAR_Index.html" rel="noreferrer noopener" target="_blank">
                             (View Source)
@@ -154,7 +154,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2">
-                        STAR genome index. Version GCA_000001405.15 for build hg38/GRCh38. Does NOT include ALT contigs. Does NOT include HLA contigs. Generated using GENCODE v47. Overhang for 146bp reads.
+                        STAR genome index file for 145bp-long RNA-Seq reads (+1 base overhang). Generated from the Genome version GRCh38 GCA_000001405.15, after removing ALT and HLA contigs, and used GENCODE v47.
                         <br/>
                         <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Software_Specific/1_STAR_Index.html" rel="noreferrer noopener" target="_blank">
                             (View Source)
@@ -177,7 +177,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2">
-                        STAR genome index. Version GCA_000001405.15 for build hg38/GRCh38. Does NOT include ALT contigs. Does NOT include HLA contigs. Generated using GENCODE v47. Overhang for 150bp reads.
+                        STAR genome index file for 149bp-long RNA-Seq reads (+1 base overhang). Generated from the Genome version GRCh38 GCA_000001405.15, after removing ALT and HLA contigs, and used GENCODE v47.
                         <br/>
                         <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Software_Specific/1_STAR_Index.html" rel="noreferrer noopener" target="_blank">
                             (View Source)
@@ -200,7 +200,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2">
-                        STAR genome index. Version GCA_000001405.15 for build hg38/GRCh38. Does NOT include ALT contigs. Does NOT include HLA contigs. Generated using GENCODE v47. Overhang for 151bp reads.
+                        STAR genome index file for 150bp-long RNA-Seq reads (+1 base overhang). Generated from the Genome version GRCh38 GCA_000001405.15, after removing ALT and HLA contigs, and used GENCODE v47.
                         <br/>
                         <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Software_Specific/1_STAR_Index.html" rel="noreferrer noopener" target="_blank">
                             (View Source)
