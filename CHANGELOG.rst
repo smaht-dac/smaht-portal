@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.13.14
+=======
+
+`PR 776: feat: add new files to genome reference table <https://github.com/smaht-dac/smaht-portal/pull/776>`_
+
+* Update Genome Reference Page
+
+
 2.13.13
 =======
 
