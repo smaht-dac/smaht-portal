@@ -1460,7 +1460,7 @@ export default class App extends React.PureComponent {
             // token revocation on logout, and the issuer's JWKS/discovery
             // documents are all fetch()es from this page. Without these the
             // login flow fails only on a deployed origin, never locally.
-            "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com https://*.okta.com https://*.oktapreview.com",
+            "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com https://*.okta.com https://*.oktapreview.com  https://login-test.srce.hms.harvard.edu",
         ].join('; ');
         // In future consider adding: object-src 'none'; require-trusted-types-for 'script';
         // (from google csp eval -- Will says what we have is fine for now, though)
@@ -1818,7 +1818,7 @@ class BodyElement extends React.PureComponent {
             // See: https://stackoverflow.com/questions/49723019/compare-with-previous-props-in-getderivedstatefromprops
             lastHref: props.href,
             // Whether Test Data warning banner is visible.
-            testWarningPresent: false
+            testWarningPresent: false,
         };
 
         /**
