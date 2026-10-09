@@ -231,7 +231,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             shortly to confirm your subscription.
                             <br />
                             <br />
-                            When you have receive the email from AWS,
+                            When you have received the email from AWS,
                             <br />
                             click the "confirm subscription" link to begin
                             receiving data updates.
