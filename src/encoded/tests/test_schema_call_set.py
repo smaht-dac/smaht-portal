@@ -15,23 +15,24 @@ SCHEMAS_WITH_CALL_SET = [
 @pytest.mark.parametrize(
     "call_set,is_valid",
     [
-        ({"description": "SNV V1", "category": "Somatic"}, True),
-        ({"description": "SNV V2", "category": "Somatic"}, True),
-        ({"description": "Phased Germline: non-blood", "category": "Germline"}, True),
-        ({"description": "SNV V1", "category": "Germline"}, False),
-        ({"description": "SNV V2", "category": "Germline"}, False),
-        ({"description": "Phased Germline: non-blood", "category": "Somatic"}, False),
-        ({"description": "SNV V3", "category": "Somatic"}, False),
-        ({"description": "SNV V1", "category": "Other"}, False),
-        ({"description": "SNV V1"}, False),
+        ({"name": "SNV V1", "category": "Somatic"}, True),
+        ({"name": "SNV V2", "category": "Somatic"}, True),
+        ({"name": "Phased Germline: non-blood", "category": "Germline"}, True),
+        ({"name": "SNV V1", "category": "Germline"}, False),
+        ({"name": "SNV V2", "category": "Germline"}, False),
+        ({"name": "Phased Germline: non-blood", "category": "Somatic"}, False),
+        ({"name": "SNV V3", "category": "Somatic"}, True),  # suggested_enum
+        ({"name": "SNV V3", "category": "Germline"}, True),  # no pairing rule
+        ({"name": "SNV V1", "category": "Other"}, False),
+        ({"name": "SNV V1"}, False),
         ({"category": "Somatic"}, False),
-        ({"description": "SNV V1", "category": "Somatic", "extra": "x"}, False),
+        ({"name": "SNV V1", "category": "Somatic", "extra": "x"}, False),
     ],
 )
 def test_call_set_validation(
     schema_path: str, call_set: Dict[str, Any], is_valid: bool
 ) -> None:
-    """Ensure call_set enums and description/category pairing are enforced."""
+    """Ensure call_set enums and name/category pairing are enforced."""
     schema = load_schema(schema_path)
     validator = Draft202012Validator(schema["properties"]["call_set"])
     assert validator.is_valid(call_set) == is_valid

@@ -148,7 +148,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
     const facetColumnClassName = 'facets-column col-auto';
     const facetListSortFxns = {
         'sample_summary.tissues': compareTissueFacetTerms,
-        'call_set.description': compareCallSetFacetTerms,
+        'call_set.name': compareCallSetFacetTerms,
     };
 
     const aboveTableComponent = (

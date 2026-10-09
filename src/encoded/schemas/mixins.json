@@ -187,14 +187,14 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
-                "description",
+                "name",
                 "category"
             ],
             "properties": {
-                "description": {
-                    "title": "Call Set Description",
+                "name": {
+                    "title": "Call Set Name",
                     "type": "string",
-                    "enum": [
+                    "suggested_enum": [
                         "SNV V1",
                         "SNV V2",
                         "Phased Germline: non-blood"
@@ -213,7 +213,7 @@
                 {
                     "if": {
                         "properties": {
-                            "description": {
+                            "name": {
                                 "enum": [
                                     "SNV V1",
                                     "SNV V2"
@@ -232,7 +232,7 @@
                 {
                     "if": {
                         "properties": {
-                            "description": {
+                            "name": {
                                 "const": "Phased Germline: non-blood"
                             }
                         }

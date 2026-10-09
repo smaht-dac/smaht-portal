@@ -397,7 +397,7 @@ export const BrowseFileSearchTable = (props) => {
         createBrowseFileColumnExtensionMap(selectedFileProps);
     const facetListSortFxns = {
         'sample_summary.tissues': compareTissueFacetTerms,
-        'call_set.description': compareCallSetFacetTerms,
+        'call_set.name': compareCallSetFacetTerms,
     };
 
     return (

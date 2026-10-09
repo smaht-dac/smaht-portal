@@ -348,7 +348,7 @@
         "access_status": {
             "title": "Access"
         },
-        "call_set.description": {
+        "call_set.name": {
             "title": "SmaHT Variant Call Sets",
             "group_by_field": "call_set.category",
             "label_overrides": {
