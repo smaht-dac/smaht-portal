@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const env = process.env.NODE_ENV;
@@ -76,12 +77,14 @@ const resolve = {
 spcPackageJson = require('@hms-dbmi-bgm/shared-portal-components/package.json');
 spcPeerDependencies = spcPackageJson.peerDependencies || {};
 Object.keys(spcPeerDependencies).forEach(function (packageName) {
-    // Make exception for auth0-lock, which seems to break in Webpack 5 if loaded from SPC peer deps
-    if (packageName !== 'auth0-lock') {
-        resolve.alias[packageName] = path.resolve(
-            './node_modules/' + packageName
-        );
+    // auth0-lock is still a peer dependency of SPC, but this portal no longer
+    // installs or uses it (login is Okta Authorization Code + PKCE; see
+    // src/encoded/static/components/auth/). Aliasing a package that is not
+    // installed would fail to resolve, so skip anything absent from node_modules.
+    if (!fs.existsSync(path.resolve('./node_modules/' + packageName))) {
+        return;
     }
+    resolve.alias[packageName] = path.resolve('./node_modules/' + packageName);
 });
 
 // Exclusion -- higlass needs react-bootstrap 0.x but we want 1.x; can remove this line below
@@ -277,7 +280,6 @@ module.exports = [
                 // 'higlass-orthologs': 'var {}',
                 // 'higlass-pileup': 'var {}',
                 // 'higlass-multivec': 'var {}',
-                'auth0-lock': 'var {}',
                 'aws-sdk': 'var {}',
                 'package-lock.json': 'var {}',
                 "statistics-page-components" : 'var {}',
