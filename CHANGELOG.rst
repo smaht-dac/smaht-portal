@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+
+2.15.0
+======
+
+`PR #716: Data-release email notifications <https://github.com/smaht-dac/smaht-portal/pull/716>`_
+
+* Users with dbGaP access can subscribe to data-release emails from their profile page
+* New admin-only Notification Status page to compose plain-text announcements, preview
+  them, insert a summary of released and retracted files, and send a test email or an email
+  to all subscribers (sending to all is limited to named accounts)
+* New ``EmailNotification`` item type recording sent announcements
+
+
 2.14.0
 ======
 
