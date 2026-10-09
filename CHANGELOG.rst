@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.2
+======
+
+`PR 778: Fix typo in facet <https://github.com/smaht-dac/smaht-portal/pull/778>`_
+
+* Fix "SMaHT Variant Call Sets" facet title
+
+
 2.15.1
 =======
 

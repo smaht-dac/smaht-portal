@@ -349,7 +349,7 @@
             "title": "Access"
         },
         "call_set.name": {
-            "title": "SmaHT Variant Call Sets",
+            "title": "SMaHT Variant Call Sets",
             "group_by_field": "call_set.category",
             "label_overrides": {
                 "No value": "N/A",
