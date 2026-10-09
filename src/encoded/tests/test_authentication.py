@@ -568,6 +568,19 @@ def test_okta_rs256_token_is_verified_and_accepted(policy_rsa_key):
     assert payload["iss"] == _OKTA_ISSUER
 
 
+def test_okta_token_with_unverified_email_is_temporarily_accepted(policy_rsa_key):
+    """TODO: Okta is not currently returning `email_verified`, so
+    `decode_okta_id_token` temporarily accepts the login regardless of
+    `okta.require_email_verified`. Flip this back to an `is None` rejection
+    once that check is reinstated."""
+    request = _policy_request(_okta_settings())
+    token = _rs256_token(policy_rsa_key, email_verified=False)
+    with patch("encoded.okta.get_okta_jwks_client",
+               return_value=_stubbed_jwks(policy_rsa_key)):
+        payload = SMAHTAuth0AuthenticationPolicy.get_token_info(token, request)
+    assert payload["email"] == "someone@example.org"
+
+
 def test_okta_token_from_a_foreign_issuer_is_rejected(policy_rsa_key):
     request = _policy_request(_okta_settings())
     token = _rs256_token(policy_rsa_key, iss="https://attacker.example.com")

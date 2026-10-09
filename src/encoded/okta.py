@@ -293,7 +293,13 @@ def decode_okta_id_token(token, registry):
         # snovault's caller does `jwt_info['email'].lower()`, so refuse here
         # rather than letting a missing claim surface as a 500.
         raise jwt.exceptions.InvalidTokenError("Okta ID token has no usable email claim")
-    if settings.get("okta.require_email_verified", True) and not payload.get("email_verified"):
+    # TODO(temporary): Okta is not currently returning `email_verified` on ID
+    # tokens for this org, so the verified-email requirement below is disabled
+    # regardless of `okta.require_email_verified` until that is resolved.
+    # Reinstate `settings.get("okta.require_email_verified", True)` here once
+    # Okta is confirmed to reliably assert the claim again.
+    email_verified_required = False
+    if email_verified_required and not payload.get("email_verified"):
         raise jwt.exceptions.InvalidTokenError(
             "Okta ID token email is not verified (set okta.require_email_verified = false "
             "only if the Okta org intentionally does not assert this claim)"

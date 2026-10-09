@@ -430,11 +430,24 @@ class TestTokenVerification:
         with pytest.raises(jwt.exceptions.InvalidTokenError):
             decode_with_stubbed_jwks(token, rsa_key, okta_settings)
 
-    def test_rejects_an_unverified_email_by_default(self, rsa_key, okta_settings):
+    def test_accepts_a_verified_email(self, rsa_key, okta_settings):
+        token = sign_id_token(rsa_key, {"email_verified": True})
+        payload = decode_with_stubbed_jwks(token, rsa_key, okta_settings)
+        assert payload["email"] == "someone@example.org"
+
+    def test_temporarily_accepts_an_unverified_email(self, rsa_key, okta_settings):
+        """TODO: Okta is not currently returning `email_verified`, so this
+        check is temporarily disabled; see `decode_okta_id_token`. Reinstate a
+        rejection assertion here once the check is reinstated."""
         token = sign_id_token(rsa_key, {"email_verified": False})
-        with pytest.raises(jwt.exceptions.InvalidTokenError) as excinfo:
-            decode_with_stubbed_jwks(token, rsa_key, okta_settings)
-        assert "not verified" in str(excinfo.value)
+        payload = decode_with_stubbed_jwks(token, rsa_key, okta_settings)
+        assert payload["email"] == "someone@example.org"
+
+    def test_temporarily_accepts_a_token_missing_email_verified(self, rsa_key,
+                                                                okta_settings):
+        token = sign_id_token(rsa_key, {"email_verified": None})
+        payload = decode_with_stubbed_jwks(token, rsa_key, okta_settings)
+        assert payload["email"] == "someone@example.org"
 
     def test_accepts_an_unverified_email_when_explicitly_allowed(self, rsa_key,
                                                                  okta_settings):
