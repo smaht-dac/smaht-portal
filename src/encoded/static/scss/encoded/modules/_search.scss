@@ -2253,16 +2253,12 @@ div.browse-link-icon {
 
 		// Cards for tissue types with 0 donors render as a plain <div>
 		// (see TissueAdvancedPanel), not a real link -- inert rather than
-		// removed, so the full tissue catalog still reads as complete.
-		// Fully greyed out (grayscale + faded), per explicit feedback: an
-		// earlier version only faded them, which left each tissue's own
-		// pastel border/background/footer color showing and still read as
-		// an active card, drawing attention to exactly the tissues with
-		// nothing to show. No hover lift/shadow either, since there's
-		// nothing to click.
+		// removed, so the full tissue catalog still reads as complete. Same
+		// colors as every other card, per explicit request (neither faded
+		// nor greyed out -- both made e.g. a 0-donor Testis, L look
+		// different from its paired Testis, R) -- just not clickable, so no
+		// hover lift/shadow. The "0 Donors" footer already says why.
 		&.is-disabled {
-			filter: grayscale(100%);
-			opacity: 0.5;
 			cursor: default;
 
 			&:hover,
@@ -3874,15 +3870,16 @@ div.browse-link-icon {
 		// right above it are now tinted per-tissue-color (see
 		// getTissueSubtypeHeaderStyle) rather than a plain grey/orange pair.
 		.tissue-heatmap-target-nontarget-header {
-			// 0.625rem/600, up from 0.5rem/500 -- read as too small.
-			font-size: 0.625rem;
-			font-weight: 600;
-			letter-spacing: 0.02em;
+			// 0.75rem/600, up from 0.625rem (and 0.5rem/500 before that)
+			// -- both still read as too small.
+			font-size: 0.7rem;
+			font-weight: 400;
+			letter-spacing: 0.04em;
 			text-transform: uppercase;
 			text-align: center;
-			padding-top: 1.5px;
-			padding-bottom: 1.5px;
-			line-height: 1.4;
+			padding-top: 2px;
+			padding-bottom: 2px;
+			line-height: 1.6;
 			// An inset `box-shadow`, not a real `border-right` -- a real
 			// border (even at 0.5px, tried and dropped) adds to this
 			// cell's own rendered width in the table's border-spacing:
