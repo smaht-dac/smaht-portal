@@ -7,8 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.14.0
-======
+
 
 `PR #716: Data-release email notifications <https://github.com/smaht-dac/smaht-portal/pull/716>`_
 
@@ -20,6 +19,15 @@ Change Log
 * Deployment prerequisite: an SNS topic (``SNS_TOPIC``) and a ``<topic>-dryrun`` topic for
   test sends, both with ``DisplayName`` set; the portal task role needs ``sns:Subscribe``,
   ``sns:Unsubscribe``, ``sns:Publish`` and ``sns:ListSubscriptionsByTopic`` on them
+
+
+2.14.0
+======
+
+`PR 777: Add call_set to output files <https://github.com/smaht-dac/smaht-portal/pull/777>`_
+
+* Add admin-only ``call_set`` (``name``, ``category``) to ``OutputFile`` and ``ExternalOutputFile``
+* Replace the Data Description file facet with a Call Set facet grouped by category
 
 
 2.13.13
