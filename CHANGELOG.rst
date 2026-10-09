@@ -18,9 +18,6 @@ Change Log
   them, insert a summary of released and retracted files, and send a test email or an email
   to all subscribers (sending to all is limited to named accounts)
 * New ``EmailNotification`` item type recording sent announcements
-* Deployment prerequisite: an SNS topic (``SNS_TOPIC``) and a ``<topic>-dryrun`` topic for
-  test sends, both with ``DisplayName`` set; the portal task role needs ``sns:Subscribe``,
-  ``sns:Unsubscribe``, ``sns:Publish`` and ``sns:ListSubscriptionsByTopic`` on them
 
 
 2.14.0
