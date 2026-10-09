@@ -8,6 +8,8 @@ Change Log
 ----------
 
 
+2.15.0
+======
 
 `PR #716: Data-release email notifications <https://github.com/smaht-dac/smaht-portal/pull/716>`_
 
