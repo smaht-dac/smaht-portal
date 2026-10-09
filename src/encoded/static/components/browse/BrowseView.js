@@ -34,7 +34,10 @@ import { BrowseLink } from './browse-view/BrowseLink';
 import { BrowseSummaryStatsViewer } from './browse-view/BrowseSummaryStatController';
 import { FacetCharts } from './components/FacetCharts';
 import { navigate } from '../util/navigate';
-import { compareTissueFacetTerms } from '../util/data';
+import {
+    compareTissueFacetTerms,
+    compareCallSetFacetTerms,
+} from '../util/data';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets, termTransformFxnWithOverrides } from './SearchView';
@@ -394,6 +397,7 @@ export const BrowseFileSearchTable = (props) => {
         createBrowseFileColumnExtensionMap(selectedFileProps);
     const facetListSortFxns = {
         'sample_summary.tissues': compareTissueFacetTerms,
+        'call_set.name': compareCallSetFacetTerms,
     };
 
     return (
