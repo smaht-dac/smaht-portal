@@ -348,10 +348,12 @@
         "access_status": {
             "title": "Access"
         },
-        "data_description": {
-            "title": "Data Description",
+        "call_set.description": {
+            "title": "SmaHT Variant Call Sets",
+            "group_by_field": "call_set.category",
             "label_overrides": {
-                "No value": "None"
+                "No value": "N/A",
+                "(Missing group)": "N/A"
             }
         },
         "donors.display_title": {

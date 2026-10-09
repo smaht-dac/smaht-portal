@@ -24,7 +24,10 @@ import {
 } from '../PageTitleSection';
 import { renderLoginAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
-import { compareTissueFacetTerms } from '../util/data';
+import {
+    compareTissueFacetTerms,
+    compareCallSetFacetTerms,
+} from '../util/data';
 import { getSelectionQueryKey } from '../static-pages/components/TableControllerWithSelections';
 
 export default function FileSearchView(props) {
@@ -145,6 +148,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
     const facetColumnClassName = 'facets-column col-auto';
     const facetListSortFxns = {
         'sample_summary.tissues': compareTissueFacetTerms,
+        'call_set.description': compareCallSetFacetTerms,
     };
 
     const aboveTableComponent = (
