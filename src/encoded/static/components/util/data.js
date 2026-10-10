@@ -203,6 +203,22 @@ const compareTissueFacetTerms = (a, b) => {
     return String(aKey).localeCompare(String(bKey));
 };
 
+const MISSING_FACET_TERM_KEYS = new Set(['(Missing group)', 'No value']);
+
+/**
+ * Moves missing-value facet terms/groups to the end.
+ * All other terms keep the backend order (by count).
+ * @param {*} a - First facet term to compare.
+ * @param {*} b - Second facet term to compare.
+ * @returns {number} Comparison result for sorting.
+ */
+const compareCallSetFacetTerms = (a, b) => {
+    const aMissing = MISSING_FACET_TERM_KEYS.has(a?.props?.term?.key || a?.key);
+    const bMissing = MISSING_FACET_TERM_KEYS.has(b?.props?.term?.key || b?.key);
+    if (aMissing !== bMissing) return aMissing ? 1 : -1;
+    return 0;
+};
+
 /**
  * Returns internal tissue code for a tissue facet term if available.
  * Prioritizes TPC code mapping and then falls back to tissue name mapping.
@@ -235,6 +251,7 @@ export {
     tissueToCategory,
     tissueCategoryByTpcCode,
     compareTissueFacetTerms,
+    compareCallSetFacetTerms,
     getTissueInternalCodeFromFacetTerm,
     getTissueCategoryFromFacetTerm,
 };

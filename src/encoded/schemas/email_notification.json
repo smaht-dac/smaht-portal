@@ -1,0 +1,84 @@
+{
+    "title": "Email Notification",
+    "description": "Record of an email notification sent to subscribed portal users, including its plain-text content and metadata.",
+    "$id": "/profiles/email_notification.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "subject",
+        "body",
+        "notification_type"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "EN"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "subject": {
+            "title": "Subject",
+            "description": "Email subject line. Delivered as the SNS Subject.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[!-~][ -~]{0,99}$"
+        },
+        "body": {
+            "title": "Body",
+            "description": "Plain-text content of the email notification.",
+            "type": "string",
+            "minLength": 1
+        },
+        "notification_type": {
+            "title": "Notification Type",
+            "description": "Category of the email notification.",
+            "type": "string",
+            "enum": [
+                "data_release",
+                "maintenance",
+                "general_update"
+            ]
+        },
+        "date_sent": {
+            "title": "Date Sent",
+            "description": "Date and time when the notification was published to the SNS topic.",
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}
