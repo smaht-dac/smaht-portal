@@ -138,6 +138,12 @@ def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""
     return external_id.split("-")[1]
 
+
+def get_pathology_reports(properties: Dict[str, Any]) -> List[str]:
+    """Get pathology_reports (rev link) from properties."""
+    return properties.get("pathology_reports", []) or []
+
+
 def get_fixed_to_fresh_protocols() -> Dict[str, Set[str]]:
     """Reverse FRESH_TO_FIXED_PROTOCOL_MAP as fixed_protocol -> {fresh_protocols}.
 

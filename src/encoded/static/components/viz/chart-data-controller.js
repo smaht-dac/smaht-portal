@@ -209,7 +209,7 @@ export const ChartDataController = {
 
     /**
      * Transforms donor filters to file filters. Changes are made in place.
-     * If mapping is not 'donor' or 'protected-donor', returns filters unchanged.
+     * If mapping is not 'donor', 'protected-donor', or 'tissue', returns filters unchanged.
      *
      * @public
      * @static
@@ -217,6 +217,38 @@ export const ChartDataController = {
      * @returns {*} The transformed file filters.
      */
     transformFilterDonorToFile(fileFilters, mapping = 'all') {
+        if (mapping === 'tissue') {
+            // Tissue's own resolved tissue_type maps onto File's sample_summary.tissues.
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'tissue_type') && fileFilters.tissue_type !== undefined) {
+                fileFilters['sample_summary.tissues'] = fileFilters.tissue_type;
+                delete fileFilters.tissue_type;
+            }
+            // Same donor-population restriction the 'donor'/'protected-donor'
+            // mappings apply, so this stat box's donor count matches Browse
+            // by Donor/Browse by File instead of counting every donor with a
+            // Tissue record regardless of study or release status.
+            //
+            // BROWSE_LINKS.tissue (BrowseView.js) filters Tissue by
+            // 'donor.study'/'donor.tags' (Tissue's real embedded field
+            // paths, types/tissue.py's embedded_list -- Tissue links a
+            // single `donor`, unlike File's plural `donors`), not bare
+            // 'study'/'tags', so those prefixed keys must be renamed here
+            // rather than left to match against File's (nonexistent)
+            // singular 'donor' fields.
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'donor.study') && fileFilters['donor.study'] !== undefined) {
+                fileFilters['sample_summary.studies'] = fileFilters['donor.study'];
+                delete fileFilters['donor.study'];
+            }
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'donor.tags') && fileFilters['donor.tags'] !== undefined) {
+                fileFilters['donors.tags'] = fileFilters['donor.tags'];
+                delete fileFilters['donor.tags'];
+            }
+            fileFilters.type = ['File'];
+            fileFilters.status = ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
+            fileFilters['dataset!'] = ['No value'];
+            return fileFilters;
+        }
+
         if (mapping !== 'donor' && mapping !== 'protected-donor') return fileFilters;
 
         // order is important here, as some fields may get renamed to the same destination
