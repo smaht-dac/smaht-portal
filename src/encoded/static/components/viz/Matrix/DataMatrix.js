@@ -11,7 +11,6 @@ import { FacetList, generateNextHref } from '@hms-dbmi-bgm/shared-portal-compone
 import { toPng } from 'html-to-image';
 import { VisualBody, buildMatrixExportData } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
-import { Term } from './../../util/Schemas';
 import { compareTissueFacetTerms } from '../../util/data';
 import { FILE_BROWSE_HIDE_FACETS } from '../../browse/BrowseView';
 import { termTransformFxnWithOverrides } from '../../browse/SearchView';
@@ -325,6 +324,7 @@ export default class DataMatrix extends React.PureComponent {
         "baseBrowseFilesPath": "/browse/",
         "showCountFor": false,
         "showMatrixModeTabs": true,
+        "matrixModeTabs": null, // subset of MATRIX_MODES values to render as mode tabs (null = all)
         "showUniqueDonorsAssayBand": true,
         "dedupeBenchmarkingDsaAcrossTissues": false,
         "showFacetTermsPanel": false,
@@ -391,6 +391,7 @@ export default class DataMatrix extends React.PureComponent {
         'baseBrowseFilesPath': PropTypes.string,
         'showCountFor': PropTypes.bool,
         'showMatrixModeTabs': PropTypes.bool,
+        'matrixModeTabs': PropTypes.arrayOf(PropTypes.oneOf(_.values(DataMatrix.MATRIX_MODES))),
         'showUniqueDonorsAssayBand': PropTypes.bool,
         'dedupeBenchmarkingDsaAcrossTissues': PropTypes.bool,
         'showFacetTermsPanel': PropTypes.bool,
@@ -2216,7 +2217,7 @@ export default class DataMatrix extends React.PureComponent {
         const {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
-            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor, showMatrixModeTabs,
+            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor, showMatrixModeTabs, matrixModeTabs,
             showFacetTermsPanel, facetTermsPanelFields, donorTissueShrinkEmptyColumns,
             headerPadding, showUniqueDonorsAssayBand, schemas,
             dedupeBenchmarkingDsaAcrossTissues = false,
@@ -2259,7 +2260,10 @@ export default class DataMatrix extends React.PureComponent {
         const isDonorTissueMatrix = matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE;
         const isCoverageView = countFor === 'total_coverage';
         const showCountsPanel = showCountFor;
-        const shouldShowMatrixModeTabs = showCountFor && showMatrixModeTabs && idLabel !== 'benchmarking';
+        const visibleMatrixModes = Array.isArray(matrixModeTabs) && matrixModeTabs.length > 0
+            ? matrixModeTabs
+            : _.values(DataMatrix.MATRIX_MODES);
+        const shouldShowMatrixModeTabs = showCountFor && showMatrixModeTabs;
         const showFacetsPanel = showFacetTermsPanel;
         const showLeftPanel = showCountsPanel || showFacetsPanel;
         const bodyProps = {
@@ -2519,24 +2523,30 @@ export default class DataMatrix extends React.PureComponent {
                                     <div className={`matrix-mode-tabs-row d-flex align-items-center justify-content-between${shouldShowMatrixModeTabs ? '' : ' no-tabs'}`}>
                                         {shouldShowMatrixModeTabs ? (
                                             <div className="matrix-mode-tabs">
-                                                <button
-                                                    type="button"
-                                                    className={`matrix-mode-tab ${matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? 'active' : ''}`}
-                                                    onClick={() => this.onMatrixModeChange(DataMatrix.MATRIX_MODES.DONOR_ASSAY)}>
-                                                    <i className="icon fas icon-user me-05" /> Donor x Assay
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className={`matrix-mode-tab ${matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY ? 'active' : ''}`}
-                                                    onClick={() => this.onMatrixModeChange(DataMatrix.MATRIX_MODES.TISSUE_ASSAY)}>
-                                                    <i className="icon fas icon-lungs me-05" /> Tissue x Assay
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className={`matrix-mode-tab ${matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? 'active' : ''}`}
-                                                    onClick={() => this.onMatrixModeChange(DataMatrix.MATRIX_MODES.DONOR_TISSUE)}>
-                                                    <i className="icon fas icon-dna me-05" /> Donor x Tissue
-                                                </button>
+                                                {visibleMatrixModes.includes(DataMatrix.MATRIX_MODES.DONOR_ASSAY) ? (
+                                                    <button
+                                                        type="button"
+                                                        className={`matrix-mode-tab ${matrixMode === DataMatrix.MATRIX_MODES.DONOR_ASSAY ? 'active' : ''}`}
+                                                        onClick={() => this.onMatrixModeChange(DataMatrix.MATRIX_MODES.DONOR_ASSAY)}>
+                                                        <i className="icon fas icon-user me-05" /> Donor x Assay
+                                                    </button>
+                                                ) : null}
+                                                {visibleMatrixModes.includes(DataMatrix.MATRIX_MODES.TISSUE_ASSAY) ? (
+                                                    <button
+                                                        type="button"
+                                                        className={`matrix-mode-tab ${matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY ? 'active' : ''}`}
+                                                        onClick={() => this.onMatrixModeChange(DataMatrix.MATRIX_MODES.TISSUE_ASSAY)}>
+                                                        <i className="icon fas icon-lungs me-05" /> Tissue x Assay
+                                                    </button>
+                                                ) : null}
+                                                {visibleMatrixModes.includes(DataMatrix.MATRIX_MODES.DONOR_TISSUE) ? (
+                                                    <button
+                                                        type="button"
+                                                        className={`matrix-mode-tab ${matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? 'active' : ''}`}
+                                                        onClick={() => this.onMatrixModeChange(DataMatrix.MATRIX_MODES.DONOR_TISSUE)}>
+                                                        <i className="icon fas icon-dna me-05" /> Donor x Tissue
+                                                    </button>
+                                                ) : null}
                                             </div>
                                         ) : <div />}
                                         <div className="matrix-export-controls d-flex align-items-center gap-2">
