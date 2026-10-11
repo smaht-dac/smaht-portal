@@ -2423,10 +2423,10 @@ export default class DataMatrix extends React.PureComponent {
                                         {
                                             title: (
                                                 <React.Fragment>
-                                                    <i className="icon fas icon-stream me-1" /> Coverage
+                                                    <i className="icon fas icon-stream me-1" /> WGS Coverage
                                                 </React.Fragment>
                                             ),
-                                            dataTip: 'Toggle coverage view',
+                                            dataTip: 'Toggle WGS coverage view',
                                             btnCls: 'btn-sm',
                                             onClick: () => this.onCountForChange({ target: { value: 'total_coverage' } })
                                         }
