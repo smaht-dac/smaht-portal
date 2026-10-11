@@ -7,6 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+2.15.3
+======
+
+`PR 779: Data matrix: Benchmarking Donor x Assay tab and WGS Coverage view updates <https://github.com/smaht-dac/smaht-portal/pull/779>`_
+
+* Show the matrix-mode tab bar in the Benchmarking data matrix with only the Donor x Assay tab, via a
+  new ``matrixModeTabs`` DataMatrix prop that limits which mode tabs render (default: all)
+* Rename the data matrix Coverage toggle to "WGS Coverage"
+* In coverage view, fill cells that have files but no coverage value with a light blue (``#E7F1FA``)
+  so they read as the same data as the Files view
+
+
 2.15.2
 ======
 
