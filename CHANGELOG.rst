@@ -7,6 +7,43 @@ smaht-portal
 Change Log
 ----------
 
+2.15.2
+======
+
+`PR 778: Fix typo in facet <https://github.com/smaht-dac/smaht-portal/pull/778>`_
+
+* Fix "SMaHT Variant Call Sets" facet title
+
+
+2.15.1
+=======
+
+`PR 776: feat: add new files to genome reference table <https://github.com/smaht-dac/smaht-portal/pull/776>`_
+
+* Update Genome Reference Page
+
+
+2.15.0
+======
+
+`PR #716: Data-release email notifications <https://github.com/smaht-dac/smaht-portal/pull/716>`_
+
+* Users with dbGaP access can subscribe to data-release emails from their profile page
+* New admin-only Notification Status page to compose plain-text announcements, preview
+  them, insert a summary of released and retracted files, and send a test email or an email
+  to all subscribers (sending to all is limited to named accounts)
+* New ``EmailNotification`` item type recording sent announcements
+
+
+2.14.0
+======
+
+`PR 777: Add call_set to output files <https://github.com/smaht-dac/smaht-portal/pull/777>`_
+
+* Add admin-only ``call_set`` (``name``, ``category``) to ``OutputFile`` and ``ExternalOutputFile``
+* Replace the Data Description file facet with a Call Set facet grouped by category
+
+
 2.13.13
 =======
 

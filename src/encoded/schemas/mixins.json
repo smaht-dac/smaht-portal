@@ -179,6 +179,75 @@
             }
         }
     },
+    "call_set": {
+        "call_set": {
+            "title": "Call Set",
+            "description": "Variant call set this file belongs to",
+            "permission": "restricted_fields",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "name",
+                "category"
+            ],
+            "properties": {
+                "name": {
+                    "title": "Call Set Name",
+                    "type": "string",
+                    "suggested_enum": [
+                        "SNV V1",
+                        "SNV V2",
+                        "Phased Germline: non-blood"
+                    ]
+                },
+                "category": {
+                    "title": "Call Set Category",
+                    "type": "string",
+                    "enum": [
+                        "Somatic",
+                        "Germline"
+                    ]
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "name": {
+                                "enum": [
+                                    "SNV V1",
+                                    "SNV V2"
+                                ]
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "category": {
+                                "const": "Somatic"
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "name": {
+                                "const": "Phased Germline: non-blood"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "category": {
+                                "const": "Germline"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
     "category": {
         "category": {
             "title": "Category",
