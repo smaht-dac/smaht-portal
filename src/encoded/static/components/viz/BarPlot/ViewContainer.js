@@ -474,7 +474,7 @@ export class PopoverViewContainer extends React.PureComponent {
 
 
 /**
- * Shared by Browse by Tissue's line, lollipop and thin stacked charts: the
+ * Shared by Browse by Tissue's line, thin grouped and thin stacked charts: the
  * subdivision field name plus every sub-term worth drawing. Excludes any
  * term whose count is 0 across EVERY tissue (e.g. "Not specified" -- its
  * own files resolve a tissue via a different relationship chain than the
@@ -670,140 +670,14 @@ export class PopoverLineChartViewContainer extends React.PureComponent {
 }
 
 
-/**
- * Thin-bar ("lollipop") rendering for Browse by Tissue's "Group By: Sample
- * Type" chart -- per design feedback, the default over the line chart above
- * (still selectable, see UIControlsWrapper's Bars/Lines toggle). Each tissue
- * gets one thin stem per sample type, side by side (not stacked: Fixed/
- * Frozen/Fresh are counted independently, so they don't sum to a
- * meaningful whole), capped with a dot at its own count. A tissue with none
- * of a sample type still shows that type's dot on the baseline, same as the
- * line chart's own 0-count points.
- *
- * Same coordinate system/axes contract as LineChartViewContainer (see its
- * own comment), and the same `.line-chart-series[data-term]` grouping so
- * legend hover fades the other sample types here too.
- */
-class LollipopChartViewContainer extends React.PureComponent {
-
-    // Dots carry their own drawn (x,y) -- see LineChartViewContainer's own
-    // identical method.
-    static getCoordsCallback(node, containerPosition){
-        return LineChartViewContainer.getCoordsCallback(node, containerPosition);
-    }
-
-    render(){
-        const {
-            topLevelField, width, height, leftAxis, bottomAxis, styleOptions, bars,
-            fullHeightCount, onNodeMouseEnter, onNodeMouseLeave, onNodeClick,
-            hoverTerm, hoverParentTerm, selectedTerm, selectedParentTerm
-        } = this.props;
-        const { offset } = styleOptions;
-        const insetHeight = Math.max(height - offset.top - offset.bottom, 0);
-        const baselineY = offset.top + insetHeight;
-        const { subdivisionField, terms } = getTissueSubTerms(bars);
-        // Fixed left-to-right stem order within every tissue, so a given
-        // sample type is always in the same slot -- never by count.
-        const orderedTerms = _.sortBy(terms, (term) => {
-            const idx = TISSUE_SAMPLE_TYPE_ORDER.indexOf(term);
-            return (idx === -1 ? TISSUE_SAMPLE_TYPE_ORDER.length : idx) + '~' + term;
-        });
-        const termCount = orderedTerms.length;
-
-        const series = _.map(orderedTerms, function (term, termIndex) {
-            const points = _.map(bars, function (bar) {
-                const node = getTissueSubNode(bar, term, subdivisionField);
-                const count = node.count || 0;
-                // Stems spread evenly around the tissue's own center (where
-                // its x-axis label sits), capped so a wide bar slot doesn't
-                // scatter one tissue's stems far apart from each other.
-                const spacing = Math.min((bar.attr.width || 0) / Math.max(termCount, 1), 28);
-                const x = offset.left + bar.attr.x + (bar.attr.width / 2) + (termIndex - (termCount - 1) / 2) * spacing;
-                const y = baselineY - (fullHeightCount > 0 ? (count / fullHeightCount) * insetHeight : 0);
-                node.__x = x;
-                node.__y = y;
-                return { node, count, x, y, spacing };
-            });
-            return { term, points };
-        });
-
-        return (
-            <div className="bar-plot-chart chart-container line-chart lollipop-chart no-highlight"
-                data-field={topLevelField.field} style={{ height, width }}>
-                { leftAxis }
-                <svg className="line-chart-svg" width={width} height={height}
-                    style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible' }}>
-                    { _.map(series, function (s) {
-                        const swatch = getTissueSampleTypeColor(s.term);
-                        return (
-                            // See LineChartViewContainer's own comment on
-                            // `data-term` (legend hover highlighting).
-                            <g key={s.term} className="line-chart-series" data-term={s.term}>
-                                { _.map(s.points, function (p, i) {
-                                    // Popover swatch -- see LineChartViewContainer.
-                                    p.node.color = swatch.stroke;
-                                    const isHighlighted = (
-                                        CursorViewBounds.isSelected(p.node, hoverTerm, hoverParentTerm) ||
-                                        CursorViewBounds.isSelected(p.node, selectedTerm, selectedParentTerm)
-                                    );
-                                    const stemHeight = baselineY - p.y;
-                                    return (
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        <g key={i} style={{ cursor: 'pointer' }}
-                                            onMouseEnter={(evt) => onNodeMouseEnter(p.node, evt)}
-                                            onMouseLeave={(evt) => onNodeMouseLeave(p.node, evt)}
-                                            onClick={(evt) => onNodeClick(p.node, evt)}>
-                                            { stemHeight > 0 ? (
-                                                <rect x={p.x - 1.5} y={p.y} width={3} height={stemHeight}
-                                                    fill={swatch.stroke} opacity={0.75} />
-                                            ) : null }
-                                            <circle cx={p.x} cy={p.y} r={isHighlighted ? 7 : 5.5}
-                                                fill={swatch.fill}
-                                                stroke={isHighlighted ? '#FFFFFF' : 'none'}
-                                                strokeWidth={2} />
-                                            {/* Invisible hit target -- the whole stem's
-                                                own slot, wider and taller than the
-                                                3px stem/small dot themselves. */}
-                                            <rect x={p.x - (p.spacing / 2)} y={p.y - 10}
-                                                width={p.spacing} height={stemHeight + 14}
-                                                fill="transparent" />
-                                        </g>
-                                    );
-                                }) }
-                            </g>
-                        );
-                    }) }
-                </svg>
-                { bottomAxis }
-            </div>
-        );
-    }
-}
-
-/**
- * Wraps LollipopChartViewContainer with the same CursorViewBounds
- * interactivity the line/bar versions get -- see PopoverLineChartViewContainer.
- */
-export class PopoverLollipopChartViewContainer extends React.PureComponent {
-
-    render(){
-        return (
-            <CursorViewBounds {..._.pick(this.props, 'height', 'width', 'cursorContainerMargin', 'actions', 'href', 'context', 'schemas', 'mapping', 'aggregateType')}
-                eventCategory="BarPlot"
-                highlightTerm={false} clickCoordsFxn={LollipopChartViewContainer.getCoordsCallback}>
-                <LollipopChartViewContainer {...this.props} />
-            </CursorViewBounds>
-        );
-    }
-}
-
-
-// Thin stacked bars' own width/gap (ThinStackedChartViewContainer) -- same
-// thin-mark family as the lollipop stems, just wide enough to read as a
-// stacked bar.
+// Browse by Tissue's thin bars (ThinGroupedChartViewContainer/
+// ThinStackedChartViewContainer, below) -- one shared thin-mark style so the
+// Sample Type and every-other-Group-By charts read as one family.
+const THIN_GROUPED_BAR_WIDTH = 10;
 const THIN_STACKED_BAR_WIDTH = 12;
-const THIN_STACKED_SEGMENT_GAP = 2;
-const THIN_STACKED_TOP_RADIUS = 4;
+// Surface gap between 2 adjacent grouped bars / 2 stacked segments.
+const THIN_BAR_GAP = 2;
+const THIN_BAR_TOP_RADIUS = 4;
 
 // A rect whose top 2 corners only are rounded (the bar's data end) -- the
 // baseline end stays square, anchored to the axis.
@@ -821,10 +695,143 @@ function topRoundedRectPath(x, y, w, h, r) {
 }
 
 /**
+ * Thin grouped bars for Browse by Tissue's "Group By: Sample Type" chart --
+ * per design feedback, the default over the line chart above (still
+ * selectable, see UIControlsWrapper's Bars/Lines toggle). Each tissue gets
+ * one thin bar per sample type, right next to each other (not stacked:
+ * Fixed/Frozen/Fresh are counted independently, so they don't sum to a
+ * meaningful whole). Plain rectangles with a rounded top -- an earlier
+ * lollipop version (thin stem + dot) was dropped per design feedback. A
+ * tissue with none of a sample type leaves that bar's slot empty (still
+ * hoverable, so its 0 can be read in the popover).
+ *
+ * Same coordinate system/axes contract as LineChartViewContainer (see its
+ * own comment), and the same `.line-chart-series[data-term]` grouping so
+ * legend hover fades the other sample types here too.
+ */
+class ThinGroupedChartViewContainer extends React.PureComponent {
+
+    // Each bar carries its own drawn top (x,y) -- see
+    // LineChartViewContainer's own identical method.
+    static getCoordsCallback(node, containerPosition){
+        return LineChartViewContainer.getCoordsCallback(node, containerPosition);
+    }
+
+    render(){
+        const {
+            topLevelField, width, height, leftAxis, bottomAxis, styleOptions, bars,
+            fullHeightCount, onNodeMouseEnter, onNodeMouseLeave, onNodeClick,
+            hoverTerm, hoverParentTerm, selectedTerm, selectedParentTerm
+        } = this.props;
+        const { offset } = styleOptions;
+        const insetHeight = Math.max(height - offset.top - offset.bottom, 0);
+        const baselineY = offset.top + insetHeight;
+        const { subdivisionField, terms } = getTissueSubTerms(bars);
+        // Fixed left-to-right bar order within every tissue, so a given
+        // sample type is always in the same slot -- never by count.
+        const orderedTerms = _.sortBy(terms, (term) => {
+            const idx = TISSUE_SAMPLE_TYPE_ORDER.indexOf(term);
+            return (idx === -1 ? TISSUE_SAMPLE_TYPE_ORDER.length : idx) + '~' + term;
+        });
+        const termCount = Math.max(orderedTerms.length, 1);
+
+        const series = _.map(orderedTerms, function (term, termIndex) {
+            const points = _.map(bars, function (bar) {
+                const node = getTissueSubNode(bar, term, subdivisionField);
+                const count = node.count || 0;
+                // The tissue's bars sit flush side by side (THIN_BAR_GAP
+                // apart) around its own center, where its x-axis label is --
+                // narrowed only if a crowded chart's slot can't fit them.
+                const slotWidth = Math.min(
+                    (bar.attr.width || 0) / termCount,
+                    THIN_GROUPED_BAR_WIDTH + THIN_BAR_GAP
+                );
+                const barWidth = Math.max(slotWidth - THIN_BAR_GAP, 1);
+                const xCenter = offset.left + bar.attr.x + (bar.attr.width / 2) + (termIndex - (termCount - 1) / 2) * slotWidth;
+                const y = baselineY - (fullHeightCount > 0 ? (count / fullHeightCount) * insetHeight : 0);
+                node.__x = xCenter;
+                node.__y = y;
+                return { node, count, xCenter, y, slotWidth, barWidth };
+            });
+            return { term, points };
+        });
+
+        return (
+            <div className="bar-plot-chart chart-container line-chart thin-grouped-chart no-highlight"
+                data-field={topLevelField.field} style={{ height, width }}>
+                { leftAxis }
+                <svg className="line-chart-svg" width={width} height={height}
+                    style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible' }}>
+                    { _.map(series, function (s) {
+                        const swatch = getTissueSampleTypeColor(s.term);
+                        return (
+                            // See LineChartViewContainer's own comment on
+                            // `data-term` (legend hover highlighting).
+                            <g key={s.term} className="line-chart-series" data-term={s.term}>
+                                { _.map(s.points, function (p, i) {
+                                    // Popover swatch -- see LineChartViewContainer.
+                                    p.node.color = swatch.stroke;
+                                    const isHighlighted = (
+                                        CursorViewBounds.isSelected(p.node, hoverTerm, hoverParentTerm) ||
+                                        CursorViewBounds.isSelected(p.node, selectedTerm, selectedParentTerm)
+                                    );
+                                    const barHeight = baselineY - p.y;
+                                    return (
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        <g key={i} style={{ cursor: 'pointer' }}
+                                            onMouseEnter={(evt) => onNodeMouseEnter(p.node, evt)}
+                                            onMouseLeave={(evt) => onNodeMouseLeave(p.node, evt)}
+                                            onClick={(evt) => onNodeClick(p.node, evt)}>
+                                            { barHeight > 0 ? (
+                                                <path
+                                                    d={topRoundedRectPath(p.xCenter - (p.barWidth / 2), p.y, p.barWidth, barHeight, THIN_BAR_TOP_RADIUS)}
+                                                    fill={swatch.stroke}
+                                                    stroke={isHighlighted ? 'rgba(0,0,0,0.35)' : 'none'}
+                                                    strokeWidth={1.5} />
+                                            ) : null }
+                                            {/* Invisible hit target -- the bar's whole
+                                                slot, a little taller than the bar
+                                                itself so even a 0 (no bar) or a very
+                                                short bar stays easy to hover. */}
+                                            <rect x={p.xCenter - (p.slotWidth / 2)} y={p.y - 8}
+                                                width={p.slotWidth} height={barHeight + 8}
+                                                fill="transparent" />
+                                        </g>
+                                    );
+                                }) }
+                            </g>
+                        );
+                    }) }
+                </svg>
+                { bottomAxis }
+            </div>
+        );
+    }
+}
+
+/**
+ * Wraps ThinGroupedChartViewContainer with the same CursorViewBounds
+ * interactivity the line/bar versions get -- see PopoverLineChartViewContainer.
+ */
+export class PopoverThinGroupedChartViewContainer extends React.PureComponent {
+
+    render(){
+        return (
+            <CursorViewBounds {..._.pick(this.props, 'height', 'width', 'cursorContainerMargin', 'actions', 'href', 'context', 'schemas', 'mapping', 'aggregateType')}
+                eventCategory="BarPlot"
+                highlightTerm={false} clickCoordsFxn={ThinGroupedChartViewContainer.getCoordsCallback}>
+                <ThinGroupedChartViewContainer {...this.props} />
+            </CursorViewBounds>
+        );
+    }
+}
+
+
+/**
  * Thin stacked-bar rendering for Browse by Tissue's every other Group By
  * (e.g. Sequencing Center's GCCs) under the "Bars" chart style -- per
  * design feedback, stacked like the portal's other bar charts, but in the
- * same thin-mark style as the Sample Type lollipop chart above so the 2
+ * same thin-mark style as the Sample Type grouped bars above so the 2
  * read as one family. Each tissue is one 12px bar at its own center, split
  * into one segment per term (2px gap between segments, rounded top).
  *
@@ -875,7 +882,7 @@ class ThinStackedChartViewContainer extends React.PureComponent {
                 const fullSegmentHeight = sectionSum > 0 ? (node.count / sectionSum) * barHeight : 0;
                 // The gap comes out of each lower segment's own top, so
                 // the bar's overall top still lands exactly on its total.
-                const drawnHeight = Math.max(fullSegmentHeight - (isTop ? 0 : THIN_STACKED_SEGMENT_GAP), 1);
+                const drawnHeight = Math.max(fullSegmentHeight - (isTop ? 0 : THIN_BAR_GAP), 1);
                 const yTop = yBottom - fullSegmentHeight;
                 node.__x = xCenter;
                 node.__y = yTop;
@@ -917,8 +924,8 @@ class ThinStackedChartViewContainer extends React.PureComponent {
                                             onClick={(evt) => onNodeClick(seg.node, evt)}>
                                             <path
                                                 d={seg.isTop
-                                                    ? topRoundedRectPath(x, seg.yTop, THIN_STACKED_BAR_WIDTH, seg.drawnHeight, THIN_STACKED_TOP_RADIUS)
-                                                    : topRoundedRectPath(x, seg.yTop + THIN_STACKED_SEGMENT_GAP, THIN_STACKED_BAR_WIDTH, seg.drawnHeight, 0)}
+                                                    ? topRoundedRectPath(x, seg.yTop, THIN_STACKED_BAR_WIDTH, seg.drawnHeight, THIN_BAR_TOP_RADIUS)
+                                                    : topRoundedRectPath(x, seg.yTop + THIN_BAR_GAP, THIN_STACKED_BAR_WIDTH, seg.drawnHeight, 0)}
                                                 fill={swatch.stroke}
                                                 stroke={isHighlighted ? 'rgba(0,0,0,0.35)' : 'none'}
                                                 strokeWidth={1.5} />

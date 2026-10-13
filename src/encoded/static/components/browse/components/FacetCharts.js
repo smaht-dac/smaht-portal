@@ -184,7 +184,10 @@ export class FacetCharts extends React.PureComponent {
             });
         }
 
-        if (!ChartDataController.isInitialized(mapping)){
+        // Re-initialized too when another mapping was used since (e.g.
+        // Browse by Tissue -> Browse by File -> back) -- see
+        // ChartDataController.isActiveMapping.
+        if (!ChartDataController.isInitialized(mapping) || !ChartDataController.isActiveMapping(mapping)){
             ChartDataController.initialize(
                 browseBaseState,
                 initialFields,

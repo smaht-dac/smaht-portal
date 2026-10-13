@@ -11,7 +11,7 @@ import { Schemas } from './../../util';
 import { barplot_color_cycler } from './../ColorCycler';
 import { RotatedLabel } from './../components';
 import {
-    PopoverViewContainer, PopoverLineChartViewContainer, PopoverLollipopChartViewContainer, PopoverThinStackedChartViewContainer
+    PopoverViewContainer, PopoverLineChartViewContainer, PopoverThinGroupedChartViewContainer, PopoverThinStackedChartViewContainer
 } from './ViewContainer';
 import { TISSUE_SAMPLE_TYPE_FIELD } from './tissue-sample-type-colors';
 
@@ -156,7 +156,7 @@ export function genChartBarDims(
 
 /**
  * Y-axis top for a chart that plots each sub-term's own count (Browse by
- * Tissue's lollipop/line charts) rather than each tissue's stacked total --
+ * Tissue's grouped-bar/line charts) rather than each tissue's stacked total --
  * the largest single sub-term count, rounded up to a nice value (e.g. 166
  * -> 200). The default (largest per-tissue total) left those charts'
  * tallest mark well short of the top (a 250 axis for a 166 max), per
@@ -441,7 +441,7 @@ export class Chart extends React.PureComponent {
         // Browse by Tissue's own chart forms (every other mapping keeps
         // rendering through the original PopoverViewContainer, completely
         // unchanged) -- per design feedback, "Bars" (the default) is thin
-        // side-by-side lollipop stems for Group By: Sample Type and thin
+        // side-by-side thin bars for Group By: Sample Type and thin
         // stacked bars (same thin-mark style) for any other Group By (e.g.
         // the GCCs); "Lines" is the earlier line chart, kept selectable in
         // case the design goes back to it.
@@ -449,10 +449,10 @@ export class Chart extends React.PureComponent {
         if (mapping === 'tissue') {
             const subdivisionField = Array.isArray(fields) ? fields[1] : null;
             if (tissueChartStyle === 'lines') tissueChartForm = 'lines';
-            else if (subdivisionField === TISSUE_SAMPLE_TYPE_FIELD) tissueChartForm = 'lollipop';
+            else if (subdivisionField === TISSUE_SAMPLE_TYPE_FIELD) tissueChartForm = 'grouped';
             else tissueChartForm = 'stacked';
         }
-        const plotsSubTermCounts = tissueChartForm === 'lines' || tissueChartForm === 'lollipop';
+        const plotsSubTermCounts = tissueChartForm === 'lines' || tissueChartForm === 'grouped';
 
         // Gen bar dimensions (width, height, x/y coords). Returns { fieldIndex, bars, fields (first arg supplied) }
         const barData = this.memoized.genChartBarDims(
@@ -468,11 +468,11 @@ export class Chart extends React.PureComponent {
         );
 
         // `fullHeightCount` (the shared Y-axis' own 100%-height value, from
-        // genChartBarDims) is passed through so the line/lollipop marks
+        // genChartBarDims) is passed through so the line/grouped-bar marks
         // land on that exact same scale.
         let ViewContainerComponent = PopoverViewContainer;
         if (tissueChartForm === 'lines') ViewContainerComponent = PopoverLineChartViewContainer;
-        else if (tissueChartForm === 'lollipop') ViewContainerComponent = PopoverLollipopChartViewContainer;
+        else if (tissueChartForm === 'grouped') ViewContainerComponent = PopoverThinGroupedChartViewContainer;
         else if (tissueChartForm === 'stacked') ViewContainerComponent = PopoverThinStackedChartViewContainer;
 
         return (

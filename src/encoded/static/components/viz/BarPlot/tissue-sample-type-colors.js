@@ -16,11 +16,11 @@
  * terms).
  */
 // Browse by Tissue's "Group By: Sample Type" field -- the only subdivision
-// these fixed colors (and the lollipop chart, see ViewContainer.js's
-// LollipopChartViewContainer) are meant for.
+// these fixed colors (and the thin grouped bars, see ViewContainer.js's
+// ThinGroupedChartViewContainer) are meant for.
 export const TISSUE_SAMPLE_TYPE_FIELD = 'sample_summary.preservation_types';
 
-// Left-to-right order of each tissue's own stems in the lollipop chart (and
+// Left-to-right order of each tissue's own bars in the grouped chart (and
 // matching legend order in the design mock) -- any other term sorts after
 // these, alphabetically.
 export const TISSUE_SAMPLE_TYPE_ORDER = ['Fixed', 'Frozen', 'Fresh', 'Not specified'];

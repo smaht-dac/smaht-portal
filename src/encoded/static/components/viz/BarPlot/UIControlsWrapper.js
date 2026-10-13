@@ -158,7 +158,7 @@ export class UIControlsWrapper extends React.PureComponent {
             'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL,
             // Browse by Tissue only -- see tissue-fixed-samples.js.
             'fixedTissueSampleCounts': null,
-            // Browse by Tissue only -- 'bars' (thin lollipop stems for Group
+            // Browse by Tissue only -- 'bars' (thin side-by-side bars for Group
             // By: Sample Type, stacked bars otherwise) or 'lines' (the earlier
             // line chart), see Chart.js's render. 'bars' by default per design
             // feedback; 'lines' kept selectable in case that changes back.

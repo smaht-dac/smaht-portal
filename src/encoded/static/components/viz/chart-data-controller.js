@@ -109,6 +109,27 @@ let reduxSubscription = null;
  */
 const isInitialized = {};
 
+/**
+ * The mapping `state` (fields/data) and the Redux subscription currently
+ * belong to -- all mappings share that one `state`, so only the most
+ * recently initialized one is actually live. See isActiveMapping.
+ *
+ * @private
+ * @type {?string}
+ */
+let activeMapping = null;
+
+/**
+ * Each mapping's own last-used `barplot_data_fields` -- restored when that
+ * mapping becomes active again (initialize), so e.g. Browse by File's own
+ * Group By choice doesn't carry over into Browse by Tissue's chart (which
+ * has no such option and showed its raw field name + an empty legend).
+ *
+ * @private
+ * @type {Object.<string, string[]>}
+ */
+const fieldsByMapping = {};
+
 let isInitialLoadComplete = false;
 
 /**
@@ -306,9 +327,19 @@ export const ChartDataController = {
         if (typeof browseBaseState === 'string'){
             refs.browseBaseState = browseBaseState;
         }
-        if (Array.isArray(fields) && fields.length > 0){
-            state.barplot_data_fields = fields;
+        const restoredFields = fieldsByMapping[mapping] || fields;
+        if (Array.isArray(restoredFields) && restoredFields.length > 0){
+            state.barplot_data_fields = restoredFields;
+            fieldsByMapping[mapping] = restoredFields;
         }
+        if (activeMapping !== null && activeMapping !== mapping) {
+            // Another mapping's data is still in `state` -- drop it so this
+            // one's chart shows its loading state, not the previous page's
+            // chart, until its own sync below lands.
+            state.barplot_data_filtered = null;
+            state.barplot_data_unfiltered = null;
+        }
+        activeMapping = mapping;
 
         if (reduxSubscription !== null) {
             reduxSubscription(); // Unsubscribe current listener.
@@ -387,6 +418,22 @@ export const ChartDataController = {
     },
 
     /**
+     * Whether `mapping` is the one the shared state/Redux subscription
+     * currently serve. A mapping can be initialized but no longer active
+     * (e.g. Browse by Tissue -> Browse by File -> back): it then has to be
+     * re-initialized, or it keeps showing/syncing the other mapping's
+     * fields and data.
+     *
+     * @public
+     * @static
+     * @param {string} mapping
+     * @returns {boolean}
+     */
+    isActiveMapping: function (mapping) {
+        return activeMapping === mapping;
+    },
+
+    /**
      * For React components to register an "update me" function, i.e. forceUpdate,
      * to be called when new experiments/filteredExperiments has finished loading from back-end.
      *
@@ -462,6 +509,7 @@ export const ChartDataController = {
                 })) return;
             }
         }
+        fieldsByMapping[mapping] = fields;
         ChartDataController.setState({ 'barplot_data_fields' : fields, 'isLoadingChartData' : true }, callback);
         ChartDataController.sync(mapping);
     },
