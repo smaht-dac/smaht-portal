@@ -3692,6 +3692,24 @@ body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
     }
 }
 
+// Fade at the bottom of the results while there are more rows to scroll to
+.retracted-files-table {
+    .results-column {
+        position: relative;
+    }
+    &.show-scroll-shadow .results-column::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.88));
+        pointer-events: none;
+        z-index: 10;
+    }
+}
+
 /** Utilities for static page tables **/
 
 thead.thead-smaht,
