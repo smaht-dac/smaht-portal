@@ -12,7 +12,7 @@ import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/co
 // would compare `rename` instead, so the column itself stays unsortable
 const RENAMED_FILES_QUERY = '/search/?type=File&tags=rename&sort=-tags';
 
-// Facets shown in the table, also used by the retracted files table
+// Facets shown in the table (the retracted files table uses these plus its own)
 export const RENAMED_FILES_FACET_FIELDS = [
     'access_status',
     'donors.display_title',

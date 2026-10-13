@@ -13,14 +13,23 @@ import {
     RESULTS_BODY_HEIGHT,
 } from './RenamedFilesTable';
 
-// Retracted Files query
-const RETRACTED_FILES_QUERY =
-    '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
+// Hidden by default in the File schema, so it is requested with `additional_facet`
+const RETRACTION_DATE_FACET_FIELD =
+    'file_status_tracking.status_tracking.retracted';
 
-// Same facets as the renamed files table
-// TODO: add a retraction date facet once it is defined in the File schema
+// Retracted Files query, including the retraction date facet
+const RETRACTED_FILES_QUERY =
+    '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted' +
+    `&additional_facet=${RETRACTION_DATE_FACET_FIELD}`;
+
+// Same facets as the renamed files table, plus the retraction date
+const RETRACTED_FILES_FACET_FIELDS = [
+    ...RENAMED_FILES_FACET_FIELDS,
+    RETRACTION_DATE_FACET_FIELD,
+];
+
 const filterRetractedFilesFacets = (facet) =>
-    RENAMED_FILES_FACET_FIELDS.includes(facet?.field);
+    RETRACTED_FILES_FACET_FIELDS.includes(facet?.field);
 
 // Retracted Files header component containing total count
 function RetractedFilesTableHeader({ context, href }) {
