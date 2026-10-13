@@ -2318,7 +2318,8 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
                     colSpan={span > 1 ? span : undefined}
                     title="Brain"
                     className={
-                        (regionTissueTypes.includes(hoveredColumn) ? 'is-column-highlight' : '') +
+                        'tissue-heatmap-tall-header' +
+                        (regionTissueTypes.includes(hoveredColumn) ? ' is-column-highlight' : '') +
                         (regionTissueTypes.includes(selectedTissueType) ? ' is-selected-column' : '')
                     }
                     // eslint-disable-next-line react/jsx-no-bind
@@ -2341,7 +2342,7 @@ function renderHeaderCells(tissueTypes, mergeableTissueTypes, mergeBrainHeader, 
                 key={tissueType}
                 title={formatTissueTypeTitle(tissueType)}
                 className={
-                    'tissue-heatmap-vibrant-header' +
+                    'tissue-heatmap-vibrant-header tissue-heatmap-tall-header' +
                     (hoveredColumn === tissueType ? ' is-column-highlight' : '') +
                     (tissueType === selectedTissueType ? ' is-selected-column' : '')
                 }
@@ -3283,16 +3284,21 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                     for (let i = 0; i < span; i += 1) bodyColWidths.push(perColumnWidth);
                 });
             }
+            // Measured off the real header's own order cell (always in its
+            // 1st row, rowSpan-ing all of them) rather than a hardcoded 32px:
+            // that's only the cell's CSS content width -- the real column
+            // also carries th's own 8px left/right padding (48px in all),
+            // so the hardcoded value shifted every clone column ~16px left
+            // of the real column beneath it.
+            const orderHeaderEl = tableEl.querySelector('thead .tissue-heatmap-order-header');
+            const orderColWidth = orderHeaderEl ? orderHeaderEl.getBoundingClientRect().width : 32;
             setStickyHeader({
                 top: navOffset,
                 left: wrapperRect.left,
                 width: wrapperRect.width,
                 tableWidth: tableRect.width,
                 scrollLeft: wrapperEl.scrollLeft,
-                // Fixed 32px to match .tissue-heatmap-order-header/-label's
-                // own CSS-declared width (_search.scss) -- not measured,
-                // since that cell's rowSpan can put it on any row.
-                colWidths: [32, ...bodyColWidths],
+                colWidths: [orderColWidth, ...bodyColWidths],
             });
         };
 
@@ -3366,6 +3372,12 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         style={{
                             width: stickyHeader.tableWidth,
                             transform: `translateX(${-stickyHeader.scrollLeft}px)`,
+                            // Read by _search.scss to counter-translate the
+                            // order/Donor ID header cells back into place, so
+                            // they stay pinned left like the real table's own
+                            // sticky-left column instead of scrolling away
+                            // with the rest of this clone.
+                            '--sticky-header-scroll-left': `${stickyHeader.scrollLeft}px`,
                         }}>
                         <colgroup>
                             {stickyHeader.colWidths.map((colWidth, i) => (
@@ -3674,7 +3686,7 @@ export const BrowseTissueHeatmapTable = (props) => {
     // this one on its own default tab, mirrored here.
     let activeTabDotPath;
     if (activeSection === 'brain') {
-        activeTabDotPath = isBrainTabDotPath(hashDotPath) ? hashDotPath : '.brain-autolysis-score';
+        activeTabDotPath = isBrainTabDotPath(hashDotPath) ? hashDotPath : '.brain-findings';
     } else {
         activeTabDotPath = hashDotPath && !isBrainTabDotPath(hashDotPath) ? hashDotPath : '.target-tissue';
     }
@@ -4272,10 +4284,54 @@ export const BrowseTissueHeatmapTable = (props) => {
                         prependDotPath="tissue-heatmap"
                         elementID="tissue-heatmap-brain-router">
                         {[
+                        /* Brain-specific pathology data -- see brain_pathology_report.json.
+                            Grouped into 3 tabs by kind (present/absent findings,
+                            numeric/ordinal staging scores, free-text diagnosis/notes)
+                            rather than 1 tab per field (~20+ of them), per explicit
+                            request. A 4th, per-subregion presence/autolysis-score
+                            tab was tried and dropped -- that data (BrainPathologyReport's
+                            own brain_subregions array) turned out to mostly duplicate
+                            what the existing Autolysis Score tab (tissue_type-axis,
+                            below) already shows, just at finer per-subregion
+                            resolution, and wasn't distinct enough to earn its own
+                            tab. All 3 read directly off the same raw `tissueResults`
+                            this component already fetched -- none needs the FBRO
+                            exclusion, subtype expansion, or brain-region distribution
+                            the other 4 tabs' tissue_type-axis matrices do, since
+                            these 3 tables pivot on donor x finding/score/diagnosis
+                            category instead (see BrowseBrainPathologyTable.js). */
+                            <DotRouterTab
+                                key="brain-findings"
+                                dotPath=".brain-findings"
+                                default
+                                tabTitle="Neuropathology Findings"
+                                arrowTabs={false}
+                                cache={true}>
+                                {loading ? (
+                                    <div className="tissue-heatmap-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : (
+                                    <BrainFindingsTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
+                                )}
+                            </DotRouterTab>,
+                            <DotRouterTab
+                                key="brain-staging"
+                                dotPath=".brain-staging"
+                                tabTitle="Neuropathology Staging"
+                                arrowTabs={false}
+                                cache={true}>
+                                {loading ? (
+                                    <div className="tissue-heatmap-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : (
+                                    <BrainStagingTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
+                                )}
+                            </DotRouterTab>,
                             <DotRouterTab
                                 key="brain-autolysis-score"
                                 dotPath=".brain-autolysis-score"
-                                default
                                 tabTitle="Autolysis Score"
                                 arrowTabs={false}
                                 cache={true}
@@ -4340,50 +4396,6 @@ export const BrowseTissueHeatmapTable = (props) => {
                                         subtypeTintPercent={ischemicTissueTintPercent}
                                         splitByPreservationType
                                     />
-                                )}
-                            </DotRouterTab>,
-                        /* Brain-specific pathology data -- see brain_pathology_report.json.
-                            Grouped into 3 tabs by kind (present/absent findings,
-                            numeric/ordinal staging scores, free-text diagnosis/notes)
-                            rather than 1 tab per field (~20+ of them), per explicit
-                            request. A 4th, per-subregion presence/autolysis-score
-                            tab was tried and dropped -- that data (BrainPathologyReport's
-                            own brain_subregions array) turned out to mostly duplicate
-                            what the existing Autolysis Score tab (tissue_type-axis,
-                            above) already shows, just at finer per-subregion
-                            resolution, and wasn't distinct enough to earn its own
-                            tab. All 3 read directly off the same raw `tissueResults`
-                            this component already fetched -- none needs the FBRO
-                            exclusion, subtype expansion, or brain-region distribution
-                            the other 4 tabs' tissue_type-axis matrices do, since
-                            these 3 tables pivot on donor x finding/score/diagnosis
-                            category instead (see BrowseBrainPathologyTable.js). */
-                            <DotRouterTab
-                                key="brain-findings"
-                                dotPath=".brain-findings"
-                                tabTitle="Neuropathology Findings"
-                                arrowTabs={false}
-                                cache={true}>
-                                {loading ? (
-                                    <div className="tissue-heatmap-loading">
-                                        <i className="icon icon-circle-notch icon-spin fas" />
-                                    </div>
-                                ) : (
-                                    <BrainFindingsTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
-                                )}
-                            </DotRouterTab>,
-                            <DotRouterTab
-                                key="brain-staging"
-                                dotPath=".brain-staging"
-                                tabTitle="Neurodegenerative Staging"
-                                arrowTabs={false}
-                                cache={true}>
-                                {loading ? (
-                                    <div className="tissue-heatmap-loading">
-                                        <i className="icon icon-circle-notch icon-spin fas" />
-                                    </div>
-                                ) : (
-                                    <BrainStagingTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
                                 )}
                             </DotRouterTab>,
                             <DotRouterTab

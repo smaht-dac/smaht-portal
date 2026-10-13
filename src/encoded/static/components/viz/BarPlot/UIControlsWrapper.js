@@ -18,7 +18,7 @@ import {
     loadFixedTissueSampleCounts,
     addFixedTissueSamples,
 } from './tissue-fixed-samples';
-import { tissueSampleTypeColorCycler } from './tissue-sample-type-colors';
+import { tissueSampleTypeColorCycler, TISSUE_SAMPLE_TYPE_FIELD } from './tissue-sample-type-colors';
 import { Chart } from './Chart';
 
 /**
@@ -157,7 +157,12 @@ export class UIControlsWrapper extends React.PureComponent {
             'openDropdown': null,
             'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL,
             // Browse by Tissue only -- see tissue-fixed-samples.js.
-            'fixedTissueSampleCounts': null
+            'fixedTissueSampleCounts': null,
+            // Browse by Tissue only -- 'bars' (thin lollipop stems for Group
+            // By: Sample Type, stacked bars otherwise) or 'lines' (the earlier
+            // line chart), see Chart.js's render. 'bars' by default per design
+            // feedback; 'lines' kept selectable in case that changes back.
+            'tissueChartStyle': 'bars'
         };
     }
 
@@ -284,7 +289,7 @@ export class UIControlsWrapper extends React.PureComponent {
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
         // Browse by Tissue's "Group By: Sample Type" only -- adds the
         // TissueSample-counted Fixed series (see tissue-fixed-samples.js).
-        if (fixedTissueSampleCounts && isTissueXAxis && barplot_data_fields[1] === 'sample_summary.preservation_types') {
+        if (fixedTissueSampleCounts && isTissueXAxis && barplot_data_fields[1] === TISSUE_SAMPLE_TYPE_FIELD) {
             barplot_data_unfiltered = addFixedTissueSamples(barplot_data_unfiltered, fixedTissueSampleCounts);
             barplot_data_filtered = addFixedTissueSamples(barplot_data_filtered, fixedTissueSampleCounts);
         }
@@ -323,7 +328,7 @@ export class UIControlsWrapper extends React.PureComponent {
      */
     adjustedChildChart() {
         const { children, barplot_data_fields, termLabelTransform } = this.props;
-        const { showState, aggregateType, tissueCategoryFilter } = this.state;
+        const { showState, aggregateType, tissueCategoryFilter, tissueChartStyle } = this.state;
         const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForTissueCategory();
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
         const xAxisTermLabelMapper = (isTissueXAxis /*&& tissueCategoryFilter === UIControlsWrapper.TISSUE_CATEGORY_ALL*/)
@@ -343,7 +348,8 @@ export class UIControlsWrapper extends React.PureComponent {
                 'barplot_data_unfiltered': barplot_data_unfiltered,
                 'barplot_data_filtered': barplot_data_filtered,
                 'termLabelTransform': termLabelTransform,
-                'xAxisTermLabelMapper': xAxisTermLabelMapper
+                'xAxisTermLabelMapper': xAxisTermLabelMapper,
+                'tissueChartStyle': tissueChartStyle
             }
         ));
     }
@@ -565,6 +571,34 @@ export class UIControlsWrapper extends React.PureComponent {
         );
     }
 
+    renderTissueChartStyleToggle() {
+        const { mapping, isLoadingChartData, btnVariant } = this.props;
+        const { tissueChartStyle } = this.state;
+        if (mapping !== 'tissue') return null;
+        const options = [
+            { key: 'bars', title: 'Bars' },
+            { key: 'lines', title: 'Lines' },
+        ];
+        return (
+            <div className="tissue-chart-style-toggle d-flex align-items-center justify-content-center gap-2 mb-2">
+                <span className="text-muted small">Chart</span>
+                <div className="btn-group btn-group-sm" role="group" aria-label="Chart style">
+                    {options.map(({ key, title }) => (
+                        <button
+                            key={key}
+                            type="button"
+                            className={`btn ${tissueChartStyle === key ? 'btn-secondary' : `btn-${btnVariant}`}`}
+                            aria-pressed={tissueChartStyle === key}
+                            onClick={() => this.setState({ tissueChartStyle: key })}
+                            disabled={isLoadingChartData}>
+                            {title}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     render() {
         const {
             barplot_data_filtered, barplot_data_unfiltered, barplot_data_fields, isLoadingChartData, href, btnVariant,
@@ -666,8 +700,9 @@ export class UIControlsWrapper extends React.PureComponent {
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-12 col-md-9 pt-4">
+                    <div className="col-12 col-md-9 pt-4 d-flex flex-wrap justify-content-center column-gap-4">
                         {this.renderTissueCategoryFilter()}
+                        {this.renderTissueChartStyleToggle()}
                     </div>
                 </div>
             </div>

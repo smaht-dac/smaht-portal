@@ -8,19 +8,29 @@
  * family AliquotVisualization.js's own SLICE_TYPE_STYLES.yellow already
  * uses elsewhere in this portal for the same Fixed/Frozen semantics, so the
  * 2 views read as one consistent color language rather than 2 unrelated
- * palettes for the same concept. Fresh (#B0B0FB, per explicit request)
+ * palettes for the same concept. Fresh (#C3C3FF, per explicit request)
  * and "Not specified" have no such established color elsewhere to match,
  * so each just gets its own tone, distinguishable from EACH OTHER too (an
  * earlier version of this gave both the exact same neutral grey, per
  * DEFAULT_COLOR below, which read as 1 color standing in for 2 different
  * terms).
  */
+// Browse by Tissue's "Group By: Sample Type" field -- the only subdivision
+// these fixed colors (and the lollipop chart, see ViewContainer.js's
+// LollipopChartViewContainer) are meant for.
+export const TISSUE_SAMPLE_TYPE_FIELD = 'sample_summary.preservation_types';
+
+// Left-to-right order of each tissue's own stems in the lollipop chart (and
+// matching legend order in the design mock) -- any other term sorts after
+// these, alphabetically.
+export const TISSUE_SAMPLE_TYPE_ORDER = ['Fixed', 'Frozen', 'Fresh', 'Not specified'];
+
 export const TISSUE_SAMPLE_TYPE_COLORS = {
     // Explicitly picked as SLICE_TYPE_STYLES.yellow.front, not .border/.side
     // (the other 2 candidates offered) -- the lighter, most visually
     // prominent of aliquot viz's own 3 Frozen shades.
     'Frozen': { fill: '#CFE89B', stroke: '#CFE89B' },
-    'Fresh': { fill: '#B0B0FB', stroke: '#B0B0FB' },
+    'Fresh': { fill: '#C3C3FF', stroke: '#C3C3FF' },
     // TissueSample-counted Fixed series (tissue-fixed-samples.js) -- same
     // idea as Frozen above: AliquotVisualization.js's own Fixed shade
     // (SLICE_TYPE_STYLES.pink.front).

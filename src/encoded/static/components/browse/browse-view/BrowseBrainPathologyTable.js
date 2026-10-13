@@ -214,10 +214,26 @@ function renderFindingDetailPopover({ donor, category, description, style, isFli
     );
 }
 
+const renderOutcomeBadge = (outcome) => (outcome ? (
+    <span
+        className={
+            'tissue-heatmap-outcome-badge' +
+            (outcome === 'Unacceptable' ? ' is-unacceptable' : ' is-acceptable')
+        }>
+        {outcome}
+    </span>
+) : 'n/a');
+
 // Detail popover for a donor's brain pathology summary (DonorSummaryButton)
 // -- the same outcome/final diagnosis/notes the Diagnosis Summary tab shows
 // as a full table, in the same card the finding descriptions above use.
+// Per design feedback, a donor's (usual, single) outcome sits in the top
+// row, right-aligned across from Donor, with no "Pathology Summary"
+// heading above the rest. A donor with several reports keeps each
+// outcome next to its own diagnosis instead (1 outcome up top couldn't say
+// which report it belonged to), under a plain "Report i of n" divider.
 function renderDonorSummaryPopover({ donor, entries, style, isFlippedUp, isFlippedRight }, popoverRef) {
+    const hasSingleEntry = entries.length === 1;
     return (
         <div
             ref={popoverRef}
@@ -233,29 +249,29 @@ function renderDonorSummaryPopover({ donor, entries, style, isFlippedUp, isFlipp
                         <div className="label">Donor</div>
                         <div className="value">{donor}</div>
                     </div>
+                    {hasSingleEntry ? (
+                        <div className="field is-outcome">
+                            <div className="label">Outcome</div>
+                            <div className="value">{renderOutcomeBadge(entries[0].outcome)}</div>
+                        </div>
+                    ) : null}
                 </div>
                 {entries.map((entry, i) => (
                     // eslint-disable-next-line react/no-array-index-key
                     <React.Fragment key={i}>
-                        <div className="secondary-row-heading">
-                            Pathology Summary{entries.length > 1 ? ` (${i + 1} of ${entries.length})` : ''}
-                        </div>
-                        <div className="secondary-row">
-                            <div className="field">
-                                <div className="label">Outcome</div>
-                                <div className="value">
-                                    {entry.outcome ? (
-                                        <span
-                                            className={
-                                                'tissue-heatmap-outcome-badge' +
-                                                (entry.outcome === 'Unacceptable' ? ' is-unacceptable' : ' is-acceptable')
-                                            }>
-                                            {entry.outcome}
-                                        </span>
-                                    ) : 'n/a'}
+                        {hasSingleEntry ? null : (
+                            <>
+                                <div className="secondary-row-heading">
+                                    Report {i + 1} of {entries.length}
                                 </div>
-                            </div>
-                        </div>
+                                <div className="secondary-row">
+                                    <div className="field">
+                                        <div className="label">Outcome</div>
+                                        <div className="value">{renderOutcomeBadge(entry.outcome)}</div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                         <div className="secondary-row">
                             <div className="field">
                                 <div className="label">Final Neuropathological Diagnosis</div>
@@ -477,7 +493,7 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
     );
 }
 
-// Neurodegenerative Staging tab -- one column per staging/severity score
+// Neuropathology Staging tab -- one column per staging/severity score
 // (BRAIN_STAGING_FIELDS), one row per donor. Each score has its own scale
 // (an integer 0-100 CERAD count alongside a 4-level ordinal AD Neuropathologic
 // Change, say), so unlike every other tab on this page there's no single
@@ -522,7 +538,7 @@ export function BrainStagingTable({ tissueResults = [], donorHrefs = null }) {
                 <div className="tissue-heatmap-metric-heading-row">
                     <div className="tissue-heatmap-metric-title-group">
                         <h2 className="tissue-heatmap-metric-title">
-                            Neurodegenerative Staging
+                            Neuropathology Staging
                             <i
                                 className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
                                 data-tip="Neurodegenerative disease staging/severity scores from brain pathology reports. Each score has its own scale, so every column is colored relative to just its own values."

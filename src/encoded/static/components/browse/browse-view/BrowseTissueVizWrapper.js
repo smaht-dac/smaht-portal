@@ -329,7 +329,7 @@ const TissueAdvancedPanel = ({
     // BrowseTissue.js's admin TissueTintSettings.
     borderTintPercent = 0,
     donorsBgTintPercent = 0,
-    cardBgTintPercent = 93,
+    cardBgTintPercent = 96,
 }) => (
     <div className="tissue-advanced-panel">
         {tissueTypes.map((tissueType) => {
@@ -823,7 +823,7 @@ export const BrowseTissueVizWrapper = (props) => {
         bubbleRingTintPercent = 15,
         cardBorderTintPercent = 0,
         cardDonorsBgTintPercent = 0,
-        cardBgTintPercent = 93,
+        cardBgTintPercent = 96,
     } = props;
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 

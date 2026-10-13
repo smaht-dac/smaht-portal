@@ -58,7 +58,7 @@ const TissueHeaderToggle = ({ options, activeIndex, onChange, highlight = false 
 export const DEFAULT_BUBBLE_RING_TINT_PERCENT = 15;
 export const DEFAULT_CARD_BORDER_TINT_PERCENT = 0;
 export const DEFAULT_CARD_DONORS_BG_TINT_PERCENT = 0;
-export const DEFAULT_CARD_BG_TINT_PERCENT = 93;
+export const DEFAULT_CARD_BG_TINT_PERCENT = 96;
 
 // Admin-only gear next to the Basic/Advanced toggle for dialing in the
 // active view's tint live (`sliders`: { label, value, onChange }) -- same look and outside-click/Escape

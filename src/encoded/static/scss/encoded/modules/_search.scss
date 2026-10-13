@@ -2156,10 +2156,11 @@ div.browse-link-icon {
 		}
 
 		// Tissue types with 0 donors render as a plain <div>, not a link (see
-		// TissueBasicPanel) -- muted and inert rather than removed, so the
-		// full tissue catalog still reads as complete.
+		// TissueBasicPanel) -- inert rather than removed, so the full tissue
+		// catalog still reads as complete. Full color, not faded, per
+		// explicit request (e.g. the germ cell tissues read as disabled) --
+		// same as Advanced view's own 0-donor cards; just no hover lift.
 		&.is-disabled {
-			opacity: 0.45;
 			cursor: default;
 
 			&:hover,
@@ -2980,9 +2981,9 @@ div.browse-link-icon {
 	// (_charts.scss's .data-matrix-container .tab-header), per explicit
 	// request. A gap between the 2, a muted grey inactive tab, and the
 	// active one opening (white, no bottom border) onto the sub-tab row
-	// below with its own section-colored top accent -- matching the green/
-	// brain-blue accent the sub-tabs themselves use -- so it's clear at a
-	// glance which section is open.
+	// below. Just the thin grey outline on top -- the thick green/brain-blue
+	// top accent these had was dropped per design feedback; only the
+	// active tab's icon still carries its section color.
 	.tissue-heatmap-section-tabs {
 		display: flex;
 		gap: 12px;
@@ -3001,7 +3002,6 @@ div.browse-link-icon {
 			margin-bottom: -1px;
 			background: #F4F7FA;
 			border: 1px solid #D4E1EC;
-			border-top: 4px solid transparent;
 			border-radius: 8px 8px 0 0;
 			color: #657B95;
 			font-size: 1.2rem;
@@ -3028,16 +3028,12 @@ div.browse-link-icon {
 			}
 
 			&--non-brain.is-active {
-				border-top-color: #1F9F55;
-
 				.icon {
 					color: #1F9F55;
 				}
 			}
 
 			&--brain.is-active {
-				border-top-color: $brain-accent;
-
 				.icon {
 					color: $brain-accent;
 				}
@@ -3558,6 +3554,18 @@ div.browse-link-icon {
 		table.tissue-heatmap-table {
 			table-layout: fixed;
 		}
+
+		// `position: sticky` does nothing inside this clone (it never
+		// scrolls -- the whole table is shifted by an inline translateX
+		// instead), so these 2 corner cells would otherwise slide off to
+		// the left with every other column. Undo that shift for just them
+		// (--sticky-header-scroll-left, set inline alongside the
+		// translateX) so Donor ID and its sort arrow stay pinned, matching
+		// the real table's own sticky-left column underneath.
+		th.tissue-heatmap-order-header,
+		th.tissue-heatmap-donor-header {
+			transform: translateX(var(--sticky-header-scroll-left, 0px));
+		}
 	}
 
 	table.tissue-heatmap-table {
@@ -3741,6 +3749,20 @@ div.browse-link-icon {
 			color: inherit;
 		}
 
+		// Header rows with no subtype row under them (Ischemic Time on both
+		// sections, Brain Autolysis Score -- renderHeaderCells' own cells --
+		// and the Neuropathology Findings/Staging tables) -- per design
+		// feedback, the same 2-line height the subtype-aware tabs' own
+		// subtype row has (.tissue-heatmap-subtype-subrow-label-text's
+		// 2 wrapped lines at line-height 1.2, plus th's own 8px top/bottom
+		// padding), so a single-line label still reads as a header rather
+		// than a thin strip. `height` on a table cell acts as a minimum, so
+		// a label that genuinely wraps further still grows the row.
+		.tissue-heatmap-tall-header,
+		&.tissue-heatmap-metric-table thead th {
+			height: calc(2 * 1.2 * 0.8125rem + 16px);
+		}
+
 		// Row-2 header cells (parent-header/unsplit-header/merged-brain,
 		// via its own .tissue-heatmap-subtype-row2-boundary) are each
 		// already a whole tissue-type-group's own single cell by
@@ -3870,8 +3892,6 @@ div.browse-link-icon {
 		// right above it are now tinted per-tissue-color (see
 		// getTissueSubtypeHeaderStyle) rather than a plain grey/orange pair.
 		.tissue-heatmap-target-nontarget-header {
-			// 0.75rem/600, up from 0.625rem (and 0.5rem/500 before that)
-			// -- both still read as too small.
 			font-size: 0.7rem;
 			font-weight: 400;
 			letter-spacing: 0.04em;
@@ -4579,7 +4599,7 @@ table.tissue-heatmap-table td.tissue-heatmap-cell {
 	position: relative;
 }
 
-// Neuropathology Findings/Neurodegenerative Staging tabs
+// Neuropathology Findings/Neuropathology Staging tabs
 // (BrowseBrainPathologyTable.js) -- unlike the other 4 tabs, whose own
 // table.tissue-heatmap-table { width: max-content } (above) deliberately
 // keeps a data-driven, potentially very wide column count from being
@@ -4594,7 +4614,7 @@ table.tissue-heatmap-table.tissue-heatmap-metric-table {
 	width: 100%;
 }
 
-// Neuropathology Findings/Neurodegenerative Staging tabs
+// Neuropathology Findings/Neuropathology Staging tabs
 // (BrowseBrainPathologyTable.js's BrainFindingsTable/BrainStagingTable) --
 // both reuse table.tissue-heatmap-table's short-value styling (nowrap,
 // centered, score-0..4 palette), which is fine, but NOT its donor column:
@@ -4676,6 +4696,12 @@ table.tissue-heatmap-diagnosis-table {
 
 	tbody tr:last-child td {
 		border-bottom: none;
+	}
+
+	// Same 2-line minimum header height as every other brain tab's own
+	// header (see table.tissue-heatmap-table's .tissue-heatmap-tall-header).
+	thead th {
+		height: calc(2 * 1.2 * 0.8125rem + 16px);
 	}
 
 	thead th {
@@ -4831,4 +4857,21 @@ table.tissue-heatmap-table {
 // Prose (diagnosis/notes), so a bit wider than a single cell's own card.
 .tissue-heatmap-cell-detail-popover.tissue-heatmap-donor-summary-popover {
 	width: 380px;
+
+	// Outcome, right-aligned across from Donor in the top row (see
+	// renderDonorSummaryPopover) -- sized to its own badge rather than
+	// splitting the row 50/50 like a regular .field.
+	.field.is-outcome {
+		flex: 0 0 auto;
+		text-align: right;
+	}
+
+	// A single-report donor has no .secondary-row-heading left to carry
+	// the divider/top spacing between the Donor row and the light-blue
+	// block below -- the diagnosis row takes that heading's own
+	// border-top/padding-top over instead.
+	.primary-row + .secondary-row {
+		border-top: 1px solid #EEF2F5;
+		padding-top: 6px;
+	}
 }
