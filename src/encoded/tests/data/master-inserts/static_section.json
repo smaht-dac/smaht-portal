@@ -580,6 +580,25 @@
         "uuid": "7550cf0e-367b-4b38-85e3-54cd0c12c6bd"
     },
     {
+        "body": "<NotificationStatus />",
+        "title": "Email notifications",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "notification-status.0",
+        "section_type": "Page Section",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "45e92890-c82a-4d58-80a7-6a1726c49a13"
+    },
+    {
         "body": "<AnalysisRuns />",
         "title": "Analysis Runs",
         "status": "in review",
