@@ -18,6 +18,7 @@ import {
 import ErrorPage from './static-pages/ErrorPage';
 import { NavigationBar } from './navigation/NavigationBar';
 import { NotLoggedInAlert } from './navigation/components/LoginNavItem';
+import { OKTA_CALLBACK_PATH } from './auth/oktaConfig';
 import { Footer } from './Footer';
 import { store, batchDispatch } from './../store';
 
@@ -418,7 +419,12 @@ export default class App extends React.PureComponent {
             }
             // Set Alert if not on homepage and not logged in. This 'if' logic will likely change later
             // especially if have multiple 'for-public' pages like blog posts, news, documentation, etc.
-            if (!session && pathname != '/') {
+            // The Okta callback page is always reached without a session, since it is the page that creates one.
+            if (
+                !session &&
+                pathname != '/' &&
+                pathname !== OKTA_CALLBACK_PATH
+            ) {
                 // Cancelled on login success by `updateAppSessionState` below.
                 Alerts.queue(NotLoggedInAlert);
             }
