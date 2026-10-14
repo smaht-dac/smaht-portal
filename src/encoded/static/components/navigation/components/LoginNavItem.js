@@ -68,13 +68,14 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                     className={
                         'nav-link user-account-item' +
                         (unverifiedUserEmail ? ' active' : '') +
+                        (isLoading ? ' is-loading' : '') +
                         (className ? ' ' + className : '')
                     }
                     id={id}
                     onClick={onClick}
                     disabled={!isLoginLibraryLoaded}>
                     {isLoading ? (
-                        <span className="pull-right">
+                        <span className="pull-right login-loading-indicator">
                             <i className="account-icon icon icon-spin icon-circle-notch fas align-middle" />
                         </span>
                     ) : (
@@ -146,8 +147,8 @@ export const LoginButtonWrapper = ({
     children,
     showPopover = true,
     popover = <PortalShutdownPopover />, // can be an element or a component
-    trigger = ["hover", "focus"],
-    placement = "top",
+    trigger = ['hover', 'focus'],
+    placement = 'top',
 }) => {
     const [mounted, setMounted] = React.useState(false);
     React.useEffect(() => setMounted(true), []);
@@ -179,12 +180,18 @@ export const LoginButtonWrapper = ({
             popperConfig={{
                 modifiers: [
                     {
-                        name: "flip",
-                        options: { fallbackPlacements: ["bottom", "top", "left", "right"] },
+                        name: 'flip',
+                        options: {
+                            fallbackPlacements: [
+                                'bottom',
+                                'top',
+                                'left',
+                                'right',
+                            ],
+                        },
                     },
                 ],
-            }}
-        >
+            }}>
             {children}
         </OverlayTrigger>
     );
@@ -197,7 +204,10 @@ export const NotLoggedInAlert = {
             You are currently browsing as guest, please{' '}
             {
                 <LoginButtonWrapper showPopover={false}>
-                    <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">
+                    <a
+                        onClick={onAlertLoginClick}
+                        href="#loginbtn"
+                        className="link-underline-hover">
                         login
                     </a>
                 </LoginButtonWrapper>
