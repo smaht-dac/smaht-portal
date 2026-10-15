@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-2.15.3
+2.15.4
 =====
 
 `PR 761: WF Sample and File Nomenclature v3.0 <https://github.com/smaht-dac/smaht-portal/pull/761>`_
 
 * Update Sample and File Nomenclature documentation to version 3.0
+
+
+2.15.3
+======
+
+`PR 780: Update publication view to use citation_addon property <https://github.com/smaht-dac/smaht-portal/pull/780>`_
+
+* Update publication view to use citation_addon property
 
 
 2.15.2
