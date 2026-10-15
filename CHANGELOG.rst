@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.4
+======
+
+`PR 781: Update path report outcome description <https://github.com/smaht-dac/smaht-portal/pull/781>`_
+
+* Add specific information regarding unacceptable pathology report outcomes.
+
+
 2.15.3
 ======
 
