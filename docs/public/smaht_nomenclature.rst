@@ -140,18 +140,19 @@ Figure 1. SMaHT Tissue Recovery Schema.
             alt="Nomenclature Fig. 1"
         />
         <figcaption>
-            (a) Schema of the spatial relationship between fixed (pink) and frozen (green) tissue aliquots 
-            recovered for each type of non-brain tissue for the SMaHT project. Solid tissue samples from 
-            muscle, skins (suprapubic abdomen (non-exposed) and calf (sun-exposed)), colons (ascending and 
-            descending), aorta, and esophagus are recovered and sectioned. Larger tissue samples from the 
-            lung and liver are recovered and sectioned into medial and lateral halves, as denoted by the 
-            dotted red line in the upper right panel. Small organs (adrenal glands and gonads) and the 
-            heart ventricle are bisected into anterior and posterior halves before aliquoting. Please note 
-            that this is a representative diagram and that the size of each tissue aliquot can vary 
-            greatly. (b) Recovery and processing schema of the brain for SMaHT. (c) Standardized 
-            orientation of both fixed and frozen aliquots prior to preservation from solid tissues. Frozen 
-            aliquots from mucosal tissues (skin, colon, aorta, and esophagus) are all placed serosa side 
-            down in cassettes for processing of a full-thickness sample (all cell layers). 
+            <span class="fw-bold">(a)</span> Schema of the spatial relationship between fixed (pink) and 
+            frozen (green) tissue aliquots recovered for each type of non-brain tissue for the SMaHT project. 
+            Solid tissue samples from muscle, skins (suprapubic abdomen (non-exposed) and calf (sun-exposed)), 
+            colons (ascending and descending), aorta, and esophagus are recovered and sectioned. Larger tissue 
+            samples from the lung and liver are recovered and sectioned into medial and lateral halves, as 
+            denoted by the dotted red line in the upper right panel. Small organs (adrenal glands and gonads) 
+            and the heart ventricle are bisected into anterior and posterior halves before aliquoting. Please 
+            note that this is a representative diagram and that the size of each tissue aliquot can vary 
+            greatly. <span class="fw-bold">(b)</span> Recovery and processing schema of the brain for SMaHT. 
+            <span class="fw-bold">(c)</span> Standardized orientation of both fixed and frozen aliquots prior 
+            to preservation from solid tissues. Frozen aliquots from mucosal tissues (skin, colon, aorta, and 
+            esophagus) are all placed serosa side down in cassettes for processing of a full-thickness sample 
+            (all cell layers). 
         </figcaption>
     </figure>
 
