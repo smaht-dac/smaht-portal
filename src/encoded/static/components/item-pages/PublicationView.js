@@ -460,8 +460,8 @@ const PublicationView = React.memo(function PublicationView(props) {
                             </div>
                             <span className="citation">
                                 {citationString}
-                                {context?.citation_addon && (
-                                    <span>. {context.citation_addon}.</span>
+                                {context?.citation_addon?.trim() && (
+                                    <span>. {context.citation_addon}</span>
                                 )}
                             </span>
                             <button
