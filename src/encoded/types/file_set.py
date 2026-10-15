@@ -21,8 +21,6 @@ from ..item_utils import (
     library as library_utils,
     sequencing as sequencing_utils,
     analyte as analyte_utils,
-    sample as sample_utils,
-    tissue_sample as tissue_sample_utils,
     tissue as tissue_utils,
 )
 from ..item_utils.utils import (

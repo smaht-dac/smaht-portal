@@ -1,5 +1,5 @@
 import pytest
-from typing import List, Dict, Any
+from typing import List
 from webtest.app import TestApp
 
 from .utils import (
@@ -83,7 +83,7 @@ def test_file_set_tissue_types(
     workbook: None
 ) -> None:
     """Ensure the tissue_types calcprop works."""
-    fileset=get_item(
+    fileset = get_item(
         es_testapp,
         submitted_id,
         collection='FileSet',
@@ -121,7 +121,7 @@ def test_validate_compatible_library_and_sequencer_on_patch(
     """
     patch_body = {}
     if library:
-        library_uuid=item_utils.get_uuid(
+        library_uuid = item_utils.get_uuid(
             get_item(
                 es_testapp,
                 library,
@@ -130,7 +130,7 @@ def test_validate_compatible_library_and_sequencer_on_patch(
         )
         patch_body['libraries'] = [library_uuid]
     if sequencing:
-        sequencing_uuid=item_utils.get_uuid(
+        sequencing_uuid = item_utils.get_uuid(
             get_item(
                 es_testapp,
                 sequencing,
@@ -170,14 +170,14 @@ def test_validate_compatible_library_and_sequencer_on_post(
    Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property` and based off of molecule-specific properties of sequencing.
     """
     submission_center = get_insert_identifier_for_item_type(es_testapp,'submission_center')
-    library_uuid=item_utils.get_uuid(
+    library_uuid = item_utils.get_uuid(
         get_item(
             es_testapp,
             library,
             'Library'
         )
     )
-    sequencing_uuid=item_utils.get_uuid(
+    sequencing_uuid = item_utils.get_uuid(
         get_item(
             es_testapp,
             sequencing,

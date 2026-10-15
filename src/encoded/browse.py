@@ -1,9 +1,5 @@
-from pyramid.httpexceptions import HTTPFound
-from pyramid.security import Authenticated
 from pyramid.view import view_config
 import structlog
-from webob.multidict import MultiDict
-from urllib.parse import urlencode
 from snovault.search.search import search
 from snovault.util import debug_log
 from encoded.endpoints.recent_files_summary.recent_files_summary import (

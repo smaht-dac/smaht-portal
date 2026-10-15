@@ -23,7 +23,6 @@ from encoded.item_utils import (
     file_format as file_format_utils,
     file_set as file_set_utils,
     item as item_utils,
-    meta_workflow_run as mwfr_utils,
     sample as sample_utils,
     sample_source as sample_source_utils,
     supplementary_file as supp_file_utils,
@@ -31,7 +30,7 @@ from encoded.item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
     donor_specific_assembly as dsa_utils,
-    external_output_file as eof_utils
+    external_output_file as eof_utils,
 )
 from encoded.item_utils.constants import (
     file as file_constants,
@@ -309,9 +308,9 @@ def get_source_assembly(
 
 
 def get_reference_genome_search(
-        value: str,
-        request_handler: RequestHandler
-    ) -> List[Dict[str, Any]]:
+            value: str,
+            request_handler: RequestHandler
+        ) -> List[Dict[str, Any]]:
     """
     Search Reference Genomes by code and title and return unique code for chain file output.
     
@@ -805,9 +804,9 @@ def get_protocol_id(
 
 
 def get_protocol_id_from_tissues(
-        tissues: List[Dict[str, Any]],
-        file: Dict[str, Any]
-    ) -> FilenamePart:
+            tissues: List[Dict[str, Any]],
+            file: Dict[str, Any]
+        ) -> FilenamePart:
     """Get protocol ID from tissue items.
     
     If file is a DSA file, allow multiple protocol IDs
@@ -1358,8 +1357,8 @@ def get_software_with_versions(
 
 
 def get_software_and_versions_string(
-        software_items: List[Dict[str, Any]]
-    ) -> str:
+            software_items: List[Dict[str, Any]]
+        ) -> str:
     """Get string representation of software and versions."""
     sorted_software_items = sorted(software_items, key=item_utils.get_code)
     return ANALYSIS_INFO_SEPARATOR.join(
@@ -1391,11 +1390,11 @@ def get_reference_genome_value(reference_genome: Dict[str, Any]):
 
 
 def get_chain_file_value(
-        file: Dict[str, Any],
-        target_assembly: Union[str, None],
-        source_assembly: Union[str, None],
-        file_extension: Dict[str, Any]
-    ) -> str:
+            file: Dict[str, Any],
+            target_assembly: Union[str, None],
+            source_assembly: Union[str, None],
+            file_extension: Dict[str, Any]
+        ) -> str:
     """Get genome conversion direction for chain files."""
     if file_format_utils.is_chain_file(file_extension):
         if target_assembly and source_assembly:
@@ -1404,10 +1403,10 @@ def get_chain_file_value(
 
 
 def get_dsa_value(
-        file: Dict[str, Any],
-        file_extension: Dict[str, Any],
-        donor_specific_assembly: Union[Dict[str, Any], None]
-    ):
+            file: Dict[str, Any],
+            file_extension: Dict[str, Any],
+            donor_specific_assembly: Union[Dict[str, Any], None]
+        ):
     """Get DSA version and haplotype values for fasta file."""
     if donor_specific_assembly:
         dsa_value = ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(donor_specific_assembly)])
@@ -1493,7 +1492,7 @@ def get_file_extension(
     if file_utils.is_germline(file):
         result += [GERMLINE_EXTENSION]
     if file_utils.is_variant_calls(file) and (variant_type := get_variant_type(file)):
-        result +=[variant_type]
+        result += [variant_type]
     result += [file_extension]
     if file_extension:
         return get_filename_part(value=".".join(result))

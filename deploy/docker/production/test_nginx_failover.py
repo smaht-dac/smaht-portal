@@ -22,13 +22,15 @@ What it asserts (deterministic, ordering forced with upstream `weight`):
 
 Cases requiring wall-clock/quarantine timing and multi-nginx-worker shared health
 state (quarantine/recovery, handoff-timeout cutoff) are outside this harness. The
-production Docker build runs `nginx -t` against the pinned nginx 1.21.6 config.
+production Docker build runs `nginx -t` against the pinned nginx 1.30.4 config.
 
 Version note
 ------------
-Run this against the PRODUCTION-pinned nginx (1.21.6) for authoritative results. The
+Run this against the PRODUCTION-pinned nginx (1.30.4) for authoritative results. The
 directives under test (proxy_next_upstream, _tries, _timeout, method policy) are core
 and version-stable; a smoke run on another local nginx confirms the harness itself.
+All 10 cases were re-confirmed against nginx 1.30.4 during the 2026-09 bullseye ->
+bookworm base migration, so the retry/logging semantics carried over from 1.21.6.
 
 Usage
 -----
@@ -299,7 +301,7 @@ def main():
         return 77
     ver = subprocess.run([args.nginx, "-v"], capture_output=True, text=True)
     print(f"nginx: {ver.stderr.strip() or ver.stdout.strip()}")
-    print("(Run against pinned 1.21.6 for authoritative results.)\n")
+    print("(Run against pinned 1.30.4 for authoritative results.)\n")
 
     results = [validate_checked_in_policy()]
     # 1. GET failover: first peer 502 (heavy weight -> first hop), second 200.

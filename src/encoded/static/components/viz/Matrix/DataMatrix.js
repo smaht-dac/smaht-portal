@@ -57,11 +57,13 @@ export default class DataMatrix extends React.PureComponent {
         'donorTissueAssay',
         'overallCounts',
         'rawRegularCountOverrides',
+        'rowGroups',
         'rowGroupsExtended',
         'rowSummaryCountsByGroup',
         'totalFiles',
         'facetsForPanel',
-        'facetFiltersForPanel'
+        'facetFiltersForPanel',
+        'resolvedValueChangeMap'
     ];
 
     static isPlainObject = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
@@ -131,13 +133,13 @@ export default class DataMatrix extends React.PureComponent {
     };
     static DEFAULT_COLUMN_GROUPS = {
         "Bulk WGS": {
-            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'Fiber-Seq'],
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'Fiber-seq'],
             "backgroundColor": "#e04141",
             "textColor": "#ffffff",
             "shortName": "WGS"
         },
         "RNA-seq": {
-            "values": ['RNA-Seq - Illumina', 'Kinnex'],
+            "values": ['RNA-seq - Illumina', 'Kinnex'],
             "backgroundColor": "#ad48ad",
             "textColor": "#ffffff",
             "shortName": "RNA"
@@ -154,17 +156,17 @@ export default class DataMatrix extends React.PureComponent {
             "textColor": "#ffffff",
             "shortName": "scWGS"
         },
-        "Targeted Seq": {
-            "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
-            "backgroundColor": "#e1d567",
-            "textColor": "#ffffff",
-            "shortName": "Tgtd"
-        },
         "Single-cell RNA-Seq": {
             "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
             "backgroundColor": "#d0b284",
             "textColor": "#ffffff",
             "shortName": "scRNA"
+        },
+        "Targeted Seq": {
+            "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
+            "backgroundColor": "#e1d567",
+            "textColor": "#ffffff",
+            "shortName": "Target"
         },
         "Other": {
             "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
@@ -216,33 +218,16 @@ export default class DataMatrix extends React.PureComponent {
         },
         "valueChangeMap": {
             "assay": {
-                "scDip-C - Illumina": "scDip-C",
                 "CompDuplex-seq - Illumina": "CompDuplex-Seq",
-                "Kinnex - PacBio": "Kinnex",
-                "Fiber-seq - PacBio": "Fiber-Seq",
-                "Fiber-seq - Illumina": "Fiber-Seq",
-                "Fiber-seq - ONT": "Fiber-Seq",
-                "RNA-seq - Illumina": "RNA-Seq - Illumina",
-                "NanoSeq - Illumina": "NanoSeq",
-                "ATAC-seq - Illumina": "ATAC-Seq",
-                "varCUT&Tag - Illumina": "varCUT&Tag",
-                "META-VISTA-seq - Illumina": "META-VISTA-seq",
                 "scMETA-VISTA-seq - Illumina": "META-VISTA-seq",
                 "Microbulk META-VISTA-seq - Illumina": "META-VISTA-seq",
-                "CODEC - Illumina": "CODEC",
                 "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
                 "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
                 "Single-cell PTA WGS - ONT": "PTA-amplified WGS",
                 "Single-cell PTA WGS - Illumina": "PTA-amplified WGS",
-                "TEnCATS - ONT": "TEnCATS",
                 "WGS - ONT": "WGS - Standard ONT",
                 "WGS - Element": "WGS - Element AVITI",
                 "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
-                "HiDEF-seq - Illumina": "HiDEF-seq",
-                "HiDEF-seq - PacBio": "HiDEF-seq",
-                "Hi-C - Illumina": "Hi-C",
-                "Hi-C - PacBio": "Hi-C",
-                "Hi-C - ONT": "Hi-C",
             },
             "tissue": {
                 "endocrine pancreas": "Endocrine pancreas",
@@ -255,6 +240,7 @@ export default class DataMatrix extends React.PureComponent {
                 "colo829bl": "COLO829BL",
                 "colo829blt_50to1": "COLO829BLT50",
                 "colo829blt_in_silico": "In silico BLT50",
+                "colo829_vai": "COLO829VAI",
                 "colo829_snv_indel_challenge_data": "Truth Set",
                 "hapmap": "HapMap Mixture",
                 "mei_detection_challenge_data": "Downsampled",
@@ -485,9 +471,117 @@ export default class DataMatrix extends React.PureComponent {
             ? `${assayValue} - ${platformValue}`
             : assayValue;
 
-        return assayValueChangeMap[assayWithPlatform]
-            || assayValueChangeMap[assayValue]
+        return DataMatrix.getIgnoreCase(assayValueChangeMap, assayWithPlatform)
+            || DataMatrix.getIgnoreCase(assayValueChangeMap, assayValue)
             || assayWithPlatform;
+    }
+
+    /** Returns the key of `map` matching `key` ignoring case; an exact key match wins over a case-insensitive one. */
+    static findKeyIgnoreCase(map, key) {
+        if (!map || typeof key !== 'string') return undefined;
+        if (Object.prototype.hasOwnProperty.call(map, key)) return key;
+        const lowerKey = key.toLowerCase();
+        return _.find(_.keys(map), (mapKey) => mapKey.toLowerCase() === lowerKey);
+    }
+
+    /** Case-insensitive map lookup; an exact key match wins over a case-insensitive one. */
+    static getIgnoreCase(map, key) {
+        const matchedKey = DataMatrix.findKeyIgnoreCase(map, key);
+        return typeof matchedKey === 'undefined' ? undefined : map[matchedKey];
+    }
+
+    /**
+     * Fallback for composite "{base}{valueDelimiter}{suffix}" values (e.g. "Hi-C - NewSequencer") that have
+     * no explicit changeMap entry and are not listed in any column group: drop the suffix (e.g. sequencer)
+     * and retry the column group lookup with the base value, the base value's own mapping, or the single
+     * target shared by the base value's existing mappings (e.g. "Fiber-seq - *" -> "Fiber-Seq"). Targets that
+     * are themselves suffix-specific (e.g. "WGS - ONT" -> "WGS - Standard ONT") are never inferred.
+     * All comparisons ignore case.
+     * @param {Map<string, string>} columnGroupValues lower-cased column group value -> its column group spelling
+     * @returns {string|null} column group value (in column group spelling) to display under, or null if nothing matches
+     */
+    /**
+     * Whether a (fieldChangeMap-renamed) result row satisfies a row group's customUrlParams, e.g. "dataset!=tissue".
+     * Returns null when the row lacks a field the params filter on, so it is never assigned on missing data.
+     */
+    static rowMatchesCustomUrlParams(row, customUrlParams, fieldChangeMap = {}) {
+        if (!row || typeof customUrlParams !== 'string' || !customUrlParams) return null;
+        const conditions = _.compact(_.map(customUrlParams.split('&'), (part) => {
+            const match = part.match(/^([^!=]+)(!?)=(.*)$/);
+            if (!match) return null;
+            const [, facetField, negation, term] = match;
+            return { facetField: decodeURIComponent(facetField), negate: negation === '!', term: decodeURIComponent(term.replace(/\+/g, ' ')) };
+        }));
+        if (conditions.length === 0) return null;
+        const rowFieldByFacetField = _.invert(fieldChangeMap || {});
+        const byField = _.groupBy(conditions, 'facetField');
+        let matches = true;
+        _.forEach(byField, (fieldConditions, facetField) => {
+            const rowField = rowFieldByFacetField[facetField] || facetField;
+            if (typeof row[rowField] === 'undefined' || row[rowField] === null) {
+                matches = null;
+                return;
+            }
+            if (matches === null) return;
+            const rowValues = Array.isArray(row[rowField]) ? row[rowField] : [row[rowField]];
+            const positiveTerms = _.pluck(_.where(fieldConditions, { negate: false }), 'term');
+            const negativeTerms = _.pluck(_.where(fieldConditions, { negate: true }), 'term');
+            if (positiveTerms.length > 0 && _.intersection(rowValues, positiveTerms).length === 0) matches = false;
+            if (_.intersection(rowValues, negativeTerms).length > 0) matches = false;
+        });
+        return matches;
+    }
+
+    /**
+     * Adds top-level row values that are not listed in any row group (e.g. a newly released cell line dataset)
+     * to the single row group whose customUrlParams all of the value's rows satisfy, so they don't end up in a
+     * separate N/A section while that group's browse link already includes their files.
+     * @returns {Object|null} extended row groups, or null if nothing was added
+     */
+    static assignUngroupedRowsToRowGroups(rows, rowGroups, primaryGroupingProp, fieldChangeMap) {
+        if (!rowGroups || !primaryGroupingProp || !Array.isArray(rows)) return null;
+        const groupedValues = new Set(_.flatten(_.map(_.values(rowGroups), (group) => group?.values || [])));
+        const matchedGroupsByValue = {};
+        _.forEach(rows, (row) => {
+            const value = row?.[primaryGroupingProp];
+            if (typeof value !== 'string' || !value || value === 'No value' || groupedValues.has(value)) return;
+            const matchedGroups = _.filter(_.keys(rowGroups), (groupKey) => (
+                DataMatrix.rowMatchesCustomUrlParams(row, rowGroups[groupKey]?.customUrlParams, fieldChangeMap) === true
+            ));
+            // Rows without a single matching group (or missing the filtered fields) make the value ambiguous
+            matchedGroupsByValue[value] = (matchedGroupsByValue[value] || []).concat(matchedGroups.length === 1 ? matchedGroups : [null]);
+        });
+        const additions = {};
+        _.forEach(matchedGroupsByValue, (matchedGroups, value) => {
+            const uniqueGroups = _.uniq(matchedGroups);
+            if (uniqueGroups.length === 1 && uniqueGroups[0]) {
+                additions[uniqueGroups[0]] = (additions[uniqueGroups[0]] || []).concat([value]);
+            }
+        });
+        if (_.keys(additions).length === 0) return null;
+        return _.mapObject(rowGroups, (group, groupKey) => (
+            additions[groupKey] ? { ...group, values: [...(group?.values || []), ...additions[groupKey]] } : group
+        ));
+    }
+
+    static resolveCompositeValueByColumnGroups(value, changeMap = {}, columnGroupValues = new Map(), valueDelimiter = null) {
+        if (!valueDelimiter || typeof valueDelimiter !== 'string' || typeof value !== 'string') return null;
+        const toColumnGroupValue = (candidate) => (typeof candidate === 'string' && columnGroupValues.get(candidate.toLowerCase())) || null;
+        if (DataMatrix.getIgnoreCase(changeMap, value) || toColumnGroupValue(value)) return null;
+        const splitIdx = value.lastIndexOf(valueDelimiter);
+        if (splitIdx <= 0) return null;
+
+        const baseValue = value.slice(0, splitIdx);
+        const siblingPrefix = (baseValue + valueDelimiter).toLowerCase();
+        const siblingTargets = _.uniq(_.map(
+            _.filter(_.pairs(changeMap), ([key]) => key.toLowerCase().indexOf(siblingPrefix) === 0),
+            ([, target]) => (typeof target === 'string' ? target.toLowerCase() : target)
+        ));
+        const siblingTarget = (siblingTargets.length === 1 && typeof siblingTargets[0] === 'string' && siblingTargets[0].indexOf(valueDelimiter) === -1)
+            ? siblingTargets[0]
+            : null;
+        const candidates = [baseValue, DataMatrix.getIgnoreCase(changeMap, baseValue), siblingTarget];
+        return _.reduce(candidates, (found, candidate) => found || toColumnGroupValue(candidate), null);
     }
 
     getColorRanges({ colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep }) {
@@ -535,6 +629,8 @@ export default class DataMatrix extends React.PureComponent {
             "isFetching": false,
             "isScreenshotting": false,
             "_results": null,
+            // valueChangeMap extended with composite values resolved at load time (see resolveCompositeValueByColumnGroups)
+            "resolvedValueChangeMap": null,
             "query": props.query,
             "baseRowAggFields": props.query && props.query.rowAggFields ? props.query.rowAggFields : null,
             "baseColumnAggFields": props.query && props.query.columnAggFields ? props.query.columnAggFields : null,
@@ -993,7 +1089,8 @@ export default class DataMatrix extends React.PureComponent {
             debugLoadingDelayMs = 0,
             autoPopulateRowGroupsExtendedMapFields,
             autoPopulateColumnGroupsMapFields,
-            dedupeBenchmarkingDsaAcrossTissues = false
+            dedupeBenchmarkingDsaAcrossTissues = false,
+            valueDelimiter
         } = this.props;
         const {
             query: { url: requestUrl, columnAggFields: propColumnAggFields, rowAggFields: propRowAggFields },
@@ -1004,6 +1101,7 @@ export default class DataMatrix extends React.PureComponent {
             autoPopulateRowGroupsProperty,
             rowGroupsExtended,
             columnGroups,
+            baseColumnGroups,
             matrixMode
         } = this.state;
         const commonCallback = (result) => {
@@ -1016,6 +1114,53 @@ export default class DataMatrix extends React.PureComponent {
             let transformedData = { all: [], row_totals: [], column_totals: [] };
             const rawProcessedAllRows = [];
             const populatedRowGroups = {}; // not implemented yet
+            // Donor x Tissue columns are germ layers, so resolve assays against the base (assay) column groups there.
+            const assayColumnGroups = (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE ? baseColumnGroups : columnGroups) || {};
+            // lower-cased value -> column group spelling, so matching ignores case but display follows column groups
+            const assayColumnGroupValues = new Map(_.map(
+                _.flatten(_.map(_.values(assayColumnGroups), (group) => group?.values || [])),
+                (groupValue) => [String(groupValue).toLowerCase(), groupValue]
+            ));
+            const toAssayColumnGroupSpelling = (value) => (typeof value === 'string' && assayColumnGroupValues.get(value.toLowerCase())) || value;
+            // Copy of valueChangeMap keyed by the exact raw values seen in this response (matched ignoring case,
+            // or resolved onto a column group, e.g. "Hi-C - NewSequencer" -> "Hi-C"), with assay targets in column
+            // group spelling. Also passed down so browse URLs can reverse display values back to raw values.
+            const resolvedValueChangeMap = valueChangeMap
+                ? _.mapObject(valueChangeMap, (changeMap, field) => (field === 'assay'
+                    ? _.mapObject(changeMap || {}, toAssayColumnGroupSpelling)
+                    : { ...(changeMap || {}) }))
+                : null;
+            // Raw values actually returned by the backend, per field
+            const seenRawValues = {};
+            const registerRawValue = (field, value) => {
+                const changeMap = resolvedValueChangeMap?.[field];
+                if (!changeMap || typeof value !== 'string') return;
+                seenRawValues[field] = seenRawValues[field] || new Set();
+                seenRawValues[field].add(value);
+                if (Object.prototype.hasOwnProperty.call(changeMap, value)) return;
+                const matchedKey = DataMatrix.findKeyIgnoreCase(changeMap, value);
+                let resolvedValue = typeof matchedKey === 'undefined' ? undefined : changeMap[matchedKey];
+                if (!resolvedValue && field === 'assay') {
+                    resolvedValue = DataMatrix.resolveCompositeValueByColumnGroups(value, changeMap, assayColumnGroupValues, valueDelimiter)
+                        || toAssayColumnGroupSpelling(value);
+                }
+                if (resolvedValue && resolvedValue !== value) {
+                    changeMap[value] = resolvedValue;
+                    // Replace a differently-cased configured key the backend did not return (e.g. "STORM-Seq - Illumina"
+                    // when only "STORM-seq - Illumina" exists), so browse URLs don't reverse to a non-existent value.
+                    if (typeof matchedKey !== 'undefined' && !seenRawValues[field].has(matchedKey)) {
+                        delete changeMap[matchedKey];
+                    }
+                }
+            };
+            const registerRawValues = (row) => {
+                _.forEach(_.keys(resolvedValueChangeMap || {}), (field) => registerRawValue(field, row[field]));
+                // Donor x Tissue combines assay and platform in getMappedAssayDisplayValue
+                if (matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE && typeof row.assay === 'string' && row.platform &&
+                    valueDelimiter && row.assay.indexOf(valueDelimiter) === -1) {
+                    registerRawValue('assay', `${row.assay}${valueDelimiter}${row.platform}`);
+                }
+            };
             // Helper to process each result row
             const processResultRow = (r, transformed) => {
                 let cloned = _.clone(r);
@@ -1031,13 +1176,14 @@ export default class DataMatrix extends React.PureComponent {
                     cloned = DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey](cloned);
                 }
                 if (cloned.counts && Number(cloned.counts.files) > 0) {
+                    registerRawValues(cloned);
                     if (typeof cloned.assay === 'string') {
-                        cloned._derivedAssayFamily = (valueChangeMap?.assay || {})[cloned.assay] || cloned.assay;
+                        cloned._derivedAssayFamily = (resolvedValueChangeMap?.assay || {})[cloned.assay] || cloned.assay;
                     }
                     if (typeof cloned.assay === 'string') {
                         cloned.assay = DataMatrix.getMappedAssayDisplayValue(
                             cloned,
-                            valueChangeMap,
+                            resolvedValueChangeMap,
                             matrixMode === DataMatrix.MATRIX_MODES.DONOR_TISSUE
                         );
                     }
@@ -1052,8 +1198,8 @@ export default class DataMatrix extends React.PureComponent {
                             cloned._derivedAssayFamily = cloned.assay;
                         }
                     }
-                    if (valueChangeMap) {
-                        _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
+                    if (resolvedValueChangeMap) {
+                        _.forEach(_.pairs(resolvedValueChangeMap), ([field, changeMap]) => {
                             if (field === 'assay') return;
                             if (typeof cloned[field] === 'string') {
                                 cloned[field] = changeMap[cloned[field]] || cloned[field];
@@ -1084,8 +1230,9 @@ export default class DataMatrix extends React.PureComponent {
                         }
                     });
                 }
-                if (valueChangeMap) {
-                    _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
+                if (resolvedValueChangeMap) {
+                    registerRawValues(cloned);
+                    _.forEach(_.pairs(resolvedValueChangeMap), ([field, changeMap]) => {
                         if (typeof cloned[field] === 'string') {
                             cloned[field] = changeMap[cloned[field]] || cloned[field];
                         }
@@ -1107,6 +1254,7 @@ export default class DataMatrix extends React.PureComponent {
             }
 
             updatedState[resultKey] = transformedData;
+            updatedState['resolvedValueChangeMap'] = resolvedValueChangeMap;
             updatedState['isFetching'] = false;
             updatedState['loadingContext'] = null;
             updatedState['overallCounts'] = result.counts || null;
@@ -1121,7 +1269,7 @@ export default class DataMatrix extends React.PureComponent {
                 const facet = _.findWhere(result.facets || [], { field: facetField });
                 return facet && Array.isArray(facet.terms)
                     ? _.reduce(facet.terms, (memo, term) => {
-                        const key = valueMap?.[term?.key] || term?.key;
+                        const key = DataMatrix.getIgnoreCase(valueMap, term?.key) || term?.key;
                         if (!key || key === 'No value') return memo;
                         memo[key] = { files: Number(term?.doc_count) || 0 };
                         return memo;
@@ -1130,6 +1278,10 @@ export default class DataMatrix extends React.PureComponent {
             };
             const donorSummaryCounts = buildFacetSummaryCounts('donors.display_title', valueChangeMap?.donor || {});
             const datasetSummaryCounts = buildFacetSummaryCounts('dataset', valueChangeMap?.donor || {});
+            const extendedRowGroups = DataMatrix.assignUngroupedRowsToRowGroups(transformedData.all, rowGroups, groupingProperties[0], fieldChangeMap);
+            if (extendedRowGroups) {
+                updatedState['rowGroups'] = extendedRowGroups;
+            }
             const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0;
             if (hasRowGroups) {
                 const rowGroupSummaryCounts = {};
@@ -1413,7 +1565,7 @@ export default class DataMatrix extends React.PureComponent {
         };
         const assayDisplayValues = _.uniq((hasAvailableAssays
             ? _.uniq(availableAssays)
-            : _.uniq(configuredDisplayValues.map((displayValue) => this.props.valueChangeMap?.assay?.[displayValue] || displayValue)))
+            : _.uniq(configuredDisplayValues.map((displayValue) => DataMatrix.getIgnoreCase(this.props.valueChangeMap?.assay, displayValue) || displayValue)))
             .map(normalizeAssayOption))
             .filter((displayValue) => !!displayValue);
 
@@ -1516,7 +1668,7 @@ export default class DataMatrix extends React.PureComponent {
         // so disable donor summary overrides in that case.
         const donorSummaryCounts = !hasAssayFilter && donorFacet && Array.isArray(donorFacet.terms)
             ? _.reduce(donorFacet.terms, (memo, term) => {
-                const key = donorValueMap[term?.key] || term?.key;
+                const key = DataMatrix.getIgnoreCase(donorValueMap, term?.key) || term?.key;
                 if (!key || key === 'No value') return memo;
                 memo[key] = { files: Number(term?.doc_count) || 0 };
                 return memo;
@@ -2078,8 +2230,10 @@ export default class DataMatrix extends React.PureComponent {
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
             defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel, isFetching,
             matrixMode, donorTissueAssay, availableDonorTissueAssays, rowSummaryCountsByGroup, loadingContext,
-            isScreenshotting, _results: rawResults
+            isScreenshotting, _results: rawResults, resolvedValueChangeMap
         } = this.state;
+        // Includes composite values resolved at load time so browse URLs can restore their suffix (e.g. sequencer).
+        const effectiveValueChangeMap = resolvedValueChangeMap || valueChangeMap;
 
         const effectiveFacetHref = this.getEffectiveFacetHref(query?.url);
         const isTissueMatrixCount = matrixMode === DataMatrix.MATRIX_MODES.TISSUE_ASSAY;
@@ -2109,7 +2263,7 @@ export default class DataMatrix extends React.PureComponent {
         const showFacetsPanel = showFacetTermsPanel;
         const showLeftPanel = showCountsPanel || showFacetsPanel;
         const bodyProps = {
-            query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
+            query, groupingProperties, fieldChangeMap, valueChangeMap: effectiveValueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
             summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
@@ -2157,7 +2311,7 @@ export default class DataMatrix extends React.PureComponent {
                     return transformFn(filteringProperties, blockType, {
                         matrixMode,
                         donorTissueAssay,
-                        valueChangeMap
+                        valueChangeMap: effectiveValueChangeMap
                     });
                 })
                 : null
@@ -2549,20 +2703,22 @@ DataMatrix.browseFilteringTransformFuncs = {
         if (hasSelectedDonorTissueAssay && typeof filteringProperties[assayField] === 'undefined') {
             const assayValueMap = matrixContext?.valueChangeMap?.assay || {};
             const rawAssayCandidates = _.filter(_.keys(assayValueMap), (rawKey) => assayValueMap[rawKey] === selectedDonorTissueAssay);
-            const rawSelectedAssay = rawAssayCandidates[0] || selectedDonorTissueAssay;
+            const rawSelectedAssays = rawAssayCandidates.length > 0 ? rawAssayCandidates : [selectedDonorTissueAssay];
             const delim = ' - ';
-            const splitIdx = typeof rawSelectedAssay === 'string' ? rawSelectedAssay.lastIndexOf(delim) : -1;
 
             // If selected assay contains platform suffix (e.g. "WGS - ONT"), split into raw assay + platform.
-            if (splitIdx > 0) {
-                const rawAssay = rawSelectedAssay.slice(0, splitIdx);
-                const rawPlatform = rawSelectedAssay.slice(splitIdx + delim.length);
-                filteringProperties[assayField] = rawAssay;
-                if (rawPlatform) {
-                    filteringProperties[platformField] = rawPlatform;
-                }
-            } else {
-                filteringProperties[assayField] = rawSelectedAssay;
+            // Several raw values may map to the same display value (e.g. "Hi-C - Illumina", "Hi-C - ONT"), so keep all of them.
+            const rawPairs = _.map(rawSelectedAssays, (rawSelectedAssay) => {
+                const splitIdx = typeof rawSelectedAssay === 'string' ? rawSelectedAssay.lastIndexOf(delim) : -1;
+                return splitIdx > 0
+                    ? [rawSelectedAssay.slice(0, splitIdx), rawSelectedAssay.slice(splitIdx + delim.length)]
+                    : [rawSelectedAssay, null];
+            });
+            const rawAssays = _.uniq(_.map(rawPairs, ([rawAssay]) => rawAssay));
+            const rawPlatforms = _.uniq(_.map(rawPairs, ([, rawPlatform]) => rawPlatform));
+            filteringProperties[assayField] = rawAssays.length === 1 ? rawAssays[0] : rawAssays;
+            if (!rawPlatforms.includes(null)) {
+                filteringProperties[platformField] = rawPlatforms.length === 1 ? rawPlatforms[0] : rawPlatforms;
             }
         }
 

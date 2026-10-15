@@ -4,6 +4,7 @@ import React from 'react';
 import JsxParser from 'react-jsx-parser';
 import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap';
 import { SubmissionStatus } from '../components/internal/SubmissionStatus';
+import { NotificationStatus } from '../components/internal/NotificationStatus';
 import { AnalysisRuns } from '../components/internal/AnalysisRuns';
 import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial';
 import { StackRowTable } from '../../viz/AboutPageVisualizations/StackRowTable';
@@ -16,6 +17,7 @@ import {
     SearchTableTitle,
 } from './../../item-pages/components/EmbeddedItemSearchTable';
 import { YoutubeVideoEmbed } from '../components/YoutubeVideoEmbed';
+import { ClickableImage } from '../components/ClickableImage';
 import {
     BenchmarkingUI,
     COLO829Data,
@@ -48,10 +50,12 @@ const placeholders = {
     EmbeddedItemSearchTable,
     SearchTableTitle,
     YoutubeVideoEmbed,
+    ClickableImage,
     ConsortiumMap,
     Alluvial,
     QualityMetricVisualizations,
     SubmissionStatus,
+    NotificationStatus,
     AnalysisRuns,
     StackRowTable,
     BenchmarkingUI,

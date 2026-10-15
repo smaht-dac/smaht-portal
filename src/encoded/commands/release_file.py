@@ -1,6 +1,5 @@
 import argparse
 import pprint
-import re
 from collections import Counter
 from dataclasses import dataclass
 from functools import cached_property, partial
@@ -1195,6 +1194,9 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
+                file_constants.DATA_CATEGORY_SEQUENCING_SUPPLEMENT: (
+                    file_constants.ACCESS_STATUS_OPEN
+                 ),
             },
             IPSC: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
@@ -1216,6 +1218,9 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_SEQUENCING_SUPPLEMENT: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
             },
@@ -1278,6 +1283,7 @@ class FileRelease:
             "colo829blt_50to1",
             "colo829blt_in_silico",
             "colo829_snv_indel_challenge_data",
+            "colo829_vai",
             "hapmap_snv_indel_challenge_data",
             "mei_detection_challenge_data",
             "hapmap",

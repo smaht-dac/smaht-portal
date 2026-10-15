@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Set
 
 from .utils import (
     RequestHandler,
@@ -116,8 +116,8 @@ def get_donor(request_handler: RequestHandler, properties: Dict[str, Any]) -> Li
     tissues = sample_utils.get_tissues(properties, request_handler)
     return get_property_values_from_identifiers(
         request_handler,
-            tissues,
-            tissue_utils.get_donor
+        tissues,
+        tissue_utils.get_donor
         )
 
 

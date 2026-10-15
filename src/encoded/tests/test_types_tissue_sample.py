@@ -9,12 +9,9 @@ from ..item_utils import (
 
 from .utils import (
     get_item,
-    get_item_from_search,
-    get_identifying_insert,
     patch_item,
     post_item,
     assert_validation_error_as_expected,
-    to_snake_case,
 )
 
 

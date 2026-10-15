@@ -1,5 +1,5 @@
 from typing import Optional, Union
-from snovault import(
+from snovault import (
     collection,
     load_schema,
     calculated_property,

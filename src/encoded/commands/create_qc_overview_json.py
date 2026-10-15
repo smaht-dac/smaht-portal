@@ -1,8 +1,9 @@
-import json, sys, subprocess, pprint, time, csv, datetime
+import json
+import sys
+import time
+import datetime
 import requests
 import click
-from pathlib import Path
-from collections import OrderedDict
 from dcicutils import ff_utils
 from dcicutils.creds_utils import SMaHTKeyManager
 from functools import lru_cache
@@ -285,7 +286,7 @@ class FileStats:
             ]
             submission_centers.sort()
             submission_centers = ", ".join(submission_centers)
-            assays = [l[ASSAY]["display_title"] for l in fileset[LIBRARIES]]
+            assays = [library[ASSAY]["display_title"] for library in fileset[LIBRARIES]]
 
             assay = None
             if set(assays) & set(WGS_ASSAYS):
@@ -743,7 +744,7 @@ def get_fileset_from_ouput_file(file_acccesion):
 @lru_cache(maxsize=None)
 def get_assay_from_file(file_acccesion):
     fileset = get_fileset_from_ouput_file(file_acccesion)
-    assays = [l[ASSAY]["display_title"] for l in fileset[LIBRARIES]]
+    assays = [library[ASSAY]["display_title"] for library in fileset[LIBRARIES]]
     return ", ".join(assays)
 
 @lru_cache(maxsize=None)

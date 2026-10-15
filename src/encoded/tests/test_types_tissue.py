@@ -4,7 +4,6 @@ from webtest import TestApp
 
 from ..item_utils import (
     item as item_utils,
-    tissue as tissue_utils,
 )
 
 from .utils import (
@@ -36,11 +35,11 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
     ]
 )
 def test_validate_external_id_on_edit(
-    es_testapp: TestApp,
-    workbook: None,
-    patch_body: Dict[str, Any],
-    expected_status: int
-    ) -> None:
+        es_testapp: TestApp,
+        workbook: None,
+        patch_body: Dict[str, Any],
+        expected_status: int
+        ) -> None:
     """Ensure external_id matches donor external_id if Benchmarking or Production on edit."""
     uuid = item_utils.get_uuid(
         get_item(

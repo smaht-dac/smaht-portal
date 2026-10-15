@@ -1,6 +1,5 @@
-from typing import List, Dict, Any
+from typing import Dict, Any
 
-import re
 from snovault import collection, load_schema, calculated_property
 from snovault.util import debug_log, get_item_or_none
 from snovault.elasticsearch import ELASTIC_SEARCH

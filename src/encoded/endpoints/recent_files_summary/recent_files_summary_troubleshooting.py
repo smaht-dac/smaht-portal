@@ -82,7 +82,6 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
         # we only are interested in ones that are in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
         # which is all of the possible sample-source/cell-line/donor aggregations.
         def get_aggregation_field_grouping_cell_or_donor() -> List[str]:  # noqa
-            nonlocal legacy
             aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
             if not legacy:
                 # 2025-02-21: This is now the default (using release_tracker_title).
@@ -134,9 +133,6 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                       parent_grouping_value: Optional[str] = None,
                       indent: int = 0) -> None:
 
-        nonlocal title, uuids, uuid_details, nobold, query, verbose
-        nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark, red, green, green_bold, gray, bold
-        nonlocal aggregation_fields_to_print
 
         def get_portal_hits(data: dict) -> List[dict]:
             hits = []
@@ -166,7 +162,6 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
 
         def format_hit_property_values(hit: dict, property_name: str,
                                        color: Optional[Callable] = None) -> Tuple[Optional[str], List[Tuple[str, str]]]:
-            nonlocal parent_grouping_name, parent_grouping_value, green, green_bold, chars_larrow_hollow
             counted_elsewhere = []
             if hit.get("elasticsearch_counted", None) is False:
                 counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
@@ -200,7 +195,6 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                 ignore: Optional[Union[List[Tuple[str, str]],
                 Tuple[str, str]]] = None) -> Union[Tuple[str, str], List[Tuple[str, str]]]:
 
-            nonlocal normalized_results
 
             def find_where(data: dict, uuid: str,
                            parent_grouping_name: Optional[str] = None,
@@ -241,7 +235,6 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                                       label: Optional[str] = None,
                                       prefix: Optional[str] = None,
                                       color: Optional[Callable] = None) -> List[Tuple[str, str]]:
-            nonlocal aggregation_fields, aggregation_field_labels, chars_dot_hollow, chars_null, verbose
             if not label:
                 label = aggregation_field_labels.get(property_name)
             if (verbose is True) or (not label):
@@ -464,7 +457,6 @@ def _capture_output_to_html(debug: bool = False):
     class CapturedOutput:  # noqa
         @property  # noqa
         def text(self):
-            nonlocal captured_output
             return captured_output
     def captured_print(*args, **kwargs):  # noqa
         nonlocal captured_output

@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Any, Union, List
+from typing import Optional, Union, List
 
 from snovault import collection, load_schema, calculated_property
 from pyramid.request import Request
