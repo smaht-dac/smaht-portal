@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.3
+======
+
+`PR 780: Update publication view to use citation_addon property <https://github.com/smaht-dac/smaht-portal/pull/780>`_
+
+* Update publication view to use citation_addon property
+
+
 2.15.2
 ======
 
