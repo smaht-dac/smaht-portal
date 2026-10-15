@@ -460,9 +460,8 @@ const PublicationView = React.memo(function PublicationView(props) {
                             </div>
                             <span className="citation">
                                 {citationString}
-                                {(context?.accession === 'SMAPBTYIDADU' ||
-                                    context?.accession === 'SMAPBHJEFFSO') && (
-                                    <span>. Accepted at Cell Genomics.</span>
+                                {context?.citation_addon && (
+                                    <span>. {context.citation_addon}.</span>
                                 )}
                             </span>
                             <button
