@@ -22,7 +22,7 @@ from dcicutils.creds_utils import SMaHTKeyManager
 #   SMaHT Contact PI Association,
 #   Grant Component,
 #   DAC code in the portal
-#   Submitter (Yes/No)
+#   Data Submitter (center codes the user submits for, comma-separated)
 #   Revoked (Yes/No)
 #   Associate Network Member (Yes/No)
 
@@ -110,7 +110,10 @@ class UserCSVProcessor:
         if not first_name or not last_name or not re.fullmatch(r'[^@\s]+@[^@\s]+', email):
             raise UserCSVProcessorException('Nonempty first/last names and a valid email are required')
         dua = self._flag(row[3], 'DUA signed')
-        submits_for = self._flag(row[8], 'Data submitter')
+        submits_for = row[8].strip()
+        if submits_for.lower() in ('yes', 'no'):
+            raise UserCSVProcessorException(
+                f'Data submitter now takes center codes, not Yes/No; got {row[8]!r}')
         revoked = self._flag(row[9], 'Revoked') == 'Yes'
         associate = self._flag(row[10], 'Associate Network Member') if len(row) > 10 else ''
         return User(first_name, last_name, dua, email, row[7].strip(), submits_for, associate, revoked)
@@ -123,7 +126,8 @@ class UserCSVProcessor:
         """Validate only centers assigned to eligible, unambiguous, non-revoked users."""
         self.submission_centers = list(dict.fromkeys(
             sc for user in self._active_users()
-            for sc in self._mapped_submission_centers(user.submission_center)))
+            for value in (user.submission_center, user.submits_for)
+            for sc in self._mapped_submission_centers(value)))
 
     def validate_submission_center_list(self):
         """Validate each actual link, including every compound-center token."""
@@ -238,16 +242,11 @@ class UserCSVProcessor:
         PRINT(f'\033[1mMANUAL REVIEW: associate member {email} has submission_centers '
               f'{", ".join(centers)}\033[0m')
 
-    @staticmethod
-    def _target_submits_for(user, mapped_centers, existing=()):
-        # Blank cells are not deliberate removals. Explicit No clears non-DAC
-        # submission rights; DAC membership always retains the historical grant.
-        if user.submits_for == 'No':
-            target = []
-        elif user.submits_for == 'Yes' and mapped_centers:
-            target = list(mapped_centers)
-        else:
-            target = list(existing)
+    def _target_submits_for(self, user, mapped_centers):
+        # The Data submitter codes are the source of truth; a blank/NIH cell
+        # means no submission rights. DAC membership (from the center column)
+        # always retains the historical smaht_dac grant.
+        target = self._normalized_submission_centers(user.submits_for)
         if 'smaht_dac' in mapped_centers and 'smaht_dac' not in target:
             target.append('smaht_dac')
         return target
@@ -276,7 +275,7 @@ class UserCSVProcessor:
                         if 'smaht_associate' in consortia:
                             self._flag_associate_with_centers(user.email, mapped_centers)
                     else:
-                        PRINT(f'No submission center for user {user.email} - posting without submission_centers/submits_for')
+                        PRINT(f'No submission center for user {user.email} - posting without submission_centers')
                     target_submits_for = self._target_submits_for(user, mapped_centers)
                     if target_submits_for:
                         post_body['submits_for'] = target_submits_for
@@ -406,9 +405,8 @@ class UserCSVProcessor:
 
                 mapped_centers = self._normalized_submission_centers(user.submission_center)
                 if not mapped_centers:
-                    PRINT(f'No submission center for user {user.email} - removing submission_centers; '
-                          'preserving existing submits_for unless Data submitter is No')
-                target_submits_for = self._target_submits_for(user, mapped_centers, existing_submits_for)
+                    PRINT(f'No submission center for user {user.email} - removing submission_centers')
+                target_submits_for = self._target_submits_for(user, mapped_centers)
 
                 # The spreadsheet is the source of truth: listed centers replace the
                 # existing ones, and a blank/NIH center cell deletes the property.
@@ -533,8 +531,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
         description="Load OC users. Updates manage submission_centers, consortia, submits_for, and the dbgap "
                     "group; names are set only on creation. Listed centers replace existing "
                     "submission_centers; a blank or NIH center removes the property. "
-                    "Center affiliation is independent of Data submitter. Blank flags preserve existing values; "
-                    "No removes managed values. DAC members always retain smaht_dac submission rights. "
+                    "Data submitter lists the centers the user submits for and replaces submits_for; a blank "
+                    "or NIH value removes it (Yes/No is rejected). Center affiliation is independent of Data "
+                    "submitter. Blank DUA/associate flags preserve existing values; No removes them. DAC "
+                    "members always retain smaht_dac submission rights. "
                     "Associates receive both smaht and smaht_associate membership, and associates with "
                     "centers are flagged for manual review. In update modes, Revoked=Yes removes groups, "
                     "consortia, submission_centers, and submits_for without changing portal status; "
