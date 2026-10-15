@@ -33,7 +33,7 @@ Schema Documentation
                         </a>
                     </td>
                     <td>3.0 (latest)</td>
-                    <td>2026-08-19</td>
+                    <td>2026-10-09</td>
                     <td><a href="/static/files/SMaHT Sample and File Nomenclature v3.0.pdf" download>SMaHT Sample and File Nomenclature v3.0.pdf</a></td>
                 </tr>
             </tbody>
@@ -42,8 +42,8 @@ Schema Documentation
 
 
 
-Part 1: Sample Schema and Protocol ID Tables
---------------------------------------------
+Part 1: Sample Schema and Tissue ID Tables
+------------------------------------------
 
 
 Sample Schema
@@ -141,14 +141,17 @@ Figure 1. SMaHT Tissue Recovery Schema.
         />
         <figcaption>
             (a) Schema of the spatial relationship between fixed (pink) and frozen (green) tissue aliquots 
-            recovered for each type of non-brain tissue for the SMaHT project. Larger tissue samples from 
-            the lung and liver are recovered and sectioned into medial and lateral halves, as denoted by 
-            the dotted red line in the upper right panel. Small organs (e.g., adrenal glands and gonads) 
-            and the heart ventricle are bisected into anterior and posterior halves before aliquoting. (b) 
-            Recovery and processing schema of the brain for SMaHT. (c) Standardized orientation of both fixed 
-            and frozen aliquots prior to preservation from solid tissues. Frozen aliquots from mucosal tissues 
-            (e.g., skin, colon, aorta, and esophagus) are all placed serosa side down in cassettes for 
-            processing of a full-thickness sample (e.g., all cell layers). 
+            recovered for each type of non-brain tissue for the SMaHT project. Solid tissue samples from 
+            muscle, skins (suprapubic abdomen (non-exposed) and calf (sun-exposed)), colons (ascending and 
+            descending), aorta, and esophagus are recovered and sectioned. Larger tissue samples from the 
+            lung and liver are recovered and sectioned into medial and lateral halves, as denoted by the 
+            dotted red line in the upper right panel. Small organs (adrenal glands and gonads) and the 
+            heart ventricle are bisected into anterior and posterior halves before aliquoting. Please note 
+            that this is a representative diagram and that the size of each tissue aliquot can vary 
+            greatly. (b) Recovery and processing schema of the brain for SMaHT. (c) Standardized 
+            orientation of both fixed and frozen aliquots prior to preservation from solid tissues. Frozen 
+            aliquots from mucosal tissues (skin, colon, aorta, and esophagus) are all placed serosa side 
+            down in cassettes for processing of a full-thickness sample (all cell layers). 
         </figcaption>
     </figure>
 
@@ -165,11 +168,15 @@ Figure 2. Example Standardized Tissue Coring Schema.
             alt="Nomenclature Fig. 2"
         />
         <figcaption>
-            Representative diagram of the standardized coring schema for frozen solid tissue aliquots. 
-            The core ID consists of a letter between A and F to denote the vertical position of the 
-            core, followed by a single numerical digit between 1 and 6 to denote the horizontal position 
-            of the core within the aliquot. “X” represents a null value, indicating samples that do not 
-            get sub-sampled (e.g., non-solid tissues).
+            Standardized coring schema for frozen solid tissue aliquots. Cores are subsampled from a tissue 
+            aliquot (typically 1-2 cm per side) following a standardized grid of 6x6 positions, and each 
+            core is assigned a core ID. The core ID consists of a letter between A and F to denote the 
+            vertical position of the core, followed by a single numerical digit between 1 and 6 to denote 
+            the horizontal position of the core within the aliquot. “X” represents a null value, indicating 
+            samples that do not get sub-sampled (e.g., non-solid tissues). Cores are either 1.5 mm or 3.0 
+            mm in diameter and are approximately 1 cm in depth. Please note that this is a representative 
+            diagram -- the size of each aliquot and the number and arrangement of cores taken from each 
+            aliquot vary from sample to sample.
         </figcaption>
     </figure>
 
@@ -298,9 +305,9 @@ Table 2B. Production tissue IDs.
         <table class="table table-striped table-sm text-start">
             <thead class="thead-smaht table-borderless">
                 <tr>
-                    <th style="min-width:95px">Protocol ID</th>
-                    <th style="min-width:200px">Tissue Name for Container</th>
-                    <th style="min-width:200px">Preservation</th>
+                    <th style="min-width:95px">Tissue ID</th>
+                    <th style="min-width:200px">Tissue Name</th>
+                    <th style="min-width:200px">Preservation Method</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
@@ -679,7 +686,7 @@ Table 3B. Experimental assay codes.
                 <tr>
                     <td class="font-monospace">002</td>
                     <td>PCR WGS</td>
-                    <td>DNA PCR, Bulk, WGS</td>
+                    <td>DNA, PCR, Bulk, WGS</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">003</td>
@@ -784,7 +791,7 @@ Table 3B. Experimental assay codes.
                 <tr>
                     <td class="font-monospace">023</td>
                     <td>Microbulk HAT-seq</td>
-                    <td>DNA, Microbulk, PTA-amplified HAT-seq</td>
+                    <td>DNA, Microbulk, PTA-amplified, HAT-seq</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">024</td>
@@ -849,19 +856,19 @@ Table 3B. Experimental assay codes.
                 </tr>
                 <tr>
                     <td class="font-monospace">104</td>
-                    <td>STORM-Seq</td>
+                    <td>STORM-seq</td>
                     <td>RNA, Single-cell, STORM-seq</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">105</td>
-                    <td>Tranquil-Seq</td>
+                    <td>Tranquil-seq</td>
                     <td>RNA, Single-cell, Tranquil-seq</td>
                 </tr>
                 <tr>
                     <td colspan="3" class="pb-3 pt-07"></td>
                 </tr>
                 <tr class="table-stripe-secondary fst-italic text-600">
-                    <td colspan="3">[201-300: Chromatin-based assays]</td>
+                    <td colspan="3">[201-300: Chromatin-based or other epigenome-profiling assays]</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">201</td>
@@ -897,7 +904,7 @@ Table 4. Codes for centers in the SMaHT Network.
 .. raw:: html
 
     <caption>
-        GCCs, TTDs, the DAC, and the TPC, as well as the contact PI of each center, are shown below.
+        GCCs, TTDs, DAC, and TPC, as well as the contact PI of each center, are shown below.
     </caption>
 
     <div class="table-responsive">
@@ -932,7 +939,7 @@ Table 4. Codes for centers in the SMaHT Network.
                 <tr>
                     <td class="font-monospace">uwsc</td>
                     <td>GCC</td>
-                    <td>University of Washington & Seattle Children’s Research Institute</td>
+                    <td>University of Washington and Seattle Children’s Research Institute</td>
                     <td>Jimmy Bennett</td>
                 </tr>
                 <tr>
@@ -1034,7 +1041,7 @@ Table 4. Codes for centers in the SMaHT Network.
                 <tr>
                     <td class="font-monospace">tpc</td>
                     <td>TPC</td>
-                    <td>National Disease Research Interchange (NDRI)</td>
+                    <td>National Disease Research Interchange</td>
                     <td>Thomas Bell</td>
                 </tr>
             </tbody>
@@ -1117,7 +1124,7 @@ Table 5. Genome version (A) and data type (B) codes.
                 </tr>
                 <tr>
                     <td>Reference conversion</td>
-                    <td>[Source]<span class="font-monospace">To</span>[Target]</td>
+                    <td>[Source genome]<span class="font-monospace">To</span>[Target genome]</td>
                 </tr>
                 <tr>
                     <td>Donor-specific genome assembly haplotype</td>
@@ -1136,7 +1143,7 @@ Table 5. Genome version (A) and data type (B) codes.
                     <td class="font-monospace">junction</td>
                 </tr>
                 <tr>
-                    <td>Full-length, non-concatemer (FLNC) Kinnex</td>
+                    <td>Full-length, non-concatemer (FLNC) Kinnex reads</td>
                     <td class="font-monospace">flnc</td>
                 </tr>
                 <tr>
