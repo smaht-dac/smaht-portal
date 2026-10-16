@@ -81,11 +81,11 @@ Table 1. Donor identifiers for SMaHT benchmark cell lines.
                 </tr>
                 <tr>
                     <td class="font-monospace">SMHTCOLO829TVAI</td>
-                    <td>COLO829 tumor cell line from ATCC, used for STORM-Seq at Washington University in St. Louis</td>
+                    <td>COLO829 tumor cell line from ATCC, used for STORM-seq at Washington University in St. Louis</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">SMHTCOLO829BLVAI</td>
-                    <td>COLO829BL normal lymphoblast cell line from ATCC, used for STORM-Seq at Washington University in St. Louis</td>
+                    <td>COLO829BL normal lymphoblast cell line from ATCC, used for STORM-seq at Washington University in St. Louis</td>
                 </tr>
                 <tr>
                     <td class="font-monospace">SMHTCOLO829BLTVAI</td>
