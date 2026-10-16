@@ -87,7 +87,7 @@
         },
         "outcome": {
             "title": "Outcome",
-            "description": "Outcome of the pathology report",
+            "description": "Pathology report outcome: A sample is unacceptable if any of the following apply: (i) target tissues comprise <10% of the tissue on the slide; (ii) the overall autolysis score is 3; or (iii) a significant unexpected pathological finding is present.",
             "type": "string",
             "enum": [
                 "Acceptable",
