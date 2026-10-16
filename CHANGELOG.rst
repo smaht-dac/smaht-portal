@@ -7,12 +7,32 @@ smaht-portal
 Change Log
 ----------
 
-2.15.4
+2.15.6
 =====
 
 `PR 761: WF Sample and File Nomenclature v3.0 <https://github.com/smaht-dac/smaht-portal/pull/761>`_
 
 * Update Sample and File Nomenclature documentation to version 3.0
+
+
+2.15.5
+======
+
+`PR 779: Data matrix: Benchmarking Donor x Assay tab and WGS Coverage view updates <https://github.com/smaht-dac/smaht-portal/pull/779>`_
+
+* Show the matrix-mode tab bar in the Benchmarking data matrix with only the Donor x Assay tab, via a
+  new ``matrixModeTabs`` DataMatrix prop that limits which mode tabs render (default: all)
+* Rename the data matrix Coverage toggle to "WGS Coverage"
+* In coverage view, fill cells that have files but no coverage value with a light blue (``#E7F1FA``)
+  so they read as the same data as the Files view
+
+
+2.15.4
+======
+
+`PR 781: Update path report outcome description <https://github.com/smaht-dac/smaht-portal/pull/781>`_
+
+* Add specific information regarding unacceptable pathology report outcomes.
 
 
 2.15.3
