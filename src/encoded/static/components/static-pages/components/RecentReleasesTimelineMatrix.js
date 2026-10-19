@@ -9,6 +9,7 @@ import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedIte
 import { SelectAllAboveTableComponent, SelectAllFilesButton } from './SelectAllAboveTableComponent';
 import { createBrowseFileColumnExtensionMap } from '../../browse/BrowseView';
 import { get as getSchemas, Term } from '../../util/Schemas';
+import { compareTissueFacetTerms, compareCallSetFacetTerms } from '../../util/data';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const RECENT_MONTHS = 6;
@@ -44,6 +45,12 @@ const RECENT_RELEASES_URL_PARAMS = {
  */
 const fileFacetTermTransform = (field, key) =>
     getSchemas()?.File?.facets?.[field]?.label_overrides?.[key] ?? Term.toName(field, key);
+
+// Same facet term ordering as the Browse page.
+const FACET_LIST_SORT_FXNS = {
+    'sample_summary.tissues': compareTissueFacetTerms,
+    'call_set.name': compareCallSetFacetTerms,
+};
 
 const formatMonthLabel = (monthValue = '') => {
     const parsed = new Date(`${monthValue}-01T00:00:00`);
@@ -536,6 +543,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             columns={columns}
             hideFacets={hideFacetsForRecentReleases}
             termTransformFxn={fileFacetTermTransform}
+            facetListSortFxns={FACET_LIST_SORT_FXNS}
             rowHeight={31}
             openRowHeight={40}
             maxResultsBodyHeight={620}

@@ -60,6 +60,7 @@ export function EmbeddedItemSearchTable({
         renderResultRow,
         isOwnPage = false,
         termTransformFxn = Term.toName,
+        facetListSortFxns,
     } = props;
 
     const schemas = propSchemas || getSchemas() || null; // We might not have this e.g. in placeholders in StaticSections
@@ -109,6 +110,7 @@ export function EmbeddedItemSearchTable({
         facetColumnClassName,
         tableColumnClassName,
         termTransformFxn,
+        facetListSortFxns,
         separateSingleTermFacets: false,
         allowPostRequest: true,
         defaultColAlignment: ' ',
