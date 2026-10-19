@@ -9,8 +9,11 @@ import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/co
 
 // Renamed Files query. `sort=-tags` lists newest renames first, since a
 // descending sort uses each file's last tag (`renamed_on|YYYY-MM-DD`); ascending
-// would compare `rename` instead, so the column itself stays unsortable
-const RENAMED_FILES_QUERY = '/search/?type=File&tags=rename&sort=-tags';
+// would compare `rename` instead, so the column itself stays unsortable.
+// `sort=accession` breaks ties between files renamed on the same day; without it
+// pages can overlap, which makes the table reload when loading more results
+const RENAMED_FILES_QUERY =
+    '/search/?type=File&tags=rename&sort=-tags&sort=accession';
 
 // Facets shown in the table (the retracted files table uses these plus its own)
 export const RENAMED_FILES_FACET_FIELDS = [
