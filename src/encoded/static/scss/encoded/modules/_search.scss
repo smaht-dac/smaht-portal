@@ -2885,11 +2885,71 @@ div.browse-link-icon {
 // .tissue-heatmap-cell, not nested inside the same rule as it in this
 // stylesheet -- matches .tissue-heatmap-card's own 4-class specificity for
 // these rules plus one, so it always wins regardless of source order.
-.tissue-heatmap-card .tissue-heatmap-autolysis-tab .tissue-heatmap-table-wrap .tissue-heatmap-cell {
+.tissue-heatmap-card .tissue-heatmap-autolysis-tab .tissue-heatmap-table-wrap .tissue-heatmap-cell,
+// Tissue Overview's combined Donor Details table (TissueDonorDetailsTable.js)
+// has no per-metric tab wrapper -- its Autolysis Score cells carry the
+// scale as their own class instead.
+.tissue-heatmap-card .tissue-heatmap-table-wrap .tissue-heatmap-cell.tissue-heatmap-cell--autolysis {
 	&.score-0 { background-color: var(--heatmap-autolysis-score-0-bg, #EBD6DB); color: var(--heatmap-autolysis-score-0-text, #28323C); }
 	&.score-1 { background-color: var(--heatmap-autolysis-score-1-bg, #D19FAB); color: var(--heatmap-autolysis-score-1-text, #28323C); }
 	&.score-2 { background-color: var(--heatmap-autolysis-score-2-bg, #AC536A); color: var(--heatmap-autolysis-score-2-text, #FFFFFF); }
 	&.score-3 { background-color: var(--heatmap-autolysis-score-3-bg, #6E3544); color: var(--heatmap-autolysis-score-3-text, #FFFFFF); }
+}
+
+// Tissue Overview's combined Donor Details table (TissueDonorDetailsTable.js):
+// a metric group header (Target Tissue %, Autolysis Score, ...) over its
+// subtype columns, then the per-donor detail columns. Same light header
+// fill as the Donor ID/Age/Sex headers, and the same 4px white gap between
+// metric groups the heatmap tables use between tissue types.
+// Bottom-aligned: the Fixed/Frozen legend's Left/Right captions make this
+// heading row taller than other tabs' -- centered, that pushed the title
+// further from the divider below it than every other tab's title.
+.tissue-heatmap-card .tissue-overview-donor-details .tissue-heatmap-metric-heading-row {
+	align-items: flex-end;
+}
+
+.tissue-heatmap-card .tissue-overview-legends {
+	// Every metric's legend side by side in 1 row (wrapping when narrow),
+	// not stacked -- 4 stacked scales made the heading taller than the table.
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	align-items: flex-end;
+	gap: 8px 24px;
+}
+
+.tissue-heatmap-card table.tissue-heatmap-table.tissue-overview-donor-table {
+	// Content-sized, like the heatmap tabs' own tables -- stretched to the
+	// card's width (.tissue-heatmap-metric-table's default), the leftover
+	// space all went to the long-labeled detail columns at the end.
+	width: max-content;
+
+	// 2 header rows here -- the brain tables' 2-line minimum header height
+	// (.tissue-heatmap-metric-table thead th) doubled it. `tr` only to
+	// outrank that rule, which comes later in this file.
+	thead tr th {
+		height: auto;
+	}
+
+	thead th.tissue-overview-metric-header,
+	thead th.tissue-overview-metric-subheader,
+	thead th.tissue-overview-detail-header {
+		background-color: #F2F3F5;
+		vertical-align: middle;
+	}
+
+	thead th.tissue-overview-metric-subheader {
+		font-size: 0.75rem;
+		font-weight: 500;
+	}
+
+	thead th.tissue-overview-metric-group-end:not(:last-child) {
+		box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
+
+		&.is-selected-column {
+			box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -3px 0 #2F6FB0;
+		}
+	}
 }
 
 .tissue-heatmap-card {
@@ -3718,7 +3778,9 @@ div.browse-link-icon {
 		// sibling gap in that row (e.g. Fibroadipose | Lymphoid, same
 		// tissue type) to this rule's own blanket 4px instead.
 		// Same rowSpan-header exclusion as the selected-cell fade above.
-		thead tr:last-child th:not(.tissue-heatmap-subtype-subrow-header):not(.tissue-heatmap-target-nontarget-header):not(.tissue-heatmap-order-header):not(.tissue-heatmap-donor-header):not(.tissue-heatmap-demographic-header) {
+		// Tissue Overview's Donor Details headers draw their own gaps
+		// (see .tissue-overview-donor-table, above).
+		thead tr:last-child th:not(.tissue-heatmap-subtype-subrow-header):not(.tissue-heatmap-target-nontarget-header):not(.tissue-heatmap-order-header):not(.tissue-heatmap-donor-header):not(.tissue-heatmap-demographic-header):not(.tissue-overview-metric-header):not(.tissue-overview-metric-subheader):not(.tissue-overview-detail-header) {
 			// Combined with `thead th`'s own horizontal box-shadow -- see
 			// that rule's own comment on why (and why listed second here).
 			&:not(:last-child) {
