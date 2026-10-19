@@ -1,5 +1,10 @@
 'use strict';
 
+import memoize from 'memoize-one';
+
+// Browse by Tissue's "Group By: Sample Type" settings: the field, bar/legend
+// order, legend labels and per-term colors.
+
 /**
  * Fixed (not `barplot_color_cycler`-assigned) colors for Browse by Tissue's
  * line chart (see LineChartViewContainer), one per `sample_summary.
@@ -24,6 +29,30 @@ export const TISSUE_SAMPLE_TYPE_FIELD = 'sample_summary.preservation_types';
 // matching legend order in the design mock) -- any other term sorts after
 // these, alphabetically.
 export const TISSUE_SAMPLE_TYPE_ORDER = ['Fixed', 'Frozen', 'Fresh', 'Not specified'];
+
+// Legend labels for the sample types, saying what each kind of sample is
+// used for -- the chart's own terms (and links/filters) stay the bare
+// preservation type.
+export const TISSUE_SAMPLE_TYPE_LEGEND_LABELS = {
+    'Frozen': 'Frozen samples for sequencing',
+    'Fixed': 'Fixed samples for pathology review',
+    'Fresh': 'Fresh samples for sequencing',
+};
+
+/**
+ * Wraps a chart's `termLabelTransform` so the sample types get their
+ * TISSUE_SAMPLE_TYPE_LEGEND_LABELS label -- used by both the chart's own
+ * nodes (so popovers match) and the legend. Memoized so the wrapper keeps
+ * the same identity across renders (the chart memoizes on it).
+ */
+export const withTissueSampleTypeLabels = memoize(function (termLabelTransform) {
+    return function (field, term) {
+        if (field === TISSUE_SAMPLE_TYPE_FIELD && TISSUE_SAMPLE_TYPE_LEGEND_LABELS[term]) {
+            return TISSUE_SAMPLE_TYPE_LEGEND_LABELS[term];
+        }
+        return typeof termLabelTransform === 'function' ? termLabelTransform(field, term) : null;
+    };
+});
 
 export const TISSUE_SAMPLE_TYPE_COLORS = {
     // Explicitly picked as SLICE_TYPE_STYLES.yellow.front, not .border/.side

@@ -9,7 +9,7 @@ import { console, isServerSide, logger } from '@hms-dbmi-bgm/shared-portal-compo
 import { barplot_color_cycler } from './../ColorCycler';
 import { CursorViewBounds } from './../ChartDetailCursor';
 import { Schemas } from './../../util';
-import { getTissueSampleTypeColor, getTissueLineDotFill, TISSUE_SAMPLE_TYPE_ORDER } from './tissue-sample-type-colors';
+import { getTissueSampleTypeColor, getTissueLineDotFill, TISSUE_SAMPLE_TYPE_ORDER, TISSUE_SAMPLE_TYPE_LEGEND_LABELS } from './tissue-sample-types';
 
 
 
@@ -506,7 +506,7 @@ function getTissueSubNode(bar, term, subdivisionField) {
     return _.findWhere(bar.bars || [], { term }) || {
         field: subdivisionField,
         term,
-        name: Schemas.Term.toName(subdivisionField, term),
+        name: TISSUE_SAMPLE_TYPE_LEGEND_LABELS[term] || Schemas.Term.toName(subdivisionField, term),
         count: 0,
         donors: 0,
         files: 0,

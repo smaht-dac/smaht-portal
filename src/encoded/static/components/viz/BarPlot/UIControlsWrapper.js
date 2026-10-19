@@ -18,7 +18,7 @@ import {
     loadFixedTissueSampleCounts,
     addFixedTissueSamples,
 } from './tissue-fixed-samples';
-import { tissueSampleTypeColorCycler, TISSUE_SAMPLE_TYPE_FIELD } from './tissue-sample-type-colors';
+import { tissueSampleTypeColorCycler, TISSUE_SAMPLE_TYPE_FIELD, withTissueSampleTypeLabels } from './tissue-sample-types';
 import { Chart } from './Chart';
 
 /**
@@ -784,7 +784,7 @@ export class AggregatedLegend extends React.Component {
             // line/dots themselves) instead of the generic cycler, so the
             // legend's swatches match the chart term-for-term.
             mapping === 'tissue' ? tissueSampleTypeColorCycler : undefined,
-            termLabelTransform
+            mapping === 'tissue' ? withTissueSampleTypeLabels(termLabelTransform) : termLabelTransform
         );
         // Browse by Tissue's own line chart already excludes a term whose
         // count is 0 for EVERY tissue (see LineChartViewContainer's own

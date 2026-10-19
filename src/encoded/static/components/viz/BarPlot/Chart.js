@@ -13,7 +13,7 @@ import { RotatedLabel } from './../components';
 import {
     PopoverViewContainer, PopoverLineChartViewContainer, PopoverThinGroupedChartViewContainer, PopoverThinStackedChartViewContainer
 } from './ViewContainer';
-import { TISSUE_SAMPLE_TYPE_FIELD } from './tissue-sample-type-colors';
+import { TISSUE_SAMPLE_TYPE_FIELD, withTissueSampleTypeLabels } from './tissue-sample-types';
 
 
 /**
@@ -463,7 +463,7 @@ export class Chart extends React.PureComponent {
             aggregateType,
             useOnlyPopulatedFields,
             plotsSubTermCounts ? getNiceMaxSubTermCount(topLevelField, aggregateType) : null,
-            termLabelTransform,
+            mapping === 'tissue' ? withTissueSampleTypeLabels(termLabelTransform) : termLabelTransform,
             xAxisTermLabelMapper
         );
 
