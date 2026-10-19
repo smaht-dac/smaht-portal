@@ -4301,9 +4301,23 @@ export const BrowseTissueHeatmapTable = (props) => {
                             these 3 tables pivot on donor x finding/score/diagnosis
                             category instead (see BrowseBrainPathologyTable.js). */
                             <DotRouterTab
+                                key="brain-diagnosis"
+                                dotPath=".brain-diagnosis"
+                                default
+                                tabTitle="Diagnosis Summary"
+                                arrowTabs={false}
+                                cache={true}>
+                                {loading ? (
+                                    <div className="tissue-heatmap-loading">
+                                        <i className="icon icon-circle-notch icon-spin fas" />
+                                    </div>
+                                ) : (
+                                    <BrainDiagnosisTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
+                                )}
+                            </DotRouterTab>,
+                            <DotRouterTab
                                 key="brain-findings"
                                 dotPath=".brain-findings"
-                                default
                                 tabTitle="Neuropathology Findings"
                                 arrowTabs={false}
                                 cache={true}>
@@ -4396,20 +4410,6 @@ export const BrowseTissueHeatmapTable = (props) => {
                                         subtypeTintPercent={ischemicTissueTintPercent}
                                         splitByPreservationType
                                     />
-                                )}
-                            </DotRouterTab>,
-                            <DotRouterTab
-                                key="brain-diagnosis"
-                                dotPath=".brain-diagnosis"
-                                tabTitle="Diagnosis Summary"
-                                arrowTabs={false}
-                                cache={true}>
-                                {loading ? (
-                                    <div className="tissue-heatmap-loading">
-                                        <i className="icon icon-circle-notch icon-spin fas" />
-                                    </div>
-                                ) : (
-                                    <BrainDiagnosisTable tissueResults={tissueResults} donorHrefs={donorHrefs} />
                                 )}
                             </DotRouterTab>,
                         ]}

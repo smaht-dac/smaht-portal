@@ -157,12 +157,7 @@ export class UIControlsWrapper extends React.PureComponent {
             'openDropdown': null,
             'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL,
             // Browse by Tissue only -- see tissue-fixed-samples.js.
-            'fixedTissueSampleCounts': null,
-            // Browse by Tissue only -- 'bars' (thin side-by-side bars for Group
-            // By: Sample Type, stacked bars otherwise) or 'lines' (the earlier
-            // line chart), see Chart.js's render. 'bars' by default per design
-            // feedback; 'lines' kept selectable in case that changes back.
-            'tissueChartStyle': 'bars'
+            'fixedTissueSampleCounts': null
         };
     }
 
@@ -328,7 +323,7 @@ export class UIControlsWrapper extends React.PureComponent {
      */
     adjustedChildChart() {
         const { children, barplot_data_fields, termLabelTransform } = this.props;
-        const { showState, aggregateType, tissueCategoryFilter, tissueChartStyle } = this.state;
+        const { showState, aggregateType, tissueCategoryFilter } = this.state;
         const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForTissueCategory();
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
         const xAxisTermLabelMapper = (isTissueXAxis /*&& tissueCategoryFilter === UIControlsWrapper.TISSUE_CATEGORY_ALL*/)
@@ -348,8 +343,7 @@ export class UIControlsWrapper extends React.PureComponent {
                 'barplot_data_unfiltered': barplot_data_unfiltered,
                 'barplot_data_filtered': barplot_data_filtered,
                 'termLabelTransform': termLabelTransform,
-                'xAxisTermLabelMapper': xAxisTermLabelMapper,
-                'tissueChartStyle': tissueChartStyle
+                'xAxisTermLabelMapper': xAxisTermLabelMapper
             }
         ));
     }
@@ -571,34 +565,6 @@ export class UIControlsWrapper extends React.PureComponent {
         );
     }
 
-    renderTissueChartStyleToggle() {
-        const { mapping, isLoadingChartData, btnVariant } = this.props;
-        const { tissueChartStyle } = this.state;
-        if (mapping !== 'tissue') return null;
-        const options = [
-            { key: 'bars', title: 'Bars' },
-            { key: 'lines', title: 'Lines' },
-        ];
-        return (
-            <div className="tissue-chart-style-toggle d-flex align-items-center justify-content-center gap-2 mb-2">
-                <span className="text-muted small">Chart</span>
-                <div className="btn-group btn-group-sm" role="group" aria-label="Chart style">
-                    {options.map(({ key, title }) => (
-                        <button
-                            key={key}
-                            type="button"
-                            className={`btn ${tissueChartStyle === key ? 'btn-secondary' : `btn-${btnVariant}`}`}
-                            aria-pressed={tissueChartStyle === key}
-                            onClick={() => this.setState({ tissueChartStyle: key })}
-                            disabled={isLoadingChartData}>
-                            {title}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
     render() {
         const {
             barplot_data_filtered, barplot_data_unfiltered, barplot_data_fields, isLoadingChartData, href, btnVariant,
@@ -702,7 +668,6 @@ export class UIControlsWrapper extends React.PureComponent {
                 <div className="row">
                     <div className="col-12 col-md-9 pt-4 d-flex flex-wrap justify-content-center column-gap-4">
                         {this.renderTissueCategoryFilter()}
-                        {this.renderTissueChartStyleToggle()}
                     </div>
                 </div>
             </div>
@@ -780,17 +745,16 @@ export class AggregatedLegend extends React.Component {
             ),
             function (term) { return typeof term[aggregateType] === 'number' ? -term[aggregateType] : 'term'; },
             // Browse by Tissue's own fixed sample-type colors (see
-            // LineChartViewContainer, which uses this same lookup for the
-            // line/dots themselves) instead of the generic cycler, so the
+            // ViewContainer.js's thin bars, which use this same lookup for
+            // the bars themselves) instead of the generic cycler, so the
             // legend's swatches match the chart term-for-term.
             mapping === 'tissue' ? tissueSampleTypeColorCycler : undefined,
             mapping === 'tissue' ? withTissueSampleTypeLabels(termLabelTransform) : termLabelTransform
         );
-        // Browse by Tissue's own line chart already excludes a term whose
-        // count is 0 for EVERY tissue (see LineChartViewContainer's own
-        // identical filter/comment) -- mirrored here so the legend doesn't
-        // list an entry (e.g. "Not specified") for a line that was never
-        // actually drawn.
+        // Browse by Tissue's own chart already excludes a term whose
+        // count is 0 for EVERY tissue (see ViewContainer.js's
+        // getTissueSubTerms) -- mirrored here so the legend doesn't list an
+        // entry (e.g. "Not specified") for a series that was never drawn.
         if (mapping === 'tissue' && legendField && Array.isArray(legendField.terms)) {
             legendField.terms = legendField.terms.filter((t) => t[aggregateType] > 0);
         }

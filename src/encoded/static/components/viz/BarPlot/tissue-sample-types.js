@@ -7,7 +7,7 @@ import memoize from 'memoize-one';
 
 /**
  * Fixed (not `barplot_color_cycler`-assigned) colors for Browse by Tissue's
- * line chart (see LineChartViewContainer), one per `sample_summary.
+ * thin bars (see ViewContainer.js), one per `sample_summary.
  * preservation_types` term (post-merge-terms.js display term, e.g. "Frozen"
  * not "Snap Frozen") -- per explicit request, Frozen reuses the same color
  * family AliquotVisualization.js's own SLICE_TYPE_STYLES.yellow already
@@ -98,29 +98,10 @@ export function getTissueSampleTypeColor(term) {
     return assignedGroupColors.get(term);
 }
 
-// How strongly a dot's fill shows its own color (its stroke stays the full
-// color) -- per explicit request, dots read as a lighter, see-through-looking
-// version of their line's color.
-export const TISSUE_LINE_DOT_FILL_STRENGTH = 0.55;
-
-// The dot fill itself: the color pre-mixed with white at
-// TISSUE_LINE_DOT_FILL_STRENGTH rather than a real `fill-opacity` -- a truly
-// transparent fill let the dot's own line show straight through its middle.
-export function getTissueLineDotFill(hex) {
-    const match = String(hex || '').trim().match(/^#?([0-9a-f]{6})$/i);
-    if (!match) return hex;
-    const value = parseInt(match[1], 16);
-    const mix = (channel) => Math.round(TISSUE_LINE_DOT_FILL_STRENGTH * channel + (1 - TISSUE_LINE_DOT_FILL_STRENGTH) * 255);
-    const r = mix((value >> 16) & 255);
-    const g = mix((value >> 8) & 255);
-    const b = mix(value & 255);
-    return '#' + [r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('');
-}
-
 /**
  * A `barplot_color_cycler`-compatible object (just the `colorForNode`
  * method Legend.barPlotFieldDataToLegendFieldsData actually calls) so the
- * sidebar legend's own swatches match the line chart's colors term-for-
+ * sidebar legend's own swatches match the chart's colors term-for-
  * term, instead of the generic cycler's own (different) color assignment.
  */
 export const tissueSampleTypeColorCycler = {

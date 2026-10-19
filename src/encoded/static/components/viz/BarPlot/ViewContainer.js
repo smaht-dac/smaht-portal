@@ -9,7 +9,7 @@ import { console, isServerSide, logger } from '@hms-dbmi-bgm/shared-portal-compo
 import { barplot_color_cycler } from './../ColorCycler';
 import { CursorViewBounds } from './../ChartDetailCursor';
 import { Schemas } from './../../util';
-import { getTissueSampleTypeColor, getTissueLineDotFill, TISSUE_SAMPLE_TYPE_ORDER, TISSUE_SAMPLE_TYPE_LEGEND_LABELS } from './tissue-sample-types';
+import { getTissueSampleTypeColor, TISSUE_SAMPLE_TYPE_ORDER, TISSUE_SAMPLE_TYPE_LEGEND_LABELS } from './tissue-sample-types';
 
 
 
@@ -517,156 +517,16 @@ function getTissueSubNode(bar, term, subdivisionField) {
 }
 
 /**
- * Line-chart rendering for Browse by Tissue's own "Sample Type" subdivision
- * (per explicit request: same chart/data as the stacked-bar version, just
- * lines+dots instead of bars) -- a sibling to Bar/BarSection/ViewContainer
- * above, not a mode switch inside them, so every other BarPlot.Chart usage
- * (Browse by File/Donor, gated by `mapping` in Chart.js's own render)
- * keeps rendering through the original, completely untouched bar code.
- *
- * Reuses the exact same `leftAxis`/`bottomAxis` markup and `styleOptions`/
- * `width`/`height` coordinate system the bar version uses (both built
- * generically in Chart.js, mapping-agnostic), so this chart's own axes/
- * scale land on the same pixels a bar chart would have for the same data --
- * only the plotted marks themselves (this component's own <svg>) differ.
- *
- * A "count" here is always already resolved to whatever `aggregateType`
- * Chart.js chose (e.g. 'samples' for Browse by Tissue) -- see genBarData's
- * own `barNode.count`/`.samples`/etc in Chart.js.
+ * Popover position for Browse by Tissue's thin bars: each bar's node carries
+ * its own drawn top (x,y) as `__x`/`__y` (set while rendering), so the
+ * popover anchors there instead of PopoverViewContainer's reconstruction
+ * from stacked heights.
  */
-class LineChartViewContainer extends React.PureComponent {
-
-    /**
-     * Mirrors PopoverViewContainer's own identical-purpose method, but
-     * reads a point's own already-known (x,y) (attached to its node as
-     * `__x`/`__y` below) instead of reconstructing a bar section's
-     * position from stacked heights -- there's no stacking here, so the
-     * position is just wherever the dot was actually drawn.
-     */
-    static getCoordsCallback(node, containerPosition){
-        return {
-            'x' : containerPosition.left + (node.__x || 0),
-            'y' : containerPosition.top + (node.__y || 0),
-        };
-    }
-
-    render(){
-        const {
-            topLevelField, width, height, leftAxis, bottomAxis, styleOptions, bars,
-            fullHeightCount, onNodeMouseEnter, onNodeMouseLeave, onNodeClick,
-            hoverTerm, hoverParentTerm, selectedTerm, selectedParentTerm
-        } = this.props;
-        const { offset } = styleOptions;
-        const insetHeight = Math.max(height - offset.top - offset.bottom, 0);
-        const { subdivisionField, terms: allTerms } = getTissueSubTerms(bars);
-        // By screen X position (already assigned by genChartBarDims,
-        // typically descending value -- same left-to-right order the
-        // bottom axis labels use), NOT alphabetically by term -- an SVG
-        // `<polyline>` draws its segments in exactly the order its points
-        // are listed, so anything else here would zigzag across the
-        // chart instead of tracing a left-to-right line.
-        const orderedBars = bars.slice().sort(function (a, b) {
-            return a.attr.x - b.attr.x;
-        });
-
-        const series = _.map(allTerms, function (term) {
-            const points = _.map(orderedBars, function (bar) {
-                // A tissue with none of this sample type still gets a
-                // (synthetic, 0-count) point rather than a gap in the line.
-                const node = getTissueSubNode(bar, term, subdivisionField);
-                const count = node.count || 0;
-                const x = offset.left + bar.attr.x + (bar.attr.width / 2);
-                const y = offset.top + insetHeight - (fullHeightCount > 0 ? (count / fullHeightCount) * insetHeight : 0);
-                // Attached directly to the node (not just the point
-                // wrapper) so the click-to-filter popover -- which only
-                // ever receives the node itself, via onNodeClick -- can
-                // still recover exactly where on screen it was drawn (see
-                // LineChartViewContainer.getCoordsCallback above).
-                node.__x = x;
-                node.__y = y;
-                return { node, count, x, y };
-            });
-            return { term, points };
-        });
-
-        return (
-            <div className="bar-plot-chart chart-container line-chart no-highlight"
-                data-field={topLevelField.field} style={{ height, width }}>
-                { leftAxis }
-                <svg className="line-chart-svg" width={width} height={height}
-                    style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible' }}>
-                    { _.map(series, function (s) {
-                        const { stroke } = getTissueSampleTypeColor(s.term);
-                        const pointsAttr = _.map(s.points, function (p) { return p.x + ',' + p.y; }).join(' ');
-                        return (
-                            // `data-term` (deliberately no `data-field` on
-                            // this same element -- see the SCSS comment on
-                            // `.line-chart-series` for why) is what lets
-                            // the legend's own hover (Legend.Term's
-                            // vizUtil.highlightTerm(field, term, color),
-                            // called regardless of chart type) find and
-                            // toggle `.highlight` on exactly this series,
-                            // the same DOM-attribute contract the bar
-                            // chart's own .bar-part elements already rely
-                            // on for the identical effect.
-                            <g key={s.term} className="line-chart-series" data-term={s.term}>
-                                <polyline points={pointsAttr} fill="none" stroke={stroke} strokeWidth={2} />
-                                { _.map(s.points, function (p, i) {
-                                    // A 0-count point keeps its series' own color too,
-                                    // per explicit request -- it used to switch to a
-                                    // muted grey.
-                                    const swatch = getTissueSampleTypeColor(s.term);
-                                    // Popover's own swatch (ChartDetailCursor's
-                                    // Body) prefers `leafNode.color`, falling
-                                    // back to the generic cycler otherwise --
-                                    // every node here needs this set to match
-                                    // its own dot, not the cycler's unrelated
-                                    // assignment.
-                                    p.node.color = swatch.stroke;
-                                    const isHighlighted = (
-                                        CursorViewBounds.isSelected(p.node, hoverTerm, hoverParentTerm) ||
-                                        CursorViewBounds.isSelected(p.node, selectedTerm, selectedParentTerm)
-                                    );
-                                    return (
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        <circle key={i} cx={p.x} cy={p.y}
-                                            r={isHighlighted ? 6 : 4.5}
-                                            fill={getTissueLineDotFill(swatch.fill)}
-                                            stroke={swatch.stroke}
-                                            strokeWidth={isHighlighted ? 2.5 : 1.5}
-                                            style={{ cursor: 'pointer' }}
-                                            onMouseEnter={(evt) => onNodeMouseEnter(p.node, evt)}
-                                            onMouseLeave={(evt) => onNodeMouseLeave(p.node, evt)}
-                                            onClick={(evt) => onNodeClick(p.node, evt)} />
-                                    );
-                                }) }
-                            </g>
-                        );
-                    }) }
-                </svg>
-                { bottomAxis }
-            </div>
-        );
-    }
-}
-
-/**
- * Wraps LineChartViewContainer with the same CursorViewBounds interactivity
- * PopoverViewContainer gives the bar version (hover/click popovers, "sticky"
- * selection) -- see LineChartViewContainer's own comment for why this is a
- * sibling wrapper rather than a change to PopoverViewContainer itself.
- */
-export class PopoverLineChartViewContainer extends React.PureComponent {
-
-    render(){
-        return (
-            <CursorViewBounds {..._.pick(this.props, 'height', 'width', 'cursorContainerMargin', 'actions', 'href', 'context', 'schemas', 'mapping', 'aggregateType')}
-                eventCategory="BarPlot"
-                highlightTerm={false} clickCoordsFxn={LineChartViewContainer.getCoordsCallback}>
-                <LineChartViewContainer {...this.props} />
-            </CursorViewBounds>
-        );
-    }
+function getDrawnNodeCoords(node, containerPosition){
+    return {
+        'x' : containerPosition.left + (node.__x || 0),
+        'y' : containerPosition.top + (node.__y || 0),
+    };
 }
 
 
@@ -696,8 +556,7 @@ function topRoundedRectPath(x, y, w, h, r) {
 
 /**
  * Thin grouped bars for Browse by Tissue's "Group By: Sample Type" chart --
- * per design feedback, the default over the line chart above (still
- * selectable, see UIControlsWrapper's Bars/Lines toggle). Each tissue gets
+ * per design feedback (an earlier line chart version was dropped). Each tissue gets
  * one thin bar per sample type, right next to each other (not stacked:
  * Fixed/Frozen/Fresh are counted independently, so they don't sum to a
  * meaningful whole). Plain rectangles with a rounded top -- an earlier
@@ -705,16 +564,17 @@ function topRoundedRectPath(x, y, w, h, r) {
  * tissue with none of a sample type leaves that bar's slot empty (still
  * hoverable, so its 0 can be read in the popover).
  *
- * Same coordinate system/axes contract as LineChartViewContainer (see its
- * own comment), and the same `.line-chart-series[data-term]` grouping so
- * legend hover fades the other sample types here too.
+ * Reuses the `leftAxis`/`bottomAxis` markup and `styleOptions`/`width`/
+ * `height` coordinate system Chart.js builds for the bar version, so the
+ * axes land on the same pixels -- only the marks (this <svg>) differ.
+ * Series are grouped as `.line-chart-series[data-term]` so legend hover
+ * fades the other sample types (see below).
  */
 class ThinGroupedChartViewContainer extends React.PureComponent {
 
-    // Each bar carries its own drawn top (x,y) -- see
-    // LineChartViewContainer's own identical method.
+    // Each bar carries its own drawn top (x,y) -- see getDrawnNodeCoords.
     static getCoordsCallback(node, containerPosition){
-        return LineChartViewContainer.getCoordsCallback(node, containerPosition);
+        return getDrawnNodeCoords(node, containerPosition);
     }
 
     render(){
@@ -765,11 +625,16 @@ class ThinGroupedChartViewContainer extends React.PureComponent {
                     { _.map(series, function (s) {
                         const swatch = getTissueSampleTypeColor(s.term);
                         return (
-                            // See LineChartViewContainer's own comment on
-                            // `data-term` (legend hover highlighting).
+                            // `data-term` (deliberately no `data-field` on
+                            // this same element -- see the SCSS comment on
+                            // `.line-chart-series`) is what lets the legend's
+                            // own hover (Legend.Term's vizUtil.highlightTerm)
+                            // find and toggle `.highlight` on this series.
                             <g key={s.term} className="line-chart-series" data-term={s.term}>
                                 { _.map(s.points, function (p, i) {
-                                    // Popover swatch -- see LineChartViewContainer.
+                                    // The popover's swatch (ChartDetailCursor's Body)
+                                    // prefers `leafNode.color` over the generic
+                                    // cycler's unrelated assignment.
                                     p.node.color = swatch.stroke;
                                     const isHighlighted = (
                                         CursorViewBounds.isSelected(p.node, hoverTerm, hoverParentTerm) ||
@@ -811,7 +676,8 @@ class ThinGroupedChartViewContainer extends React.PureComponent {
 
 /**
  * Wraps ThinGroupedChartViewContainer with the same CursorViewBounds
- * interactivity the line/bar versions get -- see PopoverLineChartViewContainer.
+ * interactivity PopoverViewContainer gives the regular bars (hover/click
+ * popovers, "sticky" selection).
  */
 export class PopoverThinGroupedChartViewContainer extends React.PureComponent {
 
@@ -829,7 +695,7 @@ export class PopoverThinGroupedChartViewContainer extends React.PureComponent {
 
 /**
  * Thin stacked-bar rendering for Browse by Tissue's every other Group By
- * (e.g. Sequencing Center's GCCs) under the "Bars" chart style -- per
+ * (e.g. Sequencing Center's GCCs) -- per
  * design feedback, stacked like the portal's other bar charts, but in the
  * same thin-mark style as the Sample Type grouped bars above so the 2
  * read as one family. Each tissue is one 12px bar at its own center, split
@@ -847,7 +713,7 @@ export class PopoverThinGroupedChartViewContainer extends React.PureComponent {
 class ThinStackedChartViewContainer extends React.PureComponent {
 
     static getCoordsCallback(node, containerPosition){
-        return LineChartViewContainer.getCoordsCallback(node, containerPosition);
+        return getDrawnNodeCoords(node, containerPosition);
     }
 
     render(){
@@ -905,11 +771,11 @@ class ThinStackedChartViewContainer extends React.PureComponent {
                     { _.map(orderedTerms, function (term) {
                         const swatch = getTissueSampleTypeColor(term);
                         return (
-                            // See LineChartViewContainer's own comment on
-                            // `data-term` (legend hover highlighting).
+                            // See ThinGroupedChartViewContainer's own comment
+                            // on `data-term` (legend hover highlighting).
                             <g key={term} className="line-chart-series" data-term={term}>
                                 { _.map(segmentsByTerm[term] || [], function (seg, i) {
-                                    // Popover swatch -- see LineChartViewContainer.
+                                    // Popover swatch -- see ThinGroupedChartViewContainer.
                                     seg.node.color = swatch.stroke;
                                     const isHighlighted = (
                                         CursorViewBounds.isSelected(seg.node, hoverTerm, hoverParentTerm) ||
@@ -955,7 +821,7 @@ class ThinStackedChartViewContainer extends React.PureComponent {
 
 /**
  * Wraps ThinStackedChartViewContainer with the same CursorViewBounds
- * interactivity the line/bar versions get -- see PopoverLineChartViewContainer.
+ * interactivity -- see PopoverThinGroupedChartViewContainer.
  */
 export class PopoverThinStackedChartViewContainer extends React.PureComponent {
 
