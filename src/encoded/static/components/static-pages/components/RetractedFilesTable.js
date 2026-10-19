@@ -9,6 +9,7 @@ import {
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import {
     RENAMED_FILES_FACET_FIELDS,
+    ROW_HEIGHT,
     FACETS_BODY_HEIGHT,
     RESULTS_BODY_HEIGHT,
 } from './RenamedFilesTable';
@@ -302,7 +303,7 @@ export default function RetractedFilesTable(props) {
                 schemas={schemas}
                 session={session}
                 filterFacetFxn={filterRetractedFilesFacets}
-                rowHeight={31}
+                rowHeight={ROW_HEIGHT}
                 maxFacetsBodyHeight={FACETS_BODY_HEIGHT}
                 maxResultsBodyHeight={RESULTS_BODY_HEIGHT}
                 columns={columns}

@@ -33,10 +33,15 @@ export const RENAMED_FILES_FACET_FIELDS = [
 const filterRenamedFilesFacets = (facet) =>
     RENAMED_FILES_FACET_FIELDS.includes(facet?.field);
 
+// Result row height, kept in sync with the row CSS (30px + 1px border)
+export const ROW_HEIGHT = 31;
+
+// Fit a whole number of rows (17 rows = 527px) so the last row isn't cut off
+export const RESULTS_BODY_HEIGHT = ROW_HEIGHT * 17;
+
 // The facet column's header/padding is ~36px taller than the results header
-// row, so the results body is taller to make both columns end at the same line
-export const FACETS_BODY_HEIGHT = 600;
-export const RESULTS_BODY_HEIGHT = FACETS_BODY_HEIGHT + 36;
+// row, so the facets body is shorter to make both columns end at the same line
+export const FACETS_BODY_HEIGHT = RESULTS_BODY_HEIGHT - 36;
 
 // Renamed Files header component containing total count
 function RenamedFilesTableHeader({ context, href }) {
@@ -210,7 +215,7 @@ export default function RenamedFilesTable(props) {
                 schemas={schemas}
                 session={session}
                 filterFacetFxn={filterRenamedFilesFacets}
-                rowHeight={31}
+                rowHeight={ROW_HEIGHT}
                 maxFacetsBodyHeight={FACETS_BODY_HEIGHT}
                 maxResultsBodyHeight={RESULTS_BODY_HEIGHT}
                 columns={RenamedFilesColumns}
