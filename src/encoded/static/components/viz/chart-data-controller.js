@@ -120,10 +120,12 @@ const isInitialized = {};
 let activeMapping = null;
 
 /**
- * Each mapping's own last-used `barplot_data_fields` -- restored when that
- * mapping becomes active again (initialize), so e.g. Browse by File's own
+ * Each mapping's own last-used `barplot_data_fields` -- the fallback when
+ * initialize() is given no fields of its own, so e.g. Browse by File's own
  * Group By choice doesn't carry over into Browse by Tissue's chart (which
  * has no such option and showed its raw field name + an empty legend).
+ * When fields are given (FacetCharts always passes its initialFields), they
+ * win: entering a page starts from its default Group By, not the last one.
  *
  * @private
  * @type {Object.<string, string[]>}
@@ -327,7 +329,7 @@ export const ChartDataController = {
         if (typeof browseBaseState === 'string'){
             refs.browseBaseState = browseBaseState;
         }
-        const restoredFields = fieldsByMapping[mapping] || fields;
+        const restoredFields = (Array.isArray(fields) && fields.length > 0) ? fields : fieldsByMapping[mapping];
         if (Array.isArray(restoredFields) && restoredFields.length > 0){
             state.barplot_data_fields = restoredFields;
             fieldsByMapping[mapping] = restoredFields;

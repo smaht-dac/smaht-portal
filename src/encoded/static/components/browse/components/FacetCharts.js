@@ -198,6 +198,13 @@ export class FacetCharts extends React.PureComponent {
                 }
             );
         } else {
+            // Still initialized from an earlier visit to this page (e.g.
+            // Browse by Tissue -> a non-browse page -> back): start from the
+            // default Group By again rather than the last one picked. A no-op
+            // when the fields are already the defaults.
+            if (Array.isArray(initialFields) && initialFields.length > 0) {
+                ChartDataController.updateBarPlotFields(mapping, initialFields);
+            }
             if (debug) console.log('Mounted FacetCharts');
             setTimeout(() => this.setState({ 'mounted' : true }), 100);
         }
