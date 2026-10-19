@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.6
+======
+
+`PR 782: fix: update facet overrides on portal pages <https://github.com/smaht-dac/smaht-portal/pull/782>`_
+
+* Fix facet overrides in embedded search tables and data release page
+
+
 2.15.5
 ======
 
