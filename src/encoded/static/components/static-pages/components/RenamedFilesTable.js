@@ -7,8 +7,33 @@ import {
 } from '../../item-pages/components/EmbeddedItemSearchTable';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
-// Renamed Files query
-const RENAMED_FILES_QUERY = '/search/?type=File&tags=rename';
+// Renamed Files query. `sort=-tags` lists newest renames first, since a
+// descending sort uses each file's last tag (`renamed_on|YYYY-MM-DD`); ascending
+// would compare `rename` instead, so the column itself stays unsortable
+const RENAMED_FILES_QUERY = '/search/?type=File&tags=rename&sort=-tags';
+
+// Facets shown in the table (the retracted files table uses these plus its own)
+export const RENAMED_FILES_FACET_FIELDS = [
+    'access_status',
+    'donors.display_title',
+    'donors.donor_groups',
+    'sample_summary.tissues',
+    'assays.display_title',
+    'sequencers.display_title',
+    'file_format.display_title',
+    'data_category',
+    'data_type',
+    'sequencing_center.display_title',
+    'file_status_tracking.release_dates.initial_release',
+];
+
+const filterRenamedFilesFacets = (facet) =>
+    RENAMED_FILES_FACET_FIELDS.includes(facet?.field);
+
+// The facet column's header/padding is ~36px taller than the results header
+// row, so the results body is taller to make both columns end at the same line
+export const FACETS_BODY_HEIGHT = 600;
+export const RESULTS_BODY_HEIGHT = FACETS_BODY_HEIGHT + 36;
 
 // Renamed Files header component containing total count
 function RenamedFilesTableHeader({ context, href }) {
@@ -181,8 +206,10 @@ export default function RenamedFilesTable(props) {
                 searchHref={RENAMED_FILES_QUERY}
                 schemas={schemas}
                 session={session}
-                facets={null}
+                filterFacetFxn={filterRenamedFilesFacets}
                 rowHeight={31}
+                maxFacetsBodyHeight={FACETS_BODY_HEIGHT}
+                maxResultsBodyHeight={RESULTS_BODY_HEIGHT}
                 columns={RenamedFilesColumns}
                 columnExtensionMap={RenamedFilesColumnExtensionMap}
                 embeddedTableHeader={<RenamedFilesTableHeader />}
