@@ -9,6 +9,7 @@ import {
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import {
     RENAMED_FILES_FACET_FIELDS,
+    ROW_HEIGHT,
     FACETS_BODY_HEIGHT,
     RESULTS_BODY_HEIGHT,
 } from './RenamedFilesTable';
@@ -17,9 +18,11 @@ import {
 const RETRACTION_DATE_FACET_FIELD =
     'file_status_tracking.status_tracking.retracted';
 
-// Retracted Files query, including the retraction date facet
+// Retracted Files query, including the retraction date facet. `sort=accession`
+// breaks ties between files retracted at the same time; without it pages can
+// overlap, which makes the table reload when loading more results
 const RETRACTED_FILES_QUERY =
-    '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted' +
+    '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted&sort=accession' +
     `&additional_facet=${RETRACTION_DATE_FACET_FIELD}`;
 
 // Same facets as the renamed files table, plus the retraction date
@@ -300,7 +303,7 @@ export default function RetractedFilesTable(props) {
                 schemas={schemas}
                 session={session}
                 filterFacetFxn={filterRetractedFilesFacets}
-                rowHeight={31}
+                rowHeight={ROW_HEIGHT}
                 maxFacetsBodyHeight={FACETS_BODY_HEIGHT}
                 maxResultsBodyHeight={RESULTS_BODY_HEIGHT}
                 columns={columns}
