@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.6
+======
+
+`PR 771: feat: pathology manifest download <https://github.com/smaht-dac/smaht-portal/pull/771>`_
+
+* Create new pathology manifest download button
+
+
 2.15.5
 ======
 
