@@ -8,6 +8,7 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
 import { SelectAllAboveTableComponent, SelectAllFilesButton } from './SelectAllAboveTableComponent';
 import { createBrowseFileColumnExtensionMap } from '../../browse/BrowseView';
+import { get as getSchemas, Term } from '../../util/Schemas';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const RECENT_MONTHS = 6;
@@ -36,6 +37,13 @@ const RECENT_RELEASES_URL_PARAMS = {
     DATE: 'date',
     MONTH: 'month'
 };
+
+/**
+ * The embedded table fetches its own facets, so read File facet `label_overrides`
+ * (e.g. "(Missing group)" -> "N/A") from the schema instead.
+ */
+const fileFacetTermTransform = (field, key) =>
+    getSchemas()?.File?.facets?.[field]?.label_overrides?.[key] ?? Term.toName(field, key);
 
 const formatMonthLabel = (monthValue = '') => {
     const parsed = new Date(`${monthValue}-01T00:00:00`);
@@ -527,6 +535,7 @@ const RecentReleasesFileTable = React.memo(function RecentReleasesFileTable(prop
             columnExtensionMap={alignedColumnExtensionMap}
             columns={columns}
             hideFacets={hideFacetsForRecentReleases}
+            termTransformFxn={fileFacetTermTransform}
             rowHeight={31}
             openRowHeight={40}
             maxResultsBodyHeight={620}
