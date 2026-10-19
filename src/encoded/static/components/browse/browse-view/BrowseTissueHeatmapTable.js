@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import ReactTooltip from 'react-tooltip';
-import { ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { ajax, JWT, navigate } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
     DotRouter,
     DotRouterTab,
@@ -3671,7 +3671,8 @@ export const BrowseTissueHeatmapTable = (props) => {
         () => (isBrainTabDotPath(hashDotPath) ? 'brain' : 'non-brain')
     );
     useEffect(() => {
-        if (isBrainTabDotPath(hashDotPath)) setActiveSection('brain');
+        if (!hashDotPath) return;
+        setActiveSection(isBrainTabDotPath(hashDotPath) ? 'brain' : 'non-brain');
     }, [hashDotPath]);
 
     // Which tab is currently active -- same hash-based dot-path lookup
@@ -3686,10 +3687,26 @@ export const BrowseTissueHeatmapTable = (props) => {
     // this one on its own default tab, mirrored here.
     let activeTabDotPath;
     if (activeSection === 'brain') {
-        activeTabDotPath = isBrainTabDotPath(hashDotPath) ? hashDotPath : '.brain-findings';
+        activeTabDotPath = isBrainTabDotPath(hashDotPath) ? hashDotPath : '.brain-diagnosis';
     } else {
         activeTabDotPath = hashDotPath && !isBrainTabDotPath(hashDotPath) ? hashDotPath : '.target-tissue';
     }
+
+    // Each section's last-shown tab, so switching back to a section returns
+    // to it.
+    const lastTabBySectionRef = useRef({});
+    lastTabBySectionRef.current[activeSection] = activeTabDotPath;
+
+    // Switching sections also puts that section's tab in the URL hash --
+    // otherwise the hash kept naming the other section's tab (e.g.
+    // .brain-autolysis-score after going back to Non-Brain), and returning
+    // to this page via the browser's Back button reopened that section.
+    const handleSectionChange = useCallback((section) => {
+        setActiveSection(section);
+        const dotPath = lastTabBySectionRef.current[section] ||
+            (section === 'brain' ? '.brain-diagnosis' : '.target-tissue');
+        navigate('#tissue-heatmap' + dotPath, { skipRequest: true, replace: true, dontScrollToTop: true });
+    }, []);
     const isTargetTabActive = activeTabDotPath === '.target-tissue';
     const isNonTargetTabActive = activeTabDotPath === '.non-target-tissue';
     // The brain tabs share their tissue-wide counterpart's color scale and
@@ -4011,7 +4028,7 @@ export const BrowseTissueHeatmapTable = (props) => {
 
     return (
         <div className="tissue-heatmap-card" style={paletteStyle}>
-            <HeatmapSectionTabs activeKey={activeSection} onChange={setActiveSection} />
+            <HeatmapSectionTabs activeKey={activeSection} onChange={handleSectionChange} />
             {/* Positioning context for the admin gear (.tissue-heatmap-toolbar),
                 which sits at the right end of the active section's own sub-tab
                 row rather than over the section tabs above. */}
