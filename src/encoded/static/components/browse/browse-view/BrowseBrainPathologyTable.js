@@ -394,9 +394,16 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                             Neuropathology Findings
                             <i
                                 className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                                data-tip="Presence of each neuropathology finding category, aggregated across a donor's brain pathology report(s). Click a Present cell marked with a note icon to read the reported reason."
+                                data-tip="Presence of each neuropathology finding category, aggregated across a donor's brain pathology report(s). Click a Present cell to read the reported reason."
                             />
                         </h2>
+                        {/* Visible (not tooltip-only) hint that Present cells open
+                            the reported reason -- the cell icon alone wasn't
+                            read as clickable. Uses the same icon as the cells. */}
+                        <span className="tissue-heatmap-metric-hint">
+                            <i className="icon icon-fw icon-file-lines fas" aria-hidden="true" />
+                            Click a Present cell to read the reported reason
+                        </span>
                     </div>
                     <FixedScoreLegend
                         entries={BRAIN_FINDING_LEGEND_ENTRIES}
@@ -456,14 +463,12 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                                                     : undefined}>
                                                 {formatBrainFinding(value)}
                                                 {/* Only cells with a reported description are
-                                                    clickable -- per explicit request, marked with a
-                                                    "note to read" icon (a speech bubble) rather than
-                                                    the column headers' generic info icon, so it reads
-                                                    as "click for the reason this is Present", not
-                                                    just general info. */}
+                                                    clickable -- marked with a report icon ("read the reason")
+                                                    (the same one the heading's hint explains),
+                                                    not the column headers' generic info icon. */}
                                                 {hasDescription ? (
                                                     <i
-                                                        className="icon icon-fw icon-comment-medical fas tissue-heatmap-finding-description-icon"
+                                                        className="icon icon-fw icon-file-lines fas tissue-heatmap-finding-description-icon"
                                                         aria-hidden="true"
                                                         title="Click to read why this finding is present"
                                                     />

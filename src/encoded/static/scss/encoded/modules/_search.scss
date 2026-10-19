@@ -3150,6 +3150,20 @@ div.browse-link-icon {
 		gap: 16px;
 	}
 
+	// BrainFindingsTable's "Click a Present cell..." hint, next to the title.
+	.tissue-heatmap-metric-hint {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 0.8125rem;
+		color: #5A6B7D;
+
+		.icon {
+			font-size: 0.75rem;
+			color: #6A9FBF;
+		}
+	}
+
 	// Stacks Target Tissue %'s own FixedScoreLegend over Non Target Tissue
 	// %'s (the latter only rendered once the "Show Non-Target Tissue %"
 	// toggle is actually on) -- 2 different color scales are live on the
@@ -4567,9 +4581,9 @@ div.browse-link-icon {
 }
 
 // A Present finding cell with a reported free-text description
-// (BrainFindingsTable) -- a small info icon inline after "Present", the same
-// icon the column headers use for their own descriptions, marking the
-// cell as clickable (its description opens in the shared
+// (BrainFindingsTable) -- a small report icon ("read the reason") inline after
+// "Present" (explained by the heading's .tissue-heatmap-metric-hint),
+// marking the cell as clickable (its description opens in the shared
 // .tissue-heatmap-cell-detail-popover). Inherits the cell's own text color,
 // slightly muted, so it reads on both the light and dark score bands.
 .tissue-heatmap-finding-description-icon {
