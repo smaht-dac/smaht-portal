@@ -92,16 +92,41 @@ def get_histology_images(properties: Dict[str, Any]) -> List[str]:
     return properties.get("histology_images", []) or []
 
 
-def get_tissue_autolysis_score(properties: Dict[str, Any]) -> Optional[int]:
+# BrainPathologyReport's brain_subregions[].subregion values -> the TPC
+# protocol code of the brain-region Tissue each one describes (see
+# schemas/brain_pathology_report.json and tissue_overview.py's
+# TPC_CODE_BY_INTERNAL_CODE: BRCE, BRFL, BRHL, BRHR, BRTL).
+BRAIN_SUBREGION_TISSUE_CODES = {
+    "Cerebellum Left Hemisphere": "3AM",
+    "Frontal Lobe Left Hemisphere": "3AK",
+    "Hippocampus Left Hemisphere": "3AN",
+    "Hippocampus Right Hemisphere": "3AO",
+    "Temporal Lobe Left Hemisphere": "3AL",
+}
+
+
+def get_tissue_autolysis_score(
+    properties: Dict[str, Any], tissue_code: Optional[str] = None
+) -> Optional[int]:
     """Get autolysis score from a pathology report.
 
     NonBrainPathologyReport carries a single report-level score.
-    BrainPathologyReport instead scores per brain_subregions entry, so take
-    the max across present subregions as the report-level summary.
+    BrainPathologyReport instead scores per brain_subregions entry: with
+    `tissue_code` (the brain-region Tissue's TPC protocol code, e.g. "3AL"),
+    only that region's own entry counts; otherwise (no code, or a report
+    with no entry for that region, e.g. a generic "Brain" Tissue) the max
+    across present subregions is the report-level summary.
     """
     if "tissue_autolysis_score" in properties:
         return properties.get("tissue_autolysis_score")
     subregions = properties.get("brain_subregions") or []
+    region_subregions = [
+        subregion
+        for subregion in subregions
+        if tissue_code and BRAIN_SUBREGION_TISSUE_CODES.get(subregion.get("subregion")) == tissue_code
+    ]
+    if region_subregions:
+        subregions = region_subregions
     scores = [
         subregion.get("tissue_autolysis_score")
         for subregion in subregions

@@ -77,6 +77,10 @@ const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('
 // (see visualization.py's max_bucket_count/MAX_BUCKET_COUNT_CEILING).
 const TISSUE_TYPE_MAX_BUCKET_COUNT = 3000;
 
+// Shown on a brain region's Diagnosis Summary/Findings/Staging tabs -- see
+// BrowseBrainPathologyTable.js's BrainTableScopeNote.
+const WHOLE_BRAIN_REPORT_NOTE = 'Whole-brain report, the same for every brain region';
+
 const TissueTypeViewTitle = ({ representativeTissue }) => {
     // Same tissue_type-first preference as the body's targetTissueValue below.
     const targetTissueValue =
@@ -157,9 +161,10 @@ export default function TissueTypeView({
         () => buildTissueOverviewMetricGroups(allTissuesForType),
         [allTissuesForType]
     );
-    // TEMPORARY -- switches Donor Details back to its previous table
-    // (LegacyTissueDonorDetailsTable.js) for side-by-side comparison.
-    const [showLegacyDonorDetails, setShowLegacyDonorDetails] = useState(false);
+    // TEMPORARY -- switches Donor Details between its previous table
+    // (LegacyTissueDonorDetailsTable.js) and the new one for comparison.
+    // Opens on the previous table until the new one is signed off.
+    const [showLegacyDonorDetails, setShowLegacyDonorDetails] = useState(true);
     const donorDetailsViewToggle = (
         <button
             type="button"
@@ -1069,15 +1074,15 @@ export default function TissueTypeView({
                                     </DotRouterTab>,
                                     <DotRouterTab key="brain-diagnosis" dotPath=".brain-diagnosis" tabTitle="Diagnosis Summary"
                                         arrowTabs={false} cache={true}>
-                                        <BrainDiagnosisTable tissueResults={allTissuesForType} donorHrefs={donorHrefs} />
+                                        <BrainDiagnosisTable tissueResults={allTissuesForType} donorHrefs={donorHrefs} scopeNote={WHOLE_BRAIN_REPORT_NOTE} />
                                     </DotRouterTab>,
                                     <DotRouterTab key="brain-findings" dotPath=".brain-findings" tabTitle="Neuropathology Findings"
                                         arrowTabs={false} cache={true}>
-                                        <BrainFindingsTable tissueResults={allTissuesForType} donorHrefs={donorHrefs} />
+                                        <BrainFindingsTable tissueResults={allTissuesForType} donorHrefs={donorHrefs} scopeNote={WHOLE_BRAIN_REPORT_NOTE} />
                                     </DotRouterTab>,
                                     <DotRouterTab key="brain-staging" dotPath=".brain-staging" tabTitle="Neuropathology Staging"
                                         arrowTabs={false} cache={true}>
-                                        <BrainStagingTable tissueResults={allTissuesForType} donorHrefs={donorHrefs} />
+                                        <BrainStagingTable tissueResults={allTissuesForType} donorHrefs={donorHrefs} scopeNote={WHOLE_BRAIN_REPORT_NOTE} />
                                     </DotRouterTab>,
                                 ]}
                             </DotRouter>

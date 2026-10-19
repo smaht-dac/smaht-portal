@@ -309,10 +309,20 @@ class Tissue(SampleSource):
         if not pathology_reports:
             return None
 
+        # A BrainPathologyReport covers the whole brain and links every
+        # region's TissueSample, so a brain-region Tissue takes only its own
+        # region's score (see get_tissue_autolysis_score), not the brain-wide max.
+        # tissue_type's code (from the ontology term) first, not external_id's
+        # own protocol code: the reports hang off separate pathology Tissues
+        # (e.g. SMHT001-3AP) sharing a region's ontology term (3AK - Brain,
+        # Frontal Lobe), and are shown under that region's tissue_type.
+        tissue_code = tissue_utils.get_tissue_type_code(
+            self.properties, request_handler=request_handler
+        ) or tissue_utils.get_protocol_id(self.properties)
         autolysis_scores = [
             score
             for score in (
-                pathology_report_utils.get_tissue_autolysis_score(report)
+                pathology_report_utils.get_tissue_autolysis_score(report, tissue_code=tissue_code)
                 for report in pathology_reports
             )
             if score is not None

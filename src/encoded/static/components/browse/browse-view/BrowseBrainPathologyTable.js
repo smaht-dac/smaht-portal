@@ -335,6 +335,21 @@ function DonorSummaryButton({ donorId, entries }) {
     );
 }
 
+// Optional note after a brain table's title -- the Tissue Overview page
+// (TissueTypeView.js) uses it to say a brain region's tab shows whole-brain
+// report data: 1 BrainPathologyReport covers the whole brain and is linked
+// from every region's TissueSample, so these tabs read the same on all 5
+// region pages.
+function BrainTableScopeNote({ note }) {
+    if (!note) return null;
+    return (
+        <span className="tissue-heatmap-metric-hint">
+            <i className="icon icon-fw icon-brain fas" aria-hidden="true" />
+            {note}
+        </span>
+    );
+}
+
 /** "Summary" header cell -- `rowSpan` matches the table's own header rows. */
 export function DonorSummaryHeaderCell({ rowSpan }) {
     return (
@@ -369,7 +384,7 @@ function BrainPathologyEmptyState() {
 // apply here) reusing just the shared tissue-heatmap-card/-table/-cell CSS
 // and FixedScoreLegend, so it still reads as the same visual family as the
 // other 4 tabs.
-export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
+export function BrainFindingsTable({ tissueResults = [], donorHrefs = null, scopeNote = null }) {
     const donorFindings = useMemo(() => buildDonorBrainFindings(tissueResults), [tissueResults]);
     const donorDemographics = useMemo(() => buildDonorDemographics(tissueResults), [tissueResults]);
     const donorDiagnosis = useMemo(() => buildDonorBrainDiagnosis(tissueResults), [tissueResults]);
@@ -404,6 +419,7 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                             <i className="icon icon-fw icon-file-lines fas" aria-hidden="true" />
                             Click a Present cell to read the reported reason
                         </span>
+                        <BrainTableScopeNote note={scopeNote} />
                     </div>
                     <FixedScoreLegend
                         entries={BRAIN_FINDING_LEGEND_ENTRIES}
@@ -514,7 +530,7 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
 // uses table-wide, just scoped to 1 column; the 3 ordinal fields via their
 // own fixed enum position instead, evenly mapped onto the same 5-band
 // score-0..4 scale).
-export function BrainStagingTable({ tissueResults = [], donorHrefs = null }) {
+export function BrainStagingTable({ tissueResults = [], donorHrefs = null, scopeNote = null }) {
     const donorStaging = useMemo(() => buildDonorBrainStaging(tissueResults), [tissueResults]);
     const donorDemographics = useMemo(() => buildDonorDemographics(tissueResults), [tissueResults]);
     const donorDiagnosis = useMemo(() => buildDonorBrainDiagnosis(tissueResults), [tissueResults]);
@@ -555,6 +571,7 @@ export function BrainStagingTable({ tissueResults = [], donorHrefs = null }) {
                                 data-tip="Neurodegenerative disease staging/severity scores from brain pathology reports. Each score has its own scale, so every column is colored relative to just its own values."
                             />
                         </h2>
+                        <BrainTableScopeNote note={scopeNote} />
                     </div>
                 </div>
             </div>
@@ -646,7 +663,7 @@ export function buildDonorBrainDiagnosis(tissueResults = []) {
 // order-label column this table has neither of; reusing it here left long
 // diagnosis text overflowing its cell with nowrap+visible-overflow and
 // visually overlapping the next column instead of wrapping.
-export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null }) {
+export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null, scopeNote = null }) {
     const donorDiagnosis = useMemo(() => buildDonorBrainDiagnosis(tissueResults), [tissueResults]);
     const donors = useMemo(() => Object.keys(donorDiagnosis).sort(), [donorDiagnosis]);
     const donorDemographics = useMemo(() => buildDonorDemographics(tissueResults), [tissueResults]);
@@ -665,6 +682,7 @@ export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null }) {
                                 data-tip="Review outcome and free-text final diagnosis/notes from each donor's brain pathology report(s)."
                             />
                         </h2>
+                        <BrainTableScopeNote note={scopeNote} />
                     </div>
                 </div>
             </div>
