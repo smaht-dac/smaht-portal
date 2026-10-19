@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { SelectAllFilesButton } from '../../static-pages/components/SelectAllAboveTableComponent';
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { BROWSE_STATUS_FILTERS } from '../BrowseView';
@@ -7,7 +7,17 @@ import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-comp
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { getTissueCategoryFromFacetTerm } from '../../util/data';
-import { DonorDataCell } from './BrowseDonorDataProvider';
+import { DonorDataCell, DonorDataContext } from './BrowseDonorDataProvider';
+
+// Re-trigger a measurement once the real content has rendered so the row/table
+// scroll range stays accurate.
+function useRemeasureDetailPaneOnLoad(loading, panelDetails) {
+    useEffect(() => {
+        if (!loading) {
+            panelDetails?.setDetailHeightFromPane?.();
+        }
+    }, [loading]);
+}
 
 export const formatTissueData = (data) => {
     const defaultTissueCategories = {
@@ -62,25 +72,35 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
     itemDetails,
     panelDetails,
 }) {
-    const [tissueData, setTissueData] = useState(null);
+    const { getDonorData, enqueueDonor } = useContext(DonorDataContext);
+    const displayTitle = itemDetails.display_title;
 
     useEffect(() => {
-        const searchURL = `/search/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}`;
+        enqueueDonor(displayTitle);
+    }, [displayTitle, enqueueDonor]);
 
-        if (panelDetails?.searchCache) {
-            setTissueData(
-                formatTissueData(
-                    panelDetails?.searchCache?.facets?.find(
-                        (f) => f.field === 'sample_summary.tissues'
-                    )?.terms || []
-                )
-            );
-        } else {
-            panelDetails.searchRequest(searchURL);
-        }
-    }, [panelDetails.searchCache]);
+    const { data, loading } = getDonorData(displayTitle);
+    useRemeasureDetailPaneOnLoad(loading, panelDetails);
 
-    return tissueData && Object?.keys(tissueData)?.length > 0 ? (
+    if (loading) {
+        return (
+            <div className="detail-content">
+                <div className="detail-header">
+                    <i className="icon icon-spin icon-circle-notch"></i>
+                </div>
+            </div>
+        );
+    }
+
+    const tissueFacet = data?.facets?.find(
+        (f) => f.field === 'sample_summary.tissues'
+    );
+    const tissueTerms = tissueFacet?.has_group_by
+        ? tissueFacet?.original_terms || tissueFacet?.terms
+        : tissueFacet?.terms;
+    const tissueData = formatTissueData(tissueTerms || []);
+
+    return (
         <div className="detail-content">
             <div className="detail-header">
                 <i className="icon icon-lungs fas"></i>
@@ -90,7 +110,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                         0
                     )}{' '}
                 </b>
-                Tissues for Donor {itemDetails.display_title}
+                Tissues for Donor {displayTitle}
             </div>
             <div className="detail-body">
                 {Object?.keys(tissueData).map((category, i) => {
@@ -110,7 +130,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                                                 <li key={j}>
                                                     <span>
                                                         <a
-                                                            href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
+                                                            href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${displayTitle}&sample_summary.tissues=${tissue}`}
                                                             target="_blank"
                                                             rel="noreferrer noopener">
                                                             {tissue}
@@ -126,12 +146,6 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                         </div>
                     );
                 })}
-            </div>
-        </div>
-    ) : (
-        <div className="detail-content">
-            <div className="detail-header">
-                <i className="icon icon-spin icon-circle-notch"></i>
             </div>
         </div>
     );
@@ -200,33 +214,45 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
     itemDetails,
     panelDetails,
 }) {
-    const [assayData, setAssayData] = useState(null);
+    const { getDonorData, enqueueDonor } = useContext(DonorDataContext);
+    const displayTitle = itemDetails.display_title;
 
     useEffect(() => {
-        const searchURL = `/search/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}`;
+        enqueueDonor(displayTitle);
+    }, [displayTitle, enqueueDonor]);
 
-        if (panelDetails?.searchCache) {
-            const assayFacets = panelDetails?.searchCache?.facets?.find(
-                (f) => f.field === 'assays.display_title'
-            );
+    const { data, loading } = getDonorData(displayTitle);
+    useRemeasureDetailPaneOnLoad(loading, panelDetails);
 
-            const termsFromFacets = assayFacets?.terms || [];
-            const labelOverridesFromFacets = assayFacets?.label_overrides || {};
+    if (loading) {
+        return (
+            <div className="detail-content">
+                <div className="detail-header">
+                    <i className="icon icon-spin icon-circle-notch"></i>
+                </div>
+            </div>
+        );
+    }
 
-            setAssayData(
-                formatAssayData(termsFromFacets, labelOverridesFromFacets)
-            );
-        } else {
-            panelDetails.searchRequest(searchURL);
-        }
-    }, [panelDetails.searchCache]);
+    const assayFacets = data?.facets?.find(
+        (f) => f.field === 'assays.display_title'
+    );
+    const termsFromFacets = assayFacets?.terms || [];
+    const labelOverridesFromFacets = assayFacets?.label_overrides || {};
+    const assayData = formatAssayData(
+        termsFromFacets,
+        labelOverridesFromFacets
+    );
 
-    return assayData && Object?.keys(assayData)?.length > 0 ? (
+    return (
         <div className="detail-content">
             <div className="detail-header">
                 <i className="icon icon-dna fas"></i>
                 <b>
-                    {Object.keys(assayData).reduce((acc, key) => acc + assayData[key].values.length, 0)}{' '}
+                    {Object.keys(assayData).reduce(
+                        (acc, key) => acc + assayData[key].values.length,
+                        0
+                    )}{' '}
                 </b>
                 Assays across all tissues
             </div>
@@ -261,7 +287,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                     <li key={j}>
                                                         <span>
                                                             <a
-                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&assays.display_title=${assay}`}
+                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${displayTitle}&assays.display_title=${assay}`}
                                                                 target="_blank"
                                                                 rel="noreferrer noopener">
                                                                 {assayTitle}
@@ -278,12 +304,6 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                         </div>
                     );
                 })}
-            </div>
-        </div>
-    ) : (
-        <div className="detail-content">
-            <div className="detail-header">
-                <i className="icon icon-spin icon-circle-notch"></i>
             </div>
         </div>
     );
@@ -418,12 +438,15 @@ export function createBaseDonorColumnExtensionMap({
                                 (f) => f.field === 'sample_summary.tissues'
                             );
                             const tissueTerms = tissueFacet?.has_group_by
-                                ? tissueFacet?.original_terms || tissueFacet?.terms
+                                ? tissueFacet?.original_terms ||
+                                  tissueFacet?.terms
                                 : tissueFacet?.terms;
                             const tissueCount = tissueTerms?.length;
 
                             if (loading) {
-                                return <span className="value text-center loading"></span>;
+                                return (
+                                    <span className="value text-center loading"></span>
+                                );
                             }
                             if (!tissueCount) {
                                 return <small className="value">-</small>;
@@ -432,7 +455,9 @@ export function createBaseDonorColumnExtensionMap({
                                 <div
                                     className={
                                         'inner-value-container' +
-                                        (detailOpen ? ' detail-open' : ' detail-closed')
+                                        (detailOpen
+                                            ? ' detail-open'
+                                            : ' detail-closed')
                                     }>
                                     <CustomTableRowToggleOpenButton
                                         {...{
@@ -442,9 +467,12 @@ export function createBaseDonorColumnExtensionMap({
                                             rowNumber,
                                             detailOpen,
                                             toggleDetailOpen,
-                                            isActive: detailPaneType === 'tissue',
+                                            isActive:
+                                                detailPaneType === 'tissue',
                                             customToggleDetailClose: () => {
-                                                if (detailPaneType === 'assay') {
+                                                if (
+                                                    detailPaneType === 'assay'
+                                                ) {
                                                     handleCellClick('tissue');
                                                 } else {
                                                     handleCellClick(null);
@@ -499,14 +527,19 @@ export function createBaseDonorColumnExtensionMap({
                     <DonorDataCell displayTitle={result.display_title}>
                         {({ data, loading }) => {
                             const assayCount = data?.facets
-                                ?.find((f) => f.field === 'assays.display_title')
+                                ?.find(
+                                    (f) => f.field === 'assays.display_title'
+                                )
                                 ?.terms?.reduce(
-                                    (acc, curr) => acc + (curr?.terms?.length ?? 1),
+                                    (acc, curr) =>
+                                        acc + (curr?.terms?.length ?? 1),
                                     0
                                 );
 
                             if (loading) {
-                                return <span className="value text-center loading"></span>;
+                                return (
+                                    <span className="value text-center loading"></span>
+                                );
                             }
                             if (!assayCount) {
                                 return <small className="value">-</small>;
@@ -515,7 +548,9 @@ export function createBaseDonorColumnExtensionMap({
                                 <div
                                     className={
                                         'inner-value-container' +
-                                        (detailOpen ? ' detail-open' : ' detail-closed')
+                                        (detailOpen
+                                            ? ' detail-open'
+                                            : ' detail-closed')
                                     }>
                                     <CustomTableRowToggleOpenButton
                                         {...{
@@ -525,9 +560,12 @@ export function createBaseDonorColumnExtensionMap({
                                             rowNumber,
                                             detailOpen,
                                             toggleDetailOpen,
-                                            isActive: detailPaneType === 'assay',
+                                            isActive:
+                                                detailPaneType === 'assay',
                                             customToggleDetailClose: () => {
-                                                if (detailPaneType === 'tissue') {
+                                                if (
+                                                    detailPaneType === 'tissue'
+                                                ) {
                                                     handleCellClick('assay');
                                                 } else {
                                                     handleCellClick(null);
@@ -575,7 +613,9 @@ export function createBaseDonorColumnExtensionMap({
                             const fileCount = data?.total;
 
                             if (loading) {
-                                return <span className="value text-center loading"></span>;
+                                return (
+                                    <span className="value text-center loading"></span>
+                                );
                             }
                             if (!fileCount) {
                                 return <small className="value">-</small>;
@@ -583,7 +623,9 @@ export function createBaseDonorColumnExtensionMap({
                             return (
                                 <a
                                     className="value text-center"
-                                    href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${encodeURIComponent(result?.display_title)}`}>
+                                    href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${encodeURIComponent(
+                                        result?.display_title
+                                    )}`}>
                                     {fileCount} File{fileCount > 1 ? 's' : ''}
                                 </a>
                             );
@@ -605,15 +647,27 @@ export function createBaseDonorColumnExtensionMap({
                             )?.sum;
 
                             if (loading) {
-                                return <span className="value text-center loading"></span>;
+                                return (
+                                    <span className="value text-center loading"></span>
+                                );
                             }
                             if (!fileSize) {
                                 return <small className="value">-</small>;
                             }
                             return (
                                 <span className="value text-center">
-                                    {valueTransforms.bytesToLargerUnit(fileSize, 0, false, true)}{' '}
-                                    {valueTransforms.bytesToLargerUnit(fileSize, 0, true, false)}
+                                    {valueTransforms.bytesToLargerUnit(
+                                        fileSize,
+                                        0,
+                                        false,
+                                        true
+                                    )}{' '}
+                                    {valueTransforms.bytesToLargerUnit(
+                                        fileSize,
+                                        0,
+                                        true,
+                                        false
+                                    )}
                                 </span>
                             );
                         }}
