@@ -3448,6 +3448,9 @@ div.browse-link-icon {
 
 	.tissue-heatmap-table-wrap {
 		overflow-x: auto;
+		// `overflow-x: auto` clips the y axis too -- room for the selected
+		// cell's 4px frame (.is-selected::before below) on the last row.
+		padding-bottom: 4px;
 
 		// Clicking a cell (MetricHeatmapTable's selectedCell/handleCellClick)
 		// fades every other cell so the clicked one stands out, matching
@@ -3462,15 +3465,32 @@ div.browse-link-icon {
 
 				&.is-selected {
 					opacity: 1;
-					// A stronger, 2-layer outline (a solid ring plus a soft
-					// glow) -- a single thin 2px outline alone still read as
-					// muted once faded neighbors surrounded it on every
-					// side, competing for attention instead of clearly
-					// winning it.
-					outline: 2px solid #2F6FB0;
-					outline-offset: -2px;
-					box-shadow: 0 0 0 4px rgba(47, 111, 176, 0.18);
 					z-index: 2;
+
+					// A soft frame around the selected cell. Drawn on a
+					// `::before` overlay, not the <td>'s own box-shadow: a
+					// split cell's absolutely positioned halves cover the
+					// <td>, and the column-divider box-shadows
+					// (.tissue-heatmap-cell-group-boundary etc.) replaced it
+					// everywhere but the last column -- so the frame showed
+					// on some cells and not others. The overlay sits above
+					// the halves (z-index within the <td>'s own stacking
+					// context) and owns its box-shadow outright.
+					&::before {
+						content: '';
+						position: absolute;
+						inset: 0;
+						z-index: 1;
+						pointer-events: none;
+						box-shadow: 0 0 0 4px rgba(47, 111, 176, 0.18);
+					}
+
+					// Stop short of the 4px tissue-type gap on the cell's
+					// right edge (see .tissue-heatmap-cell-group-boundary),
+					// so the frame hugs the colored area only.
+					&.tissue-heatmap-cell-group-boundary:not(:last-child)::before {
+						right: 4px;
+					}
 				}
 			}
 
@@ -4147,6 +4167,11 @@ div.browse-link-icon {
 		// wins at their shared corner.
 		tbody tr:not(:last-of-type) .tissue-heatmap-cell.tissue-heatmap-cell-group-boundary {
 			box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #E7F0F3;
+
+			// The last column has nothing after it to separate from.
+			&:last-child {
+				box-shadow: inset 0 -1px 0 #E7F0F3;
+			}
 		}
 
 		// "L-shaped" hover guides -- which row/column a cell belongs to
@@ -4279,6 +4304,11 @@ div.browse-link-icon {
 				box-shadow: inset -4px 0 0 #FFFFFF;
 			}
 
+			// The last column has nothing after it to separate from.
+			&.tissue-heatmap-cell-group-boundary:last-child {
+				box-shadow: none;
+			}
+
 			// A sequential sky-blue scale (light -> dark), not a green->red
 			// ramp, since that read as a status/alarm signal regardless of
 			// what the metric measured -- "Sky" (#4DCFFF), generated via
@@ -4409,6 +4439,11 @@ div.browse-link-icon {
 			&.tissue-heatmap-cell-group-boundary {
 				box-shadow: inset -4px 0 0 #FFFFFF;
 			}
+
+			// The last column has nothing after it to separate from.
+			&.tissue-heatmap-cell-group-boundary:last-child {
+				box-shadow: none;
+			}
 		}
 
 		.tissue-heatmap-cell-split-half {
@@ -4523,6 +4558,10 @@ div.browse-link-icon {
 			.tissue-heatmap-cell-split-half-b {
 				left: 50%;
 				width: calc(50% - 4px);
+			}
+			// The last column has no group-boundary gap to reveal.
+			&:last-child .tissue-heatmap-cell-split-half-b {
+				width: 50%;
 			}
 		}
 
