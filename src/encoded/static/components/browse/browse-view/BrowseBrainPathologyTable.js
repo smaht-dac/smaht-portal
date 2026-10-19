@@ -420,8 +420,9 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                             <th className="tissue-heatmap-metric-donor-header">Donor ID</th>
                             <DonorDemographicsHeaderCells />
                             <DonorSummaryHeaderCell />
-                            {BRAIN_FINDING_CATEGORIES.map((category) => (
-                                <th key={category} title={category}>
+                            {BRAIN_FINDING_CATEGORIES.map((category, columnIndex) => (
+                                <th key={category} title={category}
+                                    className={selectedCell?.columnIndex === columnIndex ? 'is-selected-column' : undefined}>
                                     {category}
                                     <ColumnHeaderInfo field={BRAIN_FINDING_SCHEMA_FIELDS[category]} />
                                 </th>
@@ -433,7 +434,12 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null }) {
                             const byCategory = donorFindings[donorId];
                             return (
                                 <tr key={donorId}>
-                                    <td className="tissue-heatmap-metric-donor-id"><DonorIdLink donorId={donorId} donorHrefs={donorHrefs} /></td>
+                                    <td className={
+                                        'tissue-heatmap-metric-donor-id' +
+                                        (selectedCell?.rowIndex === rowIndex ? ' is-selected-row' : '')
+                                    }>
+                                        <DonorIdLink donorId={donorId} donorHrefs={donorHrefs} />
+                                    </td>
                                     <DonorDemographicsCells demographics={donorDemographics[donorId]} />
                                     <DonorSummaryCell donorId={donorId} donorDiagnosis={donorDiagnosis} />
                                     {BRAIN_FINDING_CATEGORIES.map((category, columnIndex) => {

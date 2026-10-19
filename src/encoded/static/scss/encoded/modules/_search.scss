@@ -3544,14 +3544,18 @@ div.browse-link-icon {
 			// The rowSpan Donor ID/Age/Sex/Summary headers are excluded -- on
 			// a table with no group row (brain tables, hideGroupRow) they
 			// share the last header row with the tissue-type headers.
-			thead tr:last-child th:not(.tissue-heatmap-order-header):not(.tissue-heatmap-donor-header):not(.tissue-heatmap-demographic-header),
-			.tissue-heatmap-donor-id {
+			// .tissue-heatmap-metric-donor-* are BrainFindingsTable's own
+			// donor column (see BrowseBrainPathologyTable.js).
+			thead tr:last-child th:not(.tissue-heatmap-order-header):not(.tissue-heatmap-donor-header):not(.tissue-heatmap-metric-donor-header):not(.tissue-heatmap-demographic-header),
+			.tissue-heatmap-donor-id,
+			.tissue-heatmap-metric-donor-id {
 				opacity: 0.35;
 				transition: opacity 0.15s ease;
 			}
 
 			thead tr:last-child th.is-selected-column,
-			.tissue-heatmap-donor-id.is-selected-row {
+			.tissue-heatmap-donor-id.is-selected-row,
+			.tissue-heatmap-metric-donor-id.is-selected-row {
 				opacity: 1;
 			}
 		}
@@ -4112,7 +4116,8 @@ div.browse-link-icon {
 		// own row/column, on top of that cell's own outline (above), so
 		// tracing "which donor/tissue is this" doesn't require reading the
 		// header text over on the far left/top again.
-		.tissue-heatmap-donor-id.is-selected-row {
+		.tissue-heatmap-donor-id.is-selected-row,
+		.tissue-heatmap-metric-donor-id.is-selected-row {
 			// Same inset line as th.is-selected-column below, just on this
 			// cell's own right edge (the side facing into the table body)
 			// instead of its bottom -- keeps the 2 indicators visually
@@ -4707,6 +4712,25 @@ table.tissue-heatmap-table {
 		color: #428bca;
 		border-right: 1px solid #E7F0F3;
 		box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.12);
+
+		// The selected-row line (see .tissue-heatmap-donor-id.is-selected-row)
+		// plus this column's own sticky edge shadow -- box-shadows from 2
+		// rules don't layer, so both are listed here.
+		&.is-selected-row {
+			box-shadow: inset -3px 0 0 0 #2F6FB0, 2px 0 4px -2px rgba(0, 0, 0, 0.12);
+
+			// The selected-row arrow sits in the cell's left padding,
+			// out of flow -- inline (as on MetricHeatmapTable's donor
+			// column) it widened this content-sized column, shifting the
+			// whole row right while a cell was selected.
+			&::before {
+				position: absolute;
+				left: 4px;
+				top: 50%;
+				transform: translateY(-50%);
+				margin-right: 0;
+			}
+		}
 	}
 }
 
