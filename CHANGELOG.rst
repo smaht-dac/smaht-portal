@@ -7,6 +7,79 @@ smaht-portal
 Change Log
 ----------
 
+2.15.6
+======
+
+`PR 771: feat: pathology manifest download <https://github.com/smaht-dac/smaht-portal/pull/771>`_
+
+* Create new pathology manifest download button
+
+
+2.15.5
+======
+
+`PR 779: Data matrix: Benchmarking Donor x Assay tab and WGS Coverage view updates <https://github.com/smaht-dac/smaht-portal/pull/779>`_
+
+* Show the matrix-mode tab bar in the Benchmarking data matrix with only the Donor x Assay tab, via a
+  new ``matrixModeTabs`` DataMatrix prop that limits which mode tabs render (default: all)
+* Rename the data matrix Coverage toggle to "WGS Coverage"
+* In coverage view, fill cells that have files but no coverage value with a light blue (``#E7F1FA``)
+  so they read as the same data as the Files view
+
+
+2.15.4
+======
+
+`PR 781: Update path report outcome description <https://github.com/smaht-dac/smaht-portal/pull/781>`_
+
+* Add specific information regarding unacceptable pathology report outcomes.
+
+
+2.15.3
+======
+
+`PR 780: Update publication view to use citation_addon property <https://github.com/smaht-dac/smaht-portal/pull/780>`_
+
+* Update publication view to use citation_addon property
+
+
+2.15.2
+======
+
+`PR 778: Fix typo in facet <https://github.com/smaht-dac/smaht-portal/pull/778>`_
+
+* Fix "SMaHT Variant Call Sets" facet title
+
+
+2.15.1
+=======
+
+`PR 776: feat: add new files to genome reference table <https://github.com/smaht-dac/smaht-portal/pull/776>`_
+
+* Update Genome Reference Page
+
+
+2.15.0
+======
+
+`PR #716: Data-release email notifications <https://github.com/smaht-dac/smaht-portal/pull/716>`_
+
+* Users with dbGaP access can subscribe to data-release emails from their profile page
+* New admin-only Notification Status page to compose plain-text announcements, preview
+  them, insert a summary of released and retracted files, and send a test email or an email
+  to all subscribers (sending to all is limited to named accounts)
+* New ``EmailNotification`` item type recording sent announcements
+
+
+2.14.0
+======
+
+`PR 777: Add call_set to output files <https://github.com/smaht-dac/smaht-portal/pull/777>`_
+
+* Add admin-only ``call_set`` (``name``, ``category``) to ``OutputFile`` and ``ExternalOutputFile``
+* Replace the Data Description file facet with a Call Set facet grouped by category
+
+
 2.13.13
 =======
 
