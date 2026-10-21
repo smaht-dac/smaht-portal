@@ -1,39 +1,35 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-// Load the explorer only on this route. It shares the portal document/session;
-// its shadow root keeps diagram styles and IDs out of the surrounding UI.
-export default function SchemaExplorerPage() {
-    const host = useRef(null);
-    const [loading, setLoading] = useState(true);
+// Use the portal page lifecycle. Webpack loads the React UI only on this route.
+export default function SchemaExplorerPage({ context }) {
+    const [Explorer, setExplorer] = useState(null);
     const [error, setError] = useState(false);
     useEffect(() => {
         let cancelled = false;
-        let dispose;
-        import(/* webpackIgnore: true */ '/schema-explorer/assets/native.js')
-            .then(({ mount }) => {
-                if (cancelled) return;
-                dispose = mount(host.current);
-                setLoading(false);
+        import(
+            /* webpackChunkName: "schema-explorer" */ './schema-explorer/Explorer'
+        )
+            .then((module) => {
+                if (!cancelled) setExplorer(() => module.default);
             })
             .catch(() => {
-                if (cancelled) return;
-                setLoading(false);
-                setError(true);
+                if (!cancelled) setError(true);
             });
         return () => {
             cancelled = true;
-            if (dispose) dispose();
         };
     }, []);
     return (
         <section className="container-fluid py-3" aria-label="Schema Explorer">
-            {loading && <p role="status">Loading Schema Explorer…</p>}
-            {error && (
+            {error ? (
                 <p role="alert" className="alert alert-warning">
-                    Schema Explorer could not load. Check your admin session and reload this page.
+                    Schema Explorer could not load. Reload this page to retry.
                 </p>
+            ) : Explorer ? (
+                <Explorer isAdmin={context?.can_view_items === true} />
+            ) : (
+                <p role="status">Loading Schema Explorer…</p>
             )}
-            <div ref={host} data-schema-explorer="" />
         </section>
     );
 }

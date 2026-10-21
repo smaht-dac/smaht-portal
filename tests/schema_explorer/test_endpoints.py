@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from pyramid.config import Configurator
+from pyramid.renderers import JSON
 from webtest import TestApp
 
 from encoded.schema_explorer import STORE, ModelStore, build_snapshot
@@ -17,8 +18,10 @@ from encoded.schema_explorer import STORE, ModelStore, build_snapshot
 class ExplorerTests(unittest.TestCase):
     def setUp(self):
         self.config = Configurator()
+        self.config.add_renderer(None, JSON())
         self.config.add_request_method(
-            lambda request: ['group.admin'] if request.headers.get('X-Test-Admin') else [],
+            lambda request: ['group.admin'] if request.headers.get('X-Test-Admin') else
+            (['system.Authenticated'] if request.headers.get('X-Test-User') else []),
             'effective_principals', reify=True)
         self.config.include('encoded.schema_explorer')
         self.config.registry[STORE].snapshot = {
@@ -29,11 +32,19 @@ class ExplorerTests(unittest.TestCase):
         self.headers = {'X-Test-Admin': 'yes'}
         self.addCleanup(self.config.end)
 
-    def test_every_endpoint_requires_admin(self):
+    def test_every_endpoint_requires_sign_in(self):
         for url in ['/schema-explorer', '/schema-explorer/ui', '/schema-explorer/model',
-                    '/schema-explorer/source?file=encoded/types/example.py',
-                    '/schema-explorer/assets/app.js', '/schema-explorer/assets/native.js']:
+                    '/schema-explorer/source?file=encoded/types/example.py']:
             self.app.get(url, status=403)
+
+    def test_non_admin_can_explore_schemas_but_not_live_items(self):
+        headers = {'X-Test-User': 'yes'}
+        page = self.app.get('/schema-explorer', headers=headers).json
+        self.assertFalse(page['can_view_items'])
+        self.assertTrue(self.app.get('/schema-explorer', headers=self.headers).json['can_view_items'])
+        self.app.get('/schema-explorer/model', headers=headers, status=200)
+        self.app.get('/schema-explorer/source?file=encoded/types/example.py', headers=headers, status=200)
+        self.app.get('/schema-explorer/ui', headers=headers, status=302)
 
     def test_model_is_private_and_read_only(self):
         result = self.app.get('/schema-explorer/model', headers=self.headers)
@@ -41,16 +52,9 @@ class ExplorerTests(unittest.TestCase):
         self.assertIn('no-store', result.headers['Cache-Control'])
         self.app.post('/schema-explorer/model', headers=self.headers, status=404)
 
-    def test_ui_and_asset_allowlist(self):
-        for name in ['portal.js', 'app.js', 'entity-diagram.js', 'item.js',
-                     'path-analysis.js', 'path-finder.js', 'provenance.js', 'style.css', 'native.js']:
-            asset = self.app.get('/schema-explorer/assets/' + name,
-                                 headers=self.headers, status=200)
-            self.assertEqual(asset.content_type,
-                             'text/css' if name.endswith('.css') else 'application/javascript')
-            self.assertEqual(asset.charset.lower(), 'utf-8')
-            self.assertEqual(asset.headers['X-Content-Type-Options'], 'nosniff')
-        self.app.get('/schema-explorer/assets/analyzer.py', headers=self.headers, status=404)
+    def test_old_ui_assets_are_not_served(self):
+        for name in ['native.js', 'portal.js', 'index.html', 'style.css']:
+            self.app.get('/schema-explorer/assets/' + name, headers=self.headers, status=404)
 
     def test_direct_ui_navigation_returns_to_portal_shell(self):
         response = self.app.get('/schema-explorer/ui',
@@ -58,14 +62,6 @@ class ExplorerTests(unittest.TestCase):
         self.assertTrue(response.location.endswith('/schema-explorer'))
         self.assertIn('no-store', response.headers['Cache-Control'])
         self.app.get('/schema-explorer/ui', headers=self.headers, status=302)
-
-    def test_native_module_is_scoped_and_complete(self):
-        result = self.app.get('/schema-explorer/assets/native.js', headers=self.headers)
-        self.assertIn('export function mount(host)', result.text)
-        self.assertNotIn('/* EXPLORER_', result.text)
-        self.assertNotIn('<iframe', result.text)
-        self.assertIn('lifetime.abort()', result.text)
-        self.assertIn('no-store', result.headers['Cache-Control'])
 
     def test_source_is_an_index_lookup_not_a_filesystem_path(self):
         response = self.app.get('/schema-explorer/source',

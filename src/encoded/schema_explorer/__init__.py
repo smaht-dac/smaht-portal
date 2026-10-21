@@ -1,8 +1,9 @@
-"""Admin-only schema explorer backed by the deployed package sources.
+"""Schema explorer for signed-in users backed by the deployed package sources.
 
-The UI mounts directly in the portal DOM and is loaded on demand.
+The React UI is built and served by the standard portal frontend.
 No credentials file, proxy request, application-code execution or write API is used.
 """
+import ast
 import copy
 from importlib.util import find_spec
 import json
@@ -10,17 +11,11 @@ from pathlib import Path
 from threading import Lock
 
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
-from pyramid.response import Response
 from pyramid.view import view_config
 
 from .analyzer import Index
 
 
-ASSETS = Path(__file__).parent / 'assets'
-ASSET_NAMES = frozenset({
-    'app.js', 'entity-diagram.js', 'item.js', 'path-analysis.js',
-    'path-finder.js', 'provenance.js', 'portal.js', 'style.css', 'native.js',
-})
 STORE = 'encoded.schema_explorer.store'
 
 
@@ -101,32 +96,24 @@ def includeme(config):
     config.add_route('schema_explorer_ui', '/schema-explorer/ui')
     config.add_route('schema_explorer_model', '/schema-explorer/model')
     config.add_route('schema_explorer_source', '/schema-explorer/source')
-    config.add_route('schema_explorer_asset', '/schema-explorer/assets/{name}')
     config.scan(__name__)
 
 
 def authorize(request):
-    # Explicit admin gate covers the page, model, source text and every UI asset.
-    if 'group.admin' not in request.effective_principals:
-        raise HTTPForbidden('Schema Explorer is available to portal administrators.')
+    # Schema definitions are available to signed-in portal users. Live item
+    # controls remain admin-only; item APIs retain their existing permissions.
+    if not {'system.Authenticated', 'group.admin'}.intersection(request.effective_principals):
+        raise HTTPForbidden('Sign in to use Schema Explorer.')
     request.response.headers['Cache-Control'] = 'private, no-store'
 
-
-def private_response(body, content_type):
-    # Pyramid/WebOb replaces the header list when ``headers`` is supplied to
-    # the constructor, dropping Content-Type/charset set by its other kwargs.
-    response = Response(body=body.encode('utf-8'))
-    response.headers['Content-Type'] = content_type + '; charset=UTF-8'
-    response.headers['Cache-Control'] = 'private, no-store'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    return response
 
 
 @view_config(route_name='schema_explorer_page', request_method='GET')
 def page(request):
     authorize(request)
     return {'@id': '/schema-explorer', '@type': ['SchemaExplorerPage'],
-            'title': 'Schema Explorer', 'description': 'Explore the deployed data model.'}
+            'title': 'Schema Explorer', 'description': 'Explore the deployed data model.',
+            'can_view_items': 'group.admin' in request.effective_principals}
 
 
 @view_config(route_name='schema_explorer_model', request_method='GET', renderer='json')
@@ -142,31 +129,19 @@ def source(request):
     text = request.registry[STORE].get()['sources'].get(key)
     if text is None:
         raise HTTPNotFound('Source definition not indexed.')
-    return {'file': key, 'text': text}
-
-
-@view_config(route_name='schema_explorer_asset', request_method='GET')
-def asset(request):
-    authorize(request)
-    name = request.matchdict['name']
-    if name not in ASSET_NAMES:
-        raise HTTPNotFound()
-    body = native_module() if name == 'native.js' else (ASSETS / name).read_text()
-    return private_response(body,
-                            'text/css' if name.endswith('.css') else 'application/javascript')
-
-
-def native_module():
-    """Compose trusted, packaged UI code as a lazy ES module (no eval)."""
-    html = (ASSETS / 'index.html').read_text().split('<body>', 1)[1].split('<script', 1)[0]
-    css = (ASSETS / 'style.css').read_text().replace(':root', ':host')
-    css = css.replace('body', '.explorer-root')
-    scripts = ['portal.js', 'provenance.js', 'app.js', 'entity-diagram.js',
-               'path-analysis.js', 'path-finder.js', 'item.js']
-    return ((ASSETS / 'native.js').read_text()
-            .replace('/* EXPLORER_HTML */', json.dumps(html))
-            .replace('/* EXPLORER_CSS */', json.dumps(css))
-            .replace('/* EXPLORER_SCRIPTS */', '\n'.join((ASSETS / name).read_text() for name in scripts)))
+    definitions = []
+    if key.endswith('.py'):
+        try:
+            for node in ast.walk(ast.parse(text)):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    definitions.append({
+                        'line': node.lineno,
+                        'start': min([node.lineno] + [d.lineno for d in node.decorator_list]),
+                        'end': node.end_lineno,
+                    })
+        except SyntaxError:
+            pass
+    return {'file': key, 'text': text, 'definitions': definitions}
 
 
 @view_config(route_name='schema_explorer_ui', request_method='GET')

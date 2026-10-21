@@ -1,76 +1,74 @@
 # Portal Schema Explorer
 
-Open `/schema-explorer`, or choose **Schema Explorer** in an admin's account menu.
-The page, model, source viewer and assets require `group.admin`. Item API
-requests use the current browser session and retain normal portal permissions.
+Open `/schema-explorer`, or choose **Schema Explorer** in the account menu.
+The page, model and indexed source API require a signed-in user. Only admins see
+the Live item explorer. Live item requests
+use the current browser session and retain the normal item permissions.
 
-The React page mounts the explorer directly in the portal document, without an
-iframe. A shadow root isolates its CSS and IDs while the portal owns navigation
-and page scrolling. The old `/schema-explorer/ui` URL redirects to the portal page. SVG rendering, filtering,
-relationship planning, item provenance and PNG export are adapted from the local
-extension (0.4.5). The asset scripts and CSS are loaded only on this page, outside
-the main webpack bundle. There are no new npm dependencies. Assets are served from
-this Python package, not from the public static directory.
+## Frontend
+
+The page uses ordinary React components under
+`static/components/static-pages/schema-explorer`. Webpack loads the UI as a
+route-specific chunk. Styles are scoped by `.schema-explorer` and
+`.schema-explorer-modal` in the portal SCSS build. React owns all selections,
+filters, dialogs, SVG nodes and item values. There is no iframe, Shadow DOM,
+HTML/script assembly endpoint or VS Code messaging adapter. No npm dependencies
+were added.
+
+The initial view is **All schemas**, with no item type selected. User and
+Consortium types are hidden by default. The neighborhood control toggles between
+the selected type's immediate neighbors and the enabled types. Item view includes
+field/embedding searches, inheritance, source inspection, navigation history and
+live provenance. The planner preserves ranking, subtype conditions, search bounds
+and missing-reverse-link proposals. Both diagram views support PNG export.
+
+Model/source reads use the portal AJAX utility. Live item reads use same-origin
+fetch to reject cross-origin redirects as well as external input URLs. Components
+cancel requests and remove listeners on unmount. No live data is stored in browser
+storage. The old `/schema-explorer/ui` URL only redirects to the portal page;
+`/schema-explorer/assets/*` endpoints have been removed.
+
+Session management belongs to the portal, not to Explorer. Explorer uses the
+existing authentication and rendering pipeline without custom session callbacks
+or changes to the shared renderer.
 
 ## Model lifecycle
 
-By default, the deployed `encoded`, `encoded_core` and `snovault` source files are
-analyzed once, on the first authorized model request in each server worker. The
-result is cached under a lock. Application modules are parsed, not executed. The
-source snapshot and model come from the same analysis. Restart the worker after
-source changes; **Refresh** reloads the deployed snapshot, not local source edits.
+The deployed `encoded`, `encoded_core` and `snovault` sources are analyzed once on
+the first authorized request per worker, then cached under a lock. Modules are
+parsed, not executed. Restart the worker after source changes; **Refresh** reloads
+the deployed snapshot, not local source edits.
 
-Optionally precompute during deployment:
+Optionally precompute with:
 
 ```sh
 python -m encoded.schema_explorer /path/to/schema-explorer.json
 ```
 
-Set `schema_explorer.artifact = /path/to/schema-explorer.json` in the server INI
-to use that artifact instead. Generate it in the same environment/image that will
-serve it. It contains model metadata and indexed source code; do not put it in a
-public static directory. No deployment entrypoints are changed by this feature.
+Set `schema_explorer.artifact` in the server INI to use this artifact. Generate it
+in the environment/image that will serve it. It contains model metadata and source
+code, so it must not be placed in a public static directory.
 
 ## Data and security
 
-- No `~/.smaht-keys.json`, environment selector or server-side request proxy.
-- GET requests only, using same-origin mode and the existing session. External
-  item URLs are rejected and cross-origin redirects fail. Live values stay in
-  memory and are not persisted in localStorage/sessionStorage.
-- Object, raw, embedded and profile frames are requested. Missing/forbidden raw
-  data is reported, not bypassed. Optional page/columns/expand frames are supported.
-- Source links are allowlisted identifiers such as `encoded/types/tissue.py`,
-  not arbitrary filesystem paths. Only indexed Python/JSON files can be viewed.
-- Model, source and asset responses use private, no-store caching. The native ES
-  module follows the portal CSP and uses no eval. Requests enforce same-origin
-  access. Each mount has isolated state/events; unmount aborts pending requests
-  and clears its DOM and timers. Shadow DOM is style isolation, not a security boundary.
-- Static analysis and provenance remain approximations: review diagnostics and
-  validate subtype conditions, domain meaning and calculated-property behavior.
+- No keys file, environment selector or server-side request proxy.
+- GET requests only. Raw/object/embedded/profile and optional page/columns/expand
+  frames preserve the current user's permissions; unavailable frames are reported.
+- Source identifiers are an index allowlist, never arbitrary filesystem paths.
+- Model/source responses are private and no-store. Source text and item values are
+  rendered as React text, never as HTML.
+- Static analysis and provenance are approximations. Validate subtype conditions,
+  domain meaning and calculated behavior before changing schemas or embeds.
 
-## Maintenance and validation
-
-The assets/analyzer are a vendored baseline with a browser adapter (`portal.js`),
-portal source paths, a light theme and mount-local events. `native.js` wraps the
-packaged scripts in a mount/dispose lifecycle; the backend assembles this trusted
-code and markup on demand, without adding it to the main webpack bundle. Do not blindly copy
-new extension releases over these adaptations. Upstream fixes should be reviewed
-and ported to both consumers; future shared packaging can eliminate duplication.
-
-Standalone backend tests (no PostgreSQL/OpenSearch fixtures):
+## Validation
 
 ```sh
 PYTHONPATH=src python -m unittest discover -s tests/schema_explorer -v
-```
-
-Optional real-browser regression test (Playwright/Chromium test tooling must be
-available; it is not a portal runtime dependency):
-
-```sh
 python -m encoded.schema_explorer /tmp/schema-explorer.json
 node tests/schema_explorer/browser.cjs /tmp/schema-explorer.json
 ```
 
-`PLAYWRIGHT_MODULE` can point to an existing Playwright installation, and
-`CHROME_PATH` can select an installed Chrome executable. All network responses in
-this test are local fixtures; no environment credentials or real item data are used.
+Build the portal JS and SCSS first. The browser test uses Playwright/Chrome with
+local fixtures, including React mount/unmount, the schema map, source modal, PNG,
+planner and same-origin live items. `PLAYWRIGHT_MODULE`, `CHROME_PATH` and `PYTHON`
+can select local test tooling. The endpoint tests do not require database fixtures.

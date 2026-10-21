@@ -131,6 +131,6 @@ def profile(context, request):
 
 @calculated_property(context=User, category='user_action')
 def schema_explorer(context, request):
-    if 'group.admin' in request.effective_principals:
+    if {'system.Authenticated', 'group.admin'}.intersection(request.effective_principals):
         return {'id': 'schema-explorer', 'title': 'Schema Explorer',
                 'href': '/schema-explorer'}

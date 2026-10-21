@@ -264,6 +264,9 @@ module.exports = [
                 d3: 'var {}',
                 // This is used during build-time only I think...
                 '@babel/register': '@babel/register',
+                // Loaded after mount only; prevent the Node build from replacing
+                // the browser's schema-explorer chunk in the shared output folder.
+                './schema-explorer/Explorer': 'var {}',
                 // TODO: Re-add when higlass is re-introduced
                 // 'higlass-dependencies': 'var {}',
                 // These remaining /higlass/ defs aren't really necessary
