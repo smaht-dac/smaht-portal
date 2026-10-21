@@ -105,3 +105,10 @@ test.ini
 
 # Don't track this as its long and can be pulled independently
 restricted_domains.txt
+
+# TODO: remove this before merge
+# Raw SVS inputs and locally processed pyramids.
+tissue_histology_examples/
+
+# Generated static slide assets.
+src/encoded/static/img/slides/*
