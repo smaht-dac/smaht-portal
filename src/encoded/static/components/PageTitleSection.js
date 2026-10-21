@@ -68,6 +68,16 @@ export const PageTitleSection = React.memo(function PageTitle(props) {
         //return <GenericItemPageTitle {...{ context, schemas, alerts }}/>;
     }
 
+    if (context['@type']?.includes('SchemaExplorerPage')) {
+        return (
+            <PageTitleContainer alerts={alerts} className="container-fluid">
+                <div style={{ paddingInline: 24 }}>
+                    <OnlyTitle>{context.title || 'Schema Explorer'}</OnlyTitle>
+                </div>
+            </PageTitleContainer>
+        );
+    }
+
     return (
         <PageTitleContainer {...{ alerts }}>
             <OnlyTitle>
