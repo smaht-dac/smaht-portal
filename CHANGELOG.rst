@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.7
+======
+
+`PR 761: WF Sample and File Nomenclature v3.0 <https://github.com/smaht-dac/smaht-portal/pull/761>`_
+
+* Update Sample and File Nomenclature documentation to version 3.0
+
+
 2.15.6
 ======
 
