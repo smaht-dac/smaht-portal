@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.15.8
+2.15.9
 ======
 
 `PR 785: update lock file <https://github.com/smaht-dac/smaht-portal/pull/785>`_
