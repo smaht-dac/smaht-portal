@@ -3696,7 +3696,8 @@ body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
 }
 
 // Fade at the bottom of the results while there are more rows to scroll to
-.retracted-files-table {
+.retracted-files-table,
+.renamed-files-table {
     .results-column {
         position: relative;
     }

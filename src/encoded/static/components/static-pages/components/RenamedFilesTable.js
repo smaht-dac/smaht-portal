@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     EmbeddedItemSearchTable,
     SearchTableTitle,
@@ -33,15 +33,68 @@ export const RENAMED_FILES_FACET_FIELDS = [
 const filterRenamedFilesFacets = (facet) =>
     RENAMED_FILES_FACET_FIELDS.includes(facet?.field);
 
-// Result row height, kept in sync with the row CSS (30px + 1px border)
 export const ROW_HEIGHT = 31;
-
-// Fit a whole number of rows (17 rows = 527px) so the last row isn't cut off
 export const RESULTS_BODY_HEIGHT = ROW_HEIGHT * 17;
 
 // The facet column's header/padding is ~36px taller than the results header
 // row, so the facets body is shorter to make both columns end at the same line
 export const FACETS_BODY_HEIGHT = RESULTS_BODY_HEIGHT - 36;
+
+/**
+ * Shows a shadow at the bottom of the results while there are more rows to
+ * scroll to. Attach `outerRef` to the table wrapper and add the
+ * `show-scroll-shadow` class to it while `showShadow` is true.
+ */
+export function useScrollShadow() {
+    const outerRef = useRef(null);
+    const [showShadow, setShowShadow] = useState(false);
+
+    // Tracks scroll container to show shadow whenever there is more content
+    // below the visible area
+    useEffect(() => {
+        const outer = outerRef.current;
+        if (!outer) return;
+
+        const updateShadow = ({ scrollTop, clientHeight, scrollHeight }) => {
+            setShowShadow(scrollTop + clientHeight < scrollHeight - 2);
+        };
+
+        // Capture-phase listener on the outer scroll container to update the shadow
+        // state whenever the scroll position changes
+        const onScroll = (e) => {
+            if (e.target?.classList?.contains('react-infinite-container')) {
+                updateShadow(e.target);
+            }
+        };
+        outer.addEventListener('scroll', onScroll, {
+            passive: true,
+            capture: true,
+        });
+
+        // Observer recomputes shadow state whenever the results change.
+        // Checks are batched to one per frame.
+        let frameId = null;
+        const observer = new MutationObserver(() => {
+            if (frameId !== null) return;
+            frameId = window.requestAnimationFrame(() => {
+                frameId = null;
+                const scrollContainer = outer.querySelector(
+                    '.react-infinite-container'
+                );
+                if (scrollContainer) updateShadow(scrollContainer);
+            });
+        });
+        observer.observe(outer, { childList: true, subtree: true });
+
+        return () => {
+            outer.removeEventListener('scroll', onScroll, { capture: true });
+            observer.disconnect();
+            if (frameId !== null) window.cancelAnimationFrame(frameId);
+        };
+    }, []);
+
+    return { outerRef, showShadow };
+}
 
 // Renamed Files header component containing total count
 function RenamedFilesTableHeader({ context, href }) {
@@ -208,8 +261,15 @@ const RenamedFilesColumns = {
 
 export default function RenamedFilesTable(props) {
     const { session, schemas } = props;
+    const { outerRef, showShadow } = useScrollShadow();
+
     return (
-        <div className="renamed-files-table">
+        <div
+            className={
+                'renamed-files-table' +
+                (showShadow ? ' show-scroll-shadow' : '')
+            }
+            ref={outerRef}>
             <EmbeddedItemSearchTable
                 searchHref={RENAMED_FILES_QUERY}
                 schemas={schemas}
