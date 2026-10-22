@@ -10,9 +10,9 @@ Change Log
 2.15.9
 ======
 
-`PR 775: feat: improve renamed files table UI- #775 <https://github.com/smaht-dac/smaht-portal/pull/775>`_
+`PR 785: update lock file <https://github.com/smaht-dac/smaht-portal/pull/785>`_
 
-* Add facets to retracted and renamed files tables
+* Update pyproject.toml and lock file to reflect new dcicutils version
 
 
 2.15.8
