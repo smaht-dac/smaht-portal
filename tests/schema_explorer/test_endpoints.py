@@ -10,9 +10,23 @@ from unittest.mock import patch
 
 from pyramid.config import Configurator
 from pyramid.renderers import JSON
+from pyramid.authorization import ACLAuthorizationPolicy
 from webtest import TestApp
 
 from encoded.schema_explorer import STORE, ModelStore, build_snapshot
+from encoded.types.page import Page
+
+
+class PageACL:
+    __parent__ = None
+    __acl__ = Page.__acl__
+    SUBMISSION_CENTER_STATUS_ACL = Page.SUBMISSION_CENTER_STATUS_ACL
+    CONSORTIUM_STATUS_ACL = Page.CONSORTIUM_STATUS_ACL
+    MINIMAL_STATUS_VIEW = Page.MINIMAL_STATUS_VIEW
+    status = 'protected-network'
+
+    def upgrade_properties(self):
+        return {'status': self.status, 'consortia': ['test-consortium']}
 
 
 class ExplorerTests(unittest.TestCase):
@@ -20,9 +34,16 @@ class ExplorerTests(unittest.TestCase):
         self.config = Configurator()
         self.config.add_renderer(None, JSON())
         self.config.add_request_method(
-            lambda request: ['group.admin'] if request.headers.get('X-Test-Admin') else
-            (['system.Authenticated'] if request.headers.get('X-Test-User') else []),
+            lambda request: ['system.Everyone'] + (['group.admin'] if request.headers.get('X-Test-Admin') else
+            (['system.Authenticated', 'role.consortium_member_rw'] if request.headers.get('X-Test-User') else [])),
             'effective_principals', reify=True)
+        self.page_context = PageACL()
+        lookup = patch('encoded.schema_explorer.explorer_page', return_value=self.page_context)
+        self.lookup = lookup.start()
+        self.addCleanup(lookup.stop)
+        self.config.add_request_method(
+            lambda request, permission, context: ACLAuthorizationPolicy().permits(
+                context, request.effective_principals, permission), 'has_permission')
         self.config.include('encoded.schema_explorer')
         self.config.registry[STORE].snapshot = {
             'model': {'models': [], 'edges': [], 'warnings': []},
@@ -33,18 +54,33 @@ class ExplorerTests(unittest.TestCase):
         self.addCleanup(self.config.end)
 
     def test_every_endpoint_requires_sign_in(self):
-        for url in ['/schema-explorer', '/schema-explorer/ui', '/schema-explorer/model',
+        for url in ['/schema-explorer/ui', '/schema-explorer/model',
                     '/schema-explorer/source?file=encoded/types/example.py']:
             self.app.get(url, status=403)
 
     def test_non_admin_can_explore_schemas_but_not_live_items(self):
         headers = {'X-Test-User': 'yes'}
-        page = self.app.get('/schema-explorer', headers=headers).json
+        page = self.app.get('/schema-explorer/model', headers=headers).json
         self.assertFalse(page['can_view_items'])
-        self.assertTrue(self.app.get('/schema-explorer', headers=self.headers).json['can_view_items'])
+        self.assertTrue(self.app.get('/schema-explorer/model', headers=self.headers).json['can_view_items'])
         self.app.get('/schema-explorer/model', headers=headers, status=200)
         self.app.get('/schema-explorer/source?file=encoded/types/example.py', headers=headers, status=200)
         self.app.get('/schema-explorer/ui', headers=headers, status=302)
+
+    def test_page_status_controls_api_access_without_rebuilding_snapshot(self):
+        for status, allowed in [('open', True), ('draft', False), ('protected-network', False)]:
+            self.page_context.status = status
+            for url in ['/schema-explorer/model', '/schema-explorer/source?file=encoded/types/example.py']:
+                self.app.get(url, status=200 if allowed else 403)
+        self.page_context.status = 'draft'
+        self.app.get('/schema-explorer/model', headers={'X-Test-User': 'yes'}, status=403)
+        self.app.get('/schema-explorer/model', headers=self.headers, status=200)
+        self.lookup.return_value = None
+        self.app.get('/schema-explorer/model', headers=self.headers, status=403)
+
+    def test_page_has_no_custom_route(self):
+        self.app.get('/schema-explorer', headers=self.headers, status=404)
+        self.assertIsNone(self.config.get_routes_mapper().get_route('schema_explorer_page'))
 
     def test_model_is_private_and_read_only(self):
         result = self.app.get('/schema-explorer/model', headers=self.headers)

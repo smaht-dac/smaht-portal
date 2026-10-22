@@ -172,7 +172,7 @@ function Inspector({ model, index, query, onDetail, onSource, live }) {
         </section>
     );
 }
-export default function Explorer({ isAdmin }) {
+export default function Explorer() {
     const [index, setIndex] = useState(null),
         [error, setError] = useState(''),
         [loading, setLoading] = useState(true);
@@ -210,6 +210,7 @@ export default function Explorer({ isAdmin }) {
         },
         []
     );
+    const isAdmin = index?.can_view_items === true;
     const model = index?.models.find((m) => m.name === selected);
     const live = useMemo(
         () => (index && bundle ? describe(bundle, index) : null),

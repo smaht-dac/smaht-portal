@@ -1621,5 +1621,23 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "status": "protected-network",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "identifier": "schema-explorer",
+        "uuid": "b683617f-f78b-48eb-8d2b-f620bc753f4e",
+        "title": "Schema Explorer",
+        "content": [
+            "efb34110-5618-451c-a78d-56ab24edba48"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        }
     }
 ]

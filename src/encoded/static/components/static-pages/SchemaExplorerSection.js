@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 // Use the portal page lifecycle. Webpack loads the React UI only on this route.
-export default function SchemaExplorerPage({ context }) {
+export default function SchemaExplorerSection() {
     const [Explorer, setExplorer] = useState(null);
     const [error, setError] = useState(false);
     useEffect(() => {
@@ -26,7 +26,7 @@ export default function SchemaExplorerPage({ context }) {
                     Schema Explorer could not load. Reload this page to retry.
                 </p>
             ) : Explorer ? (
-                <Explorer isAdmin={context?.can_view_items === true} />
+                <Explorer />
             ) : (
                 <p role="status">Loading Schema Explorer…</p>
             )}
