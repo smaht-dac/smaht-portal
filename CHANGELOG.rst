@@ -7,6 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+2.15.9
+======
+
+`PR 775: feat: improve renamed files table UI- #775 <https://github.com/smaht-dac/smaht-portal/pull/775>`_
+
+* Add facets to retracted and renamed files tables
+
+
+2.15.8
+======
+
+`PR 784: style: align publication thumbnails to top <https://github.com/smaht-dac/smaht-portal/pull/784>`_
+
+* Align thumbnails on publication items to the top of container
+
+
 2.15.7
 ======
 
