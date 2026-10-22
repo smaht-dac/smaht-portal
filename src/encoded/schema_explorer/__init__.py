@@ -12,6 +12,7 @@ from threading import Lock
 
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
+from snovault import CONNECTION
 
 from .analyzer import Index
 
@@ -92,34 +93,36 @@ class ModelStore:
 
 def includeme(config):
     config.registry[STORE] = ModelStore(config.registry.settings.get('schema_explorer.artifact'))
-    config.add_route('schema_explorer_page', '/schema-explorer{slash:/?}')
     config.add_route('schema_explorer_ui', '/schema-explorer/ui')
     config.add_route('schema_explorer_model', '/schema-explorer/model')
     config.add_route('schema_explorer_source', '/schema-explorer/source')
     config.scan(__name__)
 
 
+def explorer_page(request):
+    from encoded.types.page import Page
+    stored = request.registry[CONNECTION].storage.get_by_json(
+        'identifier', 'schema-explorer', item_type='page')
+    return Page(request.registry, stored) if stored is not None else None
+
+
+def can_view_explorer(request):
+    context = explorer_page(request)
+    return context is not None and bool(request.has_permission('view', context))
+
+
 def authorize(request):
-    # Schema definitions are available to signed-in portal users. Live item
-    # controls remain admin-only; item APIs retain their existing permissions.
-    if not {'system.Authenticated', 'group.admin'}.intersection(request.effective_principals):
-        raise HTTPForbidden('Sign in to use Schema Explorer.')
     request.response.headers['Cache-Control'] = 'private, no-store'
-
-
-
-@view_config(route_name='schema_explorer_page', request_method='GET')
-def page(request):
-    authorize(request)
-    return {'@id': '/schema-explorer', '@type': ['SchemaExplorerPage'],
-            'title': 'Schema Explorer', 'description': 'Explore the deployed data model.',
-            'can_view_items': 'group.admin' in request.effective_principals}
+    if not can_view_explorer(request):
+        raise HTTPForbidden('You do not have permission to view the Schema Explorer page.')
 
 
 @view_config(route_name='schema_explorer_model', request_method='GET', renderer='json')
 def model(request):
     authorize(request)
-    return copy.deepcopy(request.registry[STORE].get()['model'])
+    result = copy.deepcopy(request.registry[STORE].get()['model'])
+    result['can_view_items'] = 'group.admin' in request.effective_principals
+    return result
 
 
 @view_config(route_name='schema_explorer_source', request_method='GET', renderer='json')

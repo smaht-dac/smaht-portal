@@ -12,7 +12,9 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const shell=await browser.newPage({viewport:{width:1500,height:1000},acceptDownloads:true});
  let page=shell;
  const {spawnSync}=require('child_process');
- const rendered=spawnSync(process.execPath,['src/encoded/static/build/renderer.js','--debug',JSON.stringify({'@id':'/schema-explorer','@type':['SchemaExplorerPage'],title:'Schema Explorer'})],{encoding:'utf8',maxBuffer:8*1024*1024});
+ const pageContext=require('./page-fixture.cjs');
+ let isAdmin=true;
+ const rendered=spawnSync(process.execPath,['src/encoded/static/build/renderer.js','--debug',JSON.stringify(pageContext)],{encoding:'utf8',maxBuffer:8*1024*1024});
  assert.equal(rendered.status,0,rendered.stderr);
  let shellMarkup=rendered.stdout.slice(rendered.stdout.indexOf('<!DOCTYPE html>')).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
  assert.ok(shellMarkup.includes('Loading Schema Explorer'));
@@ -21,7 +23,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await new Promise((resolve,reject)=>webpack({...portalConfig,mode:'development',devtool:false,optimization:{},
   entry:path.resolve('tests/schema_explorer/browser-entry.cjs'),
   output:{path:output,filename:'harness.js',publicPath:'/test-assets/'},
-  module:{rules:[{test:/\.js$/,include:path.resolve('src/encoded/static'),use:'babel-loader'}]}
+  module:portalConfig.module
  },(err,stats)=>err||stats.hasErrors()?reject(err||Error(stats.toString())):resolve()));
  shellMarkup=shellMarkup.replace('</body>','<script src="/test-harness.js"></script></body>');
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
@@ -40,7 +42,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
   if(url.pathname==='/schema-explorer/ui')return route.fulfill({status:302,headers:{location:'/schema-explorer'}});
   if(url.pathname==='/test-harness.js')return route.fulfill({contentType:'application/javascript',body:fs.readFileSync(path.join(output,'harness.js'))});
   if(url.pathname.startsWith('/test-assets/'))return route.fulfill({contentType:'application/javascript',body:fs.readFileSync(path.join(output,path.basename(url.pathname)))});
-  if(url.pathname==='/schema-explorer/model')return route.fulfill({json:snapshot.model});
+  if(url.pathname==='/schema-explorer/model')return route.fulfill({json:{...snapshot.model,can_view_items:isAdmin}});
   if(url.pathname==='/schema-explorer/source')return route.fulfill({json:{file:url.searchParams.get('file'),text:snapshot.sources[url.searchParams.get('file')]}});
   if(url.pathname==='/profiles/Donor.json')return route.fulfill({json:{properties:{accession:{type:'string'}}}});
   if(url.pathname==='/redirect/')return route.fulfill({status:302,headers:{location:'https://evil.test/demo/'}});
@@ -109,7 +111,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('#open-entity').click();
  assert.equal(await page.locator('#item-heading').textContent(),'');
  assert.deepEqual(errors,[]);
- await page.evaluate(()=>{window.unmountExplorer();window.mountExplorer(false);});
+ isAdmin=false;
+ await page.evaluate(()=>{window.unmountExplorer();window.mountExplorer();});
  await page.waitForFunction(()=>document.getElementById('types')?.options.length>30);
  assert.equal(await page.locator('#types').isVisible(),false);
  await page.locator('#open-entity').click();
@@ -121,7 +124,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('#types').isVisible(),false);
  // Now use the real portal bootstrap (browser.js), not the isolated component harness.
  const userInfo={details:{email:'admin@example.org',first_name:'Schema',last_name:'Admin',groups:['admin'],uuid:'test-admin'},user_actions:[]};
- const context=JSON.stringify({'@id':'/schema-explorer','@type':['SchemaExplorerPage'],title:'Schema Explorer',can_view_items:true});
+ isAdmin=true;
+ const context=JSON.stringify(pageContext);
  const wire='HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nX-Request-URL: https://portal.test/schema-explorer\r\nX-Request-JWT: fixture-session\r\nX-User-Info: '+JSON.stringify(userInfo)+'\r\nContent-Length: '+Buffer.byteLength(context)+'\r\n\r\n'+context;
  const full=spawnSync(process.execPath,['src/encoded/static/build/renderer.js'],{input:wire,encoding:'utf8',maxBuffer:8*1024*1024});
  assert.equal(full.status,0,full.stderr);
