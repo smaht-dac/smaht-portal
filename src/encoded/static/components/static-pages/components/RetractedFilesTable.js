@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import _ from 'underscore';
 import {
     EmbeddedItemSearchTable,
@@ -12,6 +12,7 @@ import {
     ROW_HEIGHT,
     FACETS_BODY_HEIGHT,
     RESULTS_BODY_HEIGHT,
+    useScrollShadow,
 } from './RenamedFilesTable';
 
 // Hidden by default in the File schema, so it is requested with `additional_facet`
@@ -50,49 +51,7 @@ export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
     const searchHref = propSearchHref || RETRACTED_FILES_QUERY;
 
-    const outerRef = useRef(null);
-    const [showShadow, setShowShadow] = useState(false);
-
-    // Tracks scroll container to show shadow whenever there is more content
-    // below the visible area
-    useEffect(() => {
-        const outer = outerRef.current;
-        if (!outer) return;
-
-        const updateShadow = ({ scrollTop, clientHeight, scrollHeight }) => {
-            setShowShadow(scrollTop + clientHeight < scrollHeight - 2);
-        };
-
-        // Capture-phase listener on the outer scroll container to update the shadow
-        // state whenever the scroll position changes.
-        // Ignore scrolling in the facet list, which is also inside `outer`
-        const onScroll = (e) => {
-            if (e.target?.classList?.contains('react-infinite-container')) {
-                updateShadow(e.target);
-            }
-        };
-        outer.addEventListener('scroll', onScroll, {
-            passive: true,
-            capture: true,
-        });
-
-        // Observer to compute the initial shadow state as soon as the virtual
-        // scroll container appears after the first load
-        const observer = new MutationObserver(() => {
-            const scrollContainer = outer.querySelector(
-                '.react-infinite-container'
-            );
-            if (!scrollContainer) return;
-            updateShadow(scrollContainer);
-            observer.disconnect();
-        });
-        observer.observe(outer, { childList: true, subtree: true });
-
-        return () => {
-            outer.removeEventListener('scroll', onScroll, { capture: true });
-            observer.disconnect();
-        };
-    }, []);
+    const { outerRef, showShadow } = useScrollShadow();
 
     const columnExtensionMap = {
         access_status: {
