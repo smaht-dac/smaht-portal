@@ -7,13 +7,21 @@ smaht-portal
 Change Log
 ----------
 
-2.15.8
+2.15.9
 ======
 
 `PR 773: feat: update donor browse dropdown requests <https://github.com/smaht-dac/smaht-portal/pull/773>`_
 
 * Remove redundant fetches
 * Update donor assay and tissue data to use context provider
+
+
+2.15.8
+======
+
+`PR 784: style: align publication thumbnails to top <https://github.com/smaht-dac/smaht-portal/pull/784>`_
+
+* Align thumbnails on publication items to the top of container
 
 
 2.15.7
