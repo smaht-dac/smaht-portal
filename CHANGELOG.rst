@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+2.15.8
+======
+
+`PR 784: style: align publication thumbnails to top <https://github.com/smaht-dac/smaht-portal/pull/784>`_
+
+* Align thumbnails on publication items to the top of container
+
+
 2.15.7
 ======
 
-`PR 782: fix: update facet overrides on portal pages <https://github.com/smaht-dac/smaht-portal/pull/782>`_
+`PR 761: WF Sample and File Nomenclature v3.0 <https://github.com/smaht-dac/smaht-portal/pull/761>`_
 
-* Fix facet overrides in embedded search tables and data release page
+* Update Sample and File Nomenclature documentation to version 3.0
 
 
 2.15.6
