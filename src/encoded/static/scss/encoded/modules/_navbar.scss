@@ -390,6 +390,25 @@ div.navbar-fixed-top {
                             margin-right: 8px;
                         }
 
+                        // Spinner shown alone (no label) while login redirects to Okta.
+                        &.is-loading {
+                            @include navbar-fixed-position {
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+
+                                .login-loading-indicator {
+                                    display: flex;
+                                    float: none;
+                                    margin: 0;
+
+                                    i.icon.account-icon {
+                                        margin: 0;
+                                    }
+                                }
+                            }
+                        }
+
                         &.has-image {
                             padding-left: 8px;
                             display: flex;
