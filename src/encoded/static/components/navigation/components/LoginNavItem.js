@@ -17,7 +17,10 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
         unverifiedUserEmail,
         showLock,
         isLoading,
-        isAuth0LibraryLoaded = true,
+        // False until the Okta SDK client has been built from /okta_config.
+        isLoginLibraryLoaded = true,
+        // Set when Okta configuration is missing or malformed; login cannot start.
+        oktaConfigError = null,
         className = '',
         disabled = false,
     } = props;
@@ -33,7 +36,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
         [showLock]
     );
 
-    if (disabled) {
+    if (disabled || oktaConfigError) {
         return (
             <a
                 role="button"
@@ -43,12 +46,15 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                     (className ? ' ' + className : '')
                 }
                 id={id}
+                title={oktaConfigError || undefined}
                 onClick={(e) => {
                     e.preventDefault();
                     return false;
                 }}>
                 <i className="account-icon icon icon-user fas d-inline d-lg-none" />
-                <span>Login / Register</span>
+                <span>
+                    {oktaConfigError ? 'Login Unavailable' : 'Login / Register'}
+                </span>
             </a>
         );
     }
@@ -62,13 +68,14 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                     className={
                         'nav-link user-account-item' +
                         (unverifiedUserEmail ? ' active' : '') +
+                        (isLoading ? ' is-loading' : '') +
                         (className ? ' ' + className : '')
                     }
                     id={id}
                     onClick={onClick}
-                    disabled={!isAuth0LibraryLoaded}>
+                    disabled={!isLoginLibraryLoaded}>
                     {isLoading ? (
-                        <span className="pull-right">
+                        <span className="pull-right login-loading-indicator">
                             <i className="account-icon icon icon-spin icon-circle-notch fas align-middle" />
                         </span>
                     ) : (
@@ -140,8 +147,8 @@ export const LoginButtonWrapper = ({
     children,
     showPopover = true,
     popover = <PortalShutdownPopover />, // can be an element or a component
-    trigger = ["hover", "focus"],
-    placement = "top",
+    trigger = ['hover', 'focus'],
+    placement = 'top',
 }) => {
     const [mounted, setMounted] = React.useState(false);
     React.useEffect(() => setMounted(true), []);
@@ -173,12 +180,18 @@ export const LoginButtonWrapper = ({
             popperConfig={{
                 modifiers: [
                     {
-                        name: "flip",
-                        options: { fallbackPlacements: ["bottom", "top", "left", "right"] },
+                        name: 'flip',
+                        options: {
+                            fallbackPlacements: [
+                                'bottom',
+                                'top',
+                                'left',
+                                'right',
+                            ],
+                        },
                     },
                 ],
-            }}
-        >
+            }}>
             {children}
         </OverlayTrigger>
     );
@@ -191,7 +204,10 @@ export const NotLoggedInAlert = {
             You are currently browsing as guest, please{' '}
             {
                 <LoginButtonWrapper showPopover={false}>
-                    <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">
+                    <a
+                        onClick={onAlertLoginClick}
+                        href="#loginbtn"
+                        className="link-underline-hover">
                         login
                     </a>
                 </LoginButtonWrapper>
