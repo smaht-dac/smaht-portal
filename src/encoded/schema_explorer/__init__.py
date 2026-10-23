@@ -1,4 +1,4 @@
-"""Schema explorer for signed-in users backed by the deployed package sources.
+"""Schema explorer governed by its Page ACL, backed by deployed package sources.
 
 The React UI is built and served by the standard portal frontend.
 No credentials file, proxy request, application-code execution or write API is used.

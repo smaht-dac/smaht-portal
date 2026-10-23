@@ -1,9 +1,30 @@
 # Portal Schema Explorer
 
 Open `/schema-explorer`, or choose **Schema Explorer** in the account menu.
-The page, model and indexed source API require a signed-in user. Only admins see
-the Live item explorer. Live item requests
+Access follows the `schema-explorer` Page item's normal `view` permission, including
+its status and local roles. The model/source APIs and account menu check that same
+Page on every request. Only admins see the Live item explorer. Live item requests
 use the current browser session and retain the normal item permissions.
+
+## Page content and deployment
+
+Like data-matrix, this is a Page with a JSX StaticSection. There is no custom
+`/schema-explorer` page route or `SchemaExplorerPage` content-view registration.
+`docs/public/schema_explorer.jsx` renders the registered `SchemaExplorerSection`
+placeholder through the existing StaticPage renderer.
+
+Load these two records from `tests/data/master-inserts` when deploying to an
+existing database (a server restart alone does not create content items):
+
+1. StaticSection `schema-explorer-content`, UUID `efb34110-5618-451c-a78d-56ab24edba48`.
+2. Page `schema-explorer`, UUID `b683617f-f78b-48eb-8d2b-f620bc753f4e`.
+
+Both start with `protected-network`, matching data-matrix. Manage visibility with
+the normal Page/status controls; keep the linked StaticSection readable by the
+intended audience as well. Do not overwrite an existing Page's status on redeploy.
+If the Page is missing or inaccessible, the APIs deny access, even when a model
+snapshot is already cached. Making the Page public also permits public access to
+the indexed model and source definitions; Live item explorer remains admin-only.
 
 ## Frontend
 
@@ -15,8 +36,8 @@ filters, dialogs, SVG nodes and item values. There is no iframe, Shadow DOM,
 HTML/script assembly endpoint or VS Code messaging adapter. No npm dependencies
 were added.
 
-The initial view is **All schemas**, with no item type selected. User and
-Consortium types are hidden by default. The neighborhood control toggles between
+The initial view is **All schemas**, with no item type selected. User, Consortium
+and SubmissionCenter types are hidden by default. The neighborhood control toggles between
 the selected type's immediate neighbors and the enabled types. Item view includes
 field/embedding searches, inheritance, source inspection, navigation history and
 live provenance. The planner preserves ranking, subtype conditions, search bounds
