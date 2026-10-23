@@ -8,11 +8,13 @@ Change Log
 ----------
 
 2.15.10
-======
+=======
 
 `PR 775: feat: improve renamed files table UI <https://github.com/smaht-dac/smaht-portal/pull/775>`_
 
 * Add facets to retracted and renamed files tables
+* Add a default-hidden "Retraction Date" facet to File, shown first in the retracted files table
+* Show a scroll shadow on both tables while there are more rows below
 
 
 2.15.9
