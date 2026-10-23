@@ -93,13 +93,13 @@ okta.scopes = openid email profile
 `deploy/docker/production/smaht_any_alpha.ini` carries the four `${OKTA_*}`
 placeholders above. Every production entrypoint runs `python -m assume_identity`
 exactly once before serving, which reads the AWS Secrets Manager identity named
-by `IDENTITY` and expands the template into `production.ini`. `dcicutils`
-The current released `dcicutils` support in `pyproject.toml`/`poetry.lock`
-binds these four substitutions; no dependency pin or lockfile churn is needed
-for this extraction.
+by `IDENTITY` and expands the template into `production.ini`. The portal's
+`SMAHTDockerIniFileManager` supplies these four public substitutions on the
+current released `dcicutils` dependency; no dependency pin or lockfile churn
+is needed for this extraction.
 
-`ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` is the one with a subtlety: `dcicutils`
-expands it to `true`/`false` only when the identity actually supplies a boolean,
+`ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` is the one with a subtlety: the portal
+startup bridge expands it to `true`/`false` only when the identity actually supplies a boolean,
 and to the empty string otherwise. An empty expansion makes `dcicutils` drop the
 whole `okta.require_email_verified = …` line from the generated `production.ini`,
 so the portal retains its intended secure default for when the check is

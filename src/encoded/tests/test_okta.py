@@ -118,13 +118,13 @@ class TestSettings:
         """The production startup path materializes the four public fields."""
         import io
 
-        from dcicutils.deployment_utils import BasicOrchestratedSMAHTIniFileManager
+        from deploy.docker.production.assume_identity import SMAHTDockerIniFileManager
         from dcicutils.misc_utils import override_environ
 
         template = pathlib.Path(__file__).resolve().parents[3] / \
             "deploy/docker/production/smaht_any_alpha.ini"
 
-        class TestIniManager(BasicOrchestratedSMAHTIniFileManager):
+        class TestIniManager(SMAHTDockerIniFileManager):
             TEMPLATE_DIR = str(template.parents[3] / "deploy/ini_files")
             PYPROJECT_FILE_NAME = str(template.parents[3] / "pyproject.toml")
 

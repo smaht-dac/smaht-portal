@@ -84,8 +84,9 @@ def set_okta_config(settings):
     `${OKTA_ISSUER}` / `${OKTA_CLIENT}` / `${OKTA_SCOPES}` /
     `${OKTA_REQUIRE_EMAIL_VERIFIED}` placeholders in
     `deploy/docker/production/smaht_any_alpha.ini` from the AWS Secrets Manager
-    identity (dcicutils 8.19.1 supports those four substitutions; there is
-    deliberately no Okta client secret, because the SPA is a public client).
+    identity. The portal's production startup manager supplies these four
+    public substitutions on the current released dcicutils dependency; there
+    is deliberately no Okta client secret, because the SPA is a public client.
 
     There is deliberately no Secrets Manager or process-environment lookup here.
     Reading the environment at request time would let a stray
