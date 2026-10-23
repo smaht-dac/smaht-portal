@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.9
+======
+
+`PR 785: update lock file <https://github.com/smaht-dac/smaht-portal/pull/785>`_
+
+* Update pyproject.toml and lock file to reflect new dcicutils version
+
+
 2.15.8
 ======
 
