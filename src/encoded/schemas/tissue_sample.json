@@ -152,6 +152,9 @@
         "category": {
             "title": "Sample Type"
         },
+        "sample_sources.tissue_type": {
+            "title": "Tissue Type"
+        },
         "submission_centers.display_title": {
             "title": "Submitted By"
         }

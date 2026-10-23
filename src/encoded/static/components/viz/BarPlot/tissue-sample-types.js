@@ -1,0 +1,120 @@
+'use strict';
+
+import memoize from 'memoize-one';
+
+// Browse by Tissue's "Group By: Sample Type" settings: the field, bar/legend
+// order, legend labels and per-term colors.
+
+/**
+ * Fixed (not `barplot_color_cycler`-assigned) colors for Browse by Tissue's
+ * thin bars (see ViewContainer.js), one per `sample_summary.
+ * preservation_types` term (post-merge-terms.js display term, e.g. "Frozen"
+ * not "Snap Frozen") -- per explicit request, Frozen reuses the same color
+ * family AliquotVisualization.js's own SLICE_TYPE_STYLES.yellow already
+ * uses elsewhere in this portal for the same Fixed/Frozen semantics, so the
+ * 2 views read as one consistent color language rather than 2 unrelated
+ * palettes for the same concept. Fresh (#C3C3FF, per explicit request)
+ * and "Not specified" have no such established color elsewhere to match,
+ * so each just gets its own tone, distinguishable from EACH OTHER too (an
+ * earlier version of this gave both the exact same neutral grey, per
+ * DEFAULT_COLOR below, which read as 1 color standing in for 2 different
+ * terms).
+ */
+// Browse by Tissue's "Group By: Sample Type" field -- the only subdivision
+// these fixed colors (and the thin grouped bars, see ViewContainer.js's
+// ThinGroupedChartViewContainer) are meant for.
+export const TISSUE_SAMPLE_TYPE_FIELD = 'sample_summary.preservation_types';
+
+// Left-to-right order of each tissue's own bars in the grouped chart (and
+// matching legend order in the design mock) -- any other term sorts after
+// these, alphabetically.
+export const TISSUE_SAMPLE_TYPE_ORDER = ['Fixed', 'Frozen', 'Fresh', 'Not specified'];
+
+// Legend labels for the sample types, saying what each kind of sample is
+// used for -- the chart's own terms (and links/filters) stay the bare
+// preservation type.
+export const TISSUE_SAMPLE_TYPE_LEGEND_LABELS = {
+    'Frozen': 'Frozen samples for sequencing',
+    'Fixed': 'Fixed samples for pathology review',
+    'Fresh': 'Fresh samples for sequencing',
+};
+
+/**
+ * Wraps a chart's `termLabelTransform` so the sample types get their
+ * TISSUE_SAMPLE_TYPE_LEGEND_LABELS label -- used by both the chart's own
+ * nodes (so popovers match) and the legend. Memoized so the wrapper keeps
+ * the same identity across renders (the chart memoizes on it).
+ */
+export const withTissueSampleTypeLabels = memoize(function (termLabelTransform) {
+    return function (field, term) {
+        if (field === TISSUE_SAMPLE_TYPE_FIELD && TISSUE_SAMPLE_TYPE_LEGEND_LABELS[term]) {
+            return TISSUE_SAMPLE_TYPE_LEGEND_LABELS[term];
+        }
+        return typeof termLabelTransform === 'function' ? termLabelTransform(field, term) : null;
+    };
+});
+
+export const TISSUE_SAMPLE_TYPE_COLORS = {
+    // Explicitly picked as SLICE_TYPE_STYLES.yellow.front, not .border/.side
+    // (the other 2 candidates offered) -- the lighter, most visually
+    // prominent of aliquot viz's own 3 Frozen shades.
+    'Frozen': { fill: '#CFE89B', stroke: '#CFE89B' },
+    'Fresh': { fill: '#C3C3FF', stroke: '#C3C3FF' },
+    // TissueSample-counted Fixed series (tissue-fixed-samples.js) -- same
+    // idea as Frozen above: AliquotVisualization.js's own Fixed shade
+    // (SLICE_TYPE_STYLES.pink.front).
+    'Fixed': { fill: '#F2C4A8', stroke: '#F2C4A8' },
+    'Not specified': { fill: '#D3D7DB', stroke: '#868E96' },
+};
+
+// Fallback for a term with no fixed color above and no palette slot left
+// (see getTissueSampleTypeColor).
+export const TISSUE_SAMPLE_TYPE_DEFAULT_COLOR = { fill: '#D8DCE0', stroke: '#8A939B' };
+
+// Every other Group By option (Sequencing Center's GCCs, the TTDs, etc.)
+// has no fixed per-term color -- per explicit request each of those terms
+// still gets its own distinct color (they all used to fall back to the
+// same grey above) from this categorical palette. Picked to stay clear of
+// Frozen's green/Fresh's periwinkle above.
+const TISSUE_GROUP_PALETTE = [
+    '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F',
+    '#EDC948', '#B07AA1', '#FF9DA7', '#9C755F', '#2F4B7C',
+];
+
+// Term -> palette color, assigned in first-seen order and kept for the rest
+// of the page's lifetime -- module-level (not per render) so the chart's
+// own lines/dots and the sidebar legend's swatches, which each look colors
+// up separately, always agree on the same term's color.
+const assignedGroupColors = new Map();
+
+export function getTissueSampleTypeColor(term) {
+    if (TISSUE_SAMPLE_TYPE_COLORS[term]) return TISSUE_SAMPLE_TYPE_COLORS[term];
+    if (term === undefined || term === null) return TISSUE_SAMPLE_TYPE_DEFAULT_COLOR;
+    if (!assignedGroupColors.has(term)) {
+        if (assignedGroupColors.size >= TISSUE_GROUP_PALETTE.length) return TISSUE_SAMPLE_TYPE_DEFAULT_COLOR;
+        const hex = TISSUE_GROUP_PALETTE[assignedGroupColors.size];
+        assignedGroupColors.set(term, { fill: hex, stroke: hex });
+    }
+    return assignedGroupColors.get(term);
+}
+
+/**
+ * A `barplot_color_cycler`-compatible object (just the `colorForNode`
+ * method Legend.barPlotFieldDataToLegendFieldsData actually calls) so the
+ * sidebar legend's own swatches match the chart's colors term-for-
+ * term, instead of the generic cycler's own (different) color assignment.
+ */
+export const tissueSampleTypeColorCycler = {
+    colorForNode(node) {
+        return getTissueSampleTypeColor(node && node.term).stroke;
+    },
+    // `Legend.sortLegendFieldTermsByColorPalette` calls this expecting a
+    // `barplot_color_cycler`-style reorder by each object's own `.color`
+    // position in a fixed palette array -- unnecessary here since the
+    // legend's own caller (`AggregatedLegend.getFieldForLegend`) always
+    // re-sorts its result by count immediately afterward anyway, so this
+    // just passes the array through unchanged.
+    sortObjectsByColorPalette(objects) {
+        return objects;
+    },
+};

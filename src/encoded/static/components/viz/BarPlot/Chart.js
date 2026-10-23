@@ -10,7 +10,10 @@ import { console, isServerSide } from '@hms-dbmi-bgm/shared-portal-components/es
 import { Schemas } from './../../util';
 import { barplot_color_cycler } from './../ColorCycler';
 import { RotatedLabel } from './../components';
-import { PopoverViewContainer } from './ViewContainer';
+import {
+    PopoverViewContainer, PopoverThinGroupedChartViewContainer, PopoverThinStackedChartViewContainer
+} from './ViewContainer';
+import { TISSUE_SAMPLE_TYPE_FIELD, withTissueSampleTypeLabels } from './tissue-sample-types';
 
 
 /**
@@ -22,7 +25,7 @@ import { PopoverViewContainer } from './ViewContainer';
  * @param {number} [availWidth=400] - Available width, in pixels, for chart.
  * @param {number} [availHeight=400] - Available width, in pixels, for chart.
  * @param {Object} [styleOpts=Chart.getDefaultStyleOpts()] - Style settings for chart which may contain chart offsets (for axes).
- * @param {string} [aggregateType="files"] - Type of value to count up. Should be one of ["donors", "files"].
+ * @param {string} [aggregateType="files"] - Type of value to count up. Should be one of ["donors", "files", "samples"].
  * @param {boolean} [useOnlyPopulatedFields=false] - Determine which fields to show via checking for which fields have multiple terms present.
  * @param {?number} [fullHeightCount=null] - 100% Y-Axis count value. Overrides height of bars.
  * @return {Object} Object containing bar dimensions for first field which has more than 1 possible term, index of field used, and all fields passed originally.
@@ -92,6 +95,7 @@ export function genChartBarDims(
                     },
                     'donors' : termObj.donors,
                     'files'  : termObj.files,
+                    'samples' : termObj.samples,
                     'all_donor_ids' : termObj.all_donors_ids || []
                 };
                 if (typeof termObj.field === 'string') {
@@ -147,6 +151,25 @@ export function genChartBarDims(
     });
 
     return barData;
+}
+
+
+/**
+ * Y-axis top for a chart that plots each sub-term's own count (Browse by
+ * Tissue's grouped-bar chart) rather than each tissue's stacked total --
+ * the largest single sub-term count, rounded up to a nice value (e.g. 166
+ * -> 200). The default (largest per-tissue total) left those charts'
+ * tallest mark well short of the top (a 250 axis for a 166 max), per
+ * design feedback. Null (-> that default) when there's no subdivision.
+ */
+function getNiceMaxSubTermCount(rootField, aggregateType) {
+    const maxCount = _.reduce(rootField && rootField.terms, function (m, parentTerm) {
+        return _.reduce(parentTerm && parentTerm.terms, function (m2, t) {
+            return Math.max(m2, typeof t[aggregateType] === 'number' ? t[aggregateType] : 0);
+        }, m);
+    }, 0);
+    if (!(maxCount > 0)) return null;
+    return d3.nice(0, maxCount, 5)[1];
 }
 
 
@@ -260,7 +283,7 @@ export class Chart extends React.PureComponent {
         'xAxisTermLabelMapper': PropTypes.func,
         'useOnlyPopulatedFields' : PropTypes.bool,
         'showType'      : PropTypes.oneOf(['all', 'filtered', 'both']),
-        'aggregateType' : PropTypes.oneOf(['donors', 'files']),
+        'aggregateType' : PropTypes.oneOf(['donors', 'files', 'samples']),
         'windowWidth'   : PropTypes.number,
         'href'          : PropTypes.string,
         'cursorDetailActions' : PopoverViewContainer.propTypes.cursorDetailActions
@@ -406,11 +429,24 @@ export class Chart extends React.PureComponent {
 
         const {
             width, height, showType, barplot_data_unfiltered, barplot_data_filtered, context,
-            aggregateType, useOnlyPopulatedFields, cursorDetailActions, href, schemas, mapping, subBarLayout, termLabelTransform, xAxisTermLabelMapper
+            aggregateType, useOnlyPopulatedFields, cursorDetailActions, href, schemas, mapping, subBarLayout, termLabelTransform, xAxisTermLabelMapper,
+            fields
         } = this.props;
 
         const topLevelField = (showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered) || barplot_data_unfiltered;
         const styleOptions = this.styleOptions(topLevelField);
+
+        // Browse by Tissue's own chart forms (every other mapping keeps
+        // rendering through the original PopoverViewContainer, completely
+        // unchanged) -- per design feedback, thin side-by-side bars for
+        // Group By: Sample Type and thin stacked bars (same thin-mark style)
+        // for any other Group By (e.g. the GCCs).
+        let tissueChartForm = null;
+        if (mapping === 'tissue') {
+            const subdivisionField = Array.isArray(fields) ? fields[1] : null;
+            tissueChartForm = subdivisionField === TISSUE_SAMPLE_TYPE_FIELD ? 'grouped' : 'stacked';
+        }
+        const plotsSubTermCounts = tissueChartForm === 'grouped';
 
         // Gen bar dimensions (width, height, x/y coords). Returns { fieldIndex, bars, fields (first arg supplied) }
         const barData = this.memoized.genChartBarDims(
@@ -420,17 +456,24 @@ export class Chart extends React.PureComponent {
             styleOptions,
             aggregateType,
             useOnlyPopulatedFields,
-            null,
-            termLabelTransform,
+            plotsSubTermCounts ? getNiceMaxSubTermCount(topLevelField, aggregateType) : null,
+            mapping === 'tissue' ? withTissueSampleTypeLabels(termLabelTransform) : termLabelTransform,
             xAxisTermLabelMapper
         );
 
+        // `fullHeightCount` (the shared Y-axis' own 100%-height value, from
+        // genChartBarDims) is passed through so the grouped-bar marks
+        // land on that exact same scale.
+        let ViewContainerComponent = PopoverViewContainer;
+        if (tissueChartForm === 'grouped') ViewContainerComponent = PopoverThinGroupedChartViewContainer;
+        else if (tissueChartForm === 'stacked') ViewContainerComponent = PopoverThinStackedChartViewContainer;
+
         return (
-            <PopoverViewContainer {...{ width, height, styleOptions, showType, aggregateType, href, schemas, context, mapping, subBarLayout }}
+            <ViewContainerComponent {...{ width, height, styleOptions, showType, aggregateType, href, schemas, context, mapping, subBarLayout }}
                 actions={cursorDetailActions}
                 leftAxis={this.renderParts.leftAxis(width, height, barData, styleOptions)}
                 bottomAxis={this.renderParts.bottomXAxis(width, height, barData.bars, styleOptions)}
-                topLevelField={barData.field} bars={barData.bars} />
+                topLevelField={barData.field} bars={barData.bars} fullHeightCount={barData.fullHeightCount} />
         );
 
     }

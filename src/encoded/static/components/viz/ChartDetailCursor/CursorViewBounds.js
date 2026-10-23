@@ -290,7 +290,9 @@ export default class CursorViewBounds extends React.PureComponent {
                         _.pick(this, 'onNodeMouseEnter', 'onNodeMouseLeave', 'onNodeClick')
                     ))
                 }
-                <ChartDetailCursor {..._.pick(this.props, 'windowWidth', 'windowHeight', 'href', 'schemas', 'mapping')} ref={this.cursorRef} />
+                {/* Browse by Tissue's sample type labels (e.g. "Fixed samples for pathology review") don't fit the default 240px. */}
+                <ChartDetailCursor {..._.pick(this.props, 'windowWidth', 'windowHeight', 'href', 'schemas', 'mapping')}
+                    width={passProps.mapping === 'tissue' ? 320 : undefined} ref={this.cursorRef} />
             </div>
         );
     }
