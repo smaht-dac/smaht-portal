@@ -1,5 +1,6 @@
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from "../support";
 import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
+import { markTiming } from "../support/utils/basicUtils";
 
 /* ----------------------------- ROLE MATRIX ----------------------------- */
 const ROLE_MATRIX = {
@@ -384,6 +385,7 @@ function stepPublicDonorFlow(caps) {
                     });
 
                     donorLinks.forEach(({ donorID, href }, index) => {
+                        markTiming("donor", "start", { reset: true });
                         if (index === 0) {
                             // Open the first donor by clicking its link in the list (covers the list → detail navigation)
                             cy.get(".search-result-row[data-row-number]")
@@ -410,6 +412,7 @@ function verifyDonorDetail(donorID) {
     cy.get(".donor-view .view-header .header-text", { timeout: 15000 })
         .should("be.visible")
         .and("contain", donorID);
+    markTiming("donor", `${donorID} navigation`);
 
     // Header controls reflect public visibility
     verifyHeaderButtons();
@@ -422,6 +425,7 @@ function verifyDonorDetail(donorID) {
 
     // Exposures: protected sections absent
     verifyExposures();
+    markTiming("donor", `${donorID} header + summary cards`);
 
     // Donor-level Data Matrix
     // Popover samples are kept small: the matrix row/column consistency checks already cover every row.
@@ -447,6 +451,7 @@ function verifyDonorDetail(donorID) {
             );
         });
     });
+    markTiming("donor", `${donorID} data matrix (total)`);
 }
 
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */

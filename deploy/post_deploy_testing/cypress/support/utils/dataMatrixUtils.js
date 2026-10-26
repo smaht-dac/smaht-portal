@@ -1,3 +1,4 @@
+import { markTiming } from './basicUtils';
 // Sends a GET request to the given URL and returns the `total` field from JSON response
 export function getApiTotalFromUrl(url) {
     // Ensure the URL requests JSON format (append if missing)
@@ -638,6 +639,7 @@ export function testMatrixPopoverValidation(
         verifyTotalFromApi = true,
     }) {
     cy.get(matrixId).should('exist');
+    markTiming('matrix', 'start', { reset: true });
 
     if (typeof expectedFilesCount === 'number' && expectedFilesCount === 0) {
         cy.get(`${matrixId} .stacked-block-viz-container .no-data-available`).should('contain.text', 'No data available');
@@ -647,6 +649,7 @@ export function testMatrixPopoverValidation(
     cy.get(matrixId).within(() => {
         validateLowerHeaders(expectedLowerLabels);
         assertNoTopLevelNARows();
+        markTiming('matrix', `${matrixId} headers + N/A rows`);
 
         let anyCollapsibleRows = false;
         //collapse all to a fresh start
@@ -721,6 +724,8 @@ export function testMatrixPopoverValidation(
             }
         });
 
+        markTiming('matrix', `${matrixId} collapse + column totals + expanded rows`);
+
         // Random [regularBlockCount] regular block popovers
         cy.get('[data-block-type="regular"]').then(($allBlocks) => {
             const allBlocks = Array.from($allBlocks);
@@ -745,6 +750,8 @@ export function testMatrixPopoverValidation(
                 }
             });
         });
+
+        markTiming('matrix', `${matrixId} regular popovers`);
 
         // Random [rowSummaryBlockCount] row-summary block popovers
         cy.get('[data-block-type="row-summary"]').then(($blocks) => {
@@ -780,6 +787,8 @@ export function testMatrixPopoverValidation(
                 );
             }
         });
+
+        markTiming('matrix', `${matrixId} row-summary popovers`);
 
         // Random [colSummaryBlockCount] col-summary block popovers
         cy.get('[data-block-type="col-summary"]:not([data-block-value="0"])').then(($blocks) => {
@@ -826,6 +835,8 @@ export function testMatrixPopoverValidation(
             }
         });
 
+        markTiming('matrix', `${matrixId} col-summary popovers`);
+
         // Check total unique tissues in the matrix
         if (typeof expectedTissuesCount === 'number' && expectedTissuesCount > 0) {
             cy.get('.grouping.depth-0').then(($rows) => {
@@ -855,6 +866,8 @@ export function testMatrixPopoverValidation(
                 });
             });
         }
+
+        markTiming('matrix', `${matrixId} tissue count`);
 
         // Check sum of regular blocks in a row equals to the row summary
         // Note: collapse all to a fresh start
@@ -894,6 +907,7 @@ export function testMatrixPopoverValidation(
                     expect(problems, `Row summary inconsistencies in ${matrixId}`).to.be.empty;
                 });
         }
+        markTiming('matrix', `${matrixId} collapsed row sums`);
     });
 }
 

@@ -36,3 +36,24 @@ export function buildCoveringCombinations(dimensions) {
         Cypress._.fromPairs(keys.map((key) => [key, shuffled[key][i % shuffled[key].length]]))
     );
 }
+
+const timingMarks = {};
+
+/**
+ * Step-timing instrumentation: prints the time elapsed since the previous mark of the same timer
+ * to stdout as "[timing] <test context> | <label>: <ms>ms", so it shows up in CI logs.
+ * Use `reset: true` to start a timer without logging.
+ *
+ * @param {string} timer Independent timer name, e.g. 'donor' or 'matrix'
+ * @param {string} label Name of the step that just finished
+ */
+export function markTiming(timer, label, { reset = false } = {}) {
+    cy.then(() => {
+        const now = Date.now();
+        if (!reset && timingMarks[timer] !== undefined) {
+            const context = (Cypress.currentTest.titlePath || []).slice(1, -1).join(' > ');
+            cy.task('log', `[timing] ${context} | ${label}: ${now - timingMarks[timer]}ms`, { log: false });
+        }
+        timingMarks[timer] = now;
+    });
+}
