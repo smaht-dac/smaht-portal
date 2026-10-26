@@ -133,6 +133,28 @@ const getOverviewValue = (label) => {
         });
 };
 
+/**
+ * Wait until the DSA value has finished loading (no spinner), but never longer than `maxWait`.
+ * Same upper bound as the previous fixed cy.wait(2000); a still-loading spinner remains acceptable afterwards.
+ */
+const waitForDSAValueLoaded = (maxWait = 2000) =>
+    cy.document().then((doc) => new Cypress.Promise((resolve) => {
+        const start = Date.now();
+        const check = () => {
+            const $val = Cypress.$(doc)
+                .find(`${summaryCardSel} .datum-title span:contains("DSA")`)
+                .closest(".datum")
+                .find(".datum-value");
+            const isLoading = $val.length === 0 || $val.find("i.icon-spin").length > 0;
+            if (!isLoading || Date.now() - start >= maxWait) {
+                resolve();
+            } else {
+                setTimeout(check, 100);
+            }
+        };
+        check();
+    }));
+
 /* ----------------------------- VERIFIERS ----------------------------- */
 /** Validate Data Summary / Donor Overview for the protected donor view */
 const verifyDonorSummary = (expectedDonorId) => {
@@ -185,8 +207,8 @@ const verifyDonorSummary = (expectedDonorId) => {
         ).to.be.true;
     });
 
-    // Allow a moment for the DSA request to complete
-    cy.wait(2000)
+    // Allow a moment (at most 2s, as before) for the DSA request to complete
+    waitForDSAValueLoaded();
 
     // DSA - ProtectedDonor may have avaliable DSA link
     getOverviewValue("DSA").then(({ $el, text }) => {
