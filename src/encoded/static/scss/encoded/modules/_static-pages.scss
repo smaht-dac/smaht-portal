@@ -4373,6 +4373,86 @@ FAQ page styles
                         text-decoration: none;
                     }
                 }
+
+                .quick-link-downloads {
+                    padding: 0 10px 10px;
+
+                    hr {
+                        margin: 0 0 10px;
+                    }
+
+                    .quick-link-downloads-title {
+                        font-size: 0.9rem;
+                        font-weight: 500;
+                        color: #7d96b6;
+                        padding: 0 12px 6px;
+                    }
+
+                    .quick-link-downloads-files {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                    }
+
+                    .quick-link-download-wrapper {
+                        flex: 1;
+                        display: flex;
+                        min-width: 200px;
+                    }
+
+                    .quick-link-download {
+                        flex: 1;
+                        min-width: 200px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 10px;
+                        padding: 10px 15px;
+                        background-color: #edf5fb;
+                        border: 1px solid #b9d0eb;
+                        border-radius: 6px;
+                        font-size: 1.05rem;
+                        font-weight: 500;
+                        color: $homepage-card-text-color;
+
+                        .quick-link-download-title {
+                            display: inline-flex;
+                            align-items: center;
+                            flex-wrap: wrap;
+                            gap: 8px;
+                        }
+
+                        .quick-link-download-tag {
+                            padding: 3px 10px;
+                            border-radius: 20px;
+                            font-size: 0.75rem;
+                            line-height: 1;
+                            color: #8a5aa8;
+                            background-color: #f1e8f8;
+                            border: 1px solid #dcc6ec;
+                        }
+
+                        i {
+                            color: #84a6ce;
+                        }
+
+                        &:hover:not(:disabled) {
+                            background-color: #e9f4fc;
+                            color: #173b5d;
+                            text-decoration: none;
+
+                            i {
+                                color: #416485;
+                            }
+                        }
+
+                        &:disabled {
+                            opacity: 0.55;
+                            cursor: not-allowed;
+                            pointer-events: none;
+                        }
+                    }
+                }
             }
         }
     }
