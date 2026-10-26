@@ -7,6 +7,32 @@ smaht-portal
 Change Log
 ----------
 
+2.15.10
+=======
+
+`PR 775: feat: improve renamed files table UI <https://github.com/smaht-dac/smaht-portal/pull/775>`_
+
+* Add facets to retracted and renamed files tables
+* Add a default-hidden "Retraction Date" facet to File, shown first in the retracted files table
+* Show a scroll shadow on both tables while there are more rows below
+
+
+2.15.9
+======
+
+`PR 785: update lock file <https://github.com/smaht-dac/smaht-portal/pull/785>`_
+
+* Update pyproject.toml and lock file to reflect new dcicutils version
+
+
+2.15.8
+======
+
+`PR 784: style: align publication thumbnails to top <https://github.com/smaht-dac/smaht-portal/pull/784>`_
+
+* Align thumbnails on publication items to the top of container
+
+
 2.15.7
 ======
 
