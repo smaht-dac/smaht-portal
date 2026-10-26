@@ -117,9 +117,13 @@ function waitUntilPopoverClosed(timeout = 4000) {
  * 5. Logs the assertion details.
  */
 function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0, verifyTotalFromApi = true }) {
+    markTiming('popover', 'start', { reset: true });
+
     // wait until the element itself is truly visible
     cy.waitForPopoverShow().then(() =>
         waitForPopoverVisible().then((popoverEl) => {
+            markTiming('popover', `${blockType} popover open`);
+
             // let Cypress do all subsequent retries
             cy.wrap(popoverEl).should('be.visible').within(() => {
                 if (blockType === 'regular') {
@@ -295,6 +299,8 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
             });
         }))
         .then(() => {
+            markTiming('popover', `${blockType} popover content + API`);
+
             // close the pop-over
             cy.document()
                 .its('body')
@@ -304,6 +310,7 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
             return waitUntilPopoverClosed();
         })
         .then(() => {
+            markTiming('popover', `${blockType} popover close`);
             Cypress.log({
                 name: 'assertPopover',
                 message: `value: ${value}, donor: ${donor}, tissue: ${tissue}, assay: ${assay}, verifyTotalFromApi: ${verifyTotalFromApi}`,

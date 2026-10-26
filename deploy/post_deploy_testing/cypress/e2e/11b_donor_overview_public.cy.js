@@ -428,7 +428,6 @@ function verifyDonorDetail(donorID) {
     markTiming("donor", `${donorID} header + summary cards`);
 
     // Donor-level Data Matrix
-    // Popover samples are kept small: the matrix row/column consistency checks already cover every row.
     getNumericStatByLabel("Files").then((filesCount) => {
         getNumericStatByLabel("Tissues").then((tissuesCount) => {
             testMatrixPopoverValidation(
@@ -438,8 +437,8 @@ function verifyDonorDetail(donorID) {
                     mustLabels: [],
                     optionalLabels: [],
                     expectedLowerLabels: ["Total Files"],
-                    regularBlockCount: 2, // regularBlockCount
-                    rowSummaryBlockCount: 2, // rowSummaryBlockCount
+                    regularBlockCount: 5, // regularBlockCount
+                    rowSummaryBlockCount: 5, // rowSummaryBlockCount
                     colSummaryBlockCount: 1, // colSummaryBlockCount
                     expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
                     expectedTissuesCount: donorID !== "COLO829" ? tissuesCount : null, // tissuesCount (null → skip strict total check)
