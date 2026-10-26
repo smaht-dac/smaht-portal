@@ -158,43 +158,64 @@ function logoutIfNeeded(roleKey) {
  * runs optional in-page assertions, then returns. Shared by both Retracted and
  * Renamed sections.
  */
-function testVisitRows({ tableSelector, dataField, countCap, rowAlias, assertOnFilePage }) {
-    function visit(index) {
-        if (index >= countCap) return;
+// Lists and file pages can take long to load on a busy server; this is only an upper bound
+const SLOW_LOAD_TIMEOUT = 60000;
 
-        cy.get(`@${rowAlias}`).eq(index).as("currentRow");
+function testVisitRows({ tableSelector, dataField, countCap, assertOnFilePage }) {
+    let listPathname;
+    let listUrl;
+    cy.location().then((loc) => {
+        listPathname = loc.pathname;
+        listUrl = `${loc.pathname}${loc.search}`;
+    });
 
-        cy.get("@currentRow")
-            .find(`[data-field="${dataField}"] .value`)
-            .should("not.be.empty");
-
-        cy.get("@currentRow")
-            .find('[data-field="accession"] a')
-            .then(($a) => {
-                const expectedAccession = $a.text().trim();
-
-                // shadow overlay at table bottom covers rows near the fold;
-                // force bypasses Cypress actionability check
-                cy.wrap($a).invoke("removeAttr", "target").click({ force: true });
-
-                cy.get(".file-view-header", { timeout: 10000 }).should("be.visible");
-
-                if (assertOnFilePage) assertOnFilePage();
-
-                cy.get(".accession")
-                    .should("be.visible")
-                    .and("have.text", expectedAccession);
+    cy.get(`${tableSelector} .search-result-row[data-row-number]`, { timeout: SLOW_LOAD_TIMEOUT })
+        .should("have.length.at.least", countCap)
+        .then(($rows) => {
+            // Collect the rows up front, so each file is opened directly instead of going back to the (re-fetched) list
+            const rows = [...$rows].slice(0, countCap).map((row) => {
+                const $row = Cypress.$(row);
+                const $a = $row.find('[data-field="accession"] a');
+                return {
+                    $fieldValue: $row.find(`[data-field="${dataField}"] .value`),
+                    accession: $a.text().trim(),
+                    href: $a.attr("href"),
+                };
             });
 
-        cy.go("back");
+            rows.forEach(({ $fieldValue, accession, href }, index) => {
+                expect($fieldValue.length, `${dataField} of row ${index + 1} (${accession}) exists`).to.be.greaterThan(0);
+                expect($fieldValue, `${dataField} of row ${index + 1} (${accession})`).to.not.be.empty;
 
-        cy.get(`${tableSelector} .search-result-row[data-row-number]`, { timeout: 10000 })
-            .should("have.length.at.least", countCap)
-            .as(rowAlias);
+                if (index === 0) {
+                    // Open the first file by clicking its link in the list (covers the list → detail navigation);
+                    // shadow overlay at table bottom covers rows near the fold; force bypasses Cypress actionability check
+                    cy.get(`${tableSelector} .search-result-row[data-row-number]`)
+                        .eq(0)
+                        .find('[data-field="accession"] a')
+                        .invoke("removeAttr", "target")
+                        .click({ force: true });
+                } else {
+                    // In-app (SPA) navigation; avoids reloading the list for each file
+                    cy.window().then((w) => w.SMaHT.navigate(href));
+                }
 
-        cy.then(() => visit(index + 1));
-    }
-    visit(0);
+                // check the accession first, so the page checks below cannot pass on the previous file's page
+                cy.get(".accession", { timeout: SLOW_LOAD_TIMEOUT })
+                    .should("be.visible")
+                    .and("have.text", accession);
+
+                cy.get(".file-view-header", { timeout: SLOW_LOAD_TIMEOUT }).should("be.visible");
+
+                if (assertOnFilePage) assertOnFilePage();
+            });
+        });
+
+    // Return to the list page once; other sections (e.g. Renamed Files) live on the same page
+    cy.window().then((w) => w.SMaHT.navigate(listUrl));
+    cy.location("pathname", { timeout: SLOW_LOAD_TIMEOUT }).should((pathname) => {
+        expect(pathname, "back on the list page").to.equal(listPathname);
+    });
 }
 
 /** Retracted and Renamed Files sections + row-by-row detail checks */
@@ -218,14 +239,10 @@ function stepVisitRetractedFilesList(caps) {
                 .should("be.visible");
 
             if (caps.expectedRetractedFilesCount > 0) {
-                cy.get(".retracted-files-table .search-result-row[data-row-number]").as("retractedRows");
-                cy.get("@retractedRows").should("have.length.at.least", caps.expectedRetractedFilesCount);
-
                 testVisitRows({
                     tableSelector: ".retracted-files-table",
                     dataField: "retraction_reason",
                     countCap: caps.expectedRetractedFilesCount,
-                    rowAlias: "retractedRows",
                     assertOnFilePage: () => {
                         cy.get(".status-group .file-status")
                             .should("be.visible")
@@ -235,7 +252,7 @@ function stepVisitRetractedFilesList(caps) {
                     },
                 });
             } else if (caps.expectedRetractedFilesCount === 0) {
-                cy.get(".retracted-files-table .search-results-container", { timeout: 10000 })
+                cy.get(".retracted-files-table .search-results-container", { timeout: SLOW_LOAD_TIMEOUT })
                     .should("contain.text", "No Results");
             }
 
@@ -244,17 +261,13 @@ function stepVisitRetractedFilesList(caps) {
                 .should("be.visible");
 
             if (caps.expectedRenamedFilesCount > 0) {
-                cy.get(".renamed-files-table .search-result-row[data-row-number]").as("renamedRows");
-                cy.get("@renamedRows").should("have.length.at.least", caps.expectedRenamedFilesCount);
-
                 testVisitRows({
                     tableSelector: ".renamed-files-table",
                     dataField: "renamed_on_tag",
                     countCap: caps.expectedRenamedFilesCount,
-                    rowAlias: "renamedRows",
                 });
             } else if (caps.expectedRenamedFilesCount === 0) {
-                cy.get(".renamed-files-table .search-results-container", { timeout: 10000 })
+                cy.get(".renamed-files-table .search-results-container", { timeout: SLOW_LOAD_TIMEOUT })
                     .should("contain.text", "No Results");
             }
         })

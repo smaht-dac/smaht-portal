@@ -681,6 +681,7 @@ export function testMatrixPopoverValidation(
     }) {
     cy.get(matrixId).should('exist');
     markTiming('matrix', 'start', { reset: true });
+    waitForMatrixModeRender(matrixId);
 
     if (typeof expectedFilesCount === 'number' && expectedFilesCount === 0) {
         cy.get(`${matrixId} .stacked-block-viz-container .no-data-available`).should('contain.text', 'No data available');
@@ -958,12 +959,22 @@ export function testMatrixPopoverValidation(
     });
 }
 
+// Matrix data can take long to load on a busy server; this is only an upper bound, waits end as soon as it is loaded
+const MATRIX_LOAD_TIMEOUT = 60000;
+
+/**
+ * Waits until the matrix has its data: not in the initial/mode-switch loading shell (spinner),
+ * not refreshing, and without a refresh overlay.
+ */
 function waitForMatrixModeRender(matrixId) {
-    cy.get(`${matrixId} .matrix-render-surface`, { timeout: 20000 })
+    cy.get(`${matrixId} .matrix-render-surface`, { timeout: MATRIX_LOAD_TIMEOUT })
         .should('exist')
         .and('not.have.class', 'is-refreshing');
 
-    cy.get(`${matrixId} .matrix-refresh-overlay`).should('not.exist');
+    // shown while results are null, e.g. on first load and right after a matrix-mode switch
+    cy.get(`${matrixId} .stacked-block-viz-container.is-loading`, { timeout: MATRIX_LOAD_TIMEOUT }).should('not.exist');
+
+    cy.get(`${matrixId} .matrix-refresh-overlay`, { timeout: MATRIX_LOAD_TIMEOUT }).should('not.exist');
 }
 
 function getDisplayedMatrixFileCount(matrixId) {
@@ -1313,10 +1324,11 @@ export function testDonorTissueMode(matrixId) {
         .click({ force: true })
         .should('have.class', 'active');
 
-    waitForMatrixModeRender(matrixId);
+    // assert the new mode first, so the wait below cannot pass on the previous mode's rendered state
     cy.get(matrixId)
         .should('have.class', 'matrix-mode-tissue')
         .and('have.class', 'matrix-mode-donor-tissue');
+    waitForMatrixModeRender(matrixId);
     cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
     cy.get(`${matrixId} .matrix-assay-select`)
         .should('be.visible')
@@ -1428,6 +1440,8 @@ export function testMatrixExportControls(matrixId) {
     const idLabel = matrixId.replace('#data-matrix-for_', '');
     const exportToggleSelector = `#matrix-export-dropdown-${idLabel}`;
 
+    // the export button stays disabled until the matrix data is loaded
+    waitForMatrixModeRender(matrixId);
     assertExportDropdownItemsReady(exportToggleSelector);
 
     cy.window().then((win) => cy.spy(win.console, 'error').as('consoleError'));
