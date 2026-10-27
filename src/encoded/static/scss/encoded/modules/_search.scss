@@ -3199,6 +3199,20 @@ div.browse-link-icon {
 			min-width: 66px;
 			text-align: right;
 		}
+
+		// Same-width swatches, and Non-Target's row (the 2nd legend) starts
+		// one swatch (+ its 1px divider) in -- past Target's extra "0%"
+		// band -- so both rows' 0-10/11-25/26-49/50-100 sit in the same
+		// columns.
+		--dual-legend-swatch-width: 58px;
+
+		.tissue-heatmap-fixed-legend-swatch {
+			width: var(--dual-legend-swatch-width);
+		}
+
+		.tissue-heatmap-fixed-legend + .tissue-heatmap-fixed-legend .tissue-heatmap-fixed-legend-scale {
+			margin-left: calc(var(--dual-legend-swatch-width) + 1px);
+		}
 	}
 
 	// A plain checkbox styled as a pill switch -- an ORANGE thumb (per
