@@ -128,8 +128,27 @@ export const TissueHistologyBrowser = ({ tileSource, tissueInfo = {} }) => {
             viewer.addHandler('open', updateViewerState);
             viewer.addHandler('update-viewport', updateViewerState);
 
+            // OpenSeadragon restores the page scroll on exit with a plain
+            // window.scrollTo, which Bootstrap's `scroll-behavior: smooth`
+            // turns into an animation from the top of the page that it gives
+            // up on after a few frames. Save the position ourselves and jump
+            // back to it instantly instead.
+            let savedScroll = null;
+            viewer.addHandler('pre-full-page', (event) => {
+                if (event.fullPage) {
+                    savedScroll = { left: window.scrollX, top: window.scrollY };
+                }
+            });
+
             viewer.addHandler('full-page', (event) => {
                 setIsFullPage(event.fullPage);
+                if (!event.fullPage && savedScroll) {
+                    const { left, top } = savedScroll;
+                    savedScroll = null;
+                    window.requestAnimationFrame(() => {
+                        window.scrollTo({ left, top, behavior: 'instant' });
+                    });
+                }
             });
         }
 
@@ -143,6 +162,21 @@ export const TissueHistologyBrowser = ({ tileSource, tissueInfo = {} }) => {
             }
         };
     }, [tileSource, micronsPerPixel]);
+
+    // OpenSeadragon's full page mode (unlike browser fullscreen) has no
+    // built-in Esc handling, so listen for it only while full page is active
+    useEffect(() => {
+        if (!isFullPage) return;
+
+        const onKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                osdInstance.current?.setFullPage(false);
+            }
+        };
+
+        document.addEventListener('keydown', onKeyDown);
+        return () => document.removeEventListener('keydown', onKeyDown);
+    }, [isFullPage]);
 
     const onZoomIn = () => osdInstance.current?.viewport.zoomBy(1.2);
     const onZoomOut = () => osdInstance.current?.viewport.zoomBy(0.8);
