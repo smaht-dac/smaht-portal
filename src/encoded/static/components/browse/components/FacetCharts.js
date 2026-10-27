@@ -3,12 +3,39 @@
 import React from 'react';
 import _ from 'underscore';
 
-import { object, layout, ajax, console, isServerSide, analytics, searchFilters, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { object, layout, console, isServerSide, analytics, searchFilters, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { navigate } from './../../util';
 import { ChartDataController } from './../../viz/chart-data-controller';
+import { getRecordedTerms } from './../../viz/BarPlot/merge-terms';
+import { TISSUE_SAMPLE_TYPE_FIELD } from './../../viz/BarPlot/tissue-sample-types';
+import { TISSUE_FIELD, SUBMISSION_CENTER_FIELD } from './../../viz/BarPlot/tissue-histology-samples';
 import * as BarPlot from './../../viz/BarPlot';
 import { termTransformFxnWithOverrides } from './../SearchView';
+
+// What the chart's "Group By" menu offers on Browse by Tissue (besides the
+// built-in "None") -- its tissue samples (see viz/BarPlot/
+// tissue-histology-samples.js) split by their own preservation type (Fixed,
+// Frozen, ...) or the center that submitted them.
+const TISSUE_SUBDIVISION_FIELDS = [
+    { title: 'Sample Type', field: TISSUE_SAMPLE_TYPE_FIELD },
+    { title: 'Submission Center', field: SUBMISSION_CENTER_FIELD },
+];
+
+// Browse by File's "Group By" menu -- the default list plus the center that
+// sequenced each file, a File-level field Donor/Protected Donor charts have
+// no single value of.
+const FILE_SUBDIVISION_FIELDS = BarPlot.UIControlsWrapper.defaultProps.availableFields_Subdivision.concat([
+    { title: 'Sequencing Center', field: 'sequencing_center.display_title' },
+]);
+
+// Browse by Tissue's own X Axis options -- the default list
+// (UIControlsWrapper.js's own availableFields_XAxis) also offers "Assay
+// Type"/"Sequencer", File-level fields a tissue sample has no single value
+// of, per explicit request.
+const TISSUE_XAXIS_FIELDS = [
+    { title: 'Tissue', field: TISSUE_FIELD },
+];
 
 function getCandidateFields(field, fieldList) {
     if (typeof field !== 'string') return [];
@@ -135,7 +162,10 @@ export class FacetCharts extends React.PureComponent {
     componentDidMount(){
         var { debug, browseBaseState, initialFields, mapping } = this.props;
 
-        if (!ChartDataController.isInitialized(mapping)){
+        // Re-initialized too when another mapping was used since (e.g.
+        // Browse by Tissue -> Browse by File -> back) -- see
+        // ChartDataController.isActiveMapping.
+        if (!ChartDataController.isInitialized(mapping) || !ChartDataController.isActiveMapping(mapping)){
             ChartDataController.initialize(
                 browseBaseState,
                 initialFields,
@@ -146,6 +176,13 @@ export class FacetCharts extends React.PureComponent {
                 }
             );
         } else {
+            // Still initialized from an earlier visit to this page (e.g.
+            // Browse by Tissue -> a non-browse page -> back): start from the
+            // default Group By again rather than the last one picked. A no-op
+            // when the fields are already the defaults.
+            if (Array.isArray(initialFields) && initialFields.length > 0) {
+                ChartDataController.updateBarPlotFields(mapping, initialFields);
+            }
             if (debug) console.log('Mounted FacetCharts');
             setTimeout(() => this.setState({ 'mounted' : true }), 100);
         }
@@ -208,6 +245,8 @@ export class FacetCharts extends React.PureComponent {
     /** Defines buttons/actions to be shown in onHover popover. */
     cursorDetailActions(){
         const { href, browseBaseState, context, mapping = 'all' } = this.props;
+        // Browse by Tissue's popover has its own links (see ChartDetailCursor/TissueCursorBody.js).
+        if (mapping === 'tissue') return [];
         const isBrowseHref = navigate.isBrowseHref(href);
         const currDonorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
         return [
@@ -222,6 +261,8 @@ export class FacetCharts extends React.PureComponent {
 
                     var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
+                        // getRecordedTerms below is keyed off the original (pre-rename) field.
+                        const originalField = node.field;
                         if(node.field === 'sample_summary.tissues'){
                             if (mapping === 'donor') node.field = 'tissues.tissue_type';
                             if (mapping === 'protected-donor') node.field = 'donor.tissues.tissue_type';
@@ -230,7 +271,10 @@ export class FacetCharts extends React.PureComponent {
                         if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
                             return donorFilters;
                         }
-                        return searchFilters.changeFilter(node.field, node.term, donorFilters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
+                        // A merged term (Frozen) filters on every recorded term it stands for (Frozen + Snap Frozen).
+                        return getRecordedTerms(originalField, node.term).reduce(function(filters, recordedTerm){
+                            return searchFilters.changeFilter(node.field, recordedTerm, filters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
+                        }, donorFilters);
                     }, currentDonorFilters);
 
                     // very hacky - since Donor and ProtectedDonor lack tissues/sequencers/assays that are associated with released files,
@@ -347,7 +391,13 @@ export class FacetCharts extends React.PureComponent {
         return (
             <div className={"facet-charts show-" + show} key="facet-charts">
                 <ChartDataController.Provider id={"barplot-" + mapping}>
-                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
+                    <BarPlot.UIControlsWrapper
+                        legend
+                        chartHeight={height}
+                        // undefined falls back to UIControlsWrapper's own default list.
+                        availableFields_XAxis={mapping === 'tissue' ? TISSUE_XAXIS_FIELDS : undefined}
+                        availableFields_Subdivision={mapping === 'tissue' ? TISSUE_SUBDIVISION_FIELDS : (mapping === 'all' ? FILE_SUBDIVISION_FIELDS : undefined)}
+                        {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
                         <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context, termLabelTransform }} />
                     </BarPlot.UIControlsWrapper>
                 </ChartDataController.Provider>

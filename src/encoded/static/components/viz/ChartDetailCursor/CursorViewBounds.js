@@ -7,6 +7,7 @@ import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/v
 import { console, isServerSide, layout, analytics, WindowEventDelegator } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { barplot_color_cycler } from './../ColorCycler';
 import ChartDetailCursor from './ChartDetailCursor';
+import TissueCursorBody from './TissueCursorBody';
 
 
 /**
@@ -141,6 +142,10 @@ export default class CursorViewBounds extends React.PureComponent {
     handleMouseMoveToUnsticky(evt){
         const container = this.boundsContainerRef && this.boundsContainerRef.current;
         const { cursorContainerMargin } = this.props;
+
+        // The popover itself can reach past the bounds below (e.g. Browse by
+        // Tissue's 3 stacked buttons) -- moving onto it must keep it open.
+        if (ChartDetailCursor.isTargetDetailCursor(evt.target)) return false;
 
         if (container){
 
@@ -290,7 +295,11 @@ export default class CursorViewBounds extends React.PureComponent {
                         _.pick(this, 'onNodeMouseEnter', 'onNodeMouseLeave', 'onNodeClick')
                     ))
                 }
-                <ChartDetailCursor {..._.pick(this.props, 'windowWidth', 'windowHeight', 'href', 'schemas', 'mapping')} ref={this.cursorRef} />
+                {/* Browse by Tissue has its own popover body, wider than the default 240px. */}
+                <ChartDetailCursor {..._.pick(this.props, 'windowWidth', 'windowHeight', 'href', 'schemas', 'mapping')}
+                    width={passProps.mapping === 'tissue' ? 340 : undefined}
+                    bodyComponent={passProps.mapping === 'tissue' ? TissueCursorBody : undefined}
+                    ref={this.cursorRef} />
             </div>
         );
     }

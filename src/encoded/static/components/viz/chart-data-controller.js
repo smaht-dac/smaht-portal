@@ -5,6 +5,11 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { ajax, console, isServerSide, object, searchFilters } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate } from './../util';
+import {
+    loadTissueHistologySamples,
+    loadTissueHistologyLinkedCounts,
+    buildTissueHistologyBarplotData,
+} from './BarPlot/tissue-histology-samples';
 
 
 /**
@@ -60,6 +65,15 @@ const providerLoadStartCallbacks = {};
 const currentRequests = { filtered: null, unfiltered: null };
 
 /**
+ * Bumped per Browse by Tissue chart load (fetchTissueHistologyBarPlotData),
+ * so a slower, older load can't overwrite a newer one's data.
+ *
+ * @private
+ * @type {number}
+ */
+let tissueHistologyLoadId = 0;
+
+/**
  * After load & update, called to start any registered 'on update' callbacks.
  */
 function notifyUpdateCallbacks(){
@@ -108,6 +122,29 @@ let reduxSubscription = null;
  * @type {object}
  */
 const isInitialized = {};
+
+/**
+ * The mapping `state` (fields/data) and the Redux subscription currently
+ * belong to -- all mappings share that one `state`, so only the most
+ * recently initialized one is actually live. See isActiveMapping.
+ *
+ * @private
+ * @type {?string}
+ */
+let activeMapping = null;
+
+/**
+ * Each mapping's own last-used `barplot_data_fields` -- the fallback when
+ * initialize() is given no fields of its own, so e.g. Browse by File's own
+ * Group By choice doesn't carry over into Browse by Tissue's chart (which
+ * has no such option and showed its raw field name + an empty legend).
+ * When fields are given (FacetCharts always passes its initialFields), they
+ * win: entering a page starts from its default Group By, not the last one.
+ *
+ * @private
+ * @type {Object.<string, string[]>}
+ */
+const fieldsByMapping = {};
 
 let isInitialLoadComplete = false;
 
@@ -209,7 +246,7 @@ export const ChartDataController = {
 
     /**
      * Transforms donor filters to file filters. Changes are made in place.
-     * If mapping is not 'donor' or 'protected-donor', returns filters unchanged.
+     * If mapping is not 'donor', 'protected-donor', or 'tissue', returns filters unchanged.
      *
      * @public
      * @static
@@ -217,6 +254,38 @@ export const ChartDataController = {
      * @returns {*} The transformed file filters.
      */
     transformFilterDonorToFile(fileFilters, mapping = 'all') {
+        if (mapping === 'tissue') {
+            // Tissue's own resolved tissue_type maps onto File's sample_summary.tissues.
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'tissue_type') && fileFilters.tissue_type !== undefined) {
+                fileFilters['sample_summary.tissues'] = fileFilters.tissue_type;
+                delete fileFilters.tissue_type;
+            }
+            // Same donor-population restriction the 'donor'/'protected-donor'
+            // mappings apply, so this stat box's donor count matches Browse
+            // by Donor/Browse by File instead of counting every donor with a
+            // Tissue record regardless of study or release status.
+            //
+            // BROWSE_LINKS.tissue (BrowseView.js) filters Tissue by
+            // 'donor.study'/'donor.tags' (Tissue's real embedded field
+            // paths, types/tissue.py's embedded_list -- Tissue links a
+            // single `donor`, unlike File's plural `donors`), not bare
+            // 'study'/'tags', so those prefixed keys must be renamed here
+            // rather than left to match against File's (nonexistent)
+            // singular 'donor' fields.
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'donor.study') && fileFilters['donor.study'] !== undefined) {
+                fileFilters['sample_summary.studies'] = fileFilters['donor.study'];
+                delete fileFilters['donor.study'];
+            }
+            if (Object.prototype.hasOwnProperty.call(fileFilters, 'donor.tags') && fileFilters['donor.tags'] !== undefined) {
+                fileFilters['donors.tags'] = fileFilters['donor.tags'];
+                delete fileFilters['donor.tags'];
+            }
+            fileFilters.type = ['File'];
+            fileFilters.status = ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
+            fileFilters['dataset!'] = ['No value'];
+            return fileFilters;
+        }
+
         if (mapping !== 'donor' && mapping !== 'protected-donor') return fileFilters;
 
         // order is important here, as some fields may get renamed to the same destination
@@ -274,9 +343,19 @@ export const ChartDataController = {
         if (typeof browseBaseState === 'string'){
             refs.browseBaseState = browseBaseState;
         }
-        if (Array.isArray(fields) && fields.length > 0){
-            state.barplot_data_fields = fields;
+        const restoredFields = (Array.isArray(fields) && fields.length > 0) ? fields : fieldsByMapping[mapping];
+        if (Array.isArray(restoredFields) && restoredFields.length > 0){
+            state.barplot_data_fields = restoredFields;
+            fieldsByMapping[mapping] = restoredFields;
         }
+        if (activeMapping !== null && activeMapping !== mapping) {
+            // Another mapping's data is still in `state` -- drop it so this
+            // one's chart shows its loading state, not the previous page's
+            // chart, until its own sync below lands.
+            state.barplot_data_filtered = null;
+            state.barplot_data_unfiltered = null;
+        }
+        activeMapping = mapping;
 
         if (reduxSubscription !== null) {
             reduxSubscription(); // Unsubscribe current listener.
@@ -355,6 +434,22 @@ export const ChartDataController = {
     },
 
     /**
+     * Whether `mapping` is the one the shared state/Redux subscription
+     * currently serve. A mapping can be initialized but no longer active
+     * (e.g. Browse by Tissue -> Browse by File -> back): it then has to be
+     * re-initialized, or it keeps showing/syncing the other mapping's
+     * fields and data.
+     *
+     * @public
+     * @static
+     * @param {string} mapping
+     * @returns {boolean}
+     */
+    isActiveMapping: function (mapping) {
+        return activeMapping === mapping;
+    },
+
+    /**
      * For React components to register an "update me" function, i.e. forceUpdate,
      * to be called when new experiments/filteredExperiments has finished loading from back-end.
      *
@@ -430,8 +525,10 @@ export const ChartDataController = {
                 })) return;
             }
         }
+        fieldsByMapping[mapping] = fields;
         ChartDataController.setState({ 'barplot_data_fields' : fields, 'isLoadingChartData' : true }, callback);
-        ChartDataController.sync(mapping);
+        // Only the fields changed -- Browse by Tissue's chart re-buckets the samples it already loaded.
+        ChartDataController.sync(mapping, null, { 'reuseSourceData' : true });
     },
 
     /**
@@ -515,6 +612,11 @@ export const ChartDataController = {
      * Called by ChartDataController.sync() internally.
      */
     fetchUnfilteredAndFilteredBarPlotData : function(mapping = 'all', callback = null, opts = {}, forceToFile = true){
+
+        if (mapping === 'tissue') {
+            ChartDataController.fetchTissueHistologyBarPlotData(callback, opts);
+            return;
+        }
 
         const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         // map filters to match between Donor to File
@@ -609,6 +711,11 @@ export const ChartDataController = {
      * @returns {void} Nothing
      */
     fetchAndSetFilteredBarPlotData : function(mapping = 'all', callback = null, opts = {}, forceToFile = true){
+        if (mapping === 'tissue') {
+            // Browse by Tissue has no filters of its own to narrow its chart by.
+            ChartDataController.setState({ 'barplot_data_filtered' : null, 'isLoadingChartData' : false }, callback, opts);
+            return;
+        }
         // `currentBrowseBaseParams` not rly needed for BarPlot agg endpoint (since passing thru all filters anyway)
         const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         const clonedContextFilters = object.deepClone(refs.contextFilters);
@@ -658,6 +765,43 @@ export const ChartDataController = {
     },
 
 
+
+    /**
+     * Browse by Tissue's chart data: tissue samples with histology images
+     * and/or pathology reports, bucketed client-side -- see
+     * viz/BarPlot/tissue-histology-samples.js. Always unfiltered: the page
+     * has no filters of its own to narrow it by.
+     *
+     * @private
+     * @static
+     * @param {function} [callback] - Optional callback function.
+     * @param {Object} [opts] - `reuseSourceData` skips refetching the samples
+     *   (and the images/files their popovers count).
+     * @returns {void} Nothing
+     */
+    fetchTissueHistologyBarPlotData : function(callback = null, opts = {}){
+        const loadId = ++tissueHistologyLoadId;
+        const reuse = !!opts.reuseSourceData;
+        notifyLoadStartCallbacks();
+        Promise.all([
+            loadTissueHistologySamples({ reuse }),
+            loadTissueHistologyLinkedCounts({ reuse, 'fileSearchParams' : navigate.getBrowseBaseParams(null, 'all') })
+        ]).then(function([samples, linkedCounts]){
+            // Another page's chart now owns `state`.
+            if (activeMapping !== 'tissue') return;
+            if (loadId !== tissueHistologyLoadId) {
+                // Superseded by a newer load, which sets the data -- but this
+                // load's callback (e.g. FacetCharts' initial mount) still has to run.
+                if (typeof callback === 'function') callback(state);
+                return;
+            }
+            ChartDataController.setState({
+                'barplot_data_unfiltered' : buildTissueHistologyBarplotData(samples, state.barplot_data_fields, linkedCounts),
+                'barplot_data_filtered' : null,
+                'isLoadingChartData' : false
+            }, callback, opts);
+        });
+    },
 
     getRefs : function(){
         return refs;

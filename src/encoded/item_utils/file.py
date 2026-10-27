@@ -519,6 +519,19 @@ def get_tissue_type(file: Dict[str, Any], request_handler: RequestHandler) -> Li
     )
 
 
+def get_tissue_type_code(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get tissue type code (leading TPC protocol code, e.g. "3S") from ontology term.
+    """
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(file, request_handler),
+        partial(
+            tissue.get_tissue_type_code, request_handler=request_handler
+        )
+    )
+
+
 def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
     """
     Get tissue category from ontology term.
@@ -531,6 +544,18 @@ def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -
         partial(
             tissue.get_category, request_handler=request_handler
         )
+    )
+
+
+def get_preservation_type(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get preservation type(s) ("Fixed", "Fresh", "Frozen", "Snap Frozen") of the
+    tissues associated with file, as recorded.
+    """
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(file, request_handler),
+        tissue.get_preservation_type,
     )
 
 
