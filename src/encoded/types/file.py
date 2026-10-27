@@ -1805,7 +1805,7 @@ def validate_file_format_validity_for_file_type(context, request):
 
 FILE_ADD_VALIDATORS = [
     validate_item_content_post,
-    validate_file_filename,
+    # validate_file_filename,
     validate_extra_file_format,
     validate_file_format_validity_for_file_type,
     validate_processed_file_unique_md5_with_bypass,
@@ -1830,7 +1830,7 @@ def file_add(context, request, render=None):
 
 
 COMMON_FILE_EDIT_VALIDATORS = [
-     validate_file_filename,
+     # validate_file_filename,
      validate_extra_file_format,
      validate_file_format_validity_for_file_type,
      validate_processed_file_unique_md5_with_bypass,

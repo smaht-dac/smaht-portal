@@ -96,6 +96,9 @@ export function genChartBarDims(
                     'donors' : termObj.donors,
                     'files'  : termObj.files,
                     'samples' : termObj.samples,
+                    // Browse by Tissue's popover counts (see tissue-histology-samples.js).
+                    'pathology_reports' : termObj.pathology_reports,
+                    'histology_images' : termObj.histology_images,
                     'all_donor_ids' : termObj.all_donors_ids || []
                 };
                 if (typeof termObj.field === 'string') {

@@ -192,9 +192,9 @@ def check_basecalling_software_for_ont(
 
 
 UNALIGNED_READS_ADD_VALIDATORS = SUBMITTED_FILE_ADD_VALIDATORS + [
-    validate_read_pairs_on_add,
-    validate_read_pairs_in_file_sets_on_add,
-    validate_basecalling_software_for_ont_on_add,
+    # validate_read_pairs_on_add,
+    # validate_read_pairs_in_file_sets_on_add,
+    # validate_basecalling_software_for_ont_on_add,
 
 ]
 
@@ -210,15 +210,15 @@ def unaligned_reads_add(context, request, render=None):
 
 
 UNALIGNED_READS_EDIT_PATCH_VALIDATORS = SUBMITTED_FILE_EDIT_PATCH_VALIDATORS + [
-    validate_read_pairs_on_edit,
-    validate_read_pairs_in_file_sets_on_edit,
-    validate_basecalling_software_for_ont_on_edit,
+    # validate_read_pairs_on_edit,
+    # validate_read_pairs_in_file_sets_on_edit,
+    # validate_basecalling_software_for_ont_on_edit,
 ]
 
 UNALIGNED_READS_EDIT_PUT_VALIDATORS = SUBMITTED_FILE_EDIT_PUT_VALIDATORS + [
-    validate_read_pairs_on_edit,
-    validate_read_pairs_in_file_sets_on_edit,
-    validate_basecalling_software_for_ont_on_edit,
+    # validate_read_pairs_on_edit,
+    # validate_read_pairs_in_file_sets_on_edit,
+    # validate_basecalling_software_for_ont_on_edit,
 ]
 
 @view_config(

@@ -3737,48 +3737,6 @@ File, Donor, and Publication Overview Styles
             }
         }
 
-        // TEMPORARY -- TissueTypeView.js's Previous/New view toggle, right-
-        // aligned just above the Donor Details card.
-        .tissue-overview-view-toggle-row {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 4px;
-
-            // A small, quiet text link rather than a button.
-            .tissue-overview-view-toggle {
-                padding: 0;
-                border: none;
-                font-size: 0.75rem;
-                color: #6c7a89;
-                text-decoration: none;
-
-                &:hover,
-                &:focus-visible {
-                    color: #428bca;
-                    text-decoration: underline;
-                }
-
-                .icon {
-                    font-size: 0.6875rem;
-                }
-            }
-        }
-
-        // TissueTypeView.js's Donor Details card (.tissue-heatmap-card,
-        // _search.scss) -- unframed, like Browse by Tissue's own.
-        .tissue-overview-heatmap-card {
-            margin-bottom: 24px;
-            padding-bottom: 12px;
-
-            // Single-tab form (non-brain tissues): same reasoning as
-            // .tissue-donor-table-card's own override below -- with no
-            // neighboring tabs, only the active tab's top accent is kept.
-            &--single-tab.tissue-heatmap-card .tissue-heatmap-tabs.dot-tab-nav .dot-tab-nav-list button.active {
-                border-right-color: transparent;
-                border-left-color: transparent;
-            }
-        }
-
         .tissue-donor-table-card {
             position: relative;
             background-color: #ffffff;
@@ -3786,12 +3744,6 @@ File, Donor, and Publication Overview Styles
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 24px;
-
-            // Tissue Overview's "Previous view" (LegacyTissueDonorDetailsTable.js).
-            &--unframed {
-                border: none;
-                border-radius: 0;
-            }
 
             // The shared `.tissue-heatmap-tabs.dot-tab-nav` button style
             // (_search.scss) boxes an active tab in on 3 sides (its own

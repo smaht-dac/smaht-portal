@@ -37,8 +37,9 @@ const TISSUE_CATEGORY_ORDER = ['Ectoderm', 'Mesoderm', 'Endoderm', 'Germ Cells',
 // counting every File regardless of release status.
 const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('status');
 
-// What the Cohort View's facet chart starts out aggregating: files per tissue,
-// split by sample type (preservation type).
+// What the Cohort View's facet chart starts out aggregating: tissue samples
+// with histology images and/or pathology reports per tissue, split by sample
+// type (preservation type) -- see viz/BarPlot/tissue-histology-samples.js.
 const FACET_CHART_INITIAL_FIELDS = ['sample_summary.tissues', 'sample_summary.preservation_types'];
 
 // pathology_summary.autolysis_score is an integer 0-3 (see
@@ -938,9 +939,9 @@ export const BrowseTissueVizWrapper = (props) => {
                     {facetChartOpened ? (
                         <div className={cohortModeIndex === 1 ? '' : 'd-none'}>
                             {/* The same chart Browse by File/Donor show (X Axis /
-                                Group By / germ-layer tabs, bars link to the
-                                filtered File list), here aggregating this
-                                page's released files by tissue. */}
+                                Group By / germ-layer tabs), here counting
+                                tissue samples with histology images and/or
+                                pathology reports by tissue. */}
                             <div id="facet-charts-container" className="container ps-0 ps-xl-4">
                                 <FacetCharts
                                     {..._.pick(props, 'context', 'href', 'session', 'schemas', 'browseBaseState')}

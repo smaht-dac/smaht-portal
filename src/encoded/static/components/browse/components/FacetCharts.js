@@ -3,49 +3,32 @@
 import React from 'react';
 import _ from 'underscore';
 
-import { object, layout, ajax, console, isServerSide, analytics, searchFilters, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { object, layout, console, isServerSide, analytics, searchFilters, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { navigate } from './../../util';
 import { ChartDataController } from './../../viz/chart-data-controller';
 import { getRecordedTerms } from './../../viz/BarPlot/merge-terms';
-import { FIXED_TERM } from './../../viz/BarPlot/tissue-fixed-samples';
+import { TISSUE_SAMPLE_TYPE_FIELD } from './../../viz/BarPlot/tissue-sample-types';
+import { TISSUE_FIELD, SUBMISSION_CENTER_FIELD } from './../../viz/BarPlot/tissue-histology-samples';
 import * as BarPlot from './../../viz/BarPlot';
 import { termTransformFxnWithOverrides } from './../SearchView';
 
 // What the chart's "Group By" menu offers on Browse by Tissue (besides the
-// built-in "None") -- unlike Browse by File/Donor, which group by
-// sequencer/assay/tissue, files here are split by what kind of sample they came
-// from (its preservation type: Fixed, Frozen, ...) or the center that
-// sequenced them ("Sequencing Center", the File schema's own title for this
-// field).
+// built-in "None") -- its tissue samples (see viz/BarPlot/
+// tissue-histology-samples.js) split by their own preservation type (Fixed,
+// Frozen, ...) or the center that submitted them.
 const TISSUE_SUBDIVISION_FIELDS = [
-    { title: 'Sample Type', field: 'sample_summary.preservation_types' },
-    { title: 'Sequencing Center', field: 'sequencing_center.display_title' },
+    { title: 'Sample Type', field: TISSUE_SAMPLE_TYPE_FIELD },
+    { title: 'Submission Center', field: SUBMISSION_CENTER_FIELD },
 ];
 
 // Browse by Tissue's own X Axis options -- the default list
 // (UIControlsWrapper.js's own availableFields_XAxis) also offers "Assay
-// Type"/"Sequencer", which read as valid axis choices elsewhere (Browse by
-// File/Donor, real File-level fields there) but give wrong/meaningless
-// counts here: this chart counts distinct tissue samples per tissue (see
-// aggregateTypeForMapping's own 'samples' case), not files, and a tissue
-// sample has no single assay/sequencer of its own to bucket by the way a
-// File does, per explicit request.
+// Type"/"Sequencer", File-level fields a tissue sample has no single value
+// of, per explicit request.
 const TISSUE_XAXIS_FIELDS = [
-    { title: 'Tissue', field: 'sample_summary.tissues' },
+    { title: 'Tissue', field: TISSUE_FIELD },
 ];
-
-// "Explore Tissue Samples" (Browse by Tissue) leaves out TPC-submitted
-// TissueSample records -- see cursorDetailActions' own comment on it.
-// Snovault filters have no wildcard/suffix match, so the TPCs are looked up
-// from SubmissionCenter itself (componentDidMount) and each one excluded with
-// a negated (`field!`) filter -- any TPC added later is picked up without a
-// code change, and any GCC still shows. The "TPC" name suffix is the same
-// role convention BrowseTissueVizWrapper.js's GCC chart relies on
-// (`endsWith('GCC')`).
-const EXCLUDED_TPC_FILTER_FIELD = 'submission_centers.display_title!';
-const SUBMISSION_CENTERS_SEARCH_HREF = '/search/?type=SubmissionCenter&limit=all&field=display_title';
-const isTpcCenterTitle = (title) => typeof title === 'string' && title.trim().endsWith('TPC');
 
 function getCandidateFields(field, fieldList) {
     if (typeof field !== 'string') return [];
@@ -162,7 +145,7 @@ export class FacetCharts extends React.PureComponent {
     constructor(props){
         super(props);
         this.show = this.show.bind(this);
-        this.state = { 'mounted' : false, 'tpcCenterTitles' : [] };
+        this.state = { 'mounted' : false };
     }
 
     /**
@@ -171,18 +154,6 @@ export class FacetCharts extends React.PureComponent {
      */
     componentDidMount(){
         var { debug, browseBaseState, initialFields, mapping } = this.props;
-
-        if (mapping === 'tissue') {
-            ajax.load(SUBMISSION_CENTERS_SEARCH_HREF, (resp) => {
-                const tpcCenterTitles = _.uniq(
-                    _.pluck(resp?.['@graph'] || [], 'display_title').filter(isTpcCenterTitle)
-                );
-                this.setState({ tpcCenterTitles });
-            }, 'GET', () => {
-                // Non-fatal: the link then just includes TPC records too.
-                console.warn('FacetCharts: could not load submission centers for TPC exclusion.');
-            });
-        }
 
         // Re-initialized too when another mapping was used since (e.g.
         // Browse by Tissue -> Browse by File -> back) -- see
@@ -261,77 +232,33 @@ export class FacetCharts extends React.PureComponent {
         'all' : 'Explore Files',
         'donor' : 'Explore Donors',
         'protected-donor' : 'Explore Donors',
-        'tissue' : 'Explore Tissue Samples',
         'file' : 'Explore Files'
     };
 
     /** Defines buttons/actions to be shown in onHover popover. */
     cursorDetailActions(){
         const { href, browseBaseState, context, mapping = 'all' } = this.props;
-        // Read at click time (inside the action below), not now -- the TPC
-        // list may still be loading when the actions are first built.
-        const getTpcCenterTitles = () => this.state.tpcCenterTitles;
-        // The chart on Browse by Tissue counts distinct tissue samples per
-        // tissue/sample-type -- opens the matching TissueSample list
-        // ('tissue-sample', navigate.js's own base params for it), not the
-        // Tissue list itself, since "explore the samples this dot counted"
-        // is the more useful destination than re-narrowing the Tissue list
-        // to 1 row.
-        const actionMapping = mapping === 'tissue' ? 'tissue-sample' : mapping;
+        // Browse by Tissue's popover has its own links (see ChartDetailCursor/TissueCursorBody.js).
+        if (mapping === 'tissue') return [];
         const isBrowseHref = navigate.isBrowseHref(href);
         const currDonorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
         return [
             {
                 'title' : isBrowseHref && this.titleMapping[mapping] ? this.titleMapping[mapping] : 'Browse',
                 'function' : function(cursorProps, mouseEvt){
-                    var baseParams = navigate.getBrowseBaseParams(browseBaseState, actionMapping),
-                        // TissueSample has no /browse/ tab of its own --
-                        // /search/ is the generic results page every item
-                        // type (incl. TissueSample) actually renders through.
-                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, actionMapping, mapping === 'tissue' ? '/search/' : '/browse/');
+                    var baseParams = navigate.getBrowseBaseParams(browseBaseState, mapping),
+                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, mapping);
 
                     // Reset existing filters if selecting from 'all' view. Preserve if from filtered view.
-                    // (The tissue mapping's own filters are Tissue fields, meaningless on the File list it opens.)
-                    var currentDonorFilters = (browseBaseState === 'all' || mapping === 'tissue') ? {} : currDonorFilters;
+                    var currentDonorFilters = browseBaseState === 'all' ? {} : currDonorFilters;
 
                     var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
-                        // getRecordedTerms below is keyed off the ORIGINAL
-                        // (pre-rename) field -- TERM_MERGES_BY_FIELD (merge-
-                        // terms.js) only knows 'sample_summary.preservation_types',
-                        // never the TissueSample-specific 'preservation_type'
-                        // this renames to below, so looking it up AFTER
-                        // renaming would silently drop the "Frozen" ->
-                        // "Frozen" + "Snap Frozen" expansion for tissue
-                        // mapping specifically.
+                        // getRecordedTerms below is keyed off the original (pre-rename) field.
                         const originalField = node.field;
                         if(node.field === 'sample_summary.tissues'){
                             if (mapping === 'donor') node.field = 'tissues.tissue_type';
                             if (mapping === 'protected-donor') node.field = 'donor.tissues.tissue_type';
-                            // TissueSample's own tissue_type is embedded from
-                            // its Tissue (sample_sources), unlike File's
-                            // sample_summary.tissues -- see types/
-                            // tissue_sample.py's own embedded_list.
-                            if (mapping === 'tissue') node.field = 'sample_sources.tissue_type';
-                        }
-                        // The "Group By: Sample Type" field -- File's own
-                        // sample_summary.preservation_types (item_utils/
-                        // file.py's get_preservation_type) reads the parent
-                        // TISSUE's preservation_type, not TissueSample's own
-                        // same-named-but-unrelated top-level property (how
-                        // that specific cut/aliquot was itself processed --
-                        // commonly a different value, e.g. most real
-                        // TissueSamples are "Snap Frozen"/"Fixed"/"Frozen"
-                        // regardless of their source tissue's own value).
-                        // Has to go through sample_sources (its own Tissue)
-                        // to match what the chart actually counted -- see
-                        // types/tissue_sample.py's own embedded_list.
-                        // Except the Fixed series, which is counted off each
-                        // TissueSample's OWN preservation_type instead (see
-                        // viz/BarPlot/tissue-fixed-samples.js), so its link
-                        // filters on that same field.
-                        if (node.field === 'sample_summary.preservation_types' && mapping === 'tissue') {
-                            node.field = node.term === FIXED_TERM ? 'preservation_type' : 'sample_sources.preservation_type';
                         }
 
                         if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
@@ -353,7 +280,7 @@ export class FacetCharts extends React.PureComponent {
                         'sequencers.display_title',
                     ];
 
-                    if (actionMapping !== 'all' && keysToClear.some((k) => newDonorFilters[k])) {
+                    if (mapping !== 'all' && keysToClear.some((k) => newDonorFilters[k])) {
                         const last = cursorProps?.path?.at?.(-1) ?? cursorProps?.path?.[cursorProps.path.length - 1];
                         newDonorFilters.external_id = last?.all_donor_ids ?? [];
                         keysToClear.forEach((k) => delete newDonorFilters[k]);
@@ -370,47 +297,6 @@ export class FacetCharts extends React.PureComponent {
                             'filters'     : analytics.getStringifiedCurrentFilters(currDonorFilters), // 'Existing' filters, or filters at time of action, go here.
                         });
                     });
-
-                    if (mapping === 'tissue') {
-                        // filtersToHref's own `requiredQs` param (the arg
-                        // below used to pass) only actually survives into
-                        // the final href when that href's own path contains
-                        // "/browse/" (see shared-portal-components'
-                        // search-filters.js's getBaseHref) -- browseBaseHref
-                        // here is deliberately "/search/" (TissueSample has
-                        // no /browse/ tab of its own, see above), so those
-                        // base filters (donor study/tags) were silently
-                        // dropped from the resulting URL, letting the list
-                        // include samples from other donors/studies the
-                        // chart never counted. Folding them into
-                        // newDonorFilters itself instead -- the same
-                        // mechanism every other filter on this URL already
-                        // goes through -- works regardless of path.
-                        _.forEach(_.omit(baseParams, 'type'), function (values, field) {
-                            _.forEach(values, function (value) {
-                                newDonorFilters = searchFilters.changeFilter(field, value, newDonorFilters, null, true);
-                            });
-                        });
-                        // A TPC registers its own TissueSample record for
-                        // every aliquot it procures, alongside the GCC's
-                        // record of that same aliquot (same external_id) --
-                        // listing both showed each sample twice. Only the
-                        // GCC-side records are shown, per explicit request.
-                        const tpcCenterTitles = getTpcCenterTitles();
-                        if (tpcCenterTitles.length > 0) {
-                            newDonorFilters[EXCLUDED_TPC_FILTER_FIELD] = new Set(tpcCenterTitles);
-                        }
-                        // Open the TissueSample list in a new tab so the Tissue page
-                        // (and its chart/toggle state) stays where it is -- same as
-                        // the popover's own "N Files" link (that one still targets
-                        // Files specifically, per explicit request).
-                        window.open(
-                            searchFilters.filtersToHref(newDonorFilters, browseBaseHref, null, false, null, null),
-                            '_blank',
-                            'noopener'
-                        );
-                        return;
-                    }
 
                     searchFilters.saveChangedFilters(newDonorFilters, browseBaseHref, () => {
                         // Scroll to top of browse page container after navigation is complete.

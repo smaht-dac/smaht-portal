@@ -518,9 +518,9 @@ def validate_linked_fixed_samples_on_edit(context, request):
 
 
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_external_id_on_add,
-    validate_tissue_sample_metadata_on_add,
-    validate_linked_fixed_samples_on_add,
+    # validate_external_id_on_add,
+    # validate_tissue_sample_metadata_on_add,
+    # validate_linked_fixed_samples_on_add,
 ]
 
 
@@ -536,15 +536,15 @@ def tissue_sample_add(context, request, render=None):
 
 
 TISSUE_SAMPLE_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_external_id_on_edit,
-    validate_tissue_sample_metadata_on_edit,
-    validate_linked_fixed_samples_on_edit,
+    # validate_external_id_on_edit,
+    # validate_tissue_sample_metadata_on_edit,
+    # validate_linked_fixed_samples_on_edit,
 ]
 
 TISSUE_SAMPLE_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_external_id_on_edit,
-    validate_tissue_sample_metadata_on_edit,
-    validate_linked_fixed_samples_on_edit,
+    # validate_external_id_on_edit,
+    # validate_tissue_sample_metadata_on_edit,
+    # validate_linked_fixed_samples_on_edit,
 ]
 
 

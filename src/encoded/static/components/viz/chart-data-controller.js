@@ -5,6 +5,11 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { ajax, console, isServerSide, object, searchFilters } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate } from './../util';
+import {
+    loadTissueHistologySamples,
+    loadTissueHistologyLinkedCounts,
+    buildTissueHistologyBarplotData,
+} from './BarPlot/tissue-histology-samples';
 
 
 /**
@@ -58,6 +63,15 @@ const INCLUDE_META_TISSUE_CATEGORIES = true;
 const providerCallbacks = {};
 const providerLoadStartCallbacks = {};
 const currentRequests = { filtered: null, unfiltered: null };
+
+/**
+ * Bumped per Browse by Tissue chart load (fetchTissueHistologyBarPlotData),
+ * so a slower, older load can't overwrite a newer one's data.
+ *
+ * @private
+ * @type {number}
+ */
+let tissueHistologyLoadId = 0;
 
 /**
  * After load & update, called to start any registered 'on update' callbacks.
@@ -513,7 +527,8 @@ export const ChartDataController = {
         }
         fieldsByMapping[mapping] = fields;
         ChartDataController.setState({ 'barplot_data_fields' : fields, 'isLoadingChartData' : true }, callback);
-        ChartDataController.sync(mapping);
+        // Only the fields changed -- Browse by Tissue's chart re-buckets the samples it already loaded.
+        ChartDataController.sync(mapping, null, { 'reuseSourceData' : true });
     },
 
     /**
@@ -597,6 +612,11 @@ export const ChartDataController = {
      * Called by ChartDataController.sync() internally.
      */
     fetchUnfilteredAndFilteredBarPlotData : function(mapping = 'all', callback = null, opts = {}, forceToFile = true){
+
+        if (mapping === 'tissue') {
+            ChartDataController.fetchTissueHistologyBarPlotData(callback, opts);
+            return;
+        }
 
         const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         // map filters to match between Donor to File
@@ -691,6 +711,11 @@ export const ChartDataController = {
      * @returns {void} Nothing
      */
     fetchAndSetFilteredBarPlotData : function(mapping = 'all', callback = null, opts = {}, forceToFile = true){
+        if (mapping === 'tissue') {
+            // Browse by Tissue has no filters of its own to narrow its chart by.
+            ChartDataController.setState({ 'barplot_data_filtered' : null, 'isLoadingChartData' : false }, callback, opts);
+            return;
+        }
         // `currentBrowseBaseParams` not rly needed for BarPlot agg endpoint (since passing thru all filters anyway)
         const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         const clonedContextFilters = object.deepClone(refs.contextFilters);
@@ -740,6 +765,43 @@ export const ChartDataController = {
     },
 
 
+
+    /**
+     * Browse by Tissue's chart data: tissue samples with histology images
+     * and/or pathology reports, bucketed client-side -- see
+     * viz/BarPlot/tissue-histology-samples.js. Always unfiltered: the page
+     * has no filters of its own to narrow it by.
+     *
+     * @private
+     * @static
+     * @param {function} [callback] - Optional callback function.
+     * @param {Object} [opts] - `reuseSourceData` skips refetching the samples
+     *   (and the images/files their popovers count).
+     * @returns {void} Nothing
+     */
+    fetchTissueHistologyBarPlotData : function(callback = null, opts = {}){
+        const loadId = ++tissueHistologyLoadId;
+        const reuse = !!opts.reuseSourceData;
+        notifyLoadStartCallbacks();
+        Promise.all([
+            loadTissueHistologySamples({ reuse }),
+            loadTissueHistologyLinkedCounts({ reuse, 'fileSearchParams' : navigate.getBrowseBaseParams(null, 'all') })
+        ]).then(function([samples, linkedCounts]){
+            // Another page's chart now owns `state`.
+            if (activeMapping !== 'tissue') return;
+            if (loadId !== tissueHistologyLoadId) {
+                // Superseded by a newer load, which sets the data -- but this
+                // load's callback (e.g. FacetCharts' initial mount) still has to run.
+                if (typeof callback === 'function') callback(state);
+                return;
+            }
+            ChartDataController.setState({
+                'barplot_data_unfiltered' : buildTissueHistologyBarplotData(samples, state.barplot_data_fields, linkedCounts),
+                'barplot_data_filtered' : null,
+                'isLoadingChartData' : false
+            }, callback, opts);
+        });
+    },
 
     getRefs : function(){
         return refs;

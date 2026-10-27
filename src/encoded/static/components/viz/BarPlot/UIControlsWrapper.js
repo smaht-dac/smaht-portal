@@ -13,12 +13,7 @@ import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
 import { Legend } from './../components';
 import { mergeTermsInBarplotData } from './merge-terms';
-import {
-    SHOW_FIXED_TISSUE_SAMPLES,
-    loadFixedTissueSampleCounts,
-    addFixedTissueSamples,
-} from './tissue-fixed-samples';
-import { tissueSampleTypeColorCycler, TISSUE_SAMPLE_TYPE_FIELD, withTissueSampleTypeLabels } from './tissue-sample-types';
+import { tissueSampleTypeColorCycler, withTissueSampleTypeLabels } from './tissue-sample-types';
 import { Chart } from './Chart';
 
 /**
@@ -43,15 +38,12 @@ export class UIControlsWrapper extends React.PureComponent {
     };
 
     /**
-     * The Y axis' aggregate type per mapping -- 'samples' (distinct tissue/
-     * cell samples, not Files; see visualization.py's own `total_samples`
-     * cardinality aggregation on `sample_summary.sample_names`, each File's
-     * own sample's external_id) for Browse by Tissue's 'tissue' mapping,
+     * The Y axis' aggregate type per mapping -- 'samples' (distinct tissue
+     * samples with histology images and/or pathology reports, see
+     * tissue-histology-samples.js) for Browse by Tissue's 'tissue' mapping,
      * 'files' for Browse by File's 'all' mapping (files ARE the interesting
      * count there), 'donors' for every other (Browse by Donor/Protected
-     * Donor) mapping. A tissue commonly has several files, so counting
-     * files there (as this used to, sharing 'all' mapping's own branch)
-     * overstated how many distinct samples a tissue actually represents.
+     * Donor) mapping.
      */
     static aggregateTypeForMapping(mapping) {
         if (mapping === 'tissue') return 'samples';
@@ -65,10 +57,20 @@ export class UIControlsWrapper extends React.PureComponent {
         return aggregateType === 'samples' ? '# of Tissue Samples' : (aggregateType === 'files' ? '# of Files' : '# of Donors');
     }
 
-    static canShowChart(chartData) {
+    /**
+     * Whether `chartData` has nothing to chart -- by its own sample count for
+     * Browse by Tissue, whose samples have no files (see
+     * tissue-histology-samples.js), by its file count everywhere else.
+     */
+    static hasNoCounts(chartData, aggregateType) {
+        if (!chartData || !chartData.total) return true;
+        return chartData.total[aggregateType === 'samples' ? 'samples' : 'files'] === 0;
+    }
+
+    static canShowChart(chartData, aggregateType = 'files') {
         if (!chartData) return false;
         if (!chartData.total) return false;
-        if (chartData.total && chartData.total.files === 0) return false;
+        if (UIControlsWrapper.hasNoCounts(chartData, aggregateType)) return false;
         if (chartData.total && chartData.total.donors === 0) return false;
         if (typeof chartData.field !== 'string') return false;
         if (typeof chartData.terms !== 'object') return false;
@@ -155,28 +157,8 @@ export class UIControlsWrapper extends React.PureComponent {
             'aggregateType': UIControlsWrapper.aggregateTypeForMapping(props.mapping),
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.donors === 0) ? 'all' : 'filtered',
             'openDropdown': null,
-            'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL,
-            // Browse by Tissue only -- see tissue-fixed-samples.js.
-            'fixedTissueSampleCounts': null
+            'tissueCategoryFilter': UIControlsWrapper.TISSUE_CATEGORY_ALL
         };
-    }
-
-    componentDidMount() {
-        // React 18's StrictMode (app.js) mounts, unmounts and re-mounts the
-        // SAME instance in development -- reset the flag the simulated
-        // unmount set, or the response below would be dropped as if this
-        // were still unmounted.
-        this.unmounted = false;
-        const { mapping } = this.props;
-        if (mapping !== 'tissue' || !SHOW_FIXED_TISSUE_SAMPLES) return;
-        loadFixedTissueSampleCounts().then((fixedTissueSampleCounts) => {
-            if (this.unmounted) return;
-            this.setState({ fixedTissueSampleCounts });
-        });
-    }
-
-    componentWillUnmount() {
-        this.unmounted = true;
     }
 
     componentDidUpdate({ barplot_data_filtered: pastFilteredData }) {
@@ -278,16 +260,10 @@ export class UIControlsWrapper extends React.PureComponent {
         const { barplot_data_fields } = this.props;
         // Terms shown as one (e.g. Snap Frozen under Frozen) are merged before
         // anything else reads the data -- see viz/BarPlot/merge-terms.js.
-        let barplot_data_unfiltered = mergeTermsInBarplotData(this.props.barplot_data_unfiltered);
-        let barplot_data_filtered = mergeTermsInBarplotData(this.props.barplot_data_filtered);
-        const { tissueCategoryFilter, fixedTissueSampleCounts } = this.state;
+        const barplot_data_unfiltered = mergeTermsInBarplotData(this.props.barplot_data_unfiltered);
+        const barplot_data_filtered = mergeTermsInBarplotData(this.props.barplot_data_filtered);
+        const { tissueCategoryFilter } = this.state;
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
-        // Browse by Tissue's "Group By: Sample Type" only -- adds the
-        // TissueSample-counted Fixed series (see tissue-fixed-samples.js).
-        if (fixedTissueSampleCounts && isTissueXAxis && barplot_data_fields[1] === TISSUE_SAMPLE_TYPE_FIELD) {
-            barplot_data_unfiltered = addFixedTissueSamples(barplot_data_unfiltered, fixedTissueSampleCounts);
-            barplot_data_filtered = addFixedTissueSamples(barplot_data_filtered, fixedTissueSampleCounts);
-        }
         if (!isTissueXAxis || tissueCategoryFilter === UIControlsWrapper.TISSUE_CATEGORY_ALL) {
             return { barplot_data_unfiltered, barplot_data_filtered };
         }
@@ -577,7 +553,18 @@ export class UIControlsWrapper extends React.PureComponent {
         const barplotDataFiltered = tissueCategoryAdjusted.barplot_data_filtered;
         const barplotDataUnfiltered = tissueCategoryAdjusted.barplot_data_unfiltered;
 
-        if (!UIControlsWrapper.canShowChart(barplot_data_unfiltered)) return null;
+        if (!UIControlsWrapper.canShowChart(barplot_data_unfiltered, aggregateType)) {
+            // Browse by Tissue's samples are only visible to whoever may see
+            // their pathology reports -- say so rather than show nothing.
+            if (mapping === 'tissue' && barplot_data_unfiltered && !isLoadingChartData) {
+                return (
+                    <div className="text-center text-muted py-5">
+                        No tissue samples with histology images or pathology reports are available to view.
+                    </div>
+                );
+            }
+            return null;
+        }
 
         const windowGridSize = layout.responsiveGridState(windowWidth);
         const contextualView = UIControlsWrapper.contextualView(href);
@@ -799,7 +786,7 @@ export class AggregatedLegend extends React.Component {
 
     render() {
         const { field, barplot_data_unfiltered, isLoadingChartData, aggregateType, href, cursorDetailActions, schemas } = this.props;
-        if (!field || !barplot_data_unfiltered || isLoadingChartData || (barplot_data_unfiltered.total && barplot_data_unfiltered.total.files === 0)) {
+        if (!field || !barplot_data_unfiltered || isLoadingChartData || UIControlsWrapper.hasNoCounts(barplot_data_unfiltered, aggregateType)) {
             return null;
         }
 

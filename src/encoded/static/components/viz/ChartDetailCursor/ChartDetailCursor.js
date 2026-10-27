@@ -432,7 +432,8 @@ export default class ChartDetailCursor extends React.PureComponent {
                 }}
                 ref={this.cursorComponentRef} sticky={sticky}>
                 { React.createElement(
-                    bodyComponent,
+                    // A chart's own body (e.g. Browse by Tissue's) over the default.
+                    this.props.bodyComponent || bodyComponent,
                     _.extend(
                         _.omit(this.props, 'children'),
                         this.state
