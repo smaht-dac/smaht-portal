@@ -54,6 +54,11 @@ const SAMPLES_WITH_REPORT_FILTERS = [
 
 const MISSING_TERM = 'Not specified';
 
+// Samples with no preservation type of their own are left out of the chart
+// altogether for now (per request, until it's worked out what they are) --
+// set to false to chart them again, as "Not specified".
+const HIDE_UNSPECIFIED_SAMPLE_TYPES = true;
+
 const TERMS_BY_FIELD = {
     [TISSUE_FIELD]: (sample) => _.pluck(sample.sample_sources || [], 'tissue_type'),
     // The sample's OWN preservation type -- not its Tissue's, which File's
@@ -121,6 +126,7 @@ export function loadTissueHistologySamples({ reuse = false } = {}) {
     if (reuse && cachedSamples) return cachedSamples;
     cachedSamples = Promise.all(SAMPLES_WITH_REPORT_FILTERS.map(fetchSamples)).then((results) =>
         _.uniq(_.flatten(results, true), false, (sample) => sample.external_id || sample['@id'])
+            .filter((sample) => !HIDE_UNSPECIFIED_SAMPLE_TYPES || sample.preservation_type)
     );
     return cachedSamples;
 }

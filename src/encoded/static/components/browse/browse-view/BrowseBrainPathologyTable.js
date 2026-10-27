@@ -6,8 +6,10 @@ import {
     buildRangeScoreClassifier,
     useCellDetailPopover,
     portalCellDetailPopover,
+    MetricDescriptionNote,
 } from './BrowseTissueHeatmapTable';
 import { Schemas } from '../../util';
+import { parseOutcomeCriteria } from './brain-outcome-criteria';
 import {
     DonorIdLink,
     buildDonorDemographics,
@@ -318,7 +320,9 @@ function DonorSummaryButton({ donorId, entries }) {
                 aria-expanded={!!selectedCell}
                 aria-label={`Show pathology summary for ${donorId}`}
                 title="Show pathology summary">
-                <i className="icon icon-fw icon-info-circle fas" aria-hidden="true" />
+                <i className="icon icon-fw icon-clipboard-list fas" aria-hidden="true" />
+                <span>Diagnosis</span>
+                <i className="icon icon-fw icon-angle-down fas" aria-hidden="true" />
             </button>
             {selectedCell
                 ? portalCellDetailPopover(
@@ -332,6 +336,22 @@ function DonorSummaryButton({ donorId, entries }) {
                 )
                 : null}
         </>
+    );
+}
+
+function OutcomeCriteria() {
+    const description = Schemas.Field.getSchemaProperty('outcome', Schemas.get(), 'BrainPathologyReport')?.description;
+    const criteria = parseOutcomeCriteria(description);
+    if (!criteria) return null;
+    return (
+        <div className="tissue-heatmap-outcome-criteria">
+            <div>{criteria.intro}</div>
+            {criteria.reasons.length > 0 ? (
+                <ol>
+                    {criteria.reasons.map((reason) => <li key={reason}>{reason}</li>)}
+                </ol>
+            ) : null}
+        </div>
     );
 }
 
@@ -353,7 +373,7 @@ function BrainTableScopeNote({ note }) {
 /** "Summary" header cell -- `rowSpan` matches the table's own header rows. */
 export function DonorSummaryHeaderCell({ rowSpan }) {
     return (
-        <th className="tissue-heatmap-demographic-header" rowSpan={rowSpan}>
+        <th className="tissue-heatmap-demographic-header is-summary" rowSpan={rowSpan}>
             Summary
         </th>
     );
@@ -362,7 +382,7 @@ export function DonorSummaryHeaderCell({ rowSpan }) {
 /** One donor row's Summary cell, see DonorSummaryButton. */
 export function DonorSummaryCell({ donorId, donorDiagnosis }) {
     return (
-        <td className="tissue-heatmap-demographic">
+        <td className="tissue-heatmap-demographic is-summary">
             <DonorSummaryButton donorId={donorId} entries={donorDiagnosis?.[donorId]} />
         </td>
     );
@@ -405,13 +425,7 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null, scop
             <div className="tissue-heatmap-metric-heading">
                 <div className="tissue-heatmap-metric-heading-row">
                     <div className="tissue-heatmap-metric-title-group">
-                        <h2 className="tissue-heatmap-metric-title">
-                            Neuropathology Findings
-                            <i
-                                className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                                data-tip="Presence of each neuropathology finding category, aggregated across a donor's brain pathology report(s). Click a Present cell to read the reported reason."
-                            />
-                        </h2>
+                        <h2 className="tissue-heatmap-metric-title">Neuropathology Findings</h2>
                         {/* Visible (not tooltip-only) hint that Present cells open
                             the reported reason -- the cell icon alone wasn't
                             read as clickable. Uses the same icon as the cells. */}
@@ -428,6 +442,10 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null, scop
                         onEntryClick={handleEntryClick}
                     />
                 </div>
+                <MetricDescriptionNote>
+                    Presence of each neuropathology finding category, aggregated across a donor&apos;s brain
+                    pathology report(s). Click a Present cell to read the reported reason.
+                </MetricDescriptionNote>
             </div>
             <div className={'tissue-heatmap-table-wrap' + (selectedCell ? ' has-selected-cell' : '')}>
                 <table className="tissue-heatmap-table tissue-heatmap-metric-table">
@@ -564,16 +582,14 @@ export function BrainStagingTable({ tissueResults = [], donorHrefs = null, scope
             <div className="tissue-heatmap-metric-heading">
                 <div className="tissue-heatmap-metric-heading-row">
                     <div className="tissue-heatmap-metric-title-group">
-                        <h2 className="tissue-heatmap-metric-title">
-                            Neuropathology Staging
-                            <i
-                                className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                                data-tip="Neurodegenerative disease staging/severity scores from brain pathology reports. Each score has its own scale, so every column is colored relative to just its own values."
-                            />
-                        </h2>
+                        <h2 className="tissue-heatmap-metric-title">Neuropathology Staging</h2>
                         <BrainTableScopeNote note={scopeNote} />
                     </div>
                 </div>
+                <MetricDescriptionNote>
+                    Neurodegenerative disease staging/severity scores from brain pathology reports. Each score
+                    has its own scale, so every column is colored relative to just its own values.
+                </MetricDescriptionNote>
             </div>
             <div className="tissue-heatmap-table-wrap">
                 <table className="tissue-heatmap-table tissue-heatmap-metric-table">
@@ -675,16 +691,15 @@ export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null, sco
             <div className="tissue-heatmap-metric-heading">
                 <div className="tissue-heatmap-metric-heading-row">
                     <div className="tissue-heatmap-metric-title-group">
-                        <h2 className="tissue-heatmap-metric-title">
-                            Diagnosis Summary
-                            <i
-                                className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                                data-tip="Review outcome and free-text final diagnosis/notes from each donor's brain pathology report(s)."
-                            />
-                        </h2>
+                        <h2 className="tissue-heatmap-metric-title">Diagnosis Summary</h2>
                         <BrainTableScopeNote note={scopeNote} />
                     </div>
                 </div>
+                <MetricDescriptionNote>
+                    Review outcome and free-text final diagnosis/notes from each donor&apos;s brain pathology
+                    report(s).
+                    <OutcomeCriteria />
+                </MetricDescriptionNote>
             </div>
             <div className="tissue-heatmap-table-wrap">
                 <table className="tissue-heatmap-diagnosis-table">
@@ -693,10 +708,7 @@ export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null, sco
                             <th>Donor ID</th>
                             <th>Age</th>
                             <th>Sex</th>
-                            <th>
-                                Outcome
-                                <ColumnHeaderInfo field="outcome" />
-                            </th>
+                            <th>Outcome</th>
                             <th>
                                 Final Neuropathological Diagnosis
                                 <ColumnHeaderInfo field="final_neuropathological_diagnosis" />
@@ -708,14 +720,15 @@ export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null, sco
                         </tr>
                     </thead>
                     <tbody>
-                        {donors.map((donorId) => {
+                        {donors.map((donorId, donorIndex) => {
                             const entries = donorDiagnosis[donorId];
                             return entries.map((entry, entryIndex) => (
                                 // A 2nd+ distinct report for the same donor (rare) gets
                                 // its own row rather than being silently dropped or
-                                // squeezed into the same cell as the 1st.
+                                // squeezed into the same cell as the 1st. Striped
+                                // per donor, so a donor's rows stay one band.
                                 // eslint-disable-next-line react/no-array-index-key
-                                <tr key={`${donorId}-${entryIndex}`}>
+                                <tr key={`${donorId}-${entryIndex}`} className={donorIndex % 2 === 1 ? 'is-striped' : undefined}>
                                     {entryIndex === 0 ? (
                                         <td className="tissue-heatmap-diagnosis-donor" rowSpan={entries.length}>
                                             <DonorIdLink donorId={donorId} donorHrefs={donorHrefs} />

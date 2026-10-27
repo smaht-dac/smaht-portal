@@ -4,7 +4,7 @@ import React from 'react';
 import { barplot_color_cycler } from './../ColorCycler';
 import { navigate } from './../../util';
 import { getRecordedTerms } from './../BarPlot/merge-terms';
-import { TISSUE_SAMPLE_TYPE_FIELD } from './../BarPlot/tissue-sample-types';
+import { TISSUE_SAMPLE_TYPE_FIELD, darkenHex } from './../BarPlot/tissue-sample-types';
 import { TISSUE_FIELD } from './../BarPlot/tissue-histology-samples';
 import {
     getTissueIconSrc,
@@ -57,16 +57,7 @@ const getTissueFilesHref = (tissueTerm, sampleTypeTerm) => {
 const getTissueOverviewHref = (tissueTerm) =>
     '/tissue-overview/?tissue_type=' + encodeURIComponent(getTissueTypeUrlCode(tissueTerm)).replace(/%20/g, '+');
 
-// The bars' pastel colors are too light for the icon's thin outlines on white
-// -- the icon gets the same hue, darkened by `amount` (0-1) toward black.
-const darkenHex = (hex, amount) => {
-    const match = String(hex || '').trim().match(/^#?([0-9a-f]{6})$/i);
-    if (!match) return hex;
-    const value = parseInt(match[1], 16);
-    const channels = [(value >> 16) & 255, (value >> 8) & 255, value & 255];
-    return 'rgb(' + channels.map((channel) => Math.round(channel * (1 - amount))).join(', ') + ')';
-};
-
+// The bars' pastel colors are too light for the icon's thin outlines on white.
 const ICON_DARKEN_AMOUNT = 0.35;
 
 const pluralize = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;

@@ -906,6 +906,21 @@ export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = n
 // convention colors the TRACK when on and always keeps a plain white thumb;
 // this one needs the opposite (an orange THUMB, per explicit request, on a
 // plain light track) with no existing override to build on.
+/**
+ * What a table shows, in a bar under its title -- per design feedback, in
+ * place of the info-icon tooltip on the title itself. Same look as the
+ * Donor pages' "Donor Privacy" callout.
+ */
+export function MetricDescriptionNote({ children }) {
+    if (!children) return null;
+    return (
+        <div className="tissue-heatmap-metric-note">
+            <i className="icon icon-fw icon-info-circle fas" aria-hidden="true" />
+            <div className="tissue-heatmap-metric-note-text">{children}</div>
+        </div>
+    );
+}
+
 function NonTargetTissueToggle({ checked, onChange }) {
     return (
         <label className="tissue-heatmap-nt-toggle">
@@ -988,11 +1003,11 @@ const AUTOLYSIS_SCORE_LEGEND_ENTRIES = [0, 1, 2, 3].map((value) => {
     return { className: `score-${value}`, label: String(value) };
 });
 
-// Target Tissue %'s own fixed bands (TARGET_TISSUE_PERCENTAGE_ORDER),
-// reordered lightest-to-darkest to match getTargetTissuePercentageScoreClass's
-// inverted band index -- higher target-tissue presence reads as the
-// lighter, "better" end of the scale, same direction Autolysis Score's
-// 0=None does. Labels match formatTargetTissuePercentage's own formatting
+// Target Tissue %'s own fixed bands (TARGET_TISSUE_PERCENTAGE_ORDER), in
+// ascending order like Non Target Tissue %'s legend (per design feedback),
+// colored by getTargetTissuePercentageScoreClass's inverted band index --
+// higher target-tissue presence is the lighter, "better" end of the scale,
+// same direction Autolysis Score's 0=None does. Labels match formatTargetTissuePercentage's own formatting
 // exactly, so the legend's swatches read as the same vocabulary as the
 // cells they're explaining.
 const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.map(
@@ -1002,7 +1017,7 @@ const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.m
             label: label === '0' ? '0%' : label.replace(/^\[|\]$/g, ''),
         };
     }
-).reverse();
+);
 
 // Non Target Tissue % gets its own orange scale (`nt-score-0..3`, see
 // _search.scss) instead of the shared blue score-0..4 palette the other 3
@@ -2846,6 +2861,13 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                 ))}
             </tr>
             {hideGroupRow ? null : <tr>{tissueTypeHeaderCells}</tr>}
+            {/* Above the subtypes, per design feedback -- which subtypes are
+                target/non-target reads before the subtypes themselves. */}
+            {hasTargetNonTargetRow ? (
+                <tr className="tissue-heatmap-target-nontarget-row">
+                    {renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys)}
+                </tr>
+            ) : null}
             {displayRuns ? (
                 <tr>
                     {renderSubtypeHeaderCells(
@@ -2859,11 +2881,6 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                         blankPlaceholderLabels,
                         subtypeTintPercent
                     )}
-                </tr>
-            ) : null}
-            {hasTargetNonTargetRow ? (
-                <tr className="tissue-heatmap-target-nontarget-row">
-                    {renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys)}
                 </tr>
             ) : null}
         </>
@@ -3339,15 +3356,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                     legend's own right edge instead. */}
                 <div className="tissue-heatmap-metric-heading-row">
                     <div className="tissue-heatmap-metric-title-group">
-                        <h2 className="tissue-heatmap-metric-title">
-                            {metricLabel}
-                            {tooltip ? (
-                                <i
-                                    className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                                    data-tip={tooltip}
-                                />
-                            ) : null}
-                        </h2>
+                        <h2 className="tissue-heatmap-metric-title">{metricLabel}</h2>
                         {titleAccessory}
                     </div>
                     {typeof legend === 'function'
@@ -3359,6 +3368,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         })
                         : legend}
                 </div>
+                <MetricDescriptionNote>{tooltip}</MetricDescriptionNote>
             </div>
             {stickyHeader ? (
                 <div
@@ -4292,7 +4302,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                         ]}
                     </DotRouter>
                 </div>
-                <div className={activeSection === 'brain' ? '' : 'd-none'}>
+                <div className={'tissue-heatmap-brain-section' + (activeSection === 'brain' ? '' : ' d-none')}>
                     <DotRouter
                         href={href}
                         navClassName="tissue-heatmap-tabs tissue-heatmap-tabs--brain"

@@ -62,8 +62,8 @@ function formatDemographicAge(age) {
 export function DonorDemographicsHeaderCells({ rowSpan }) {
     return (
         <>
-            <th className="tissue-heatmap-demographic-header" rowSpan={rowSpan}>Age</th>
-            <th className="tissue-heatmap-demographic-header" rowSpan={rowSpan}>Sex</th>
+            <th className="tissue-heatmap-demographic-header is-age" rowSpan={rowSpan}>Age</th>
+            <th className="tissue-heatmap-demographic-header is-sex" rowSpan={rowSpan}>Sex</th>
         </>
     );
 }
@@ -72,8 +72,8 @@ export function DonorDemographicsHeaderCells({ rowSpan }) {
 export function DonorDemographicsCells({ demographics }) {
     return (
         <>
-            <td className="tissue-heatmap-demographic">{formatDemographicAge(demographics?.age)}</td>
-            <td className="tissue-heatmap-demographic">{demographics?.sex || 'n/a'}</td>
+            <td className="tissue-heatmap-demographic is-age">{formatDemographicAge(demographics?.age)}</td>
+            <td className="tissue-heatmap-demographic is-sex">{demographics?.sex || 'n/a'}</td>
         </>
     );
 }

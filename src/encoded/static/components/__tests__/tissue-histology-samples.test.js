@@ -116,6 +116,14 @@ describe('loadTissueHistologySamples', () => {
         expect(samples.map((s) => s.external_id)).toEqual([fixedSample.external_id, frozenSample.external_id]);
     });
 
+    test('leaves out samples with no preservation type', async () => {
+        const [fixedSample] = SAMPLES;
+        const unspecified = { ...fixedSample, external_id: 'SMHT001-3Q-009', preservation_type: undefined };
+        ajax.load.mockImplementation((href, onSuccess) => onSuccess({ '@graph': [fixedSample, unspecified] }));
+        const samples = await loadTissueHistologySamples();
+        expect(samples.map((s) => s.external_id)).toEqual([fixedSample.external_id]);
+    });
+
     test('an empty (404) search counts as no samples', async () => {
         ajax.load.mockImplementation((href, onSuccess, method, onError) => onError({ '@graph': [] }));
         await expect(loadTissueHistologySamples()).resolves.toEqual([]);
