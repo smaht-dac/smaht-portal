@@ -22,6 +22,13 @@ const TISSUE_SUBDIVISION_FIELDS = [
     { title: 'Submission Center', field: SUBMISSION_CENTER_FIELD },
 ];
 
+// Browse by File's "Group By" menu -- the default list plus the center that
+// sequenced each file, a File-level field Donor/Protected Donor charts have
+// no single value of.
+const FILE_SUBDIVISION_FIELDS = BarPlot.UIControlsWrapper.defaultProps.availableFields_Subdivision.concat([
+    { title: 'Sequencing Center', field: 'sequencing_center.display_title' },
+]);
+
 // Browse by Tissue's own X Axis options -- the default list
 // (UIControlsWrapper.js's own availableFields_XAxis) also offers "Assay
 // Type"/"Sequencer", File-level fields a tissue sample has no single value
@@ -389,7 +396,7 @@ export class FacetCharts extends React.PureComponent {
                         chartHeight={height}
                         // undefined falls back to UIControlsWrapper's own default list.
                         availableFields_XAxis={mapping === 'tissue' ? TISSUE_XAXIS_FIELDS : undefined}
-                        availableFields_Subdivision={mapping === 'tissue' ? TISSUE_SUBDIVISION_FIELDS : undefined}
+                        availableFields_Subdivision={mapping === 'tissue' ? TISSUE_SUBDIVISION_FIELDS : (mapping === 'all' ? FILE_SUBDIVISION_FIELDS : undefined)}
                         {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
                         <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context, termLabelTransform }} />
                     </BarPlot.UIControlsWrapper>
