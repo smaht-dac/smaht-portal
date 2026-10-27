@@ -2866,71 +2866,11 @@ div.browse-link-icon {
 // .tissue-heatmap-cell, not nested inside the same rule as it in this
 // stylesheet -- matches .tissue-heatmap-card's own 4-class specificity for
 // these rules plus one, so it always wins regardless of source order.
-.tissue-heatmap-card .tissue-heatmap-autolysis-tab .tissue-heatmap-table-wrap .tissue-heatmap-cell,
-// Tissue Overview's combined Donor Details table (TissueDonorDetailsTable.js)
-// has no per-metric tab wrapper -- its Autolysis Score cells carry the
-// scale as their own class instead.
-.tissue-heatmap-card .tissue-heatmap-table-wrap .tissue-heatmap-cell.tissue-heatmap-cell--autolysis {
+.tissue-heatmap-card .tissue-heatmap-autolysis-tab .tissue-heatmap-table-wrap .tissue-heatmap-cell {
 	&.score-0 { background-color: var(--heatmap-autolysis-score-0-bg, #EBD6DB); color: var(--heatmap-autolysis-score-0-text, #28323C); }
 	&.score-1 { background-color: var(--heatmap-autolysis-score-1-bg, #D19FAB); color: var(--heatmap-autolysis-score-1-text, #28323C); }
 	&.score-2 { background-color: var(--heatmap-autolysis-score-2-bg, #AC536A); color: var(--heatmap-autolysis-score-2-text, #FFFFFF); }
 	&.score-3 { background-color: var(--heatmap-autolysis-score-3-bg, #6E3544); color: var(--heatmap-autolysis-score-3-text, #FFFFFF); }
-}
-
-// Tissue Overview's combined Donor Details table (TissueDonorDetailsTable.js):
-// a metric group header (Target Tissue %, Autolysis Score, ...) over its
-// subtype columns, then the per-donor detail columns. Same light header
-// fill as the Donor ID/Age/Sex headers, and the same 4px white gap between
-// metric groups the heatmap tables use between tissue types.
-// Bottom-aligned: the Fixed/Frozen legend's Left/Right captions make this
-// heading row taller than other tabs' -- centered, that pushed the title
-// further from the divider below it than every other tab's title.
-.tissue-heatmap-card .tissue-overview-donor-details .tissue-heatmap-metric-heading-row {
-	align-items: flex-end;
-}
-
-.tissue-heatmap-card .tissue-overview-legends {
-	// Every metric's legend side by side in 1 row (wrapping when narrow),
-	// not stacked -- 4 stacked scales made the heading taller than the table.
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: flex-end;
-	align-items: flex-end;
-	gap: 8px 24px;
-}
-
-.tissue-heatmap-card table.tissue-heatmap-table.tissue-overview-donor-table {
-	// Content-sized, like the heatmap tabs' own tables -- stretched to the
-	// card's width (.tissue-heatmap-metric-table's default), the leftover
-	// space all went to the long-labeled detail columns at the end.
-	width: max-content;
-
-	// 2 header rows here -- the brain tables' 2-line minimum header height
-	// (.tissue-heatmap-metric-table thead th) doubled it. `tr` only to
-	// outrank that rule, which comes later in this file.
-	thead tr th {
-		height: auto;
-	}
-
-	thead th.tissue-overview-metric-header,
-	thead th.tissue-overview-metric-subheader,
-	thead th.tissue-overview-detail-header {
-		background-color: #F2F3F5;
-		vertical-align: middle;
-	}
-
-	thead th.tissue-overview-metric-subheader {
-		font-size: 0.75rem;
-		font-weight: 500;
-	}
-
-	thead th.tissue-overview-metric-group-end:not(:last-child) {
-		box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -1px 0 #C3D8DE;
-
-		&.is-selected-column {
-			box-shadow: inset -4px 0 0 #FFFFFF, inset 0 -3px 0 #2F6FB0;
-		}
-	}
 }
 
 .tissue-heatmap-card {
@@ -3108,6 +3048,28 @@ div.browse-link-icon {
 	// opposite (right) end of this same row instead of stacking underneath
 	// it -- the two read as a matched pair (what this tab shows / how to
 	// read its colors) rather than two separate stacked headers.
+	// Under each table's title (BrowseTissueHeatmapTable.js's
+	// MetricDescriptionNote) -- same look as the Donor pages' "Donor
+	// Privacy" callout (_item-pages.scss's .view-header .callout).
+	.tissue-heatmap-metric-note {
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+		margin-top: 10px;
+		padding: 8px 12px;
+		color: #5B7595;
+		background-color: #F6FFFB;
+		border: 1px solid #BDE3D7;
+		border-radius: 4px;
+		font-size: 0.875rem;
+		line-height: 1.4;
+
+		> .icon {
+			flex: none;
+			margin-top: 2px;
+		}
+	}
+
 	.tissue-heatmap-metric-heading {
 		// Extra breathing room above (vs. a plain top: 4px match on the
 		// legend) -- flush against the tab row read as though this title
@@ -3228,6 +3190,20 @@ div.browse-link-icon {
 			min-width: 66px;
 			text-align: right;
 		}
+
+		// Same-width swatches, and Non-Target's row (the 2nd legend) starts
+		// one swatch (+ its 1px divider) in -- past Target's extra "0%"
+		// band -- so both rows' 0-10/11-25/26-49/50-100 sit in the same
+		// columns.
+		--dual-legend-swatch-width: 58px;
+
+		.tissue-heatmap-fixed-legend-swatch {
+			width: var(--dual-legend-swatch-width);
+		}
+
+		.tissue-heatmap-fixed-legend + .tissue-heatmap-fixed-legend .tissue-heatmap-fixed-legend-scale {
+			margin-left: calc(var(--dual-legend-swatch-width) + 1px);
+		}
 	}
 
 	// A plain checkbox styled as a pill switch -- an ORANGE thumb (per
@@ -3256,9 +3232,16 @@ div.browse-link-icon {
 				outline-offset: 2px;
 			}
 
+			// On: the track takes Non Target Tissue %'s darkest band color
+			// (nt-score-3), with the white thumb on its right, per design
+			// feedback.
+			&:checked + .tissue-heatmap-nt-toggle-track {
+				background-color: var(--heatmap-ntscore-3-bg, #C06755);
+				border-color: var(--heatmap-ntscore-3-bg, #C06755);
+			}
+
 			&:checked + .tissue-heatmap-nt-toggle-track::after {
 				left: 18px;
-				background-color: #F2994A;
 			}
 		}
 
@@ -3267,16 +3250,14 @@ div.browse-link-icon {
 			display: inline-block;
 			width: 34px;
 			height: 18px;
-			background-color: #FFFFFF;
+			background-color: #C7CCD2;
 			border: 1px solid #C7CCD2;
 			border-radius: 10px;
-			transition: border-color 0.15s ease;
+			transition: background-color 0.15s ease, border-color 0.15s ease;
 			flex-shrink: 0;
 
-			// The thumb -- always visible, orange only once checked (a grey
-			// thumb at rest keeps "on" the one state that actually draws the
-			// eye, rather than orange reading as this toggle's permanent,
-			// unchanging color regardless of state).
+			// The thumb -- white in both states; the track's own color
+			// (grey off, Non Target's dark orange on) is what shows the state.
 			&::after {
 				content: '';
 				position: absolute;
@@ -3285,8 +3266,9 @@ div.browse-link-icon {
 				width: 14px;
 				height: 14px;
 				border-radius: 50%;
-				background-color: #A9B7C5;
-				transition: left 0.15s ease, background-color 0.15s ease;
+				background-color: #FFFFFF;
+				box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+				transition: left 0.15s ease;
 			}
 		}
 
@@ -3759,9 +3741,7 @@ div.browse-link-icon {
 		// sibling gap in that row (e.g. Fibroadipose | Lymphoid, same
 		// tissue type) to this rule's own blanket 4px instead.
 		// Same rowSpan-header exclusion as the selected-cell fade above.
-		// Tissue Overview's Donor Details headers draw their own gaps
-		// (see .tissue-overview-donor-table, above).
-		thead tr:last-child th:not(.tissue-heatmap-subtype-subrow-header):not(.tissue-heatmap-target-nontarget-header):not(.tissue-heatmap-order-header):not(.tissue-heatmap-donor-header):not(.tissue-heatmap-demographic-header):not(.tissue-overview-metric-header):not(.tissue-overview-metric-subheader):not(.tissue-overview-detail-header) {
+		thead tr:last-child th:not(.tissue-heatmap-subtype-subrow-header):not(.tissue-heatmap-target-nontarget-header):not(.tissue-heatmap-order-header):not(.tissue-heatmap-donor-header):not(.tissue-heatmap-demographic-header) {
 			// Combined with `thead th`'s own horizontal box-shadow -- see
 			// that rule's own comment on why (and why listed second here).
 			&:not(:last-child) {
@@ -4024,14 +4004,17 @@ div.browse-link-icon {
 			// score-0..4 HeatmapColorPicker -- TARGET/NON-TARGET is a
 			// categorical distinction, not a point on that severity scale,
 			// so it has no counterpart there to pick from.
+			// Inverted (colored text on white), per design feedback.
 			&.tissue-heatmap-target-nontarget-header--target {
-				background-color: #377288;
-				color: #FFFFFF;
+				background-color: #FFFFFF;
+				color: #377288;
+				font-weight: 600;
 			}
 
 			&.tissue-heatmap-target-nontarget-header--non-target {
-				background-color: #781D09;
-				color: #FFFFFF;
+				background-color: #FFFFFF;
+				color: #781D09;
+				font-weight: 600;
 			}
 		}
 
@@ -4994,4 +4977,200 @@ table.tissue-heatmap-table {
 		border-top: 1px solid #EEF2F5;
 		padding-top: 6px;
 	}
+}
+
+// Browse by Tissue's Brain Tissues section (BrowseTissueHeatmapTable.js's
+// .tissue-heatmap-brain-section) -- design feedback for the brain tables
+// only, so nothing here reaches the Non-Brain tables.
+.tissue-heatmap-card .tissue-heatmap-brain-section {
+	// Findings/Staging's cells and legends read the shared target scale --
+	// here based off Present's own color (score-3, see
+	// BrowseBrainPathologyTable.js's getBrainFindingScoreClass).
+	--heatmap-target-score-0-bg: #E3EDF9;
+	--heatmap-target-score-0-text: #28323C;
+	--heatmap-target-score-1-bg: #B4CDEE;
+	--heatmap-target-score-1-text: #28323C;
+	--heatmap-target-score-2-bg: #7DA6DE;
+	--heatmap-target-score-2-text: #28323C;
+	--heatmap-target-score-3-bg: #3275CA;
+	--heatmap-target-score-3-text: #FFFFFF;
+	--heatmap-target-score-4-bg: #22568F;
+	--heatmap-target-score-4-text: #FFFFFF;
+
+	table.tissue-heatmap-table {
+		// Donor ID/Age/Sex/Summary are one frozen section on the left, with
+		// its drop shadow after Summary -- fixed widths, since each column's
+		// sticky `left` is the sum of the ones before it. After the 32px
+		// order column on the tissue_type-axis tables (Autolysis/Ischemic),
+		// first thing on Findings/Staging (.tissue-heatmap-metric-table).
+		--brain-frozen-start: 32px;
+		--brain-donor-width: 110px;
+		--brain-age-width: 56px;
+		--brain-sex-width: 76px;
+		--brain-summary-width: 128px;
+
+		&.tissue-heatmap-metric-table {
+			--brain-frozen-start: 0px;
+		}
+
+		thead th {
+			background-color: #F4F8FF;
+			// No white gaps between header cells here.
+			box-shadow: inset 0 -1px 0 #C3D8DE !important;
+
+			&.is-selected-column {
+				box-shadow: inset 0 -3px 0 0 #2F6FB0 !important;
+			}
+		}
+
+		.tissue-heatmap-donor-header,
+		.tissue-heatmap-donor-id,
+		.tissue-heatmap-metric-donor-header,
+		.tissue-heatmap-metric-donor-id,
+		.tissue-heatmap-demographic-header,
+		td.tissue-heatmap-demographic {
+			position: sticky;
+			z-index: 2;
+			background-color: #FFFFFF;
+			// Not Ischemic Time's wider 20px (.tissue-heatmap-table--wide-padding)
+			// -- these columns' widths are fixed, sized for 8px.
+			padding-left: 8px;
+			padding-right: 8px;
+		}
+
+		thead {
+			.tissue-heatmap-donor-header,
+			.tissue-heatmap-metric-donor-header,
+			.tissue-heatmap-demographic-header {
+				z-index: 3;
+				background-color: #F4F8FF;
+			}
+		}
+
+		.tissue-heatmap-donor-header,
+		.tissue-heatmap-donor-id,
+		.tissue-heatmap-metric-donor-header,
+		.tissue-heatmap-metric-donor-id {
+			left: var(--brain-frozen-start);
+			width: var(--brain-donor-width);
+			min-width: var(--brain-donor-width);
+			max-width: var(--brain-donor-width);
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.is-age {
+			left: calc(var(--brain-frozen-start) + var(--brain-donor-width));
+			width: var(--brain-age-width);
+			min-width: var(--brain-age-width);
+			max-width: var(--brain-age-width);
+		}
+
+		.is-sex {
+			left: calc(var(--brain-frozen-start) + var(--brain-donor-width) + var(--brain-age-width));
+			width: var(--brain-sex-width);
+			min-width: var(--brain-sex-width);
+			max-width: var(--brain-sex-width);
+		}
+
+		.is-summary {
+			left: calc(var(--brain-frozen-start) + var(--brain-donor-width) + var(--brain-age-width) + var(--brain-sex-width));
+			width: var(--brain-summary-width);
+			min-width: var(--brain-summary-width);
+			max-width: var(--brain-summary-width);
+		}
+
+		// The same grid lines as the rest of the table's cells; the
+		// section's drop shadow moves from Donor ID to after Summary.
+		tbody tr {
+			.tissue-heatmap-donor-id,
+			.tissue-heatmap-metric-donor-id,
+			td.tissue-heatmap-demographic {
+				border-right: none;
+				box-shadow: inset -1px 0 0 #E7F0F3, inset 0 -1px 0 #E7F0F3;
+
+				&.is-selected-row {
+					box-shadow: inset -3px 0 0 0 #2F6FB0, inset 0 -1px 0 #E7F0F3;
+				}
+			}
+
+			td.tissue-heatmap-demographic.is-summary {
+				box-shadow: inset 0 -1px 0 #E7F0F3, 2px 0 4px -2px rgba(0, 0, 0, 0.12);
+			}
+
+			// Hovering a row tints the whole frozen section alike, not
+			// just Donor ID.
+			&:hover {
+				.tissue-heatmap-donor-id,
+				.tissue-heatmap-metric-donor-id,
+				td.tissue-heatmap-demographic {
+					box-shadow: inset 0 0 0 9999px rgba(30, 41, 59, 0.14);
+				}
+			}
+		}
+
+		thead th.tissue-heatmap-demographic-header.is-summary {
+			box-shadow: inset 0 -1px 0 #C3D8DE, 2px 0 4px -2px rgba(0, 0, 0, 0.12) !important;
+		}
+
+		thead .tissue-heatmap-donor-header,
+		thead .tissue-heatmap-metric-donor-header {
+			box-shadow: inset -1px 0 0 #E7F0F3, inset 0 -1px 0 #C3D8DE !important;
+		}
+	}
+
+	// The fixed header clone (MetricHeatmapTable's sticky header) can't use
+	// `position: sticky` -- counter-translate the rest of the frozen
+	// section like its order/Donor ID cells already are.
+	.tissue-heatmap-sticky-header th.tissue-heatmap-demographic-header {
+		transform: translateX(var(--sticky-header-scroll-left, 0px));
+	}
+
+	// Diagnosis Summary: every other donor on a gray background, and
+	// narrower Age/Sex/Outcome columns.
+	table.tissue-heatmap-diagnosis-table {
+		thead th {
+			background-color: #F4F8FF;
+		}
+
+		tbody tr.is-striped td {
+			background-color: #F7F8FA;
+		}
+
+		// Sex fits "Female" on 1 line.
+		thead th:nth-child(2) { width: 64px; }
+		thead th:nth-child(3) { width: 88px; }
+		thead th:nth-child(4) { width: 132px; }
+	}
+}
+
+// The Summary column's "Diagnosis" button (DonorSummaryButton).
+.tissue-heatmap-donor-summary-button {
+	padding: 4px 4px;
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	border-color: #C9D6E6;
+	background-color: #FFFFFF;
+}
+
+// The Diagnosis Summary's Outcome column info tooltip (BrowseBrainPathologyTable.js's
+// OutcomeHeaderInfo) -- an opening sentence and a numbered list of the outcome
+// criteria. The tooltip itself is app.js's global react-tooltip.
+.__react_component_tooltip.tissue-heatmap-outcome-tooltip {
+	max-width: 360px;
+	text-align: left;
+
+	ol {
+		margin: 4px 0 0;
+		padding-left: 1.25rem;
+	}
+}
+
+// A Present finding's flag (BrainFindingsTable).
+.tissue-heatmap-finding-flag {
+	margin-right: 4px;
+	font-size: 0.75rem;
 }

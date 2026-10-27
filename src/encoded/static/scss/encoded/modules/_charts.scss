@@ -1369,6 +1369,90 @@ body[data-path="/statistics"] {
         }
     }
 
+    // Browse by Tissue's own popover body (ChartDetailCursor/TissueCursorBody.js).
+    .tissue-cursor-body {
+        font-size: 0.8rem;
+
+        .tissue-cursor-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px dotted #ddd;
+
+            .tissue-cursor-swatch {
+                flex: none;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+            }
+        }
+
+        .tissue-cursor-main {
+            padding: 8px 12px 10px;
+
+            .tissue-cursor-labels {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.7rem;
+                margin-bottom: 2px;
+            }
+
+            .tissue-cursor-tissue {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 1rem;
+                line-height: 1.2;
+            }
+
+            .tissue-cursor-icon {
+                flex: none;
+                width: 22px;
+                height: 22px;
+                -webkit-mask-size: contain;
+                mask-size: contain;
+                -webkit-mask-repeat: no-repeat;
+                mask-repeat: no-repeat;
+                -webkit-mask-position: center;
+                mask-position: center;
+            }
+
+            .tissue-cursor-name {
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        .tissue-cursor-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 6px 12px;
+            border-top: 1px solid #ddd;
+
+            .tissue-cursor-links {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+            }
+        }
+
+        .tissue-cursor-action {
+            padding: 2px 10px 10px;
+
+            .btn {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+    }
+
 }
 
 

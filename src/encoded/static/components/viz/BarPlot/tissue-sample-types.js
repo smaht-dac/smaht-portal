@@ -60,12 +60,25 @@ export const TISSUE_SAMPLE_TYPE_COLORS = {
     // prominent of aliquot viz's own 3 Frozen shades.
     'Frozen': { fill: '#CFE89B', stroke: '#CFE89B' },
     'Fresh': { fill: '#C3C3FF', stroke: '#C3C3FF' },
-    // TissueSample-counted Fixed series (tissue-fixed-samples.js) -- same
-    // idea as Frozen above: AliquotVisualization.js's own Fixed shade
+    // Same idea as Frozen above: AliquotVisualization.js's own Fixed shade
     // (SLICE_TYPE_STYLES.pink.front).
     'Fixed': { fill: '#F2C4A8', stroke: '#F2C4A8' },
     'Not specified': { fill: '#D3D7DB', stroke: '#868E96' },
 };
+
+/**
+ * `hex` ("#rrggbb") darkened by `amount` (0-1) toward black, as "rgb(...)" --
+ * e.g. a bar's hover outline, or the popover's icon (the pastel bar colors
+ * are too light for its thin outlines on white). Anything else passes
+ * through unchanged.
+ */
+export function darkenHex(hex, amount) {
+    const match = String(hex || '').trim().match(/^#?([0-9a-f]{6})$/i);
+    if (!match) return hex;
+    const value = parseInt(match[1], 16);
+    const channels = [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+    return 'rgb(' + channels.map((channel) => Math.round(channel * (1 - amount))).join(', ') + ')';
+}
 
 // Fallback for a term with no fixed color above and no palette slot left
 // (see getTissueSampleTypeColor).

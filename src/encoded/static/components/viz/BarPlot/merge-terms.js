@@ -31,7 +31,12 @@ export function getRecordedTerms(field, term) {
     return _.uniq([term].concat(recorded));
 }
 
-const SUMMED_COUNTS = ['doc_count', 'files', 'samples'];
+/** The term a recorded `term` is shown (and counted) as -- itself when it isn't merged. */
+export function getDisplayedTerm(field, term) {
+    return TERM_MERGES_BY_FIELD[field]?.[term] || term;
+}
+
+const SUMMED_COUNTS = ['doc_count', 'files', 'samples', 'pathology_reports', 'histology_images'];
 
 /** Adds up two buckets' counts. Donors are unioned, not summed, when their ids are known. */
 function mergeCounts(a, b) {

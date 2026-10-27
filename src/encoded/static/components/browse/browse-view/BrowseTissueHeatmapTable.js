@@ -347,7 +347,7 @@ const getNonTargetTissuePercentageValue = (t) => t?.pathology_summary?.non_targe
 // regions). Per explicit request, brain is split out of the tissue-wide
 // tabs (Target/Non Target Tissue %, Autolysis Score, Ischemic Time) into
 // its own Autolysis Score/Ischemic Time tabs.
-export const isBrainTissueResult = (t) => {
+const isBrainTissueResult = (t) => {
     const tissueType = t?.tissue_type;
     if (!tissueType) return false;
     return tissueType.trim() === 'Brain' ||
@@ -906,6 +906,21 @@ export function FixedScoreLegend({ entries, leftCaption = null, rightCaption = n
 // convention colors the TRACK when on and always keeps a plain white thumb;
 // this one needs the opposite (an orange THUMB, per explicit request, on a
 // plain light track) with no existing override to build on.
+/**
+ * What a table shows, in a bar under its title -- per design feedback, in
+ * place of the info-icon tooltip on the title itself. Same look as the
+ * Donor pages' "Donor Privacy" callout.
+ */
+export function MetricDescriptionNote({ children }) {
+    if (!children) return null;
+    return (
+        <div className="tissue-heatmap-metric-note">
+            <i className="icon icon-fw icon-info-circle fas" aria-hidden="true" />
+            <div className="tissue-heatmap-metric-note-text">{children}</div>
+        </div>
+    );
+}
+
 function NonTargetTissueToggle({ checked, onChange }) {
     return (
         <label className="tissue-heatmap-nt-toggle">
@@ -935,7 +950,7 @@ function NonTargetTissueToggle({ checked, onChange }) {
 // `onHalfClick` wiring FixedScoreLegend's `activeClassName`/`onEntryClick`
 // use for score bands (see renderRowCells). Optional, so this still renders
 // as a plain, inert key when neither is passed.
-export function SplitCellLegend({ activeHalf = null, onHalfClick = null }) {
+function SplitCellLegend({ activeHalf = null, onHalfClick = null }) {
     return (
         <div className="tissue-heatmap-split-legend">
             <table className="tissue-heatmap-split-legend-table">
@@ -988,11 +1003,11 @@ const AUTOLYSIS_SCORE_LEGEND_ENTRIES = [0, 1, 2, 3].map((value) => {
     return { className: `score-${value}`, label: String(value) };
 });
 
-// Target Tissue %'s own fixed bands (TARGET_TISSUE_PERCENTAGE_ORDER),
-// reordered lightest-to-darkest to match getTargetTissuePercentageScoreClass's
-// inverted band index -- higher target-tissue presence reads as the
-// lighter, "better" end of the scale, same direction Autolysis Score's
-// 0=None does. Labels match formatTargetTissuePercentage's own formatting
+// Target Tissue %'s own fixed bands (TARGET_TISSUE_PERCENTAGE_ORDER), in
+// ascending order like Non Target Tissue %'s legend (per design feedback),
+// colored by getTargetTissuePercentageScoreClass's inverted band index --
+// higher target-tissue presence is the lighter, "better" end of the scale,
+// same direction Autolysis Score's 0=None does. Labels match formatTargetTissuePercentage's own formatting
 // exactly, so the legend's swatches read as the same vocabulary as the
 // cells they're explaining.
 const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.map(
@@ -1002,7 +1017,7 @@ const TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES = TARGET_TISSUE_PERCENTAGE_ORDER.m
             label: label === '0' ? '0%' : label.replace(/^\[|\]$/g, ''),
         };
     }
-).reverse();
+);
 
 // Non Target Tissue % gets its own orange scale (`nt-score-0..3`, see
 // _search.scss) instead of the shared blue score-0..4 palette the other 3
@@ -1564,7 +1579,7 @@ function HeatmapAdminSettings({
 // not as a redundant "23.5 / 23.5". A real, informative disagreement (the
 // donor-level Frozen ischemic_time constant differing from an organ-
 // specific Fixed value) still shows both.
-export function distinctEntryValues(entries) {
+function distinctEntryValues(entries) {
     if (!entries) return [];
     const seen = new Set();
     const result = [];
@@ -1576,7 +1591,7 @@ export function distinctEntryValues(entries) {
     return result;
 }
 
-export function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRowSegment, isColumnSegment, activeScoreClass = null, tissueType = null) {
+function heatmapCellClassName(value, getScoreClass, enableConditionalColor, isRowSegment, isColumnSegment, activeScoreClass = null, tissueType = null) {
     const scoreClass = enableConditionalColor ? getScoreClass(value, tissueType) : null;
     return (
         'tissue-heatmap-cell' +
@@ -1777,7 +1792,7 @@ export function portalCellDetailPopover(popover) {
 // footer-row action button) -- per explicit request, so this table's own
 // click-to-inspect popover reads as the same convention used elsewhere in
 // the app rather than a one-off design.
-export function renderCellDetailPopover({
+function renderCellDetailPopover({
     donor, tissueType, tissueLabel = null, subtypeLabel = null, metricLabel, value, entries, slots, splitByPreservationType,
     formatValue, tissueOverviewHref, style, isFlippedUp, isFlippedRight,
 }, popoverRef) {
@@ -2846,6 +2861,13 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                 ))}
             </tr>
             {hideGroupRow ? null : <tr>{tissueTypeHeaderCells}</tr>}
+            {/* Above the subtypes, per design feedback -- which subtypes are
+                target/non-target reads before the subtypes themselves. */}
+            {hasTargetNonTargetRow ? (
+                <tr className="tissue-heatmap-target-nontarget-row">
+                    {renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys)}
+                </tr>
+            ) : null}
             {displayRuns ? (
                 <tr>
                     {renderSubtypeHeaderCells(
@@ -2859,11 +2881,6 @@ function renderTableHeaderRows(columnGroups, tissueTypes, mergeableTissueTypes, 
                         blankPlaceholderLabels,
                         subtypeTintPercent
                     )}
-                </tr>
-            ) : null}
-            {hasTargetNonTargetRow ? (
-                <tr className="tissue-heatmap-target-nontarget-row">
-                    {renderTargetNonTargetHeaderRow(displayRuns, nonTargetColumnKeys)}
                 </tr>
             ) : null}
         </>
@@ -3339,15 +3356,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                     legend's own right edge instead. */}
                 <div className="tissue-heatmap-metric-heading-row">
                     <div className="tissue-heatmap-metric-title-group">
-                        <h2 className="tissue-heatmap-metric-title">
-                            {metricLabel}
-                            {tooltip ? (
-                                <i
-                                    className="icon icon-fw icon-info-circle fas tissue-heatmap-metric-title-info"
-                                    data-tip={tooltip}
-                                />
-                            ) : null}
-                        </h2>
+                        <h2 className="tissue-heatmap-metric-title">{metricLabel}</h2>
                         {titleAccessory}
                     </div>
                     {typeof legend === 'function'
@@ -3359,6 +3368,7 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         })
                         : legend}
                 </div>
+                <MetricDescriptionNote>{tooltip}</MetricDescriptionNote>
             </div>
             {stickyHeader ? (
                 <div
@@ -3528,102 +3538,6 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
         </>
     );
 });
-
-// The Tissue Overview page's (TissueTypeView.js) Donor Details table shows
-// this file's own per-tissue metrics for 1 tissue type's records -- as
-// column groups in 1 table (one column per subtype) rather than one tab per
-// metric, which would leave every tab a single column wide. Built off the
-// exact same expansion/matrix/scoring helpers the tabs below use (brain vs.
-// non-brain split, FBRO exclusion, subtype columns, Fixed/Frozen slots), so
-// the values and colors match the tabs.
-//
-// Returns [{ key, label, tooltip, columns: [{ key, parentTissueType,
-// subtypeLabel|null }], rowsByDonor: { [donorId]: matrix row }, formatValue,
-// getScoreClass, getSortValue, splitByPreservationType, cellClassName,
-// legend }], only for metrics with at least 1 column of data.
-export function buildTissueOverviewMetricGroups(tissueResults = []) {
-    const isBrain = tissueResults.some(isBrainTissueResult);
-    // Same FBRO exclusion as the pathology-derived tabs (see
-    // tissueResultsExcludingFibroblast below); Ischemic Time keeps it.
-    const pathologyResults = tissueResults.filter(
-        (t) => getTissueInternalCodeFromFacetTerm(t?.tissue_type) !== 'FBRO'
-    );
-    const groups = [];
-    const addGroup = (group, { tissueTypes, matrix }) => {
-        if (!tissueTypes.length || !matrix.length) return;
-        const rowsByDonor = {};
-        matrix.forEach((row) => {
-            rowsByDonor[row.donor] = row;
-        });
-        const columns = tissueTypes.map((key) => {
-            const { tissueType: parentTissueType, subtypeLabel } = splitSubtypeColumnKey(key);
-            return {
-                key,
-                parentTissueType,
-                subtypeLabel: isPlaceholderSubtypeLabel(subtypeLabel, parentTissueType) ? null : subtypeLabel,
-            };
-        });
-        groups.push({ getSortValue: defaultGetSortValue, splitByPreservationType: false, cellClassName: '', ...group, columns, rowsByDonor });
-    };
-
-    if (!isBrain) {
-        addGroup({
-            key: 'target-tissue',
-            label: 'Target Tissue %',
-            tooltip: 'Percentage range of the sample that was the target tissue subtype',
-            formatValue: formatTargetTissuePercentage,
-            getScoreClass: getTargetTissuePercentageScoreClass,
-            getSortValue: getTargetTissuePercentageSortValue,
-            legend: <FixedScoreLegend entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES} leftCaption="Target" />,
-        }, buildTissueMetricMatrix(
-            expandTissueResultsForTargetWithNonTarget(pathologyResults, false).expanded,
-            getCombinedTargetOrNonTargetValue
-        ));
-        addGroup({
-            key: 'non-target-tissue',
-            label: 'Non Target Tissue %',
-            tooltip: 'Percentage range of the sample that was NOT the target tissue subtype',
-            formatValue: formatNonTargetTissuePercentage,
-            getScoreClass: getNonTargetTissuePercentageScoreClass,
-            getSortValue: getNonTargetTissuePercentageSortValue,
-            legend: <FixedScoreLegend entries={NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES} leftCaption="Non-Target" />,
-        }, buildTissueMetricMatrix(
-            expandTissueResultsByNonTargetSubtype(pathologyResults),
-            getNonTargetTissuePercentageValue
-        ));
-    }
-    addGroup({
-        key: 'autolysis-score',
-        label: 'Autolysis Score',
-        tooltip: 'Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe',
-        formatValue: formatAutolysisScore,
-        getScoreClass: getAutolysisScoreClass,
-        // Autolysis Score's own pink scale (see .tissue-heatmap-cell--autolysis,
-        // _search.scss) -- in its own tab that comes from the tab's wrapper.
-        cellClassName: 'tissue-heatmap-cell--autolysis',
-        legend: (
-            <div className="tissue-heatmap-autolysis-tab">
-                <FixedScoreLegend entries={AUTOLYSIS_SCORE_LEGEND_ENTRIES} leftCaption="Autolysis" />
-            </div>
-        ),
-    }, isBrain
-        ? buildTissueMetricMatrix(tissueResults, getAutolysisScoreValue, true)
-        : buildTissueMetricMatrix(expandTissueResultsBySubtype(pathologyResults), getAutolysisScoreValue));
-
-    const ischemicTime = buildTissueMetricMatrix(tissueResults, getIschemicTimeValue, isBrain);
-    const ischemicTimeScoring = buildRangeScoreClassifier(ischemicTime.matrix.flatMap((row) => row.cells));
-    addGroup({
-        key: 'ischemic-time',
-        label: 'Ischemic Time (h)',
-        tooltip: 'Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)',
-        formatValue: formatIschemicTime,
-        getScoreClass: ischemicTimeScoring.classify,
-        splitByPreservationType: true,
-        legend: <SplitCellLegend />,
-    }, ischemicTime);
-
-    return groups;
-}
 
 // Keeps the brain-only tabs' 5 region columns separate (no merged "Brain"
 // header, no merged equal-valued cells) -- see brainAutolysisScore -- and
@@ -4388,7 +4302,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                         ]}
                     </DotRouter>
                 </div>
-                <div className={activeSection === 'brain' ? '' : 'd-none'}>
+                <div className={'tissue-heatmap-brain-section' + (activeSection === 'brain' ? '' : ' d-none')}>
                     <DotRouter
                         href={href}
                         navClassName="tissue-heatmap-tabs tissue-heatmap-tabs--brain"

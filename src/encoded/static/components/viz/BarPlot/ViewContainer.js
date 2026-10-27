@@ -9,7 +9,11 @@ import { console, isServerSide, logger } from '@hms-dbmi-bgm/shared-portal-compo
 import { barplot_color_cycler } from './../ColorCycler';
 import { CursorViewBounds } from './../ChartDetailCursor';
 import { Schemas } from './../../util';
-import { getTissueSampleTypeColor, TISSUE_SAMPLE_TYPE_ORDER, TISSUE_SAMPLE_TYPE_LEGEND_LABELS } from './tissue-sample-types';
+import { getTissueSampleTypeColor, TISSUE_SAMPLE_TYPE_ORDER, TISSUE_SAMPLE_TYPE_LEGEND_LABELS, darkenHex } from './tissue-sample-types';
+
+// A hovered/selected bar's outline: a slightly darker shade of the bar's own
+// color, like the other charts' (was a flat gray on every bar).
+const HOVER_OUTLINE_DARKEN = 0.25;
 
 
 
@@ -651,7 +655,7 @@ class ThinGroupedChartViewContainer extends React.PureComponent {
                                                 <path
                                                     d={topRoundedRectPath(p.xCenter - (p.barWidth / 2), p.y, p.barWidth, barHeight, THIN_BAR_TOP_RADIUS)}
                                                     fill={swatch.stroke}
-                                                    stroke={isHighlighted ? 'rgba(0,0,0,0.35)' : 'none'}
+                                                    stroke={isHighlighted ? darkenHex(swatch.stroke, HOVER_OUTLINE_DARKEN) : 'none'}
                                                     strokeWidth={1.5} />
                                             ) : null }
                                             {/* Invisible hit target -- the bar's whole
@@ -793,7 +797,7 @@ class ThinStackedChartViewContainer extends React.PureComponent {
                                                     ? topRoundedRectPath(x, seg.yTop, THIN_STACKED_BAR_WIDTH, seg.drawnHeight, THIN_BAR_TOP_RADIUS)
                                                     : topRoundedRectPath(x, seg.yTop + THIN_BAR_GAP, THIN_STACKED_BAR_WIDTH, seg.drawnHeight, 0)}
                                                 fill={swatch.stroke}
-                                                stroke={isHighlighted ? 'rgba(0,0,0,0.35)' : 'none'}
+                                                stroke={isHighlighted ? darkenHex(swatch.stroke, HOVER_OUTLINE_DARKEN) : 'none'}
                                                 strokeWidth={1.5} />
                                             {/* Invisible hit target, wider than the 12px bar itself. */}
                                             <rect x={seg.xCenter - 14} y={seg.yTop} width={28}
