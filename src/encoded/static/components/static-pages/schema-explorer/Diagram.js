@@ -7,6 +7,7 @@ import React, {
     useId,
 } from 'react';
 import { layout, width, height } from './layout';
+import { domains, domainFor, groupedLayout } from './domains';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
 
 const defaults = ['User', 'Consortium', 'Consortia', 'SubmissionCenter'];
@@ -20,6 +21,9 @@ export default function Diagram({
     onPlanner,
 }) {
     const [selected, setSelected] = useState(focus);
+    const [domain, setDomain] = useState('');
+    const [arrangement, setArrangement] = useState('grouped');
+    const [crossLinks, setCrossLinks] = useState(true);
     const [hidden, setHidden] = useState(compact ? [] : defaults);
     const [kinds, setKinds] = useState(['linkTo', 'calculated', 'reverse']);
     const [neighbors, setNeighbors] = useState(false),
@@ -66,9 +70,9 @@ export default function Diagram({
             ]),
         [edges, selected]
     );
-    const visible = nodes.filter(
-        (n) => !hidden.includes(n.name) && (!neighbors || connected.has(n.name))
-    );
+    const visible = useMemo(() => nodes.filter(
+        (n) => !hidden.includes(n.name) && (neighbors ? connected.has(n.name) : (!domain || domainFor(n.name) === domain))
+    ), [nodes, hidden, neighbors, connected, domain]);
     const names = new Set(visible.map((n) => n.name));
     const groups = useMemo(() => {
         const result = new Map();
@@ -79,9 +83,11 @@ export default function Diagram({
         });
         return [...result.values()];
     }, [edges]);
-    const allPositions = useMemo(() => layout(nodes, groups), [nodes, groups]);
+    const allPositions = useMemo(() => layout(visible, groups, size), [visible, groups, size]);
+    const clustered = useMemo(() => groupedLayout(visible, width, height), [visible]);
+    const showDomains = !compact && !neighbors && arrangement === 'grouped';
     const positions = useMemo(() => {
-        if (!neighbors || !selected) return { ...allPositions, ...moves };
+        if (!neighbors || !selected) return { ...(showDomains ? clustered.positions : allPositions), ...moves };
         const others = nodes.filter(
             (n) =>
                 n.name !== selected &&
@@ -113,6 +119,8 @@ export default function Diagram({
         connected,
         nodes,
         size,
+        showDomains,
+        clustered,
     ]);
     const bounds = visible.length
         ? {
@@ -154,7 +162,7 @@ export default function Diagram({
     const layoutFocus = neighbors ? selected : focus;
     useEffect(() => {
         fit();
-    }, [index, hidden, kinds, neighbors, layoutFocus, size, full]);
+    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement]);
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
             const rect = entries[0].contentRect;
@@ -202,6 +210,9 @@ export default function Diagram({
         return () => element.removeEventListener('wheel', wheel);
     }, []);
     const choose = (name) => {
+        if (!neighbors && domain && domainFor(name) !== domain) setDomain(domainFor(name));
+        if (hidden.includes(name)) setHidden(hidden.filter((n) => n !== name));
+        setQuery('');
         setSelected(name);
         if (neighbors) setMoves({});
         if (compact) onExplore(name);
@@ -231,8 +242,15 @@ export default function Diagram({
             ),
         });
     const shownGroups = groups.filter(
-        (g) => names.has(g.from) && names.has(g.to)
+        (g) => names.has(g.from) && names.has(g.to) &&
+            (!showDomains || domainFor(g.from) === domainFor(g.to) || (crossLinks && (g.from === selected || g.to === selected)))
     );
+    const chooseDomain = (id) => {
+        setDomain(id);
+        setSelected('');
+        setNeighbors(false);
+        setMoves({});
+    };
     const incident = edges.filter(
         (e) =>
             (e.from === selected || e.to === selected) &&
@@ -246,13 +264,33 @@ export default function Diagram({
                 compact ? 'Item relationships' : 'All schema relationships'
             }>
             <div className="se-toolbar">
-                <h2>{compact ? 'Relationships' : 'All schemas'}</h2>
+                <h2>{compact ? 'Relationships' : neighbors ? `${selected} neighborhood` : domains.find((d) => d.id === domain)?.label || 'All schemas'}</h2>
                 <span className="text-muted">
                     {visible.length} types ·{' '}
                     {shownGroups.reduce((n, g) => n + g.edges.length, 0)}{' '}
                     relationships
                 </span>
             </div>
+            {!compact && (
+                <div className="se-toolbar se-domain-controls">
+                    <label>Group
+                        <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
+                            <option value="">All groups</option>
+                            {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => (
+                                <option key={d.id} value={d.id}>{d.label}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>Layout
+                        <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
+                            <option value="grouped">Grouped</option>
+                            <option value="network">Network</option>
+                        </select>
+                    </label>
+                    {showDomains && <label><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Cross-group links for selection</label>}
+                    <span className="text-muted">Select a group to focus. Enable cross-group links and select a schema to see its connections to other groups.</span>
+                </div>
+            )}
             <div className="se-toolbar">
                 {!compact && (
                     <>
@@ -411,7 +449,6 @@ export default function Diagram({
                     {nodes
                         .filter(
                             (n) =>
-                                names.has(n.name) &&
                                 n.name
                                     .toLowerCase()
                                     .includes(query.toLowerCase())
@@ -517,6 +554,18 @@ export default function Diagram({
                 <g
                     data-world=""
                     transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
+                    {showDomains && clustered.frames.map((frame) => (
+                        <g key={frame.id} className="se-domain-frame">
+                            <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="12" />
+                            <text x={frame.left + 24} y={frame.top + 38} role="button" tabIndex={0}
+                                aria-label={`Focus group: ${frame.label}`}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={() => chooseDomain(frame.id)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); chooseDomain(frame.id); } }}>
+                                {frame.label} · {frame.count}
+                            </text>
+                        </g>
+                    ))}
                     {shownGroups.map((g, i) => {
                         const a = positions[g.from],
                             b = positions[g.to],
@@ -577,7 +626,7 @@ export default function Diagram({
                                 </path>
                                 {(neighbors ||
                                     compact ||
-                                    visible.length <= 12) && (
+                                    (!showDomains && visible.length <= 12)) && (
                                     <text
                                         className="se-edge-label"
                                         x={same ? a.x : cx}

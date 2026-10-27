@@ -1,9 +1,30 @@
 # Portal Schema Explorer
 
 Open `/schema-explorer`, or choose **Schema Explorer** in the account menu.
-The page, model and indexed source API require a signed-in user. Only admins see
-the Live item explorer. Live item requests
+Access follows the `schema-explorer` Page item's normal `view` permission, including
+its status and local roles. The model/source APIs and account menu check that same
+Page on every request. Only admins see the Live item explorer. Live item requests
 use the current browser session and retain the normal item permissions.
+
+## Page content and deployment
+
+Like data-matrix, this is a Page with a JSX StaticSection. There is no custom
+`/schema-explorer` page route or `SchemaExplorerPage` content-view registration.
+`docs/public/schema_explorer.jsx` renders the registered `SchemaExplorerSection`
+placeholder through the existing StaticPage renderer.
+
+Load these two records from `tests/data/master-inserts` when deploying to an
+existing database (a server restart alone does not create content items):
+
+1. StaticSection `schema-explorer-content`, UUID `efb34110-5618-451c-a78d-56ab24edba48`.
+2. Page `schema-explorer`, UUID `b683617f-f78b-48eb-8d2b-f620bc753f4e`.
+
+Both start with `protected-network`, matching data-matrix. Manage visibility with
+the normal Page/status controls; keep the linked StaticSection readable by the
+intended audience as well. Do not overwrite an existing Page's status on redeploy.
+If the Page is missing or inaccessible, the APIs deny access, even when a model
+snapshot is already cached. Making the Page public also permits public access to
+the indexed model and source definitions; Live item explorer remains admin-only.
 
 ## Frontend
 
@@ -15,12 +36,26 @@ filters, dialogs, SVG nodes and item values. There is no iframe, Shadow DOM,
 HTML/script assembly endpoint or VS Code messaging adapter. No npm dependencies
 were added.
 
-The initial view is **All schemas**, with no item type selected. User and
-Consortium types are hidden by default. The neighborhood control toggles between
+The initial view is **All schemas**, with no item type selected. User, Consortium
+and SubmissionCenter types are hidden by default. The neighborhood control toggles between
 the selected type's immediate neighbors and the enabled types. Item view includes
 field/embedding searches, inheritance, source inspection, navigation history and
 live provenance. The planner preserves ranking, subtype conditions, search bounds
 and missing-reverse-link proposals. Both diagram views support PNG export.
+
+All schemas opens in a grouped layout based on the six domains in
+“SMaHT Metadata Model with Diagrams and Tables V2”: donor/clinical history,
+samples/tissue/cell lines, analytes/libraries/sequencing, files/quality metrics,
+workflows/analysis runs, and administrative/content/ontology. The explicit mapping
+lives in `domains.js`; EmailNotification and Item are included in the last group.
+Unmapped future types appear under Other types. These are navigation categories,
+not schema inheritance or access rules. Group filters do not limit planner searches.
+
+Click a canvas group heading or use Group to focus it. Search spans all types and
+opens the matching group when needed. Cross-group edges are hidden by default
+except those incident to the selected type; Cross-group links reveals all enabled
+edges. Show neighborhood includes direct neighbors across group boundaries.
+The original force layout remains available as Layout → Network.
 
 Model/source reads use the portal AJAX utility. Live item reads use same-origin
 fetch to reject cross-origin redirects as well as external input URLs. Components
@@ -50,6 +85,14 @@ in the environment/image that will serve it. It contains model metadata and sour
 code, so it must not be placed in a public static directory.
 
 ## Data and security
+
+Authorization and credential fields are omitted from the Explorer model response
+(including nested schema definitions, embeds and relationships) and live-item
+display data. `display-policy.json` is shared by the backend presentation filter
+and frontend live-data filter. Domain fields such as `donor_groups` and
+`file_access_status` remain visible. This is a presentation policy, not a change
+to item permissions or the underlying item APIs. The source viewer still shows
+the indexed source files; it is not a redacted-source interface.
 
 - No keys file, environment selector or server-side request proxy.
 - GET requests only. Raw/object/embedded/profile and optional page/columns/expand
