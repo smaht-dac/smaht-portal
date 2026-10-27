@@ -43,6 +43,20 @@ field/embedding searches, inheritance, source inspection, navigation history and
 live provenance. The planner preserves ranking, subtype conditions, search bounds
 and missing-reverse-link proposals. Both diagram views support PNG export.
 
+All schemas opens in a grouped layout based on the six domains in
+“SMaHT Metadata Model with Diagrams and Tables V2”: donor/clinical history,
+samples/tissue/cell lines, analytes/libraries/sequencing, files/quality metrics,
+workflows/analysis runs, and administrative/content/ontology. The explicit mapping
+lives in `domains.js`; EmailNotification and Item are included in the last group.
+Unmapped future types appear under Other types. These are navigation categories,
+not schema inheritance or access rules. Group filters do not limit planner searches.
+
+Click a canvas group heading or use Group to focus it. Search spans all types and
+opens the matching group when needed. Cross-group edges are hidden by default
+except those incident to the selected type; Cross-group links reveals all enabled
+edges. Show neighborhood includes direct neighbors across group boundaries.
+The original force layout remains available as Layout → Network.
+
 Model/source reads use the portal AJAX utility. Live item reads use same-origin
 fetch to reject cross-origin redirects as well as external input URLs. Components
 cancel requests and remove listeners on unmount. No live data is stored in browser
