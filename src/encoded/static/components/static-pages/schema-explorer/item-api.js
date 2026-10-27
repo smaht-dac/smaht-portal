@@ -1,3 +1,5 @@
+import { visibleValue } from './display-policy';
+
 export const itemURL = (identifier) => {
     if (typeof identifier !== 'string' || !identifier.trim())
         throw new Error('Enter an item identifier.');
@@ -129,5 +131,5 @@ export async function loadItem(identifier, requestedFrame, signal) {
     bundle.view = bundle[bundle.frame];
     if (!bundle.view) throw new Error(`Requested ${frame} frame unavailable.`);
 
-    return bundle;
+    return visibleValue(bundle);
 }

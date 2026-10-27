@@ -72,6 +72,14 @@ code, so it must not be placed in a public static directory.
 
 ## Data and security
 
+Authorization and credential fields are omitted from the Explorer model response
+(including nested schema definitions, embeds and relationships) and live-item
+display data. `display-policy.json` is shared by the backend presentation filter
+and frontend live-data filter. Domain fields such as `donor_groups` and
+`file_access_status` remain visible. This is a presentation policy, not a change
+to item permissions or the underlying item APIs. The source viewer still shows
+the indexed source files; it is not a redacted-source interface.
+
 - No keys file, environment selector or server-side request proxy.
 - GET requests only. Raw/object/embedded/profile and optional page/columns/expand
   frames preserve the current user's permissions; unavailable frames are reported.

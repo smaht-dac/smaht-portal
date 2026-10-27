@@ -88,6 +88,14 @@ class ExplorerTests(unittest.TestCase):
         self.assertIn('no-store', result.headers['Cache-Control'])
         self.app.post('/schema-explorer/model', headers=self.headers, status=404)
 
+    def test_model_response_hides_authorization_fields(self):
+        self.config.registry[STORE].snapshot['model'] = {'models': [{
+            'name': 'User', 'fields': [{'name': 'groups', 'schema': {}},
+                                      {'name': 'first_name', 'schema': {'type': 'string'}}],
+        }], 'edges': [], 'warnings': []}
+        result = self.app.get('/schema-explorer/model', headers=self.headers).json
+        self.assertEqual([f['name'] for f in result['models'][0]['fields']], ['first_name'])
+
     def test_old_ui_assets_are_not_served(self):
         for name in ['native.js', 'portal.js', 'index.html', 'style.css']:
             self.app.get('/schema-explorer/assets/' + name, headers=self.headers, status=404)

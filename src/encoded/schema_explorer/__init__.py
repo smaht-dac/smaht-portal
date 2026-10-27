@@ -4,7 +4,6 @@ The React UI is built and served by the standard portal frontend.
 No credentials file, proxy request, application-code execution or write API is used.
 """
 import ast
-import copy
 from importlib.util import find_spec
 import json
 from pathlib import Path
@@ -15,6 +14,7 @@ from pyramid.view import view_config
 from snovault import CONNECTION
 
 from .analyzer import Index
+from .display import display_model
 
 
 STORE = 'encoded.schema_explorer.store'
@@ -120,7 +120,7 @@ def authorize(request):
 @view_config(route_name='schema_explorer_model', request_method='GET', renderer='json')
 def model(request):
     authorize(request)
-    result = copy.deepcopy(request.registry[STORE].get()['model'])
+    result = display_model(request.registry[STORE].get()['model'])
     result['can_view_items'] = 'group.admin' in request.effective_principals
     return result
 

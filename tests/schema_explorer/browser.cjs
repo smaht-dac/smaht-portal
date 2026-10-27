@@ -48,7 +48,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
   if(url.pathname==='/redirect/')return route.fulfill({status:302,headers:{location:'https://evil.test/demo/'}});
   if(url.pathname==='/demo/'){
    if(url.searchParams.get('frame')==='raw')return route.fulfill({status:403,json:{detail:'Forbidden'}});
-   return route.fulfill({json:{'@id':'/demo/','@type':['Donor'],uuid:'demo',accession:'DEMO',display_title:'Demo donor'}});
+   return route.fulfill({json:{'@id':'/demo/','@type':['Donor'],uuid:'demo',accession:'DEMO',display_title:'Demo donor',principals_allowed:{view:['hidden-principal']},groups:['hidden-group'],donor_groups:['Visible study group'],profile:{roles:['hidden-role'],label:'Visible profile'}}});
   }
   return route.fulfill({status:404,json:{detail:'Not found'}});
  });
@@ -94,6 +94,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('#item-id').fill('/demo/');await page.locator('#load-item').click();
  await page.waitForFunction(()=>document.getElementById('item-heading').textContent.includes('Demo donor'));
  assert.match(await page.locator('#item-notes').textContent(),/raw unavailable.*403/);
+ assert.doesNotMatch(await page.locator('.se-value-tree').textContent(),/principals_allowed|hidden-principal|hidden-group|hidden-role/);
+ assert.match(await page.locator('.se-value-tree').textContent(),/donor_groups/);
  await page.locator('#open-path-finder').click();
  await page.selectOption('#path-source','TissueSample');await page.selectOption('#path-target','Donor');await page.selectOption('#path-field','study');
  await page.locator('#path-form button[type=submit]').click();
