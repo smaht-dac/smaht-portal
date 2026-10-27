@@ -338,19 +338,27 @@ function DonorSummaryButton({ donorId, entries }) {
     );
 }
 
-function OutcomeCriteria() {
+const escapeHtml = (text) =>
+    String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// The Outcome column's info icon -- its tooltip lists the outcome criteria
+// (parseOutcomeCriteria) as an opening sentence and numbered reasons, per
+// design feedback. react-tooltip only takes a string, hence the (escaped)
+// HTML via `data-html`.
+function OutcomeHeaderInfo() {
     const description = Schemas.Field.getSchemaProperty('outcome', Schemas.get(), 'BrainPathologyReport')?.description;
     const criteria = parseOutcomeCriteria(description);
     if (!criteria) return null;
+    const reasons = criteria.reasons.length > 0
+        ? '<ol>' + criteria.reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join('') + '</ol>'
+        : '';
     return (
-        <div className="tissue-heatmap-outcome-criteria">
-            <div>{criteria.intro}</div>
-            {criteria.reasons.length > 0 ? (
-                <ol>
-                    {criteria.reasons.map((reason) => <li key={reason}>{reason}</li>)}
-                </ol>
-            ) : null}
-        </div>
+        <i
+            className="icon icon-fw icon-info-circle fas tissue-heatmap-column-header-info"
+            data-tip={`<div>${escapeHtml(criteria.intro)}</div>${reasons}`}
+            data-html="true"
+            data-class="tissue-heatmap-outcome-tooltip"
+        />
     );
 }
 
@@ -429,7 +437,7 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null, scop
                             the reported reason -- the cell icon alone wasn't
                             read as clickable. Uses the same icon as the cells. */}
                         <span className="tissue-heatmap-metric-hint">
-                            <i className="icon icon-fw icon-file-lines fas" aria-hidden="true" />
+                            <i className="icon icon-fw icon-flag fas" aria-hidden="true" />
                             Click a Present cell to read the reported reason
                         </span>
                         <BrainTableScopeNote note={scopeNote} />
@@ -500,14 +508,17 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null, scop
                                                         donor: donorId, category, description: entry.description,
                                                     })
                                                     : undefined}>
+                                                {/* Present reads as a flag, per design
+                                                    feedback; the cells with a reported
+                                                    description (the clickable ones) also get
+                                                    a dropdown arrow for the reason they open. */}
+                                                {value ? (
+                                                    <i className="icon icon-fw icon-flag fas tissue-heatmap-finding-flag" aria-hidden="true" />
+                                                ) : null}
                                                 {formatBrainFinding(value)}
-                                                {/* Only cells with a reported description are
-                                                    clickable -- marked with a report icon ("read the reason")
-                                                    (the same one the heading's hint explains),
-                                                    not the column headers' generic info icon. */}
                                                 {hasDescription ? (
                                                     <i
-                                                        className="icon icon-fw icon-file-lines fas tissue-heatmap-finding-description-icon"
+                                                        className="icon icon-fw icon-caret-down fas tissue-heatmap-finding-description-icon"
                                                         aria-hidden="true"
                                                         title="Click to read why this finding is present"
                                                     />
@@ -697,7 +708,6 @@ export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null, sco
                 <MetricDescriptionNote>
                     Review outcome and free-text final diagnosis/notes from each donor&apos;s brain pathology
                     report(s).
-                    <OutcomeCriteria />
                 </MetricDescriptionNote>
             </div>
             <div className="tissue-heatmap-table-wrap">
@@ -707,7 +717,10 @@ export function BrainDiagnosisTable({ tissueResults = [], donorHrefs = null, sco
                             <th>Donor ID</th>
                             <th>Age</th>
                             <th>Sex</th>
-                            <th>Outcome</th>
+                            <th>
+                                Outcome
+                                <OutcomeHeaderInfo />
+                            </th>
                             <th>
                                 Final Neuropathological Diagnosis
                                 <ColumnHeaderInfo field="final_neuropathological_diagnosis" />

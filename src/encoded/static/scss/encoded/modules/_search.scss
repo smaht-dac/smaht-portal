@@ -3068,15 +3068,6 @@ div.browse-link-icon {
 			flex: none;
 			margin-top: 2px;
 		}
-
-		.tissue-heatmap-outcome-criteria {
-			margin-top: 6px;
-
-			ol {
-				margin: 2px 0 0;
-				padding-left: 1.5rem;
-			}
-		}
 	}
 
 	.tissue-heatmap-metric-heading {
@@ -5155,6 +5146,7 @@ table.tissue-heatmap-table {
 
 // The Summary column's "Diagnosis" button (DonorSummaryButton).
 .tissue-heatmap-donor-summary-button {
+	padding: 4px 4px;
 	display: inline-flex;
 	align-items: center;
 	gap: 2px;
@@ -5162,4 +5154,23 @@ table.tissue-heatmap-table {
 	font-weight: 500;
 	border-color: #C9D6E6;
 	background-color: #FFFFFF;
+}
+
+// The Diagnosis Summary's Outcome column info tooltip (BrowseBrainPathologyTable.js's
+// OutcomeHeaderInfo) -- an opening sentence and a numbered list of the outcome
+// criteria. The tooltip itself is app.js's global react-tooltip.
+.__react_component_tooltip.tissue-heatmap-outcome-tooltip {
+	max-width: 360px;
+	text-align: left;
+
+	ol {
+		margin: 4px 0 0;
+		padding-left: 1.25rem;
+	}
+}
+
+// A Present finding's flag (BrainFindingsTable).
+.tissue-heatmap-finding-flag {
+	margin-right: 4px;
+	font-size: 0.75rem;
 }
