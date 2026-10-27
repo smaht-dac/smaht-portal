@@ -274,7 +274,16 @@ function stepVisitRetractedFilesList(caps) {
         .end();
 }
 
+// testIsolation is off, so menu navigation to an already open /data-matrix keeps the mounted matrix
+// (mode, filters, a stuck loading state). After a failed attempt, start the next matrix test from a fresh page.
+let resetDataMatrixPage = false;
+
 function openDataMatrixPageFromMenu() {
+    if (resetDataMatrixPage) {
+        resetDataMatrixPage = false;
+        goto({ url: "/" });
+    }
+
     cy.get(dataNavBarItemSelectorStr)
         .should("have.class", "dropdown-toggle")
         .click()
@@ -553,6 +562,12 @@ describe("Data Overview by role", () => {
 
             after(() => {
                 logoutIfNeeded(roleKey);
+            });
+
+            afterEach(function () {
+                if (this.currentTest.state === "failed") {
+                    resetDataMatrixPage = true;
+                }
             });
 
             it(`Retracted and Renamed Files lists (enabled: ${caps.runRetractedFilesList})`, () => {
