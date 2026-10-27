@@ -565,6 +565,7 @@ describe("Data Overview by role", () => {
             });
 
             afterEach(function () {
+                // eslint-disable-next-line no-invalid-this -- Mocha exposes the finished test only on the hook context
                 if (this.currentTest.state === "failed") {
                     resetDataMatrixPage = true;
                 }
