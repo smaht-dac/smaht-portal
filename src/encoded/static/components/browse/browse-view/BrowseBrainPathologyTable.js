@@ -318,8 +318,7 @@ function DonorSummaryButton({ donorId, entries }) {
                 // eslint-disable-next-line react/jsx-no-bind
                 onClick={(event) => selectCell(event.currentTarget, { rowIndex: 0, columnIndex: 0 })}
                 aria-expanded={!!selectedCell}
-                aria-label={`Show pathology summary for ${donorId}`}
-                title="Show pathology summary">
+                aria-label={`Show pathology summary for ${donorId}`}>
                 <i className="icon icon-fw icon-clipboard-list fas" aria-hidden="true" />
                 <span>Diagnosis</span>
                 <i className="icon icon-fw icon-angle-down fas" aria-hidden="true" />
@@ -444,7 +443,7 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null, scop
                 </div>
                 <MetricDescriptionNote>
                     Presence of each neuropathology finding category, aggregated across a donor&apos;s brain
-                    pathology report(s). Click a Present cell to read the reported reason.
+                    pathology report(s).
                 </MetricDescriptionNote>
             </div>
             <div className={'tissue-heatmap-table-wrap' + (selectedCell ? ' has-selected-cell' : '')}>

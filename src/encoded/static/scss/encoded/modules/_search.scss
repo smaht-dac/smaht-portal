@@ -5015,7 +5015,7 @@ table.tissue-heatmap-table {
 		--brain-frozen-start: 32px;
 		--brain-donor-width: 110px;
 		--brain-age-width: 56px;
-		--brain-sex-width: 64px;
+		--brain-sex-width: 76px;
 		--brain-summary-width: 128px;
 
 		&.tissue-heatmap-metric-table {
@@ -5041,6 +5041,10 @@ table.tissue-heatmap-table {
 			position: sticky;
 			z-index: 2;
 			background-color: #FFFFFF;
+			// Not Ischemic Time's wider 20px (.tissue-heatmap-table--wide-padding)
+			// -- these columns' widths are fixed, sized for 8px.
+			padding-left: 8px;
+			padding-right: 8px;
 		}
 
 		thead {
@@ -5142,9 +5146,10 @@ table.tissue-heatmap-table {
 			background-color: #F7F8FA;
 		}
 
-		thead th:nth-child(2) { width: 56px; }
-		thead th:nth-child(3) { width: 64px; }
-		thead th:nth-child(4) { width: 116px; }
+		// Sex fits "Female" on 1 line.
+		thead th:nth-child(2) { width: 64px; }
+		thead th:nth-child(3) { width: 88px; }
+		thead th:nth-child(4) { width: 132px; }
 	}
 }
 
