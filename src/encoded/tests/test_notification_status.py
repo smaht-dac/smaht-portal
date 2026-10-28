@@ -359,37 +359,6 @@ def test_send_notification_email_records_item(monkeypatch):
     assert "sent_by" not in item_data
 
 
-def test_send_notification_email_survives_subrequest_exception(monkeypatch):
-    # invoke_subrequest runs the inner POST through the tween chain, so a
-    # rejected write can raise rather than return a 4xx. The mail is already
-    # out by then, so this is a partial success, not an error.
-    sns = mock_sns(monkeypatch)
-    monkeypatch.setattr(
-        notification_status,
-        "make_subrequest",
-        Mock(return_value=SimpleNamespace(content_type=None)),
-    )
-    request = fake_request(
-        json_body={
-            "subject": "Release",
-            "body": "- a file",
-            "notification_type": "bogus",
-            "target": "all",
-        }
-    )
-    request.invoke_subrequest.side_effect = RuntimeError("validation failed")
-
-    response = notification_status.send_notification_email(None, request)
-
-    assert response == {
-        "status": "ok",
-        "target": "all",
-        "sent": True,
-        "recorded": False,
-    }
-    sns.publish.assert_called_once()
-
-
 def valid_test_payload(**overrides):
     return {
         "subject": "Release",
@@ -412,6 +381,8 @@ def test_send_notification_email_test_target_publishes(monkeypatch):
         "sent": True,
         "recorded": False,
     }
+    # The dry-run topic, never the configured one: publishing `test` there
+    # would mail the entire consortium. `records_item` pins the `all` side.
     sns.publish.assert_called_once_with(
         TopicArn=DRY_RUN_TOPIC_ARN, Subject="Release", Message="- a file"
     )
@@ -419,21 +390,8 @@ def test_send_notification_email_test_target_publishes(monkeypatch):
     request.invoke_subrequest.assert_not_called()
 
 
-def test_send_notification_email_reports_missing_topic(monkeypatch):
-    boto_client = Mock()
-    monkeypatch.setattr(notification_status, "boto_client", boto_client)
-    request = fake_request(topic=None, json_body=valid_test_payload())
-
-    response = notification_status.send_notification_email(None, request)
-
-    assert response == {
-        "error": notification_status.NOTIFICATIONS_UNAVAILABLE_ERROR
-    }
-    # An unconfigured environment must not even construct a client.
-    boto_client.assert_not_called()
-
-
-def test_send_notification_email_reports_publish_failure(monkeypatch):
+@pytest.mark.parametrize("target", ["test", "all"])
+def test_send_notification_email_reports_publish_failure(target, monkeypatch):
     # A fixed string, asserted exactly: a ClientError stringifies to the
     # caller's role ARN, account ID and topic ARN, and the generic
     # `except Exception` handler would interpolate all three into the browser.
@@ -441,11 +399,13 @@ def test_send_notification_email_reports_publish_failure(monkeypatch):
     sns.publish.side_effect = ClientError(
         {"Error": {"Code": "AuthorizationError"}}, "Publish"
     )
-    request = fake_request(json_body=valid_test_payload())
+    request = fake_request(json_body=valid_test_payload(target=target))
 
     response = notification_status.send_notification_email(None, request)
 
     assert response == {"error": notification_status.SNS_PUBLISH_ERROR}
+    # Nothing recorded: a row for mail that never went out is worse than none.
+    request.invoke_subrequest.assert_not_called()
 
 
 @pytest.mark.parametrize("target", ["test", "all"])
@@ -534,10 +494,13 @@ def test_get_email_recipients_reads_only_its_own_topic(
     # The mirror of the publish test: listing the configured topic for a dry
     # run would put every real subscriber's address on an admin page.
     sns = mock_sns(monkeypatch)
-    sns.list_subscriptions_by_topic.side_effect = listing([], [])
+    sns.list_subscriptions_by_topic.side_effect = listing(
+        [subscription("first@example.org")],
+        [subscription("second@example.org")],
+    )
     request = fake_request(json_body={"target": target})
 
-    notification_status.get_email_recipients(None, request)
+    response = notification_status.get_email_recipients(None, request)
 
     # Both pages: a NextToken followed against the wrong topic would be as
     # wrong as the first call being wrong.
@@ -545,21 +508,9 @@ def test_get_email_recipients_reads_only_its_own_topic(
         call(TopicArn=expected_topic),
         call(TopicArn=expected_topic, NextToken="page-2"),
     ]
-
-
-def test_get_email_recipients_follows_pagination(monkeypatch):
-    sns = mock_sns(monkeypatch)
-    sns.list_subscriptions_by_topic.side_effect = listing(
-        [subscription("first@example.org")],
-        [subscription("second@example.org")],
-    )
-    request = fake_request(json_body={"target": "test"})
-
-    response = notification_status.get_email_recipients(None, request)
-
-    # A second page is the realistic failure: a truncated list would tell the
-    # operator the mail reaches fewer people than it does.
-    assert response["confirmed"] == ["first@example.org", "second@example.org"]
+    # And both pages counted: a truncated list would tell the operator the
+    # mail reaches fewer people than it does.
+    assert response["confirmed_count"] == 2
 
 
 def test_get_email_recipients_deduplicates_case_insensitively(monkeypatch):
@@ -617,6 +568,8 @@ def test_get_email_recipients_drops_deleted_and_other_protocols(monkeypatch):
 
     # `Deleted` was cancelled through the AWS unsubscribe link: nothing is
     # outstanding, so reporting it as "not yet confirmed" would be wrong.
+    # And an empty result is not an error: the frontend disables Confirm on
+    # it rather than publishing to a topic that reaches nobody.
     assert response == {
         "target": "test",
         "confirmed_count": 0,
@@ -646,25 +599,6 @@ def test_get_email_recipients_sorts_case_insensitively(monkeypatch):
     ]
 
 
-def test_get_email_recipients_handles_empty_topic(monkeypatch):
-    sns = mock_sns(monkeypatch)
-    sns.list_subscriptions_by_topic.side_effect = listing([])
-    request = fake_request(json_body={"target": "test"})
-
-    response = notification_status.get_email_recipients(None, request)
-
-    # Not an error: the topic exists, it simply has nobody on it. The frontend
-    # disables Confirm on this rather than publishing to an empty topic and
-    # reporting a successful test that reached nobody.
-    assert response == {
-        "target": "test",
-        "confirmed_count": 0,
-        "pending_count": 0,
-        "confirmed": [],
-        "pending": [],
-    }
-
-
 def test_get_email_recipients_never_returns_subscription_arns(monkeypatch):
     # A SubscriptionArn is the topic ARN plus a UUID, so returning one leaks
     # the AWS account ID exactly as returning the topic would.
@@ -681,20 +615,6 @@ def test_get_email_recipients_never_returns_subscription_arns(monkeypatch):
     assert "123456789012" not in serialized
 
 
-def test_get_email_recipients_reports_missing_topic(monkeypatch):
-    boto_client = Mock()
-    monkeypatch.setattr(notification_status, "boto_client", boto_client)
-    request = fake_request(topic=None, json_body={"target": "test"})
-
-    response = notification_status.get_email_recipients(None, request)
-
-    assert response == {
-        "error": notification_status.NOTIFICATIONS_UNAVAILABLE_ERROR
-    }
-    # An unconfigured environment must not even construct a client.
-    boto_client.assert_not_called()
-
-
 def test_get_email_recipients_reports_list_failure(monkeypatch):
     # A fixed string, asserted exactly, so no AWS detail can reach the browser.
     # The generator is lazy, so the boto error surfaces during iteration rather
@@ -709,53 +629,6 @@ def test_get_email_recipients_reports_list_failure(monkeypatch):
     response = notification_status.get_email_recipients(None, request)
 
     assert response == {"error": notification_status.SNS_RECIPIENTS_ERROR}
-
-
-# The mirror-image pair. Each target must reach its own topic and never the
-# other's: publishing `all` to the dry-run topic silently reaches nobody, and
-# publishing `test` to the configured topic mails the entire consortium.
-
-
-@pytest.mark.parametrize(
-    "target,expected_topic,forbidden_topic",
-    [
-        ("test", DRY_RUN_TOPIC_ARN, TOPIC_ARN),
-        ("all", TOPIC_ARN, DRY_RUN_TOPIC_ARN),
-    ],
-)
-def test_send_notification_email_publishes_to_the_right_topic(
-    target, expected_topic, forbidden_topic, monkeypatch
-):
-    monkeypatch.setattr(
-        notification_status,
-        "make_subrequest",
-        Mock(return_value=SimpleNamespace(content_type=None)),
-    )
-    sns = mock_sns(monkeypatch)
-    request = fake_request(json_body=valid_test_payload(target=target))
-    request.invoke_subrequest.return_value = SimpleNamespace(
-        status_int=201, json_body={"@graph": [{"uuid": "new-uuid"}]}
-    )
-
-    response = notification_status.send_notification_email(None, request)
-
-    assert response["sent"] is True
-    published_to = sns.publish.call_args.kwargs["TopicArn"]
-    assert published_to == expected_topic
-    assert published_to != forbidden_topic
-
-
-@pytest.mark.parametrize(
-    "target,expected",
-    [
-        ("test", DRY_RUN_TOPIC_ARN),
-        ("all", TOPIC_ARN),
-    ],
-)
-def test_get_topic_for_target(target, expected):
-    assert (
-        notification_status.get_topic_for_target(fake_request(), target) == expected
-    )
 
 
 @pytest.mark.parametrize("target", ["", "Test", "ALL", "everyone", None])
@@ -792,8 +665,12 @@ def test_send_notification_email_publishes_before_recording(monkeypatch):
 @pytest.mark.parametrize(
     "outcome",
     [
-        SimpleNamespace(status_int=422, json_body={"description": "invalid"}),
-        SimpleNamespace(status_int=500, json_body={}),
+        {"return_value": SimpleNamespace(
+            status_int=422, json_body={"description": "invalid"})},
+        {"return_value": SimpleNamespace(status_int=500, json_body={})},
+        # invoke_subrequest runs the inner POST through the tween chain, so a
+        # rejected write can raise rather than return a 4xx.
+        {"side_effect": RuntimeError("validation failed")},
     ],
 )
 def test_send_notification_email_partial_success_is_never_an_error(
@@ -809,28 +686,17 @@ def test_send_notification_email_partial_success_is_never_an_error(
     )
     sns = mock_sns(monkeypatch)
     request = fake_request(json_body=valid_test_payload(target="all"))
-    request.invoke_subrequest.return_value = outcome
+    request.invoke_subrequest.configure_mock(**outcome)
 
     response = notification_status.send_notification_email(None, request)
 
-    assert "error" not in response
-    assert response["sent"] is True
-    assert response["recorded"] is False
+    assert response == {
+        "status": "ok",
+        "target": "all",
+        "sent": True,
+        "recorded": False,
+    }
     sns.publish.assert_called_once()
-
-
-def test_send_notification_email_does_not_record_when_publish_fails(monkeypatch):
-    sns = mock_sns(monkeypatch)
-    sns.publish.side_effect = ClientError(
-        {"Error": {"Code": "AuthorizationError"}}, "Publish"
-    )
-    request = fake_request(json_body=valid_test_payload(target="all"))
-
-    response = notification_status.send_notification_email(None, request)
-
-    assert response == {"error": notification_status.SNS_PUBLISH_ERROR}
-    # Nothing recorded: a row for mail that never went out is worse than none.
-    request.invoke_subrequest.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -934,175 +800,191 @@ def test_get_email_recipients_rejects_unknown_target(target, monkeypatch):
     boto_client.assert_not_called()
 
 
-def release_bucket(name, value, count, items=None):
-    bucket = {"name": name, "value": value, "count": count}
-    if items is not None:
-        bucket["items"] = items
-    return bucket
-
-
-def title_bucket(title, *descriptions):
-    return release_bucket(
-        "release_tracker_title", title, sum(c for _, c in descriptions),
-        [release_bucket("release_tracker_description", value, count)
-         for value, count in descriptions],
-    )
-
-
-def month_bucket(month, *titles, day=None):
-    """Build a release-date bucket, optionally with the day level nested in."""
-    count = sum(title["count"] for title in titles)
-    inner = list(titles)
-    if day:
-        inner = [release_bucket(
-            "file_status_tracking.release_dates.initial_release_date",
-            day, count, list(titles))]
-    return release_bucket(
-        "file_status_tracking.release_dates.initial_release",
-        month, count, inner)
-
-
-def mock_release_summary(monkeypatch, tree, retracted_total=0, donor_graph=()):
-    summary = Mock(return_value=tree)
-    monkeypatch.setattr(notification_status, "recent_files_summary", summary)
+def mock_release_summary(monkeypatch, released_graph=(), retracted_graph=()):
+    # The subrequest is its own path, so the search mock can tell the two
+    # searches apart by their query.
     monkeypatch.setattr(
-        notification_status, "make_search_subreq", Mock(return_value=Mock())
+        notification_status, "make_search_subreq",
+        Mock(side_effect=lambda request, path, **kwargs: path),
     )
-    # One response serves both plain searches: the donor-label search reads
-    # only `@graph`, the retracted-files count only `total`.
-    monkeypatch.setattr(
-        notification_status, "search",
-        Mock(return_value={
-            "total": retracted_total, "@graph": list(donor_graph)}),
-    )
-    return summary
+
+    def search(context, path):
+        retracted = "status=retracted" in path
+        return {"@graph": list(retracted_graph if retracted else released_graph)}
+
+    search_mock = Mock(side_effect=search)
+    monkeypatch.setattr(notification_status, "search", search_mock)
+    return search_mock
 
 
-@pytest.mark.parametrize("day", [None, "2026-09-02"])
-def test_collect_release_counts_ignores_the_date_levels(day):
-    # The aggregation nests release month and release day above the two fields
-    # we group on, and that nesting has changed before -- so the walk must key
-    # off the bucket name rather than its depth.
-    tree = {"items": [month_bucket(
-        "2026-09", title_bucket("ST001", ("WGS Illumina NovaSeq X bam", 3)),
-        day=day)]}
-
-    assert notification_status.collect_release_counts(tree) == {
-        ("ST001", "WGS Illumina NovaSeq X bam"): 3
-    }
+def file_hit(title=None, description=None, donors=(), tissue=True):
+    """A search hit carrying the fields the overview and labels read."""
+    hit = {"donors": [{"display_title": donor} for donor in donors]}
+    if title:
+        hit["release_tracker_title"] = title
+    if description:
+        hit["release_tracker_description"] = description
+    if tissue:
+        hit["sample_summary"] = {"tissues": ["Lung"]}
+    return hit
 
 
-def test_collect_release_counts_sums_across_date_buckets():
-    # A title released in two different months is one line in the email, not
-    # two, so the counts have to be added rather than overwritten.
-    tree = {"items": [
-        month_bucket("2026-09",
-                     title_bucket("ST001", ("WGS Illumina NovaSeq X bam", 3))),
-        month_bucket("2026-08",
-                     title_bucket("ST001", ("WGS Illumina NovaSeq X bam", 1))),
-    ]}
-
-    assert notification_status.collect_release_counts(tree) == {
-        ("ST001", "WGS Illumina NovaSeq X bam"): 4
-    }
-
-
-def test_format_release_summary_orders_by_count():
+def test_format_release_summary_renders_the_template():
+    # Chosen so that count order and name order disagree everywhere: ST002
+    # has more files than ST001, and within ST001 the WGS line has more
+    # files than the alphabetically earlier Fiber-seq one.
     totals = {
-        ("ST001", "WGS Illumina NovaSeq X bam"): 4,
-        ("ST001", "Fiber-seq PacBio Revio bam"): 2,
-        ("COLO829T", "RNA-seq Illumina NovaSeq X bam"): 3,
+        ("ST001", "Fiber-seq PacBio Revio bam"): 1,
+        ("ST001", "WGS Illumina NovaSeq X bam"): 2,
+        ("ST002", "WGS Illumina NovaSeq X cram"): 6,
     }
+    released = [
+        file_hit("ST001", donors=["SMHT001"]),
+        file_hit("ST002", donors=["SMHT002"]),
+    ]
+    retracted = [
+        file_hit("ST003", "Fiber-seq PacBio Revio bam", donors=["SMHT003"]),
+    ]
 
+    # A window starting mid-month, which still links the whole month.
     text = notification_status.format_release_summary(
-        totals, "2026-08-01", "2026-09-01", 5)
+        totals, "2026-08-15", "2026-09-01", released, retracted,
+        {"ST001": "Male, 57 yrs-old"})
 
-    released = ("Data Files Released Between 2026-08-01 and 2026-09-01"
-                " on the SMaHT Data Portal")
-    retracted = ("Data Files Retracted / Replaced Between 2026-08-01"
-                 " and 2026-09-01")
+    released_heading = ("Data Files Released Between 2026-08-15 and 2026-09-01"
+                        " on the SMaHT Data Portal")
+    rule = "-" * len(released_heading)
     assert text == (
-        f"{'-' * len(released)}\n{released}\n{'-' * len(released)}\n"
+        f"{rule}\n{released_heading}\n{rule}\n"
         "* For the SMaHT Network members with Data Use Agreements"
         " established for data access *\n"
         "\n"
-        "NEW DATA - 9 files released.\n"
+        f"{notification_status.RELEASE_SUMMARY_UNSUBSCRIBE}\n"
+        "\n"
+        "\n"
+        # The sum of the full list printed below it: 1 + 2 + 6.
+        "NEW DATA - 9 FILES\n"
+        " - 2 donors\n"
+        " - 2 tissue samples\n"
+        " - 2 assays / categories\n"
+        # The BAM and CRAM of one assay are one entry.
+        "    - WGS Illumina NovaSeq X\n"
+        "    - Fiber-seq PacBio Revio\n"
+        "\n"
+        "LINK TO NEW DATA RELEASED:\n"
         "https://data.smaht.org/recent-releases"
         "?view=monthly&date=2026-08-01&month=2026-08\n"
         "\n"
-        "ST001\n"
-        "  - 4 WGS Illumina NovaSeq X BAM\n"
-        "  - 2 Fiber-seq PacBio Revio BAM\n"
         "\n"
-        "COLO829T\n"
-        "  - 3 RNA-seq Illumina NovaSeq X BAM\n"
+        "RETRACTED DATA: 1 FILE\n"
+        " - 1 donor\n"
+        " - 1 tissue sample\n"
+        " - 1 assay / category\n"
+        "    - Fiber-seq PacBio Revio\n"
+        "\n"
+        "LINK TO ALL RETRACTED DATA:\n"
+        "https://data.smaht.org/retracted-files\n"
         "\n"
         "\n"
-        f"{'-' * len(retracted)}\n{retracted}\n{'-' * len(retracted)}\n"
-        "5 files retracted\n"
-        "* See the complete list here: https://data.smaht.org/retracted-files"
+        "FULL LIST OF THE NEW DATA RELEASED\n"
+        "\n"
+        # Titles by name, so a donor's tissues stay together; a label only
+        # where there is one.
+        "ST001 (Male, 57 yrs-old)\n"
+        # Lines within a title by count, then name.
+        "  - 2 WGS Illumina NovaSeq X BAM\n"
+        "  - 1 Fiber-seq PacBio Revio BAM\n"
+        "\n"
+        "ST002\n"
+        "  - 6 WGS Illumina NovaSeq X CRAM"
     )
     # No trailing newline: the composer appends this with '\n\n' + text.
     assert not text.endswith("\n")
 
 
-def test_format_release_summary_headline_matches_the_breakdown():
-    # The operator reads the headline and the lines under it as one claim, so
-    # the total is the sum of what is printed, never a separately sourced count.
-    totals = {("ST001", "a bam"): 4, ("ST002", "b bam"): 7}
-
+def test_format_release_summary_without_any_files():
     text = notification_status.format_release_summary(
-        totals, "2026-08-01", "2026-09-01", 0)
-
-    assert "NEW DATA - 11 files released." in text
-    assert sum(int(line.split()[1]) for line in text.splitlines()
-               if line.startswith("  - ")) == 11
-
-
-def test_format_release_summary_keeps_retracted_section_without_releases():
-    text = notification_status.format_release_summary(
-        {}, "2026-08-01", "2026-09-01", 2)
-
-    assert "NEW DATA - 0 files released." in text
-    assert "  - " not in text
-    assert "2 files retracted" in text
-
-
-@pytest.mark.parametrize("count,expected", [
-    (0, "0 files"), (1, "1 file"), (2, "2 files"),
-])
-def test_count_files_pluralizes(count, expected):
-    assert notification_status.count_files(count) == expected
-
-
-def test_format_release_summary_uses_singular_for_one():
-    text = notification_status.format_release_summary(
-        {("ST001", "a bam"): 1}, "2026-08-01", "2026-09-01", 1)
-
-    assert "NEW DATA - 1 file released." in text
-    assert "1 file retracted" in text
-    assert "1 files" not in text
-
-
-def test_format_release_summary_appends_donor_labels():
-    totals = {("SMHT023-3Q", "CompDuplex-seq bam"): 2, ("COLO829T", "WGS bam"): 1}
-
-    text = notification_status.format_release_summary(
-        totals, "2026-09-01", "2026-09-30", 0, {"SMHT023-3Q": "M57"})
+        {}, "2026-08-01", "2026-09-01", [], [])
 
     lines = text.splitlines()
-    assert "SMHT023-3Q (M57)" in lines
-    # No label, no parentheses.
-    assert "COLO829T" in lines
+    # Headline and link only: "0 donors" under "0 FILES" says nothing.
+    assert lines[lines.index("NEW DATA - 0 FILES") + 1] == ""
+    assert lines[lines.index("RETRACTED DATA: 0 FILES") + 1] == ""
+    assert not any(line.lstrip().startswith("- ") for line in lines)
+    assert notification_status.FULL_LIST_HEADING not in text
+    assert text.endswith(notification_status.RETRACTED_FILES_URL)
 
 
-def test_format_release_summary_links_the_from_month():
-    # A window that starts mid-month still opens that whole month.
+def test_format_release_summary_counts_every_retracted_file():
+    # Retractions without any releases still get their section. A retracted
+    # file with no tracker description still counts as retracted, it just has
+    # no assay entry to show.
+    retracted = [file_hit("T1", "a bam", ["D1"]), file_hit("T1", donors=["D1"])]
+
     text = notification_status.format_release_summary(
-        {}, "2026-09-15", "2026-10-05", 0)
+        {}, "2026-08-01", "2026-09-01", [], retracted)
 
-    assert ("https://data.smaht.org/recent-releases"
-            "?view=monthly&date=2026-09-01&month=2026-09") in text
+    assert "NEW DATA - 0 FILES" in text
+    assert ("RETRACTED DATA: 2 FILES\n - 1 donor\n - 1 tissue sample\n"
+            " - 1 assay / category\n    - a\n") in text
+    assert notification_status.FULL_LIST_HEADING not in text
+
+
+@pytest.mark.parametrize("description,expected", [
+    ("CompDuplex-seq Illumina NovaSeq X Plus bam",
+     "CompDuplex-seq Illumina NovaSeq X Plus"),
+    ("Filtered somatic SNV vcf vcf_gz", "Filtered somatic SNV vcf"),
+    ("bam", "bam"),
+])
+def test_assay_label_drops_the_file_format(description, expected):
+    assert notification_status.assay_label(description) == expected
+
+
+def test_build_overview_counts_donors_tissues_and_cell_lines():
+    totals = {("T1", "a bam"): 2, ("T2", "a bam"): 1, ("COLO829T", "a bam"): 2}
+    hits = [
+        file_hit("T1", donors=["D1"]),
+        file_hit("T1", donors=["D1"]),
+        file_hit("T2", donors=["D1", "D2"]),
+        file_hit("COLO829T", tissue=False),
+        # Only titles in the counts: a hit the totals left out is not one.
+        file_hit("T3"),
+    ]
+
+    overview = notification_status.build_overview(totals, hits, 5)
+
+    assert overview.donor_count == 2
+    assert overview.tissue_count == 2
+    assert overview.other_count == 1
+    # Printed only when present; its absence is pinned by the template test.
+    assert " - 1 cell line / mixture" in notification_status.format_overview(
+        notification_status.RELEASED_HEADLINE, overview)
+
+
+def test_build_overview_orders_assays_by_count_then_name():
+    totals = {
+        ("T1", "b-seq bam"): 1,
+        ("T1", "a-seq bam"): 1,
+        ("T2", "c-seq bam"): 1,
+        ("T2", "c-seq cram"): 2,
+    }
+    overview = notification_status.build_overview(totals, [], 5)
+
+    assert overview.assays == {"a-seq": 1, "b-seq": 1, "c-seq": 3}
+    lines = notification_status.format_overview(
+        notification_status.RELEASED_HEADLINE, overview)
+    assert lines[-3:] == ["    - c-seq", "    - a-seq", "    - b-seq"]
+
+
+def test_totals_from_hits_skips_files_without_tracker_fields():
+    hits = [
+        file_hit("T1", "a bam"),
+        file_hit("T1", "a bam"),
+        file_hit("T1"),
+        file_hit(description="a bam"),
+    ]
+
+    assert notification_status.totals_from_hits(hits) == {("T1", "a bam"): 2}
 
 
 def donor_hit(title, *donors):
@@ -1113,12 +995,12 @@ def donor_hit(title, *donors):
 
 
 @pytest.mark.parametrize("hits,expected", [
-    ([donor_hit("T1", ("Male", 57))], {"T1": "M57"}),
+    ([donor_hit("T1", ("Male", 57))], {"T1": "Male, 57 yrs-old"}),
     # The schema stores every age above 89 as 89.
-    ([donor_hit("T1", ("Female", 89))], {"T1": "F89+"}),
+    ([donor_hit("T1", ("Female", 89))], {"T1": "Female, 89+ yrs-old"}),
     # Every file of a title agreeing on one donor still gives one label.
     ([donor_hit("T1", ("Male", 57)), donor_hit("T1", ("Male", 57))],
-     {"T1": "M57"}),
+     {"T1": "Male, 57 yrs-old"}),
     # Two donors under one title: no guessing.
     ([donor_hit("T1", ("Male", 57)), donor_hit("T1", ("Female", 40))], {}),
     ([donor_hit("T1", ("Male", 57), ("Female", 40))], {}),
@@ -1127,21 +1009,17 @@ def donor_hit(title, *donors):
     ([donor_hit("COLO829T")], {}),
     ([{"donors": [{"sex": "Male", "age": 57}]}], {}),
 ])
-def test_get_title_donor_labels(hits, expected, monkeypatch):
-    mock_search(monkeypatch, hits)
+def test_title_donor_labels(hits, expected):
+    assert notification_status.title_donor_labels(hits) == expected
 
-    labels = notification_status.get_title_donor_labels(
+
+def test_search_released_files_queries_released_files_in_window(monkeypatch):
+    mock_search(monkeypatch, [file_hit("T1")])
+
+    hits = notification_status.search_released_files(
         None, fake_request(), "2026-09-01", "2026-09-30")
 
-    assert labels == expected
-
-
-def test_get_title_donor_labels_queries_released_files_in_window(monkeypatch):
-    mock_search(monkeypatch, [])
-
-    notification_status.get_title_donor_labels(
-        None, fake_request(), "2026-09-01", "2026-09-30")
-
+    assert hits == [file_hit("T1")]
     path = notification_status.make_search_subreq.call_args.args[1]
     query = parse_qs(path.split("?", 1)[1])
     assert query["type"] == ["File"]
@@ -1152,8 +1030,13 @@ def test_get_title_donor_labels_queries_released_files_in_window(monkeypatch):
     assert query["file_status_tracking.release_dates.initial_release.to"] \
         == ["2026-09-30"]
     assert query["release_tracker_title!"] == ["No value"]
-    assert query["field"] == ["release_tracker_title", "donors.sex", "donors.age"]
-    # The summary's own exclusions, so labels come from the files it counts.
+    assert query["field"] == [
+        "release_tracker_title", "release_tracker_description",
+        "donors.display_title", "donors.sex", "donors.age",
+        "sample_summary.tissues",
+    ]
+    assert query["limit"] == ["all"]
+    # The release tracker's own exclusions, so these are the files it shows.
     assert query["sample_summary.studies"] == ["Production"]
     assert query["data_category!"] == ["Quality Control"]
     assert query["tags!"] == ["exclude_from_release_tracker"]
@@ -1161,53 +1044,61 @@ def test_get_title_donor_labels_queries_released_files_in_window(monkeypatch):
     assert query["release_tracker_description!"] == ["No value"]
 
 
+def released_search_query(make_search_subreq):
+    """The query of the released-files search, the first of the two."""
+    path = make_search_subreq.call_args_list[0].args[1]
+    assert "status=retracted" not in path
+    return parse_qs(path.split("?", 1)[1])
+
+
 def test_get_released_files_summary_requires_date_from(monkeypatch):
-    summary = mock_release_summary(monkeypatch, {})
+    search = mock_release_summary(monkeypatch)
     request = fake_request(json_body={})
 
     response = notification_status.get_released_files_summary(None, request)
 
     assert response == {"error": "date_from is required"}
-    summary.assert_not_called()
+    search.assert_not_called()
 
 
 def test_get_released_files_summary_builds_text(monkeypatch):
-    mock_release_summary(monkeypatch, {"items": [month_bucket(
-        "2026-09", title_bucket("ST001", ("WGS Illumina NovaSeq X bam", 3)),
-        day="2026-09-02")]})
+    donor = {"display_title": "SMHT001", "sex": "Male", "age": 57}
+
+    def hit(description):
+        return {**file_hit("ST001", description), "donors": [donor]}
+
+    mock_release_summary(monkeypatch, released_graph=[
+        hit("WGS Illumina NovaSeq X bam"),
+        hit("WGS Illumina NovaSeq X bam"),
+        hit("WGS Illumina NovaSeq X cram"),
+    ])
     request = fake_request(
         json_body={"date_from": "2026-08-01", "date_to": "2026-10-01"})
 
     response = notification_status.get_released_files_summary(None, request)
 
     assert "Released Between 2026-08-01 and 2026-10-01" in response["text"]
-    assert "NEW DATA - 3 files released." in response["text"]
-    assert "  - 3 WGS Illumina NovaSeq X BAM" in response["text"]
+    assert ("NEW DATA - 3 FILES\n - 1 donor\n - 1 tissue sample\n"
+            " - 1 assay / category\n    - WGS Illumina NovaSeq X\n"
+            ) in response["text"]
+    # One line per (title, description), counted from the hits, under a title
+    # labeled from the same hits.
+    assert ("ST001 (Male, 57 yrs-old)\n  - 2 WGS Illumina NovaSeq X BAM\n"
+            "  - 1 WGS Illumina NovaSeq X CRAM") in response["text"]
 
 
-def test_get_released_files_summary_labels_titles(monkeypatch):
-    mock_release_summary(
-        monkeypatch,
-        {"items": [month_bucket("2026-09", title_bucket(
-            "SMHT023-3Q", ("CompDuplex-seq Illumina NovaSeq X Plus bam", 2)))]},
-        donor_graph=[donor_hit("SMHT023-3Q", ("Male", 57))])
-    request = fake_request(
-        json_body={"date_from": "2026-09-01", "date_to": "2026-09-30"})
-
-    response = notification_status.get_released_files_summary(None, request)
-
-    assert "SMHT023-3Q (M57)\n  - 2 CompDuplex-seq Illumina NovaSeq X Plus BAM" \
-        in response["text"]
-
-
-def test_get_released_files_summary_counts_retracted_in_window(monkeypatch):
-    mock_release_summary(monkeypatch, {}, retracted_total=4)
+def test_get_released_files_summary_summarizes_retracted_in_window(monkeypatch):
+    mock_release_summary(monkeypatch, retracted_graph=[
+        file_hit("T1", "a bam", ["D1"]),
+        file_hit("T2", "a cram", ["D2"]),
+    ])
     request = fake_request(
         json_body={"date_from": "2026-08-01", "date_to": "2026-09-30"})
 
     response = notification_status.get_released_files_summary(None, request)
 
-    assert "4 files retracted" in response["text"]
+    assert ("RETRACTED DATA: 2 FILES\n - 2 donors\n - 2 tissue samples\n"
+            " - 1 assay / category\n    - a\n") in response["text"]
     # The same set the Retracted Files page lists, bounded to the window.
     path = notification_status.make_search_subreq.call_args.args[1]
     query = parse_qs(path.split("?", 1)[1])
@@ -1220,55 +1111,45 @@ def test_get_released_files_summary_counts_retracted_in_window(monkeypatch):
         "file_status_tracking.status_tracking.retracted.from"] == ["2026-08-01"]
     assert query[
         "file_status_tracking.status_tracking.retracted.to"] == ["2026-09-30"]
+    assert query["limit"] == ["all"]
+    assert query["field"] == [
+        "release_tracker_title", "release_tracker_description",
+        "donors.display_title", "sample_summary.tissues",
+    ]
 
 
-def test_get_released_files_summary_queries_a_bounded_window(monkeypatch):
-    # Both ends, always: recent_files_summary defaults nmonths to 3, so a query
-    # carrying only from_date caps the window at from_date + 3 months and
-    # silently drops every file released after that.
-    mock_release_summary(monkeypatch, {})
-    make_search_subreq = notification_status.make_search_subreq
-    request = fake_request(
-        json_body={"date_from": "2020-01-01", "date_to": "2020-02-01"})
-
-    notification_status.get_released_files_summary(None, request)
-
-    path = make_search_subreq.call_args_list[0].args[1]
-    assert "from_date=2020-01-01" in path
+@pytest.mark.parametrize("date_to,expected_to", [
     # The caller's end date, not "today": the whole point of the second picker
     # is being able to summarize a month that has already ended.
-    assert "thru_date=2020-02-01" in path
-
-
-def test_get_released_files_summary_without_date_to_runs_through_today(
-        monkeypatch):
+    ("2020-02-01", "2020-02-01"),
     # Back-compat for a client that still sends only date_from.
-    mock_release_summary(monkeypatch, {})
-    make_search_subreq = notification_status.make_search_subreq
-    request = fake_request(json_body={"date_from": "2020-01-01"})
-
-    notification_status.get_released_files_summary(None, request)
-
-    today = datetime.now(timezone.utc).date().isoformat()
-    assert f"thru_date={today}" in make_search_subreq.call_args_list[0].args[1]
-
-
-def test_get_released_files_summary_handles_empty_result(monkeypatch):
-    mock_release_summary(monkeypatch, {})
-    request = fake_request(
-        json_body={"date_from": "2026-08-01", "date_to": "2026-09-01"})
+    (None, datetime.now(timezone.utc).date().isoformat()),
+])
+def test_get_released_files_summary_queries_the_window(
+        date_to, expected_to, monkeypatch):
+    mock_release_summary(monkeypatch)
+    json_body = {"date_from": "2020-01-01"}
+    if date_to:
+        json_body["date_to"] = date_to
+    request = fake_request(json_body=json_body)
 
     response = notification_status.get_released_files_summary(None, request)
 
-    assert "NEW DATA - 0 files released." in response["text"]
-    assert "0 files retracted" in response["text"]
+    query = released_search_query(notification_status.make_search_subreq)
+    assert query["file_status_tracking.release_dates.initial_release.from"] \
+        == ["2020-01-01"]
+    assert query["file_status_tracking.release_dates.initial_release.to"] \
+        == [expected_to]
+    # Nothing found is a summary saying so, not an error.
+    assert "NEW DATA - 0 FILES" in response["text"]
+    assert "RETRACTED DATA: 0 FILES" in response["text"]
 
 
 def test_get_released_files_summary_reports_failure(monkeypatch):
-    mock_release_summary(monkeypatch, {})
+    mock_release_summary(monkeypatch)
     monkeypatch.setattr(
         notification_status,
-        "recent_files_summary",
+        "search",
         Mock(side_effect=RuntimeError("index_not_found_exception [files-idx]")),
     )
     request = fake_request(json_body={"date_from": "2026-08-01"})
