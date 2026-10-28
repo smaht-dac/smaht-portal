@@ -77,6 +77,7 @@ def include_encoded(config):
     config.include('encoded.notification_status')
     config.include('encoded.analysis_runs')
     config.include('encoded.qc_overview')
+    config.include('encoded.somatic_variant_browser')
     config.include('encoded.ingestion.ingestion_status')
     config.include('encoded.ingestion.metadata_template')
     config.include('encoded.validators')

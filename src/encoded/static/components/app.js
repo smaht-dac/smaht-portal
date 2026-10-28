@@ -448,6 +448,7 @@ export default class App extends React.PureComponent {
                 // (mostly) redirects from notification pane in home page
                 if (
                     href.indexOf('/qc-metrics') > -1 ||
+                    href.indexOf('/somatic-variant-browser') > -1 ||
                     href.indexOf('/search/') > -1
                 ) {
                     Alerts.queue(NotLoggedInAlert);
@@ -1452,14 +1453,14 @@ export default class App extends React.PureComponent {
             "default-src 'self'",
             "img-src 'self' https://* https://i.ytimg.com data:",
             'child-src blob:',
-            // Allowing unsafe-eval temporarily re: 'box-intersect' dependency of some HiGlass tracks.
             'frame-src https://www.google.com/recaptcha/ https://www.youtube.com',
             // Allow anything on https://*.auth0.com domain to allow customization of Auth0 - Will Jan 31 2023
+            // 'unsafe-eval' is also required by HiGlass, whose view config validation (ajv) compiles schemas with `new Function`.
             "script-src 'self' www.google-analytics.com www.googletagmanager.com https://*.auth0.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com  https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
             "worker-src 'self' blob:",
-            "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com",
+            "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://higlass.io https://www.google-analytics.com https://www.googletagmanager.com",
         ].join('; ');
         // In future consider adding: object-src 'none'; require-trusted-types-for 'script';
         // (from google csp eval -- Will says what we have is fine for now, though)

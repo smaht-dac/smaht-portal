@@ -1052,6 +1052,10 @@ class FileRelease:
             patch_body[file_constants.OVERRIDE_RELEASE_TRACKER_DESCRIPTION] = release_tracker_description
             analysis_runs = [self.analysis_run['uuid']]
             patch_body[file_constants.ANALYSIS_RUNS] = analysis_runs
+            # patch_body["call_set"] = {
+            #     "name": "SNV V2",
+            #     "category": "Somatic"
+            # }
             self.patch_infos.extend(
                 [
                     self.get_okay_message(

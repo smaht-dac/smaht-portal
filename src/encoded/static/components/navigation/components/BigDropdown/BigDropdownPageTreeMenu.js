@@ -317,6 +317,14 @@ function CustomStaticLinks({ pathName, href, session }) {
                                     <h4 className="text-large">Data QC</h4>
                                 </BigDropdownBigLink>
                                 <BigDropdownBigLink
+                                    href="/somatic-variant-browser"
+                                    titleIcon="dna fas"
+                                    className="primary-big-link">
+                                    <h4 className="text-large">
+                                        Somatic Variant Browser
+                                    </h4>
+                                </BigDropdownBigLink>
+                                <BigDropdownBigLink
                                     href="/retracted-files"
                                     titleIcon="file-circle-xmark fas"
                                     className="primary-big-link">

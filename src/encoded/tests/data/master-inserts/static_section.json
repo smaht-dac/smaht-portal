@@ -561,6 +561,25 @@
         ]
     },
     {
+        "identifier": "somatic_variant_browser",
+        "title": "Somatic Variant Browser",
+        "body": "<SomaticVariantBrowser />",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "54b31c51-dee8-43e7-aed5-7378ba4244a9",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "body": "<SubmissionStatus />",
         "title": "Submission Status",
         "status": "in review",

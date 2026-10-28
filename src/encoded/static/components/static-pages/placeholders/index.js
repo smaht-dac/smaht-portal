@@ -9,6 +9,7 @@ import { AnalysisRuns } from '../components/internal/AnalysisRuns';
 import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial';
 import { StackRowTable } from '../../viz/AboutPageVisualizations/StackRowTable';
 import { QualityMetricVisualizations } from '../../viz/QualityMetricVisualizations';
+import { SomaticVariantBrowser } from '../../viz/SomaticVariantBrowser';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 
@@ -54,6 +55,7 @@ const placeholders = {
     ConsortiumMap,
     Alluvial,
     QualityMetricVisualizations,
+    SomaticVariantBrowser,
     SubmissionStatus,
     NotificationStatus,
     AnalysisRuns,

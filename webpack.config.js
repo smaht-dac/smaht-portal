@@ -214,7 +214,6 @@ module.exports = [
             ...resolve,
             alias: {
                 ...resolve.alias,
-                // TODO: re-add higlass-dependencies here when ready to re-introduce it
                 'package-lock.json': path.resolve(__dirname, './package-lock.json'),
                 "statistics-page-components": path.resolve(__dirname, "./src/encoded/static/components/static-pages/components/StatisticsPageViewBody"),
             },
@@ -264,19 +263,10 @@ module.exports = [
                 d3: 'var {}',
                 // This is used during build-time only I think...
                 '@babel/register': '@babel/register',
-                // TODO: Re-add when higlass is re-introduced
-                // 'higlass-dependencies': 'var {}',
-                // These remaining /higlass/ defs aren't really necessary
-                // but probably speed up build a little bit.
-                // 'higlass/dist/hglib' : 'var {}',
-                // 'higlass-register': 'var {}',
-                // 'higlass-sequence': 'var {}',
-                // 'higlass-transcripts': 'var {}',
-                // 'higlass-clinvar': 'var {}',
-                // 'higlass-text': 'var {}',
-                // 'higlass-orthologs': 'var {}',
-                // 'higlass-pileup': 'var {}',
-                // 'higlass-multivec': 'var {}',
+                // HiGlass and Pixi access the DOM at import time; they are only
+                // loaded client-side via dynamic import() (see viz/SomaticVariantBrowser).
+                higlass: 'var {}',
+                'pixi.js': 'var {}',
                 'auth0-lock': 'var {}',
                 'aws-sdk': 'var {}',
                 'package-lock.json': 'var {}',

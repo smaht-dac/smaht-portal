@@ -1132,3 +1132,13 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         text-align: left;
     }
 }
+
+/** Somatic Variant Browser styles */
+.somatic-variant-browser {
+    .higlass-container {
+        position: relative;
+        height: calc(100vh - 250px);
+        min-height: 500px;
+        border: 1px solid #dee2e6;
+    }
+}
