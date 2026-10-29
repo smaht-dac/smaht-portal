@@ -1549,6 +1549,16 @@ body[data-at-type^='Publication-collections'] {
                         object-position: top;
                     }
 
+                    // Border and rounding live on .thumbnail
+                    .clickable-image-container {
+                        height: 100%;
+
+                        .clickable-image {
+                            border: none;
+                            border-radius: 0;
+                        }
+                    }
+
                     .thumbnail-placeholder {
                         display: flex;
                         justify-content: center;
