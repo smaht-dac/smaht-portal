@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+2.15.12
+=======
+
+
+* Add previous dois property to publication schema for easier provenance tracking of publication items
+* add uniqueKey = true for doi (aleady is required) to enforce uniqueness.
+
 2.15.11
 =======
 
