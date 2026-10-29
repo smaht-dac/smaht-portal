@@ -78,10 +78,8 @@ RELEASE_SUMMARY_UNSUBSCRIBE = (
     "clicking the ‘Unsubscribe’ button on your Profile page in the SMaHT Data "
     "Portal, *** not by clicking the AWS link at the bottom of this message ***."
 )
-RELEASED_HEADLINE = "NEW DATA - {files}"
-RETRACTED_HEADLINE = "RETRACTED DATA: {files}"
-RELEASED_LINK_LABEL = "LINK TO NEW DATA RELEASED:"
-RETRACTED_LINK_LABEL = "LINK TO ALL RETRACTED DATA:"
+RELEASED_HEADLINE = "NEW DATA: {files} (link to the files: {url})"
+RETRACTED_HEADLINE = "RETRACTED DATA: {files} (link to all retracted files: {url})"
 FULL_LIST_HEADING = "FULL LIST OF THE NEW DATA RELEASED"
 PORTAL_URL = "https://data.smaht.org"
 RETRACTED_FILES_URL = f"{PORTAL_URL}/retracted-files"
@@ -446,9 +444,11 @@ def by_count_then_name(item: Tuple[str, int]) -> Tuple[int, str]:
     return (-item[1], item[0])
 
 
-def format_overview(headline: str, overview: FileOverview) -> List[str]:
-    """The headline and, when there are any files, what they cover."""
-    lines = [headline.format(files=count_files(overview.file_count).upper())]
+def format_overview(headline: str, overview: FileOverview, url: str) -> List[str]:
+    """The headline, linking `url`, and, when there are any files, what they cover."""
+    lines = [headline.format(
+        files=count_files(overview.file_count).upper(), url=url
+    )]
     if not overview.file_count:
         return lines
     counts = [
@@ -463,9 +463,10 @@ def format_overview(headline: str, overview: FileOverview) -> List[str]:
         len(overview.assays), "assay / category", "assays / categories"
     ))
     lines += [f" - {count}" for count in counts]
+    # Alphabetical, ignoring case, so a lowercase-initial assay ("scRNA-seq")
+    # is not pushed below every capitalized one.
     lines += [
-        f"    - {assay}"
-        for assay, _ in sorted(overview.assays.items(), key=by_count_then_name)
+        f"    - {assay}" for assay in sorted(overview.assays, key=str.casefold)
     ]
     return lines
 
@@ -497,10 +498,11 @@ def format_release_summary(
         "on the SMaHT Data Portal"
     )
     lines += [RELEASE_SUMMARY_AUDIENCE, "", RELEASE_SUMMARY_UNSUBSCRIBE, "", ""]
-    lines += format_overview(RELEASED_HEADLINE, released)
-    lines += ["", RELEASED_LINK_LABEL, recent_releases_url(date_from), "", ""]
-    lines += format_overview(RETRACTED_HEADLINE, retracted)
-    lines += ["", RETRACTED_LINK_LABEL, RETRACTED_FILES_URL]
+    lines += format_overview(
+        RELEASED_HEADLINE, released, recent_releases_url(date_from)
+    )
+    lines += ["", ""]
+    lines += format_overview(RETRACTED_HEADLINE, retracted, RETRACTED_FILES_URL)
 
     by_title: Dict[str, Dict[str, int]] = {}
     for (title, description), count in totals.items():

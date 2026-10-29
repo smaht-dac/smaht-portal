@@ -817,6 +817,11 @@ def mock_release_summary(monkeypatch, released_graph=(), retracted_graph=()):
     return search_mock
 
 
+RETRACTED_LINK = (
+    f"(link to all retracted files: {notification_status.RETRACTED_FILES_URL})"
+)
+
+
 def file_hit(title=None, description=None, donors=(), tissue=True):
     """A search hit carrying the fields the overview and labels read."""
     hit = {"donors": [{"display_title": donor} for donor in donors]}
@@ -863,27 +868,24 @@ def test_format_release_summary_renders_the_template():
         "\n"
         "\n"
         # The sum of the full list printed below it: 1 + 2 + 6.
-        "NEW DATA - 9 FILES\n"
+        "NEW DATA: 9 FILES (link to the files: "
+        "https://data.smaht.org/recent-releases"
+        "?view=monthly&date=2026-08-01&month=2026-08)\n"
         " - 2 donors\n"
         " - 2 tissue samples\n"
         " - 2 assays / categories\n"
-        # The BAM and CRAM of one assay are one entry.
-        "    - WGS Illumina NovaSeq X\n"
+        # The BAM and CRAM of one assay are one entry; entries by name, though
+        # WGS has more files.
         "    - Fiber-seq PacBio Revio\n"
-        "\n"
-        "LINK TO NEW DATA RELEASED:\n"
-        "https://data.smaht.org/recent-releases"
-        "?view=monthly&date=2026-08-01&month=2026-08\n"
+        "    - WGS Illumina NovaSeq X\n"
         "\n"
         "\n"
-        "RETRACTED DATA: 1 FILE\n"
+        "RETRACTED DATA: 1 FILE (link to all retracted files: "
+        "https://data.smaht.org/retracted-files)\n"
         " - 1 donor\n"
         " - 1 tissue sample\n"
         " - 1 assay / category\n"
         "    - Fiber-seq PacBio Revio\n"
-        "\n"
-        "LINK TO ALL RETRACTED DATA:\n"
-        "https://data.smaht.org/retracted-files\n"
         "\n"
         "\n"
         "FULL LIST OF THE NEW DATA RELEASED\n"
@@ -906,13 +908,15 @@ def test_format_release_summary_without_any_files():
     text = notification_status.format_release_summary(
         {}, "2026-08-01", "2026-09-01", [], [])
 
-    lines = text.splitlines()
-    # Headline and link only: "0 donors" under "0 FILES" says nothing.
-    assert lines[lines.index("NEW DATA - 0 FILES") + 1] == ""
-    assert lines[lines.index("RETRACTED DATA: 0 FILES") + 1] == ""
-    assert not any(line.lstrip().startswith("- ") for line in lines)
-    assert notification_status.FULL_LIST_HEADING not in text
-    assert text.endswith(notification_status.RETRACTED_FILES_URL)
+    # The headlines, links included, and nothing under them: "0 donors" under
+    # "0 FILES" says nothing.
+    assert text.endswith(
+        "NEW DATA: 0 FILES (link to the files: "
+        f"{notification_status.recent_releases_url('2026-08-01')})\n"
+        "\n"
+        "\n"
+        f"RETRACTED DATA: 0 FILES {RETRACTED_LINK}"
+    )
 
 
 def test_format_release_summary_counts_every_retracted_file():
@@ -924,10 +928,10 @@ def test_format_release_summary_counts_every_retracted_file():
     text = notification_status.format_release_summary(
         {}, "2026-08-01", "2026-09-01", [], retracted)
 
-    assert "NEW DATA - 0 FILES" in text
-    assert ("RETRACTED DATA: 2 FILES\n - 1 donor\n - 1 tissue sample\n"
-            " - 1 assay / category\n    - a\n") in text
-    assert notification_status.FULL_LIST_HEADING not in text
+    assert "NEW DATA: 0 FILES (" in text
+    assert text.endswith(
+        f"RETRACTED DATA: 2 FILES {RETRACTED_LINK}\n - 1 donor\n"
+        " - 1 tissue sample\n - 1 assay / category\n    - a")
 
 
 @pytest.mark.parametrize("description,expected", [
@@ -958,22 +962,23 @@ def test_build_overview_counts_donors_tissues_and_cell_lines():
     assert overview.other_count == 1
     # Printed only when present; its absence is pinned by the template test.
     assert " - 1 cell line / mixture" in notification_status.format_overview(
-        notification_status.RELEASED_HEADLINE, overview)
+        notification_status.RELEASED_HEADLINE, overview, "url")
 
 
-def test_build_overview_orders_assays_by_count_then_name():
+def test_build_overview_lists_assays_alphabetically():
     totals = {
-        ("T1", "b-seq bam"): 1,
+        ("T1", "B-seq bam"): 1,
         ("T1", "a-seq bam"): 1,
         ("T2", "c-seq bam"): 1,
         ("T2", "c-seq cram"): 2,
     }
     overview = notification_status.build_overview(totals, [], 5)
 
-    assert overview.assays == {"a-seq": 1, "b-seq": 1, "c-seq": 3}
+    assert overview.assays == {"a-seq": 1, "B-seq": 1, "c-seq": 3}
     lines = notification_status.format_overview(
-        notification_status.RELEASED_HEADLINE, overview)
-    assert lines[-3:] == ["    - c-seq", "    - a-seq", "    - b-seq"]
+        notification_status.RELEASED_HEADLINE, overview, "url")
+    # By name, ignoring case and file counts.
+    assert lines[-3:] == ["    - a-seq", "    - B-seq", "    - c-seq"]
 
 
 def test_totals_from_hits_skips_files_without_tracker_fields():
@@ -1078,7 +1083,9 @@ def test_get_released_files_summary_builds_text(monkeypatch):
     response = notification_status.get_released_files_summary(None, request)
 
     assert "Released Between 2026-08-01 and 2026-10-01" in response["text"]
-    assert ("NEW DATA - 3 FILES\n - 1 donor\n - 1 tissue sample\n"
+    assert ("NEW DATA: 3 FILES (link to the files: "
+            f"{notification_status.recent_releases_url('2026-08-01')})\n"
+            " - 1 donor\n - 1 tissue sample\n"
             " - 1 assay / category\n    - WGS Illumina NovaSeq X\n"
             ) in response["text"]
     # One line per (title, description), counted from the hits, under a title
@@ -1097,8 +1104,9 @@ def test_get_released_files_summary_summarizes_retracted_in_window(monkeypatch):
 
     response = notification_status.get_released_files_summary(None, request)
 
-    assert ("RETRACTED DATA: 2 FILES\n - 2 donors\n - 2 tissue samples\n"
-            " - 1 assay / category\n    - a\n") in response["text"]
+    assert response["text"].endswith(
+        f"RETRACTED DATA: 2 FILES {RETRACTED_LINK}\n - 2 donors\n"
+        " - 2 tissue samples\n - 1 assay / category\n    - a")
     # The same set the Retracted Files page lists, bounded to the window.
     path = notification_status.make_search_subreq.call_args.args[1]
     query = parse_qs(path.split("?", 1)[1])
@@ -1141,7 +1149,7 @@ def test_get_released_files_summary_queries_the_window(
     assert query["file_status_tracking.release_dates.initial_release.to"] \
         == [expected_to]
     # Nothing found is a summary saying so, not an error.
-    assert "NEW DATA - 0 FILES" in response["text"]
+    assert "NEW DATA: 0 FILES" in response["text"]
     assert "RETRACTED DATA: 0 FILES" in response["text"]
 
 
