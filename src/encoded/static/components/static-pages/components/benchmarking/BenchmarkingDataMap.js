@@ -167,6 +167,14 @@ export const BenchmarkingDataMap = {
                     BENCHMARKING_STATUS_FILTERS +
                     '&dataset=mei_detection_challenge_data&sort=-file_status_tracking.release_dates.initial_release',
             },
+            {
+                eventKey: '#hapmap-hg002',
+                title: 'HG002',
+                searchHref:
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=hg002&sort=-file_status_tracking.release_dates.initial_release',
+            },
         ],
     },
     iPScFibroblasts: {
