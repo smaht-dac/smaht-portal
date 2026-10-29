@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+2.15.11
+=======
+
+`PR 788: improve release email summary <https://github.com/smaht-dac/smaht-portal/pull/788>`_
+
+* Release email summary (``/get_released_files_summary/``): add a compact overview of new and
+  retracted data (file, donor, tissue and assay counts, with links) above the full per-tissue
+  list; list tissues alphabetically with spelled-out donor sex and age
+* Read released files with a single search instead of the ``recent_files_summary`` aggregation
+
+
 2.15.10
 =======
 
