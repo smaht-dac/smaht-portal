@@ -10,6 +10,7 @@ Change Log
 2.15.12
 =======
 
+`PR 789: publication schema updates <https://github.com/smaht-dac/smaht-portal/pull/789>`_
 
 * Add previous dois property to publication schema for easier provenance tracking of publication items
 * add uniqueKey = true for doi (aleady is required) to enforce uniqueness.

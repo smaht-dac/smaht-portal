@@ -211,7 +211,7 @@
                 "format": "doi"
             },
             "permission": "restricted_fields"
-        }, 
+        },
         "publication_categories": {
             "title": "Categories",
             "description": "Categories of the publication",
