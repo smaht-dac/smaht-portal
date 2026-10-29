@@ -5,6 +5,7 @@ import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { Schemas } from '../../util';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+import { ClickableImage } from '../../static-pages/components/ClickableImage';
 
 // Custom result row component for publication search results
 export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
@@ -39,7 +40,10 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
                             alt={display_title}
                         />
                     ) : key_image_link ? (
-                        <img src={key_image_link} alt={display_title} />
+                        <ClickableImage
+                            src={key_image_link}
+                            alt={display_title}
+                        />
                     ) : (
                         <div className="thumbnail-placeholder">
                             <i className="icon icon-fw icon-newspaper fas" />
