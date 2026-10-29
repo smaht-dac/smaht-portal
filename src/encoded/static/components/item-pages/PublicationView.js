@@ -23,6 +23,7 @@ import {
 } from '../util/Schemas';
 import { renderLoginAccessPopover } from './PublicDonorView';
 import { BROWSE_LINKS } from '../browse/BrowseView';
+import { ClickableImage } from '../static-pages/components/ClickableImage';
 
 /**
  * Finds the `static_content` entry for a given `location`, returning its
@@ -367,7 +368,7 @@ const PublicationViewTabs = (props) => {
 /** Top-level component for the Publication Overview Page */
 const PublicationView = React.memo(function PublicationView(props) {
     const { context, session, href } = props;
-    const [showFullAuthorList, toggleFullAuthorList] = useToggle(false);
+    const [showFullAuthorList, toggleFullAuthorList] = useToggle(true);
 
     // Check if data info should be suppressed
     const suppress_data_info = context?.tags?.includes('suppress_data_banner');
@@ -410,7 +411,7 @@ const PublicationView = React.memo(function PublicationView(props) {
             <div className="view-content">
                 <div className="publication-header">
                     {context?.key_image_thumbnail_link ? (
-                        <img
+                        <ClickableImage
                             className="thumbnail"
                             src={context.key_image_thumbnail_link}
                             alt={context.title || 'Publication key figure'}
