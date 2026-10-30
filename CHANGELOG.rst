@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+2.15.12
+=======
+
+`PR 790: Cord blood release <https://github.com/smaht-dac/smaht-portal/pull/790>`_
+
+* Add cord blood enums
+* Update annotated file names script for cord blood samples
+
+
 2.15.11
 =======
 

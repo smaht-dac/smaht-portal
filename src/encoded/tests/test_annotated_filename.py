@@ -270,6 +270,12 @@ TISSUE_PROTOCOL_ID = "1A"
 TISSUE_EXTERNAL_ID = f"{TISSUE_PROJECT_ID}{TISSUE_DONOR_KIT_ID}-{TISSUE_PROTOCOL_ID}"
 SOME_TISSUE = {"uuid": "some-uuid", "external_id": TISSUE_EXTERNAL_ID}
 ANOTHER_TISSUE = {"uuid": "another-uuid", "external_id": "SMHT100-1B"}
+CORD_BLOOD_CODE = "CB2404416003F"
+CORD_BLOOD_TISSUE = {
+    "uuid": "cord-blood-uuid",
+    "external_id": "CB2404416003",
+    "code": CORD_BLOOD_CODE,
+}
 
 SOME_FILE = {"data_category": ["Aligned Reads"]}
 SOME_EOF_FILE = {"@type": ["ExternalOutputFile"]}
@@ -415,6 +421,7 @@ SOME_SEQUENCING_SUPPLEMENT_FILE = {
         ),
         ([], [], [SOME_TISSUE, ANOTHER_TISSUE], "", True),
         ([], [], [SOME_TISSUE, SOME_ITEM], "", True),
+        ([], [], [CORD_BLOOD_TISSUE], DEFAULT_PROJECT_ID, False),
     ],
 )
 def test_get_project_id(
@@ -453,6 +460,7 @@ def patch_is_only_cell_culture_mixture_derived(value: bool) -> mock.MagicMock:
         (False, [], [], [SOME_TISSUE], TISSUE_DONOR_KIT_ID, False),
         (False, [], [], [SOME_TISSUE, SOME_ITEM], "", True),
         (False, [SOME_CELL_CULTURE_MIXTURE], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
+        (False, [], [], [CORD_BLOOD_TISSUE], CORD_BLOOD_CODE, False),
     ],
 )
 def test_get_sample_source_id(
@@ -489,7 +497,8 @@ def test_get_sample_source_id(
         ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], SOME_FILE, "", True),
         ([], [SOME_CELL_LINE], [SOME_TISSUE], SOME_FILE, "", True),
         ([], [], [SOME_TISSUE], SOME_FASTA_FILE, TISSUE_PROTOCOL_ID, False), # fasta file with single protocol ID
-        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], SOME_FASTA_FILE, "MT", False) # fasta file with multiple protocol IDs
+        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], SOME_FASTA_FILE, "MT", False), # fasta file with multiple protocol IDs
+        ([], [], [CORD_BLOOD_TISSUE], SOME_FILE, DEFAULT_ABSENT_FIELD, False), # non-TPC coded tissue (cord blood)
     ],
 )
 def test_get_protocol_id(
@@ -531,35 +540,40 @@ SOME_LIQUID_TISSUE_SAMPLE = {
     "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
 }
 SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
+SOME_CELL_SAMPLE = {"@type": ["CellSample"], "uuid": "cell-sample-uuid"}
 
 @pytest.mark.parametrize(
-    "file,cell_culture_mixtures,cell_lines,tissue_samples,derived_from_tissue_samples,expected,errors",
+    "file,cell_culture_mixtures,cell_lines,tissue_samples,cell_samples,derived_from_tissue_samples,expected,errors",
     [
-        (SOME_FILE, [], [], [], [], "", True),
-        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [], [], DEFAULT_ABSENT_FIELD, False),
-        (SOME_FILE, [], [SOME_CELL_LINE], [], [], DEFAULT_ABSENT_FIELD, False),
+        (SOME_FILE, [], [], [], [], [], "", True),
+        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [], [], [], DEFAULT_ABSENT_FIELD, False),
+        (SOME_FILE, [], [SOME_CELL_LINE], [], [], [], DEFAULT_ABSENT_FIELD, False),
         (
-            SOME_FILE, 
+            SOME_FILE,
             [SOME_CELL_CULTURE_MIXTURE],
             [SOME_CELL_LINE],
+            [],
             [],
             [],
             DEFAULT_ABSENT_FIELD,
             False,
         ),
-        (SOME_FILE, [], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], [], "", True),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], [], "MAMC", False),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], [], "100MC", False),
-        (SOME_EOF_FILE, [], [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False), # derived_from tissue samples
-        (SOME_EOF_FILE, [], [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], "MAMC", False), # derived_from tissue samples
-        (SOME_EOF_FILE, [], [], [], [], DEFAULT_ABSENT_FIELD, False), # derived_from tissue samples
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
-        (SOME_FILE, [], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], [], DEFAULT_ABSENT_FIELD * 2, False),
-        (SOME_FILE, [], [], [SOME_LIQUID_TISSUE_SAMPLE], [], DEFAULT_ABSENT_FIELD * 2, False),
-        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], [], "MAMC", False),
-        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], [], "", True),
-        (SOME_FILE, [], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], [], "", True),
+        (SOME_FILE, [], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], [], [], "", True),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE], [], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], [], [], "MAMC", False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], [], [], "100MC", False),
+        (SOME_EOF_FILE, [], [], [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False), # derived_from tissue samples
+        (SOME_EOF_FILE, [], [], [], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], "MAMC", False), # derived_from tissue samples
+        (SOME_EOF_FILE, [], [], [], [], [], DEFAULT_ABSENT_FIELD, False), # derived_from tissue samples
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], [], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        (SOME_FILE, [], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], [], [], DEFAULT_ABSENT_FIELD * 2, False),
+        (SOME_FILE, [], [], [SOME_LIQUID_TISSUE_SAMPLE], [], [], DEFAULT_ABSENT_FIELD * 2, False),
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], [], [], "MAMC", False),
+        (SOME_FILE, [SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], [], [], "", True),
+        (SOME_FILE, [], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], [], [], "", True),
+        (SOME_FILE, [], [], [], [SOME_CELL_SAMPLE], [], DEFAULT_ABSENT_FIELD, False), # cell sample (e.g. cord blood)
+        (SOME_FILE, [], [SOME_CELL_LINE], [], [SOME_CELL_SAMPLE], [], DEFAULT_ABSENT_FIELD, False), # cell sample + cell line both absent
+        (SOME_FILE, [], [], [SOME_CORE_TISSUE_SAMPLE], [SOME_CELL_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False), # real tissue sample wins; cell-sample fallback only applies when no tissue sample
 
     ],
 )
@@ -568,6 +582,7 @@ def test_get_aliquot_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
+    cell_samples: List[Dict[str, Any]],
     derived_from_tissue_samples: List[str],
     expected: str,
     errors: bool,
@@ -579,6 +594,7 @@ def test_get_aliquot_id(
         cell_culture_mixtures=cell_culture_mixtures,
         cell_lines=cell_lines,
         tissue_samples=tissue_samples,
+        cell_samples=cell_samples,
         derived_from_tissue_samples=derived_from_tissue_samples
     )
     assert_filename_part_matches(result, expected, errors)
@@ -588,6 +604,8 @@ SOME_AGE = 30
 SOME_SEX = "Male"
 SOME_DONOR = {"age": SOME_AGE, "sex": SOME_SEX}
 ANOTHER_DONOR = {"age": 35, "sex": "Female"}
+NEWBORN_DONOR = {"age": 0, "sex": "Female"}  # e.g. cord blood donor
+NO_AGE_DONOR = {"sex": "Female"}
 
 
 @pytest.mark.parametrize(
@@ -600,6 +618,8 @@ ANOTHER_DONOR = {"age": 35, "sex": "Female"}
         ([SOME_DONOR, ANOTHER_DONOR], False, "", True),
         ([SOME_DONOR], True, "M30", False),
         ([SOME_DONOR, ANOTHER_DONOR], True, "NN", False),
+        ([NEWBORN_DONOR], False, "F0", False),  # age 0 is valid, not "unknown"
+        ([NO_AGE_DONOR], False, "", True),  # missing age is still an error
     ],
 )
 def test_get_donor_sex_and_age_parts(

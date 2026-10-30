@@ -126,6 +126,7 @@ class AssociatedItems:
     cell_culture_mixtures: List[Dict[str, Any]]
     cell_lines: List[Dict[str, Any]]
     tissue_samples: List[Dict[str, Any]]
+    cell_samples: List[Dict[str, Any]]
     tissues: List[Dict[str, Any]]
     donors: List[Dict[str, Any]]
     target_assembly: Union[str, None]
@@ -161,6 +162,7 @@ def get_associated_items(
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
     tissue_samples = get_tissue_samples(samples)
+    cell_samples = get_cell_samples(samples)
     derived_from_tissue_samples = None
     if eof_utils.is_external_output_file(file) and not file_sets:
         derived_from_tissue_samples = get_tissue_samples_from_derived_from(file, request_handler)
@@ -181,6 +183,7 @@ def get_associated_items(
         assays=assays,
         sequencers=sequencers,
         tissue_samples=tissue_samples,
+        cell_samples=cell_samples,
         sample_sources=sample_sources,
         cell_culture_mixtures=cell_culture_mixtures,
         tissues=tissues,
@@ -399,6 +402,11 @@ def get_tissue_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return [sample for sample in samples if sample_utils.is_tissue_sample(sample)]
 
 
+def get_cell_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Filter samples to get cell samples."""
+    return [sample for sample in samples if sample_utils.is_cell_sample(sample)]
+
+
 def get_tissue_samples_from_derived_from(file: Dict[str, Any], request_handler: RequestHandler) -> List[Dict[str, Any]]:
     """Get tissue samples from linked derived from files."""
     if submitted_file_utils.get_derived_from(file):
@@ -582,6 +590,7 @@ def get_annotated_filename(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissue_samples,
+        associated_items.cell_samples,
         associated_items.derived_from_tissue_samples,
         analysis_run=analysis_run,
         output_meta_workflow_run=output_meta_workflow_run
@@ -809,9 +818,17 @@ def get_protocol_id_from_tissues(
         ) -> FilenamePart:
     """Get protocol ID from tissue items.
     
-    If file is a DSA file, allow multiple protocol IDs
+    If file is a DSA file, allow multiple protocol IDs.
+
+    Non-TPC tissues that carry a file-naming `code` (e.g. cord blood) have no
+    protocol encoded in their external ID, so use the absent-field marker.
     """
-    protocol_ids = [tissue_utils.get_protocol_id(tissue) for tissue in tissues]
+    protocol_ids = [
+        DEFAULT_ABSENT_FIELD
+        if tissue_utils.is_coded_non_tpc(tissue)
+        else tissue_utils.get_protocol_id(tissue)
+        for tissue in tissues
+    ]
     if len(protocol_ids) > 1 and supp_file_utils.get_donor_specific_assembly(file):
         return get_filename_part(value="MT")
     return get_filename_part_for_values(
@@ -825,13 +842,17 @@ def get_aliquot_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
+    cell_samples: List[Dict[str, Any]],
     derived_from_tissue_samples: Union[List[Dict[str, Any], None]],
     analysis_run: Optional[Dict[str, Any]] = None,
     output_meta_workflow_run: Optional[Dict[str, Any]] = None
 ) -> FilenamePart:
     """Get tissue aliquot ID for file.
-    
+
     If it is an External Output File with derived_from files, use tissue samples from those files.
+
+    Non-TPC cell samples (i.e. cord blood) carry no tissue aliquot ID, so use the
+    absent-field marker.
     """
     parts = []
     if eof_utils.is_external_output_file(file):
@@ -845,6 +866,8 @@ def get_aliquot_id(
         parts.append(get_aliquot_id_from_mwfr_input(request_handler, output_meta_workflow_run))
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
+    if cell_samples and not tissue_samples:
+        parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
 
 
@@ -1015,12 +1038,12 @@ def get_sex_and_age_part(donor: Dict[str, Any]) -> FilenamePart:
     """Get donor and age part for given donor."""
     sex = get_sex_abbreviation(donor_utils.get_sex(donor))
     age = donor_utils.get_age(donor)
-    if sex and age:
+    if sex and age is not None:
         return get_filename_part(value=f"{sex}{age}")
     errors = []
     if not sex:
         errors += [f"Unknown sex for donor {item_utils.get_uuid(donor)}"]
-    if not age:
+    if age is None:
         errors += [f"Unknown age for donor {item_utils.get_uuid(donor)}"]
     return get_filename_part(errors=errors)
 
