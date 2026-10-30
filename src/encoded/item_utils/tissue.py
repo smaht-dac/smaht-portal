@@ -108,11 +108,12 @@ def is_valid_external_id(external_id: str) -> bool:
 def is_coded_non_tpc(properties: Dict[str, Any]) -> bool:
     """Check if tissue is a non-TPC source carrying a file-naming `code`.
 
-    Cord blood is not provided by the TPC and has no TPC benchmarking or
-    production ID. However, we do store a file-naming code on it (e.g. 
-    "CB2404416003F"). TPC tissues (benchmarking/production/TPC-alt) can also 
-    carry a `code`, so `code` presence alone is NOT sufficient; the sample 
-    must also be non-TPC.
+    This function is intended to check for benchmarking cord blood samples. 
+    Cord blood is not provided by the TPC and thus does not have a TPC tissue 
+    ID, but it does have a file-naming code on it (e.g. "CB2404416003F"). TPC 
+    tissues can also carry a `code`, so `code` presence alone is not sufficient; 
+    the sample must also be non-TPC. Note: this assumes that a tissue without a 
+    valid external_id is a non-TPC tissue.
     """
     return (
         bool(item.get_code(properties))
