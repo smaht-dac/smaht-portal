@@ -149,7 +149,9 @@ function stepItemSearchFlow(caps) {
         .each(($el) => cy.wrap($el).should('contain.text', 'File'));
     cy.get('.facet-list-element[data-key]').should('not.contain.text', 'Item');
     cy.get('li[data-key="File"] a').click();
-    cy.get('#page-title-container .page-title').should('contain', 'File');
+    // a search across all files; can take long on a busy server (upper bound, ends as soon as loaded)
+    cy.location('search', { timeout: 60000 }).should('include', 'type=File');
+    cy.get('#page-title-container .page-title', { timeout: 60000 }).should('contain', 'File');
 
     // 3) Columns panel: hide a column → verify removed; then show it back → verify re-appears
     cy.get('.above-results-table-row button[data-tip="Configure visible columns"]')

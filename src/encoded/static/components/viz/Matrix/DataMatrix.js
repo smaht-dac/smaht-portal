@@ -1825,6 +1825,11 @@ export default class DataMatrix extends React.PureComponent {
 
     onMatrixModeChange(nextMatrixMode) {
         this.setState((prevState) => {
+            // Re-selecting the active mode must be a no-op: the fetch inputs would not change,
+            // so componentDidUpdate would not refetch and the cleared results would stay loading forever.
+            if (nextMatrixMode === prevState.matrixMode) {
+                return null;
+            }
             return {
                 ...this.getNextStateForMatrixMode(nextMatrixMode, prevState),
                 // Clear stale cells immediately on matrix-mode switches so the loading shell

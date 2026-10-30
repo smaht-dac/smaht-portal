@@ -1,5 +1,6 @@
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from "../support";
 import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
+import { markTiming } from "../support/utils/basicUtils";
 
 /* ---------------------------------------------------------------------
    ROLE MATRIX
@@ -132,6 +133,28 @@ const getOverviewValue = (label) => {
         });
 };
 
+/**
+ * Wait until the DSA value has finished loading (no spinner), but never longer than `maxWait`.
+ * Same upper bound as the previous fixed cy.wait(2000); a still-loading spinner remains acceptable afterwards.
+ */
+const waitForDSAValueLoaded = (maxWait = 2000) =>
+    cy.document().then((doc) => new Cypress.Promise((resolve) => {
+        const start = Date.now();
+        const check = () => {
+            const $val = Cypress.$(doc)
+                .find(`${summaryCardSel} .datum-title span:contains("DSA")`)
+                .closest(".datum")
+                .find(".datum-value");
+            const isLoading = $val.length === 0 || $val.find("i.icon-spin").length > 0;
+            if (!isLoading || Date.now() - start >= maxWait) {
+                resolve();
+            } else {
+                setTimeout(check, 100);
+            }
+        };
+        check();
+    }));
+
 /* ----------------------------- VERIFIERS ----------------------------- */
 /** Validate Data Summary / Donor Overview for the protected donor view */
 const verifyDonorSummary = (expectedDonorId) => {
@@ -184,8 +207,8 @@ const verifyDonorSummary = (expectedDonorId) => {
         ).to.be.true;
     });
 
-    // Allow a moment for the DSA request to complete
-    cy.wait(2000)
+    // Allow a moment (at most 2s, as before) for the DSA request to complete
+    waitForDSAValueLoaded();
 
     // DSA - ProtectedDonor may have avaliable DSA link
     getOverviewValue("DSA").then(({ $el, text }) => {
@@ -497,81 +520,85 @@ function stepProtectedDonorFlow(caps) {
             cy.visit(donorSearchUrl, { headers: cypressVisitHeaders });
             cy.get("#slow-load-container").should("not.have.class", "visible");
             cy.get(".facet-charts.loading").should("not.exist");
-            cy.get(".search-result-row[data-row-number]").as("resultRows");
-            cy.get("@resultRows").should("have.length", selected.length);
-
-
             // 3) Iterate the protected donor flow
-            function testVisit(index) {
-                if (index >= selected.length) return;
+            cy.get(".search-result-row[data-row-number]")
+                .should("have.length", selected.length)
+                .then(($rows) => {
+                    // Collect donor links up front, so each donor is opened directly instead of going back to the list
+                    const donorLinks = [...$rows].map((row) => {
+                        const $a = Cypress.$(row).find('[data-field="display_title"] a');
+                        return { donorID: $a.text().trim(), href: $a.attr("href") };
+                    });
 
-                // Open donor detail
-                cy.get("@resultRows").eq(index).as("currentRow");
-                cy.get("@currentRow")
-                    .find('[data-field="display_title"] a')
-                    .then(($a) => {
-                        const donorID = $a.text().trim();
+                    donorLinks.forEach(({ donorID, href }, index) => {
+                        markTiming("donor", "start", { reset: true });
+                        if (index === 0) {
+                            // Open the first donor by clicking its link in the list (covers the list → detail navigation)
+                            cy.get(".search-result-row[data-row-number]")
+                                .eq(0)
+                                .find('[data-field="display_title"] a')
+                                .invoke("removeAttr", "target")
+                                .click({ force: true });
+                        } else {
+                            // In-app (SPA) navigation; avoids reloading the list or the whole page for each donor
+                            cy.window().then((w) => w.SMaHT.navigate(href));
+                        }
 
-                        cy.wrap($a).invoke("removeAttr", "target").click({ force: true });
-
-                        // Protected donor view
-                        cy.location("pathname", { timeout: 15000 }).should(
-                            "include",
-                            "/protected-donors/"
-                        );
-
-                        cy.get(".donor-view .view-header .header-text", { timeout: 15000 })
-                            .should("be.visible")
-                            .and("contain", donorID);
-
-                        // Header buttons (Donor Metadata + disabled manifest)
-                        verifyHeaderButtons();
-
-                        // Data Summary / Donor Overview
-                        verifyDonorSummary(donorID);
-
-                        // Prior Diagnosis
-                        verifyPriorDiagnosis();
-
-                        // Exposures
-                        verifyExposures();
-
-                        // Donor-level Data Matrix
-                        getNumericStatByLabel("Files").then((filesCount) => {
-                            getNumericStatByLabel("Tissues").then((tissuesCount) => {
-                                testMatrixPopoverValidation(
-                                    "#data-matrix-for_donor",
-                                    {
-                                        donors: [donorID],
-                                        mustLabels: [],
-                                        optionalLabels: [],
-                                        expectedLowerLabels: ["Total Files"],
-                                        regularBlockCount: 5, // regularBlockCount
-                                        rowSummaryBlockCount: 5, // rowSummaryBlockCount
-                                        colSummaryBlockCount: 1, // colSummaryBlockCount
-                                        expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
-                                        expectedTissuesCount: tissuesCount,
-                                        allowVariantCallSetMatrixUndercount: true,
-                                        allowDSARowSummaryOvercount: true,
-                                        skipColSummaryTotalCheckForDonors: ["ST001"],
-                                        verifyTotalFromApi: true,
-                                    }
-                                );
-                            });
-                        });
-                    }).end();
-
-                // Back to list for next donor
-                cy.go("back");
-                cy.get(".search-result-row[data-row-number]", { timeout: 10000 })
-                    .should("have.length.at.least", selected.length)
-                    .as("resultRows");
-
-                cy.then(() => testVisit(index + 1));
-            }
-
-            testVisit(0);
+                        verifyProtectedDonorDetail(donorID);
+                    });
+                });
         });
+}
+
+function verifyProtectedDonorDetail(donorID) {
+    // Protected donor view
+    cy.location("pathname", { timeout: 15000 }).should(
+        "include",
+        "/protected-donors/"
+    );
+
+    cy.get(".donor-view .view-header .header-text", { timeout: 15000 })
+        .should("be.visible")
+        .and("contain", donorID);
+    markTiming("donor", `${donorID} navigation`);
+
+    // Header buttons (Donor Metadata + disabled manifest)
+    verifyHeaderButtons();
+
+    // Data Summary / Donor Overview
+    verifyDonorSummary(donorID);
+
+    // Prior Diagnosis
+    verifyPriorDiagnosis();
+
+    // Exposures
+    verifyExposures();
+    markTiming("donor", `${donorID} header + summary cards`);
+
+    // Donor-level Data Matrix
+    getNumericStatByLabel("Files").then((filesCount) => {
+        getNumericStatByLabel("Tissues").then((tissuesCount) => {
+            testMatrixPopoverValidation(
+                "#data-matrix-for_donor",
+                {
+                    donors: [donorID],
+                    mustLabels: [],
+                    optionalLabels: [],
+                    expectedLowerLabels: ["Total Files"],
+                    regularBlockCount: 5, // regularBlockCount
+                    rowSummaryBlockCount: 5, // rowSummaryBlockCount
+                    colSummaryBlockCount: 1, // colSummaryBlockCount
+                    expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
+                    expectedTissuesCount: tissuesCount,
+                    allowVariantCallSetMatrixUndercount: true,
+                    allowDSARowSummaryOvercount: true,
+                    skipColSummaryTotalCheckForDonors: ["ST001"],
+                    verifyTotalFromApi: true,
+                }
+            );
+        });
+    });
+    markTiming("donor", `${donorID} data matrix (total)`);
 }
 
 /* ----------------------------- PARAMETRIC SUITE ----------------------------- */

@@ -1,13 +1,51 @@
+import { markTiming } from './basicUtils';
 // Sends a GET request to the given URL and returns the `total` field from JSON response
 export function getApiTotalFromUrl(url) {
-    // Ensure the URL requests JSON format (append if missing)
-    const normalizedUrl = String(url).replace(/^(https?:\/\/[^/]+)\/\/+/, '$1/').replace(/^\/\/+/, '/');
-    const fullUrl = normalizedUrl.includes('format=json') ? normalizedUrl : `${normalizedUrl}&format=json&frame=raw`;
-
     return cy.request({
         method: 'GET',
-        url: fullUrl
+        url: toApiTotalUrl(url)
     }).its('body.total');
+}
+
+// Ensures a single slash after the host and requests JSON format (appended if missing)
+function toApiTotalUrl(url) {
+    const normalizedUrl = String(url).replace(/^(https?:\/\/[^/]+)\/\/+/, '$1/').replace(/^\/\/+/, '/');
+    return normalizedUrl.includes('format=json') ? normalizedUrl : `${normalizedUrl}&format=json&frame=raw`;
+}
+
+/**
+ * Verifies the popover "Browse Files" API totals collected by assertPopover.
+ * Requests run concurrently (at most `concurrency` at a time) from the app window with the
+ * logged-in user's session, instead of one sequential cy.request per popover.
+ * Every mismatch is reported together.
+ */
+function verifyCollectedApiTotals(apiChecks, matrixId, concurrency = 5) {
+    cy.window()
+        .then({ timeout: Cypress.config('responseTimeout') }, (win) => {
+            const results = new Array(apiChecks.length);
+            let next = 0;
+            const fetchTotal = (url) => win.fetch(toApiTotalUrl(url), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+                .then((resp) => (resp.ok ? resp.json().then((body) => body.total) : `HTTP ${resp.status}`))
+                .catch((err) => `request failed: ${err.message}`);
+            const worker = () => {
+                if (next >= apiChecks.length) return Promise.resolve();
+                const index = next++;
+                return fetchTotal(apiChecks[index].url).then((total) => {
+                    results[index] = total;
+                    return worker();
+                });
+            };
+            return Cypress.Promise.all(Cypress._.times(Math.min(concurrency, apiChecks.length), worker)).then(() => results);
+        })
+        .then((results) => {
+            const mismatches = apiChecks
+                .map((check, index) => {
+                    return { ...check, apiTotal: results[index] };
+                })
+                .filter(({ expected, apiTotal }) => apiTotal !== expected)
+                .map(({ label, expected, expectedName, apiTotal, url }) => `${label}: API total (${apiTotal}) should match ${expectedName} (${expected}) [${url}]`);
+            expect(mismatches, `popover counts vs. Browse Files API totals in ${matrixId} (${apiChecks.length} checked)`).to.be.empty;
+        });
 }
 
 // Safely parse a number from text content (e.g. " 11 " → 11)
@@ -115,7 +153,7 @@ function waitUntilPopoverClosed(timeout = 4000) {
  * 4. Waits until the popover is fully closed.
  * 5. Logs the assertion details.
  */
-function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0, verifyTotalFromApi = true }) {
+function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0, verifyTotalFromApi = true, apiChecks }) {
     // wait until the element itself is truly visible
     cy.waitForPopoverShow().then(() =>
         waitForPopoverVisible().then((popoverEl) => {
@@ -164,10 +202,12 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                             ? href
                                             : `${Cypress.config('baseUrl')}${href}`;
 
-                                        // Fetch API total and compare it with UI count
-                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                                .to.equal(uiCount);
+                                        // Collect the API check; all collected checks are verified concurrently after the popovers (verifyCollectedApiTotals)
+                                        apiChecks.push({
+                                            url: fullUrl,
+                                            expected: uiCount,
+                                            expectedName: 'UI count',
+                                            label: `${blockType} popover (donor: ${donor}, tissue: ${tissue}, assay: ${assay})`,
                                         });
                                     });
                             } else {
@@ -210,10 +250,12 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                             ? href
                                             : `${Cypress.config('baseUrl')}${href}`;
 
-                                        // Fetch API total and compare it with UI count
-                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                                .to.equal(uiCount);
+                                        // Collect the API check; all collected checks are verified concurrently after the popovers (verifyCollectedApiTotals)
+                                        apiChecks.push({
+                                            url: fullUrl,
+                                            expected: uiCount,
+                                            expectedName: 'UI count',
+                                            label: `${blockType} popover (donor: ${donor}, tissue: ${tissue}, assay: ${assay})`,
                                         });
                                     });
                             } else {
@@ -274,12 +316,12 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                             ? href
                                             : `${Cypress.config('baseUrl')}${href}`;
 
-                                        // Fetch API total and compare it with UI count
-                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                            expect(
-                                                apiTotal,
-                                                `API total (${apiTotal}) should match popover Total Files (${uiCountForApiValidation})`
-                                            ).to.equal(uiCountForApiValidation);
+                                        // Collect the API check; all collected checks are verified concurrently after the popovers (verifyCollectedApiTotals)
+                                        apiChecks.push({
+                                            url: fullUrl,
+                                            expected: uiCountForApiValidation,
+                                            expectedName: 'popover Total Files',
+                                            label: `${blockType} popover (donor: ${donor}, tissue: ${tissue}, assay: ${assay})`,
                                         });
                                     });
                             } else {
@@ -554,6 +596,47 @@ function collapseTopLevelMatrixRows(matrixId) {
     });
 }
 
+// A row's own label and blocks, excluding its (expanded) child rows
+function getOwnRow($row) {
+    return $row.children('.grouping-row');
+}
+
+/**
+ * Asserts every collapsible top-level row is expanded and has rendered its child rows.
+ * Guards the single-pass row checks from passing vacuously on rows that are not rendered yet.
+ */
+function assertTopLevelRowsExpanded() {
+    return cy.get('.grouping.depth-0.may-collapse').should(($rows) => {
+        const notReadyRows = [...$rows]
+            .map((row) => Cypress.$(row))
+            .filter(($row) => !$row.hasClass('open') || $row.children('.child-blocks').find('.grouping-row').length === 0)
+            .map(($row) => getOwnRow($row).find('h4 .inner').first().text().trim());
+        expect(notReadyRows, 'collapsible rows not expanded or without rendered child rows').to.be.empty;
+    });
+}
+
+/**
+ * Returns a message if the sum of a row's regular blocks is inconsistent with its row summary, otherwise null.
+ * Variant Call Sets and DSA columns may legitimately make the sum exceed the row summary.
+ */
+function getRowSummaryMismatch({ rowLabel, sum, expectedRowSummary, hasDSAColumn, hasVariantCallSetAssayColumn, hasVariantCallSets }) {
+    if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
+        return sum >= expectedRowSummary ? null : `Row summary for ${rowLabel} with CODEC/NanoSeq/META-VISTA-seq and Variant Call Sets: sum ${sum} should be at least ${expectedRowSummary}`;
+    }
+    if (hasDSAColumn) {
+        return sum >= expectedRowSummary ? null : `Row summary for ${rowLabel} with DSA column: sum ${sum} should be at least ${expectedRowSummary}`;
+    }
+    return sum === expectedRowSummary ? null : `Row summary for ${rowLabel}: sum ${sum} should equal ${expectedRowSummary}`;
+}
+
+/** Fails if any top-level row is labelled N/A (e.g. donor or tissue could not be resolved) */
+function assertNoTopLevelNARows() {
+    cy.get('.grouping.depth-0').then(($rows) => {
+        const naRowCount = [...$rows].filter((row) => getOwnRow(Cypress.$(row)).find('h4 .inner').first().text().trim() === 'N/A').length;
+        expect(naRowCount, 'top-level matrix rows labelled N/A').to.equal(0);
+    });
+}
+
 /** * Validates the data matrix popover content for specified donors and labels.
  * * @param {string} matrixId - The CSS selector for the data matrix.
  * @param {string[]} donors - An array of donor IDs to validate.
@@ -597,14 +680,21 @@ export function testMatrixPopoverValidation(
         verifyTotalFromApi = true,
     }) {
     cy.get(matrixId).should('exist');
+    markTiming('matrix', 'start', { reset: true });
+    waitForMatrixModeRender(matrixId);
 
     if (typeof expectedFilesCount === 'number' && expectedFilesCount === 0) {
         cy.get(`${matrixId} .stacked-block-viz-container .no-data-available`).should('contain.text', 'No data available');
         return;
     }
 
+    // filled by assertPopover, verified by verifyCollectedApiTotals
+    const apiChecks = [];
+
     cy.get(matrixId).within(() => {
         validateLowerHeaders(expectedLowerLabels);
+        assertNoTopLevelNARows();
+        markTiming('matrix', `${matrixId} headers + N/A rows`);
 
         let anyCollapsibleRows = false;
         //collapse all to a fresh start
@@ -618,63 +708,68 @@ export function testMatrixPopoverValidation(
             // this code block makes all collapsed sections as expanded
             // TODO: implement test cases for all collapsed sections
             if (anyCollapsibleRows) {
-                cy.get('.grouping.depth-0.may-collapse').each(($row) => {
-                    const $label = $row.find('.grouping-row h4 .inner');
-                    const rowLabel = $label.first().text().trim();
+                cy.get('.grouping.depth-0.may-collapse').then(($collapsedRows) => {
+                    // read each row's own summary while collapsed, then expand all rows
+                    const expectedRowSummaries = [...$collapsedRows].map((row) =>
+                        parseInt(getOwnRow(Cypress.$(row)).find('[data-block-type="row-summary"] span').text().trim(), 10)
+                    );
 
-                    const rowSummaryText = $row.find('[data-block-type="row-summary"] span').text().trim();
-                    const expectedRowSummary = parseInt(rowSummaryText, 10);
+                    [...$collapsedRows].forEach((row) => {
+                        const $expandIcon = getOwnRow(Cypress.$(row)).find('i.icon-plus');
+                        if ($expandIcon.length > 0) {
+                            cy.wrap($expandIcon).click();
+                        }
+                    });
 
-                    const expandIcon = $row.find('i.icon-plus');
-                    if (expandIcon.length > 0) {
-                        cy.wrap(expandIcon).click();
-                    }
+                    // single pass over all expanded rows; collect every inconsistency and report them together
+                    assertTopLevelRowsExpanded().then(($rows) => {
+                        const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
+                        const problems = [];
 
-                    cy.wrap($row).as('currentRow');
+                        [...$rows].forEach((row, rowIndex) => {
+                            const $row = Cypress.$(row);
+                            const rowLabel = getOwnRow($row).find('h4 .inner').first().text().trim();
+                            const labelTexts = [...$row.find('.child-blocks .grouping-row .inner')].map((el) => el.textContent.trim());
 
-                    if (donors.includes(rowLabel)) {
-                        cy.get('@currentRow')
-                            .find('.child-blocks .grouping-row .inner')
-                            .then(($labels) => {
-                                const labelTexts = [...$labels].map((el) => el.textContent.trim());
-                                if (mustLabels.length > 0) {
-                                    expect(labelTexts).to.include.members(mustLabels);
+                            if (donors.includes(rowLabel)) {
+                                const missingLabels = mustLabels.filter((lbl) => !labelTexts.includes(lbl));
+                                if (missingLabels.length > 0) {
+                                    problems.push(`${rowLabel}: missing required child labels [${missingLabels.join(', ')}]`);
                                 }
                                 if (optionalLabels.length > 0) {
-                                    expect(optionalLabels).to.include.members(labelTexts);
+                                    const unexpectedLabels = labelTexts.filter((lbl) => !optionalLabels.includes(lbl));
+                                    if (unexpectedLabels.length > 0) {
+                                        problems.push(`${rowLabel}: child labels not in allowed list [${unexpectedLabels.join(', ')}]`);
+                                    }
                                 }
+                            }
+
+                            if (labelTexts.includes('N/A')) {
+                                problems.push(`${rowLabel}: has an N/A child label`);
+                            }
+
+                            const regularBlocksSelector = '.child-blocks [data-block-type="regular"]';
+                            const sum = Cypress._.sum([...$row.find(`${regularBlocksSelector} span`)].map((el) => parseInt(el.textContent.trim(), 10)));
+                            const mismatch = getRowSummaryMismatch({
+                                rowLabel,
+                                sum,
+                                expectedRowSummary: expectedRowSummaries[rowIndex],
+                                hasDSAColumn: rowHasDSAColumn($row, regularBlocksSelector),
+                                hasVariantCallSetAssayColumn: rowHasAnyAssayColumn($row, regularBlocksSelector, ['CODEC', 'NanoSeq', 'META-VISTA-seq']),
+                                hasVariantCallSets,
                             });
-                    }
-
-                    cy.get('@currentRow')
-                        .find('.child-blocks .grouping-row .inner')
-                        .then(($labels) => {
-                            const labelTexts = [...$labels].map((el) => el.textContent.trim());
-                            expect(labelTexts).to.not.include('N/A');
-                        });
-
-                    cy.get('@currentRow')
-                        .find('.child-blocks [data-block-type="regular"] span')
-                        .then(($spans) => {
-                            const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                            const hasDSAColumn = rowHasDSAColumn($row, '.child-blocks [data-block-type="regular"]');
-                            const hasVariantCallSetAssayColumn = rowHasAnyAssayColumn(
-                                $row,
-                                '.child-blocks [data-block-type="regular"]',
-                                ['CODEC', 'NanoSeq', 'META-VISTA-seq']
-                            );
-                            const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
-                            if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
-                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/META-VISTA-seq and Variant Call Sets`).to.be.at.least(expectedRowSummary);
-                            } else if (hasDSAColumn) {
-                                expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
-                            } else {
-                                expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+                            if (mismatch) {
+                                problems.push(mismatch);
                             }
                         });
+
+                        expect(problems, `Expanded row inconsistencies in ${matrixId}`).to.be.empty;
+                    });
                 });
             }
         });
+
+        markTiming('matrix', `${matrixId} collapse + column totals + expanded rows`);
 
         // Random [regularBlockCount] regular block popovers
         cy.get('[data-block-type="regular"]').then(($allBlocks) => {
@@ -696,10 +791,12 @@ export function testMatrixPopoverValidation(
             testCases.forEach(({ el, donor, tissue, assay, value }) => {
                 if (value > 0) {
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor, assay, tissue, value, verifyTotalFromApi });
+                    assertPopover({ donor, assay, tissue, value, verifyTotalFromApi, apiChecks });
                 }
             });
         });
+
+        markTiming('matrix', `${matrixId} regular popovers`);
 
         // Random [rowSummaryBlockCount] row-summary block popovers
         cy.get('[data-block-type="row-summary"]').then(($blocks) => {
@@ -712,7 +809,7 @@ export function testMatrixPopoverValidation(
                 if (value > 0) {
                     const donor = $el.closest('.grouping.depth-0').find('h4 .inner').eq(0).text().trim();
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor, assay: '', value, blockType: 'row-summary', verifyTotalFromApi });
+                    assertPopover({ donor, assay: '', value, blockType: 'row-summary', verifyTotalFromApi, apiChecks });
                 }
             });
             // verify overall file count matches expectedFilesCount
@@ -736,6 +833,8 @@ export function testMatrixPopoverValidation(
             }
         });
 
+        markTiming('matrix', `${matrixId} row-summary popovers`);
+
         // Random [colSummaryBlockCount] col-summary block popovers
         cy.get('[data-block-type="col-summary"]:not([data-block-value="0"])').then(($blocks) => {
             Cypress._.sampleSize([...$blocks], colSummaryBlockCount).forEach((el) => {
@@ -747,7 +846,7 @@ export function testMatrixPopoverValidation(
                 if (value > 0) {
                     const assay = $el.parent().attr('data-group-key');
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor: '', assay: assay, value, blockType: 'col-summary', verifyTotalFromApi });
+                    assertPopover({ donor: '', assay: assay, value, blockType: 'col-summary', verifyTotalFromApi, apiChecks });
                 }
             });
             // verify overall file count matches expectedFilesCount
@@ -781,6 +880,11 @@ export function testMatrixPopoverValidation(
             }
         });
 
+        markTiming('matrix', `${matrixId} col-summary popovers`);
+
+        verifyCollectedApiTotals(apiChecks, matrixId);
+        markTiming('matrix', `${matrixId} popover API totals (concurrent)`);
+
         // Check total unique tissues in the matrix
         if (typeof expectedTissuesCount === 'number' && expectedTissuesCount > 0) {
             cy.get('.grouping.depth-0').then(($rows) => {
@@ -811,59 +915,66 @@ export function testMatrixPopoverValidation(
             });
         }
 
+        markTiming('matrix', `${matrixId} tissue count`);
+
         // Check sum of regular blocks in a row equals to the row summary
         // Note: collapse all to a fresh start
         if (verifyTotalFromApi) { // conditional because of COLO829 public donor matrix is not fully consistent
-            cy.get('.grouping.depth-0').then(($rows) => {
-                // filter only open rows
-                const openRows = $rows.filter('.may-collapse.open');
+            collapseTopLevelMatrixRows(matrixId);
 
-                openRows.each((index, row) => {
-                    const $icon = Cypress.$(row).find('i.icon-minus');
-                    if ($icon.length) {
-                        cy.wrap($icon).click();
-                    }
-                });
+            cy.get('.grouping.depth-0')
+                .should(($rows) => {
+                    // guard: child rows would otherwise be included in the row sums below
+                    expect($rows.filter('.may-collapse.open').length, 'top-level rows still open after collapsing').to.equal(0);
+                })
+                .then(($rows) => {
+                    // single pass over all collapsed rows; collect every inconsistency and report them together
+                    const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
+                    const problems = [];
 
-                cy.get('.grouping.depth-0').each(($row) => {
+                    [...$rows].forEach((row) => {
+                        const $row = Cypress.$(row);
+                        const rowLabel = $row.find('.grouping-row h4 .inner').first().text().trim();
+                        const regularBlocksSelector = '.blocks-container [data-block-type="regular"]';
+                        const expectedRowSummary = parseInt($row.find('.blocks-container [data-block-type="row-summary"] span').text().trim(), 10);
+                        const sum = Cypress._.sum([...$row.find(`${regularBlocksSelector} span`)].map((el) => parseInt(el.textContent.trim(), 10)));
 
-                    cy.wrap($row).within(() => {
-                        const rowSummaryText = $row.find('.blocks-container [data-block-type="row-summary"] span').text().trim();
-                        const expectedRowSummary = parseInt(rowSummaryText, 10);
-
-                        cy.wrap($row)
-                        .find('.blocks-container [data-block-type="regular"] span')
-                        .then(($spans) => {
-                            const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                            const rowLabel = $row.find('.grouping-row h4 .inner').first().text().trim();
-                            const hasDSAColumn = rowHasDSAColumn($row, '.blocks-container [data-block-type="regular"]');
-                            const hasVariantCallSetAssayColumn = rowHasAnyAssayColumn(
-                                $row,
-                                '.blocks-container [data-block-type="regular"]',
-                                ['CODEC', 'NanoSeq', 'META-VISTA-seq']
-                            );
-                            const hasVariantCallSets = hasNonZeroVariantCallSetsSummary(matrixId);
-                            if (hasVariantCallSetAssayColumn && hasVariantCallSets) {
-                                expect(sum, `Row summary for ${rowLabel} with CODEC/NanoSeq/META-VISTA-seq and Variant Call Sets`).to.be.at.least(expectedRowSummary);
-                            } else if (hasDSAColumn) {
-                                expect(sum, `Row summary for ${rowLabel} with DSA column`).to.be.at.least(expectedRowSummary);
-                            } else {
-                                expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
-                            }
+                        const mismatch = getRowSummaryMismatch({
+                            rowLabel,
+                            sum,
+                            expectedRowSummary,
+                            hasDSAColumn: rowHasDSAColumn($row, regularBlocksSelector),
+                            hasVariantCallSetAssayColumn: rowHasAnyAssayColumn($row, regularBlocksSelector, ['CODEC', 'NanoSeq', 'META-VISTA-seq']),
+                            hasVariantCallSets,
                         });
+                        if (mismatch) {
+                            problems.push(mismatch);
+                        }
                     });
+
+                    expect(problems, `Row summary inconsistencies in ${matrixId}`).to.be.empty;
                 });
-            });
         }
+        markTiming('matrix', `${matrixId} collapsed row sums`);
     });
 }
 
+// Matrix data can take long to load on a busy server; this is only an upper bound, waits end as soon as it is loaded
+const MATRIX_LOAD_TIMEOUT = 60000;
+
+/**
+ * Waits until the matrix has its data: not in the initial/mode-switch loading shell (spinner),
+ * not refreshing, and without a refresh overlay.
+ */
 function waitForMatrixModeRender(matrixId) {
-    cy.get(`${matrixId} .matrix-render-surface`, { timeout: 20000 })
+    cy.get(`${matrixId} .matrix-render-surface`, { timeout: MATRIX_LOAD_TIMEOUT })
         .should('exist')
         .and('not.have.class', 'is-refreshing');
 
-    cy.get(`${matrixId} .matrix-refresh-overlay`).should('not.exist');
+    // shown while results are null, e.g. on first load and right after a matrix-mode switch
+    cy.get(`${matrixId} .stacked-block-viz-container.is-loading`, { timeout: MATRIX_LOAD_TIMEOUT }).should('not.exist');
+
+    cy.get(`${matrixId} .matrix-refresh-overlay`, { timeout: MATRIX_LOAD_TIMEOUT }).should('not.exist');
 }
 
 function getDisplayedMatrixFileCount(matrixId) {
@@ -1213,10 +1324,11 @@ export function testDonorTissueMode(matrixId) {
         .click({ force: true })
         .should('have.class', 'active');
 
-    waitForMatrixModeRender(matrixId);
+    // assert the new mode first, so the wait below cannot pass on the previous mode's rendered state
     cy.get(matrixId)
         .should('have.class', 'matrix-mode-tissue')
         .and('have.class', 'matrix-mode-donor-tissue');
+    waitForMatrixModeRender(matrixId);
     cy.get(`${matrixId} .matrix-counts-toggle-inline`).should('be.visible');
     cy.get(`${matrixId} .matrix-assay-select`)
         .should('be.visible')
@@ -1328,6 +1440,8 @@ export function testMatrixExportControls(matrixId) {
     const idLabel = matrixId.replace('#data-matrix-for_', '');
     const exportToggleSelector = `#matrix-export-dropdown-${idLabel}`;
 
+    // the export button stays disabled until the matrix data is loaded
+    waitForMatrixModeRender(matrixId);
     assertExportDropdownItemsReady(exportToggleSelector);
 
     cy.window().then((win) => cy.spy(win.console, 'error').as('consoleError'));

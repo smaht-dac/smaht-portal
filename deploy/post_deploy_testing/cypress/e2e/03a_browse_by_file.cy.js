@@ -534,6 +534,10 @@ function stepFacetExcludeGrouping(caps) {
             });
         })
         .end();
+
+    // same workaround as in stepFacetIncludeGrouping: start the next step (facet chart) fresh,
+    // otherwise the excluded grouping term is preserved and changes the bar plot
+    goto('/');
 }
 
 function stepTissueTypeFilterTests(caps) {
