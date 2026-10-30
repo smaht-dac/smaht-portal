@@ -64,6 +64,9 @@ def _format_apa_author_list(authors):
 class Publication(Item):
     item_type = "publication"
     schema = load_schema("encoded:schemas/publication.json")
+    # DOIs always contain "/" and doi is a uniqueKey, so unique key values
+    # must be allowed to contain it
+    ALLOWED_PATH_CHARACTERS = ["/"] + Item.ALLOWED_PATH_CHARACTERS
     embedded_list = [
         "static_content.content.body",
         "static_content.content.title",

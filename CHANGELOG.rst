@@ -7,14 +7,34 @@ smaht-portal
 Change Log
 ----------
 
-2.15.11
-=======
+2.15.1
+======
 
 `PR 787: Add SNV callset metadata TSV downloads to the Consortium Hub <https://github.com/smaht-dac/smaht-portal/pull/787>`_
 
 * Rename the "Filtered Somatic Variant Callsets" quick link to "Filtered Somatic SNV Callsets (vcf)"
 * Add download buttons for the v1 and v2 SNV callset metadata TSVs, resolving each file's ``href`` by UUID
 * Disable download buttons for files the user cannot access, with a tooltip explaining why
+
+
+2.15.12
+=======
+
+`PR 789: publication schema updates <https://github.com/smaht-dac/smaht-portal/pull/789>`_
+
+* Add previous dois property to publication schema for easier provenance tracking of publication items
+* add uniqueKey = true for doi (aleady is required) to enforce uniqueness.
+
+
+2.15.11
+=======
+
+`PR 788: improve release email summary <https://github.com/smaht-dac/smaht-portal/pull/788>`_
+
+* Release email summary (``/get_released_files_summary/``): add a compact overview of new and
+  retracted data (file, donor, tissue and assay counts, with links) above the full per-tissue
+  list; list tissues alphabetically with spelled-out donor sex and age
+* Read released files with a single search instead of the ``recent_files_summary`` aggregation
 
 
 2.15.10
