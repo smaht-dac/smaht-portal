@@ -7,13 +7,42 @@ smaht-portal
 Change Log
 ----------
 
-2.15.10
+2.15.13
 ======
 
 `PR 773: feat: update donor browse dropdown requests <https://github.com/smaht-dac/smaht-portal/pull/773>`_
 
 * Remove redundant fetches
 * Update donor assay and tissue data to use context provider
+
+
+2.15.12
+=======
+
+`PR 789: publication schema updates <https://github.com/smaht-dac/smaht-portal/pull/789>`_
+
+* Add previous dois property to publication schema for easier provenance tracking of publication items
+* add uniqueKey = true for doi (aleady is required) to enforce uniqueness.
+
+2.15.11
+=======
+
+`PR 788: improve release email summary <https://github.com/smaht-dac/smaht-portal/pull/788>`_
+
+* Release email summary (``/get_released_files_summary/``): add a compact overview of new and
+  retracted data (file, donor, tissue and assay counts, with links) above the full per-tissue
+  list; list tissues alphabetically with spelled-out donor sex and age
+* Read released files with a single search instead of the ``recent_files_summary`` aggregation
+
+
+2.15.10
+=======
+
+`PR 775: feat: improve renamed files table UI <https://github.com/smaht-dac/smaht-portal/pull/775>`_
+
+* Add facets to retracted and renamed files tables
+* Add a default-hidden "Retraction Date" facet to File, shown first in the retracted files table
+* Show a scroll shadow on both tables while there are more rows below
 
 
 2.15.9
