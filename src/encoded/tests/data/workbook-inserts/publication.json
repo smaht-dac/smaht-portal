@@ -50,7 +50,7 @@
     },
     {
         "uuid": "c09f640f-710c-4405-9965-b0e2e0d0575f",
-        "doi": " 10.1016/test_doi_3",
+        "doi": "10.1016/test_doi_3",
         "pubmed_id": "PMID:33333333",
         "title": "Test Publication Three",
         "authors": [{"first_name": "Author", "last_name": "One"}],
