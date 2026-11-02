@@ -37,11 +37,22 @@ export default function Diagram({
         [error, setError] = useState('');
     const svg = useRef(),
         drag = useRef(),
+        typePicker = useRef(),
+        mapSettings = useRef(),
         previousSelection = useRef(selected),
         selectionCamera = useRef(null),
         cameraRef = useRef(camera),
         marker = useId().replace(/:/g, '');
     cameraRef.current = camera;
+    useEffect(() => {
+        const closeMenus = (event) => {
+            [typePicker.current, mapSettings.current].forEach((menu) => {
+                if (menu?.open && !menu.contains(event.target)) menu.open = false;
+            });
+        };
+        document.addEventListener('pointerdown', closeMenus);
+        return () => document.removeEventListener('pointerdown', closeMenus);
+    }, []);
     const nodes = useMemo(() => {
         const models = new Map(index.models.map((m) => [m.name, m]));
         for (const edge of index.edges)
@@ -311,26 +322,6 @@ export default function Diagram({
                     relationships
                 </span>
             </div>
-            {!compact && (
-                <div className="se-toolbar se-domain-controls">
-                    <label>Group
-                        <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
-                            <option value="">All groups</option>
-                            {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => (
-                                <option key={d.id} value={d.id}>{d.label}</option>
-                            ))}
-                        </select>
-                    </label>
-                    <label>Layout
-                        <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
-                            <option value="grouped">Grouped</option>
-                            <option value="network">Network</option>
-                        </select>
-                    </label>
-                    {showDomains && <label><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Cross-group links for selection</label>}
-                    <span className="text-muted">Select a schema to show only its links. Clear the selection to see all links; enable cross-group links to include its links to other groups.</span>
-                </div>
-            )}
             <div className="se-toolbar">
                 {!compact && (
                     <>
@@ -341,7 +332,7 @@ export default function Diagram({
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
-                        <details className="se-type-picker">
+                        <details className="se-type-picker" ref={typePicker}>
                             <summary>
                                 Types{' '}
                                 {
@@ -412,6 +403,26 @@ export default function Diagram({
                                             </label>
                                         ))}
                                 </div>
+                            </div>
+                        </details>
+                        <details className="se-map-settings" ref={mapSettings}>
+                            <summary>Map settings</summary>
+                            <div className="se-map-settings-popover">
+                                <label>Group
+                                    <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
+                                        <option value="">All groups</option>
+                                        {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => (
+                                            <option key={d.id} value={d.id}>{d.label}</option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <label>Layout
+                                    <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
+                                        <option value="grouped">Grouped</option>
+                                        <option value="network">Network</option>
+                                    </select>
+                                </label>
+                                {showDomains && <label className="se-map-cross-links"><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Include cross-group links for the selected schema</label>}
                             </div>
                         </details>
                     </>
