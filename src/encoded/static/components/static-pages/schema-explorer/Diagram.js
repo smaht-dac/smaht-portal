@@ -189,25 +189,6 @@ export default function Diagram({
         }
         if (neighbors) return;
         if (!selectionCamera.current) selectionCamera.current = cameraRef.current;
-        const nearby = visible.filter((node) => connected.has(node.name));
-        if (!nearby.length) return;
-        const left = Math.min(...nearby.map((node) => positions[node.name].x - width / 2));
-        const right = Math.max(...nearby.map((node) => positions[node.name].x + width / 2));
-        const top = Math.min(...nearby.map((node) => positions[node.name].y - height / 2));
-        const bottom = Math.max(...nearby.map((node) => positions[node.name].y + height / 2));
-        const spanX = right - left + 120;
-        const spanY = bottom - top + 120;
-        const scale = Math.max(0.05, Math.min(
-            cameraRef.current.scale,
-            1.5,
-            size.width / spanX,
-            size.height / spanY
-        ));
-        setCamera({
-            scale,
-            x: (size.width - (left + right) * scale) / 2,
-            y: (size.height - (top + bottom) * scale) / 2,
-        });
     }, [selected, connected, visible, positions, size, neighbors]);
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
@@ -381,7 +362,6 @@ export default function Diagram({
                     </div>
                     {!compact && (
                         <div className="se-map-tool-section" aria-label="Schema exploration">
-                            <button type="button" disabled={!selected} onClick={() => onPlanner(selected)}>Find embed path</button>
                             <button type="button" id="entity-show-neighborhood" disabled={!selected} aria-pressed={neighbors} onClick={() => {
                                 if (!neighbors) setHidden(hidden.filter((n) => !connected.has(n)));
                                 setMoves({});
