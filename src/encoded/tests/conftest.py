@@ -115,21 +115,23 @@ def pytest_keyboard_interrupt(excinfo):
     import faulthandler
     import sys
 
-    logging.getLogger(__name__).error(
-        "Pytest interrupted (%s); active test: %r",
-        excinfo.type.__name__,
-        _LAST_STARTED_TEST,
+    print(
+        f"Pytest interrupted ({excinfo.type.__name__}); active test: {_LAST_STARTED_TEST!r}",
+        file=sys.stderr,
+        flush=True,
     )
     faulthandler.dump_traceback(file=sys.stderr, all_threads=True)
 
 
 def pytest_sessionfinish(session, exitstatus):
     if exitstatus:
-        logging.getLogger(__name__).error(
-            "Pytest exiting with status %s; last started test: %r; last finished test: %r",
-            exitstatus,
-            _LAST_STARTED_TEST,
-            _LAST_FINISHED_TEST,
+        import sys
+
+        print(
+            f"Pytest exiting with status {exitstatus}; last started test: {_LAST_STARTED_TEST!r}; "
+            f"last finished test: {_LAST_FINISHED_TEST!r}",
+            file=sys.stderr,
+            flush=True,
         )
 
 
