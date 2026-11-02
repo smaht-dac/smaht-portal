@@ -4,7 +4,6 @@ import React, {
     useRef,
     useEffect,
     useCallback,
-    useId,
 } from 'react';
 import { layout, width, height } from './layout';
 import { domains, domainFor, groupedLayout } from './domains';
@@ -42,8 +41,7 @@ export default function Diagram({
         mapSettings = useRef(),
         previousSelection = useRef(selected),
         selectionCamera = useRef(null),
-        cameraRef = useRef(camera),
-        marker = useId().replace(/:/g, '');
+        cameraRef = useRef(camera);
     cameraRef.current = camera;
     useEffect(() => {
         const closeMenus = (event) => {
@@ -99,6 +97,23 @@ export default function Diagram({
         });
         return [...result.values()];
     }, [edges]);
+    const edgeLanes = useMemo(() => {
+        const pairs = new Map();
+        groups.forEach((group) => {
+            const pair = [group.from, group.to].sort().join('\0');
+            if (!pairs.has(pair)) pairs.set(pair, []);
+            pairs.get(pair).push(group);
+        });
+        const lanes = new Map();
+        pairs.forEach((pairGroups) => {
+            pairGroups.sort((a, b) => a.key.localeCompare(b.key));
+            pairGroups.forEach((group, i) => {
+                const direction = group.from.localeCompare(group.to) <= 0 ? 1 : -1;
+                lanes.set(group.key, direction * (i - (pairGroups.length - 1) / 2) * 28);
+            });
+        });
+        return lanes;
+    }, [groups]);
     const allPositions = useMemo(() => layout(visible, groups, size), [visible, groups, size]);
     const clustered = useMemo(() => groupedLayout(visible, width, height), [visible]);
     const showDomains = !compact && !neighbors && arrangement === 'grouped';
@@ -488,20 +503,6 @@ export default function Diagram({
                             };});
                         }
                     }}>
-                    <defs>
-                        {Object.entries(colors).map(([kind, color]) => (
-                            <marker
-                                key={kind}
-                                id={`${marker}-${kind}`}
-                                markerWidth="10"
-                                markerHeight="8"
-                                refX="9"
-                                refY="4"
-                                orient="auto">
-                                <path d="M0,0 L10,4 L0,8 Z" fill={color} />
-                            </marker>
-                        ))}
-                    </defs>
                     <g
                         data-world=""
                         transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
@@ -517,7 +518,9 @@ export default function Diagram({
                                 </text>
                             </g>
                         ))}
-                        {shownGroups.map((g, i) => {
+                        {shownGroups.map((g) => {
+                            const displayKind = g.reverse && kinds.includes('reverse') &&
+                                !kinds.includes(g.kind) ? 'reverse' : g.kind;
                             const a = positions[g.from],
                                 b = positions[g.to],
                                 dx = b.x - a.x,
@@ -527,18 +530,25 @@ export default function Diagram({
                                 dy ? height / 2 / Math.abs(dy) : Infinity
                             );
                             const same = g.from === g.to;
-                            const ax = same ? a.x + 40 : a.x + dx * factor,
-                                ay = same ? a.y - height / 2 : a.y + dy * factor;
-                            const bx = same ? a.x - 40 : b.x - dx * factor,
-                                by = same ? a.y - height / 2 : b.y - dy * factor;
-                            const lane = ((i % 3) - 1) * 35,
-                                cx = (ax + bx) / 2 - (dy ? lane : 0),
-                                cy = (ay + by) / 2 + (dx ? lane : 0);
+                            const lane = edgeLanes.get(g.key) || 0,
+                                distance = Math.hypot(dx, dy) || 1,
+                                nx = -dy / distance,
+                                ny = dx / distance,
+                                ax = same ? a.x + 40 : a.x + dx * factor,
+                                ay = same ? a.y - height / 2 : a.y + dy * factor,
+                                bx = same ? a.x - 40 : b.x - dx * factor,
+                                by = same ? a.y - height / 2 : b.y - dy * factor,
+                                c1x = ax + dx / 3 + nx * lane,
+                                c1y = ay + dy / 3 + ny * lane,
+                                c2x = bx - dx / 3 + nx * lane,
+                                c2y = by - dy / 3 + ny * lane,
+                                cx = (ax + 3 * c1x + 3 * c2x + bx) / 8,
+                                cy = (ay + 3 * c1y + 3 * c2y + by) / 8;
                             const d = same
                                 ? `M${ax},${ay} C${ax + 140},${ay - 110} ${
                                     bx - 140
                                 },${by - 110} ${bx},${by}`
-                                : `M${ax},${ay} Q${cx},${cy} ${bx},${by}`;
+                                : `M${ax},${ay} C${c1x},${c1y} ${c2x},${c2y} ${bx},${by}`;
                             return (
                                 <g
                                     key={g.key}
@@ -548,9 +558,8 @@ export default function Diagram({
                                             : 'se-dim'
                                         : ''}>
                                     <path
-                                        className={`se-edge ${g.kind}`}
+                                        className={`se-edge ${displayKind}`}
                                         d={d}
-                                        markerEnd={`url(#${marker}-${g.kind})`}
                                         tabIndex={0}
                                         role="button"
                                         aria-label={`${g.from} to ${g.to}`}
@@ -625,6 +634,43 @@ export default function Diagram({
                                 </text>
                             </g>
                         ))}
+                        {shownGroups.map((g) => {
+                            const a = positions[g.from],
+                                b = positions[g.to],
+                                dx = b.x - a.x,
+                                dy = b.y - a.y,
+                                factor = Math.min(
+                                    dx ? width / 2 / Math.abs(dx) : Infinity,
+                                    dy ? height / 2 / Math.abs(dy) : Infinity
+                                ),
+                                same = g.from === g.to,
+                                bx = same ? a.x - 40 : b.x - dx * factor,
+                                by = same ? a.y - height / 2 : b.y - dy * factor,
+                                lane = edgeLanes.get(g.key) || 0,
+                                distance = Math.hypot(dx, dy) || 1,
+                                nx = -dy / distance,
+                                ny = dx / distance,
+                                tx = same ? 140 : dx / 3 - nx * lane,
+                                ty = same ? 110 : dy / 3 - ny * lane,
+                                tangentLength = Math.hypot(tx, ty) || 1,
+                                ux = tx / tangentLength,
+                                uy = ty / tangentLength,
+                                headLength = 12,
+                                headWidth = 8,
+                                baseX = bx - ux * headLength,
+                                baseY = by - uy * headLength,
+                                markerKind = g.reverse && kinds.includes('reverse')
+                                    ? 'reverse'
+                                    : g.kind;
+                            return (
+                                <polygon
+                                    key={`arrow-${g.key}`}
+                                    points={`${bx},${by} ${baseX - uy * headWidth / 2},${baseY + ux * headWidth / 2} ${baseX + uy * headWidth / 2},${baseY - ux * headWidth / 2}`}
+                                    fill={colors[markerKind]}
+                                    opacity={selected && g.from !== selected && g.to !== selected ? 0.15 : 0.9}
+                                    pointerEvents="none" />
+                            );
+                        })}
                     </g>
                     {!visible.length && (
                         <text x="20" y="35">
