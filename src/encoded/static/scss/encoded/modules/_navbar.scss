@@ -396,6 +396,8 @@ div.navbar-fixed-top {
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
+                                // Match the width of the "Login / Register" label so the button doesn't shrink
+                                min-width: 176px;
 
                                 .login-loading-indicator {
                                     display: flex;
