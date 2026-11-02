@@ -24,9 +24,11 @@ function verifyCollectedApiTotals(apiChecks, matrixId, concurrency = 5) {
         .then({ timeout: Cypress.config('responseTimeout') }, (win) => {
             const results = new Array(apiChecks.length);
             let next = 0;
-            const fetchTotal = (url) => win.fetch(toApiTotalUrl(url), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+            const fetchTotalOnce = (url) => win.fetch(toApiTotalUrl(url), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
                 .then((resp) => (resp.ok ? resp.json().then((body) => body.total) : `HTTP ${resp.status}`))
                 .catch((err) => `request failed: ${err.message}`);
+            // Retry once on a transport/HTTP error only; a numeric total that differs is still reported as a mismatch
+            const fetchTotal = (url) => fetchTotalOnce(url).then((total) => (typeof total === 'number' ? total : fetchTotalOnce(url)));
             const worker = () => {
                 if (next >= apiChecks.length) return Promise.resolve();
                 const index = next++;
@@ -44,7 +46,11 @@ function verifyCollectedApiTotals(apiChecks, matrixId, concurrency = 5) {
                 })
                 .filter(({ expected, apiTotal }) => apiTotal !== expected)
                 .map(({ label, expected, expectedName, apiTotal, url }) => `${label}: API total (${apiTotal}) should match ${expectedName} (${expected}) [${url}]`);
-            expect(mismatches, `popover counts vs. Browse Files API totals in ${matrixId} (${apiChecks.length} checked)`).to.be.empty;
+            // List the mismatches in the message itself; chai truncates arrays to "[ Array(n) ]"
+            expect(
+                mismatches.length,
+                `popover counts vs. Browse Files API totals in ${matrixId} (${apiChecks.length} checked)${mismatches.length ? `:\n${mismatches.join('\n')}` : ''}`
+            ).to.equal(0);
         });
 }
 

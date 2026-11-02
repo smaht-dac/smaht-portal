@@ -50,6 +50,8 @@ const ROLE_MATRIX = {
 const BASE_BROWSE_URL =
     `/browse/?type=File&sample_summary.studies=Production&${BROWSE_STATUS_PARAMS}`;
 const BASE_DONOR_SEARCH_URL = "/search/?type=Donor";
+// Donors with no hardy_scale value; they can be picked at random from the /search/?type=Donor facet
+const DONORS_WITHOUT_HARDY_SCALE = ["COLO829", "DONOR_LB", "HG002"];
 const BROWSE_BY_DONOR_URL = `/browse/?type=Donor&study=Production&tags=has_released_files&${BROWSE_STATUS_PARAMS}`;
 
 // Safe query param append (handles both bare and existing query string)
@@ -153,9 +155,9 @@ const verifyDonorSummary = (expectedDonorId) => {
             .to.include(text);
     });
 
-    // Hardy Scale: integer between 0 and 4 inclusive (COLO829 and DONOR_LB are N/A)
+    // Hardy Scale: integer between 0 and 4 inclusive (cell line / non-tissue donors are N/A)
     getOverviewValue("Hardy Scale").then(({ text }) => {
-        if (expectedDonorId !== "COLO829" && expectedDonorId !== "DONOR_LB") {
+        if (!DONORS_WITHOUT_HARDY_SCALE.includes(expectedDonorId)) {
             const n = Number(text);
             expect(
                 Number.isInteger(n),
