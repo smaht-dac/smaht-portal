@@ -37,6 +37,7 @@ export default function Diagram({
         [error, setError] = useState('');
     const svg = useRef(),
         drag = useRef(),
+        relationshipMenu = useRef(),
         typePicker = useRef(),
         mapSettings = useRef(),
         previousSelection = useRef(selected),
@@ -46,7 +47,7 @@ export default function Diagram({
     cameraRef.current = camera;
     useEffect(() => {
         const closeMenus = (event) => {
-            [typePicker.current, mapSettings.current].forEach((menu) => {
+            [typePicker.current, mapSettings.current, relationshipMenu.current].forEach((menu) => {
                 if (menu?.open && !menu.contains(event.target)) menu.open = false;
             });
         };
@@ -322,86 +323,32 @@ export default function Diagram({
                     relationships
                 </span>
             </div>
-            <div className="se-toolbar">
+            <div className="se-map-toolbar">
                 {!compact && (
-                    <>
+                    <div className="se-map-discovery" aria-label="Find and select schemas">
                         <input
                             type="search"
-                            aria-label="Find a schema"
-                            placeholder="Find a schema…"
+                            aria-label="Search schemas"
+                            placeholder="Search schemas…"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
                         <details className="se-type-picker" ref={typePicker}>
-                            <summary>
-                                Types{' '}
-                                {
-                                    nodes.filter(
-                                        (n) => !hidden.includes(n.name)
-                                    ).length
-                                }
-                                /{nodes.length}
-                            </summary>
+                            <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length}</summary>
                             <div className="se-type-popover">
-                                <input
-                                    aria-label="Filter types"
-                                    placeholder="Filter types…"
-                                    value={typeQuery}
-                                    onChange={(e) =>
-                                        setTypeQuery(e.target.value)
-                                    }
-                                />
+                                <input aria-label="Filter types" placeholder="Filter types…" value={typeQuery} onChange={(e) => setTypeQuery(e.target.value)} />
                                 <div className="se-toolbar">
-                                    <button type="button" onClick={() => setVisibility([])}>
-                                        Show all
-                                    </button>
-                                    <button type="button"
-                                        onClick={() =>
-                                            setVisibility(
-                                                nodes.map((n) => n.name)
-                                            )
-                                        }>
-                                        Hide all
-                                    </button>
-                                    <button type="button"
-                                        onClick={() => setVisibility(defaults)}>
-                                        Defaults
-                                    </button>
+                                    <button type="button" onClick={() => setVisibility([])}>Show all</button>
+                                    <button type="button" onClick={() => setVisibility(nodes.map((n) => n.name))}>Hide all</button>
+                                    <button type="button" onClick={() => setVisibility(defaults)}>Defaults</button>
                                 </div>
                                 <div>
-                                    {nodes
-                                        .filter((n) =>
-                                            n.name
-                                                .toLowerCase()
-                                                .includes(
-                                                    typeQuery.toLowerCase()
-                                                )
-                                        )
-                                        .map((n) => (
-                                            <label key={n.name}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={
-                                                        !hidden.includes(n.name)
-                                                    }
-                                                    onChange={(e) =>
-                                                        setVisibility(
-                                                            e.target.checked
-                                                                ? hidden.filter(
-                                                                    (v) =>
-                                                                        v !==
-                                                                          n.name
-                                                                )
-                                                                : [
-                                                                    ...hidden,
-                                                                    n.name,
-                                                                ]
-                                                        )
-                                                    }
-                                                />
-                                                {n.name}
-                                            </label>
-                                        ))}
+                                    {nodes.filter((n) => n.name.toLowerCase().includes(typeQuery.toLowerCase())).map((n) => (
+                                        <label key={n.name}>
+                                            <input type="checkbox" checked={!hidden.includes(n.name)} onChange={(e) => setVisibility(e.target.checked ? hidden.filter((v) => v !== n.name) : [...hidden, n.name])} />
+                                            {n.name}
+                                        </label>
+                                    ))}
                                 </div>
                             </div>
                         </details>
@@ -411,9 +358,7 @@ export default function Diagram({
                                 <label>Group
                                     <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
                                         <option value="">All groups</option>
-                                        {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => (
-                                            <option key={d.id} value={d.id}>{d.label}</option>
-                                        ))}
+                                        {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
                                     </select>
                                 </label>
                                 <label>Layout
@@ -425,76 +370,44 @@ export default function Diagram({
                                 {showDomains && <label className="se-map-cross-links"><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Include cross-group links for the selected schema</label>}
                             </div>
                         </details>
-                    </>
+                    </div>
                 )}
-                <Filters kinds={kinds} onChange={setKinds} />
-                {!compact && (
-                    <>
-                        <button type="button"
-                            disabled={!selected}
-                            onClick={() => onPlanner(selected)}>
-                            Find embed path
-                        </button>
-                        <button type="button"
-                            id="entity-show-neighborhood"
-                            disabled={!selected}
-                            aria-pressed={neighbors}
-                            onClick={() => {
-                                if (!neighbors)
-                                    setHidden(
-                                        hidden.filter((n) => !connected.has(n))
-                                    );
+                <div className="se-map-tools">
+                    <div className="se-map-tool-section se-link-filters" aria-label="Relationship filters">
+                        <details ref={relationshipMenu}>
+                            <summary>Relationships {kinds.length}/3</summary>
+                            <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
+                        </details>
+                    </div>
+                    {!compact && (
+                        <div className="se-map-tool-section" aria-label="Schema exploration">
+                            <button type="button" disabled={!selected} onClick={() => onPlanner(selected)}>Find embed path</button>
+                            <button type="button" id="entity-show-neighborhood" disabled={!selected} aria-pressed={neighbors} onClick={() => {
+                                if (!neighbors) setHidden(hidden.filter((n) => !connected.has(n)));
                                 setMoves({});
                                 setNeighbors(!neighbors);
-                            }}>
-                            {neighbors
-                                ? 'Show selected types'
-                                : 'Show neighborhood'}
+                            }}>{neighbors ? 'Show selected types' : 'Show neighborhood'}
+                            </button>
+                            {selected && <button type="button" onClick={clearSelection}>Clear selection</button>}
+                        </div>
+                    )}
+                    <div className="se-map-tool-section se-canvas-actions" aria-label="Canvas controls">
+                        <button type="button" id={compact ? 'graph-export' : 'entity-export'} disabled={exporting} onClick={async () => {
+                            setExporting(true);
+                            try { await exportPNG(svg.current, compact ? `${focus}-relationships` : 'schema-map'); }
+                            catch (err) { setError(err.message || 'PNG export failed.'); }
+                            finally { setExporting(false); }
+                        }}>{exporting ? 'Exporting…' : 'Export PNG'}
                         </button>
-                        {selected && <button type="button" onClick={clearSelection}>Clear selection</button>}
-                        <button type="button"
-                            id="entity-fullscreen"
-                            aria-pressed={full}
-                            onClick={() => setFull(!full)}>
-                            {full ? 'Exit full screen' : 'Full screen ⛶'}
-                        </button>
-                    </>
-                )}
-                <button type="button"
-                    id={compact ? 'graph-export' : 'entity-export'}
-                    disabled={exporting}
-                    onClick={async () => {
-                        setExporting(true);
-                        try {
-                            await exportPNG(
-                                svg.current,
-                                compact
-                                    ? `${focus}-relationships`
-                                    : 'schema-map'
-                            );
-                        } catch (err) {
-                            setError(err.message || 'PNG export failed.');
-                        } finally {
-                            setExporting(false);
-                        }
-                    }}>
-                    {exporting ? 'Exporting…' : 'Export PNG'}
-                </button>
-                <button type="button" onClick={fit}>Fit all</button>
-                <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>
-                    −
-                </button>
-                <span>{Math.round(camera.scale * 100)}%</span>
-                <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>
-                    +
-                </button>
-                <button type="button"
-                    onClick={() => {
-                        setMoves({});
-                        fit();
-                    }}>
-                    Reset layout
-                </button>
+                        <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
+                            <button type="button" onClick={fit}>Fit all</button>
+                            <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
+                            <span>{Math.round(camera.scale * 100)}%</span>
+                            <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
+                        </div>
+                        <button type="button" onClick={() => { setMoves({}); fit(); }}>Reset layout</button>
+                    </div>
+                </div>
             </div>
             {query && (
                 <div className="se-toolbar">
@@ -519,220 +432,227 @@ export default function Diagram({
                 edge to inspect its fields.
             </p>
             {error && <p role="alert">{error}</p>}
-            <svg
-                ref={svg}
-                id={compact ? 'graph' : 'entity-svg'}
-                className="se-canvas"
-                tabIndex={0}
-                role="group"
-                aria-label="Schema relationship diagram"
-                onPointerDown={(e) => {
-                    if (e.button !== 0) return;
-                    const name =
+            <div className="se-canvas-wrap">
+                {!compact && (
+                    <button type="button" className="se-canvas-fullscreen" id="entity-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onPointerDown={(e) => e.stopPropagation()} onClick={() => setFull(!full)}>
+                        <svg aria-hidden="true" viewBox="0 0 16 16"><path d={full ? 'M6 1v5H1M10 1v5h5M15 10h-5v5M6 15v-5H1' : 'M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5'} /></svg>
+                    </button>
+                )}
+                <svg
+                    ref={svg}
+                    id={compact ? 'graph' : 'entity-svg'}
+                    className="se-canvas"
+                    tabIndex={0}
+                    role="group"
+                    aria-label="Schema relationship diagram"
+                    onPointerDown={(e) => {
+                        if (e.button !== 0) return;
+                        const name =
                         e.target.closest('[data-entity]')?.dataset.entity;
-                    drag.current = {
-                        id: e.pointerId,
-                        name,
-                        x: e.clientX,
-                        y: e.clientY,
-                        moved: false,
-                    };
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                }}
-                onPointerMove={(e) => {
-                    const d = drag.current;
-                    if (!d || d.id !== e.pointerId) return;
-                    const dx = e.clientX - d.x,
-                        dy = e.clientY - d.y;
-                    if (!dx && !dy) return;
-                    d.moved = true;
-                    d.x = e.clientX;
-                    d.y = e.clientY;
-                    if (d.name)
-                        setMoves((m) => {return {
-                            ...m,
-                            [d.name]: {
-                                x:
+                        drag.current = {
+                            id: e.pointerId,
+                            name,
+                            x: e.clientX,
+                            y: e.clientY,
+                            moved: false,
+                        };
+                        e.currentTarget.setPointerCapture(e.pointerId);
+                    }}
+                    onPointerMove={(e) => {
+                        const d = drag.current;
+                        if (!d || d.id !== e.pointerId) return;
+                        const dx = e.clientX - d.x,
+                            dy = e.clientY - d.y;
+                        if (!dx && !dy) return;
+                        d.moved = true;
+                        d.x = e.clientX;
+                        d.y = e.clientY;
+                        if (d.name)
+                            setMoves((m) => {return {
+                                ...m,
+                                [d.name]: {
+                                    x:
                                     (m[d.name] || positions[d.name]).x +
                                     dx / camera.scale,
-                                y:
+                                    y:
                                     (m[d.name] || positions[d.name]).y +
                                     dy / camera.scale,
-                            },
-                        };});
-                    else setCamera((c) => {return { ...c, x: c.x + dx, y: c.y + dy };});
-                }}
-                onPointerUp={(e) => {
-                    const d = drag.current;
-                    drag.current = null;
-                    if (d && !d.moved && d.name) choose(d.name);
-                    if (e.currentTarget.hasPointerCapture(e.pointerId))
-                        e.currentTarget.releasePointerCapture(e.pointerId);
-                }}
-                onPointerCancel={() => {
-                    drag.current = null;
-                }}
-                onKeyDown={(e) => {
-                    if (e.target !== e.currentTarget) return;
-                    const delta = {
-                        ArrowLeft: [50, 0],
-                        ArrowRight: [-50, 0],
-                        ArrowUp: [0, 50],
-                        ArrowDown: [0, -50],
-                    }[e.key];
-                    if (delta) {
-                        e.preventDefault();
-                        setCamera((c) => {return {
-                            ...c,
-                            x: c.x + delta[0],
-                            y: c.y + delta[1],
-                        };});
-                    }
-                }}>
-                <defs>
-                    {Object.entries(colors).map(([kind, color]) => (
-                        <marker
-                            key={kind}
-                            id={`${marker}-${kind}`}
-                            markerWidth="10"
-                            markerHeight="8"
-                            refX="9"
-                            refY="4"
-                            orient="auto">
-                            <path d="M0,0 L10,4 L0,8 Z" fill={color} />
-                        </marker>
-                    ))}
-                </defs>
-                <g
-                    data-world=""
-                    transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
-                    {showDomains && clustered.frames.map((frame) => (
-                        <g key={frame.id} className="se-domain-frame">
-                            <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="12" />
-                            <text x={frame.left + 24} y={frame.top + 38} role="button" tabIndex={0}
-                                aria-label={`Focus group: ${frame.label}`}
-                                onPointerDown={(e) => e.stopPropagation()}
-                                onClick={() => chooseDomain(frame.id)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); chooseDomain(frame.id); } }}>
-                                {frame.label} · {frame.count}
-                            </text>
-                        </g>
-                    ))}
-                    {shownGroups.map((g, i) => {
-                        const a = positions[g.from],
-                            b = positions[g.to],
-                            dx = b.x - a.x,
-                            dy = b.y - a.y;
-                        const factor = Math.min(
-                            dx ? width / 2 / Math.abs(dx) : Infinity,
-                            dy ? height / 2 / Math.abs(dy) : Infinity
-                        );
-                        const same = g.from === g.to;
-                        const ax = same ? a.x + 40 : a.x + dx * factor,
-                            ay = same ? a.y - height / 2 : a.y + dy * factor;
-                        const bx = same ? a.x - 40 : b.x - dx * factor,
-                            by = same ? a.y - height / 2 : b.y - dy * factor;
-                        const lane = ((i % 3) - 1) * 35,
-                            cx = (ax + bx) / 2 - (dy ? lane : 0),
-                            cy = (ay + by) / 2 + (dx ? lane : 0);
-                        const d = same
-                            ? `M${ax},${ay} C${ax + 140},${ay - 110} ${
-                                bx - 140
-                            },${by - 110} ${bx},${by}`
-                            : `M${ax},${ay} Q${cx},${cy} ${bx},${by}`;
-                        return (
-                            <g
-                                key={g.key}
-                                className={selected
-                                    ? g.from === selected || g.to === selected
-                                        ? 'se-active'
-                                        : 'se-dim'
-                                    : ''}>
-                                <path
-                                    className={`se-edge ${g.kind}`}
-                                    d={d}
-                                    markerEnd={`url(#${marker}-${g.kind})`}
-                                    tabIndex={0}
-                                    role="button"
-                                    aria-label={`${g.from} to ${g.to}`}
-                                    onClick={() => inspect(g)}
-                                    onKeyDown={(e) => {
-                                        if (
-                                            e.key === 'Enter' ||
+                                },
+                            };});
+                        else setCamera((c) => {return { ...c, x: c.x + dx, y: c.y + dy };});
+                    }}
+                    onPointerUp={(e) => {
+                        const d = drag.current;
+                        drag.current = null;
+                        if (d && !d.moved && d.name) choose(d.name);
+                        if (e.currentTarget.hasPointerCapture(e.pointerId))
+                            e.currentTarget.releasePointerCapture(e.pointerId);
+                    }}
+                    onPointerCancel={() => {
+                        drag.current = null;
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.target !== e.currentTarget) return;
+                        const delta = {
+                            ArrowLeft: [50, 0],
+                            ArrowRight: [-50, 0],
+                            ArrowUp: [0, 50],
+                            ArrowDown: [0, -50],
+                        }[e.key];
+                        if (delta) {
+                            e.preventDefault();
+                            setCamera((c) => {return {
+                                ...c,
+                                x: c.x + delta[0],
+                                y: c.y + delta[1],
+                            };});
+                        }
+                    }}>
+                    <defs>
+                        {Object.entries(colors).map(([kind, color]) => (
+                            <marker
+                                key={kind}
+                                id={`${marker}-${kind}`}
+                                markerWidth="10"
+                                markerHeight="8"
+                                refX="9"
+                                refY="4"
+                                orient="auto">
+                                <path d="M0,0 L10,4 L0,8 Z" fill={color} />
+                            </marker>
+                        ))}
+                    </defs>
+                    <g
+                        data-world=""
+                        transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
+                        {showDomains && clustered.frames.map((frame) => (
+                            <g key={frame.id} className="se-domain-frame">
+                                <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="12" />
+                                <text x={frame.left + 24} y={frame.top + 38} role="button" tabIndex={0}
+                                    aria-label={`Focus group: ${frame.label}`}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={() => chooseDomain(frame.id)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); chooseDomain(frame.id); } }}>
+                                    {frame.label} · {frame.count}
+                                </text>
+                            </g>
+                        ))}
+                        {shownGroups.map((g, i) => {
+                            const a = positions[g.from],
+                                b = positions[g.to],
+                                dx = b.x - a.x,
+                                dy = b.y - a.y;
+                            const factor = Math.min(
+                                dx ? width / 2 / Math.abs(dx) : Infinity,
+                                dy ? height / 2 / Math.abs(dy) : Infinity
+                            );
+                            const same = g.from === g.to;
+                            const ax = same ? a.x + 40 : a.x + dx * factor,
+                                ay = same ? a.y - height / 2 : a.y + dy * factor;
+                            const bx = same ? a.x - 40 : b.x - dx * factor,
+                                by = same ? a.y - height / 2 : b.y - dy * factor;
+                            const lane = ((i % 3) - 1) * 35,
+                                cx = (ax + bx) / 2 - (dy ? lane : 0),
+                                cy = (ay + by) / 2 + (dx ? lane : 0);
+                            const d = same
+                                ? `M${ax},${ay} C${ax + 140},${ay - 110} ${
+                                    bx - 140
+                                },${by - 110} ${bx},${by}`
+                                : `M${ax},${ay} Q${cx},${cy} ${bx},${by}`;
+                            return (
+                                <g
+                                    key={g.key}
+                                    className={selected
+                                        ? g.from === selected || g.to === selected
+                                            ? 'se-active'
+                                            : 'se-dim'
+                                        : ''}>
+                                    <path
+                                        className={`se-edge ${g.kind}`}
+                                        d={d}
+                                        markerEnd={`url(#${marker}-${g.kind})`}
+                                        tabIndex={0}
+                                        role="button"
+                                        aria-label={`${g.from} to ${g.to}`}
+                                        onClick={() => inspect(g)}
+                                        onKeyDown={(e) => {
+                                            if (
+                                                e.key === 'Enter' ||
                                             e.key === ' '
-                                        ) {
-                                            e.preventDefault();
-                                            inspect(g);
-                                        }
-                                    }}>
-                                    <title>
-                                        {g.edges
-                                            .map(
-                                                (e) =>
-                                                    `${e.from}.${e.field} → ${e.to}`
-                                            )
-                                            .join('\n')}
-                                    </title>
-                                </path>
-                                {(neighbors ||
+                                            ) {
+                                                e.preventDefault();
+                                                inspect(g);
+                                            }
+                                        }}>
+                                        <title>
+                                            {g.edges
+                                                .map(
+                                                    (e) =>
+                                                        `${e.from}.${e.field} → ${e.to}`
+                                                )
+                                                .join('\n')}
+                                        </title>
+                                    </path>
+                                    {(neighbors ||
                                     compact ||
                                     (!showDomains && visible.length <= 12)) && (
-                                    <text
-                                        className="se-edge-label"
-                                        x={same ? a.x : cx}
-                                        y={same ? ay - 80 : cy - 8}
-                                        onClick={() => inspect(g)}>
-                                        {g.edges.map((e) => e.field).join(', ')}
-                                    </text>
-                                )}
+                                        <text
+                                            className="se-edge-label"
+                                            x={same ? a.x : cx}
+                                            y={same ? ay - 80 : cy - 8}
+                                            onClick={() => inspect(g)}>
+                                            {g.edges.map((e) => e.field).join(', ')}
+                                        </text>
+                                    )}
+                                </g>
+                            );
+                        })}
+                        {visible.map((n) => (
+                            <g
+                                key={n.name}
+                                data-entity={n.name}
+                                className={`entity-node ${
+                                    selected === n.name ? 'selected' : ''
+                                } ${
+                                    selected && !connected.has(n.name)
+                                        ? 'se-dim'
+                                        : ''
+                                }`}
+                                transform={`translate(${
+                                    positions[n.name].x - width / 2
+                                },${positions[n.name].y - height / 2})`}
+                                tabIndex={0}
+                                role="button"
+                                aria-label={n.name}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        choose(n.name);
+                                    }
+                                }}>
+                                <rect width={width} height={height} rx="8" />
+                                <text x="12" y="26">
+                                    {n.name}
+                                </text>
+                                <text x="12" y="49" className="se-subtitle">
+                                    {n.model
+                                        ? `${n.model.fields.length} fields · ${
+                                            n.model.fields.filter(
+                                                (f) => f.calculated
+                                            ).length
+                                        } calculated`
+                                        : 'Unresolved type'}
+                                </text>
                             </g>
-                        );
-                    })}
-                    {visible.map((n) => (
-                        <g
-                            key={n.name}
-                            data-entity={n.name}
-                            className={`entity-node ${
-                                selected === n.name ? 'selected' : ''
-                            } ${
-                                selected && !connected.has(n.name)
-                                    ? 'se-dim'
-                                    : ''
-                            }`}
-                            transform={`translate(${
-                                positions[n.name].x - width / 2
-                            },${positions[n.name].y - height / 2})`}
-                            tabIndex={0}
-                            role="button"
-                            aria-label={n.name}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    choose(n.name);
-                                }
-                            }}>
-                            <rect width={width} height={height} rx="8" />
-                            <text x="12" y="26">
-                                {n.name}
-                            </text>
-                            <text x="12" y="49" className="se-subtitle">
-                                {n.model
-                                    ? `${n.model.fields.length} fields · ${
-                                        n.model.fields.filter(
-                                            (f) => f.calculated
-                                        ).length
-                                    } calculated`
-                                    : 'Unresolved type'}
-                            </text>
-                        </g>
-                    ))}
-                </g>
-                {!visible.length && (
-                    <text x="20" y="35">
-                        No types selected. Use Types to show schemas.
-                    </text>
-                )}
-            </svg>
+                        ))}
+                    </g>
+                    {!visible.length && (
+                        <text x="20" y="35">
+                            No types selected. Use Types to show schemas.
+                        </text>
+                    )}
+                </svg>
+            </div>
             {selected && (
                 <div
                     id={compact ? 'relations' : 'entity-details'}
