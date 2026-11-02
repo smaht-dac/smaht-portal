@@ -230,7 +230,7 @@ function stepNavigateFromHomeToBrowse(caps) {
         cy.get('#page-title-container .page-title')
             .should('contain', 'SMaHT Production Data');
 
-        cy.location('search').then((search) => {
+        cy.location('search').should((search) => {
             // Base query parameters that should always be included
             const baseParams = [`type=${caps.expectedType}`, 'study=Production'];
 
