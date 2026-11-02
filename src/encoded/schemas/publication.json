@@ -68,6 +68,7 @@
             "title": "DOI",
             "description": "DOI for the publication or preprint",
             "type": "string",
+            "uniqueKey": true,
             "comment": "Please provide in the form of 10.1234/abc123"
         },
         "pubmed_id":{
@@ -197,6 +198,17 @@
             "items": {
                 "type": "string",
                 "format": "uri"
+            },
+            "permission": "restricted_fields"
+        },
+        "previous_dois": {
+            "title": "Previous DOIs",
+            "description": "If the doi of a publication is updated eg. it is published in a journal under a new doi the previous doi is added here",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "format": "doi"
             },
             "permission": "restricted_fields"
         },
