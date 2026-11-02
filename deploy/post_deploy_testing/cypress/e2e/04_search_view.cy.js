@@ -254,7 +254,8 @@ function stepItemSearchFlow(caps) {
                 // Open batch download modal and verify selected size equals the file size
                 cy.get('#download_tsv_multiselect').should('not.be.disabled').click({ force: true });
                 cy.get('div.modal.batch-files-download-modal').should('have.class', 'show');
-                cy.get('.tsv-metadata-stat .icon-circle-notch').should('not.exist');
+                // the modal fetches the selected files' metadata; slow under load
+                cy.get('.tsv-metadata-stat .icon-circle-notch', { timeout: 60000 }).should('not.exist');
                 cy.get('.tsv-metadata-stat-title').each(($title) => {
                     if ($title.text().trim() === 'Selected Files Size') {
                         cy.wrap($title)

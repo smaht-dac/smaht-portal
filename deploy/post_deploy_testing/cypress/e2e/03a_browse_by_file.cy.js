@@ -244,7 +244,7 @@ function visitBrowseByFile(){
         .click();
 
     // Wait for the navigation itself; the loading checks below also pass on the home page
-    cy.location('search').should('include', 'type=File');
+    cy.location('search', { timeout: 30000 }).should('include', 'type=File');
 
     return cy
         .get('#slow-load-container', { timeout: 30000 })
@@ -559,7 +559,8 @@ function stepTissueTypeFilterTests(caps) {
     visitBrowseByFile().then(() => {
         waitForFileFacetBarPlotReady();
         tissueTypeFilterOptions.forEach(({ buttonText, expectedCategory }) => {
-            cy.contains('#facet-charts-container button', buttonText)
+            // the previous filter's chart refresh can still be replacing the buttons
+            cy.contains('#facet-charts-container button', buttonText, { timeout: 30000 })
                 .should('be.visible')
                 .click({ force: true });
 

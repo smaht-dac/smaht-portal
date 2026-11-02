@@ -979,6 +979,8 @@ function waitForMatrixModeRender(matrixId) {
 
     // shown while results are null, e.g. on first load and right after a matrix-mode switch
     cy.get(`${matrixId} .stacked-block-viz-container.is-loading`, { timeout: MATRIX_LOAD_TIMEOUT }).should('not.exist');
+    // the check above also passes before the loading container is mounted, so wait for the loaded one too
+    cy.get(`${matrixId} .stacked-block-viz-container:not(.is-loading)`, { timeout: MATRIX_LOAD_TIMEOUT }).should('exist');
 
     cy.get(`${matrixId} .matrix-refresh-overlay`, { timeout: MATRIX_LOAD_TIMEOUT }).should('not.exist');
 }
