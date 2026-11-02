@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { RightArrowIcon } from '../util/icon';
-import { useUserDownloadAccess } from '../util/hooks';
+import { useUserDownloadAccess, useResourceFileSearch } from '../util/hooks';
 
 // Quick links to the data portal
 const quickLinks = [
@@ -300,51 +300,6 @@ const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
     );
 };
 
-// Function for loading download hrefs of resource files by UUID. Files the
-// user cannot view are absent from the search results, so they get no href.
-const useResourceFileHrefs = (uuids, session) => {
-    const [hrefs, setHrefs] = useState({});
-    const [loading, setLoading] = useState(true);
-    const uuidsKey = uuids.join(',');
-
-    useEffect(() => {
-        let cancelled = false;
-        setLoading(true);
-        ajax.load(
-            [
-                '/search/?type=ResourceFile',
-                ...uuids.map((uuid) => `uuid=${uuid}`),
-                'field=uuid',
-                'field=href',
-            ].join('&'),
-            (resp) => {
-                if (cancelled) return;
-                setHrefs(
-                    Object.fromEntries(
-                        (resp['@graph'] || []).map(({ uuid, href }) => [
-                            uuid,
-                            href,
-                        ])
-                    )
-                );
-                setLoading(false);
-            },
-            'GET',
-            () => {
-                // Search responds with an error when no results are viewable
-                if (cancelled) return;
-                setHrefs({});
-                setLoading(false);
-            }
-        );
-        return () => {
-            cancelled = true;
-        };
-    }, [uuidsKey, session]);
-
-    return { hrefs, loading };
-};
-
 // Contents of a download button, shared by the enabled and disabled states
 const QuickLinkDownloadContent = ({ title, tag }) => (
     <>
@@ -366,9 +321,16 @@ const QuickLinkDownloadContent = ({ title, tag }) => (
  * @returns {JSX.Element} The rendered QuickLinkDownloads component
  */
 const QuickLinkDownloads = ({ title, files = [], session }) => {
-    const { hrefs, loading } = useResourceFileHrefs(
-        files.map((file) => file.uuid),
+    const { files: resourceFiles, loading } = useResourceFileSearch(
+        [
+            ...files.map((file) => `uuid=${file.uuid}`),
+            'field=uuid',
+            'field=href',
+        ].join('&'),
         session
+    );
+    const hrefs = Object.fromEntries(
+        resourceFiles.map(({ uuid, href }) => [uuid, href])
     );
 
     return (
