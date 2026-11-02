@@ -249,10 +249,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
             <div className="detail-header">
                 <i className="icon icon-dna fas"></i>
                 <b>
-                    {Object.keys(assayData).reduce(
-                        (acc, key) => acc + assayData[key].values.length,
-                        0
-                    )}{' '}
+                    {Object.keys(assayData).reduce((acc, key) => acc + assayData[key].values.length, 0)}{' '}
                 </b>
                 Assays across all tissues
             </div>
@@ -438,15 +435,12 @@ export function createBaseDonorColumnExtensionMap({
                                 (f) => f.field === 'sample_summary.tissues'
                             );
                             const tissueTerms = tissueFacet?.has_group_by
-                                ? tissueFacet?.original_terms ||
-                                  tissueFacet?.terms
+                                ? tissueFacet?.original_terms || tissueFacet?.terms
                                 : tissueFacet?.terms;
                             const tissueCount = tissueTerms?.length;
 
                             if (loading) {
-                                return (
-                                    <span className="value text-center loading"></span>
-                                );
+                                return <span className="value text-center loading"></span>;
                             }
                             if (!tissueCount) {
                                 return <small className="value">-</small>;
@@ -455,9 +449,7 @@ export function createBaseDonorColumnExtensionMap({
                                 <div
                                     className={
                                         'inner-value-container' +
-                                        (detailOpen
-                                            ? ' detail-open'
-                                            : ' detail-closed')
+                                        (detailOpen ? ' detail-open' : ' detail-closed')
                                     }>
                                     <CustomTableRowToggleOpenButton
                                         {...{
@@ -467,12 +459,9 @@ export function createBaseDonorColumnExtensionMap({
                                             rowNumber,
                                             detailOpen,
                                             toggleDetailOpen,
-                                            isActive:
-                                                detailPaneType === 'tissue',
+                                            isActive: detailPaneType === 'tissue',
                                             customToggleDetailClose: () => {
-                                                if (
-                                                    detailPaneType === 'assay'
-                                                ) {
+                                                if (detailPaneType === 'assay') {
                                                     handleCellClick('tissue');
                                                 } else {
                                                     handleCellClick(null);
@@ -527,19 +516,14 @@ export function createBaseDonorColumnExtensionMap({
                     <DonorDataCell displayTitle={result.display_title}>
                         {({ data, loading }) => {
                             const assayCount = data?.facets
-                                ?.find(
-                                    (f) => f.field === 'assays.display_title'
-                                )
+                                ?.find((f) => f.field === 'assays.display_title')
                                 ?.terms?.reduce(
-                                    (acc, curr) =>
-                                        acc + (curr?.terms?.length ?? 1),
+                                    (acc, curr) => acc + (curr?.terms?.length ?? 1),
                                     0
                                 );
 
                             if (loading) {
-                                return (
-                                    <span className="value text-center loading"></span>
-                                );
+                                return <span className="value text-center loading"></span>;
                             }
                             if (!assayCount) {
                                 return <small className="value">-</small>;
@@ -548,9 +532,7 @@ export function createBaseDonorColumnExtensionMap({
                                 <div
                                     className={
                                         'inner-value-container' +
-                                        (detailOpen
-                                            ? ' detail-open'
-                                            : ' detail-closed')
+                                        (detailOpen ? ' detail-open' : ' detail-closed')
                                     }>
                                     <CustomTableRowToggleOpenButton
                                         {...{
@@ -560,12 +542,9 @@ export function createBaseDonorColumnExtensionMap({
                                             rowNumber,
                                             detailOpen,
                                             toggleDetailOpen,
-                                            isActive:
-                                                detailPaneType === 'assay',
+                                            isActive: detailPaneType === 'assay',
                                             customToggleDetailClose: () => {
-                                                if (
-                                                    detailPaneType === 'tissue'
-                                                ) {
+                                                if (detailPaneType === 'tissue') {
                                                     handleCellClick('assay');
                                                 } else {
                                                     handleCellClick(null);
@@ -613,9 +592,7 @@ export function createBaseDonorColumnExtensionMap({
                             const fileCount = data?.total;
 
                             if (loading) {
-                                return (
-                                    <span className="value text-center loading"></span>
-                                );
+                                return <span className="value text-center loading"></span>;
                             }
                             if (!fileCount) {
                                 return <small className="value">-</small>;
@@ -623,9 +600,7 @@ export function createBaseDonorColumnExtensionMap({
                             return (
                                 <a
                                     className="value text-center"
-                                    href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${encodeURIComponent(
-                                        result?.display_title
-                                    )}`}>
+                                    href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${encodeURIComponent(result?.display_title)}`}>
                                     {fileCount} File{fileCount > 1 ? 's' : ''}
                                 </a>
                             );
@@ -647,27 +622,15 @@ export function createBaseDonorColumnExtensionMap({
                             )?.sum;
 
                             if (loading) {
-                                return (
-                                    <span className="value text-center loading"></span>
-                                );
+                                return <span className="value text-center loading"></span>;
                             }
                             if (!fileSize) {
                                 return <small className="value">-</small>;
                             }
                             return (
                                 <span className="value text-center">
-                                    {valueTransforms.bytesToLargerUnit(
-                                        fileSize,
-                                        0,
-                                        false,
-                                        true
-                                    )}{' '}
-                                    {valueTransforms.bytesToLargerUnit(
-                                        fileSize,
-                                        0,
-                                        true,
-                                        false
-                                    )}
+                                    {valueTransforms.bytesToLargerUnit(fileSize, 0, false, true)}{' '}
+                                    {valueTransforms.bytesToLargerUnit(fileSize, 0, true, false)}
                                 </span>
                             );
                         }}
