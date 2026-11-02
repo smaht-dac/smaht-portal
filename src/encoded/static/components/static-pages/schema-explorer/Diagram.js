@@ -37,7 +37,11 @@ export default function Diagram({
         [error, setError] = useState('');
     const svg = useRef(),
         drag = useRef(),
+        previousSelection = useRef(selected),
+        selectionCamera = useRef(null),
+        cameraRef = useRef(camera),
         marker = useId().replace(/:/g, '');
+    cameraRef.current = camera;
     const nodes = useMemo(() => {
         const models = new Map(index.models.map((m) => [m.name, m]));
         for (const edge of index.edges)
@@ -164,6 +168,36 @@ export default function Diagram({
         fit();
     }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement]);
     useEffect(() => {
+        if (previousSelection.current === selected) return;
+        previousSelection.current = selected;
+        if (!selected) {
+            if (selectionCamera.current) setCamera(selectionCamera.current);
+            selectionCamera.current = null;
+            return;
+        }
+        if (neighbors) return;
+        if (!selectionCamera.current) selectionCamera.current = cameraRef.current;
+        const nearby = visible.filter((node) => connected.has(node.name));
+        if (!nearby.length) return;
+        const left = Math.min(...nearby.map((node) => positions[node.name].x - width / 2));
+        const right = Math.max(...nearby.map((node) => positions[node.name].x + width / 2));
+        const top = Math.min(...nearby.map((node) => positions[node.name].y - height / 2));
+        const bottom = Math.max(...nearby.map((node) => positions[node.name].y + height / 2));
+        const spanX = right - left + 120;
+        const spanY = bottom - top + 120;
+        const scale = Math.max(0.05, Math.min(
+            cameraRef.current.scale,
+            1.5,
+            size.width / spanX,
+            size.height / spanY
+        ));
+        setCamera({
+            scale,
+            x: (size.width - (left + right) * scale) / 2,
+            y: (size.height - (top + bottom) * scale) / 2,
+        });
+    }, [selected, connected, visible, positions, size, neighbors]);
+    useEffect(() => {
         const observer = new ResizeObserver((entries) => {
             const rect = entries[0].contentRect;
             if (rect.width && rect.height)
@@ -243,10 +277,16 @@ export default function Diagram({
         });
     const shownGroups = groups.filter(
         (g) => names.has(g.from) && names.has(g.to) &&
+            (!showDomains || !selected || g.from === selected || g.to === selected) &&
             (!showDomains || domainFor(g.from) === domainFor(g.to) || (crossLinks && (g.from === selected || g.to === selected)))
     );
     const chooseDomain = (id) => {
         setDomain(id);
+        setSelected('');
+        setNeighbors(false);
+        setMoves({});
+    };
+    const clearSelection = () => {
         setSelected('');
         setNeighbors(false);
         setMoves({});
@@ -288,7 +328,7 @@ export default function Diagram({
                         </select>
                     </label>
                     {showDomains && <label><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Cross-group links for selection</label>}
-                    <span className="text-muted">Select a group to focus. Enable cross-group links and select a schema to see its connections to other groups.</span>
+                    <span className="text-muted">Select a schema to show only its links. Clear the selection to see all links; enable cross-group links to include its links to other groups.</span>
                 </div>
             )}
             <div className="se-toolbar">
@@ -400,6 +440,7 @@ export default function Diagram({
                                 ? 'Show selected types'
                                 : 'Show neighborhood'}
                         </button>
+                        {selected && <button type="button" onClick={clearSelection}>Clear selection</button>}
                         <button type="button"
                             id="entity-fullscreen"
                             aria-pressed={full}
@@ -591,13 +632,11 @@ export default function Diagram({
                         return (
                             <g
                                 key={g.key}
-                                className={
-                                    selected &&
-                                    g.from !== selected &&
-                                    g.to !== selected
-                                        ? 'se-dim'
-                                        : ''
-                                }>
+                                className={selected
+                                    ? g.from === selected || g.to === selected
+                                        ? 'se-active'
+                                        : 'se-dim'
+                                    : ''}>
                                 <path
                                     className={`se-edge ${g.kind}`}
                                     d={d}
@@ -694,14 +733,7 @@ export default function Diagram({
                                 Explore item type →
                             </button>
                         )}
-                        <button type="button"
-                            onClick={() => {
-                                setSelected('');
-                                setNeighbors(false);
-                                setMoves({});
-                            }}>
-                            Clear selection
-                        </button>
+                        {compact && <button type="button" onClick={clearSelection}>Clear selection</button>}
                     </div>
                     {incident.map((e, i) => (
                         <div className="se-relation" key={i}>

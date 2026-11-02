@@ -74,8 +74,8 @@
         text { fill: #343a40; font-size: 23px; font-weight: 600; cursor: pointer; }
         text:hover, text:focus { text-decoration: underline; }
     }
-    .se-edge { opacity: .45; }
-    .se-edge:hover, .se-edge:focus { opacity: 1; }
+    .se-edge { opacity: .18; }
+    .se-active .se-edge, .se-edge:hover, .se-edge:focus { opacity: .9; }
     .se-relations { max-height: 360px; overflow: auto; margin-top: 1rem; }
     .se-relation { display: flex; align-items: center; gap: .5rem; padding: .65rem 0; border-bottom: 1px solid #dee2e6; font-size: 14px; line-height: 1.6; > span:nth-child(2) { flex: 1; overflow-wrap: anywhere; } button { font-size: 13px; } }
     .se-fullscreen { position: fixed; inset: 0; z-index: 1035; background: white; padding: 1rem; overflow: auto; .se-canvas { height: 65vh; } }
