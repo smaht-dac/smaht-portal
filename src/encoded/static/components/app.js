@@ -1490,10 +1490,10 @@ export default class App extends React.PureComponent {
                             mounted
                                 ? null
                                 : {
-                                      __html: jsonScriptEscape(
-                                          JSON.stringify(JWT.getUserInfo())
-                                      ) /* Kept up-to-date in browser.js */,
-                                  }
+                                    __html: jsonScriptEscape(
+                                        JSON.stringify(JWT.getUserInfo())
+                                    ) /* Kept up-to-date in browser.js */,
+                                }
                         }
                     />
                     <script
@@ -1554,7 +1554,6 @@ export default class App extends React.PureComponent {
                             '/static/build/bundle.js?build=' +
                             (lastBuildTime || 0)
                         }
-                        charSet="utf-8"
                     />
                     <link rel="canonical" href={canonical} />
                     {/* <script data-prop-name="inline" type="application/javascript" charSet="utf-8" dangerouslySetInnerHTML={{__html: this.props.inline}}/> <-- SAVED FOR REFERENCE */}
@@ -2353,10 +2352,10 @@ class BodyElement extends React.PureComponent {
                         mounted
                             ? null
                             : {
-                                  __html: jsonScriptEscape(
-                                      JSON.stringify(context)
-                                  ),
-                              }
+                                __html: jsonScriptEscape(
+                                    JSON.stringify(context)
+                                ),
+                            }
                     }
                 />
                 <script
@@ -2366,10 +2365,10 @@ class BodyElement extends React.PureComponent {
                         mounted
                             ? null
                             : {
-                                  __html: jsonScriptEscape(
-                                      JSON.stringify(alerts)
-                                  ),
-                              }
+                                __html: jsonScriptEscape(
+                                    JSON.stringify(alerts)
+                                ),
+                            }
                     }
                 />
 
