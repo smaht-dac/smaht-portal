@@ -46,7 +46,8 @@ export const BenchmarkingLayout = ({
                             <i
                                 className={`icon icon-angle-${
                                     showInformation ? 'up' : 'down'
-                                } fas`}></i>
+                                } fas`}>
+                            </i>
                             <span className="toggle-information-text">
                                 Show{showInformation ? ' less' : ' more'}
                             </span>
@@ -89,10 +90,16 @@ const TabTitle = ({ title, searchHref = '' }) => {
             const obj = {};
             urlSearchParams.forEach((val, key) => {
                 // check first for keys that should be in an array
-                if (arrayKeys.includes(key) && !obj.hasOwnProperty(key)) {
+                if (
+                    arrayKeys.includes(key) &&
+                    !Object.prototype.hasOwnProperty.call(obj, key)
+                ) {
                     // create a new array
                     obj[key] = [val];
-                } else if (arrayKeys.includes(key) && obj.hasOwnProperty(key)) {
+                } else if (
+                    arrayKeys.includes(key) &&
+                    Object.prototype.hasOwnProperty.call(obj, key)
+                ) {
                     // add to the array
                     obj[key].push(val);
                 } else {

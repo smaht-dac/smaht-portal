@@ -184,7 +184,7 @@ export const SearchTableTitle = React.memo(function (props) {
                 typeof titleSuffix === 'string' &&
                 titleSuffix.length > 0 ? (
                     <span className="text-500">{' - ' + titleSuffix}</span>
-                ) : null}
+                    ) : null}
             </span>
             {externalSearchLinkVisible && currentSearchHref ? (
                 <a

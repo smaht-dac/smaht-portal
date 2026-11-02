@@ -52,18 +52,18 @@ class AnalysisRunsComponent extends React.PureComponent {
 
     changePage = (change) => {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 tablePage: prevState.tablePage + change,
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 this.getData();
             }
         );
     };
 
     toggleCommentInputField = (ar_uuid) => {
-        let newVisibleInputs = this.state.visibleCommentInputs;
+        const newVisibleInputs = this.state.visibleCommentInputs;
         if (newVisibleInputs.includes(ar_uuid)) {
             const i = newVisibleInputs.indexOf(ar_uuid);
             newVisibleInputs.splice(i, 1);
@@ -71,10 +71,10 @@ class AnalysisRunsComponent extends React.PureComponent {
             newVisibleInputs.push(ar_uuid);
         }
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 visibleCommentInputs: newVisibleInputs,
-            }),
-            function () {
+            };},
+            () => {
                 this.forceUpdate();
             }
         );
@@ -125,13 +125,13 @@ class AnalysisRunsComponent extends React.PureComponent {
 
     applyFilter = (filter) => {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 filter: filter,
                 analysisRunSearchId: '',
                 tablePage: 0,
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 this.getData();
             }
         );
@@ -139,12 +139,12 @@ class AnalysisRunsComponent extends React.PureComponent {
 
     handleSearchById = (id) => {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 analysisRunSearchId: id,
                 tablePage: 0,
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 this.getData();
             }
         );
@@ -152,10 +152,10 @@ class AnalysisRunsComponent extends React.PureComponent {
 
     refresh = () => {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 this.getData();
             }
         );
@@ -164,15 +164,15 @@ class AnalysisRunsComponent extends React.PureComponent {
     handleCommentInput = (ar, comment) => {
         const newComments = JSON.parse(JSON.stringify(this.state.newComments));
         newComments[ar.uuid] = comment;
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             newComments: newComments,
-        }));
+        };});
     };
 
     removeComment = (arUuid, comment) => {
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             loading: true,
-        }));
+        };});
         const analysisRuns = JSON.parse(
             JSON.stringify(this.state.analysisRuns)
         );
@@ -192,9 +192,9 @@ class AnalysisRunsComponent extends React.PureComponent {
     };
 
     addComment = (ar) => {
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             loading: true,
-        }));
+        };});
         const comment = this.state.newComments[ar.uuid];
         if (!comment) {
             return;
@@ -226,11 +226,11 @@ class AnalysisRunsComponent extends React.PureComponent {
                     return;
                 } else {
                     this.setState(
-                        (prevState) => ({
+                        (prevState) => {return {
                             analysisRuns: analysisRuns,
                             loading: false,
-                        }),
-                        function () {
+                        };},
+                        () => {
                             this.forceUpdate();
                         }
                     );
@@ -260,9 +260,9 @@ class AnalysisRunsComponent extends React.PureComponent {
                 .sort((a, b) => a.tissue_type.localeCompare(b.tissue_type));
             const donors = [...new Map(ar.donors?.map((d) => [d.accession, d]) ?? []).values()]
                 .sort((a, b) => a.display_title.localeCompare(b.display_title));
-            
+
             let details = [
-                <li className="ss-line-height-140">Type: {ar.analysis_type}</li>
+                <li key="analysis-type" className="ss-line-height-140">Type: {ar.analysis_type}</li>
             ];
             if (donors.length > 0) {
                 const donorDetails  = [];
@@ -286,7 +286,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                     </li>
                 );
             }
-            
+
             const commentHandlers = {
                 handleToggleCommentInputField:
                     this.handleToggleCommentInputField,
@@ -356,7 +356,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                 if (this.state.isUserAdmin) {
                     const cn = 'badge clickable bg-' + badgeType;
                     return (
-                        <React.Fragment>
+                        <React.Fragment key={tag}>
                             <div
                                 className={cn}
                                 onClick={() => this.toggleTag(ar, tag)}>
@@ -368,7 +368,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                 } else {
                     const cn = 'badge bg-' + badgeType;
                     return (
-                        <React.Fragment>
+                        <React.Fragment key={tag}>
                             <div className={cn}>{tag}</div>
                             <br />
                         </React.Fragment>
@@ -382,12 +382,12 @@ class AnalysisRunsComponent extends React.PureComponent {
                 const fo_badge = createBadge(badgeType, fo.status);
                 final_outputs.push(
                     <li className="text-start pb-1">
-                         <a href={fo.accession} target="_blank" data-tip={fo.display_title}>
+                        <a href={fo.accession} target="_blank" data-tip={fo.display_title} rel="noreferrer">
                             {fo.accession}
                         </a>
                         {copyBtn(fo.accession)}
-                        <small className='d-block ss-line-height-140'>Status: {fo_badge}</small>
-                        
+                        <small className="d-block ss-line-height-140">Status: {fo_badge}</small>
+
                     </li>
                 );
             });

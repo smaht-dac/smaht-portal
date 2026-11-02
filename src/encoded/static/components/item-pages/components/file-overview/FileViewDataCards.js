@@ -58,7 +58,8 @@ export const DataCardRow = ({
                         <i
                             className="icon icon-info-circle fas ms-1"
                             onMouseEnter={() => setShowPopover(true)}
-                            onMouseLeave={() => setShowPopover(false)}></i>
+                            onMouseLeave={() => setShowPopover(false)}>
+                        </i>
                     </OverlayTrigger>
                 )}
             </div>
@@ -82,27 +83,23 @@ export const DataCardRow = ({
  * @param {string} header title for the group of data contained in the card
  * @param {Array} data array of objects containing a field's title and value
  */
-export const DataCard = ({ header = '', data = [] }) => {
-    return (
-        <div className="data-card">
-            <div className="header">
-                <span className="header-text">{header}</span>
-            </div>
-            <div className="body">
-                {data.map(({ title, value = null, titlePopover = null }, i) => {
-                    return (
-                        <DataCardRow
-                            key={i}
-                            title={title}
-                            value={value}
-                            titlePopover={titlePopover}
-                        />
-                    );
-                })}
-            </div>
+export const DataCard = ({ header = '', data = [] }) => (
+    <div className="data-card">
+        <div className="header">
+            <span className="header-text">{header}</span>
         </div>
-    );
-};
+        <div className="body">
+            {data.map(({ title, value = null, titlePopover = null }, i) => (
+                <DataCardRow
+                    key={i}
+                    title={title}
+                    value={value}
+                    titlePopover={titlePopover}
+                />
+            ))}
+        </div>
+    </div>
+);
 
 // Function to assign the correct text based on status
 export const statusBadgeMap = {
@@ -183,9 +180,8 @@ const default_file_properties = [
     },
     {
         title: 'Release Date',
-        getProp: (context = {}) => {
-            return context?.file_status_tracking?.release_dates
-                ?.initial_release ? (
+        getProp: (context = {}) => context?.file_status_tracking?.release_dates
+            ?.initial_release ? (
                 <LocalizedTime
                     timestamp={
                         context?.file_status_tracking.release_dates
@@ -194,8 +190,7 @@ const default_file_properties = [
                     formatType="date-md"
                     dateTimeSeparator=" "
                 />
-            ) : null;
-        },
+            ) : null,
     },
 ];
 const default_data_information = [
@@ -456,9 +451,9 @@ const default_sample_information = [
  * @param {object} context the context of the item being viewed
  */
 export const FileViewDataCards = ({ context = {} }) => {
-    let file_properties = default_file_properties;
-    let data_information = default_data_information;
-    let sample_information = default_sample_information;
+    const file_properties = default_file_properties;
+    const data_information = default_data_information;
+    const sample_information = default_sample_information;
 
     return (
         <div className="data-cards-container">

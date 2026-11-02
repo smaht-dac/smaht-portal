@@ -185,8 +185,8 @@ export default function RetractedFilesTable(props) {
                 const assayString =
                     result?.assays?.length > 0
                         ? result.assays
-                              .map((assay) => assay?.display_title)
-                              .join(', ')
+                            .map((assay) => assay?.display_title)
+                            .join(', ')
                         : null;
                 if (!assayString) return null;
                 return <span className="value text-start">{assayString}</span>;
@@ -215,8 +215,8 @@ export default function RetractedFilesTable(props) {
                     sample_summary?.sample_names?.length > 0
                         ? sample_summary.sample_names
                         : sample_sources?.map(
-                              (source) => source.display_title
-                          ) || null;
+                            (source) => source.display_title
+                        ) || null;
 
                 const sampleNames = samplesList?.join(', ');
                 return sampleNames ? (

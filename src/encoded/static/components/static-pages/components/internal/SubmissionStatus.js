@@ -69,18 +69,18 @@ class SubmissionStatusComponent extends React.PureComponent {
 
     changePage = (change) => {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 tablePage: prevState.tablePage + change,
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 this.getData();
             }
         );
     };
 
     toggleCommentInputField = (fs_uuid) => {
-        let newVisibleInputs = this.state.visibleCommentInputs;
+        const newVisibleInputs = this.state.visibleCommentInputs;
         if (newVisibleInputs.includes(fs_uuid)) {
             const i = newVisibleInputs.indexOf(fs_uuid);
             newVisibleInputs.splice(i, 1);
@@ -88,10 +88,10 @@ class SubmissionStatusComponent extends React.PureComponent {
             newVisibleInputs.push(fs_uuid);
         }
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 visibleCommentInputs: newVisibleInputs,
-            }),
-            function () {
+            };},
+            () => {
                 this.forceUpdate();
             }
         );
@@ -142,26 +142,26 @@ class SubmissionStatusComponent extends React.PureComponent {
 
     applyFilter = (filter) => {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 filter: filter,
                 fileSetIdSearch: '',
                 tablePage: 0,
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 this.getData();
             }
         );
-    }
+    };
 
     handleSearchByFilesetId(id) {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 fileSetIdSearch: id,
                 tablePage: 0,
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 this.getData();
             }
         );
@@ -169,27 +169,27 @@ class SubmissionStatusComponent extends React.PureComponent {
 
     refresh = () => {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 this.getData();
             }
         );
-    }
+    };
 
     handleCommentInput = (fs, comment) => {
         const newComments = JSON.parse(JSON.stringify(this.state.newComments));
         newComments[fs.uuid] = comment;
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             newComments: newComments,
-        }));
+        };});
     };
 
     removeComment = (fsUuid, comment) => {
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             loading: true,
-        }));
+        };});
         const filesets = JSON.parse(JSON.stringify(this.state.fileSets));
         let newCommentsForRelevantFileset = [];
         filesets.forEach((fileset) => {
@@ -208,9 +208,9 @@ class SubmissionStatusComponent extends React.PureComponent {
     };
 
     addComment = (fs) => {
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             loading: true,
-        }));
+        };});
         const comment = this.state.newComments[fs.uuid];
         if (!comment) {
             return;
@@ -254,7 +254,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 : filesets;
                             return { fileSets: merged, loading: false };
                         },
-                        function () {
+                        () => {
                             if (onDone) {
                                 onDone();
                             }
@@ -276,10 +276,10 @@ class SubmissionStatusComponent extends React.PureComponent {
 
     toggleTag = (fileset, tag) => {
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 if (!fileset.tags) {
                     fileset.tags = [tag];
                 } else if (fileset.tags.includes(tag)) {
@@ -297,14 +297,14 @@ class SubmissionStatusComponent extends React.PureComponent {
     };
 
     toggleSubmittedFiles = (fileset) => {
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             submittedFilesVisibility:
                 prevState.submittedFilesVisibility.includes(fileset.uuid)
                     ? prevState.submittedFilesVisibility.filter(
-                          (uuid) => uuid !== fileset.uuid
-                      )
+                        (uuid) => uuid !== fileset.uuid
+                    )
                     : [...prevState.submittedFilesVisibility, fileset.uuid],
-        }));
+        };});
     };
 
     toggleFileGroupQc = (fs, reload = false) => {
@@ -317,22 +317,24 @@ class SubmissionStatusComponent extends React.PureComponent {
             }
             return;
         }
+        const isUserAdmin = this.state.isUserAdmin;
         this.setState({
             modal: (
                 <FileGroupQCModal
                     closeModal={this.toggleFileGroupQc}
                     fileSet={fs}
-                    isUserAdmin={this.state.isUserAdmin}></FileGroupQCModal>
+                    isUserAdmin={isUserAdmin}>
+                </FileGroupQCModal>
             ),
         });
     };
 
     clearReviewing = (fsUuid) => {
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             reviewingFilesets: prevState.reviewingFilesets.filter(
                 (uuid) => uuid !== fsUuid
             ),
-        }));
+        };});
     };
 
     // Whether any (active) submitted or output file has a Warn/Fail QC flag. Uses
@@ -397,20 +399,16 @@ class SubmissionStatusComponent extends React.PureComponent {
     };
 
     // One comment per problematic output-file QC value.
-    buildOutputQcComment = (p) => {
-        return (
-            `${AUTO_REVIEW_COMMENT_PREFIX} Output file QC issue: ` +
+    buildOutputQcComment = (p) => (
+        `${AUTO_REVIEW_COMMENT_PREFIX} Output file QC issue: ` +
             `${p.key}=${formatQcValue(p.value)} (${p.flag})`
-        );
-    };
+    );
 
-    buildQcFallbackComment = () => {
-        return (
-            `${AUTO_REVIEW_COMMENT_PREFIX} QC issues blocking release: one or more ` +
+    buildQcFallbackComment = () => (
+        `${AUTO_REVIEW_COMMENT_PREFIX} QC issues blocking release: one or more ` +
             `quality metrics have a Warn/Fail overall status; detailed values were ` +
             `not available from the QC endpoint. Review manually.`
-        );
-    };
+    );
 
     buildCoverageComment = (coverage) => {
         const pct = this.round1((coverage.calculated / coverage.target) * 100);
@@ -421,14 +419,12 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
-    buildCoverageUnavailableComment = (coverage) => {
-        return (
-            `${AUTO_REVIEW_COMMENT_PREFIX} Coverage could not be verified: the ` +
+    buildCoverageUnavailableComment = (coverage) => (
+        `${AUTO_REVIEW_COMMENT_PREFIX} Coverage could not be verified: the ` +
             `coverage metric (${COVERAGE_QC_METRIC}) is present but has no numeric ` +
             `value, while a target coverage of ${coverage.target}x is set. ` +
             `Review manually.`
-        );
-    };
+    );
 
     // Fetches detailed QC for a single file group, applies the review rules, and
     // patches tags + comments in a single request. Called per fileset by the
@@ -437,9 +433,9 @@ class SubmissionStatusComponent extends React.PureComponent {
         if (this.state.reviewingFilesets.includes(fs.uuid)) {
             return;
         }
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             reviewingFilesets: [...prevState.reviewingFilesets, fs.uuid],
-        }));
+        };});
 
         const payload = {
             fileSetUuid: fs.uuid,
@@ -598,8 +594,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                 : 'warning';
             const status = createBadge(status_badge_type, fs.status);
             let fs_details = [
-                <li className="ss-line-height-140">Status: {status}</li>,
-                <li className="ss-line-height-140">
+                <li key="status" className="ss-line-height-140">Status: {status}</li>,
+                <li key="sequencer" className="ss-line-height-140">
                     Sequencer:{' '}
                     {getLink(sequencer?.uuid, sequencer?.display_title)} (
                     {targetCoverage})
@@ -693,7 +689,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                             wrapperElement="span"
                             iconProps={{
                                 style: { fontSize: '0.875rem', marginLeft: 3 },
-                            }}></object.CopyWrapper>
+                            }}>
+                        </object.CopyWrapper>
                         <small className="d-block ss-line-height-140">
                             Created: {formatDate(mwfr.date_created)}. Status:{' '}
                             {mwfr_badge}
@@ -716,7 +713,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 if (this.state.isUserAdmin) {
                     const cn = 'badge clickable bg-' + badgeType;
                     return (
-                        <React.Fragment>
+                        <React.Fragment key={tag}>
                             <div
                                 className={cn}
                                 onClick={() => this.toggleTag(fs, tag)}>
@@ -728,7 +725,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 } else {
                     const cn = 'badge bg-' + badgeType;
                     return (
-                        <React.Fragment>
+                        <React.Fragment key={tag}>
                             <div className={cn}>{tag}</div>
                             <br />
                         </React.Fragment>
@@ -777,7 +774,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                         style={{
                             backgroundColor: fs.file_group_color,
                             width: '5px',
-                        }}></td>
+                        }}>
+                    </td>
                     <td className="text-start ss-fileset-column">
                         {getLink(fs.accession, fs.display_title)}
                         <object.CopyWrapper
@@ -787,7 +785,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                             wrapperElement="span"
                             iconProps={{
                                 style: { fontSize: '0.875rem', marginLeft: 3 },
-                            }}></object.CopyWrapper>
+                            }}>
+                        </object.CopyWrapper>
                         {fs_details}
                     </td>
                     <td>
@@ -820,7 +819,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 }
                                 onClick={() =>
                                     this.toggleSubmittedFiles(fs)
-                                }></span>
+                                }>
+                            </span>
                         </small>
                         <small className="ss-line-height-140 mt-1">
                             {areSubmittedFilesExpanded
@@ -922,7 +922,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                                                     fontSize: '0.875rem',
                                                     marginLeft: 3,
                                                 },
-                                            }}></object.CopyWrapper>
+                                            }}>
+                                        </object.CopyWrapper>
                                     </div>
                                     <div className="flex-fill">
                                         <input
@@ -963,7 +964,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                                             fontSize: '0.875rem',
                                             marginLeft: 3,
                                         },
-                                    }}></object.CopyWrapper>
+                                    }}>
+                                </object.CopyWrapper>
                                 {this.state.isUserAdmin && (
                                     <i
                                         className={
@@ -981,7 +983,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                                         style={{
                                             fontSize: '0.875rem',
                                             marginLeft: 3,
-                                        }}></i>
+                                        }}>
+                                    </i>
                                 )}
                             </th>
                             <th className="text-start">MetaWorkflowRuns</th>
@@ -991,7 +994,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                                     className="icon icon-fw fas icon-info-circle"
                                     data-tip={
                                         '"reviewed": Alignment worklfows have been run and results are technically ok. "ready_to_release": Output files can be released to the portal.'
-                                    }></i>
+                                    }>
+                                </i>
                             </th>
                         </tr>
                     </thead>

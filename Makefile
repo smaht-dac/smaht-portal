@@ -214,8 +214,8 @@ test-static:
 	make lint
 
 remote-test:  # smaht-portal uses this make target for now as tests are not that burdensome
-	pytest -vv -m "not workbook" --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
-	pytest -vv -m "workbook" --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
+	pytest -vv -o faulthandler_timeout=60 -m "not workbook" --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
+	pytest -vv -o faulthandler_timeout=60 -m "workbook" --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
 
 remote-test-npm:  # Note this only does the 'not workbook' tests
 	poetry run python -m pytest -xvv -r w --instafail --force-flaky --max-runs=2 --timeout=600 -m "not workbook" --aws-auth --durations=20 --cov src/encoded --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443

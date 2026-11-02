@@ -26,10 +26,10 @@ export default class DirectoryPage extends React.PureComponent {
         const content =
             (context.content || []).length > 0
                 ? StaticPageBase.renderSections(
-                      StaticPageBase.defaultProps.entryRenderFxn,
-                      parseSectionsContent(context),
-                      { childComponent: StaticEntryContent }
-                  )
+                    StaticPageBase.defaultProps.entryRenderFxn,
+                    parseSectionsContent(context),
+                    { childComponent: StaticEntryContent }
+                )
                 : null;
 
         return (

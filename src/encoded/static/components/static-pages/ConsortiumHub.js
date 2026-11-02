@@ -44,9 +44,9 @@ const buildSearchQuery = (hasProtectedAccess) =>
         'field=@id',
         ...(hasProtectedAccess
             ? [
-                  'field=medical_history.cancer_history',
-                  'field=medical_history.tobacco_use',
-              ]
+                'field=medical_history.cancer_history',
+                'field=medical_history.tobacco_use',
+            ]
             : []),
     ].join('&');
 
@@ -84,21 +84,19 @@ const transformDonor = ({
  * @param {Array} donors - The list of donors to group
  * @returns {Array} The list of donor groups
  */
-const groupDonorsByAge = (donors) => {
-    return AGE_GROUP_DEFINITIONS.map(({ title, min, max }) => ({
-        title,
-        donors: donors
-            .filter((d) => {
-                const n = d.age === '89+' ? 89 : Number(d.age);
-                return n >= min && (max === undefined || n <= max);
-            })
-            .sort((a, b) => {
-                const na = a.age === '89+' ? 89 : Number(a.age);
-                const nb = b.age === '89+' ? 89 : Number(b.age);
-                return na - nb;
-            }),
-    }));
-};
+const groupDonorsByAge = (donors) => AGE_GROUP_DEFINITIONS.map(({ title, min, max }) => {return {
+    title,
+    donors: donors
+        .filter((d) => {
+            const n = d.age === '89+' ? 89 : Number(d.age);
+            return n >= min && (max === undefined || n <= max);
+        })
+        .sort((a, b) => {
+            const na = a.age === '89+' ? 89 : Number(a.age);
+            const nb = b.age === '89+' ? 89 : Number(b.age);
+            return na - nb;
+        }),
+};});
 
 // Function for loading donor data from the P25 search endpoint
 const useP25Donors = ({ hasProtectedAccess = false, ready = false }) => {
@@ -336,7 +334,7 @@ export const ConsortiumHub = ({ session }) => {
                     <div className="nav-group">
                         <h6>Quick Links to the P25 Dataset</h6>
                         {quickLinks.map((link) => (
-                            <div className="dropdown">
+                            <div className="dropdown" key={link.title}>
                                 <a
                                     className="header"
                                     key={link.title}
@@ -420,8 +418,8 @@ export const ConsortiumHub = ({ session }) => {
                                                 }>
                                                 {donor.conditions.length
                                                     ? donor.conditions.join(
-                                                          ', '
-                                                      )
+                                                        ', '
+                                                    )
                                                     : 'None'}
                                             </span>
                                         </li>
