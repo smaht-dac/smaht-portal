@@ -132,7 +132,7 @@ export default class DataMatrix extends React.PureComponent {
     };
     static DEFAULT_COLUMN_GROUPS = {
         "Bulk WGS": {
-            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'Fiber-seq'],
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'WGS - MGI', 'WGS - Ultima Genomics', 'SBX-D - Roche', 'Fiber-seq'],
             "backgroundColor": "#e04141",
             "textColor": "#ffffff",
             "shortName": "WGS"
@@ -250,6 +250,7 @@ export default class DataMatrix extends React.PureComponent {
                 "lb_ipsc_52": "LB-LA2 iPSC-52",
                 "lb_ipsc_60": "LB-LA2 iPSC-60",
                 "ipsc_snv_indel_challenge_data": "Truth Set",
+                "hg002": "HG002",
             }
         },
         "resultItemPostProcessFuncKey": null, // function to process result item after they are loaded
