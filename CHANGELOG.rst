@@ -16,6 +16,8 @@ Change Log
 * Add download buttons for the v1 and v2 SNV callset metadata TSVs, resolving each file's ``href`` by UUID
 * Disable download buttons for files the user cannot access, with a tooltip explaining why
 * Move the ResourceFile search into a shared ``useResourceFileSearch`` hook, also used by the bulk donor metadata download button
+* Add WGS - MGI, WGS - Ultima Genomics and SBX-D - Roche to the Bulk WGS column group in the data matrix
+* Show HG002 as the donor label for hg002 in the data matrix
 
 
 2.15.14
