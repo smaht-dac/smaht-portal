@@ -50,7 +50,10 @@ const ROLE_MATRIX = {
 const BASE_BROWSE_URL =
     `/browse/?type=File&sample_summary.studies=Production&${BROWSE_STATUS_PARAMS}`;
 const BASE_DONOR_SEARCH_URL = "/search/?type=Donor";
-// Donors with no hardy_scale value; they can be picked at random from the /search/?type=Donor facet
+// Donors to pick from when the role has no donors with released files on /browse/. Cell line donors
+// (e.g. HG002, COLO829, DONOR_LB) have no study and are excluded, as users reach donor pages through browse.
+const PICKABLE_DONOR_SEARCH_URL = "/search/?type=Donor&study%21=No+value";
+// Donors with no hardy_scale value (cell lines); COLO829 is always opened, the others only if they become pickable
 const DONORS_WITHOUT_HARDY_SCALE = ["COLO829", "DONOR_LB", "HG002"];
 const BROWSE_BY_DONOR_URL = `/browse/?type=Donor&study=Production&tags=has_released_files&${BROWSE_STATUS_PARAMS}`;
 
@@ -333,7 +336,7 @@ function stepPublicDonorFlow(caps) {
     }
 
     const donorFieldSelector = caps.expectedDonorsHavingReleasedFilesCount > 0 ? '[data-field="donors.display_title"]' : '[data-field="external_id"]';
-    const visitUrl = caps.expectedDonorsHavingReleasedFilesCount > 0 ? BASE_BROWSE_URL : BASE_DONOR_SEARCH_URL;
+    const visitUrl = caps.expectedDonorsHavingReleasedFilesCount > 0 ? BASE_BROWSE_URL : PICKABLE_DONOR_SEARCH_URL;
 
     // 1) Start from Production released files, ensure facets ready
     cy.visit(visitUrl, { headers: cypressVisitHeaders });
