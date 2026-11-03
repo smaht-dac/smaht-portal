@@ -97,43 +97,6 @@ def app_settings(request, wsgi_server_host_port, conn, DBSession):  # noQA - We 
 
 INDEXER_NAMESPACE_FOR_TESTING = generate_indexer_namespace_for_testing('smaht')
 
-_LAST_STARTED_TEST = None
-_LAST_FINISHED_TEST = None
-
-
-def pytest_runtest_logstart(nodeid, location):
-    global _LAST_STARTED_TEST
-    _LAST_STARTED_TEST = nodeid
-
-
-def pytest_runtest_logfinish(nodeid, location):
-    global _LAST_FINISHED_TEST
-    _LAST_FINISHED_TEST = nodeid
-
-
-def pytest_keyboard_interrupt(excinfo):
-    import faulthandler
-    import sys
-
-    print(
-        f"Pytest interrupted ({excinfo.type.__name__}); active test: {_LAST_STARTED_TEST!r}",
-        file=sys.stderr,
-        flush=True,
-    )
-    faulthandler.dump_traceback(file=sys.stderr, all_threads=True)
-
-
-def pytest_sessionfinish(session, exitstatus):
-    if exitstatus:
-        import sys
-
-        print(
-            f"Pytest exiting with status {exitstatus}; last started test: {_LAST_STARTED_TEST!r}; "
-            f"last finished test: {_LAST_FINISHED_TEST!r}",
-            file=sys.stderr,
-            flush=True,
-        )
-
 
 @pytest.fixture(scope='session')
 def es_app_settings(wsgi_server_host_port, elasticsearch_server, postgresql_server, aws_auth):

@@ -380,12 +380,18 @@ class TestJwksCache:
         key["kid"] = KEY_ID
         document = {"keys": [key]}
 
-        with patch("jwt.jwks_client.urllib.request.urlopen") as fetch, patch(
-            "jwt.jwk_set_cache.time.monotonic", return_value=0
-        ) as clock:
-            fetch.side_effect = lambda *args, **kwargs: io.BytesIO(
-                json.dumps(document).encode()
-            )
+        # PyJWT 2.15 fetches through build_opener().open(); earlier allowed
+        # versions used urlopen directly. Stub both transports to keep this
+        # synthetic key-rotation test offline across supported resolutions.
+        fetch = MagicMock(side_effect=lambda *args, **kwargs: io.BytesIO(
+            json.dumps(document).encode()
+        ))
+        with patch("jwt.jwks_client.urllib.request.build_opener") as build_opener, patch(
+            "jwt.jwks_client.urllib.request.urlopen", new=fetch
+        ), patch("jwt.jwk_set_cache.time.monotonic", return_value=0) as clock:
+            opener = MagicMock()
+            opener.open = fetch
+            build_opener.return_value = opener
             client = get_okta_jwks_client(registry)
             assert decode_okta_id_token(token, registry)["email"] == "someone@example.org"
             clock.return_value = 299
