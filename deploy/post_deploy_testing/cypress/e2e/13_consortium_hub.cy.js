@@ -329,9 +329,10 @@ function assertQuickLinkDownloads(caps) {
                         cy.get(".quick-link-downloads-files > *", { timeout: 30000 })
                             .eq(index)
                             .should("match", fileSelector)
-                            .and("have.attr", "aria-label", `Download ${file.title}`)
-                            .and("have.attr", "download")
                             .then(($a) => {
+                                // checked here: chaining have.attr with only a name yields the attribute value
+                                expect($a, `${file.title} aria-label`).to.have.attr("aria-label", `Download ${file.title}`);
+                                expect($a, `${file.title} download attribute`).to.have.attr("download");
                                 const href = $a.attr("href");
                                 expect(href, `${file.title} href`).to.match(
                                     new RegExp(`^/resource-files/${file.uuid}/@@download/`)
