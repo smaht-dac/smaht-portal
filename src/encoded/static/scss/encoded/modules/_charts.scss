@@ -1425,6 +1425,25 @@ body[data-path="/statistics"] {
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
+
+            // Codes on top, the tissue's name below (TissueCursorBody's
+            // getTissueCodesLabel), per design feedback -- each line still
+            // ellipsizes on its own rather than reaching the count.
+            .tissue-cursor-name.is-two-line {
+                display: flex;
+                flex-direction: column;
+
+                .tissue-cursor-name-codes,
+                .tissue-cursor-name-full {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .tissue-cursor-name-full {
+                    font-size: 0.875rem;
+                    color: #5A6B7D;
+                }
+            }
         }
 
         .tissue-cursor-details {

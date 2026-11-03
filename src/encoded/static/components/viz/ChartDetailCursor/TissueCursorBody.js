@@ -11,6 +11,7 @@ import {
     getTissueTypeUrlCode,
     getTissueNameFromFacetTerm,
 } from './../../item-pages/components/tissue-overview/helpers';
+import { getTissueInternalCodeFromFacetTerm } from './../../util/data';
 import ChartDetailCursor from './ChartDetailCursor';
 
 /**
@@ -60,6 +61,15 @@ const getTissueOverviewHref = (tissueTerm) =>
 // The bars' pastel colors are too light for the icon's thin outlines on white.
 const ICON_DARKEN_AMOUNT = 0.35;
 
+// "3AO - BRHR" -- the TPC code and the 4-letter internal code, shown above
+// the tissue's name instead of the long "<TPC code> - <name>" term on 1 line
+// (which ran into the sample count beside it). null if either is unknown.
+const getTissueCodesLabel = (tissueTerm) => {
+    const tpcCode = String(tissueTerm || '').match(/^(\S+)\s-\s/)?.[1];
+    const internalCode = getTissueInternalCodeFromFacetTerm(tissueTerm);
+    return tpcCode && internalCode ? `${tpcCode} - ${internalCode}` : null;
+};
+
 const pluralize = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;
 
 const CountLink = ({ href, count, noun }) => (
@@ -80,14 +90,18 @@ export default function TissueCursorBody(props) {
     const color = leafNode.color || barplot_color_cycler.colorForNode(leafNode);
     const iconSrc = getTissueIconSrc(tissueTerm);
     const tissueName = getTissueNameFromFacetTerm(tissueTerm);
+    const tissueCodesLabel = getTissueCodesLabel(tissueTerm);
 
     const groupTitle = groupNode
         ? (isSampleTypeGroup && SAMPLE_TYPE_TITLES[groupNode.term]) || groupNode.name || groupNode.term
         : null;
 
+    // The 4-letter code, not the name -- the name is already shown above, and
+    // the longest ones (Brain, Hippocampus, L/R) didn't fit the button.
+    const actionLabel = getTissueInternalCodeFromFacetTerm(tissueTerm) || tissueName;
     const action = isSequencedSampleType
-        ? { title: `Browse ${tissueName} Sequencing Data`, href: getTissueFilesHref(tissueTerm) }
-        : { title: `Browse ${tissueName} Tissue Data`, href: getTissueOverviewHref(tissueTerm) };
+        ? { title: `Browse ${actionLabel} Sequencing Data`, href: getTissueFilesHref(tissueTerm) }
+        : { title: `Browse ${actionLabel} Tissue Data`, href: getTissueOverviewHref(tissueTerm) };
 
     return (
         <div className="mosaic-cursor-body tissue-cursor-body">
@@ -110,7 +124,14 @@ export default function TissueCursorBody(props) {
                             maskImage: `url(${iconSrc})`,
                         }} />
                     ) : null }
-                    <span className="tissue-cursor-name">{ tissueTerm }</span>
+                    { tissueCodesLabel ? (
+                        <span className="tissue-cursor-name is-two-line">
+                            <span className="tissue-cursor-name-codes">{ tissueCodesLabel }</span>
+                            <span className="tissue-cursor-name-full">{ tissueName }</span>
+                        </span>
+                    ) : (
+                        <span className="tissue-cursor-name">{ tissueTerm }</span>
+                    ) }
                     <span className="tissue-cursor-count">{ leafNode.samples || 0 }</span>
                 </div>
             </div>

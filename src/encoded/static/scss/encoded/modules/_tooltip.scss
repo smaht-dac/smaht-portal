@@ -63,6 +63,14 @@ Popover Styles
             font-weight: 600;
             background-color: #f1f9ff;
         }
+
+        // Clipped to the popover's own rounded corners, so the blue header
+        // row runs seamlessly into the curve instead of squaring off
+        // against it.
+        .popover-body {
+            border-radius: var(--bs-popover-inner-border-radius);
+            overflow: hidden;
+        }
     }
 
     &.download-popover {

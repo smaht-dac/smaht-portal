@@ -107,13 +107,32 @@ describe('loadTissueHistologySamples', () => {
     test('unions both report searches, deduplicated by external_id', async () => {
         const [fixedSample, frozenSample] = SAMPLES;
         ajax.load.mockImplementation((href, onSuccess) => {
+            if (href.includes('sample_sources.preservation_type=Fresh')) return onSuccess({ '@graph': [] });
             const isAssociated = href.includes('associated_pathology_reports');
             // The same aliquot can be registered by both a TPC and a GCC.
             onSuccess({ '@graph': isAssociated ? [frozenSample, { ...frozenSample }] : [fixedSample] });
         });
         const samples = await loadTissueHistologySamples();
-        expect(ajax.load).toHaveBeenCalledTimes(2);
+        expect(ajax.load).toHaveBeenCalledTimes(3);
         expect(samples.map((s) => s.external_id)).toEqual([fixedSample.external_id, frozenSample.external_id]);
+    });
+
+    test('adds a Fresh tissue\'s samples as Fresh without a report, keeping a reported sample\'s own type', async () => {
+        const [fixedSample] = SAMPLES;
+        const buccalSample = sample('SMHT001-3B-001', '3B - Buccal Swab', 'SMHT001', 'Frozen', 'BCM GCC');
+        ajax.load.mockImplementation((href, onSuccess) => {
+            const isFreshTissue = href.includes('sample_sources.preservation_type=Fresh');
+            const isAssociated = href.includes('associated_pathology_reports');
+            if (isFreshTissue) return onSuccess({ '@graph': [buccalSample, fixedSample] });
+            onSuccess({ '@graph': isAssociated ? [] : [fixedSample] });
+        });
+        const samples = await loadTissueHistologySamples();
+        expect(samples.map((s) => [s.external_id, s.preservation_type])).toEqual([
+            [fixedSample.external_id, 'Fixed'],
+            [buccalSample.external_id, 'Fresh'],
+        ]);
+        const freshSearch = ajax.load.mock.calls.map(([href]) => href).find((href) => href.includes('preservation_type=Fresh'));
+        expect(freshSearch).not.toMatch(/pathology_reports\.accession/);
     });
 
     test('leaves out samples with no preservation type', async () => {

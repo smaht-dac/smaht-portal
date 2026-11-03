@@ -4131,7 +4131,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                             ? 'Non Target Tissue %'
                                             : 'Target Tissue %'
                                     )}
-                                    tooltip="Percentage range of the sample that was the target tissue subtype"
+                                    tooltip="Percentage range observed of the sample that matches the target tissue subtype. The summary table below shows the highest value across all aliquots of the tissue."
                                     titleAccessory={(
                                         <NonTargetTissueToggle
                                             checked={showNonTargetInTargetTab}
@@ -4147,7 +4147,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                         <div className="tissue-heatmap-dual-legend">
                                             <FixedScoreLegend
                                                 entries={TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
-                                                leftCaption="Target"
+                                                leftCaption="Target Tissue %"
                                                 activeClassName={activeScoreClass}
                                                 onEntryClick={onScoreClassClick}
                                             />
@@ -4160,7 +4160,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                             {showNonTargetInTargetTab ? (
                                                 <FixedScoreLegend
                                                     entries={NON_TARGET_TISSUE_PERCENTAGE_LEGEND_ENTRIES}
-                                                    leftCaption="Non-Target"
+                                                    leftCaption="Non Target Tissue %"
                                                     activeClassName={activeScoreClass}
                                                     onEntryClick={onScoreClassClick}
                                                 />
@@ -4234,7 +4234,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                     subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
                                     subtypeTintPercent={subtypeTintPercent}
                                     metricLabel="Autolysis Score"
-                                    tooltip="Tissue autolysis score of the sample or region: 0=None, 1=mild, 2=moderate, 3=severe"
+                                    tooltip="Autolysis is the breakdown of cells and tissue by their own enzymes after death. It increases with time before preservation and can affect tissue morphology and molecular quality."
                                     formatValue={formatAutolysisScore}
                                     getScoreClass={getAutolysisScoreClass}
                                     // eslint-disable-next-line react/jsx-no-bind
@@ -4389,7 +4389,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                         donorDiagnosis={brainDonorDiagnosis}
                                         subtypeTintPercent={subtypeTintPercent}
                                         metricLabel="Brain Autolysis Score"
-                                        tooltip="Tissue autolysis score of the brain region: 0=None, 1=mild, 2=moderate, 3=severe"
+                                        tooltip="Autolysis is the breakdown of cells and tissue by their own enzymes after death. It increases with time before preservation and can affect tissue morphology and molecular quality."
                                         formatValue={formatAutolysisScore}
                                         getScoreClass={getAutolysisScoreClass}
                                         // eslint-disable-next-line react/jsx-no-bind

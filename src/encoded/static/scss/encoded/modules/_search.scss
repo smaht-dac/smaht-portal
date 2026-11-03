@@ -2736,6 +2736,9 @@ div.browse-link-icon {
 	// literal `.row` class to it too, globally, site-wide).
 	.inner {
 		padding: 4px 12px;
+		// The card's own 8px radius less its 1px border -- clips the
+		// light-blue rows below to the same curve as the card itself.
+		border-radius: 7px;
 		// A safety net, not the primary fix for the popover's own position
 		// (that's the flip logic in getDetailPopoverStyle/
 		// MetricHeatmapTable's own post-render height measurement) -- if a
@@ -2806,6 +2809,14 @@ div.browse-link-icon {
 		margin: 0 -12px;
 		padding: 2px 12px 6px;
 		background-color: #F8FBFF;
+
+		// The last row runs over `.inner`'s own bottom padding too, so the
+		// light blue reaches the card's rounded bottom corners instead of
+		// stopping 4px short of them, per design feedback.
+		&:last-child {
+			margin-bottom: -4px;
+			padding-bottom: 10px;
+		}
 	}
 
 	.footer-row {
@@ -3179,15 +3190,15 @@ div.browse-link-icon {
 		align-items: flex-start;
 		gap: 4px;
 
-		// A fixed-width, right-aligned caption column -- "Target" and
-		// "Non-Target" are different lengths, and Target Tissue %'s own 5
+		// A fixed-width, right-aligned caption column -- "Target Tissue %"
+		// and "Non Target Tissue %" are different lengths, and Target Tissue %'s own 5
 		// bands vs Non Target Tissue %'s own 4 don't total the same width
 		// either, so without this each row's own swatch scale started at a
 		// different x position (however the 2 rows' own content widths
 		// happened to differ) instead of lining up into a clean 2-column
 		// grid.
 		.tissue-heatmap-fixed-legend-caption {
-			min-width: 66px;
+			min-width: 124px;
 			text-align: right;
 		}
 
@@ -3471,6 +3482,14 @@ div.browse-link-icon {
 
 	.tissue-heatmap-table-wrap {
 		overflow-x: auto;
+		// Same left/right inset as the title/description above it
+		// (.tissue-heatmap-metric-heading's own padding), per design
+		// feedback -- not the card's full width, which lined the table up
+		// with the Non-Brain/Brain tabs instead. A margin, not padding, so
+		// the sticky header clone (sized off this element's own rect, see
+		// MetricHeatmapTable) stays aligned with it.
+		margin-left: 20px;
+		margin-right: 20px;
 		// `overflow-x: auto` clips the y axis too -- room for the selected
 		// cell's 4px frame (.is-selected::before below) on the last row.
 		padding-bottom: 4px;
@@ -4004,15 +4023,17 @@ div.browse-link-icon {
 			// score-0..4 HeatmapColorPicker -- TARGET/NON-TARGET is a
 			// categorical distinction, not a point on that severity scale,
 			// so it has no counterpart there to pick from.
-			// Inverted (colored text on white), per design feedback.
+			// Colored text on a light tint of the same hue, per design
+			// feedback. This row only renders while both kinds of column
+			// are showing (showTargetNonTargetRow).
 			&.tissue-heatmap-target-nontarget-header--target {
-				background-color: #FFFFFF;
+				background-color: #F4FCFF;
 				color: #377288;
 				font-weight: 600;
 			}
 
 			&.tissue-heatmap-target-nontarget-header--non-target {
-				background-color: #FFFFFF;
+				background-color: #FFF6F4;
 				color: #781D09;
 				font-weight: 600;
 			}
@@ -5013,13 +5034,35 @@ table.tissue-heatmap-table {
 			--brain-frozen-start: 0px;
 		}
 
+		// No white gaps between header cells here -- the same light
+		// #E7F0F3 grid lines (between columns and along the top) the
+		// Diagnosis Summary table's own header has, per design feedback.
 		thead th {
 			background-color: #F4F8FF;
-			// No white gaps between header cells here.
-			box-shadow: inset 0 -1px 0 #C3D8DE !important;
+			box-shadow: inset -1px 0 0 #E7F0F3, inset 0 -1px 0 #C3D8DE !important;
 
 			&.is-selected-column {
-				box-shadow: inset 0 -3px 0 0 #2F6FB0 !important;
+				box-shadow: inset -1px 0 0 #E7F0F3, inset 0 -3px 0 0 #2F6FB0 !important;
+			}
+		}
+
+		thead tr:first-child th {
+			box-shadow: inset -1px 0 0 #E7F0F3, inset 0 1px 0 #E7F0F3, inset 0 -1px 0 #C3D8DE !important;
+
+			&.is-selected-column {
+				box-shadow: inset -1px 0 0 #E7F0F3, inset 0 1px 0 #E7F0F3, inset 0 -3px 0 0 #2F6FB0 !important;
+			}
+		}
+
+		// Autolysis/Ischemic (the brain-region tables, not Findings/
+		// Staging's .tissue-heatmap-metric-table): each region's header
+		// keeps the same 4px white gap its body column has below it
+		// (.tissue-heatmap-cell-group-boundary), per design feedback.
+		&:not(.tissue-heatmap-metric-table) thead tr:first-child th:not(.tissue-heatmap-order-header):not(.tissue-heatmap-donor-header):not(.tissue-heatmap-demographic-header):not(:last-child) {
+			box-shadow: inset -4px 0 0 #FFFFFF, inset 0 1px 0 #E7F0F3, inset 0 -1px 0 #C3D8DE !important;
+
+			&.is-selected-column {
+				box-shadow: inset -4px 0 0 #FFFFFF, inset 0 1px 0 #E7F0F3, inset 0 -3px 0 0 #2F6FB0 !important;
 			}
 		}
 
@@ -5110,7 +5153,19 @@ table.tissue-heatmap-table {
 		}
 
 		thead th.tissue-heatmap-demographic-header.is-summary {
-			box-shadow: inset 0 -1px 0 #C3D8DE, 2px 0 4px -2px rgba(0, 0, 0, 0.12) !important;
+			box-shadow: inset 0 1px 0 #E7F0F3, inset 0 -1px 0 #C3D8DE, 2px 0 4px -2px rgba(0, 0, 0, 0.12) !important;
+		}
+
+		// Findings/Staging: hovering a row tints every column in it, not
+		// just the frozen section (above) -- an overlay, like the hover
+		// L-guide's own (.is-row-highlight::after), so it shows over each
+		// cell's own score color too.
+		&.tissue-heatmap-metric-table tbody tr:hover td.tissue-heatmap-cell::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			background-color: rgba(30, 41, 59, 0.14);
 		}
 
 		thead .tissue-heatmap-donor-header,
@@ -5149,7 +5204,7 @@ table.tissue-heatmap-table {
 	padding: 4px 4px;
 	display: inline-flex;
 	align-items: center;
-	gap: 2px;
+	gap: 4px;
 	font-size: 0.75rem;
 	font-weight: 500;
 	border-color: #C9D6E6;

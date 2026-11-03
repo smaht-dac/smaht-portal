@@ -511,14 +511,18 @@ export function BrainFindingsTable({ tissueResults = [], donorHrefs = null, scop
                                                 {/* Present reads as a flag, per design
                                                     feedback; the cells with a reported
                                                     description (the clickable ones) also get
-                                                    a dropdown arrow for the reason they open. */}
+                                                    a dropdown arrow for the reason they open,
+                                                    flipped up while it's open. */}
                                                 {value ? (
                                                     <i className="icon icon-fw icon-flag fas tissue-heatmap-finding-flag" aria-hidden="true" />
                                                 ) : null}
                                                 {formatBrainFinding(value)}
                                                 {hasDescription ? (
                                                     <i
-                                                        className="icon icon-fw icon-caret-down fas tissue-heatmap-finding-description-icon"
+                                                        className={
+                                                            'icon icon-fw fas tissue-heatmap-finding-description-icon ' +
+                                                            (isSelected ? 'icon-caret-up' : 'icon-caret-down')
+                                                        }
                                                         aria-hidden="true"
                                                         title="Click to read why this finding is present"
                                                     />

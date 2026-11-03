@@ -20,6 +20,12 @@ import { getDisplayedTerm, getRecordedTerms } from './merge-terms';
  *   Fixed sample cut from the same tissue block, see types/tissue_sample.py).
  * Snovault filters can't OR 2 fields, so each is its own search.
  *
+ * Fresh tissues (Buccal Swab, Fibroblast, ...) are the exception: their
+ * protocols have no Fixed counterpart to link (see types/tissue_sample.py's
+ * linked_fixed_samples validation), so they can't have a report either way.
+ * Per request, their samples are charted anyway, as "Fresh", by a 3rd search
+ * with no report filter.
+ *
  * These are plain searches, so every viewer only counts what they are allowed
  * to see -- per explicit request, rather than a permission-free count.
  */
@@ -52,6 +58,9 @@ const SAMPLES_WITH_REPORT_FILTERS = [
     'associated_pathology_reports.pathology_reports.accession!=No+value',
 ];
 
+const FRESH_SAMPLE_TYPE = 'Fresh';
+const FRESH_TISSUE_FILTER = 'sample_sources.preservation_type=' + FRESH_SAMPLE_TYPE;
+
 const MISSING_TERM = 'Not specified';
 
 // Samples with no preservation type of their own are left out of the chart
@@ -77,6 +86,15 @@ function fetchSearchGraph(href) {
 
 function fetchSamples(reportFilter) {
     return fetchSearchGraph(SAMPLES_SEARCH_HREF + '&' + reportFilter);
+}
+
+// A Fresh tissue's samples are mostly recorded as Frozen themselves, so they
+// are charted by their tissue's preservation type instead of their own.
+function fetchFreshTissueSamples() {
+    const asFresh = (sample) => {
+        return { ...sample, preservation_type: FRESH_SAMPLE_TYPE };
+    };
+    return fetchSearchGraph(SAMPLES_SEARCH_HREF + '&' + FRESH_TISSUE_FILTER).then((samples) => samples.map(asFresh));
 }
 
 // An embedded link's @id -- `field=` returns either the object or just the id.
@@ -115,7 +133,8 @@ let cachedSamples = null;
 let cachedLinkedCounts = null;
 
 /**
- * Every visible TissueSample with a pathology report, either way. A TPC and a
+ * Every visible TissueSample with a pathology report, either way, plus every
+ * Fresh tissue's samples (see the comment at the top). A TPC and a
  * GCC can each register their own record of the same aliquot (same
  * external_id), so samples are deduplicated by it.
  *
@@ -124,7 +143,10 @@ let cachedLinkedCounts = null;
  */
 export function loadTissueHistologySamples({ reuse = false } = {}) {
     if (reuse && cachedSamples) return cachedSamples;
-    cachedSamples = Promise.all(SAMPLES_WITH_REPORT_FILTERS.map(fetchSamples)).then((results) =>
+    // The Fresh tissue samples come last, so a sample that does have a
+    // report keeps its own preservation type when deduplicated.
+    const searches = SAMPLES_WITH_REPORT_FILTERS.map(fetchSamples).concat(fetchFreshTissueSamples());
+    cachedSamples = Promise.all(searches).then((results) =>
         _.uniq(_.flatten(results, true), false, (sample) => sample.external_id || sample['@id'])
             .filter((sample) => !HIDE_UNSPECIFIED_SAMPLE_TYPES || sample.preservation_type)
     );
