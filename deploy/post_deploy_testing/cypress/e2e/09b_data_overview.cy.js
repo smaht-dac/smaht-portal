@@ -159,8 +159,9 @@ function testSampleIntegrityTab(caps) {
         .and("have.attr", "aria-selected", "true")
         .get("#qc-metrics-tabs-tabpane-sample-integrity")
         .within(() => {
-            // react-select single value should be COLO829 at start
-            cy.get('div[class$="singleValue"]').should("contain.text", "COLO829");
+            // react-select single value should be COLO829 at start; the select renders only after
+            // /get_somalier_overview/ (~24 MB) is loaded, which can exceed the default timeout
+            cy.get('div[class$="singleValue"]', { timeout: 60000 }).should("contain.text", "COLO829");
 
             // open dropdown
             cy.get('[role="combobox"]').click();
