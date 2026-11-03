@@ -643,6 +643,33 @@ function assertNoTopLevelNARows() {
     });
 }
 
+/**
+ * Fails if the column group band (e.g. "Bulk WGS", "RNA-seq") has an N/A group, i.e. some columns
+ * (assays) are not mapped to any column group. Lists the columns under the N/A band.
+ */
+function assertNoNAColumnGroup() {
+    cy.get('.header-group-text .column-group-header').then(($groups) => {
+        const $naGroup = $groups.filter((i, el) => Cypress.$(el).find('.inner span').text().trim() === 'N/A');
+        if ($naGroup.length === 0) return;
+
+        const naRect = $naGroup[0].getBoundingClientRect();
+        cy.get('.header-col-text .column-group-header').then(($cols) => {
+            const naColumns = [...$cols]
+                .filter((el) => {
+                    const rect = el.getBoundingClientRect();
+                    const center = rect.left + rect.width / 2;
+                    return center >= naRect.left && center <= naRect.right;
+                })
+                .map((el) => Cypress.$(el).find('.inner span').text().trim());
+            // names go in the message; chai truncates arrays to "[ Array(n) ]"
+            expect(
+                naColumns.length,
+                `columns not mapped to any column group (shown under N/A): ${naColumns.join(', ')}`
+            ).to.equal(0);
+        });
+    });
+}
+
 /** * Validates the data matrix popover content for specified donors and labels.
  * * @param {string} matrixId - The CSS selector for the data matrix.
  * @param {string[]} donors - An array of donor IDs to validate.
@@ -700,7 +727,8 @@ export function testMatrixPopoverValidation(
     cy.get(matrixId).within(() => {
         validateLowerHeaders(expectedLowerLabels);
         assertNoTopLevelNARows();
-        markTiming('matrix', `${matrixId} headers + N/A rows`);
+        assertNoNAColumnGroup();
+        markTiming('matrix', `${matrixId} headers + N/A rows/columns`);
 
         let anyCollapsibleRows = false;
         //collapse all to a fresh start
