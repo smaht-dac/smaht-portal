@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+2.15.16
+=======
+
+`PR 791: Speed up and stabilize Cypress data tests <https://github.com/smaht-dac/smaht-portal/pull/791>`_
+
+* Fix DataMatrix: clicking the already active matrix mode tab no longer clears results with a permanent spinner
+* Speed up the Cypress data tests (09b covering combinations, single-pass matrix row checks, concurrent popover API total checks, SPA navigation in 09a/11a/11b) without reducing coverage
+* Fix flaky Cypress tests: matrix loading waits, retry cascade in 09a, timeline toggle (01), browse menu navigation (03a/03b), detached rows and detail panels (03b), Hardy Scale N/A donors (11b), Sample Integrity load (09b), benchmarking tab load (06)
+* Fail the Cypress data matrix checks when columns fall under the N/A column group, listing the affected columns
+
+
 2.15.15
 =======
 
