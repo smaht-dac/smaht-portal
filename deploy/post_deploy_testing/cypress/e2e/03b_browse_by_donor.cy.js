@@ -953,7 +953,8 @@ function stepSearchTableRowsTests(caps) {
                     .should('have.class', 'detail-open')
                     .within(() => {
                         // Header <b>14 </b> should match the tissuesCount we parsed from the cell
-                        cy.get('.detail-header b')
+                        // the header shows a spinner until the queued per-donor request returns
+                        cy.get('.detail-header b', { timeout: 60000 })
                             .invoke('text')
                             .then((headerCountText) => {
                                 const headerCount = Number(headerCountText.trim());
@@ -980,7 +981,8 @@ function stepSearchTableRowsTests(caps) {
                     .should('have.class', 'detail-open')
                     .within(() => {
                         // Header <b>N </b> should match the assaysCount we parsed from the cell
-                        cy.get('.detail-header b')
+                        // the header shows a spinner until the queued per-donor request returns
+                        cy.get('.detail-header b', { timeout: 60000 })
                             .invoke('text')
                             .then((headerCountText) => {
                                 const headerCount = Number(headerCountText.trim());
