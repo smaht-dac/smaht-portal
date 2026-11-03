@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { RightArrowIcon } from '../util/icon';
-import { useUserDownloadAccess } from '../util/hooks';
+import { useUserDownloadAccess, useResourceFileSearch } from '../util/hooks';
 
 // Quick links to the data portal
 const quickLinks = [
@@ -16,9 +17,23 @@ const quickLinks = [
         badge: 'protected',
     },
     {
-        title: 'Filtered Somatic Variant Callsets',
+        title: 'Filtered Somatic SNV Callsets (vcf)',
         href: '/browse/?analysis_details=Filtered&data_category=Somatic+Variant+Calls&dataset%21=No+value&donors.donor_groups=First+25+Donors+%5BP25%5D&release_tracker_description%21=No+value&sample_summary.studies=Production&sort=-file_status_tracking.release_dates.initial_release_date&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File',
         badge: 'open',
+        downloads: {
+            title: 'Filtered Somatic SNV Callset Metadata',
+            files: [
+                {
+                    title: 'SNV V2 TSV',
+                    uuid: '2948738d-0d75-42ea-ad41-20018bcc38d5',
+                    tag: 'P25 Paper',
+                },
+                {
+                    title: 'SNV V1 TSV',
+                    uuid: '0eca12f0-737d-4b9a-bd71-b29872625a7f',
+                },
+            ],
+        },
     },
     {
         title: 'Germline Variant Callsets',
@@ -283,6 +298,101 @@ const CohortDetailsDropdown = ({ title, children, expanded = false }) => {
     );
 };
 
+// Contents of a download button, shared by the enabled and disabled states
+const QuickLinkDownloadContent = ({ title, tag }) => (
+    <>
+        <span className="quick-link-download-title">
+            {title}
+            {tag && <span className="quick-link-download-tag">{tag}</span>}
+        </span>
+        <i className="icon icon-download fas" aria-hidden="true" />
+    </>
+);
+
+/**
+ * QuickLinkDownloads component renders a row of direct file download buttons
+ * beneath a quick link, e.g. metadata TSVs accompanying a callset. Buttons for
+ * files the user cannot access are disabled and explain why in a tooltip.
+ * @param {string} title - The label shown above the download buttons
+ * @param {Array} files - The files to download, each with title, uuid, and optional tag
+ * @param {Object} session - The session object, used to refetch on login/logout
+ * @returns {JSX.Element} The rendered QuickLinkDownloads component
+ */
+const QuickLinkDownloads = ({ title, files = [], session }) => {
+    const { files: resourceFiles, loading } = useResourceFileSearch(
+        [
+            ...files.map((file) => `uuid=${file.uuid}`),
+            'field=uuid',
+            'field=href',
+        ].join('&'),
+        session
+    );
+    const hrefs = Object.fromEntries(
+        resourceFiles.map(({ uuid, href }) => [uuid, href])
+    );
+
+    return (
+        <div className="quick-link-downloads">
+            <hr className="my-auto" />
+            <div className="quick-link-downloads-title">{title}</div>
+            <div className="quick-link-downloads-files">
+                {files.map((file) => {
+                    const href = hrefs[file.uuid];
+                    if (href) {
+                        return (
+                            <a
+                                key={file.uuid}
+                                className="quick-link-download"
+                                href={href}
+                                download
+                                aria-label={`Download ${file.title}`}>
+                                <QuickLinkDownloadContent {...file} />
+                            </a>
+                        );
+                    }
+                    const button = (
+                        <button
+                            type="button"
+                            className="quick-link-download"
+                            disabled>
+                            <QuickLinkDownloadContent {...file} />
+                        </button>
+                    );
+                    if (loading) {
+                        return (
+                            <span
+                                key={file.uuid}
+                                className="quick-link-download-wrapper">
+                                {button}
+                            </span>
+                        );
+                    }
+                    // Disabled buttons don't fire mouse events, so the wrapper
+                    // receives them for the tooltip instead
+                    return (
+                        <OverlayTrigger
+                            key={file.uuid}
+                            placement="top"
+                            overlay={
+                                <Tooltip>
+                                    {session
+                                        ? 'You do not have access to download this file.'
+                                        : 'Please log in to download this file.'}
+                                </Tooltip>
+                            }>
+                            <span
+                                className="quick-link-download-wrapper"
+                                tabIndex={0}>
+                                {button}
+                            </span>
+                        </OverlayTrigger>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
 /**
  * Main component for the Consortium Hub page
  * @returns {JSX.Element} The rendered ConsortiumHub component
@@ -337,7 +447,6 @@ export const ConsortiumHub = ({ session }) => {
                             <div className="dropdown" key={link.title}>
                                 <a
                                     className="header"
-                                    key={link.title}
                                     href={link.href}>
                                     <div className="toggle d-flex align-items-center">
                                         <span className="parent-link">
@@ -361,6 +470,12 @@ export const ConsortiumHub = ({ session }) => {
                                         <RightArrowIcon />
                                     </span>
                                 </a>
+                                {link.downloads && (
+                                    <QuickLinkDownloads
+                                        {...link.downloads}
+                                        session={session}
+                                    />
+                                )}
                             </div>
                         ))}
                     </div>

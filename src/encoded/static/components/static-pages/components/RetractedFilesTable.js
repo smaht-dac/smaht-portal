@@ -1,12 +1,39 @@
 'use strict';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import _ from 'underscore';
 import {
     EmbeddedItemSearchTable,
     SearchTableTitle,
 } from '../../item-pages/components/EmbeddedItemSearchTable';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+import {
+    RENAMED_FILES_FACET_FIELDS,
+    ROW_HEIGHT,
+    FACETS_BODY_HEIGHT,
+    RESULTS_BODY_HEIGHT,
+    useScrollShadow,
+} from './RenamedFilesTable';
+
+// Hidden by default in the File schema, so it is requested with `additional_facet`
+const RETRACTION_DATE_FACET_FIELD =
+    'file_status_tracking.status_tracking.retracted';
+
+// Retracted Files query, including the retraction date facet. `sort=accession`
+// breaks ties between files retracted at the same time; without it pages can
+// overlap, which makes the table reload when loading more results
+const RETRACTED_FILES_QUERY =
+    '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted&sort=accession' +
+    `&additional_facet=${RETRACTION_DATE_FACET_FIELD}`;
+
+// Same facets as the renamed files table, plus the retraction date
+const RETRACTED_FILES_FACET_FIELDS = [
+    ...RENAMED_FILES_FACET_FIELDS,
+    RETRACTION_DATE_FACET_FIELD,
+];
+
+const filterRetractedFilesFacets = (facet) =>
+    RETRACTED_FILES_FACET_FIELDS.includes(facet?.field);
 
 // Retracted Files header component containing total count
 function RetractedFilesTableHeader({ context, href }) {
@@ -22,48 +49,9 @@ function RetractedFilesTableHeader({ context, href }) {
 
 export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
-    const searchHref =
-        propSearchHref ||
-        '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted';
+    const searchHref = propSearchHref || RETRACTED_FILES_QUERY;
 
-    const outerRef = useRef(null);
-    const [showShadow, setShowShadow] = useState(false);
-
-    // Tracks scroll container to show shadow whenever there is more content
-    // below the visible area
-    useEffect(() => {
-        const outer = outerRef.current;
-        if (!outer) return;
-
-        const updateShadow = ({ scrollTop, clientHeight, scrollHeight }) => {
-            setShowShadow(scrollTop + clientHeight < scrollHeight - 2);
-        };
-
-        // Capture-phase listener on the outer scroll container to update the shadow
-        // state whenever the scroll position changes.
-        const onScroll = (e) => updateShadow(e.target);
-        outer.addEventListener('scroll', onScroll, {
-            passive: true,
-            capture: true,
-        });
-
-        // Observer to compute the initial shadow state as soon as the virtual
-        // scroll container appears after the first load
-        const observer = new MutationObserver(() => {
-            const scrollContainer = outer.querySelector(
-                '.react-infinite-container'
-            );
-            if (!scrollContainer) return;
-            updateShadow(scrollContainer);
-            observer.disconnect();
-        });
-        observer.observe(outer, { childList: true, subtree: true });
-
-        return () => {
-            outer.removeEventListener('scroll', onScroll, { capture: true });
-            observer.disconnect();
-        };
-    }, []);
+    const { outerRef, showShadow } = useScrollShadow();
 
     const columnExtensionMap = {
         access_status: {
@@ -264,35 +252,23 @@ export default function RetractedFilesTable(props) {
 
     return (
         <div
-            className="retracted-files-table"
-            ref={outerRef}
-            style={{ position: 'relative' }}>
+            className={
+                'retracted-files-table' +
+                (showShadow ? ' show-scroll-shadow' : '')
+            }
+            ref={outerRef}>
             <EmbeddedItemSearchTable
                 searchHref={searchHref}
                 schemas={schemas}
                 session={session}
-                facets={null}
-                rowHeight={31}
-                maxResultsBodyHeight={600}
+                filterFacetFxn={filterRetractedFilesFacets}
+                rowHeight={ROW_HEIGHT}
+                maxFacetsBodyHeight={FACETS_BODY_HEIGHT}
+                maxResultsBodyHeight={RESULTS_BODY_HEIGHT}
                 columns={columns}
                 columnExtensionMap={columnExtensionMap}
                 embeddedTableHeader={<RetractedFilesTableHeader />}
             />
-            {showShadow && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 60,
-                        background:
-                            'linear-gradient(to bottom, transparent, rgba(255,255,255,0.88))',
-                        pointerEvents: 'none',
-                        zIndex: 10,
-                    }}
-                />
-            )}
         </div>
     );
 }

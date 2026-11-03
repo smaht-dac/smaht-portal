@@ -443,6 +443,12 @@
             "title" : "Release Date",
             "aggregation_type" : "stats"
         },
+        "file_status_tracking.status_tracking.retracted": {
+            "title": "Retraction Date",
+            "aggregation_type": "stats",
+            "default_hidden": true,
+            "order": -1
+        },
         "reference_genome.display_title": {
             "title": "Reference Genome",
             "label_overrides": {

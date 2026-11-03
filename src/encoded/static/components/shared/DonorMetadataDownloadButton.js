@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { OverlayTrigger } from 'react-bootstrap';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import ReactTooltip from 'react-tooltip';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
-import { useUserDownloadAccess } from '../util/hooks';
+import { useUserDownloadAccess, useResourceFileSearch } from '../util/hooks';
 
 /**
  * Button to download the bulk donor metadata for all SMaHT donors.
@@ -14,7 +13,6 @@ import { useUserDownloadAccess } from '../util/hooks';
  * Note: this component only renders for logged-in users.
  */
 export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
-    const [downloadLink, setDownloadLink] = useState(null);
     const { userDownloadAccess } = useUserDownloadAccess(session);
 
     // Get the highest access level the user has
@@ -29,33 +27,19 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
                     ? 'open'
                     : null;
 
+    // Use the most recently released clinical manifest
+    const { files } = useResourceFileSearch(
+        session && highestUserAccess
+            ? `tags=clinical_manifest&sort=-file_status_tracking.release_dates.initial_release&status=${highestUserAccess}`
+            : null,
+        session
+    );
+    const downloadLink = files[0]?.href || null;
+
     useEffect(() => {
-        if (session && highestUserAccess) {
-            const searchURL = `/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.release_dates.initial_release&status=${highestUserAccess}`;
-
-            ajax.load(
-                searchURL,
-                (resp) => {
-                    // Use the first item in the response
-                    const latest_file = resp?.['@graph']?.[0];
-
-                    if (latest_file?.href) {
-                        // Update the download link
-                        setDownloadLink(latest_file?.href);
-
-                        // Rebuild the tooltip after the component mounts
-                        ReactTooltip.rebuild();
-                    }
-                },
-                'GET',
-                () => {
-                    console.log('Error loading Bulk Donor Metadata button');
-                }
-            );
-        } else {
-            setDownloadLink(null);
-        }
-    }, [session, highestUserAccess]);
+        // Rebuild the tooltip once the download link renders
+        if (downloadLink) ReactTooltip.rebuild();
+    }, [downloadLink]);
 
     return downloadLink ? (
         <a
