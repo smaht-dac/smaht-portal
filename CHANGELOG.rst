@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.15.13
+2.15.15
 =======
 
 `PR 787: Add SNV callset metadata TSV downloads to the Consortium Hub <https://github.com/smaht-dac/smaht-portal/pull/787>`_
@@ -16,6 +16,23 @@ Change Log
 * Add download buttons for the v1 and v2 SNV callset metadata TSVs, resolving each file's ``href`` by UUID
 * Disable download buttons for files the user cannot access, with a tooltip explaining why
 * Move the ResourceFile search into a shared ``useResourceFileSearch`` hook, also used by the bulk donor metadata download button
+
+
+2.15.14
+=======
+
+`PR 773: feat: update donor browse dropdown requests <https://github.com/smaht-dac/smaht-portal/pull/773>`_
+
+* Remove redundant fetches
+* Update donor assay and tissue data to use context provider
+
+
+2.15.13
+======
+
+`PR 782: fix: update facet overrides on portal pages <https://github.com/smaht-dac/smaht-portal/pull/782>`_
+
+* Fix facet overrides in embedded search tables and data release page
 
 
 2.15.12
