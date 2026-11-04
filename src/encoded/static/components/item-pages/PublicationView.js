@@ -23,6 +23,7 @@ import {
 } from '../util/Schemas';
 import { renderLoginAccessPopover } from './PublicDonorView';
 import { BROWSE_LINKS } from '../browse/BrowseView';
+import { ClickableImage } from '../static-pages/components/ClickableImage';
 
 /**
  * Finds the `static_content` entry for a given `location`, returning its
@@ -85,28 +86,42 @@ const PublicationViewTitle = () => {
 };
 
 /**
+ * Builds a doi_list query string from a publication's current DOI and any
+ * previous DOIs, so files still tagged with an old DOI are found. Repeated
+ * doi_list params are OR'd by search.
+ * @param {*} context - Publication item
+ * @returns {string} e.g. "doi_list=<doi>&doi_list=<previous_doi>"
+ */
+const getDoiListQuery = (context) =>
+    [context?.doi, ...(context?.previous_dois || [])]
+        .filter(Boolean)
+        .map((doi) => `doi_list=${encodeURIComponent(doi)}`)
+        .join('&');
+
+/**
  * Function to retrive and display summary statistics related to the files used
  * in a publication, including number of files, donors, tissues, assays, and
  * total file size. Donor and Tissue counts are hidden for Benchmarking
  * publications - the underlying data doesn't yet reliably resolve donors or
  * tissues for cell-line-based samples, so those stats are omitted there
  * until that's fixed, rather than shown as inaccurate.
- * @param {*} doi - DOI of the publication to retrieve stats for
+ * @param {*} doiListQuery - doi_list query string matching the publication's
+ *     current and previous DOIs
  * @param {*} session - User session object
  * @param {*} isBenchmarking - Whether this publication belongs to the
  *     Benchmarking publication group
  * @returns
  */
-const PublicationStatViewer = ({ doi, session, isBenchmarking }) => {
+const PublicationStatViewer = ({ doiListQuery, session, isBenchmarking }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
-    const searchUrl = doi
-        ? `/search/?type=File&type!=ExternalOutputFile&doi_list=${doi}`
+    const searchUrl = doiListQuery
+        ? `/search/?type=File&type!=ExternalOutputFile&${doiListQuery}`
         : null;
 
-    // re-fetch data when [doi, session] changes
+    // re-fetch data when [searchUrl, session] changes
     useEffect(() => {
         if (!searchUrl) {
             setLoading(false);
@@ -154,7 +169,7 @@ const PublicationStatViewer = ({ doi, session, isBenchmarking }) => {
             {},
             null
         );
-    }, [doi, session]);
+    }, [searchUrl, session]);
 
     const statsProps = { session, loading, error, data };
 
@@ -222,7 +237,9 @@ const PublicationViewTabs = (props) => {
         'reference-set-generation'
     );
 
-    const fileSearchUrl = `/search/?type=ExternalOutputFile&doi_list=${context?.doi}&limit=all`;
+    const fileSearchUrl = `/search/?type=ExternalOutputFile&${getDoiListQuery(
+        context
+    )}&limit=all`;
 
     const customColumns = {
         '@type': {},
@@ -367,7 +384,7 @@ const PublicationViewTabs = (props) => {
 /** Top-level component for the Publication Overview Page */
 const PublicationView = React.memo(function PublicationView(props) {
     const { context, session, href } = props;
-    const [showFullAuthorList, toggleFullAuthorList] = useToggle(false);
+    const [showFullAuthorList, toggleFullAuthorList] = useToggle(true);
 
     // Check if data info should be suppressed
     const suppress_data_info = context?.tags?.includes('suppress_data_banner');
@@ -410,7 +427,7 @@ const PublicationView = React.memo(function PublicationView(props) {
             <div className="view-content">
                 <div className="publication-header">
                     {context?.key_image_thumbnail_link ? (
-                        <img
+                        <ClickableImage
                             className="thumbnail"
                             src={context.key_image_thumbnail_link}
                             alt={context.title || 'Publication key figure'}
@@ -614,7 +631,7 @@ const PublicationView = React.memo(function PublicationView(props) {
                             SMaHT Data Analyzed
                         </h2>
                         <PublicationStatViewer
-                            doi={context?.doi}
+                            doiListQuery={getDoiListQuery(context)}
                             session={session}
                             isBenchmarking={context?.publication_groups?.includes(
                                 'Benchmarking'
