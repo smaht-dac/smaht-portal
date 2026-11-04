@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
 import Diagram from './Diagram';
+import RelationshipDetails from './RelationshipDetails';
 import Planner from './Planner';
 import LiveItem, { OriginTags } from './LiveItem';
 import { describe } from './provenance';
@@ -464,21 +465,28 @@ export default function Explorer() {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body id="detail-content">
-                    {detail?.intro && <p>{detail.intro}</p>}
-                    {detail?.metadata && (
-                        <pre>{JSON.stringify(detail.metadata, null, 2)}</pre>
-                    )}
-                    <SourceLinks sources={detail?.sources} onSource={source} />
-                    {detail?.sourceLines ? (
-                        <pre className="se-source-code" aria-label="Source code; selected definition highlighted">
-                            {detail.sourceLines.map((entry) => (
-                                <span key={entry.number} className={entry.selected ? 'se-source-line se-source-selected' : 'se-source-line'}>
-                                    <span className="se-line-number">{entry.number}</span>{entry.text}{'\n'}
-                                </span>
-                            ))}
-                        </pre>
+                    {detail?.relationship ? (
+                        <RelationshipDetails references={detail.relationship} index={index}
+                            intro={detail.intro} sources={detail.sources} onSource={source} />
                     ) : (
-                        <pre>{detail?.text ?? JSON.stringify(detail?.value, null, 2)}</pre>
+                        <>
+                            {detail?.intro && <p>{detail.intro}</p>}
+                            {detail?.metadata && (
+                                <pre>{JSON.stringify(detail.metadata, null, 2)}</pre>
+                            )}
+                            <SourceLinks sources={detail?.sources} onSource={source} />
+                            {detail?.sourceLines ? (
+                                <pre className="se-source-code" aria-label="Source code; selected definition highlighted">
+                                    {detail.sourceLines.map((entry) => (
+                                        <span key={entry.number} className={entry.selected ? 'se-source-line se-source-selected' : 'se-source-line'}>
+                                            <span className="se-line-number">{entry.number}</span>{entry.text}{'\n'}
+                                        </span>
+                                    ))}
+                                </pre>
+                            ) : (
+                                <pre>{detail?.text ?? JSON.stringify(detail?.value, null, 2)}</pre>
+                            )}
+                        </>
                     )}
                     {detail?.actions?.map((action, i) => (
                         <button type="button"

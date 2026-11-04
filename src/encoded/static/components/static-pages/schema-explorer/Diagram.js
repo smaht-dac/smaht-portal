@@ -6,7 +6,11 @@ import React, {
     useCallback,
 } from 'react';
 import { layout, width, height } from './layout';
-import { domains, domainFor, groupedLayout } from './domains';
+import { domains, domainFor, hierarchicalLayout, overviewLayout, abstractTypes } from './domains';
+import { routeEdges } from './routing';
+import { groupRelationships, sharedRelationships } from './relationship-view';
+import { nodePresentation, stageAccent } from './node-presentation';
+import ResearchOverview from './ResearchOverview';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
 
 const defaults = ['User', 'Consortium', 'Consortia', 'SubmissionCenter'];
@@ -21,10 +25,12 @@ export default function Diagram({
 }) {
     const [selected, setSelected] = useState(focus);
     const [domain, setDomain] = useState('');
-    const [arrangement, setArrangement] = useState('grouped');
+    const [arrangement, setArrangement] = useState('hierarchical');
+    const [overviewMode, setOverviewMode] = useState('relationships');
     const [crossLinks, setCrossLinks] = useState(true);
+    const [connectionMode, setConnectionMode] = useState('shared');
     const [hidden, setHidden] = useState(compact ? [] : defaults);
-    const [kinds, setKinds] = useState(['linkTo', 'calculated', 'reverse']);
+    const [kinds, setKinds] = useState(compact ? ['linkTo', 'calculated', 'reverse'] : ['linkTo']);
     const [neighbors, setNeighbors] = useState(false),
         [full, setFull] = useState(false);
     const [query, setQuery] = useState(''),
@@ -38,11 +44,7 @@ export default function Diagram({
         drag = useRef(),
         relationshipMenu = useRef(),
         typePicker = useRef(),
-        mapSettings = useRef(),
-        previousSelection = useRef(selected),
-        selectionCamera = useRef(null),
-        cameraRef = useRef(camera);
-    cameraRef.current = camera;
+        mapSettings = useRef();
     useEffect(() => {
         const closeMenus = (event) => {
             [typePicker.current, mapSettings.current, relationshipMenu.current].forEach((menu) => {
@@ -84,19 +86,13 @@ export default function Diagram({
             ]),
         [edges, selected]
     );
+    const visibleConnected = neighbors ? connected : null;
+    const neighborhoodSelection = neighbors ? selected : '';
     const visible = useMemo(() => nodes.filter(
-        (n) => !hidden.includes(n.name) && (neighbors ? connected.has(n.name) : (!domain || domainFor(n.name) === domain))
-    ), [nodes, hidden, neighbors, connected, domain]);
-    const names = new Set(visible.map((n) => n.name));
-    const groups = useMemo(() => {
-        const result = new Map();
-        edges.forEach((e) => {
-            const key = JSON.stringify([e.from, e.to, e.kind, !!e.reverse]);
-            if (!result.has(key)) result.set(key, { ...e, key, edges: [] });
-            result.get(key).edges.push(e);
-        });
-        return [...result.values()];
-    }, [edges]);
+        (n) => !hidden.includes(n.name) && (visibleConnected ? visibleConnected.has(n.name) : (!domain || domainFor(n.name) === domain))
+    ), [nodes, hidden, visibleConnected, domain]);
+    const names = useMemo(() => new Set(visible.map((n) => n.name)), [visible]);
+    const groups = useMemo(() => groupRelationships(edges), [edges]);
     const edgeLanes = useMemo(() => {
         const pairs = new Map();
         groups.forEach((group) => {
@@ -114,16 +110,21 @@ export default function Diagram({
         });
         return lanes;
     }, [groups]);
-    const allPositions = useMemo(() => layout(visible, groups, size), [visible, groups, size]);
-    const clustered = useMemo(() => groupedLayout(visible, width, height), [visible]);
-    const showDomains = !compact && !neighbors && arrangement === 'grouped';
+    const showDomains = !compact && !neighbors && arrangement === 'hierarchical';
+    const overview = showDomains && !domain;
+    const researchOverview = overview && overviewMode === 'relationships';
+    const cardWidth = overview ? 196 : width, cardHeight = overview ? 28 : height;
+    const allPositions = useMemo(() => showDomains ? {} : layout(visible, groups, size), [showDomains, visible, groups, size]);
+    const clustered = useMemo(() => showDomains
+        ? overview ? overviewLayout(visible, size) : hierarchicalLayout(visible, width, height, index.edges, size)
+        : { positions: {}, frames: [], layers: [] }, [showDomains, overview, visible, index, size]);
     const positions = useMemo(() => {
-        if (!neighbors || !selected) return { ...(showDomains ? clustered.positions : allPositions), ...moves };
+        if (!neighbors || !neighborhoodSelection) return { ...(showDomains ? clustered.positions : allPositions), ...moves };
         const others = nodes.filter(
             (n) =>
-                n.name !== selected &&
+                n.name !== neighborhoodSelection &&
                 !hidden.includes(n.name) &&
-                connected.has(n.name)
+                visibleConnected.has(n.name)
         );
         const columns = Math.max(
             1,
@@ -133,7 +134,7 @@ export default function Diagram({
                 )
             )
         );
-        const result = { [selected]: { x: 0, y: -160 } };
+        const result = { [neighborhoodSelection]: { x: 0, y: -160 } };
         others.forEach((n, i) => {
             result[n.name] = {
                 x: ((i % columns) - (columns - 1) / 2) * (width + 120),
@@ -145,67 +146,72 @@ export default function Diagram({
         allPositions,
         moves,
         neighbors,
-        selected,
+        neighborhoodSelection,
         hidden,
-        connected,
+        visibleConnected,
         nodes,
         size,
         showDomains,
         clustered,
     ]);
-    const bounds = visible.length
-        ? {
-            left:
-                  Math.min(...visible.map((n) => positions[n.name].x)) -
-                  width / 2 -
-                  65,
-            right:
-                  Math.max(...visible.map((n) => positions[n.name].x)) +
-                  width / 2 +
-                  65,
-            top:
-                  Math.min(...visible.map((n) => positions[n.name].y)) -
-                  height / 2 -
-                  90,
-            bottom:
-                  Math.max(...visible.map((n) => positions[n.name].y)) +
-                  height / 2 +
-                  65,
+    const visibleGroups = useMemo(() => groups.filter(
+        (g) => names.has(g.from) && names.has(g.to) &&
+            (!showDomains || domainFor(g.from) === domainFor(g.to) || (crossLinks && (g.from === selected || g.to === selected)))
+    ), [groups, names, showDomains, selected, crossLinks]);
+    const scopedGroups = useMemo(() => visibleGroups.filter(
+        (g) => !showDomains || !selected || g.from === selected || g.to === selected
+    ), [visibleGroups, showDomains, selected]);
+    const shared = useMemo(() => showDomains && !overview ? sharedRelationships(index, visibleGroups, names)
+        : { groups: visibleGroups, inherited: {} }, [showDomains, overview, index, visibleGroups, names]);
+    const summarize = showDomains && !overview && !selected && connectionMode === 'shared';
+    const shownGroups = useMemo(() => summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups,
+        [summarize, shared, scopedGroups]);
+    const headings = useMemo(() => showDomains ? [
+        ...clustered.frames.map((frame) => {return { left: frame.left + 18, top: frame.top + 12, width: Math.min(frame.width - 36, frame.label.length * 15 + 12), height: 38 };}),
+        ...clustered.layers,
+    ] : [], [showDomains, clustered]);
+    const routes = useMemo(() => showDomains && !overview
+        ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {},
+    [showDomains, overview, positions, shownGroups, headings]);
+    const bounds = useMemo(() => {
+        const points = visible.flatMap((n) => [
+            { x: positions[n.name].x - cardWidth / 2, y: positions[n.name].y - cardHeight / 2 },
+            { x: positions[n.name].x + cardWidth / 2, y: positions[n.name].y + cardHeight / 2 },
+        ]);
+        if (showDomains) {
+            clustered.frames.forEach((f) => points.push({ x: f.left, y: f.top }, { x: f.left + f.width, y: f.top + f.height }));
+            Object.values(routes).forEach((route) => points.push(...route.points));
         }
-        : { left: -300, right: 300, top: -200, bottom: 200 };
-    const fit = useCallback(() => {
-        const scale = Math.max(
-            0.05,
-            Math.min(
-                1.5,
-                size.width / (bounds.right - bounds.left),
-                size.height / (bounds.bottom - bounds.top)
-            )
+        return points.length ? {
+            left: Math.min(...points.map((p) => p.x)) - (showDomains ? 20 : 65),
+            right: Math.max(...points.map((p) => p.x)) + (showDomains ? 20 : 65),
+            top: Math.min(...points.map((p) => p.y)) - (showDomains ? 20 : 90),
+            bottom: Math.max(...points.map((p) => p.y)) + (showDomains ? 20 : 65),
+        } : { left: -300, right: 300, top: -200, bottom: 200 };
+    }, [visible, positions, showDomains, clustered, routes, cardWidth, cardHeight]);
+    const fit = useCallback((readable = true) => {
+        const fitted = Math.min(
+            showDomains ? 1.25 : 1.5,
+            size.width / (bounds.right - bounds.left),
+            size.height / (bounds.bottom - bounds.top)
         );
+        const scale = Math.max(showDomains && readable ? 0.85 : 0.05, fitted);
+        const fitsX = (bounds.right - bounds.left) * scale <= size.width;
+        const fitsY = (bounds.bottom - bounds.top) * scale <= size.height;
         setCamera({
             scale,
-            x: (size.width - (bounds.left + bounds.right) * scale) / 2,
-            y: (size.height - (bounds.top + bounds.bottom) * scale) / 2,
+            x: fitsX ? (size.width - (bounds.left + bounds.right) * scale) / 2 : 16 - bounds.left * scale,
+            y: fitsY ? (size.height - (bounds.top + bounds.bottom) * scale) / 2 : 16 - bounds.top * scale,
         });
-    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, size]);
+    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, size, showDomains]);
     // Selecting a node only highlights it in the full map. Refit selection
     // changes only when they replace the displayed neighborhood.
     const layoutFocus = neighbors ? selected : focus;
     useEffect(() => {
         fit();
-    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement]);
+    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement, connectionMode]);
     useEffect(() => {
-        if (previousSelection.current === selected) return;
-        previousSelection.current = selected;
-        if (!selected) {
-            if (selectionCamera.current) setCamera(selectionCamera.current);
-            selectionCamera.current = null;
-            return;
-        }
-        if (neighbors) return;
-        if (!selectionCamera.current) selectionCamera.current = cameraRef.current;
-    }, [selected, connected, visible, positions, size, neighbors]);
-    useEffect(() => {
+        if (!svg.current) return undefined;
         const observer = new ResizeObserver((entries) => {
             const rect = entries[0].contentRect;
             if (rect.width && rect.height)
@@ -214,7 +220,7 @@ export default function Diagram({
         });
         observer.observe(svg.current);
         return () => observer.disconnect();
-    }, []);
+    }, [researchOverview]);
     useEffect(() => {
         if (!full) return undefined;
         const escape = (e) => {
@@ -239,6 +245,7 @@ export default function Diagram({
         });
     useEffect(() => {
         const element = svg.current;
+        if (!element) return undefined;
         const wheel = (e) => {
             e.preventDefault();
             const rect = element.getBoundingClientRect();
@@ -250,15 +257,18 @@ export default function Diagram({
         };
         element.addEventListener('wheel', wheel, { passive: false });
         return () => element.removeEventListener('wheel', wheel);
-    }, []);
-    const choose = (name) => {
-        if (!neighbors && domain && domainFor(name) !== domain) setDomain(domainFor(name));
+    }, [researchOverview]);
+    const choose = useCallback((name) => {
+        if (!neighbors && (domain || showDomains) && domainFor(name) !== domain) {
+            setDomain(domainFor(name));
+            setMoves({});
+        }
         if (hidden.includes(name)) setHidden(hidden.filter((n) => n !== name));
         setQuery('');
         setSelected(name);
         if (neighbors) setMoves({});
         if (compact) onExplore(name);
-    };
+    }, [neighbors, domain, showDomains, hidden, compact, onExplore]);
     const setVisibility = (next) => {
         setHidden(next);
         setMoves({});
@@ -271,7 +281,10 @@ export default function Diagram({
         onDetail({
             title: `${group.from} → ${group.to}`,
             value: group.edges,
-            intro: '[] denotes an array. Arrows point to the referenced type.',
+            relationship: group.edges,
+            intro: group.shared
+                ? `Shared definition drawn once at ${group.from}. The exact references from all represented schemas are listed below. [] denotes an array.`
+                : '[] denotes an array. Arrows point to the referenced type.',
             sources: group.edges.flatMap(
                 (e) =>
                     index.models
@@ -283,17 +296,14 @@ export default function Diagram({
                         )?.sources || []
             ),
         });
-    const shownGroups = groups.filter(
-        (g) => names.has(g.from) && names.has(g.to) &&
-            (!showDomains || !selected || g.from === selected || g.to === selected) &&
-            (!showDomains || domainFor(g.from) === domainFor(g.to) || (crossLinks && (g.from === selected || g.to === selected)))
-    );
-    const chooseDomain = (id) => {
+    const chooseDomain = useCallback((id) => {
         setDomain(id);
+        setConnectionMode('shared');
+        if (!id) setOverviewMode('relationships');
         setSelected('');
         setNeighbors(false);
         setMoves({});
-    };
+    }, []);
     const clearSelection = () => {
         setSelected('');
         setNeighbors(false);
@@ -305,18 +315,29 @@ export default function Diagram({
             names.has(e.from) &&
             names.has(e.to)
     );
+    const drawnGroups = overview ? [] : shownGroups;
+    const showAllTypes = useCallback(() => setOverviewMode('types'), []);
+    if (researchOverview) {
+        return (
+            <ResearchOverview index={index} nodes={visible} onType={choose} onGroup={chooseDomain}
+                onAllTypes={showAllTypes} onDetail={onDetail} />
+        );
+    }
     return (
         <section
-            className={`se-diagram${full ? ' se-fullscreen' : ''}`}
+            className={`se-diagram${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}${overview ? ' se-overview' : ''}`}
             aria-label={
                 compact ? 'Item relationships' : 'All schema relationships'
             }>
             <div className="se-toolbar">
-                <h2>{compact ? 'Relationships' : neighbors ? `${selected} neighborhood` : domains.find((d) => d.id === domain)?.label || 'All schemas'}</h2>
+                {overview && <button type="button" onClick={() => setOverviewMode('relationships')}>← Metadata map</button>}
+                {domain && !compact && <button type="button" className="se-back-to-groups" onClick={() => chooseDomain('')}>← Metadata map</button>}
+                {(!showDomains || overview) && (
+                    <h2>{compact ? 'Relationships' : neighbors ? `${selected} neighborhood` : domains.find((d) => d.id === domain)?.label || 'All schemas'}</h2>
+                )}
                 <span className="text-muted">
                     {visible.length} types ·{' '}
-                    {shownGroups.reduce((n, g) => n + g.edges.length, 0)}{' '}
-                    relationships
+                    {summarize ? `${shownGroups.length} shared-definition connections` : `${shownGroups.reduce((n, g) => n + g.edges.length, 0)} relationships`}
                 </span>
             </div>
             <div className="se-map-toolbar">
@@ -359,7 +380,7 @@ export default function Diagram({
                                 </label>
                                 <label>Layout
                                     <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
-                                        <option value="grouped">Grouped</option>
+                                        <option value="hierarchical">Hierarchical</option>
                                         <option value="network">Network</option>
                                     </select>
                                 </label>
@@ -375,6 +396,17 @@ export default function Diagram({
                             <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
                         </details>
                     </div>
+                    {showDomains && !overview && (
+                        <div className="se-map-tool-section se-connection-mode">
+                            <label>Connections
+                                <select aria-label="Connection detail" value={selected ? 'selected' : connectionMode} onChange={(event) => setConnectionMode(event.target.value)} disabled={!!selected}>
+                                    {selected && <option value="selected">Selected type: exact links</option>}
+                                    <option value="shared">Shared definitions</option>
+                                    <option value="all">All references</option>
+                                </select>
+                            </label>
+                        </div>
+                    )}
                     {!compact && (
                         <div className="se-map-tool-section" aria-label="Schema exploration">
                             <button type="button" id="entity-show-neighborhood" disabled={!selected} aria-pressed={neighbors} onClick={() => {
@@ -395,7 +427,7 @@ export default function Diagram({
                         }}>{exporting ? 'Exporting…' : 'Export PNG'}
                         </button>
                         <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
-                            <button type="button" onClick={fit}>Fit all</button>
+                            <button type="button" onClick={() => fit(false)}>Fit all</button>
                             <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
                             <span>{Math.round(camera.scale * 100)}%</span>
                             <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
@@ -421,12 +453,21 @@ export default function Diagram({
                         ))}
                 </div>
             )}
-            <p className="text-muted">
-                Drag the background to pan, scroll to zoom, or drag a type to
-                move it. Select a type to highlight its neighbors; select an
-                edge to inspect its fields.
-            </p>
+            {!overview && (
+                <p className="text-muted">
+                    Drag the background to pan, scroll to zoom, or drag a type to
+                    move it. Select a type to highlight its neighbors; select an
+                    edge to inspect its fields.
+                </p>
+            )}
             {error && <p role="alert">{error}</p>}
+            {showDomains && (
+                <p className="se-flow-note">{overview ? 'Select a group or type to explore its relationships. Groups follow the biological workflow.' : selected
+                    ? `Showing ${selected} references between visible schemas, including inherited and self-references. Clear selection to return to the group overview.`
+                    : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
+                        : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.'}
+                </p>
+            )}
             <div className="se-canvas-wrap">
                 {!compact && (
                     <button type="button" className="se-canvas-fullscreen" id="entity-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onPointerDown={(e) => e.stopPropagation()} onClick={() => setFull(!full)}>
@@ -442,6 +483,9 @@ export default function Diagram({
                     aria-label="Schema relationship diagram"
                     onPointerDown={(e) => {
                         if (e.button !== 0) return;
+                        // Capturing on the SVG retargets clicks away from edges.
+                        // Leave relationship controls to their own click handlers.
+                        if (e.target.closest('.se-edge, .se-edge-label')) return;
                         const name =
                         e.target.closest('[data-entity]')?.dataset.entity;
                         drag.current = {
@@ -462,6 +506,7 @@ export default function Diagram({
                         d.moved = true;
                         d.x = e.clientX;
                         d.y = e.clientY;
+                        if (overview && d.name) return;
                         if (d.name)
                             setMoves((m) => {return {
                                 ...m,
@@ -518,7 +563,17 @@ export default function Diagram({
                                 </text>
                             </g>
                         ))}
-                        {shownGroups.map((g) => {
+                        {showDomains && !overview && clustered.layers.map((layer) => (
+                            <rect key={`panel-${layer.id}`} className="se-stage-panel" x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="8" />
+                        ))}
+                        {showDomains && clustered.layers.map((layer) => (
+                            <g key={layer.id}>
+                                <circle cx={layer.left + 3} cy={layer.top + 12} r="3" fill={stageAccent(layer.id.slice(layer.domain.length + 1))} aria-hidden="true" />
+                                <text className="se-stage-label" x={layer.left + 12} y={layer.top + 18}>{layer.label}</text>
+                            </g>
+                        ))}
+                        {drawnGroups.map((g) => {
+                            if (showDomains && !routes[g.key]) return null;
                             const displayKind = g.reverse && kinds.includes('reverse') &&
                                 !kinds.includes(g.kind) ? 'reverse' : g.kind;
                             const a = positions[g.from],
@@ -559,7 +614,7 @@ export default function Diagram({
                                         : ''}>
                                     <path
                                         className={`se-edge ${displayKind}`}
-                                        d={d}
+                                        d={showDomains ? routes[g.key].d : d}
                                         tabIndex={0}
                                         role="button"
                                         aria-label={`${g.from} to ${g.to}`}
@@ -596,45 +651,57 @@ export default function Diagram({
                                 </g>
                             );
                         })}
-                        {visible.map((n) => (
-                            <g
-                                key={n.name}
-                                data-entity={n.name}
-                                className={`entity-node ${
-                                    selected === n.name ? 'selected' : ''
-                                } ${
-                                    selected && !connected.has(n.name)
-                                        ? 'se-dim'
-                                        : ''
-                                }`}
-                                transform={`translate(${
-                                    positions[n.name].x - width / 2
-                                },${positions[n.name].y - height / 2})`}
-                                tabIndex={0}
-                                role="button"
-                                aria-label={n.name}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        choose(n.name);
-                                    }
-                                }}>
-                                <rect width={width} height={height} rx="8" />
-                                <text x="12" y="26">
-                                    {n.name}
-                                </text>
-                                <text x="12" y="49" className="se-subtitle">
-                                    {n.model
-                                        ? `${n.model.fields.length} fields · ${
-                                            n.model.fields.filter(
-                                                (f) => f.calculated
-                                            ).length
-                                        } calculated`
-                                        : 'Unresolved type'}
-                                </text>
-                            </g>
-                        ))}
-                        {shownGroups.map((g) => {
+                        {visible.map((n) => {
+                            const presentation = nodePresentation(n.name, n.model, { isAbstract: abstractTypes.has(n.name) });
+                            const inherited = shared.inherited[n.name];
+                            const tooltip = [n.name, presentation.description,
+                                n.model ? `${n.model.fields.length} fields · ${n.model.fields.filter((field) => field.calculated).length} calculated` : '',
+                                inherited ? `${inherited.fields.size} inherited references from ${[...inherited.owners].join(', ')}` : '',
+                            ].filter(Boolean).join('\n');
+                            return (
+                                <g
+                                    key={n.name}
+                                    data-entity={n.name}
+                                    className={`entity-node${!overview && presentation.isAbstract ? ' se-node-abstract' : ''} ${
+                                        selected === n.name ? 'selected' : ''
+                                    } ${
+                                        selected && !connected.has(n.name)
+                                            ? 'se-dim'
+                                            : ''
+                                    }`}
+                                    transform={`translate(${
+                                        positions[n.name].x - cardWidth / 2
+                                    },${positions[n.name].y - cardHeight / 2})`}
+                                    tabIndex={0}
+                                    role="button"
+                                    aria-label={n.name}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            choose(n.name);
+                                        }
+                                    }}>
+                                    <title>{tooltip}</title>
+                                    <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={overview ? 4 : 8} />
+                                    <text className="se-node-title" x="12" y={overview ? 19 : 26}>
+                                        {n.name}
+                                    </text>
+                                    {!overview && (
+                                        <text x="12" y="49" className="se-subtitle">
+                                            {presentation.caption}
+                                        </text>
+                                    )}
+                                    {!overview && presentation.isAbstract && (
+                                        <g aria-hidden="true">
+                                            <rect className="se-node-abstract-badge" x={cardWidth - 65} y="9" width="54" height="16" rx="4" />
+                                            <text className="se-node-abstract-label" x={cardWidth - 38} y="20">Abstract</text>
+                                        </g>
+                                    )}
+                                </g>
+                            );
+                        })}
+                        {drawnGroups.map((g) => {
+                            if (showDomains && !routes[g.key]) return null;
                             const a = positions[g.from],
                                 b = positions[g.to],
                                 dx = b.x - a.x,
@@ -662,10 +729,15 @@ export default function Diagram({
                                 markerKind = g.reverse && kinds.includes('reverse')
                                     ? 'reverse'
                                     : g.kind;
+                            const route = showDomains ? routes[g.key] : null;
+                            const tipX = route ? route.end.x : bx, tipY = route ? route.end.y : by;
+                            const directionX = route ? route.ux : ux, directionY = route ? route.uy : uy;
+                            const arrowBaseX = route ? tipX - directionX * headLength : baseX;
+                            const arrowBaseY = route ? tipY - directionY * headLength : baseY;
                             return (
                                 <polygon
                                     key={`arrow-${g.key}`}
-                                    points={`${bx},${by} ${baseX - uy * headWidth / 2},${baseY + ux * headWidth / 2} ${baseX + uy * headWidth / 2},${baseY - ux * headWidth / 2}`}
+                                    points={`${tipX},${tipY} ${arrowBaseX - directionY * headWidth / 2},${arrowBaseY + directionX * headWidth / 2} ${arrowBaseX + directionY * headWidth / 2},${arrowBaseY - directionX * headWidth / 2}`}
                                     fill={colors[markerKind]}
                                     opacity={selected && g.from !== selected && g.to !== selected ? 0.15 : 0.9}
                                     pointerEvents="none" />
@@ -692,6 +764,7 @@ export default function Diagram({
                         )}
                         {compact && <button type="button" onClick={clearSelection}>Clear selection</button>}
                     </div>
+                    {shared.inherited[selected] && <p className="se-inheritance-detail">{shared.inherited[selected].fields.size} reference fields inherited from { [...shared.inherited[selected].owners].join(', ') }. Their shared definitions are drawn at the base types in the group overview.</p>}
                     {incident.map((e, i) => (
                         <div className="se-relation" key={i}>
                             <Badge kind={e.kind}>{edgeLabel(e)}</Badge>

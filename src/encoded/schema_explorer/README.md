@@ -41,21 +41,81 @@ and SubmissionCenter types are hidden by default. The neighborhood control toggl
 the selected type's immediate neighbors and the enabled types. Item view includes
 field/embedding searches, inheritance, source inspection, navigation history and
 live provenance. The planner preserves ranking, subtype conditions, search bounds
-and missing-reverse-link proposals. Both diagram views support PNG export.
+and missing-reverse-link proposals. Both diagram views support PNG export. Relationship dialogs describe the scientific role and scope of a connection,
+with a compact field, source/target and multiplicity line. Curated interpretations
+are restricted to known field paths and target types. Exact fields, JSON and source definitions remain under Technical details;
+unrecognized relationships use the model description without inferred research advice.
 
-All schemas opens in a grouped layout based on the six domains in
-“SMaHT Metadata Model with Diagrams and Tables V2”: donor/clinical history,
-samples/tissue/cell lines, analytes/libraries/sequencing, files/quality metrics,
-workflows/analysis runs, and administrative/content/ontology. The explicit mapping
-lives in `domains.js`; EmailNotification and Item are included in the last group.
-Unmapped future types appear under Other types. These are navigation categories,
-not schema inheritance or access rules. Group filters do not limit planner searches.
+The opening map is a research-oriented **From donor to data** overview. It explains
+11 concepts using 10 labeled connections: donor, source material, sample, analyte,
+library, FileSet, data files, analysis context, workflow execution, quality assessment
+and sequencing. Numbered steps describe biological progression; arrows retain the
+actual direction of schema references. Related schemas are grouped into concepts,
+so a concept is not a claim that all its member schemas have every displayed field.
+
+The projection in `research-map.js` uses only direct references present in the
+current model and enabled types. For example, the source-material-to-donor connection
+contains actual `Tissue.donor` and `CellLine.donor` references; it does not invent
+`SampleSource.donor`. Missing references are omitted. **Trace a file to its donor**
+highlights the available File → FileSet → Library → Analyte → Sample → source-material
+→ Donor chain. Processing and quality branches remain visible but subdued.
+
+Selecting a concept folds the overview and focuses the main exploration workspace.
+Its prominent heading and explanation lead into relationship cards organized around
+research questions. Cards describe the connection, list its fields, count distinct
+schema types, and expand all exact definitions inline. The schema sidebar includes
+each type's description and opens its model details. Explicit abstract collections
+appear first under Abstract types, with an Abstract badge, italic name and dashed
+card border; concrete schemas follow in their own group. Inspect fields & sources opens
+the source inspector. Explore another concept switches the workspace; Back to overview
+restores the map, and Show overview reveals it without closing the workspace.
+The file-provenance action keeps the map expanded so its highlighted path stays visible.
+Selecting an arrow or label also opens its exact field and source definitions. Clinical details,
+preparation/instruments, reference metadata and administrative schemas remain
+available through context navigation. The relationship overview supports search,
+pan/zoom, full screen, keyboard access and PNG export.
+
+**All schemas** in the overview opens the complete group directory. Each enabled
+type name remains accessible there. Group headings open the detailed hierarchical
+diagram, and selecting a type opens its group and highlights that type.
+**Metadata map** returns to the research overview. The advanced Layout menu retains
+Network as an alternative to Hierarchical.
+
+Inside a selected group, stages are packed into columns or rows to match the canvas
+aspect ratio. The layout searches stage widths and node columns, minimizing unused
+space while preserving biological stage order through numbered headings. Base types
+occupy a separate strip above the stages. Automatic framing keeps a readable minimum
+scale; large diagrams can be panned, while **Fit all** explicitly fits the entire
+content. Group changes and clearing selection never restore another group's zoom.
+
+Explicit biological stages and base types are configured in `domains.js`.
+Unmapped future types appear in Other types. Stages describe biological navigation,
+not schema inheritance, access rules, or mandatory processing order.
+Group filters do not limit planner searches.
+
+Detailed hierarchical groups default to **Connections → Shared definitions**.
+A field inherited unchanged is drawn once at its highest visible ancestor that
+actually defines the same reference. Both field schema and provenance must match;
+overrides, independent mixins and hidden ancestors remain separate. Shared arrows
+retain every original subtype reference in the inspector. Node captions describe their role; stage colors appear only beside stage headings.
+Abstract types use a dashed outline and an Abstract badge. Full descriptions and
+field counts remain in tooltips; inheritance details appear for the selected type. Self-references appear on selection or in **All references**.
+Selecting a type restores its exact visible incident references without moving nodes.
+The router handles only displayed connections and distributes attachment points to
+reduce arrowhead stacking. Network and compact item diagrams keep their full graph.
+
+Only direct Link relationships are enabled initially in the main map. Calculated
+and Reverse relationships remain available in Relationships; compact item diagrams
+retain their existing default filters. Hierarchical arrows retain schema reference
+direction and use rounded orthogonal paths around nodes and stage/group headings.
+Dragging a node recalculates paths. Node selection preserves placement and camera;
+changing Group or Layout clears manual positions. The original force layout remains
+available as **Layout → Network**; neighborhood and compact layouts are unchanged.
 
 Click a canvas group heading or use Group to focus it. Search spans all types and
-opens the matching group when needed. Cross-group edges are hidden by default
-except those incident to the selected type; Cross-group links reveals all enabled
-edges. Show neighborhood includes direct neighbors across group boundaries.
-The original force layout remains available as Layout → Network.
+opens the matching group when needed. Cross-group edges are hidden except those
+incident to the selected type when Include cross-group links is enabled.
+Show neighborhood includes direct neighbors across group boundaries.
 
 Model/source reads use the portal AJAX utility. Live item reads use same-origin
 fetch to reject cross-origin redirects as well as external input URLs. Components
@@ -108,6 +168,10 @@ the indexed source files; it is not a redacted-source interface.
 ```sh
 PYTHONPATH=src python -m unittest discover -s tests/schema_explorer -v
 python -m encoded.schema_explorer /tmp/schema-explorer.json
+node tests/schema_explorer/domains.cjs /tmp/schema-explorer.json
+node tests/schema_explorer/research-map.cjs /tmp/schema-explorer.json
+node tests/schema_explorer/relationship-view.cjs /tmp/schema-explorer.json
+node tests/schema_explorer/node-presentation.cjs
 node tests/schema_explorer/browser.cjs /tmp/schema-explorer.json
 ```
 

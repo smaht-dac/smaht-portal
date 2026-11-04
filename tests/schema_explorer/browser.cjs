@@ -11,6 +11,36 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  try {
  const shell=await browser.newPage({viewport:{width:1500,height:1000},acceptDownloads:true});
  let page=shell;
+ const selectSetting = async (label, value) => {
+  const field=page.getByLabel(label,{exact:true});
+  if(!await field.isVisible())await page.locator('.se-map-settings > summary').click();
+  await field.selectOption(value);
+  if(await page.locator('.se-map-settings > summary').count())await page.locator('.se-map-settings > summary').click();
+ };
+ const clickDiagramEdge = async () => {
+  const point = await page.locator('#entity-svg .se-edge').evaluateAll(edges => {
+   for (const edge of edges) {
+    const length = edge.getTotalLength();
+    for (let fraction = .05; fraction < 1; fraction += .05) {
+     const p = edge.getPointAtLength(length * fraction).matrixTransform(edge.getScreenCTM());
+     if (document.elementFromPoint(p.x, p.y) === edge) return { x: p.x, y: p.y };
+    }
+   }
+   return null;
+  });
+  assert.ok(point, 'A relationship has a visible clickable segment');
+  await page.mouse.click(point.x, point.y);
+  await page.getByRole('dialog').waitFor({state:'visible'});
+  assert.ok(await page.locator('.se-connection-card h4').first().isVisible(), 'Research explanations lead the relationship inspector');
+  assert.equal(await page.locator('#detail-content pre').isVisible(), false, 'Raw JSON is initially folded away');
+  await page.locator('.se-connection-technical summary').click();
+  assert.equal(await page.locator('#detail-content pre').isVisible(), true, 'Exact references remain accessible');
+  await page.locator('.se-connection-technical summary').click();
+  assert.equal(await page.getByRole('dialog').evaluate(dialog => {
+   const rect = dialog.querySelector('.modal-content').getBoundingClientRect();
+   return dialog.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + 25));
+  }), true, 'Relationship details appear above the canvas');
+ };
  const {spawnSync}=require('child_process');
  const pageContext=require('./page-fixture.cjs');
  let isAdmin=true;
@@ -61,21 +91,222 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await shell.getByRole('heading',{name:'Schema Explorer',exact:true}).count(),1);
  assert.equal(await page.locator('#types').inputValue(),'');
  assert.equal(await page.locator('[data-schema-explorer]').evaluate(el=>el.shadowRoot),null);
- assert.equal(await page.getByLabel('Diagram layout',{exact:true}).inputValue(),'grouped');
+ assert.equal(await page.getByRole('heading',{name:'From donor to data',exact:true}).count(),1);
+ assert.equal(await page.locator('#research-svg [data-concept]').count(),11);
+ assert.equal(await page.locator('#research-svg .se-research-edge').count(),10);
+ assert.equal(await page.locator('#research-svg .se-research-label').count(),10);
+ assert.equal(await page.locator('#research-svg [data-concept] rect[width="4"]').count(),0,'Concept cards have no decorative side stripe');
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ assert.equal(await page.locator('#research-svg').evaluate(svg=>{const b=svg.getBoundingClientRect();return [...svg.querySelectorAll('[data-concept]')].every(n=>{const r=n.getBoundingClientRect();return r.left>=b.left && r.right<=b.right && r.top>=b.top && r.bottom<=b.bottom;});}),true,'The first view fits all concepts at readable size');
+
+ assert.equal(await page.locator('#entity-svg').count(),0,'Opening view explains relationships rather than listing all types');
+ await page.locator('#research-svg').screenshot({path:path.join(output,'research-overview.png')});
+ await page.getByRole('button',{name:'Trace a file to its donor',exact:true}).click();
+ assert.equal(await page.locator('#research-svg .se-research-traced').count(),6);
+ assert.match(await page.getByRole('status').textContent(),/Data files.*FileSet.*Library.*Analyte.*Sample.*Source material.*Donor/);
+ await page.locator('#research-svg').screenshot({path:path.join(output,'file-provenance.png')});
+ await page.locator('#research-svg [data-concept="sample"]').click();
+ assert.match(await page.getByRole('region',{name:'Sample details',exact:true}).textContent(),/sample_sources/);
+ assert.equal(await page.locator('#research-map-context').isVisible(),false,'Selecting a concept promotes the detail workspace and folds the overview');
+ await page.waitForFunction(()=>document.activeElement?.textContent==='Sample');
+ assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Sample','Selection focuses the main detail heading');
+ assert.equal(await page.locator('.se-relationship-card').count(),2);
+ await page.locator('.se-research-detail').screenshot({path:path.join(output,'sample-workspace.png')});
+ await page.getByLabel('Explore another concept',{exact:true}).selectOption('donor');
+ assert.deepEqual(await page.locator('.se-concept-schema').evaluateAll(cards=>cards.map(card=>card.dataset.schema)),['AbstractDonor','Donor','ProtectedDonor']);
+ assert.equal(await page.locator('.se-concept-schema').first().getAttribute('data-abstract'),'true');
+ assert.equal(await page.locator('.se-concept-schema-abstract .se-concept-abstract-badge').textContent(),'Abstract');
+ assert.equal(await page.locator('.se-concept-schema-abstract').evaluate(card=>getComputedStyle(card).borderTopStyle),'dashed');
+ await page.locator('.se-concept-schemas').screenshot({path:path.join(output,'abstract-donor-schemas.png')});
+
+ await page.getByLabel('Explore another concept',{exact:true}).selectOption('files');
+ assert.equal(await page.locator('.se-relationship-card').count(),4);
+ assert.equal(await page.locator('.se-concept-schema').count(),10);
+ const fileSetCard=page.locator('.se-relationship-card').filter({hasText:'Which experiment is this file associated with?'});
+ assert.match(await fileSetCard.textContent(),/file_sets\[\]/);
+ await fileSetCard.locator('summary').click();
+ assert.equal(await fileSetCard.locator('li').count(),7);
+ await page.locator('.se-research-detail').screenshot({path:path.join(output,'data-files-workspace.png')});
+ await page.getByLabel('Explore another concept',{exact:true}).selectOption('sample');
+ await page.getByRole('button',{name:/Show overview/}).click();
+ assert.equal(await page.locator('#research-map-context').isVisible(),true);
+
+ const coreEdge=page.locator('#research-svg [data-reference="sample-material"] .se-research-edge');
+ await coreEdge.focus();await page.keyboard.press('Enter');
+ assert.match(await page.getByRole('dialog').textContent(),/sample_sources/);
+ await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await page.locator('.modal-backdrop').waitFor({state:'detached'});
+ await page.getByRole('button',{name:'Whole model',exact:true}).click();
+ const researchDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Export PNG',exact:true}).click();
+ await (await researchDownload).saveAs(path.join(output,'research-overview-export.png'));
+ await page.getByRole('button',{name:'Enter full screen',exact:true}).click();
+ assert.equal(await page.getByRole('button',{name:'Exit full screen',exact:true}).getAttribute('aria-pressed'),'true');
+ await page.keyboard.press('Escape');
+ assert.equal(await page.getByRole('button',{name:'Enter full screen',exact:true}).getAttribute('aria-pressed'),'false');
+ await page.getByRole('button',{name:/^All \d+ schemas$/}).click();
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ assert.equal(await page.getByLabel('Diagram layout',{exact:true}).inputValue(),'hierarchical');
  assert.equal(await page.locator('.se-domain-frame').count(),6);
- await shell.screenshot({path:path.join(output,'grouped-map.png')});
- await page.getByLabel('Schema group',{exact:true}).selectOption('donors');
+ assert.equal(await page.locator('.se-overview').count(),1);
+ assert.equal(await page.locator('#entity-svg .se-edge').count(),0,'Overview is a readable directory');
+ assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=11.5,'Overview type names remain readable');
+ await page.locator('#entity-svg').screenshot({path:path.join(output,'overview-canvas.png')});
+ await shell.screenshot({path:path.join(output,'hierarchical-map.png')});
+ await selectSetting('Schema group','donors');
  assert.equal(await page.locator('.se-domain-frame').count(),1);
  assert.equal(await page.locator('[data-entity="File"]').count(),0);
  assert.equal(await page.locator('[data-entity="Donor"]').count(),1);
- await shell.screenshot({path:path.join(output,'grouped-donors.png')});
- await page.getByLabel('Find a schema',{exact:true}).fill('TissueSample');
+ await shell.screenshot({path:path.join(output,'hierarchical-donors.png')});
+ const nodePositions=()=>page.locator('#entity-svg .entity-node').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>[n.dataset.entity,n.getAttribute('transform')])));
+ const donorPositions=await nodePositions();
+ assert.deepEqual(await page.locator('#entity-svg .se-stage-label').allTextContents(),['Base types','1. Donors','2. Clinical context','3. Clinical details','4. Collection']);
+ assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=11.5,'Selected group type names remain readable');
+ await page.locator('#entity-svg').screenshot({path:path.join(output,'donor-canvas.png')});
+ assert.equal(await page.locator('#entity-svg .se-stage-label').count(),5);
+ assert.equal(await page.locator('#entity-svg').evaluate(svg=>{
+  const section=getComputedStyle(svg.querySelector('.se-stage-label'));
+  const title=getComputedStyle(svg.querySelector('.se-node-title'));
+  const description=getComputedStyle(svg.querySelector('.se-subtitle'));
+  return parseFloat(section.fontSize)>parseFloat(title.fontSize) && parseFloat(title.fontSize)>parseFloat(description.fontSize) && Number(section.fontWeight)>=Number(title.fontWeight) && Number(title.fontWeight)>Number(description.fontWeight);
+ }),true,'Section headings, item names and descriptions have a clear typographic hierarchy');
+
+ assert.equal(await page.locator('#entity-svg').evaluate(svg=>{
+  const panels=[...svg.querySelectorAll('.se-stage-panel')].map(n=>n.getBBox());
+  for(let i=0;i<panels.length;i++)for(let j=i+1;j<panels.length;j++){const a=panels[i],b=panels[j];if(!(a.x+a.width+19<=b.x || b.x+b.width+19<=a.x || a.y+a.height+19<=b.y || b.y+b.height+19<=a.y))return false;}
+  return [...svg.querySelectorAll('.entity-node')].every(n=>{const r=n.querySelector('rect').getBBox(),m=n.transform.baseVal.consolidate().matrix;return panels.some(p=>r.x+m.e>=p.x+17 && r.x+m.e+r.width<=p.x+p.width-17 && r.y+m.f>=p.y+39 && r.y+m.f+r.height<=p.y+p.height-15);});
+ }),true,'Stage backgrounds are separate and leave space around every node');
+
+ assert.equal(await page.locator('#entity-svg').evaluate(svg=>{
+  const obstacles=[...svg.querySelectorAll('.entity-node')].map(n=>{const b=n.getBBox(),m=n.transform.baseVal.consolidate().matrix;return {x:b.x+m.e,y:b.y+m.f,width:b.width,height:b.height};});
+  obstacles.push(...[...svg.querySelectorAll('.se-stage-label,.se-domain-frame text')].map(n=>n.getBBox()));
+  return [...svg.querySelectorAll('.se-edge')].every(edge=>{
+   const length=edge.getTotalLength();
+   for(let distance=1;distance<length;distance+=3){const p=edge.getPointAtLength(distance);if(obstacles.some(b=>p.x>b.x+1 && p.x<b.x+b.width-1 && p.y>b.y+1 && p.y<b.y+b.height-1))return false;}
+   return true;
+  });
+ }),true,'Rendered arrows avoid actual node and heading bounds');
+
+ await shell.setViewportSize({width:900,height:900});
+ await page.waitForFunction(()=>{const svg=document.querySelector('#entity-svg'),box=svg.getBoundingClientRect();return box.width<800 && svg.querySelector('[data-world]').transform.baseVal.consolidate().matrix.a>=0.85 && [...svg.querySelectorAll('.entity-node')].every(n=>{const r=n.getBoundingClientRect();return r.left>=box.left && r.right<=box.right;});});
+ await page.locator('#entity-svg').screenshot({path:path.join(output,'donor-narrow-canvas.png')});
+ await shell.setViewportSize({width:1500,height:1000});
+ await page.waitForFunction(before=>document.querySelector('[data-entity="Donor"]').getAttribute('transform')===before,donorPositions.Donor);
+ assert.equal(await page.locator('#entity-svg .se-edge.calculated, #entity-svg .se-edge.reverse').count(),0);
+ await page.locator('.se-link-filters summary').click();
+ await page.locator('.se-link-filters').getByLabel('Calculated',{exact:true}).check();
+ await page.locator('.se-link-filters').getByLabel('Reverse',{exact:true}).check();
+ assert.ok(await page.locator('#entity-svg .se-edge.calculated, #entity-svg .se-edge.reverse').count()>0);
+ assert.deepEqual(await nodePositions(),donorPositions,'Relationship filters preserve stages and horizontal placement');
+ await page.locator('.se-link-filters').getByLabel('Calculated',{exact:true}).uncheck();
+ await page.locator('.se-link-filters').getByLabel('Reverse',{exact:true}).uncheck();
+ await page.locator('.se-link-filters summary').click();
+ await clickDiagramEdge();
+ assert.equal(await page.getByRole('dialog').count(),1,'Edges open the field inspector');
+ await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await page.locator('.modal-backdrop').waitFor({state:'detached'});
+ const donorNode=page.locator('[data-entity="Donor"]');
+ await donorNode.focus();await page.keyboard.press('Enter');
+ assert.deepEqual(await nodePositions(),donorPositions,'Selection preserves placement');
+ const pathsBeforeDrag=await page.locator('#entity-svg .se-edge').evaluateAll(edges=>edges.map(e=>e.getAttribute('d')));
+ await donorNode.evaluate(node=>node.scrollIntoView({block:'center',inline:'center'}));
+ const donorBox=await donorNode.boundingBox();
+ assert.equal(await page.evaluate(box=>document.elementFromPoint(box.x+box.width/2,box.y+box.height/2)?.closest('[data-entity]')?.dataset.entity,donorBox),'Donor','Pointer must reach the node');
+ await page.mouse.move(donorBox.x+donorBox.width/2,donorBox.y+donorBox.height/2);
+ await page.mouse.down();await page.mouse.move(donorBox.x+donorBox.width/2+12,donorBox.y+donorBox.height/2+10,{steps:3});await page.mouse.up();
+ await page.waitForFunction(before=>document.querySelector('[data-entity="Donor"]').getAttribute('transform')!==before,donorPositions.Donor,{timeout:3000});
+ assert.notEqual((await nodePositions()).Donor,donorPositions.Donor,'Node dragging moves the node');
+ assert.notDeepEqual(await page.locator('#entity-svg .se-edge').evaluateAll(edges=>edges.map(e=>e.getAttribute('d'))),pathsBeforeDrag,'Dragging recalculates connected routes');
+ await page.getByRole('button',{name:'Reset layout',exact:true}).click();
+ assert.deepEqual(await nodePositions(),donorPositions);
+ const donorDownload=page.waitForEvent('download');await page.locator('#entity-export').click();
+ await (await donorDownload).saveAs(path.join(output,'hierarchical-donors-export.png'));
+ // A selected node must not restore the previous group's camera when navigating.
+ for(const group of ['sequencing','files','workflows']){
+  await selectSetting('Schema group',group);
+  assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=11.5,`${group} uses a readable camera`);
+  await page.locator('#entity-svg').screenshot({path:path.join(output,`${group}-canvas.png`)});
+  if(group==='files'){
+   assert.equal(await page.locator('.se-diagram:has(#entity-svg) > .se-toolbar > h2').count(),0,'The group title is not repeated above the diagram');
+   assert.equal(await page.locator('#entity-svg .se-domain-frame text').count(),1,'The diagram retains one group title');
+   const before=await nodePositions();
+   assert.equal(await page.getByLabel('Connection detail',{exact:true}).inputValue(),'shared');
+   assert.equal(await page.locator('#entity-svg .se-edge').count(),17,'Inherited references are summarized at their defining base');
+   await page.locator('#entity-svg .se-edge[aria-label="VariantCalls to ReferenceGenome"]').focus();
+   await page.keyboard.press('Enter');
+   assert.match(await page.locator('.se-connection-card').innerText(), /does not establish coordinate compatibility/);
+   assert.equal(await page.locator('#detail-content pre').isVisible(), false);
+   assert.equal(await page.locator('.se-connection-lead, .se-connection-use, .se-connection-context, .se-connection-note').count(),0,'Relationship dialogs omit tutorial framing and repeated schema explanations');
+   assert.equal(await page.locator('.se-connection-meta code').textContent(),'reference_genome');
+   await page.getByRole('dialog').screenshot({path:path.join(output,'research-relationship-details.png'),animations:'disabled'});
+   await page.locator('.se-connection-technical summary').click();
+   assert.match(await page.locator('#detail-content pre').textContent(), /reference_genome/);
+   assert.ok(await page.locator('#detail-content .se-sources button').count());
+   await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+   await page.locator('.modal-backdrop').waitFor({state:'detached'});
+   await page.locator('#entity-svg .se-edge[aria-label="DonorSpecificAssembly to File"]').focus();
+   await page.keyboard.press('Enter');
+   assert.equal(await page.locator('.se-connection-card h4').textContent(),'Assembly input provenance');
+   assert.match(await page.locator('.se-connection-card').innerText(),/direct input provenance/);
+   assert.equal(await page.locator('.se-connection-meta code').textContent(),'derived_from[]');
+   await page.getByRole('dialog').screenshot({path:path.join(output,'assembly-provenance-details.png'),animations:'disabled'});
+   await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+   await page.locator('.modal-backdrop').waitFor({state:'detached'});
+
+   assert.equal(await page.locator('[data-entity="AlignedReads"] .se-subtitle').textContent(),'Reads aligned to a genome');
+   assert.equal(await page.locator('[data-entity="UnalignedReads"] .se-subtitle').textContent(),'Unaligned sequencing reads');
+   assert.equal((await page.locator('#entity-svg .se-subtitle').allTextContents()).some(text=>text.includes('inherited')),false,'Node captions describe their role without repeating inheritance metadata');
+   assert.equal(await page.locator('[data-entity="File"] .se-node-abstract-label').textContent(),'Abstract');
+   assert.equal(await page.locator('#entity-svg .entity-node').evaluateAll(nodes=>nodes.every(n=>{const box=n.querySelector('.se-node-body').getBBox(),title=n.querySelector('.se-node-title').getBBox(),badge=n.querySelector('.se-node-abstract-badge')?.getBBox();return title.x+title.width<=box.width-10 && (!badge || title.x+title.width+6<=badge.x);})),true,'Emphasized names fit their cards and do not overlap Abstract badges');
+
+   assert.equal(await page.locator('[data-entity="File"] .se-node-body').evaluate(rect=>getComputedStyle(rect).strokeDasharray)!=='none',true);
+   assert.equal(await page.locator('#entity-svg .se-node-accent').count(),0,'Node cards have no decorative side stripe');
+   assert.equal(await page.locator('#entity-svg .entity-node').evaluateAll(nodes=>nodes.every(n=>{const b=n.querySelector('.se-node-body').getBBox(),t=n.querySelector('.se-subtitle')?.getBBox();return !t || t.x>=b.x+10 && t.x+t.width<=b.x+b.width-10;})),true,'Role captions fit inside their cards');
+
+   await page.getByLabel('Connection detail',{exact:true}).selectOption('all');
+   assert.equal(await page.locator('#entity-svg .se-edge').count(),64,'All references remain available explicitly');
+   await page.locator('#entity-svg').screenshot({path:path.join(output,'files-all-references.png')});
+   await page.getByLabel('Connection detail',{exact:true}).selectOption('shared');
+   assert.deepEqual(await nodePositions(),before,'Connection detail does not move nodes');
+   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   const cameraBeforeFocus=await page.locator('#entity-svg > g').getAttribute('transform');
+   await page.locator('[data-entity="UnalignedReads"]').focus();await page.keyboard.press('Enter');
+   const enabled=new Set(Object.keys(before));
+   const exact=new Set(snapshot.model.edges.filter(e=>e.kind==='linkTo' && enabled.has(e.from) && enabled.has(e.to) && (e.from==='UnalignedReads' || e.to==='UnalignedReads')).map(e=>JSON.stringify([e.from,e.to,e.kind,!!e.reverse])));
+   assert.equal(await page.locator('#entity-svg .se-edge').count(),exact.size,'Selection restores exact inherited and self-links for that type');
+   assert.match(await page.locator('.se-inheritance-detail').textContent(),/inherited from File, SubmittedFile|inherited from SubmittedFile, File/);
+
+   assert.equal(await page.locator('#entity-svg > g').getAttribute('transform'),cameraBeforeFocus,'Selection preserves the camera');
+   assert.deepEqual(await nodePositions(),before);
+   await page.locator('#entity-svg').screenshot({path:path.join(output,'files-selected-references.png')});
+   await page.getByRole('button',{name:'Clear selection',exact:true}).click();
+   assert.equal(await page.locator('#entity-svg .se-edge').count(),17);
+  }
+
+ }
+ await page.getByRole('button',{name:'← Metadata map',exact:true}).click();
+ assert.equal(await page.locator('.se-research-overview').count(),1);
+ await page.getByLabel('Search schemas',{exact:true}).fill('Donor');
+ await page.getByRole('button',{name:'Donor',exact:true}).click();
+ assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'donors');
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ const beforeClearing=await page.locator('#entity-svg > g').getAttribute('transform');
+ await page.getByRole('button',{name:'Clear selection',exact:true}).click();
+ assert.equal(await page.locator('#entity-svg > g').getAttribute('transform'),beforeClearing,'Clear selection preserves the current group camera');
+
+
+ await page.getByLabel('Search schemas',{exact:true}).fill('TissueSample');
  await page.getByRole('button',{name:'TissueSample',exact:true}).click();
  assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'samples');
- await page.getByLabel('Schema group',{exact:true}).selectOption('');
- await page.getByLabel('Diagram layout',{exact:true}).selectOption('network');
+ await selectSetting('Schema group','');
+ await page.getByRole('button',{name:/^All \d+ schemas$/}).click();
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await selectSetting('Diagram layout','network');
  assert.equal(await page.locator('.se-domain-frame').count(),0);
- await page.getByLabel('Diagram layout',{exact:true}).selectOption('grouped');
+ await selectSetting('Diagram layout','hierarchical');
+ assert.equal(await page.locator('.se-overview').count(),1);
+ await page.getByRole('button',{name:'File',exact:true}).click();
+ assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'files');
+ await page.getByRole('button',{name:'Clear selection',exact:true}).click();
  await page.getByRole('button',{name:'Zoom in',exact:true}).click();
  const zoomedCamera=await page.locator('#entity-svg > g').getAttribute('transform');
  await page.locator('[data-entity="File"]').focus();await page.keyboard.press('Enter');
@@ -85,13 +316,17 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.ok(await page.locator('#entity-svg .entity-node').count()>1);
  await page.locator('#entity-show-neighborhood').click();
  assert.equal(await page.locator('#entity-show-neighborhood').getAttribute('aria-pressed'),'false');
+ await page.locator('#open-entity').click(); // Switch from the default schema map to item view.
  assert.equal(await page.locator('#environments').isDisabled(),true);
  assert.equal(await page.locator('#environments option').count(),1);
- await page.locator('#open-entity').click(); // Switch from the default schema map to item view.
  await page.selectOption('#types','ProtectedDonor');
  await page.locator('#open-entity').click();await page.waitForSelector('#entity-svg .entity-node');
  await page.locator('#entity-fullscreen').click();
  assert.equal(await page.locator('#entity-fullscreen').getAttribute('aria-pressed'),'true');
+ await clickDiagramEdge();
+ await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await page.locator('.modal-backdrop').waitFor({state:'detached'});
+ assert.equal(await page.locator('#entity-fullscreen').getAttribute('aria-pressed'),'true','Closing details preserves full screen');
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('#entity-fullscreen').getAttribute('aria-pressed'),'false');
  const dl=shell.waitForEvent('download');await page.locator('#entity-export').click();const download=await dl;
@@ -152,6 +387,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
   await page.waitForFunction(()=>document.getElementById('types')?.options.length>30,null,{timeout:20000}).catch(async error=>{console.log('Portal bootstrap errors:',errors,'Recent requests:',calls.slice(-15));await page.screenshot({path:path.join(output,'bootstrap-failure.png')});throw error;});
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('user_info'))?.details?.email),'admin@example.org');
   assert.equal(await page.locator('#types').inputValue(),'');
+  await page.waitForSelector('#research-svg [data-concept]');
+  assert.equal(await page.locator('#research-svg .se-research-edge').count(),10,'The real portal bootstrap opens the relationship map');
  }
  assert.deepEqual(errors,[]);
  console.log('Portal bootstrap also passed: authenticated SSR user_info survives three page loads.');

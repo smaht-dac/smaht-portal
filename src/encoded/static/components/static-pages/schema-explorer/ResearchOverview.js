@@ -1,0 +1,289 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { buildResearchMap, researchLabels, traceProvenance } from './research-map';
+import { routeEdges } from './routing';
+import { abstractTypes } from './domains';
+import { exportPNG } from './shared';
+
+function lines(text) {
+    const result = [''];
+    for (const word of text.split(' ')) {
+        if (`${result[result.length - 1]} ${word}`.trim().length > 29) result.push(word);
+        else result[result.length - 1] = `${result[result.length - 1]} ${word}`.trim();
+    }
+    return result;
+}
+
+function RelationshipCard({ edge, graph, onInspect }) {
+    const from = graph.nodes.find((node) => node.id === edge.from);
+    const to = graph.nodes.find((node) => node.id === edge.to);
+    const fields = [...new Set(edge.edges.map((reference) => reference.field))];
+    const schemas = new Set(edge.edges.map((reference) => reference.from)).size;
+    return (
+        <article className="se-relationship-card">
+            <div className="se-relationship-direction"><span>{from.label}</span><span aria-hidden="true">→</span><span>{to.label}</span></div>
+            <h5>{edge.question}</h5>
+            <p>{edge.explanation}</p>
+            <div className="se-relationship-fields">{fields.map((field) => <code key={field}>{field}</code>)}</div>
+            <div className="se-relationship-actions">
+                <span>{fields.length} {fields.length === 1 ? 'field' : 'fields'} · {schemas} {schemas === 1 ? 'schema type' : 'schema types'}</span>
+                <button type="button" onClick={() => onInspect(edge)}>Inspect fields &amp; sources →</button>
+            </div>
+            <details className="se-relationship-definitions">
+                <summary>Show all {edge.edges.length} field {edge.edges.length === 1 ? 'definition' : 'definitions'}</summary>
+                <ul>{edge.edges.map((reference) => <li key={`${reference.from}-${reference.field}-${reference.to}`}><code>{reference.from}.{reference.field}</code><span aria-hidden="true"> → </span><code>{reference.to}</code></li>)}</ul>
+            </details>
+        </article>
+    );
+}
+
+export default function ResearchOverview({ index, nodes, onType, onGroup, onAllTypes, onDetail }) {
+    const [size, setSize] = useState({ width: 1200, height: 650 });
+    const [camera, setCamera] = useState({ x: 20, y: 20, scale: 1 });
+    const [selected, setSelected] = useState('');
+    const [tracing, setTracing] = useState(false);
+    const [mapExpanded, setMapExpanded] = useState(true);
+    const [query, setQuery] = useState('');
+    const [full, setFull] = useState(false);
+    const [exporting, setExporting] = useState(false);
+    const [error, setError] = useState('');
+    const svg = useRef(), drag = useRef(), detail = useRef(), detailHeading = useRef();
+    const graph = useMemo(() => buildResearchMap(index, nodes, size), [index, nodes, size]);
+    const routes = useMemo(() => routeEdges(graph.positions, graph.edges, graph.nodeWidth, graph.nodeHeight), [graph]);
+    const labels = useMemo(() => researchLabels(graph, routes), [graph, routes]);
+    const trace = useMemo(() => traceProvenance(graph, selected), [graph, selected]);
+    const concept = graph.nodes.find((node) => node.id === selected);
+    const schemaGroups = concept ? [
+        { label: 'Abstract types', abstract: true, members: concept.members.filter((name) => abstractTypes.has(name)) },
+        { label: 'Concrete types', abstract: false, members: concept.members.filter((name) => !abstractTypes.has(name)) },
+    ].filter((group) => group.members.length) : [];
+    const hasAbstract = schemaGroups.some((group) => group.abstract);
+    const bounds = useMemo(() => {
+        const points = graph.nodes.flatMap((node) => {
+            const p = graph.positions[node.id];
+            return [{ x: p.x - graph.nodeWidth / 2, y: p.y - graph.nodeHeight / 2 },
+                { x: p.x + graph.nodeWidth / 2, y: p.y + graph.nodeHeight / 2 }];
+        });
+        Object.values(routes).forEach((route) => points.push(...route.points));
+        Object.values(labels).forEach((label) => points.push({ x: label.left, y: label.top }, { x: label.left + label.width, y: label.top + label.height }));
+        return points.length ? {
+            left: Math.min(...points.map((p) => p.x)) - 20, right: Math.max(...points.map((p) => p.x)) + 20,
+            top: Math.min(...points.map((p) => p.y)) - 20, bottom: Math.max(...points.map((p) => p.y)) + 20,
+        } : { left: 0, right: 600, top: 0, bottom: 400 };
+    }, [graph, routes, labels]);
+    const fit = useCallback((readable = true) => {
+        const scale = Math.max(readable ? 0.85 : 0.05, Math.min(1.25, size.width / (bounds.right - bounds.left), size.height / (bounds.bottom - bounds.top)));
+        setCamera({ scale,
+            x: (bounds.right - bounds.left) * scale <= size.width ? (size.width - (bounds.left + bounds.right) * scale) / 2 : 16 - bounds.left * scale,
+            y: (bounds.bottom - bounds.top) * scale <= size.height ? (size.height - (bounds.top + bounds.bottom) * scale) / 2 : 16 - bounds.top * scale,
+        });
+    }, [bounds, size]);
+    const zoom = useCallback((factor, x = size.width / 2, y = size.height / 2) => {
+        setCamera((c) => {
+            const scale = Math.max(0.1, Math.min(3, c.scale * factor));
+            return { scale, x: x - (x - c.x) * scale / c.scale, y: y - (y - c.y) * scale / c.scale };
+        });
+    }, [size]);
+    useEffect(() => { fit(); }, [fit, full]);
+    useEffect(() => {
+        const observer = new ResizeObserver(([entry]) => {
+            const { width, height } = entry.contentRect;
+            if (width && height) setSize((s) => s.width === width && s.height === height ? s : { width, height });
+        });
+        observer.observe(svg.current);
+        return () => observer.disconnect();
+    }, []);
+    useEffect(() => {
+        const element = svg.current;
+        const wheel = (event) => {
+            event.preventDefault();
+            const box = element.getBoundingClientRect();
+            zoom(event.deltaY < 0 ? 1.1 : 1 / 1.1, event.clientX - box.left, event.clientY - box.top);
+        };
+        element.addEventListener('wheel', wheel, { passive: false });
+        return () => element.removeEventListener('wheel', wheel);
+    }, [zoom]);
+    useEffect(() => {
+        if (!full) return undefined;
+        const { overflow } = document.body.style;
+        const escape = (event) => { if (event.key === 'Escape') setFull(false); };
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', escape);
+        return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', escape); };
+    }, [full]);
+    const inspect = useCallback((edge) => onDetail({
+        title: `${graph.nodes.find((node) => node.id === edge.from)?.label} → ${graph.nodes.find((node) => node.id === edge.to)?.label}`,
+        intro: 'Exact schema references behind this connection. Boxes group related schemas; [] denotes an array.',
+        value: edge.edges,
+        relationship: edge.edges,
+        sources: edge.edges.flatMap((e) => index.models.find((model) => model.name === e.from)?.fields.find((field) => field.name === e.field.split('.')[0].replaceAll('[]', ''))?.sources || []),
+    }), [graph, index, onDetail]);
+    const choose = (id) => {
+        setSelected(id);
+        setTracing(false);
+        setMapExpanded(false);
+        requestAnimationFrame(() => {
+            detailHeading.current?.focus({ preventScroll: true });
+            detail.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        });
+    };
+    const returnToMap = () => {
+        setSelected('');
+        setTracing(false);
+        setMapExpanded(true);
+        requestAnimationFrame(() => { svg.current?.focus({ preventScroll: true }); svg.current?.scrollIntoView({ block: 'center' }); });
+    };
+    const dimNode = (id) => selected && !trace.nodes.has(id) &&
+        (tracing || !graph.edges.some((edge) => (edge.from === selected && edge.to === id) || (edge.to === selected && edge.from === id)));
+    const dimEdge = (edge) => selected && !trace.edges.has(edge.key) && (tracing || edge.from !== selected && edge.to !== selected);
+    return (
+        <section className={`se-research-overview${full ? ' se-fullscreen' : ''}`} aria-label="Metadata relationship overview">
+            <div className="se-research-heading">
+                <div><h2>From donor to data</h2><p>How specimens, experiments and files connect in the SMaHT metadata model.</p></div>
+                <button type="button" onClick={onAllTypes}>All {nodes.length} schemas</button>
+            </div>
+            <div className="se-research-toolbar">
+                <div className="se-research-paths" role="group" aria-label="Explore metadata relationships">
+                    <button type="button" aria-pressed={!tracing} onClick={returnToMap}>Whole model</button>
+                    <button type="button" aria-pressed={tracing} disabled={!graph.nodes.some((node) => node.id === 'files')} onClick={() => { setSelected('files'); setTracing(true); setMapExpanded(true); }}>Trace a file to its donor</button>
+                </div>
+                <input aria-label="Search schemas" type="search" placeholder="Find a specific schema…" value={query} onChange={(event) => setQuery(event.target.value)} />
+                <button type="button" hidden={!mapExpanded} disabled={exporting} onClick={async () => {
+                    setExporting(true);
+                    try { await exportPNG(svg.current, 'metadata-relationships'); }
+                    catch (err) { setError(err.message || 'PNG export failed.'); }
+                    finally { setExporting(false); }
+                }}>{exporting ? 'Exporting…' : 'Export PNG'}
+                </button>
+                <div className="se-zoom-controls" hidden={!mapExpanded} role="group" aria-label="Zoom controls">
+                    <button type="button" onClick={() => fit(false)}>Fit all</button>
+                    <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
+                    <span>{Math.round(camera.scale * 100)}%</span>
+                    <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
+                </div>
+            </div>
+            {query && <div className="se-toolbar">{nodes.filter((node) => node.name.toLowerCase().includes(query.toLowerCase())).slice(0, 8).map((node) => <button type="button" key={node.name} onClick={() => onType(node.name)}>{node.name}</button>)}</div>}
+            {concept && (
+                <button type="button" className="se-research-map-toggle" aria-expanded={mapExpanded} aria-controls="research-map-context" onClick={() => setMapExpanded(!mapExpanded)}>
+                    <span>Metadata map <span aria-hidden="true">/</span> {concept.label}</span><span>{mapExpanded ? 'Hide overview ↑' : 'Show overview ↓'}</span>
+                </button>
+            )}
+            <div id="research-map-context" hidden={!mapExpanded}>
+                <div className="se-research-legend">
+                    <span><b>1–7</b> Biological progression</span>
+                    <span><b>→</b> A record points to metadata it references</span>
+                    <span>Boxes group related schemas. Select a box or connection for exact fields. Drag to pan; scroll to zoom.</span>
+                </div>
+                {error && <p role="alert">{error}</p>}
+                <div className="se-canvas-wrap">
+                    <button type="button" className="se-canvas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}>{full ? '↙' : '⛶'}</button>
+                    <svg ref={svg} id="research-svg" className="se-canvas" role="group" aria-label="Donor to data relationship map" tabIndex={0}
+                        onPointerDown={(event) => {
+                            if (event.button !== 0 || event.target.closest('[data-concept], [data-reference]')) return;
+                            drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+                            event.currentTarget.setPointerCapture(event.pointerId);
+                        }}
+                        onPointerMove={(event) => {
+                            const d = drag.current;
+                            if (!d || d.id !== event.pointerId) return;
+                            const dx = event.clientX - d.x, dy = event.clientY - d.y;
+                            d.x = event.clientX; d.y = event.clientY;
+                            setCamera((c) => {return { ...c, x: c.x + dx, y: c.y + dy };});
+                        }}
+                        onPointerUp={(event) => { drag.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
+                        onPointerCancel={() => { drag.current = null; }}
+                        onKeyDown={(event) => {
+                            if (event.target !== event.currentTarget) return;
+                            const delta = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[event.key];
+                            if (delta) { event.preventDefault(); setCamera((c) => {return { ...c, x: c.x + delta[0], y: c.y + delta[1] };}); }
+                        }}>
+                        <g data-world="" transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
+                            {graph.edges.map((edge) => {
+                                const route = routes[edge.key];
+                                if (!route) return null;
+                                const { end, ux, uy } = route, baseX = end.x - ux * 10, baseY = end.y - uy * 10;
+                                return (
+                                    <g key={edge.key} data-reference={edge.key} className={dimEdge(edge) ? 'se-research-dim' : ''}>
+                                        <path className={`se-research-edge${trace.edges.has(edge.key) ? ' se-research-traced' : ''}`} d={route.d} role="button" tabIndex={0}
+                                            aria-label={`${edge.label}: ${edge.edges[0].from}.${edge.edges[0].field} → ${edge.edges[0].to}`}
+                                            onClick={() => inspect(edge)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspect(edge); } }}>
+                                            <title>{edge.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}</title>
+                                        </path>
+                                        <polygon points={`${end.x},${end.y} ${baseX - uy * 4},${baseY + ux * 4} ${baseX + uy * 4},${baseY - ux * 4}`} fill="#477293" pointerEvents="none" />
+                                    </g>
+                                );
+                            })}
+                            {graph.nodes.map((node) => {
+                                const p = graph.positions[node.id];
+                                return (
+                                    <g key={node.id} data-concept={node.id} className={`se-research-node${dimNode(node.id) ? ' se-research-dim' : ''}${selected === node.id ? ' se-research-selected' : ''}`}
+                                        transform={`translate(${p.x - graph.nodeWidth / 2},${p.y - graph.nodeHeight / 2})`} role="button" tabIndex={0}
+                                        aria-label={`${node.label}: ${node.hint}`} aria-pressed={selected === node.id} onClick={() => choose(node.id)}
+                                        onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(node.id); } }}>
+                                        <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="8" />
+                                        <text className="se-research-title" x="14" y="26">{node.label}</text>
+                                        {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
+                                        <text className="se-research-example" x="14" y="89">{node.example}</text>
+                                        {node.step && <g><circle cx={graph.nodeWidth - 16} cy="16" r="10" fill={node.color} /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
+                                    </g>
+                                );
+                            })}
+                            {graph.edges.map((edge) => {
+                                const label = labels[edge.key];
+                                if (!label) return null;
+                                return (
+                                    <g key={`label-${edge.key}`} data-reference={edge.key} className={`se-research-label${dimEdge(edge) ? ' se-research-dim' : ''}`} onClick={() => inspect(edge)}>
+                                        <rect x={label.left} y={label.top} width={label.width} height={label.height} rx="4" />
+                                        <text x={label.left + label.width / 2} y={label.top + 15}>{edge.label}</text>
+                                    </g>
+                                );
+                            })}
+                            {!graph.nodes.length && <text x="20" y="35">No enabled schemas in the core model. Open All schemas to change type visibility.</text>}
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            {tracing && <p className="se-research-explanation" role="status">Follow the highlighted references: {graph.nodes.filter((node) => trace.nodes.has(node.id)).reverse().map((node) => node.label).join(' → ')}. Each connection is backed by the enabled schemas.</p>}
+            {concept && (
+                <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`} style={{ '--se-concept-color': concept.color }}>
+                    <header className="se-concept-heading">
+                        <div><span className="se-concept-eyebrow">Explore the metadata</span><h3 ref={detailHeading} tabIndex={-1}>{concept.label}</h3><p className="se-concept-question">{concept.hint}</p></div>
+                        <button type="button" onClick={returnToMap}>← Back to overview</button>
+                    </header>
+                    <p className="se-concept-description">{concept.description}</p>
+                    <div className="se-concept-navigation"><label>Explore another concept<select aria-label="Explore another concept" value={selected} onChange={(event) => choose(event.target.value)}>{graph.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label></div>
+                    <div className="se-concept-workspace">
+                        <section className="se-concept-relationships" aria-labelledby="concept-relationships-heading">
+                            <h4 id="concept-relationships-heading">How {concept.label.toLowerCase()} connects</h4>
+                            <p className="se-concept-help">Each connection below explains its role and the schema fields that implement it. Counts describe schema definitions; [] marks fields that accept multiple references.</p>
+                            {graph.edges.filter((edge) => edge.from === selected || edge.to === selected).map((edge) => <RelationshipCard key={edge.key} edge={edge} graph={graph} onInspect={inspect} />)}
+                        </section>
+                        <aside className="se-concept-schemas" aria-labelledby="concept-schemas-heading">
+                            <h4 id="concept-schemas-heading">Schemas in this concept <span>{concept.members.length}</span></h4>
+                            <p>Choose a schema to explore its fields and model details.</p>
+                            {hasAbstract && <p className="se-concept-inheritance-help">Abstract types define shared fields for the concrete schemas below.</p>}
+                            {schemaGroups.map((group) => (
+                                <div className="se-concept-schema-group" key={group.label}>
+                                    {hasAbstract && <h5>{group.label}</h5>}
+                                    {group.members.map((name) => (
+                                        <button className={`se-concept-schema${group.abstract ? ' se-concept-schema-abstract' : ''}`} data-schema={name} data-abstract={group.abstract} type="button" key={name} onClick={() => onType(name)}>
+                                            <span className="se-concept-schema-name"><span>{name}</span>{group.abstract && <span className="se-concept-abstract-badge">Abstract</span>}<span aria-hidden="true">→</span></span>
+                                            <span className="se-concept-schema-description">{index.models.find((model) => model.name === name)?.schema.description || `Explore the ${name} schema and its fields.`}</span>
+                                            {group.abstract && <span className="se-concept-abstract-note">Shared base definition</span>}
+                                        </button>
+                                    ))}
+                                </div>
+                            ))}
+                            <button type="button" className="se-concept-group-link" onClick={() => onGroup(concept.domain)}>Explore group relationships →</button>
+                        </aside>
+                    </div>
+                </section>
+            )}
+            <div className="se-research-support"><span>More context</span>
+                <button type="button" onClick={() => onGroup('donors')}>Clinical history &amp; donor details</button>
+                <button type="button" onClick={() => onGroup('sequencing')}>Preparation &amp; instruments</button>
+                <button type="button" onClick={() => onGroup('files')}>References &amp; file metadata</button>
+                <button type="button" onClick={() => onGroup('administrative')}>Administrative metadata</button>
+            </div>
+        </section>
+    );
+}

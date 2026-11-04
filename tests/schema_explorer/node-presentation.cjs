@@ -1,0 +1,21 @@
+const fs=require('node:fs'), assert=require('node:assert/strict');
+(async()=>{
+ const source=fs.readFileSync('src/encoded/static/components/static-pages/schema-explorer/node-presentation.js','utf8');
+ const {nodePresentation,stageAccent}=await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+ const input={schema:{description:'Files containing sequencing reads aligned to a reference genome'}};
+ const aligned=nodePresentation('AlignedReads',input,{stage:'Processed data'});
+ assert.equal(aligned.caption,'Reads aligned to a genome');
+ assert.equal(aligned.description,input.schema.description,'The full description remains available');
+ assert.notEqual(stageAccent('Processed data'),stageAccent('Results'));
+ const base=nodePresentation('File',{schema:{description:'Generic file'}},{stage:'Base types',isAbstract:true});
+ assert.equal(base.isAbstract,true);
+ assert.equal(base.caption,'Shared file definition');
+ assert.equal(stageAccent('Base types'),stageAccent('Quality',true));
+ const long=nodePresentation('FutureType',{schema:{description:'A longer description of a future metadata record that should remain readable in a compact diagram node.'}});
+ assert.ok(long.caption.length<=32 && long.caption.endsWith('…'));
+ assert.equal(nodePresentation('Unknown',null).caption,'Unresolved schema');
+ assert.equal(nodePresentation('File',null).caption,'Unresolved schema','Role captions do not mask a missing model');
+ assert.equal(nodePresentation('Empty',{schema:{}}).caption,'Schema definition');
+ assert.equal(nodePresentation('Invalid',{schema:{description:42,title:{}}}).caption,'Schema definition');
+ console.log('Node presentation: concise roles, full-description retention, stage accents and abstract distinction passed.');
+})();

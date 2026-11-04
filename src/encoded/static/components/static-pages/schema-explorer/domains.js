@@ -12,32 +12,204 @@ export const domains = [
 const domainByType = new Map(domains.flatMap((d) => d.types.split(' ').filter(Boolean).map((name) => [name, d.id])));
 export const domainFor = (name) => domainByType.get(name) || 'other';
 
-export function groupedLayout(nodes, nodeWidth, nodeHeight) {
-    const populated = domains.map((domain) => {return {
-        ...domain,
-        nodes: nodes.filter((n) => domainFor(n.name) === domain.id).sort((a, b) => a.name.localeCompare(b.name)),
+// Explicit biological roles. Base types match @abstract_collection declarations;
+// concrete parents (e.g. Donor and WorkflowRun) remain in their biological stage.
+export const stages = {
+    donors: [
+        ['Base types', 'AbstractDonor'],
+        ['Donors', 'Donor ProtectedDonor'],
+        ['Clinical context', 'Demographic DeathCircumstances MedicalHistory'],
+        ['Clinical details', 'Diagnosis Exposure MedicalTreatment FamilyHistory'],
+        ['Collection', 'TissueCollection'],
+    ],
+    samples: [
+        ['Base types', 'SampleSource Sample PathologyReport'],
+        ['Source material', 'Tissue CellLine'],
+        ['Culture', 'CellCulture CellCultureMixture'],
+        ['Samples', 'TissueSample CellSample CellCultureSample'],
+        ['Pathology', 'BrainPathologyReport NonBrainPathologyReport'],
+    ],
+    sequencing: [
+        ['Base types', 'Preparation'],
+        ['Analyte preparation', 'AnalytePreparation Treatment'],
+        ['Analytes', 'Analyte'],
+        ['Library preparation', 'LibraryPreparation'],
+        ['Libraries', 'Library'],
+        ['Sequencing', 'Sequencing'],
+        ['Outputs', 'FileSet'],
+        ['Supporting types', 'Assay Sequencer PreparationKit'],
+    ],
+    workflows: [
+        ['Base types', 'GenericConfig'],
+        ['Definitions', 'Workflow MetaWorkflow'],
+        ['Execution', 'WorkflowRun MetaWorkflowRun'],
+        ['Analysis', 'AnalysisRun'],
+        ['Supporting types', 'GenericQcConfig FilterSet HiglassViewConfig'],
+    ],
+    files: [
+        ['Base types', 'File SubmittedFile'],
+        ['Acquired data', 'UnalignedReads HistologyImage SupplementaryFile'],
+        ['Processed data', 'OutputFile ExternalOutputFile AlignedReads'],
+        ['Results', 'VariantCalls DonorSpecificAssembly'],
+        ['Quality', 'QualityMetric ExternalQualityMetric'],
+        ['Supporting types', 'ResourceFile ReferenceFile ReferenceGenome Software FileFormat'],
+    ],
+    administrative: [
+        ['Base types', 'Item UserContent'],
+        ['Organization', 'User Consortium SubmissionCenter AccessKey'],
+        ['Submission', 'IngestionSubmission TrackingItem EmailNotification'],
+        ['Content', 'Page Document Image StaticSection'],
+        ['Knowledge', 'Protocol Ontology OntologyTerm Publication'],
+    ],
+};
+// Explicit abstract collections, shared by layout and schema presentation.
+export const abstractTypes = new Set(Object.values(stages).flatMap((rows) => rows
+    .filter(([label]) => label === 'Base types').flatMap(([, names]) => names.split(' '))));
+
+const flow = ['donors', 'samples', 'sequencing', 'workflows', 'files'];
+
+const orderedDomains = [...flow, 'administrative', 'other'].map((id) => domains.find((d) => d.id === id));
+
+// The overview is a readable directory, rather than a miniaturized copy of every
+// relationship. Type buttons and group headings open the corresponding diagram.
+export function overviewLayout(nodes, viewport = { width: 1200, height: 650 }) {
+    const nodeWidth = 196, nodeHeight = 28, gap = 20, padding = 16;
+    const populated = orderedDomains.map((domain) => {return {
+        ...domain, nodes: nodes.filter((n) => domainFor(n.name) === domain.id).sort((a, b) => a.name.localeCompare(b.name)),
     };}).filter((domain) => domain.nodes.length);
-    const positions = {};
-    const frames = [];
-    const columns = populated.length === 1 ? 1 : 3;
-    const cellWidth = 3 * (nodeWidth + 34) + 40;
-    let top = 0;
-    for (let row = 0; row < populated.length; row += columns) {
-        const items = populated.slice(row, row + columns);
-        let rowHeight = 0;
-        items.forEach((domain, col) => {
-            const left = col * (cellWidth + 80);
-            const frameHeight = 100 + Math.ceil(domain.nodes.length / 3) * (nodeHeight + 32);
-            domain.nodes.forEach((node, i) => {
-                positions[node.name] = {
-                    x: left + 30 + nodeWidth / 2 + (i % 3) * (nodeWidth + 34),
-                    y: top + 90 + nodeHeight / 2 + Math.floor(i / 3) * (nodeHeight + 32),
-                };
+    if (!populated.length) return { positions: {}, frames: [], layers: [], nodeWidth, nodeHeight };
+    const cardWidth = 2 * nodeWidth + 8 + padding * 2;
+    let best;
+    for (let columns = 1; columns <= populated.length; columns++) {
+        const frames = [], positions = {};
+        let top = 0;
+        for (let row = 0; row < populated.length; row += columns) {
+            const items = populated.slice(row, row + columns);
+            const height = Math.max(...items.map((d) => 66 + Math.ceil(d.nodes.length / 2) * 34));
+            items.forEach((domain, i) => {
+                const left = i * (cardWidth + gap);
+                frames.push({ id: domain.id, label: domain.label, left, top, width: cardWidth, height, count: domain.nodes.length });
+                domain.nodes.forEach((node, j) => {
+                    positions[node.name] = { x: left + padding + nodeWidth / 2 + (j % 2) * (nodeWidth + 8), y: top + 68 + nodeHeight / 2 + Math.floor(j / 2) * 34 };
+                });
             });
-            frames.push({ id: domain.id, label: domain.label, left, top, width: cellWidth, height: frameHeight, count: domain.nodes.length });
-            rowHeight = Math.max(rowHeight, frameHeight);
-        });
-        top += rowHeight + 80;
+            top += height + gap;
+        }
+        const width = Math.min(columns, populated.length) * (cardWidth + gap) - gap;
+        const height = top - gap;
+        const scale = Math.min(viewport.width / (width + 40), viewport.height / (height + 40));
+        // Prefer vertical navigation to sideways clipping on narrow screens.
+        const widthFits = width * 0.85 + 40 <= viewport.width;
+        if (!best || (widthFits && !best.widthFits) || widthFits === best.widthFits && scale > best.scale) best = { positions, frames, scale, widthFits };
     }
-    return { positions, frames };
+    return { positions: best.positions, frames: best.frames, layers: [], nodeWidth, nodeHeight };
+}
+
+export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], viewport = { width: 1200, height: 650 }) {
+    const positions = {}, frames = [], layers = [];
+    const members = new Set(nodes.map((n) => n.name));
+    const adjacency = new Map(nodes.map((n) => [n.name, new Set()]));
+    for (const edge of edges) {
+        if (edge.kind !== 'linkTo' || !members.has(edge.from) || !members.has(edge.to)) continue;
+        adjacency.get(edge.from).add(edge.to);
+        adjacency.get(edge.to).add(edge.from);
+    }
+    let groupTop = 0;
+    for (const domain of orderedDomains) {
+        const remaining = new Set(nodes.filter((n) => domainFor(n.name) === domain.id).map((n) => n.name));
+        const rows = [];
+        for (const [label, names] of stages[domain.id] || []) {
+            const namesInStage = names.split(' ').filter((name) => remaining.delete(name));
+            if (namesInStage.length) rows.push({ label, names: namesInStage });
+        }
+        if (remaining.size) rows.push({ label: 'Other types', names: [...remaining].sort() });
+        if (!rows.length) continue;
+        const ranks = new Map(rows.flatMap((row) => row.names.map((name, i) => [name, i])));
+        const layerFor = new Map(rows.flatMap((row, i) => row.names.map((name) => [name, i])));
+        for (const row of rows) {
+            const scores = new Map(row.names.map((name) => {
+                const previous = [...adjacency.get(name)].filter((n) => ranks.has(n) && layerFor.get(n) < layerFor.get(name));
+                return [name, previous.length ? previous.reduce((sum, n) => sum + ranks.get(n), 0) / previous.length : ranks.get(name)];
+            }));
+            row.names.sort((a, b) => scores.get(a) - scores.get(b) || a.localeCompare(b));
+            row.names.forEach((name, i) => ranks.set(name, i));
+        }
+        const base = rows.find((row) => row.label === 'Base types');
+        const main = rows.filter((row) => row !== base);
+        const gap = 20, nodeGap = 24, padding = 24;
+        const inset = 18, headerHeight = 40, bottomInset = 16;
+        let best;
+        const targets = new Set([600, viewport.width, viewport.width / 0.85,
+            ...Array.from({ length: 22 }, (_, i) => 640 + i * 80)]);
+        // Pack contiguous biological stages into rows. For each possible row,
+        // vary its node columns to minimize height without wasting screen width.
+        for (const target of [...targets].sort((a, b) => a - b)) {
+            const available = target - padding * 2;
+            const dp = [{ height: 0, rows: [], width: 0 }];
+            for (let end = 1; end <= main.length; end++) {
+                for (let start = 0; start < end; start++) {
+                    if (!dp[start]) continue;
+                    const items = main.slice(start, end);
+                    const capacity = Math.max(...items.map((row) => row.names.length));
+                    for (let down = 1; down <= capacity; down++) {
+                        const tiles = items.map((row, i) => {
+                            const across = Math.ceil(row.names.length / down);
+                            return { row, index: start + i + 1, across, width: across * nodeWidth + (across - 1) * nodeGap + inset * 2 };
+                        });
+                        const width = tiles.reduce((sum, tile) => sum + tile.width, 0) + (tiles.length - 1) * gap;
+                        if (width > available || tiles.some((tile) => tile.across > 4)) continue;
+                        const count = Math.max(...tiles.map((tile) => Math.ceil(tile.row.names.length / tile.across)));
+                        const rowHeight = headerHeight + count * nodeHeight + (count - 1) * nodeGap + bottomInset;
+                        const height = dp[start].height + rowHeight + gap;
+                        if (!dp[end] || height < dp[end].height || height === dp[end].height && width < dp[end].width) {
+                            dp[end] = { height, width: Math.max(dp[start].width, width), rows: [...dp[start].rows, { tiles, height: rowHeight }] };
+                        }
+                    }
+                }
+            }
+            const packed = dp[main.length];
+            if (!packed) continue;
+            const width = Math.max(600, packed.width + padding * 2);
+            const baseColumns = Math.max(1, Math.floor((width - padding * 2 - inset * 2 + nodeGap) / (nodeWidth + nodeGap)));
+            const baseRows = base ? Math.ceil(base.names.length / baseColumns) : 0;
+            const baseHeight = base ? headerHeight + baseRows * nodeHeight + (baseRows - 1) * nodeGap + bottomInset : 0;
+            let top = 54 + baseHeight + (base && main.length ? gap : 0);
+            const tiles = [];
+            for (const row of packed.rows) {
+                let left = padding;
+                for (const tile of row.tiles) {
+                    tiles.push({ ...tile, left, top, height: row.height });
+                    left += tile.width + gap;
+                }
+                top += row.height + gap;
+            }
+            const height = top - (packed.rows.length ? gap : 0) + padding;
+            const scale = Math.min(viewport.width / (width + 40), viewport.height / (height + 40));
+            const area = width * height;
+            const widthFits = (width + 40) * 0.85 <= viewport.width;
+            if (!best || widthFits && !best.widthFits || widthFits === best.widthFits &&
+                (scale > best.scale + 0.0001 || Math.abs(scale - best.scale) < 0.0001 && area < best.area)) {
+                best = { width, height, baseColumns, baseHeight, tiles, scale, area, widthFits };
+            }
+        }
+        const placeStage = (row, left, top, width, across, label, index, height) => {
+            const heading = { left: left + inset, top: groupTop + top + 10, width: Math.min(width - inset * 2, label.length * 10 + 12), height: 24 };
+            layers.push({ ...heading, id: `${domain.id}-${row.label}`, label, domain: domain.id, stage: index, names: [...row.names],
+                panel: { left, top: groupTop + top, width, height } });
+            for (let start = 0; start < row.names.length; start += across) {
+                const names = row.names.slice(start, start + across);
+                const rowWidth = names.length * nodeWidth + (names.length - 1) * nodeGap;
+                names.forEach((name, i) => {
+                    positions[name] = { x: left + (width - rowWidth) / 2 + nodeWidth / 2 + i * (nodeWidth + nodeGap), y: groupTop + top + headerHeight + nodeHeight / 2 + Math.floor(start / across) * (nodeHeight + nodeGap) };
+                });
+            }
+        };
+        if (base) {
+            placeStage(base, padding, 54, best.width - padding * 2, best.baseColumns, base.label, 0, best.baseHeight);
+        }
+        for (const tile of best.tiles) placeStage(tile.row, tile.left, tile.top, tile.width, tile.across, `${tile.index}. ${tile.row.label}`, tile.index, tile.height);
+        frames.push({ id: domain.id, label: domain.label, left: 0, top: groupTop, width: best.width, height: best.height, count: rows.reduce((sum, row) => sum + row.names.length, 0) });
+        groupTop += best.height + 64;
+    }
+    return { positions, frames, layers };
 }

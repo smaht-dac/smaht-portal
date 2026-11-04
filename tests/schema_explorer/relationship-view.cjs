@@ -1,0 +1,48 @@
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.readFileSync(`src/encoded/static/components/static-pages/schema-explorer/${name}.js`)).toString('base64')}`);
+(async()=>{
+ const {groupRelationships,sharedRelationships}=await load('relationship-view');
+ const {hierarchicalLayout,domainFor}=await load('domains');
+ const {routeEdges,segmentClear}=await load('routing');
+ const model=JSON.parse(fs.readFileSync(process.argv[2] || '/tmp/schema-explorer-hierarchy.json')).model;
+ const nodes=model.models.filter(m=>domainFor(m.name)==='files').map(m=>({name:m.name}));
+ const visible=new Set(nodes.map(n=>n.name));
+ const edges=model.edges.filter(e=>e.kind==='linkTo' && visible.has(e.from) && visible.has(e.to));
+ const original=JSON.stringify(edges);
+ const groups=groupRelationships(edges);
+ const summary=sharedRelationships(model,groups,visible);
+ assert.equal(groups.length,64);
+ assert.equal(summary.groups.length,21);
+ assert.equal(summary.groups.reduce((n,g)=>n+g.edges.length,0),edges.length,'All exact field references survive aggregation');
+ assert.equal(JSON.stringify(edges),original,'Original schema endpoints are never rewritten');
+ const quality=summary.groups.find(g=>g.from==='File' && g.to==='QualityMetric');
+ assert.equal(quality.shared,true);
+ assert.equal(new Set(quality.edges.map(e=>e.from)).size,11);
+ assert.ok(summary.inherited.AlignedReads.owners.has('File'));
+ assert.ok(summary.inherited.AlignedReads.owners.has('SubmittedFile'));
+ assert.ok(summary.groups.some(g=>g.from==='OutputFile' && g.to==='ReferenceGenome'),'Separately declared mixins are not falsely attached to an ancestor');
+ const shown=summary.groups.filter(g=>g.from!==g.to);
+ assert.equal(shown.length,17,'Group overview omits self-references until selection or explicit expansion');
+ const layout=hierarchicalLayout(nodes,236,66,model.edges);
+ const headings=[...layout.layers,...layout.frames.map(f=>({left:f.left+18,top:f.top+12,width:Math.min(f.width-36,f.label.length*15+12),height:38}))];
+ const obstacles=nodes.map(n=>({left:layout.positions[n.name].x-118,right:layout.positions[n.name].x+118,top:layout.positions[n.name].y-33,bottom:layout.positions[n.name].y+33}));
+ for(const input of [shown,groups,groups.filter(g=>g.from==='UnalignedReads' || g.to==='UnalignedReads')]){
+  const routes=routeEdges(layout.positions,input,236,66,headings,{spreadPorts:true});
+  assert.equal(Object.keys(routes).length,input.length);
+  for(const route of Object.values(routes))for(let i=1;i<route.points.length;i++)assert.ok(segmentClear(route.points[i-1],route.points[i],obstacles));
+  const genome=input.filter(g=>g.to==='ReferenceGenome');
+  if(genome.length>2)assert.ok(new Set(genome.map(g=>JSON.stringify(routes[g.key].end))).size>=3,'Incoming arrows use separate attachment points');
+ }
+ const field={name:'target',schema:{linkTo:'Target'},sources:[{file:'schema/base.json',pointer:'/properties/target',line:10}]};
+ const base={id:'Base',name:'Base',bases:[],fields:[field]};
+ const child={id:'Child',name:'Child',bases:[{id:'Base',name:'Base'}],fields:[JSON.parse(JSON.stringify(field))]};
+ const refs=[{from:'Base',to:'Target',field:'target',kind:'linkTo'},{from:'Child',to:'Target',field:'target',kind:'linkTo'}];
+ const fixture={models:[base,child],edges:refs};
+ assert.equal(sharedRelationships(fixture,groupRelationships(refs),new Set(['Base','Child','Target'])).groups.length,1);
+ const override={...child,fields:[{...field,sources:[{file:'schema/child.json',pointer:'/properties/target',line:10}]}]};
+ assert.equal(sharedRelationships({models:[base,override]},groupRelationships(refs),new Set(['Base','Child','Target'])).groups.length,2,'Overrides are preserved even when field shape and target match');
+ assert.equal(sharedRelationships(fixture,groupRelationships(refs.slice(1)),new Set(['Child','Target'])).groups[0].from,'Child','Hidden ancestors do not swallow visible links');
+ assert.equal(sharedRelationships({models:[]},groupRelationships(refs),new Set(['Base','Child','Target'])).groups.length,2,'Missing provenance is handled conservatively');
+ console.log('Connection summary: 64 → 17 visible links; inheritance provenance, overrides, exact-reference retention and separated arrow endpoints passed.');
+})();
