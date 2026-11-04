@@ -149,7 +149,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('.se-domain-frame').count(),6);
  assert.equal(await page.locator('.se-overview').count(),1);
  assert.equal(await page.locator('#entity-svg .se-edge').count(),0,'Overview is a readable directory');
- assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=11.5,'Overview type names remain readable');
+ assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=10.5,'Overview type names remain readable');
  await page.locator('#entity-svg').screenshot({path:path.join(output,'overview-canvas.png')});
  await shell.screenshot({path:path.join(output,'hierarchical-map.png')});
  await selectSetting('Schema group','donors');
@@ -160,7 +160,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const nodePositions=()=>page.locator('#entity-svg .entity-node').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>[n.dataset.entity,n.getAttribute('transform')])));
  const donorPositions=await nodePositions();
  assert.deepEqual(await page.locator('#entity-svg .se-stage-label').allTextContents(),['Base types','1. Donors','2. Clinical context','3. Clinical details','4. Collection']);
- assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=11.5,'Selected group type names remain readable');
+ assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=10.5,'Selected group type names remain readable');
  await page.locator('#entity-svg').screenshot({path:path.join(output,'donor-canvas.png')});
  assert.equal(await page.locator('#entity-svg .se-stage-label').count(),5);
  assert.equal(await page.locator('#entity-svg').evaluate(svg=>{
@@ -223,7 +223,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  // A selected node must not restore the previous group's camera when navigating.
  for(const group of ['sequencing','files','workflows']){
   await selectSetting('Schema group',group);
-  assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=11.5,`${group} uses a readable camera`);
+  assert.ok(await page.locator('#entity-svg > g').evaluate(group => group.transform.baseVal.consolidate().matrix.a)>=0.85,'Group framing retains its original readable minimum');
   await page.locator('#entity-svg').screenshot({path:path.join(output,`${group}-canvas.png`)});
   if(group==='files'){
    assert.equal(await page.locator('.se-diagram:has(#entity-svg) > .se-toolbar > h2').count(),0,'The group title is not repeated above the diagram');

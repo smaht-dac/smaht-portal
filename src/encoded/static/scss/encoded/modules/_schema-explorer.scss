@@ -127,7 +127,7 @@
     .se-back-to-groups { margin-right: .5rem; }
     .se-stage-panel { fill: #f1f5f9; stroke: none; pointer-events: none; }
     .se-hierarchical .entity-node text { font-size: 14px; }
-    .entity-node text.se-node-title { fill: #253b4d; font-size: 15px; font-weight: 650; }
+    .entity-node text.se-node-title { fill: #253b4d; font-size: 13px; font-weight: 650; }
     .entity-node .se-subtitle { font-weight: 400; fill: #657383; }
     .entity-node rect.se-node-accent, .se-research-node > rect[width='4'] { display: none; }
     .entity-node.se-node-abstract rect.se-node-body { fill: #fcfaff; stroke-dasharray: 4 3; }
@@ -137,18 +137,19 @@
     .entity-node text.se-node-abstract-label { fill: #75638e; font-size: 10px; text-anchor: middle; font-weight: 600; }
     .se-inheritance-detail { color: #59636e; font-size: 13px; }
 
-    .se-hierarchical .entity-node .se-subtitle { font-size: 12px; }
+    .se-hierarchical .entity-node .se-subtitle { font-size: 11px; }
     .se-overview .entity-node { cursor: pointer; }
     .se-overview .entity-node text { font-size: 13.5px; }
     .se-overview .entity-node rect { fill: #f8fafc; stroke: #e3e9ef; stroke-width: 1; }
     .se-overview .entity-node:hover rect, .se-overview .entity-node:focus rect { fill: #eaf3fb; stroke: #2368aa; }
     .se-overview .se-domain-frame rect { fill: white; stroke: #ced4da; stroke-width: 1; }
     .se-overview .se-domain-frame text { font-size: 18px; }
-    .se-stage-label { fill: #253b4d; font-size: 17px; font-weight: 700; }
+    .se-stage-label { fill: #253b4d; font-size: 15px; font-weight: 700; }
     .se-flow-note { color: #59636e; font-size: 14px; }
     .se-domain-frame {
         rect { fill: none; stroke: none; pointer-events: none; }
-        text { fill: #343a40; font-size: 23px; font-weight: 600; cursor: pointer; }
+        text { fill: #343a40; font-size: 20px; font-weight: 600; cursor: pointer; }
+        .se-domain-count { fill: #657383; font-size: 14px; font-weight: 400; }
         text:hover, text:focus { text-decoration: underline; }
     }
     .se-edge { opacity: .18; }

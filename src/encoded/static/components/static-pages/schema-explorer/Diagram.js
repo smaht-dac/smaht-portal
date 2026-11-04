@@ -559,7 +559,8 @@ export default function Diagram({
                                     onPointerDown={(e) => e.stopPropagation()}
                                     onClick={() => chooseDomain(frame.id)}
                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); chooseDomain(frame.id); } }}>
-                                    {frame.label} · {frame.count}
+                                    {frame.label}
+                                    <tspan className="se-domain-count" dx="10">{frame.count} {frame.count === 1 ? 'schema' : 'schemas'}</tspan>
                                 </text>
                             </g>
                         ))}

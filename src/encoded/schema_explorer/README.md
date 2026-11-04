@@ -84,9 +84,9 @@ Network as an alternative to Hierarchical.
 Inside a selected group, stages are packed into columns or rows to match the canvas
 aspect ratio. The layout searches stage widths and node columns, minimizing unused
 space while preserving biological stage order through numbered headings. Base types
-occupy a separate strip above the stages. Automatic framing keeps a readable minimum
-scale; large diagrams can be panned, while **Fit all** explicitly fits the entire
-content. Group changes and clearing selection never restore another group's zoom.
+occupy a separate strip above the stages. Automatic framing keeps a readable minimum scale; large diagrams can be panned,
+while **Fit all** explicitly fits the entire content. Typography uses smaller
+node and section labels independently of camera framing. Group changes and clearing selection never restore another group's zoom.
 
 Explicit biological stages and base types are configured in `domains.js`.
 Unmapped future types appear in Other types. Stages describe biological navigation,
