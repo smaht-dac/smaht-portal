@@ -115,6 +115,20 @@ available as **Layout → Network**; neighborhood and compact layouts are unchan
 Click a canvas group heading or use Group to focus it. Search spans all types and
 opens the matching group when needed. Cross-group edges are hidden except those
 incident to the selected type when Include cross-group links is enabled.
+Selecting a type reveals an **External connections** badge attached to the node.
+Clicking it opens an adjacent panel inside the canvas, with group names and distinct
+connected-schema counts under the active relationship filters. Administrative groups consisting only of User,
+Consortium and SubmissionCenter are omitted from the popover and badge count. If
+another administrative schema is connected, the complete group remains visible.
+The full neighborhood and schema relationships retain these references. Expanding a group
+lists compact schema rows with incoming/outgoing direction and readable field labels.
+Only one group expands at a time. Header and footer controls remain visible while
+the list scrolls; exact field paths remain in tooltips and relationship details. The close button or Escape dismisses
+the panel and returns focus to the badge. No page scrolling, node movement or camera
+change is needed. Schema buttons navigate to the peer's group; Inspect relationship
+opens its explanation. **Show all connected schemas** opens the neighborhood view
+and reveals connected types hidden in Types. The badge follows dragged nodes and is
+included in PNG export; it is omitted when the neighborhood is already visible.
 Show neighborhood includes direct neighbors across group boundaries.
 
 Model/source reads use the portal AJAX utility. Live item reads use same-origin

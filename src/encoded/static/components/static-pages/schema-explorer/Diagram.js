@@ -11,6 +11,7 @@ import { routeEdges } from './routing';
 import { groupRelationships, sharedRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
 import ResearchOverview from './ResearchOverview';
+import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
 
 const defaults = ['User', 'Consortium', 'Consortia', 'SubmissionCenter'];
@@ -24,6 +25,7 @@ export default function Diagram({
     onPlanner,
 }) {
     const [selected, setSelected] = useState(focus);
+    const [outsideOpen, setOutsideOpen] = useState(false);
     const [domain, setDomain] = useState('');
     const [arrangement, setArrangement] = useState('hierarchical');
     const [overviewMode, setOverviewMode] = useState('relationships');
@@ -44,7 +46,9 @@ export default function Diagram({
         drag = useRef(),
         relationshipMenu = useRef(),
         typePicker = useRef(),
-        mapSettings = useRef();
+        mapSettings = useRef(),
+        outsidePanel = useRef(),
+        outsideCue = useRef();
     useEffect(() => {
         const closeMenus = (event) => {
             [typePicker.current, mapSettings.current, relationshipMenu.current].forEach((menu) => {
@@ -76,6 +80,11 @@ export default function Diagram({
             ),
         [index, kinds, compact, focus]
     );
+    useEffect(() => { setOutsideOpen(false); }, [selected, domain, neighbors]);
+    useEffect(() => {
+        if (outsideOpen) outsidePanel.current?.querySelector('[data-close-connections]')?.focus({ preventScroll: true });
+    }, [outsideOpen]);
+    const externalGroups = useMemo(() => outsideConnections(selected, edges), [selected, edges]);
     const connected = useMemo(
         () =>
             new Set([
@@ -309,6 +318,24 @@ export default function Diagram({
         setNeighbors(false);
         setMoves({});
     };
+    const closeOutside = () => {
+        setOutsideOpen(false);
+        outsideCue.current?.focus({ preventScroll: true });
+    };
+    const outsideWidth = Math.min(440, size.width - 24);
+    const outsideHeight = Math.min(480, size.height - 24);
+    const selectedPosition = positions[selected];
+    const nodeRight = selectedPosition ? camera.x + (selectedPosition.x + cardWidth / 2) * camera.scale : 0;
+    const nodeLeft = selectedPosition ? camera.x + (selectedPosition.x - cardWidth / 2) * camera.scale : 0;
+    const outsideLeft = nodeRight + 12 + outsideWidth <= size.width
+        ? nodeRight + 12 : Math.max(12, Math.min(size.width - outsideWidth - 12, nodeLeft - outsideWidth - 12));
+    const outsideTop = selectedPosition
+        ? Math.max(12, Math.min(size.height - outsideHeight - 12, camera.y + selectedPosition.y * camera.scale - 36)) : 12;
+    const showConnected = () => {
+        setHidden(hidden.filter((name) => !connected.has(name)));
+        setMoves({});
+        setNeighbors(true);
+    };
     const incident = edges.filter(
         (e) =>
             (e.from === selected || e.to === selected) &&
@@ -410,9 +437,8 @@ export default function Diagram({
                     {!compact && (
                         <div className="se-map-tool-section" aria-label="Schema exploration">
                             <button type="button" id="entity-show-neighborhood" disabled={!selected} aria-pressed={neighbors} onClick={() => {
-                                if (!neighbors) setHidden(hidden.filter((n) => !connected.has(n)));
-                                setMoves({});
-                                setNeighbors(!neighbors);
+                                if (!neighbors) showConnected();
+                                else { setMoves({}); setNeighbors(false); }
                             }}>{neighbors ? 'Show selected types' : 'Show neighborhood'}
                             </button>
                             {selected && <button type="button" onClick={clearSelection}>Clear selection</button>}
@@ -744,6 +770,25 @@ export default function Diagram({
                                     pointerEvents="none" />
                             );
                         })}
+                        {!compact && domain && !neighbors && selected && positions[selected] && externalGroups.length > 0 && (
+                            <g className="se-cross-group-cue" transform={`translate(${positions[selected].x},${positions[selected].y + cardHeight / 2})`}>
+                                <path className="se-cross-group-stem" d="M0,0 V7" />
+                                <g role="button" tabIndex={0} aria-controls="cross-group-connections"
+                                    ref={outsideCue} aria-expanded={outsideOpen}
+                                    aria-label={`${selected}: show external connections in ${externalGroups.length} ${externalGroups.length === 1 ? 'group' : 'groups'}`}
+                                    onPointerDown={(event) => event.stopPropagation()}
+                                    onClick={(event) => { event.stopPropagation(); setOutsideOpen((open) => !open); }}
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'Enter' || event.key === ' ') {
+                                            event.preventDefault(); event.stopPropagation(); setOutsideOpen((open) => !open);
+                                        }
+                                    }}>
+                                    <title>{externalGroups.map((group) => `${group.label}: ${group.count} connected ${group.count === 1 ? 'schema' : 'schemas'}`).join('\n')}</title>
+                                    <rect x="-105" y="7" width="210" height="19" rx="7" />
+                                    <text x="0" y="20">External connections · {externalGroups.length} {externalGroups.length === 1 ? 'group' : 'groups'}</text>
+                                </g>
+                            </g>
+                        )}
                     </g>
                     {!visible.length && (
                         <text x="20" y="35">
@@ -751,6 +796,13 @@ export default function Diagram({
                         </text>
                     )}
                 </svg>
+                {!compact && domain && !neighbors && outsideOpen && externalGroups.length > 0 && (
+                    <div className="se-cross-group-popover" style={{ left: outsideLeft, top: outsideTop, width: outsideWidth, maxHeight: outsideHeight }}
+                        onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeOutside(); } }}>
+                        <CrossGroupConnections key={selected} selected={selected} groups={externalGroups} sectionRef={outsidePanel}
+                            onChoose={choose} onInspect={inspect} onShowAll={showConnected} onClose={closeOutside} />
+                    </div>
+                )}
             </div>
             {selected && (
                 <div
