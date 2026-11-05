@@ -132,7 +132,7 @@ def get_project_id(properties: Dict[str, Any]) -> str:
     if is_production(properties):
         return constants.PRODUCTION_PREFIX
     if is_coded_non_tpc(properties):
-        return constants.PRODUCTION_PREFIX
+        return ""
     return ""
 
 
