@@ -146,6 +146,15 @@ export const BenchmarkingDataMap = {
                     30X, 60X, and 90X for PacBio and ONT (originally ~100X
                     each).{' '}
                 </p>
+
+                 <p>
+                    HG002 (also known as GM24385 and huAA53E0), a widely-used 
+                    sequencing technology benchmark, is from the son of an 
+                    Ashkenazi family trio (father-mother-son) originally sampled 
+                    by the Personal Genome Project (PGP). DNA received from Coriell 
+                    was compared across the various sequencing platforms and 
+                    technologies for a SMaHT Benchmark study.{' '}
+                </p>
             </div>
         ),
         type: 'Cell Line Data',
