@@ -40,8 +40,8 @@ function sendResultClass(result) {
 // edited per message. Points subscribers at the portal's own unsubscribe:
 // the SNS link would drop them from the topic but leave the profile opted in.
 export const UNSUBSCRIBE_NOTICE = [
-    'If you would like to stop receiving this message, please unsubscribe by clicking the ‘Unsubscribe’ button on your Profile page in the SMaHT Data Portal, ***not by clicking the AWS link below***.\n',
-    'In case of any issues, please contact the SMaHT Data Analysis Center by submitting a HelpDesk ticket from the SMaHT Data Portal (https://data.smaht.org).',
+    'In case of any issues, please contact the SMaHT Data Analysis Center by submitting a HelpDesk ticket from the SMaHT Data Portal (https://data.smaht.org).\n',
+    '==============================================================================',
 ].join('\n');
 
 // What a new draft starts with: empty lines to write in, then the notice.

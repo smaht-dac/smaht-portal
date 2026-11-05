@@ -1,5 +1,6 @@
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from "../support";
 import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
+import { markTiming } from "../support/utils/basicUtils";
 
 /* ----------------------------- ROLE MATRIX ----------------------------- */
 const ROLE_MATRIX = {
@@ -49,6 +50,11 @@ const ROLE_MATRIX = {
 const BASE_BROWSE_URL =
     `/browse/?type=File&sample_summary.studies=Production&${BROWSE_STATUS_PARAMS}`;
 const BASE_DONOR_SEARCH_URL = "/search/?type=Donor";
+// Donors to pick from when the role has no donors with released files on /browse/. Cell line donors
+// (e.g. HG002, COLO829, DONOR_LB) have no study and are excluded, as users reach donor pages through browse.
+const PICKABLE_DONOR_SEARCH_URL = "/search/?type=Donor&study%21=No+value";
+// Donors with no hardy_scale value (cell lines); COLO829 is always opened, the others only if they become pickable
+const DONORS_WITHOUT_HARDY_SCALE = ["COLO829", "DONOR_LB", "HG002"];
 const BROWSE_BY_DONOR_URL = `/browse/?type=Donor&study=Production&tags=has_released_files&${BROWSE_STATUS_PARAMS}`;
 
 // Safe query param append (handles both bare and existing query string)
@@ -152,9 +158,9 @@ const verifyDonorSummary = (expectedDonorId) => {
             .to.include(text);
     });
 
-    // Hardy Scale: integer between 0 and 4 inclusive (COLO829 and DONOR_LB are N/A)
+    // Hardy Scale: integer between 0 and 4 inclusive (cell line / non-tissue donors are N/A)
     getOverviewValue("Hardy Scale").then(({ text }) => {
-        if (expectedDonorId !== "COLO829" && expectedDonorId !== "DONOR_LB") {
+        if (!DONORS_WITHOUT_HARDY_SCALE.includes(expectedDonorId)) {
             const n = Number(text);
             expect(
                 Number.isInteger(n),
@@ -330,7 +336,7 @@ function stepPublicDonorFlow(caps) {
     }
 
     const donorFieldSelector = caps.expectedDonorsHavingReleasedFilesCount > 0 ? '[data-field="donors.display_title"]' : '[data-field="external_id"]';
-    const visitUrl = caps.expectedDonorsHavingReleasedFilesCount > 0 ? BASE_BROWSE_URL : BASE_DONOR_SEARCH_URL;
+    const visitUrl = caps.expectedDonorsHavingReleasedFilesCount > 0 ? BASE_BROWSE_URL : PICKABLE_DONOR_SEARCH_URL;
 
     // 1) Start from Production released files, ensure facets ready
     cy.visit(visitUrl, { headers: cypressVisitHeaders });
@@ -374,78 +380,82 @@ function stepPublicDonorFlow(caps) {
             cy.visit(donorSearchUrl, { headers: cypressVisitHeaders });
             cy.get("#slow-load-container").should("not.have.class", "visible");
             cy.get(".facet-charts.loading").should("not.exist");
-            cy.get(".search-result-row[data-row-number]").as("resultRows");
-            cy.get("@resultRows").should("have.length", selected.length);
+            cy.get(".search-result-row[data-row-number]")
+                .should("have.length", selected.length)
+                .then(($rows) => {
+                    // Collect donor links up front, so each donor is opened directly instead of going back to the list
+                    const donorLinks = [...$rows].map((row) => {
+                        const $a = Cypress.$(row).find('[data-field="display_title"] a');
+                        return { donorID: $a.text().trim(), href: $a.attr("href") };
+                    });
 
-            function testVisit(index) {
-                if (index >= selected.length) return;
+                    donorLinks.forEach(({ donorID, href }, index) => {
+                        markTiming("donor", "start", { reset: true });
+                        if (index === 0) {
+                            // Open the first donor by clicking its link in the list (covers the list → detail navigation)
+                            cy.get(".search-result-row[data-row-number]")
+                                .eq(0)
+                                .find('[data-field="display_title"] a')
+                                .invoke("removeAttr", "target")
+                                .click({ force: true });
+                        } else {
+                            // In-app (SPA) navigation; avoids reloading the list or the whole page for each donor
+                            cy.window().then((w) => w.SMaHT.navigate(href));
+                        }
 
-                // Open donor detail
-                cy.get("@resultRows").eq(index).as("currentRow");
-                cy.get("@currentRow")
-                    .find('[data-field="display_title"] a')
-                    .then(($a) => {
-                        const donorID = $a.text().trim();
-
-                        cy.wrap($a).invoke("removeAttr", "target").click({ force: true });
-
-                        cy.location("pathname", { timeout: 15000 }).should(
-                            "include",
-                            "/donors/"
-                        );
-                        cy.get(".donor-view .view-header .header-text", { timeout: 15000 })
-                            .should("be.visible")
-                            .and("contain", donorID);
-
-                        // Header controls reflect public visibility
-                        verifyHeaderButtons();
-
-                        // “Data Summary / Donor Overview” shows only public-safe info
-                        verifyDonorSummary(donorID);
-
-                        // Prior Diagnosis: protected sections absent
-                        verifyPriorDiagnosis();
-
-                        // Exposures: protected sections absent
-                        verifyExposures();
-
-                        // Donor-level Data Matrix
-                        getNumericStatByLabel("Files").then((filesCount) => {
-                            getNumericStatByLabel("Tissues").then((tissuesCount) => {
-                                testMatrixPopoverValidation(
-                                    "#data-matrix-for_donor",
-                                    {
-                                        donors: [donorID],
-                                        mustLabels: [],
-                                        optionalLabels: [],
-                                        expectedLowerLabels: ["Total Files"],
-                                        regularBlockCount: 5, // regularBlockCount
-                                        rowSummaryBlockCount: 5, // rowSummaryBlockCount
-                                        colSummaryBlockCount: 1, // colSummaryBlockCount
-                                        expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
-                                        expectedTissuesCount: donorID !== "COLO829" ? tissuesCount : null, // tissuesCount (null → skip strict total check)
-                                        allowVariantCallSetMatrixUndercount: true,
-                                        allowDSARowSummaryOvercount: true,
-                                        skipColSummaryTotalCheckForDonors: ["COLO829", "ST001"],
-                                        verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
-                                    }
-                                );
-                            });
-                        });
-
-                    }).end();
-
-                // Back to list for next donor
-                cy.go("back");
-                cy.get(".search-result-row[data-row-number]", { timeout: 10000 })
-                    .should("have.length.at.least", selected.length)
-                    .as("resultRows");
-
-                cy.then(() => testVisit(index + 1));
-            }
-
-            testVisit(0);
+                        verifyDonorDetail(donorID);
+                    });
+                });
         });
+}
+
+function verifyDonorDetail(donorID) {
+    cy.location("pathname", { timeout: 15000 }).should(
+        "include",
+        "/donors/"
+    );
+    cy.get(".donor-view .view-header .header-text", { timeout: 15000 })
+        .should("be.visible")
+        .and("contain", donorID);
+    markTiming("donor", `${donorID} navigation`);
+
+    // Header controls reflect public visibility
+    verifyHeaderButtons();
+
+    // “Data Summary / Donor Overview” shows only public-safe info
+    verifyDonorSummary(donorID);
+
+    // Prior Diagnosis: protected sections absent
+    verifyPriorDiagnosis();
+
+    // Exposures: protected sections absent
+    verifyExposures();
+    markTiming("donor", `${donorID} header + summary cards`);
+
+    // Donor-level Data Matrix
+    getNumericStatByLabel("Files").then((filesCount) => {
+        getNumericStatByLabel("Tissues").then((tissuesCount) => {
+            testMatrixPopoverValidation(
+                "#data-matrix-for_donor",
+                {
+                    donors: [donorID],
+                    mustLabels: [],
+                    optionalLabels: [],
+                    expectedLowerLabels: ["Total Files"],
+                    regularBlockCount: 5, // regularBlockCount
+                    rowSummaryBlockCount: 5, // rowSummaryBlockCount
+                    colSummaryBlockCount: 1, // colSummaryBlockCount
+                    expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
+                    expectedTissuesCount: donorID !== "COLO829" ? tissuesCount : null, // tissuesCount (null → skip strict total check)
+                    allowVariantCallSetMatrixUndercount: true,
+                    allowDSARowSummaryOvercount: true,
+                    skipColSummaryTotalCheckForDonors: ["COLO829", "ST001"],
+                    verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
+                }
+            );
+        });
+    });
+    markTiming("donor", `${donorID} data matrix (total)`);
 }
 
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */

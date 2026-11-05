@@ -212,8 +212,10 @@ function stepNavAndRedirection(caps, roleKey) {
                                                     .click({ force: true })
                                                     .should("have.class", "active");
 
+                                                // the attribute is only rendered once the tab's embedded search has its first response
                                                 cy.get(
-                                                    ".tab-pane.active .search-results-outer-container"
+                                                    ".tab-pane.active .search-results-outer-container",
+                                                    { timeout: 60000 }
                                                 )
                                                     .should(
                                                         "have.attr",
