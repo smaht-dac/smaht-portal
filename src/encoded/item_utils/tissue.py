@@ -105,8 +105,29 @@ def is_valid_external_id(external_id: str) -> bool:
     )
 
 
+def is_coded_non_tpc(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is a non-TPC source carrying a file-naming `code`.
+
+    This function is intended to check for benchmarking cord blood samples.
+    Cord blood is not provided by the TPC and thus does not have a TPC tissue
+    ID, but it does have a file-naming code on it (e.g. "CB2404416003F"). TPC
+    tissues can also carry a `code`, so `code` presence alone is not sufficient;
+    the sample must also be non-TPC. Note: this assumes that a tissue without a
+    valid external_id is a non-TPC tissue.
+    """
+    return (
+        bool(item.get_code(properties))
+        and not is_valid_external_id(item.get_external_id(properties))
+    )
+
+
 def get_project_id(properties: Dict[str, Any]) -> str:
-    """Get project ID associated with tissue."""
+    """Get project ID associated with tissue.
+
+    Non-TPC tissues that carry a file-naming `code` (e.g. cord blood) get no
+    project prefix: the code itself (used as the sample source ID) is already
+    long, so prefixing it would make the annotated filename unwieldy.
+    """
     if is_benchmarking(properties):
         return constants.BENCHMARKING_PREFIX
     if is_production(properties):
@@ -115,7 +136,13 @@ def get_project_id(properties: Dict[str, Any]) -> str:
 
 
 def get_donor_kit_id(properties: Dict[str, Any]) -> str:
-    """Get donor kit ID associated with tissue."""
+    """Get donor kit ID associated with tissue.
+
+    For non-TPC tissues that carry a file-naming `code` (e.g. cord blood),
+    the code is used directly in place of the TPC donor ID.
+    """
+    if is_coded_non_tpc(properties):
+        return item.get_code(properties)
     external_id = item.get_external_id(properties)
     return get_donor_kit_id_from_external_id(external_id)
 
