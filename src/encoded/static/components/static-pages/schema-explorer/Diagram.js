@@ -12,6 +12,7 @@ import { groupRelationships, sharedRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
 import ResearchOverview from './ResearchOverview';
 import { explorerIndex } from './explorer-scope';
+import { externalContextGroups } from './external-context';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
 
@@ -28,9 +29,12 @@ export default function Diagram({
     const index = useMemo(() => explorerIndex(sourceIndex), [sourceIndex]);
     const [selected, setSelected] = useState(focus);
     const [outsideOpen, setOutsideOpen] = useState(false);
+    const [expandedExternal, setExpandedExternal] = useState([]);
     const [domain, setDomain] = useState('');
     const [conceptContext, setConceptContext] = useState(null);
+    useEffect(() => { setExpandedExternal([]); }, [conceptContext?.id, domain]);
     const [returnConcept, setReturnConcept] = useState('');
+    const [focusReturnedMap, setFocusReturnedMap] = useState(false);
     const [arrangement, setArrangement] = useState('hierarchical');
     const [overviewMode, setOverviewMode] = useState('relationships');
     const [crossLinks, setCrossLinks] = useState(true);
@@ -112,9 +116,13 @@ export default function Diagram({
     const neighborhoodSelection = neighbors ? selected : '';
     const conceptMembers = useMemo(() => new Set(conceptContext?.members || []), [conceptContext]);
     const contextReferences = useMemo(() => conceptContext?.connections?.flatMap((connection) => connection.edges) || [], [conceptContext]);
-    const externalContextNames = useMemo(() => new Set(conceptMembers.size === 1 && conceptContext && !neighbors
+    const allExternalNames = useMemo(() => new Set(conceptMembers.size === 1 && conceptContext && !neighbors
         ? contextReferences.flatMap((edge) => [edge.from, edge.to]).filter((name) => domainFor(name) !== conceptContext.domain && !hidden.includes(name)) : []),
     [conceptMembers, conceptContext, contextReferences, hidden, neighbors]);
+    const externalBundles = useMemo(() => arrangement === 'hierarchical' ? externalContextGroups(allExternalNames) : [], [allExternalNames, arrangement]);
+    const externalContextNames = useMemo(() => externalBundles.length
+        ? new Set(externalBundles.filter((group) => expandedExternal.includes(group.id)).flatMap((group) => group.members)) : allExternalNames,
+    [externalBundles, expandedExternal, allExternalNames]);
     const visible = useMemo(() => nodes.filter(
         (n) => !hidden.includes(n.name) && (visibleConnected ? visibleConnected.has(n.name) : (!domain || domainFor(n.name) === domain || externalContextNames.has(n.name)))
     ), [nodes, hidden, visibleConnected, domain, externalContextNames]);
@@ -146,14 +154,21 @@ export default function Diagram({
         if (!showDomains) return { positions: {}, frames: [], layers: [] };
         if (overview) return overviewLayout(visible, size);
         const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, size);
-        if (externalContextNames.size) {
+        if (externalContextNames.size || externalBundles.length) {
             const right = Math.max(...result.frames.map((frame) => frame.left + frame.width));
-            [...externalContextNames].sort().forEach((name, i) => {
+            let row = 0;
+            if (externalBundles.length) externalBundles.forEach((group) => {
+                result.positions[group.name] = { x: right + 60 + width / 2, y: 110 + row++ * (height + 40) };
+                if (expandedExternal.includes(group.id)) group.members.forEach((name) => {
+                    result.positions[name] = { x: right + 60 + width / 2, y: 110 + row++ * (height + 40) };
+                });
+            });
+            else [...externalContextNames].sort().forEach((name, i) => {
                 result.positions[name] = { x: right + 60 + width / 2, y: 110 + i * (height + 60) };
             });
         }
         return result;
-    }, [showDomains, overview, visible, index, size, externalContextNames]);
+    }, [showDomains, overview, visible, index, size, externalContextNames, externalBundles, expandedExternal]);
     const positions = useMemo(() => {
         if (!neighbors || !neighborhoodSelection) return { ...(showDomains ? clustered.positions : allPositions), ...moves };
         const others = nodes.filter(
@@ -200,8 +215,19 @@ export default function Diagram({
     const shared = useMemo(() => showDomains && !overview ? sharedRelationships(index, visibleGroups, names)
         : { groups: visibleGroups, inherited: {} }, [showDomains, overview, index, visibleGroups, names]);
     const summarize = showDomains && !overview && !selected && connectionMode === 'shared';
-    const shownGroups = useMemo(() => summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups,
-        [summarize, shared, scopedGroups]);
+    const shownGroups = useMemo(() => {
+        const result = summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups;
+        const bundled = externalBundles.filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => {
+            const matches = edges.filter((edge) => (conceptMembers.has(edge.from) && bundle.members.includes(edge.to)) ||
+                (conceptMembers.has(edge.to) && bundle.members.includes(edge.from)));
+            return [true, false].map((outgoing) => {
+                const references = matches.filter((edge) => conceptMembers.has(outgoing ? edge.from : edge.to));
+                return references.length ? { ...references[0], from: outgoing ? [...conceptMembers][0] : bundle.name,
+                    to: outgoing ? bundle.name : [...conceptMembers][0], key: `${bundle.name}:${outgoing}`, edges: references, bundled: true } : null;
+            }).filter(Boolean);
+        });
+        return [...result, ...bundled];
+    }, [summarize, shared, scopedGroups, externalBundles, expandedExternal, edges, conceptMembers]);
     const headings = useMemo(() => showDomains ? [
         ...clustered.frames.map((frame) => {return { left: frame.left + 18, top: frame.top + 12, width: Math.min(frame.width - 36, frame.label.length * 15 + 12), height: 38 };}),
         ...clustered.layers,
@@ -215,6 +241,10 @@ export default function Diagram({
             { x: positions[n.name].x - cardWidth / 2, y: positions[n.name].y - cardHeight / 2 },
             { x: positions[n.name].x + cardWidth / 2, y: positions[n.name].y + cardHeight / 2 },
         ]);
+        externalBundles.forEach((group) => {
+            const p = positions[group.name];
+            if (p) points.push({ x: p.x - width / 2, y: p.y - height / 2 }, { x: p.x + width / 2, y: p.y + height / 2 });
+        });
         if (showDomains) {
             clustered.frames.forEach((f) => points.push({ x: f.left, y: f.top }, { x: f.left + f.width, y: f.top + f.height }));
             Object.values(routes).forEach((route) => points.push(...route.points));
@@ -225,14 +255,14 @@ export default function Diagram({
             top: Math.min(...points.map((p) => p.y)) - (showDomains ? 20 : 90),
             bottom: Math.max(...points.map((p) => p.y)) + (showDomains ? 20 : 65),
         } : { left: -300, right: 300, top: -200, bottom: 200 };
-    }, [visible, positions, showDomains, clustered, routes, cardWidth, cardHeight]);
+    }, [visible, positions, showDomains, clustered, routes, cardWidth, cardHeight, externalBundles]);
     const fit = useCallback((readable = true) => {
         const fitted = Math.min(
             showDomains ? 1.25 : 1.5,
             size.width / (bounds.right - bounds.left),
             size.height / (bounds.bottom - bounds.top)
         );
-        const scale = Math.max(showDomains && readable ? 0.85 : 0.05, fitted);
+        const scale = Math.max(showDomains && readable ? externalBundles.length ? 0.65 : 0.85 : 0.05, fitted);
         const fitsX = (bounds.right - bounds.left) * scale <= size.width;
         const fitsY = (bounds.bottom - bounds.top) * scale <= size.height;
         setCamera({
@@ -240,13 +270,13 @@ export default function Diagram({
             x: fitsX ? (size.width - (bounds.left + bounds.right) * scale) / 2 : 16 - bounds.left * scale,
             y: fitsY ? (size.height - (bounds.top + bounds.bottom) * scale) / 2 : 16 - bounds.top * scale,
         });
-    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, size, showDomains]);
+    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, size, showDomains, externalBundles.length]);
     // Selecting a node only highlights it in the full map. Refit selection
     // changes only when they replace the displayed neighborhood.
     const layoutFocus = neighbors ? selected : focus;
     useEffect(() => {
         fit();
-    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement, connectionMode, conceptContext]);
+    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement, connectionMode, conceptContext, expandedExternal]);
     useEffect(() => {
         if (!svg.current) return undefined;
         const observer = new ResizeObserver((entries) => {
@@ -317,7 +347,7 @@ export default function Diagram({
     };
     const inspect = (group) =>
         onDetail({
-            title: `${group.from} → ${group.to}`,
+            title: group.bundled ? `${conceptContext.label}: external relationships` : `${group.from} → ${group.to}`,
             value: group.edges,
             relationship: group.edges,
             intro: group.shared
@@ -345,7 +375,8 @@ export default function Diagram({
         setMoves({});
     }, []);
     const exploreConcept = (concept) => {
-        setConceptContext({ id: concept.id, label: concept.label, domain: concept.domain, members: concept.members, connections: concept.connections });
+        setConceptContext({ id: concept.id, label: concept.label, domain: concept.domain, members: concept.members, connections: concept.connections, origin: concept.origin || 'concept' });
+        setFocusReturnedMap(false);
         setDomain(concept.domain);
         setSelected('');
         setNeighbors(false);
@@ -353,7 +384,8 @@ export default function Diagram({
         setArrangement('hierarchical');
     };
     const backToConcept = () => {
-        setReturnConcept(conceptContext.id);
+        setReturnConcept(conceptContext.origin === 'map' ? '' : conceptContext.id);
+        setFocusReturnedMap(conceptContext.origin === 'map');
         setConceptContext(null);
         setDomain('');
         setOverviewMode('relationships');
@@ -395,7 +427,7 @@ export default function Diagram({
     if (researchOverview) {
         return (
             <ResearchOverview index={index} nodes={visible} onType={choose} onGroup={chooseDomain}
-                onAllTypes={showAllTypes} onDetail={onDetail} onConnections={exploreConcept} initialConcept={returnConcept} />
+                onAllTypes={showAllTypes} onDetail={onDetail} onConnections={exploreConcept} initialConcept={returnConcept} focusMap={focusReturnedMap} />
         );
     }
     return (
@@ -406,7 +438,7 @@ export default function Diagram({
             }>
             <div className="se-toolbar">
                 {overview && <button type="button" onClick={() => setOverviewMode('relationships')}>← Metadata map</button>}
-                {conceptContext && <button type="button" onClick={backToConcept}>← Back to {conceptContext.label} overview</button>}
+                {conceptContext && <button type="button" onClick={backToConcept}>{conceptContext.origin === 'map' ? '← Back to metadata map' : `← Back to ${conceptContext.label} overview`}</button>}
                 {domain && !compact && !conceptContext && <button type="button" className="se-back-to-groups" onClick={() => chooseDomain('')}>← Metadata map</button>}
                 {(!showDomains || overview) && (
                     <h2>{compact ? 'Relationships' : neighbors ? `${selected} neighborhood` : domains.find((d) => d.id === domain)?.label || 'All schemas'}</h2>
@@ -593,7 +625,7 @@ export default function Diagram({
                         if (e.button !== 0) return;
                         // Capturing on the SVG retargets clicks away from edges.
                         // Leave relationship controls to their own click handlers.
-                        if (e.target.closest('.se-edge, .se-edge-label')) return;
+                        if (e.target.closest('.se-edge, .se-edge-label, [data-external-group]')) return;
                         const name =
                         e.target.closest('[data-entity]')?.dataset.entity;
                         drag.current = {
@@ -757,6 +789,23 @@ export default function Diagram({
                                             {g.edges.map((e) => e.field).join(', ')}
                                         </text>
                                     )}
+                                </g>
+                            );
+                        })}
+                        {externalBundles.map((bundle) => {
+                            const p = positions[bundle.name];
+                            if (!p) return null;
+                            const expanded = expandedExternal.includes(bundle.id);
+                            const toggle = () => { setSelected(''); setMoves({}); setExpandedExternal(expanded ? expandedExternal.filter((id) => id !== bundle.id) : [...expandedExternal, bundle.id]); };
+                            const label = bundle.label.length > 32 ? `${bundle.label.slice(0, 29)}…` : bundle.label;
+                            return (
+                                <g key={bundle.name} data-external-group={bundle.id} className="se-external-group-card"
+                                    transform={`translate(${p.x - width / 2},${p.y - height / 2})`} role="button" tabIndex={0}
+                                    aria-label={`${expanded ? 'Collapse' : 'Expand'} ${bundle.label}: ${bundle.members.length} connected schemas`} aria-expanded={expanded}
+                                    onClick={toggle} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } }}>
+                                    <title>{bundle.label}</title><rect width={width} height={height} rx="8" />
+                                    <text x="12" y="25" className="se-external-group-title">{label}</text>
+                                    <text x="12" y="47">{bundle.members.length} connected {bundle.members.length === 1 ? 'schema' : 'schemas'} · {expanded ? 'Collapse ↑' : 'Expand →'}</text>
                                 </g>
                             );
                         })}

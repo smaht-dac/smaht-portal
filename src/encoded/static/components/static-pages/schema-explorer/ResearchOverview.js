@@ -37,7 +37,7 @@ function RelationshipCard({ edge, graph, onInspect }) {
     );
 }
 
-export default function ResearchOverview({ index, nodes, onType, onGroup, onAllTypes, onDetail, onConnections, initialConcept = '' }) {
+export default function ResearchOverview({ index, nodes, onType, onGroup, onAllTypes, onDetail, onConnections, initialConcept = '', focusMap = false }) {
     const [size, setSize] = useState({ width: 1200, height: 650 });
     const [camera, setCamera] = useState({ x: 20, y: 20, scale: 1 });
     const [selected, setSelected] = useState(initialConcept);
@@ -134,6 +134,12 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
             detail.current?.scrollIntoView({ block: 'start' });
         });
     }, [initialConcept]);
+    useEffect(() => {
+        if (focusMap) requestAnimationFrame(() => {
+            svg.current?.focus({ preventScroll: true });
+            svg.current?.scrollIntoView({ block: 'center', behavior: 'instant' });
+        });
+    }, [focusMap]);
     const returnToMap = () => {
         setSelected('');
         setMapExpanded(true);
@@ -230,8 +236,8 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                                     <g key={node.id} data-concept={node.id} className={`se-research-node${dimNode(node.id) ? ' se-research-dim' : ''}${selected === node.id ? ' se-research-selected' : ''}`}
                                         transform={`translate(${p.x - graph.nodeWidth / 2},${p.y - graph.nodeHeight / 2})`}>
                                         <g className="se-research-diagram-action" role="button" tabIndex={0}
-                                            aria-label={`Explore ${node.label} connections: ${node.hint}`} aria-pressed={selected === node.id} onClick={() => onConnections({ ...node, connections: conceptConnections(index, node, graph, nodes) })}
-                                            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onConnections({ ...node, connections: conceptConnections(index, node, graph, nodes) }); } }}>
+                                            aria-label={`Explore ${node.label} connections: ${node.hint}`} aria-pressed={selected === node.id} onClick={() => onConnections({ ...node, origin: 'map', connections: conceptConnections(index, node, graph, nodes) })}
+                                            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onConnections({ ...node, origin: 'map', connections: conceptConnections(index, node, graph, nodes) }); } }}>
                                             <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="8" />
                                             <text className="se-research-title" x="14" y="26">{node.label}</text>
                                             {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
@@ -268,7 +274,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                 <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`} style={{ '--se-concept-color': concept.color }}>
                     <header className="se-concept-heading">
                         <div><span className="se-concept-eyebrow">Explore the metadata</span><h3 ref={detailHeading} tabIndex={-1}>{concept.label}</h3><p className="se-concept-question">{concept.hint}</p></div>
-                        <div className="se-concept-actions"><button type="button" className="se-concept-group-link" onClick={() => onConnections({ ...concept, connections: detailConnections })}>Explore {concept.label} connections →</button><button type="button" onClick={returnToMap}>← Back to overview</button></div>
+                        <div className="se-concept-actions"><button type="button" className="se-concept-group-link" onClick={() => onConnections({ ...concept, origin: 'concept', connections: detailConnections })}>Explore {concept.label} connections →</button><button type="button" onClick={returnToMap}>← Back to overview</button></div>
                     </header>
                     <p className="se-concept-description">{concept.description}</p>
                     <div className="se-concept-navigation"><label>Explore another concept<select aria-label="Explore another concept" value={selected} onChange={(event) => choose(event.target.value)}>{graph.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label></div>

@@ -226,3 +226,5 @@
     .se-diagram-options { margin: .5rem 0; > summary { cursor: pointer; color: #425c71; font-size: 13px; padding: .35rem 0; } &[open] { padding-bottom: .6rem; border-bottom: 1px solid #e3e7eb; } }
     .se-context-references { margin: .5rem 0 .75rem; padding: .5rem .75rem; > summary { cursor: pointer; font-size: 13px; color: #425c71; } > button { margin-top: .6rem; } }
 }
+
+.se-external-group-card { cursor: pointer; rect { fill: #eef5f8; stroke: #86a8bc; stroke-width: 1.5; stroke-dasharray: 5 3; } text { fill: #526d80; font-size: 11px; } .se-external-group-title { fill: #253b4d; font-size: 12px; font-weight: 650; } &:hover rect, &:focus rect { fill: #dfedf4; stroke: #356a9a; stroke-width: 2; } }
