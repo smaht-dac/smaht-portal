@@ -219,3 +219,10 @@
     .entity-node text.se-context-domain { fill: #596d7e; font-size: 10px; font-weight: 500; }
     .se-context-references { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; padding: 10px 12px; border: 1px solid #d5e3ec; border-radius: 6px; font-size: 12px; strong { flex-basis: 100%; color: #596d7e; } }
 }
+
+.schema-explorer .se-concept-diagram, .se-concept-diagram { scroll-margin-top: 85px; outline: none;
+    .se-concept-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin: .6rem 0; > div:first-child { margin-right: auto; strong { display: block; color: #253b4d; font-size: 18px; } > span { display: block; color: #617182; font-size: 12px; margin-top: .2rem; } } > input { flex: 0 1 260px; min-width: 160px; } }
+    > .se-toolbar > .text-muted { display: none; }
+    .se-diagram-options { margin: .5rem 0; > summary { cursor: pointer; color: #425c71; font-size: 13px; padding: .35rem 0; } &[open] { padding-bottom: .6rem; border-bottom: 1px solid #e3e7eb; } }
+    .se-context-references { margin: .5rem 0 .75rem; padding: .5rem .75rem; > summary { cursor: pointer; font-size: 13px; color: #425c71; } > button { margin-top: .6rem; } }
+}

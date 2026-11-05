@@ -44,6 +44,15 @@ export default function Diagram({
     const [size, setSize] = useState({ width: 1000, height: 600 });
     const [exporting, setExporting] = useState(false),
         [error, setError] = useState('');
+    const diagramEntry = useRef();
+    useEffect(() => {
+        if (!conceptContext) return undefined;
+        const frame = requestAnimationFrame(() => {
+            diagramEntry.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+            diagramEntry.current?.focus({ preventScroll: true });
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [conceptContext?.id]);
     const svg = useRef(),
         drag = useRef(),
         relationshipMenu = useRef(),
@@ -388,8 +397,8 @@ export default function Diagram({
         );
     }
     return (
-        <section
-            className={`se-diagram${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}${overview ? ' se-overview' : ''}`}
+        <section ref={diagramEntry} tabIndex={-1}
+            className={`se-diagram${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}${overview ? ' se-overview' : ''}`}
             aria-label={
                 compact ? 'Item relationships' : 'All schema relationships'
             }>
@@ -405,101 +414,124 @@ export default function Diagram({
                     {summarize ? `${shownGroups.length} shared-definition connections` : `${shownGroups.reduce((n, g) => n + g.edges.length, 0)} relationships`}
                 </span>
             </div>
-            <div className="se-map-toolbar">
-                {!compact && (
-                    <div className="se-map-discovery" aria-label="Find and select schemas">
-                        <input
-                            type="search"
-                            aria-label="Search schemas"
-                            placeholder="Search schemas…"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                        />
-                        <details className="se-type-picker" ref={typePicker}>
-                            <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length}</summary>
-                            <div className="se-type-popover">
-                                <input aria-label="Filter types" placeholder="Filter types…" value={typeQuery} onChange={(e) => setTypeQuery(e.target.value)} />
-                                <div className="se-toolbar">
-                                    <button type="button" onClick={() => setVisibility([])}>Show all</button>
-                                    <button type="button" onClick={() => setVisibility(nodes.map((n) => n.name))}>Hide all</button>
-                                    <button type="button" onClick={() => setVisibility(defaults)}>Defaults</button>
-                                </div>
-                                <div>
-                                    {nodes.filter((n) => n.name.toLowerCase().includes(typeQuery.toLowerCase())).map((n) => (
-                                        <label key={n.name}>
-                                            <input type="checkbox" checked={!hidden.includes(n.name)} onChange={(e) => setVisibility(e.target.checked ? hidden.filter((v) => v !== n.name) : [...hidden, n.name])} />
-                                            {n.name}
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        </details>
-                        <details className="se-map-settings" ref={mapSettings}>
-                            <summary>Map settings</summary>
-                            <div className="se-map-settings-popover">
-                                <label>Group
-                                    <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
-                                        <option value="">All groups</option>
-                                        {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
-                                    </select>
-                                </label>
-                                <label>Layout
-                                    <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
-                                        <option value="hierarchical">Hierarchical</option>
-                                        <option value="network">Network</option>
-                                    </select>
-                                </label>
-                                {showDomains && <label className="se-map-cross-links"><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Include cross-group links for the selected schema</label>}
-                            </div>
-                        </details>
-                    </div>
-                )}
-                <div className="se-map-tools">
-                    <div className="se-map-tool-section se-link-filters" aria-label="Relationship filters">
-                        <details ref={relationshipMenu}>
-                            <summary>Relationships {kinds.length}/3</summary>
-                            <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
-                        </details>
-                    </div>
-                    {showDomains && !overview && (
-                        <div className="se-map-tool-section se-connection-mode">
-                            <label>Connections
-                                <select aria-label="Connection detail" value={selected ? 'selected' : connectionMode} onChange={(event) => setConnectionMode(event.target.value)} disabled={!!selected}>
-                                    {selected && <option value="selected">Selected type: exact links</option>}
-                                    <option value="shared">Shared definitions</option>
-                                    <option value="all">All references</option>
-                                </select>
-                            </label>
-                        </div>
-                    )}
-                    {!compact && (
-                        <div className="se-map-tool-section" aria-label="Schema exploration">
-                            <button type="button" id="entity-show-neighborhood" disabled={!selected} aria-pressed={neighbors} onClick={() => {
-                                if (!neighbors) showConnected();
-                                else { setMoves({}); setNeighbors(false); }
-                            }}>{neighbors ? 'Show selected types' : 'Show neighborhood'}
-                            </button>
-                            {selected && <button type="button" onClick={clearSelection}>Clear selection</button>}
-                        </div>
-                    )}
-                    <div className="se-map-tool-section se-canvas-actions" aria-label="Canvas controls">
-                        <button type="button" id={compact ? 'graph-export' : 'entity-export'} disabled={exporting} onClick={async () => {
-                            setExporting(true);
-                            try { await exportPNG(svg.current, compact ? `${focus}-relationships` : 'schema-map'); }
-                            catch (err) { setError(err.message || 'PNG export failed.'); }
-                            finally { setExporting(false); }
-                        }}>{exporting ? 'Exporting…' : 'Export PNG'}
-                        </button>
-                        <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
-                            <button type="button" onClick={() => fit(false)}>Fit all</button>
-                            <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
-                            <span>{Math.round(camera.scale * 100)}%</span>
-                            <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
-                        </div>
-                        <button type="button" onClick={() => { setMoves({}); fit(); }}>Reset layout</button>
+            {conceptContext && (
+                <div className="se-concept-controls">
+                    <div><strong>{conceptContext.label} connections</strong><span>Select a schema or arrow to explore its relationships.</span></div>
+                    <input
+                        type="search"
+                        aria-label="Search schemas"
+                        placeholder="Search schemas…"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                    />
+                    <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
+                        <button type="button" onClick={() => fit(false)}>Fit all</button>
+                        <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
+                        <span>{Math.round(camera.scale * 100)}%</span>
+                        <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
                     </div>
                 </div>
-            </div>
+            )}
+            <details className="se-diagram-options" open={conceptContext ? undefined : true}>
+                <summary hidden={!conceptContext}>Diagram options</summary>
+                <div className="se-map-toolbar">
+                    {!compact && (
+                        <div className="se-map-discovery" aria-label="Find and select schemas">
+                            {!conceptContext && (<input
+                                type="search"
+                                aria-label="Search schemas"
+                                placeholder="Search schemas…"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />)}
+                            <details className="se-type-picker" ref={typePicker}>
+                                <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length}</summary>
+                                <div className="se-type-popover">
+                                    <input aria-label="Filter types" placeholder="Filter types…" value={typeQuery} onChange={(e) => setTypeQuery(e.target.value)} />
+                                    <div className="se-toolbar">
+                                        <button type="button" onClick={() => setVisibility([])}>Show all</button>
+                                        <button type="button" onClick={() => setVisibility(nodes.map((n) => n.name))}>Hide all</button>
+                                        <button type="button" onClick={() => setVisibility(defaults)}>Defaults</button>
+                                    </div>
+                                    <div>
+                                        {nodes.filter((n) => n.name.toLowerCase().includes(typeQuery.toLowerCase())).map((n) => (
+                                            <label key={n.name}>
+                                                <input type="checkbox" checked={!hidden.includes(n.name)} onChange={(e) => setVisibility(e.target.checked ? hidden.filter((v) => v !== n.name) : [...hidden, n.name])} />
+                                                {n.name}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            </details>
+                            <details className="se-map-settings" ref={mapSettings}>
+                                <summary>Map settings</summary>
+                                <div className="se-map-settings-popover">
+                                    <label>Group
+                                        <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
+                                            <option value="">All groups</option>
+                                            {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+                                        </select>
+                                    </label>
+                                    <label>Layout
+                                        <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
+                                            <option value="hierarchical">Hierarchical</option>
+                                            <option value="network">Network</option>
+                                        </select>
+                                    </label>
+                                    {showDomains && <label className="se-map-cross-links"><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Include cross-group links for the selected schema</label>}
+                                </div>
+                            </details>
+                        </div>
+                    )}
+                    <div className="se-map-tools">
+                        <div className="se-map-tool-section se-link-filters" aria-label="Relationship filters">
+                            <details ref={relationshipMenu}>
+                                <summary>Relationships {kinds.length}/3</summary>
+                                <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
+                            </details>
+                        </div>
+                        {showDomains && !overview && (
+                            <div className="se-map-tool-section se-connection-mode">
+                                <label>Connections
+                                    <select aria-label="Connection detail" value={selected ? 'selected' : connectionMode} onChange={(event) => setConnectionMode(event.target.value)} disabled={!!selected}>
+                                        {selected && <option value="selected">Selected type: exact links</option>}
+                                        <option value="shared">Shared definitions</option>
+                                        <option value="all">All references</option>
+                                    </select>
+                                </label>
+                            </div>
+                        )}
+                        <div className="se-map-tool-section se-canvas-actions" aria-label="Canvas controls">
+                            <button type="button" id={compact ? 'graph-export' : 'entity-export'} disabled={exporting} onClick={async () => {
+                                setExporting(true);
+                                try { await exportPNG(svg.current, compact ? `${focus}-relationships` : 'schema-map'); }
+                                catch (err) { setError(err.message || 'PNG export failed.'); }
+                                finally { setExporting(false); }
+                            }}>{exporting ? 'Exporting…' : 'Export PNG'}
+                            </button>
+                            {!conceptContext && (
+                                <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
+                                    <button type="button" onClick={() => fit(false)}>Fit all</button>
+                                    <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
+                                    <span>{Math.round(camera.scale * 100)}%</span>
+                                    <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
+                                </div>
+                            )}
+                            <button type="button" onClick={() => { setMoves({}); fit(); }}>Reset layout</button>
+                        </div>
+                    </div>
+                </div>
+            </details>
+            {!compact && selected && (
+                <div className="se-map-tool-section" aria-label="Schema exploration">
+                    <button type="button" id="entity-show-neighborhood" disabled={!selected} aria-pressed={neighbors} onClick={() => {
+                        if (!neighbors) showConnected();
+                        else { setMoves({}); setNeighbors(false); }
+                    }}>{neighbors ? 'Show selected types' : 'Show neighborhood'}
+                    </button>
+                    {selected && <button type="button" onClick={clearSelection}>Clear selection</button>}
+                </div>
+            )}
             {query && (
                 <div className="se-toolbar">
                     {nodes
@@ -517,7 +549,7 @@ export default function Diagram({
                         ))}
                 </div>
             )}
-            {!overview && (
+            {!overview && !conceptContext && (
                 <p className="text-muted">
                     Drag the background to pan, scroll to zoom, or drag a type to
                     move it. Select a type to highlight its neighbors; select an
@@ -525,29 +557,22 @@ export default function Diagram({
                 </p>
             )}
             {error && <p role="alert">{error}</p>}
-            {showDomains && (
+            {showDomains && !conceptContext && (
                 <p className="se-flow-note">{overview ? 'Select a group or type to explore its relationships. Groups follow the biological workflow.' : selected
                     ? `Showing ${selected} references between visible schemas, including inherited and self-references. Clear selection to return to the group overview.`
                     : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
                         : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.'}
                 </p>
             )}
-            {conceptContext && !neighbors && (
-                <div className="se-concept-scope" aria-label="Diagram scope">
-                    <div><strong>{conceptContext.label} connections</strong>
-                        <p>All visible schemas in {domains.find((group) => group.id === conceptContext.domain)?.label}. Select a schema to explore its connections, including other groups.</p>
-                    </div>
-                </div>
-            )}
             {conceptContext && !neighbors && conceptMembers.size > 1 && conceptContext.connections?.some((connection) => connection.edges.some((edge) => domainFor(edge.from) !== conceptContext.domain || domainFor(edge.to) !== conceptContext.domain)) && (
-                <div className="se-context-references" aria-label="Overview connections to other groups">
-                    <strong>Other-group relationships from the overview</strong>
+                <details className="se-context-references" aria-label="Overview connections to other groups">
+                    <summary>Connections to other groups</summary>
                     {conceptContext.connections.filter((connection) => connection.edges.some((edge) => domainFor(edge.from) !== conceptContext.domain || domainFor(edge.to) !== conceptContext.domain)).map((connection) => (
                         <button type="button" key={connection.key} onClick={() => inspect({ ...connection.edges[0], edges: connection.edges })}>
                             {connection.edges[0].from} → {connection.edges[0].to}{connection.edges.length > 1 ? ` · ${connection.edges.length} references` : ''}
                         </button>
                     ))}
-                </div>
+                </details>
             )}
             <div className="se-canvas-wrap">
                 {!compact && (
