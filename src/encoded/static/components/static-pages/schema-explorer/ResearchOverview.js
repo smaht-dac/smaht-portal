@@ -41,7 +41,6 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
     const [size, setSize] = useState({ width: 1200, height: 650 });
     const [camera, setCamera] = useState({ x: 20, y: 20, scale: 1 });
     const [selected, setSelected] = useState(initialConcept);
-    const [tracing, setTracing] = useState(false);
     const [mapExpanded, setMapExpanded] = useState(!initialConcept);
     const [query, setQuery] = useState('');
     const [full, setFull] = useState(false);
@@ -123,7 +122,6 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
     }), [graph, index, onDetail]);
     const choose = (id) => {
         setSelected(id);
-        setTracing(false);
         setMapExpanded(false);
         requestAnimationFrame(() => {
             detailHeading.current?.focus({ preventScroll: true });
@@ -138,13 +136,12 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
     }, [initialConcept]);
     const returnToMap = () => {
         setSelected('');
-        setTracing(false);
         setMapExpanded(true);
         requestAnimationFrame(() => { svg.current?.focus({ preventScroll: true }); svg.current?.scrollIntoView({ block: 'center' }); });
     };
     const dimNode = (id) => selected && !trace.nodes.has(id) &&
-        (tracing || !graph.edges.some((edge) => (edge.from === selected && edge.to === id) || (edge.to === selected && edge.from === id)));
-    const dimEdge = (edge) => selected && !trace.edges.has(edge.key) && (tracing || edge.from !== selected && edge.to !== selected);
+        (!graph.edges.some((edge) => (edge.from === selected && edge.to === id) || (edge.to === selected && edge.from === id)));
+    const dimEdge = (edge) => selected && !trace.edges.has(edge.key) && (edge.from !== selected && edge.to !== selected);
     return (
         <section className={`se-research-overview${full ? ' se-fullscreen' : ''}`} aria-label="Metadata relationship overview">
             <div className="se-research-heading">
@@ -152,10 +149,6 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                 <button type="button" onClick={onAllTypes}>All {nodes.length} schemas</button>
             </div>
             <div className="se-research-toolbar">
-                <div className="se-research-paths" role="group" aria-label="Explore metadata relationships">
-                    <button type="button" aria-pressed={!tracing} onClick={returnToMap}>Whole model</button>
-                    <button type="button" aria-pressed={tracing} disabled={!graph.nodes.some((node) => node.id === 'files')} onClick={() => { setSelected('files'); setTracing(true); setMapExpanded(true); }}>Trace a file to its donor</button>
-                </div>
                 <input aria-label="Search schemas" type="search" placeholder="Find a specific schema…" value={query} onChange={(event) => setQuery(event.target.value)} />
                 <button type="button" hidden={!mapExpanded} disabled={exporting} onClick={async () => {
                     setExporting(true);
@@ -178,10 +171,19 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                 </button>
             )}
             <div id="research-map-context" hidden={!mapExpanded}>
-                <div className="se-research-legend">
-                    <span><b>1–7</b> Biological progression</span>
-                    <span><b>→</b> Numbered path follows biological progression; branches show experimental and analysis context</span>
-                    <span>Boxes group related schemas. Select a box to explore its connections; Overview opens its context. Select an arrow for relationship details. Drag to pan; scroll to zoom.</span>
+                <div className="se-research-legend" aria-label="Reading the map">
+                    <div className="se-map-guide">
+                        <span className="se-map-guide-symbol" aria-hidden="true">1–7</span>
+                        <div><strong>Donor to data</strong><p>Follow the numbered workflow forward, or trace a file’s origin backward.</p><p>Branches add experimental and analysis context.</p></div>
+                    </div>
+                    <div className="se-map-guide">
+                        <span className="se-map-guide-symbol" aria-hidden="true">↗</span>
+                        <div><strong>Explore the relationships</strong><p><b>Box</b> opens its schema diagram · <b>Arrow</b> opens relationship details.</p><p><b>Overview</b> explains the concept.</p></div>
+                    </div>
+                    <div className="se-map-guide se-map-guide-navigation">
+                        <span className="se-map-guide-symbol" aria-hidden="true">↔</span>
+                        <div><strong>Move around</strong><p>Drag to pan · Scroll to zoom</p></div>
+                    </div>
                 </div>
                 {error && <p role="alert">{error}</p>}
                 <div className="se-canvas-wrap">
@@ -261,7 +263,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                     </svg>
                 </div>
             </div>
-            {tracing && <p className="se-research-explanation" role="status">File provenance, traced back toward the donor: {graph.nodes.filter((node) => trace.nodes.has(node.id)).reverse().map((node) => node.label).join(' → ')}. This traces provenance back to the donor; arrows on the numbered path show forward biological progression.</p>}
+
             {concept && (
                 <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`} style={{ '--se-concept-color': concept.color }}>
                     <header className="se-concept-heading">
