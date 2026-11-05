@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { buildResearchMap, researchLabels, traceProvenance } from './research-map';
+import { buildResearchMap, researchLabels, traceProvenance, overviewFlow } from './research-map';
 import { routeEdges } from './routing';
 import { abstractTypes } from './domains';
+import { conceptConnections } from './concept-connections';
 import { exportPNG } from './shared';
 
 function lines(text) {
@@ -14,8 +15,8 @@ function lines(text) {
 }
 
 function RelationshipCard({ edge, graph, onInspect }) {
-    const from = graph.nodes.find((node) => node.id === edge.from);
-    const to = graph.nodes.find((node) => node.id === edge.to);
+    const from = graph.nodes.find((node) => node.id === edge.from) || { label: edge.fromLabel || edge.from };
+    const to = graph.nodes.find((node) => node.id === edge.to) || { label: edge.toLabel || edge.to };
     const fields = [...new Set(edge.edges.map((reference) => reference.field))];
     const schemas = new Set(edge.edges.map((reference) => reference.from)).size;
     return (
@@ -36,22 +37,25 @@ function RelationshipCard({ edge, graph, onInspect }) {
     );
 }
 
-export default function ResearchOverview({ index, nodes, onType, onGroup, onAllTypes, onDetail }) {
+export default function ResearchOverview({ index, nodes, onType, onGroup, onAllTypes, onDetail, onConnections, initialConcept = '' }) {
     const [size, setSize] = useState({ width: 1200, height: 650 });
     const [camera, setCamera] = useState({ x: 20, y: 20, scale: 1 });
-    const [selected, setSelected] = useState('');
+    const [selected, setSelected] = useState(initialConcept);
     const [tracing, setTracing] = useState(false);
-    const [mapExpanded, setMapExpanded] = useState(true);
+    const [mapExpanded, setMapExpanded] = useState(!initialConcept);
     const [query, setQuery] = useState('');
     const [full, setFull] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [error, setError] = useState('');
     const svg = useRef(), drag = useRef(), detail = useRef(), detailHeading = useRef();
     const graph = useMemo(() => buildResearchMap(index, nodes, size), [index, nodes, size]);
-    const routes = useMemo(() => routeEdges(graph.positions, graph.edges, graph.nodeWidth, graph.nodeHeight), [graph]);
-    const labels = useMemo(() => researchLabels(graph, routes), [graph, routes]);
+    const flow = useMemo(() => overviewFlow(graph), [graph]);
+    const flowByKey = useMemo(() => new Map(flow.edges.map((edge) => [edge.key, edge])), [flow]);
+    const routes = useMemo(() => routeEdges(flow.positions, flow.edges, flow.nodeWidth, flow.nodeHeight), [flow]);
+    const labels = useMemo(() => researchLabels(flow, routes), [flow, routes]);
     const trace = useMemo(() => traceProvenance(graph, selected), [graph, selected]);
     const concept = graph.nodes.find((node) => node.id === selected);
+    const detailConnections = useMemo(() => conceptConnections(index, concept, graph, nodes), [index, concept, graph, nodes]);
     const schemaGroups = concept ? [
         { label: 'Abstract types', abstract: true, members: concept.members.filter((name) => abstractTypes.has(name)) },
         { label: 'Concrete types', abstract: false, members: concept.members.filter((name) => !abstractTypes.has(name)) },
@@ -111,8 +115,8 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
         return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', escape); };
     }, [full]);
     const inspect = useCallback((edge) => onDetail({
-        title: `${graph.nodes.find((node) => node.id === edge.from)?.label} → ${graph.nodes.find((node) => node.id === edge.to)?.label}`,
-        intro: 'Exact schema references behind this connection. Boxes group related schemas; [] denotes an array.',
+        title: `${graph.nodes.find((node) => node.id === edge.from)?.label || edge.fromLabel || edge.from} → ${graph.nodes.find((node) => node.id === edge.to)?.label || edge.toLabel || edge.to}`,
+        intro: 'The entry map follows biological progression. These exact schema references retain reference direction; [] denotes an array.',
         value: edge.edges,
         relationship: edge.edges,
         sources: edge.edges.flatMap((e) => index.models.find((model) => model.name === e.from)?.fields.find((field) => field.name === e.field.split('.')[0].replaceAll('[]', ''))?.sources || []),
@@ -126,6 +130,12 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
             detail.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         });
     };
+    useEffect(() => {
+        if (initialConcept) requestAnimationFrame(() => {
+            detailHeading.current?.focus({ preventScroll: true });
+            detail.current?.scrollIntoView({ block: 'start' });
+        });
+    }, [initialConcept]);
     const returnToMap = () => {
         setSelected('');
         setTracing(false);
@@ -170,7 +180,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
             <div id="research-map-context" hidden={!mapExpanded}>
                 <div className="se-research-legend">
                     <span><b>1–7</b> Biological progression</span>
-                    <span><b>→</b> A record points to metadata it references</span>
+                    <span><b>→</b> Numbered path follows biological progression; branches show experimental and analysis context</span>
                     <span>Boxes group related schemas. Select a box or connection for exact fields. Drag to pan; scroll to zoom.</span>
                 </div>
                 {error && <p role="alert">{error}</p>}
@@ -204,9 +214,9 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                                 return (
                                     <g key={edge.key} data-reference={edge.key} className={dimEdge(edge) ? 'se-research-dim' : ''}>
                                         <path className={`se-research-edge${trace.edges.has(edge.key) ? ' se-research-traced' : ''}`} d={route.d} role="button" tabIndex={0}
-                                            aria-label={`${edge.label}: ${edge.edges[0].from}.${edge.edges[0].field} → ${edge.edges[0].to}`}
+                                            aria-label={`${flowByKey.get(edge.key).label}: ${graph.nodes.find((node) => node.id === flowByKey.get(edge.key).from)?.label} → ${graph.nodes.find((node) => node.id === flowByKey.get(edge.key).to)?.label}. Open schema references`}
                                             onClick={() => inspect(edge)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspect(edge); } }}>
-                                            <title>{edge.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}</title>
+                                            <title>{`Schema references (reference direction):\n${edge.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}`}</title>
                                         </path>
                                         <polygon points={`${end.x},${end.y} ${baseX - uy * 4},${baseY + ux * 4} ${baseX + uy * 4},${baseY - ux * 4}`} fill="#477293" pointerEvents="none" />
                                     </g>
@@ -233,7 +243,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                                 return (
                                     <g key={`label-${edge.key}`} data-reference={edge.key} className={`se-research-label${dimEdge(edge) ? ' se-research-dim' : ''}`} onClick={() => inspect(edge)}>
                                         <rect x={label.left} y={label.top} width={label.width} height={label.height} rx="4" />
-                                        <text x={label.left + label.width / 2} y={label.top + 15}>{edge.label}</text>
+                                        <text x={label.left + label.width / 2} y={label.top + 15}>{flowByKey.get(edge.key).label}</text>
                                     </g>
                                 );
                             })}
@@ -242,7 +252,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                     </svg>
                 </div>
             </div>
-            {tracing && <p className="se-research-explanation" role="status">Follow the highlighted references: {graph.nodes.filter((node) => trace.nodes.has(node.id)).reverse().map((node) => node.label).join(' → ')}. Each connection is backed by the enabled schemas.</p>}
+            {tracing && <p className="se-research-explanation" role="status">File provenance, traced back toward the donor: {graph.nodes.filter((node) => trace.nodes.has(node.id)).reverse().map((node) => node.label).join(' → ')}. This traces provenance back to the donor; arrows on the numbered path show forward biological progression.</p>}
             {concept && (
                 <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`} style={{ '--se-concept-color': concept.color }}>
                     <header className="se-concept-heading">
@@ -253,9 +263,9 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                     <div className="se-concept-navigation"><label>Explore another concept<select aria-label="Explore another concept" value={selected} onChange={(event) => choose(event.target.value)}>{graph.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label></div>
                     <div className="se-concept-workspace">
                         <section className="se-concept-relationships" aria-labelledby="concept-relationships-heading">
-                            <h4 id="concept-relationships-heading">How {concept.label.toLowerCase()} connects</h4>
-                            <p className="se-concept-help">Each connection below explains its role and the schema fields that implement it. Counts describe schema definitions; [] marks fields that accept multiple references.</p>
-                            {graph.edges.filter((edge) => edge.from === selected || edge.to === selected).map((edge) => <RelationshipCard key={edge.key} edge={edge} graph={graph} onInspect={inspect} />)}
+                            <h4 id="concept-relationships-heading">Key relationships for {concept.label.toLowerCase()}</h4>
+                            <p className="se-concept-help">Workflow, preparation and supporting references are listed together. The diagram preserves this context; connections to other groups are identified explicitly.</p>
+                            {detailConnections.map((edge) => <RelationshipCard key={edge.key} edge={edge} graph={graph} onInspect={inspect} />)}
                         </section>
                         <aside className="se-concept-schemas" aria-labelledby="concept-schemas-heading">
                             <h4 id="concept-schemas-heading">Schemas in this concept <span>{concept.members.length}</span></h4>
@@ -273,7 +283,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                                     ))}
                                 </div>
                             ))}
-                            <button type="button" className="se-concept-group-link" onClick={() => onGroup(concept.domain)}>Explore group relationships →</button>
+                            <button type="button" className="se-concept-group-link" onClick={() => onConnections({ ...concept, connections: detailConnections })}>Explore {concept.label} connections →</button>
                         </aside>
                     </div>
                 </section>

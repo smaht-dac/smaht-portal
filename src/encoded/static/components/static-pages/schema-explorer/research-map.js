@@ -1,5 +1,6 @@
 // A curated reading guide projected from the deployed schema graph. A concept
-// groups schemas; it never invents a reference or rewrites its direction.
+// groups schemas without inventing references. The reference graph retains schema
+// direction; overviewFlow separately projects the numbered biological path.
 export const concepts = [
     { id: 'donor', label: 'Donor', step: 1, hint: 'Who donated the material?', example: 'Donor', domain: 'donors', color: '#356a9a', types: 'Donor ProtectedDonor AbstractDonor', description: 'Donor metadata identifies the individual who supplied the biological material. Clinical history and protected details provide additional context.' },
     { id: 'material', label: 'Source material', step: 2, hint: 'Which tissue or culture?', example: 'Tissue · CellCulture', domain: 'samples', color: '#237b68', types: 'SampleSource Tissue CellCulture CellLine CellCultureMixture', description: 'Source material is the tissue or cultured material from which specimens originate. Tissue and CellLine records can reference a donor directly; cultures can also trace their origin through source samples.' },
@@ -99,4 +100,23 @@ export function researchLabels(graph, routes) {
         if (chosen) { labels[edge.key] = chosen; obstacles.push(chosen); }
     }
     return labels;
+}
+
+// The entry map follows biological progression. Schema direction remains in
+// graph.edges and each connection's exact references for detail views/tracing.
+export function overviewFlow(graph) {
+    const labels = {
+        'material-donor': 'donates',
+        'sample-material': 'sampled as',
+        'analyte-sample': 'yields analyte',
+        'library-analyte': 'used for',
+        'fileSet-library': 'used in',
+        'files-fileSet': 'has data',
+    };
+    return { ...graph, edges: graph.edges.map((edge) => {return {
+        ...edge,
+        from: edge.primary ? edge.to : edge.from,
+        to: edge.primary ? edge.from : edge.to,
+        label: labels[edge.key] || (edge.key === 'workflow-files' ? 'input/output' : edge.label),
+    };}) };
 }

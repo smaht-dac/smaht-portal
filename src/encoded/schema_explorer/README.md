@@ -49,8 +49,10 @@ unrecognized relationships use the model description without inferred research a
 The opening map is a research-oriented **From donor to data** overview. It explains
 11 concepts using 10 labeled connections: donor, source material, sample, analyte,
 library, FileSet, data files, analysis context, workflow execution, quality assessment
-and sequencing. Numbered steps describe biological progression; arrows retain the
-actual direction of schema references. Related schemas are grouped into concepts,
+and sequencing. Numbered steps and the six main arrows follow biological progression from donor
+to data, with forward-reading labels. Branches show experimental/analysis context.
+This entry-map projection does not alter schema references: relationship cards,
+inspectors and detailed diagrams retain the actual reference direction. Related schemas are grouped into concepts,
 so a concept is not a claim that all its member schemas have every displayed field.
 
 The projection in `research-map.js` uses only direct references present in the
@@ -67,7 +69,19 @@ schema types, and expand all exact definitions inline. The schema sidebar includ
 each type's description and opens its model details. Explicit abstract collections
 appear first under Abstract types, with an Abstract badge, italic name and dashed
 card border; concrete schemas follow in their own group. Inspect fields & sources opens
-the source inspector. Explore another concept switches the workspace; Back to overview
+the source inspector. Explore concept connections opens a scoped diagram containing the concept schemas
+and their direct neighbors within the same domain under the active filters.
+Concept detail cards are derived from all enabled direct references, including
+preparation and supporting metadata, rather than only the overview's curated arrows.
+For a single-schema concept, external endpoints from these same cards appear as
+compact cards marked Other group, without expanding their domains. Multi-schema
+concepts retain the approved group layout and explicitly list external overview
+relationships above the canvas, with access to their exact relationship details.
+Single-schema concepts stay highlighted. Shared definitions remain combined; external
+domains stay behind the selected node’s External connections popover. Show entire group explicitly expands to
+the full domain, with a switch back to the direct connections. Back to the concept
+overview restores the selected concept workspace.
+Explore another concept switches the workspace; Back to overview
 restores the map, and Show overview reveals it without closing the workspace.
 The file-provenance action keeps the map expanded so its highlighted path stays visible.
 Selecting an arrow or label also opens its exact field and source definitions. Clinical details,
@@ -184,6 +198,7 @@ PYTHONPATH=src python -m unittest discover -s tests/schema_explorer -v
 python -m encoded.schema_explorer /tmp/schema-explorer.json
 node tests/schema_explorer/domains.cjs /tmp/schema-explorer.json
 node tests/schema_explorer/research-map.cjs /tmp/schema-explorer.json
+node tests/schema_explorer/concept-connections.cjs /tmp/schema-explorer.json
 node tests/schema_explorer/relationship-view.cjs /tmp/schema-explorer.json
 node tests/schema_explorer/node-presentation.cjs
 node tests/schema_explorer/browser.cjs /tmp/schema-explorer.json

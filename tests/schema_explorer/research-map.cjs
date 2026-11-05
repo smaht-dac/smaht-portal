@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.readFileSync(`src/encoded/static/components/static-pages/schema-explorer/${name}.js`)).toString('base64')}`);
 (async()=>{
- const {concepts,buildResearchMap,traceProvenance,researchLabels}=await load('research-map');
+ const {concepts,buildResearchMap,traceProvenance,researchLabels,overviewFlow}=await load('research-map');
  const {routeEdges,segmentClear}=await load('routing');
  const model=JSON.parse(fs.readFileSync(process.argv[2] || '/tmp/schema-explorer-hierarchy.json')).model;
  const available=model.models.map(m=>({name:m.name}));
@@ -18,6 +18,21 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
    assert.ok(edge.question && edge.explanation,'Each connection has a research question and explanatory context');
    assert.ok(edge.edges.every(e=>model.edges.includes(e) && e.kind==='linkTo'));
    assert.ok(edge.edges.every(e=>nodeMap.get(edge.from).members.includes(e.from) && nodeMap.get(edge.to).members.includes(e.to)),'Concept endpoints match actual schema endpoints');
+  }
+  const flow=overviewFlow(graph);
+  for(const edge of flow.edges){
+   const original=graph.edges.find(reference=>reference.key===edge.key);
+   assert.equal(edge.edges,original.edges,'Display direction preserves exact schema-reference data');
+   if(edge.primary){
+    assert.ok(nodeMap.get(edge.from).step<nodeMap.get(edge.to).step,'Numbered arrows follow biological progression');
+    assert.equal(edge.from,original.to);assert.equal(edge.to,original.from);
+   }else{assert.equal(edge.from,original.from);assert.equal(edge.to,original.to);}
+  }
+  const flowRoutes=routeEdges(flow.positions,flow.edges,flow.nodeWidth,flow.nodeHeight);
+  assert.equal(Object.keys(researchLabels(flow,flowRoutes)).length,10,'Forward-flow labels fit at each viewport');
+  for(const edge of flow.edges){
+   const end=flowRoutes[edge.key].end,target=flow.positions[edge.to];
+   assert.ok(Math.abs(Math.abs(end.x-target.x)-flow.nodeWidth/2)<0.01 || Math.abs(Math.abs(end.y-target.y)-flow.nodeHeight/2)<0.01,'Arrow tips attach to the displayed target');
   }
   const routes=routeEdges(graph.positions,graph.edges,graph.nodeWidth,graph.nodeHeight);
   assert.equal(Object.keys(routes).length,graph.edges.length);
