@@ -14,26 +14,80 @@ function lines(text) {
     return result;
 }
 
-function RelationshipCard({ edge, graph, onInspect }) {
-    const from = graph.nodes.find((node) => node.id === edge.from) || { label: edge.fromLabel || edge.from };
-    const to = graph.nodes.find((node) => node.id === edge.to) || { label: edge.toLabel || edge.to };
+const nodeLabel = (graph, id) => graph.nodes.find((node) => node.id === id)?.label || id;
+
+function listLabel(names, limit = 2) {
+    return names.length > limit ? `${names.slice(0, limit).join(', ')} +${names.length - limit}` : names.join(', ');
+}
+
+// One table row per relationship: the schema on the other side, what the link means and the field that stores it.
+function RelationshipRow({ edge, section, graph, onInspect }) {
+    const from = edge.fromLabel || nodeLabel(graph, edge.from), to = edge.toLabel || nodeLabel(graph, edge.to);
+    const sources = (edge.sources || [edge.from]).map((id) => nodeLabel(graph, id));
+    const other = section === 'incoming' ? listLabel(sources) : section === 'outgoing' ? to : `${listLabel(sources)} → ${to}`;
     const fields = [...new Set(edge.edges.map((reference) => reference.field))];
-    const schemas = new Set(edge.edges.map((reference) => reference.from)).size;
+    const owners = [...new Set(edge.edges.map((reference) => reference.from))];
     return (
-        <article className="se-relationship-card">
-            <div className="se-relationship-direction"><span>{from.label}</span><span aria-hidden="true">→</span><span>{to.label}</span></div>
-            <h5>{edge.question}</h5>
-            <p>{edge.explanation}</p>
-            <div className="se-relationship-fields">{fields.map((field) => <code key={field}>{field}</code>)}</div>
-            <div className="se-relationship-actions">
-                <span>{fields.length} {fields.length === 1 ? 'field' : 'fields'} · {schemas} {schemas === 1 ? 'schema type' : 'schema types'}</span>
-                <button type="button" onClick={() => onInspect(edge)}>Inspect fields &amp; sources →</button>
-            </div>
-            <details className="se-relationship-definitions">
-                <summary>Show all {edge.edges.length} field {edge.edges.length === 1 ? 'definition' : 'definitions'}</summary>
-                <ul>{edge.edges.map((reference) => <li key={`${reference.from}-${reference.field}-${reference.to}`}><code>{reference.from}.{reference.field}</code><span aria-hidden="true"> → </span><code>{reference.to}</code></li>)}</ul>
-            </details>
-        </article>
+        <tr>
+            <th scope="row" className="se-relationship-other">{other}</th>
+            <td className="se-relationship-meaning"><span>{edge.question}</span>{edge.explanation && <small>{edge.explanation}</small>}</td>
+            <td className="se-relationship-field">
+                {fields.slice(0, 2).map((field) => <code key={field}>{field}</code>)}
+                {fields.length > 2 && <small>+{fields.length - 2} more</small>}
+                <small>{owners.length === 1 ? `on ${owners[0]}` : `on ${owners.length} schemas`}</small>
+            </td>
+            <td className="se-relationship-action">
+                <button type="button" onClick={() => onInspect(edge)} aria-label={`Details for ${from} to ${to}`}>Details →</button>
+            </td>
+        </tr>
+    );
+}
+
+// Rows that share a target and wording describe the same link from different schemas, so they are shown once.
+function mergeRelationships(edges) {
+    const merged = new Map();
+    for (const edge of edges) {
+        const key = JSON.stringify([edge.to, edge.question, edge.explanation]);
+        const existing = merged.get(key);
+        if (!existing) merged.set(key, { ...edge, sources: [edge.from] });
+        else merged.set(key, { ...existing, key: `${existing.key}+${edge.key}`, edges: [...existing.edges, ...edge.edges], sources: [...existing.sources, edge.from] });
+    }
+    return [...merged.values()].map((edge) => (edge.sources.length > 1 ? { ...edge, fromLabel: `${edge.sources.length} schemas` } : edge));
+}
+
+// Splits concept relationships by reference direction so incoming and outgoing links read separately.
+function relationshipSections(edges, concept) {
+    const members = new Set([concept.id, ...concept.members]);
+    const name = concept.label.toLowerCase();
+    const sections = [
+        { key: 'outgoing', label: `What ${name} links to`, column: 'Links to', edges: [] },
+        { key: 'incoming', label: `What links to ${name}`, column: 'Linked from', edges: [] },
+        { key: 'internal', label: `Links within ${name}`, column: 'Link', edges: [] },
+    ];
+    for (const edge of edges) {
+        const fromInside = members.has(edge.from), toInside = members.has(edge.to);
+        sections[fromInside && toInside ? 2 : fromInside ? 0 : 1].edges.push(edge);
+    }
+    return sections.filter((section) => section.edges.length).map((section) => {
+        return { ...section, edges: mergeRelationships(section.edges) };
+    });
+}
+
+const visibleRelationships = 6;
+
+function RelationshipSection({ section, graph, onInspect }) {
+    const [expanded, setExpanded] = useState(false);
+    const hidden = section.edges.length - visibleRelationships;
+    const edges = expanded || hidden <= 0 ? section.edges : section.edges.slice(0, visibleRelationships);
+    return (
+        <div className="se-relationship-section">
+            <h5 className="se-relationship-section-title">{section.label} <span>{section.edges.length}</span></h5>
+            <table className="se-relationship-table">
+                <thead><tr><th scope="col">{section.column}</th><th scope="col">Meaning</th><th scope="col">Stored in field</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
+                <tbody>{edges.map((edge) => <RelationshipRow key={edge.key} edge={edge} section={section.key} graph={graph} onInspect={onInspect} />)}</tbody>
+            </table>
+            {hidden > 0 && <button type="button" className="se-relationship-more" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? 'Show fewer' : `Show ${hidden} more`}</button>}
+        </div>
     );
 }
 
@@ -281,8 +335,8 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                     <div className="se-concept-workspace">
                         <section className="se-concept-relationships" aria-labelledby="concept-relationships-heading">
                             <h4 id="concept-relationships-heading">Key relationships for {concept.label.toLowerCase()}</h4>
-                            <p className="se-concept-help">Workflow, preparation and supporting references are listed together. The diagram preserves this context; connections to other groups are identified explicitly.</p>
-                            {detailConnections.map((edge) => <RelationshipCard key={edge.key} edge={edge} graph={graph} onInspect={inspect} />)}
+                            <p className="se-concept-help">How {concept.label.toLowerCase()} connects to other metadata. Use Details to see every schema and field definition behind a link.</p>
+                            {relationshipSections(detailConnections, concept).map((section) => <RelationshipSection key={`${concept.id}-${section.key}`} section={section} graph={graph} onInspect={inspect} />)}
                         </section>
                         <aside className="se-concept-schemas" aria-labelledby="concept-schemas-heading">
                             <h4 id="concept-schemas-heading">Schemas in this concept <span>{concept.members.length}</span></h4>
