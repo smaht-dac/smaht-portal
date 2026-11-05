@@ -58,6 +58,9 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  shellMarkup=shellMarkup.replace('</body>','<script src="/test-harness.js"></script></body>');
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  const snapshot=JSON.parse(fs.readFileSync(snapshotPath,'utf8'));
+ const excludedSchemas=new Set(['User','SubmissionCenter','Consortium','Consortia','AccessKey']);
+ const rawModel=snapshot.model;
+ snapshot.model={...rawModel,models:rawModel.models.filter(m=>!excludedSchemas.has(m.name)),edges:rawModel.edges.filter(e=>!excludedSchemas.has(e.from)&&!excludedSchemas.has(e.to))};
  let calls=[];
  let fullMarkup=null;
  await page.route('**/*',async route=>{
@@ -72,7 +75,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
   if(url.pathname==='/schema-explorer/ui')return route.fulfill({status:302,headers:{location:'/schema-explorer'}});
   if(url.pathname==='/test-harness.js')return route.fulfill({contentType:'application/javascript',body:fs.readFileSync(path.join(output,'harness.js'))});
   if(url.pathname.startsWith('/test-assets/'))return route.fulfill({contentType:'application/javascript',body:fs.readFileSync(path.join(output,path.basename(url.pathname)))});
-  if(url.pathname==='/schema-explorer/model')return route.fulfill({json:{...snapshot.model,can_view_items:isAdmin}});
+  if(url.pathname==='/schema-explorer/model')return route.fulfill({json:{...rawModel,can_view_items:isAdmin}});
   if(url.pathname==='/schema-explorer/source')return route.fulfill({json:{file:url.searchParams.get('file'),text:snapshot.sources[url.searchParams.get('file')]}});
   if(url.pathname==='/profiles/Donor.json')return route.fulfill({json:{properties:{accession:{type:'string'}}}});
   if(url.pathname==='/redirect/')return route.fulfill({status:302,headers:{location:'https://evil.test/demo/'}});
@@ -112,6 +115,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('#research-svg').evaluate(svg=>{const b=svg.getBoundingClientRect();return [...svg.querySelectorAll('[data-concept]')].every(n=>{const r=n.getBoundingClientRect();return r.left>=b.left && r.right<=b.right && r.top>=b.top && r.bottom<=b.bottom;});}),true,'The first view fits all concepts at readable size');
 
  assert.equal(await page.locator('#entity-svg').count(),0,'Opening view explains relationships rather than listing all types');
+ for(const name of excludedSchemas)assert.equal(await page.locator('#types option').filter({hasText:new RegExp('^'+name+'$')}).count(),0,`${name} is excluded from the schema selector`);
  const sourceConcept=page.locator('[data-concept]').filter({has:page.locator('[aria-label^="Explore Source material connections:"]')});
  const cardPaint=()=>sourceConcept.locator('.se-research-card').evaluate(node=>({fill:getComputedStyle(node).fill,stroke:getComputedStyle(node).stroke}));
  await page.locator('h2').first().hover();

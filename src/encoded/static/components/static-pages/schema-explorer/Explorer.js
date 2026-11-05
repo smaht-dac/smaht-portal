@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
 import Diagram from './Diagram';
+import { explorerIndex } from './explorer-scope';
 import RelationshipDetails from './RelationshipDetails';
 import Planner from './Planner';
 import LiveItem, { OriginTags } from './LiveItem';
@@ -193,7 +194,7 @@ export default function Explorer() {
         portalRequest('/schema-explorer/model?format=json', controller.signal)
             .then((data) => {
                 if (!controller.signal.aborted) {
-                    setIndex(data);
+                    setIndex(explorerIndex(data));
                     setLoading(false);
                 }
             })

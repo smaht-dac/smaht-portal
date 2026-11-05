@@ -11,19 +11,21 @@ import { routeEdges } from './routing';
 import { groupRelationships, sharedRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
 import ResearchOverview from './ResearchOverview';
+import { explorerIndex } from './explorer-scope';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
 
-const defaults = ['User', 'Consortium', 'Consortia', 'SubmissionCenter'];
+const defaults = [];
 const colors = { linkTo: '#2368aa', calculated: '#7952a3', reverse: '#986019' };
 export default function Diagram({
-    index,
+    index: sourceIndex,
     focus = '',
     compact = false,
     onExplore,
     onDetail,
     onPlanner,
 }) {
+    const index = useMemo(() => explorerIndex(sourceIndex), [sourceIndex]);
     const [selected, setSelected] = useState(focus);
     const [outsideOpen, setOutsideOpen] = useState(false);
     const [domain, setDomain] = useState('');
