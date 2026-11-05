@@ -28,7 +28,7 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/status"
+            "$ref": "mixins.json#/protected_status"
         },
         {
             "$ref": "mixins.json#/submitted"
@@ -52,7 +52,7 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_MEDICAL-HISTORY_[A-Z0-9-_.]{4,}$"
-        },
+        },        
         "alcohol_use": {
             "title": "Alcohol Use",
             "description": "Whether the donor had a history of alcohol use",

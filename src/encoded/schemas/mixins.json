@@ -988,6 +988,22 @@
             ]
         }
     },
+    "protected_status": {
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "in review",
+            "permission": "restricted_fields",
+            "enum": [
+                "in review",
+                "obsolete",
+                "deleted",
+                "protected-early",
+                "protected-network",
+                "protected"
+            ]
+        }
+    },
     "submitted": {
         "date_created": {
             "rdfs:subPropertyOf": "dc:created",

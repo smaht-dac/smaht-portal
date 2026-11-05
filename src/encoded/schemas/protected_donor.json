@@ -32,7 +32,7 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/status"
+            "$ref": "mixins.json#/protected_status"
         },
         {
             "$ref": "mixins.json#/submitted"
@@ -59,22 +59,6 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_PROTECTED-DONOR_[A-Z0-9-_.]{4,}$"
-        },
-        "status": {
-            "title": "Status",
-            "type": "string",
-            "default": "in review",
-            "permission": "restricted_fields",
-            "enum": [
-                "draft",
-                "released",
-                "in review",
-                "obsolete",
-                "deleted",
-                "protected-early",
-                "protected-network",
-                "protected"
-            ]
         }
     },
     "facets": {
