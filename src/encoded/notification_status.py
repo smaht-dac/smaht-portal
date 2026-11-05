@@ -66,6 +66,13 @@ SUBJECT_INVALID_ERROR = (
 RELEASE_SUMMARY_ERROR = (
     "Could not load the release summary. Please try again."
 )
+NOTIFICATION_STATUS_ERROR = (
+    "Could not load previous messages. Please try again."
+)
+EMAIL_RECIPIENTS_ERROR = (
+    "Could not list the email recipients. Please try again."
+)
+SEND_NOTIFICATION_ERROR = "Could not send the email. Please try again."
 
 RELEASE_SUMMARY_AUDIENCE = (
     "* For the SMaHT Network members with Data Use Agreements established "
@@ -81,6 +88,25 @@ RETRACTED_HEADLINE = "RETRACTED DATA: {files} (link to all retracted files: {url
 FULL_LIST_HEADING = "FULL LIST OF THE NEW DATA RELEASED"
 PORTAL_URL = "https://data.smaht.org"
 RETRACTED_FILES_URL = f"{PORTAL_URL}/retracted-files"
+
+# The overview lists assays and categories in these sections, in this order.
+CORE_ASSAY_HEADING = "Core-assay data"
+NON_CORE_ASSAY_HEADING = "Non-core assay data"
+OTHER_DATA_HEADING = "Other data"
+OVERVIEW_SECTIONS = (CORE_ASSAY_HEADING, NON_CORE_ASSAY_HEADING, OTHER_DATA_HEADING)
+# The consortium's core assays, as release-tracker descriptions without the
+# file format.
+CORE_ASSAYS = frozenset({
+    "Fiber-seq PacBio Revio",
+    "Kinnex PacBio Revio",
+    "RNA-seq Illumina NovaSeq X Plus",
+    "WGS Illumina NovaSeq X Plus",
+    "WGS ONT PromethION 24",
+    "WGS PacBio Revio",
+})
+# Only the aligned reads count as an assay's data; any other format of the
+# same assay is listed under OTHER_DATA_HEADING.
+ASSAY_FILE_FORMATS = frozenset({"bam", "cram"})
 
 # Only these are labeled: "Unknown" sex says nothing worth printing.
 DONOR_SEXES = frozenset({"Male", "Female"})
@@ -181,13 +207,13 @@ def get_notification_status(context, request):
 
         return {
             "email_notifications": email_notifications,
-            # Lets the page disable the send-to-all button 
+            # Lets the page disable the send-to-all button for callers not
+            # in CONSORTIUM_SENDERS.
             "can_notify_all": validate_user_may_notify_all(request),
         }
-    except Exception as e:
-        return {
-            "error": f"Error when trying to get notification status: {e}",
-        }
+    except Exception:
+        log.exception("get_notification_status failed")
+        return {"error": NOTIFICATION_STATUS_ERROR}
 
 
 def framed_heading(heading: str) -> List[str]:
@@ -229,8 +255,9 @@ def search_released_files(
 ) -> List[Dict]:
     """The files the release summary counts, one hit per file.
 
-    The only read of the released files: the counts, the donors, the title
-    labels and whether a title is a tissue all come from these hits.
+    The only read of the released files: the counts, the donors, the donor
+    groups and their labels, and whether a title is a tissue all come from
+    these hits.
     """
     # The same filters as the home-page release tracker (recent_files_summary's
     # base query, which is nested there and cannot be imported), so the email
@@ -365,14 +392,19 @@ def totals_from_hits(hits: List[Dict]) -> Dict[Tuple[str, str], int]:
     return totals
 
 
-def assay_label(description: str) -> str:
-    """Drop the trailing file format: "... NovaSeq X bam" -> "... NovaSeq X".
+def overview_section(description: str) -> str:
+    """The overview section a release-tracker description is listed under.
 
-    The counterpart of `uppercase_file_format`, so the BAM and CRAM of one
-    assay are a single entry in the overview.
+    BAM and CRAM files of a core assay are core-assay data, those of any other
+    assay non-core; every other format, and every override description such as
+    "Filtered somatic SNV vcf vcf_gz", is other data.
     """
     head, _, file_format = description.rpartition(" ")
-    return head or file_format
+    if not head or file_format.lower() not in ASSAY_FILE_FORMATS:
+        return OTHER_DATA_HEADING
+    # The description without its format: "... NovaSeq X Plus bam" is
+    # matched as "... NovaSeq X Plus".
+    return CORE_ASSAY_HEADING if head in CORE_ASSAYS else NON_CORE_ASSAY_HEADING
 
 
 class FileOverview(NamedTuple):
@@ -382,7 +414,8 @@ class FileOverview(NamedTuple):
     tissue_count: int
     # Titles that are not tissues: cell lines and cell culture mixtures.
     other_count: int
-    assays: Dict[str, int]
+    # Section heading -> description with its file format -> file count.
+    sections: Dict[str, Dict[str, int]]
 
 
 def build_overview(
@@ -406,16 +439,19 @@ def build_overview(
         for donor in hit.get("donors") or []
         if donor.get("display_title")
     }
-    assays: Dict[str, int] = {}
+    sections: Dict[str, Dict[str, int]] = {}
     for (_, description), count in totals.items():
-        label = assay_label(description)
+        assays = sections.setdefault(overview_section(description), {})
+        # With its format, as in the full list: an assay's BAM and CRAM files
+        # are separate entries.
+        label = uppercase_file_format(description)
         assays[label] = assays.get(label, 0) + count
     return FileOverview(
         file_count=file_count,
         donor_count=len(donors),
         tissue_count=len(titles & tissue_titles),
         other_count=len(titles - tissue_titles),
-        assays=assays,
+        sections=sections,
     )
 
 
@@ -440,14 +476,21 @@ def format_overview(headline: str, overview: FileOverview, url: str) -> List[str
             overview.other_count, "cell line / mixture", "cell lines / mixtures"
         ))
     counts.append(pluralize(
-        len(overview.assays), "assay / category", "assays / categories"
+        sum(len(assays) for assays in overview.sections.values()),
+        "assay / category", "assays / categories",
     ))
     lines += [f" - {count}" for count in counts]
-    # Alphabetical, ignoring case, so a lowercase-initial assay ("scRNA-seq")
-    # is not pushed below every capitalized one.
-    lines += [
-        f"    - {assay}" for assay in sorted(overview.assays, key=str.casefold)
-    ]
+    for heading in OVERVIEW_SECTIONS:
+        assays = overview.sections.get(heading)
+        if not assays:
+            continue
+        lines.append(f"    {heading}")
+        # Alphabetical, ignoring case, so a lowercase-initial assay
+        # ("scRNA-seq") is not pushed below every capitalized one.
+        lines += [
+            f"     - {assays[assay]} {assay}"
+            for assay in sorted(assays, key=str.casefold)
+        ]
     return lines
 
 
@@ -461,10 +504,11 @@ def recent_releases_url(date_from: str) -> str:
 
 
 def format_release_summary(
-    totals: Dict[Tuple[str, str], int], date_from: str, date_to: str,
+    date_from: str, date_to: str,
     released_hits: List[Dict], retracted_hits: List[Dict],
 ) -> str:
-    """Render the grouped counts as the plain text the composer inserts."""
+    """Render the released and retracted files as the plain text the composer inserts."""
+    totals = totals_from_hits(released_hits)
     # The headline is the sum of the full list printed below it, so the two can
     # never disagree -- a hit missing a tracker field is in neither.
     released = build_overview(totals, released_hits, sum(totals.values()))
@@ -536,8 +580,7 @@ def get_released_files_summary(context, request):
             context, request, date_from, date_to
         )
         return {"text": format_release_summary(
-            totals_from_hits(released_hits), date_from, date_to,
-            released_hits, retracted_hits,
+            date_from, date_to, released_hits, retracted_hits,
         )}
     except Exception:
         log.exception("get_released_files_summary failed")
@@ -643,10 +686,9 @@ def get_email_recipients(context, request):
             response["confirmed"] = confirmed
             response["pending"] = pending
         return response
-    except Exception as e:
-        return {
-            "error": f"Error when trying to list email recipients: {e}",
-        }
+    except Exception:
+        log.exception("get_email_recipients failed")
+        return {"error": EMAIL_RECIPIENTS_ERROR}
 
 
 def publish_notification_email(topic: str, subject: str, body: str) -> None:
@@ -767,7 +809,8 @@ def send_notification_email(context, request):
             "sent": True,
             "recorded": True,
         }
-    except Exception as e:
-        return {
-            "error": f"Error when trying to send notification email: {e}",
-        }
+    except Exception:
+        # Only reachable before the publish: everything after it has its own
+        # handler, so this never reports a delivered mail as failed.
+        log.exception("send_notification_email failed")
+        return {"error": SEND_NOTIFICATION_ERROR}

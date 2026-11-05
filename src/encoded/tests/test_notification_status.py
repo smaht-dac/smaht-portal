@@ -161,7 +161,8 @@ def test_get_notification_status_reports_search_failure(monkeypatch):
 
     response = notification_status.get_notification_status(None, request)
 
-    assert "error" in response
+    # A fixed string: the exception's text never reaches the browser.
+    assert response == {"error": notification_status.NOTIFICATION_STATUS_ERROR}
 
 
 @pytest.mark.parametrize(
@@ -579,6 +580,32 @@ def test_get_email_recipients_reports_list_failure(monkeypatch):
     assert response == {"error": notification_status.SNS_RECIPIENTS_ERROR}
 
 
+def test_get_email_recipients_reports_other_failures(monkeypatch):
+    # Not a boto error, so the generic handler: still a fixed string.
+    sns = mock_sns(monkeypatch)
+    sns.list_subscriptions_by_topic.side_effect = RuntimeError(TOPIC_ARN)
+    request = fake_request(json_body={"target": "test"})
+
+    response = notification_status.get_email_recipients(None, request)
+
+    assert response == {"error": notification_status.EMAIL_RECIPIENTS_ERROR}
+
+
+def test_send_notification_email_reports_other_failures(monkeypatch):
+    sns = mock_sns(monkeypatch)
+    monkeypatch.setattr(
+        notification_status, "get_topic_for_target",
+        Mock(side_effect=RuntimeError(TOPIC_ARN)),
+    )
+    request = fake_request(json_body=valid_test_payload())
+
+    response = notification_status.send_notification_email(None, request)
+
+    # A fixed string, and only ever before the publish.
+    assert response == {"error": notification_status.SEND_NOTIFICATION_ERROR}
+    sns.publish.assert_not_called()
+
+
 @pytest.mark.parametrize("target", ["", "Test", "ALL", "everyone", None])
 def test_get_topic_for_target_refuses_unknown_targets(target):
     # It must raise rather than fall through to the configured topic, which is
@@ -786,24 +813,22 @@ def test_format_release_summary_renders_the_template():
     # Chosen so that count order and name order disagree everywhere: ST002
     # has more files than ST001, and within ST001 the WGS line has more
     # files than the alphabetically earlier Fiber-seq one.
-    totals = {
-        ("ST001", "Fiber-seq PacBio Revio bam"): 1,
-        ("ST001", "WGS Illumina NovaSeq X bam"): 2,
-        ("ST002", "WGS Illumina NovaSeq X cram"): 6,
-    }
-    released = [
-        # Titles without the donor ID in front stand alone, as before.
-        {**file_hit("ST001"), "donors": [
-            {"display_title": "SMHT001", "sex": "Male", "age": 57}]},
-        file_hit("ST002", donors=["SMHT002"]),
-    ]
+    smht001 = [{"display_title": "SMHT001", "sex": "Male", "age": 57}]
+    # Titles without the donor ID in front stand alone, as before.
+    released = (
+        [{**file_hit("ST001", "Fiber-seq PacBio Revio bam"), "donors": smht001}]
+        + [{**file_hit("ST001", "WGS Illumina NovaSeq X bam"),
+            "donors": smht001}] * 2
+        + [file_hit("ST002", "WGS Illumina NovaSeq X cram",
+                    donors=["SMHT002"])] * 6
+    )
     retracted = [
         file_hit("ST003", "Fiber-seq PacBio Revio bam", donors=["SMHT003"]),
     ]
 
     # A window starting mid-month, which still links the whole month.
     text = notification_status.format_release_summary(
-        totals, "2026-08-15", "2026-09-01", released, retracted)
+        "2026-08-15", "2026-09-01", released, retracted)
 
     released_heading = ("Data Files Released Between 2026-08-15 and 2026-09-01"
                         " on the SMaHT Data Portal")
@@ -822,11 +847,14 @@ def test_format_release_summary_renders_the_template():
         "?view=monthly&date=2026-08-01&month=2026-08)\n"
         " - 2 donors\n"
         " - 2 tissue samples\n"
-        " - 2 assays / categories\n"
-        # The BAM and CRAM of one assay are one entry; entries by name, though
-        # WGS has more files.
-        "    - Fiber-seq PacBio Revio\n"
-        "    - WGS Illumina NovaSeq X\n"
+        " - 3 assays / categories\n"
+        # Core assays first, each with its format, so the BAM and CRAM of one
+        # assay are separate entries.
+        "    Core-assay data\n"
+        "     - 1 Fiber-seq PacBio Revio BAM\n"
+        "    Non-core assay data\n"
+        "     - 2 WGS Illumina NovaSeq X BAM\n"
+        "     - 6 WGS Illumina NovaSeq X CRAM\n"
         "\n"
         "\n"
         "RETRACTED DATA: 1 FILE (link to all retracted files: "
@@ -834,7 +862,9 @@ def test_format_release_summary_renders_the_template():
         " - 1 donor\n"
         " - 1 tissue sample\n"
         " - 1 assay / category\n"
-        "    - Fiber-seq PacBio Revio\n"
+        # Empty sections are left out.
+        "    Core-assay data\n"
+        "     - 1 Fiber-seq PacBio Revio BAM\n"
         "\n"
         "\n"
         "FULL LIST OF THE NEW DATA RELEASED\n"
@@ -855,7 +885,7 @@ def test_format_release_summary_renders_the_template():
 
 def test_format_release_summary_without_any_files():
     text = notification_status.format_release_summary(
-        {}, "2026-08-01", "2026-09-01", [], [])
+        "2026-08-01", "2026-09-01", [], [])
 
     # The headlines, links included, and nothing under them: "0 donors" under
     # "0 FILES" says nothing.
@@ -875,22 +905,13 @@ def test_format_release_summary_counts_every_retracted_file():
     retracted = [file_hit("T1", "a bam", ["D1"]), file_hit("T1", donors=["D1"])]
 
     text = notification_status.format_release_summary(
-        {}, "2026-08-01", "2026-09-01", [], retracted)
+        "2026-08-01", "2026-09-01", [], retracted)
 
     assert "NEW DATA: 0 FILES (" in text
     assert text.endswith(
         f"RETRACTED DATA: 2 FILES {RETRACTED_LINK}\n - 1 donor\n"
-        " - 1 tissue sample\n - 1 assay / category\n    - a")
-
-
-@pytest.mark.parametrize("description,expected", [
-    ("CompDuplex-seq Illumina NovaSeq X Plus bam",
-     "CompDuplex-seq Illumina NovaSeq X Plus"),
-    ("Filtered somatic SNV vcf vcf_gz", "Filtered somatic SNV vcf"),
-    ("bam", "bam"),
-])
-def test_assay_label_drops_the_file_format(description, expected):
-    assert notification_status.assay_label(description) == expected
+        " - 1 tissue sample\n - 1 assay / category\n"
+        "    Non-core assay data\n     - 1 a BAM")
 
 
 def test_build_overview_counts_donors_tissues_and_cell_lines():
@@ -923,11 +944,76 @@ def test_build_overview_lists_assays_alphabetically():
     }
     overview = notification_status.build_overview(totals, [], 5)
 
-    assert overview.assays == {"a-seq": 1, "B-seq": 1, "c-seq": 3}
+    assert overview.sections == {
+        notification_status.NON_CORE_ASSAY_HEADING: {
+            "a-seq BAM": 1, "B-seq BAM": 1, "c-seq BAM": 1, "c-seq CRAM": 2,
+        },
+    }
     lines = notification_status.format_overview(
         notification_status.RELEASED_HEADLINE, overview, "url")
     # By name, ignoring case and file counts.
-    assert lines[-3:] == ["    - a-seq", "    - B-seq", "    - c-seq"]
+    assert lines[-4:] == [
+        "     - 1 a-seq BAM",
+        "     - 1 B-seq BAM",
+        "     - 1 c-seq BAM",
+        "     - 2 c-seq CRAM",
+    ]
+
+
+CORE = notification_status.CORE_ASSAY_HEADING
+NON_CORE = notification_status.NON_CORE_ASSAY_HEADING
+OTHER = notification_status.OTHER_DATA_HEADING
+
+
+@pytest.mark.parametrize("description,expected", [
+    ("WGS Illumina NovaSeq X Plus bam", CORE),
+    ("WGS PacBio Revio cram", CORE),
+    ("Kinnex PacBio Revio BAM", CORE),
+    ("CompDuplex-seq Illumina NovaSeq X Plus bam", NON_CORE),
+    # Only aligned reads are an assay's data, core or not.
+    ("RNA-seq Illumina NovaSeq X Plus tar_gz", OTHER),
+    ("snRNA-seq Illumina NovaSeq 6000 tar_gz", OTHER),
+    ("Filtered somatic SNV vcf vcf_gz", OTHER),
+    ("bam", OTHER),
+])
+def test_overview_section(description, expected):
+    assert notification_status.overview_section(description) == expected
+
+
+def test_format_overview_lists_sections_in_order():
+    totals = {
+        ("T1", "Filtered somatic SNV vcf vcf_gz"): 40,
+        ("T1", "DSA fa"): 3,
+        ("T1", "Hi-C Illumina NovaSeq X Plus bam"): 12,
+        ("T1", "WGS PacBio Revio bam"): 300,
+        ("T2", "WGS PacBio Revio bam"): 102,
+        ("T1", "Fiber-seq PacBio Revio cram"): 310,
+        # A core assay's non-BAM/CRAM files are other data, with their format.
+        ("T1", "WGS PacBio Revio tar_gz"): 1,
+        ("T2", "DSA fa"): 2,
+        ("T2", "DSA fa_gz"): 1,
+    }
+    overview = notification_status.build_overview(totals, [], 768)
+
+    lines = notification_status.format_overview(
+        notification_status.RELEASED_HEADLINE, overview, "url")
+
+    # Each line within a section is one entry, so WGS PacBio Revio counts twice.
+    # After the headline and the donor, tissue and cell line counts.
+    assert lines[4:] == [
+        " - 7 assays / categories",
+        "    Core-assay data",
+        "     - 310 Fiber-seq PacBio Revio CRAM",
+        "     - 402 WGS PacBio Revio BAM",
+        "    Non-core assay data",
+        "     - 12 Hi-C Illumina NovaSeq X Plus BAM",
+        # Every entry has its format: the two DSA formats are separate lines.
+        "    Other data",
+        "     - 5 DSA FA",
+        "     - 1 DSA FA_GZ",
+        "     - 40 Filtered somatic SNV vcf VCF_GZ",
+        "     - 1 WGS PacBio Revio TAR_GZ",
+    ]
 
 
 def test_totals_from_hits_skips_files_without_tracker_fields():
@@ -948,11 +1034,13 @@ def donor_hit(title, *donors):
     }
 
 
-def grouped_hit(title, donor, sex_age):
+def grouped_hit(title, donor, sex_age, description=None):
     """A hit for one donor's tissue, with the donor ID the grouping reads."""
     hit = donor_hit(title, sex_age)
     hit["donors"][0]["display_title"] = donor
     hit["sample_summary"] = {"tissues": ["Lung"]}
+    if description:
+        hit["release_tracker_description"] = description
     return hit
 
 
@@ -1012,21 +1100,19 @@ def test_title_groups(hits, expected):
 
 def test_format_release_summary_condenses_tissues_by_donor():
     snv = "Filtered somatic SNV vcf vcf_gz"
-    totals = {
-        ("SMHT004-3AD", snv): 1,
-        ("SMHT004-3AF", snv): 1,
-        ("SMHT004-3AH", snv): 1,
-        ("SMHT004-3AH", "snRNA-seq Illumina NovaSeq 6000 tar_gz"): 1,
-        ("SMHT004-3AH", "snRNA-seq Illumina NovaSeq X Plus bam"): 1,
-        ("COLO829T", "WGS Illumina NovaSeq X bam"): 2,
-    }
     released = [
-        grouped_hit(title, "SMHT004", ("Male", 51))
-        for title in ("SMHT004-3AH", "SMHT004-3AD", "SMHT004-3AF")
-    ] + [file_hit("COLO829T", tissue=False)]
+        grouped_hit(title, "SMHT004", ("Male", 51), description)
+        for title, description in (
+            ("SMHT004-3AH", snv),
+            ("SMHT004-3AH", "snRNA-seq Illumina NovaSeq 6000 tar_gz"),
+            ("SMHT004-3AH", "snRNA-seq Illumina NovaSeq X Plus bam"),
+            ("SMHT004-3AD", snv),
+            ("SMHT004-3AF", snv),
+        )
+    ] + [file_hit("COLO829T", "WGS Illumina NovaSeq X bam", tissue=False)] * 2
 
     text = notification_status.format_release_summary(
-        totals, "2026-08-01", "2026-09-01", released, [])
+        "2026-08-01", "2026-09-01", released, [])
 
     # One block per donor, its tissues by name and its counts summed over
     # them; a cell line stands alone. Blocks by name.
@@ -1113,7 +1199,9 @@ def test_get_released_files_summary_builds_text(monkeypatch):
     assert ("NEW DATA: 3 FILES (link to the files: "
             f"{notification_status.recent_releases_url('2026-08-01')})\n"
             " - 1 donor\n - 1 tissue sample\n"
-            " - 1 assay / category\n    - WGS Illumina NovaSeq X\n"
+            " - 2 assays / categories\n    Non-core assay data\n"
+            "     - 2 WGS Illumina NovaSeq X BAM\n"
+            "     - 1 WGS Illumina NovaSeq X CRAM\n"
             ) in response["text"]
     # One line per (title, description), counted from the hits, under a title
     # labeled from the same hits.
@@ -1133,7 +1221,8 @@ def test_get_released_files_summary_summarizes_retracted_in_window(monkeypatch):
 
     assert response["text"].endswith(
         f"RETRACTED DATA: 2 FILES {RETRACTED_LINK}\n - 2 donors\n"
-        " - 2 tissue samples\n - 1 assay / category\n    - a")
+        " - 2 tissue samples\n - 2 assays / categories\n"
+        "    Non-core assay data\n     - 1 a BAM\n     - 1 a CRAM")
     # The same set the Retracted Files page lists, bounded to the window.
     path = notification_status.make_search_subreq.call_args.args[1]
     query = parse_qs(path.split("?", 1)[1])
