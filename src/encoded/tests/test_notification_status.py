@@ -26,7 +26,6 @@ SUBSCRIPTION_ARN = DRY_RUN_TOPIC_ARN + ":11111111-2222-3333-4444-555555555555"
 
 ALL_VIEWS = [
     notification_status.get_notification_status,
-    notification_status.get_released_files_text,
     notification_status.get_released_files_summary,
     notification_status.get_email_recipients,
     notification_status.send_notification_email,
@@ -36,7 +35,6 @@ ALL_VIEWS = [
 # new route is added in one place rather than three.
 ALL_ROUTES = [
     "/get_notification_status/",
-    "/get_released_files_text/",
     "/get_released_files_summary/",
     "/get_email_recipients/",
     "/send_notification_email/",
@@ -164,56 +162,6 @@ def test_get_notification_status_reports_search_failure(monkeypatch):
     response = notification_status.get_notification_status(None, request)
 
     assert "error" in response
-
-
-def test_get_released_files_text_requires_date_from(monkeypatch):
-    mock_search(monkeypatch, [])
-    request = fake_request(json_body={})
-
-    response = notification_status.get_released_files_text(None, request)
-
-    assert response == {"error": "date_from is required"}
-
-
-def test_get_released_files_text_builds_list(monkeypatch):
-    mock_search(
-        monkeypatch,
-        [
-            {"display_title": "SMAFI1.fastq.gz"},
-            {"accession": "SMAFI2"},
-            {"uuid": "no-title-uuid"},
-            {},
-        ],
-    )
-    request = fake_request(json_body={"date_from": "2026-08-01"})
-
-    response = notification_status.get_released_files_text(None, request)
-
-    # Plain text, not Markdown: a setext underline rather than `####`, since
-    # SNS delivers the body verbatim over its `email` protocol.
-    assert response["text"] == (
-        "Files Released Since 2026-08-01\n"
-        + "-" * len("Files Released Since 2026-08-01") + "\n"
-        "\n"
-        "- SMAFI1.fastq.gz\n"
-        "- SMAFI2\n"
-        "- no-title-uuid\n"
-        f"- {notification_status.UNNAMED_FILE}"
-    )
-    # Everything that reaches a plain-text email must be ASCII.
-    assert response["text"].isascii()
-    # No trailing newline: the composer appends this with '\n\n' + text.
-    assert not response["text"].endswith("\n")
-
-
-def test_get_released_files_text_handles_empty_result(monkeypatch):
-    mock_search(monkeypatch, [])
-    request = fake_request(json_body={"date_from": "2026-08-01"})
-
-    response = notification_status.get_released_files_text(None, request)
-
-    # A bare heading with nothing under it reads as a bug to the operator.
-    assert response["text"] == "No files were released since 2026-08-01."
 
 
 @pytest.mark.parametrize(
@@ -844,7 +792,9 @@ def test_format_release_summary_renders_the_template():
         ("ST002", "WGS Illumina NovaSeq X cram"): 6,
     }
     released = [
-        file_hit("ST001", donors=["SMHT001"]),
+        # Titles without the donor ID in front stand alone, as before.
+        {**file_hit("ST001"), "donors": [
+            {"display_title": "SMHT001", "sex": "Male", "age": 57}]},
         file_hit("ST002", donors=["SMHT002"]),
     ]
     retracted = [
@@ -853,8 +803,7 @@ def test_format_release_summary_renders_the_template():
 
     # A window starting mid-month, which still links the whole month.
     text = notification_status.format_release_summary(
-        totals, "2026-08-15", "2026-09-01", released, retracted,
-        {"ST001": "Male, 57 yrs-old"})
+        totals, "2026-08-15", "2026-09-01", released, retracted)
 
     released_heading = ("Data Files Released Between 2026-08-15 and 2026-09-01"
                         " on the SMaHT Data Portal")
@@ -999,6 +948,14 @@ def donor_hit(title, *donors):
     }
 
 
+def grouped_hit(title, donor, sex_age):
+    """A hit for one donor's tissue, with the donor ID the grouping reads."""
+    hit = donor_hit(title, sex_age)
+    hit["donors"][0]["display_title"] = donor
+    hit["sample_summary"] = {"tissues": ["Lung"]}
+    return hit
+
+
 @pytest.mark.parametrize("hits,expected", [
     ([donor_hit("T1", ("Male", 57))], {"T1": "Male, 57 yrs-old"}),
     # The schema stores every age above 89 as 89.
@@ -1013,9 +970,79 @@ def donor_hit(title, *donors):
     ([donor_hit("T1", ("Male", None))], {}),
     ([donor_hit("COLO829T")], {}),
     ([{"donors": [{"sex": "Male", "age": 57}]}], {}),
+    # A donor's tissues share one label, keyed by the donor.
+    ([grouped_hit("D1-3A", "D1", ("Male", 57)),
+      grouped_hit("D1-3B", "D1", ("Male", 57))],
+     {"D1": "Male, 57 yrs-old"}),
 ])
-def test_title_donor_labels(hits, expected):
-    assert notification_status.title_donor_labels(hits) == expected
+def test_group_donor_labels(hits, expected):
+    groups = notification_status.title_groups(hits)
+    assert notification_status.group_donor_labels(hits, groups) == expected
+
+
+TitleGroup = notification_status.TitleGroup
+
+
+@pytest.mark.parametrize("hits,expected", [
+    # A single donor whose ID leads the title: a member of that donor.
+    ([file_hit("SMHT004-3AD", donors=["SMHT004"]),
+      file_hit("SMHT004-3AD", donors=["SMHT004"])],
+     {"SMHT004-3AD": TitleGroup("SMHT004", "3AD")}),
+    # A cell line has no donor.
+    ([file_hit("COLO829T", tissue=False)],
+     {"COLO829T": TitleGroup("COLO829T", None)}),
+    # Two donors under one title, on one file or across files.
+    ([file_hit("SMHT004-3AD", donors=["SMHT004", "SMHT005"])],
+     {"SMHT004-3AD": TitleGroup("SMHT004-3AD", None)}),
+    ([file_hit("SMHT004-3AD", donors=["SMHT004"]),
+      file_hit("SMHT004-3AD", donors=["SMHT005"])],
+     {"SMHT004-3AD": TitleGroup("SMHT004-3AD", None)}),
+    # An override title not led by the donor ID, or only by its prefix.
+    ([file_hit("ST001", donors=["SMHT001"])],
+     {"ST001": TitleGroup("ST001", None)}),
+    ([file_hit("SMHT0045-3A", donors=["SMHT004"])],
+     {"SMHT0045-3A": TitleGroup("SMHT0045-3A", None)}),
+    ([file_hit("SMHT004-", donors=["SMHT004"])],
+     {"SMHT004-": TitleGroup("SMHT004-", None)}),
+    ([file_hit(donors=["SMHT004"])], {}),
+])
+def test_title_groups(hits, expected):
+    assert notification_status.title_groups(hits) == expected
+
+
+def test_format_release_summary_condenses_tissues_by_donor():
+    snv = "Filtered somatic SNV vcf vcf_gz"
+    totals = {
+        ("SMHT004-3AD", snv): 1,
+        ("SMHT004-3AF", snv): 1,
+        ("SMHT004-3AH", snv): 1,
+        ("SMHT004-3AH", "snRNA-seq Illumina NovaSeq 6000 tar_gz"): 1,
+        ("SMHT004-3AH", "snRNA-seq Illumina NovaSeq X Plus bam"): 1,
+        ("COLO829T", "WGS Illumina NovaSeq X bam"): 2,
+    }
+    released = [
+        grouped_hit(title, "SMHT004", ("Male", 51))
+        for title in ("SMHT004-3AH", "SMHT004-3AD", "SMHT004-3AF")
+    ] + [file_hit("COLO829T", tissue=False)]
+
+    text = notification_status.format_release_summary(
+        totals, "2026-08-01", "2026-09-01", released, [])
+
+    # One block per donor, its tissues by name and its counts summed over
+    # them; a cell line stands alone. Blocks by name.
+    assert text.endswith(
+        "FULL LIST OF THE NEW DATA RELEASED\n"
+        "\n"
+        "COLO829T\n"
+        "  - 2 WGS Illumina NovaSeq X BAM\n"
+        "\n"
+        "SMHT004 (Male, 51 yrs-old): 3AD, 3AF, 3AH\n"
+        "  - 3 Filtered somatic SNV vcf VCF_GZ\n"
+        "  - 1 snRNA-seq Illumina NovaSeq 6000 TAR_GZ\n"
+        "  - 1 snRNA-seq Illumina NovaSeq X Plus BAM"
+    )
+    # The overview still counts each tissue.
+    assert " - 3 tissue samples\n" in text
 
 
 def test_search_released_files_queries_released_files_in_window(monkeypatch):
