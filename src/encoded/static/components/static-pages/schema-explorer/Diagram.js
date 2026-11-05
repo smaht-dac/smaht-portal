@@ -104,13 +104,9 @@ export default function Diagram({
     const externalContextNames = useMemo(() => new Set(conceptMembers.size === 1 && conceptContext && !neighbors
         ? contextReferences.flatMap((edge) => [edge.from, edge.to]).filter((name) => domainFor(name) !== conceptContext.domain && !hidden.includes(name)) : []),
     [conceptMembers, conceptContext, contextReferences, hidden, neighbors]);
-    const conceptScope = useMemo(() => conceptContext && !conceptContext.expanded && !neighbors ? new Set([
-        ...conceptMembers,
-        ...edges.filter((edge) => conceptMembers.has(edge.from) || conceptMembers.has(edge.to)).flatMap((edge) => [edge.from, edge.to]),
-    ].filter((name) => domainFor(name) === conceptContext.domain).concat([...externalContextNames])) : null, [conceptContext, conceptMembers, edges, externalContextNames, neighbors]);
     const visible = useMemo(() => nodes.filter(
-        (n) => !hidden.includes(n.name) && (visibleConnected ? visibleConnected.has(n.name) : conceptScope ? conceptScope.has(n.name) : (!domain || domainFor(n.name) === domain || externalContextNames.has(n.name)))
-    ), [nodes, hidden, visibleConnected, domain, conceptScope, externalContextNames]);
+        (n) => !hidden.includes(n.name) && (visibleConnected ? visibleConnected.has(n.name) : (!domain || domainFor(n.name) === domain || externalContextNames.has(n.name)))
+    ), [nodes, hidden, visibleConnected, domain, externalContextNames]);
     const names = useMemo(() => new Set(visible.map((n) => n.name)), [visible]);
     const groups = useMemo(() => groupRelationships(edges), [edges]);
     const edgeLanes = useMemo(() => {
@@ -185,12 +181,11 @@ export default function Diagram({
     ]);
     const visibleGroups = useMemo(() => groups.filter(
         (g) => names.has(g.from) && names.has(g.to) &&
-            (!conceptScope || conceptMembers.size !== 1 || conceptMembers.has(g.from) || conceptMembers.has(g.to)) &&
             (!showDomains || (conceptContext && (externalContextNames.has(g.from) || externalContextNames.has(g.to))) || domainFor(g.from) === domainFor(g.to) || (crossLinks && (g.from === selected || g.to === selected)))
-    ), [groups, names, showDomains, selected, crossLinks, conceptContext, externalContextNames, conceptScope, conceptMembers]);
+    ), [groups, names, showDomains, selected, crossLinks, conceptContext, externalContextNames]);
     const scopedGroups = useMemo(() => visibleGroups.filter(
-        (g) => (!conceptScope || conceptMembers.has(g.from) || conceptMembers.has(g.to)) && (!showDomains || !selected || g.from === selected || g.to === selected)
-    ), [visibleGroups, showDomains, selected, conceptScope, conceptMembers]);
+        (g) => (!showDomains || !selected || g.from === selected || g.to === selected)
+    ), [visibleGroups, showDomains, selected]);
     const shared = useMemo(() => showDomains && !overview ? sharedRelationships(index, visibleGroups, names)
         : { groups: visibleGroups, inherited: {} }, [showDomains, overview, index, visibleGroups, names]);
     const summarize = showDomains && !overview && !selected && connectionMode === 'shared';
@@ -290,9 +285,7 @@ export default function Diagram({
         return () => element.removeEventListener('wheel', wheel);
     }, [researchOverview]);
     const choose = useCallback((name) => {
-        const leavesScope = conceptScope && !conceptScope.has(name);
-        if (leavesScope) setConceptContext(null);
-        if (!neighbors && (!conceptScope || leavesScope) && (domain || showDomains) && domainFor(name) !== domain) {
+        if (!neighbors && !externalContextNames.has(name) && (domain || showDomains) && domainFor(name) !== domain) {
             setConceptContext(null);
             setDomain(domainFor(name));
             setMoves({});
@@ -302,7 +295,7 @@ export default function Diagram({
         setSelected(name);
         if (neighbors) setMoves({});
         if (compact) onExplore(name);
-    }, [neighbors, domain, showDomains, hidden, compact, onExplore, conceptScope]);
+    }, [neighbors, domain, showDomains, hidden, compact, onExplore, externalContextNames]);
     const setVisibility = (next) => {
         setHidden(next);
         setMoves({});
@@ -341,7 +334,7 @@ export default function Diagram({
         setMoves({});
     }, []);
     const exploreConcept = (concept) => {
-        setConceptContext({ id: concept.id, label: concept.label, domain: concept.domain, members: concept.members, connections: concept.connections, expanded: false });
+        setConceptContext({ id: concept.id, label: concept.label, domain: concept.domain, members: concept.members, connections: concept.connections });
         setDomain(concept.domain);
         setSelected('');
         setNeighbors(false);
@@ -533,7 +526,7 @@ export default function Diagram({
             )}
             {error && <p role="alert">{error}</p>}
             {showDomains && (
-                <p className="se-flow-note">{overview ? 'Select a group or type to explore its relationships. Groups follow the biological workflow.' : conceptScope ? `${conceptContext.label} references within this group. Select a schema to explore connections outside the group.` : selected
+                <p className="se-flow-note">{overview ? 'Select a group or type to explore its relationships. Groups follow the biological workflow.' : selected
                     ? `Showing ${selected} references between visible schemas, including inherited and self-references. Clear selection to return to the group overview.`
                     : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
                         : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.'}
@@ -541,15 +534,9 @@ export default function Diagram({
             )}
             {conceptContext && !neighbors && (
                 <div className="se-concept-scope" aria-label="Diagram scope">
-                    <div><strong>{conceptContext.label} {conceptScope ? 'connections' : '— entire group'}</strong>
-                        <p>{conceptScope ? conceptMembers.size === 1 ? 'The same relationships as the overview. Cards marked Other group are external references.' : 'Group layout is preserved. External relationships from the overview remain listed below.' : `All visible schemas in ${domains.find((group) => group.id === conceptContext.domain)?.label}.`}</p>
+                    <div><strong>{conceptContext.label} connections</strong>
+                        <p>All visible schemas in {domains.find((group) => group.id === conceptContext.domain)?.label}. Select a schema to explore its connections, including other groups.</p>
                     </div>
-                    <button type="button" onClick={() => {
-                        setDomain(conceptContext.domain);
-                        setConceptContext({ ...conceptContext, expanded: !conceptContext.expanded });
-                        setSelected(''); setNeighbors(false); setMoves({});
-                    }}>{conceptScope ? `Show entire group · ${nodes.filter((node) => !hidden.includes(node.name) && domainFor(node.name) === conceptContext.domain).length} schemas` : `Show ${conceptContext.label} connections`}
-                    </button>
                 </div>
             )}
             {conceptContext && !neighbors && conceptMembers.size > 1 && conceptContext.connections?.some((connection) => connection.edges.some((edge) => domainFor(edge.from) !== conceptContext.domain || domainFor(edge.to) !== conceptContext.domain)) && (
@@ -757,7 +744,7 @@ export default function Diagram({
                                 <g
                                     key={n.name}
                                     data-entity={n.name}
-                                    className={`entity-node${conceptScope && conceptMembers.size === 1 && conceptMembers.has(n.name) ? ' se-concept-center' : ''}${!overview && presentation.isAbstract ? ' se-node-abstract' : ''} ${
+                                    className={`entity-node${conceptContext && conceptMembers.size === 1 && conceptMembers.has(n.name) ? ' se-concept-center' : ''}${!overview && presentation.isAbstract ? ' se-node-abstract' : ''} ${
                                         selected === n.name ? 'selected' : ''
                                     } ${
                                         selected && !connected.has(n.name)

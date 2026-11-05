@@ -65,7 +65,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
         const points = graph.nodes.flatMap((node) => {
             const p = graph.positions[node.id];
             return [{ x: p.x - graph.nodeWidth / 2, y: p.y - graph.nodeHeight / 2 },
-                { x: p.x + graph.nodeWidth / 2, y: p.y + graph.nodeHeight / 2 }];
+                { x: p.x + graph.nodeWidth / 2, y: p.y + graph.nodeHeight / 2 + 26 }];
         });
         Object.values(routes).forEach((route) => points.push(...route.points));
         Object.values(labels).forEach((label) => points.push({ x: label.left, y: label.top }, { x: label.left + label.width, y: label.top + label.height }));
@@ -181,14 +181,14 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                 <div className="se-research-legend">
                     <span><b>1–7</b> Biological progression</span>
                     <span><b>→</b> Numbered path follows biological progression; branches show experimental and analysis context</span>
-                    <span>Boxes group related schemas. Select a box or connection for exact fields. Drag to pan; scroll to zoom.</span>
+                    <span>Boxes group related schemas. Select a box to explore its connections; Overview opens its context. Select an arrow for relationship details. Drag to pan; scroll to zoom.</span>
                 </div>
                 {error && <p role="alert">{error}</p>}
                 <div className="se-canvas-wrap">
                     <button type="button" className="se-canvas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}>{full ? '↙' : '⛶'}</button>
                     <svg ref={svg} id="research-svg" className="se-canvas" role="group" aria-label="Donor to data relationship map" tabIndex={0}
                         onPointerDown={(event) => {
-                            if (event.button !== 0 || event.target.closest('[data-concept], [data-reference]')) return;
+                            if (event.button !== 0 || event.target.closest('[data-concept], [data-reference], [data-overview]')) return;
                             drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
                             event.currentTarget.setPointerCapture(event.pointerId);
                         }}
@@ -226,14 +226,23 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                                 const p = graph.positions[node.id];
                                 return (
                                     <g key={node.id} data-concept={node.id} className={`se-research-node${dimNode(node.id) ? ' se-research-dim' : ''}${selected === node.id ? ' se-research-selected' : ''}`}
-                                        transform={`translate(${p.x - graph.nodeWidth / 2},${p.y - graph.nodeHeight / 2})`} role="button" tabIndex={0}
-                                        aria-label={`${node.label}: ${node.hint}`} aria-pressed={selected === node.id} onClick={() => choose(node.id)}
-                                        onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(node.id); } }}>
-                                        <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="8" />
-                                        <text className="se-research-title" x="14" y="26">{node.label}</text>
-                                        {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
-                                        <text className="se-research-example" x="14" y="89">{node.example}</text>
-                                        {node.step && <g><circle cx={graph.nodeWidth - 16} cy="16" r="10" fill={node.color} /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
+                                        transform={`translate(${p.x - graph.nodeWidth / 2},${p.y - graph.nodeHeight / 2})`}>
+                                        <g className="se-research-diagram-action" role="button" tabIndex={0}
+                                            aria-label={`Explore ${node.label} connections: ${node.hint}`} aria-pressed={selected === node.id} onClick={() => onConnections({ ...node, connections: conceptConnections(index, node, graph, nodes) })}
+                                            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onConnections({ ...node, connections: conceptConnections(index, node, graph, nodes) }); } }}>
+                                            <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="8" />
+                                            <text className="se-research-title" x="14" y="26">{node.label}</text>
+                                            {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
+                                            <text className="se-research-example" x="14" y="89">{node.example}</text>
+                                            {node.step && <g><circle cx={graph.nodeWidth - 16} cy="16" r="10" fill={node.color} /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
+                                        </g>
+                                        <g data-overview={node.id} className="se-research-overview-action" role="button" tabIndex={0}
+                                            aria-label={`${node.label} overview`}
+                                            onClick={() => choose(node.id)}
+                                            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(node.id); } }}>
+                                            <rect x={graph.nodeWidth - 94} y="108" width="84" height="22" rx="4" />
+                                            <text x={graph.nodeWidth - 14} y="123" textAnchor="end">Overview →</text>
+                                        </g>
                                     </g>
                                 );
                             })}
@@ -257,7 +266,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                 <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`} style={{ '--se-concept-color': concept.color }}>
                     <header className="se-concept-heading">
                         <div><span className="se-concept-eyebrow">Explore the metadata</span><h3 ref={detailHeading} tabIndex={-1}>{concept.label}</h3><p className="se-concept-question">{concept.hint}</p></div>
-                        <button type="button" onClick={returnToMap}>← Back to overview</button>
+                        <div className="se-concept-actions"><button type="button" className="se-concept-group-link" onClick={() => onConnections({ ...concept, connections: detailConnections })}>Explore {concept.label} connections →</button><button type="button" onClick={returnToMap}>← Back to overview</button></div>
                     </header>
                     <p className="se-concept-description">{concept.description}</p>
                     <div className="se-concept-navigation"><label>Explore another concept<select aria-label="Explore another concept" value={selected} onChange={(event) => choose(event.target.value)}>{graph.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label></div>
@@ -283,7 +292,6 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                                     ))}
                                 </div>
                             ))}
-                            <button type="button" className="se-concept-group-link" onClick={() => onConnections({ ...concept, connections: detailConnections })}>Explore {concept.label} connections →</button>
                         </aside>
                     </div>
                 </section>

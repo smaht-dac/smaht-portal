@@ -87,9 +87,11 @@
     .se-research-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .55rem; padding: .65rem 0; border-top: 1px solid #e3e7eb; > input { flex: 1; min-width: 180px; } }
     .se-research-paths { display: flex; gap: .3rem; }
     .se-research-legend { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 12px; color: #59636e; margin: .4rem 0 .8rem; b { color: #356a9a; margin-right: .3rem; } }
-    .se-research-node { cursor: pointer; .se-research-card { fill: #fff; stroke: #c9d5df; stroke-width: 1.3; } &:hover .se-research-card, &:focus .se-research-card, &.se-research-selected .se-research-card { fill: #f2f8fc; stroke: #356a9a; stroke-width: 2; } }
+    .se-research-node { cursor: pointer; .se-research-card { fill: #fff; stroke: #c9d5df; stroke-width: 1.3; } .se-research-diagram-action:hover .se-research-card, .se-research-diagram-action:focus .se-research-card, &.se-research-selected .se-research-card { fill: #f2f8fc; stroke: #356a9a; stroke-width: 2; } }
     .se-research-title { fill: #253b4d; font-size: 16px; font-weight: 600; }
     .se-research-hint { fill: #59636e; font-size: 12px; }
+    .se-research-overview-action { cursor: pointer; rect { fill: transparent; } text { fill: #477293; font-size: 10px; font-weight: 500; } &:hover text, &:focus text { fill: #254c6b; text-decoration: underline; } &:focus rect { stroke: #477293; } }
+    .se-concept-actions { display: flex; flex-direction: column; align-items: stretch; gap: .6rem; button.se-concept-group-link { margin-top: 0; width: auto; } }
     .se-research-example { fill: #356a9a; font-size: 11px; }
     .se-research-step { fill: white; font-size: 11px; text-anchor: middle; font-weight: 600; }
     .se-research-edge { fill: none; stroke: #477293; stroke-width: 1.8; cursor: pointer; &:hover, &:focus { stroke-width: 3; } }
