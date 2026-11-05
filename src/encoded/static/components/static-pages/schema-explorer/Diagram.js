@@ -52,6 +52,13 @@ export default function Diagram({
     const [moves, setMoves] = useState({}),
         [camera, setCamera] = useState({ x: 0, y: 0, scale: 1 });
     const [size, setSize] = useState({ width: 1000, height: 600 });
+    const [windowHeight, setWindowHeight] = useState(900);
+    useEffect(() => {
+        const update = () => setWindowHeight(window.innerHeight);
+        update();
+        window.addEventListener('resize', update);
+        return () => window.removeEventListener('resize', update);
+    }, []);
     const [exporting, setExporting] = useState(false),
         [error, setError] = useState('');
     const diagramEntry = useRef();
@@ -161,10 +168,16 @@ export default function Diagram({
     const researchOverview = overview && overviewMode === 'relationships';
     const cardWidth = overview ? 196 : width, cardHeight = overview ? 28 : height;
     const allPositions = useMemo(() => showDomains ? {} : layout(visible, groups, size), [showDomains, visible, groups, size]);
+    // Group maps shrink the canvas to their content, so layout and fitting use the full
+    // canvas budget (65vh, min 400px as in the stylesheet) rather than the measured height.
+    const groupMap = showDomains && !overview;
+    const budgetHeight = Math.max(400, windowHeight * 0.65);
+    const layoutSize = useMemo(() => groupMap ? { width: size.width, height: budgetHeight } : size,
+        [groupMap, size.width, groupMap ? budgetHeight : size.height]);
     const clustered = useMemo(() => {
         if (!showDomains) return { positions: {}, frames: [], layers: [] };
         if (overview) return overviewLayout(visible, size);
-        const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, size);
+        const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, layoutSize);
         if (externalContextNames.size || externalBundles.length) {
             const right = Math.max(...result.frames.map((frame) => frame.left + frame.width));
             let row = 0;
@@ -179,7 +192,7 @@ export default function Diagram({
             });
         }
         return result;
-    }, [showDomains, overview, visible, index, size, externalContextNames, externalBundles, expandedExternal]);
+    }, [showDomains, overview, visible, index, size, layoutSize, externalContextNames, externalBundles, expandedExternal]);
     const positions = useMemo(() => {
         if (!neighbors || !neighborhoodSelection) return { ...(showDomains ? clustered.positions : allPositions), ...moves };
         const others = nodes.filter(
@@ -277,7 +290,9 @@ export default function Diagram({
             if (p) points.push({ x: p.x - width / 2, y: p.y - height / 2 }, { x: p.x + width / 2, y: p.y + height / 2 });
         });
         if (showDomains) {
-            clustered.frames.forEach((f) => points.push({ x: f.left, y: f.top }, { x: f.left + f.width, y: f.top + f.height }));
+            // A single group's title lives in the toolbar, so its reserved heading band is not content.
+            const contentTop = (f) => singleFrame ? Math.min(...clustered.layers.map((layer) => layer.panel?.top ?? layer.top)) : f.top;
+            clustered.frames.forEach((f) => points.push({ x: f.left, y: contentTop(f) }, { x: f.left + f.width, y: f.top + f.height }));
             Object.values(routes).forEach((route) => points.push(...route.points));
         }
         return points.length ? {
@@ -286,22 +301,29 @@ export default function Diagram({
             top: Math.min(...points.map((p) => p.y)) - (showDomains ? 20 : 90),
             bottom: Math.max(...points.map((p) => p.y)) + (showDomains ? 20 : 65),
         } : { left: -300, right: 300, top: -200, bottom: 200 };
-    }, [visible, positions, showDomains, clustered, routes, cardWidth, cardHeight, externalBundles]);
-    const fit = useCallback((readable = true) => {
+    }, [visible, positions, showDomains, clustered, routes, cardWidth, cardHeight, externalBundles, singleFrame]);
+    const fitScale = useCallback((readable = true) => {
         const fitted = Math.min(
             showDomains ? 1.25 : 1.5,
-            size.width / (bounds.right - bounds.left),
-            size.height / (bounds.bottom - bounds.top)
+            layoutSize.width / (bounds.right - bounds.left),
+            layoutSize.height / (bounds.bottom - bounds.top)
         );
-        const scale = Math.max(showDomains && readable ? externalBundles.length ? 0.65 : 0.85 : 0.05, fitted);
-        const fitsX = (bounds.right - bounds.left) * scale <= size.width;
-        const fitsY = (bounds.bottom - bounds.top) * scale <= size.height;
+        return Math.max(showDomains && readable ? externalBundles.length ? 0.65 : 0.85 : 0.05, fitted);
+    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, showDomains, externalBundles.length]);
+    const fit = useCallback((readable = true) => {
+        const scale = fitScale(readable);
+        const fitsX = (bounds.right - bounds.left) * scale <= layoutSize.width;
+        const fitsY = (bounds.bottom - bounds.top) * scale <= layoutSize.height;
         setCamera({
             scale,
-            x: fitsX ? (size.width - (bounds.left + bounds.right) * scale) / 2 : 16 - bounds.left * scale,
-            y: fitsY ? (size.height - (bounds.top + bounds.bottom) * scale) / 2 : 16 - bounds.top * scale,
+            x: fitsX ? (layoutSize.width - (bounds.left + bounds.right) * scale) / 2 : 16 - bounds.left * scale,
+            // Group maps start at the top edge; centring a short map leaves a large empty band above it.
+            y: fitsY && !groupMap ? (layoutSize.height - (bounds.top + bounds.bottom) * scale) / 2 : 16 - bounds.top * scale,
         });
-    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, size, showDomains, externalBundles.length]);
+    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, groupMap, fitScale]);
+    // The canvas ends just below the fitted map; zooming in later pans within this height.
+    const canvasHeight = groupMap && !full
+        ? Math.min(budgetHeight, Math.max(280, Math.ceil((bounds.bottom - bounds.top) * fitScale() + 32))) : undefined;
     // Selecting a node only highlights it in the full map. Refit selection
     // changes only when they replace the displayed neighborhood.
     const layoutFocus = neighbors ? selected : focus;
@@ -634,6 +656,7 @@ export default function Diagram({
                     ref={svg}
                     id={compact ? 'graph' : 'entity-svg'}
                     className="se-canvas"
+                    style={canvasHeight ? { height: canvasHeight, minHeight: 0 } : undefined}
                     tabIndex={0}
                     role="group"
                     aria-label="Schema relationship diagram"
