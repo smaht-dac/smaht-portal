@@ -14,6 +14,8 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import {
+    OKTA_CALLBACK_FAILED_EVENT,
+    OKTA_CALLBACK_PATH,
     OKTA_CONFIG_ENDPOINT,
     OktaConfigError,
     isOktaConfigured,
@@ -36,6 +38,17 @@ function reloadCurrentView() {
             window.location.hash) ||
         '';
     navigate(windowHash, { inPlace: true, dontScrollToTop: !!windowHash });
+}
+
+/** Whether `href` is the Okta redirect page, where `OktaLoginCallbackView` finishes a login */
+function isOktaCallbackHref(href) {
+    if (!href) return false;
+    try {
+        // The base only resolves relative hrefs; its host is never compared
+        return new URL(href, 'http://localhost').pathname === OKTA_CALLBACK_PATH;
+    } catch (e) {
+        return false;
+    }
 }
 
 /**
@@ -67,11 +80,16 @@ export class OktaLoginController extends React.PureComponent {
         this.showLock = this.showLock.bind(this);
         this.onRegistrationComplete = this.onRegistrationComplete.bind(this);
         this.onRegistrationCancel = this.onRegistrationCancel.bind(this);
+        this.onPageShow = this.onPageShow.bind(this);
+        this.onCallbackFailed = this.onCallbackFailed.bind(this);
         this.state = {
             /** Whether the Okta SDK client has been built and login can start. */
             isLoginLibraryLoaded: false,
-            /** True while a login / session-establishment request is in flight. */
-            isLoading: false,
+            /**
+             * True while a login / session-establishment request is in flight.
+             * Starts true on the callback page, which is finishing a login itself.
+             */
+            isLoading: isOktaCallbackHref(props.href),
             /** Set when Okta authenticated someone with no portal account. */
             unverifiedUserEmail: null,
             /** Developer-facing configuration failure, if any. */
@@ -79,10 +97,17 @@ export class OktaLoginController extends React.PureComponent {
         };
         this.oktaAuth = null;
         this.didAttemptRestore = false;
+        /** True once `showLock` starts the Okta redirect, until it is abandoned or fails */
+        this.isRedirectingToOkta = false;
     }
 
     componentDidMount() {
         if (isServerSide()) return;
+        window.addEventListener('pageshow', this.onPageShow);
+        window.addEventListener(
+            OKTA_CALLBACK_FAILED_EVENT,
+            this.onCallbackFailed
+        );
         ajax.promise(OKTA_CONFIG_ENDPOINT)
             .then((rawConfig) => {
                 if (!isOktaConfigured(rawConfig)) {
@@ -110,6 +135,46 @@ export class OktaLoginController extends React.PureComponent {
             });
     }
 
+    componentDidUpdate(prevProps) {
+        const { href } = this.props;
+        // Leaving for Okta was abandoned for another portal page, e.g. a
+        // Back swipe before Okta's page loaded
+        if (this.isRedirectingToOkta && prevProps.href !== href) {
+            this.clearAbandonedRedirect();
+        }
+    }
+
+    componentWillUnmount() {
+        if (isServerSide()) return;
+        window.removeEventListener('pageshow', this.onPageShow);
+        window.removeEventListener(
+            OKTA_CALLBACK_FAILED_EVENT,
+            this.onCallbackFailed
+        );
+    }
+
+    /**
+     * Clear the login spinner when the user comes back from Okta without
+     * signing in (e.g. the browser's Back button). Browsers restore such a page
+     * from the back/forward cache with its last state intact, so `isLoading`
+     * from `showLock` would otherwise stay set with nothing left to reset it.
+     */
+    onPageShow(event) {
+        if (!event.persisted || !this.isRedirectingToOkta) return;
+        this.clearAbandonedRedirect();
+    }
+
+    /** Undo the spinner `showLock` started for a redirect that never reached the callback */
+    clearAbandonedRedirect() {
+        this.isRedirectingToOkta = false;
+        this.setState({ isLoading: false });
+    }
+
+    /** The callback page could not finish its login, so let the user start another */
+    onCallbackFailed() {
+        this.setState({ isLoading: false });
+    }
+
     /**
      * Re-establish the portal session from Okta tokens held in the browser.
      *
@@ -118,8 +183,11 @@ export class OktaLoginController extends React.PureComponent {
      * also what detects an Okta-authenticated user who has no portal account.
      */
     restorePortalSession() {
-        const { session, updateAppSessionState } = this.props;
+        const { session, href, updateAppSessionState } = this.props;
         if (this.didAttemptRestore || session || !this.oktaAuth) return;
+        // The callback page establishes the session itself; a second attempt
+        // here would race it and could clear the in-progress spinner early
+        if (isOktaCallbackHref(href)) return;
         this.didAttemptRestore = true;
 
         // Read the token object, not getIdToken()'s bare string: older pages
@@ -212,19 +280,24 @@ export class OktaLoginController extends React.PureComponent {
 
         // Remember where the user was so the callback can send them back.
         // The SDK stores this alongside the PKCE/state/nonce transaction.
-        const returnTo =
+        const currentHref =
             href ||
             (typeof window !== 'undefined' && window.location
                 ? window.location.href
                 : '/');
+        // Never the callback page itself (e.g. retrying from its error
+        // message): its authorization code is spent and would fail again
+        const returnTo = isOktaCallbackHref(currentHref) ? '/' : currentHref;
         try {
             this.oktaAuth.setOriginalUri(returnTo);
         } catch (e) {
             logger.error('Could not record the original URI: ' + e.message);
         }
 
+        this.isRedirectingToOkta = true;
         this.setState({ isLoading: true }, () => {
             this.oktaAuth.signInWithRedirect().catch((error) => {
+                this.isRedirectingToOkta = false;
                 this.setState({ isLoading: false });
                 logger.error('Okta redirect login failed: ' + error.message);
                 Alerts.queue(Alerts.LoginFailed);

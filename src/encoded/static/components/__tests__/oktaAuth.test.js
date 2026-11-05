@@ -471,6 +471,73 @@ describe('OktaLoginController - login redirect', () => {
         controller.showLock();
         expect(redirected).toBe(false);
     });
+
+    it('clears the spinner when the user comes back from Okta via the back/forward cache', () => {
+        const controller = makeController(
+            { href: '/' },
+            {
+                setOriginalUri: () => {},
+                signInWithRedirect: () => Promise.resolve(),
+            }
+        );
+        controller.showLock();
+        expect(controller.state.isLoading).toBe(true);
+        controller.onPageShow({ persisted: true });
+        expect(controller.state.isLoading).toBe(false);
+    });
+
+    it('ignores a pageshow that is not a back/forward cache restore', () => {
+        const controller = makeController(
+            { href: '/' },
+            {
+                setOriginalUri: () => {},
+                signInWithRedirect: () => Promise.resolve(),
+            }
+        );
+        controller.showLock();
+        controller.onPageShow({ persisted: false });
+        expect(controller.state.isLoading).toBe(true);
+    });
+
+    it('leaves a spinner it did not start for the redirect alone', () => {
+        // e.g. a session restore in flight when the page is restored from cache
+        const controller = makeController({ href: '/' }, null);
+        controller.state = { ...controller.state, isLoading: true };
+        controller.onPageShow({ persisted: true });
+        expect(controller.state.isLoading).toBe(true);
+    });
+
+    it('shows a login in progress on the callback page, which is finishing one', () => {
+        const onCallback = makeController({
+            href: 'https://portal.example.org/okta/callback?code=abc&state=xyz',
+        });
+        const elsewhere = makeController({ href: 'https://portal.example.org/browse/' });
+        expect(onCallback.state.isLoading).toBe(true);
+        expect(elsewhere.state.isLoading).toBe(false);
+    });
+
+    it('lets the user log in again once the callback page reports a failure', () => {
+        const controller = makeController({
+            href: 'https://portal.example.org/okta/callback?code=abc&state=xyz',
+        });
+        controller.onCallbackFailed();
+        expect(controller.state.isLoading).toBe(false);
+    });
+
+    it('returns to the homepage, not the spent callback URL, when retrying from the callback page', () => {
+        let originalUri = null;
+        const controller = makeController(
+            { href: 'https://portal.example.org/okta/callback?code=abc&state=xyz' },
+            {
+                setOriginalUri: (uri) => {
+                    originalUri = uri;
+                },
+                signInWithRedirect: () => Promise.resolve(),
+            }
+        );
+        controller.showLock();
+        expect(originalUri).toBe('/');
+    });
 });
 
 describe('OktaLoginController - restoring the session on page load', () => {
@@ -492,6 +559,23 @@ describe('OktaLoginController - restoring the session on page load', () => {
         let read = false;
         const controller = makeController(
             { session: true },
+            {
+                tokenManager: {
+                    getTokensSync: () => {
+                        read = true;
+                        return { idToken: { idToken: 'token' } };
+                    },
+                },
+            }
+        );
+        controller.restorePortalSession();
+        expect(read).toBe(false);
+    });
+
+    it('leaves the session to the callback page when on it', () => {
+        let read = false;
+        const controller = makeController(
+            { session: false, href: 'https://portal.example.org/okta/callback?code=abc' },
             {
                 tokenManager: {
                     getTokensSync: () => {
