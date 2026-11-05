@@ -531,7 +531,7 @@ export class GroupByDropdown extends React.PureComponent {
                     <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
                         <div className="date-range flex-column">
-                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} 
+                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)}
                                 style={buttonStyle} size="sm" variant="outline-secondary" disabled={dateRangeOptionItems.length < 2}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
@@ -1409,10 +1409,11 @@ export class AreaChartContainer extends React.Component {
 
         const value = chartToggles[typeKey][id];
         switch(typeKey) {
-            case 'expanded':
+            case 'expanded': {
                 const gridState = layout.responsiveGridState(windowWidth);
                 if (gridState && ['lg', 'xl', 'xxl'].indexOf(gridState) === -1) return false;
                 return !!value;
+            }
             default:
                 return !!value;
         }

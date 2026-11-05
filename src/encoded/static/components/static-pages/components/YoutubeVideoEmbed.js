@@ -68,7 +68,8 @@ export class YoutubeVideoEmbed extends React.Component {
                 allow={`accelerometer;${
                     shouldAutoplay ? ' autoplay;' : ''
                 } encrypted-media; gyroscope; picture-in-picture`}
-                allowFullScreen></iframe>
+                allowFullScreen>
+            </iframe>
         );
     }
 
@@ -117,9 +118,7 @@ export class YoutubeVideoEmbed extends React.Component {
         const embedID = encodeURIComponent(videoID);
 
         // Loading webp image, for speed and progressiveness of loading
-        const posterURL = !isPlaylist
-            ? `${YT_IMG_URL}/vi_webp/${embedID}/${posterSize}.webp`
-            : `${YT_IMG_URL}/vi_webp/${playlistCoverID}/${posterSize}.webp`;
+        const posterURL = `${YT_IMG_URL}/vi_webp/${embedID}/${posterSize}.webp`;
 
         embedWrapperStyle.backgroundImage = `url(${posterURL})`;
         return (

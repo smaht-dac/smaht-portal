@@ -21,125 +21,123 @@ import {
 const DonorManifestDataDictionaryTable = ({
     selectedProperty = null,
     data = {},
-}) => {
-    return Object.keys(data).length > 0 ? (
-        <table className="table table-bordered table-striped">
-            <thead className="thead-smaht">
-                <tr>
-                    <th className="text-left">Metadata Property</th>
-                    <th className="text-left">Description</th>
-                    <th className="text-left">
-                        Values
-                        <OverlayTrigger
-                            trigger={['hover', 'focus']}
-                            overlay={
-                                <Popover className="description-definitions-popover">
-                                    <PopoverHeader>Values</PopoverHeader>
-                                    <PopoverBody className="p-3">
-                                        <p>
-                                            <b>Options:</b> Accepted values for
-                                            this property.
-                                        </p>
-                                        <p>
-                                            <b>Ex:</b> Example values for this
-                                            property.
-                                        </p>
-                                    </PopoverBody>
-                                </Popover>
-                            }
-                            placement="top"
-                            flip={true}
-                            popperConfig={{
-                                modifiers: [
-                                    {
-                                        name: 'flip',
-                                        options: {
-                                            fallbackPlacements: [
-                                                'right',
-                                                'bottom',
-                                                'left',
-                                            ],
-                                        },
+}) => Object.keys(data).length > 0 ? (
+    <table className="table table-bordered table-striped">
+        <thead className="thead-smaht">
+            <tr>
+                <th className="text-left">Metadata Property</th>
+                <th className="text-left">Description</th>
+                <th className="text-left">
+                    Values
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        overlay={
+                            <Popover className="description-definitions-popover">
+                                <PopoverHeader>Values</PopoverHeader>
+                                <PopoverBody className="p-3">
+                                    <p>
+                                        <b>Options:</b> Accepted values for
+                                        this property.
+                                    </p>
+                                    <p>
+                                        <b>Ex:</b> Example values for this
+                                        property.
+                                    </p>
+                                </PopoverBody>
+                            </Popover>
+                        }
+                        placement="top"
+                        flip={true}
+                        popperConfig={{
+                            modifiers: [
+                                {
+                                    name: 'flip',
+                                    options: {
+                                        fallbackPlacements: [
+                                            'right',
+                                            'bottom',
+                                            'left',
+                                        ],
                                     },
-                                ],
-                            }}>
-                            <i className="icon icon-info-circle fas ms-1"></i>
-                        </OverlayTrigger>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                {Object.keys(data)
-                    .filter((property) =>
-                        // If a specific property is selected, filter out the rest
-                        selectedProperty
-                            ? data[property]?.title === selectedProperty
-                            : true
-                    )
-                    .map((propertyKey, i) => {
-                        const item = data[propertyKey];
+                                },
+                            ],
+                        }}>
+                        <i className="icon icon-info-circle fas ms-1"></i>
+                    </OverlayTrigger>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {Object.keys(data)
+                .filter((property) =>
+                // If a specific property is selected, filter out the rest
+                    selectedProperty
+                        ? data[property]?.title === selectedProperty
+                        : true
+                )
+                .map((propertyKey, i) => {
+                    const item = data[propertyKey];
 
-                        return (
-                            <tr
-                                key={i}
-                                className={`${
-                                    item?.title === selectedProperty
-                                        ? 'selected-property'
-                                        : ''
-                                }`}>
-                                {/* Title */}
-                                {item?.title ? (
-                                    <td className="text-left">{item.title}</td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
-                                {/* Description */}
-                                {item?.description ? (
-                                    <td className="text-left">
-                                        {item.description}
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
-                                {/* Values */}
-                                {item?.enum?.length || item?.suggested_enum ? (
-                                    <td className="text-left">
-                                        {/* If enums/suggested enums are present, display them */}
-                                        {item?.enum?.length > 0 && (
-                                            <p>
-                                                <b>Options:</b>{' '}
-                                                {item.enum.join(', ')}
-                                            </p>
-                                        )}
-                                        {item?.suggested_enum?.length > 0 && (
-                                            <p>
-                                                <b>Examples:</b>{' '}
-                                                {item.suggested_enum.join(', ')}
-                                            </p>
-                                        )}
-                                    </td>
-                                ) : item?.example ? (
-                                    <td className="text-left example">
-                                        <b>Ex:</b> {item.example}
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
-                            </tr>
-                        );
-                    })}
-            </tbody>
-        </table>
-    ) : (
-        'No Schema properties available.'
-    );
-};
+                    return (
+                        <tr
+                            key={i}
+                            className={`${
+                                item?.title === selectedProperty
+                                    ? 'selected-property'
+                                    : ''
+                            }`}>
+                            {/* Title */}
+                            {item?.title ? (
+                                <td className="text-left">{item.title}</td>
+                            ) : (
+                                <td className="text-left text-secondary">
+                                    -
+                                </td>
+                            )}
+                            {/* Description */}
+                            {item?.description ? (
+                                <td className="text-left">
+                                    {item.description}
+                                </td>
+                            ) : (
+                                <td className="text-left text-secondary">
+                                    -
+                                </td>
+                            )}
+                            {/* Values */}
+                            {item?.enum?.length || item?.suggested_enum ? (
+                                <td className="text-left">
+                                    {/* If enums/suggested enums are present, display them */}
+                                    {item?.enum?.length > 0 && (
+                                        <p>
+                                            <b>Options:</b>{' '}
+                                            {item.enum.join(', ')}
+                                        </p>
+                                    )}
+                                    {item?.suggested_enum?.length > 0 && (
+                                        <p>
+                                            <b>Examples:</b>{' '}
+                                            {item.suggested_enum.join(', ')}
+                                        </p>
+                                    )}
+                                </td>
+                            ) : item?.example ? (
+                                <td className="text-left example">
+                                    <b>Ex:</b> {item.example}
+                                </td>
+                            ) : (
+                                <td className="text-left text-secondary">
+                                    -
+                                </td>
+                            )}
+                        </tr>
+                    );
+                })}
+        </tbody>
+    </table>
+) : (
+    'No Schema properties available.'
+);
 
 // Updates the `fieldsToDisplay` Map with information from the schema
 const formatSchemaData = (data) => {
@@ -214,10 +212,10 @@ export const DonorManifestDataDictionary = () => {
 
         return [
             { value: schemaKey, label: schemaKey },
-            ...properties?.map((property) => {
+            ...(properties?.map((property) => {
                 const value = `${schemaKey}.${property.title}`;
                 return { value: value, label: value?.toLowerCase() };
-            }),
+            }) ?? []),
         ];
     });
 
