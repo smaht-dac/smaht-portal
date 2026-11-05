@@ -60,7 +60,7 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
     const connections = new Map(boxes.map((box) => [box.name, [...new Set(groups.filter((group) => group.from === box.name || group.to === box.name).map((group) => group.key))].sort()]));
     const rawPorts = (box, key) => {
         const keys = connections.get(box.name);
-        const slots = options.spreadPorts ? Math.min(5, keys.length) : 1;
+        const slots = options.spreadPorts || options.spreadNodes?.includes(box.name) ? Math.min(5, keys.length) : 1;
         const fraction = slots ? ((Math.max(0, keys.indexOf(key)) % slots) + 1) / (slots + 1) : 0.5;
         const px = box.left + 16 + (nodeWidth - 32) * fraction;
         const py = box.top + 12 + (nodeHeight - 24) * fraction;

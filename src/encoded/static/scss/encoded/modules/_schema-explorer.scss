@@ -65,6 +65,11 @@
         .se-diagram-eyebrow { color: var(--se-concept-color, #356a9a); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
         h2 { margin: .15rem 0 .1rem; font-size: 26px; line-height: 1.25; font-weight: 650; color: #253b4d; }
         .se-diagram-question { margin: 0; font-size: 16px; color: #425c71; }
+        .se-diagram-focus { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .6rem; padding: .4rem .6rem; font-size: 13px; color: #425c71; background: white; border: 1px solid #cad6e0; border-left: 3px solid var(--se-concept-color, #356a9a); border-radius: .35rem; width: fit-content; max-width: 100%;
+            strong { color: #253b4d; }
+            button { padding: .1rem .45rem; font-size: 12.5px; font-weight: 600; color: #356a9a; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; } }
+        }
+        .se-diagram-focus-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--se-concept-color, #356a9a); }
         .se-diagram-facts { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 0; padding: 0; list-style: none; li { padding: .15rem .55rem; font-size: 12.5px; color: #425c71; background: white; border: 1px solid #d4dee7; border-radius: 1rem; } }
     }
     .se-diagram-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; margin-bottom: .6rem; padding: .55rem .75rem; border: 1px solid #e1e7ec; border-radius: .5rem; background: #f8fafc;
@@ -72,6 +77,7 @@
         > .se-canvas-actions { margin-left: auto; }
         .se-control-label { font-size: 12px; font-weight: 600; color: #59636e; text-transform: uppercase; letter-spacing: .03em; }
         label { display: inline-flex; align-items: center; gap: .4rem; margin: 0; font-size: 13px; }
+        .se-external-toggle { padding: 6px 10px; border: 1px solid #ced4da; border-radius: 5px; background: white; white-space: nowrap; input { margin: 0; } }
     }
     .se-diagram > p { margin: 12px 0; }
     .se-map-toolbar { display: grid; gap: .6rem; margin: .75rem 0; }

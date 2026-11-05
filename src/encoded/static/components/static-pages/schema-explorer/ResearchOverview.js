@@ -104,7 +104,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
     const graph = useMemo(() => buildResearchMap(index, nodes, size), [index, nodes, size]);
     const flow = useMemo(() => overviewFlow(graph), [graph]);
     const flowByKey = useMemo(() => new Map(flow.edges.map((edge) => [edge.key, edge])), [flow]);
-    const routes = useMemo(() => routeEdges(flow.positions, flow.edges, flow.nodeWidth, flow.nodeHeight), [flow]);
+    const routes = useMemo(() => routeEdges(flow.positions, flow.edges, flow.nodeWidth, flow.nodeHeight, [], { spreadNodes: ['files'] }), [flow]);
     const labels = useMemo(() => researchLabels(flow, routes), [flow, routes]);
     const trace = useMemo(() => traceProvenance(graph, selected), [graph, selected]);
     const concept = graph.nodes.find((node) => node.id === selected);
@@ -234,7 +234,7 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                 <div className="se-research-legend" aria-label="Reading the map">
                     <div className="se-map-guide">
                         <span className="se-map-guide-symbol" aria-hidden="true">1–7</span>
-                        <div><strong>Donor to data</strong><p>Follow the numbered workflow forward, or trace a file’s origin backward.</p><p>Branches add experimental and analysis context.</p></div>
+                        <div><strong>Donor to data</strong><p>Follow the numbered workflow forward, or trace a file’s origin backward.</p><p>Branches add experimental and analysis context. Read each arrow as a sentence: Donor provides Source material.</p><p>Schema diagrams use the reference direction instead: arrows point to the referenced schema.</p></div>
                     </div>
                     <div className="se-map-guide">
                         <span className="se-map-guide-symbol" aria-hidden="true">↗</span>

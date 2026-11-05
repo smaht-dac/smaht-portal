@@ -3,10 +3,10 @@
 // direction; overviewFlow separately projects the numbered biological path.
 export const concepts = [
     { id: 'donor', label: 'Donor', step: 1, hint: 'Who donated the material?', example: 'Donor', domain: 'donors', color: '#356a9a', types: 'Donor ProtectedDonor AbstractDonor', description: 'Donor metadata identifies the individual who supplied the biological material. Clinical history and protected details provide additional context.' },
-    { id: 'material', label: 'Source material', step: 2, hint: 'Which tissue or culture?', example: 'Tissue · CellCulture', domain: 'samples', color: '#237b68', types: 'SampleSource Tissue CellCulture CellLine CellCultureMixture', description: 'Source material is the tissue or cultured material from which specimens originate. Tissue and CellLine records can reference a donor directly; cultures can also trace their origin through source samples.' },
+    { id: 'material', label: 'Source material', step: 2, hint: 'Which tissue or culture?', example: 'Tissue · CellCulture', domain: 'samples', color: '#237b68', types: 'SampleSource Tissue CellCulture CellLine CellCultureMixture', description: 'Source material is the tissue or cultured material from which specimens originate. Tissue and CellLine records can reference a donor directly; CellCulture and CellLine records can also reference the tissue samples they were derived from (tissue_samples), so a culture can appear both before and after a sample in the workflow.' },
     { id: 'sample', label: 'Sample', step: 3, hint: 'Which specimen was used?', example: 'Sample and subtypes', domain: 'samples', color: '#237b68', types: 'Sample TissueSample CellSample CellCultureSample', description: 'A sample is the specimen used for an experiment. Its sample_sources field references source material. TissueSample, CellSample and CellCultureSample share the Sample model.' },
-    { id: 'analyte', label: 'Analyte', step: 4, hint: 'What material was extracted?', example: 'Analyte', domain: 'sequencing', color: '#8058a0', types: 'Analyte', description: 'An analyte is biological material prepared from one or more samples. The samples field preserves those source specimens; analyte_preparation records how the material was prepared.' },
-    { id: 'library', label: 'Library', step: 5, hint: 'What was prepared for sequencing?', example: 'Library', domain: 'sequencing', color: '#8058a0', types: 'Library', description: 'A library references its source analytes and its library preparation. Following analytes links the sequencing material back to the original specimens.' },
+    { id: 'analyte', label: 'Analyte', step: 4, hint: 'What material was extracted?', example: 'Analyte · preparation', domain: 'sequencing', color: '#8058a0', types: 'Analyte AnalytePreparation', description: 'An analyte is biological material prepared from one or more samples. The samples field preserves those source specimens; analyte_preparation records how the material was prepared.' },
+    { id: 'library', label: 'Library', step: 5, hint: 'What was prepared for sequencing?', example: 'Library · preparation', domain: 'sequencing', color: '#8058a0', types: 'Library LibraryPreparation', description: 'A library references its source analytes and its library preparation. Following analytes links the sequencing material back to the original specimens.' },
     { id: 'fileSet', label: 'Experiment / FileSet', step: 6, hint: 'Which library and sequencing run?', example: 'FileSet', domain: 'sequencing', color: '#8058a0', types: 'FileSet', description: 'A FileSet connects libraries with sequencing metadata. Files reference their file sets, which provide the bridge from data to the experimental material. Some FileSets also reference CellSample directly.' },
     { id: 'files', label: 'Data files', step: 7, hint: 'Where are the reads and results?', example: 'File and subtypes', domain: 'files', color: '#a06424', types: 'File SubmittedFile OutputFile UnalignedReads AlignedReads VariantCalls HistologyImage SupplementaryFile ExternalOutputFile DonorSpecificAssembly', description: 'Files represent reads, variants, images and other data. File subtypes connect to file sets, analysis context and quality metrics. The exact fields and available links depend on the subtype.' },
     { id: 'analysis', label: 'Analysis context', hint: 'Which donor and tissue were analyzed?', example: 'AnalysisRun', domain: 'workflows', color: '#5262a0', types: 'AnalysisRun', description: 'AnalysisRun collects analysis-level donor and tissue context. File subtypes can reference analysis runs through analysis_runs. Workflow execution is represented separately by WorkflowRun and MetaWorkflowRun.' },
@@ -105,18 +105,24 @@ export function researchLabels(graph, routes) {
 // The entry map follows biological progression. Schema direction remains in
 // graph.edges and each connection's exact references for detail views/tracing.
 export function overviewFlow(graph) {
+    // Each arrow reads as a sentence from its source box: "Donor provides Source material".
+    // Labels between neighbouring boxes must stay short (about 14 characters) to fit the gap.
     const labels = {
-        'material-donor': 'donates',
-        'sample-material': 'sampled as',
-        'analyte-sample': 'yields analyte',
-        'library-analyte': 'used for',
-        'fileSet-library': 'used in',
-        'files-fileSet': 'has data',
+        'material-donor': 'provides',
+        'sample-material': 'is sampled as',
+        'analyte-sample': 'yields',
+        'library-analyte': 'is prepared into',
+        'fileSet-library': 'is run in',
+        'files-fileSet': 'produces',
+        'files-analysis': 'analyzed in',
+        'workflow-files': 'reads & writes',
+        'files-quality': 'is assessed by',
+        'fileSet-sequencing': 'is sequenced with',
     };
     return { ...graph, edges: graph.edges.map((edge) => {return {
         ...edge,
         from: edge.primary ? edge.to : edge.from,
         to: edge.primary ? edge.from : edge.to,
-        label: labels[edge.key] || (edge.key === 'workflow-files' ? 'input/output' : edge.label),
+        label: labels[edge.key] || edge.label,
     };}) };
 }
