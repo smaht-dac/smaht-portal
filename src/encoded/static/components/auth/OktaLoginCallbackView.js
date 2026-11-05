@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Security, LoginCallback } from '@okta/okta-react';
 
@@ -10,7 +10,11 @@ import {
     logger,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-import { OKTA_CONFIG_ENDPOINT, isOktaConfigured } from './oktaConfig';
+import {
+    OKTA_CALLBACK_FAILED_EVENT,
+    OKTA_CONFIG_ENDPOINT,
+    isOktaConfigured,
+} from './oktaConfig';
 import { getOktaAuthClient } from './oktaClient';
 import { establishPortalSession } from './oktaSession';
 
@@ -39,8 +43,15 @@ function CallbackPending({ message = 'Signing you in…' }) {
 }
 CallbackPending.propTypes = { message: PropTypes.string };
 
-/** Shown when the callback cannot be completed. */
+/**
+ * Shown when the callback cannot be completed, whether the failure came from
+ * the SDK (as `LoginCallback`'s `errorComponent`) or from the portal session
+ */
 export function CallbackError({ error }) {
+    useEffect(() => {
+        // The navbar login button shows a login in progress on this page until told otherwise
+        window.dispatchEvent(new Event(OKTA_CALLBACK_FAILED_EVENT));
+    }, []);
     const message =
         (error && (error.message || error.errorSummary || String(error))) ||
         'An unknown error occurred.';

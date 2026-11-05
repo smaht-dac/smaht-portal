@@ -13,6 +13,9 @@
 /** Path the Okta redirect lands on. Must match `OKTA_CALLBACK_PATH` in `encoded/okta.py`. */
 export const OKTA_CALLBACK_PATH = '/okta/callback';
 
+/** Portal-defined window event (not from the Okta SDK) the callback page fires when it cannot complete a login */
+export const OKTA_CALLBACK_FAILED_EVENT = 'smaht:okta-callback-failed';
+
 /** Endpoint serving the public SPA configuration (`encoded.okta.okta_config_view`). */
 export const OKTA_CONFIG_ENDPOINT = '/okta_config';
 

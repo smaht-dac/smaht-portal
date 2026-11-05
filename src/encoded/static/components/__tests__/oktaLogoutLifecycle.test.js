@@ -104,6 +104,8 @@ beforeEach(() => {
             href: 'https://portal.example.invalid/',
             assign: jest.fn(),
         },
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
     };
     stored = {};
     storage = {
