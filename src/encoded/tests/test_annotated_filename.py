@@ -270,10 +270,10 @@ TISSUE_PROTOCOL_ID = "1A"
 TISSUE_EXTERNAL_ID = f"{TISSUE_PROJECT_ID}{TISSUE_DONOR_KIT_ID}-{TISSUE_PROTOCOL_ID}"
 SOME_TISSUE = {"uuid": "some-uuid", "external_id": TISSUE_EXTERNAL_ID}
 ANOTHER_TISSUE = {"uuid": "another-uuid", "external_id": "SMHT100-1B"}
-CORD_BLOOD_CODE = "CB2404416003F"
+CORD_BLOOD_CODE = "CB2404416003"
 CORD_BLOOD_TISSUE = {
     "uuid": "cord-blood-uuid",
-    "external_id": "CB2404416003",
+    "external_id": "NYU-CB-2404416003",
     "code": CORD_BLOOD_CODE,
 }
 
@@ -421,7 +421,7 @@ SOME_SEQUENCING_SUPPLEMENT_FILE = {
         ),
         ([], [], [SOME_TISSUE, ANOTHER_TISSUE], "", True),
         ([], [], [SOME_TISSUE, SOME_ITEM], "", True),
-        ([], [], [CORD_BLOOD_TISSUE], DEFAULT_PROJECT_ID, False),
+        ([], [], [CORD_BLOOD_TISSUE], "", False),  # cord blood: no project prefix
     ],
 )
 def test_get_project_id(

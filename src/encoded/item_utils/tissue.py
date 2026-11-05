@@ -124,15 +124,14 @@ def is_coded_non_tpc(properties: Dict[str, Any]) -> bool:
 def get_project_id(properties: Dict[str, Any]) -> str:
     """Get project ID associated with tissue.
 
-    Non-TPC tissues that carry a file-naming `code` (e.g. cord blood) use
-    the prefix "SMHT" like cell lines or cell culture mixtures.
+    Non-TPC tissues that carry a file-naming `code` (e.g. cord blood) get no
+    project prefix: the code itself (used as the sample source ID) is already
+    long, so prefixing it would make the annotated filename unwieldy.
     """
     if is_benchmarking(properties):
         return constants.BENCHMARKING_PREFIX
     if is_production(properties):
         return constants.PRODUCTION_PREFIX
-    if is_coded_non_tpc(properties):
-        return ""
     return ""
 
 

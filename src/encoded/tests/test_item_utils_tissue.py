@@ -73,8 +73,8 @@ def test_production_id_regex(string: str, expected_match: bool) -> None:
         ({"external_id": "FooBar"}, ""),
         ({"external_id": "ST001-1A"}, "ST"),
         ({"external_id": "SMHT001-1A"}, "SMHT"),
-        ({"code": "CB2404416003F"}, "SMHT"),  # non-TPC coded tissue (cord blood)
-        ({"external_id": "nyu_cb_2404416003", "code": "CB2404416003F"}, "SMHT"),
+        ({"code": "CB2404416003"}, ""),  # non-TPC coded tissue (cord blood): no prefix
+        ({"external_id": "NYU-CB-2404416003", "code": "CB2404416003"}, ""),
         # TPC prod tissue with a code still resolves via its external_id
         ({"external_id": "SMHT004-3I", "code": "SMHT004-3I"}, "SMHT"),
     ],
@@ -91,8 +91,8 @@ def test_get_project_id(properties: Dict[str, Any], expected: str) -> None:
         ({"external_id": "FooBar"}, ""),
         ({"external_id": "ST001-1A"}, "001"),
         ({"external_id": "SMHT001-1A"}, "001"),
-        ({"code": "CB2404416003F"}, "CB2404416003F"),  # non-TPC coded tissue (cord blood)
-        ({"external_id": "nyu_cb_2404416003", "code": "CB2404416003F"}, "CB2404416003F"),
+        ({"code": "CB2404416003"}, "CB2404416003"),  # non-TPC coded tissue (cord blood)
+        ({"external_id": "NYU-CB-2404416003", "code": "CB2404416003"}, "CB2404416003"),
         # TPC production tissue with a code must still use the parsed kit ID, NOT the code
         ({"external_id": "SMHT004-3I", "code": "SMHT004-3I"}, "004"),
     ],
@@ -140,9 +140,9 @@ def test_is_tpc_alt(properties: Dict[str, Any], expected: bool) -> None:
     "properties,expected",
     [
         ({}, False),
-        ({"code": "CB2404416003F"}, True),  # code + no external_id
-        ({"external_id": "nyu_cb_2404416003", "code": "CB2404416003F"}, True),  # cord blood
-        ({"external_id": "nyu_cb_2404416003"}, False),  # non-TPC but no code
+        ({"code": "CB2404416003"}, True),  # code + no external_id
+        ({"external_id": "NYU-CB-2404416003", "code": "CB2404416003"}, True),  # cord blood
+        ({"external_id": "NYU-CB-2404416003"}, False),  # non-TPC but no code
         ({"external_id": "SMHT004-3I", "code": "SMHT004-3I"}, False),  # coded TPC production
         ({"external_id": "ST001-1A", "code": "ST001-1A"}, False),  # coded TPC benchmarking
         ({"external_id": "SMHT004-3I"}, False),  # TPC production, no code
