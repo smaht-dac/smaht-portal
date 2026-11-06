@@ -25,6 +25,8 @@ export default function Diagram({
     onExplore,
     onDetail,
     onPlanner,
+    onBrowseAll,
+    groupRequest,
 }) {
     const index = useMemo(() => explorerIndex(sourceIndex), [sourceIndex]);
     const [selected, setSelected] = useState(focus);
@@ -470,6 +472,8 @@ export default function Diagram({
         setNeighbors(false);
         setMoves({});
     };
+    // The catalog's "Open group map" asks the map to show that group.
+    useEffect(() => { if (groupRequest) chooseDomain(groupRequest.id); }, [groupRequest, chooseDomain]);
     const clearSelection = () => {
         setSelected('');
         setNeighbors(false);
@@ -522,7 +526,10 @@ export default function Diagram({
     }, [hoverEdge]);
     const tracedEnds = useMemo(() => new Set(hoverEdge ? [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
     const drawnGroups = overview ? [] : shownGroups;
-    const showAllTypes = useCallback(() => { setReturnConcept(''); setOverviewMode('types'); }, []);
+    const showAllTypes = useCallback(() => {
+        if (onBrowseAll) { onBrowseAll(); return; }
+        setReturnConcept(''); setOverviewMode('types');
+    }, [onBrowseAll]);
     if (researchOverview) {
         return (
             <ResearchOverview index={index} nodes={visible} onType={choose}

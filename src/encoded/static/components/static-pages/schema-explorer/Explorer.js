@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
 import Diagram from './Diagram';
+import SchemaCatalog from './SchemaCatalog';
 import { explorerIndex } from './explorer-scope';
 import RelationshipDetails from './RelationshipDetails';
 import Planner from './Planner';
@@ -165,6 +166,7 @@ export default function Explorer() {
         [query, setQuery] = useState('');
     const [history, setHistory] = useState({ entries: [], position: -1 });
     const [returnToMap, setReturnToMap] = useState(false);
+    const [groupRequest, setGroupRequest] = useState(null);
     const explorerRoot = useRef();
     const [planner, setPlanner] = useState(null),
         [detail, setDetail] = useState(null),
@@ -205,6 +207,18 @@ export default function Explorer() {
     function openFromMap(name) {
         setReturnToMap(true);
         select(name, true);
+        requestAnimationFrame(() => explorerRoot.current?.scrollIntoView({ block: 'start' }));
+    }
+    // The map's "all schemas" entries open the catalog on the Schema details tab.
+    function browseAll() {
+        setReturnToMap(true);
+        setSelected('');
+        setMode('item');
+        requestAnimationFrame(() => explorerRoot.current?.scrollIntoView({ block: 'start' }));
+    }
+    function openGroupMap(id) {
+        setGroupRequest({ id, at: Date.now() });
+        setMode('map');
         requestAnimationFrame(() => explorerRoot.current?.scrollIntoView({ block: 'start' }));
     }
     function backToMap() {
@@ -325,6 +339,8 @@ export default function Explorer() {
                 <Diagram
                     index={index}
                     onExplore={openFromMap}
+                    onBrowseAll={browseAll}
+                    groupRequest={groupRequest}
                     onPlanner={(name) => setPlanner({ source: name })}
                     onDetail={setDetail}
                 />
@@ -332,21 +348,23 @@ export default function Explorer() {
             <div hidden={mode !== 'item'} className="se-item-view">
                 <nav className="se-item-nav" aria-label="Schema navigation">
                     {returnToMap && <button type="button" className="se-back-to-map" onClick={backToMap}>← Back to schema map</button>}
-                    <span className="se-item-history">
-                        <button type="button" disabled={history.position <= 0} onClick={() => travel(-1)}
-                            title={history.position > 0 ? `Previously viewed: ${history.entries[history.position - 1]}` : 'No previous schema'}>
-                            ‹ {history.position > 0 ? history.entries[history.position - 1] : 'Previous'}
-                        </button>
-                        <button type="button" disabled={history.position >= history.entries.length - 1} onClick={() => travel(1)}
-                            title={history.position < history.entries.length - 1 ? `Next viewed: ${history.entries[history.position + 1]}` : 'No next schema'}>
-                            {history.position < history.entries.length - 1 ? history.entries[history.position + 1] : 'Next'} ›
-                        </button>
-                    </span>
+                    {history.entries.length > 1 && (
+                        <span className="se-item-history">
+                            <button type="button" disabled={history.position <= 0} onClick={() => travel(-1)}
+                                title={history.position > 0 ? `Previously viewed: ${history.entries[history.position - 1]}` : 'No previous schema'}>
+                                ‹ {history.position > 0 ? history.entries[history.position - 1] : 'Previous'}
+                            </button>
+                            <button type="button" disabled={history.position >= history.entries.length - 1} onClick={() => travel(1)}
+                                title={history.position < history.entries.length - 1 ? `Next viewed: ${history.entries[history.position + 1]}` : 'No next schema'}>
+                                {history.position < history.entries.length - 1 ? history.entries[history.position + 1] : 'Next'} ›
+                            </button>
+                        </span>
+                    )}
                 </nav>
                 <div className="se-diagram-controls se-item-controls">
                     <label>Schema
                         <select id="types" value={selected} onChange={(e) => select(e.target.value)}>
-                            <option value="" disabled></option>
+                            <option value="">All schemas</option>
                             {index.models.map((m) => <option key={m.name}>{m.name}</option>)}
                         </select>
                     </label>
@@ -406,7 +424,7 @@ export default function Explorer() {
                         </div>
                     </>
                 ) : (
-                    <p className="se-flow-note">Choose a schema above to inspect its fields and relationships.</p>
+                    <SchemaCatalog index={index} query={query} onOpen={(name) => select(name)} onOpenGroup={openGroupMap} />
                 )}
             </div>
             {planner && (
