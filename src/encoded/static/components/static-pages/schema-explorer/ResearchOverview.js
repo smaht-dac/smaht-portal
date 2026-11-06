@@ -91,7 +91,7 @@ function RelationshipSection({ section, graph, onInspect }) {
     );
 }
 
-export default function ResearchOverview({ index, nodes, onType, onGroup, onAllTypes, onDetail, onConnections, initialConcept = '', focusMap = false }) {
+export default function ResearchOverview({ index, nodes, onType, onAllTypes, onDetail, onConnections, initialConcept = '', focusMap = false }) {
     const [size, setSize] = useState({ width: 1200, height: 650 });
     const [camera, setCamera] = useState({ x: 20, y: 20, scale: 1 });
     const [selected, setSelected] = useState(initialConcept);
@@ -364,12 +364,10 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                     </div>
                 </section>
             )}
-            <div className="se-research-support"><span>More context</span>
-                <button type="button" onClick={() => onGroup('donors')}>Clinical history &amp; donor details</button>
-                <button type="button" onClick={() => onGroup('sequencing')}>Preparation &amp; instruments</button>
-                <button type="button" onClick={() => onGroup('files')}>References &amp; file metadata</button>
-                <button type="button" onClick={() => onGroup('administrative')}>Administrative metadata</button>
-            </div>
+            <p className="se-research-support">
+                Not every schema is on this map.
+                <button type="button" onClick={onAllTypes}>Browse all {nodes.length} schemas by group →</button>
+            </p>
         </section>
     );
 }

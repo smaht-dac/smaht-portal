@@ -524,7 +524,7 @@ export default function Diagram({
     const showAllTypes = useCallback(() => { setReturnConcept(''); setOverviewMode('types'); }, []);
     if (researchOverview) {
         return (
-            <ResearchOverview index={index} nodes={visible} onType={choose} onGroup={chooseDomain}
+            <ResearchOverview index={index} nodes={visible} onType={choose}
                 onAllTypes={showAllTypes} onDetail={onDetail} onConnections={exploreConcept} initialConcept={returnConcept} focusMap={focusReturnedMap} />
         );
     }
@@ -541,6 +541,7 @@ export default function Diagram({
                 <div className="se-diagram-heading" style={conceptContext?.color ? { '--se-concept-color': conceptContext.color } : undefined}>
                     {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
                     <h2>{title}</h2>
+                    {overview && <p className="se-diagram-question">Every schema in the model, grouped by area. Select a group for its map or a schema for its details.</p>}
                     <ul className="se-diagram-facts" aria-label="Diagram summary">
                         {facts.map((fact) => <li key={fact}>{fact}</li>)}
                         {conceptContext && (
@@ -677,7 +678,7 @@ export default function Diagram({
             {!selected && conceptContext && <p className="se-flow-note">Highlighted schemas belong to {conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.</p>}
             {!selected && !showDomains && !conceptContext && <p className="se-flow-note">Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.</p>}
             {!selected && showDomains && !conceptContext && (
-                <p className="se-flow-note">{overview ? 'Select a group or type to explore its relationships. Groups follow the biological workflow.' : selected
+                <p className="se-flow-note">{overview ? 'Groups follow the biological workflow, from donors to files.' : selected
                     ? `Showing ${selected} references between visible schemas, including inherited and self-references. Clear selection to return to the group overview.`
                     : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
                         : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.'}
