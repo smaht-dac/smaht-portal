@@ -111,14 +111,14 @@
         button.se-selected-open { flex-shrink: 0; font-weight: 600; color: white; background: #356a9a; border-color: #356a9a; }
         .se-inheritance-detail { margin: .6rem 0 0; font-size: 13px; color: #59636e; }
     }
-    .se-selected-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #d4dee7; border-radius: .5rem; font-size: 13px;
+    .se-selected-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; border: 1px solid #d4dee7; border-radius: .5rem; font-size: 13px;
         > * > tr > th, > * > tr > td { padding: .45rem .75rem; vertical-align: middle; text-align: left; border-top: 1px solid #e1e7ec; }
         thead th { border-top: 0; font-size: 12px; font-weight: 600; color: #59636e; background: #f5f8fb; }
         thead th:first-child { border-top-left-radius: .5rem; } thead th:last-child { border-top-right-radius: .5rem; }
-        tbody th { width: 26%; }
+        .se-col-schema { width: 26%; } .se-col-kind { width: 22%; } .se-col-action { width: 110px; }
         code { font-size: 12px; color: #254c6b; overflow-wrap: anywhere; }
         button.se-selected-schema { padding: 0; font-weight: 600; color: #254c6b; background: transparent; border: 0; text-align: left; &:hover, &:focus { text-decoration: underline; } }
-        .se-selected-action { width: 1%; white-space: nowrap; button { padding: .15rem .5rem; font-size: 13px; font-weight: 600; color: #356a9a; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; border-color: #cad6e0; } } }
+        .se-selected-action { text-align: right; white-space: nowrap; button { padding: .15rem .5rem; font-size: 13px; font-weight: 600; color: #356a9a; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; border-color: #cad6e0; } } }
     }
     .se-diagram-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem 1.25rem; margin: 0 0 .5rem; padding: .4rem .65rem; border: 1px solid #e1e7ec; border-radius: .4rem; background: #f8fafc; list-style: none; font-size: 12px; color: #425c71;
         li { display: flex; align-items: center; gap: .5rem; }

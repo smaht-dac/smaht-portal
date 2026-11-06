@@ -486,6 +486,12 @@ export default function Diagram({
             names.has(e.from) &&
             names.has(e.to)
     );
+    // Schema descriptions that only restate the name ("Death Circumstances") add nothing under the title.
+    const selectedDescription = useMemo(() => {
+        if (!selected) return '';
+        const { description } = nodePresentation(selected, index.models.find((m) => m.name === selected));
+        return description.replace(/[\s_.-]/g, '').toLowerCase() === selected.toLowerCase() ? '' : description;
+    }, [selected, index]);
     const drawnGroups = overview ? [] : shownGroups;
     const showAllTypes = useCallback(() => { setReturnConcept(''); setOverviewMode('types'); }, []);
     if (researchOverview) {
@@ -958,7 +964,7 @@ export default function Diagram({
                         <div>
                             <span className="se-diagram-eyebrow">Selected schema</span>
                             <h3>{selected}</h3>
-                            <p>{nodePresentation(selected, index.models.find((m) => m.name === selected)).description}</p>
+                            {selectedDescription && <p>{selectedDescription}</p>}
                         </div>
                         {!compact
                             ? <button type="button" className="se-selected-open" onClick={() => onExplore(selected)}>Open schema details →</button>
@@ -966,12 +972,13 @@ export default function Diagram({
                     </header>
                     {shared.inherited[selected] && <p className="se-inheritance-detail">{shared.inherited[selected].fields.size} reference fields inherited from { [...shared.inherited[selected].owners].join(', ') }. Their shared definitions are drawn at the base types in the group overview.</p>}
                     {[
-                        { key: 'out', title: `${selected} links to`, rows: incident.filter((e) => e.from === selected), column: 'Links to' },
-                        { key: 'in', title: `Links to ${selected}`, rows: incident.filter((e) => e.from !== selected), column: 'Linked from' },
+                        { key: 'out', title: 'Links from this schema', rows: incident.filter((e) => e.from === selected), column: 'Links to' },
+                        { key: 'in', title: 'Links to this schema', rows: incident.filter((e) => e.from !== selected), column: 'Linked from' },
                     ].filter((part) => part.rows.length).map((part) => (
                         <div className="se-relationship-section" key={part.key}>
                             <h5 className="se-relationship-section-title">{part.title} <span>{part.rows.length}</span></h5>
                             <table className="se-selected-table">
+                                <colgroup><col className="se-col-schema" /><col /><col className="se-col-kind" /><col className="se-col-action" /></colgroup>
                                 <thead><tr><th scope="col">{part.column}</th><th scope="col">Field</th><th scope="col">Kind</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
                                 <tbody>
                                     {part.rows.map((e) => (
@@ -979,7 +986,7 @@ export default function Diagram({
                                             <th scope="row">
                                                 <button type="button" className="se-selected-schema" onClick={() => choose(part.key === 'out' ? e.to : e.from)}>{part.key === 'out' ? e.to : e.from}</button>
                                             </th>
-                                            <td><code>{e.from}.{e.field}</code></td>
+                                            <td><code>{e.field}</code></td>
                                             <td><Badge kind={e.kind}>{edgeLabel(e)}</Badge></td>
                                             <td className="se-selected-action"><button type="button" onClick={() => inspect({ ...e, edges: [e] })}>Details →</button></td>
                                         </tr>
