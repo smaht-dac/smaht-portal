@@ -126,6 +126,7 @@
         .se-legend-abstract { background: #fcfaff; border: 1px dashed #b8accb; }
         .se-legend-center { border: 2px solid #356a9a; background: #f4f9fd; }
         .se-legend-external { position: relative; &::before { content: ''; position: absolute; left: 2px; right: 6px; top: -5px; height: 2px; background: #8a9aa8; } }
+        .se-legend-covered { border: 2px solid #c46a12; background: #fff6ea; }
         .se-legend-bundle { background: #eef5f8; border: 1.5px dashed #86a8bc; }
         .se-legend-arrow { height: 0; border: 0; border-top: 1.5px solid #477293; border-radius: 0; position: relative; &::after { content: ''; position: absolute; right: -2px; top: -5px; border: 4px solid transparent; border-left: 6px solid #477293; } }
     }
@@ -204,6 +205,17 @@
     .entity-node.se-node-abstract .se-node-title { font-style: italic; }
     .entity-node rect.se-node-abstract-badge { fill: #eee8f6; stroke: none; }
     .entity-node text.se-node-abstract-label { fill: #75638e; font-size: 10px; text-anchor: middle; font-weight: 600; }
+    // Tracing an inherited arrow: the base and its subtypes turn amber, everything else steps back.
+    .se-diagram .se-tracing-inheritance {
+        .entity-node:not(.se-covered):not(.se-covered-owner) { opacity: .3; }
+        .se-edge:not(.se-traced-edge) { opacity: .08; }
+        .se-edge.se-traced-edge { opacity: 1; stroke-width: 3; }
+        .se-external-group-card:not(.se-traced-group) { opacity: .4; }
+        .se-external-group-card.se-traced-group rect { stroke: #c46a12; stroke-width: 2.5; fill: #fff6ea; }
+        .entity-node.se-covered rect.se-node-body, .entity-node.se-covered-owner rect.se-node-body { stroke: #c46a12; stroke-width: 3; stroke-dasharray: none; fill: #fff6ea; }
+    }
+    .entity-node rect.se-covered-badge { fill: #c46a12; stroke: none; }
+    .entity-node text.se-covered-label { fill: white; font-size: 10px; text-anchor: middle; font-weight: 600; }
     .se-inheritance-detail { color: #59636e; font-size: 13px; }
 
     .se-hierarchical .entity-node .se-subtitle { font-size: 11px; }

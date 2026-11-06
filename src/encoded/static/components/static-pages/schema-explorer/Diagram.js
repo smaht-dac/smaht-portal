@@ -45,6 +45,8 @@ export default function Diagram({
     const [connectionMode, setConnectionMode] = useState('shared');
     const [hidden, setHidden] = useState(compact ? [] : defaults);
     const [kinds, setKinds] = useState(compact ? ['linkTo', 'calculated', 'reverse'] : ['linkTo']);
+    // The arrow under the pointer or keyboard focus; its covered schemas are outlined.
+    const [hoverEdge, setHoverEdge] = useState(null);
     const [neighbors, setNeighbors] = useState(false),
         [full, setFull] = useState(false);
     const [query, setQuery] = useState(''),
@@ -245,15 +247,23 @@ export default function Diagram({
         const bundled = externalBundles.filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => {
             const matches = edges.filter((edge) => (focusMembers.has(edge.from) && bundle.members.includes(edge.to)) ||
                 (focusMembers.has(edge.to) && bundle.members.includes(edge.from)));
-            // Draw one bundled arrow per anchoring schema and direction, so each arrow keeps its exact endpoint.
+            // With shared definitions, an inherited reference is drawn once from the visible base that defines it,
+            // exactly as inside the group; otherwise each anchoring schema keeps its own arrow.
+            const owners = new Map();
+            if (summarize) {
+                sharedRelationships(index, groupRelationships(matches.filter((edge) => focusMembers.has(edge.from))), names).groups
+                    .forEach((group) => { if (focusMembers.has(group.from)) group.edges.forEach((edge) => owners.set(edge, group.from)); });
+            }
+            const anchor = (edge, outgoing) => outgoing ? owners.get(edge) || edge.from : edge.to;
             return [...focusMembers].flatMap((member) => [true, false].map((outgoing) => {
-                const references = matches.filter((edge) => (outgoing ? edge.from : edge.to) === member);
+                const references = matches.filter((edge) => focusMembers.has(outgoing ? edge.from : edge.to) && anchor(edge, outgoing) === member);
                 return references.length ? { ...references[0], from: outgoing ? member : bundle.name,
-                    to: outgoing ? bundle.name : member, key: `${bundle.name}:${member}:${outgoing}`, edges: references, bundled: true } : null;
+                    to: outgoing ? bundle.name : member, key: `${bundle.name}:${member}:${outgoing}`, edges: references, bundled: true,
+                    shared: references.some((edge) => outgoing && edge.from !== member) } : null;
             })).filter(Boolean);
         });
         return [...result, ...bundled];
-    }, [summarize, shared, scopedGroups, externalBundles, expandedExternal, edges, focusMembers]);
+    }, [summarize, shared, scopedGroups, externalBundles, expandedExternal, edges, focusMembers, index, names]);
     // A single group is named in the toolbar, so its title stays readable at every zoom level.
     const singleFrame = showDomains && !overview && clustered.frames.length === 1 ? clustered.frames[0] : null;
     // Explains only the node styles currently drawn; external schemas appear individually or bundled by group depending on how many there are.
@@ -263,6 +273,7 @@ export default function Diagram({
         conceptContext && ['center', `In focus: ${conceptContext.label}`],
         externalContextNames.size > 0 && ['external', 'Schema from another group (labelled above the card)'],
         externalBundles.some((bundle) => !expandedExternal.includes(bundle.id)) && ['bundle', 'Another group, collapsed: Expand to list its schemas'],
+        summarize && ['covered', 'Hover an arrow to trace it; an arrow from a base type also marks the subtypes that inherit it'],
         ['arrow', 'Arrow points to the referenced schema'],
     ].filter(Boolean) : [];
     const linkTotal = summarize ? shownGroups.length : shownGroups.reduce((n, g) => n + g.edges.length, 0);
@@ -492,6 +503,22 @@ export default function Diagram({
         const { description } = nodePresentation(selected, index.models.find((m) => m.name === selected));
         return description.replace(/[\s_.-]/g, '').toLowerCase() === selected.toLowerCase() ? '' : description;
     }, [selected, index]);
+    // The first tooltip line names the arrow as drawn (a shared base or a collapsed group can stand in
+    // for the exact endpoints); the exact schema references follow.
+    const edgeTooltip = (g) => {
+        const end = (name) => externalBundles.find((bundle) => bundle.name === name)?.label || name;
+        const heirs = new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size;
+        const note = g.shared && heirs ? ` · defined on ${g.from}, inherited by ${heirs} ${heirs === 1 ? 'schema' : 'schemas'}` : '';
+        const header = `${end(g.from)} → ${end(g.to)}${note}`;
+        return `${header}\n\n${g.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}`;
+    };
+    // Hovering any arrow traces it: both ends are marked and the rest of the map steps back. An arrow drawn
+    // once from a base type also marks the subtypes that inherit it, so the shared definition stays visible.
+    const coveredByHover = useMemo(() => {
+        if (!hoverEdge?.shared) return new Set();
+        return new Set(hoverEdge.edges.map((e) => e.from).filter((name) => name !== hoverEdge.from));
+    }, [hoverEdge]);
+    const tracedEnds = useMemo(() => new Set(hoverEdge ? [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
     const drawnGroups = overview ? [] : shownGroups;
     const showAllTypes = useCallback(() => { setReturnConcept(''); setOverviewMode('types'); }, []);
     if (researchOverview) {
@@ -752,6 +779,7 @@ export default function Diagram({
                     </defs>
                     <g
                         data-world=""
+                        className={hoverEdge ? 'se-tracing-inheritance' : undefined}
                         transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
                         {showDomains && clustered.frames.map((frame) => (
                             <g key={frame.id} className="se-domain-frame">
@@ -818,13 +846,15 @@ export default function Diagram({
                                             : 'se-dim'
                                         : ''}>
                                     <path
-                                        className={`se-edge ${displayKind}`}
+                                        className={`se-edge ${displayKind}${hoverEdge?.key === g.key ? ' se-traced-edge' : ''}`}
                                         d={showDomains ? routes[g.key].d : d}
                                         markerEnd={`url(#${markerPrefix}-${displayKind})`}
                                         tabIndex={0}
                                         role="button"
                                         aria-label={`${g.from} to ${g.to}`}
                                         onClick={() => inspect(g)}
+                                        onMouseEnter={() => setHoverEdge(g)} onMouseLeave={() => setHoverEdge(null)}
+                                        onFocus={() => setHoverEdge(g)} onBlur={() => setHoverEdge(null)}
                                         onKeyDown={(e) => {
                                             if (
                                                 e.key === 'Enter' ||
@@ -834,14 +864,7 @@ export default function Diagram({
                                                 inspect(g);
                                             }
                                         }}>
-                                        <title>
-                                            {g.edges
-                                                .map(
-                                                    (e) =>
-                                                        `${e.from}.${e.field} → ${e.to}`
-                                                )
-                                                .join('\n')}
-                                        </title>
+                                        <title>{edgeTooltip(g)}</title>
                                     </path>
                                     {(neighbors ||
                                     compact ||
@@ -864,7 +887,7 @@ export default function Diagram({
                             const toggle = () => { setSelected(''); setMoves({}); setExpandedExternal(expanded ? expandedExternal.filter((id) => id !== bundle.id) : [...expandedExternal, bundle.id]); };
                             const label = bundle.label.length > 32 ? `${bundle.label.slice(0, 29)}…` : bundle.label;
                             return (
-                                <g key={bundle.name} data-external-group={bundle.id} className="se-external-group-card"
+                                <g key={bundle.name} data-external-group={bundle.id} className={`se-external-group-card${tracedEnds.has(bundle.name) ? ' se-traced-group' : ''}`}
                                     transform={`translate(${p.x - width / 2},${p.y - height / 2})`} role="button" tabIndex={0}
                                     aria-label={`${expanded ? 'Collapse' : 'Expand'} ${bundle.label}: ${bundle.members.length} connected schemas`} aria-expanded={expanded}
                                     onClick={toggle} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } }}>
@@ -885,7 +908,7 @@ export default function Diagram({
                                 <g
                                     key={n.name}
                                     data-entity={n.name}
-                                    className={`entity-node${conceptContext && conceptMembers.has(n.name) ? ' se-concept-center' : ''}${!overview && presentation.isAbstract ? ' se-node-abstract' : ''} ${
+                                    className={`entity-node${coveredByHover.has(n.name) ? ' se-covered' : ''}${tracedEnds.has(n.name) ? ' se-covered-owner' : ''}${conceptContext && conceptMembers.has(n.name) ? ' se-concept-center' : ''}${!overview && presentation.isAbstract ? ' se-node-abstract' : ''} ${
                                         selected === n.name ? 'selected' : ''
                                     } ${
                                         selected && !connected.has(n.name)
@@ -914,6 +937,12 @@ export default function Diagram({
                                         <text x="12" y="49" className="se-subtitle">
                                             {presentation.caption}
                                         </text>
+                                    )}
+                                    {coveredByHover.has(n.name) && (
+                                        <g aria-hidden="true">
+                                            <rect className="se-covered-badge" x={cardWidth - 66} y="9" width="56" height="16" rx="4" />
+                                            <text className="se-covered-label" x={cardWidth - 38} y="20">Inherits</text>
+                                        </g>
                                     )}
                                     {!overview && presentation.isAbstract && (
                                         <g aria-hidden="true">

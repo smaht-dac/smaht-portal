@@ -104,7 +104,9 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
     const boxByName = new Map(boxes.map((r) => [r.name, r]));
     const ports = (name, key) => rawPorts(boxByName.get(name), key)
         .filter((port) => segmentClear(port.anchor, port, obstacles.filter((box) => box.name !== name)));
-    const usage = new Map(), routes = {};
+    // Segments are remembered per target: arrows into the same schema may share a trunk (a fan-in reads
+    // as one bundle), while arrows into different schemas are pushed apart so they stay distinguishable.
+    const usage = new Map(), targetsBySegment = new Map(), routes = {};
     for (const group of [...groups].sort((a, b) => a.key.localeCompare(b.key))) {
         if (!positions[group.from] || !positions[group.to]) continue;
         const same = group.from === group.to;
@@ -131,7 +133,8 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
             for (const next of adjacent(id)) {
                 const nextState = next.id * 2 + next.axis;
                 const key = [Math.min(id, next.id), Math.max(id, next.id)].join(':');
-                const cost = distance + next.length + (axis === next.axis ? 0 : 28) + (usage.get(key) || 0) * 24;
+                const sharesTrunk = targetsBySegment.get(key)?.has(group.to);
+                const cost = distance + next.length * (sharesTrunk ? 0.6 : 1) + (axis === next.axis ? 0 : 28) + (sharesTrunk ? 0 : (usage.get(key) || 0) * 24);
                 if (cost >= (costs.get(nextState) ?? Infinity)) continue;
                 costs.set(nextState, cost); previous.set(nextState, state); origins.set(nextState, origins.get(state));
                 queue.push({ state: nextState, distance: cost, cost: cost + heuristic(next.id) });
@@ -147,6 +150,8 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
         for (let i = 1; i < steps.length; i++) {
             const key = [Math.min(steps[i - 1], steps[i]), Math.max(steps[i - 1], steps[i])].join(':');
             usage.set(key, (usage.get(key) || 0) + 1);
+            if (!targetsBySegment.has(key)) targetsBySegment.set(key, new Set());
+            targetsBySegment.get(key).add(group.to);
         }
         const raw = [start.anchor, ...steps.map(point), end.anchor];
         const points = [];
