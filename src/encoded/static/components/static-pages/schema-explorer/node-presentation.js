@@ -21,6 +21,34 @@ const roles = {
     AbstractDonor: 'Shared donor definition',
     Donor: 'Individual donating tissue',
     ProtectedDonor: 'Donor with protected data',
+    Tissue: 'Tissue collected from a donor',
+    CellLine: 'Immortalized cell line',
+    CellCulture: 'Cells grown under set conditions',
+    CellCultureMixture: 'Mixture of cell cultures',
+    PathologyReport: 'Pathology report for a sample',
+    BrainPathologyReport: 'Pathology of a brain sample',
+    NonBrainPathologyReport: 'Pathology of a non-brain sample',
+    TissueSample: 'Portion taken from a tissue',
+    CellSample: 'Isolated cells, e.g. sorted neurons',
+    CellCultureSample: 'Sample taken from a cell culture',
+    Analyte: 'Molecules extracted from samples',
+    AnalytePreparation: 'How analytes were extracted',
+    Library: 'Sequencing library from analytes',
+    LibraryPreparation: 'How libraries were prepared',
+    FileSet: 'Files from sequencing one library',
+    Sequencing: 'How libraries were sequenced',
+    PreparationKit: 'Kit used to prepare or sequence',
+    Treatment: 'Treatment applied during preparation',
+    AnalysisRun: 'Run of an analysis pipeline',
+    MetaWorkflow: 'Pipeline of workflow steps',
+    GenericConfig: 'General configuration',
+    GenericQcConfig: 'QC configuration',
+    HiglassViewConfig: 'HiGlass view configuration',
+    FilterSet: 'Saved set of search queries',
+    Document: 'Attached document or file',
+    EmailNotification: 'Email sent to portal users',
+    IngestionSubmission: 'Metadata submission request',
+    TrackingItem: 'Internal event tracking record',
 };
 const tones = {
     blue: '#5c83a7', teal: '#5c9288', purple: '#8b79a7', amber: '#b39359', neutral: '#8a99a8', abstract: '#9480af',
@@ -36,10 +64,12 @@ const stageTones = {
 export function stageAccent(stage, isAbstract = false) {
     return tones[isAbstract || stage === 'Base types' ? 'abstract' : stageTones[stage] || 'neutral'];
 }
+// About 36 characters of 11px text fit in a 236px card after its 12px side padding.
+const captionLimit = 36;
 function shortCaption(value) {
     const text = value.replace(/\s+/g, ' ').trim().replace(/[.!]$/, '');
-    if (text.length <= 32) return text;
-    const prefix = text.slice(0, 31);
+    if (text.length <= captionLimit) return text;
+    const prefix = text.slice(0, captionLimit - 1);
     const lastSpace = prefix.lastIndexOf(' ');
     return `${lastSpace > 17 ? prefix.slice(0, lastSpace) : prefix}…`;
 }

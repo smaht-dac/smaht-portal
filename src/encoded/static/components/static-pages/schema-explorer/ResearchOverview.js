@@ -268,19 +268,25 @@ export default function ResearchOverview({ index, nodes, onType, onGroup, onAllT
                             const delta = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[event.key];
                             if (delta) { event.preventDefault(); setCamera((c) => {return { ...c, x: c.x + delta[0], y: c.y + delta[1] };}); }
                         }}>
+                        <defs>
+                            {[['research-arrow', '#477293'], ['research-arrow-traced', '#137a66']].map(([id, color]) => (
+                                <marker key={id} id={id} viewBox="0 0 10 8" refX="10" refY="4" markerWidth="10" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+                                    <path d="M0,0 L10,4 L0,8 Z" fill={color} />
+                                </marker>
+                            ))}
+                        </defs>
                         <g data-world="" transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
                             {graph.edges.map((edge) => {
                                 const route = routes[edge.key];
                                 if (!route) return null;
-                                const { end, ux, uy } = route, baseX = end.x - ux * 10, baseY = end.y - uy * 10;
                                 return (
                                     <g key={edge.key} data-reference={edge.key} className={dimEdge(edge) ? 'se-research-dim' : ''}>
                                         <path className={`se-research-edge${trace.edges.has(edge.key) ? ' se-research-traced' : ''}`} d={route.d} role="button" tabIndex={0}
+                                            markerEnd={`url(#${trace.edges.has(edge.key) ? 'research-arrow-traced' : 'research-arrow'})`}
                                             aria-label={`${flowByKey.get(edge.key).label}: ${graph.nodes.find((node) => node.id === flowByKey.get(edge.key).from)?.label} → ${graph.nodes.find((node) => node.id === flowByKey.get(edge.key).to)?.label}. Open schema references`}
                                             onClick={() => inspect(edge)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspect(edge); } }}>
                                             <title>{`Schema references (reference direction):\n${edge.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}`}</title>
                                         </path>
-                                        <polygon points={`${end.x},${end.y} ${baseX - uy * 4},${baseY + ux * 4} ${baseX + uy * 4},${baseY - ux * 4}`} fill="#477293" pointerEvents="none" />
                                     </g>
                                 );
                             })}

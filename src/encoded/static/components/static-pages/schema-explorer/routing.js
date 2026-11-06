@@ -50,7 +50,7 @@ class Queue {
 }
 
 export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = [], options = {}) {
-    const padding = 10;
+    const padding = 10, portGap = 18;
     const boxes = Object.entries(positions).map(([name, p]) => {return {
         name, left: p.x - nodeWidth / 2, right: p.x + nodeWidth / 2,
         top: p.y - nodeHeight / 2, bottom: p.y + nodeHeight / 2,
@@ -64,11 +64,12 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
         const fraction = slots ? ((Math.max(0, keys.indexOf(key)) % slots) + 1) / (slots + 1) : 0.5;
         const px = box.left + 16 + (nodeWidth - 32) * fraction;
         const py = box.top + 12 + (nodeHeight - 24) * fraction;
+        // Ports sit far enough out that the final straight run fits an arrowhead plus a rounded bend.
         return [
-            { x: px, y: box.top - padding, anchor: { x: px, y: box.top }, axis: 1 },
-            { x: px, y: box.bottom + padding, anchor: { x: px, y: box.bottom }, axis: 1 },
-            { x: box.left - padding, y: py, anchor: { x: box.left, y: py }, axis: 0 },
-            { x: box.right + padding, y: py, anchor: { x: box.right, y: py }, axis: 0 },
+            { x: px, y: box.top - portGap, anchor: { x: px, y: box.top }, axis: 1 },
+            { x: px, y: box.bottom + portGap, anchor: { x: px, y: box.bottom }, axis: 1 },
+            { x: box.left - portGap, y: py, anchor: { x: box.left, y: py }, axis: 0 },
+            { x: box.right + portGap, y: py, anchor: { x: box.right, y: py }, axis: 0 },
         ];
     };
     const xs = new Set(), ys = new Set();

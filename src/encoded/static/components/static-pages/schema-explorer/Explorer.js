@@ -183,6 +183,8 @@ export default function Explorer() {
         [selected, setSelected] = useState(''),
         [query, setQuery] = useState('');
     const [history, setHistory] = useState({ entries: [], position: -1 });
+    const [returnToMap, setReturnToMap] = useState(false);
+    const explorerRoot = useRef();
     const [planner, setPlanner] = useState(null),
         [detail, setDetail] = useState(null),
         [bundle, setBundle] = useState(null);
@@ -218,6 +220,17 @@ export default function Explorer() {
         () => (index && bundle ? describe(bundle, index) : null),
         [index, bundle]
     );
+    // Opening details from the map remembers it, so the item view can lead back to the same map state.
+    function openFromMap(name) {
+        setReturnToMap(true);
+        select(name, true);
+        requestAnimationFrame(() => explorerRoot.current?.scrollIntoView({ block: 'start' }));
+    }
+    function backToMap() {
+        setReturnToMap(false);
+        setMode('map');
+        requestAnimationFrame(() => explorerRoot.current?.querySelector('#entity-details, .se-diagram')?.scrollIntoView({ block: 'start' }));
+    }
     function select(name, showItem = false) {
         setSelected(name);
         setHistory((h) =>
@@ -289,7 +302,7 @@ export default function Explorer() {
             </div>
         );
     return (
-        <div className="schema-explorer" data-schema-explorer="">
+        <div className="schema-explorer" data-schema-explorer="" ref={explorerRoot}>
             <div className="se-actions">
                 <div className="se-view-switch" role="group" aria-label="Explorer view">
                     <button type="button"
@@ -350,12 +363,13 @@ export default function Explorer() {
             <div hidden={mode !== 'map'}>
                 <Diagram
                     index={index}
-                    onExplore={(name) => select(name, true)}
+                    onExplore={openFromMap}
                     onPlanner={(name) => setPlanner({ source: name })}
                     onDetail={setDetail}
                 />
             </div>
             <div hidden={mode !== 'item'}>
+                {returnToMap && <button type="button" className="se-back-to-map" onClick={backToMap}>← Back to schema map</button>}
                 {isAdmin && <LiveItem
                     {...{ index, query }}
                     onSelect={select}
@@ -365,40 +379,19 @@ export default function Explorer() {
                 {model ? (
                     <div className="se-columns">
                         <section>
-                            <div id="heading">
-                                <h2>{model.name}</h2>
-                                <p>
-                                    {model.schema.description ||
-                                            model.itemType}
-                                </p>
-                                <div className="se-toolbar">
-                                    <Badge>
-                                        {model.fields.length} fields
-                                    </Badge>
-                                    <Badge kind="calculated">
-                                        {
-                                            model.fields.filter(
-                                                (f) => f.calculated
-                                            ).length
-                                        }{' '}
-                                        calculated
-                                    </Badge>
-                                    <button type="button"
-                                        onClick={() =>
-                                            source(model.source)
-                                        }>
-                                        Python ↗
-                                    </button>
-                                    {model.schemaSource && (
-                                        <button type="button"
-                                            onClick={() =>
-                                                source(model.schemaSource)
-                                            }>
-                                            JSON ↗
-                                        </button>
-                                    )}
+                            <header id="heading" className="se-diagram-header">
+                                <div className="se-diagram-heading">
+                                    <span className="se-diagram-eyebrow">Schema details</span>
+                                    <h2>{model.name}</h2>
+                                    <p className="se-diagram-question">{model.schema.description || model.itemType}</p>
+                                    <ul className="se-diagram-facts" aria-label="Schema summary">
+                                        <li>{model.fields.length} fields</li>
+                                        <li>{model.fields.filter((f) => f.calculated).length} calculated</li>
+                                        <li><button type="button" className="se-fact-link" onClick={() => source(model.source)}>Python source ↗</button></li>
+                                        {model.schemaSource && <li><button type="button" className="se-fact-link" onClick={() => source(model.schemaSource)}>JSON schema ↗</button></li>}
+                                    </ul>
                                 </div>
-                            </div>
+                            </header>
                             <div className="se-toolbar">
                                 <span>Inheritance (MRO)</span>
                                 {model.bases.map((base) => (

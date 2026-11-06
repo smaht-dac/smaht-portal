@@ -62,6 +62,7 @@ export default function Diagram({
     const [exporting, setExporting] = useState(false),
         [error, setError] = useState('');
     const diagramEntry = useRef();
+    const markerPrefix = compact ? 'graph-arrow' : 'entity-arrow';
     useEffect(() => {
         if (!conceptContext) return undefined;
         const frame = requestAnimationFrame(() => {
@@ -495,7 +496,7 @@ export default function Diagram({
     }
     return (
         <section ref={diagramEntry} tabIndex={-1}
-            className={`se-diagram${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}${overview ? ' se-overview' : ''}`}
+            className={`se-diagram${compact ? ' se-compact' : ''}${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}${overview ? ' se-overview' : ''}`}
             aria-label={
                 compact ? 'Item relationships' : 'All schema relationships'
             }>
@@ -506,15 +507,16 @@ export default function Diagram({
                 <div className="se-diagram-heading" style={conceptContext?.color ? { '--se-concept-color': conceptContext.color } : undefined}>
                     {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
                     <h2>{title}</h2>
-                    <ul className="se-diagram-facts" aria-label="Diagram summary">{facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>
-                    {conceptContext && (
-                        <div className="se-diagram-focus">
-                            <span className="se-diagram-focus-label">Focus</span>
-                            <strong>{conceptContext.label}</strong>
-                            {conceptContext.hint && <span>{conceptContext.hint}</span>}
-                            <button type="button" onClick={clearFocus} aria-label={`Clear ${conceptContext.label} focus`}>Clear focus ×</button>
-                        </div>
-                    )}
+                    <ul className="se-diagram-facts" aria-label="Diagram summary">
+                        {facts.map((fact) => <li key={fact}>{fact}</li>)}
+                        {conceptContext && (
+                            <li className="se-diagram-focus-chip" title={`${conceptContext.label} schemas are outlined in the diagram and its links to other groups are shown. Remove to view the whole group evenly.`}>
+                                <span className="se-focus-swatch" aria-hidden="true" />
+                                Highlighting {conceptContext.label}
+                                <button type="button" onClick={clearFocus} aria-label={`Stop highlighting ${conceptContext.label}`}>×</button>
+                            </li>
+                        )}
+                    </ul>
                 </div>
             </header>
             <div className="se-diagram-controls">
@@ -604,16 +606,6 @@ export default function Diagram({
                     </button>
                 </div>
             </div>
-            {!compact && selected && (
-                <div className="se-map-tool-section" aria-label="Schema exploration">
-                    <button type="button" id="entity-show-neighborhood" disabled={!selected} aria-pressed={neighbors} onClick={() => {
-                        if (!neighbors) showConnected();
-                        else { setMoves({}); setNeighbors(false); }
-                    }}>{neighbors ? 'Show selected types' : 'Show neighborhood'}
-                    </button>
-                    {selected && <button type="button" onClick={clearSelection}>Clear selection</button>}
-                </div>
-            )}
             {query && (
                 <div className="se-toolbar">
                     {nodes
@@ -632,9 +624,25 @@ export default function Diagram({
                 </div>
             )}
             {error && <p role="alert">{error}</p>}
-            {conceptContext && <p className="se-flow-note">Highlighted schemas belong to {conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.</p>}
-            {!showDomains && !conceptContext && <p className="se-flow-note">Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.</p>}
-            {showDomains && !conceptContext && (
+            {!compact && selected && (
+                <div className="se-selection-bar" role="status" aria-label="Selected schema">
+                    <span className="se-selection-label">Selected</span>
+                    <strong>{selected}</strong>
+                    <span className="se-selection-meta">{incident.length} {incident.length === 1 ? 'link' : 'links'} highlighted · details below the map</span>
+                    <span className="se-selection-actions">
+                        <button type="button" id="entity-show-neighborhood" aria-pressed={neighbors} onClick={() => {
+                            if (!neighbors) showConnected();
+                            else { setMoves({}); setNeighbors(false); }
+                        }}>{neighbors ? 'Back to the whole group' : 'Show only its connections'}
+                        </button>
+                        <button type="button" onClick={() => onExplore(selected)}>Open schema details →</button>
+                        <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}>Clear ×</button>
+                    </span>
+                </div>
+            )}
+            {!selected && conceptContext && <p className="se-flow-note">Highlighted schemas belong to {conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.</p>}
+            {!selected && !showDomains && !conceptContext && <p className="se-flow-note">Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.</p>}
+            {!selected && showDomains && !conceptContext && (
                 <p className="se-flow-note">{overview ? 'Select a group or type to explore its relationships. Groups follow the biological workflow.' : selected
                     ? `Showing ${selected} references between visible schemas, including inherited and self-references. Clear selection to return to the group overview.`
                     : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
@@ -727,6 +735,15 @@ export default function Diagram({
                             };});
                         }
                     }}>
+                    {/* Arrowheads are markers on their path, so they share its colour, opacity and direction. */}
+                    <defs>
+                        {Object.entries(colors).map(([kind, color]) => (
+                            <marker key={kind} id={`${markerPrefix}-${kind}`} viewBox="0 0 10 8" refX="10" refY="4"
+                                markerWidth="10" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+                                <path d="M0,0 L10,4 L0,8 Z" fill={color} />
+                            </marker>
+                        ))}
+                    </defs>
                     <g
                         data-world=""
                         transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
@@ -797,6 +814,7 @@ export default function Diagram({
                                     <path
                                         className={`se-edge ${displayKind}`}
                                         d={showDomains ? routes[g.key].d : d}
+                                        markerEnd={`url(#${markerPrefix}-${displayKind})`}
                                         tabIndex={0}
                                         role="button"
                                         aria-label={`${g.from} to ${g.to}`}
@@ -900,49 +918,6 @@ export default function Diagram({
                                 </g>
                             );
                         })}
-                        {drawnGroups.map((g) => {
-                            if (showDomains && !routes[g.key]) return null;
-                            const a = positions[g.from],
-                                b = positions[g.to],
-                                dx = b.x - a.x,
-                                dy = b.y - a.y,
-                                factor = Math.min(
-                                    dx ? width / 2 / Math.abs(dx) : Infinity,
-                                    dy ? height / 2 / Math.abs(dy) : Infinity
-                                ),
-                                same = g.from === g.to,
-                                bx = same ? a.x - 40 : b.x - dx * factor,
-                                by = same ? a.y - height / 2 : b.y - dy * factor,
-                                lane = edgeLanes.get(g.key) || 0,
-                                distance = Math.hypot(dx, dy) || 1,
-                                nx = -dy / distance,
-                                ny = dx / distance,
-                                tx = same ? 140 : dx / 3 - nx * lane,
-                                ty = same ? 110 : dy / 3 - ny * lane,
-                                tangentLength = Math.hypot(tx, ty) || 1,
-                                ux = tx / tangentLength,
-                                uy = ty / tangentLength,
-                                headLength = 12,
-                                headWidth = 8,
-                                baseX = bx - ux * headLength,
-                                baseY = by - uy * headLength,
-                                markerKind = g.reverse && kinds.includes('reverse')
-                                    ? 'reverse'
-                                    : g.kind;
-                            const route = showDomains ? routes[g.key] : null;
-                            const tipX = route ? route.end.x : bx, tipY = route ? route.end.y : by;
-                            const directionX = route ? route.ux : ux, directionY = route ? route.uy : uy;
-                            const arrowBaseX = route ? tipX - directionX * headLength : baseX;
-                            const arrowBaseY = route ? tipY - directionY * headLength : baseY;
-                            return (
-                                <polygon
-                                    key={`arrow-${g.key}`}
-                                    points={`${tipX},${tipY} ${arrowBaseX - directionY * headWidth / 2},${arrowBaseY + directionX * headWidth / 2} ${arrowBaseX + directionY * headWidth / 2},${arrowBaseY - directionX * headWidth / 2}`}
-                                    fill={colors[markerKind]}
-                                    opacity={selected && g.from !== selected && g.to !== selected ? 0.15 : 0.9}
-                                    pointerEvents="none" />
-                            );
-                        })}
                         {!compact && domain && !neighbors && selected && positions[selected] && externalGroups.length > 0 && (
                             <g className="se-cross-group-cue" transform={`translate(${positions[selected].x},${positions[selected].y + cardHeight / 2})`}>
                                 <path className="se-cross-group-stem" d="M0,0 V7" />
@@ -978,32 +953,43 @@ export default function Diagram({
                 )}
             </div>
             {selected && (
-                <div
-                    id={compact ? 'relations' : 'entity-details'}
-                    className="se-relations">
-                    <div className="se-toolbar">
-                        <h3>{selected}</h3>
-                        {!compact && (
-                            <button type="button" onClick={() => onExplore(selected)}>
-                                Explore item type →
-                            </button>
-                        )}
-                        {compact && <button type="button" onClick={clearSelection}>Clear selection</button>}
-                    </div>
+                <section id={compact ? 'relations' : 'entity-details'} className="se-selected-panel" aria-label={`${selected} relationships`}>
+                    <header>
+                        <div>
+                            <span className="se-diagram-eyebrow">Selected schema</span>
+                            <h3>{selected}</h3>
+                            <p>{nodePresentation(selected, index.models.find((m) => m.name === selected)).description}</p>
+                        </div>
+                        {!compact
+                            ? <button type="button" className="se-selected-open" onClick={() => onExplore(selected)}>Open schema details →</button>
+                            : <button type="button" onClick={clearSelection}>Clear selection</button>}
+                    </header>
                     {shared.inherited[selected] && <p className="se-inheritance-detail">{shared.inherited[selected].fields.size} reference fields inherited from { [...shared.inherited[selected].owners].join(', ') }. Their shared definitions are drawn at the base types in the group overview.</p>}
-                    {incident.map((e, i) => (
-                        <div className="se-relation" key={i}>
-                            <Badge kind={e.kind}>{edgeLabel(e)}</Badge>
-                            <span>
-                                {e.from}.{e.field} → {e.to}
-                            </span>
-                            <button type="button"
-                                onClick={() => inspect({ ...e, edges: [e] })}>
-                                Inspect
-                            </button>
+                    {[
+                        { key: 'out', title: `${selected} links to`, rows: incident.filter((e) => e.from === selected), column: 'Links to' },
+                        { key: 'in', title: `Links to ${selected}`, rows: incident.filter((e) => e.from !== selected), column: 'Linked from' },
+                    ].filter((part) => part.rows.length).map((part) => (
+                        <div className="se-relationship-section" key={part.key}>
+                            <h5 className="se-relationship-section-title">{part.title} <span>{part.rows.length}</span></h5>
+                            <table className="se-selected-table">
+                                <thead><tr><th scope="col">{part.column}</th><th scope="col">Field</th><th scope="col">Kind</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
+                                <tbody>
+                                    {part.rows.map((e) => (
+                                        <tr key={`${e.from}-${e.field}-${e.to}-${e.kind}`}>
+                                            <th scope="row">
+                                                <button type="button" className="se-selected-schema" onClick={() => choose(part.key === 'out' ? e.to : e.from)}>{part.key === 'out' ? e.to : e.from}</button>
+                                            </th>
+                                            <td><code>{e.from}.{e.field}</code></td>
+                                            <td><Badge kind={e.kind}>{edgeLabel(e)}</Badge></td>
+                                            <td className="se-selected-action"><button type="button" onClick={() => inspect({ ...e, edges: [e] })}>Details →</button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     ))}
-                </div>
+                    {!incident.length && <p className="se-flow-note">No visible links. Turn on more relationship kinds under Relationships, or show more types.</p>}
+                </section>
             )}
         </section>
     );
