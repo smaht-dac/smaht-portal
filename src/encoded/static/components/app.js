@@ -460,7 +460,10 @@ export default class App extends React.PureComponent {
             _.keys(navigate.getBrowseBaseParams.mappings).forEach(function (
                 mapping
             ) {
-                if (ChartDataController.isInitialized(mapping)) {
+                // Active mapping only -- every mapping shares one chart
+                // state, so syncing an inactive one would overwrite the
+                // current page's chart with another page's data.
+                if (ChartDataController.isInitialized(mapping) && ChartDataController.isActiveMapping(mapping)) {
                     setTimeout(function () {
                         console.log(
                             'SYNCING CHART DATA - ' +
