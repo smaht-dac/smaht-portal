@@ -3,7 +3,7 @@ import { buildResearchMap, researchLabels, traceProvenance, overviewFlow } from 
 import { routeEdges } from './routing';
 import { abstractTypes } from './domains';
 import { conceptConnections } from './concept-connections';
-import { exportPNG } from './shared';
+import { exportPNG, ConceptTabs } from './shared';
 
 function lines(text) {
     const result = [''];
@@ -227,7 +227,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
             {query && <div className="se-toolbar">{nodes.filter((node) => node.name.toLowerCase().includes(query.toLowerCase())).slice(0, 8).map((node) => <button type="button" key={node.name} onClick={() => onType(node.name)}>{node.name}</button>)}</div>}
             {concept && (
                 <button type="button" className="se-research-map-toggle" aria-expanded={mapExpanded} aria-controls="research-map-context" onClick={() => setMapExpanded(!mapExpanded)}>
-                    <span>Metadata map <span aria-hidden="true">/</span> {concept.label}</span><span>{mapExpanded ? 'Hide overview ↑' : 'Show overview ↓'}</span>
+                    <span>Metadata map <span aria-hidden="true">/</span> {concept.label}</span><span>{mapExpanded ? 'Hide map ↑' : 'Show map ↓'}</span>
                 </button>
             )}
             <div id="research-map-context" hidden={!mapExpanded}>
@@ -238,7 +238,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
                     </div>
                     <div className="se-map-guide">
                         <span className="se-map-guide-symbol" aria-hidden="true">↗</span>
-                        <div><strong>Explore the relationships</strong><p><b>Box</b> opens its schema diagram · <b>Arrow</b> opens relationship details.</p><p><b>Overview</b> explains the concept.</p></div>
+                        <div><strong>Explore the relationships</strong><p><b>Box</b> opens its schema diagram · <b>Arrow</b> opens relationship details.</p><p><b>Summary</b> explains the concept.</p></div>
                     </div>
                     <div className="se-map-guide se-map-guide-navigation">
                         <span className="se-map-guide-symbol" aria-hidden="true">↔</span>
@@ -305,11 +305,11 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
                                             {node.step && <g><circle cx={graph.nodeWidth - 16} cy="16" r="10" fill={node.color} /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
                                         </g>
                                         <g data-overview={node.id} className="se-research-overview-action" role="button" tabIndex={0}
-                                            aria-label={`${node.label} overview`}
+                                            aria-label={`${node.label} summary`}
                                             onClick={() => choose(node.id)}
                                             onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(node.id); } }}>
                                             <rect x={graph.nodeWidth - 94} y="108" width="84" height="22" rx="4" />
-                                            <text x={graph.nodeWidth - 14} y="123" textAnchor="end">Overview →</text>
+                                            <text x={graph.nodeWidth - 14} y="123" textAnchor="end">Summary →</text>
                                         </g>
                                     </g>
                                 );
@@ -333,8 +333,13 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
             {concept && (
                 <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`} style={{ '--se-concept-color': concept.color }}>
                     <header className="se-concept-heading">
-                        <div><span className="se-concept-eyebrow">Explore the metadata</span><h3 ref={detailHeading} tabIndex={-1}>{concept.label}</h3><p className="se-concept-question">{concept.hint}</p></div>
-                        <div className="se-concept-actions"><button type="button" className="se-concept-group-link" onClick={() => onConnections({ ...concept, origin: 'concept', connections: detailConnections })}>Explore {concept.label} connections →</button><button type="button" onClick={returnToMap}>← Back to overview</button></div>
+                        <div>
+                            <button type="button" className="se-diagram-back" onClick={returnToMap}>← Metadata map</button>
+                            <span className="se-concept-eyebrow">Explore the metadata</span>
+                            <h3 ref={detailHeading} tabIndex={-1}>{concept.label}</h3>
+                            <p className="se-concept-question">{concept.hint}</p>
+                            <ConceptTabs active="summary" label={concept.label} onMap={() => onConnections({ ...concept, origin: 'concept', connections: detailConnections })} />
+                        </div>
                     </header>
                     <p className="se-concept-description">{concept.description}</p>
                     <div className="se-concept-navigation"><label>Explore another concept<select aria-label="Explore another concept" value={selected} onChange={(event) => choose(event.target.value)}>{graph.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label></div>

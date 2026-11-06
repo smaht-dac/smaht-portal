@@ -14,7 +14,7 @@ import ResearchOverview from './ResearchOverview';
 import { explorerIndex } from './explorer-scope';
 import { externalContextGroups } from './external-context';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
-import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
+import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, ConceptTabs } from './shared';
 
 const defaults = [];
 const colors = { linkTo: '#2368aa', calculated: '#7952a3', reverse: '#986019' };
@@ -458,9 +458,10 @@ export default function Diagram({
         setNeighbors(false);
         setMoves({});
     };
-    const backToConcept = () => {
-        setReturnConcept(conceptReturn.origin === 'map' ? '' : conceptReturn.id);
-        setFocusReturnedMap(conceptReturn.origin === 'map');
+    // Leaves the concept: `summary` opens its Summary tab, otherwise the metadata map is shown.
+    const backToConcept = (summary = false) => {
+        setReturnConcept(summary ? conceptReturn.id : '');
+        setFocusReturnedMap(!summary);
         setConceptContext(null);
         setConceptReturn(null);
         setDomain('');
@@ -536,13 +537,25 @@ export default function Diagram({
             }>
             <header className="se-diagram-header">
                 {overview && <button type="button" className="se-diagram-back" onClick={() => setOverviewMode('relationships')}>← Metadata map</button>}
-                {conceptReturn && <button type="button" className="se-diagram-back" onClick={backToConcept}>{conceptReturn.origin === 'map' ? '← Back to metadata map' : `← Back to ${conceptReturn.label} overview`}</button>}
+                {conceptReturn && <button type="button" className="se-diagram-back" onClick={() => backToConcept(false)}>← Metadata map</button>}
                 {domain && !compact && !conceptReturn && <button type="button" className="se-diagram-back" onClick={() => chooseDomain('')}>← Metadata map</button>}
                 <div className="se-diagram-heading" style={conceptContext?.color ? { '--se-concept-color': conceptContext.color } : undefined}>
-                    {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
-                    <h2>{title}</h2>
+                    {conceptContext ? (
+                        <>
+                            <span className="se-diagram-eyebrow">Explore the metadata</span>
+                            <h2>{conceptContext.label}</h2>
+                            {conceptContext.hint && <p className="se-diagram-question">{conceptContext.hint}</p>}
+                            <ConceptTabs active="map" label={conceptContext.label} onSummary={() => backToConcept(true)} />
+                        </>
+                    ) : (
+                        <>
+                            {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
+                            <h2>{title}</h2>
+                        </>
+                    )}
                     {overview && <p className="se-diagram-question">Every schema in the model, grouped by area. Select a group for its map or a schema for its details.</p>}
                     <ul className="se-diagram-facts" aria-label="Diagram summary">
+                        {conceptContext && singleFrame && <li>Group: {singleFrame.label}</li>}
                         {facts.map((fact) => <li key={fact}>{fact}</li>)}
                         {conceptContext && (
                             <li className="se-diagram-focus-chip" title={`${conceptContext.label} schemas are outlined in the diagram and its links to other groups are shown. Remove to view the whole group evenly.`}>

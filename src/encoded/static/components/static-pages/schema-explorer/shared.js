@@ -184,3 +184,13 @@ export async function exportPNG(svg, name) {
         URL.revokeObjectURL(url);
     }
 }
+
+// Summary and Map are two views of one concept; the tabs make the switch read as staying on the same page.
+export function ConceptTabs({ active, label, onSummary, onMap }) {
+    return (
+        <div className="se-concept-tabs" role="tablist" aria-label={`${label} views`}>
+            <button type="button" role="tab" aria-selected={active === 'summary'} onClick={active === 'summary' ? undefined : onSummary}>Summary</button>
+            <button type="button" role="tab" aria-selected={active === 'map'} onClick={active === 'map' ? undefined : onMap}>Map</button>
+        </div>
+    );
+}

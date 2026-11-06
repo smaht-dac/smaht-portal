@@ -131,6 +131,17 @@
     .se-inspector-note { margin: .6rem .75rem; font-size: 12.5px; color: #657383; }
     .se-inspector-empty { margin: .75rem; font-size: 13px; color: #657383; }
     .se-diagnostic { margin: 0; padding: .55rem .75rem; font-size: 12.5px; color: #6b4a10; background: #fffaf0; border-bottom: 1px solid #f1e4c6; overflow-wrap: anywhere; }
+    // The Summary and Map headings share one look so switching tabs keeps the page steady.
+    .se-concept-heading > div:first-child { flex: 1; }
+    .se-concept-heading h3 { font-size: 28px !important; }
+    .se-concept-heading .se-concept-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .se-concept-heading .se-concept-question { font-size: 16px !important; }
+    .se-diagram-header .se-diagram-heading h2 { font-size: 28px; }
+    .se-concept-tabs { display: flex; gap: .25rem; margin-top: .9rem; border-bottom: 1px solid #d4dee7;
+        button { margin-bottom: -1px; padding: .4rem .9rem; font-size: 14px; font-weight: 600; color: #59636e; background: transparent; border: 1px solid transparent; border-bottom: 0; border-radius: .4rem .4rem 0 0; &:hover:not([aria-selected='true']), &:focus:not([aria-selected='true']) { color: #253b4d; background: #ffffffa6; } }
+        button[aria-selected='true'] { color: #253b4d; background: white; border-color: #d4dee7; border-top: 3px solid var(--se-concept-color, #356a9a); cursor: default; }
+    }
+    .se-concept-heading button.se-diagram-back { display: block; margin: 0 0 .5rem -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: #356a9a; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; } }
     .se-selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 0 0 .5rem; padding: .45rem .5rem .45rem .75rem; font-size: 13px; color: #425c71; background: #f4f9fd; border: 1px solid #cad6e0; border-left: 3px solid #356a9a; border-radius: .4rem;
         strong { font-size: 14px; color: #253b4d; }
         .se-selection-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #356a9a; }
@@ -186,7 +197,6 @@
     .se-research-title { fill: #253b4d; font-size: 16px; font-weight: 600; }
     .se-research-hint { fill: #59636e; font-size: 12px; }
     .se-research-overview-action { cursor: pointer; rect { fill: transparent; } text { fill: #477293; font-size: 10px; font-weight: 500; } &:hover text, &:focus text { fill: #254c6b; text-decoration: underline; } &:focus rect { stroke: #477293; } }
-    .se-concept-actions { display: flex; flex-direction: column; align-items: stretch; gap: .6rem; button.se-concept-group-link { margin-top: 0; width: auto; } }
     .se-research-example { fill: #356a9a; font-size: 11px; }
     .se-research-step { fill: white; font-size: 11px; text-anchor: middle; font-weight: 600; }
     .se-research-edge { fill: none; stroke: #477293; stroke-width: 1.8; cursor: pointer; &:hover, &:focus { stroke-width: 3; } }
@@ -222,7 +232,6 @@
     .se-concept-abstract-badge { align-self: center; margin-left: auto; font-size: 11px; line-height: 1.4; padding: .15rem .4rem; border-radius: .25rem; color: #62517b; background: #e5dff0; font-weight: 600; font-style: normal; }
     .se-concept-abstract-note { display: block; margin-top: .4rem; color: #75638e; font-size: 12px; }
     .se-concept-schema-description { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; font-size: 13px; color: #59636e; line-height: 1.5; margin-top: .4rem; }
-    button.se-concept-group-link { margin-top: 1rem; width: 100%; color: #254c6b; border-color: #b7cad9; background: #e7f0f7; font-weight: 600; }
     @media (max-width: 900px) { .se-concept-workspace { grid-template-columns: minmax(0, 1fr); padding: 1rem; } .se-concept-heading { padding: 1.2rem 1rem; flex-wrap: wrap; h3 { font-size: 28px; } } .se-concept-description { padding: 1rem 1rem 0; } .se-concept-navigation { justify-content: flex-start; padding: .25rem 1rem 1rem; } }
     .se-research-explanation { margin-top: .75rem; padding: .65rem 1rem; border-left: 3px solid #137a66; background: #eff7f3; }
     .se-research-support { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: 0; padding: .8rem 0; font-size: 13.5px; color: #59636e; button { padding: .2rem .5rem; font-size: 13.5px; font-weight: 600; color: #356a9a; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; } } }
