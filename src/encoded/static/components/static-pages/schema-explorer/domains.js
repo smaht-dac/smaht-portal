@@ -70,41 +70,6 @@ const flow = ['donors', 'samples', 'sequencing', 'workflows', 'files'];
 
 const orderedDomains = [...flow, 'administrative', 'other'].map((id) => domains.find((d) => d.id === id));
 
-// The overview is a readable directory, rather than a miniaturized copy of every
-// relationship. Type buttons and group headings open the corresponding diagram.
-export function overviewLayout(nodes, viewport = { width: 1200, height: 650 }) {
-    const nodeWidth = 196, nodeHeight = 28, gap = 20, padding = 16;
-    const populated = orderedDomains.map((domain) => {return {
-        ...domain, nodes: nodes.filter((n) => domainFor(n.name) === domain.id).sort((a, b) => a.name.localeCompare(b.name)),
-    };}).filter((domain) => domain.nodes.length);
-    if (!populated.length) return { positions: {}, frames: [], layers: [], nodeWidth, nodeHeight };
-    const cardWidth = 2 * nodeWidth + 8 + padding * 2;
-    let best;
-    for (let columns = 1; columns <= populated.length; columns++) {
-        const frames = [], positions = {};
-        let top = 0;
-        for (let row = 0; row < populated.length; row += columns) {
-            const items = populated.slice(row, row + columns);
-            const height = Math.max(...items.map((d) => 66 + Math.ceil(d.nodes.length / 2) * 34));
-            items.forEach((domain, i) => {
-                const left = i * (cardWidth + gap);
-                frames.push({ id: domain.id, label: domain.label, left, top, width: cardWidth, height, count: domain.nodes.length });
-                domain.nodes.forEach((node, j) => {
-                    positions[node.name] = { x: left + padding + nodeWidth / 2 + (j % 2) * (nodeWidth + 8), y: top + 68 + nodeHeight / 2 + Math.floor(j / 2) * 34 };
-                });
-            });
-            top += height + gap;
-        }
-        const width = Math.min(columns, populated.length) * (cardWidth + gap) - gap;
-        const height = top - gap;
-        const scale = Math.min(viewport.width / (width + 40), viewport.height / (height + 40));
-        // Prefer vertical navigation to sideways clipping on narrow screens.
-        const widthFits = width * 0.85 + 40 <= viewport.width;
-        if (!best || (widthFits && !best.widthFits) || widthFits === best.widthFits && scale > best.scale) best = { positions, frames, scale, widthFits };
-    }
-    return { positions: best.positions, frames: best.frames, layers: [], nodeWidth, nodeHeight };
-}
-
 export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], viewport = { width: 1200, height: 650 }) {
     const positions = {}, frames = [], layers = [];
     const members = new Set(nodes.map((n) => n.name));

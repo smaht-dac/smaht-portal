@@ -14,7 +14,7 @@ export const concepts = [
     { id: 'quality', label: 'Quality assessment', hint: 'How was data quality measured?', example: 'QualityMetric', domain: 'files', color: '#a06424', types: 'QualityMetric ExternalQualityMetric', description: 'Files reference quality measurements through quality_metrics and external_quality_metrics. These records describe quality rather than biological provenance.' },
     { id: 'sequencing', label: 'Sequencing', hint: 'How was the library sequenced?', example: 'Sequencing', domain: 'sequencing', color: '#8058a0', types: 'Sequencing', description: 'Sequencing metadata records the run configuration, sequencer and preparation kits. FileSet.sequencing links an experiment to this information.' },
 ];
-const connections = [
+export const connections = [
     { from: 'material', to: 'donor', fields: ['donor'], question: "Which donor supplied this material?", explanation: "The donor field connects source material to its donor. The exact reference is defined on the source-material schema, such as Tissue or CellLine.", label: 'donated by', primary: true },
     { from: 'sample', to: 'material', fields: ['sample_sources[]'], question: "Where did the sample come from?", explanation: "The sample_sources field connects a specimen to its source tissue or culture. A sample can reference more than one source record.", label: 'taken from', primary: true },
     { from: 'analyte', to: 'sample', fields: ['samples[]'], question: "Which samples were used for the analyte?", explanation: "The samples field preserves the specimens used to prepare an analyte. Following these references leads back to the source material.", label: 'extracted from', primary: true },

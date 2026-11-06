@@ -1,6 +1,6 @@
 // Curated interpretations are restricted to known field paths and target types.
 // Unrecognized relationships retain their model description without inferred advice.
-const guides = {
+export const guides = {
     'reference_genome|ReferenceGenome': ['Genome reference', 'Identifies the reference genome used for alignment. This establishes the reference context for interpreting genomic coordinates and comparing datasets; the relationship alone does not establish coordinate compatibility.'],
     'derived_from[]|File': ['Input provenance', 'Identifies the files used to generate this file. This records direct input provenance; it does not encode the processing steps or execution parameters.'],
     'file_sets[]|FileSet': ['Experimental context', 'Associates a file with its experimental metadata through a FileSet. Library and sequencing references provide material and acquisition context, separately from computational input provenance.'],
@@ -9,7 +9,7 @@ const guides = {
     'external_quality_metrics[]|ExternalQualityMetric': ['External quality measurements', 'Associates data with externally generated quality measurements. These records carry the supplied assessments, rather than an implicit pass or fail decision.'],
     'donor|Donor': ['Donor provenance', 'Associates the record with the donor of the biological material. Specimen and processing provenance are represented by separate relationships.'],
     'donor|AbstractDonor': ['Donor provenance', 'Associates the record with donor metadata through the shared donor definition. The referenced donor type determines which donor details are available.'],
-    'donor|ProtectedDonor': ['Protected donor context', 'Associates the record with protected donor metadata. The relationship identifies the association; access to the referenced information is governed separately.'],
+    'protected_donor|ProtectedDonor': ['Protected donor context', 'Associates the record with protected donor metadata. The relationship identifies the association; access to the referenced information is governed separately.'],
     'sample_sources[]|SampleSource': ['Specimen origin', 'Identifies the source material associated with a sample. Source records distinguish tissue or cultured material from the specimen subsequently used in an experiment.'],
     'samples[]|Sample': ['Source specimens', 'Identifies the specimens used to prepare an analyte. Multiple references preserve the source associations without specifying their relative contributions.'],
     'analytes[]|Analyte': ['Library material provenance', 'Identifies the analytes used to prepare a library. This preserves material provenance separately from the library preparation metadata.'],

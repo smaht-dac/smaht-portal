@@ -6,7 +6,7 @@ import React, {
     useCallback,
 } from 'react';
 import { layout, width, height } from './layout';
-import { domains, domainFor, hierarchicalLayout, overviewLayout, abstractTypes } from './domains';
+import { domains, domainFor, hierarchicalLayout, abstractTypes } from './domains';
 import { routeEdges } from './routing';
 import { groupRelationships, sharedRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
@@ -42,7 +42,6 @@ export default function Diagram({
     const [returnConcept, setReturnConcept] = useState('');
     const [focusReturnedMap, setFocusReturnedMap] = useState(false);
     const [arrangement, setArrangement] = useState('hierarchical');
-    const [overviewMode, setOverviewMode] = useState('relationships');
     const [crossLinks, setCrossLinks] = useState(true);
     const [connectionMode, setConnectionMode] = useState('shared');
     const [hidden, setHidden] = useState(compact ? [] : defaults);
@@ -169,12 +168,12 @@ export default function Diagram({
         return lanes;
     }, [groups]);
     const showDomains = !compact && !neighbors && arrangement === 'hierarchical';
-    const overview = showDomains && !domain;
-    const researchOverview = overview && overviewMode === 'relationships';
-    const cardWidth = overview ? 196 : width, cardHeight = overview ? 28 : height;
+    // Without a group the hierarchical view is the curated research map; every other view is a group map.
+    const researchOverview = showDomains && !domain;
+    const cardWidth = width, cardHeight = height;
     // Group maps and the item page's relationship map shrink the canvas to their content, so layout and
     // fitting use the full canvas budget (65vh, min 400px as in the stylesheet) rather than the measured height.
-    const groupMap = showDomains && !overview;
+    const groupMap = showDomains && !researchOverview;
     const fitToContent = groupMap || compact;
     const budgetHeight = Math.max(400, windowHeight * 0.65);
     const layoutSize = useMemo(() => fitToContent ? { width: size.width, height: budgetHeight } : size,
@@ -182,7 +181,7 @@ export default function Diagram({
     const allPositions = useMemo(() => showDomains ? {} : layout(visible, groups, layoutSize), [showDomains, visible, groups, layoutSize]);
     const clustered = useMemo(() => {
         if (!showDomains) return { positions: {}, frames: [], layers: [] };
-        if (overview) return overviewLayout(visible, size);
+        if (researchOverview) return { positions: {}, frames: [], layers: [] };
         const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, layoutSize);
         if (externalContextNames.size || externalBundles.length) {
             const right = Math.max(...result.frames.map((frame) => frame.left + frame.width));
@@ -198,7 +197,7 @@ export default function Diagram({
             });
         }
         return result;
-    }, [showDomains, overview, visible, index, size, layoutSize, externalContextNames, externalBundles, expandedExternal]);
+    }, [showDomains, researchOverview, visible, index, size, layoutSize, externalContextNames, externalBundles, expandedExternal]);
     const positions = useMemo(() => {
         if (!neighbors || !neighborhoodSelection) return { ...(showDomains ? clustered.positions : allPositions), ...moves };
         const others = nodes.filter(
@@ -242,9 +241,9 @@ export default function Diagram({
     const scopedGroups = useMemo(() => visibleGroups.filter(
         (g) => (!showDomains || !selected || g.from === selected || g.to === selected)
     ), [visibleGroups, showDomains, selected]);
-    const shared = useMemo(() => showDomains && !overview ? sharedRelationships(index, visibleGroups, names)
-        : { groups: visibleGroups, inherited: {} }, [showDomains, overview, index, visibleGroups, names]);
-    const summarize = showDomains && !overview && !selected && connectionMode === 'shared';
+    const shared = useMemo(() => showDomains ? sharedRelationships(index, visibleGroups, names)
+        : { groups: visibleGroups, inherited: {} }, [showDomains, index, visibleGroups, names]);
+    const summarize = showDomains && !selected && connectionMode === 'shared';
     const shownGroups = useMemo(() => {
         const result = summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups;
         const bundled = externalBundles.filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => {
@@ -268,9 +267,9 @@ export default function Diagram({
         return [...result, ...bundled];
     }, [summarize, shared, scopedGroups, externalBundles, expandedExternal, edges, focusMembers, index, names]);
     // A single group is named in the toolbar, so its title stays readable at every zoom level.
-    const singleFrame = showDomains && !overview && clustered.frames.length === 1 ? clustered.frames[0] : null;
+    const singleFrame = showDomains && clustered.frames.length === 1 ? clustered.frames[0] : null;
     // Explains only the node styles currently drawn; external schemas appear individually or bundled by group depending on how many there are.
-    const legend = showDomains && !overview ? [
+    const legend = showDomains ? [
         ['schema', 'Schema in this group'],
         visible.some((n) => abstractTypes.has(n.name)) && ['abstract', 'Abstract base type (shared fields)'],
         conceptContext && ['center', `In focus: ${conceptContext.label}`],
@@ -292,11 +291,12 @@ export default function Diagram({
         ...clustered.layers,
         ...[...externalContextNames].filter((name) => positions[name]).map((name) => {return { left: positions[name].x - width / 2, top: positions[name].y - height / 2 - 20, width, height: 18 };}),
     ] : [], [showDomains, clustered, externalContextNames, positions]);
-    const routes = useMemo(() => showDomains && !overview
+    const routes = useMemo(() => showDomains
         ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {},
-    [showDomains, overview, positions, shownGroups, headings]);
+    [showDomains, positions, shownGroups, headings]);
     const bounds = useMemo(() => {
-        const points = visible.flatMap((n) => [
+        // The research map lays out its own nodes, so this view has no positions of its own.
+        const points = visible.filter((n) => positions[n.name]).flatMap((n) => [
             { x: positions[n.name].x - cardWidth / 2, y: positions[n.name].y - cardHeight / 2 },
             { x: positions[n.name].x + cardWidth / 2, y: positions[n.name].y + cardHeight / 2 },
         ]);
@@ -439,7 +439,6 @@ export default function Diagram({
         setReturnConcept('');
         setDomain(id);
         setConnectionMode('shared');
-        if (!id) setOverviewMode('relationships');
         setSelected('');
         setNeighbors(false);
         setMoves({});
@@ -467,7 +466,6 @@ export default function Diagram({
         setConceptContext(null);
         setConceptReturn(null);
         setDomain('');
-        setOverviewMode('relationships');
         setSelected('');
         setNeighbors(false);
         setMoves({});
@@ -525,11 +523,8 @@ export default function Diagram({
         return new Set(hoverEdge.edges.map((e) => e.from).filter((name) => name !== hoverEdge.from));
     }, [hoverEdge]);
     const tracedEnds = useMemo(() => new Set(hoverEdge ? [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
-    const drawnGroups = overview ? [] : shownGroups;
-    const showAllTypes = useCallback(() => {
-        if (onBrowseAll) { onBrowseAll(); return; }
-        setReturnConcept(''); setOverviewMode('types');
-    }, [onBrowseAll]);
+    const drawnGroups = shownGroups;
+    const showAllTypes = useCallback(() => onBrowseAll?.(), [onBrowseAll]);
     if (researchOverview) {
         return (
             <ResearchOverview index={index} nodes={visible} onType={choose}
@@ -538,12 +533,11 @@ export default function Diagram({
     }
     return (
         <section ref={diagramEntry} tabIndex={-1}
-            className={`se-diagram${compact ? ' se-compact' : ''}${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}${overview ? ' se-overview' : ''}`}
+            className={`se-diagram${compact ? ' se-compact' : ''}${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}`}
             aria-label={
                 compact ? 'Item relationships' : 'All schema relationships'
             }>
             <header className="se-diagram-header">
-                {overview && <button type="button" className="se-diagram-back" onClick={() => setOverviewMode('relationships')}>← Metadata map</button>}
                 {conceptReturn && <button type="button" className="se-diagram-back" onClick={() => backToConcept(false)}>← Metadata map</button>}
                 {domain && !compact && !conceptReturn && <button type="button" className="se-diagram-back" onClick={() => chooseDomain('')}>← Metadata map</button>}
                 <div className="se-diagram-heading" style={conceptContext?.color ? { '--se-concept-color': conceptContext.color } : undefined}>
@@ -560,7 +554,6 @@ export default function Diagram({
                             <h2>{title}</h2>
                         </>
                     )}
-                    {overview && <p className="se-diagram-question">Every schema in the model, grouped by area. Select a group for its map or a schema for its details.</p>}
                     <ul className="se-diagram-facts" aria-label="Diagram summary">
                         {conceptContext && singleFrame && <li>Group: {singleFrame.label}</li>}
                         {facts.map((fact) => <li key={fact}>{fact}</li>)}
@@ -586,7 +579,7 @@ export default function Diagram({
                 )}
                 <div className="se-map-tool-section" role="group" aria-label="Diagram filters">
                     <span className="se-control-label">Show</span>
-                    {showDomains && !overview && (
+                    {showDomains && (
                         <label>Connections
                             <select aria-label="Connection detail" value={selected ? 'selected' : connectionMode} onChange={(event) => setConnectionMode(event.target.value)} disabled={!!selected}>
                                 {selected && <option value="selected">Selected type: exact links</option>}
@@ -595,7 +588,7 @@ export default function Diagram({
                             </select>
                         </label>
                     )}
-                    {showDomains && !overview && domain && !neighbors && (
+                    {showDomains && domain && !neighbors && (
                         <label className="se-external-toggle"><input type="checkbox" checked={showExternal} onChange={(e) => { setShowExternal(e.target.checked); setMoves({}); }} />Links to other groups</label>
                     )}
                     <details ref={relationshipMenu}>
@@ -698,7 +691,7 @@ export default function Diagram({
             {!selected && conceptContext && <p className="se-flow-note">Highlighted schemas belong to {conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.</p>}
             {!selected && !showDomains && !conceptContext && <p className="se-flow-note">Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.</p>}
             {!selected && showDomains && !conceptContext && (
-                <p className="se-flow-note">{overview ? 'Groups follow the biological workflow, from donors to files.' : selected
+                <p className="se-flow-note">{selected
                     ? `Showing ${selected} references between visible schemas, including inherited and self-references. Clear selection to return to the group overview.`
                     : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
                         : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.'}
@@ -748,7 +741,6 @@ export default function Diagram({
                         d.moved = true;
                         d.x = e.clientX;
                         d.y = e.clientY;
-                        if (overview && d.name) return;
                         if (d.name)
                             setMoves((m) => {return {
                                 ...m,
@@ -818,7 +810,7 @@ export default function Diagram({
                                 )}
                             </g>
                         ))}
-                        {showDomains && !overview && clustered.layers.map((layer) => (
+                        {showDomains && clustered.layers.map((layer) => (
                             <rect key={`panel-${layer.id}`} className="se-stage-panel" x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="8" />
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
@@ -930,7 +922,7 @@ export default function Diagram({
                                 <g
                                     key={n.name}
                                     data-entity={n.name}
-                                    className={`entity-node${coveredByHover.has(n.name) ? ' se-covered' : ''}${tracedEnds.has(n.name) ? ' se-covered-owner' : ''}${conceptContext && conceptMembers.has(n.name) ? ' se-concept-center' : ''}${!overview && presentation.isAbstract ? ' se-node-abstract' : ''} ${
+                                    className={`entity-node${coveredByHover.has(n.name) ? ' se-covered' : ''}${tracedEnds.has(n.name) ? ' se-covered-owner' : ''}${conceptContext && conceptMembers.has(n.name) ? ' se-concept-center' : ''}${presentation.isAbstract ? ' se-node-abstract' : ''} ${
                                         selected === n.name ? 'selected' : ''
                                     } ${
                                         selected && !connected.has(n.name)
@@ -951,22 +943,20 @@ export default function Diagram({
                                     }}>
                                     <title>{tooltip}</title>
                                     {externalContextNames.has(n.name) && <text className="se-context-domain" x="0" y="-8">Other group · {domainFor(n.name) === 'administrative' ? 'Administrative metadata' : domains.find((group) => group.id === domainFor(n.name))?.label}</text>}
-                                    <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={overview ? 4 : 8} />
-                                    <text className="se-node-title" x="12" y={overview ? 19 : 26}>
+                                    <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={8} />
+                                    <text className="se-node-title" x="12" y={26}>
                                         {n.name}
                                     </text>
-                                    {!overview && (
-                                        <text x="12" y="49" className="se-subtitle">
-                                            {presentation.caption}
-                                        </text>
-                                    )}
+                                    <text x="12" y="49" className="se-subtitle">
+                                        {presentation.caption}
+                                    </text>
                                     {coveredByHover.has(n.name) && (
                                         <g aria-hidden="true">
                                             <rect className="se-covered-badge" x={cardWidth - 66} y="9" width="56" height="16" rx="4" />
                                             <text className="se-covered-label" x={cardWidth - 38} y="20">Inherits</text>
                                         </g>
                                     )}
-                                    {!overview && presentation.isAbstract && (
+                                    {presentation.isAbstract && (
                                         <g aria-hidden="true">
                                             <rect className="se-node-abstract-badge" x={cardWidth - 65} y="9" width="54" height="16" rx="4" />
                                             <text className="se-node-abstract-label" x={cardWidth - 38} y="20">Abstract</text>

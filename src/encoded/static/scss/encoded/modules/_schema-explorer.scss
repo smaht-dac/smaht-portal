@@ -281,12 +281,6 @@
     .se-inheritance-detail { color: #59636e; font-size: 13px; }
 
     .se-hierarchical .entity-node .se-subtitle { font-size: 11px; }
-    .se-overview .entity-node { cursor: pointer; }
-    .se-overview .entity-node text { font-size: 13.5px; }
-    .se-overview .entity-node rect { fill: #f8fafc; stroke: #e3e9ef; stroke-width: 1; }
-    .se-overview .entity-node:hover rect, .se-overview .entity-node:focus rect { fill: #eaf3fb; stroke: #2368aa; }
-    .se-overview .se-domain-frame rect { fill: white; stroke: #ced4da; stroke-width: 1; }
-    .se-overview .se-domain-frame text { font-size: 18px; }
     .se-stage-label { fill: #253b4d; font-size: 15px; font-weight: 700; }
     .se-flow-note { color: #59636e; font-size: 14px; }
     .se-domain-frame {
