@@ -22,10 +22,12 @@
     [hidden] { display: none !important; }
     .se-toolbar, .se-actions, .se-filters, .se-sources { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
     .se-toolbar { margin: .75rem 0; } .se-toolbar > input { flex: 1; min-width: 140px; }
-    .se-actions { justify-content: flex-end; padding-bottom: 1rem; }
+    .se-actions { justify-content: space-between; margin-bottom: 1rem; padding-bottom: .75rem; border-bottom: 1px solid #e1e7ec; }
+    .se-actions-tools { display: flex; align-items: center; gap: .35rem; margin-left: auto; }
+    button.se-tool-button { padding: .3rem .7rem; font-size: 13px; font-weight: 600; color: #356a9a; background: white; border: 1px solid #d4dee7; border-radius: .35rem; &:hover, &:focus { border-color: #356a9a; background: #f4f9fd; } }
+    button.se-tool-button.se-tool-quiet { font-weight: 400; color: #59636e; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; border-color: transparent; } }
     .se-view-switch {
         display: inline-flex;
-        margin-right: auto;
         padding: 2px;
         gap: 2px;
         border: 1px solid #d8dee4;

@@ -290,26 +290,31 @@ export default function Explorer() {
                         id={mode === 'item' ? 'open-entity' : undefined}
                         aria-pressed={mode === 'map'}
                         onClick={() => setMode('map')}>
-                        All schemas
+                        Metadata map
                     </button>
                     <button type="button"
                         id={mode === 'map' ? 'open-entity' : undefined}
                         aria-pressed={mode === 'item'}
                         onClick={() => setMode('item')}>
-                        Item view
+                        Schema details
                     </button>
                 </div>
-                <button type="button"
-                    id="open-path-finder"
-                    onClick={() => setPlanner({ source: selected })}>
-                    Find embed path
-                </button>
-                <button type="button"
-                    disabled={loading}
-                    onClick={() => setRefresh((n) => n + 1)}
-                    title="Reload the deployed snapshot. Source changes require a server restart or a rebuilt artifact.">
-                    {loading ? 'Refreshing…' : 'Refresh ↻'}
-                </button>
+                <span className="se-actions-tools">
+                    <button type="button"
+                        id="open-path-finder"
+                        className="se-tool-button"
+                        title="Find how one schema can embed fields from another"
+                        onClick={() => setPlanner({ source: selected })}>
+                        Find embed path…
+                    </button>
+                    <button type="button"
+                        className="se-tool-button se-tool-quiet"
+                        disabled={loading}
+                        onClick={() => setRefresh((n) => n + 1)}
+                        title="Reload the deployed snapshot. Source changes require a server restart or a rebuilt artifact.">
+                        <span aria-hidden="true">↻</span> {loading ? 'Reloading…' : 'Reload snapshot'}
+                    </button>
+                </span>
             </div>
             {error && (
                 <p role="alert" className="alert alert-warning">
