@@ -91,6 +91,49 @@ function RelationshipSection({ section, graph, onInspect }) {
     );
 }
 
+// Concepts outside the numbered path hang off one of its steps.
+const branchOf = { analysis: 'files', workflow: 'files', quality: 'files', sequencing: 'fileSet' };
+
+// The whole donor-to-data path with the current concept marked, so its place reads at a glance.
+function WorkflowStepper({ concept, graph, onConcept }) {
+    const steps = graph.nodes.filter((node) => node.step).sort((a, b) => a.step - b.step);
+    const anchor = concept.step ? concept.id : branchOf[concept.id];
+    const parent = graph.nodes.find((node) => node.id === anchor);
+    // Branch concepts are listed under the step they hang off, so every concept is reachable from here.
+    const branches = (id) => graph.nodes.filter((node) => branchOf[node.id] === id);
+    return (
+        <nav className="se-stepper" aria-label="Place in the donor-to-data workflow">
+            <ol>
+                {steps.map((node) => {
+                    const current = node.id === anchor;
+                    return (
+                        <li key={node.id} className={current ? 'se-step-current' : undefined} style={{ '--se-step-color': node.color }}>
+                            <button type="button" aria-current={current ? 'step' : undefined} onClick={() => onConcept(node.id)}>
+                                <span className="se-step-number">{node.step}</span>
+                                <span className="se-step-label">{node.label}</span>
+                            </button>
+                            {branches(node.id).length > 0 && (
+                                <ul className="se-step-branches" aria-label={`Branches off ${node.label}`}>
+                                    {branches(node.id).map((branch) => (
+                                        <li key={branch.id}>
+                                            <button type="button" aria-current={branch.id === concept.id ? 'page' : undefined} onClick={() => onConcept(branch.id)}>{branch.label}</button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </li>
+                    );
+                })}
+            </ol>
+            {!concept.step && parent && (
+                <p className="se-stepper-branch">
+                    <strong>{concept.label}</strong> is not a step of its own: it branches off <button type="button" onClick={() => onConcept(parent.id)}>{parent.label}</button> and answers “{concept.hint}”
+                </p>
+            )}
+        </nav>
+    );
+}
+
 export default function ResearchOverview({ index, nodes, onType, onAllTypes, onDetail, onConnections, initialConcept = '', focusMap = false }) {
     const [size, setSize] = useState({ width: 1200, height: 650 });
     const [camera, setCamera] = useState({ x: 20, y: 20, scale: 1 });
@@ -342,7 +385,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
                         </div>
                     </header>
                     <p className="se-concept-description">{concept.description}</p>
-                    <div className="se-concept-navigation"><label>Explore another concept<select aria-label="Explore another concept" value={selected} onChange={(event) => choose(event.target.value)}>{graph.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label></div>
+                    <WorkflowStepper concept={concept} graph={graph} onConcept={choose} />
                     <div className="se-concept-workspace">
                         <section className="se-concept-relationships" aria-labelledby="concept-relationships-heading">
                             <h4 id="concept-relationships-heading">Key relationships for {concept.label.toLowerCase()}</h4>

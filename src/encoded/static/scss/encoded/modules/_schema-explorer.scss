@@ -137,6 +137,32 @@
     .se-concept-heading .se-concept-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
     .se-concept-heading .se-concept-question { font-size: 16px !important; }
     .se-diagram-header .se-diagram-heading h2 { font-size: 28px; }
+    .se-stepper { padding: 1.25rem 1.75rem .25rem;
+        ol { display: flex; margin: 0; padding: 0; list-style: none; }
+        ol > li { position: relative; flex: 1; min-width: 0;
+            &::before { content: ''; position: absolute; top: 15px; left: -50%; right: 50%; height: 2px; background: #d4dee7; }
+            &:first-child::before { display: none; }
+        }
+        ol > li > button { position: relative; display: flex; flex-direction: column; align-items: center; gap: .35rem; width: 100%; padding: 0 .25rem; background: transparent; border: 0; text-align: center;
+            &:hover .se-step-label, &:focus .se-step-label { color: #253b4d; text-decoration: underline; }
+        }
+        .se-step-number { position: relative; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; font-size: 13px; font-weight: 600; color: var(--se-step-color, #356a9a); background: white; border: 2px solid var(--se-step-color, #356a9a); border-radius: 50%; }
+        .se-step-label { font-size: 12.5px; line-height: 1.3; color: #59636e; }
+        li.se-step-current {
+            .se-step-number { width: 36px; height: 36px; margin-top: -3px; font-size: 15px; color: white; background: var(--se-step-color, #356a9a); box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--se-step-color, #356a9a); }
+            .se-step-label { font-size: 13.5px; font-weight: 650; color: #253b4d; }
+        }
+    }
+    .se-step-branches { position: relative; display: flex; flex-direction: column; align-items: center; gap: .2rem; margin: .3rem 0 0; padding: .7rem 0 0; list-style: none;
+        &::before { content: ''; position: absolute; top: 0; left: 50%; height: .6rem; border-left: 1px dashed #9aa6b2; }
+        button { padding: .05rem .5rem; font-size: 11.5px; color: #59636e; background: white; border: 1px solid #d4dee7; border-radius: 1rem; white-space: nowrap;
+            &:hover, &:focus { color: #253b4d; border-color: #356a9a; }
+            &[aria-current='page'] { font-weight: 600; color: white; background: #356a9a; border-color: #356a9a; }
+        }
+    }
+    .se-stepper-branch { margin: .9rem 0 0; font-size: 13.5px; color: #425c71;
+        button { padding: 0; font-weight: 600; color: #356a9a; background: transparent; border: 0; &:hover, &:focus { text-decoration: underline; } }
+    }
     .se-concept-tabs { display: flex; gap: .25rem; margin-top: .9rem; border-bottom: 1px solid #d4dee7;
         button { margin-bottom: -1px; padding: .4rem .9rem; font-size: 14px; font-weight: 600; color: #59636e; background: transparent; border: 1px solid transparent; border-bottom: 0; border-radius: .4rem .4rem 0 0; &:hover:not([aria-selected='true']), &:focus:not([aria-selected='true']) { color: #253b4d; background: #ffffffa6; } }
         button[aria-selected='true'] { color: #253b4d; background: white; border-color: #d4dee7; border-top: 3px solid var(--se-concept-color, #356a9a); cursor: default; }
@@ -227,7 +253,6 @@
     .se-concept-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; padding: 1.6rem 1.75rem 1.2rem; background: linear-gradient(110deg, #eef4f9, #fff); h3 { font-size: 32px; line-height: 1.2; font-weight: 650; margin: .4rem 0 .6rem; color: #253b4d; } .se-concept-question { font-size: 20px; line-height: 1.4; margin: 0; color: #425c71; } > button { flex-shrink: 0; background: white; } }
     .se-concept-eyebrow { color: var(--se-concept-color, #356a9a); font-size: 13px; font-weight: 600; }
     .se-concept-description { font-size: 16px; line-height: 1.7; padding: 1.2rem 1.75rem 0; max-width: 100ch; }
-    .se-concept-navigation { display: flex; justify-content: flex-end; padding: .25rem 1.75rem 1.1rem; border-bottom: 1px solid #e1e7ec; label { flex-wrap: wrap; font-size: 13px; color: #59636e; } }
     .se-concept-workspace { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 1.5rem; padding: 1.5rem 1.75rem 1.75rem; h4 { font-size: 20px; line-height: 1.4; font-weight: 600; margin: 0 0 .5rem; color: #253b4d; } }
     .se-concept-help { font-size: 14px; color: #59636e; line-height: 1.6; }
     .se-relationship-section { margin-top: 1.1rem; }
@@ -251,7 +276,7 @@
     .se-concept-abstract-badge { align-self: center; margin-left: auto; font-size: 11px; line-height: 1.4; padding: .15rem .4rem; border-radius: .25rem; color: #62517b; background: #e5dff0; font-weight: 600; font-style: normal; }
     .se-concept-abstract-note { display: block; margin-top: .4rem; color: #75638e; font-size: 12px; }
     .se-concept-schema-description { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; font-size: 13px; color: #59636e; line-height: 1.5; margin-top: .4rem; }
-    @media (max-width: 900px) { .se-concept-workspace { grid-template-columns: minmax(0, 1fr); padding: 1rem; } .se-concept-heading { padding: 1.2rem 1rem; flex-wrap: wrap; h3 { font-size: 28px; } } .se-concept-description { padding: 1rem 1rem 0; } .se-concept-navigation { justify-content: flex-start; padding: .25rem 1rem 1rem; } }
+    @media (max-width: 900px) { .se-concept-workspace { grid-template-columns: minmax(0, 1fr); padding: 1rem; } .se-concept-heading { padding: 1.2rem 1rem; flex-wrap: wrap; h3 { font-size: 28px; } } .se-concept-description { padding: 1rem 1rem 0; } }
     .se-research-explanation { margin-top: .75rem; padding: .65rem 1rem; border-left: 3px solid #137a66; background: #eff7f3; }
     .se-research-support { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: 0; padding: .8rem 0; font-size: 13.5px; color: #59636e; button { padding: .2rem .5rem; font-size: 13.5px; font-weight: 600; color: #356a9a; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; } } }
     .se-research-overview .se-canvas { height: 55vh; min-height: 440px; max-height: 700px; }

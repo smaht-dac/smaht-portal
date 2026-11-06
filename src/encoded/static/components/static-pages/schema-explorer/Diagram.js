@@ -688,7 +688,9 @@ export default function Diagram({
                     </span>
                 </div>
             )}
-            {!selected && conceptContext && <p className="se-flow-note">Highlighted schemas belong to {conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.</p>}
+            {!selected && conceptContext && (
+                <p className="se-flow-note">Highlighted schemas belong to {conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.</p>
+            )}
             {!selected && !showDomains && !conceptContext && <p className="se-flow-note">Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.</p>}
             {!selected && showDomains && !conceptContext && (
                 <p className="se-flow-note">{selected
