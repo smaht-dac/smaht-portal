@@ -170,13 +170,14 @@ export default function Diagram({
     const overview = showDomains && !domain;
     const researchOverview = overview && overviewMode === 'relationships';
     const cardWidth = overview ? 196 : width, cardHeight = overview ? 28 : height;
-    const allPositions = useMemo(() => showDomains ? {} : layout(visible, groups, size), [showDomains, visible, groups, size]);
-    // Group maps shrink the canvas to their content, so layout and fitting use the full
-    // canvas budget (65vh, min 400px as in the stylesheet) rather than the measured height.
+    // Group maps and the item page's relationship map shrink the canvas to their content, so layout and
+    // fitting use the full canvas budget (65vh, min 400px as in the stylesheet) rather than the measured height.
     const groupMap = showDomains && !overview;
+    const fitToContent = groupMap || compact;
     const budgetHeight = Math.max(400, windowHeight * 0.65);
-    const layoutSize = useMemo(() => groupMap ? { width: size.width, height: budgetHeight } : size,
-        [groupMap, size.width, groupMap ? budgetHeight : size.height]);
+    const layoutSize = useMemo(() => fitToContent ? { width: size.width, height: budgetHeight } : size,
+        [fitToContent, size.width, fitToContent ? budgetHeight : size.height]);
+    const allPositions = useMemo(() => showDomains ? {} : layout(visible, groups, layoutSize), [showDomains, visible, groups, layoutSize]);
     const clustered = useMemo(() => {
         if (!showDomains) return { positions: {}, frames: [], layers: [] };
         if (overview) return overviewLayout(visible, size);
@@ -330,11 +331,11 @@ export default function Diagram({
             scale,
             x: fitsX ? (layoutSize.width - (bounds.left + bounds.right) * scale) / 2 : 16 - bounds.left * scale,
             // Group maps start at the top edge; centring a short map leaves a large empty band above it.
-            y: fitsY && !groupMap ? (layoutSize.height - (bounds.top + bounds.bottom) * scale) / 2 : 16 - bounds.top * scale,
+            y: fitsY && !fitToContent ? (layoutSize.height - (bounds.top + bounds.bottom) * scale) / 2 : 16 - bounds.top * scale,
         });
-    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, groupMap, fitScale]);
+    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, fitToContent, fitScale]);
     // The canvas ends just below the fitted map; zooming in later pans within this height.
-    const canvasHeight = groupMap && !full
+    const canvasHeight = fitToContent && !full
         ? Math.min(budgetHeight, Math.max(280, Math.ceil((bounds.bottom - bounds.top) * fitScale() + 32))) : undefined;
     // Selecting a node only highlights it in the full map. Refit selection
     // changes only when they replace the displayed neighborhood.
@@ -989,16 +990,19 @@ export default function Diagram({
             </div>
             {selected && (
                 <section id={compact ? 'relations' : 'entity-details'} className="se-selected-panel" aria-label={`${selected} relationships`}>
-                    <header>
-                        <div>
-                            <span className="se-diagram-eyebrow">Selected schema</span>
-                            <h3>{selected}</h3>
-                            {selectedDescription && <p>{selectedDescription}</p>}
-                        </div>
-                        {!compact
-                            ? <button type="button" className="se-selected-open" onClick={() => onExplore(selected)}>Open schema details →</button>
-                            : <button type="button" onClick={clearSelection}>Clear selection</button>}
-                    </header>
+                    {/* On the item page the focused schema is already the page heading, so only its links are listed. */}
+                    {!(compact && selected === focus) && (
+                        <header>
+                            <div>
+                                <span className="se-diagram-eyebrow">Selected schema</span>
+                                <h3>{selected}</h3>
+                                {selectedDescription && <p>{selectedDescription}</p>}
+                            </div>
+                            {!compact
+                                ? <button type="button" className="se-selected-open" onClick={() => onExplore(selected)}>Open schema details →</button>
+                                : <button type="button" onClick={clearSelection}>Clear selection</button>}
+                        </header>
+                    )}
                     {shared.inherited[selected] && <p className="se-inheritance-detail">{shared.inherited[selected].fields.size} reference fields inherited from { [...shared.inherited[selected].owners].join(', ') }. Their shared definitions are drawn at the base types in the group overview.</p>}
                     {[
                         { key: 'out', title: 'Links from this schema', rows: incident.filter((e) => e.from === selected), column: 'Links to' },

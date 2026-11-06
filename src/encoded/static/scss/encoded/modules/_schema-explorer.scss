@@ -54,10 +54,6 @@
     .se-sources { margin: .5rem 0; } .se-sources button { font-size: 12px; }
     .se-live { border: 1px solid #dee2e6; border-radius: .5rem; padding: 1rem; margin: 1rem 0; }
     .se-columns { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 1.5rem; }
-    .se-inspector { border-left: 1px solid #dee2e6; padding-left: 1.5rem; }
-    button.se-field { display: flex; width: 100%; gap: .5rem; flex-wrap: wrap; text-align: left; align-items: center; border: 0; border-bottom: 1px solid #dee2e6; border-radius: 0; padding: .8rem 0; background: transparent; strong { flex: 1; font-weight: 400; } }
-    .se-inspector nav button { background: transparent; border-color: transparent; border-radius: 0; box-shadow: none; }
-    .se-inspector nav button[aria-pressed='true'] { border-bottom: 2px solid #137a66; }
     .se-diagram > .se-toolbar:first-child { justify-content: space-between; }
     .se-diagram-header { margin: .25rem 0 .75rem;
         button.se-diagram-back { margin-left: -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: #356a9a; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; } }
@@ -97,6 +93,42 @@
     button.se-back-to-map { margin: 0 0 .75rem -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: #356a9a; background: transparent; border-color: transparent; &:hover, &:focus { background: #edf3f8; } }
     // The item page embeds the map as one section among others, so its heading stays light.
     .se-compact .se-diagram-header .se-diagram-heading { padding: 0; border: 0; background: none; h2 { font-size: 20px; } }
+    // Schema details page: same visual language as the map (header card, control strip, quiet tables).
+    .se-item-nav { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .5rem; button.se-back-to-map { margin: 0 0 0 -.5rem; } }
+    .se-item-history { display: flex; gap: .35rem; margin-left: auto; button { padding: .2rem .55rem; font-size: 13px; color: #356a9a; background: transparent; border-color: #d4dee7; &:disabled { color: #9aa6b2; } } }
+    .se-item-controls { margin-bottom: .75rem; select { min-width: 220px; } > input[type='search'] { max-width: none; } .se-item-meta { margin-left: auto; font-size: 12.5px; color: #657383; } }
+    .se-inheritance-chain { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .6rem; font-size: 12.5px; color: #8a99a8;
+        button { padding: .1rem .45rem; font-size: 12.5px; color: #356a9a; background: white; border: 1px solid #d4dee7; border-radius: 1rem; &:hover, &:focus { border-color: #356a9a; } }
+    }
+    .se-inheritance-label { margin-right: .15rem; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #59636e; }
+    .se-live-panel { margin: 0 0 1rem; padding: .1rem .9rem; border: 1px solid #dfe6ec; border-radius: .5rem; background: #f8fafc;
+        > summary { font-size: 14px; font-weight: 600; color: #253b4d; small { margin-left: .5rem; font-weight: 400; color: #657383; } }
+        .se-live { margin: 0 0 .75rem; border: 0; padding: 0; > h2 { display: none; } }
+    }
+    .se-inspector { position: sticky; top: 72px; align-self: start; max-height: calc(100vh - 96px); display: flex; flex-direction: column; border: 1px solid #dfe6ec; border-radius: .5rem; background: white; overflow: hidden; }
+    .se-inspector-tabs { display: flex; gap: .25rem; padding: .4rem .5rem 0; border-bottom: 1px solid #e1e7ec; background: #f8fafc;
+        button { padding: .45rem .7rem; font-size: 13.5px; color: #425c71; background: transparent; border: 0; border-bottom: 2px solid transparent; border-radius: 0; span { margin-left: .3rem; padding: 0 .35rem; font-size: 11.5px; border-radius: .6rem; background: #e3eaf0; } }
+        button[aria-selected='true'] { font-weight: 600; color: #253b4d; border-bottom-color: #356a9a; span { background: #d5e4f1; } }
+    }
+    .se-inspector-search { display: flex; align-items: center; gap: .6rem; padding: .6rem .75rem .3rem; input { flex: 1; } span { font-size: 12px; color: #657383; white-space: nowrap; } }
+    .se-field-filters { display: flex; flex-wrap: wrap; gap: .3rem; padding: .25rem .75rem .5rem;
+        button { padding: .1rem .55rem; font-size: 12px; color: #425c71; background: white; border: 1px solid #d4dee7; border-radius: 1rem; span { color: #8a99a8; } }
+        button[aria-pressed='true'] { color: white; background: #356a9a; border-color: #356a9a; span { color: #d5e4f1; } }
+    }
+    .se-inspector-list { overflow: auto; border-top: 1px solid #e1e7ec; }
+    button.se-field { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(60px, .5fr) minmax(0, 1fr); align-items: center; gap: .5rem; width: 100%; padding: .5rem .75rem; text-align: left; font-size: 13px; background: transparent; border: 0; border-bottom: 1px solid #edf1f4; border-radius: 0;
+        &:hover, &:focus { background: #f4f9fd; }
+        code { font-size: 12.5px; color: #253b4d; overflow-wrap: anywhere; }
+        .se-field-type { font-size: 12px; color: #657383; }
+        .se-field-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem; .se-badge { font-size: 11px; } }
+        .se-field-live { grid-column: 1 / -1; font-size: 12px; }
+    }
+    .se-field-name { display: flex; align-items: center; gap: .4rem; min-width: 0; }
+    .se-field-required { padding: 0 .35rem; font-size: 10.5px; font-weight: 600; color: #8a4b0f; background: #fff1e0; border-radius: .25rem; }
+    button.se-field.se-embed { display: flex; flex-wrap: wrap; gap: .3rem; .se-embed-sep { color: #9aa6b2; } }
+    .se-inspector-note { margin: .6rem .75rem; font-size: 12.5px; color: #657383; }
+    .se-inspector-empty { margin: .75rem; font-size: 13px; color: #657383; }
+    .se-diagnostic { margin: 0; padding: .55rem .75rem; font-size: 12.5px; color: #6b4a10; background: #fffaf0; border-bottom: 1px solid #f1e4c6; overflow-wrap: anywhere; }
     .se-selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 0 0 .5rem; padding: .45rem .5rem .45rem .75rem; font-size: 13px; color: #425c71; background: #f4f9fd; border: 1px solid #cad6e0; border-left: 3px solid #356a9a; border-radius: .4rem;
         strong { font-size: 14px; color: #253b4d; }
         .se-selection-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #356a9a; }
