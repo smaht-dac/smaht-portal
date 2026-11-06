@@ -87,6 +87,25 @@ export const IPSCFibroblastData = ({
     );
 };
 
+export const CordBloodData = ({ schemas, session, facets, href, context }) => {
+    const cordBloodTabMapArray = BenchmarkingDataMap.CordBlood?.tabMapArray;
+
+    return (
+        <BenchmarkingLayout
+            {...{ schemas }}
+            title={BenchmarkingDataMap.CordBlood?.title}
+            description={BenchmarkingDataMap.CordBlood?.description}
+            callout={BenchmarkingDataMap.CordBlood?.callout}>
+            <HashBasedTabController
+                {...{ schemas, session, facets, href, context }}
+                deniedAccessPopoverType="login"
+                controllerId="CordBlood-Tab-Renderer"
+                tabMapArray={cordBloodTabMapArray}
+            />
+        </BenchmarkingLayout>
+    );
+};
+
 export const Donor1Data = ({ schemas, session, facets, href, context }) => {
     const donor1TabMapArray = BenchmarkingDataMap.Donor1?.tabMapArray;
 

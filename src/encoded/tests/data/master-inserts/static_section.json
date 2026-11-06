@@ -152,6 +152,25 @@
         ]
     },
     {
+        "identifier": "benchmarking.CordBlood",
+        "title": "Cord Blood Data Table",
+        "file": "/docs/public/benchmarking_CordBlood.jsx",
+        "status": "open",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "8e423f7b-4e8a-42c8-a3df-d3ffc822dc7b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "benchmarking.donorst001",
         "title": "Donor ST001",
         "file": "/docs/public/benchmarking_tissues_Donor1.jsx",

@@ -259,6 +259,74 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
+    CordBlood: {
+        deniedAccessPopoverType: 'login',
+        navBarTitle: 'Cord Blood',
+        title: 'Cord Blood Data',
+        description: (
+            <div>
+                <p>
+                    Shortly after a baby is born, human cord blood mononuclear
+                    cells can be isolated from blood that remains in the
+                    umbilical cord and placenta. Cord blood cells are useful for
+                    benchmarking error rates of duplex sequencing and
+                    single-cell genome sequencing techniques. Cord blood cells
+                    carry approximately 1 somatic single-nucleotide variant
+                    (SNV) per 100 million bases and 1 somatic insertion or
+                    deletion event (indel) per 1 billion bases. These rates are
+                    often 10-100x lower than the somatic mutation rates in adult
+                    tissues. To accurately estimate SNV and indel rates in cord
+                    blood, the error rates of duplex or single-cell techniques
+                    should not exceed the corresponding cord blood mutation
+                    rates.
+                </p>
+                <p>
+                    Frozen human cord blood mononuclear cells were purchased
+                    from{' '}
+                    <a
+                        href="https://www.stemcell.com/products/human-cord-blood-mononuclear-cells-frozen.html"
+                        target="_blank"
+                        rel="noreferrer noopener">
+                        StemCell Technologies
+                    </a>{' '}
+                    across different lots. Each GCC and TTD sequenced three
+                    replicates for the duplex sequencing benchmarking study. The
+                    Broad Institute GCC, Baylor College of Medicine (BCM) GCC,
+                    Boston Children&apos;s Hospital (BCH) TTD-Choudhury, and New
+                    York Genome Center (NYGC) GCC each supplied an initial
+                    replicate from the same donor and lot (Catalog #70007.2, Lot
+                    #2111403008). For subsequent replicates, BCM GCC, BCH
+                    TTD-Choudhury (Choudhury), and NYGC GCC each sequenced from
+                    the same donor and lot. All New York University (NYU) TTD
+                    cord blood data were collected from one donor and one lot
+                    that was distinct from this initial donor-lot pair (Catalog
+                    #70007.1, Lot #2404416003). The Broad Institute GCC
+                    sequenced its subsequent replicates from the same donor-lot
+                    pair as the NYU TTD.
+                </p>
+            </div>
+        ),
+        type: 'Cell Line Data',
+        path: '/data/benchmarking/cord-blood',
+        tabMapArray: [
+            {
+                eventKey: '#bch-cord-blood',
+                title: 'BCH cord blood',
+                searchHref:
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=cord_blood_2111403008&sort=-file_status_tracking.release_dates.initial_release',
+            },
+            {
+                eventKey: '#nyu-cord-blood',
+                title: 'NYU cord blood',
+                searchHref:
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=cord_blood_2404416003&sort=-file_status_tracking.release_dates.initial_release',
+            },
+        ],
+    },
     Donor1: {
         deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST001',

@@ -284,7 +284,7 @@ function CustomStaticLinks({ pathName, href, session }) {
                             className="primary-big-link">
                             <h4 className="text-large">Cell Lines</h4>
                             <div className="description text-medium">
-                                COLO829 - Hap Map - iPSC & Fibroblasts
+                                COLO829 - Hap Map - iPSC & Fibroblasts - Cord Blood
                             </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
