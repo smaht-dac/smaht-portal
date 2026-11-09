@@ -260,6 +260,10 @@ export default function AliquotVisualization({
     // donor/tissue they belong to.
     donorLabel = null,
     tissueLabel = null,
+    // Optional page-level handler for the popovers' pathology report links
+    // (see helpers.js's openPathologyReport) -- returns true when it took
+    // the report over, e.g. TissueTypeView.js opening it in its table.
+    onPathologyReportClick = null,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -950,6 +954,7 @@ export default function AliquotVisualization({
                                         assayPlatformsBySampleName={assayPlatformsBySampleName}
                                         hoveredPosition={hoveredCorePosition}
                                         onHoverPosition={setHoveredCorePosition}
+                                        onPathologyReportClick={onPathologyReportClick}
                                     />
                                 ) : (
                                     <FixedAliquotPopoverBody
@@ -961,6 +966,7 @@ export default function AliquotVisualization({
                                         }}
                                         donorLabel={donorLabel}
                                         tissueLabel={tissueLabel}
+                                        onPathologyReportClick={onPathologyReportClick}
                                     />
                                 )}
                             </PopoverBody>
@@ -979,8 +985,8 @@ export default function AliquotVisualization({
                             <span>
                                 <strong>{styles.label}</strong>
                                 {key === 'pink'
-                                    ? ' = 0.5 cm width (default)'
-                                    : ' = 1 cm width (default)'}
+                                    ? ' = 0.5-1 cm width (default)'
+                                    : ' = 1-2 cm width (default)'}
                             </span>
                         </div>
                     ))}
@@ -1010,6 +1016,7 @@ AliquotVisualization.propTypes = {
     assayPlatformsBySampleName: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
     donorLabel: PropTypes.string,
     tissueLabel: PropTypes.string,
+    onPathologyReportClick: PropTypes.func,
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,

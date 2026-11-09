@@ -676,6 +676,21 @@ export const dedupeTissuesByDonor = (tissueResults = []) => {
 // embedding, only ever populated when outcome is Unacceptable) is shown
 // directly under the badge -- not just as a hover-only tooltip, per
 // explicit request that a reader can see *why* without having to hover.
+// A pathology report row/link in the aliquot popovers: offers the report to
+// the page's own handler first (TissueTypeView.js opens it in the Pathology
+// Reports table), otherwise opens the report page in a new tab as before.
+// A modifier-click on the link itself always keeps the browser's default.
+export const openPathologyReport = (event, href, onPathologyReportClick = null) => {
+    if (!href) return;
+    const isLink = !!event.target.closest('a');
+    if (isLink && (event.metaKey || event.ctrlKey || event.shiftKey)) return;
+    if (onPathologyReportClick && onPathologyReportClick(href)) {
+        event.preventDefault();
+        return;
+    }
+    if (!isLink) window.open(href, '_blank', 'noopener,noreferrer');
+};
+
 export function PathologyOutcomeBadge({ outcome, unacceptableDescription }) {
     if (!outcome) return null;
     const isUnacceptable = outcome === 'Unacceptable';

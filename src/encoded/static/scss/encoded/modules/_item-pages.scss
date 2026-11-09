@@ -3261,6 +3261,55 @@ File, Donor, and Publication Overview Styles
     }
 }
 
+// PathologyOutcomeBadge (tissue-overview/helpers.js) -- shared by the
+// aliquot popovers and the Pathology Reports table.
+@mixin pathology-outcome-badge {
+    flex-shrink: 0;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &.is-acceptable {
+        background-color: #E7F5EC;
+        color: #2E8B57;
+    }
+
+    &.is-unacceptable {
+        background-color: #FBEAEA;
+        color: #C0392B;
+    }
+}
+
+@mixin pathology-outcome-description {
+    margin-top: 3px;
+    font-size: 0.6875rem;
+    font-weight: 400;
+    color: #6B7785;
+    white-space: normal;
+}
+
+// Tissue Overview's Autolysis Score scale (0 = None .. 3 = Severe) -- the
+// donor/aliquot tables' cells, their legends, and the Autolysis header's
+// legend popover (rendered outside .tissue-view, see below) all read these.
+// 0, 1 and 3 are sampled from the mockup; 2 is the midpoint of 1 and 3.
+$tissue-autolysis-score-0-bg: #EAD6DB;
+$tissue-autolysis-score-1-bg: #D19FAB;
+$tissue-autolysis-score-2-bg: #A06A78;
+$tissue-autolysis-score-3-bg: #6E3544;
+
+// The non-brain Pathology Reports table's own palette, sampled from its mockup.
+$pathology-reports-accent: #6657D9;
+$pathology-reports-header-bg: #EFEDFF;
+$pathology-reports-header-border: #9BA5B7;
+$pathology-reports-text: #343741;
+$pathology-reports-body-text: #28323C;
+$pathology-reports-divider: #E7F0F3;
+$pathology-reports-zebra: #F8F8F8;
+$pathology-reports-link: #2783E0;
+$pathology-reports-muted: #B0B0B0;
+
 // Only the legacy per-item /tissues/<uuid>/ "Tissue Overview" tab renders
 // inside .item-page-container.type-Tissue's tabs bar; the type-keyed
 // /tissue-overview/?tissue_type=<value> page (TissueTypeView.js) is a
@@ -3362,10 +3411,13 @@ File, Donor, and Publication Overview Styles
                 // fallback look for tissue_types the color scheme doesn't cover.
                 background-color: #F7F9FB;
                 border: 3px solid #D7E1EA;
+                // Inherited by both the FA glyph and .tissue-icon-mask below,
+                // so an inline `color` tints either one with the tissue's color.
+                color: #4E6884;
 
                 i {
                     font-size: 2.25rem;
-                    color: #4E6884;
+                    color: inherit;
                 }
 
                 // Anatomy-icon SVGs ship with their own fixed fill color
@@ -3377,7 +3429,7 @@ File, Donor, and Publication Overview Styles
                     display: inline-block;
                     width: 60px;
                     height: 60px;
-                    background-color: #4E6884;
+                    background-color: currentColor;
                     -webkit-mask-repeat: no-repeat;
                     mask-repeat: no-repeat;
                     -webkit-mask-position: center;
@@ -3398,6 +3450,78 @@ File, Donor, and Publication Overview Styles
                     padding-bottom: 16px;
                     border-bottom: 1px solid #e7f0f3;
                     font-size: 1.75rem;
+                }
+            }
+
+            // Type-keyed page only (TissueTypeView.js): the title shares its
+            // row and bottom rule with the Browse buttons.
+            &-title-row {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid #e7f0f3;
+
+                h1 {
+                    padding-bottom: 0;
+                    border-bottom: none;
+                }
+            }
+
+            &-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+
+                .btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-weight: 500;
+                    color: #31465d;
+                    border-color: #c9d4df;
+                    background-color: #ffffff;
+
+                    i {
+                        color: #4e6884;
+                    }
+
+                    &:hover {
+                        background-color: #f3f7fa;
+                        border-color: #9fb1c3;
+                    }
+                }
+            }
+
+            &-meta {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 0 24px;
+                border-bottom: 1px solid #e7f0f3;
+
+                .tissue-summary-header-notes {
+                    border-bottom: none;
+                }
+
+                .tissue-hex-code {
+                    align-items: center;
+
+                    .tissue-hex-swatch {
+                        display: inline-block;
+                        width: 22px;
+                        height: 22px;
+                        border-radius: 4px;
+                        margin-right: 8px;
+                    }
+
+                    .tissue-hex-value {
+                        font-weight: 500;
+                        color: #212529;
+                    }
                 }
             }
 
@@ -3522,6 +3646,214 @@ File, Donor, and Publication Overview Styles
 
                     .datum:nth-last-child(-n + 2) {
                         border-bottom: none;
+                    }
+                }
+            }
+
+            // Type-keyed page only (TissueTypeView.js): Tissue Summary and the
+            // Sequencing/Histology data cards stack in a left column beside the
+            // aliquot card. The legacy per-item TissueView.js keeps the plain
+            // two-card row above.
+            &.tissue-overview-layout {
+                .tissue-summary-column {
+                    flex: 6 1 520px;
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+
+                    .tissue-summary-card {
+                        flex: 0 0 auto;
+                        max-width: none;
+                    }
+                }
+
+                .tissue-aliquot-card {
+                    flex: 5 1 460px;
+                    max-width: none;
+                }
+
+                .tissue-summary-sections {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 20px;
+
+                    .tissue-summary-section {
+                        flex: 1 1 260px;
+                        min-width: 0;
+                    }
+                }
+
+                .tissue-summary-list {
+                    margin-bottom: 0;
+                    padding: 4px 16px;
+
+                    .datum {
+                        display: grid;
+                        grid-template-columns: minmax(110px, 40%) 1fr;
+                        column-gap: 12px;
+                        padding: 10px 0;
+                        border-bottom: 1px solid #eef1f4;
+                        font-size: 0.8125rem;
+                        color: #212529;
+
+                        &:last-child {
+                            border-bottom: none;
+                        }
+
+                        &-title {
+                            font-weight: 600;
+                        }
+
+                        &-value {
+                            overflow-wrap: anywhere;
+                        }
+                    }
+                }
+
+                .tissue-data-cards {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 24px;
+                    flex: 1 1 auto;
+
+                    .tissue-data-card {
+                        flex: 1 1 260px;
+                        min-width: 0;
+                        background-color: #ffffff;
+                        border: 1px solid #e7f0f3;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        display: flex;
+                        flex-direction: column;
+
+                        > .header {
+                            background-color: #eaf6ed;
+                            padding: 12px 20px;
+                            border-bottom: 1px solid #cdebd8;
+
+                            .header-text {
+                                font-size: 1.0625rem;
+                                font-weight: 600;
+                            }
+                        }
+
+                        > .body {
+                            flex: 1;
+                            padding: 16px;
+                        }
+                    }
+
+                    // Same Frozen green / Fixed salmon as the aliquot
+                    // diagram's own slices (AliquotVisualization.js's
+                    // SLICE_TYPE_STYLES).
+                    .tissue-data-card.sequencing {
+                        --tissue-data-accent: #9cc65a;
+                        --tissue-data-border: #cfe89b;
+                        --tissue-data-tint: #f7fbee;
+                        --tissue-data-label: #5b7a2a;
+                    }
+
+                    .tissue-data-card.histology {
+                        --tissue-data-accent: #e6a47c;
+                        --tissue-data-border: #f2c4a8;
+                        --tissue-data-tint: #fdf4ee;
+                        --tissue-data-label: #9d5f3a;
+                    }
+
+                    .tissue-data-panel {
+                        border: 1px solid var(--tissue-data-border);
+                        border-radius: 6px;
+                        overflow: hidden;
+
+                        &-heading {
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            padding: 14px 16px;
+                            background-color: #ffffff;
+
+                            .tissue-icon-mask {
+                                flex: 0 0 auto;
+                                width: 32px;
+                                height: 32px;
+                                background-color: var(--tissue-data-accent);
+                                -webkit-mask-repeat: no-repeat;
+                                mask-repeat: no-repeat;
+                                -webkit-mask-position: center;
+                                mask-position: center;
+                                -webkit-mask-size: contain;
+                                mask-size: contain;
+                            }
+                        }
+
+                        &-title {
+                            flex: 1;
+                            min-width: 0;
+                            font-size: 1.125rem;
+                            font-weight: 600;
+                            color: #212529;
+                        }
+
+                        &-badge {
+                            flex: 0 0 auto;
+                            padding: 2px 10px;
+                            border: 1px solid var(--tissue-data-border);
+                            border-radius: 4px;
+                            background-color: var(--tissue-data-tint);
+                            color: var(--tissue-data-label);
+                            font-size: 0.75rem;
+                            font-weight: 500;
+                            white-space: nowrap;
+                        }
+
+                        &-stats {
+                            display: flex;
+                            justify-content: space-between;
+                            gap: 12px;
+                            padding: 12px 16px 14px;
+                            background-color: var(--tissue-data-tint);
+                        }
+
+                        &-stat {
+                            .stat-label {
+                                font-size: 0.75rem;
+                                font-weight: 500;
+                                color: var(--tissue-data-label);
+                            }
+
+                            .stat-value {
+                                font-size: 1.25rem;
+                                color: #212529;
+                            }
+                        }
+                    }
+                }
+
+                // "Donor: <id>" reads as one control -- the label sits inside
+                // the select's own border.
+                .tissue-aliquot-donor-select {
+                    gap: 4px;
+                    padding-left: 10px;
+                    border: 1px solid #dee2e6;
+                    border-radius: 4px;
+                    background-color: #ffffff;
+
+                    label {
+                        font-weight: 500;
+                        color: #5d5e63;
+                    }
+
+                    select {
+                        border: none;
+                        box-shadow: none;
+                        min-width: 110px;
+                    }
+
+                    &.is-unselected {
+                        border-color: #1f9f55;
+                        box-shadow: 0 0 0 3px rgba(31, 159, 85, 0.15);
+                        animation: tissue-aliquot-select-pulse 1.8s ease-in-out infinite;
                     }
                 }
             }
@@ -3859,19 +4191,19 @@ File, Donor, and Publication Overview Styles
                     // independently pickable even though they start out
                     // showing the same colors.
                     &.score-0 {
-                        background-color: var(--tissue-donor-score-0-bg, #DAEBF1);
+                        background-color: var(--tissue-donor-score-0-bg, $tissue-autolysis-score-0-bg);
                         color: var(--tissue-donor-score-0-text, #28323C);
                     }
                     &.score-1 {
-                        background-color: var(--tissue-donor-score-1-bg, #ADD3E1);
+                        background-color: var(--tissue-donor-score-1-bg, $tissue-autolysis-score-1-bg);
                         color: var(--tissue-donor-score-1-text, #28323C);
                     }
                     &.score-2 {
-                        background-color: var(--tissue-donor-score-2-bg, #80BBD0);
-                        color: var(--tissue-donor-score-2-text, #28323C);
+                        background-color: var(--tissue-donor-score-2-bg, $tissue-autolysis-score-2-bg);
+                        color: var(--tissue-donor-score-2-text, #FFFFFF);
                     }
                     &.score-3 {
-                        background-color: var(--tissue-donor-score-3-bg, #54A3C0);
+                        background-color: var(--tissue-donor-score-3-bg, $tissue-autolysis-score-3-bg);
                         color: var(--tissue-donor-score-3-text, #FFFFFF);
                     }
                 }
@@ -3921,20 +4253,328 @@ File, Donor, and Publication Overview Styles
             // Browse-by-Tissue heatmap's separate `--heatmap-score-N-*`.
             .tissue-heatmap-fixed-legend-swatch {
                 &.tissue-donor-score-0 {
-                    background-color: var(--tissue-donor-score-0-bg, #DAEBF1);
+                    background-color: var(--tissue-donor-score-0-bg, $tissue-autolysis-score-0-bg);
                     color: var(--tissue-donor-score-0-text, #28323C);
                 }
                 &.tissue-donor-score-1 {
-                    background-color: var(--tissue-donor-score-1-bg, #ADD3E1);
+                    background-color: var(--tissue-donor-score-1-bg, $tissue-autolysis-score-1-bg);
                     color: var(--tissue-donor-score-1-text, #28323C);
                 }
                 &.tissue-donor-score-2 {
-                    background-color: var(--tissue-donor-score-2-bg, #80BBD0);
-                    color: var(--tissue-donor-score-2-text, #28323C);
+                    background-color: var(--tissue-donor-score-2-bg, $tissue-autolysis-score-2-bg);
+                    color: var(--tissue-donor-score-2-text, #FFFFFF);
                 }
                 &.tissue-donor-score-3 {
-                    background-color: var(--tissue-donor-score-3-bg, #54A3C0);
+                    background-color: var(--tissue-donor-score-3-bg, $tissue-autolysis-score-3-bg);
                     color: var(--tissue-donor-score-3-text, #FFFFFF);
+                }
+            }
+        }
+
+        // Non-brain Pathology Reports table (PathologyReportsTable.js): fixed
+        // column widths so every column stays in view, with long values
+        // wrapping onto more lines instead of widening their column. Each
+        // donor is its own <tbody> (donor row + optional aliquot row), so
+        // striping goes by <tbody> rather than by row. Colors are the
+        // mockup's own (lavender header, purple tab accent).
+        .tissue-donor-table-card.pathology-reports-card {
+            &.tissue-heatmap-card .tissue-heatmap-tabs.dot-tab-nav .dot-tab-nav-list button.active {
+                border-top-color: $pathology-reports-accent;
+                color: $pathology-reports-text;
+            }
+
+            // Text sizes below keep the mockup's own proportions, scaled down
+            // by the same ~0.84 the rest of this page already runs at relative
+            // to the mockup (e.g. Tissue Summary's 13px fields vs. its ~15.4px)
+            // so the table doesn't outsize the cards above it. Weights are the
+            // mockup's own.
+            .tissue-heatmap-tabs .btn-title {
+                font-size: 1.0625rem;
+            }
+
+            // The table sits inset from the card's edges, as in the mockup,
+            // instead of running flush against them.
+            .body {
+                padding: 16px 18px 14px;
+            }
+        }
+
+        .tissue-donor-table-card .tissue-donor-table.pathology-reports-table {
+            table-layout: fixed;
+            min-width: 960px;
+            color: $pathology-reports-body-text;
+            font-size: 0.9375rem;
+
+            > thead > tr > th,
+            > tbody > tr > td {
+                white-space: normal;
+                overflow-wrap: anywhere;
+                padding: 8px 12px;
+                text-align: center;
+            }
+
+            > thead > tr > th {
+                font-weight: 600;
+                background-color: $pathology-reports-header-bg;
+                color: $pathology-reports-text;
+                border-right: none;
+                border-bottom: 1px solid $pathology-reports-header-border;
+            }
+
+            > thead > tr > th:first-child,
+            > tbody > tr.pathology-donor-row > td:first-child {
+                text-align: left;
+            }
+
+            > tbody > tr > td {
+                border-right: 1px solid $pathology-reports-divider;
+            }
+
+            > tbody > tr > td:not(.autolysis-score-cell) {
+                color: $pathology-reports-body-text;
+            }
+
+            > tbody > tr:nth-child(even) > td:not(.autolysis-score-cell) {
+                background-color: transparent;
+            }
+
+            > tbody:nth-of-type(even) > tr.pathology-donor-row > td:not(.autolysis-score-cell) {
+                background-color: $pathology-reports-zebra;
+            }
+
+            > tbody > tr.pathology-donor-row > td {
+                border-top: 1px solid $pathology-reports-divider;
+            }
+
+            a {
+                color: $pathology-reports-link;
+            }
+
+            .text-muted-placeholder {
+                color: $pathology-reports-muted;
+            }
+
+            .tissue-heatmap-sort-icon {
+                color: #b9b6dc;
+            }
+
+            .pathology-row-toggle {
+                background: none;
+                border: none;
+                padding: 0;
+                margin-right: 10px;
+                width: 14px;
+                color: $pathology-reports-header-border;
+                font-size: 0.8125rem;
+                cursor: pointer;
+
+                &:hover {
+                    color: $pathology-reports-text;
+                }
+            }
+
+            .tissue-autolysis-info-icon {
+                margin-left: 6px;
+                font-size: 0.8125rem;
+                color: #bfbbe2;
+                cursor: help;
+            }
+
+            .pathology-findings-cell {
+                display: inline-flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                color: #000000;
+            }
+
+            .pathology-findings-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 2px 10px;
+                border: none;
+                border-radius: 6px;
+                background-color: #fbffae;
+                color: #000000;
+                font: inherit;
+                font-weight: 500;
+                cursor: pointer;
+
+                .icon-flag {
+                    color: #d7db3c;
+                }
+
+                .icon-caret-down {
+                    font-size: 0.75rem;
+                    color: #828506;
+                }
+
+                &:hover {
+                    background-color: #f4f88a;
+                }
+            }
+
+            .histology-images-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 600;
+            }
+
+            > tbody > tr.pathology-aliquot-row > td {
+                padding: 12px 12px 16px;
+                text-align: left;
+                background-color: #ffffff;
+            }
+
+            .pathology-aliquot-heading {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 10px;
+                font-size: 0.9375rem;
+                color: $pathology-reports-text;
+
+                .tissue-icon-mask {
+                    width: 24px;
+                    height: 24px;
+                    background-color: $pathology-reports-header-border;
+                    -webkit-mask-repeat: no-repeat;
+                    mask-repeat: no-repeat;
+                    -webkit-mask-position: center;
+                    mask-position: center;
+                    -webkit-mask-size: contain;
+                    mask-size: contain;
+                }
+            }
+
+            .pathology-reports-empty {
+                color: $pathology-reports-muted;
+            }
+
+            // BrainPathologyReportsTable.js's expanded report: Sample Details
+            // beside the Brain Diagnosis Summary, Neuropathology Findings below.
+            .brain-report-heading {
+                padding-bottom: 10px;
+                margin-bottom: 14px;
+                border-bottom: 1px solid $pathology-reports-divider;
+            }
+
+            .brain-report-details {
+                padding-left: 8px;
+
+                & + .brain-report-details {
+                    margin-top: 20px;
+                }
+
+                &.is-highlighted {
+                    box-shadow: inset 3px 0 0 $pathology-reports-accent;
+                }
+            }
+
+            .brain-report-sections {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 16px 40px;
+                margin-bottom: 16px;
+
+                .brain-report-samples {
+                    flex: 1 1 320px;
+                    max-width: 560px;
+                }
+
+                .brain-report-diagnosis {
+                    flex: 3 1 480px;
+                }
+            }
+
+            .brain-report-section-title {
+                margin-bottom: 6px;
+                font-size: 0.8125rem;
+                font-weight: 600;
+                color: $pathology-reports-text;
+            }
+
+            // Centered throughout, unlike the aliquot table's left-aligned
+            // first column -- except the diagnosis/notes free text.
+            .brain-findings-table.pathology-aliquot-table,
+            .brain-report-samples .pathology-aliquot-table {
+                th:first-child,
+                td:first-child {
+                    text-align: center;
+                }
+            }
+
+            .brain-report-diagnosis .pathology-aliquot-table {
+                th:not(:first-child),
+                td:not(:first-child) {
+                    text-align: left;
+                }
+            }
+
+            .pathology-aliquot-table {
+                width: 100%;
+                table-layout: fixed;
+                border: 1px solid #cedbdf;
+                font-size: 0.875rem;
+
+                th,
+                td {
+                    padding: 6px 8px;
+                    white-space: normal;
+                    overflow-wrap: break-word;
+                    text-align: center;
+                    vertical-align: middle;
+                    border-right: 1px solid $pathology-reports-divider;
+                }
+
+                th {
+                    font-size: 0.8125rem;
+                    background-color: #e5edf8;
+                    color: #30427e;
+                    font-weight: 500;
+                    border-right-color: #c9c7e7;
+                    border-bottom: 1px solid #cedbdf;
+                }
+
+                td {
+                    border-top: 1px solid $pathology-reports-divider;
+                }
+
+                td:not(.autolysis-score-cell) {
+                    color: $pathology-reports-text;
+                }
+
+                th:first-child,
+                td:first-child {
+                    text-align: left;
+                }
+
+                tbody tr td:not(.autolysis-score-cell) {
+                    background-color: #ffffff;
+                }
+
+                tbody tr:nth-child(even) td:not(.autolysis-score-cell) {
+                    background-color: $pathology-reports-zebra;
+                }
+
+                tbody tr td.is-finding-present {
+                    background-color: #fcffc3;
+                }
+
+                tbody tr.is-highlighted td:first-child {
+                    box-shadow: inset 3px 0 0 $pathology-reports-accent;
+                }
+
+                .aliquot-popover-pathology-outcome {
+                    @include pathology-outcome-badge;
+                    font-size: 0.75rem;
+                }
+
+                .aliquot-popover-pathology-outcome-description {
+                    @include pathology-outcome-description;
                 }
             }
         }
@@ -4703,33 +5343,14 @@ File, Donor, and Publication Overview Styles
     // own link so a reader doesn't have to open it just to see which one it
     // was.
     .aliquot-popover-pathology-outcome {
-        flex-shrink: 0;
-        padding: 1px 6px;
-        border-radius: 3px;
-        font-size: 0.6875rem;
-        font-weight: 600;
-        white-space: nowrap;
-
-        &.is-acceptable {
-            background-color: #E7F5EC;
-            color: #2E8B57;
-        }
-
-        &.is-unacceptable {
-            background-color: #FBEAEA;
-            color: #C0392B;
-        }
+        @include pathology-outcome-badge;
     }
 
     // Shown directly under an Unacceptable badge (PathologyOutcomeBadge) --
     // was a hover-only `title` tooltip; per explicit request, the reason
     // should be visible without hovering.
     .aliquot-popover-pathology-outcome-description {
-        margin-top: 3px;
-        font-size: 0.6875rem;
-        font-weight: 400;
-        color: #6B7785;
-        white-space: normal;
+        @include pathology-outcome-description;
     }
 
     .aliquot-popover-row {
@@ -5231,5 +5852,78 @@ Popover Styles for Item Pages
         .popover-body {
             padding: 15px 12px;
         }
+    }
+}
+
+// PathologyReportsTable.js's popovers -- rendered at <body> level, outside
+// .tissue-view, so styled at the top level.
+.tissue-autolysis-legend-popover {
+    font-size: 0.8125rem;
+
+    .tissue-autolysis-legend-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .tissue-autolysis-legend-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .tissue-autolysis-legend-swatch {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 20px;
+        border-radius: 3px;
+        font-weight: 600;
+        color: #28323c;
+
+        &.score-0 {
+            background-color: $tissue-autolysis-score-0-bg;
+        }
+        &.score-1 {
+            background-color: $tissue-autolysis-score-1-bg;
+        }
+        &.score-2 {
+            background-color: $tissue-autolysis-score-2-bg;
+            color: #ffffff;
+        }
+        &.score-3 {
+            background-color: $tissue-autolysis-score-3-bg;
+            color: #ffffff;
+        }
+    }
+}
+
+.pathology-findings-popover {
+    max-width: 480px;
+    font-size: 0.8125rem;
+
+    table {
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 4px 8px;
+        vertical-align: top;
+        border-bottom: 1px solid #eef1f4;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    .finding-aliquot {
+        white-space: nowrap;
+        color: #5d6d7e;
+    }
+
+    .finding-type {
+        font-weight: 600;
+        white-space: nowrap;
     }
 }

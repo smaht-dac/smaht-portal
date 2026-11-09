@@ -11,24 +11,22 @@ import { BROWSE_STATUS_FILTERS } from './BrowseView';
 import {
     HeatmapColorPicker,
     buildSequentialPaletteFromHex,
-    SortableHeaderLabel,
-    compareSortValues,
-    FixedScoreLegend,
 } from './browse-view/BrowseTissueHeatmapTable';
 import AliquotVisualization from '../item-pages/components/tissue-overview/AliquotVisualization';
 import NonSolidAliquotVisualization from '../item-pages/components/tissue-overview/NonSolidAliquotVisualization';
+import PathologyReportsTable, {
+    PATHOLOGY_REPORT_SEARCH_FIELDS,
+    getReportDonorUuids,
+} from '../item-pages/components/tissue-overview/PathologyReportsTable';
+import BrainPathologyReportsTable, {
+    BRAIN_PATHOLOGY_REPORT_SEARCH_FIELDS,
+} from '../item-pages/components/tissue-overview/BrainPathologyReportsTable';
 import { useUserDownloadAccess } from '../util/hooks';
 import { pageTitleViews } from '../PageTitleSection';
-import { formatDonorAge } from '../item-pages/components/donor-overview/ProtectedDonorViewDataCards';
-import { formatCoverageDisplayValue } from '../viz/Matrix/StackedBlockVisual';
+import { getTissueInternalCodeFromFacetTerm } from '../util/data';
 import {
-    getDonorHref,
     getDisplayText,
-    formatYesNo,
-    getAutolysisScoreCellClass,
     dedupeTissuesByDonor,
-    formatSexBreakdown,
-    TissueDatum,
     sampleAliquotSlicesFallback,
     getTissueKitIdFromExternalId,
     sampleNonSolidAliquots,
@@ -78,18 +76,99 @@ const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('
 // (see visualization.py's max_bucket_count/MAX_BUCKET_COUNT_CEILING).
 const TISSUE_TYPE_MAX_BUCKET_COUNT = 3000;
 
-// The Donor Details table's own 0=None..3=Severe legend (FixedScoreLegend,
-// same component/format BrowseTissueHeatmapTable.js's Autolysis Score tab
-// uses) -- a distinct `tissue-donor-score-N` class per swatch (not that
-// tab's own `score-N`) so its color reads `--tissue-donor-score-N-bg`
-// (_item-pages.scss), the same custom property this table's own
-// .autolysis-score-cell reads and HeatmapColorPicker below overrides --
-// reusing the heatmap tab's own `score-N`/`--heatmap-score-N-bg` variable
-// here would leave this legend out of sync with a custom color pick made
-// on *this* page specifically.
-const TISSUE_DONOR_AUTOLYSIS_LEGEND_ENTRIES = [0, 1, 2, 3].map((value) => {
-    return { className: `tissue-donor-score-${value}`, label: String(value) };
-});
+// Same released-donor Production population this page's own Tissue search is
+// forced to (tissue_overview.py), expressed from a TissueSample's side -- see
+// types/tissue_sample.py's sample_sources.donor.* embeds.
+const SAMPLE_DONOR_POPULATION_PARAMS = {
+    'sample_sources.donor.study': ['Production'],
+    'sample_sources.donor.tags': ['has_released_files'],
+};
+
+// Tissue.preservation_type ("Snap Frozen", "Fixed" or "Fresh") decides which
+// of the Sequencing Data/Histology & Pathology Data cards a Tissue (and its
+// samples) counts towards: Fixed tissue is what pathology reports and
+// histology images are made from, every other kind is what gets sequenced.
+const isFixedPreservation = (preservationType) => preservationType === 'Fixed';
+
+// "Snap Frozen" reads as plain "Frozen" in TPC code labels (e.g. "3Q - Frozen Lung").
+const getPreservationLabel = (preservationType) =>
+    preservationType && /frozen/i.test(preservationType) ? 'Frozen' : preservationType || null;
+
+// A Tissue's own TPC code from its external_id (e.g. "3AG" in "SMHT004-3AG") --
+// unlike tissue_type's code, this differs between a donor's Fixed and Frozen
+// Tissue records even though both share one tissue_type.
+const getTpcCodeFromExternalId = (externalId) => {
+    const match = /^[A-Z0-9]+-(\d+[A-Z]+)$/.exec(externalId || '');
+    return match ? match[1] : null;
+};
+
+// Resolves to a search's `total`, or 0 -- an empty search answers 404 (with
+// total 0), which ajax.load routes to its error callback.
+const fetchSearchTotal = (href) =>
+    new Promise((resolve) => {
+        const onResponse = (resp) => resolve(resp?.total || 0);
+        ajax.load(href, onResponse, 'GET', onResponse);
+    });
+
+const SummaryDatum = ({ title, children }) => (
+    <div className="datum">
+        <span className="datum-title">{title}</span>
+        <span className="datum-value">{children || '-'}</span>
+    </div>
+);
+
+// One of the Sequencing Data/Histology & Pathology Data cards: the TPC
+// code(s) of the Tissues it covers, their sample count, and its own stats.
+// A null count is still loading.
+const TissueDataCard = ({ title, variant, iconSrc, codeLabels, sampleCount, stats }) => (
+    <div className={'tissue-data-card ' + variant}>
+        <div className="header">
+            <span className="header-text">{title}</span>
+        </div>
+        <div className="body">
+            <div className="tissue-data-panel">
+                <div className="tissue-data-panel-heading">
+                    {iconSrc ? (
+                        <i
+                            className="tissue-icon-mask"
+                            style={{
+                                WebkitMaskImage: `url(${iconSrc})`,
+                                maskImage: `url(${iconSrc})`,
+                            }}
+                        />
+                    ) : null}
+                    <div className="tissue-data-panel-title">
+                        {codeLabels.map((label) => (
+                            <div key={label}>{label}</div>
+                        ))}
+                    </div>
+                    <span className="tissue-data-panel-badge">
+                        {sampleCount === null ? (
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        ) : (
+                            sampleCount
+                        )}{' '}
+                        {sampleCount === 1 ? 'Sample' : 'Samples'}
+                    </span>
+                </div>
+                <div className="tissue-data-panel-stats">
+                    {stats.map(({ label, value }) => (
+                        <div className="tissue-data-panel-stat" key={label}>
+                            <div className="stat-label">{label}</div>
+                            <div className="stat-value">
+                                {value === null ? (
+                                    <i className="icon icon-circle-notch icon-spin fas" />
+                                ) : (
+                                    value
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    </div>
+);
 
 const TissueTypeViewTitle = ({ representativeTissue }) => {
     // Same tissue_type-first preference as the body's targetTissueValue below.
@@ -150,7 +229,6 @@ export default function TissueTypeView({
     // for this, unlike the legacy per-item TissueView.js.
     const allTissuesForType = context?.['@graph'] || [];
     const donors = useMemo(() => dedupeTissuesByDonor(allTissuesForType), [allTissuesForType]);
-    const donorCount = donors.length;
 
     // Experimental Colors picker for the Donor Details table's Autolysis
     // Score column -- same admin-only, in-memory-only pattern as
@@ -177,42 +255,6 @@ export default function TissueTypeView({
         }, {})
         : undefined;
 
-    // Donor Details table sort -- same asc/desc/none click-cycle pattern as
-    // BrowseTissueHeatmapTable.js's MetricHeatmapTable, adapted to this
-    // table's donor-row (not donor x tissue-type) shape. Histology Viewer
-    // has no entry here -- it's a link/count, not a meaningful ranking value.
-    const [donorTableSortState, setDonorTableSortState] = useState(null);
-    const handleDonorTableHeaderClick = (key) => {
-        setDonorTableSortState((prev) => {
-            if (!prev || prev.key !== key) return { key, direction: 'asc' };
-            if (prev.direction === 'asc') return { key, direction: 'desc' };
-            return null;
-        });
-    };
-    const donorTableSortValueGetters = {
-        donorId: ({ donor: d }) => getDisplayText(d),
-        sex: ({ donor: d }) => d?.sex ?? null,
-        age: ({ donor: d }) => (typeof d?.age === 'number' ? d.age : null),
-        autolysisScore: ({ tissue: t }) => t?.pathology_summary?.autolysis_score ?? null,
-        nonTargetPresence: ({ tissue: t }) => {
-            const value = t?.pathology_summary?.non_target_tissue_present;
-            return typeof value === 'boolean' ? Number(value) : null;
-        },
-        pathologicFinding: ({ tissue: t }) => {
-            const value = t?.pathology_summary?.pathologic_finding_present;
-            return typeof value === 'boolean' ? Number(value) : null;
-        },
-    };
-    const displayDonors = useMemo(() => {
-        if (!donorTableSortState) return donors;
-        const getSortValue = donorTableSortValueGetters[donorTableSortState.key];
-        if (!getSortValue) return donors;
-        return [...donors].sort((entryA, entryB) =>
-            compareSortValues(getSortValue(entryA), getSortValue(entryB), donorTableSortState.direction)
-        );
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [donors, donorTableSortState]);
-
     // Representative Tissue for header/summary fields (uberon_id, category,
     // study, display_title) -- prefer an entry with a populated
     // pathology_summary, same preference dedupeTissuesByDonor uses.
@@ -221,7 +263,7 @@ export default function TissueTypeView({
         [allTissuesForType]
     );
 
-    const { display_title, uberon_id, tissue_type, study, category } = representativeTissue || {};
+    const { display_title, uberon_id, tissue_type, category } = representativeTissue || {};
 
     const uberonHref = uberon_id && uberon_id['@id'] ? uberon_id['@id'] : null;
     // `tissue_type` (not uberon_id.display_title) so the displayed name
@@ -277,10 +319,83 @@ export default function TissueTypeView({
     const filesBrowseHref = getTissueFilesBrowseHref({
         tissueTypeValue: tissueMatrixFilterValue,
     });
+    // Every HistologyImage of this tissue_type's pathology reports, for the
+    // same donor population -- also the query the Histology Images count
+    // below runs, so the count matches the list this link opens.
+    const histologyImagesSearchQuery = tissueMatrixFilterValue
+        ? 'type=HistologyImage' +
+          `&pathology_reports.tissue_samples.sample_sources.tissue_type=${encodeURIComponent(tissueMatrixFilterValue)}` +
+          '&pathology_reports.tissue_samples.sample_sources.donor.study=Production' +
+          '&pathology_reports.tissue_samples.sample_sources.donor.tags=has_released_files'
+        : null;
+    const histologyImagesBrowseHref = histologyImagesSearchQuery
+        ? `/search/?${histologyImagesSearchQuery}`
+        : null;
+
+    const tissueName = getTissueNameFromFacetTerm(targetTissueValue);
+    // Brain regions (e.g. "Brain, Frontal Lobe") have BrainPathologyReports,
+    // whose aliquot table isn't designed yet -- they keep the donor-level table.
+    const isBrainTissue = /^brain\b/i.test(tissueName);
+    const smahtAcronym = tissue_type ? getTissueInternalCodeFromFacetTerm(tissue_type) : null;
+    // Each distinct TPC code among this tissue_type's Tissues with its
+    // preservation type -- sequenced (Frozen/Fresh) codes first, then Fixed.
+    const tpcCodeEntries = useMemo(() => {
+        const preservationTypeByCode = new Map();
+        allTissuesForType.forEach((t) => {
+            const code = getTpcCodeFromExternalId(t?.external_id);
+            if (code && !preservationTypeByCode.has(code)) {
+                preservationTypeByCode.set(code, t.preservation_type || null);
+            }
+        });
+        return Array.from(preservationTypeByCode, ([code, preservationType]) => {
+            return { code, preservationType };
+        }).sort(
+            (a, b) =>
+                Number(isFixedPreservation(a.preservationType)) -
+                    Number(isFixedPreservation(b.preservationType)) ||
+                a.code.localeCompare(b.code, undefined, { numeric: true })
+        );
+    }, [allTissuesForType]);
+    const getTpcCodeDescription = ({ preservationType }) =>
+        [getPreservationLabel(preservationType), tissueName].filter(Boolean).join(' ');
+    // Falls back to a plain "Fixed Liver"-style label when no Tissue of that
+    // kind exists for this tissue_type (yet).
+    const getTpcCodeLabels = (isFixed) => {
+        const labels = tpcCodeEntries
+            .filter((entry) => isFixedPreservation(entry.preservationType) === isFixed)
+            .map((entry) => `${entry.code} - ${getTpcCodeDescription(entry)}`);
+        return labels.length > 0 ? labels : [`${isFixed ? 'Fixed' : 'Frozen'} ${tissueName}`];
+    };
+    // Target tissue subtypes reported by this tissue_type's pathology reports
+    // (pathology_summary.target_tissues) -- a subtype named the same as the
+    // tissue itself (e.g. Lung's "Lung") isn't a real subdivision of it.
+    const tissueSubtypes = useMemo(() => {
+        const subtypes = new Set();
+        allTissuesForType.forEach((t) => {
+            (t?.pathology_summary?.target_tissues || []).forEach((entry) => {
+                if (entry?.subtype && entry.subtype.toLowerCase() !== tissueName.toLowerCase()) {
+                    subtypes.add(entry.subtype);
+                }
+            });
+        });
+        return Array.from(subtypes).sort();
+    }, [allTissuesForType, tissueName]);
+    // Tissue.anatomical_location is recorded per Tissue, so donors can differ
+    // -- each distinct value is listed. One that just repeats the tissue's
+    // own name (e.g. "Liver") says nothing more and is left out.
+    const collectionDetails = useMemo(() => {
+        const locations = new Set();
+        allTissuesForType.forEach((t) => {
+            const location = t?.anatomical_location?.trim();
+            if (location && location.toLowerCase() !== tissueName.toLowerCase()) {
+                locations.add(location);
+            }
+        });
+        return Array.from(locations).sort();
+    }, [allTissuesForType, tissueName]);
 
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
-    const [totalCoverage, setTotalCoverage] = useState(0);
     // See TissueView.js's identical state for the full rationale.
     const [sampleNamesWithFiles, setSampleNamesWithFiles] = useState(null);
     // See TissueView.js's identical state for the full rationale.
@@ -700,7 +815,6 @@ export default function TissueTypeView({
     useEffect(() => {
         if (!tissueMatrixFilterValue) {
             setFileCount(0);
-            setTotalCoverage(0);
             setSampleNamesWithFiles(new Set());
             setAssayPlatformsBySampleName({});
             setIsLoading(false);
@@ -725,11 +839,9 @@ export default function TissueTypeView({
             (resp) => {
                 setFileCount(resp?.counts?.files || 0);
                 const statusBuckets = resp?.terms || {};
-                let coverageSum = 0;
                 const namesWithFiles = new Set();
                 const assayPlatforms = {};
                 Object.values(statusBuckets).forEach((bucket) => {
-                    coverageSum += Number(bucket?.counts?.total_coverage) || 0;
                     Object.entries(bucket?.terms || {}).forEach(([name, sampleBucket]) => {
                         namesWithFiles.add(name);
                         const combos = assayPlatforms[name] || (assayPlatforms[name] = new Set());
@@ -744,7 +856,6 @@ export default function TissueTypeView({
                         });
                     });
                 });
-                setTotalCoverage(coverageSum);
                 setSampleNamesWithFiles(namesWithFiles);
                 setAssayPlatformsBySampleName(
                     Object.fromEntries(
@@ -759,7 +870,6 @@ export default function TissueTypeView({
             'POST',
             () => {
                 setFileCount(0);
-                setTotalCoverage(0);
                 setSampleNamesWithFiles(new Set());
                 setAssayPlatformsBySampleName({});
                 setIsLoading(false);
@@ -778,6 +888,155 @@ export default function TissueTypeView({
             null
         );
     }, [tissueMatrixFilterValue, session]);
+
+    // Sample and donor counts for the Sequencing Data/Histology & Pathology
+    // Data cards, split by each sample's own preservation type (see
+    // isFixedPreservation) -- not its Tissue's, same as Browse by Tissue's
+    // chart (tissue-histology-samples.js). One aggregation, bucketed by
+    // preservation type and then donor. null while loading.
+    const [sampleStats, setSampleStats] = useState(null);
+    useEffect(() => {
+        const emptyStats = {
+            sequencing: { samples: 0, donors: 0 },
+            histology: { samples: 0, donors: 0 },
+        };
+        if (!tissueMatrixFilterValue) {
+            setSampleStats(emptyStats);
+            return;
+        }
+        let ignore = false;
+        setSampleStats(null);
+        ajax.load(
+            '/data_matrix_aggregations/',
+            (resp) => {
+                if (ignore) return;
+                const groups = {
+                    sequencing: { samples: 0, donors: new Set() },
+                    histology: { samples: 0, donors: new Set() },
+                };
+                Object.entries(resp?.terms || {}).forEach(([preservationType, bucket]) => {
+                    // Samples with no preservation type belong to neither card.
+                    if (preservationType === 'No value') return;
+                    const group = isFixedPreservation(preservationType)
+                        ? groups.histology
+                        : groups.sequencing;
+                    group.samples += bucket?.counts?.files || 0;
+                    Object.keys(bucket?.terms || {}).forEach((donorId) => group.donors.add(donorId));
+                });
+                setSampleStats({
+                    sequencing: { samples: groups.sequencing.samples, donors: groups.sequencing.donors.size },
+                    histology: { samples: groups.histology.samples, donors: groups.histology.donors.size },
+                });
+            },
+            'POST',
+            () => {
+                if (!ignore) setSampleStats(emptyStats);
+            },
+            JSON.stringify({
+                search_query_params: {
+                    type: ['TissueSample'],
+                    'status!': ['deleted'],
+                    'sample_sources.tissue_type': [tissueMatrixFilterValue],
+                    ...SAMPLE_DONOR_POPULATION_PARAMS,
+                },
+                column_agg_fields: ['preservation_type'],
+                row_agg_fields: ['sample_sources.donor.external_id'],
+                max_bucket_count: TISSUE_TYPE_MAX_BUCKET_COUNT,
+            }),
+            {},
+            null
+        );
+        return () => {
+            ignore = true;
+        };
+    }, [tissueMatrixFilterValue, session]);
+
+    // The cards' remaining counts, each a plain search total. Variant Call
+    // Sets are this tissue's SNV/Indel files, under the same filters as the
+    // Browse Sequencing Files link. null while loading.
+    const [recordCounts, setRecordCounts] = useState(null);
+    useEffect(() => {
+        if (!tissueMatrixFilterValue) {
+            setRecordCounts({ variantCallSets: 0, pathologyReports: 0, histologyImages: 0 });
+            return;
+        }
+        let ignore = false;
+        setRecordCounts(null);
+        const tissueParam = encodeURIComponent(tissueMatrixFilterValue);
+        Promise.all([
+            fetchSearchTotal(
+                `/search/?type=File&${BROWSE_STATUS_FILTERS}&dataset%21=No+value` +
+                    `&sample_summary.tissues=${tissueParam}&data_type=SNV&data_type=Indel&limit=0`
+            ),
+            fetchSearchTotal(
+                `/search/?type=PathologyReport&tissue_samples.sample_sources.tissue_type=${tissueParam}` +
+                    '&tissue_samples.sample_sources.donor.study=Production' +
+                    '&tissue_samples.sample_sources.donor.tags=has_released_files&limit=0'
+            ),
+            fetchSearchTotal(`/search/?${histologyImagesSearchQuery}&limit=0`),
+        ]).then(([variantCallSets, pathologyReports, histologyImages]) => {
+            if (!ignore) setRecordCounts({ variantCallSets, pathologyReports, histologyImages });
+        });
+        return () => {
+            ignore = true;
+        };
+        // histologyImagesSearchQuery is derived from tissueMatrixFilterValue alone.
+    }, [tissueMatrixFilterValue, session]);
+
+    // Every pathology report for this tissue_type (same donor population as
+    // the page) -- BrainPathologyReports for a brain region, else
+    // NonBrainPathologyReports -- for the Pathology Reports table's expanded
+    // rows and per-donor findings/images. null while loading.
+    const [pathologyReports, setPathologyReports] = useState(null);
+    useEffect(() => {
+        if (!tissueMatrixFilterValue) {
+            setPathologyReports([]);
+            return;
+        }
+        let ignore = false;
+        setPathologyReports(null);
+        const onResponse = (resp) => {
+            if (!ignore) setPathologyReports(resp?.['@graph'] || []);
+        };
+        ajax.load(
+            `/search/?type=${isBrainTissue ? 'BrainPathologyReport' : 'NonBrainPathologyReport'}` +
+                `&tissue_samples.sample_sources.tissue_type=${encodeURIComponent(tissueMatrixFilterValue)}` +
+                '&tissue_samples.sample_sources.donor.study=Production' +
+                '&tissue_samples.sample_sources.donor.tags=has_released_files' +
+                `&limit=all&${isBrainTissue ? BRAIN_PATHOLOGY_REPORT_SEARCH_FIELDS : PATHOLOGY_REPORT_SEARCH_FIELDS}`,
+            onResponse,
+            'GET',
+            // An empty search answers 404 with an empty @graph.
+            onResponse
+        );
+        return () => {
+            ignore = true;
+        };
+    }, [tissueMatrixFilterValue, isBrainTissue, session]);
+
+    // Donor rows open in the Pathology Reports table -- also opened from the
+    // aliquot diagram's report links (handlePathologyReportClick), which
+    // additionally highlight and scroll to that report's row.
+    const [expandedDonorUuids, setExpandedDonorUuids] = useState(() => new Set());
+    const [highlightedReportId, setHighlightedReportId] = useState(null);
+    const handleToggleDonor = (donorUuid) => {
+        setExpandedDonorUuids((prev) => {
+            const next = new Set(prev);
+            if (next.has(donorUuid)) next.delete(donorUuid);
+            else next.add(donorUuid);
+            return next;
+        });
+    };
+    // Returns false (so the link opens the report page as before) when the
+    // report isn't in this page's table, e.g. a brain tissue or still loading.
+    const handlePathologyReportClick = (reportId) => {
+        const report = (pathologyReports || []).find((r) => r['@id'] === reportId);
+        const donorUuids = report ? getReportDonorUuids(report) : [];
+        if (donorUuids.length === 0) return false;
+        setExpandedDonorUuids((prev) => new Set([...prev, ...donorUuids]));
+        setHighlightedReportId(reportId);
+        return true;
+    };
 
     // See TissueView.js's identical effect for the full rationale.
     useEffect(() => {
@@ -819,8 +1078,9 @@ export default function TissueTypeView({
                         style={
                             tissueColorHex
                                 ? {
+                                    backgroundColor: hexToRgba(tissueColorHex, 0.12),
                                     borderColor: hexToRgba(tissueColorHex, 0.85),
-                                    borderWidth: 4,
+                                    color: tissueColorHex,
                                 }
                                 : undefined
                         }>
@@ -837,92 +1097,162 @@ export default function TissueTypeView({
                         )}
                     </div>
                     <div className="tissue-summary-header-content">
-                        <h1 className="header-text fw-semibold">
-                            {study ? `${study} Tissue: ` : 'Tissue: '}
-                            {getDisplayText(targetTissueValue) !== '-'
-                                ? getTissueDisplayLabel(targetTissueValue)
-                                : display_title}
-                        </h1>
-                        {uberon_id?.description ? (
-                            <div className="tissue-summary-header-notes">
-                                <span className="notes-label">Description</span>
-                                <span className="notes-value">{uberon_id.description}</span>
+                        <div className="tissue-summary-header-title-row">
+                            <h1 className="header-text fw-semibold">
+                                Tissue Overview:{' '}
+                                {tissueName !== '-' ? tissueName : display_title}
+                            </h1>
+                            <div className="tissue-summary-header-actions">
+                                {filesBrowseHref ? (
+                                    <a className="btn btn-sm btn-outline-secondary" href={filesBrowseHref}>
+                                        <i className="icon icon-file fas" />
+                                        Browse Sequencing Files
+                                    </a>
+                                ) : null}
+                                {histologyImagesBrowseHref ? (
+                                    <a className="btn btn-sm btn-outline-secondary" href={histologyImagesBrowseHref}>
+                                        <i className="icon icon-image fas" />
+                                        Browse Histology Images
+                                    </a>
+                                ) : null}
                             </div>
-                        ) : null}
+                        </div>
+                        <div className="tissue-summary-header-meta">
+                            <div className="tissue-summary-header-notes">
+                                <span className="notes-label">Tissue Subtypes</span>
+                                <span className="notes-value">
+                                    {tissueSubtypes.length > 0
+                                        ? tissueSubtypes.join(', ')
+                                        : `No ${tissueName} Subtypes`}
+                                </span>
+                            </div>
+                            {tissueColorHex ? (
+                                <div className="tissue-summary-header-notes tissue-hex-code">
+                                    <span className="notes-label">
+                                        SMaHT Hex Code{' '}
+                                        <a
+                                            href="/static/data/color-schemes/smaht_tissue_colors.json"
+                                            target="_blank"
+                                            rel="noopener noreferrer">
+                                            JSON
+                                        </a>
+                                    </span>
+                                    <span
+                                        className="tissue-hex-swatch"
+                                        style={{ backgroundColor: tissueColorHex }}
+                                    />
+                                    <span className="tissue-hex-value">{tissueColorHex.toUpperCase()}</span>
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
                 </div>
 
-                <div className="tissue-summary-row">
-                    <div className="tissue-summary-card">
-                        <div className="header">
-                            <span className="header-text">Tissue Summary</span>
-                        </div>
-                        <div className="body">
-                            <div className="tissue-summary-subheader">Tissue Overview</div>
-                            <div className="tissue-summary-fields">
-                                <div className="tissue-summary-grid">
-                                    <TissueDatum
-                                        title="Target Tissue"
-                                        value={getTissueDisplayLabel(targetTissueValue)}
-                                        href={targetTissueHref}
-                                    />
-                                    <TissueDatum title="Non-Tissue Presence" value="Protected" />
-                                    <TissueDatum title="Sex" value={formatSexBreakdown(donors)} />
-                                    <TissueDatum
-                                        title="Total Coverage"
-                                        value={!isLoading ? formatCoverageDisplayValue(totalCoverage).display : null}
-                                    />
-                                </div>
+                <div className="tissue-summary-row tissue-overview-layout">
+                    <div className="tissue-summary-column">
+                        <div className="tissue-summary-card">
+                            <div className="header">
+                                <span className="header-text">Tissue Summary</span>
                             </div>
-                            <div className="tissue-summary-stats d-flex gap-3">
-                                <div className="donor-statistic donors d-flex flex-column p-2 gap-2">
-                                    <div className="donor-statistic-label text-center">
-                                        <i className="icon icon-lungs fas"></i>Donors
-                                    </div>
-                                    <div className="donor-statistic-value text-center">
-                                        <span>{donorCount}</span>
-                                    </div>
-                                </div>
-                                {(() => {
-                                    const filesStatContent = (
-                                        <>
-                                            <div className="donor-statistic-label text-center">
-                                                <i className="icon icon-file fas"></i>Files
-                                            </div>
-                                            <div className="donor-statistic-value text-center">
-                                                {!isLoading ? (
-                                                    <span>{fileCount}</span>
-                                                ) : (
-                                                    <i className="icon icon-circle-notch icon-spin fas" />
-                                                )}
-                                            </div>
-                                        </>
-                                    );
-                                    return !isLoading && fileCount > 0 && filesBrowseHref ? (
-                                        <a
-                                            className="donor-statistic files d-flex flex-column p-2 gap-2"
-                                            href={filesBrowseHref}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            title="View all files for this tissue">
-                                            {filesStatContent}
-                                        </a>
-                                    ) : (
-                                        <div className="donor-statistic files d-flex flex-column p-2 gap-2">
-                                            {filesStatContent}
+                            <div className="body">
+                                <div className="tissue-summary-sections">
+                                    <div className="tissue-summary-section">
+                                        <div className="tissue-summary-subheader">Overview</div>
+                                        <div className="tissue-summary-fields tissue-summary-list">
+                                            <SummaryDatum title="Target Tissue">
+                                                {tissueName !== '-' ? (
+                                                    targetTissueHref ? (
+                                                        <a href={targetTissueHref}>{tissueName}</a>
+                                                    ) : (
+                                                        tissueName
+                                                    )
+                                                ) : null}
+                                            </SummaryDatum>
+                                            <SummaryDatum title="TPC Code">
+                                                {tpcCodeEntries.length > 0
+                                                    ? tpcCodeEntries.map((entry) => (
+                                                        <div key={entry.code}>
+                                                            <strong>{entry.code}</strong> -{' '}
+                                                            {getTpcCodeDescription(entry)}
+                                                        </div>
+                                                    ))
+                                                    : null}
+                                            </SummaryDatum>
+                                            <SummaryDatum title="SMaHT Acronym">{smahtAcronym}</SummaryDatum>
+                                            <SummaryDatum title="Germ Layer">{category}</SummaryDatum>
                                         </div>
-                                    );
-                                })()}
+                                    </div>
+                                    <div className="tissue-summary-section">
+                                        <div className="tissue-summary-subheader">
+                                            Tissue Ontology &amp; Collection Details
+                                        </div>
+                                        <div className="tissue-summary-fields tissue-summary-list">
+                                            <SummaryDatum title="Ontology ID">
+                                                {uberon_id?.identifier ? (
+                                                    uberonHref ? (
+                                                        <a href={uberonHref}>{uberon_id.identifier}</a>
+                                                    ) : (
+                                                        uberon_id.identifier
+                                                    )
+                                                ) : null}
+                                            </SummaryDatum>
+                                            <SummaryDatum title="Ontology Term">
+                                                {uberon_id?.display_title}
+                                            </SummaryDatum>
+                                            <SummaryDatum title="Tissue Collection Details">
+                                                {collectionDetails.length > 0
+                                                    ? collectionDetails.map((location) => (
+                                                        <div key={location}>{location}</div>
+                                                    ))
+                                                    : null}
+                                            </SummaryDatum>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+
+                        <div className="tissue-data-cards">
+                            <TissueDataCard
+                                title="Sequencing Data"
+                                variant="sequencing"
+                                iconSrc={tissueIconSrc}
+                                codeLabels={getTpcCodeLabels(false)}
+                                sampleCount={sampleStats ? sampleStats.sequencing.samples : null}
+                                stats={[
+                                    { label: 'Donors', value: sampleStats ? sampleStats.sequencing.donors : null },
+                                    { label: 'Sequencing Files', value: isLoading ? null : fileCount },
+                                    {
+                                        label: 'Variant Call Sets',
+                                        value: recordCounts ? recordCounts.variantCallSets : null,
+                                    },
+                                ]}
+                            />
+                            <TissueDataCard
+                                title="Histology & Pathology Data"
+                                variant="histology"
+                                iconSrc={tissueIconSrc}
+                                codeLabels={getTpcCodeLabels(true)}
+                                sampleCount={sampleStats ? sampleStats.histology.samples : null}
+                                stats={[
+                                    { label: 'Donors', value: sampleStats ? sampleStats.histology.donors : null },
+                                    {
+                                        label: 'Pathology Reports',
+                                        value: recordCounts ? recordCounts.pathologyReports : null,
+                                    },
+                                    {
+                                        label: 'Histology Images',
+                                        value: recordCounts ? recordCounts.histologyImages : null,
+                                    },
+                                ]}
+                            />
                         </div>
                     </div>
 
                     <div className="tissue-aliquot-card">
                         <div className="header tissue-aliquot-header">
                             <span className="aliquot-title">
-                                {nonSolidSpecimenType
-                                    ? 'Sample non-solid aliquot layout'
-                                    : 'Sample solid-organ aliquot layout'}
+                                Tissue Aliquot Visualization
                                 {aliquotLayoutNote && !nonSolidSpecimenType ? (
                                     <OverlayTrigger
                                         show={showAliquotLayoutNote}
@@ -968,16 +1298,17 @@ export default function TissueTypeView({
                                 ) : null}
                             </span>
                             {donors.length > 0 ? (
-                                <div className="tissue-aliquot-donor-select">
+                                <div
+                                    className={
+                                        'tissue-aliquot-donor-select' +
+                                        (!selectedDonorUuid ? ' is-unselected' : '')
+                                    }>
                                     <label htmlFor="tissue-aliquot-donor-select">
-                                        Donor
+                                        Donor:
                                     </label>
                                     <select
                                         id="tissue-aliquot-donor-select"
-                                        className={
-                                            'form-select form-select-sm' +
-                                            (!selectedDonorUuid ? ' is-unselected' : '')
-                                        }
+                                        className="form-select form-select-sm"
                                         value={selectedDonorUuid || ''}
                                         onChange={(e) => setSelectedDonorUuid(e.target.value || null)}>
                                         <option value="">Select a donor…</option>
@@ -1055,6 +1386,8 @@ export default function TissueTypeView({
                                                 assayPlatformsBySampleName={assayPlatformsBySampleName}
                                                 donorLabel={selectedDonorDisplayTitle}
                                                 tissueLabel={getTissueNameFromFacetTerm(targetTissueValue)}
+                                                // eslint-disable-next-line react/jsx-no-bind
+                                                onPathologyReportClick={handlePathologyReportClick}
                                             />
                                         )}
                                     </div>
@@ -1070,7 +1403,9 @@ export default function TissueTypeView({
                     </div>
                 </div>
 
-                <div className="tissue-donor-table-card tissue-heatmap-card" style={donorTablePaletteStyle}>
+                <div
+                    className="tissue-donor-table-card tissue-heatmap-card pathology-reports-card"
+                    style={donorTablePaletteStyle}>
                     {isAdminUser ? (
                         <div className="tissue-heatmap-toolbar">
                             <HeatmapColorPicker
@@ -1106,127 +1441,40 @@ export default function TissueTypeView({
                         <nav className="dot-tab-nav tissue-heatmap-tabs">
                             <div className="dot-tab-nav-list">
                                 <button type="button" className="active">
-                                    <div className="btn-title">Donor Details</div>
+                                    <div className="btn-title">Pathology Reports</div>
                                 </button>
                             </div>
                         </nav>
                         <div className="tab-router-contents">
-                            <div className="tissue-heatmap-metric-heading">
-                                <div className="tissue-heatmap-metric-heading-row">
-                                    <h2 className="tissue-heatmap-metric-title">Donor Details</h2>
-                                    <FixedScoreLegend
-                                        entries={TISSUE_DONOR_AUTOLYSIS_LEGEND_ENTRIES}
-                                        leftCaption="Minimal"
-                                        rightCaption="Severe"
-                                    />
-                                </div>
-                            </div>
                             <div className="body">
-                                <table className="tissue-donor-table table">
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                <SortableHeaderLabel
-                                                    label="Donor ID"
-                                                    sortDirection={donorTableSortState?.key === 'donorId' ? donorTableSortState.direction : null}
-                                                    // eslint-disable-next-line react/jsx-no-bind
-                                                    onClick={() => handleDonorTableHeaderClick('donorId')}
-                                                />
-                                            </th>
-                                            <th>
-                                                <SortableHeaderLabel
-                                                    label="Sex"
-                                                    sortDirection={donorTableSortState?.key === 'sex' ? donorTableSortState.direction : null}
-                                                    // eslint-disable-next-line react/jsx-no-bind
-                                                    onClick={() => handleDonorTableHeaderClick('sex')}
-                                                />
-                                            </th>
-                                            <th>
-                                                <SortableHeaderLabel
-                                                    label="Age"
-                                                    sortDirection={donorTableSortState?.key === 'age' ? donorTableSortState.direction : null}
-                                                    // eslint-disable-next-line react/jsx-no-bind
-                                                    onClick={() => handleDonorTableHeaderClick('age')}
-                                                />
-                                            </th>
-                                            <th>
-                                                <SortableHeaderLabel
-                                                    label="Autolysis Score"
-                                                    sortDirection={donorTableSortState?.key === 'autolysisScore' ? donorTableSortState.direction : null}
-                                                    // eslint-disable-next-line react/jsx-no-bind
-                                                    onClick={() => handleDonorTableHeaderClick('autolysisScore')}
-                                                />
-                                            </th>
-                                            <th>
-                                                <SortableHeaderLabel
-                                                    label="Non-Target Tissue Presence"
-                                                    sortDirection={donorTableSortState?.key === 'nonTargetPresence' ? donorTableSortState.direction : null}
-                                                    // eslint-disable-next-line react/jsx-no-bind
-                                                    onClick={() => handleDonorTableHeaderClick('nonTargetPresence')}
-                                                />
-                                            </th>
-                                            <th>
-                                                <SortableHeaderLabel
-                                                    label="Unexpected/Pathologic Finding"
-                                                    sortDirection={donorTableSortState?.key === 'pathologicFinding' ? donorTableSortState.direction : null}
-                                                    // eslint-disable-next-line react/jsx-no-bind
-                                                    onClick={() => handleDonorTableHeaderClick('pathologicFinding')}
-                                                />
-                                            </th>
-                                            <th>Histology Viewer</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {displayDonors.length > 0 ? (
-                                            displayDonors.map(({ donor: d, tissue: t }) => {
-                                                const donorHref = getDonorHref(d, userDownloadAccess);
-                                                const pathologySummary = t?.pathology_summary || {};
-                                                const histologyImages = pathologySummary.histology_images || [];
-                                                return (
-                                                    <tr key={d.uuid}>
-                                                        <td>
-                                                            {donorHref ? (
-                                                                <a href={donorHref}>{getDisplayText(d)}</a>
-                                                            ) : (
-                                                                getDisplayText(d)
-                                                            )}
-                                                        </td>
-                                                        <td>{getDisplayText(d.sex)}</td>
-                                                        <td>{getDisplayText(formatDonorAge(d.age))}</td>
-                                                        <td
-                                                            className={
-                                                                enableConditionalColor
-                                                                    ? getAutolysisScoreCellClass(
-                                                                        pathologySummary.autolysis_score
-                                                                    )
-                                                                    : ''
-                                                            }>
-                                                            {getDisplayText(pathologySummary.autolysis_score)}
-                                                        </td>
-                                                        <td>{formatYesNo(pathologySummary.non_target_tissue_present)}</td>
-                                                        <td>{formatYesNo(pathologySummary.pathologic_finding_present)}</td>
-                                                        <td>
-                                                            {histologyImages.length > 0 ? (
-                                                                <a
-                                                                    href={histologyImages[0]?.href || histologyImages[0]?.['@id']}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer">
-                                                                    View{histologyImages.length > 1 ? ` (${histologyImages.length})` : ''}
-                                                                </a>
-                                                            ) : (
-                                                                '-'
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        ) : (
-                                            <tr>
-                                                <td colSpan={8}>No donor data available for this tissue type.</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                                {isBrainTissue ? (
+                                    <BrainPathologyReportsTable
+                                        donors={donors}
+                                        reports={pathologyReports}
+                                        tissueTypeValue={tissueMatrixFilterValue}
+                                        tissueIconSrc={tissueIconSrc}
+                                        userDownloadAccess={userDownloadAccess}
+                                        enableConditionalColor={enableConditionalColor}
+                                        expandedDonorUuids={expandedDonorUuids}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onToggleDonor={handleToggleDonor}
+                                        highlightedReportId={highlightedReportId}
+                                    />
+                                ) : (
+                                    <PathologyReportsTable
+                                        donors={donors}
+                                        reports={pathologyReports}
+                                        tissueName={tissueName}
+                                        tissueTypeValue={tissueMatrixFilterValue}
+                                        tissueIconSrc={tissueIconSrc}
+                                        userDownloadAccess={userDownloadAccess}
+                                        enableConditionalColor={enableConditionalColor}
+                                        expandedDonorUuids={expandedDonorUuids}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onToggleDonor={handleToggleDonor}
+                                        highlightedReportId={highlightedReportId}
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>

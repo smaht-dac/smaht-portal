@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import { AliquotInfoCard, PathologyOutcomeBadge } from './helpers';
+import { AliquotInfoCard, PathologyOutcomeBadge, openPathologyReport } from './helpers';
 
 // `reports` entries come back as a bare @id string in the @@object frame, or
 // a full embedded object in /search/'s embedded frame -- `display_title`
@@ -38,6 +38,8 @@ export default function FixedAliquotPopoverBody({
     swatchStyle,
     donorLabel,
     tissueLabel,
+    // Optional -- see helpers.js's openPathologyReport.
+    onPathologyReportClick = null,
 }) {
     const reportItems = getPathologyReportItems(slice?.pathologyReports);
 
@@ -79,8 +81,7 @@ export default function FixedAliquotPopoverBody({
                                             className={item.href ? 'is-clickable' : undefined}
                                             // eslint-disable-next-line react/jsx-no-bind
                                             onClick={item.href ? (event) => {
-                                                if (event.target.closest('a')) return;
-                                                window.open(item.href, '_blank', 'noopener,noreferrer');
+                                                openPathologyReport(event, item.href, onPathologyReportClick);
                                             } : undefined}>
                                             <td>
                                                 <a

@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import { AliquotInfoCard, PathologyOutcomeBadge, hexToRgba, isTpcSubmissionCenter } from './helpers';
+import { AliquotInfoCard, PathologyOutcomeBadge, hexToRgba, isTpcSubmissionCenter, openPathologyReport } from './helpers';
 import AliquotCoreTable, { formatCenterName } from './AliquotCoreTable';
 
 const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -217,6 +217,8 @@ export default function FrozenAliquotPopoverBody({
     assayPlatformsBySampleName,
     hoveredPosition,
     onHoverPosition,
+    // Optional -- see helpers.js's openPathologyReport.
+    onPathologyReportClick = null,
 }) {
     // One table row per core position per submitting center, in position
     // order (A1, A2, ... F6) regardless of which center each came from.
@@ -316,8 +318,7 @@ export default function FrozenAliquotPopoverBody({
                                             className={item.href ? 'is-clickable' : undefined}
                                             // eslint-disable-next-line react/jsx-no-bind
                                             onClick={item.href ? (event) => {
-                                                if (event.target.closest('a')) return;
-                                                window.open(item.href, '_blank', 'noopener,noreferrer');
+                                                openPathologyReport(event, item.href, onPathologyReportClick);
                                             } : undefined}>
                                             <td>{item.externalId}</td>
                                             <td>
