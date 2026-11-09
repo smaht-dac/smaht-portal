@@ -132,3 +132,52 @@ export const useUserDownloadAccess = (session) => {
 
     return { userDownloadAccess: downloadAccessObject, isAccessResolved };
 };
+
+/**
+ * Searches ResourceFile items, which are downloaded directly from S3 via their
+ * `href`. Items the user cannot view are left out of the results by the
+ * backend, so a missing file means the user has no access to it.
+ *
+ * @param {string|null} query - Search params appended to the ResourceFile
+ * search, e.g. 'uuid=...&field=href'. Pass null to skip searching.
+ * @param {*} session - Refetches when the user logs in or out
+ * @returns {Object} The found files and whether the search is loading
+ */
+export const useResourceFileSearch = (query, session) => {
+    const [files, setFiles] = useState([]);
+    const [loading, setLoading] = useState(!!query);
+
+    useEffect(() => {
+        if (!query) {
+            setFiles([]);
+            setLoading(false);
+            return;
+        }
+        let cancelled = false;
+        setLoading(true);
+        ajax.load(
+            `/search/?type=ResourceFile&${query}`,
+            (resp) => {
+                if (cancelled) return;
+                setFiles(resp?.['@graph'] || []);
+                setLoading(false);
+            },
+            'GET',
+            (err) => {
+                if (cancelled) return;
+                // Search responds with an error when no results are viewable,
+                // which is expected and not worth logging
+                if (err?.notification !== 'No results found') {
+                    console.error('ERROR searching ResourceFile items:', err);
+                }
+                setFiles([]);
+                setLoading(false);
+            }
+        );
+        return () => {
+            cancelled = true;
+        };
+    }, [query, session]);
+
+    return { files, loading };
+};

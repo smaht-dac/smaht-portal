@@ -8,10 +8,11 @@ const ROLE_MATRIX = {
         canLoadDonorData: false,
         canLoadDonorCohort: false,
         canViewCohortDetails: false,
+        canDownloadQuickLinkFiles: false,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 0,
             "Transcript Quantification Data (tsv, txt, gff)": 0,
-            "Filtered Somatic Variant Callsets": 0,
+            "Filtered Somatic SNV Callsets (vcf)": 0,
             "Germline Variant Callsets": 0,
             "DSA (FASTA, BED, Chain)": 0,
         },
@@ -23,10 +24,11 @@ const ROLE_MATRIX = {
         canLoadDonorData: true,
         canLoadDonorCohort: true,
         canViewCohortDetails: true,
+        canDownloadQuickLinkFiles: true,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 3000,
             "Transcript Quantification Data (tsv, txt, gff)": 800,
-            "Filtered Somatic Variant Callsets": 600,
+            "Filtered Somatic SNV Callsets (vcf)": 600,
             "Germline Variant Callsets": 200,
             "DSA (FASTA, BED, Chain)": 40,
         },
@@ -38,10 +40,11 @@ const ROLE_MATRIX = {
         canLoadDonorData: false,
         canLoadDonorCohort: true,
         canViewCohortDetails: false,
+        canDownloadQuickLinkFiles: true,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 0,
             "Transcript Quantification Data (tsv, txt, gff)": 0,
-            "Filtered Somatic Variant Callsets": 0,
+            "Filtered Somatic SNV Callsets (vcf)": 0,
             "Germline Variant Callsets": 0,
             "DSA (FASTA, BED, Chain)": 0,
         },
@@ -53,10 +56,11 @@ const ROLE_MATRIX = {
         canLoadDonorData: false,
         canLoadDonorCohort: false,
         canViewCohortDetails: false,
+        canDownloadQuickLinkFiles: false,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 0,
             "Transcript Quantification Data (tsv, txt, gff)": 0,
-            "Filtered Somatic Variant Callsets": 0,
+            "Filtered Somatic SNV Callsets (vcf)": 0,
             "Germline Variant Callsets": 0,
             "DSA (FASTA, BED, Chain)": 0,
         },
@@ -68,10 +72,11 @@ const ROLE_MATRIX = {
         canLoadDonorData: false,
         canLoadDonorCohort: false,
         canViewCohortDetails: false,
+        canDownloadQuickLinkFiles: false,
         minimumQuickLinkResultCounts: {
             "Sequencing Data (BAMs & CRAMs)": 0,
             "Transcript Quantification Data (tsv, txt, gff)": 0,
-            "Filtered Somatic Variant Callsets": 0,
+            "Filtered Somatic SNV Callsets (vcf)": 0,
             "Germline Variant Callsets": 0,
             "DSA (FASTA, BED, Chain)": 0,
         },
@@ -89,10 +94,21 @@ const ROLES_TO_TEST = [
 const QUICK_LINK_TITLES = [
     "Sequencing Data (BAMs & CRAMs)",
     "Transcript Quantification Data (tsv, txt, gff)",
-    "Filtered Somatic Variant Callsets",
+    "Filtered Somatic SNV Callsets (vcf)",
     "Germline Variant Callsets",
     "DSA (FASTA, BED, Chain)",
 ];
+
+// Direct file downloads rendered under a quick link, keyed by the quick link title
+const QUICK_LINK_DOWNLOADS = {
+    "Filtered Somatic SNV Callsets (vcf)": {
+        title: "Filtered Somatic SNV Callset Metadata",
+        files: [
+            { title: "SNV V2 TSV", uuid: "2948738d-0d75-42ea-ad41-20018bcc38d5", tag: "P25 Paper" },
+            { title: "SNV V1 TSV", uuid: "0eca12f0-737d-4b9a-bd71-b29872625a7f" },
+        ],
+    },
+};
 
 const SEQUENCING_DEFAULT_SEARCH_PARAMS = [
     "type=File",
@@ -277,6 +293,74 @@ function assertQuickLinks() {
         });
 }
 
+function assertQuickLinkDownloads(caps) {
+    const quickLinksSelector = ".quick-links-container > .nav-group:first-of-type";
+    cy.get(`${quickLinksSelector} > .dropdown .quick-link-downloads`).should(
+        "have.length",
+        Object.keys(QUICK_LINK_DOWNLOADS).length
+    );
+
+    Object.entries(QUICK_LINK_DOWNLOADS).forEach(([quickLinkTitle, downloads]) => {
+        cy.contains(`${quickLinksSelector} > .dropdown > a.header .parent-link`, quickLinkTitle)
+            .closest(".dropdown")
+            .find(".quick-link-downloads")
+            .within(() => {
+                cy.get(".quick-link-downloads-title").should("have.text", downloads.title);
+                cy.get(".quick-link-downloads-files > *").should("have.length", downloads.files.length);
+
+                downloads.files.forEach((file, index) => {
+                    // Buttons stay disabled until the ResourceFile search returns
+                    const fileSelector = caps.canDownloadQuickLinkFiles
+                        ? "a.quick-link-download"
+                        : ".quick-link-download-wrapper > button.quick-link-download[disabled]";
+                    cy.get(".quick-link-downloads-files > *", { timeout: 30000 })
+                        .eq(index)
+                        .find(".quick-link-download-title")
+                        .should("contain", file.title);
+
+                    if (file.tag) {
+                        cy.get(".quick-link-downloads-files > *")
+                            .eq(index)
+                            .find(".quick-link-download-tag")
+                            .should("have.text", file.tag);
+                    }
+
+                    if (caps.canDownloadQuickLinkFiles) {
+                        cy.get(".quick-link-downloads-files > *", { timeout: 30000 })
+                            .eq(index)
+                            .should("match", fileSelector)
+                            .then(($a) => {
+                                // checked here: chaining have.attr with only a name yields the attribute value
+                                expect($a, `${file.title} aria-label`).to.have.attr("aria-label", `Download ${file.title}`);
+                                expect($a, `${file.title} download attribute`).to.have.attr("download");
+                                const href = $a.attr("href");
+                                expect(href, `${file.title} href`).to.match(
+                                    new RegExp(`^/resource-files/${file.uuid}/@@download/`)
+                                );
+                                // The download redirects to the file's storage location
+                                cy.request({ url: href, followRedirect: false, failOnStatusCode: false })
+                                    .its("status")
+                                    .should("be.oneOf", [200, 301, 302, 303, 307]);
+                            });
+                    } else {
+                        cy.get(".quick-link-downloads-files > *", { timeout: 30000 })
+                            .eq(index)
+                            .find(fileSelector)
+                            .should("exist");
+                        cy.get(".quick-link-downloads-files > *")
+                            .eq(index)
+                            .should("have.class", "quick-link-download-wrapper")
+                            .trigger("mouseover");
+                        cy.root()
+                            .closest("body")
+                            .find(".tooltip")
+                            .should("contain", "You do not have access to download this file.");
+                    }
+                });
+            });
+    });
+}
+
 const QUICK_LINK_TESTS = [
     {
         title: "Sequencing Data (BAMs & CRAMs)",
@@ -319,7 +403,7 @@ const QUICK_LINK_TESTS = [
         },
     },
     {
-        title: "Filtered Somatic Variant Callsets",
+        title: "Filtered Somatic SNV Callsets (vcf)",
         expectedSearchParams: FILTERED_SOMATIC_DEFAULT_SEARCH_PARAMS,
         extraAssertions(caps) {
             cy.get('.facet[data-field="donors.donor_groups"]')
@@ -336,7 +420,7 @@ const QUICK_LINK_TESTS = [
 
             assertMinimumQuickLinkResultCount(
                 caps,
-                "Filtered Somatic Variant Callsets"
+                "Filtered Somatic SNV Callsets (vcf)"
             );
         },
     },
@@ -556,6 +640,7 @@ describe("Consortium Hub by role", () => {
 
                 assertHubShell();
                 assertQuickLinks();
+                assertQuickLinkDownloads(caps);
 
                 if (caps.canLoadDonorCohort) {
                     // The data query is role-sensitive; some authenticated roles can

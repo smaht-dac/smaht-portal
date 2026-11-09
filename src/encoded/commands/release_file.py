@@ -1293,6 +1293,9 @@ class FileRelease:
             "hg02257",
             "hg02486",
             "hg02622",
+            # Cord blood (non-TPC) data: released fully open
+            "cord_blood_2404416003",
+            "cord_blood_2111403008",
         ]:
             dataset_category = COLO829_HAPMAP
         elif dataset in [
