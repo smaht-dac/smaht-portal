@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+2.15.18
+=======
+
+`PR 794: feat: seaprate renamed and retracted files in tabs <https://github.com/smaht-dac/smaht-portal/pull/794>`_
+
+* Separate Retracted Files and Renamed Files tables in tabs
+* Consolidate static sections and render just one
+
+
 2.15.17
 =======
 
