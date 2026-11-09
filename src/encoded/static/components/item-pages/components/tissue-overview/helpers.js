@@ -740,6 +740,9 @@ export function AliquotInfoCard({
     tissueLabel,
     aliquotLabel,
     aliquotTitle = 'Aliquot',
+    // Optional -- one line per TPC code (e.g. "3Q - Frozen Lung", "3R - Fixed
+    // Lung") in place of the single "<specimen> <tissue>" line.
+    tissueCodeLabels = null,
 }) {
     const tissueName = tissueLabel && tissueLabel !== '-' ? tissueLabel : 'Tissue';
     return (
@@ -747,7 +750,13 @@ export function AliquotInfoCard({
             <dt>Donor</dt>
             <dd>{donorLabel || '-'}</dd>
             <dt>Tissue</dt>
-            <dd>{specimenLabel ? `${specimenLabel} ${tissueName}` : tissueName}</dd>
+            <dd>
+                {tissueCodeLabels && tissueCodeLabels.length > 0
+                    ? tissueCodeLabels.map((label) => <div key={label}>{label}</div>)
+                    : specimenLabel
+                        ? `${specimenLabel} ${tissueName}`
+                        : tissueName}
+            </dd>
             <dt>{aliquotTitle}</dt>
             <dd>{aliquotLabel}</dd>
         </dl>

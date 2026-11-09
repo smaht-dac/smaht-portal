@@ -264,6 +264,13 @@ export default function AliquotVisualization({
     // (see helpers.js's openPathologyReport) -- returns true when it took
     // the report over, e.g. TissueTypeView.js opening it in its table.
     onPathologyReportClick = null,
+    // Optional, both from TissueTypeView.js: the info card's Tissue lines
+    // (one per TPC code, e.g. "3Q - Frozen Lung") in place of the plain
+    // tissueLabel, and each pathology report's histology image @ids
+    // (report @id -> [@id]) for the Frozen popover's Histology column, which
+    // is left out without it.
+    tissueCodeLabels = null,
+    histologyImageIdsByReportId = null,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -934,7 +941,9 @@ export default function AliquotVisualization({
                             id={`${popoverId}-slice-popover`}
                             className={
                                 'aliquot-popover aliquot-popover--wide' +
-                                (isSelectedSliceFrozen ? '' : ' aliquot-popover--compact')
+                                (isSelectedSliceFrozen
+                                    ? ' aliquot-popover--frozen'
+                                    : ' aliquot-popover--fixed aliquot-popover--compact')
                             }>
                             <PopoverHeader as="h3">
                                 {selectedAliquotId} - {selectedStyles.label} Tissue
@@ -955,6 +964,8 @@ export default function AliquotVisualization({
                                         hoveredPosition={hoveredCorePosition}
                                         onHoverPosition={setHoveredCorePosition}
                                         onPathologyReportClick={onPathologyReportClick}
+                                        tissueCodeLabels={tissueCodeLabels}
+                                        histologyImageIdsByReportId={histologyImageIdsByReportId}
                                     />
                                 ) : (
                                     <FixedAliquotPopoverBody
@@ -967,6 +978,7 @@ export default function AliquotVisualization({
                                         donorLabel={donorLabel}
                                         tissueLabel={tissueLabel}
                                         onPathologyReportClick={onPathologyReportClick}
+                                        tissueCodeLabels={tissueCodeLabels}
                                     />
                                 )}
                             </PopoverBody>
@@ -1017,6 +1029,8 @@ AliquotVisualization.propTypes = {
     donorLabel: PropTypes.string,
     tissueLabel: PropTypes.string,
     onPathologyReportClick: PropTypes.func,
+    tissueCodeLabels: PropTypes.arrayOf(PropTypes.string),
+    histologyImageIdsByReportId: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,

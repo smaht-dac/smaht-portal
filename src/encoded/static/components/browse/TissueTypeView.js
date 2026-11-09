@@ -17,6 +17,7 @@ import NonSolidAliquotVisualization from '../item-pages/components/tissue-overvi
 import PathologyReportsTable, {
     PATHOLOGY_REPORT_SEARCH_FIELDS,
     getReportDonorUuids,
+    getLinkId,
 } from '../item-pages/components/tissue-overview/PathologyReportsTable';
 import BrainPathologyReportsTable, {
     BRAIN_PATHOLOGY_REPORT_SEARCH_FIELDS,
@@ -366,6 +367,8 @@ export default function TissueTypeView({
             .map((entry) => `${entry.code} - ${getTpcCodeDescription(entry)}`);
         return labels.length > 0 ? labels : [`${isFixed ? 'Fixed' : 'Frozen'} ${tissueName}`];
     };
+    // Every TPC code, sequenced ones first -- the aliquot popovers' Tissue lines.
+    const tissueCodeLabels = tpcCodeEntries.map((entry) => `${entry.code} - ${getTpcCodeDescription(entry)}`);
     // Target tissue subtypes reported by this tissue_type's pathology reports
     // (pathology_summary.target_tissues) -- a subtype named the same as the
     // tissue itself (e.g. Lung's "Lung") isn't a real subdivision of it.
@@ -1014,6 +1017,16 @@ export default function TissueTypeView({
         };
     }, [tissueMatrixFilterValue, isBrainTissue, session]);
 
+    // Each report's histology image @ids, for the aliquot popovers' Histology
+    // column -- empty (every row "n/a") until the reports load.
+    const histologyImageIdsByReportId = useMemo(() => {
+        const byReportId = {};
+        (pathologyReports || []).forEach((report) => {
+            byReportId[report['@id']] = (report.histology_images || []).map(getLinkId).filter(Boolean);
+        });
+        return byReportId;
+    }, [pathologyReports]);
+
     // Donor rows open in the Pathology Reports table -- also opened from the
     // aliquot diagram's report links (handlePathologyReportClick), which
     // additionally highlight and scroll to that report's row.
@@ -1388,6 +1401,8 @@ export default function TissueTypeView({
                                                 tissueLabel={getTissueNameFromFacetTerm(targetTissueValue)}
                                                 // eslint-disable-next-line react/jsx-no-bind
                                                 onPathologyReportClick={handlePathologyReportClick}
+                                                tissueCodeLabels={tissueCodeLabels}
+                                                histologyImageIdsByReportId={histologyImageIdsByReportId}
                                             />
                                         )}
                                     </div>

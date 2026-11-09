@@ -5154,10 +5154,22 @@ $pathology-reports-muted: #B0B0B0;
         .popover-header {
             padding: 0.75rem 1.25rem;
             font-size: 1rem;
+            color: #353740;
+            border-bottom-color: #e5e5e5;
         }
 
         .popover-body {
             padding: 1.25rem;
+        }
+
+        // Header tint follows the slice type the popover is about -- the
+        // aliquot diagram's own Frozen green / Fixed coral (mockup colors).
+        &.aliquot-popover--frozen .popover-header {
+            background-color: #f8ffe5;
+        }
+
+        &.aliquot-popover--fixed .popover-header {
+            background-color: #fbeade;
         }
     }
 
@@ -5253,8 +5265,8 @@ $pathology-reports-muted: #B0B0B0;
         border: 1px solid #8fa96b;
 
         &.is-highlighted {
-            background-color: #1e5b4f;
-            border-color: #1e5b4f;
+            background-color: #9c9cf8;
+            border-color: #9c9cf8;
             transition: transform 0.1s ease, box-shadow 0.1s ease;
         }
 
@@ -5270,11 +5282,11 @@ $pathology-reports-muted: #B0B0B0;
                 transform: scale(1.25);
                 // `--aliquot-core-halo` (set inline per-dot, see
                 // AliquotVisualization.js) matches this dot's own
-                // GCC-specific color -- the rgba(30, 91, 79, ...) fallback
+                // GCC-specific color -- the rgba(156, 156, 248, ...) fallback
                 // only applies to a dot with no inline color at all, which
                 // shouldn't happen in practice (every real is-linked dot
-                // sets it), and keeps the default teal-green look if it did.
-                box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(30, 91, 79, 0.25));
+                // sets it), and keeps the default lavender look if it did.
+                box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(156, 156, 248, 0.35));
             }
         }
 
@@ -5289,7 +5301,7 @@ $pathology-reports-muted: #B0B0B0;
         // values.
         &.is-highlighted.is-hovered {
             transform: scale(1.25);
-            box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(30, 91, 79, 0.25));
+            box-shadow: 0 0 0 3px var(--aliquot-core-halo, rgba(156, 156, 248, 0.35));
         }
     }
 
@@ -5464,17 +5476,6 @@ $pathology-reports-muted: #B0B0B0;
         gap: 1.125rem;
     }
 
-    // Caption under the core plate saying the 6x6 grid is a maximum, not the
-    // actual layout of every aliquot.
-    .aliquot-detail-plate-note {
-        margin: -0.5rem 0 0;
-        color: #7c8ba0;
-        font-size: 0.75rem;
-        font-style: italic;
-        line-height: 1.35;
-        text-align: center;
-    }
-
     // Donor / Tissue / Aliquot -- a small label/value card under the plate.
     .aliquot-detail-info {
         display: grid;
@@ -5483,20 +5484,25 @@ $pathology-reports-muted: #B0B0B0;
         align-items: baseline;
         margin: 0;
         padding: 0.75rem 1rem;
-        border: 1px solid #dfe8ef;
+        border: 1px solid #e5e5e5;
         border-radius: 8px;
 
         dt {
             margin: 0;
-            color: #7f8f6f;
+            color: #8b947c;
             font-size: 0.75rem;
             font-weight: 600;
         }
 
         dd {
             margin: 0;
-            color: #1e2d3d;
+            color: #353740;
             font-size: 0.875rem;
+
+            // One line per TPC code (AliquotInfoCard's tissueCodeLabels).
+            > div + div {
+                margin-top: 0.25rem;
+            }
         }
     }
 
@@ -5509,7 +5515,7 @@ $pathology-reports-muted: #B0B0B0;
 
     .aliquot-detail-section-title {
         margin: 0 0 0.5rem;
-        color: #5d6b7a;
+        color: #5d5e63;
         font-size: 0.8125rem;
         font-weight: 600;
     }
@@ -5520,7 +5526,7 @@ $pathology-reports-muted: #B0B0B0;
     .aliquot-detail-table-scroll {
         max-height: 220px;
         overflow-y: auto;
-        border: 1px solid #d9e0e6;
+        border: 1px solid #e5e5e5;
         border-radius: 4px;
     }
 
@@ -5529,7 +5535,7 @@ $pathology-reports-muted: #B0B0B0;
         border-collapse: separate;
         border-spacing: 0;
         font-size: 0.8125rem;
-        color: #1e2d3d;
+        color: #353740;
 
         th,
         td {
@@ -5550,22 +5556,23 @@ $pathology-reports-muted: #B0B0B0;
             top: 0;
             z-index: 1;
             font-weight: 600;
-            color: #28323c;
+            color: #353740;
+            border-bottom: 1px solid #d9d9d9;
         }
 
         // Header tint follows the slice type the section is about --
         // Frozen's green for sequencing, Fixed's peach for the linked
         // histology/pathology samples.
         &.is-frozen thead th {
-            background-color: #f0fbd3;
+            background-color: #f4ffd8;
         }
 
         &.is-fixed thead th {
-            background-color: #fae9dd;
+            background-color: #fbeade;
         }
 
         tbody tr:nth-child(even) {
-            background-color: #f6f7f8;
+            background-color: #f8f8f8;
         }
 
         // Set from either direction (hovering the plate dot or this row) --
@@ -5585,11 +5592,17 @@ $pathology-reports-muted: #B0B0B0;
         }
 
         a {
+            color: #5589c5;
             text-decoration: none;
 
             &:hover {
                 text-decoration: underline;
             }
+        }
+
+        .aliquot-detail-histology-cell {
+            width: 72px;
+            text-align: center;
         }
     }
 
@@ -5605,7 +5618,7 @@ $pathology-reports-muted: #B0B0B0;
     }
 
     .aliquot-detail-na {
-        color: #b8c0c9;
+        color: #b0b0b0;
     }
 
     .aliquot-detail-table-empty {

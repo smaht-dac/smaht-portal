@@ -40,6 +40,8 @@ export default function FixedAliquotPopoverBody({
     tissueLabel,
     // Optional -- see helpers.js's openPathologyReport.
     onPathologyReportClick = null,
+    // Optional -- see AliquotVisualization.js's prop of the same name.
+    tissueCodeLabels = null,
 }) {
     const reportItems = getPathologyReportItems(slice?.pathologyReports);
 
@@ -54,6 +56,7 @@ export default function FixedAliquotPopoverBody({
                     specimenLabel="Fixed"
                     tissueLabel={tissueLabel}
                     aliquotLabel={sequenceLabel}
+                    tissueCodeLabels={tissueCodeLabels}
                 />
             </div>
             <div className="aliquot-detail-right">

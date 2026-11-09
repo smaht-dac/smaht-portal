@@ -10,13 +10,15 @@ const FROZEN_GRID_COLS = [1, 2, 3, 4, 5, 6];
 // Distinct, colorblind-considerate hues (not just lightness steps of one
 // base color) so cores submitted by different centers are visually
 // distinguishable at a glance in the grid, not just via tooltip/click.
+// Assigned in each popover's own first-encounter order (see
+// AliquotVisualization.js) -- the first two are the popover mockup's own.
 export const CORE_DOT_COLOR_PALETTE = [
-    '#1e5b4f', // dark teal-green (matches the default single-GCC highlight)
+    '#9c9cf8', // lavender (also the default single-GCC highlight)
+    '#5d913c', // leaf green
     '#c99a2e', // amber/gold
-    '#5b5fc4', // indigo
     '#c0524a', // brick red
     '#2f8fa6', // teal-blue
-    '#8a4fae', // violet
+    '#1e5b4f', // dark teal-green
 ];
 export const [CORE_DOT_DEFAULT_COLOR] = CORE_DOT_COLOR_PALETTE;
 
@@ -57,6 +59,27 @@ function getSortedPathologyReportItems(entries) {
                 };
             });
         });
+}
+
+// A report's histology image(s): the image itself when there's one, else
+// the HistologyImage search for that report. Stops the click there so the
+// row's own handler (which opens the report) doesn't also fire.
+function ReportHistologyLink({ reportId, imageIds }) {
+    if (!reportId || imageIds.length === 0) return <span className="aliquot-detail-na">n/a</span>;
+    const [, , reportUuid] = String(reportId).split('/');
+    const href = imageIds.length === 1 ? imageIds[0] : `/search/?type=HistologyImage&pathology_reports.uuid=${reportUuid}`;
+    return (
+        <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={imageIds.length === 1 ? 'View histology image' : `View ${imageIds.length} histology images`}
+            // eslint-disable-next-line react/jsx-no-bind
+            onClick={(event) => event.stopPropagation()}>
+            <i className="icon icon-image fas" />
+            {imageIds.length > 1 ? ` ${imageIds.length}` : null}
+        </a>
+    );
 }
 
 // core_size enum values ("1.5", "3.0", "3.0 Donut") are millimetres -- "3.0
@@ -219,6 +242,9 @@ export default function FrozenAliquotPopoverBody({
     onHoverPosition,
     // Optional -- see helpers.js's openPathologyReport.
     onPathologyReportClick = null,
+    // Optional -- see AliquotVisualization.js's props of the same names.
+    tissueCodeLabels = null,
+    histologyImageIdsByReportId = null,
 }) {
     // One table row per core position per submitting center, in position
     // order (A1, A2, ... F6) regardless of which center each came from.
@@ -249,6 +275,7 @@ export default function FrozenAliquotPopoverBody({
         };
     });
     const pathologyItems = getSortedPathologyReportItems(slice?.associatedPathologyReports);
+    const showHistology = !!histologyImageIdsByReportId;
 
     return (
         <div className="aliquot-detail-layout">
@@ -263,23 +290,17 @@ export default function FrozenAliquotPopoverBody({
                         onHoverPosition={onHoverPosition}
                     />
                 </div>
-                {/* The plate always draws the full 6x6 grid, but that's only the
-                    most cores an aliquot can be cut into -- a real one can have
-                    fewer (e.g. a 3x3 arrangement), so say so rather than let the
-                    empty wells read as missing data. */}
-                <p className="aliquot-detail-plate-note">
-                    6&times;6 is the maximum possible arrangement; an aliquot may have fewer cores.
-                </p>
                 <AliquotInfoCard
                     donorLabel={donorLabel}
                     specimenLabel="Frozen"
                     tissueLabel={tissueLabel}
                     aliquotLabel={sequenceLabel}
+                    tissueCodeLabels={tissueCodeLabels}
                 />
             </div>
             <div className="aliquot-detail-right">
                 <section className="aliquot-detail-section">
-                    <h4 className="aliquot-detail-section-title">Sequencing Data (Core)</h4>
+                    <h4 className="aliquot-detail-section-title">Frozen Tissue - Sequencing Data</h4>
                     <AliquotCoreTable
                         rows={coreTableRows}
                         hoveredKey={hoveredPosition}
@@ -292,22 +313,21 @@ export default function FrozenAliquotPopoverBody({
                     />
                 </section>
                 <section className="aliquot-detail-section">
-                    <h4 className="aliquot-detail-section-title">
-                        Nearby Tissue Histology &amp; Pathology Data (All Aliquots)
-                    </h4>
+                    <h4 className="aliquot-detail-section-title">Fixed Tissue - Tissue Data</h4>
                     <div className="aliquot-detail-table-scroll">
                         <table className="aliquot-detail-table is-fixed">
                             <thead>
                                 <tr>
                                     <th>Fixed Sample</th>
-                                    <th>Pathology Report</th>
                                     <th>Outcome</th>
+                                    <th>Path Report</th>
+                                    {showHistology ? <th className="aliquot-detail-histology-cell">Histology</th> : null}
                                 </tr>
                             </thead>
                             <tbody>
                                 {pathologyItems.length === 0 ? (
                                     <tr>
-                                        <td className="aliquot-detail-table-empty" colSpan={3}>
+                                        <td className="aliquot-detail-table-empty" colSpan={showHistology ? 4 : 3}>
                                             No linked Fixed sample yet.
                                         </td>
                                     </tr>
@@ -322,6 +342,12 @@ export default function FrozenAliquotPopoverBody({
                                             } : undefined}>
                                             <td>{item.externalId}</td>
                                             <td>
+                                                <PathologyOutcomeBadge
+                                                    outcome={item.outcome}
+                                                    unacceptableDescription={item.unacceptableDescription}
+                                                />
+                                            </td>
+                                            <td>
                                                 {item.href ? (
                                                     <a
                                                         href={item.href}
@@ -334,12 +360,14 @@ export default function FrozenAliquotPopoverBody({
                                                     <span className="aliquot-detail-na">No report yet</span>
                                                 )}
                                             </td>
-                                            <td>
-                                                <PathologyOutcomeBadge
-                                                    outcome={item.outcome}
-                                                    unacceptableDescription={item.unacceptableDescription}
-                                                />
-                                            </td>
+                                            {showHistology ? (
+                                                <td className="aliquot-detail-histology-cell">
+                                                    <ReportHistologyLink
+                                                        reportId={item.href}
+                                                        imageIds={histologyImageIdsByReportId[item.href] || []}
+                                                    />
+                                                </td>
+                                            ) : null}
                                         </tr>
                                     ))
                                 )}
