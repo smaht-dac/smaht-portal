@@ -41,7 +41,7 @@ export const TissueClassificationTable = ({
         const file_link = '/' + d.file_accession;
         result['File'] = (
             <>
-                <a href={file_link} target="_blank">
+                <a href={file_link} target="_blank" rel="noreferrer">
                     {d.file_accession}
                 </a>
             </>
@@ -61,8 +61,8 @@ export const TissueClassificationTable = ({
                 qc_values[keyProbabilityPredictedTissue(i)]['value'];
             predictedTissues.push(predictedTissue);
             predictedTissuesProbabilities.push(predictedTissueProbability);
-            let printBold = predictedTissue === submittedTissueMapped;
-            
+            const printBold = predictedTissue === submittedTissueMapped;
+
             predictedTissueDisplay.push(
                 <span className={printBold ? 'fw-bold' : ''}>
                     {predictedTissue} (
@@ -148,15 +148,13 @@ export const TissueClassificationTable = ({
                         <tr>{tableHeader}</tr>
                     </thead>
                     <tbody>
-                        {tableBodyData.map((row, rowIndex) => {
-                            return (
-                                <tr key={rowIndex}>
-                                    {tableHeaderValues.map((col) => (
-                                        <td key={col}>{row[col]}</td>
-                                    ))}
-                                </tr>
-                            );
-                        })}
+                        {tableBodyData.map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                                {tableHeaderValues.map((col) => (
+                                    <td key={col}>{row[col]}</td>
+                                ))}
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

@@ -587,7 +587,7 @@ const ChipsContainer = ({ chips: propChips, onChange, suggestions = [] }) => {
                         onChange={handleChange}
                         onKeyDown={handleKeyDown}
                         onFocus={() => { setShowSuggestions(true); setFilteredSuggestions(suggestions); }}
-                        onBlur={() => setTimeout(function () { setShowSuggestions(false) }, 200)}
+                        onBlur={() => setTimeout(function () { setShowSuggestions(false); }, 200)}
                         placeholder="Type and add..."
                         style={{ minWidth: '150px' }}
                     />
@@ -675,10 +675,10 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete, showC
     //   },
     //   "Tier 2": { ... }
     // }
-    const initialTiers = () => Object.keys(initialData).map((tierName) => ({
+    const initialTiers = () => Object.keys(initialData).map((tierName) => {return {
         name: tierName,
         ...initialData[tierName],
-    }));
+    };});
 
     const [tiers, setTiers] = useState(initialTiers);
     const [show, setShow] = useState(showData);

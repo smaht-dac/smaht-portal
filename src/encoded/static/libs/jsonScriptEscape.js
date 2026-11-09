@@ -1,7 +1,7 @@
 'use strict';
 
 var SUBS = { '&': '\\u0026', '<': '\\u003C', '>': '\\u003E' };
-var unsafe_re = /[\<\>\&]/g;
+var unsafe_re = /[<>&]/g;
 
 var sub = function (match) {
     return SUBS[match];

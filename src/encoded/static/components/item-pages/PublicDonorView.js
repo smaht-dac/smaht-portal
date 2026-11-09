@@ -40,23 +40,21 @@ const PublicDonorViewTitle = (props) => {
         <div className="view-title container-wide">
             <nav className="view-title-navigation">
                 <ul className="breadcrumb-list">
-                    {breadcrumbs.map(({ display_title, href }, i, arr) => {
-                        return (
-                            <li className="breadcrumb-list-item" key={i}>
-                                <a
-                                    className={
-                                        'breadcrumb-list-item-link link-underline-hover' +
+                    {breadcrumbs.map(({ display_title, href }, i, arr) => (
+                        <li className="breadcrumb-list-item" key={i}>
+                            <a
+                                className={
+                                    'breadcrumb-list-item-link link-underline-hover' +
                                         (href ? '' : ' no-link')
-                                    }
-                                    href={href}>
-                                    {display_title}
-                                </a>
-                                {i < arr.length - 1 ? (
-                                    <i className="icon icon-fw icon-angle-right fas"></i>
-                                ) : null}
-                            </li>
-                        );
-                    })}
+                                }
+                                href={href}>
+                                {display_title}
+                            </a>
+                            {i < arr.length - 1 ? (
+                                <i className="icon icon-fw icon-angle-right fas"></i>
+                            ) : null}
+                        </li>
+                    ))}
                 </ul>
             </nav>
             <h1 className="view-title-text">Donor Overview</h1>
@@ -64,80 +62,73 @@ const PublicDonorViewTitle = (props) => {
     );
 };
 
-export const renderLoginAccessPopover = () => {
-    return (
-        <Popover className="popover download-popover login">
-            <PopoverHeader as="h3">
-                Open Data - Log in to Download
-            </PopoverHeader>
-            <PopoverBody>
-                Login/Create a SMaHT portal account to download open data.
-            </PopoverBody>
-        </Popover>
-    );
-};
-export const renderProtectedAccessPopover = () => {
-    return (
-        <Popover className={'popover download-popover protected'}>
-            <PopoverHeader as="h3">
-                Protected Data - Access Needed
-            </PopoverHeader>
-            <PopoverBody>
-                This data is protected. To download this data, you must apply to
-                for access to SMaHT protected data on dbGaP.
-            </PopoverBody>
-        </Popover>
-    );
-};
+export const renderLoginAccessPopover = () => (
+    <Popover className="popover download-popover login">
+        <PopoverHeader as="h3">
+            Open Data - Log in to Download
+        </PopoverHeader>
+        <PopoverBody>
+            Login/Create a SMaHT portal account to download open data.
+        </PopoverBody>
+    </Popover>
+);
+export const renderProtectedAccessPopover = () => (
+    <Popover className={'popover download-popover protected'}>
+        <PopoverHeader as="h3">
+            Protected Data - Access Needed
+        </PopoverHeader>
+        <PopoverBody>
+            This data is protected. To download this data, you must apply to
+            for access to SMaHT protected data on dbGaP.
+        </PopoverBody>
+    </Popover>
+);
 
 // Donor Manifest button with warning Popover
-const PublicDonorDownloadButton = ({ session }) => {
-    return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            placement="top"
-            overlay={
-                session ? (
-                    <Popover className={'popover download-popover coming-soon'}>
-                        <PopoverHeader as="h3">
-                            Donor Manifest Coming Soon
-                        </PopoverHeader>
-                        <PopoverBody>
-                            Individual Donor manifests are coming soon in future
-                            portal releases.
-                        </PopoverBody>
-                    </Popover>
-                ) : (
-                    renderProtectedAccessPopover()
-                )
-            }>
-            <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
-                <div className="col-md-auto col-12">
-                    <button
-                        className="col-md-auto col-12 btn btn-primary btn-sm me-05 align-items-center download-button px-3"
-                        disabled>
-                        <i className="icon icon-user fas me-1" />
-                        Download Donor Manifest
-                    </button>
-                </div>
+const PublicDonorDownloadButton = ({ session }) => (
+    <OverlayTrigger
+        trigger={['hover', 'focus']}
+        placement="top"
+        overlay={
+            session ? (
+                <Popover className={'popover download-popover coming-soon'}>
+                    <PopoverHeader as="h3">
+                        Donor Manifest Coming Soon
+                    </PopoverHeader>
+                    <PopoverBody>
+                        Individual Donor manifests are coming soon in future
+                        portal releases.
+                    </PopoverBody>
+                </Popover>
+            ) : (
+                renderProtectedAccessPopover()
+            )
+        }>
+        <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
+            <div className="col-md-auto col-12">
+                <button
+                    type="button"
+                    className="col-md-auto col-12 btn btn-primary btn-sm me-05 align-items-center download-button px-3"
+                    disabled>
+                    <i className="icon icon-user fas me-1" />
+                    Download Donor Manifest
+                </button>
             </div>
-        </OverlayTrigger>
-    );
-};
+        </div>
+    </OverlayTrigger>
+);
 
 // Banner component to redirect user to ProtectedDonor page if they have access
-const ProtectedDonorRedirectBanner = ({ href }) => {
-    return href ? (
-        <div className="callout data-available">
-            <span className="callout-text">
-                <i className="icon icon-users fas"></i> You are currently
-                viewing limited donor information. If you have dbGaP- or
-                DUA-based access, <a href={href}>click here</a> to view full
-                donor information.
-            </span>
-        </div>
-    ) : null;
-};
+const ProtectedDonorRedirectBanner = ({ href }) => href ? (
+    <div className="callout data-available">
+        <span className="callout-text">
+            <i className="icon icon-users fas"></i> You are currently
+            viewing limited donor information. If you have dbGaP- or
+            DUA-based access, <a href={href}>click here</a> to view full
+            donor information.
+        </span>
+    </div>
+) : null;
 
 // Header component containing high-level information for the file item
 const PublicDonorViewHeader = (props) => {
@@ -336,19 +327,19 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     }
                                 />
                             </div>
-                        ) : (
-                            <div className="body">
-                                <div className="callout-card">
-                                    <i className="icon icon-fw icon-2x icon-table-cells fas"></i>
-                                    <h4>Assay x Tissue Data Matrix</h4>
-                                    <span>
-                                        Check back for updates on Assay x Tissue
-                                        Data Matrix development with future
-                                        portal releases
-                                    </span>
+                            ) : (
+                                <div className="body">
+                                    <div className="callout-card">
+                                        <i className="icon icon-fw icon-2x icon-table-cells fas"></i>
+                                        <h4>Assay x Tissue Data Matrix</h4>
+                                        <span>
+                                            Check back for updates on Assay x Tissue
+                                            Data Matrix development with future
+                                            portal releases
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
                     </div>
                     <div className="histology-tab tab-card">
                         <div className="header">
@@ -359,7 +350,8 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                         <div className="body">
                             <img
                                 className="placeholder"
-                                src="/static/img/Tissue Histology Blur.png"></img>
+                                src="/static/img/Tissue Histology Blur.png">
+                            </img>
                             <div className="callout-card">
                                 <i className="icon icon-lungs fas"></i>
                                 <h4>Tissue Histology Browser</h4>

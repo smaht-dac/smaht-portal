@@ -616,7 +616,7 @@ export const ChartDataController = {
 
         const searchQuery = opts.searchQuery || searchFilters.searchQueryStringFromHref(refs.href);
 
-        let filteredSearchParams = navigate.mergeObjectsOfLists(
+        const filteredSearchParams = navigate.mergeObjectsOfLists(
             { 'q' : searchQuery || null },
             navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping),
             searchFilters.expSetFiltersToJSON(currentDonorFilters)

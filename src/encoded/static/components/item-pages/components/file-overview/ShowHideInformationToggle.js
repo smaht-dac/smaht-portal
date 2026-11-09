@@ -52,7 +52,8 @@ export const ShowHideInformationToggle = ({
                     <i
                         className={`icon icon-${
                             showInformation ? expandedIcon : collapsedIcon
-                        } fas me-05`}></i>
+                        } fas me-05`}>
+                    </i>
                     <span className="toggle-information-text">
                         {showInformation ? expandedText : collapsedText}
                     </span>

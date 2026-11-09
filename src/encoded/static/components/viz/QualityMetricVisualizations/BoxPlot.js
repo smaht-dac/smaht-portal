@@ -29,7 +29,7 @@ export const BoxPlot = ({
     // Assign a new ref to the popover target
     const handleShowOverlay = (e, d) => {
         const targetId = e.target.getAttribute('data-point-index');
-        const boxPlot = d3.select('#boxplot-svg' + '-' + plotId);
+        const boxPlot = d3.select(`#boxplot-svg-${plotId}`);
 
         overlayTarget.current = {
             node: boxPlot.select(`[data-point-index='${targetId}']`).node(),
@@ -71,7 +71,7 @@ export const BoxPlot = ({
             // Create the SVG containers
             const svgContainer = container
                 .append('svg')
-                .attr('id', 'boxplot-svg' + '-' + plotId)
+                .attr('id', `boxplot-svg-${plotId}`)
                 .attr('class', 'boxplot-svg')
                 .attr('width', chartWidth)
                 .attr('height', chartHeight)
@@ -129,7 +129,7 @@ export const BoxPlot = ({
             const svg = svgContainer.append('g').attr('class', 'chartBody');
 
             // Append definitions for use in SVG
-            let defs = svg.append('defs');
+            const defs = svg.append('defs');
 
             // Instantiate clip paths for the chart content and axes
             defs.append('clipPath')
@@ -188,7 +188,7 @@ export const BoxPlot = ({
             }
 
             // Group data by the QC category
-            let groupedData = d3.rollup(
+            const groupedData = d3.rollup(
                 filteredData,
                 (d) => {
                     const q1 = d3.quantile(
@@ -342,9 +342,7 @@ export const BoxPlot = ({
                 .data(groupedData)
                 .enter()
                 .append('line')
-                .attr('x1', (d) => {
-                    return x(d[0]) + margins.left + x.bandwidth() / 2;
-                })
+                .attr('x1', (d) => x(d[0]) + margins.left + x.bandwidth() / 2)
                 .attr('x2', (d) => x(d[0]) + margins.left + x.bandwidth() / 2)
                 .attr('y1', (d) => y(d[1].min))
                 .attr('y2', (d) => y(d[1].max))
@@ -413,16 +411,16 @@ export const BoxPlot = ({
                 .data(groupedData)
                 .enter()
                 .append('rect')
-                .attr('x', (d) => {
+                .attr('x', (d) =>
                     // console.log('d: ', d);
-                    return (
+                    (
                         x(d[0]) +
                         margins.left +
                         x.bandwidth() / 2 -
                         boxWidth / 2
-                    );
+                    )
                     // x(d[0]) + margins.left + x.bandwidth() / 2 - boxWidth / 2;
-                })
+                )
                 .attr('y', (d) => y(d[1].q3))
                 .attr('height', (d) => y(d[1].q1) - y(d[1].q3))
                 .attr('width', boxWidth)
@@ -436,22 +434,18 @@ export const BoxPlot = ({
                 .append('line')
                 .attr('y1', (d) => y(d[1].median))
                 .attr('y2', (d) => y(d[1].median))
-                .attr('x1', (d) => {
-                    return (
-                        x(d[0]) +
+                .attr('x1', (d) => (
+                    x(d[0]) +
                         margins.left +
                         x.bandwidth() / 2 -
                         boxWidth / 2
-                    );
-                })
-                .attr('x2', (d) => {
-                    return (
-                        x(d[0]) +
+                ))
+                .attr('x2', (d) => (
+                    x(d[0]) +
                         margins.left +
                         x.bandwidth() / 2 +
                         boxWidth / 2
-                    );
-                })
+                ))
                 .attr('stroke', 'black')
                 .attr('stroke-width', 2);
 
@@ -462,22 +456,18 @@ export const BoxPlot = ({
                 .append('line')
                 .attr('y1', (d) => y(d[1].q1))
                 .attr('y2', (d) => y(d[1].q1))
-                .attr('x1', (d) => {
-                    return (
-                        x(d[0]) +
+                .attr('x1', (d) => (
+                    x(d[0]) +
                         margins.left +
                         x.bandwidth() / 2 -
                         boxWidth / 2
-                    );
-                })
-                .attr('x2', (d) => {
-                    return (
-                        x(d[0]) +
+                ))
+                .attr('x2', (d) => (
+                    x(d[0]) +
                         margins.left +
                         x.bandwidth() / 2 +
                         boxWidth / 2
-                    );
-                })
+                ))
                 .attr('stroke', 'black')
                 .attr('stroke-width', 1);
 
@@ -489,22 +479,18 @@ export const BoxPlot = ({
                 .append('line')
                 .attr('y1', (d) => y(d[1].q3))
                 .attr('y2', (d) => y(d[1].q3))
-                .attr('x1', (d) => {
-                    return (
-                        x(d[0]) +
+                .attr('x1', (d) => (
+                    x(d[0]) +
                         margins.left +
                         x.bandwidth() / 2 -
                         boxWidth / 2
-                    );
-                })
-                .attr('x2', (d) => {
-                    return (
-                        x(d[0]) +
+                ))
+                .attr('x2', (d) => (
+                    x(d[0]) +
                         margins.left +
                         x.bandwidth() / 2 +
                         boxWidth / 2
-                    );
-                })
+                ))
                 .attr('stroke', 'black')
                 .attr('stroke-width', 1);
 
@@ -544,9 +530,7 @@ export const BoxPlot = ({
                 .data(filteredData)
                 .enter()
                 .append('circle')
-                .attr('class', (d, i) => {
-                    return 'data-point';
-                })
+                .attr('class', (d, i) => 'data-point')
                 .attr('data-point-index', (d, i) => {
                     d['data-point-index'] = d['file_accession'];
                     return d['file_accession'];
@@ -610,6 +594,7 @@ export const BoxPlot = ({
             const initialXRange = x.range();
             const initialBandwidth = x.bandwidth();
 
+            // eslint-disable-next-line no-inner-declarations -- this D3 zoom callback closes over chart-local selections.
             function zoomed({ transform: t }) {
                 plotElements.attr('transform', t);
 
@@ -650,6 +635,7 @@ export const BoxPlot = ({
             }
 
             // prevent scrolling then apply the default filter
+            // eslint-disable-next-line no-inner-declarations -- this D3 filter callback closes over the chart lifecycle.
             function filter(event) {
                 event.preventDefault();
                 return (

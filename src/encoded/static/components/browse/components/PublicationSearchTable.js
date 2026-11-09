@@ -156,15 +156,13 @@ export const BrowsePublicationSearchTable = (props) => {
                 }}
                 hideHeaderRow
                 rowHeight={150}
-                renderResultRow={(result, rowNumber, rowProps) => {
-                    return (
-                        <PublicationSearchResultRow
-                            result={result}
-                            rowNumber={rowNumber}
-                            rowProps={rowProps}
-                        />
-                    );
-                }}
+                renderResultRow={(result, rowNumber, rowProps) => (
+                    <PublicationSearchResultRow
+                        result={result}
+                        rowNumber={rowNumber}
+                        rowProps={rowProps}
+                    />
+                )}
                 aboveTableComponent={
                     <h2 className="table-header text-gray-70 fs-3 fw-semibold">
                         {props.header_title || 'Publications'}

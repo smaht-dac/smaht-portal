@@ -13,6 +13,7 @@ import Modal from 'react-bootstrap/esm/Modal';
 
 import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
 import { console, ajax, JWT, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { Term } from './../../util/Schemas';
 import { ColumnCombiner, CustomColumnController, SortController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 import { ControlsAndResults } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/ControlsAndResults';
@@ -1418,6 +1419,7 @@ export function UsageStatsView(props){
 
                 : null}
 
+            {/* eslint-disable-next-line no-constant-condition -- intentionally disabled until this chart is revalidated. */}
             { top_file_downloads && false ?
 
                 <ColorScaleProvider resetScalesWhenChange={top_file_downloads} highContrast={highContrast}>

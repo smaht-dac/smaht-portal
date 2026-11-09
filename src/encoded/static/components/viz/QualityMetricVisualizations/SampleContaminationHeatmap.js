@@ -78,7 +78,7 @@ export const SampleContaminationHeatmap = ({
             // Create the SVG containers
             const svgContainer = container
                 .append('svg')
-                .attr('id', 'sample-contamination-svg' + '-' + plotId)
+                .attr('id', `sample-contamination-svg-${plotId}`)
                 .attr('class', 'sample-contamination-svg')
                 .attr('width', chartWidth)
                 .attr('height', chartHeight)
@@ -166,10 +166,13 @@ export const SampleContaminationHeatmap = ({
 
             const mouseover = function (event, d) {
                 tooltip.style('opacity', 1);
+                // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                 d3.select(this).style('stroke', 'black').style('opacity', 1);
                 tooltip_x =
+                    // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                     parseFloat(d3.select(this).attr('x')) + 2 * x.bandwidth();
                 tooltip_y =
+                    // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                     parseFloat(d3.select(this).attr('y')) + chartHeight / 2;
             };
             const mousemove = function (event, d) {
@@ -184,6 +187,7 @@ export const SampleContaminationHeatmap = ({
                     .style('opacity', 0)
                     .style('left', '-1000px')
                     .style('top', '-1000px');
+                // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                 d3.select(this).style('stroke', 'none').style('opacity', 0.8);
             };
 
