@@ -42,12 +42,13 @@ const TABS = [
                 <p>
                     Below are the files that had been previously released, but
                     due to incorrect metadata or other important changes, they
-                    were renamed after correction. Other than the file name,
-                    the files themselves did not change.
+                    were <strong>renamed</strong> after correction. Other than
+                    the file name,{' '}
+                    <strong>the files themselves did not change</strong>.
                 </p>
                 <p>
-                    We recommend simply renaming the file as there is no need
-                    to redownload.
+                    We recommend simply renaming the file as there is{' '}
+                    <strong>no need to redownload</strong>.
                 </p>
             </>
         ),
