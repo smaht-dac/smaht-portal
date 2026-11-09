@@ -10,7 +10,7 @@ import RetractedFilesTable from './RetractedFilesTable';
 import RenamedFilesTable from './RenamedFilesTable';
 
 // Each tab's table plus the description shown above it
-const TABS = [
+const DATA_RETRACTION_TABS = [
     {
         dotPath: '.retracted',
         title: 'Retracted Files',
@@ -70,9 +70,15 @@ export function DataRetractionTabs({ href, schemas, session }) {
             className="data-retraction-tabs"
             navClassName=""
             contentsClassName="">
-            {TABS.map(
+            {DATA_RETRACTION_TABS.map(
                 (
-                    { dotPath, title, iconCls, description, FilesTableComponent },
+                    {
+                        dotPath,
+                        title,
+                        iconCls,
+                        description,
+                        FilesTableComponent,
+                    },
                     index
                 ) => (
                     <DotRouterTab
