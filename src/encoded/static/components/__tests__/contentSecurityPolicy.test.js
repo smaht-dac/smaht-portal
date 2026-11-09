@@ -11,6 +11,9 @@ describe('portal Content Security Policy', () => {
         'https://login-test.srce.hms.harvard.edu/oauth2/default/.well-known/openid-configuration',
         'https://login-test.srce.hms.harvard.edu/oauth2/default/v1/token',
         'https://login-test.srce.hms.harvard.edu/oauth2/default/v1/keys',
+        'https://login.srce.hms.harvard.edu/oauth2/default/.well-known/openid-configuration',
+        'https://login.srce.hms.harvard.edu/oauth2/default/v1/token',
+        'https://login.srce.hms.harvard.edu/oauth2/default/v1/keys',
     ])('allows issuer connection %s', (url) => {
         const origin = new URL(url).origin;
         expect(connectSources).toContain(origin);

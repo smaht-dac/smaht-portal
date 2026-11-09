@@ -17,6 +17,6 @@ export function buildContentSecurityPolicy() {
         "worker-src 'self' blob:",
         // Okta is reached directly by the browser for PKCE token exchange,
         // logout revocation, and the issuer's JWKS/discovery documents.
-        "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com https://*.okta.com https://*.oktapreview.com https://login-test.srce.hms.harvard.edu",
+        "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com https://*.okta.com https://*.oktapreview.com https://login-test.srce.hms.harvard.edu https://login.srce.hms.harvard.edu",
     ].join('; ');
 }
