@@ -2906,6 +2906,16 @@ File, Donor, and Publication Overview Styles
                 border-radius: 5px;
                 border: 1px solid #cfebff;
 
+                // Border and rounding live on the container
+                &.clickable-image-container {
+                    overflow: hidden;
+
+                    .clickable-image {
+                        border: none;
+                        border-radius: 0;
+                    }
+                }
+
                 &.thumbnail-placeholder {
                     height: 110px;
                     display: flex;
@@ -3245,6 +3255,12 @@ File, Donor, and Publication Overview Styles
                 .thumbnail {
                     min-height: 200px;
                     width: 100%;
+
+                    .clickable-image {
+                        min-height: 200px;
+                        object-fit: cover;
+                        object-position: top;
+                    }
                 }
             }
             .citation-container {
@@ -3309,6 +3325,8 @@ File, Donor, and Publication Overview Styles
 
         &-overlay {
             position: absolute;
+            top: 0;
+            left: 0;
             opacity: 0;
             background-color: rgb(73 96 136 / 25%);
             transition: opacity 0.15s ease;
