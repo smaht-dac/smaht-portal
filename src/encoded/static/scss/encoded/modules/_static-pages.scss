@@ -3778,8 +3778,25 @@ body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
         padding: 0.5rem 1rem 2rem;
     }
 
-    .data-retraction-panel-description p {
-        margin-bottom: 0.5rem;
+    // The space below the description is set here instead of on the table's
+    // count title, which only renders when there are results
+    .data-retraction-panel-description {
+        margin-bottom: 40px;
+
+        p {
+            margin-bottom: 0.5rem;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .retracted-files-table,
+    .renamed-files-table {
+        .tab-section-title {
+            margin-top: 0;
+        }
     }
 }
 
