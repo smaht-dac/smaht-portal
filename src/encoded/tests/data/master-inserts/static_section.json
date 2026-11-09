@@ -619,8 +619,7 @@
     },
     {
         "identifier": "retracted-files",
-        "title": "List of Retracted Files",
-        "file": "/docs/public/retracted_files.jsx",
+        "file": "/docs/public/data_retraction.jsx",
         "status": "protected-network",
         "options": {
             "filetype": "jsx",
@@ -640,7 +639,7 @@
         "identifier": "renamed-files",
         "title": "List of Renamed Files",
         "file": "/docs/public/renamed_files.jsx",
-        "status": "protected-network",
+        "status": "deleted",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
