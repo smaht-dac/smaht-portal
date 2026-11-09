@@ -619,7 +619,6 @@
     },
     {
         "identifier": "retracted-files",
-        "title": "Retracted and Renamed Files",
         "file": "/docs/public/data_retraction.jsx",
         "status": "protected-network",
         "options": {
