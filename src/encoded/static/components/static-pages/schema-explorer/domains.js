@@ -6,7 +6,7 @@ export const domains = [
     { id: 'sequencing', label: 'Analytes, Libraries & Sequencing', types: 'Preparation Analyte AnalytePreparation Library LibraryPreparation FileSet Assay Sequencing Sequencer PreparationKit Treatment' },
     { id: 'files', label: 'Files & Quality Metrics', types: 'File SubmittedFile OutputFile ResourceFile ReferenceFile AlignedReads UnalignedReads VariantCalls HistologyImage SupplementaryFile ExternalOutputFile DonorSpecificAssembly ReferenceGenome Software FileFormat QualityMetric ExternalQualityMetric' },
     { id: 'workflows', label: 'Workflows & Analysis Runs', types: 'Workflow WorkflowRun MetaWorkflow MetaWorkflowRun AnalysisRun GenericConfig GenericQcConfig FilterSet HiglassViewConfig' },
-    { id: 'administrative', label: 'Administrative, Content & Ontology', types: 'User Consortium SubmissionCenter AccessKey IngestionSubmission TrackingItem Page Document Image Protocol Ontology OntologyTerm Publication UserContent StaticSection EmailNotification Item' },
+    { id: 'administrative', label: 'Admin, Content & Ontology', types: 'User Consortium SubmissionCenter AccessKey IngestionSubmission TrackingItem Page Document Image Protocol Ontology OntologyTerm Publication UserContent StaticSection EmailNotification Item' },
     { id: 'other', label: 'Other types', types: '' },
 ];
 const domainByType = new Map(domains.flatMap((d) => d.types.split(' ').filter(Boolean).map((name) => [name, d.id])));
@@ -36,7 +36,7 @@ export const stages = {
         ['Library preparation', 'LibraryPreparation'],
         ['Libraries', 'Library'],
         ['Sequencing', 'Sequencing'],
-        ['Outputs', 'FileSet'],
+        ['Experiments (FileSet)', 'FileSet'],
         ['Supporting types', 'Assay Sequencer PreparationKit'],
     ],
     workflows: [
@@ -51,7 +51,7 @@ export const stages = {
         ['Acquired data', 'UnalignedReads HistologyImage SupplementaryFile'],
         ['Processed data', 'OutputFile ExternalOutputFile AlignedReads'],
         ['Results', 'VariantCalls DonorSpecificAssembly'],
-        ['Quality', 'QualityMetric ExternalQualityMetric'],
+        ['Quality assessment', 'QualityMetric ExternalQualityMetric'],
         ['Supporting types', 'ResourceFile ReferenceFile ReferenceGenome Software FileFormat'],
     ],
     administrative: [

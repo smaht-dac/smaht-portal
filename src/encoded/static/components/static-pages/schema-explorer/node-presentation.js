@@ -56,9 +56,9 @@ const tones = {
 const stageTones = {
     Donors: 'blue', 'Clinical context': 'teal', 'Clinical details': 'teal', Collection: 'amber',
     'Source material': 'teal', Culture: 'teal', Samples: 'blue', Pathology: 'purple',
-    'Analyte preparation': 'teal', Analytes: 'teal', 'Library preparation': 'blue', Libraries: 'blue', Sequencing: 'purple', Outputs: 'purple',
+    'Analyte preparation': 'teal', Analytes: 'teal', 'Library preparation': 'blue', Libraries: 'blue', Sequencing: 'purple', 'Experiments (FileSet)': 'purple',
     Definitions: 'blue', Execution: 'teal', Analysis: 'purple',
-    'Acquired data': 'blue', 'Processed data': 'teal', Results: 'purple', Quality: 'amber',
+    'Acquired data': 'blue', 'Processed data': 'teal', Results: 'purple', 'Quality assessment': 'amber',
     Organization: 'blue', Submission: 'teal', Knowledge: 'purple',
 };
 export function stageAccent(stage, isAbstract = false) {

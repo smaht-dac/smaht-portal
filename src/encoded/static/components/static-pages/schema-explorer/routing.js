@@ -58,7 +58,7 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
     const obstacles = [...boxes, ...headings.map((h) => {return { left: h.left, right: h.left + h.width, top: h.top, bottom: h.top + h.height };})];
     const expanded = obstacles.map((r) => {return { left: r.left - padding, right: r.right + padding, top: r.top - padding, bottom: r.bottom + padding };});
     const connections = new Map(boxes.map((box) => [box.name, [...new Set(groups.filter((group) => group.from === box.name || group.to === box.name).map((group) => group.key))].sort()]));
-    const rawPorts = (box, key) => {
+    const rawPorts = (box, key, gap = portGap) => {
         const keys = connections.get(box.name);
         const slots = options.spreadPorts || options.spreadNodes?.includes(box.name) ? Math.min(5, keys.length) : 1;
         const fraction = slots ? ((Math.max(0, keys.indexOf(key)) % slots) + 1) / (slots + 1) : 0.5;
@@ -66,17 +66,20 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
         const py = box.top + 12 + (nodeHeight - 24) * fraction;
         // Ports sit far enough out that the final straight run fits an arrowhead plus a rounded bend.
         return [
-            { x: px, y: box.top - portGap, anchor: { x: px, y: box.top }, axis: 1 },
-            { x: px, y: box.bottom + portGap, anchor: { x: px, y: box.bottom }, axis: 1 },
-            { x: box.left - portGap, y: py, anchor: { x: box.left, y: py }, axis: 0 },
-            { x: box.right + portGap, y: py, anchor: { x: box.right, y: py }, axis: 0 },
+            { x: px, y: box.top - gap, anchor: { x: px, y: box.top }, axis: 1 },
+            { x: px, y: box.bottom + gap, anchor: { x: px, y: box.bottom }, axis: 1 },
+            { x: box.left - gap, y: py, anchor: { x: box.left, y: py }, axis: 0 },
+            { x: box.right + gap, y: py, anchor: { x: box.right, y: py }, axis: 0 },
         ];
     };
     const xs = new Set(), ys = new Set();
     expanded.forEach((r) => { xs.add(r.left); xs.add(r.right); ys.add(r.top); ys.add(r.bottom); });
     boxes.forEach((r) => {
         xs.add((r.left + r.right) / 2); ys.add((r.top + r.bottom) / 2);
-        for (const key of connections.get(r.name)) for (const port of rawPorts(r, key)) { xs.add(port.x); ys.add(port.y); }
+        for (const key of connections.get(r.name)) {
+            const loop = groups.some((group) => group.key === key && group.from === group.to);
+            for (const port of [...rawPorts(r, key), ...(loop ? rawPorts(r, key, padding) : [])]) { xs.add(port.x); ys.add(port.y); }
+        }
     });
     if (!boxes.length) return {};
     xs.add(Math.min(...expanded.map((r) => r.left)) - 48); xs.add(Math.max(...expanded.map((r) => r.right)) + 48);
@@ -102,16 +105,25 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
         return result;
     };
     const boxByName = new Map(boxes.map((r) => [r.name, r]));
-    const ports = (name, key) => rawPorts(boxByName.get(name), key)
-        .filter((port) => segmentClear(port.anchor, port, obstacles.filter((box) => box.name !== name)));
+    // A long port can land inside a neighbour's clearance (stacked nodes, a stage heading just above).
+    // A self-reference has too few usable sides to lose one, so it falls back to the short port on the
+    // clearance boundary; other arrows enter from an open side instead of squeezing into a narrow gap.
+    const ports = (name, key, fallback = false) => {
+        const others = obstacles.filter((box) => box.name !== name);
+        const usable = (port) => segmentClear(port.anchor, port, others) &&
+            !expanded.some((r) => port.x > r.left && port.x < r.right && port.y > r.top && port.y < r.bottom);
+        const short = rawPorts(boxByName.get(name), key, padding);
+        return rawPorts(boxByName.get(name), key).map((port, side) => usable(port) || !fallback ? port : short[side]).filter(usable);
+    };
     // Segments are remembered per target: arrows into the same schema may share a trunk (a fan-in reads
     // as one bundle), while arrows into different schemas are pushed apart so they stay distinguishable.
-    const usage = new Map(), targetsBySegment = new Map(), routes = {};
+    // Parallel relations between the same two schemas never share, or they would read as one arrow.
+    const usage = new Map(), targetsBySegment = new Map(), pairsBySegment = new Map(), routes = {};
     for (const group of [...groups].sort((a, b) => a.key.localeCompare(b.key))) {
         if (!positions[group.from] || !positions[group.to]) continue;
-        const same = group.from === group.to;
-        const starts = same ? ports(group.from, group.key).filter((p) => p.axis === 0 && p.x > positions[group.from].x) : ports(group.from, group.key);
-        const ends = same ? ports(group.to, group.key).filter((p) => p.axis === 1) : ports(group.to, group.key);
+        const same = group.from === group.to, pair = `${group.from}\0${group.to}`;
+        const starts = same ? ports(group.from, group.key, true).filter((p) => p.axis === 0 && p.x > positions[group.from].x) : ports(group.from, group.key);
+        const ends = same ? ports(group.to, group.key, true).filter((p) => p.axis === 1) : ports(group.to, group.key);
         if (!starts.length || !ends.length) continue;
         const targets = new Map(ends.map((p) => [idFor(p), p]));
         const heuristic = (id) => {
@@ -133,7 +145,7 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
             for (const next of adjacent(id)) {
                 const nextState = next.id * 2 + next.axis;
                 const key = [Math.min(id, next.id), Math.max(id, next.id)].join(':');
-                const sharesTrunk = targetsBySegment.get(key)?.has(group.to);
+                const sharesTrunk = targetsBySegment.get(key)?.has(group.to) && !pairsBySegment.get(key).has(pair);
                 const cost = distance + next.length * (sharesTrunk ? 0.6 : 1) + (axis === next.axis ? 0 : 28) + (sharesTrunk ? 0 : (usage.get(key) || 0) * 24);
                 if (cost >= (costs.get(nextState) ?? Infinity)) continue;
                 costs.set(nextState, cost); previous.set(nextState, state); origins.set(nextState, origins.get(state));
@@ -150,8 +162,9 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
         for (let i = 1; i < steps.length; i++) {
             const key = [Math.min(steps[i - 1], steps[i]), Math.max(steps[i - 1], steps[i])].join(':');
             usage.set(key, (usage.get(key) || 0) + 1);
-            if (!targetsBySegment.has(key)) targetsBySegment.set(key, new Set());
+            if (!targetsBySegment.has(key)) { targetsBySegment.set(key, new Set()); pairsBySegment.set(key, new Set()); }
             targetsBySegment.get(key).add(group.to);
+            pairsBySegment.get(key).add(pair);
         }
         const raw = [start.anchor, ...steps.map(point), end.anchor];
         const points = [];

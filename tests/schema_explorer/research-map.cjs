@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.readFileSync(`src/encoded/static/components/static-pages/schema-explorer/${name}.js`)).toString('base64')}`);
 (async()=>{
- const {concepts,buildResearchMap,traceProvenance,researchLabels,overviewFlow}=await load('research-map');
+ const {concepts,buildResearchMap,traceProvenance,researchLabels,overviewFlow,mapSentence,flowLabels}=await load('research-map');
  const {routeEdges,segmentClear}=await load('routing');
  const model=JSON.parse(fs.readFileSync(process.argv[2] || '/tmp/schema-explorer-hierarchy.json')).model;
  const available=model.models.map(m=>({name:m.name}));
@@ -58,5 +58,11 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
  assert.ok(!noFiles.nodes.some(n=>n.id==='files'));
  assert.ok(!noFiles.edges.some(e=>e.from==='files' || e.to==='files'));
  assert.equal(graph.edges.find(e=>e.key==='material-donor').edges.some(e=>e.from==='Tissue' && e.field==='donor'),true);
+ for(const edge of graph.edges)for(const reference of edge.edges)assert.equal(mapSentence(reference).key,edge.key,'Every map reference resolves to its own map sentence');
+ assert.equal(mapSentence({from:'Tissue',to:'Donor',field:'donor'}).text,'Donor provides Source material','Primary sentences read in biological order');
+ assert.equal(mapSentence({from:'OutputFile',to:'QualityMetric',field:'quality_metrics[]'}).text,'Data files is assessed by Quality assessment');
+ assert.equal(mapSentence({from:'Tissue',to:'Donor',field:'other'}),null,'Unrelated fields have no map sentence');
+ assert.equal(mapSentence({from:'Software',to:'File',field:'donor'}),null);
+ assert.deepEqual(Object.keys(flowLabels).sort(),graph.edges.map(e=>e.key).sort(),'Every map connection has a verb');
  console.log('Research overview: real schema projection, provenance trace, 11 concepts / 10 labeled connections, responsive routing and missing-reference handling passed.');
 })();

@@ -87,7 +87,10 @@ export function researchLabels(graph, routes) {
         for (const { a, b } of segments) {
             for (const fraction of [0.5, 0.35, 0.65]) {
                 const x = a.x + (b.x - a.x) * fraction, y = a.y + (b.y - a.y) * fraction;
-                const offsets = a.y === b.y ? [[0, -17], [0, 17], [0, 0]] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0]];
+                // A vertical run through a narrow column gap only fits a label slid sideways
+                // while it still covers the line, so those shifts are tried last.
+                const shifts = Array.from({ length: Math.floor(width / 8) }, (_, i) => (i + 1) * 4).flatMap((dx) => [[-dx, 0], [dx, 0]]);
+                const offsets = a.y === b.y ? [[0, -17], [0, 17], [0, 0]] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
                 for (const [dx, dy] of offsets) {
                     const box = { left: x + dx - width / 2, top: y + dy - height / 2, width, height };
                     if (obstacles.some((obstacle) => intersects(box, obstacle, 3))) continue;
@@ -102,27 +105,43 @@ export function researchLabels(graph, routes) {
     return labels;
 }
 
+// Each arrow reads as a sentence from its source box: "Donor provides Source material".
+// Labels between neighbouring boxes must stay short (about 14 characters) to fit the gap.
+export const flowLabels = {
+    'material-donor': 'provides',
+    'sample-material': 'is sampled as',
+    'analyte-sample': 'yields',
+    'library-analyte': 'is made into',
+    'fileSet-library': 'is run in',
+    'files-fileSet': 'produces',
+    'files-analysis': 'analyzed in',
+    'workflow-files': 'reads & writes',
+    'files-quality': 'is assessed by',
+    'fileSet-sequencing': 'sequenced with',
+};
+
 // The entry map follows biological progression. Schema direction remains in
 // graph.edges and each connection's exact references for detail views/tracing.
 export function overviewFlow(graph) {
-    // Each arrow reads as a sentence from its source box: "Donor provides Source material".
-    // Labels between neighbouring boxes must stay short (about 14 characters) to fit the gap.
-    const labels = {
-        'material-donor': 'provides',
-        'sample-material': 'is sampled as',
-        'analyte-sample': 'yields',
-        'library-analyte': 'is prepared into',
-        'fileSet-library': 'is run in',
-        'files-fileSet': 'produces',
-        'files-analysis': 'analyzed in',
-        'workflow-files': 'reads & writes',
-        'files-quality': 'is assessed by',
-        'fileSet-sequencing': 'is sequenced with',
-    };
     return { ...graph, edges: graph.edges.map((edge) => {return {
         ...edge,
         from: edge.primary ? edge.to : edge.from,
         to: edge.primary ? edge.from : edge.to,
-        label: labels[edge.key] || edge.label,
+        label: flowLabels[edge.key] || edge.label,
     };}) };
+}
+
+const conceptByType = new Map(concepts.flatMap((concept) => concept.types.split(' ').map((name) => [name, concept])));
+export const conceptFor = (name) => conceptByType.get(name);
+
+// The map sentence behind an exact schema reference, e.g. Tissue.donor -> Donor reads
+// "Donor provides Source material". Schema diagrams keep reference direction, so the
+// sentence names both ends instead of relying on the arrow.
+export function mapSentence(edge) {
+    const from = conceptFor(edge.from), to = conceptFor(edge.to);
+    const connection = from && to && connections.find((c) => c.from === from.id && c.to === to.id && c.fields.includes(edge.field));
+    if (!connection) return null;
+    const key = `${connection.from}-${connection.to}`;
+    const [subject, object] = connection.primary ? [to, from] : [from, to];
+    return { key, verb: flowLabels[key], text: `${subject.label} ${flowLabels[key]} ${object.label}` };
 }

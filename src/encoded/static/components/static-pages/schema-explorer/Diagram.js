@@ -13,6 +13,7 @@ import { nodePresentation, stageAccent } from './node-presentation';
 import ResearchOverview from './ResearchOverview';
 import { explorerIndex } from './explorer-scope';
 import { externalContextGroups } from './external-context';
+import { mapSentence } from './research-map';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, ConceptTabs } from './shared';
 
@@ -112,7 +113,7 @@ export default function Diagram({
             ),
         [index, kinds, compact, focus]
     );
-    useEffect(() => { setOutsideOpen(false); }, [selected, domain, neighbors]);
+    useEffect(() => { setOutsideOpen(false); }, [selected, domain, neighbors, showExternal]);
     useEffect(() => {
         if (outsideOpen) outsidePanel.current?.querySelector('[data-close-connections]')?.focus({ preventScroll: true });
     }, [outsideOpen]);
@@ -495,11 +496,15 @@ export default function Diagram({
         setMoves({});
         setNeighbors(true);
     };
+    // Schemas inside a collapsed external group are drawn through that group's card, so their links count as visible.
+    const drawnNames = useMemo(() => new Set([...names, ...externalBundles
+        .filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => bundle.members)]),
+    [names, externalBundles, expandedExternal]);
     const incident = edges.filter(
         (e) =>
             (e.from === selected || e.to === selected) &&
-            names.has(e.from) &&
-            names.has(e.to)
+            drawnNames.has(e.from) &&
+            drawnNames.has(e.to)
     );
     // Schema descriptions that only restate the name ("Death Circumstances") add nothing under the title.
     const selectedDescription = useMemo(() => {
@@ -514,7 +519,15 @@ export default function Diagram({
         const heirs = new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size;
         const note = g.shared && heirs ? ` · defined on ${g.from}, inherited by ${heirs} ${heirs === 1 ? 'schema' : 'schemas'}` : '';
         const header = `${end(g.from)} → ${end(g.to)}${note}`;
-        return `${header}\n\n${g.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}`;
+        const sentence = g.edges.map(mapSentence).find(Boolean);
+        const map = sentence ? `\n\nOn the Donor to data map: ${sentence.text}` : '';
+        return `${header}\n\n${g.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}${map}`;
+    };
+    // The map verb next to the exact field ties a schema arrow to its Donor to data sentence.
+    const edgeCaption = (g) => {
+        const fields = [...new Set(g.edges.map((e) => e.field))].join(', ');
+        const sentence = g.edges.map(mapSentence).find(Boolean);
+        return sentence ? `${fields} · ${sentence.verb}` : fields;
     };
     // Hovering any arrow traces it: both ends are marked and the rest of the map steps back. An arrow drawn
     // once from a base type also marks the subtypes that inherit it, so the shared definition stays visible.
@@ -890,7 +903,7 @@ export default function Diagram({
                                             x={same ? a.x : cx}
                                             y={same ? ay - 80 : cy - 8}
                                             onClick={() => inspect(g)}>
-                                            {g.edges.map((e) => e.field).join(', ')}
+                                            {edgeCaption(g)}
                                         </text>
                                     )}
                                 </g>
@@ -902,14 +915,19 @@ export default function Diagram({
                             const expanded = expandedExternal.includes(bundle.id);
                             const toggle = () => { setSelected(''); setMoves({}); setExpandedExternal(expanded ? expandedExternal.filter((id) => id !== bundle.id) : [...expandedExternal, bundle.id]); };
                             const label = bundle.label.length > 32 ? `${bundle.label.slice(0, 29)}…` : bundle.label;
+                            const extra = bundle.unmapped && bundle.mapLabels.length ? ` +${bundle.unmapped} other` : '';
+                            const mapLine = bundle.mapLabels.length ? `Map: ${bundle.mapLabels.join(', ')}${extra}` : 'Not on the Donor to data map';
+                            // About 36 characters of 11px text fit in the card; the full line stays in the tooltip.
+                            const mapText = mapLine.length > 36 ? `${mapLine.slice(0, 35)}…` : mapLine;
                             return (
                                 <g key={bundle.name} data-external-group={bundle.id} className={`se-external-group-card${tracedEnds.has(bundle.name) ? ' se-traced-group' : ''}`}
                                     transform={`translate(${p.x - width / 2},${p.y - height / 2})`} role="button" tabIndex={0}
                                     aria-label={`${expanded ? 'Collapse' : 'Expand'} ${bundle.label}: ${bundle.members.length} connected schemas`} aria-expanded={expanded}
                                     onClick={toggle} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } }}>
-                                    <title>{bundle.label}</title><rect width={width} height={height} rx="8" />
-                                    <text x="12" y="25" className="se-external-group-title">{label}</text>
-                                    <text x="12" y="47">{bundle.members.length} connected {bundle.members.length === 1 ? 'schema' : 'schemas'} · {expanded ? 'Collapse ↑' : 'Expand →'}</text>
+                                    <title>{`${bundle.label}\n${mapLine}`}</title><rect width={width} height={height} rx="8" />
+                                    <text x="12" y="20" className="se-external-group-title">{label}</text>
+                                    <text x="12" y="37" className="se-external-group-map">{mapText}</text>
+                                    <text x="12" y="54">{bundle.members.length} connected {bundle.members.length === 1 ? 'schema' : 'schemas'} · {expanded ? 'Collapse ↑' : 'Expand →'}</text>
                                 </g>
                             );
                         })}
@@ -944,7 +962,7 @@ export default function Diagram({
                                         }
                                     }}>
                                     <title>{tooltip}</title>
-                                    {externalContextNames.has(n.name) && <text className="se-context-domain" x="0" y="-8">Other group · {domainFor(n.name) === 'administrative' ? 'Administrative metadata' : domains.find((group) => group.id === domainFor(n.name))?.label}</text>}
+                                    {externalContextNames.has(n.name) && <text className="se-context-domain" x="0" y="-8">Other group · {domains.find((group) => group.id === domainFor(n.name))?.label}</text>}
                                     <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={8} />
                                     <text className="se-node-title" x="12" y={26}>
                                         {n.name}
@@ -967,7 +985,8 @@ export default function Diagram({
                                 </g>
                             );
                         })}
-                        {!compact && domain && !neighbors && selected && positions[selected] && externalGroups.length > 0 && (
+                        {/* With links to other groups drawn, the external cards already show this; the cue would only repeat it. */}
+                        {!compact && domain && !neighbors && !showExternal && selected && positions[selected] && externalGroups.length > 0 && (
                             <g className="se-cross-group-cue" transform={`translate(${positions[selected].x},${positions[selected].y + cardHeight / 2})`}>
                                 <path className="se-cross-group-stem" d="M0,0 V7" />
                                 <g role="button" tabIndex={0} aria-controls="cross-group-connections"
@@ -993,7 +1012,7 @@ export default function Diagram({
                         </text>
                     )}
                 </svg>
-                {!compact && domain && !neighbors && outsideOpen && externalGroups.length > 0 && (
+                {!compact && domain && !neighbors && !showExternal && outsideOpen && externalGroups.length > 0 && (
                     <div className="se-cross-group-popover" style={{ left: outsideLeft, top: outsideTop, width: outsideWidth, maxHeight: outsideHeight }}
                         onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeOutside(); } }}>
                         <CrossGroupConnections key={selected} selected={selected} groups={externalGroups} sectionRef={outsidePanel}
@@ -1041,7 +1060,9 @@ export default function Diagram({
                             </table>
                         </div>
                     ))}
-                    {!incident.length && <p className="se-flow-note">No visible links. Turn on more relationship kinds under Relationships, or show more types.</p>}
+                    {!incident.length && <p className="se-flow-note">{!compact && domain && !neighbors && !showExternal && externalGroups.length
+                        ? 'No links inside this group. Its links go to other groups: turn on Links to other groups, or open External connections on the schema.'
+                        : 'No visible links. Turn on more relationship kinds under Relationships, or show more types.'}</p>}
                 </section>
             )}
         </section>

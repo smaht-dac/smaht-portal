@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.readFileSync(`src/encoded/static/components/static-pages/schema-explorer/${name}.js`, 'utf8')).toString('base64')}`);
 (async () => {
-    const { domains, domainFor, hierarchicalLayout, overviewLayout, stages, abstractTypes } = await load('domains');
+    const { domains, domainFor, hierarchicalLayout, stages, abstractTypes } = await load('domains');
     const { routeEdges, segmentClear } = await load('routing');
     assert.ok(abstractTypes.has('AbstractDonor') && abstractTypes.has('File') && abstractTypes.has('Sample'));
     assert.ok(!abstractTypes.has('Donor') && !abstractTypes.has('WorkflowRun'),'Concrete parent classes are not classified as abstract');
@@ -85,18 +85,6 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
     const orderingEdges = [edge('Demographic','ProtectedDonor'), edge('MedicalHistory','Donor')];
     const ordered = hierarchicalLayout(donors,236,66,orderingEdges).positions;
     assert.ok(ordered.MedicalHistory.y < ordered.Demographic.y || ordered.MedicalHistory.y === ordered.Demographic.y && ordered.MedicalHistory.x < ordered.Demographic.x);
-    const overview=overviewLayout(nodes,{width:1230,height:650});
-    assert.equal(Object.keys(overview.positions).length,nodes.length);
-    for(const [name,p] of Object.entries(overview.positions)){
-        const f=overview.frames.find(f=>f.id===domainFor(name));
-        assert.ok(p.x-overview.nodeWidth/2>=f.left && p.x+overview.nodeWidth/2<=f.left+f.width);
-        assert.ok(p.y-overview.nodeHeight/2>=f.top+50 && p.y+overview.nodeHeight/2<=f.top+f.height);
-    }
-    for(let i=0;i<overview.frames.length;i++)for(let j=i+1;j<overview.frames.length;j++){
-        const a=overview.frames[i],b=overview.frames[j];
-        assert.ok(a.left+a.width<=b.left || b.left+b.width<=a.left || a.top+a.height<=b.top || b.top+b.height<=a.top);
-    }
-    assert.deepEqual(overviewLayout([...nodes].reverse(),{width:1230,height:650}),overview);
     for(const viewport of [{width:1230,height:650},{width:760,height:500},{width:1900,height:950}]){
         for(const domain of domains){
             const groupNodes=nodes.filter(n=>domainFor(n.name)===domain.id);
