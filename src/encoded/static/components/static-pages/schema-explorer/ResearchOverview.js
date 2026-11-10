@@ -107,7 +107,7 @@ function WorkflowStepper({ concept, graph, onConcept }) {
                 {steps.map((node) => {
                     const current = node.id === anchor;
                     return (
-                        <li key={node.id} className={current ? 'se-step-current' : undefined} style={{ '--se-step-color': node.color }}>
+                        <li key={node.id} className={current ? 'se-step-current' : undefined}>
                             <button type="button" aria-current={current ? 'step' : undefined} onClick={() => onConcept(node.id)}>
                                 <span className="se-step-number">{node.step}</span>
                                 <span className="se-step-label">{node.label}</span>
@@ -324,7 +324,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
                             if (delta) { event.preventDefault(); setCamera((c) => {return { ...c, x: c.x + delta[0], y: c.y + delta[1] };}); }
                         }}>
                         <defs>
-                            {[['research-arrow', '#477293'], ['research-arrow-traced', '#137a66']].map(([id, color]) => (
+                            {[['research-arrow', '#477293'], ['research-arrow-traced', '#079483' /* $seafoam-60 */]].map(([id, color]) => (
                                 <marker key={id} id={id} viewBox="0 0 10 8" refX="10" refY="4" markerWidth="10" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
                                     <path d="M0,0 L10,4 L0,8 Z" fill={color} />
                                 </marker>
@@ -357,7 +357,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
                                             <text className="se-research-title" x="14" y="26">{node.label}</text>
                                             {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
                                             <text className="se-research-example" x="14" y="89">{node.example}</text>
-                                            {node.step && <g><circle cx={graph.nodeWidth - 16} cy="16" r="10" fill={node.color} /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
+                                            {node.step && <g><circle className="se-research-step-badge" cx={graph.nodeWidth - 16} cy="16" r="10" /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
                                         </g>
                                         <g data-overview={node.id} className="se-research-overview-action" role="button" tabIndex={0}
                                             aria-label={`${node.label} summary`}
@@ -386,7 +386,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
             </div>
 
             {concept && (
-                <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`} style={{ '--se-concept-color': concept.color }}>
+                <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`}>
                     <header className="se-concept-heading">
                         <div>
                             <button type="button" className="se-diagram-back" onClick={returnToMap}>← Metadata map</button>

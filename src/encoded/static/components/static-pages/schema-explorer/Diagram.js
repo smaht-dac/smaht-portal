@@ -432,7 +432,7 @@ export default function Diagram({
         setMoves({});
     }, []);
     const exploreConcept = (concept) => {
-        setConceptContext({ id: concept.id, label: concept.label, hint: concept.hint, color: concept.color, domain: concept.domain, members: concept.members, connections: concept.connections, origin: concept.origin || 'concept' });
+        setConceptContext({ id: concept.id, label: concept.label, hint: concept.hint, domain: concept.domain, members: concept.members, connections: concept.connections, origin: concept.origin || 'concept' });
         setFocusReturnedMap(false);
         setDomain(concept.domain);
         setSelected('');
