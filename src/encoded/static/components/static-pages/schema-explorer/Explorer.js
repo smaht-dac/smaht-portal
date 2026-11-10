@@ -21,6 +21,11 @@ function baseLabel(id, bases) {
     return bases.filter((base) => base.id.split('.').pop() === name).length > 1 ? id.split('.').slice(-2).join('.') : name;
 }
 
+const hasOwnDescription = (model) => {
+    const description = typeof model.schema?.description === 'string' ? model.schema.description.trim() : '';
+    return !!description && description.replace(/[\s_.-]/g, '').toLowerCase() !== model.name.toLowerCase();
+};
+
 const fieldFilters = [
     ['all', 'All', () => true],
     ['links', 'Links', (field) => linkTargets(field.schema).length > 0],
@@ -378,25 +383,24 @@ export default function Explorer() {
                             <div className="se-diagram-heading">
                                 <span className="se-diagram-eyebrow">Schema details</span>
                                 <h2>{model.name}</h2>
-                                <p className="se-diagram-question">{model.schema.description || model.itemType}</p>
-                                <ul className="se-diagram-facts" aria-label="Schema summary">
-                                    <li>{model.fields.length} fields</li>
-                                    <li>{model.fields.filter((f) => f.calculated).length} calculated</li>
-                                    <li>{model.fields.filter((f) => f.required).length} required</li>
-                                    <li><button type="button" className="se-fact-link" onClick={() => source(model.source)}>Python source ↗</button></li>
-                                    {model.schemaSource && <li><button type="button" className="se-fact-link" onClick={() => source(model.schemaSource)}>JSON schema ↗</button></li>}
-                                </ul>
-                                {model.bases.length > 0 && (
-                                    <div className="se-inheritance-chain" aria-label="Inheritance (method resolution order)">
-                                        <span className="se-inheritance-label">Inherits from</span>
-                                        {model.bases.map((base, i) => (
-                                            <React.Fragment key={base.id}>
-                                                {i > 0 && <span aria-hidden="true">›</span>}
-                                                <button type="button" title={`${base.id} · open source`} onClick={() => source(base.source)}>{baseLabel(base.id, model.bases)} ↗</button>
-                                            </React.Fragment>
-                                        ))}
-                                    </div>
-                                )}
+                                {/* Field counts live on the inspector's tab and filters below; a description that
+                                    only restates the name (e.g. death_circumstances) adds nothing under the title. */}
+                                {hasOwnDescription(model) && <p className="se-diagram-question">{model.schema.description}</p>}
+                                <div className="se-inheritance-chain" aria-label="Schema sources and inheritance">
+                                    <button type="button" onClick={() => source(model.source)}>Python source ↗</button>
+                                    {model.schemaSource && <button type="button" onClick={() => source(model.schemaSource)}>JSON schema ↗</button>}
+                                    {model.bases.length > 0 && (
+                                        <span className="se-inheritance-bases" aria-label="Inheritance (method resolution order)">
+                                            <span className="se-inheritance-label">Inherits from</span>
+                                            {model.bases.map((base, i) => (
+                                                <React.Fragment key={base.id}>
+                                                    {i > 0 && <span aria-hidden="true">›</span>}
+                                                    <button type="button" title={`${base.id} · open source`} onClick={() => source(base.source)}>{baseLabel(base.id, model.bases)} ↗</button>
+                                                </React.Fragment>
+                                            ))}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </header>
                         {isAdmin && (

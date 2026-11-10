@@ -276,14 +276,9 @@ export default function Diagram({
         summarize && ['covered', 'Hover an arrow to trace it; an arrow from a base type also marks the subtypes that inherit it'],
         ['arrow', 'Arrow points to the referenced schema'],
     ].filter(Boolean) : [];
-    const linkTotal = summarize || neighborhood && connectionMode === 'shared' ? shownGroups.length : shownGroups.reduce((n, g) => n + g.edges.length, 0);
     const title = compact ? 'Relationships' : neighbors ? selected
         : singleFrame?.label || domains.find((d) => d.id === domain)?.label || 'All schemas';
     const eyebrow = compact ? '' : neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
-    const facts = [
-        `${visible.length} ${visible.length === 1 ? 'schema' : 'schemas'}`,
-        `${linkTotal} ${linkTotal === 1 ? 'link' : 'links'}${summarize || neighborhood && connectionMode === 'shared' ? ' (shared definitions)' : ''}`,
-    ];
     // Routed views draw orthogonal arrows around cards and headings: group maps and neighborhoods.
     const routed = showDomains || !!neighborhoodView;
     const headings = useMemo(() => neighborhoodView ? neighborhoodView.panels : showDomains ? [
@@ -588,7 +583,8 @@ export default function Diagram({
                 <div className="se-diagram-heading" style={conceptContext?.color ? { '--se-concept-color': conceptContext.color } : undefined}>
                     {conceptContext ? (
                         <>
-                            <span className="se-diagram-eyebrow">Explore the metadata</span>
+                            {/* A single group's title is not drawn in the canvas, so the concept names its group here. */}
+                            <span className="se-diagram-eyebrow">{domains.find((d) => d.id === conceptContext.domain)?.label || 'Explore the metadata'}</span>
                             <h2>{conceptContext.label}</h2>
                             {conceptContext.hint && <p className="se-diagram-question">{conceptContext.hint}</p>}
                             <ConceptTabs active="map" label={conceptContext.label} onSummary={() => backToConcept(true)} />
@@ -599,10 +595,6 @@ export default function Diagram({
                             <h2>{title}</h2>
                         </>
                     )}
-                    <ul className="se-diagram-facts" aria-label="Diagram summary">
-                        {conceptContext && singleFrame && <li>Group: {singleFrame.label}</li>}
-                        {facts.map((fact) => <li key={fact}>{fact}</li>)}
-                    </ul>
                 </div>
             </header>
             <div className="se-diagram-controls">

@@ -63,7 +63,6 @@
         .se-diagram-eyebrow { color: var(--se-concept-color, #356a9a); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
         h2 { margin: .15rem 0 .1rem; font-size: 26px; line-height: 1.25; font-weight: 650; color: #253b4d; }
         .se-diagram-question { margin: 0; font-size: 16px; color: #425c71; }
-        button.se-fact-link { padding: 0; font-size: 12.5px; color: #356a9a; background: transparent; border: 0; &:hover, &:focus { text-decoration: underline; } }
         .se-diagram-facts { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 0; padding: 0; list-style: none; li { padding: .15rem .55rem; font-size: 12.5px; color: #425c71; background: white; border: 1px solid #d4dee7; border-radius: 1rem; } }
     }
     .se-diagram-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; margin-bottom: .6rem; padding: .55rem .75rem; border: 1px solid #e1e7ec; border-radius: .5rem; background: #f8fafc;
@@ -98,6 +97,8 @@
     .se-inheritance-chain { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .6rem; font-size: 12.5px; color: #8a99a8;
         button { padding: .1rem .45rem; font-size: 12.5px; color: #356a9a; background: white; border: 1px solid #d4dee7; border-radius: 1rem; &:hover, &:focus { border-color: #356a9a; } }
     }
+    .se-inheritance-bases { display: contents; }
+    .se-inheritance-bases .se-inheritance-label { margin-left: .6rem; }
     .se-inheritance-label { margin-right: .15rem; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #59636e; }
     .se-live-panel { margin: 0 0 1rem; padding: .1rem .9rem; border: 1px solid #dfe6ec; border-radius: .5rem; background: #f8fafc;
         > summary { font-size: 14px; font-weight: 600; color: #253b4d; small { margin-left: .5rem; font-weight: 400; color: #657383; } }
