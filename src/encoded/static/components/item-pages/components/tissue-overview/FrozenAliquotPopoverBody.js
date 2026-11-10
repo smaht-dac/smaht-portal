@@ -1,0 +1,381 @@
+'use strict';
+
+import React from 'react';
+import { AliquotInfoCard, PathologyOutcomeBadge, hexToRgba, isTpcSubmissionCenter, openPathologyReport } from './helpers';
+import AliquotCoreTable, { formatCenterName } from './AliquotCoreTable';
+
+const FROZEN_GRID_ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const FROZEN_GRID_COLS = [1, 2, 3, 4, 5, 6];
+
+// Distinct, colorblind-considerate hues (not just lightness steps of one
+// base color) so cores submitted by different centers are visually
+// distinguishable at a glance in the grid, not just via tooltip/click.
+// Assigned in each popover's own first-encounter order (see
+// AliquotVisualization.js) -- the first two are the popover mockup's own.
+export const CORE_DOT_COLOR_PALETTE = [
+    '#9c9cf8', // lavender (also the default single-GCC highlight)
+    '#5d913c', // leaf green
+    '#c99a2e', // amber/gold
+    '#c0524a', // brick red
+    '#2f8fa6', // teal-blue
+    '#1e5b4f', // dark teal-green
+];
+export const [CORE_DOT_DEFAULT_COLOR] = CORE_DOT_COLOR_PALETTE;
+
+// Flattens associatedPathologyReports (one entry per linked Fixed sample,
+// each with its own pathology_reports array) into one row per report --
+// sorted by the Fixed sample's external_id so the list reads in a stable,
+// predictable order instead of whatever order the samples happened to
+// merge in. The full report name is long (e.g.
+// "NDRI_NON-BRAIN-PATHOLOGY-REPORT_SMHT004-3T-003") -- the visible label is
+// the short accession, with the full name kept as the link's `title`
+// tooltip.
+function getSortedPathologyReportItems(entries) {
+    return (entries || [])
+        .slice()
+        .sort((a, b) =>
+            String(a?.fixed_sample_external_id || '').localeCompare(
+                String(b?.fixed_sample_external_id || ''),
+                undefined,
+                { numeric: true }
+            )
+        )
+        .flatMap((entry) => {
+            const externalId = entry?.fixed_sample_external_id;
+            const reports = entry?.pathology_reports;
+            if (!reports || reports.length === 0) {
+                return [{ key: externalId, externalId, href: null }];
+            }
+            return reports.map((report, reportIndex) => {
+                const isObject = typeof report === 'object';
+                return {
+                    key: `${externalId}-${reportIndex}`,
+                    externalId,
+                    href: isObject ? report?.['@id'] : report,
+                    accession: isObject ? report?.accession || null : null,
+                    title: isObject ? report?.display_title || null : null,
+                    outcome: isObject ? report?.outcome || null : null,
+                    unacceptableDescription: isObject ? report?.unacceptable_description || null : null,
+                };
+            });
+        });
+}
+
+// A report's histology image(s): the image itself when there's one, else
+// the HistologyImage search for that report. Stops the click there so the
+// row's own handler (which opens the report) doesn't also fire.
+function ReportHistologyLink({ reportId, imageIds }) {
+    if (!reportId || imageIds.length === 0) return <span className="aliquot-detail-na">n/a</span>;
+    const [, , reportUuid] = String(reportId).split('/');
+    const href = imageIds.length === 1 ? imageIds[0] : `/search/?type=HistologyImage&pathology_reports.uuid=${reportUuid}`;
+    return (
+        <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={imageIds.length === 1 ? 'View histology image' : `View ${imageIds.length} histology images`}
+            // eslint-disable-next-line react/jsx-no-bind
+            onClick={(event) => event.stopPropagation()}>
+            <i className="icon icon-image fas" />
+            {imageIds.length > 1 ? ` ${imageIds.length}` : null}
+        </a>
+    );
+}
+
+// core_size enum values ("1.5", "3.0", "3.0 Donut") are millimetres -- "3.0
+// Donut" is a 3.0 mm donut-shaped core -- so this reads "1.5 mm" / "3.0 mm
+// Donut". null when the sample has no core_size (only Core samples carry
+// one).
+const formatCoreSize = (coreSize) => {
+    if (!coreSize) return null;
+    const [size, ...rest] = coreSize.split(' ');
+    return [`${size} mm`, ...rest].join(' ');
+};
+
+// The well-plate grid: every core position (A1-F6) as a ring, with the
+// positions this Frozen aliquot actually has cores for filled in the color of
+// their submitting center.
+function CorePlateGrid({
+    slice,
+    aliquotId,
+    highlightedPositions,
+    centerColors,
+    hoveredPosition,
+    onHoverPosition,
+}) {
+    return (
+        <span className="aliquot-visual-grid-wrap">
+            <span className="aliquot-grid-row-with-labels">
+                <span className="aliquot-grid-row-labels">
+                    {FROZEN_GRID_ROWS.map((row) => (
+                        <span className="aliquot-grid-row-label" key={row}>
+                            {row}
+                        </span>
+                    ))}
+                </span>
+                <span className="aliquot-visual-grid">
+                    {FROZEN_GRID_ROWS.map((row) => (
+                        <span className="aliquot-grid-row" key={row}>
+                            {FROZEN_GRID_COLS.map((col) => {
+                                const corePosition = `${row}${col}`;
+                                const rawSubmissionCenters =
+                                    slice?.frozenCorePositionSubmissionCenters?.[corePosition] || [];
+                                const rawFilesHrefs =
+                                    slice?.frozenCorePositionFilesHrefs?.[corePosition] || [];
+                                // A position whose only known submitting
+                                // center(s) are TPCs (procurement records, no
+                                // files of their own -- see
+                                // isTpcSubmissionCenter) doesn't get marked at
+                                // all, same as a position with no data.
+                                // Illustrative/demo data (no center info at
+                                // all yet) isn't affected.
+                                const hasOnlyTpcCenters =
+                                    rawSubmissionCenters.length > 0 &&
+                                    rawSubmissionCenters.every(isTpcSubmissionCenter);
+                                const isHighlighted =
+                                    highlightedPositions.includes(corePosition) && !hasOnlyTpcCenters;
+                                if (!isHighlighted) {
+                                    return <span key={corePosition} className="aliquot-grid-core" />;
+                                }
+                                // A position can have more than one real
+                                // submitting center -- list every distinct GCC
+                                // one in the tooltip (TPC entries excluded),
+                                // and link/color by whichever has a real files
+                                // href (prefer the first GCC one that does).
+                                const linkedIndex = rawFilesHrefs.findIndex(
+                                    (href, i) =>
+                                        Boolean(href) && !isTpcSubmissionCenter(rawSubmissionCenters[i])
+                                );
+                                const positionFilesHref = linkedIndex >= 0 ? rawFilesHrefs[linkedIndex] : null;
+                                const positionSubmissionCenters = rawSubmissionCenters.filter(
+                                    (center) => Boolean(center) && !isTpcSubmissionCenter(center)
+                                );
+                                const primaryCenter =
+                                    (linkedIndex >= 0 ? rawSubmissionCenters[linkedIndex] : null) ||
+                                    positionSubmissionCenters[0];
+                                const dotColor =
+                                    (primaryCenter && centerColors.get(primaryCenter)) ||
+                                    CORE_DOT_DEFAULT_COLOR;
+                                const positionId = `${aliquotId}${corePosition}`;
+                                const positionTitle =
+                                    positionSubmissionCenters.length > 0
+                                        ? `${positionId} (${positionSubmissionCenters.join(', ')})`
+                                        : positionId;
+                                // Read by the hover/focus halo in
+                                // _item-pages.scss -- a hardcoded halo color
+                                // there would only ever match the default
+                                // dot, not a GCC-specific one.
+                                const dotStyle = {
+                                    backgroundColor: dotColor,
+                                    borderColor: dotColor,
+                                    '--aliquot-core-halo': hexToRgba(dotColor, 0.3),
+                                };
+                                const className =
+                                    'aliquot-grid-core is-highlighted' +
+                                    (positionFilesHref ? ' is-linked' : '') +
+                                    (corePosition === hoveredPosition ? ' is-hovered' : '');
+                                const handleEnter = () => onHoverPosition(corePosition);
+                                const handleLeave = () => onHoverPosition(null);
+                                return positionFilesHref ? (
+                                    <a
+                                        key={corePosition}
+                                        href={positionFilesHref}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title={`View ${positionTitle}'s files`}
+                                        style={dotStyle}
+                                        className={className}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onMouseEnter={handleEnter}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onMouseLeave={handleLeave}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onFocus={handleEnter}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onBlur={handleLeave}
+                                    />
+                                ) : (
+                                    <span
+                                        key={corePosition}
+                                        title={positionTitle}
+                                        style={dotStyle}
+                                        className={className}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onMouseEnter={handleEnter}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onMouseLeave={handleLeave}
+                                    />
+                                );
+                            })}
+                        </span>
+                    ))}
+                </span>
+            </span>
+            <span className="aliquot-grid-col-labels">
+                {FROZEN_GRID_COLS.map((col) => (
+                    <span className="aliquot-grid-col-label" key={col}>
+                        {col}
+                    </span>
+                ))}
+            </span>
+        </span>
+    );
+}
+
+// Body of the (wide) popover a Frozen slice opens: the core plate + a small
+// donor/tissue/aliquot card on the left, and on the right a per-core
+// sequencing table and the linked Fixed samples' histology/pathology.
+// Presentational only -- AliquotVisualization.js owns the popover itself and
+// derives `groups`/`centerColors` (cores grouped by submitting center).
+export default function FrozenAliquotPopoverBody({
+    slice,
+    aliquotId,
+    sequenceLabel,
+    donorLabel,
+    tissueLabel,
+    highlightedPositions,
+    groups,
+    centerColors,
+    showNoCorePositionsNote,
+    assayPlatformsBySampleName,
+    hoveredPosition,
+    onHoverPosition,
+    // Optional -- see helpers.js's openPathologyReport.
+    onPathologyReportClick = null,
+    // Optional -- see AliquotVisualization.js's props of the same names.
+    tissueCodeLabels = null,
+    histologyImageIdsByReportId = null,
+}) {
+    // One table row per core position per submitting center, in position
+    // order (A1, A2, ... F6) regardless of which center each came from.
+    const coreRows = [];
+    groups.forEach((group, groupIndex) => {
+        group.positions.forEach((corePosition) => {
+            coreRows.push({ corePosition, group, groupIndex });
+        });
+    });
+    coreRows.sort((a, b) => a.corePosition.localeCompare(b.corePosition, undefined, { numeric: true }));
+    const coreTableRows = coreRows.map(({ corePosition, group, groupIndex }) => {
+        const positionFilesHref = group.positionFilesHrefs[corePosition];
+        return {
+            key: `${groupIndex}-${corePosition}`,
+            hoverKey: corePosition,
+            coreLabel: corePosition,
+            coreColor:
+                (group.submissionCenter && centerColors.get(group.submissionCenter)) || CORE_DOT_DEFAULT_COLOR,
+            coreHref: positionFilesHref,
+            coreTitle: positionFilesHref
+                ? `View ${aliquotId}${corePosition}'s own files`
+                : 'No data for this position',
+            sizeLabel: formatCoreSize(group.positionCoreSizes[corePosition]),
+            dataLabels: assayPlatformsBySampleName[group.positionExternalIds[corePosition]] || [],
+            centerLabel: formatCenterName(group.submissionCenter) || `GCC${groupIndex + 1}`,
+            centerHref: group.filesHref,
+            centerTitle: "View this GCC's files for this donor & tissue",
+        };
+    });
+    const pathologyItems = getSortedPathologyReportItems(slice?.associatedPathologyReports);
+    const showHistology = !!histologyImageIdsByReportId;
+
+    return (
+        <div className="aliquot-detail-layout">
+            <div className="aliquot-detail-left">
+                <div className="aliquot-popover-visual">
+                    <CorePlateGrid
+                        slice={slice}
+                        aliquotId={aliquotId}
+                        highlightedPositions={highlightedPositions}
+                        centerColors={centerColors}
+                        hoveredPosition={hoveredPosition}
+                        onHoverPosition={onHoverPosition}
+                    />
+                </div>
+                <AliquotInfoCard
+                    donorLabel={donorLabel}
+                    specimenLabel="Frozen"
+                    tissueLabel={tissueLabel}
+                    aliquotLabel={sequenceLabel}
+                    tissueCodeLabels={tissueCodeLabels}
+                />
+            </div>
+            <div className="aliquot-detail-right">
+                <section className="aliquot-detail-section">
+                    <h4 className="aliquot-detail-section-title">Frozen Tissue - Sequencing Data</h4>
+                    <AliquotCoreTable
+                        rows={coreTableRows}
+                        hoveredKey={hoveredPosition}
+                        onHoverKey={onHoverPosition}
+                        emptyMessage={
+                            showNoCorePositionsNote
+                                ? "No core positions assigned yet \u2013 this aliquot hasn't been split into individual sequencing cores."
+                                : null
+                        }
+                    />
+                </section>
+                <section className="aliquot-detail-section">
+                    <h4 className="aliquot-detail-section-title">Fixed Tissue - Tissue Data</h4>
+                    <div className="aliquot-detail-table-scroll">
+                        <table className="aliquot-detail-table is-fixed">
+                            <thead>
+                                <tr>
+                                    <th>Fixed Sample</th>
+                                    <th>Outcome</th>
+                                    <th>Path Report</th>
+                                    {showHistology ? <th className="aliquot-detail-histology-cell">Histology</th> : null}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {pathologyItems.length === 0 ? (
+                                    <tr>
+                                        <td className="aliquot-detail-table-empty" colSpan={showHistology ? 4 : 3}>
+                                            No linked Fixed sample yet.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    pathologyItems.map((item) => (
+                                        <tr
+                                            key={item.key}
+                                            className={item.href ? 'is-clickable' : undefined}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onClick={item.href ? (event) => {
+                                                openPathologyReport(event, item.href, onPathologyReportClick);
+                                            } : undefined}>
+                                            <td>{item.externalId}</td>
+                                            <td>
+                                                <PathologyOutcomeBadge
+                                                    outcome={item.outcome}
+                                                    unacceptableDescription={item.unacceptableDescription}
+                                                />
+                                            </td>
+                                            <td>
+                                                {item.href ? (
+                                                    <a
+                                                        href={item.href}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        title={item.title || undefined}>
+                                                        {item.accession || 'View report'}
+                                                    </a>
+                                                ) : (
+                                                    <span className="aliquot-detail-na">No report yet</span>
+                                                )}
+                                            </td>
+                                            {showHistology ? (
+                                                <td className="aliquot-detail-histology-cell">
+                                                    <ReportHistologyLink
+                                                        reportId={item.href}
+                                                        imageIds={histologyImageIdsByReportId[item.href] || []}
+                                                    />
+                                                </td>
+                                            ) : null}
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    );
+}
