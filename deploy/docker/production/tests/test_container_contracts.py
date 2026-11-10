@@ -20,7 +20,11 @@ def _read(rel):
         return fh.read()
 
 
-PRODUCTION_DHI_BASE_IMAGE = "dhi.io/python:3.11-debian-sfw-dev"
+PRODUCTION_DHI_BASE_IMAGE = (
+    "dhi.io/python:3.11-debian13-sfw-dev"
+    "@sha256:c7288562a4492de0c1f1ff851e7eee1f2d0cd4f9e5ae5fef0701188344c7be83"
+)
+NGINX_INSTALL_SCRIPT = "deploy/docker/production/install_nginx_debian.sh"
 
 
 def _ci_docker_steps():
@@ -72,46 +76,66 @@ def test_production_codebuild_ships_the_dhi_base_and_fails_closed():
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("value", [PRODUCTION_DHI_BASE_IMAGE, "python:3.11.16-slim-bookworm", "", "dhi.io/"])
-def test_production_base_image_guard_only_accepts_dhi(value):
+@pytest.mark.parametrize("value,accepted", [
+    (PRODUCTION_DHI_BASE_IMAGE, True),
+    ("dhi.io/python:3.11-debian13-sfw-dev", False),   # mutable tag, not digest-pinned
+    ("python:3.11.16-slim-bookworm", False),
+    ("docker.io/python@sha256:" + "0" * 64, False),
+    ("dhi.io/python@sha256:", False),
+    ("", False),
+])
+def test_production_base_image_guard_only_accepts_pinned_dhi(value, accepted):
     spec = yaml.safe_load(_read("buildspec.yml"))
     guard = next(c for c in spec["phases"]["pre_build"]["commands"]
                  if "DHI_BASE_IMAGE" in c and "case" in c)
     result = subprocess.run(["sh", "-c", guard], env={"DHI_BASE_IMAGE": value, "PATH": os.defpath},
                             capture_output=True, text=True)
-    assert (result.returncode == 0) is (value == PRODUCTION_DHI_BASE_IMAGE), result.stderr
+    assert (result.returncode == 0) is accepted, result.stderr
 
 
-@pytest.mark.unit
-@pytest.mark.parametrize("codename", ["trixie", "bullseye", ""])
-def test_nginx_install_script_refuses_other_debian_releases(codename, tmp_path):
+def _run_nginx_installer(tmp_path, os_release_text):
+    """Run the real installer up to its first package step (a stubbed addgroup)."""
     os_release = tmp_path / "os-release"
-    os_release.write_text(f"VERSION_CODENAME={codename}\n")
-    result = subprocess.run(
-        ["bash", os.path.join(REPO, "deploy/docker/production/install_nginx_bookworm.sh")],
-        env={"OS_RELEASE_FILE": str(os_release), "PATH": os.defpath},
-        capture_output=True, text=True,
-    )
-    assert result.returncode == 1
-    assert "not bookworm" in result.stderr
-
-
-@pytest.mark.unit
-def test_nginx_install_script_proceeds_on_bookworm(tmp_path):
-    """On bookworm the guard passes and installation starts (stubbed addgroup)."""
-    os_release = tmp_path / "os-release"
-    os_release.write_text("VERSION_CODENAME=bookworm\n")
+    os_release.write_text(os_release_text)
     stub = tmp_path / "bin"
-    stub.mkdir()
-    (stub / "addgroup").write_text("#!/bin/sh\necho reached-install\nexit 97\n")
+    stub.mkdir(exist_ok=True)
+    (stub / "addgroup").write_text('#!/bin/sh\necho "reached-install PKG_RELEASE=$PKG_RELEASE"\nexit 97\n')
     (stub / "addgroup").chmod(0o755)
-    result = subprocess.run(
-        ["bash", os.path.join(REPO, "deploy/docker/production/install_nginx_bookworm.sh")],
+    return subprocess.run(
+        ["bash", os.path.join(REPO, NGINX_INSTALL_SCRIPT)],
         env={"OS_RELEASE_FILE": str(os_release), "PATH": f"{stub}{os.pathsep}{os.defpath}"},
         capture_output=True, text=True,
     )
-    assert "reached-install" in result.stdout
-    assert "not bookworm" not in result.stderr
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("codename", ["bullseye", "buster", "sid", ""])
+def test_nginx_install_script_refuses_unsupported_debian_releases(codename, tmp_path):
+    result = _run_nginx_installer(tmp_path, f"VERSION_CODENAME={codename}\n")
+    assert result.returncode == 1
+    assert "unsupported base image Debian release" in result.stderr
+    assert "reached-install" not in result.stdout
+
+
+@pytest.mark.unit
+def test_nginx_install_script_refuses_a_missing_codename(tmp_path):
+    result = _run_nginx_installer(tmp_path, "ID=debian\n")
+    assert result.returncode == 1
+    assert "reached-install" not in result.stdout
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("os_release,codename", [
+    # Shapes of the real files: Debian slim bookworm, and the DHI Debian 13 base.
+    ('PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nVERSION_ID="12"\nVERSION_CODENAME=bookworm\nID=debian\n',
+     "bookworm"),
+    ('PRETTY_NAME="Debian GNU/Linux 13 (trixie)"\nVERSION_ID="13"\nVERSION_CODENAME=trixie\nID=debian\n',
+     "trixie"),
+])
+def test_nginx_install_script_pins_packages_for_the_detected_release(os_release, codename, tmp_path):
+    result = _run_nginx_installer(tmp_path, os_release)
+    assert f"reached-install PKG_RELEASE=1~{codename}" in result.stdout, result.stderr
+    assert "unsupported" not in result.stderr
 
 
 @pytest.mark.unit

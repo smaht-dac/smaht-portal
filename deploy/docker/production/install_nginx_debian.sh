@@ -1,4 +1,5 @@
-# Installs the pinned nginx.org build on a Debian bookworm base.
+# Installs the pinned nginx.org build on a supported Debian base: bookworm (the
+# Dockerfile's public default) or trixie (the production dhi.io base).
 #
 # Originally copied from https://github.com/nginxinc/docker-nginx/blob/master/mainline/debian/Dockerfile
 # (March 3 2022 -Will) for bullseye; migrated to bookworm 2026-09 when Debian 11
@@ -7,11 +8,25 @@
 #
 # nginx.org STABLE series (https://nginx.org/packages/debian/) -- the previous
 # bullseye pin (1.21.6) came from the MAINLINE series. Stable is the line nginx
-# maintains for production, and it is what carries bookworm builds of all four
-# modules this script installs.
+# maintains for production, and nginx.org publishes this exact version, plus all four
+# modules, for both supported releases (amd64 and arm64).
 export NGINX_VERSION=1.30.4
 export NJS_VERSION=1.0.1
-export PKG_RELEASE=1~bookworm
+NGINX_SUPPORTED_DEBIAN_CODENAMES="bookworm trixie"
+
+# The apt suite and package release follow the base image's own Debian release, so
+# they can never point at another release's packages. Anything outside the supported
+# list fails the build. OS_RELEASE_FILE exists only so tests can exercise this check.
+. "${OS_RELEASE_FILE:-/etc/os-release}"
+NGINX_DEBIAN_CODENAME="${VERSION_CODENAME:-}"
+case " $NGINX_SUPPORTED_DEBIAN_CODENAMES " in
+    *" $NGINX_DEBIAN_CODENAME "*) [ -n "$NGINX_DEBIAN_CODENAME" ] ;;
+    *) false ;;
+esac || {
+    echo "install_nginx_debian.sh: unsupported base image Debian release '${NGINX_DEBIAN_CODENAME:-unknown}' (supported: $NGINX_SUPPORTED_DEBIAN_CODENAMES)" >&2
+    exit 1
+}
+export PKG_RELEASE="1~${NGINX_DEBIAN_CODENAME}"
 
 # The nginx.org repository is verified by signature (`signed-by=` below) rather than
 # trusted blindly. The key bundle published at nginx.org/keys/nginx_signing.key holds
@@ -29,15 +44,6 @@ NGINX_GPGKEY_PATH=/usr/share/keyrings/nginx-archive-keyring.gpg
 NGINX_EXPECTED_FINGERPRINTS="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
 8540A6F18833A80E9C1653A42FD21310B49F6B46
 9E9BE90EACBCDE69FE9B204CBCDCD8A38D88A2B3"
-
-# These are bookworm packages. Refuse any other Debian release, e.g. a base image
-# tag (such as the production dhi.io base) that has moved to a newer release, rather
-# than mixing suites. OS_RELEASE_FILE exists only so tests can exercise this check.
-. "${OS_RELEASE_FILE:-/etc/os-release}"
-if [ "${VERSION_CODENAME:-}" != "bookworm" ]; then
-    echo "install_nginx_bookworm.sh: base image is Debian '${VERSION_CODENAME:-unknown}', not bookworm" >&2
-    exit 1
-fi
 
 set -x \
 # create nginx user/group first, to be consistent throughout docker variants.
@@ -71,11 +77,11 @@ set -x \
     " \
     && case "$dpkgArch" in \
         amd64|arm64) \
-            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
+            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ $NGINX_DEBIAN_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list \
             && apt-get update \
             ;; \
         *) \
-            echo "deb-src [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
+            echo "deb-src [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ $NGINX_DEBIAN_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list \
             \
             && tempDir="$(mktemp -d)" \
             && chmod 777 "$tempDir" \

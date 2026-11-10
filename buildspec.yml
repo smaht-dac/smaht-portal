@@ -4,12 +4,13 @@ version: 0.2
 # Dockerfile's public default base exists only for local/portable builds and is
 # never what this build ships. Credentials come from the JSON Secrets Manager
 # secret below (username/token keys); the CodeBuild service role needs
-# secretsmanager:GetSecretValue on it. A missing secret, a non-dhi.io base or a
-# failed login aborts the build. See docs/operations/ci_private_base.md.
+# secretsmanager:GetSecretValue on it. A missing secret, a base that is not a
+# digest-pinned dhi.io image, or a failed login aborts the build. See docs/operations/ci_private_base.md.
 env:
   variables:
     DOCKER_BUILDKIT: "1"
-    DHI_BASE_IMAGE: "dhi.io/python:3.11-debian-sfw-dev"
+    # Debian 13 Python 3.11 Socket Firewall dev variant, pinned to its OCI index digest.
+    DHI_BASE_IMAGE: "dhi.io/python:3.11-debian13-sfw-dev@sha256:c7288562a4492de0c1f1ff851e7eee1f2d0cd4f9e5ae5fef0701188344c7be83"
   secrets-manager:
     DHI_USERNAME: "dhi-registry-credentials:username"
     DHI_TOKEN: "dhi-registry-credentials:token"
@@ -30,7 +31,7 @@ phases:
       - ./buildspec_create_gitinfo.sh
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - case "$DHI_BASE_IMAGE" in dhi.io/?*) ;; *) echo "DHI_BASE_IMAGE must be a dhi.io image" >&2; exit 1 ;; esac
+      - case "$DHI_BASE_IMAGE" in dhi.io/?*@sha256:?*) ;; *) echo "DHI_BASE_IMAGE must be a digest-pinned dhi.io image" >&2; exit 1 ;; esac
       - echo Logging in to dhi.io...
       - printf '%s' "$DHI_TOKEN" | docker login dhi.io --username "$DHI_USERNAME" --password-stdin
   build:

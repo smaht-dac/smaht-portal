@@ -17,7 +17,8 @@
 # BASE_IMAGE is overridable, but defaults to the standard Debian slim Python image
 # (NOT a hardened image) so plain `docker build .` works with no registry auth.
 # Production (buildspec.yml) and CI pass the private Docker Hardened Images base
-# (dhi.io) instead; see docs/operations/ci_private_base.md.
+# (dhi.io, Debian 13 trixie, pinned by digest) instead; see
+# docs/operations/ci_private_base.md.
 ARG BASE_IMAGE=python:3.11.16-slim-bookworm
 
 # ---------------------------------------------------------------------------
@@ -132,14 +133,15 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends ca-certificates git make libmagic1 adduser && \
     apt-get clean
 
-# nginx: install the pinned nginx.org build via the bookworm install script. That
-# script also creates the non-root nginx user (uid/gid 121) and symlinks nginx's
-# access/error logs to stdout/stderr.
+# nginx: install the pinned nginx.org build for the base image's Debian release
+# (bookworm or trixie; anything else fails the build). The script also creates the
+# non-root nginx user (uid/gid 121) and symlinks nginx's access/error logs to
+# stdout/stderr.
 # On the standard Debian slim base the `adm` group (gid 4) and `www-data` user
 # (uid 33) already exist and uid/gid 121 are free (re-verified on bookworm). The
-# script refuses a base that is not Debian bookworm; the production dhi.io build
-# is verified by CI's "Docker Build (production DHI base)" step, not here.
-COPY deploy/docker/production/install_nginx_bookworm.sh /install_nginx.sh
+# production dhi.io trixie build is verified by CI's "Docker Build (production DHI
+# base)" step.
+COPY deploy/docker/production/install_nginx_debian.sh /install_nginx.sh
 RUN bash /install_nginx.sh && \
     apt-get clean
 

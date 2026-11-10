@@ -105,7 +105,7 @@ jobs:
       - name: Docker Build (production DHI base)
         if: ${{ matrix.test_type == 'DOCKER' }}
         env:
-          DHI_BASE_IMAGE: dhi.io/python:3.11-debian-sfw-dev
+          DHI_BASE_IMAGE: dhi.io/python:3.11-debian13-sfw-dev@sha256:c7288562a4492de0c1f1ff851e7eee1f2d0cd4f9e5ae5fef0701188344c7be83
         run: |
           touch deploy/docker/local/docker_development.ini
           docker build --build-arg BASE_IMAGE="$DHI_BASE_IMAGE" -t smaht-portal:ci-dhi .
