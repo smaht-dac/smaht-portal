@@ -93,6 +93,15 @@ def test_production_base_image_guard_only_accepts_pinned_dhi(value, accepted):
     assert (result.returncode == 0) is accepted, result.stderr
 
 
+@pytest.mark.unit
+def test_nginx_install_script_ensures_the_adm_group_before_installing_packages():
+    """nginx.org's postinst chowns /var/log/nginx to nginx:adm; the DHI base lacks adm."""
+    script = _read(NGINX_INSTALL_SCRIPT)
+    ensure = "{ grep -q '^adm:' /etc/group || addgroup --system adm; }"
+    assert ensure in script
+    assert script.index(ensure) < script.index("$nginxPackages \\\n                        gettext-base")
+
+
 def _run_nginx_installer(tmp_path, os_release_text):
     """Run the real installer up to its first package step (a stubbed addgroup)."""
     os_release = tmp_path / "os-release"

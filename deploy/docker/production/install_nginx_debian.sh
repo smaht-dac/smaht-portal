@@ -49,8 +49,12 @@ set -x \
 # create nginx user/group first, to be consistent throughout docker variants.
 # uid/gid 121 are free on the Debian slim bookworm base (checked 2026-09), and the
 # rest of the image (USER nginx, the chown -R nginx:nginx paths) depends on them.
+# The nginx.org package's postinst chowns its log directory to nginx:adm. Debian slim
+# ships the `adm` system group; the minimal DHI base does not, so create it only when
+# it is missing.
     addgroup --system --gid 121 nginx \
     && adduser --system --disabled-login --ingroup nginx --no-create-home --home /nonexistent --gecos "nginx user" --shell /bin/false --uid 121 nginx \
+    && { grep -q '^adm:' /etc/group || addgroup --system adm; } \
     && apt-get update \
     && apt-get install --no-install-recommends --no-install-suggests -y gnupg ca-certificates curl \
     && \
