@@ -69,12 +69,21 @@ function intersects(a, b, padding = 0) {
 
 // Put short explanations in the whitespace around connectors. Labels are also
 // clickable, and their exact references remain available in the inspector.
-export function researchLabels(graph, routes) {
+// With `avoidRoutes`, a label also never crosses another arrow, so tightly packed parallel
+// arrows cannot each appear to carry the other's label.
+export function researchLabels(graph, routes, { avoidRoutes = false } = {}) {
     const obstacles = graph.nodes.map((node) => {
         const p = graph.positions[node.id];
         return { left: p.x - graph.nodeWidth / 2, top: p.y - graph.nodeHeight / 2, width: graph.nodeWidth, height: graph.nodeHeight };
     });
     const labels = {};
+    const crosses = (box, key) => avoidRoutes && Object.entries(routes).some(([other, route]) => other !== key &&
+        route.points.slice(1).some((b, i) => {
+            const a = route.points[i];
+            return a.y === b.y
+                ? a.y > box.top && a.y < box.top + box.height && Math.max(a.x, b.x) > box.left && Math.min(a.x, b.x) < box.left + box.width
+                : a.x > box.left && a.x < box.left + box.width && Math.max(a.y, b.y) > box.top && Math.min(a.y, b.y) < box.top + box.height;
+        }));
     for (const edge of graph.edges) {
         const route = routes[edge.key];
         if (!route) continue;
@@ -93,7 +102,7 @@ export function researchLabels(graph, routes) {
                 const offsets = a.y === b.y ? [[0, -17], [0, 17], [0, 0]] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
                 for (const [dx, dy] of offsets) {
                     const box = { left: x + dx - width / 2, top: y + dy - height / 2, width, height };
-                    if (obstacles.some((obstacle) => intersects(box, obstacle, 3))) continue;
+                    if (obstacles.some((obstacle) => intersects(box, obstacle, 3)) || crosses(box, edge.key)) continue;
                     chosen = box; break;
                 }
                 if (chosen) break;

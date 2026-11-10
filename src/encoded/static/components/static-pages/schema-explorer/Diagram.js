@@ -13,7 +13,8 @@ import { nodePresentation, stageAccent } from './node-presentation';
 import ResearchOverview from './ResearchOverview';
 import { explorerIndex } from './explorer-scope';
 import { externalContextGroups } from './external-context';
-import { mapSentence } from './research-map';
+import { mapSentence, researchLabels } from './research-map';
+import { neighborhoodLayout } from './neighborhood';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, ConceptTabs } from './shared';
 
@@ -47,6 +48,9 @@ export default function Diagram({
     const [connectionMode, setConnectionMode] = useState('shared');
     const [hidden, setHidden] = useState(compact ? [] : defaults);
     const [kinds, setKinds] = useState(compact ? ['linkTo', 'calculated', 'reverse'] : ['linkTo']);
+    // A neighborhood answers "what is this schema connected to", so it opens with every relationship kind;
+    // leaving it restores the filter the group map had, which stays deliberately sparse.
+    const kindsBeforeNeighborhood = useRef(null);
     // The arrow under the pointer or keyboard focus; its covered schemas are outlined.
     const [hoverEdge, setHoverEdge] = useState(null);
     const [neighbors, setNeighbors] = useState(false),
@@ -115,6 +119,16 @@ export default function Diagram({
     );
     useEffect(() => { setOutsideOpen(false); }, [selected, domain, neighbors, showExternal]);
     useEffect(() => {
+        if (compact) return;
+        if (neighbors && !kindsBeforeNeighborhood.current) {
+            kindsBeforeNeighborhood.current = kinds;
+            setKinds(['linkTo', 'calculated', 'reverse']);
+        } else if (!neighbors && kindsBeforeNeighborhood.current) {
+            setKinds(kindsBeforeNeighborhood.current);
+            kindsBeforeNeighborhood.current = null;
+        }
+    }, [neighbors]);
+    useEffect(() => {
         if (outsideOpen) outsidePanel.current?.querySelector('[data-close-connections]')?.focus({ preventScroll: true });
     }, [outsideOpen]);
     const externalGroups = useMemo(() => outsideConnections(selected, edges), [selected, edges]);
@@ -128,8 +142,19 @@ export default function Diagram({
             ]),
         [edges, selected]
     );
-    const visibleConnected = neighbors ? connected : null;
     const neighborhoodSelection = neighbors ? selected : '';
+    // The neighborhood draws only the selected schema's own links. With shared definitions, a reference
+    // inherited by several subtypes is drawn once from the base that defines it, as in the group map.
+    const neighborhood = useMemo(() => {
+        if (!neighborhoodSelection || compact) return null;
+        const candidates = new Set([...connected].filter((name) => !hidden.includes(name)));
+        const incident = groupRelationships(edges.filter((e) => (e.from === neighborhoodSelection || e.to === neighborhoodSelection) &&
+            candidates.has(e.from) && candidates.has(e.to)));
+        const collapsed = connectionMode === 'shared' ? sharedRelationships(index, incident, candidates) : { groups: incident, inherited: {} };
+        return { candidates, groups: collapsed.groups, inherited: collapsed.inherited,
+            names: new Set([neighborhoodSelection, ...collapsed.groups.flatMap((g) => [g.from, g.to])]) };
+    }, [neighborhoodSelection, compact, connected, hidden, edges, connectionMode, index]);
+    const visibleConnected = neighbors ? neighborhood?.names || connected : null;
     const conceptMembers = useMemo(() => new Set(conceptContext?.members || []), [conceptContext]);
     const contextReferences = useMemo(() => conceptContext?.connections?.flatMap((connection) => connection.edges) || [], [conceptContext]);
     // A concept focus anchors external links on its own schemas; without a focus the whole group is the anchor.
@@ -199,42 +224,13 @@ export default function Diagram({
         }
         return result;
     }, [showDomains, researchOverview, visible, index, size, layoutSize, externalContextNames, externalBundles, expandedExternal]);
+    const neighborhoodView = useMemo(() => neighborhood
+        ? neighborhoodLayout(neighborhoodSelection, neighborhood.groups, width, height) : null,
+    [neighborhood, neighborhoodSelection]);
     const positions = useMemo(() => {
-        if (!neighbors || !neighborhoodSelection) return { ...(showDomains ? clustered.positions : allPositions), ...moves };
-        const others = nodes.filter(
-            (n) =>
-                n.name !== neighborhoodSelection &&
-                !hidden.includes(n.name) &&
-                visibleConnected.has(n.name)
-        );
-        const columns = Math.max(
-            1,
-            Math.ceil(
-                Math.sqrt(
-                    (others.length * size.width) / Math.max(size.height, 1)
-                )
-            )
-        );
-        const result = { [neighborhoodSelection]: { x: 0, y: -160 } };
-        others.forEach((n, i) => {
-            result[n.name] = {
-                x: ((i % columns) - (columns - 1) / 2) * (width + 120),
-                y: Math.floor(i / columns) * (height + 110),
-            };
-        });
-        return { ...result, ...moves };
-    }, [
-        allPositions,
-        moves,
-        neighbors,
-        neighborhoodSelection,
-        hidden,
-        visibleConnected,
-        nodes,
-        size,
-        showDomains,
-        clustered,
-    ]);
+        if (neighborhoodView) return { ...neighborhoodView.positions, ...moves };
+        return { ...(showDomains ? clustered.positions : allPositions), ...moves };
+    }, [allPositions, moves, neighborhoodView, showDomains, clustered]);
     const visibleGroups = useMemo(() => groups.filter(
         (g) => names.has(g.from) && names.has(g.to) &&
             (!showDomains || (showExternal && (externalContextNames.has(g.from) || externalContextNames.has(g.to))) || domainFor(g.from) === domainFor(g.to) || (crossLinks && (g.from === selected || g.to === selected)))
@@ -242,11 +238,12 @@ export default function Diagram({
     const scopedGroups = useMemo(() => visibleGroups.filter(
         (g) => (!showDomains || !selected || g.from === selected || g.to === selected)
     ), [visibleGroups, showDomains, selected]);
-    const shared = useMemo(() => showDomains ? sharedRelationships(index, visibleGroups, names)
-        : { groups: visibleGroups, inherited: {} }, [showDomains, index, visibleGroups, names]);
+    const shared = useMemo(() => neighborhood ? { groups: neighborhood.groups, inherited: neighborhood.inherited }
+        : showDomains ? sharedRelationships(index, visibleGroups, names)
+            : { groups: visibleGroups, inherited: {} }, [neighborhood, showDomains, index, visibleGroups, names]);
     const summarize = showDomains && !selected && connectionMode === 'shared';
     const shownGroups = useMemo(() => {
-        const result = summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups;
+        const result = neighborhood ? neighborhood.groups : summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups;
         const bundled = externalBundles.filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => {
             const matches = edges.filter((edge) => (focusMembers.has(edge.from) && bundle.members.includes(edge.to)) ||
                 (focusMembers.has(edge.to) && bundle.members.includes(edge.from)));
@@ -266,7 +263,7 @@ export default function Diagram({
             })).filter(Boolean);
         });
         return [...result, ...bundled];
-    }, [summarize, shared, scopedGroups, externalBundles, expandedExternal, edges, focusMembers, index, names]);
+    }, [neighborhood, summarize, shared, scopedGroups, externalBundles, expandedExternal, edges, focusMembers, index, names]);
     // A single group is named in the toolbar, so its title stays readable at every zoom level.
     const singleFrame = showDomains && clustered.frames.length === 1 ? clustered.frames[0] : null;
     // Explains only the node styles currently drawn; external schemas appear individually or bundled by group depending on how many there are.
@@ -279,22 +276,24 @@ export default function Diagram({
         summarize && ['covered', 'Hover an arrow to trace it; an arrow from a base type also marks the subtypes that inherit it'],
         ['arrow', 'Arrow points to the referenced schema'],
     ].filter(Boolean) : [];
-    const linkTotal = summarize ? shownGroups.length : shownGroups.reduce((n, g) => n + g.edges.length, 0);
+    const linkTotal = summarize || neighborhood && connectionMode === 'shared' ? shownGroups.length : shownGroups.reduce((n, g) => n + g.edges.length, 0);
     const title = compact ? 'Relationships' : neighbors ? selected
         : singleFrame?.label || domains.find((d) => d.id === domain)?.label || 'All schemas';
     const eyebrow = compact ? '' : neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
     const facts = [
         `${visible.length} ${visible.length === 1 ? 'schema' : 'schemas'}`,
-        `${linkTotal} ${linkTotal === 1 ? 'link' : 'links'}${summarize ? ' (shared definitions)' : ''}`,
+        `${linkTotal} ${linkTotal === 1 ? 'link' : 'links'}${summarize || neighborhood && connectionMode === 'shared' ? ' (shared definitions)' : ''}`,
     ];
-    const headings = useMemo(() => showDomains ? [
+    // Routed views draw orthogonal arrows around cards and headings: group maps and neighborhoods.
+    const routed = showDomains || !!neighborhoodView;
+    const headings = useMemo(() => neighborhoodView ? neighborhoodView.panels : showDomains ? [
         ...clustered.frames.map((frame) => {return { left: frame.left + 18, top: frame.top + 12, width: Math.min(frame.width - 36, frame.label.length * 15 + 12), height: 38 };}),
         ...clustered.layers,
         ...[...externalContextNames].filter((name) => positions[name]).map((name) => {return { left: positions[name].x - width / 2, top: positions[name].y - height / 2 - 20, width, height: 18 };}),
-    ] : [], [showDomains, clustered, externalContextNames, positions]);
-    const routes = useMemo(() => showDomains
+    ] : [], [neighborhoodView, showDomains, clustered, externalContextNames, positions]);
+    const routes = useMemo(() => routed
         ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {},
-    [showDomains, positions, shownGroups, headings]);
+    [routed, positions, shownGroups, headings]);
     const bounds = useMemo(() => {
         // The research map lays out its own nodes, so this view has no positions of its own.
         const points = visible.filter((n) => positions[n.name]).flatMap((n) => [
@@ -305,6 +304,10 @@ export default function Diagram({
             const p = positions[group.name];
             if (p) points.push({ x: p.x - width / 2, y: p.y - height / 2 }, { x: p.x + width / 2, y: p.y + height / 2 });
         });
+        if (neighborhoodView) {
+            neighborhoodView.panels.forEach(({ panel }) => points.push({ x: panel.left, y: panel.top }, { x: panel.left + panel.width, y: panel.top + panel.height }));
+            Object.values(routes).forEach((route) => points.push(...route.points));
+        }
         if (showDomains) {
             // A single group's title lives in the toolbar, so its reserved heading band is not content.
             const contentTop = (f) => singleFrame ? Math.min(...clustered.layers.map((layer) => layer.panel?.top ?? layer.top)) : f.top;
@@ -312,12 +315,12 @@ export default function Diagram({
             Object.values(routes).forEach((route) => points.push(...route.points));
         }
         return points.length ? {
-            left: Math.min(...points.map((p) => p.x)) - (showDomains ? 20 : 65),
-            right: Math.max(...points.map((p) => p.x)) + (showDomains ? 20 : 65),
-            top: Math.min(...points.map((p) => p.y)) - (showDomains ? 20 : 90),
-            bottom: Math.max(...points.map((p) => p.y)) + (showDomains ? 20 : 65),
+            left: Math.min(...points.map((p) => p.x)) - (routed ? 20 : 65),
+            right: Math.max(...points.map((p) => p.x)) + (routed ? 20 : 65),
+            top: Math.min(...points.map((p) => p.y)) - (routed ? 20 : 90),
+            bottom: Math.max(...points.map((p) => p.y)) + (routed ? 20 : 65),
         } : { left: -300, right: 300, top: -200, bottom: 200 };
-    }, [visible, positions, showDomains, clustered, routes, cardWidth, cardHeight, externalBundles, singleFrame]);
+    }, [visible, positions, showDomains, neighborhoodView, routed, clustered, routes, cardWidth, cardHeight, externalBundles, singleFrame]);
     const fitScale = useCallback((readable = true) => {
         const fitted = Math.min(
             showDomains ? 1.25 : 1.5,
@@ -497,9 +500,9 @@ export default function Diagram({
         setNeighbors(true);
     };
     // Schemas inside a collapsed external group are drawn through that group's card, so their links count as visible.
-    const drawnNames = useMemo(() => new Set([...names, ...externalBundles
+    const drawnNames = useMemo(() => new Set([...names, ...(neighborhood?.candidates || []), ...externalBundles
         .filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => bundle.members)]),
-    [names, externalBundles, expandedExternal]);
+    [names, neighborhood, externalBundles, expandedExternal]);
     const incident = edges.filter(
         (e) =>
             (e.from === selected || e.to === selected) &&
@@ -527,15 +530,50 @@ export default function Diagram({
     const edgeCaption = (g) => {
         const fields = [...new Set(g.edges.map((e) => e.field))].join(', ');
         const sentence = g.edges.map(mapSentence).find(Boolean);
-        return sentence ? `${fields} · ${sentence.verb}` : fields;
+        const heirs = g.shared ? new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size : 0;
+        return [fields, sentence?.verb, heirs && `+${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean).join(' · ');
     };
+    // Neighborhood labels reuse the metadata map's placement: each sits on its arrow's longest run,
+    // clear of every card and of the labels placed before it.
+    const neighborhoodLabels = neighborhoodView ? researchLabels({
+        nodes: visible.map((n) => {return { id: n.name };}),
+        positions, nodeWidth: width, nodeHeight: height,
+        edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g) };}),
+    }, routes, { avoidRoutes: true }) : {};
     // Hovering any arrow traces it: both ends are marked and the rest of the map steps back. An arrow drawn
     // once from a base type also marks the subtypes that inherit it, so the shared definition stays visible.
+    // With shared definitions a subtype's inherited references are drawn at its base, so its own card
+    // would look unconnected; a tag on the card names the base and traces those arrows on hover.
+    const inheritedTags = useMemo(() => {
+        const tags = new Map();
+        if (!summarize) return tags;
+        for (const g of shownGroups) {
+            if (!g.shared) continue;
+            for (const e of g.edges) {
+                if (e.from === g.from || !names.has(e.from)) continue;
+                if (!tags.has(e.from)) tags.set(e.from, { keys: new Set(), owners: new Set(), ends: new Set(), edges: [], groups: [] });
+                const tag = tags.get(e.from);
+                if (!tag.keys.has(g.key)) { tag.keys.add(g.key); tag.groups.push(g); tag.ends.add(g.from); tag.ends.add(g.to); }
+                tag.owners.add(g.from);
+                tag.edges.push(e);
+            }
+        }
+        return tags;
+    }, [summarize, shownGroups, names]);
+    const traceInherited = (name) => {
+        const tag = inheritedTags.get(name);
+        return { key: `inherited:${name}`, keys: tag.keys, ends: tag.ends, shared: true, from: [...tag.owners][0], edges: tag.edges };
+    };
+    const inspectInherited = (name) => {
+        const tag = inheritedTags.get(name);
+        inspect(tag.groups.length === 1 ? tag.groups[0]
+            : { ...tag.groups[0], from: [...tag.owners].join(', '), to: `${tag.groups.length} schemas`, edges: tag.groups.flatMap((g) => g.edges) });
+    };
     const coveredByHover = useMemo(() => {
         if (!hoverEdge?.shared) return new Set();
         return new Set(hoverEdge.edges.map((e) => e.from).filter((name) => name !== hoverEdge.from));
     }, [hoverEdge]);
-    const tracedEnds = useMemo(() => new Set(hoverEdge ? [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
+    const tracedEnds = useMemo(() => new Set(hoverEdge ? hoverEdge.ends || [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
     const drawnGroups = shownGroups;
     const showAllTypes = useCallback(() => onBrowseAll?.(), [onBrowseAll]);
     if (researchOverview) {
@@ -592,10 +630,10 @@ export default function Diagram({
                 )}
                 <div className="se-map-tool-section" role="group" aria-label="Diagram filters">
                     <span className="se-control-label">Show</span>
-                    {showDomains && (
+                    {(showDomains || neighborhoodView) && (
                         <label>Connections
-                            <select aria-label="Connection detail" value={selected ? 'selected' : connectionMode} onChange={(event) => setConnectionMode(event.target.value)} disabled={!!selected}>
-                                {selected && <option value="selected">Selected type: exact links</option>}
+                            <select aria-label="Connection detail" value={selected && !neighborhoodView ? 'selected' : connectionMode} onChange={(event) => { setConnectionMode(event.target.value); setMoves({}); }} disabled={!!selected && !neighborhoodView}>
+                                {selected && !neighborhoodView && <option value="selected">Selected type: exact links</option>}
                                 <option value="shared">Shared definitions</option>
                                 <option value="all">All references</option>
                             </select>
@@ -834,8 +872,14 @@ export default function Diagram({
                                 <text className="se-stage-label" x={layer.left + 12} y={layer.top + 18}>{layer.label}</text>
                             </g>
                         ))}
+                        {neighborhoodView?.panels.map((panel) => (
+                            <rect key={`panel-${panel.id}`} className="se-stage-panel" x={panel.panel.left} y={panel.panel.top} width={panel.panel.width} height={panel.panel.height} rx="8" />
+                        ))}
+                        {neighborhoodView?.panels.map((panel) => (
+                            <text key={panel.id} className="se-stage-label se-neighborhood-group" x={panel.left} y={panel.top + 18}>{panel.label}</text>
+                        ))}
                         {drawnGroups.map((g) => {
-                            if (showDomains && !routes[g.key]) return null;
+                            if (routed && !routes[g.key]) return null;
                             const displayKind = g.reverse && kinds.includes('reverse') &&
                                 !kinds.includes(g.kind) ? 'reverse' : g.kind;
                             const a = positions[g.from],
@@ -875,8 +919,8 @@ export default function Diagram({
                                             : 'se-dim'
                                         : ''}>
                                     <path
-                                        className={`se-edge ${displayKind}${hoverEdge?.key === g.key ? ' se-traced-edge' : ''}`}
-                                        d={showDomains ? routes[g.key].d : d}
+                                        className={`se-edge ${displayKind}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
+                                        d={routed ? routes[g.key].d : d}
                                         markerEnd={`url(#${markerPrefix}-${displayKind})`}
                                         tabIndex={0}
                                         role="button"
@@ -895,7 +939,12 @@ export default function Diagram({
                                         }}>
                                         <title>{edgeTooltip(g)}</title>
                                     </path>
-                                    {(neighbors ||
+                                    {neighborhoodView ? neighborhoodLabels[g.key] && (
+                                        <text className="se-edge-label" x={neighborhoodLabels[g.key].left + neighborhoodLabels[g.key].width / 2}
+                                            y={neighborhoodLabels[g.key].top + 15} onClick={() => inspect(g)}>
+                                            {edgeCaption(g)}
+                                        </text>
+                                    ) : (neighbors ||
                                     compact ||
                                     (!showDomains && visible.length <= 12)) && (
                                         <text
@@ -982,6 +1031,27 @@ export default function Diagram({
                                             <text className="se-node-abstract-label" x={cardWidth - 38} y="20">Abstract</text>
                                         </g>
                                     )}
+                                    {inheritedTags.has(n.name) && (() => {
+                                        const tag = inheritedTags.get(n.name), count = tag.edges.length;
+                                        const text = `↑ ${count} ${count === 1 ? 'link' : 'links'} via ${[...tag.owners].join(', ')}`;
+                                        const tagWidth = Math.min(cardWidth - 16, text.length * 5.6 + 16);
+                                        const trace = () => setHoverEdge(traceInherited(n.name));
+                                        return (
+                                            // Sits on the card's bottom edge, inside the gap every stage leaves below its cards.
+                                            <g className="se-inherited-tag" role="button" tabIndex={0}
+                                                aria-label={`${n.name}: ${count} inherited ${count === 1 ? 'link' : 'links'} drawn at ${[...tag.owners].join(', ')}`}
+                                                onPointerDown={(event) => event.stopPropagation()}
+                                                onMouseEnter={trace} onMouseLeave={() => setHoverEdge(null)} onFocus={trace} onBlur={() => setHoverEdge(null)}
+                                                onClick={(event) => { event.stopPropagation(); inspectInherited(n.name); }}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); inspectInherited(n.name); }
+                                                }}>
+                                                <title>{`Inherited from ${[...tag.owners].join(', ')}. Its shared definition is drawn once at the base; hover to trace it.`}</title>
+                                                <rect x={(cardWidth - tagWidth) / 2} y={cardHeight - 8} width={tagWidth} height="16" rx="8" />
+                                                <text x={cardWidth / 2} y={cardHeight + 3.5}>{text}</text>
+                                            </g>
+                                        );
+                                    })()}
                                 </g>
                             );
                         })}
@@ -1060,9 +1130,12 @@ export default function Diagram({
                             </table>
                         </div>
                     ))}
-                    {!incident.length && <p className="se-flow-note">{!compact && domain && !neighbors && !showExternal && externalGroups.length
-                        ? 'No links inside this group. Its links go to other groups: turn on Links to other groups, or open External connections on the schema.'
-                        : 'No visible links. Turn on more relationship kinds under Relationships, or show more types.'}</p>}
+                    {!incident.length && (
+                        <p className="se-flow-note">{!compact && domain && !neighbors && !showExternal && externalGroups.length
+                            ? 'No links inside this group. Its links go to other groups: turn on Links to other groups, or open External connections on the schema.'
+                            : 'No visible links. Turn on more relationship kinds under Relationships, or show more types.'}
+                        </p>
+                    )}
                 </section>
             )}
         </section>

@@ -301,6 +301,12 @@
         .se-external-group-card.se-traced-group rect { stroke: #c46a12; stroke-width: 2.5; fill: #fff6ea; }
         .entity-node.se-covered rect.se-node-body, .entity-node.se-covered-owner rect.se-node-body { stroke: #c46a12; stroke-width: 3; stroke-dasharray: none; fill: #fff6ea; }
     }
+    .entity-node .se-inherited-tag {
+        cursor: pointer; outline: none;
+        rect { fill: #fff6ea; stroke: #c46a12; stroke-width: 1; }
+        text { fill: #8a4a0c; font-size: 10px; font-weight: 600; text-anchor: middle; pointer-events: none; }
+        &:hover rect, &:focus rect { fill: #fde9cf; stroke-width: 2; }
+    }
     .entity-node rect.se-covered-badge { fill: #c46a12; stroke: none; }
     .entity-node text.se-covered-label { fill: white; font-size: 10px; text-anchor: middle; font-weight: 600; }
     .se-inheritance-detail { color: #59636e; font-size: 13px; }

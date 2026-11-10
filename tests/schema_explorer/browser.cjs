@@ -198,8 +198,19 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('[data-entity="Sample"]').focus();await page.keyboard.press('Enter');
  await page.locator('#entity-show-neighborhood').click();
  const sampleNeighbors=[...new Set(['Sample',...snapshot.model.edges.filter(edge=>edge.kind==='linkTo' && (edge.from==='Sample' || edge.to==='Sample')).flatMap(edge=>[edge.from,edge.to])])].sort();
- assert.deepEqual(await visibleSchemas(),sampleNeighbors,'Explicit neighborhood exploration is not restricted by the previous concept scope');
+ const relationshipSummary=()=>page.locator('details:has(.se-link-filter-popover) > summary');
+ await relationshipSummary().filter({hasText:'Relationships 3/3'}).waitFor({timeout:5000}); // A neighborhood opens with every relationship kind.
+ const shownNeighbors=await visibleSchemas();
+ assert.ok(sampleNeighbors.every(name=>shownNeighbors.includes(name)),'Explicit neighborhood exploration is not restricted by the previous concept scope');
+ assert.ok((await page.locator('#entity-svg .se-neighborhood-group').allTextContents()).includes('Analytes, Libraries & Sequencing'),'Neighbors are grouped under catalog group names');
+ assert.equal(await page.locator('#entity-svg').evaluate(svg=>{
+  const x=name=>svg.querySelector(`[data-entity="${name}"]`).transform.baseVal.consolidate().matrix.e;
+  return x('Analyte')<x('Sample');
+ }),true,'Schemas linking to the selection sit to its left');
+ assert.equal(await page.getByLabel('Connection detail',{exact:true}).isDisabled(),false,'The neighborhood can switch between shared definitions and all references');
+ await page.locator('#entity-svg').screenshot({path:path.join(output,'sample-neighborhood.png')});
  await page.locator('#entity-show-neighborhood').click();
+ await relationshipSummary().filter({hasText:'Relationships 1/3'}).waitFor({timeout:5000}); // Leaving the neighborhood restores the group filter.
  await conceptTab('Analyte','Summary');
  await goToConcept('Data files');
  await conceptTab('Data files','Map');
@@ -347,6 +358,11 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    const before=await nodePositions();
    assert.equal(await page.getByLabel('Connection detail',{exact:true}).inputValue(),'shared');
    assert.equal(await page.locator('#entity-svg .se-edge').count(),17,'Inherited references are summarized at their defining base');
+   assert.match(await page.locator('[data-entity="UnalignedReads"] .se-inherited-tag text').textContent(),/^↑ \d+ links via File, SubmittedFile$/,'Subtypes name the base their inherited arrows are drawn at');
+   await page.locator('[data-entity="UnalignedReads"] .se-inherited-tag').hover();
+   assert.ok(await page.locator('#entity-svg .se-edge.se-traced-edge').count()>0,'Hovering the tag traces the inherited arrows');
+   assert.ok(await page.locator('[data-entity="UnalignedReads"].se-covered').count(),'The hovered subtype is marked as covered by them');
+   await page.locator('h2').first().hover();
    await page.locator('#entity-svg .se-edge[aria-label="VariantCalls to ReferenceGenome"]').focus();
    await page.keyboard.press('Enter');
    assert.match(await page.locator('.se-connection-card').innerText(), /does not establish coordinate compatibility/);

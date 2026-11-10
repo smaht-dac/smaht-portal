@@ -201,6 +201,7 @@ node tests/schema_explorer/research-map.cjs /tmp/schema-explorer.json
 node tests/schema_explorer/concept-connections.cjs /tmp/schema-explorer.json
 node tests/schema_explorer/relationship-view.cjs /tmp/schema-explorer.json
 node tests/schema_explorer/external-context.cjs
+node tests/schema_explorer/neighborhood.cjs /tmp/schema-explorer.json
 node tests/schema_explorer/node-presentation.cjs
 node tests/schema_explorer/browser.cjs /tmp/schema-explorer.json
 ```
