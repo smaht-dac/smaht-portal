@@ -63,10 +63,6 @@
         .se-diagram-eyebrow { color: var(--se-concept-color, #356a9a); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
         h2 { margin: .15rem 0 .1rem; font-size: 26px; line-height: 1.25; font-weight: 650; color: #253b4d; }
         .se-diagram-question { margin: 0; font-size: 16px; color: #425c71; }
-        .se-diagram-facts li.se-diagram-focus-chip { display: inline-flex; align-items: center; gap: .4rem; padding-right: .2rem; font-weight: 600; color: #253b4d; border-color: var(--se-concept-color, #356a9a); background: #f4f9fd;
-            button { padding: 0 .4rem; line-height: 1.3; font-size: 14px; color: #59636e; background: transparent; border: 0; border-radius: 1rem; &:hover, &:focus { color: #253b4d; background: #e3edf5; } }
-        }
-        .se-focus-swatch { width: 16px; height: 10px; border: 2px solid #356a9a; border-radius: 3px; background: #f0f6fb; }
         button.se-fact-link { padding: 0; font-size: 12.5px; color: #356a9a; background: transparent; border: 0; &:hover, &:focus { text-decoration: underline; } }
         .se-diagram-facts { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 0; padding: 0; list-style: none; li { padding: .15rem .55rem; font-size: 12.5px; color: #425c71; background: white; border: 1px solid #d4dee7; border-radius: 1rem; } }
     }

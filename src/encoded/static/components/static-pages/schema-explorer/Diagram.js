@@ -457,12 +457,6 @@ export default function Diagram({
         setMoves({});
         setArrangement('hierarchical');
     };
-    const clearFocus = () => {
-        setConceptContext(null);
-        setSelected('');
-        setNeighbors(false);
-        setMoves({});
-    };
     // Leaves the concept: `summary` opens its Summary tab, otherwise the metadata map is shown.
     const backToConcept = (summary = false) => {
         setReturnConcept(summary ? conceptReturn.id : '');
@@ -608,13 +602,6 @@ export default function Diagram({
                     <ul className="se-diagram-facts" aria-label="Diagram summary">
                         {conceptContext && singleFrame && <li>Group: {singleFrame.label}</li>}
                         {facts.map((fact) => <li key={fact}>{fact}</li>)}
-                        {conceptContext && (
-                            <li className="se-diagram-focus-chip" title={`${conceptContext.label} schemas are outlined in the diagram and its links to other groups are shown. Remove to view the whole group evenly.`}>
-                                <span className="se-focus-swatch" aria-hidden="true" />
-                                Highlighting {conceptContext.label}
-                                <button type="button" onClick={clearFocus} aria-label={`Stop highlighting ${conceptContext.label}`}>×</button>
-                            </li>
-                        )}
                     </ul>
                 </div>
             </header>
