@@ -611,6 +611,16 @@
             border-bottom: 1px dotted #eee;
             overflow-y: auto;
             overflow-x: hidden;
+
+            // Wrap long term labels (e.g. "Fixed samples for pathology
+            // review") instead of Legend.Term's text-truncate ellipsis --
+            // the hanging indent keeps wrapped lines clear of the swatch.
+            .chart-color-legend .term {
+                white-space: normal;
+                overflow: visible;
+                padding-left: 18px;
+                text-indent: -18px;
+            }
         }
     }
 
