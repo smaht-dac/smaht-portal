@@ -40,6 +40,8 @@ export const BrowseLink = (props) => {
         }
     } else if (type === 'File') {
         hrefToUse = BROWSE_LINKS.file;
+    } else if (type === 'Tissue') {
+        hrefToUse = BROWSE_LINKS.tissue;
     }
 
     return (
