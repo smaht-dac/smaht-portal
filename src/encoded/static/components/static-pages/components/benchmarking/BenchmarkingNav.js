@@ -133,57 +133,53 @@ const BenchmarkingUINavLinkGenerator = ({
     currPath, // A string with the current page's path; used for determining active link
     pages, // An array of strings corresponding to top-level keys in BenchmarkingDataMap
     defaultActiveKey, // Passed directly into react-bootstrap accordion for the section
-}) => {
-    return (
-        <BenchmarkingUINavWrapper {...{ defaultActiveKey }}>
-            {pages.map((page, i) => {
-                const {
-                    navBarTitle,
-                    path,
-                    tabMapArray = [],
-                } = BenchmarkingDataMap[page] || {};
-                if (tabMapArray.length > 1) {
-                    // Render nav drop and map for each child link
-                    return (
-                        <BenchmarkingUINavDrop
-                            key={page}
-                            eventKey={i.toString()}
-                            {...{ currPath, path }}
-                            title={navBarTitle}>
-                            <ul>
-                                {tabMapArray.map((obj, i) => {
-                                    return (
-                                        <BenchmarkingUINavLink
-                                            key={obj.eventKey}
-                                            title={obj.title}
-                                            isTop={i === 0}
-                                            {...{ currPath }}
-                                            href={path + obj.eventKey}
-                                            path={path}
-                                        />
-                                    );
-                                })}
-                            </ul>
-                        </BenchmarkingUINavDrop>
-                    );
-                } else {
-                    // Just render a single non-dropdown link
-                    return (
-                        <BenchmarkingUINavLink
-                            key={page}
-                            title={navBarTitle}
-                            {...{ currPath, path }}
-                            isTop
-                            href={`${path}${
-                                tabMapArray[0] ? tabMapArray[0].eventKey : ''
-                            }`}
-                        />
-                    );
-                }
-            })}
-        </BenchmarkingUINavWrapper>
-    );
-};
+}) => (
+    <BenchmarkingUINavWrapper {...{ defaultActiveKey }}>
+        {pages.map((page, i) => {
+            const {
+                navBarTitle,
+                path,
+                tabMapArray = [],
+            } = BenchmarkingDataMap[page] || {};
+            if (tabMapArray.length > 1) {
+                // Render nav drop and map for each child link
+                return (
+                    <BenchmarkingUINavDrop
+                        key={page}
+                        eventKey={i.toString()}
+                        {...{ currPath, path }}
+                        title={navBarTitle}>
+                        <ul>
+                            {tabMapArray.map((obj, i) => (
+                                <BenchmarkingUINavLink
+                                    key={obj.eventKey}
+                                    title={obj.title}
+                                    isTop={i === 0}
+                                    {...{ currPath }}
+                                    href={path + obj.eventKey}
+                                    path={path}
+                                />
+                            ))}
+                        </ul>
+                    </BenchmarkingUINavDrop>
+                );
+            } else {
+                // Just render a single non-dropdown link
+                return (
+                    <BenchmarkingUINavLink
+                        key={page}
+                        title={navBarTitle}
+                        {...{ currPath, path }}
+                        isTop
+                        href={`${path}${
+                            tabMapArray[0] ? tabMapArray[0].eventKey : ''
+                        }`}
+                    />
+                );
+            }
+        })}
+    </BenchmarkingUINavWrapper>
+);
 
 const BenchmarkingUINavWrapper = (props) => {
     const { defaultActiveKey, children } = props;
@@ -212,7 +208,8 @@ const BenchmarkingUINavDrop = (props) => {
                     <span
                         className={`navlink-drop ${
                             isActive ? 'active' : ''
-                        }`}></span>
+                        }`}>
+                    </span>
                 </ContextAwareToggle>
             </div>
             <Accordion.Collapse {...{ eventKey }}>

@@ -8,8 +8,8 @@ import graph from './data/alluvial_data.json';
  * @returns {Object} Sankey object
  */
 export function sankeyFunc() {
-    let sankey = {},
-        nodeWidth = 24, // Default width of node blocks
+    const sankey = {};
+    let nodeWidth = 24, // Default width of node blocks
         nodePadding = 8, // Default padding between nodes
         size = [1, 1], // Default dimensions of svg
         nodes = [], // Default list of node objects
@@ -214,9 +214,7 @@ export function sankeyFunc() {
     function computeNodeDepths(iterations) {
         var nodesByBreadth = d3
             .groups(nodes, (d) => d.x)
-            .sort((a, b) => {
-                return d3.ascending(a[0], b[0]);
-            })
+            .sort((a, b) => d3.ascending(a[0], b[0]))
             .map(function (d) {
                 return d[1];
             });
@@ -295,11 +293,8 @@ export function sankeyFunc() {
 
         function resolveCollisions() {
             nodesByBreadth.forEach(function (nodes) {
-                let node,
-                    dy,
-                    y0 = 0,
-                    n = nodes.length,
-                    i;
+                let node, dy, y0 = 0, i;
+                const n = nodes.length;
 
                 // Push any overlapping nodes down.
                 // Sort data_generator type nodes alphabetically
@@ -365,8 +360,8 @@ export function sankeyFunc() {
 
         function descendingDepthCategorical(a, b) {
             const legendKeys = Object.keys(graph.colors.assay_group);
-            let a_color_index = legendKeys.indexOf(a.assay_group);
-            let b_color_index = legendKeys.indexOf(b.assay_group);
+            const a_color_index = legendKeys.indexOf(a.assay_group);
+            const b_color_index = legendKeys.indexOf(b.assay_group);
 
             return a_color_index - b_color_index;
         }

@@ -28,7 +28,8 @@ const TimelineItem = ({
             key={itemKey}>
             <div
                 className="timeline-marker"
-                onClick={() => setCurrentTier(itemKey)}></div>
+                onClick={() => setCurrentTier(itemKey)}>
+            </div>
             <div className="timeline-item-header">
                 <h3 className="text-start">
                     {title}&nbsp;
@@ -45,23 +46,21 @@ const TimelineItem = ({
             <div className="timeline-content">
                 <TimelineAccordion
                     defaultActiveKey={itemKey === 0 ? ['1'] : ['0']}>
-                    {categories.map((category, j) => {
-                        return (
-                            <TimelineAccordionDrawer
-                                eventKey={(j + 1).toString()}
-                                title={category.title}
-                                tier={itemKey}
-                                currentTier={currentTier}
-                                setCurrentTier={() => setCurrentTier(itemKey)}
-                                values={category.figures}
-                                link={category.link}
-                                categoryKey={j}
-                                key={j}
-                                isError={isError}
-                                loadData={loadData}
-                            />
-                        );
-                    })}
+                    {categories.map((category, j) => (
+                        <TimelineAccordionDrawer
+                            eventKey={(j + 1).toString()}
+                            title={category.title}
+                            tier={itemKey}
+                            currentTier={currentTier}
+                            setCurrentTier={() => setCurrentTier(itemKey)}
+                            values={category.figures}
+                            link={category.link}
+                            categoryKey={j}
+                            key={j}
+                            isError={isError}
+                            loadData={loadData}
+                        />
+                    ))}
                 </TimelineAccordion>
             </div>
         </div>
@@ -177,39 +176,33 @@ function TimelineAccordionDrawer(props) {
     );
 }
 
-const TimelineCardContent = ({ values, isError }) => {
-    return (
-        <>
-            {values.map(({ value = null, unit }, i) => {
-                return (
-                    <div className="number-group" key={i}>
-                        {isError ? (
-                            <i
-                                className="icon icon-exclamation-circle fas text-warning"
-                                data-tip="Error: something went wrong while fetching statistics"
-                            />
-                        ) : (
-                            <>
-                                <h4>
-                                    {value === null ? (
-                                        <i className="icon icon-spin icon-circle-notch fas" />
-                                    ) : (
-                                        value || '-'
-                                    )}
-                                </h4>
-                            </>
-                        )}
-                        <div>
-                            {unit.split(' ').map((line, j) => {
-                                return <span key={j}>{line}</span>;
-                            })}
-                        </div>
-                    </div>
-                );
-            })}
-        </>
-    );
-};
+const TimelineCardContent = ({ values, isError }) => (
+    <>
+        {values.map(({ value = null, unit }, i) => (
+            <div className="number-group" key={i}>
+                {isError ? (
+                    <i
+                        className="icon icon-exclamation-circle fas text-warning"
+                        data-tip="Error: something went wrong while fetching statistics"
+                    />
+                ) : (
+                    <>
+                        <h4>
+                            {value === null ? (
+                                <i className="icon icon-spin icon-circle-notch fas" />
+                            ) : (
+                                value || '-'
+                            )}
+                        </h4>
+                    </>
+                )}
+                <div>
+                    {unit.split(' ').map((line, j) => <span key={j}>{line}</span>)}
+                </div>
+            </div>
+        ))}
+    </>
+);
 
 /**
  * Create empty data to render template before data loads
@@ -322,19 +315,17 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                     )}
                 </span>
 
-                {data.timeline_content.map((d, i) => {
-                    return (
-                        <TimelineItem
-                            currentTier={currentTier}
-                            setCurrentTier={setCurrentTier}
-                            data={d}
-                            itemKey={i}
-                            key={i}
-                            isError={isError}
-                            loadData={loadData}
-                        />
-                    );
-                })}
+                {data.timeline_content.map((d, i) => (
+                    <TimelineItem
+                        currentTier={currentTier}
+                        setCurrentTier={setCurrentTier}
+                        data={d}
+                        itemKey={i}
+                        key={i}
+                        isError={isError}
+                        loadData={loadData}
+                    />
+                ))}
             </div>
         </div>
     );

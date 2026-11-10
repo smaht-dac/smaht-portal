@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const VcfAnalysisOverview = ({ context }) => {
-    let {
+    const {
         comparator_description = '',
         software = [],
         external_databases = [],
@@ -42,29 +42,29 @@ export const VcfAnalysisOverview = ({ context }) => {
                         <div className="datum-value">
                             {software.length > 0
                                 ? software.map(
-                                      ({ title = '', version = '' }, i) => {
-                                          // Add a "v" to number if not present
-                                          const version_string =
+                                    ({ title = '', version = '' }, i) => {
+                                        // Add a "v" to number if not present
+                                        const version_string =
                                               version[0] === 'v'
                                                   ? version
                                                   : 'v' + version;
 
-                                          return title && version ? (
-                                              <div
-                                                  className="software-group"
-                                                  key={i}>
-                                                  <div className="title">
-                                                      <span>{title}</span>
-                                                  </div>
-                                                  <div className="version">
-                                                      <span>
-                                                          {version_string}
-                                                      </span>
-                                                  </div>
-                                              </div>
-                                          ) : null;
-                                      }
-                                  )
+                                        return title && version ? (
+                                            <div
+                                                className="software-group"
+                                                key={i}>
+                                                <div className="title">
+                                                    <span>{title}</span>
+                                                </div>
+                                                <div className="version">
+                                                    <span>
+                                                        {version_string}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ) : null;
+                                    }
+                                )
                                 : 'N/A'}
                         </div>
                     </div>

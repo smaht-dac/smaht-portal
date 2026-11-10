@@ -62,8 +62,14 @@ redirect URI shows up as an Okta error page before the portal is ever reached;
 a missing sign-out URI makes logout fail at the Okta redirect (the portal
 session is still cleared first — see `OktaLogoutController`).
 
-The Okta org must mark the email claim as verified, or set
-`okta.require_email_verified = false` explicitly (see below).
+The source migration currently carries a temporary exception: the Okta ID-token
+path does not enforce `email_verified`, because this org was not returning that
+claim at extraction time. Signature, issuer, audience, expiry, required-claim,
+and usable-email checks remain enforced. The `okta.require_email_verified`
+setting is retained for the intended policy and must be restored in
+`encoded.okta.decode_okta_id_token` once the org reliably asserts the claim;
+until then, operators must treat the Okta tenant's email verification policy as
+an external prerequisite.
 
 ## Configuration
 
@@ -76,7 +82,7 @@ Secrets Manager or process-environment lookup at runtime.
 | `okta.issuer` | `${OKTA_ISSUER}` | `ENCODED_OKTA_ISSUER` | yes | `https://…`, **no** trailing slash |
 | `okta.client` | `${OKTA_CLIENT}` | `ENCODED_OKTA_CLIENT` | yes | public SPA client ID |
 | `okta.scopes` | `${OKTA_SCOPES}` | `ENCODED_OKTA_SCOPES` | no | default `openid email profile`; must include `openid` and `email` |
-| `okta.require_email_verified` | `${OKTA_REQUIRE_EMAIL_VERIFIED}` | `ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` | no | default `true` |
+| `okta.require_email_verified` | `${OKTA_REQUIRE_EMAIL_VERIFIED}` | `ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` | no | intended default `true`; temporarily not enforced (see exception above) |
 | `okta.jwks_uri` | — | — | no | overrides OIDC discovery; must be an absolute HTTPS URL, as must discovery's `jwks_uri` |
 
 There is deliberately **no** Okta client secret: the browser is a public client
@@ -95,15 +101,17 @@ okta.scopes = openid email profile
 `deploy/docker/production/smaht_any_alpha.ini` carries the four `${OKTA_*}`
 placeholders above. Every production entrypoint runs `python -m assume_identity`
 exactly once before serving, which reads the AWS Secrets Manager identity named
-by `IDENTITY` and expands the template into `production.ini`. `dcicutils`
-8.19.0.1b1 is the first release that binds these four substitutions, hence the
-exact pin in `pyproject.toml`.
+by `IDENTITY` and expands the template into `production.ini`. Released
+`dcicutils` does not bind these four substitutions, so the portal's
+`SMAHTDockerIniFileManager` (`deploy/docker/production/assume_identity.py`)
+supplies them; no `dcicutils` beta pin is needed.
 
-`ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` is the one with a subtlety: `dcicutils`
-expands it to `true`/`false` only when the identity actually supplies a boolean,
-and to the empty string otherwise. An empty expansion makes `dcicutils` drop the
-whole `okta.require_email_verified = …` line from the generated `production.ini`,
-so the portal falls back to its own default of requiring a verified email. An
+`ENCODED_OKTA_REQUIRE_EMAIL_VERIFIED` is the one with a subtlety: the startup
+bridge expands it to `true`/`false` only when the identity actually supplies a
+boolean (`true`/`t`/`false`/`f`, any case), and to the empty string otherwise.
+An empty expansion makes `dcicutils` drop the whole
+`okta.require_email_verified = …` line from the generated `production.ini`, so
+the portal keeps its secure default for when the check is re-enabled. An
 absent, blank, or unparseable value therefore cannot turn the check off.
 
 With `okta.issuer` or `okta.client` absent, Okta is simply "not configured":

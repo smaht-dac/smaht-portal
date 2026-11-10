@@ -19,6 +19,7 @@ import ErrorPage from './static-pages/ErrorPage';
 import { NavigationBar } from './navigation/NavigationBar';
 import { NotLoggedInAlert } from './navigation/components/LoginNavItem';
 import { OKTA_CALLBACK_PATH } from './auth/oktaConfig';
+import { buildContentSecurityPolicy } from './contentSecurityPolicy';
 import { Footer } from './Footer';
 import { store, batchDispatch } from './../store';
 
@@ -1452,22 +1453,7 @@ export default class App extends React.PureComponent {
             analyticsID &&
             'https://www.googletagmanager.com/gtag/js?id=' + analyticsID;
 
-        const contentSecurityPolicyStr = [
-            "default-src 'self'",
-            "img-src 'self' https://* https://i.ytimg.com data:",
-            'child-src blob:',
-            // Allowing unsafe-eval temporarily re: 'box-intersect' dependency of some HiGlass tracks.
-            'frame-src https://www.google.com/recaptcha/ https://www.youtube.com',
-            "script-src 'self' www.google-analytics.com www.googletagmanager.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com  https://unpkg.com",
-            "font-src 'self' https://fonts.gstatic.com",
-            "worker-src 'self' blob:",
-            // Okta is reached directly by the browser: the PKCE token exchange,
-            // token revocation on logout, and the issuer's JWKS/discovery
-            // documents are all fetch()es from this page. Without these the
-            // login flow fails only on a deployed origin, never locally.
-            "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com https://*.okta.com https://*.oktapreview.com  https://login-test.srce.hms.harvard.edu",
-        ].join('; ');
+        const contentSecurityPolicyStr = buildContentSecurityPolicy();
         // In future consider adding: object-src 'none'; require-trusted-types-for 'script';
         // (from google csp eval -- Will says what we have is fine for now, though)
 
@@ -1504,10 +1490,10 @@ export default class App extends React.PureComponent {
                             mounted
                                 ? null
                                 : {
-                                      __html: jsonScriptEscape(
-                                          JSON.stringify(JWT.getUserInfo())
-                                      ) /* Kept up-to-date in browser.js */,
-                                  }
+                                    __html: jsonScriptEscape(
+                                        JSON.stringify(JWT.getUserInfo())
+                                    ) /* Kept up-to-date in browser.js */,
+                                }
                         }
                     />
                     <script
@@ -1568,7 +1554,6 @@ export default class App extends React.PureComponent {
                             '/static/build/bundle.js?build=' +
                             (lastBuildTime || 0)
                         }
-                        charSet="utf-8"
                     />
                     <link rel="canonical" href={canonical} />
                     {/* <script data-prop-name="inline" type="application/javascript" charSet="utf-8" dangerouslySetInnerHTML={{__html: this.props.inline}}/> <-- SAVED FOR REFERENCE */}
@@ -2367,10 +2352,10 @@ class BodyElement extends React.PureComponent {
                         mounted
                             ? null
                             : {
-                                  __html: jsonScriptEscape(
-                                      JSON.stringify(context)
-                                  ),
-                              }
+                                __html: jsonScriptEscape(
+                                    JSON.stringify(context)
+                                ),
+                            }
                     }
                 />
                 <script
@@ -2380,10 +2365,10 @@ class BodyElement extends React.PureComponent {
                         mounted
                             ? null
                             : {
-                                  __html: jsonScriptEscape(
-                                      JSON.stringify(alerts)
-                                  ),
-                              }
+                                __html: jsonScriptEscape(
+                                    JSON.stringify(alerts)
+                                ),
+                            }
                     }
                 />
 

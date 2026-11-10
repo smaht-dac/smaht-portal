@@ -93,23 +93,21 @@ const FileViewTitle = (props) => {
         <div className="view-title container-wide">
             <nav className="view-title-navigation">
                 <ul className="breadcrumb-list">
-                    {breadcrumbs.map(({ display_title, href }, i, arr) => {
-                        return (
-                            <li className="breadcrumb-list-item" key={i}>
-                                <a
-                                    className={
-                                        'breadcrumb-list-item-link link-underline-hover' +
-                                        (href ? '' : ' no-link')
-                                    }
-                                    href={href}>
-                                    {display_title}
-                                </a>
-                                {i < arr.length - 1 ? (
-                                    <i className="icon icon-fw icon-angle-right fas"></i>
-                                ) : null}
-                            </li>
-                        );
-                    })}
+                    {breadcrumbs.map(({ display_title, href }, i, arr) => (
+                        <li className="breadcrumb-list-item" key={i}>
+                            <a
+                                className={
+                                    'breadcrumb-list-item-link link-underline-hover' +
+                                    (href ? '' : ' no-link')
+                                }
+                                href={href}>
+                                {display_title}
+                            </a>
+                            {i < arr.length - 1 ? (
+                                <i className="icon icon-fw icon-angle-right fas"></i>
+                            ) : null}
+                        </li>
+                    ))}
                 </ul>
             </nav>
             <h1 className="view-title-text">{context?.display_title}</h1>
@@ -138,7 +136,7 @@ const FileViewHeader = (props) => {
     let retractedWarningMessage = '';
     if (!accessionsOfInterest.includes(accession) && status === 'retracted') {
         const title = release_tracker_title
-            ? ' ' + `from ${release_tracker_title}`
+            ? ` from ${release_tracker_title}`
             : '';
         const description =
             release_tracker_description ||
@@ -204,6 +202,7 @@ const FileViewHeader = (props) => {
                                 : renderProtectedAccessPopover()
                         }>
                         <button
+                            type="button"
                             className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto "
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
@@ -221,7 +220,7 @@ const FileViewHeader = (props) => {
                         {retractedWarningMessage}
                     </p>
                 </div>
-            ) : null}
+                ) : null}
 
             {accessionsOfInterest.includes(accession) ? (
                 <div className="callout warning mt-2 mb-1">

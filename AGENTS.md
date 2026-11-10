@@ -212,8 +212,8 @@ Two sharp edges that are easy to undo by accident:
 from nowhere else - no Secrets Manager or environment lookup at runtime. In a
 container they reach `production.ini` through the four `${OKTA_*}` placeholders
 in `deploy/docker/production/smaht_any_alpha.ini`, expanded once per boot by
-`python -m assume_identity`. That is why `dcicutils` is pinned exactly (not
-caret-ranged) to `8.19.0.1b1`, the release that binds those substitutions.
+`python -m assume_identity`, whose `SMAHTDockerIniFileManager` binds those
+substitutions because released `dcicutils` does not.
 `OKTA_REQUIRE_EMAIL_VERIFIED` expands to the empty string for anything that is
 not a boolean, which drops the assignment line entirely so the portal's secure
 default (require a verified email) holds - do not "fix" that by adding an
@@ -223,7 +223,7 @@ Okta settings, the Okta app registration (redirect + sign-out URIs per origin),
 the CSP allowance, and the reason `react-router-dom` is installed are all in
 `docs/operations/okta_authentication.md`. Tests: `src/encoded/tests/test_okta.py`,
 `src/encoded/tests/test_authentication.py`,
-`deploy/docker/production/tests/test_container_contracts.py` (the pin plus the
+`deploy/docker/production/tests/test_container_contracts.py` (the
 template rendering/omission contract), and
 `src/encoded/static/components/__tests__/oktaAuth.test.js` (Jest here has no
 config and no jsdom - follow the existing `jest.mock` + `renderToStaticMarkup`

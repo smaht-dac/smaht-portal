@@ -44,27 +44,25 @@ const formatData = (node_list, link_list) => {
     };
 };
 
-const AlluvialPlotHeader = ({ legendRef }) => {
-    return (
-        <div className="alluvial-header">
-            <div className="header-items d-flex justify-content-between">
-                <span>GCC/TTD</span>
-                <span>Sequencing Platform</span>
-                <span>Assay Type</span>
-                <span>Molecular Features</span>
-            </div>
-            <ShowHideInformationToggle
-                useToggle={true}
-                defaultShow={true}
-                expandedText="Hide Category Legend"
-                collapsedText="Show Category Legend"
-                expandedIcon="minus"
-                collapsedIcon="plus">
-                <div ref={legendRef}></div>
-            </ShowHideInformationToggle>
+const AlluvialPlotHeader = ({ legendRef }) => (
+    <div className="alluvial-header">
+        <div className="header-items d-flex justify-content-between">
+            <span>GCC/TTD</span>
+            <span>Sequencing Platform</span>
+            <span>Assay Type</span>
+            <span>Molecular Features</span>
         </div>
-    );
-};
+        <ShowHideInformationToggle
+            useToggle={true}
+            defaultShow={true}
+            expandedText="Hide Category Legend"
+            collapsedText="Show Category Legend"
+            expandedIcon="minus"
+            collapsedIcon="plus">
+            <div ref={legendRef}></div>
+        </ShowHideInformationToggle>
+    </div>
+);
 
 /**
  * The Alluvial component renders a visualization of the distribution of
@@ -352,7 +350,7 @@ export const Alluvial = () => {
              */
             const highlight = (e, d) => {
                 switch (d.type) {
-                    case 'data_generator':
+                    case 'data_generator': {
                         // Highlight links sources from this data_generator
                         d3.selectAll(`.link[data-source='${d.name}']`).attr(
                             'class',
@@ -371,6 +369,7 @@ export const Alluvial = () => {
                             });
                         }
                         break;
+                    }
                     case 'sequencing_platform':
                         d3.selectAll(`.link[data-source='${d.name}']`).attr(
                             'class',
@@ -440,9 +439,7 @@ export const Alluvial = () => {
                 .enter()
                 .append('g')
                 .attr('class', 'node')
-                .attr('category', (d) => {
-                    return d?.category ?? '';
-                })
+                .attr('category', (d) => d?.category ?? '')
                 .attr('id', (d) => d.name)
                 .attr('transform', function (d) {
                     return 'translate(' + d.x + ',' + d.y + ')';
@@ -458,7 +455,9 @@ export const Alluvial = () => {
                         .on('start', function (event, d) {
                             // When the element is dragged, use d3.pointer
                             // to correct the position
+                            // eslint-disable-next-line no-invalid-this -- d3-drag binds this to the dragged node.
                             d.oldy = d3.pointer(event, this)[1];
+                            // eslint-disable-next-line no-invalid-this -- d3-drag binds this to the dragged node.
                             d3.select(this)
                                 .attr('transform', (d) => {
                                     d.drag_event_start = event.y;
@@ -535,10 +534,12 @@ export const Alluvial = () => {
                 });
 
             // the function for moving the nodes
-            function dragmove(event, d) {
+            const dragmove = function (event, d) {
                 if (event.y > 0 && event.y < height) {
+                    // eslint-disable-next-line no-invalid-this -- d3-drag binds this to the dragged node.
                     const delta = d.oldy - d3.pointer(event, this)[1];
 
+                    // eslint-disable-next-line no-invalid-this -- d3-drag binds this to the dragged node.
                     d3.select(this).attr(
                         'transform',
                         'translate(' + d.x + ',' + (d.y -= delta) + ')'
@@ -546,7 +547,7 @@ export const Alluvial = () => {
                     sankey.relayout();
                     link.attr('d', sankey.link());
                 }
-            }
+            };
         }
 
         return () => {

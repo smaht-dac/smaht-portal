@@ -72,12 +72,12 @@ export const AccountNav = React.memo(function AccountNav(props) {
         (acctIcon && acctIcon.type === 'img' ? ' has-image' : '');
 
     // Use initials when provided
-    let accountTitle =
+    const accountTitle =
         first_name && last_name
             ? (first_name + ' ' + last_name)
-                  .split(' ')
-                  .map((s) => s[0].toUpperCase())
-                  .join('')
+                .split(' ')
+                .map((s) => s[0].toUpperCase())
+                .join('')
             : 'Account';
 
     const navItemTitle = (

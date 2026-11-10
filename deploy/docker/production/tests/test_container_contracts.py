@@ -13,7 +13,6 @@ import yaml
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 OKTA_TEMPLATE = "deploy/docker/production/smaht_any_alpha.ini"
-REQUIRED_DCICUTILS_VERSION = "8.19.0.1b1"
 
 
 def _read(rel):
@@ -77,13 +76,14 @@ def _render_template(**okta_env):
     """Render the production.ini output contract using the startup consumer."""
     import io
 
-    from dcicutils.deployment_utils import BasicOrchestratedSMAHTIniFileManager
     from dcicutils.env_utils import EnvUtils
     from dcicutils.misc_utils import override_environ
 
+    from deploy.docker.production.assume_identity import SMAHTDockerIniFileManager
+
     EnvUtils.set_declared_data(EnvUtils.SAMPLE_TEMPLATE_FOR_CGAP_TESTING)
 
-    class _Manager(BasicOrchestratedSMAHTIniFileManager):
+    class _Manager(SMAHTDockerIniFileManager):
         TEMPLATE_DIR = os.path.join(REPO, "deploy", "ini_files")
         PYPROJECT_FILE_NAME = os.path.join(REPO, "pyproject.toml")
 
@@ -141,18 +141,28 @@ def test_unconfigured_okta_renders_no_okta_settings():
 
 
 @pytest.mark.unit
-def test_dcicutils_is_pinned_to_the_exact_beta():
-    pyproject = tomllib.loads(_read("pyproject.toml"))
-    assert pyproject["tool"]["poetry"]["dependencies"]["dcicutils"] == REQUIRED_DCICUTILS_VERSION
+def test_dcicutils_resolves_to_a_released_version():
+    """The Okta bindings live in the portal, so dcicutils needs no beta pin."""
     lock = tomllib.loads(_read("poetry.lock"))
     versions = [package["version"] for package in lock["package"] if package["name"] == "dcicutils"]
-    assert versions == [REQUIRED_DCICUTILS_VERSION]
+    assert len(versions) == 1
+    assert re.fullmatch(r"\d+\.\d+\.\d+", versions[0]), versions
 
 
 @pytest.mark.unit
-def test_installed_dcicutils_supports_the_okta_substitutions():
-    from dcicutils.deployment_utils import IniFileManager
+@pytest.mark.parametrize("supplied,expected", [
+    (True, "true"), (False, "false"), ("true", "true"), ("F", "false"),
+    (None, ""), ("", ""), ("maybe", ""), ("yes", ""), ("1", ""),
+])
+def test_startup_bridge_normalizes_require_email_verified(supplied, expected):
+    from deploy.docker.production.assume_identity import SMAHTDockerIniFileManager
 
-    assert IniFileManager.okta_require_email_verified_setting("true") == "true"
-    assert IniFileManager.okta_require_email_verified_setting("false") == "false"
-    assert IniFileManager.okta_require_email_verified_setting("nonsense") == ""
+    assert SMAHTDockerIniFileManager.okta_require_email_verified_setting(supplied) == expected
+
+
+@pytest.mark.unit
+def test_startup_bridge_ignores_a_stray_unprefixed_okta_variable(monkeypatch):
+    """Only the identity's ENCODED_OKTA_* values reach production.ini."""
+    monkeypatch.setenv("OKTA_REQUIRE_EMAIL_VERIFIED", "false")
+    rendered = _render_template()
+    assert "okta.require_email_verified" not in rendered

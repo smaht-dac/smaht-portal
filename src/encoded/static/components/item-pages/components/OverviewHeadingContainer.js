@@ -123,12 +123,12 @@ export class OverviewHeadingContainer extends React.Component {
             { open } = this.state,
             titleProps = title &&
                 titleElement && {
-                    className:
+                className:
                         'tab-section-title clickable with-accent' +
                         (titleClassName ? ' ' + titleClassName : ''),
-                    onClick: this.toggle,
-                    'data-tip': titleTip,
-                };
+                onClick: this.toggle,
+                'data-tip': titleTip,
+            };
 
         return (
             <div
@@ -139,10 +139,10 @@ export class OverviewHeadingContainer extends React.Component {
                 }>
                 {title && titleElement
                     ? React.createElement(
-                          titleElement,
-                          titleProps,
-                          this.renderTitle()
-                      )
+                        titleElement,
+                        titleProps,
+                        this.renderTitle()
+                    )
                     : null}
                 <Collapse
                     in={open}

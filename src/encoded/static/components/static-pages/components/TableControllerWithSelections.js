@@ -46,19 +46,15 @@ export const TableControllerWithSelections = (props) => {
     }
 
     // Inject necessary props
-    const renderChildren = () => {
-        return React.Children.map(props.children, (child) => {
-            return React.cloneElement(child, {
-                session,
-                searchHref,
-                schemas,
-                href,
-                context,
-                facets,
-                tabMap,
-            });
-        });
-    };
+    const renderChildren = () => React.Children.map(props.children, (child) => React.cloneElement(child, {
+        session,
+        searchHref,
+        schemas,
+        href,
+        context,
+        facets,
+        tabMap,
+    }));
 
     return (
         <SelectedItemsController
@@ -81,17 +77,13 @@ export const BrowseViewControllerWithSelections = (props) => {
     );
 
     // Inject necessary props
-    const renderChildren = () => {
-        return React.Children.map(props.children, (child) => {
-            return React.cloneElement(child, {
-                session,
-                schemas,
-                href,
-                context,
-                facets,
-            });
-        });
-    };
+    const renderChildren = () => React.Children.map(props.children, (child) => React.cloneElement(child, {
+        session,
+        schemas,
+        href,
+        context,
+        facets,
+    }));
 
     return (
         <SelectedItemsController

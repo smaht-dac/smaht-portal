@@ -132,12 +132,15 @@ function FileTableWithSelectedFilesCheckboxes(props) {
 
     const { columnExtensionMap, columns, hideFacets } = useMemo(
         function () {
-            let { columnExtensionMap, columns, hideFacets } =
-                createBrowseFileColumnExtensionMap(selectedFileProps);
-            columnExtensionMap = _.extend(
+            const {
+                columnExtensionMap: originalColumnExtensionMap,
+                columns,
+                hideFacets,
+            } = createBrowseFileColumnExtensionMap(selectedFileProps);
+            const columnExtensionMap = _.extend(
                 {},
                 propColumnExtensionMap,
-                columnExtensionMap
+                originalColumnExtensionMap
             );
             return { columnExtensionMap, columns, hideFacets };
         },
