@@ -40,16 +40,16 @@ class AnalysisRunFilterComponent extends React.PureComponent {
             '&tags=tissue_type',
             200,
             (items) => {
-                const tissue_items = items.map((item) => ({
+                const tissue_items = items.map((item) => {return {
                     title: item.display_title,
                     code: item.display_title,
-                }));
+                };});
                 this.setState({
                     tissues: tissue_items,
                 });
             }
         );
-        
+
     };
 
     getDonors = () => {
@@ -73,9 +73,9 @@ class AnalysisRunFilterComponent extends React.PureComponent {
         const filter = JSON.parse(JSON.stringify(this.state.filter));
         filter[filterName] = selection;
         this.props.setFilter(filterName, selection);
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             filter: filter,
-        }));
+        };});
     };
 
     getDonorSelect() {
@@ -83,9 +83,9 @@ class AnalysisRunFilterComponent extends React.PureComponent {
             return DEFAULT_SELECT;
         }
 
-        const options = [<option value="all">All</option>];
+        const options = [<option key="all" value="all">All</option>];
         this.state.donors.forEach((d) => {
-            options.push(<option value={d.title}>{d.title}</option>);
+            options.push(<option key={d.title} value={d.title}>{d.title}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'donor';
@@ -97,9 +97,9 @@ class AnalysisRunFilterComponent extends React.PureComponent {
             return DEFAULT_SELECT;
         }
 
-        const options = [<option value="all">All</option>];
+        const options = [<option key="all" value="all">All</option>];
         this.state.tissues.forEach((sc) => {
-            options.push(<option value={sc.code}>{sc.code}</option>);
+            options.push(<option key={sc.code} value={sc.code}>{sc.code}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'tissue';
@@ -111,9 +111,9 @@ class AnalysisRunFilterComponent extends React.PureComponent {
             return DEFAULT_SELECT;
         }
 
-        const options = [<option value="all">All</option>];
+        const options = [<option key="all" value="all">All</option>];
         this.state.analysisTypes.forEach((sc) => {
-            options.push(<option value={sc.code}>{sc.code}</option>);
+            options.push(<option key={sc.code} value={sc.code}>{sc.code}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'analysis_type';
@@ -131,21 +131,20 @@ class AnalysisRunFilterComponent extends React.PureComponent {
         this.setFilter(type, tags);
     };
 
-    getTagFilter = (type) => {
-        return ANALYSIS_RUN_TAGS.map((tag) => {
-            const badgeType = this.state.filter[type].includes(tag)
-                ? 'info'
-                : 'lighter';
-            const cn = 'badge clickable me-1 bg-' + badgeType;
-            return (
-                <div
-                    className={cn}
-                    onClick={() => this.toggleTagFilter(type, tag)}>
-                    {tag}
-                </div>
-            );
-        });
-    };
+    getTagFilter = (type) => ANALYSIS_RUN_TAGS.map((tag) => {
+        const badgeType = this.state.filter[type].includes(tag)
+            ? 'info'
+            : 'lighter';
+        const cn = 'badge clickable me-1 bg-' + badgeType;
+        return (
+            <div
+                key={tag}
+                className={cn}
+                onClick={() => this.toggleTagFilter(type, tag)}>
+                {tag}
+            </div>
+        );
+    });
 
     render() {
         return (

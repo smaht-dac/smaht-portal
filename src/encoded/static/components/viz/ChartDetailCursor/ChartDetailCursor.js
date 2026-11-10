@@ -124,7 +124,7 @@ class Body extends React.PureComponent {
                         baseParams[p.field] = getRecordedTerms(p.field, p.term);
                     }
                 });
-                const last = props?.path?.at?.(-1) ?? cursorProps?.path?.[cursorProps.path.length - 1];
+                const last = props.path[props.path.length - 1];
                 baseParams['donors.external_id'] = last?.all_donor_ids ?? [];
                 const browseBaseHref = navigate.getBrowseBaseHref(baseParams, 'all');
 
@@ -185,7 +185,7 @@ class Body extends React.PureComponent {
                     <span className="col-7">
                         <small>
                             {
-                                includeTitleDescendentPrefix && props.path.length > 1 ?
+                                includeTitleDescendentPrefix && path.length > 1 ?
                                     <small className="descendent-prefix"> &gt; </small> : null
                             }{leafNodeFieldTitle}
                         </small>

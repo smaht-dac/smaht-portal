@@ -17,7 +17,7 @@ export const SampleContaminationDataTable = ({ data }) => {
         const sample_a_link = '/' + d.sample_a;
         result['Sample A'] = (
             <>
-                <a href={sample_a_link} target="_blank">
+                <a href={sample_a_link} target="_blank" rel="noreferrer">
                     {d.sample_a}
                 </a>{' '}
                 (Status: <span className={highlightedSampleAClass}>{d.sample_a_status}</span>)
@@ -26,7 +26,7 @@ export const SampleContaminationDataTable = ({ data }) => {
         const sample_b_link = '/' + d.sample_b;
         result['Sample B'] = (
             <>
-                <a href={sample_b_link} target="_blank">
+                <a href={sample_b_link} target="_blank" rel="noreferrer">
                     {d.sample_b}
                 </a>{' '}
                 (Status: <span className={highlightedSampleBClass}>{d.sample_b_status}</span>)
@@ -49,13 +49,15 @@ export const SampleContaminationDataTable = ({ data }) => {
             IBS0{' '}
             <i
                 className="icon icon-fw fas icon-info-circle ml-1 text-muted"
-                data-tip="The number of sites where one sample is hom-ref and another is hom-alt"></i>
+                data-tip="The number of sites where one sample is hom-ref and another is hom-alt">
+            </i>
         </th>,
         <th key="ibs2">
             IBS2{' '}
             <i
                 className="icon icon-fw fas icon-info-circle ml-1 text-muted"
-                data-tip="The number of sites where the samples have the same genotype"></i>
+                data-tip="The number of sites where the samples have the same genotype">
+            </i>
         </th>,
     ];
 
@@ -76,15 +78,13 @@ export const SampleContaminationDataTable = ({ data }) => {
                         <tr>{tableHeader}</tr>
                     </thead>
                     <tbody>
-                        {tableBodyData.map((row, rowIndex) => {
-                            return (
-                                <tr key={rowIndex}>
-                                    {tableHeaderValues.map((col) => (
-                                        <td key={col}>{row[col]}</td>
-                                    ))}
-                                </tr>
-                            );
-                        })}
+                        {tableBodyData.map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                                {tableHeaderValues.map((col) => (
+                                    <td key={col}>{row[col]}</td>
+                                ))}
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

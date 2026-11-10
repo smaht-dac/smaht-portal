@@ -35,6 +35,7 @@ import ProtectedDonorView from './item-pages/ProtectedDonorView';
 import TissueView from './item-pages/TissueView';
 import TissueTypeView from './browse/TissueTypeView';
 import PublicationView from './item-pages/PublicationView';
+import OktaLoginCallbackView from './auth/OktaLoginCallbackView';
 
 /**
  * These content_view.register actions occur in this index.js as otherwise
@@ -61,6 +62,8 @@ content_views.register(ProtectedDonorView, 'ProtectedDonor');
 content_views.register(TissueView, 'Tissue');
 content_views.register(TissueTypeView, 'Tissue-Overview');
 content_views.register(PublicationView, 'Publication');
+// Okta redirect URI page - see encoded.okta.okta_login_callback_view.
+content_views.register(OktaLoginCallbackView, 'OktaLoginCallback');
 
 content_views.register(SMaHTSubmissionView, 'Item', 'edit');
 content_views.register(SMaHTSubmissionView, 'Item', 'create');

@@ -1,5 +1,8 @@
 
 
+// The JSX parser supplies these bindings from the render props.
+/* global schemas, session */
+
 <div key="someRandomKey">
     <h3>Basic Usage</h3>
     <p>
@@ -8,7 +11,7 @@
     </p>
 
     <ul>
-        <li key="0"><code>searchHref="/search/?type=Item..."</code> - This is the initial search URL, including URL query parameters, to search.</li>
+        <li key="0"><code>searchHref=&quot;/search/?type=Item...&quot;</code> - This is the initial search URL, including URL query parameters, to search.</li>
         <li key="1"><code>{'schemas={schemas}'}</code> - This should always be <code>{'schemas={schemas}'}</code>, it means to use/pass-in in-code variable <code>schemas</code>, which contains definitions for facets, columns, property titles, and so forth by Item Type.</li>
         <li key="1"><code>{'session={session}'}</code> - This should always be <code>{'session={session}'}</code>, it means to use/pass-in in-code variable <code>session</code>, which is a boolean informing whether end-user is logged in, change of which triggers results refresh.</li>
         <li key="2"><code>{'key="anyRandomTextString"'}</code> - This should always be set to any random string value, it tells React to avoid completely initiating a new instance of this component on extraneous changes, e.g. browser window width. This may be excluded if your component is within a parent/root JSX element that has a <code>key</code> prop, such as this static section.</li>
@@ -43,7 +46,7 @@
         By not supplying a value for <code>facets</code>, leaving it undefined, will instruct the code to use the default Facets that are defined in schemas
         for the current Item type being searched. In many cases, will want to use the default facets for the Item type, but perhaps <em>remove</em> a few
         of them, such as facet for <code>type</code> field. This can be accomplished using the optional <code>hideFacets</code> prop, which if not provided will default
-        to <code>["type", "validation_errors.name"]</code>. If you are defining the <code>searchHref</code> prop to (pre-)filter the results in some way aside from just <code>type</code>,
+        to <code>[&quot;type&quot;, &quot;validation_errors.name&quot;]</code>. If you are defining the <code>searchHref</code> prop to (pre-)filter the results in some way aside from just <code>type</code>,
         you would also want to hide the facet that allows people to remove/cancel that filtration. Code example and result is below.
     </p>
 
@@ -95,28 +98,28 @@
         ]}
     />
 
-<h4>Custom Columns</h4>
+    <h4>Custom Columns</h4>
 
-<pre className="border rounded px-3 py-2">{'<EmbeddedItemSearchTable\n    searchHref="/search/?type=File"\n    schemas={schemas}\n    session={session}\n    facets={null} // null hides FacetList explictly.\n    columns={{\n        "display_title": {\n            "title": "Title"\n        },\n        "lab.display_title": {\n            "title": "Lab"\n        },\n        "track_and_facet_info.experiment_type" : {\n            "title" : "Experiment Type",\n            "description" : "Type of experiment to which this file belongs"\n        }\n    }}\n/>'}</pre>
+    <pre className="border rounded px-3 py-2">{'<EmbeddedItemSearchTable\n    searchHref="/search/?type=File"\n    schemas={schemas}\n    session={session}\n    facets={null} // null hides FacetList explictly.\n    columns={{\n        "display_title": {\n            "title": "Title"\n        },\n        "lab.display_title": {\n            "title": "Lab"\n        },\n        "track_and_facet_info.experiment_type" : {\n            "title" : "Experiment Type",\n            "description" : "Type of experiment to which this file belongs"\n        }\n    }}\n/>'}</pre>
 
-<EmbeddedItemSearchTable
-    searchHref="/search/?type=File"
-    schemas={schemas}
-    session={session}
-    facets={null}
-    columns={{
-        "display_title": {
-            "title": "Title"
-        },
-        "lab.display_title": {
-            "title": "Lab"
-        },
-        "track_and_facet_info.experiment_type" : {
-            "title" : "Experiment Type",
-            "description" : "Type of experiment to which this file belongs"
-        }
-    }}
-/>
+    <EmbeddedItemSearchTable
+        searchHref="/search/?type=File"
+        schemas={schemas}
+        session={session}
+        facets={null}
+        columns={{
+            "display_title": {
+                "title": "Title"
+            },
+            "lab.display_title": {
+                "title": "Lab"
+            },
+            "track_and_facet_info.experiment_type" : {
+                "title" : "Experiment Type",
+                "description" : "Type of experiment to which this file belongs"
+            }
+        }}
+    />
 
 </div>
 

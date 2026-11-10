@@ -24,8 +24,8 @@ export const BigDropdownBigLink = (props) => {
     const hrefToUse = disabled
         ? 'javascript:void(0)'
         : userDownloadAccess?.['protected']
-        ? protectedHref || href
-        : href;
+            ? protectedHref || href
+            : href;
 
     if (!children) return null;
 

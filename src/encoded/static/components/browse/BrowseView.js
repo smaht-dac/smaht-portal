@@ -96,7 +96,7 @@ const isBaseBrowseParams = (type, filters) => {
     const DUMMY_URL = 'https://dummy.url';
     const baseBrowseFilters = [
         ...new URL(DUMMY_URL + BROWSE_LINKS[type]).searchParams,
-    ].map(([key, value]) => ({ field: key, term: value }));
+    ].map(([key, value]) => {return { field: key, term: value };});
 
     // Convert filter objects to sets of filters
     const setFiltersFromContext = contextFiltersToSetFilters(filters);
@@ -388,6 +388,7 @@ export const BrowseFileSearchTable = (props) => {
                         placement="top"
                         overlay={renderProtectedAccessPopover()}>
                         <button
+                            type="button"
                             className="download-button btn btn-primary btn-sm me-05 align-items-center"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
@@ -587,14 +588,12 @@ export function createBrowseFileColumnExtensionMap({
             hideTooltip: true,
             noSort: true,
             widthMap: { lg: 60, md: 60, sm: 60 },
-            render: (result, parentProps) => {
-                return (
-                    <SelectionItemCheckbox
-                        {...{ selectedItems, onSelectItem, result }}
-                        isMultiSelect={true}
-                    />
-                );
-            },
+            render: (result, parentProps) => (
+                <SelectionItemCheckbox
+                    {...{ selectedItems, onSelectItem, result }}
+                    isMultiSelect={true}
+                />
+            ),
         },
         // Access
         access_status: {
@@ -679,7 +678,7 @@ export function createBrowseFileColumnExtensionMap({
                             protected_donor?.['@id']
                                 ? protected_donor?.['@id']
                                 : donorLink
-                        }>
+                        } rel="noreferrer">
                         {display_title}
                     </a>
                 ) : null;

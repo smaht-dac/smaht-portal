@@ -32,29 +32,27 @@ export const DownloadAllFilesFromSearchHrefButton = ({
 }) => {
     const [selectedItems, setSelectedItems] = useState(new Map());
 
-    const loadFiles = (href) => {
-        return ajax.load(
-            href,
-            (resp) => {
-                const graph = resp['@graph'] || [];
-                const newMap = new Map();
-                graph.forEach((item) => {
-                    const atID = itemUtil.atId(item);
-                    newMap.set(atID, item);
-                });
-                setSelectedItems(newMap);
-            },
-            'GET',
-            (err) => {
-                Alerts.queue({
-                    title: 'Fetching files failed',
-                    message:
+    const loadFiles = (href) => ajax.load(
+        href,
+        (resp) => {
+            const graph = resp['@graph'] || [];
+            const newMap = new Map();
+            graph.forEach((item) => {
+                const atID = itemUtil.atId(item);
+                newMap.set(atID, item);
+            });
+            setSelectedItems(newMap);
+        },
+        'GET',
+        (err) => {
+            Alerts.queue({
+                title: 'Fetching files failed',
+                message:
                         'Check your internet connection or if you have been logged out due to expired session.',
-                    style: 'danger',
-                });
-            }
-        );
-    };
+                style: 'danger',
+            });
+        }
+    );
 
     useEffect(() => {
         // on first load, pull the list of items from search query, use it to populate our dummy selectedItems

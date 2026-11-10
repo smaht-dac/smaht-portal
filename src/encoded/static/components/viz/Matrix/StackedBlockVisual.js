@@ -669,16 +669,16 @@ export class VisualBody extends React.PureComponent {
         const blockSum = typeof blockProps?.computedBlockValue === 'number'
             ? blockProps.computedBlockValue
             : (Array.isArray(data)
-            ? (countField === 'donors'
-                ? (() => {
-                    const uniqueDonorCount = getUniqueDonorCountFromItems(data);
-                    if (uniqueDonorCount !== null) return uniqueDonorCount;
-                    return _.reduce(data, function (maxValue, item) {
-                        return Math.max(maxValue, getCountValueFromItem(item, countField));
-                    }, 0);
-                })()
-                : _.reduce(data, function (sum, item) { return sum + getCountValueFromItem(item, countField); }, 0))
-            : (data ? getCountValueFromItem(data, countField) : 0));
+                ? (countField === 'donors'
+                    ? (() => {
+                        const uniqueDonorCount = getUniqueDonorCountFromItems(data);
+                        if (uniqueDonorCount !== null) return uniqueDonorCount;
+                        return _.reduce(data, function (maxValue, item) {
+                            return Math.max(maxValue, getCountValueFromItem(item, countField));
+                        }, 0);
+                    })()
+                    : _.reduce(data, function (sum, item) { return sum + getCountValueFromItem(item, countField); }, 0))
+                : (data ? getCountValueFromItem(data, countField) : 0));
 
         // For total_coverage, we want to display the value with "X" and
         // use a different formatting logic. For other count types, we display the raw count with standard formatting.
@@ -1424,7 +1424,7 @@ export class StackedBlockVisual extends React.PureComponent {
         }
 
         const shouldSkipParsing = Array.isArray(skipParsingKeys) && skipParsingKeys.length > 0
-            ? _.object(_.map(skipParsingKeys, k => [k, true]))
+            ? _.object(_.map(skipParsingKeys, (k) => [k, true]))
             : null;
 
         const finalizeAggregatedValue = (value, key) => {
@@ -1434,7 +1434,7 @@ export class StackedBlockVisual extends React.PureComponent {
 
             // Convert Set to Array and remove falsy values
             const valuesArray = _.filter(Array.from(value));
-            const isObjectArray = _.any(valuesArray, v => v && typeof v === 'object');
+            const isObjectArray = _.any(valuesArray, (v) => v && typeof v === 'object');
 
             if (valuesArray.length === 0) {
                 return undefined;
@@ -2581,7 +2581,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     : null;
                                 const explicitOverrideFiles = typeof rawOverrideFiles === 'number' ? rawOverrideFiles : derivedCollapsedCellOverrides[k];
                                 const blockDataForRender = typeof explicitOverrideFiles === 'number'
-                                    ? (blockData || []).map((item, itemIdx) => ({
+                                    ? (blockData || []).map((item, itemIdx) => {return {
                                         ...item,
                                         counts: {
                                             ...(item?.counts || {}),
@@ -2591,7 +2591,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                             // row and zeroing the rest.
                                             files: itemIdx === 0 ? explicitOverrideFiles : 0
                                         }
-                                    }))
+                                    };})
                                     : blockData;
                                 return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockDataForRender} indexInGroup={i} rowIndex={props.index} colIndex={colIdx} blockType="regular" />;
                             }) }
@@ -3171,15 +3171,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             ? (props.overallCounts?.total_coverage ?? _.reduce(sectionRows, function(sum, item) {
                                 return sum + getCountValueFromItem(item, 'total_coverage');
                             }, 0))
-                        : summaryCountFor === 'tissue_files'
-                            ? (props.overallCounts?.files ?? overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
-                                return sum + (Number(item?.counts?.files) || 0);
-                            }, 0))
-                            : summaryCountFor === 'files'
-                                ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
+                            : summaryCountFor === 'tissue_files'
+                                ? (props.overallCounts?.files ?? overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
                                     return sum + (Number(item?.counts?.files) || 0);
                                 }, 0))
-                                : props.overallCounts?.[summaryCountFor];
+                                : summaryCountFor === 'files'
+                                    ? (overallFilesOverride ?? _.reduce(sectionRows, function (sum, item) {
+                                        return sum + (Number(item?.counts?.files) || 0);
+                                    }, 0))
+                                    : props.overallCounts?.[summaryCountFor];
                     if (overallValue == null) return null;
                     const overallHeaderItemStyle = StackedBlockGroupedRow.getHeaderItemStyleForKey('overall-summary', props);
                     const overallSummaryBlockStyle = getSummaryBlockStyle('overall-summary');

@@ -62,6 +62,7 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
             <div className="content">
                 <div className="header">
                     <button
+                        type="button"
                         className="toggle-button"
                         onClick={() => {
                             toggle();
@@ -69,7 +70,8 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                         <i
                             className={`icon icon-${
                                 isToggled ? 'minus' : 'plus'
-                            }`}></i>
+                            }`}>
+                        </i>
                     </button>
                     <a
                         className="header-link"
@@ -184,22 +186,20 @@ const formatReleaseData = (data = []) => {
 };
 
 // Alert for empty release tracker
-const EmptyReleaseTrackerAlert = () => {
-    return (
-        <div className="announcement-container public-release d-flex flex-column align-items-center border-0">
-            <i className="icon icon-folder-open fas"></i>
-            <h5 className="header text-center">
-                SMaHT Donor Data
-                <br />
-                Official Release: Coming Soon
-            </h5>
-            <div className="body">
-                The New Data Releases are available to SMaHT Network members at
-                this time. Open access benchmarking data are available now.
-            </div>
+const EmptyReleaseTrackerAlert = () => (
+    <div className="announcement-container public-release d-flex flex-column align-items-center border-0">
+        <i className="icon icon-folder-open fas"></i>
+        <h5 className="header text-center">
+            SMaHT Donor Data
+            <br />
+            Official Release: Coming Soon
+        </h5>
+        <div className="body">
+            The New Data Releases are available to SMaHT Network members at
+            this time. Open access benchmarking data are available now.
         </div>
-    );
-};
+    </div>
+);
 
 export const DataReleaseTracker = ({ session }) => {
     const [data, setData] = useState(null);
@@ -248,15 +248,13 @@ export const DataReleaseTracker = ({ session }) => {
                         ) : data.length === 0 ? (
                             <EmptyReleaseTrackerAlert />
                         ) : (
-                            data.map((releaseItem, i) => {
-                                return (
-                                    <DataReleaseItem
-                                        data={releaseItem}
-                                        key={releaseItem?.value ?? i}
-                                        releaseItemIndex={i}
-                                    />
-                                );
-                            })
+                            data.map((releaseItem, i) => (
+                                <DataReleaseItem
+                                    data={releaseItem}
+                                    key={releaseItem?.value ?? i}
+                                    releaseItemIndex={i}
+                                />
+                            ))
                         )}
                     </div>
                 </div>

@@ -93,10 +93,10 @@ export const EditingItemPageTitle = React.memo(function EditingItemPageTitle(
         currentAction === 'edit'
             ? object.itemUtil.getTitleStringFromContext(context) // on item view
             : currentAction === 'create'
-            ? schemaTransforms.getItemTypeTitle(context, schemas) // on item view
-            : currentAction === 'add'
-            ? schemaTransforms.getSchemaTypeFromSearchContext(context, schemas) // on search view
-            : schemaTransforms.getItemTypeTitle(context, schemas);
+                ? schemaTransforms.getItemTypeTitle(context, schemas) // on item view
+                : currentAction === 'add'
+                    ? schemaTransforms.getSchemaTypeFromSearchContext(context, schemas) // on search view
+                    : schemaTransforms.getItemTypeTitle(context, schemas);
     return (
         <PageTitleContainer {...{ alerts, alertsBelowTitleContainer }}>
             <TitleAndSubtitleBeside subtitle={subtitle}>
